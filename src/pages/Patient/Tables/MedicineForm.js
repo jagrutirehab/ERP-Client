@@ -161,7 +161,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                   <Col xs={2} className="">
                     <span className="font-semi-bold text-uppercase d-flex">
                       <span
-                        className={`me-2 ${medicine.medicine.isNew || medicine.medicine.type
+                        className={`me-2 ${medicine.medicine.isNew
                           ? "w-50"
                           : ""
                           }`}
@@ -221,7 +221,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                       </span>
                       {medicine.medicine?.name}
                       <span
-                        className={`ms-2 ${medicine.medicine.isNew || medicine.medicine.unit
+                        className={`ms-2 ${medicine.medicine.isNew
                           ? "w-50"
                           : ""
                           }`}
@@ -242,7 +242,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                               }}
                               required
                               name="unit"
-                              value={medicine.medicine?.unit}
+                              value={medicine.medicine?.unit || ""}
                               placeholder="Type or select an option"
                             />
                             <datalist id="unit-options">
@@ -275,7 +275,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                           //     <option key={idx + item}>{item}</option>
                           //   ))}
                           // </Input>
-                          medicine.medicine.unit
+                          null
                         )}{" "}
                         {/* medicine.medicine?.strength &&  */}
                         {medicine.medicine.isNew ? (

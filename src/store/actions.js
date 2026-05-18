@@ -202,6 +202,8 @@ export {
   updateRelativeVisit,
   addDischargeSummary,
   updateDischargeSummary,
+  addExpirySummary,
+  updateExpirySummary,
   addDetailAdmission,
   addGeneralDetailAdmission,
   updateDetailAdmission,

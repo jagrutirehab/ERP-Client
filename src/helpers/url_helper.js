@@ -134,6 +134,8 @@ export const POST_GENERAL_LAB_REPORT = "/chart/lab-report/general";
 export const EDIT_GENERAL_LAB_REPORT = "/chart/lab-report/general";
 export const DELETE_LAB_REPORT_FILE = "/chart/lab-report";
 export const GENERATE_LAB_SUMMARY = "/chart/generate/summary/lab-report"
+export const GET_AI_EXPIRY_SUMMARY = "/chart/expiry-summary/generate";
+export const VALIDATE_AI_EXPIRY_SUMMARY = "/chart/expiry-summary/validate";
 
 export const POST_CLINICAL_NOTE = "/chart/clinical-note";
 export const EDIT_CLINICAL_NOTE = "/chart/clinical-note";
@@ -151,6 +153,8 @@ export const POST_GENERAL_RELATIVE_VISIT = "/chart/relative-visit/general";
 export const EDIT_GENERAL_RELATIVE_VISIT = "/chart/relative-visit/general";
 export const POST_DISCHARGE_SUMMARY = "/chart/discharge-summary";
 export const EDIT_DISCHARGE_SUMMARY = "/chart/discharge-summary";
+export const POST_EXPIRY_SUMMARY = "/chart/expiry-summary";
+export const EDIT_EXPIRY_SUMMARY = "/chart/expiry-summary";
 export const POST_DETAIL_ADMISSION = "/chart/detail-admission";
 export const EDIT_DETAIL_ADMISSION = "/chart/detail-admission";
 export const POST_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
@@ -485,7 +489,7 @@ export const GET_OPD_PATIENT_DOCS = "/mi-reporting/get-opd-patient-docs";
 export const GET_DAILY_INVOICES = "/mi-reporting/get-daily-invoices";
 export const GET_COUNSLLING_SESSIONS = "/mi-reporting/get-counselling-sessions";
 export const GET_COUNSELLING_RECORDING = "/mi-reporting/get-counselling-recording";
-
+export const GET_DAILY_DASHBOARD = "/mi-reporting/daily-dashboard";
 
 
 
@@ -693,3 +697,10 @@ export const GET_ALL_TRAININGS = "/trainings/get"
 export const EDIT_TRAINING = "/trainings/edit"
 export const GET_TRAINING_BY_ID = "/trainings"
 export const GET_TRAINING_HISTORY = "/trainings/history"
+export const CREATE_TRAINER_RECORD = '/trainings/create/trainers'
+export const GET_USER_BY_ROLE = "/trainings/get/users/by/role"
+export const GET_TRAINERS = "/trainings/get/trainers"
+export const GET_TRAINER_BY_ID="/trainings/get/trainer"
+export const EDIT_TRAINER = "/trainings/edit"
+export const DELETE_RECORD = "/trainings/delete"
+export const GET_DISCTINCT_ROLES = "/trainings/get/distinct/roles"

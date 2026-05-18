@@ -30,6 +30,7 @@ import OpdPatientDocs from "./OpdPatientDocs";
 import DailyInvoices from "./DailyInvoices";
 import CounsellingSessions from "./CounsellingSessions";
 import CounsellingRecording from "./CounsellingRecording";
+import DailyDashboard from "./DailyDashboard";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -223,6 +224,11 @@ const MiReporting = () => {
                     element={<CounsellingRecording />}
                   />}
                   
+
+                  {hasMISPermission&&<Route
+                    path="/daily-dashboard"
+                    element={<DailyDashboard />}
+                  />}
                   
                   
 

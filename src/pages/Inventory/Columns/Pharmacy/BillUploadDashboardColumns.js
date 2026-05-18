@@ -11,24 +11,24 @@ export const billUploadDashboardColumns = ({
 }) => [
         {
             name: "Bill #",
-            selector: (row) => row.billNumber || row.billFileName || "-",
-            cell: (row) => <div className="text-truncate">{row.billNumber || row.billFileName || "-"}</div>,
+            selector: (row) => row.extractedData?.billMetadata?.billNumber|| "-",
+            cell: (row) => <div className="text-truncate">{row.extractedData?.billMetadata?.billNumber|| "-"}</div>,
             wrap: true,
             minWidth: "120px",
         },
         {
             name: "Supplier",
-            selector: (row) => row.supplier || "-",
-            cell: (row) => <div>{row.supplier || "-"}</div>,
+            selector: (row) =>row.extractedData?.billMetadata?.supplier || "-",
+            cell: (row) => <div>{row.extractedData?.billMetadata?.supplier || "-"}</div>,
             wrap: true,
             minWidth: "120px",
         },
         {
             name: "Amount",
-            selector: (row) => row.billAmount || "-",
+            selector: (row) => row.extractedData?.billMetadata?.totalAmount || "-",
             cell: (row) => {
-                if (!row.billAmount) return "-";
-                return <div className="text-end">₹{Number(row.billAmount).toLocaleString("en-IN", { maximumFractionDigits: 2 })}</div>;
+                if (!row.extractedData?.billMetadata?.totalAmount) return "-";
+                return <div className="text-end">₹{Number(row.extractedData?.billMetadata?.totalAmount).toLocaleString("en-IN", { maximumFractionDigits: 2 })}</div>;
             },
             minWidth: "110px",
             right: true,

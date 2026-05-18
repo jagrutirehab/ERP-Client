@@ -18,6 +18,10 @@ const FileUpload = ({ setAttachment, attachment, existingFile }) => {
     }
   };
 
+  const handleFileClick = (e) => {
+    e.target.value = "";
+  };
+
   const handlePreview = () => {
     if (!fileToDisplay) return;
 
@@ -101,6 +105,7 @@ const FileUpload = ({ setAttachment, attachment, existingFile }) => {
             type="file"
             className="d-none"
             accept=".png,.jpg,.jpeg,.pdf"
+            onClick={handleFileClick}
             onChange={handleFileChange}
             ref={attachmentRef}
           />

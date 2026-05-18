@@ -557,6 +557,10 @@ export const postDischargeSummary = (data) =>
   api.create(url.POST_DISCHARGE_SUMMARY, data);
 export const editDischargeSummary = (data) =>
   api.put(url.EDIT_DISCHARGE_SUMMARY, data);
+export const postExpirySummary = (data) =>
+  api.create(url.POST_EXPIRY_SUMMARY, data);
+export const editExpirySummary = (data) =>
+  api.put(url.EDIT_EXPIRY_SUMMARY, data);
 export const postDetailAdmission = (data) =>
   api.create(url.POST_DETAIL_ADMISSION, data, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -2198,6 +2202,22 @@ export const getCounsellingRecordings = (data) => {
 };
 
 
+export const getDailyDashboard = (data) => {
+
+  return api.get(url.GET_DAILY_DASHBOARD, {
+    params: {
+      centerIds: data?.centerAccess,
+      date: data?.date
+    }
+  });
+};
+
+
+
+
+
+
+
 
 
 
@@ -3666,6 +3686,18 @@ export const validateAISummary = (summary) => {
   return axios.patch(url.VALIDATE_SUMMARY, summary)
 }
 
+// get AI Expiry Summary
+
+export const getAIExpirySummary = (params = {}) => {
+  return axios.get(url.GET_AI_EXPIRY_SUMMARY, {
+    params,
+  });
+}
+
+export const validateAIExpirySummary = (summary) => {
+  return axios.patch(url.VALIDATE_AI_EXPIRY_SUMMARY, summary)
+}
+
 export const sopConfigure = (data) => {
   return axios.post(url.CONFIGURATION_SOP, data)
 }
@@ -3782,3 +3814,15 @@ export const editTraining = (trainingId, formData) => axios.patch(`${url.EDIT_TR
 export const getTrainingById = (id) => api.get(`${url.GET_TRAINING_BY_ID}/${id}`)
 
 export const getTrainingHistoryDetail = (params) => api.get(url.GET_TRAINING_HISTORY, { params })
+
+export const createTrainerRecord = (data) => {
+  return api.create(url.CREATE_TRAINER_RECORD, data)
+}
+export const getUsersByRoles = (params) => {
+  return axios.get(url.GET_USER_BY_ROLE, { params })
+}
+export const getTrainerRecords = (params) => axios.get(url.GET_TRAINERS, { params });
+export const getTrainerRecordById = (id) => axios.get(`${url.GET_TRAINER_BY_ID}/${id}`);
+export const editTrainerRecord = (id, data) => axios.patch(`${url.EDIT_TRAINER}/${id}`, data)
+export const deleteTrainerRecord = (id) => axios.patch(`${url.DELETE_RECORD}/${id}`, {})
+export const getRolesDisctinct = () => api.get(url.GET_DISCTINCT_ROLES)

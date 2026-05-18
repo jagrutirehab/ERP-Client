@@ -10,6 +10,7 @@ import {
 import PropTypes from "prop-types";
 import EditBillItem from "./EditItem";
 import ViewAndEditCenterCost from "./ViewAndEditCenterCost";
+import { capitalizeWords } from "../../../../../utils/toCapitalize";
 
 const InvoiceProcedureList = ({
   items,
@@ -80,6 +81,7 @@ const InvoiceProcedureList = ({
             <th>Name</th>
             <th>Unit</th>
             <th>Category</th>
+            <th>Last Modified By</th>
             <th>Actions</th>
           </tr>
         </thead>
@@ -97,6 +99,9 @@ const InvoiceProcedureList = ({
                   {typeof item?.category === "object"
                     ? item?.category?.name
                     : item?.category || "-"}
+                </td>
+                <td className="text-left">
+                  {capitalizeWords(item?.author?.name || "System")}
                 </td>
 
                 <td className="text-left">

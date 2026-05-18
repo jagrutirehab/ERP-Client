@@ -19,7 +19,7 @@ import DataTable from "react-data-table-component";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { useSelector, useDispatch } from "react-redux";
-import { Navigate, useLocation } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import {
   uploadOCRBill,
@@ -38,6 +38,7 @@ const OCRBillImport = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const location = useLocation();
+  const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: permissionLoader } = usePermissions(token);
@@ -95,35 +96,133 @@ const OCRBillImport = () => {
   // Track if we're resuming from navigation (skip loading screen when resuming)
   const [isResuming, setIsResuming] = useState(!!location.state?.resumeBillId || !!location.state?.retryBillId);
 
+  // Edit missing medicine modal
+  const [editingMissingMedicineIdx, setEditingMissingMedicineIdx] = useState(null);
+  const [editingMissingMedicineData, setEditingMissingMedicineData] = useState({});
+  const [editingMissingMatches, setEditingMissingMatches] = useState([]);
+  const [editingMissingLoading, setEditingMissingLoading] = useState(false);
+
+  // Per-row search-again state for the missing medicines table (extract step)
+  const [errorSearchLoading, setErrorSearchLoading] = useState({});
+
   // Track debounce timers for refetching matching medicines
   const debounceTimersRef = useRef({});
 
-  // Get available centers for dropdown
+  // Center dropdown — only centers the user has access to.
+  // centerAccess is the authoritative list of IDs the user is allowed on;
+  // userCenters carries the full objects (title etc.) keyed by _id.
   const centerOptions = useMemo(() => {
-    if (!user?.userCenters) return [];
-    return user.userCenters.map((center) => ({
-      value: center._id || center.id,
-      label: center.title || "Unknown Center",
-    }));
-  }, [user?.userCenters]);
+    const accessIds = user?.centerAccess || [];
+    if (accessIds.length === 0) return [];
+    return accessIds
+      .map((id) => {
+        const center = (user?.userCenters || []).find(
+          (c) => String(c._id || c.id) === String(id)
+        );
+        if (!center) return null;
+        return {
+          value: center._id || center.id,
+          label: center.title || "Unknown Center",
+        };
+      })
+      .filter(Boolean);
+  }, [user?.centerAccess, user?.userCenters]);
 
-  // Set default center on mount
-  useMemo(() => {
-    if (!selectedCenter && centerOptions.length > 0) {
+  // Keep selectedCenter in sync with the user's centerAccess.
+  //   - First render with options available → pick the first one.
+  //   - centerAccess changed and the current pick is no longer allowed →
+  //     clear it (or pick the new first one if any remain).
+  // Side-effect kept inside useEffect, not useMemo, since this mutates state.
+  useEffect(() => {
+    if (centerOptions.length === 0) {
+      if (selectedCenter) setSelectedCenter(null);
+      return;
+    }
+    const stillAllowed =
+      selectedCenter &&
+      centerOptions.some(
+        (c) => String(c.value) === String(selectedCenter.value)
+      );
+    if (!stillAllowed) {
       setSelectedCenter(centerOptions[0]);
     }
   }, [centerOptions]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const centerId = selectedCenter?.value;
 
-  // Handle resume/retry from BillUploadDashboard navigation
+  // Handle resume/retry from BillUploadDashboard navigation.
+  // After dispatching, clear location.state via replaceState so a browser
+  // back-navigation doesn't re-trigger the same load.
   useEffect(() => {
     if (location.state?.resumeBillId) {
       handleResumeBill(location.state.resumeBillId);
+      navigate(location.pathname, { replace: true, state: null });
     } else if (location.state?.retryBillId) {
       handleRetryMissing(location.state.retryBillId);
+      navigate(location.pathname, { replace: true, state: null });
     }
   }, [location.state?.resumeBillId, location.state?.retryBillId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ============================================================
+  // Single source of truth for per-medicine discount calculation.
+  //
+  // Each medicine receives ITS FAIR SHARE of the bill-level discount,
+  // weighted by its line total against the bill's full gross amount.
+  // This matters when only some of the bill's medicines are being
+  // entered into inventory — the unentered items still "own" their
+  // share of the discount; we don't redistribute that share onto the
+  // entered ones.
+  //
+  //   lineTotal_i        = unitPrice_i * quantity_i
+  //   denominator        = billGrossAmount  (preferred; whole bill)
+  //                          || Σ lineTotal_i  (fallback if gross is missing)
+  //   effectiveAmount    = billDiscountAmount
+  //                          || denominator * billDiscountPercentage / 100
+  //   medicineDiscount_i = (lineTotal_i / denominator) * effectiveAmount
+  //   purchasePrice_i    = max(0, unitPrice_i - medicineDiscount_i / qty_i)
+  //
+  // Returns an array aligned with the input order, each entry shaped
+  //   { purchasePrice, medicineDiscount }
+  // ============================================================
+  const computeDiscountedPrices = (lines, discountAmount, discountPercentage, grossAmount) => {
+    if (!Array.isArray(lines) || lines.length === 0) return [];
+
+    const totals = lines.map((m) => {
+      const unitPrice = Number(m.unitPrice) || 0;
+      const qty = Number(m.quantity) || 0;
+      return { unitPrice, qty, lineTotal: unitPrice * qty };
+    });
+    const totalSelected = totals.reduce((acc, t) => acc + t.lineTotal, 0);
+
+    // Use the bill's gross as the denominator so each medicine gets only
+    // its share of the discount — even when other bill lines weren't
+    // selected for entry. Fall back to the sum of selected lines if the
+    // bill metadata didn't carry a gross.
+    const denominator = Number(grossAmount) > 0 ? Number(grossAmount) : totalSelected;
+
+    // Effective discount: prefer absolute amount; derive from % only if amount is 0.
+    let effectiveAmount = Number(discountAmount) || 0;
+    if (effectiveAmount === 0 && Number(discountPercentage) > 0) {
+      effectiveAmount = (denominator * Number(discountPercentage)) / 100;
+    }
+
+    return totals.map((t) => {
+      // Guards: no qty, no denominator, or no discount → keep unit price as-is.
+      if (t.qty === 0 || denominator === 0 || effectiveAmount === 0) {
+        return { purchasePrice: t.unitPrice, medicineDiscount: 0 };
+      }
+      const medicineDiscount = (t.lineTotal / denominator) * effectiveAmount;
+      const perUnit = medicineDiscount / t.qty;
+      const purchasePrice = Math.max(
+        0,
+        Math.round((t.unitPrice - perUnit) * 100) / 100
+      );
+      return {
+        purchasePrice,
+        medicineDiscount: Math.round(medicineDiscount * 100) / 100,
+      };
+    });
+  };
 
   // Separate medicines into new and existing (at top level)
   const { newMedicines, existingMedicines } = useMemo(() => {
@@ -277,31 +376,28 @@ const OCRBillImport = () => {
     },
   ], []);
 
-  // Prepare data for new medicines table
-  const newMedicinesData = useMemo(() => {
-    if (!newMedicines || newMedicines.length === 0) return [];
-
-    // Calculate total bill price for all medicines (for discount distribution)
-    let totalBillPrice = 0;
-    newMedicines.forEach(({ idx, result }) => {
-      const formData = medicineFormData[idx];
-      const price = parseFloat(formData?.purchasePrice) || 0;
-      const qty = parseFloat(formData?.quantity) || 0;
-      totalBillPrice += price * qty;
+  // Build the per-row display data for new + existing tables.
+  // Both pull discount from the single helper so what the user sees is
+  // exactly what will be persisted (no more display/save divergence).
+  const buildRowDisplay = (collection) => {
+    const lines = collection.map(({ idx }) => {
+      const fd = medicineFormData[idx] || {};
+      return {
+        unitPrice: parseFloat(fd.unitPrice) || 0,
+        quantity: parseFloat(fd.quantity) || 0,
+      };
     });
+    const discounts = computeDiscountedPrices(lines, billDiscountAmount, billDiscountPercentage, billGrossAmount);
 
-    return newMedicines.map(({ idx, result }) => {
-      const { selectedMedicine, extractedData } = result;
-      const formData = medicineFormData[idx];
-      const qty = parseFloat(formData?.quantity) || 0;
-      const purchasePrice = parseFloat(formData?.purchasePrice) || 0;
-      const medicineTotalPrice = purchasePrice * qty;
-
-      // Calculate discount for this medicine (proportional to its share of total bill)
-      const medicineDiscount = totalBillPrice > 0
-        ? (medicineTotalPrice / totalBillPrice) * billDiscountAmount
-        : 0;
-      const discountedPrice = Math.round((purchasePrice - (medicineDiscount / qty)) * 100) / 100;
+    return collection.map(({ idx, result }, i) => {
+      const { selectedMedicine, extractedData, pharmacyStatus } = result;
+      const formData = medicineFormData[idx] || {};
+      const qty = parseFloat(formData.quantity) || 0;
+      const unitPrice = parseFloat(formData.unitPrice) || 0;
+      const { purchasePrice, medicineDiscount } = discounts[i] || {
+        purchasePrice: unitPrice,
+        medicineDiscount: 0,
+      };
 
       const purchaseUnit = selectedMedicine?.purchaseUnit || selectedMedicine?.baseUnit || "unit";
       const conv = selectedMedicine?.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
@@ -312,76 +408,37 @@ const OCRBillImport = () => {
       return {
         idx,
         medId: selectedMedicine?._id?.slice(-6) || selectedMedicine?.id,
+        pharmId: pharmacyStatus?.data?.pharmacyId?.slice(-6) || "N/A",
         name: selectedMedicine?.name,
         strength: selectedMedicine?.strength,
         form: selectedMedicine?.form,
         baseUnit: selectedMedicine?.baseUnit,
-        batchNumber: formData?.batchNumber || "",
-        expiryDate: formData?.expiryDate || "",
-        quantity: formData?.quantity || "",
-        qty,
-        purchaseUnit,
-        baseUnitQtyDisplay,
-        purchasePrice: purchasePrice,
-        discountedPrice: discountedPrice,
-        medicineDiscount: Math.round(medicineDiscount * 100) / 100,
-        mrp: formData?.mrp || "",
-      };
-    });
-  }, [newMedicines, medicineFormData, billDiscountAmount]);
-
-  // Prepare data for existing medicines table
-  const existingMedicinesData = useMemo(() => {
-    if (!existingMedicines || existingMedicines.length === 0) return [];
-
-    // Calculate total bill price for all medicines (for discount distribution)
-    let totalBillPrice = 0;
-    existingMedicines.forEach(({ idx, result }) => {
-      const formData = medicineFormData[idx];
-      const price = parseFloat(formData?.purchasePrice) || 0;
-      const qty = parseFloat(formData?.quantity) || 0;
-      totalBillPrice += price * qty;
-    });
-
-    return existingMedicines.map(({ idx, result }) => {
-      const { selectedMedicine, extractedData, pharmacyStatus } = result;
-      const formData = medicineFormData[idx];
-      const qty = parseFloat(formData?.quantity) || 0;
-      const purchasePrice = parseFloat(formData?.purchasePrice) || 0;
-      const medicineTotalPrice = purchasePrice * qty;
-
-      // Calculate discount for this medicine (proportional to its share of total bill)
-      const medicineDiscount = totalBillPrice > 0
-        ? (medicineTotalPrice / totalBillPrice) * billDiscountAmount
-        : 0;
-      const discountedPrice = Math.round((purchasePrice - (medicineDiscount / qty)) * 100) / 100;
-
-      const purchaseUnit = selectedMedicine?.purchaseUnit || selectedMedicine?.baseUnit || "unit";
-      const conv = selectedMedicine?.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
-      const factor = (conv.baseQuantity || 1) / (conv.purchaseQuantity || 1);
-      const baseUnitQty = qty * factor;
-      const baseUnitQtyDisplay = qty === 0 ? "—" : baseUnitQty.toFixed(2);
-      return {
-        idx,
-        medId: selectedMedicine?.id,
-        pharmId: pharmacyStatus?.data?.pharmacyId?.slice(-6) || "N/A",
-        name: selectedMedicine?.name,
-        strength: selectedMedicine?.strength,
-        batchNumber: extractedData.batchNumber,
-        expiryDate: extractedData.expiryDate,
+        batchNumber: formData.batchNumber || extractedData?.batchNumber || "",
+        expiryDate: formData.expiryDate || extractedData?.expiryDate || "",
         centerStock: pharmacyStatus?.data?.centerStock || 0,
-        baseUnit: selectedMedicine?.baseUnit,
-        quantity: formData?.quantity || "",
+        quantity: formData.quantity || "",
         qty,
         purchaseUnit,
         baseUnitQtyDisplay,
-        purchasePrice: purchasePrice,
-        discountedPrice: discountedPrice,
-        medicineDiscount: Math.round(medicineDiscount * 100) / 100,
-        mrp: formData?.mrp || "",
+        purchasePrice,
+        discountedPrice: purchasePrice,
+        medicineDiscount,
+        mrp: formData.mrp || "",
       };
     });
-  }, [existingMedicines, medicineFormData, billDiscountAmount]);
+  };
+
+  const newMedicinesData = useMemo(
+    () => (newMedicines?.length ? buildRowDisplay(newMedicines) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [newMedicines, medicineFormData, billDiscountAmount, billDiscountPercentage, billGrossAmount]
+  );
+
+  const existingMedicinesData = useMemo(
+    () => (existingMedicines?.length ? buildRowDisplay(existingMedicines) : []),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [existingMedicines, medicineFormData, billDiscountAmount, billDiscountPercentage, billGrossAmount]
+  );
 
   if (permissionLoader) {
     return (
@@ -418,26 +475,33 @@ const OCRBillImport = () => {
       const workbook = new ExcelJS.Workbook();
       const worksheet = workbook.addWorksheet("Missing Medicines");
 
+      // Mirror the columns the user sees in the missing-medicines table,
+      // plus a few extras for downstream use (confidence, reason, bill URL).
       worksheet.columns = [
         { header: "Medicine Name", key: "name", width: 30 },
         { header: "Strength", key: "strength", width: 20 },
-        { header: "Form", key: "form", width: 15 },
-        { header: "Base Unit", key: "baseUnit", width: 15 },
-        { header: "Category", key: "category", width: 20 },
-        { header: "Storage Type", key: "storage", width: 20 },
+        { header: "Quantity", key: "quantity", width: 12 },
+        { header: "Batch", key: "batch", width: 18 },
+        { header: "Expiry", key: "expiry", width: 14 },
+        { header: "Unit Price", key: "unitPrice", width: 14 },
+        { header: "Total Price", key: "totalPrice", width: 14 },
         { header: "OCR Confidence", key: "confidence", width: 15 },
         { header: "Reason", key: "reason", width: 40 },
         { header: "Source Bill URL", key: "billUrl", width: 50 },
       ];
 
-      medicines.forEach((med) => {
+      // Prefer the user's inline edits from errorMedicinesFormData (keyed by
+      // index in the rendered table). Fall back to the original OCR value.
+      medicines.forEach((med, idx) => {
+        const form = errorMedicinesFormData[idx] || {};
         worksheet.addRow({
-          name: med.extractedName || med.name,
-          strength: med.extractedStrength || med.strength || "N/A",
-          form: "",
-          baseUnit: "",
-          category: "",
-          storage: "",
+          name: form.extractedName ?? med.extractedName ?? med.name ?? "",
+          strength: form.extractedStrength ?? med.extractedStrength ?? med.strength ?? "",
+          quantity: form.quantity ?? med.quantity ?? "",
+          batch: form.batchNumber ?? med.batchNumber ?? "",
+          expiry: form.expiryDate ?? med.expiryDate ?? "",
+          unitPrice: form.unitPrice ?? med.unitPrice ?? "",
+          totalPrice: form.totalPrice ?? med.totalPrice ?? "",
           confidence: med.confidence ? (med.confidence * 100).toFixed(0) + "%" : "N/A",
           reason: med.reason || "Not found in master database",
           billUrl: billFileUrl || "-",
@@ -585,6 +649,7 @@ const OCRBillImport = () => {
 
       // Axios interceptor already unwraps response.data, so result is { success: true, data: [...] }
       // Extract the medicines array from the response
+      // NOTE: API already filters by strict strength matching, so no frontend filtering needed
       const medicinesArray = result?.data || [];
       console.log(`   Total matches found: ${Array.isArray(medicinesArray) ? medicinesArray.length : 'ERROR - not an array'}`);
       if (Array.isArray(medicinesArray) && medicinesArray.length > 0) {
@@ -644,6 +709,32 @@ const OCRBillImport = () => {
       return;
     }
 
+    // Reset all form state before uploading new bill
+    setStep("upload");
+    setBillImportId(null);
+    setExtractedMedicines([]);
+    setErrorMedicines([]);
+    setExtractedFormData({});
+    setCheckedMedicines({});
+    setSelectedMedicineIds({});
+    setErrorMedicinesFormData({});
+    setSelectedErrorMedicineIds({});
+    setErrorMatchingMedicinesMap({});
+    setErrorCheckedMedicines({});
+    setPharmacyCheckResults({});
+    setMedicineFormData({});
+    setPharmacyStatus({});
+    setSuccessResult(null);
+    setBillSupplier("");
+    setBillNumber("");
+    setBillGrossAmount(0);
+    setBillDiscountPercentage(0);
+    setBillDiscountAmount(0);
+    setBillFinalAmount(0);
+    setBillTotal(0);
+    setMatchingMedicinesMap({});
+    setConfirmedMedicines({});
+
     setLoading(true);
     setError(null);
     setProcessingStatus("uploading");
@@ -679,8 +770,8 @@ const OCRBillImport = () => {
 
       setBillImportId(result.billImportId);
       setBillFileUrl(result.fileUrl);
-      setExtractedMedicines(result.extractedMedicines || []);
-      setErrorMedicines(result.errorMedicines || []);
+      setExtractedMedicines(addIdsToMedicines(result.extractedMedicines || []));
+      setErrorMedicines(addIdsToMedicines(result.errorMedicines || []));
 
       // Initialize extracted form data with OCR data
       console.log("📋 Building extracted form data from medicines...");
@@ -765,6 +856,7 @@ const OCRBillImport = () => {
           medicinesWithMatches.push(med);
         } else {
           medicinesWithoutMatches.push({
+            _tempId: med._tempId, // Preserve ID for tracking
             extractedName: med.ocrExtracted?.name || "",
             extractedStrength: med.ocrExtracted?.strength || "",
             quantity: med.ocrExtracted?.quantity || 0,
@@ -864,17 +956,6 @@ const OCRBillImport = () => {
         },
       };
 
-      // Recalculate bill total if quantity or unitPrice changed
-      if (field === "quantity" || field === "unitPrice") {
-        let newTotal = 0;
-        Object.values(updated).forEach((med) => {
-          const qty = parseFloat(med.quantity) || 0;
-          const price = parseFloat(med.unitPrice) || 0;
-          newTotal += qty * price;
-        });
-        setBillTotal(newTotal);
-      }
-
       // Refetch matching medicines if name or strength changed
       if (field === "medicineName" || field === "strength") {
         // Clear previous debounce timer for this index
@@ -902,8 +983,30 @@ const OCRBillImport = () => {
     });
   };
 
-  // Handle error medicines data changes (for retry/search)
+  // Handle error medicines data changes (for retry/search).
+  //
+  // Three side-effects per edit:
+  //   1. Update errorMedicinesFormData (drives the input value).
+  //   2. Mirror the edit onto errorMedicines[idx] so any in-flight
+  //      submission picks up the latest values (the confirm payload
+  //      sends errorMedicines directly).
+  //   3. Debounced auto-save to the server via updateBillErrors —
+  //      keeps billImport.errors[] in sync so the consolidated Excel
+  //      export reflects the user's edits without waiting for a full
+  //      bill submission.
   const handleErrorMedicineDataChange = (idx, field, value) => {
+    // Mirror onto the underlying errorMedicines array.
+    const errorField =
+      field === "extractedName" ? "extractedName" :
+      field === "extractedStrength" ? "extractedStrength" :
+      field; // quantity / batchNumber / expiryDate / unitPrice / totalPrice
+    setErrorMedicines((prev) => {
+      if (!prev[idx]) return prev;
+      const next = [...prev];
+      next[idx] = { ...next[idx], [errorField]: value };
+      return next;
+    });
+
     setErrorMedicinesFormData((prev) => {
       const updated = {
         ...prev,
@@ -936,11 +1039,83 @@ const OCRBillImport = () => {
 
       return updated;
     });
+
+    // Debounced auto-save so the DB (and consequently the server-generated
+    // consolidated Excel) reflects edits without requiring a bill submission.
+    if (billImportId) {
+      const saveKey = `error-save-${idx}`;
+      if (debounceTimersRef.current[saveKey]) {
+        clearTimeout(debounceTimersRef.current[saveKey]);
+      }
+      debounceTimersRef.current[saveKey] = setTimeout(async () => {
+        try {
+          // Build the latest snapshot of this row from state. Reading from a
+          // ref-fresh place: use the underlying errorMedicines array since
+          // we already mirrored the edit there synchronously above.
+          setErrorMedicines((current) => {
+            const row = current[idx];
+            if (row && row._tempId) {
+              updateBillErrors({
+                billImportId,
+                errors: [row],
+              }).catch((err) =>
+                console.warn("Auto-save of edited error failed:", err?.message || err)
+              );
+            }
+            return current;
+          });
+        } catch (err) {
+          console.warn("Auto-save of edited error failed:", err?.message || err);
+        }
+      }, 800);
+    }
+  };
+
+  // Search Again for a missing medicine using the user's edited name/strength.
+  // Populates errorMatchingMedicinesMap[idx] so the row can render a dropdown,
+  // then the user picks one and clicks Move → handleAddErrorMedicineToExtracted.
+  const handleErrorMedicineSearch = async (idx) => {
+    const data = errorMedicinesFormData[idx] || errorMedicines[idx] || {};
+    const name = (data.extractedName || "").trim();
+    const strength = (data.extractedStrength || "").trim();
+
+    if (!name) {
+      toast.warning("Please enter a medicine name to search");
+      return;
+    }
+
+    setErrorSearchLoading((prev) => ({ ...prev, [idx]: true }));
+    try {
+      const matches = await fetchMatchingMedicines(name, strength);
+      setErrorMatchingMedicinesMap((prev) => ({ ...prev, [idx]: matches || [] }));
+      // Clear any prior selection for this row since the match list changed
+      setSelectedErrorMedicineIds((prev) => {
+        const next = { ...prev };
+        delete next[idx];
+        return next;
+      });
+
+      if (!matches || matches.length === 0) {
+        toast.info("No matches found. Try a different name or strength.");
+      } else {
+        toast.success(`Found ${matches.length} match(es). Pick one and click "Move to Extracted".`);
+      }
+    } catch (err) {
+      console.error("Error medicine search failed:", err);
+      toast.error("Search failed");
+    } finally {
+      setErrorSearchLoading((prev) => ({ ...prev, [idx]: false }));
+    }
   };
 
   // Convert error medicine to extracted medicine when matched
   const handleAddErrorMedicineToExtracted = (errorIdx) => {
-    const errorMed = errorMedicinesFormData[errorIdx] || errorMedicines[errorIdx];
+    // Source of truth: the original error record (carries _tempId).
+    // errorMedicinesFormData only stores editable fields — never _tempId —
+    // so it must NOT be used to pull the ID.
+    const originalError = errorMedicines[errorIdx];
+    const formData = errorMedicinesFormData[errorIdx] || originalError || {};
+    const movedTempId = originalError?._tempId;
     const selectedId = selectedErrorMedicineIds[errorIdx];
 
     if (!selectedId) {
@@ -954,18 +1129,23 @@ const OCRBillImport = () => {
       return;
     }
 
-    // Add to extracted medicines
+    if (!movedTempId) {
+      console.warn("[Move to Extracted] error row has no _tempId — downstream tracking may fall back to name/strength matching");
+    }
+
+    // Add to extracted medicines, preserving the _tempId for tracking
     const newIdx = extractedMedicines.length;
     setExtractedMedicines([...extractedMedicines, {
+      _tempId: movedTempId, // Same ID the medicine had at extraction time
       medicineId: selectedId,
       ocrExtracted: {
-        name: errorMed.extractedName,
-        strength: errorMed.extractedStrength,
-        batchNumber: errorMedicinesFormData[errorIdx]?.batchNumber || null,
-        quantity: errorMedicinesFormData[errorIdx]?.quantity || 0,
-        unitPrice: errorMedicinesFormData[errorIdx]?.unitPrice || null,
-        totalPrice: errorMedicinesFormData[errorIdx]?.totalPrice || null,
-        expiryDate: errorMedicinesFormData[errorIdx]?.expiryDate || null,
+        name: formData.extractedName,
+        strength: formData.extractedStrength,
+        batchNumber: formData.batchNumber || null,
+        quantity: formData.quantity || 0,
+        unitPrice: formData.unitPrice || null,
+        totalPrice: formData.totalPrice || null,
+        expiryDate: formData.expiryDate || null,
         confidence: 1.0,
       },
       masterData: {
@@ -988,11 +1168,11 @@ const OCRBillImport = () => {
       [newIdx]: {
         medicineName: selectedMed.name,
         strength: selectedMed.strength || "",
-        quantity: errorMedicinesFormData[errorIdx]?.quantity || 0,
-        batchNumber: errorMedicinesFormData[errorIdx]?.batchNumber || "",
-        expiryDate: errorMedicinesFormData[errorIdx]?.expiryDate || "",
-        unitPrice: errorMedicinesFormData[errorIdx]?.unitPrice || 0,
-        totalPrice: errorMedicinesFormData[errorIdx]?.totalPrice || 0,
+        quantity: formData.quantity || 0,
+        batchNumber: formData.batchNumber || "",
+        expiryDate: formData.expiryDate || "",
+        unitPrice: formData.unitPrice || 0,
+        totalPrice: formData.totalPrice || 0,
       },
     }));
 
@@ -1006,29 +1186,80 @@ const OCRBillImport = () => {
       [newIdx]: errorMatchingMedicinesMap[errorIdx],
     }));
 
-    // Remove from error medicines
-    const updatedErrors = errorMedicines.filter((_, i) => i !== errorIdx);
+    // Remove from error medicines by _tempId (stable across array reorders).
+    const updatedErrors = movedTempId
+      ? errorMedicines.filter((e) => e._tempId !== movedTempId)
+      : errorMedicines.filter((_, i) => i !== errorIdx);
     setErrorMedicines(updatedErrors);
 
-    // Clean up error medicine states
-    const updatedFormData = { ...errorMedicinesFormData };
-    delete updatedFormData[errorIdx];
-    setErrorMedicinesFormData(updatedFormData);
+    // Clean up per-row state for the removed index. The remaining indices
+    // shift down by one (since we removed from the middle), so re-key the
+    // form-data / selection maps to match the new array order.
+    const reindex = (map) => {
+      const next = {};
+      let cursor = 0;
+      errorMedicines.forEach((e, i) => {
+        if (i === errorIdx) return; // skip the removed one
+        if (map[i] !== undefined) next[cursor] = map[i];
+        cursor++;
+      });
+      return next;
+    };
+    setErrorMedicinesFormData(reindex(errorMedicinesFormData));
+    setSelectedErrorMedicineIds(reindex(selectedErrorMedicineIds));
+    setErrorMatchingMedicinesMap(reindex(errorMatchingMedicinesMap));
 
-    const updatedSelected = { ...selectedErrorMedicineIds };
-    delete updatedSelected[errorIdx];
-    setSelectedErrorMedicineIds(updatedSelected);
+    toast.success("Medicine moved to extracted list");
+  };
 
-    toast.success("Medicine moved to extracted list!");
+  // Handle editing missing medicines in success view
+  const handleEditMissingMedicine = (medicine, idx) => {
+    setEditingMissingMedicineIdx(idx);
+    setEditingMissingMedicineData({
+      _tempId: medicine._tempId, // Preserve ID so retry flow can track this medicine
+      extractedName: medicine.extractedName,
+      extractedStrength: medicine.extractedStrength,
+    });
+    setEditingMissingMatches([]);
+  };
+
+  const handleSearchMissingMedicine = async () => {
+    if (!editingMissingMedicineData.extractedName?.trim()) {
+      toast.warning("Please enter medicine name");
+      return;
+    }
+
+    setEditingMissingLoading(true);
+    try {
+      const matches = await fetchMatchingMedicines(
+        editingMissingMedicineData.extractedName,
+        editingMissingMedicineData.extractedStrength
+      );
+      setEditingMissingMatches(matches || []);
+      if (!matches || matches.length === 0) {
+        toast.info("No matches found. Try different name or strength");
+      }
+    } catch (err) {
+      console.error("Error searching medicines:", err);
+      toast.error("Failed to search medicines");
+    } finally {
+      setEditingMissingLoading(false);
+    }
   };
 
   const handleProceedFromExtraction = async () => {
-    // Get checked medicines
-    let indicesToProcess = Object.keys(checkedMedicines).filter(idx => checkedMedicines[idx]);
+    // Process ALL medicines (checked & unchecked)
+    // Unselected ones will be moved to errors array
+    let indicesToProcess = extractedMedicines.map((_, idx) => String(idx));
 
     if (indicesToProcess.length === 0) {
-      setError("Please select at least one medicine to process");
-      toast.warning("Select medicines using checkboxes");
+      setError("No medicines to process");
+      return;
+    }
+
+    if (!centerId) {
+      setError("Please select a pharmacy center before proceeding");
+      toast.error("Pharmacy center is required");
       return;
     }
 
@@ -1036,7 +1267,7 @@ const OCRBillImport = () => {
     setError(null);
 
     try {
-      // Step 1: Fetch matching medicines for each checked medicine
+      // Step 1: Fetch matching medicines for ALL medicines
       const matchingMap = {};
       for (let idx of indicesToProcess) {
         const extractedData = extractedFormData[idx];
@@ -1048,12 +1279,13 @@ const OCRBillImport = () => {
       }
       setMatchingMedicinesMap(matchingMap);
 
-      // Step 2: Auto-proceed to pharmacy check with selected medicines
+      // Step 2: Process all medicines (selected ones proceed, unselected go to errors)
       await handleProceedToPharmacyCheckAuto(indicesToProcess, matchingMap);
     } catch (err) {
       console.error("Error in extraction flow:", err);
-      setError("Failed to process medicines");
-      toast.error("Error processing medicines");
+      const errorMsg = err.response?.data?.message || err.message || "Failed to process medicines";
+      setError(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setConfirmationLoading(false);
     }
@@ -1064,24 +1296,53 @@ const OCRBillImport = () => {
       const results = {};
       const unselectedMedicines = [];
 
+      // Precompute discounted prices once for the whole submission. The
+      // proportional-distribution formula needs the total bill across all
+      // medicines, so it must be calculated outside the per-medicine loop.
+      // Only includes rows the user actually selected + checked, so unselected
+      // rows don't dilute the share. Pharmacy-check below reads from this map.
+      const eligibleIdx = indicesToProcess.filter((idx) => {
+        const i = parseInt(idx);
+        return checkedMedicines[i] && selectedMedicineIds[i];
+      });
+      const eligibleLines = eligibleIdx.map((idx) => {
+        const i = parseInt(idx);
+        const editedData = extractedFormData[i] || extractedMedicines[i]?.ocrExtracted;
+        return {
+          unitPrice: parseFloat(editedData?.unitPrice) || 0,
+          quantity: parseFloat(editedData?.quantity) || 0,
+        };
+      });
+      const eligibleDiscounts = computeDiscountedPrices(eligibleLines, billDiscountAmount, billDiscountPercentage, billGrossAmount);
+      const discountByIdx = {};
+      eligibleIdx.forEach((idx, j) => {
+        discountByIdx[parseInt(idx)] = eligibleDiscounts[j]?.purchasePrice ?? null;
+      });
+
       for (const idx of indicesToProcess) {
         const idx_num = parseInt(idx);
+        const isChecked = checkedMedicines[idx_num];
         const selectedMedicineId = selectedMedicineIds[idx_num];
         const medicine = extractedMedicines[idx_num];
 
-        // Check if user selected a medicine from dropdown
-        if (!selectedMedicineId) {
-          // User didn't select any medicine - add to unselected/failed list
+        // Check if medicine is unchecked OR user didn't select a medicine from dropdown
+        if (!isChecked || !selectedMedicineId) {
+          // Medicine is unchecked OR no dropdown selection - add to errors
+          const reason = !isChecked
+            ? "Not checked by user"
+            : "No medicine selected from dropdown";
+          const editedData = extractedFormData[idx_num] || medicine.ocrExtracted;
           unselectedMedicines.push({
-            extractedName: medicine.ocrExtracted?.name,
-            extractedStrength: medicine.ocrExtracted?.strength,
-            quantity: medicine.ocrExtracted?.quantity || 0,
-            batchNumber: medicine.ocrExtracted?.batchNumber || null,
-            expiryDate: medicine.ocrExtracted?.expiryDate || null,
-            unitPrice: medicine.ocrExtracted?.unitPrice || null,
-            totalPrice: medicine.ocrExtracted?.totalPrice || null,
-            reason: "No medicine selected from matching list during review step",
-            action: "Please select a matched medicine from the dropdown and try again",
+            _tempId: medicine._tempId, // Preserve ID for tracking
+            extractedName: editedData?.medicineName || medicine.ocrExtracted?.name,
+            extractedStrength: editedData?.strength || medicine.ocrExtracted?.strength,
+            quantity: editedData?.quantity || medicine.ocrExtracted?.quantity || 0,
+            batchNumber: editedData?.batchNumber || medicine.ocrExtracted?.batchNumber || null,
+            expiryDate: editedData?.expiryDate || medicine.ocrExtracted?.expiryDate || null,
+            unitPrice: editedData?.unitPrice || medicine.ocrExtracted?.unitPrice || null,
+            totalPrice: editedData?.totalPrice || medicine.ocrExtracted?.totalPrice || null,
+            reason: reason,
+            action: "Edit & Retry from missing list",
           });
           continue;
         }
@@ -1093,48 +1354,53 @@ const OCRBillImport = () => {
 
         if (selectedMedicine) {
           const medicineId = selectedMedicine._id || selectedMedicine.id;
+          const editedData = extractedFormData[idx_num] || medicine.ocrExtracted;
 
-          // Calculate discounted purchase price (rounded to 2 decimal places)
-          const unitPrice = parseFloat(medicine.ocrExtracted?.unitPrice) || 0;
-          const discountedPrice = Math.round((unitPrice * (1 - (billDiscountPercentage / 100))) * 100) / 100;
+          // Use the single-formula discounted price computed up-front for the
+          // whole submission. Falls back to raw unitPrice if somehow missing.
+          const unitPrice = parseFloat(editedData?.unitPrice) || 0;
+          const discountedPrice = discountByIdx[idx_num] ?? unitPrice;
 
           try {
             const checkResult = await checkExistingMedicineInPharmacy({
               medicineId: medicineId,
               centerId: centerId,
-              batchNumber: medicine.ocrExtracted?.batchNumber,
-              expiryDate: medicine.ocrExtracted?.expiryDate,
+              batchNumber: editedData?.batchNumber,
+              expiryDate: editedData?.expiryDate,
               purchasePrice: discountedPrice,
             });
 
             results[idx_num] = {
               medicineId: medicineId,
+              _tempId: medicine._tempId, // Track processed medicine ID
               selectedMedicine,
-              extractedData: medicine.ocrExtracted,
+              extractedData: editedData, // Use edited form data, fallback to original
               pharmacyStatus: { exists: checkResult.exists, data: checkResult.data },
             };
           } catch (err) {
             console.error(`Error checking medicine at index ${idx_num}:`, err);
-            // Continue with other medicines even if one fails
+            // Still add medicine to results even if check fails, just mark as error
+            results[idx_num] = {
+              medicineId: medicineId,
+              _tempId: medicine._tempId, // Track processed medicine ID
+              selectedMedicine,
+              extractedData: editedData,
+              pharmacyStatus: { exists: false, error: err.message },
+            };
           }
         }
       }
 
       // Add unselected medicines to error list
       if (unselectedMedicines.length > 0) {
-        setErrorMedicines([...errorMedicines, ...unselectedMedicines]);
+        const newErrorList = [...errorMedicines, ...unselectedMedicines];
+        console.log(`📊 ERROR MEDICINES UPDATE:`);
+        console.log(`   Before: ${errorMedicines.length} medicines`);
+        console.log(`   Adding: ${unselectedMedicines.length} unselected medicines`);
+        console.log(`   After: ${newErrorList.length} medicines`, newErrorList);
+        setErrorMedicines(newErrorList);
 
-        // Update database with unselected medicines
-        try {
-          await updateBillErrors({
-            billImportId,
-            errors: unselectedMedicines,
-          });
-        } catch (updateErr) {
-          console.error("Failed to update bill errors in database:", updateErr);
-        }
-
-        toast.warning(`${unselectedMedicines.length} medicine(s) not selected - moved to missing list`);
+        toast.info(`${unselectedMedicines.length} medicine(s) not selected — moved to "Missing" list. You can retry them later.`);
       }
 
       if (Object.keys(results).length === 0) {
@@ -1255,51 +1521,39 @@ const OCRBillImport = () => {
   const initializeMedicineFormData = (results) => {
     const initialData = {};
 
-    // Use discount percentage if available, otherwise calculate from amount
-    const discountPercentageToUse = billDiscountPercentage > 0
-      ? billDiscountPercentage / 100
-      : (billDiscountAmount > 0 && billGrossAmount > 0 ? billDiscountAmount / billGrossAmount : 0);
+    // Use the single proportional-discount helper so initial purchasePrice
+    // matches what the display memo and pharmacy-check both compute.
+    const orderedEntries = Object.entries(results);
+    const lines = orderedEntries.map(([, result]) => {
+      const ext = result.extractedData || {};
+      return {
+        unitPrice: parseFloat(ext.unitPrice) || 0,
+        quantity: parseFloat(ext.quantity) || 0,
+      };
+    });
+    const discounts = computeDiscountedPrices(lines, billDiscountAmount, billDiscountPercentage, billGrossAmount);
 
-    console.log("\n💰 INITIALIZING MEDICINE FORM DATA WITH DISCOUNT:");
-    console.log(`  Bill Discount Percentage: ${billDiscountPercentage}%`);
-    console.log(`  Bill Discount Amount: ₹${billDiscountAmount}`);
-    console.log(`  Bill Gross Amount: ₹${billGrossAmount}`);
-    console.log(`  Effective Discount Rate: ${(discountPercentageToUse * 100).toFixed(2)}%`);
-
-    Object.entries(results).forEach(([idx, result]) => {
+    orderedEntries.forEach(([idx, result], i) => {
       const { extractedData } = result;
-
-      // Use extracted unit price as the MRP (this is the price from the bill)
-      const basePrice = extractedData.unitPrice || 0;
-
-      // Calculate purchase price by applying discount percentage to MRP
-      const discountAmount = basePrice * discountPercentageToUse;
-      const purchasePriceWithDiscount = basePrice > 0
-        ? basePrice - discountAmount
-        : 0;
-
-      console.log(`\n  [{idx}] ${extractedData.medicineName} ${extractedData.strength || ""}`);
-      console.log(`      MRP: ₹${basePrice.toFixed(2)}`);
-      console.log(`      Discount (${(discountPercentageToUse * 100).toFixed(2)}%): - ₹${discountAmount.toFixed(2)}`);
-      console.log(`      Purchase Price: ₹${purchasePriceWithDiscount.toFixed(2)}`);
+      const basePrice = parseFloat(extractedData.unitPrice) || 0;
+      const purchasePriceWithDiscount = discounts[i]?.purchasePrice ?? basePrice;
 
       initialData[idx] = {
-        medicineName: extractedData.medicineName,
-        strength: extractedData.strength,
-        quantity: extractedData.quantity,
-        batchNumber: extractedData.batchNumber,
-        expiryDate: extractedData.expiryDate,
-        unitPrice: extractedData.unitPrice,
-        totalCost: extractedData.totalCost,
-        purchasePrice: purchasePriceWithDiscount > 0 ? Math.round(purchasePriceWithDiscount * 100) / 100 : basePrice,
+        medicineName: extractedData.medicineName || "",
+        strength: extractedData.strength || "",
+        quantity: parseFloat(extractedData.quantity) || 0,
+        batchNumber: extractedData.batchNumber || "",
+        expiryDate: extractedData.expiryDate || "",
+        unitPrice: basePrice,
+        totalCost: extractedData.totalCost || 0,
+        purchasePrice: purchasePriceWithDiscount,
         mrp: basePrice > 0 ? Math.round(basePrice * 100) / 100 : "",
         salePrice: "",
-        company: billSupplier,
+        company: "",
         manufacturer: "",
         rackNumber: "",
       };
     });
-    console.log("\n");
     setMedicineFormData(initialData);
   };
 
@@ -1322,7 +1576,7 @@ const OCRBillImport = () => {
   // ============================================
 
   const validatePharmacyCheckData = () => {
-    for (const [idx, data] of Object.entries(medicineFormData)) {
+    for (const data of Object.values(medicineFormData)) {
       if (!data?.batchNumber) {
         setError(`Batch Number is required`);
         return false;
@@ -1346,16 +1600,37 @@ const OCRBillImport = () => {
   // ============================================
 
   const handleFinalSubmission = async () => {
+    console.log(`\n🔍 FINAL SUBMISSION DEBUG:`);
+    console.log(`   Error Medicines Count: ${errorMedicines.length}`);
+    console.log(`   Error Medicines Details:`, errorMedicines.map(m => ({
+      name: m.extractedName,
+      strength: m.extractedStrength,
+      reason: m.reason
+    })));
+    console.log(`   Confirmed Medicines: ${Object.keys(pharmacyCheckResults).length}`);
+
     setLoading(true);
     setError(null);
 
     try {
       // Build medicine confirmations from selected medicines
       const medicineConfirmations = [];
+      const processedMedicineIds = []; // Database IDs
+      const processedTempIds = []; // Temporary session IDs for error medicine filtering
 
       Object.entries(pharmacyCheckResults).forEach(([idx, result]) => {
         const formData = medicineFormData[idx];
+        const medicineName = formData.medicineName || extractedFormData[idx]?.medicineName;
+        const strength = formData.strength || extractedFormData[idx]?.strength;
+
+        // Track successfully processed medicines by ID for API and by temp ID for filtering errors
+        processedMedicineIds.push(result.medicineId);
+        if (result._tempId) {
+          processedTempIds.push(result._tempId);
+        }
+
         medicineConfirmations.push({
+          _tempId: result._tempId, // Send stable ID so server can match to its extracted record
           medicineId: result.medicineId,
           quantity: formData.quantity,
           batchNumber: formData.batchNumber,
@@ -1369,12 +1644,27 @@ const OCRBillImport = () => {
         });
       });
 
+      console.log(`\n📤 SENDING TO API:`);
+      console.log(`   medicineConfirmations count: ${medicineConfirmations.length}`);
+      console.log(`   errorMedicines count: ${errorMedicines.length}`);
+      console.log(`   errorMedicines being passed:`, errorMedicines);
+
       const response = await confirmOCRMedicines({
         billImportId,
+        billMetadata: {
+          billNumber,
+          billSupplier,
+          billGrossAmount,
+          billDiscountPercentage,
+          billDiscountAmount,
+          billFinalAmount,
+          billTotal,
+        },
         medicineConfirmations,
+        errorMedicines: errorMedicines, // Include all error medicines (unchecked + not found)
       });
 
-      console.log("Confirm response:", response);
+      console.log("✅ Confirm response:", response);
 
       const result = response.data || response;
 
@@ -1383,7 +1673,36 @@ const OCRBillImport = () => {
         throw new Error("Invalid response: missing billImportId");
       }
 
-      setSuccessResult(result);
+      // Remove successfully processed medicines from error list using temp IDs
+      console.log("🔍 FILTERING LOGIC DEBUG (ID-BASED):");
+      console.log(`   Processed temp IDs:`, processedTempIds);
+      console.log(`   Error medicines before filtering:`, errorMedicines);
+
+      const updatedErrorMedicines = errorMedicines.filter(error => {
+        const wasProcessed = processedTempIds.includes(error._tempId);
+
+        if (error._tempId) {
+          console.log(`   Checking error: "${error.extractedName}" (${error.extractedStrength}) - ID: ${error._tempId}`);
+          console.log(`   Result: ${wasProcessed ? "REMOVE" : "KEEP"}`);
+        }
+
+        return !wasProcessed;
+      });
+
+      if (updatedErrorMedicines.length < errorMedicines.length) {
+        const removed = errorMedicines.filter(e => !updatedErrorMedicines.includes(e));
+        console.log(`🗑️ Removed ${removed.length} processed medicines from error list`);
+        console.log(`   Removed: ${removed.map(e => `${e.extractedName} (${e.extractedStrength})`).join(", ")}`);
+      } else {
+        console.log(`ℹ️ No medicines removed from error list`);
+      }
+
+      // Update state with filtered medicines and add to success result
+      setErrorMedicines(updatedErrorMedicines);
+      setSuccessResult({
+        ...result,
+        pendingErrors: updatedErrorMedicines, // Store filtered errors in result
+      });
       setStep("success");
     } catch (err) {
       console.error("Submission error:", err);
@@ -1409,7 +1728,19 @@ const OCRBillImport = () => {
       // Restore bill state
       setBillImportId(billImportIdParam);
       setBillFileUrl(billData.fileUrl || null);
-      setErrorMedicines(billData.errors || []);
+      setErrorMedicines(addIdsToMedicines(billData.errors || []));
+
+      // Restore center selection from the bill record so the next pharmacy-check
+      // call lands on the correct center (without this, the user's last manual
+      // center pick was reused).
+      const restoredCenterId =
+        typeof billData.center === "object" ? billData.center?._id : billData.center;
+      if (restoredCenterId) {
+        const matchedCenter = centerOptions.find(
+          (c) => String(c.value) === String(restoredCenterId)
+        );
+        if (matchedCenter) setSelectedCenter(matchedCenter);
+      }
 
       // Restore financial state
       const meta = billData.extractedData?.billMetadata || {};
@@ -1426,7 +1757,7 @@ const OCRBillImport = () => {
       setBillTotal(meta.totalAmount || 0);
 
       // Transform medicines from flat structure to nested structure expected by component
-      const transformedMedicines = (billData.extractedData?.medicines || []).map((med) => ({
+      const transformedMedicines = addIdsToMedicines((billData.extractedData?.medicines || []).map((med) => ({
         medicineId: null, // Will be selected from matching medicines
         ocrExtracted: {
           name: med.name || "",
@@ -1441,7 +1772,7 @@ const OCRBillImport = () => {
         masterData: {},
         matchingMedicines: [],
         strengthWarning: false,
-      }));
+      })));
       setExtractedMedicines(transformedMedicines);
 
       // Rebuild extractedFormData
@@ -1480,6 +1811,12 @@ const OCRBillImport = () => {
       setMatchingMedicinesMap(matchingMap);
       setIsResuming(false);
 
+      // Show notification about missing medicines
+      if (billData.errors && billData.errors.length > 0) {
+        setError(`You have ${billData.errors.length} missing medicine(s) from previous attempt. You can edit their names/strength and search again below.`);
+        toast.info(`${billData.errors.length} missing medicine(s) - Edit and search again!`);
+      }
+
       setStep("extract");
       console.log("✅ Bill resumed successfully");
     } catch (err) {
@@ -1501,6 +1838,17 @@ const OCRBillImport = () => {
       // Store billImportId for submission
       setBillImportId(billImportIdParam);
 
+      // Restore center selection so retry's pharmacy-check uses the bill's
+      // original center, not whatever the user last picked manually.
+      const restoredCenterId =
+        typeof billData.center === "object" ? billData.center?._id : billData.center;
+      if (restoredCenterId) {
+        const matchedCenter = centerOptions.find(
+          (c) => String(c.value) === String(restoredCenterId)
+        );
+        if (matchedCenter) setSelectedCenter(matchedCenter);
+      }
+
       // Restore bill level information from extracted metadata
       const meta = billData.extractedData?.billMetadata || {};
       setBillSupplier(meta.supplier || "");
@@ -1510,22 +1858,48 @@ const OCRBillImport = () => {
       setBillDiscountAmount(meta.discountAmount || 0);
       setBillTotal(meta.totalAmount || 0);
 
-      // Filter out medicines that are already processed (added to inventory)
-      const processedMedicineNames = (billData.processedItems || []).map(item => {
-        // Get medicine name from the pharmacy record via billData
-        return item.pharmacyId?.medicineName || "";
-      }).filter(Boolean);
-
-      let errorsToRetry = billData.errors || errorMedicines;
-
-      // Remove medicines that are already processed
-      const alreadyProcessed = errorsToRetry.filter(e =>
-        processedMedicineNames.includes(e.extractedName)
+      // Filter out medicines that are already processed (added to inventory).
+      // Prefer _tempId match (stable across renames/case differences); fall back
+      // to name+strength for legacy records where the server didn't persist _tempId.
+      const processedTempIds = new Set(
+        (billData.processedItems || []).map(item => item._tempId).filter(Boolean)
+      );
+      const processedNameStrength = new Set(
+        (billData.processedItems || []).map(item => {
+          const name = (item.pharmacyId?.medicineName || "").toLowerCase().trim();
+          const strength = (item.pharmacyId?.Strength || "").toLowerCase().trim();
+          return name ? `${name}|${strength}` : null;
+        }).filter(Boolean)
       );
 
-      errorsToRetry = errorsToRetry.filter(e =>
-        !processedMedicineNames.includes(e.extractedName)
-      );
+      // Hydrate errors with quantity/batch/expiry/prices from extractedData.medicines
+      // via _tempId lookup. Legacy bills' errors[] don't persist these fields,
+      // but extractedData.medicines[] always does — so we can recover them.
+      const extractedById = new Map();
+      (billData.extractedData?.medicines || []).forEach((m) => {
+        if (m._tempId) extractedById.set(m._tempId, m);
+      });
+
+      let errorsToRetry = (billData.errors || errorMedicines || []).map((e) => {
+        const src = e._tempId ? extractedById.get(e._tempId) : null;
+        return {
+          ...e,
+          quantity: e.quantity ?? src?.quantity ?? 0,
+          batchNumber: e.batchNumber ?? src?.batchNumber ?? "",
+          expiryDate: e.expiryDate ?? src?.expiryDate ?? "",
+          unitPrice: e.unitPrice ?? src?.unitPrice ?? 0,
+          totalPrice: e.totalPrice ?? src?.totalPrice ?? 0,
+        };
+      });
+
+      const isProcessed = (e) => {
+        if (e._tempId && processedTempIds.has(e._tempId)) return true;
+        const key = `${(e.extractedName || "").toLowerCase().trim()}|${(e.extractedStrength || "").toLowerCase().trim()}`;
+        return processedNameStrength.has(key);
+      };
+
+      const alreadyProcessed = errorsToRetry.filter(isProcessed);
+      errorsToRetry = errorsToRetry.filter(e => !isProcessed(e));
 
       if (alreadyProcessed.length > 0) {
         console.log(`⏭️ Skipping ${alreadyProcessed.length} medicines already added to inventory:`, alreadyProcessed.map(m => m.extractedName));
@@ -1533,8 +1907,12 @@ const OCRBillImport = () => {
       }
 
       if (errorsToRetry.length === 0) {
-        setError("No medicines to retry. All errors are either already processed or no longer missing.");
+        // All medicines already processed - show success message
+        toast.success("All medicines have been successfully added to inventory.");
+        setError(null);
         setIsResuming(false);
+        // Stay on upload view but show success
+        setLoading(false);
         return;
       }
 
@@ -1551,6 +1929,7 @@ const OCRBillImport = () => {
             const nextIdx = Object.keys(matchingMedicinesMap).length + newMatches.length;
             newMatchingMap[nextIdx] = matches;
             newMatches.push({
+              _tempId: error._tempId, // Stable ID — used to look up the original extracted medicine
               name: error.extractedName,
               strength: error.extractedStrength,
               matches,
@@ -1562,8 +1941,13 @@ const OCRBillImport = () => {
       }
 
       if (newMatches.length === 0) {
-        setError("No new matches found. Check if medicines have been added to master database.");
+        // No new matches found - show the medicines that still need attention
+        setErrorMedicines(addIdsToMedicines(errorsToRetry));
+        toast.warning(`${errorsToRetry.length} medicine(s) still need to be found. Edit them and search again.`);
+        setError(null);
         setIsResuming(false);
+        setStep("extract");
+        setLoading(false);
         return;
       }
 
@@ -1576,18 +1960,42 @@ const OCRBillImport = () => {
       let startIdx = extractedMedicines.length;
 
       for (const newMatch of newMatches) {
-        // Find the original medicine from OCR extracted data
-        // Try exact match first, then fuzzy match
-        let originalMedicine = (billData.extractedData?.medicines || []).find(
-          m => (m.name || "").toLowerCase().trim() === (newMatch.name || "").toLowerCase().trim()
-            && (m.strength || "").toLowerCase().trim() === (newMatch.strength || "").toLowerCase().trim()
-        );
+        // Resolve the original error and extracted-medicine records by _tempId.
+        // _tempId is set by the server at extraction time and persisted on
+        // both billData.errors[] and billData.extractedData.medicines[],
+        // so a single ID lookup is exact across both arrays.
+        const originalErrorMedicine = newMatch._tempId
+          ? errorsToRetry.find(e => e._tempId === newMatch._tempId)
+          : null;
 
-        // Fallback: try matching just by name if strength doesn't match
+        let originalMedicine = newMatch._tempId
+          ? (billData.extractedData?.medicines || []).find(m => m._tempId === newMatch._tempId)
+          : null;
+
+        // Legacy fallback: bills created before _tempId tracking — match by name+strength,
+        // then by name only.
+        const fallbackErrorMedicine = !originalErrorMedicine
+          ? errorsToRetry.find(
+              e =>
+                (e.extractedName || "").toLowerCase().trim() === (newMatch.name || "").toLowerCase().trim() &&
+                (e.extractedStrength || "").toLowerCase().trim() === (newMatch.strength || "").toLowerCase().trim()
+            ) ||
+            errorsToRetry.find(
+              e => (e.extractedName || "").toLowerCase().trim() === (newMatch.name || "").toLowerCase().trim()
+            )
+          : null;
+
         if (!originalMedicine) {
           originalMedicine = (billData.extractedData?.medicines || []).find(
-            m => (m.name || "").toLowerCase().trim() === (newMatch.name || "").toLowerCase().trim()
+            m =>
+              (m.name || "").toLowerCase().trim() === (newMatch.name || "").toLowerCase().trim() &&
+              (m.strength || "").toLowerCase().trim() === (newMatch.strength || "").toLowerCase().trim()
           );
+          if (!originalMedicine) {
+            originalMedicine = (billData.extractedData?.medicines || []).find(
+              m => (m.name || "").toLowerCase().trim() === (newMatch.name || "").toLowerCase().trim()
+            );
+          }
         }
 
         if (originalMedicine || newMatch.name) {
@@ -1642,12 +2050,18 @@ const OCRBillImport = () => {
             }
           }
 
+          // Use first matched medicine's strength from database
+          const firstMatch = newMatch.matches?.[0];
+          const matchedStrength = firstMatch?.strength || newMatch.strength || "";
+
           // Create a new medicine entry with the structure expected by extract step
+          const errorMedForId = originalErrorMedicine || fallbackErrorMedicine;
           updatedExtractedMedicines.push({
+            _tempId: errorMedForId?._tempId, // Preserve ID for tracking across workflow
             medicineId: null, // Will be selected from dropdown
             ocrExtracted: {
               name: newMatch.name,
-              strength: newMatch.strength || "",
+              strength: matchedStrength,
               batchNumber: originalMedicine?.batchNumber || null,
               quantity: originalMedicine?.quantity || 0,
               unitPrice: originalMedicine?.unitPrice || null,
@@ -1663,7 +2077,7 @@ const OCRBillImport = () => {
           // Initialize form data for this medicine
           newFormDataEntries[startIdx] = {
             medicineName: newMatch.name,
-            strength: newMatch.strength || "",
+            strength: matchedStrength,
             quantity: originalMedicine?.quantity || 0,
             batchNumber: originalMedicine?.batchNumber || null,
             expiryDate: formattedExpiryDate,
@@ -1671,11 +2085,10 @@ const OCRBillImport = () => {
             totalPrice: originalMedicine?.totalPrice || null,
           };
 
-          // Mark as checked and auto-select first matching medicine if available
+          // Don't auto-select on retry - let user manually verify strength match
+          // This ensures user catches any strength mismatches (e.g., 7 vs 7.5)
           newCheckedMedicines[startIdx] = false;
-          if (newMatch.matches && newMatch.matches.length > 0) {
-            newSelectedMedicineIds[startIdx] = newMatch.matches[0]._id;
-          }
+          // newSelectedMedicineIds[startIdx] remains empty - user must manually select
 
           startIdx++;
         }
@@ -1695,6 +2108,16 @@ const OCRBillImport = () => {
       const updatedErrors = errorMedicines.filter(e => !retryNames.includes(e.extractedName));
       setErrorMedicines(updatedErrors);
 
+      // Update database to mark retried medicines as processed
+      try {
+        await updateBillErrors({
+          billImportId: billImportIdParam,
+          errors: updatedErrors,
+        });
+      } catch (updateErr) {
+        console.error("Failed to update bill errors in database:", updateErr);
+      }
+
       setError(null);
       setIsResuming(false);
       toast.success(`Found ${newMatches.length} new matches! Select them to continue.`);
@@ -1710,6 +2133,17 @@ const OCRBillImport = () => {
 
   // ============================================
   // Reset for new bill
+  // ============================================
+  // Helper function to add unique IDs to medicines
+  // ============================================
+
+  const addIdsToMedicines = (medicines) => {
+    return (medicines || []).map((med, idx) => ({
+      ...med,
+      _tempId: med._tempId || `${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 9)}`,
+    }));
+  };
+
   // ============================================
 
   const handleStartNew = () => {
@@ -1876,7 +2310,7 @@ const OCRBillImport = () => {
                 {processingStatus === "uploading" && (
                   <>
                     <h4 className="font-weight-bold mb-3" style={{ color: "#333" }}>
-                      📤 Uploading Bill
+                      Uploading Bill
                     </h4>
                     <p className="text-muted" style={{ fontSize: "16px" }}>
                       Preparing your document for processing...
@@ -1891,19 +2325,6 @@ const OCRBillImport = () => {
                       <h4 className="fw-semibold text-dark mb-3">
                         Extracting Medicine Details
                       </h4>
-
-                      <p className="text-muted mb-4">
-                        AI is analyzing your bill and extracting medicine information.
-                      </p>
-
-                      <div className="progress mb-3" style={{ height: "6px" }}>
-                        <div
-                          className="progress-bar progress-bar-striped progress-bar-animated"
-                          role="progressbar"
-                          style={{ width: "70%" }}
-                        />
-                      </div>
-
                       <p className="text-muted small mb-2">
                         This may take a minute or two
                       </p>
@@ -1968,7 +2389,7 @@ const OCRBillImport = () => {
                           type="text"
                           size="sm"
                           value={billNumber}
-                          disabled
+                          onChange={(e) => setBillNumber(e.target.value)}
                           placeholder="Bill number (if extracted)"
                         />
                       </FormGroup>
@@ -1982,7 +2403,7 @@ const OCRBillImport = () => {
                           type="text"
                           size="sm"
                           value={billSupplier}
-                          disabled
+                          onChange={(e) => setBillSupplier(e.target.value)}
                           placeholder="Supplier/Company name for entire bill"
                         />
                       </FormGroup>
@@ -1997,10 +2418,12 @@ const OCRBillImport = () => {
                           <strong>Gross Amount</strong>
                         </Label>
                         <Input
-                          type="text"
+                          type="number"
                           size="sm"
-                          value={billGrossAmount > 0 ? `₹ ${billGrossAmount.toFixed(2)}` : "₹ 0.00"}
-                          disabled
+                          value={billGrossAmount || ""}
+                          onChange={(e) => setBillGrossAmount(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          step="0.01"
                         />
                       </FormGroup>
                     </Col>
@@ -2010,10 +2433,12 @@ const OCRBillImport = () => {
                           <strong>Discount %</strong>
                         </Label>
                         <Input
-                          type="text"
+                          type="number"
                           size="sm"
-                          value={billDiscountPercentage > 0 ? `${billDiscountPercentage.toFixed(2)}%` : "0%"}
-                          disabled
+                          value={billDiscountPercentage || ""}
+                          onChange={(e) => setBillDiscountPercentage(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          step="0.01"
                         />
                       </FormGroup>
                     </Col>
@@ -2026,10 +2451,12 @@ const OCRBillImport = () => {
                           <strong>— Discount Amount</strong>
                         </Label>
                         <Input
-                          type="text"
+                          type="number"
                           size="sm"
-                          value={billDiscountAmount > 0 ? `— ₹ ${billDiscountAmount.toFixed(2)}` : "— ₹ 0.00"}
-                          disabled
+                          value={billDiscountAmount || ""}
+                          onChange={(e) => setBillDiscountAmount(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          step="0.01"
                         />
                       </FormGroup>
                     </Col>
@@ -2039,10 +2466,12 @@ const OCRBillImport = () => {
                           <strong>= Final Amount (After Discount)</strong>
                         </Label>
                         <Input
-                          type="text"
+                          type="number"
                           size="sm"
-                          value={billFinalAmount > 0 ? `= ₹ ${billFinalAmount.toFixed(2)}` : `= ₹ ${billGrossAmount.toFixed(2)}`}
-                          disabled
+                          value={billFinalAmount || ""}
+                          onChange={(e) => setBillFinalAmount(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          step="0.01"
                         />
                       </FormGroup>
                     </Col>
@@ -2055,10 +2484,12 @@ const OCRBillImport = () => {
                           <strong>= Total Amount</strong>
                         </Label>
                         <Input
-                          type="text"
+                          type="number"
                           size="sm"
-                          value={`= ₹ ${billTotal.toFixed(2)}`}
-                          disabled
+                          value={billTotal || ""}
+                          onChange={(e) => setBillTotal(parseFloat(e.target.value) || 0)}
+                          placeholder="0"
+                          step="0.01"
                         />
                       </FormGroup>
                     </Col>
@@ -2073,17 +2504,15 @@ const OCRBillImport = () => {
               <CardHeader className="bg-light border-warning">
                 <Row className="align-items-center">
                   <Col>
-                    <h6 className="mb-0 text-warning font-weight-bold">⚠️ Missing Medicines ({errorMedicines.length})</h6>
-                    <small className="text-muted">Edit details • Search again • Match & move to extracted list</small>
+                    <h6 className="mb-0 text-warning font-weight-bold">Missing Medicines ({errorMedicines.length})</h6>
                   </Col>
                   <Col xs="auto">
                     <Button
-                      color="warning"
+                      color="primary"
                       size="sm"
                       onClick={() => downloadMissingFieldsCSV(errorMedicines)}
-                      outline
                     >
-                      📥 Download Excel
+                    Download Excel
                     </Button>
                   </Col>
                 </Row>
@@ -2123,15 +2552,14 @@ const OCRBillImport = () => {
                   <table className="table table-sm mb-0 error-medicine-table">
                     <thead className="bg-light">
                       <tr>
-                        <th style={{ width: "15%" }}>Medicine Name</th>
-                        <th style={{ width: "10%" }}>Strength</th>
+                        <th style={{ width: "17%" }}>Medicine Name</th>
+                        <th style={{ width: "11%" }}>Strength</th>
                         <th style={{ width: "8%" }}>Qty</th>
-                        <th style={{ width: "12%" }}>Batch</th>
-                        <th style={{ width: "12%" }}>Expiry</th>
-                        <th style={{ width: "9%" }}>Unit Price</th>
-                        <th style={{ width: "9%" }}>Total</th>
-                        <th style={{ width: "20%" }}>Search & Match</th>
-                        <th style={{ width: "5%" }}></th>
+                        <th style={{ width: "13%" }}>Batch</th>
+                        <th style={{ width: "13%" }}>Expiry</th>
+                        <th style={{ width: "10%" }}>Unit Price</th>
+                        <th style={{ width: "10%" }}>Total</th>
+                        <th style={{ width: "18%", textAlign: "center" }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -2141,6 +2569,7 @@ const OCRBillImport = () => {
                           setErrorMedicinesFormData(prev => ({
                             ...prev,
                             [idx]: {
+                              _tempId: med._tempId,
                               extractedName: med.extractedName,
                               extractedStrength: med.extractedStrength,
                               quantity: med.quantity || 0,
@@ -2152,22 +2581,11 @@ const OCRBillImport = () => {
                           }));
                         }
 
-                        // Auto-fetch matching medicines when name/strength is set
-                        if (!errorMatchingMedicinesMap[idx] && med.extractedName) {
-                          if (debounceTimersRef.current[`error-init-${idx}`]) {
-                            clearTimeout(debounceTimersRef.current[`error-init-${idx}`]);
-                          }
-                          debounceTimersRef.current[`error-init-${idx}`] = setTimeout(async () => {
-                            const matches = await fetchMatchingMedicines(med.extractedName, med.extractedStrength);
-                            setErrorMatchingMedicinesMap(prevMap => ({
-                              ...prevMap,
-                              [idx]: matches,
-                            }));
-                          }, 300);
-                        }
+                        // Auto-fetch disabled - search happens in extracted list instead
 
                         return (
-                          <tr key={idx}>
+                          <React.Fragment key={idx}>
+                          <tr>
                             <td>
                               <Input
                                 type="text"
@@ -2248,92 +2666,102 @@ const OCRBillImport = () => {
                                 disabled
                               />
                             </td>
-                            <td style={{ minWidth: "280px" }}>
-                              {errorMatchingMedicinesMap[idx]?.length > 0 ? (
-                                <Row className="g-1">
-                                  <Col xs="9">
+                            <td style={{ textAlign: "center" }}>
+                              <div className="d-flex gap-1 justify-content-center align-items-center">
+                                <Button
+                                  color="primary"
+                                  size="sm"
+                                  outline
+                                  disabled={!!errorSearchLoading[idx]}
+                                  onClick={() => handleErrorMedicineSearch(idx)}
+                                  title="Search for matching medicine in master"
+                                  style={{ fontSize: "0.75rem", padding: "0.15rem 0.4rem" }}
+                                >
+                                  {errorSearchLoading[idx] ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Search"
+                                  )}
+                                </Button>
+                                <Button
+                                  color="link"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updated = errorMedicines.filter((_, i) => i !== idx);
+                                    setErrorMedicines(updated);
+                                    const updatedFormData = { ...errorMedicinesFormData };
+                                    delete updatedFormData[idx];
+                                    setErrorMedicinesFormData(updatedFormData);
+                                    const updatedMatches = { ...errorMatchingMedicinesMap };
+                                    delete updatedMatches[idx];
+                                    setErrorMatchingMedicinesMap(updatedMatches);
+                                    const updatedSelected = { ...selectedErrorMedicineIds };
+                                    delete updatedSelected[idx];
+                                    setSelectedErrorMedicineIds(updatedSelected);
+                                  }}
+                                  title="Remove"
+                                  style={{ padding: "0.15rem 0.3rem" }}
+                                >
+                                  ✕
+                                </Button>
+                              </div>
+                            </td>
+                          </tr>
+                          {errorMatchingMedicinesMap[idx] && errorMatchingMedicinesMap[idx].length > 0 && (
+                            <tr key={`${idx}-matches`} style={{ backgroundColor: "#fffbf0" }}>
+                              <td colSpan={8} style={{ padding: "0.5rem 1rem" }}>
+                                <div className="d-flex align-items-center gap-2 flex-wrap">
+                                  <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#856404" }}>
+                                    Select match:
+                                  </span>
+                                  <div style={{ minWidth: "280px", flex: 1 }}>
                                     <Select
-                                      options={errorMatchingMedicinesMap[idx]?.map((m) => ({
-                                        value: m._id,
-                                        label: `${m.id || m._id} | ${m.name} ${m.strength || ""}`.trim(),
-                                        data: m,
-                                      })) || []}
+                                      options={errorMatchingMedicinesMap[idx].map((m) => ({
+                                        value: m._id || m.id,
+                                        label: `${m.name || ""}${m.strength ? ` — ${m.strength}` : ""}${m.form ? ` (${m.form})` : ""}`,
+                                      }))}
                                       value={
                                         selectedErrorMedicineIds[idx]
                                           ? {
-                                            value: selectedErrorMedicineIds[idx],
-                                            label: errorMatchingMedicinesMap[idx]?.find(
-                                              (m) => m._id === selectedErrorMedicineIds[idx]
-                                            )?.id || selectedErrorMedicineIds[idx],
-                                          }
+                                              value: selectedErrorMedicineIds[idx],
+                                              label: (() => {
+                                                const m = errorMatchingMedicinesMap[idx].find(
+                                                  (x) => (x._id || x.id) === selectedErrorMedicineIds[idx]
+                                                );
+                                                return m ? `${m.name}${m.strength ? ` — ${m.strength}` : ""}` : "";
+                                              })(),
+                                            }
                                           : null
                                       }
-                                      onChange={(selected) => {
-                                        if (selected) {
-                                          setSelectedErrorMedicineIds({
-                                            ...selectedErrorMedicineIds,
-                                            [idx]: selected.value,
-                                          });
-                                        }
+                                      onChange={(opt) => {
+                                        setSelectedErrorMedicineIds((prev) => ({
+                                          ...prev,
+                                          [idx]: opt?.value || null,
+                                        }));
                                       }}
+                                      placeholder="Pick the correct medicine..."
                                       isClearable
-                                      isSearchable
-                                      placeholder="Select..."
-                                      onClearValue={() => {
-                                        const updated = { ...selectedErrorMedicineIds };
-                                        delete updated[idx];
-                                        setSelectedErrorMedicineIds(updated);
-                                      }}
-                                      menuPortalTarget={document.body}
+                                      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                                       menuPosition="fixed"
                                       styles={{
-                                        control: (base) => ({
-                                          ...base,
-                                          minHeight: "36px",
-                                          fontSize: "0.75rem",
-                                          padding: "0 4px",
-                                        }),
-                                        option: (base, state) => ({
-                                          ...base,
-                                          fontSize: "0.75rem",
-                                          padding: "6px 10px",
-                                        }),
+                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                       }}
                                     />
-                                  </Col>
-                                  <Col xs="3">
-                                    <Button
-                                      color="success"
-                                      size="sm"
-                                      onClick={() => handleAddErrorMedicineToExtracted(idx)}
-                                      disabled={!selectedErrorMedicineIds[idx]}
-                                      className="w-100"
-                                    >
-                                      Add ✓
-                                    </Button>
-                                  </Col>
-                                </Row>
-                              ) : (
-                                <span className="text-muted small">Searching...</span>
-                              )}
-                            </td>
-                            <td style={{ textAlign: "center" }}>
-                              <Button
-                                color="link"
-                                size="sm"
-                                onClick={() => {
-                                  const updated = errorMedicines.filter((_, i) => i !== idx);
-                                  setErrorMedicines(updated);
-                                  const updatedFormData = { ...errorMedicinesFormData };
-                                  delete updatedFormData[idx];
-                                  setErrorMedicinesFormData(updatedFormData);
-                                }}
-                                title="Remove"
-                              >
-                                ✕
-                              </Button>
-                            </td>
-                          </tr>
+                                  </div>
+                                  <Button
+                                    color="success"
+                                    size="sm"
+                                    disabled={!selectedErrorMedicineIds[idx]}
+                                    onClick={() => handleAddErrorMedicineToExtracted(idx)}
+                                    title="Move this medicine to the extracted list"
+                                  >
+                                    Move to Extracted
+                                  </Button>
+                                </div>
+                              </td>
+                            </tr>
+                          )}
+                          </React.Fragment>
                         );
                       })}
                     </tbody>
@@ -2357,17 +2785,15 @@ const OCRBillImport = () => {
                   <CardHeader className="bg-light border-warning">
                     <Row className="align-items-center">
                       <Col>
-                        <h6 className="mb-0 text-warning font-weight-bold">⚠️ Missing Medicines Found ({errorMedicines.length})</h6>
-                        <small className="text-muted">Edit details • Search again • Match & move to extracted list</small>
+                        <h6 className="mb-0 text-warning font-weight-bold">Missing Medicines Found ({errorMedicines.length})</h6>
                       </Col>
                       <Col xs="auto">
                         <Button
-                          color="warning"
+                          color="primary"
                           size="sm"
                           onClick={() => downloadMissingFieldsCSV(errorMedicines)}
-                          outline
                         >
-                          📥 Download Excel
+                          Download Excel
                         </Button>
                       </Col>
                     </Row>
@@ -2407,15 +2833,14 @@ const OCRBillImport = () => {
                       <table className="table table-sm mb-0 error-medicine-table-no-extracted">
                         <thead className="bg-light">
                           <tr>
-                            <th style={{ width: "15%" }}>Medicine Name</th>
-                            <th style={{ width: "10%" }}>Strength</th>
+                            <th style={{ width: "17%" }}>Medicine Name</th>
+                            <th style={{ width: "11%" }}>Strength</th>
                             <th style={{ width: "8%" }}>Qty</th>
-                            <th style={{ width: "12%" }}>Batch</th>
-                            <th style={{ width: "12%" }}>Expiry</th>
-                            <th style={{ width: "9%" }}>Unit Price</th>
-                            <th style={{ width: "9%" }}>Total</th>
-                            <th style={{ width: "20%" }}>Search & Match</th>
-                            <th style={{ width: "5%" }}></th>
+                            <th style={{ width: "13%" }}>Batch</th>
+                            <th style={{ width: "13%" }}>Expiry</th>
+                            <th style={{ width: "10%" }}>Unit Price</th>
+                            <th style={{ width: "10%" }}>Total</th>
+                            <th style={{ width: "18%", textAlign: "center" }}>Actions</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -2424,6 +2849,7 @@ const OCRBillImport = () => {
                               setErrorMedicinesFormData(prev => ({
                                 ...prev,
                                 [idx]: {
+                                  _tempId: med._tempId,
                                   extractedName: med.extractedName,
                                   extractedStrength: med.extractedStrength,
                                   quantity: med.quantity || 0,
@@ -2435,21 +2861,9 @@ const OCRBillImport = () => {
                               }));
                             }
 
-                            if (!errorMatchingMedicinesMap[idx] && med.extractedName) {
-                              if (debounceTimersRef.current[`error-init-${idx}`]) {
-                                clearTimeout(debounceTimersRef.current[`error-init-${idx}`]);
-                              }
-                              debounceTimersRef.current[`error-init-${idx}`] = setTimeout(async () => {
-                                const matches = await fetchMatchingMedicines(med.extractedName, med.extractedStrength);
-                                setErrorMatchingMedicinesMap(prevMap => ({
-                                  ...prevMap,
-                                  [idx]: matches,
-                                }));
-                              }, 300);
-                            }
-
                             return (
-                              <tr key={idx}>
+                              <React.Fragment key={idx}>
+                              <tr>
                                 <td>
                                   <Input
                                     type="text"
@@ -2530,92 +2944,98 @@ const OCRBillImport = () => {
                                     disabled
                                   />
                                 </td>
-                                <td style={{ minWidth: "280px" }}>
-                                  {errorMatchingMedicinesMap[idx]?.length > 0 ? (
-                                    <Row className="g-1">
-                                      <Col xs="9">
+                                <td style={{ textAlign: "center" }}>
+                                  <div className="d-flex gap-1 justify-content-center align-items-center">
+                                    <Button
+                                      color="primary"
+                                      size="sm"
+                                      outline
+                                      disabled={!!errorSearchLoading[idx]}
+                                      onClick={() => handleErrorMedicineSearch(idx)}
+                                      title="Search for matching medicine in master"
+                                      style={{ fontSize: "0.75rem", padding: "0.15rem 0.4rem" }}
+                                    >
+                                      {errorSearchLoading[idx] ? <Spinner size="sm" /> : "Search"}
+                                    </Button>
+                                    <Button
+                                      color="link"
+                                      size="sm"
+                                      onClick={() => {
+                                        const updated = errorMedicines.filter((_, i) => i !== idx);
+                                        setErrorMedicines(updated);
+                                        const updatedFormData = { ...errorMedicinesFormData };
+                                        delete updatedFormData[idx];
+                                        setErrorMedicinesFormData(updatedFormData);
+                                        const updatedMatches = { ...errorMatchingMedicinesMap };
+                                        delete updatedMatches[idx];
+                                        setErrorMatchingMedicinesMap(updatedMatches);
+                                        const updatedSelected = { ...selectedErrorMedicineIds };
+                                        delete updatedSelected[idx];
+                                        setSelectedErrorMedicineIds(updatedSelected);
+                                      }}
+                                      title="Remove"
+                                      style={{ padding: "0.15rem 0.3rem" }}
+                                    >
+                                      ✕
+                                    </Button>
+                                  </div>
+                                </td>
+                              </tr>
+                              {errorMatchingMedicinesMap[idx] && errorMatchingMedicinesMap[idx].length > 0 && (
+                                <tr key={`${idx}-matches`} style={{ backgroundColor: "#fffbf0" }}>
+                                  <td colSpan={8} style={{ padding: "0.5rem 1rem" }}>
+                                    <div className="d-flex align-items-center gap-2 flex-wrap">
+                                      <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#856404" }}>
+                                        Select match:
+                                      </span>
+                                      <div style={{ minWidth: "280px", flex: 1 }}>
                                         <Select
-                                          options={errorMatchingMedicinesMap[idx]?.map((m) => ({
-                                            value: m._id,
-                                            label: `${m.id || m._id} | ${m.name} ${m.strength || ""}`.trim(),
-                                            data: m,
-                                          })) || []}
+                                          options={errorMatchingMedicinesMap[idx].map((m) => ({
+                                            value: m._id || m.id,
+                                            label: `${m.name || ""}${m.strength ? ` — ${m.strength}` : ""}${m.form ? ` (${m.form})` : ""}`,
+                                          }))}
                                           value={
                                             selectedErrorMedicineIds[idx]
                                               ? {
-                                                value: selectedErrorMedicineIds[idx],
-                                                label: errorMatchingMedicinesMap[idx]?.find(
-                                                  (m) => m._id === selectedErrorMedicineIds[idx]
-                                                )?.id || selectedErrorMedicineIds[idx],
-                                              }
+                                                  value: selectedErrorMedicineIds[idx],
+                                                  label: (() => {
+                                                    const m = errorMatchingMedicinesMap[idx].find(
+                                                      (x) => (x._id || x.id) === selectedErrorMedicineIds[idx]
+                                                    );
+                                                    return m ? `${m.name}${m.strength ? ` — ${m.strength}` : ""}` : "";
+                                                  })(),
+                                                }
                                               : null
                                           }
-                                          onChange={(selected) => {
-                                            if (selected) {
-                                              setSelectedErrorMedicineIds({
-                                                ...selectedErrorMedicineIds,
-                                                [idx]: selected.value,
-                                              });
-                                            }
+                                          onChange={(opt) => {
+                                            setSelectedErrorMedicineIds((prev) => ({
+                                              ...prev,
+                                              [idx]: opt?.value || null,
+                                            }));
                                           }}
+                                          placeholder="Pick the correct medicine..."
                                           isClearable
-                                          isSearchable
-                                          placeholder="Select..."
-                                          onClearValue={() => {
-                                            const updated = { ...selectedErrorMedicineIds };
-                                            delete updated[idx];
-                                            setSelectedErrorMedicineIds(updated);
-                                          }}
-                                          menuPortalTarget={document.body}
+                                          menuPortalTarget={typeof document !== "undefined" ? document.body : null}
                                           menuPosition="fixed"
                                           styles={{
-                                            control: (base) => ({
-                                              ...base,
-                                              minHeight: "36px",
-                                              fontSize: "0.75rem",
-                                              padding: "0 4px",
-                                            }),
-                                            option: (base, state) => ({
-                                              ...base,
-                                              fontSize: "0.75rem",
-                                              padding: "6px 10px",
-                                            }),
+                                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                           }}
                                         />
-                                      </Col>
-                                      <Col xs="3">
-                                        <Button
-                                          color="success"
-                                          size="sm"
-                                          onClick={() => handleAddErrorMedicineToExtracted(idx)}
-                                          disabled={!selectedErrorMedicineIds[idx]}
-                                          className="w-100"
-                                        >
-                                          Add ✓
-                                        </Button>
-                                      </Col>
-                                    </Row>
-                                  ) : (
-                                    <span className="text-muted small">Searching...</span>
-                                  )}
-                                </td>
-                                <td style={{ textAlign: "center" }}>
-                                  <Button
-                                    color="link"
-                                    size="sm"
-                                    onClick={() => {
-                                      const updated = errorMedicines.filter((_, i) => i !== idx);
-                                      setErrorMedicines(updated);
-                                      const updatedFormData = { ...errorMedicinesFormData };
-                                      delete updatedFormData[idx];
-                                      setErrorMedicinesFormData(updatedFormData);
-                                    }}
-                                    title="Remove"
-                                  >
-                                    ✕
-                                  </Button>
-                                </td>
-                              </tr>
+                                      </div>
+                                      <Button
+                                        color="success"
+                                        size="sm"
+                                        disabled={!selectedErrorMedicineIds[idx]}
+                                        onClick={() => handleAddErrorMedicineToExtracted(idx)}
+                                        title="Move this medicine to the extracted list"
+                                      >
+                                        Move to Extracted
+                                      </Button>
+                                    </div>
+                                  </td>
+                                </tr>
+                              )}
+                              </React.Fragment>
                             );
                           })}
                         </tbody>
@@ -2650,7 +3070,8 @@ const OCRBillImport = () => {
             </Row>
           )}
 
-          {/* Compact Table View for Quick Bulk Entry */}
+          {/* Compact Table View for Quick Bulk Entry - Only show if medicines were extracted */}
+          {extractedMedicines.length > 0 && (
           <Card className="border-0 shadow-sm">
             <CardHeader className="bg-light border-0">
               <h6 className="mb-0 font-weight-bold">
@@ -2723,7 +3144,7 @@ const OCRBillImport = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {extractedMedicines.map((med, idx) => {
+                    {extractedMedicines.map((_, idx) => {
                       // Skip medicines with no matches - they should be in errors array
                       if (!matchingMedicinesMap[idx] || matchingMedicinesMap[idx].length === 0) {
                         return null;
@@ -2777,16 +3198,19 @@ const OCRBillImport = () => {
                                     ...checkedMedicines,
                                     [idx]: true,
                                   });
+                                } else {
+                                  // X clicked — clear selection and uncheck the row
+                                  const updatedIds = { ...selectedMedicineIds };
+                                  delete updatedIds[idx];
+                                  setSelectedMedicineIds(updatedIds);
+                                  const updatedChecked = { ...checkedMedicines };
+                                  delete updatedChecked[idx];
+                                  setCheckedMedicines(updatedChecked);
                                 }
                               }}
                               isClearable
                               isSearchable
                               placeholder="Select medicine..."
-                              onClearValue={() => {
-                                const updated = { ...selectedMedicineIds };
-                                delete updated[idx];
-                                setSelectedMedicineIds(updated);
-                              }}
                               menuPortalTarget={document.body}
                               menuPosition="fixed"
                               styles={{
@@ -2917,6 +3341,7 @@ const OCRBillImport = () => {
               </div>
             </CardBody>
           </Card>
+          )}
 
           {error && <Alert color="danger" className="mt-3">{error}</Alert>}
 
@@ -2931,7 +3356,7 @@ const OCRBillImport = () => {
             <Button
               color="primary"
               onClick={handleProceedFromExtraction}
-              disabled={confirmationLoading || extractedMedicines.length === 0}
+              disabled={confirmationLoading || extractedMedicines.length === 0 || Object.keys(checkedMedicines).length === 0}
             >
               {confirmationLoading ? (
                 <>
@@ -3019,7 +3444,7 @@ const OCRBillImport = () => {
                 </Button>
               </div>
 
-              {extractedMedicines.map((med, idx) => {
+              {extractedMedicines.map((_, idx) => {
                 const selectedMedicineId = selectedMedicineIds[idx];
                 const selectedMedicineData = matchingMedicinesMap[idx]?.find(
                   (m) => m._id === selectedMedicineId
@@ -3418,128 +3843,6 @@ const OCRBillImport = () => {
     );
   }
 
-  // Summary consolidated into confirm step - this is kept for backward compatibility but should not render
-  if (step === "summary" && false) {
-    const summaryItems = Object.entries(pharmacyCheckResults).map(([idx, result]) => ({
-      idx,
-      ...result,
-      formData: medicineFormData[idx],
-    }));
-
-    return (
-      <CardBody
-        className="p-3 bg-white"
-        style={isMobile ? { width: "100%" } : { width: "78%" }}
-      >
-        <div className="px-3 pt-3">
-          <h5 className="mb-1 text-primary text-uppercase font-weight-bold">
-            Step 4: Summary
-          </h5>
-          <small className="text-muted">
-            Review all details before final submission
-          </small>
-        </div>
-        <hr className="mb-4 border-secondary" />
-
-        <div className="content-wrapper">
-          <Alert color="info">
-            <h6>Final Review</h6>
-            <p className="mb-0">
-              You are about to import <strong>{summaryItems.length}</strong> medicines to your pharmacy inventory.
-            </p>
-            {billSupplier && (
-              <p className="mb-0 mt-2">
-                <strong>Bill Supplier:</strong> {billSupplier}
-              </p>
-            )}
-          </Alert>
-
-          {summaryItems.map((item) => (
-            <Card key={item.idx} className="border-0 shadow-sm mb-3">
-              <CardHeader className="bg-light border-0">
-                <h6 className="mb-0">
-                  {item.selectedMedicine?.name} {item.selectedMedicine?.strength}
-                </h6>
-                <small className="text-muted">
-                  ID: {item.selectedMedicine?.id || item.selectedMedicine?._id}
-                </small>
-              </CardHeader>
-              <CardBody>
-                <Row>
-                  <Col md="6">
-                    <div className="mb-3">
-                      <small className="text-muted">
-                        <strong>Batch & Expiry:</strong>
-                      </small>
-                      <div>{item.formData?.batchNumber}</div>
-                      <div className="text-muted">{item.formData?.expiryDate}</div>
-                    </div>
-                    <div className="mb-3">
-                      <small className="text-muted">
-                        <strong>Quantity:</strong>
-                      </small>
-                      <div>{item.formData?.quantity} units</div>
-                    </div>
-                    <div className="mb-3">
-                      <small className="text-muted">
-                        <strong>Pharmacy ID:</strong>
-                      </small>
-                      <div>{centerId || "—"}</div>
-                    </div>
-                  </Col>
-                  <Col md="6">
-                    <div className="mb-3">
-                      <small className="text-muted">
-                        <strong>Pricing:</strong>
-                      </small>
-                      <div>
-                        P.Price: {item.formData?.purchasePrice || "—"}
-                        {item.formData?.mrp && ` | MRP: ${item.formData?.mrp}`}
-                        {item.formData?.salePrice && ` | S.Price: ${item.formData?.salePrice}`}
-                      </div>
-                    </div>
-                    <div className="mb-3">
-                      <small className="text-muted">
-                        <strong>Supplier:</strong>
-                      </small>
-                      <div>{item.formData?.company || item.formData?.manufacturer || "—"}</div>
-                    </div>
-                  </Col>
-                </Row>
-              </CardBody>
-            </Card>
-          ))}
-
-          {error && <Alert color="danger">{error}</Alert>}
-
-          <div className="d-flex gap-2 justify-content-end mt-4">
-            <Button
-              color="secondary"
-              onClick={() => setStep("pharmacyCheck")}
-              outline
-            >
-              Back
-            </Button>
-            <Button
-              color="success"
-              onClick={handleFinalSubmission}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Spinner size="sm" className="me-2" />
-                  Submitting...
-                </>
-              ) : (
-                "Submit & Import"
-              )}
-            </Button>
-          </div>
-        </div>
-      </CardBody>
-    );
-  }
-
   // Step 4: Success
   if (step === "success") {
     // Safety check
@@ -3606,9 +3909,9 @@ const OCRBillImport = () => {
           </Row>
 
           {successResult.updatedItems.length > 0 && (
-            <Card className="border-0 shadow-sm mb-4">
+            <Card className="border-0 shadow-sm mb-4 border-success border-start border-5">
               <CardHeader className="bg-light border-0">
-                <h6 className="mb-0 font-weight-bold">Updated Medicines</h6>
+                <h6 className="mb-0 font-weight-bold">✓ Medicines Added to Inventory ({successResult.updatedItems.length})</h6>
               </CardHeader>
               <CardBody className="p-0">
                 {successResult.updatedItems.map((item, idx) => (
@@ -3620,18 +3923,100 @@ const OCRBillImport = () => {
                         idx % 2 === 0 ? "#f8f9fa" : "transparent",
                     }}
                   >
-                    <div className="mb-2">
-                      <h6 className="mb-1 font-weight-bold">
-                        {item.medicineName}
-                      </h6>
-                      <small className="text-muted">
-                        Batch: {item.batchNumber} | Pharmacy ID: {item.pharmacyId}
-                      </small>
-                    </div>
-                    <div className="d-flex gap-2 flex-wrap">
-                      <Badge color="success">+{item.quantity} {item.baseUnit || "units"}</Badge>
-                      <Badge color="info">{item.action}</Badge>
-                    </div>
+                    <Row className="align-items-start">
+                      <Col md="6">
+                        <div className="mb-2">
+                          <h6 className="mb-1 font-weight-bold">
+                            {item.medicineName} {item.strength ? `(${item.strength})` : ""}
+                          </h6>
+                          <small className="text-muted d-block">
+                            <strong>Batch:</strong> {item.batchNumber}
+                          </small>
+                          <small className="text-muted d-block">
+                            <strong>Expiry:</strong> {item.expiryDate || "—"}
+                          </small>
+                        </div>
+                      </Col>
+                      <Col md="6">
+                        <div className="text-md-end">
+                          <div className="mb-2">
+                            <Badge color="success" className="px-3 py-2 me-2">
+                              Qty: {item.quantity} {item.baseUnit || "units"}
+                            </Badge>
+                          </div>
+                          <div>
+                            <small className="text-muted">
+                              <strong>Pharmacy ID:</strong> {item.pharmacyId}
+                            </small>
+                          </div>
+                        </div>
+                      </Col>
+                    </Row>
+                  </div>
+                ))}
+              </CardBody>
+            </Card>
+          )}
+
+          {(successResult.pendingErrors || [])?.length > 0 && (
+            <Card className="border-0 shadow-sm mb-4 border-warning border-start border-5">
+              <CardHeader className="bg-light border-0">
+                <h6 className="mb-0 font-weight-bold">Missing Medicines ({(successResult.pendingErrors || []).length})</h6>
+                <small className="text-muted">These medicines need to be retried or edited</small>
+              </CardHeader>
+              <CardBody className="p-0">
+                {(successResult.pendingErrors || []).map((medicine, idx) => (
+                  <div
+                    key={idx}
+                    className="border-bottom p-3"
+                    style={{
+                      backgroundColor:
+                        idx % 2 === 0 ? "#fffbf0" : "transparent",
+                    }}
+                  >
+                    <Row className="align-items-start">
+                      <Col md="6">
+                        <div className="mb-2">
+                          <h6 className="mb-1 font-weight-bold">
+                            {medicine.extractedName} {medicine.extractedStrength ? `(${medicine.extractedStrength})` : ""}
+                          </h6>
+                          <small className="text-muted d-block">
+                            <strong>Batch:</strong> {medicine.batchNumber || "—"}
+                          </small>
+                          <small className="text-muted d-block">
+                            <strong>Expiry:</strong> {medicine.expiryDate || "—"}
+                          </small>
+                          <small className="text-muted d-block">
+                            <strong>Qty:</strong> {medicine.quantity || 0}
+                          </small>
+                        </div>
+                      </Col>
+                      <Col md="6">
+                        <div className="text-md-end">
+                          <Badge color="warning" className="px-3 py-2 mb-2 d-inline-block">
+                            Price: ₹{medicine.unitPrice || "0"}
+                          </Badge>
+                          <div className="mt-2">
+                            <small className="text-danger d-block">
+                              <strong>Reason:</strong>
+                            </small>
+                            <small className="text-danger">
+                              {medicine.reason || "Not matched in master database"}
+                            </small>
+                          </div>
+                          <div className="mt-3">
+                            <Button
+                              color="warning"
+                              size="sm"
+                              onClick={() => handleEditMissingMedicine(medicine, idx)}
+                              outline
+                            >
+                              Edit & Search
+                            </Button>
+                          </div>
+                        </div>
+                      </Col>
+                    </Row>
                   </div>
                 ))}
               </CardBody>
@@ -3663,9 +4048,108 @@ const OCRBillImport = () => {
             </Card>
           )}
 
+          {/* Edit Missing Medicine Modal */}
+          {editingMissingMedicineIdx !== null && (
+            <Card className="border-0 shadow-lg mb-4 bg-light">
+              <CardHeader className="bg-primary text-white">
+                <h6 className="mb-0">Edit & Search Medicine</h6>
+              </CardHeader>
+              <CardBody>
+                <Form>
+                  <Row>
+                    <Col md="6">
+                      <FormGroup>
+                        <Label><strong>Medicine Name</strong></Label>
+                        <Input
+                          type="text"
+                          value={editingMissingMedicineData.extractedName || ""}
+                          onChange={(e) =>
+                            setEditingMissingMedicineData({
+                              ...editingMissingMedicineData,
+                              extractedName: e.target.value,
+                            })
+                          }
+                          placeholder="Medicine name"
+                        />
+                      </FormGroup>
+                    </Col>
+                    <Col md="6">
+                      <FormGroup>
+                        <Label><strong>Strength</strong></Label>
+                        <Input
+                          type="text"
+                          value={editingMissingMedicineData.extractedStrength || ""}
+                          onChange={(e) =>
+                            setEditingMissingMedicineData({
+                              ...editingMissingMedicineData,
+                              extractedStrength: e.target.value,
+                            })
+                          }
+                          placeholder="Strength"
+                        />
+                      </FormGroup>
+                    </Col>
+                  </Row>
+
+                  <div className="d-flex gap-2 justify-content-between">
+                    <Button
+                      color="secondary"
+                      onClick={() => setEditingMissingMedicineIdx(null)}
+                      outline
+                    >
+                      Close
+                    </Button>
+                    <Button
+                      color="primary"
+                      onClick={handleSearchMissingMedicine}
+                      disabled={editingMissingLoading}
+                    >
+                      {editingMissingLoading ? (
+                        <>
+                          <Spinner size="sm" className="me-2" />
+                          Searching...
+                        </>
+                      ) : (
+                        "Search Again"
+                      )}
+                    </Button>
+                  </div>
+                </Form>
+
+                {editingMissingMatches.length > 0 && (
+                  <div className="mt-4">
+                    <h6 className="mb-3">Found Matches:</h6>
+                    <div className="bg-white p-3 rounded" style={{ maxHeight: "300px", overflowY: "auto" }}>
+                      {editingMissingMatches.map((match, idx) => (
+                        <div key={idx} className="d-flex justify-content-between align-items-center p-2 border-bottom">
+                          <div>
+                            <strong>{match.id || match._id}</strong><br />
+                            <small className="text-muted">{match.name} {match.strength || ""}</small>
+                          </div>
+                          <Button
+                            color="success"
+                            size="sm"
+                            onClick={() => {
+                              // User can now select this medicine
+                              // This would update the error medicine with the selected match
+                              toast.success(`Selected: ${match.name}`);
+                              setEditingMissingMedicineIdx(null);
+                            }}
+                          >
+                            Select
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+          )}
+
           <div className="d-flex gap-3 justify-content-center mt-4">
             <Button color="primary" onClick={handleStartNew} size="lg">
-              ➕ Process Another Bill
+              Process Another Bill
             </Button>
           </div>
         </div>
