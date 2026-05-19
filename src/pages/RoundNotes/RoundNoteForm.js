@@ -21,11 +21,60 @@ import Select from "react-select";
 import AsyncSelect from "react-select/async";
 import Flatpickr from "react-flatpickr";
 import moment from "moment";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, Controller, useFieldArray, useWatch } from "react-hook-form";
 import { useSelector } from "react-redux";
 import SearchPatient from "../Booking/Components/SearchPatient";
 import { getRoundNoteStaff } from "../../helpers/backend_helper";
 import { setHours, setMinutes } from "date-fns";
+
+/**
+ * Isolates SearchPatient re-renders to a single table cell.
+ * useWatch scopes the subscription so only THIS cell re-renders
+ * when its patient name/id changes — not the entire form.
+ */
+const PatientSearchCell = React.memo(({ index, control, setValue, errors }) => {
+  const patientId = useWatch({ control, name: `notes.${index}.patient._id` });
+  const patientName = useWatch({ control, name: `notes.${index}.patient.name` });
+
+  const validation = React.useMemo(
+    () => ({
+      setFieldValue: (name, value) => {
+        if (name === "patient") {
+          setValue(`notes.${index}.patient._id`, value);
+          if (value) {
+            setValue(`notes.${index}.patientsCategory`, "Selected Patients");
+          } else {
+            setValue(`notes.${index}.patientsCategory`, "All Patients");
+          }
+        }
+        if (name === "patientName") {
+          setValue(`notes.${index}.patient.name`, value);
+        }
+      },
+      values: {
+        patient: patientId || "",
+        patientName: patientName || "",
+      },
+    }),
+    [index, setValue, patientId, patientName],
+  );
+
+  return (
+    <div
+      style={{ minHeight: "100%" }}
+      className="d-flex align-items-centerflex-shrink-0 mb-3"
+    >
+      <SearchPatient
+        dropdownKey={`search-${index}`}
+        validation={validation}
+        showNewTag={false}
+      />
+      {errors?.notes?.[index]?.patient && (
+        <small className="text-danger">Required</small>
+      )}
+    </div>
+  );
+});
 
 export const CarryForwardStrip = ({ notes, onUse, onCloseCarryForward }) => {
   if (!notes?.length) return null;
@@ -581,47 +630,12 @@ const RoundNoteForm = ({
                     </td>
 
                     <td>
-                      <div
-                        style={{ minHeight: "100%" }}
-                        className="d-flex align-items-centerflex-shrink-0 mb-3"
-                      >
-                        <SearchPatient
-                          dropdownKey={`search-${index}`}
-                          validation={{
-                            setFieldValue: (name, value) => {
-                              if (name === "patient") {
-                                setValue(`notes.${index}.patient._id`, value);
-                                if (value) {
-                                  // Patient selected
-                                  setValue(
-                                    `notes.${index}.patientsCategory`,
-                                    "Selected Patients",
-                                  );
-                                } else {
-                                  // Patient cleared
-                                  setValue(
-                                    `notes.${index}.patientsCategory`,
-                                    "All Patients",
-                                  );
-                                }
-                              }
-                              if (name === "patientName") {
-                                setValue(`notes.${index}.patient.name`, value);
-                              }
-                            },
-                            values: {
-                              patient:
-                                watch(`notes.${index}.patient._id`) || "",
-                              patientName:
-                                watch(`notes.${index}.patient.name`) || "",
-                            },
-                          }}
-                          showNewTag={false}
-                        />
-                        {errors.notes?.[index]?.patient && (
-                          <small className="text-danger">Required</small>
-                        )}
-                      </div>
+                      <PatientSearchCell
+                        index={index}
+                        control={control}
+                        setValue={setValue}
+                        errors={errors}
+                      />
 
                       {/* <Controller
                         name={`notes.${index}.patientName`}
