@@ -9,6 +9,7 @@ import {
   editCounsellingNote,
   editDetailAdmission,
   editDischargeSummary,
+  editExpirySummary,
   editLabReport,
   editMentalExamination,
   editPrescription,
@@ -25,6 +26,7 @@ import {
   postCounsellingNote,
   postDetailAdmission,
   postDischargeSummary,
+  postExpirySummary,
   postGeneralCounsellingNote,
   postGeneralDetailAdmission,
   postGeneralLabReport,
@@ -722,6 +724,46 @@ export const updateDischargeSummary = createAsyncThunk(
         localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
 
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addExpirySummary = createAsyncThunk(
+  "postExpirySummary",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postExpirySummary(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Expiry Summary Saved Successfully",
+        }),
+      );
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updateExpirySummary = createAsyncThunk(
+  "editExpirySummary",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editExpirySummary(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Expiry Summary Updated Successfully",
+        }),
+      );
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
     } catch (error) {
@@ -1584,6 +1626,47 @@ export const chartSlice = createSlice({
         state.data[findIndex].charts[findChartIndex] = payload.payload;
       })
       .addCase(updateDischargeSummary.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addExpirySummary.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addExpirySummary.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addExpirySummary.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateExpirySummary.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateExpirySummary.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload.payload.addmission,
+        );
+        const findChartIndex = state.data[findIndex].charts.findIndex(
+          (chart) => chart._id === payload.payload._id,
+        );
+        state.data[findIndex].charts[findChartIndex] = payload.payload;
+      })
+      .addCase(updateExpirySummary.rejected, (state) => {
         state.loading = false;
       });
 

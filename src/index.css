@@ -133,3 +133,9 @@ code {
 .scroll-hide-lite::-webkit-scrollbar-thumb {
   background: transparent; /* almost hidden */
 }
+
+
+.flatpickr-current-month .numInputWrapper span {
+    opacity: 1 !important;
+    visibility: visible !important;
+}

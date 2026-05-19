@@ -77,7 +77,7 @@ export const permissionList = [
       { name: "CASHDEPOSITS", label: "Cash Deposits" },
       { name: "CASHSPENDING", label: "Cash Spending" },
       { name: "CASHINFLOW", label: "Cash Inflow" },
-      { name: "LEDGERREPORT", label: "Ledger Report" }
+      { name: "LEDGERREPORT", label: "Ledger Report" },
     ],
   },
   {
@@ -86,8 +86,14 @@ export const permissionList = [
     subModules: [
       { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
       { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
-      { name: "CENTRALPAYMENTFINANCEAPPROVAL", label: "Finance Approval Dashboard" },
-      { name: "CENTRALPAYMENTPROCESSING", label: "Payment Processing Dashboard" },
+      {
+        name: "CENTRALPAYMENTFINANCEAPPROVAL",
+        label: "Finance Approval Dashboard",
+      },
+      {
+        name: "CENTRALPAYMENTPROCESSING",
+        label: "Payment Processing Dashboard",
+      },
       { name: "CENTRALPAYMENTREPORTS", label: "Reports" },
     ],
   },
@@ -155,9 +161,18 @@ export const permissionList = [
       { name: "NURSEGIVENMEDICINES", label: "Nurse Given Medicine" },
       { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
       { name: "AUDIT", label: "Audit" },
-      { name: "REQUISITION_INTERNAL_TRANSFER", label: "Requisition: Internal Transfer" },
-      { name: "REQUISITION_SAREYAAN_ORDERS", label: "Requisition: Sareyaan Orders" },
-      { name: "REQUISITION_MEDICINE_REQUISITION", label: "Requisition: Medicine Requisition" },
+      {
+        name: "REQUISITION_INTERNAL_TRANSFER",
+        label: "Requisition: Internal Transfer",
+      },
+      {
+        name: "REQUISITION_SAREYAAN_ORDERS",
+        label: "Requisition: Sareyaan Orders",
+      },
+      {
+        name: "REQUISITION_MEDICINE_REQUISITION",
+        label: "Requisition: Medicine Requisition",
+      },
       { name: "INVENTORY_STOCK_SUMMARY", label: "Inventory Stock Summary" },
       { name: "BILL_UPLOAD_DASHBOARD", label: "Bill Upload Dashboard" },
     ],
@@ -215,10 +230,7 @@ export const permissionList = [
   {
     key: "MIS_REPORTS",
     label: "MIS Reports",
-    subModules: [
-      { name: "MIS_REPORTS_PERMISSION", label: "View MIS Reports" },
-
-    ],
+    subModules: [{ name: "MIS_REPORTS_PERMISSION", label: "View MIS Reports" }],
   },
   {
     key: "HR",
@@ -292,13 +304,22 @@ export const permissionList = [
       { name: "MONTHLY_ATTENDANCE", label: "Monthly Attendance" },
       // { name: "MAIN_DASHBOARD", label: "Attendance Dashboard" },
       { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
-      { name: "REPORTINGS_ATTENDANCE_METRICS", label: "Attendance Metrics - Direct Reportings" },
+      {
+        name: "REPORTINGS_ATTENDANCE_METRICS",
+        label: "Attendance Metrics - Direct Reportings",
+      },
       { name: "MY_ATTENDANCE", label: "My Attendance" },
-      { name: "MY_ATTENDANCE_REGULARIZATION", label: "My Attendance Regularization" },
+      {
+        name: "MY_ATTENDANCE_REGULARIZATION",
+        label: "My Attendance Regularization",
+      },
 
       // Regularization
       { name: "MY_REGULARIZATIONS", label: "My Regularizations" },
-      { name: "GET_REGULARIZATIONS_REQUESTS", label: "Regularizations Requests" },
+      {
+        name: "GET_REGULARIZATIONS_REQUESTS",
+        label: "Regularizations Requests",
+      },
       // Employee Reporting & shift roster
       { name: "ASSIGN_MANAGER", label: "Assign Manager" },
       {
@@ -338,7 +359,10 @@ export const permissionList = [
       { name: "CANCELLATIONS_HISTORY", label: "Cancellations History" },
       // FINANCE
       { name: "FINANCE", label: "Finance" },
-      { name: "TRANSFER_MANAGER_APPROVALS", label: "Transfer Manager Approvals" },
+      {
+        name: "TRANSFER_MANAGER_APPROVALS",
+        label: "Transfer Manager Approvals",
+      },
     ],
   },
   // {
@@ -379,7 +403,7 @@ export const permissionList = [
       // { name: 'PURCHASE_ISSUES', label: "Purchase Issues" },
       // { name: "REVIEW_SUBMISSIONS", label: "Review Submissions" },
       { name: "MY_ISSUES", label: "My Assigned Issues" },
-      { name: "MY_RAISED_TICKETS", label: "My Raised Tickets" }
+      { name: "MY_RAISED_TICKETS", label: "My Raised Tickets" },
     ],
   },
   {
@@ -388,18 +412,25 @@ export const permissionList = [
     subModules: [
       { name: "CALL_RECORDINGS", label: "Call Recordings" },
       { name: "FEEDBACK_RECORDINGS", label: "Feedback Recordings" },
-      { name: "CALL_RECORDINGS_AI_OVERIVIEW", label: "Call Recording Overview" },
-      { name: "FEEDBACK_RECORDINGS_AI_OVERIVIEW", label: "Feedback Recording Overview" }
+      {
+        name: "CALL_RECORDINGS_AI_OVERIVIEW",
+        label: "Call Recording Overview",
+      },
+      {
+        name: "FEEDBACK_RECORDINGS_AI_OVERIVIEW",
+        label: "Feedback Recording Overview",
+      },
     ],
   },
   {
     key: "SOPCONFIGS",
     label: "Sop Configs",
     subModules: [
-      { name: "CONFIGURATION", label: "Configuration" },
+      { name: "MANAGE", label: "Manage" },
+      { name: "ALERT_HISTORY", label: "Alert History" },
     ],
   },
-    {
+  {
     key: "TRAININGS",
     label: "Trainings",
     subModules: [
@@ -409,10 +440,8 @@ export const permissionList = [
       { name: "TRAINING_HISTORY", label: "Training History" },
       { name: "CREATE_TRAINING_RECORD", label: "Create Trainer Record" },
       { name: "TRAINING_RECORDS", label: "Trainer Records" },
-
     ],
   },
-
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];

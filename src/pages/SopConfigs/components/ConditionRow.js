@@ -52,6 +52,9 @@ const ConditionRow = ({
     : isFieldExists
       ? []
       : OPERATORS_BY_TYPE[fieldType] || OPERATORS_BY_TYPE.String;
+
+  console.log({ allowedOps });
+
   const filteredOps = OPERATOR_OPTIONS.filter((op) =>
     allowedOps.includes(op.value),
   );
@@ -207,6 +210,8 @@ const ConditionRow = ({
       />
     );
   };
+
+  console.log({ filteredOps });
 
   return (
     <>

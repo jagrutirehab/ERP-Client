@@ -55,7 +55,7 @@
         })),
     ], [data]);
 
-    const fixedLabels = ["Patient Name", "Center Name", "Patient UID", "Psychologist Name", "Total (Current Month)"];
+    const fixedLabels = ["Patient Name","Total (Current Month)", "Center Name", "Patient UID", "Psychologist Name"];
     const fixedColWidths = [150, 120, 150, 80, 100];
 
     const prepareCsvData = () => {
@@ -165,27 +165,24 @@
                             style={{
                                 borderCollapse: "separate",
                                 borderSpacing: 0,
-                                fontSize: "0.78rem",
+                                fontSize: "0.68rem",
                             }}
                         >
-                            <thead>
+                            <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
                                 <tr>
                                     {fixedLabels.map((label, i) => {
                                         const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);
                                         return (
                                         <th
                                             key={label}
-                                            className="text-center fw-bold px-1 py-2"
+                                            className="text-center fw-bold px-1 py-1"
                                             style={{
                                                 border: "1px solid #cfd8e3",
                                                 background: "#004d00",
                                                 color: "white",
                                                 whiteSpace: "nowrap",
-                                                position: "sticky",
-                                                top: 0,
-                                                left,
-                                                zIndex: 5,
                                                 minWidth: fixedColWidths[i],
+                                                ...(i < 2 && { position: "sticky", left, zIndex: 1 }),
                                             }}
                                         >
                                             {i === 4 ? "Total (Single Day)" : ""}
@@ -195,15 +192,12 @@
                                     {last30Days.map(({ key }) => (
                                         <th
                                             key={key}
-                                            className="text-center fw-bold px-1 py-2"
+                                            className="text-center fw-bold px-1 py-1"
                                             style={{
                                                 border: "1px solid #cfd8e3",
                                                 background: "#004d00",
                                                 color: "white",
                                                 whiteSpace: "nowrap",
-                                                position: "sticky",
-                                                top: 0,
-                                                zIndex: 2,
                                             }}
                                         >
                                             {dateTotals[key] || ""}
@@ -216,17 +210,14 @@
                                         return (
                                         <th
                                             key={label}
-                                            className="text-center fw-bold px-1 py-2"
+                                            className="text-center fw-bold px-1 py-1"
                                             style={{
                                                 border: "1px solid #cfd8e3",
                                                 background: "green",
                                                 color: "white",
                                                 whiteSpace: "nowrap",
-                                                position: "sticky",
-                                                top: 37,
-                                                left,
-                                                zIndex: 4,
                                                 minWidth: fixedColWidths[i],
+                                                ...(i < 2 && { position: "sticky", left, zIndex: 1 }),
                                             }}
                                         >
                                             {label}
@@ -236,15 +227,12 @@
                                     {last30Days.map(({ key, label }) => (
                                         <th
                                             key={key}
-                                            className="text-center fw-bold px-1 py-2"
+                                            className="text-center fw-bold px-1 py-1"
                                             style={{
                                                 border: "1px solid #cfd8e3",
                                                 background: "green",
                                                 color: "white",
                                                 whiteSpace: "nowrap",
-                                                position: "sticky",
-                                                top: 37,
-                                                zIndex: 2,
                                             }}
                                         >
                                             {label}
@@ -256,26 +244,25 @@
                             <tbody>
                                 {filteredData.map((patient, idx) => (
                                     <tr key={patient?.patient_id ?? idx}>
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 0, zIndex: 3, minWidth: 150 }}>
+                                        <td className="text-center px-1 py-1" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 0, zIndex: 3, minWidth: 150 }}>
                                             {patient?.patient_name ?? ""}
                                         </td>
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 150, zIndex: 3, minWidth: 120 }}>
+                                        <td className="text-center px-1 py-1" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 150, zIndex: 3, minWidth: 120 }}>
+                                            {patient?.current_month_total ?? 0}
+                                        </td>
+                                        <td className="text-center px-1 py-1" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", minWidth: 150 }}>
                                             {patient?.center_name ?? ""}
                                         </td>
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 420, zIndex: 3, minWidth: 80 }}>
-                                            { patient?.patient_id ?? ""}
+                                        <td className="text-center px-1 py-1" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", minWidth: 80 }}>
+                                            {patient?.patient_id ?? ""}
                                         </td>
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 270, zIndex: 3, minWidth: 150 }}>
+                                        <td className="text-center px-1 py-1" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", minWidth: 100 }}>
                                             {patient?.psychologist_name ?? "-"}
-                                        </td>
-                                        
-                                        <td className="text-center px-1 py-2" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 500, zIndex: 3, minWidth: 100 }}>
-                                            {patient?.current_month_total ?? 0}
                                         </td>
                                         {last30Days.map(({ key }) => (
                                             <td
                                                 key={key}
-                                                className="text-center px-1 py-2"
+                                                className="text-center px-1 py-1"
                                                 style={{
                                                     border: "1px solid #d6dde8",
                                                     background: idx % 2 === 0 ? "#f8fafc" : "#fff",

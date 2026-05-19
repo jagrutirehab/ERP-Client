@@ -22,6 +22,15 @@ const sortByOptions = [
     { value: "totalDaysAbsent", label: "Sort By Days Absent" },
 ];
 
+const statusOptions = [
+    { value: "", label: "All Status" },
+    { value: "ACTIVE", label: "Active" },
+    { value: "RESIGNED", label: "Resigned" },
+    { value: "FNF_CLOSED", label: "FNF Closed" },
+    { value: "NEW_JOINING", label: "New Joining" },
+];
+
+
 const AttendanceMetrics = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
@@ -37,6 +46,7 @@ const AttendanceMetrics = () => {
         start: startOfDay(new Date()),
         end: endOfDay(new Date()),
     });
+    const [selectedStatus, setSelectedStatus] = useState("ACTIVE");
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -99,7 +109,8 @@ const AttendanceMetrics = () => {
                     startDate: reportDate.start,
                     endDate: reportDate.end,
                     sortBy,
-                    ...debouncedSearch.trim() !== "" && { search: debouncedSearch }
+                    ...debouncedSearch.trim() !== "" && { search: debouncedSearch },
+                    status: selectedStatus || undefined,
                 })
             ).unwrap();
         } catch (error) {
@@ -131,7 +142,8 @@ const AttendanceMetrics = () => {
         hasUserPermission,
         debouncedSearch,
         centerAccess,
-        sortBy
+        sortBy,
+        selectedStatus
     ]);
 
     useEffect(() => {
@@ -142,7 +154,8 @@ const AttendanceMetrics = () => {
         reportDate.end,
         limit,
         debouncedSearch,
-        sortBy
+        sortBy,
+        selectedStatus
     ]);
 
     const handleExportXLSX = async () => {
@@ -156,7 +169,8 @@ const AttendanceMetrics = () => {
                 startDate: reportDate.start,
                 endDate: reportDate.end,
                 sortBy,
-                ...debouncedSearch.trim() !== "" && { search: debouncedSearch }
+                ...debouncedSearch.trim() !== "" && { search: debouncedSearch },
+                status: selectedStatus || undefined,
             });
 
             const blob = new Blob([res.data], {
@@ -227,6 +241,16 @@ const AttendanceMetrics = () => {
                         />
                     </div>
 
+                    <div style={{ width: "180px" }}>
+                        <Select
+                            value={statusOptions.find(opt => opt.value === selectedStatus)}
+                            onChange={(opt) => { setSelectedStatus(opt.value); setPage(1); }}
+                            options={statusOptions}
+                            classNamePrefix="react-select"
+                            isSearchable={false}
+                        />
+                    </div>
+
                     <div style={{ minWidth: "220px" }}>
                         <Input
                             type="text"
@@ -270,6 +294,13 @@ const AttendanceMetrics = () => {
                     value={sortByOptions.find(opt => opt.value === sortBy)}
                     onChange={(opt) => setSortBy(opt.value)}
                     options={sortByOptions}
+                    classNamePrefix="react-select"
+                    isSearchable={false}
+                />
+                <Select
+                    value={statusOptions.find(opt => opt.value === selectedStatus)}
+                    onChange={(opt) => { setSelectedStatus(opt.value); setPage(1); }}
+                    options={statusOptions}
                     classNamePrefix="react-select"
                     isSearchable={false}
                 />

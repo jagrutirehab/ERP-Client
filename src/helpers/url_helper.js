@@ -134,6 +134,8 @@ export const POST_GENERAL_LAB_REPORT = "/chart/lab-report/general";
 export const EDIT_GENERAL_LAB_REPORT = "/chart/lab-report/general";
 export const DELETE_LAB_REPORT_FILE = "/chart/lab-report";
 export const GENERATE_LAB_SUMMARY = "/chart/generate/summary/lab-report"
+export const GET_AI_EXPIRY_SUMMARY = "/chart/expiry-summary/generate";
+export const VALIDATE_AI_EXPIRY_SUMMARY = "/chart/expiry-summary/validate";
 
 export const POST_CLINICAL_NOTE = "/chart/clinical-note";
 export const EDIT_CLINICAL_NOTE = "/chart/clinical-note";
@@ -151,6 +153,8 @@ export const POST_GENERAL_RELATIVE_VISIT = "/chart/relative-visit/general";
 export const EDIT_GENERAL_RELATIVE_VISIT = "/chart/relative-visit/general";
 export const POST_DISCHARGE_SUMMARY = "/chart/discharge-summary";
 export const EDIT_DISCHARGE_SUMMARY = "/chart/discharge-summary";
+export const POST_EXPIRY_SUMMARY = "/chart/expiry-summary";
+export const EDIT_EXPIRY_SUMMARY = "/chart/expiry-summary";
 export const POST_DETAIL_ADMISSION = "/chart/detail-admission";
 export const EDIT_DETAIL_ADMISSION = "/chart/detail-admission";
 export const POST_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
@@ -679,6 +683,9 @@ export const GET_FIELDS = "/sop/fields"
 export const GET_ALL_SOP_ALERTS = "/sop/alerts"
 export const GET_UNREAD_SOP_ALERTS = "/sop/alerts/unread"
 export const MARK_SOP_ALERT_READ = "/sop/alerts"
+export const MARK_ALL_SOP_ALERTS_READ = "/sop/alerts/mark-all-read"
+
+export const SOP_RULES = "/sop/rules"
 
 
 // trainings
