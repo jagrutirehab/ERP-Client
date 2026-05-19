@@ -42,7 +42,7 @@ const SOPAlertListener = () => {
     socket.on("connect", onConnect);
 
     socket.on("NEW_SOP_ALERT", (alert) => {
-      showAlert(alert);
+      // showAlert(alert);
     });
 
     return () => {
