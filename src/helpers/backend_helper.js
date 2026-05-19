@@ -3710,7 +3710,7 @@ export const sopGetFieldsByModel = (model) => axios.get(`${url.GET_FIELDS}/${mod
 
 export const getUnreadSopAlerts = () => axios.get(url.GET_UNREAD_SOP_ALERTS);
 
-export const getAllSopAlerts = () => axios.get(url.GET_ALL_SOP_ALERTS);
+export const getAllSopAlerts = (params) => axios.get(url.GET_ALL_SOP_ALERTS, { params });
 
 export const markSopAlertRead = (id) => axios.post(`${url.MARK_SOP_ALERT_READ}/${id}/read`);
 
