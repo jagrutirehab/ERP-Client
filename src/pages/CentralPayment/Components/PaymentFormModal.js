@@ -27,10 +27,8 @@ import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
 import SpendingForm from "./SpendingForm";
 import PreviewFile from "../../../Components/Common/PreviewFile";
-import {
-  categoryOptions,
-  tallyBankAccounts,
-} from "../../../Components/constants/centralPayment";
+import { categoryOptions } from "../../../Components/constants/centralPayment";
+import { fetchPaymentAccounts } from "../../../store/actions";
 import { formatCurrency } from "../../../utils/formatCurrency";
 
 const compactSelectStyles = {
@@ -85,7 +83,8 @@ const paymentValidationSchema = Yup.object({
   // transactionAccountNo: Yup.string().required("Transaction Account No is required"),
   tallyAccount: Yup.object().when("currentPaymentStatus", {
     is: "COMPLETED",
-    then: (schema) => schema.required("Tally Bank Account is required").nullable(),
+    then: (schema) =>
+      schema.required("Tally Bank Account is required").nullable(),
     otherwise: (schema) => schema.nullable(),
   }),
   transactionDate: Yup.string().when("currentPaymentStatus", {
@@ -112,11 +111,17 @@ const PaymentFormModal = ({
   loading,
   mode,
   hasCreatePermission,
+  paymentAccounts,
 }) => {
   const dispatch = useDispatch();
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
+
+  const tallyBankAccounts = (paymentAccounts || []).map((acc) => ({
+    value: acc.name,
+    label: acc.name,
+  }));
 
   const formik = useFormik({
     initialValues: {
@@ -149,13 +154,29 @@ const PaymentFormModal = ({
   }, [dispatch, isOpen, item?._id]);
 
   useEffect(() => {
+    const centerId = paymentDetails?.center?._id;
+    if (isOpen && centerId) {
+      dispatch(
+        fetchPaymentAccounts({
+          centerIds: [centerId],
+          page: 1,
+          limit: 1000,
+        }),
+      );
+    }
+  }, [dispatch, isOpen, paymentDetails?.center?._id]);
+
+  useEffect(() => {
     if (paymentDetails && paymentDetails._id === item?._id) {
       const tallyBankValue =
         paymentDetails.transactionBankDetails?.tallyAccount ||
         paymentDetails.transactionBankDetails?.tallyAccountNo ||
         paymentDetails.transactionBankDetails?.tallyBankAccount;
       const selectedOption =
-        tallyBankAccounts.find((opt) => opt.value === tallyBankValue) || null;
+        tallyBankAccounts.find((opt) => opt.value === tallyBankValue) ||
+        (tallyBankValue
+          ? { value: tallyBankValue, label: tallyBankValue }
+          : null);
 
       setValues({
         transactionId: paymentDetails.transactionId || "",
@@ -168,6 +189,7 @@ const PaymentFormModal = ({
         financeApprovalRemarks: "",
       });
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [item?._id, paymentDetails, setValues]);
 
   const handleToggle = () => {
@@ -415,7 +437,12 @@ const PaymentFormModal = ({
                       <div className="mt-2">
                         <strong>Approval Remarks:</strong>
                         <div className="text-muted mt-1">
-                          <ExpandableText text={capitalizeWords(paymentDetails.approvalRemarks)} limit={150} />
+                          <ExpandableText
+                            text={capitalizeWords(
+                              paymentDetails.approvalRemarks,
+                            )}
+                            limit={150}
+                          />
                         </div>
                       </div>
                     )}
@@ -423,7 +450,12 @@ const PaymentFormModal = ({
                       <div className="mt-2">
                         <strong>Finance Approval Remarks:</strong>
                         <div className="text-muted mt-1">
-                          <ExpandableText text={capitalizeWords(paymentDetails.financeApprovalRemarks)} limit={150} />
+                          <ExpandableText
+                            text={capitalizeWords(
+                              paymentDetails.financeApprovalRemarks,
+                            )}
+                            limit={150}
+                          />
                         </div>
                       </div>
                     )}
@@ -460,7 +492,8 @@ const PaymentFormModal = ({
                   <Col md={4} className="mb-3">
                     <FormGroup>
                       <Label for="transactionDate">
-                        Bank Transaction Date <span className="text-danger">*</span>
+                        Bank Transaction Date{" "}
+                        <span className="text-danger">*</span>
                       </Label>
                       <Flatpickr
                         id="transactionDate"
@@ -472,7 +505,9 @@ const PaymentFormModal = ({
                             selectedDate ? selectedDate.toISOString() : "",
                           );
                         }}
-                        onClose={() => formik.setFieldTouched("transactionDate", true)}
+                        onClose={() =>
+                          formik.setFieldTouched("transactionDate", true)
+                        }
                         options={{
                           enableTime: true,
                           dateFormat: "d M, Y h:i K",
@@ -501,7 +536,8 @@ const PaymentFormModal = ({
                   <Col md={4} className="mb-3">
                     <FormGroup>
                       <Label for="transactionId">
-                        Transaction ID/UTR <span className="text-danger">*</span>
+                        Transaction ID/UTR{" "}
+                        <span className="text-danger">*</span>
                       </Label>
                       <Input
                         type="text"
@@ -509,7 +545,9 @@ const PaymentFormModal = ({
                         name="transactionId"
                         placeholder="Enter transaction ID"
                         value={formik.values.transactionId}
-                        onChange={(e) => handleUppercaseChange(e, "transactionId")}
+                        onChange={(e) =>
+                          handleUppercaseChange(e, "transactionId")
+                        }
                         onBlur={formik.handleBlur}
                         invalid={
                           formik.touched.transactionId &&
@@ -566,7 +604,7 @@ const PaymentFormModal = ({
                     </FormGroup>
                   </Col>
                 </Row>
-                  {/* <Col md={6} className="mb-3">
+                {/* <Col md={6} className="mb-3">
                                          <FormGroup>
                                              <Label for="transactionBankName">
                                                 Transaction Bank Name <span className="text-danger">*</span>
@@ -613,7 +651,7 @@ const PaymentFormModal = ({
                                         </FormGroup>
                                     </Col> */}
 
-                  {/* <Col md={3}>
+                {/* <Col md={3}>
                                         <FormGroup>
                                             <Label for="currentPaymentStatus">
                                                 Current Payment Status *
@@ -646,32 +684,53 @@ const PaymentFormModal = ({
               </>
             )}
 
-            {hasCreatePermission && (mode === "approval" || mode === "financeApproval") && (
-              <>
-                <Row className="mt-3">
-                  <Col md={12}>
-                    <FormGroup>
-                      <Label for={mode === "financeApproval" ? "financeApprovalRemarks" : "approvalRemarks"}>Remarks (Optional)</Label>
-                      <Input
-                        type="textarea"
-                        id={mode === "financeApproval" ? "financeApprovalRemarks" : "approvalRemarks"}
-                        name={mode === "financeApproval" ? "financeApprovalRemarks" : "approvalRemarks"}
-                        placeholder="Enter remarks"
-                        value={mode === "financeApproval" ? formik.values.financeApprovalRemarks : formik.values.approvalRemarks}
-                        onChange={formik.handleChange}
-                        onBlur={formik.handleBlur}
-                        disabled={
-                          isProcessing.id === item._id &&
-                          (isProcessing.type === "REJECTED" ||
-                            isProcessing.type === "APPROVED")
-                        }
-                        rows={3}
-                      />
-                    </FormGroup>
-                  </Col>
-                </Row>
-              </>
-            )}
+            {hasCreatePermission &&
+              (mode === "approval" || mode === "financeApproval") && (
+                <>
+                  <Row className="mt-3">
+                    <Col md={12}>
+                      <FormGroup>
+                        <Label
+                          for={
+                            mode === "financeApproval"
+                              ? "financeApprovalRemarks"
+                              : "approvalRemarks"
+                          }
+                        >
+                          Remarks (Optional)
+                        </Label>
+                        <Input
+                          type="textarea"
+                          id={
+                            mode === "financeApproval"
+                              ? "financeApprovalRemarks"
+                              : "approvalRemarks"
+                          }
+                          name={
+                            mode === "financeApproval"
+                              ? "financeApprovalRemarks"
+                              : "approvalRemarks"
+                          }
+                          placeholder="Enter remarks"
+                          value={
+                            mode === "financeApproval"
+                              ? formik.values.financeApprovalRemarks
+                              : formik.values.approvalRemarks
+                          }
+                          onChange={formik.handleChange}
+                          onBlur={formik.handleBlur}
+                          disabled={
+                            isProcessing.id === item._id &&
+                            (isProcessing.type === "REJECTED" ||
+                              isProcessing.type === "APPROVED")
+                          }
+                          rows={3}
+                        />
+                      </FormGroup>
+                    </Col>
+                  </Row>
+                </>
+              )}
           </ModalBody>
 
           <ModalFooter>
@@ -690,7 +749,15 @@ const PaymentFormModal = ({
                   </Button>
 
                   <Button
-                    onClick={() => onConfirm(item._id, "REJECTED", mode === "financeApproval" ? formik.values.financeApprovalRemarks : formik.values.approvalRemarks)}
+                    onClick={() =>
+                      onConfirm(
+                        item._id,
+                        "REJECTED",
+                        mode === "financeApproval"
+                          ? formik.values.financeApprovalRemarks
+                          : formik.values.approvalRemarks,
+                      )
+                    }
                     color="danger"
                     size="sm"
                     className="me-2 d-flex align-items-center text-white"
@@ -709,7 +776,15 @@ const PaymentFormModal = ({
                   </Button>
 
                   <Button
-                    onClick={() => onConfirm(item._id, "APPROVED", mode === "financeApproval" ? formik.values.financeApprovalRemarks : formik.values.approvalRemarks)}
+                    onClick={() =>
+                      onConfirm(
+                        item._id,
+                        "APPROVED",
+                        mode === "financeApproval"
+                          ? formik.values.financeApprovalRemarks
+                          : formik.values.approvalRemarks,
+                      )
+                    }
                     color="success"
                     size="sm"
                     className="d-flex align-items-center text-white"
@@ -848,11 +923,13 @@ PaymentFormModal.propTypes = {
   paymentDetails: PropTypes.object,
   mode: PropTypes.string,
   hasCreatePermission: PropTypes.bool,
+  paymentAccounts: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
   loading: state.CentralPayment.paymentDetailsLoading,
   paymentDetails: state.CentralPayment?.paymentDetails,
+  paymentAccounts: state.Setting.paymentAccounts,
 });
 
 export default connect(mapStateToProps)(PaymentFormModal);
