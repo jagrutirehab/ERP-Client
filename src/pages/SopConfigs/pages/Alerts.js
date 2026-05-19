@@ -5,6 +5,7 @@ import { useAlertsInbox } from "../components/alerts/useAlertsInbox";
 import AlertsHeader from "../components/alerts/AlertsHeader";
 import AlertsFilters from "../components/alerts/AlertsFilters";
 import AlertsList from "../components/alerts/AlertsList";
+import AlertsPagination from "../components/alerts/AlertsPagination";
 import AlertDetailOffcanvas from "../components/alerts/AlertDetailOffcanvas";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
@@ -63,7 +64,7 @@ const Alerts = () => {
     >
       <AlertsHeader
         hasWritePermission={hasWritePermission}
-        unreadCount={inbox.counts.unread}
+        unreadCount={inbox.totalUnread}
         loading={inbox.loading}
         bulkLoading={inbox.bulkLoading}
         onMarkAllRead={inbox.markAllRead}
@@ -71,21 +72,29 @@ const Alerts = () => {
       />
 
       <AlertsFilters
-        counts={inbox.counts}
-        readFilter={inbox.readFilter}
-        onReadFilterChange={inbox.setReadFilter}
-        phaseFilter={inbox.phaseFilter}
-        onPhaseFilterChange={inbox.setPhaseFilter}
-        severityFilter={inbox.severityFilter}
+        total={inbox.total}
+        serverFilters={inbox.serverFilters}
+        onServerFilterChange={inbox.setServerFilter}
+        onClearServerFilters={inbox.clearServerFilters}
         onToggleSeverity={inbox.toggleSeverity}
         onClearSeverity={inbox.clearSeverityFilter}
       />
 
       <AlertsList
         grouped={inbox.grouped}
-        filteredCount={inbox.filtered.length}
+        filteredCount={inbox.alerts.length}
         loading={inbox.loading}
         onSelect={openDetail}
+      />
+
+      <AlertsPagination
+        page={inbox.page}
+        pageSize={inbox.pageSize}
+        totalPages={inbox.totalPages}
+        total={inbox.total}
+        loading={inbox.loading}
+        onPageChange={inbox.setPage}
+        onPageSizeChange={inbox.setPageSize}
       />
 
       <AlertDetailOffcanvas
