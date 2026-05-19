@@ -2,6 +2,7 @@ import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_blue.css";
 import { Button, ButtonGroup, Input, Row, Col } from "reactstrap";
 import { SEVERITIES, SEVERITY_COLOR } from "./alertConstants";
+import { endOfDay, startOfDay } from "date-fns";
 
 const READ_STATES = [
   { k: "all", label: "All" },
@@ -32,17 +33,17 @@ const AlertsFilters = ({
     serverFilters.severity?.length > 0;
 
   const handleDateChange = (dates) => {
-    console.log("------------------");
-    console.log({ dates });
-    console.log("------------------");
-
     const dateFrom = dates?.[0];
     const dateTo = dates?.[1];
     if (!dateFrom || !dateTo) {
       return;
     }
-    onServerFilterChange("dateFrom", dateFrom);
-    onServerFilterChange("dateTo", dateTo);
+
+    const start = startOfDay(dateFrom);
+    const end = endOfDay(dateTo);
+
+    onServerFilterChange("dateFrom", start);
+    onServerFilterChange("dateTo", end);
   };
 
   // Flatpickr expects an array of Date objects (or empty)
@@ -55,9 +56,7 @@ const AlertsFilters = ({
       ]
     : [];
 
-  console.log("------------------");
-  console.log({ flatpickrValue });
-  console.log("------------------");
+  console.log(flatpickrValue);
 
   return (
     <div className="mb-3 p-2 bg-light rounded">
@@ -78,6 +77,7 @@ const AlertsFilters = ({
         <Col md={5}>
           <small className="text-muted d-block mb-1">Date range</small>
           <Flatpickr
+            key={serverFilters.dateFrom + "-" + serverFilters.dateTo}
             className="form-control form-control-sm"
             placeholder="Pick a date range..."
             options={{ mode: "range", dateFormat: "Y-m-d" }}
