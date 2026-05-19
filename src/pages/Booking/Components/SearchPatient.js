@@ -228,9 +228,10 @@ const SearchPatient = ({
                   validation.setFieldValue("gender", item.gender);
                   if (centerAccess.includes(item.center?._id))
                     validation.setFieldValue("center", item.center?._id);
-                  console.log({ item: item });
 
-                  if (setOPDPatient) setOPDPatient(!item.isAdmit);
+                  if (setOPDPatient) {
+                    setOPDPatient(!item.isAdmit);
+                  }
                 }}
               >
                 <span>{item?.name}</span>
