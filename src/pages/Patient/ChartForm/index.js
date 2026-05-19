@@ -9,6 +9,7 @@ import {
   COUNSELLING_NOTE,
   DETAIL_ADMISSION,
   DISCHARGE_SUMMARY,
+  EXPIRY_SUMMARY,
   LAB_REPORT,
   PRESCRIPTION,
   RELATIVE_VISIT,
@@ -21,6 +22,7 @@ import Prescription from "./Prescription";
 import ClinicalNote from "./ClinicalNote";
 import LabReport from "./LabReport";
 import DischargeSummary from "./DischargeSummary";
+import ExpirySummary from "./ExpirySummary";
 import VitalSign from "./VitalSign";
 import { createEditChart } from "../../../store/actions";
 import RelativeVisit from "./RelativeVisit";
@@ -33,6 +35,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const toggleForm = () => {
     dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
     localStorage.removeItem("ai_discharge_summary");
+    localStorage.removeItem("ai_expiry_summary");
   };
 
   const isPrescription = chart.chart === PRESCRIPTION;
@@ -42,6 +45,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const isLabReports = chart.chart === LAB_REPORT;
   const isRelativeVisit = chart.chart === RELATIVE_VISIT;
   const isDischargeSummary = chart.chart === DISCHARGE_SUMMARY;
+  const isExpirySummary = chart.chart === EXPIRY_SUMMARY;
   const isDetailAdmission = chart.chart === DETAIL_ADMISSION;
   const isMentalExamination = chart.chart === MENTAL_EXAMINATION;
 
@@ -57,7 +61,9 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
             ? "Lab Report"
             : isDischargeSummary
               ? "Discharge Summary"
-              : isRelativeVisit
+              : isExpirySummary
+                ? "Expiry Summary"
+                : isRelativeVisit
                 ? "Relative Visit"
                 : isMentalExamination
                   ? "Clinical Notes"
@@ -88,6 +94,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isLabReports && <LabReport {...rest} />}
         {isRelativeVisit && <RelativeVisit {...rest} />}
         {isDischargeSummary && <DischargeSummary {...rest} />}
+        {isExpirySummary && <ExpirySummary {...rest} />}
         {isDetailAdmission && <DetailAdmission {...rest} closeForm={toggleForm} />}
         {isMentalExamination && <MentalExamination {...rest} />}
       </CustomModal>

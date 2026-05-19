@@ -5,6 +5,7 @@ import {
   CLINICAL_NOTE,
   COUNSELLING_NOTE,
   DISCHARGE_SUMMARY,
+  EXPIRY_SUMMARY,
   GENERAL,
   IPD,
   LAB_REPORT,
@@ -20,6 +21,7 @@ import Prescription from "./Prescription";
 import ClinicalNote from "./ClinicalNote";
 import VitalSign from "./VitalSign";
 import DischargeSummary from "./DischargeSummary";
+import ExpirySummary from "./ExpirySummary";
 import LabReport from "./LabReport";
 import RenderWhen from "../../../Common/RenderWhen";
 import RelativeVisit from "./RelativeVisit";
@@ -130,6 +132,17 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                   }
                 >
                   <DischargeSummary
+                    chart={chart}
+                    center={chart.center}
+                    patient={patient}
+                  />
+                </RenderWhen>
+                <RenderWhen
+                  isTrue={
+                    chart?.chart === EXPIRY_SUMMARY && chart.type === IPD
+                  }
+                >
+                  <ExpirySummary
                     chart={chart}
                     center={chart.center}
                     patient={patient}

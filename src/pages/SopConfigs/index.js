@@ -1,9 +1,10 @@
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { Container, Spinner } from "reactstrap";
 import React from "react";
 import SOPsidebar from "./Sidebar";
-import Configuration from "./pages/Configuration";
+import SaveRule from "./pages/SaveRule";
+import ManageRules from "./pages/ManageRules";
 import Alerts from "./pages/Alerts";
 
 const SOPindex = () => {
@@ -46,7 +47,10 @@ const SOPindex = () => {
                                         <SOPsidebar />
 
                                         <Routes>
-                                            <Route path="create" element={<Configuration />} />
+                                            <Route path="create" element={<Navigate to="/sop-configs/save" replace />} />
+                                            <Route path="save" element={<SaveRule />} />
+                                            <Route path="save/:id" element={<SaveRule />} />
+                                            <Route path="manage" element={<ManageRules />} />
                                             <Route path="alerts" element={<Alerts />} />
                                         </Routes>
                                     </div>

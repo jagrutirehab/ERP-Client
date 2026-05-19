@@ -557,6 +557,10 @@ export const postDischargeSummary = (data) =>
   api.create(url.POST_DISCHARGE_SUMMARY, data);
 export const editDischargeSummary = (data) =>
   api.put(url.EDIT_DISCHARGE_SUMMARY, data);
+export const postExpirySummary = (data) =>
+  api.create(url.POST_EXPIRY_SUMMARY, data);
+export const editExpirySummary = (data) =>
+  api.put(url.EDIT_EXPIRY_SUMMARY, data);
 export const postDetailAdmission = (data) =>
   api.create(url.POST_DETAIL_ADMISSION, data, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -2203,7 +2207,7 @@ export const getDailyDashboard = (data) => {
   return api.get(url.GET_DAILY_DASHBOARD, {
     params: {
       centerIds: data?.centerAccess,
-      date:data?.date
+      date: data?.date
     }
   });
 };
@@ -3682,6 +3686,18 @@ export const validateAISummary = (summary) => {
   return axios.patch(url.VALIDATE_SUMMARY, summary)
 }
 
+// get AI Expiry Summary
+
+export const getAIExpirySummary = (params = {}) => {
+  return axios.get(url.GET_AI_EXPIRY_SUMMARY, {
+    params,
+  });
+}
+
+export const validateAIExpirySummary = (summary) => {
+  return axios.patch(url.VALIDATE_AI_EXPIRY_SUMMARY, summary)
+}
+
 export const sopConfigure = (data) => {
   return axios.post(url.CONFIGURATION_SOP, data)
 }
@@ -3694,9 +3710,17 @@ export const sopGetFieldsByModel = (model) => axios.get(`${url.GET_FIELDS}/${mod
 
 export const getUnreadSopAlerts = () => axios.get(url.GET_UNREAD_SOP_ALERTS);
 
-export const getAllSopAlerts = () => axios.get(url.GET_ALL_SOP_ALERTS);
+export const getAllSopAlerts = (params) => axios.get(url.GET_ALL_SOP_ALERTS, { params });
 
 export const markSopAlertRead = (id) => axios.post(`${url.MARK_SOP_ALERT_READ}/${id}/read`);
+
+export const markAllSopAlertsRead = () => axios.post(url.MARK_ALL_SOP_ALERTS_READ);
+
+export const listSopRules = (params) => axios.get(url.SOP_RULES, { params });
+export const getSopRuleById = (id) => axios.get(`${url.SOP_RULES}/${id}`);
+export const updateSopRule = (id, payload) => axios.patch(`${url.SOP_RULES}/${id}`, payload);
+export const toggleSopRuleActive = (id, isActive) => axios.patch(`${url.SOP_RULES}/${id}/active`, { isActive });
+export const deleteSopRule = (id) => axios.delete(`${url.SOP_RULES}/${id}`);
 
 // OCR BILL IMPORT
 export const getMatchingMedicines = (data) =>

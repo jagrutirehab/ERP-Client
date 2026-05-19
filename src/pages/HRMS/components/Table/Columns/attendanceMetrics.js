@@ -31,7 +31,7 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
         wrap: true,
         minWidth: "160px",
     },
-   type !== "directreporting" && {
+    type !== "directreporting" && {
         name: <div>Biometric ID</div>,
         selector: row => row?.biometricId || "-",
         cell: row => (
@@ -50,6 +50,28 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
         selector: row => capitalizeWords(row?.center?.title || "-"),
         wrap: true,
         minWidth: "120px"
+    },
+    {
+        name: <div>Employee Status</div>,
+        selector: row => row?.employeeStatus || "-",
+        cell: row => {
+            const status = row?.employeeStatus;
+            const colorMap = {
+                ACTIVE: "success",
+                RESIGNED: "danger",
+                FNF_CLOSED: "secondary",
+                NEW_JOINING: "warning",
+            };
+            const color = colorMap[status] || "secondary";
+            return (
+                <span className={`badge bg-${color}`}>
+                    {status || "-"}
+                </span>
+            );
+        },
+        wrap: true,
+        center: false,
+        minWidth: "130px"
     },
     {
         name: <div>Average Duration</div>,
@@ -103,7 +125,7 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
         name: <div>Actions</div>,
         cell: (row) => {
             console.log("Type", type);
-            
+
 
             return (
                 <Button

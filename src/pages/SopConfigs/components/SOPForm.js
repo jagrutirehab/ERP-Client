@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import Select from "react-select";
 import {
   Card,
@@ -16,8 +16,10 @@ import {
 } from "reactstrap";
 import {
   SEVERITY_OPTIONS,
-  ADMISSION_TYPE_OPTIONS,
   VALUELESS_OPERATORS,
+  TARGET_OPTIONS,
+  OPERATOR_OPTIONS,
+  TRIGGER_OPTIONS,
   emptyConditionItem,
   emptyTargetBlock,
   emptyForm,
@@ -27,14 +29,33 @@ import MainBlock from "./MainBlock";
 import RoutingCard from "./RoutingCard";
 import { sopGetFieldsByModel } from "../../../helpers/backend_helper";
 
-const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
+// Convert a single stored condition (DB shape) into the form's UI shape.
+const findOpt = (options, val) => options.find((o) => o.value === val) || null;
+const hydrateCondition = (c) => ({
+  model: findOpt(TARGET_OPTIONS, c.model),
+  field: c.field || "",
+  operator: findOpt(OPERATOR_OPTIONS, c.operator) || {
+    value: "EXISTS",
+    label: "EXISTS",
+  },
+  triggerType: findOpt(TRIGGER_OPTIONS, c.triggerType) || TRIGGER_OPTIONS[0],
+  deadlineHours: c.deadlineHours != null ? String(c.deadlineHours) : "",
+  value: Array.isArray(c.value) ? c.value : c.value != null ? [c.value] : [],
+});
+
+const SOPForm = ({
+  onSubmit,
+  isSubmitting = false,
+  onCancel,
+  initialValues = null,
+  submitLabel = "Create SOP Rule",
+  submittingLabel = "Creating...",
+}) => {
   const [form, setForm] = useState(emptyForm());
   const [satisfyingCriteria, setSatisfyingCriteria] = useState({
     conditions: [emptyConditionItem()],
   });
   const [targetBlocks, setTargetBlocks] = useState([emptyTargetBlock()]);
-  const [selectedRoles, setSelectedRoles] = useState([]);
-  const [selectedUsers, setSelectedUsers] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const [topError, setTopError] = useState(null);
   const [modelFieldsCache, setModelFieldsCache] = useState({});
@@ -54,25 +75,6 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
       [name]: type === "checkbox" ? checked : value,
     }));
     clearError(name);
-  }, []);
-
-  const handleSelect = useCallback((name, selected) => {
-    setForm((prev) => ({ ...prev, [name]: selected }));
-    clearError(name);
-  }, []);
-
-  const handleRoleToggle = useCallback((roleName) => {
-    setSelectedRoles((prev) =>
-      prev.includes(roleName)
-        ? prev.filter((r) => r !== roleName)
-        : [...prev, roleName],
-    );
-    clearError("routing");
-  }, []);
-
-  const handleUsersChange = useCallback((selected) => {
-    setSelectedUsers(selected || []);
-    clearError("routing");
   }, []);
 
   const fetchModelFields = useCallback(
@@ -97,6 +99,53 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
     [modelFieldsCache],
   );
 
+  // Edit mode: when initialValues is provided, seed every piece of state
+  // from the stored rule. Per-block fields (severity, routing, action
+  // guidance, reference) hydrate INSIDE each block.
+  useEffect(() => {
+    if (!initialValues) return;
+
+    setForm({
+      ruleName: initialValues.ruleName || "",
+      protocol: initialValues.protocol || "",
+      isActive: initialValues.isActive !== false,
+    });
+
+    const sc = initialValues.satisfyingCriteria?.conditions?.length
+      ? {
+          conditions:
+            initialValues.satisfyingCriteria.conditions.map(hydrateCondition),
+        }
+      : { conditions: [emptyConditionItem()] };
+    setSatisfyingCriteria(sc);
+
+    const blocks = initialValues.targetBlocks?.length
+      ? initialValues.targetBlocks.map((b) => ({
+          id: b._id?.toString() || `${Date.now()}-${Math.random()}`,
+          name: b.name || "",
+          alertTemplate: b.alertTemplate || "",
+          conditions: b.conditions?.length
+            ? b.conditions.map(hydrateCondition)
+            : [emptyConditionItem()],
+          severity:
+            findOpt(SEVERITY_OPTIONS, b.severity) || SEVERITY_OPTIONS[1],
+          actionGuidance: b.actionGuidance || "",
+          referenceSection: b.referenceSection || "",
+          selectedRoles: b.routing?.notifyRoles || [],
+          selectedUsers: b._specificUsersDetailed || [],
+        }))
+      : [emptyTargetBlock()];
+    setTargetBlocks(blocks);
+
+    // Prefetch field metadata for every unique model referenced.
+    const models = new Set();
+    sc.conditions.forEach((c) => c.model?.value && models.add(c.model.value));
+    blocks.forEach((b) =>
+      b.conditions.forEach((c) => c.model?.value && models.add(c.model.value)),
+    );
+    models.forEach((m) => fetchModelFields(m));
+  }, [initialValues, fetchModelFields]);
+
   const handleTargetConditionChange = (blockIdx, condIdx, key, value) => {
     setTargetBlocks((prev) => {
       const next = [...prev];
@@ -113,6 +162,37 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
       next[blockIdx] = { ...next[blockIdx], [key]: value };
       return next;
     });
+    if (
+      key === "severity" ||
+      key === "selectedRoles" ||
+      key === "selectedUsers"
+    ) {
+      clearError("targetBlocks");
+    }
+  };
+
+  const handleBlockRoleToggle = (blockIdx, roleName) => {
+    setTargetBlocks((prev) => {
+      const next = [...prev];
+      const cur = next[blockIdx].selectedRoles || [];
+      next[blockIdx] = {
+        ...next[blockIdx],
+        selectedRoles: cur.includes(roleName)
+          ? cur.filter((r) => r !== roleName)
+          : [...cur, roleName],
+      };
+      return next;
+    });
+    clearError("targetBlocks");
+  };
+
+  const handleBlockUsersChange = (blockIdx, selected) => {
+    setTargetBlocks((prev) => {
+      const next = [...prev];
+      next[blockIdx] = { ...next[blockIdx], selectedUsers: selected || [] };
+      return next;
+    });
+    clearError("targetBlocks");
   };
 
   const addTargetBlock = () =>
@@ -146,8 +226,6 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
     setForm(emptyForm());
     setSatisfyingCriteria({ conditions: [emptyConditionItem()] });
     setTargetBlocks([emptyTargetBlock()]);
-    setSelectedRoles([]);
-    setSelectedUsers([]);
     setFieldErrors({});
     setTopError(null);
   }, []);
@@ -179,9 +257,6 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
   const validate = () => {
     const errs = {};
     if (!form.ruleName.trim()) errs.ruleName = "Rule name is required";
-    if (!form.admissionType) errs.admissionType = "Admission type is required";
-    if (!selectedRoles.length && !selectedUsers.length)
-      errs.routing = "Add at least one notification channel";
 
     let hasTargetErrors = false;
     const targetErrors = targetBlocks.map((block) => {
@@ -195,6 +270,22 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
           hasTargetErrors = true;
         }
       });
+      if (!block.name?.trim()) {
+        bErr.name = "Rule name is required";
+        hasTargetErrors = true;
+      }
+      if (!block.severity?.value) {
+        bErr.severity = "Severity is required";
+        hasTargetErrors = true;
+      }
+      const hasRouting =
+        (block.selectedRoles?.length || 0) +
+          (block.selectedUsers?.length || 0) >
+        0;
+      if (!hasRouting) {
+        bErr.routing = "Add at least one notification channel";
+        hasTargetErrors = true;
+      }
       return bErr;
     });
     if (hasTargetErrors) errs.targetBlocks = targetErrors;
@@ -220,21 +311,25 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
 
     const payload = {
       ruleName: form.ruleName.trim(),
-      severity: form.severity?.value,
-      admissionType: form.admissionType?.value,
       isActive: form.isActive,
       targetBlocks: targetBlocks.map((block) => ({
+        name: block.name?.trim(),
         alertTemplate: block.alertTemplate?.trim() || undefined,
         conditions: block.conditions
           .filter((c) => c.model && c.field)
           .map(formatCondition),
+        severity: block.severity?.value,
+        actionGuidance: block.actionGuidance?.trim() || undefined,
+        referenceSection: block.referenceSection?.trim() || undefined,
+        routing: {
+          ...(block.selectedRoles?.length && {
+            notifyRoles: block.selectedRoles,
+          }),
+          ...(block.selectedUsers?.length && {
+            notifySpecificUsers: block.selectedUsers.map((u) => u.value),
+          }),
+        },
       })),
-      routing: {
-        ...(selectedRoles.length && { notifyRoles: selectedRoles }),
-        ...(selectedUsers.length && {
-          notifySpecificUsers: selectedUsers.map((u) => u.value),
-        }),
-      },
     };
 
     if (validSCConditions.length > 0) {
@@ -244,15 +339,13 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
     }
 
     if (form.protocol.trim()) payload.protocol = form.protocol.trim();
-    if (form.actionGuidance.trim())
-      payload.actionGuidance = form.actionGuidance.trim();
-    if (form.referenceSection.trim())
-      payload.referenceSection = form.referenceSection.trim();
 
     try {
       const response = await onSubmit(payload);
       if (response) resetForm();
     } catch (err) {
+      console.log({ err });
+
       setTopError(err?.message || "Submission failed");
     }
   };
@@ -272,7 +365,7 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
             <Col md={6}>
               <FormGroup>
                 <Label for="ruleName">
-                  Rule Name <span className="text-danger">*</span>
+                  SOP Name <span className="text-danger">*</span>
                 </Label>
                 <Input
                   id="ruleName"
@@ -300,40 +393,6 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
               </FormGroup>
             </Col>
           </Row>
-          <Row>
-            <Col md={4}>
-              <FormGroup>
-                <Label>
-                  Severity <span className="text-danger">*</span>
-                </Label>
-                <Select
-                  options={SEVERITY_OPTIONS}
-                  value={form.severity}
-                  onChange={(v) => handleSelect("severity", v)}
-                  isDisabled={isSubmitting}
-                />
-              </FormGroup>
-            </Col>
-            <Col md={4}>
-              <FormGroup>
-                <Label>
-                  Admission Type <span className="text-danger">*</span>
-                </Label>
-                <Select
-                  options={ADMISSION_TYPE_OPTIONS}
-                  value={form.admissionType}
-                  onChange={(v) => handleSelect("admissionType", v)}
-                  isDisabled={isSubmitting}
-                  placeholder="Select type..."
-                />
-                {fieldErrors.admissionType && (
-                  <small className="text-danger">
-                    {fieldErrors.admissionType}
-                  </small>
-                )}
-              </FormGroup>
-            </Col>
-          </Row>
         </CardBody>
       </Card>
 
@@ -343,7 +402,6 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
         modelFieldsCache={modelFieldsCache}
         fetchModelFields={fetchModelFields}
         isSubmitting={isSubmitting}
-        x
         fieldErrors={fieldErrors}
       />
 
@@ -360,116 +418,179 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
           </Button>
         </div>
 
-        {targetBlocks.map((block, bIdx) => (
-          <Card key={block.id} className="mb-3 border-secondary">
-            <CardHeader className="d-flex justify-content-between align-items-center bg-light">
-              <span className="fw-bold">Block {bIdx + 1}</span>
-              {targetBlocks.length > 1 && (
-                <Button
-                  type="button"
-                  color="danger"
-                  size="sm"
-                  outline
-                  onClick={() => removeTargetBlock(bIdx)}
-                  disabled={isSubmitting}
-                >
-                  Remove Block
-                </Button>
-              )}
-            </CardHeader>
-            <CardBody>
-              <FormGroup>
-                <Label>Alert Template</Label>
-                <Input
-                  type="textarea"
-                  rows="2"
-                  // placeholder="Patient {patient.name} — {field.value}"
-                  value={block.alertTemplate}
-                  onChange={(e) =>
-                    handleTargetBlockField(
-                      bIdx,
-                      "alertTemplate",
-                      e.target.value,
-                    )
-                  }
-                  disabled={isSubmitting}
-                />
-              </FormGroup>
-
-              <div className="mt-2">
-                <div className="d-flex justify-content-between align-items-center mb-2">
-                  <Label className="fw-bold mb-0">Conditions</Label>
+        {targetBlocks.map((block, bIdx) => {
+          const blockErrors = fieldErrors.targetBlocks?.[bIdx] || {};
+          return (
+            <Card key={block.id} className="mb-3 border-secondary">
+              <CardHeader className="d-flex justify-content-between align-items-center bg-light">
+                <span className="fw-bold">Block {bIdx + 1}</span>
+                {targetBlocks.length > 1 && (
                   <Button
                     type="button"
-                    color="secondary"
+                    color="danger"
                     size="sm"
                     outline
-                    onClick={() => addConditionToBlock(bIdx)}
+                    onClick={() => removeTargetBlock(bIdx)}
                     disabled={isSubmitting}
                   >
-                    + Add Condition
+                    Remove Block
                   </Button>
-                </div>
-                {block.conditions.map((c, cIdx) => (
-                  <ConditionRow
-                    key={cIdx}
-                    condition={c}
-                    idx={cIdx}
-                    onChange={(idx, key, val) =>
-                      handleTargetConditionChange(bIdx, idx, key, val)
+                )}
+              </CardHeader>
+              <CardBody>
+                {/* Rule Name — block label, shown in alert UI as "Rule" */}
+                <FormGroup>
+                  <Label>
+                    Rule Name <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    value={block.name || ""}
+                    onChange={(e) =>
+                      handleTargetBlockField(bIdx, "name", e.target.value)
                     }
-                    onRemove={(idx) => removeConditionFromBlock(bIdx, idx)}
-                    isDisabled={isSubmitting}
-                    isOnly={block.conditions.length === 1}
-                    error={fieldErrors.targetBlocks?.[bIdx]?.conditions?.[cIdx]}
-                    modelFieldsCache={modelFieldsCache}
-                    onModelChange={fetchModelFields}
+                    invalid={!!blockErrors.name}
+                    placeholder="e.g. Severe-SBP180"
+                    disabled={isSubmitting}
                   />
-                ))}
-              </div>
-            </CardBody>
-          </Card>
-        ))}
+                  {blockErrors.name && (
+                    <small className="text-danger">{blockErrors.name}</small>
+                  )}
+                </FormGroup>
+
+                {/* Severity + Alert Template — top row per block */}
+                <Row>
+                  <Col md={3}>
+                    <FormGroup>
+                      <Label>
+                        Severity <span className="text-danger">*</span>
+                      </Label>
+                      <Select
+                        options={SEVERITY_OPTIONS}
+                        value={block.severity}
+                        onChange={(v) =>
+                          handleTargetBlockField(bIdx, "severity", v)
+                        }
+                        isDisabled={isSubmitting}
+                      />
+                      {blockErrors.severity && (
+                        <small className="text-danger">
+                          {blockErrors.severity}
+                        </small>
+                      )}
+                    </FormGroup>
+                  </Col>
+                  <Col md={9}>
+                    <FormGroup>
+                      <Label>Alert Template</Label>
+                      <Input
+                        type="textarea"
+                        rows="2"
+                        placeholder="Patient {patient.name} — {field.value}"
+                        value={block.alertTemplate}
+                        onChange={(e) =>
+                          handleTargetBlockField(
+                            bIdx,
+                            "alertTemplate",
+                            e.target.value,
+                          )
+                        }
+                        disabled={isSubmitting}
+                      />
+                    </FormGroup>
+                  </Col>
+                </Row>
+
+                {/* Conditions */}
+                <div className="mt-2">
+                  <div className="d-flex justify-content-between align-items-center mb-2">
+                    <Label className="fw-bold mb-0">
+                      Conditions <span className="text-danger">*</span>
+                    </Label>
+                    <Button
+                      type="button"
+                      color="secondary"
+                      size="sm"
+                      outline
+                      onClick={() => addConditionToBlock(bIdx)}
+                      disabled={isSubmitting}
+                    >
+                      + Add Condition
+                    </Button>
+                  </div>
+                  {block.conditions.map((c, cIdx) => (
+                    <ConditionRow
+                      key={cIdx}
+                      condition={c}
+                      idx={cIdx}
+                      onChange={(idx, key, val) =>
+                        handleTargetConditionChange(bIdx, idx, key, val)
+                      }
+                      onRemove={(idx) => removeConditionFromBlock(bIdx, idx)}
+                      isDisabled={isSubmitting}
+                      isOnly={block.conditions.length === 1}
+                      error={blockErrors.conditions?.[cIdx]}
+                      modelFieldsCache={modelFieldsCache}
+                      onModelChange={fetchModelFields}
+                    />
+                  ))}
+                </div>
+
+                {/* Per-block Routing */}
+                <div className="mt-3">
+                  <RoutingCard
+                    selectedRoles={block.selectedRoles || []}
+                    onRoleToggle={(roleName) =>
+                      handleBlockRoleToggle(bIdx, roleName)
+                    }
+                    selectedUsers={block.selectedUsers || []}
+                    onUsersChange={(sel) => handleBlockUsersChange(bIdx, sel)}
+                    routingError={blockErrors.routing}
+                    isSubmitting={isSubmitting}
+                  />
+                </div>
+
+                {/* Per-block Alert Details (optional) */}
+                <Row className="mt-2">
+                  <Col md={8}>
+                    <FormGroup>
+                      <Label>Action Guidance (optional)</Label>
+                      <Input
+                        type="textarea"
+                        rows="2"
+                        value={block.actionGuidance || ""}
+                        onChange={(e) =>
+                          handleTargetBlockField(
+                            bIdx,
+                            "actionGuidance",
+                            e.target.value,
+                          )
+                        }
+                        disabled={isSubmitting}
+                      />
+                    </FormGroup>
+                  </Col>
+                  <Col md={4}>
+                    <FormGroup>
+                      <Label>Reference Section</Label>
+                      <Input
+                        value={block.referenceSection || ""}
+                        onChange={(e) =>
+                          handleTargetBlockField(
+                            bIdx,
+                            "referenceSection",
+                            e.target.value,
+                          )
+                        }
+                        disabled={isSubmitting}
+                      />
+                    </FormGroup>
+                  </Col>
+                </Row>
+              </CardBody>
+            </Card>
+          );
+        })}
       </div>
-
-      <RoutingCard
-        selectedRoles={selectedRoles}
-        onRoleToggle={handleRoleToggle}
-        selectedUsers={selectedUsers}
-        onUsersChange={handleUsersChange}
-        routingError={fieldErrors.routing}
-        isSubmitting={isSubmitting}
-      />
-
-      <Card className="mb-4">
-        <CardHeader className="fw-semibold">
-          Alert Details (Optional)
-        </CardHeader>
-        <CardBody>
-          <FormGroup>
-            <Label for="actionGuidance">Action Guidance</Label>
-            <Input
-              type="textarea"
-              id="actionGuidance"
-              name="actionGuidance"
-              rows="2"
-              value={form.actionGuidance}
-              onChange={handleField}
-              disabled={isSubmitting}
-            />
-          </FormGroup>
-          <FormGroup className="mb-0">
-            <Label for="referenceSection">Reference Section</Label>
-            <Input
-              id="referenceSection"
-              name="referenceSection"
-              value={form.referenceSection}
-              onChange={handleField}
-              disabled={isSubmitting}
-            />
-          </FormGroup>
-        </CardBody>
-      </Card>
 
       <div className="d-flex justify-content-end gap-2">
         {onCancel && (
@@ -496,10 +617,10 @@ const SOPForm = ({ onSubmit, isSubmitting = false, onCancel }) => {
           {isSubmitting ? (
             <>
               <Spinner size="sm" className="me-2" />
-              Creating...
+              {submittingLabel}
             </>
           ) : (
-            "Create SOP Rule"
+            submitLabel
           )}
         </Button>
       </div>

@@ -6,6 +6,7 @@ import {
   COUNSELLING_NOTE,
   DETAIL_ADMISSION,
   DISCHARGE_SUMMARY,
+  EXPIRY_SUMMARY,
   GENERAL,
   IPD,
   LAB_REPORT,
@@ -20,6 +21,7 @@ import OPDPrescription from "./OPD/Prescription/index";
 import ClinicalNote from "./ClinicalNote";
 import VitalSign from "./VitalSign";
 import DischargeSummary from "./DischargeSummary";
+import ExpirySummary from "./ExpirySummary";
 import LabReport from "./LabReport";
 import RenderWhen from "../../Common/RenderWhen";
 import RelativeVisit from "./RelativeVisit";
@@ -139,6 +141,17 @@ const Charts = ({ charts, patient, doctor, admission }) => {
             >
               {/* Discharge Summary is rendered through pdfmake in Print/index.js */}
               <DischargeSummary
+                chart={chart}
+                center={chart.center}
+                patient={patient}
+                admission={admission}
+              />
+            </RenderWhen>
+
+            <RenderWhen
+              isTrue={chart?.chart === EXPIRY_SUMMARY && chart.type === IPD}
+            >
+              <ExpirySummary
                 chart={chart}
                 center={chart.center}
                 patient={patient}
