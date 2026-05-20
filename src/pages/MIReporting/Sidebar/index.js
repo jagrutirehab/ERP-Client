@@ -60,17 +60,17 @@ const Sidebar = () => {
   ];
 
   const MISReports = [
-    { id: "refund-amount", label: "Refund Amount", link: "/mi-reporting/refund-amount", icon: "bx bx-money" },
-    { id: "round-notes", label: "Round Notes", link: "/mi-reporting/round-notes", icon: "bx bx-money" },
-    { id: "clinical-notes", label: "Clinical Notes", link: "/mi-reporting/clinical-notes", icon: "bx bx-money" },
-    { id: "vital-signs", label: "Vital Signs", link: "/mi-reporting/vital-signs", icon: "bx bx-money" },
-    { id: "patient-docs", label: "IPD Patient Docs", link: "/mi-reporting/patient-docs", icon: "bx bx-money" },
-    { id: "opd-patient-docs", label: "OPD Patient Docs", link: "/mi-reporting/opd-patient-docs", icon: "bx bx-money" },
-    { id: "daily-invoices", label: "Daily Invoices", link: "/mi-reporting/daily-invoices", icon: "bx bx-money" },
-    { id: "counselling-sessions", label: "Counselling Sessions", link: "/mi-reporting/counselling-sessions", icon: "bx bx-money" },
-    { id: "counselling-recording", label: "Counselling Recording", link: "/mi-reporting/counselling-recording", icon: "bx bx-money" },
-    { id: "daily-dashboard", label: "Daily Dashboard", link: "/mi-reporting/daily-dashboard", icon: "bx bx-money" },
-
+    { id: "refund-amount", label: "Refund Amount", link: "/mi-reporting/refund-amount", icon: "bx bx-revision" },
+    { id: "round-notes", label: "Round Notes", link: "/mi-reporting/round-notes", icon: "bx bx-notepad" },
+    { id: "clinical-notes", label: "Clinical Notes", link: "/mi-reporting/clinical-notes", icon: "bx bx-clipboard" },
+    { id: "vital-signs", label: "Vital Signs", link: "/mi-reporting/vital-signs", icon: "bx bx-heart-circle" },
+    { id: "patient-docs", label: "IPD Patient Docs", link: "/mi-reporting/patient-docs", icon: "bx bx-bed" },
+    { id: "opd-patient-docs", label: "OPD Patient Docs", link: "/mi-reporting/opd-patient-docs", icon: "bx bx-walk" },
+    { id: "daily-invoices", label: "Daily Invoices", link: "/mi-reporting/daily-invoices", icon: "bx bx-receipt" },
+    { id: "counselling-sessions", label: "Counselling Sessions", link: "/mi-reporting/counselling-sessions", icon: "bx bx-conversation" },
+    { id: "counselling-recording", label: "Counselling Recording", link: "/mi-reporting/counselling-recording", icon: "bx bx-microphone" },
+    { id: "daily-dashboard", label: "Daily Dashboard", link: "/mi-reporting/daily-dashboard", icon: "bx bx-tachometer" },
+    { id: "docs-compliance", label: "Docs Compliance", link: "/mi-reporting/docs-compliance", icon: "bx bx-task" },
   ];
 
   const sidebarStyle = isMobile
@@ -86,6 +86,8 @@ const Sidebar = () => {
         overflow: "hidden",
         background: "#fff",
         boxShadow: isMobileOpen ? "4px 0 16px rgba(0,0,0,0.18)" : "none",
+        display: "flex",
+        flexDirection: "column",
       }
     : {
         position: "sticky",
@@ -97,6 +99,8 @@ const Sidebar = () => {
         minWidth: isHovered ? "260px" : "70px",
         transition: "width 0.25s ease, min-width 0.25s ease",
         overflow: "hidden",
+        display: "flex",
+        flexDirection: "column",
       };
 
   return (
@@ -148,7 +152,7 @@ const Sidebar = () => {
         onMouseLeave={() => !isMobile && setIsHovered(false)}
         style={sidebarStyle}
       >
-        <div className="ps-4 pe-3 pt-4 mb-">
+        <div className="ps-4 pe-3 pt-4">
           <div className="d-flex align-items-start">
             <div className="d-flex justify-content-between w-100 mb-2">
               <div
@@ -172,7 +176,7 @@ const Sidebar = () => {
           </div>
         </div>
 
-        <PerfectScrollbar className="chat-room-list">
+        <PerfectScrollbar className="chat-room-list" style={{ flex: 1, minHeight: 0 }}>
           <div className="chat-message-list">
             <Collapse isOpen={isOpen}>
               <ul className="list-unstyled chat-list chat-user-list users-list" id="userList">

@@ -490,6 +490,7 @@ export const GET_DAILY_INVOICES = "/mi-reporting/get-daily-invoices";
 export const GET_COUNSLLING_SESSIONS = "/mi-reporting/get-counselling-sessions";
 export const GET_COUNSELLING_RECORDING = "/mi-reporting/get-counselling-recording";
 export const GET_DAILY_DASHBOARD = "/mi-reporting/daily-dashboard";
+export const GET_DOCS_COMPLIANCE = "/mi-reporting/docs-compliance";
 
 
 

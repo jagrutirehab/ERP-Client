@@ -31,6 +31,7 @@ import DailyInvoices from "./DailyInvoices";
 import CounsellingSessions from "./CounsellingSessions";
 import CounsellingRecording from "./CounsellingRecording";
 import DailyDashboard from "./DailyDashboard";
+import DocsCompliance from "./DocsCompliance";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -228,6 +229,11 @@ const MiReporting = () => {
                   {hasMISPermission&&<Route
                     path="/daily-dashboard"
                     element={<DailyDashboard />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/docs-compliance"
+                    element={<DocsCompliance />}
                   />}
                   
                   

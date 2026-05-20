@@ -23,6 +23,7 @@ import {
   getCounsellingSessions,
   getCounsellingRecordings,
   getDailyDashboard,
+  getDocsCompliance,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -55,6 +56,7 @@ const initialState = {
   counsellingSessions:[],
   counsellingRecordings:[],
   dailyDashboard:[],
+  docsCompliance: [],
   loading: false,
   error: null,
 };
@@ -400,6 +402,20 @@ export const fetchCounsellingRecordings = createAsyncThunk(
 );
 
 
+export const fetchDocsCompliance = createAsyncThunk(
+  "miReporting/fetchDocsCompliance",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getDocsCompliance(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Docs Compliance"
+      );
+    }
+  }
+);
+
 export const fetchDailyDashboard = createAsyncThunk(
   "miReporting/fetchDailyDashboard",
   async (data , { rejectWithValue }) => {
@@ -737,6 +753,20 @@ const miReportingSlice = createSlice({
         state.error = action.payload;
       })
 
+
+      //Docs Compliance
+      .addCase(fetchDocsCompliance.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDocsCompliance.fulfilled, (state, action) => {
+        state.loading = false;
+        state.docsCompliance = action.payload.payload;
+      })
+      .addCase(fetchDocsCompliance.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
 
       //Daily Dashboard
       .addCase(fetchDailyDashboard.pending, (state) => {

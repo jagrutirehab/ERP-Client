@@ -2212,6 +2212,14 @@ export const getDailyDashboard = (data) => {
   });
 };
 
+export const getDocsCompliance = (data) => {
+  return api.get(url.GET_DOCS_COMPLIANCE, {
+    params: {
+      centerIds: data?.centerAccess,
+    }
+  });
+};
+
 
 
 
