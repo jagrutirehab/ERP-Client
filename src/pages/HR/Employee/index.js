@@ -73,6 +73,7 @@ const Employee = () => {
   const hasUserPermission = hasPermission("HR", "MASTER_EMPLOYEE", "READ");
 
 
+
   const centerOptions = [
     ...(user?.centerAccess?.length > 1
       ? [
@@ -757,7 +758,7 @@ const Employee = () => {
             <Input
               type="text"
               className="form-control"
-              placeholder="Search by name or Ecode..."
+              placeholder="Search by name or Ecode (comma separated)..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -835,28 +836,25 @@ const Employee = () => {
           </div>
         </div>
 
-        {/* Row 3 - Buttons */}
+        {/* Row 3 */}
         <div className="row g-2 mb-2">
-          {/* Row 3 - Filters */}
-          <div className="row g-2 mb-2">
-            <div className="col-md-3">
-              <Select
-                value={selectedEmploymentStatus}
-                onChange={(options) => { setSelectedEmploymentStatus(options || []); setPage(1); }}
-                options={employmentStatusOptions}
-                placeholder="Filter by Employment Status"
-                classNamePrefix="react-select"
-                isMulti
-                isClearable
-              />
-            </div>
+          <div className="col-md-3">
+            <Select
+              value={selectedEmploymentStatus}
+              onChange={(options) => { setSelectedEmploymentStatus(options || []); setPage(1); }}
+              options={employmentStatusOptions}
+              placeholder="Filter by Employment Status"
+              classNamePrefix="react-select"
+              isMulti
+              isClearable
+            />
           </div>
-          <div className="col-md-12 d-flex justify-content-end gap-2 align-items-center">
+          <div className="col-md-9 d-flex justify-content-end gap-2 align-items-center">
             <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
             <CheckPermission
               accessRolePermission={roles?.permissions}
               subAccess={"MASTER_EMPLOYEE"}
-              permission={"delete"}
+              permission={"edit"}
             >
               <Button
                 color="primary"
@@ -868,7 +866,7 @@ const Employee = () => {
                 Export Excel
               </Button>
               <Button
-                color={"primary"}
+                color="primary"
                 className="d-flex align-items-center gap-2 text-white"
                 onClick={() => setModalOpen(true)}
               >
