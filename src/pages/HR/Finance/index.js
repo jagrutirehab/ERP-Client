@@ -299,6 +299,12 @@ const FinanceDashboard = () => {
             minWidth: "140px",
         },
         {
+            name: <div>Gratuity</div>,
+            selector: (row) => formatCurrency(row?.financeDetails?.gratuity),
+            sortable: true,
+            minWidth: "140px",
+        },
+        {
             name: <div>Gross Salary</div>,
             selector: (row) => formatCurrency(row?.financeDetails?.grossSalary),
             sortable: true,
@@ -330,7 +336,7 @@ const FinanceDashboard = () => {
         },
         {
             name: <div>PF Employer</div>,
-            selector: (row) => formatCurrency(row?.financeDetails?.PFAmount),
+            selector: (row) => formatCurrency(row?.financeDetails?.PFEmployer),
             sortable: true,
             minWidth: "120px",
         },
@@ -361,6 +367,12 @@ const FinanceDashboard = () => {
         {
             name: <div>In Hand Salary</div>,
             selector: (row) => formatCurrency(row?.financeDetails?.inHandSalary),
+            sortable: true,
+            minWidth: "140px",
+        },
+        {
+            name: <div>CTC</div>,
+            selector: (row) => formatCurrency(row?.financeDetails?.totalCostToCompany),
             sortable: true,
             minWidth: "140px",
         },
