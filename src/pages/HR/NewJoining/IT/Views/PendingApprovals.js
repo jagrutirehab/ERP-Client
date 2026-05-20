@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { format } from "date-fns";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import CheckPermission from "../../../../../Components/HOC/CheckPermission";
-import { Button, Input} from "reactstrap";
+import { Button, Input } from "reactstrap";
 import { CheckCheck, X } from "lucide-react";
 import ApproveModal from "../../../components/ApproveModal";
 import Select from "react-select";
@@ -15,6 +15,7 @@ import UserForm from "../../../../User/Form";
 import EmailSelectModal from "../../../components/EmailSelectModal";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
 import RefreshButton from "../../../../../Components/Common/RefreshButton";
+import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 
 const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }) => {
 
@@ -191,6 +192,16 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         }
     };
 
+    const normalizeEmploymentType = (type) => {
+        if (!type) return "-";
+
+        return type
+            .toLowerCase()
+            .split("_")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+    };
+
     const columns = [
         {
             name: <div>ECode</div>,
@@ -218,6 +229,34 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             selector: row => capitalizeWords(row?.designation?.name?.replace(/_/g, " ") || "-"),
             wrap: true,
             minWidth: "120px"
+        },
+        {
+            name: <div>Employee Type</div>,
+            selector: row => capitalizeWords(row?.employeeType || "-"),
+            wrap: true,
+            minWidth: "130px"
+        },
+        {
+            name: <div>Employement Type</div>,
+            selector: (row) => {
+                return normalizeEmploymentType(row?.newEmploymentType) || "-";
+            },
+            wrap: true,
+            minWidth: "100px",
+        },
+        // 
+        {
+            name: <div>Employement Status</div>,
+            selector: (row) => renderStatusBadge(row?.employmentStatus) || "-",
+            wrap: true,
+            minWidth: "150px",
+            center: false,
+        },
+        {
+            name: <div>Position</div>,
+            selector: (row) => row?.position?.name || "-",
+            wrap: true,
+            minWidth: "120px",
         },
         {
             name: <div>Current Location</div>,
