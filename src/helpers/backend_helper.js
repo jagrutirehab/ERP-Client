@@ -3826,3 +3826,11 @@ export const getTrainerRecordById = (id) => axios.get(`${url.GET_TRAINER_BY_ID}/
 export const editTrainerRecord = (id, data) => axios.patch(`${url.EDIT_TRAINER}/${id}`, data)
 export const deleteTrainerRecord = (id) => axios.patch(`${url.DELETE_RECORD}/${id}`, {})
 export const getRolesDisctinct = () => api.get(url.GET_DISCTINCT_ROLES)
+
+
+
+export const getPositions = () => api.get(url.GET_POSITIONS, {
+  headers: {
+    "X-No-Cookie-Token": "true",
+  },
+})

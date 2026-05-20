@@ -263,10 +263,22 @@ export const renderStatusBadge = (stage) => {
       text: "Completed",
       color: "success"
     },
-    FAILED:{
+    FAILED: {
       text: "Failed",
       color: "danger"
-    }
+    },
+    PROBATION: {
+      text: "Probation",
+      color: "info"
+    },
+    TRAINING: {
+      text: "Training",
+      color: "warning"
+    },
+    PERMANENT: {
+      text: "Permanent",
+      color: "success"
+    },
   };
 
   const config = map[stage];

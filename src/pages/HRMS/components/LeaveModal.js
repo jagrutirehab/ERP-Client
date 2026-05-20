@@ -15,6 +15,7 @@ import "flatpickr/dist/themes/material_green.css";
 import { toast } from "react-toastify";
 import {
   getManagerByEmployeeId,
+  postCompOffRequest,
   postLeaveRequest,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
@@ -33,6 +34,7 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
 
   const loggedInUser = JSON.parse(localStorage.getItem("authUser"));
   const loggedInId = loggedInUser?.data?._id;
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
 
   const fetchManager = async () => {
     const id = employeeId || loggedInId;
@@ -99,12 +101,27 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
         shiftTime,
         leaveReason,
       };
+      const compOffPayload = {
+        from: fromDate.toISOString(),
+        to: toDate.toISOString(),
+        manager: managerId,
+        reason: leaveReason,
+        employee : employeeId
+      }
 
       if (employeeId) {
         payload.employeeId = employeeId;
       }
 
-      const res = await postLeaveRequest(payload);
+      let res;
+      if (leaveType === "COMP_OFF_REQUEST") {
+        res = await postCompOffRequest(compOffPayload, token);
+        console.log("res", res);
+
+      } else {
+        res = await postLeaveRequest(payload, token);
+      }
+
       toast.success(res?.message || "Leave request submitted successfully");
       toggle();
       onSuccess?.();
