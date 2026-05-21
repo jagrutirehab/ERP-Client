@@ -20,6 +20,7 @@ import {
   TARGET_OPTIONS,
   OPERATOR_OPTIONS,
   TRIGGER_OPTIONS,
+  PERIOD_OPTIONS,
   emptyConditionItem,
   emptyTargetBlock,
   emptyForm,
@@ -31,6 +32,23 @@ import { sopGetFieldsByModel } from "../../../helpers/backend_helper";
 
 // Convert a single stored condition (DB shape) into the form's UI shape.
 const findOpt = (options, val) => options.find((o) => o.value === val) || null;
+const hydrateSchedule = (s) => {
+  if (!s) {
+    return {
+      period: PERIOD_OPTIONS[0],
+      days: [],
+      intervalHours: "",
+      graceHours: 0,
+    };
+  }
+  return {
+    period: findOpt(PERIOD_OPTIONS, s.period) || PERIOD_OPTIONS[0],
+    days: Array.isArray(s.days) ? s.days.filter((n) => Number.isFinite(n)) : [],
+    intervalHours: s.intervalHours != null ? String(s.intervalHours) : "",
+    graceHours: s.graceHours != null ? Number(s.graceHours) : 0,
+  };
+};
+
 const hydrateCondition = (c) => ({
   model: findOpt(TARGET_OPTIONS, c.model),
   field: c.field || "",
@@ -41,6 +59,7 @@ const hydrateCondition = (c) => ({
   triggerType: findOpt(TRIGGER_OPTIONS, c.triggerType) || TRIGGER_OPTIONS[0],
   deadlineHours: c.deadlineHours != null ? String(c.deadlineHours) : "",
   value: Array.isArray(c.value) ? c.value : c.value != null ? [c.value] : [],
+  schedule: hydrateSchedule(c.schedule),
 });
 
 const SOPForm = ({
@@ -230,6 +249,38 @@ const SOPForm = ({
     setTopError(null);
   }, []);
 
+  const formatSchedule = (s) => {
+    if (!s?.period?.value) return undefined;
+    const period = s.period.value;
+    const interval = s.intervalHours !== "" && s.intervalHours != null
+      ? Number(s.intervalHours)
+      : undefined;
+    const grace = s.graceHours !== "" && s.graceHours != null
+      ? Number(s.graceHours)
+      : 0;
+
+    const out = { period, graceHours: grace };
+
+    if (period === "DEADLINE") {
+      // One-shot: admission + intervalHours = check window.
+      if (interval != null && interval > 0) out.intervalHours = interval;
+    } else if (period === "CONTINUOUS") {
+      // Recurring: every intervalHours from admission until discharge/now.
+      if (interval != null && interval > 0) out.intervalHours = interval;
+    } else if (period === "DAYS") {
+      out.days = Array.isArray(s.days)
+        ? s.days
+            .map((n) => Number(n))
+            .filter((n) => Number.isInteger(n) && n >= 0)
+            .sort((a, b) => a - b)
+        : [];
+      // intervalHours is optional for DAYS — if set, sub-divides each day.
+      if (interval != null && interval > 0) out.intervalHours = interval;
+    }
+
+    return out;
+  };
+
   const formatCondition = (c) => {
     const out = {
       model: c.model?.value,
@@ -249,6 +300,13 @@ const SOPForm = ({
         const n = Number(c.value);
         out.value = [c.value !== "" && !isNaN(n) ? n : c.value];
       }
+    }
+
+    // Schedule is only meaningful for DELAYED conditions, and only when the
+    // user picked a non-default pattern.
+    if (c.triggerType?.value === "DELAYED") {
+      const sched = formatSchedule(c.schedule);
+      if (sched) out.schedule = sched;
     }
 
     return out;

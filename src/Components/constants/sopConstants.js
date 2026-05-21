@@ -68,6 +68,17 @@ export const BOOLEAN_OPTIONS = [
   { value: false, label: "False" },
 ];
 
+// Period drives how the cron expands a DELAYED condition into checkpoints:
+//   - DEADLINE   : single one-time check at admission + `intervalHours`.
+//   - CONTINUOUS : every `intervalHours` from admission until discharge/now.
+//   - DAYS       : on each listed day; if intervalHours is also set, sub-divide
+//                  each day by that interval.
+export const PERIOD_OPTIONS = [
+  { value: "DEADLINE",   label: "Deadline (one-time)" },
+  { value: "CONTINUOUS", label: "Continuous (every N hours)" },
+  { value: "DAYS",       label: "Days (specific days)" },
+];
+
 export const emptyConditionItem = () => ({
   model: null,
   field: "",
@@ -75,6 +86,12 @@ export const emptyConditionItem = () => ({
   triggerType: TRIGGER_OPTIONS[0],
   deadlineHours: "",
   value: [],
+  schedule: {
+    period: PERIOD_OPTIONS[0],   // "Days" default
+    days: [],                     // e.g. [1, 3, 7] — day numbers since admission
+    intervalHours: "",            // optional integer (every N hours)
+    graceHours: 0,                // tolerance window in hours
+  },
 });
 
 export const emptyRouting = () => ({

@@ -1,8 +1,21 @@
 // components/RoutingCard.js
 import React, { useState, useCallback, useEffect, useRef } from "react";
 import AsyncSelect from "react-select/async";
-import { Card, CardHeader, CardBody, FormGroup, Label, Button, Badge, Alert, Spinner } from "reactstrap";
-import { sopGetRoles, getEmployeesBySearch } from "../../../helpers/backend_helper";
+import {
+  Card,
+  CardHeader,
+  CardBody,
+  FormGroup,
+  Label,
+  Button,
+  Badge,
+  Alert,
+  Spinner,
+} from "reactstrap";
+import {
+  sopGetRoles,
+  getEmployeesBySearch,
+} from "../../../helpers/backend_helper";
 
 const isECodeLike = (str) => /^[a-zA-Z]{1,3}\d+$/i.test(str);
 
@@ -28,17 +41,28 @@ const RoutingCard = ({
     const fetchRoles = async () => {
       try {
         const response = await sopGetRoles();
-        const list = (Array.isArray(response) && response) || response?.data?.data || response?.data || [];
+        const list =
+          (Array.isArray(response) && response) ||
+          response?.data?.data ||
+          response?.data ||
+          [];
         if (alive) setRoles(Array.isArray(list) ? list : []);
       } catch (err) {
-        if (alive) setRolesError(err?.response?.data?.message || err?.message || "Failed to load roles");
+        if (alive)
+          setRolesError(
+            err?.response?.data?.message ||
+              err?.message ||
+              "Failed to load roles",
+          );
       } finally {
         if (alive) setRolesLoading(false);
       }
     };
 
     fetchRoles();
-    return () => { alive = false; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
   const fetchEmployees = useCallback(async (searchText) => {
@@ -62,18 +86,25 @@ const RoutingCard = ({
     }
   }, []);
 
-  const debouncedLoadEmployees = useCallback((inputValue, callback) => {
-    if (debounceRef.current) clearTimeout(debounceRef.current);
-    debounceRef.current = setTimeout(async () => {
-      callback(await fetchEmployees(inputValue));
-    }, 400);
-  }, [fetchEmployees]);
+  const debouncedLoadEmployees = useCallback(
+    (inputValue, callback) => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      debounceRef.current = setTimeout(async () => {
+        callback(await fetchEmployees(inputValue));
+      }, 400);
+    },
+    [fetchEmployees],
+  );
 
   return (
     <Card className="mb-4">
       <CardHeader className="fw-semibold">
         Routing — Who Gets Notified
-        {routingError && <Badge color="danger" pill className="ms-2">Required</Badge>}
+        {routingError && (
+          <Badge color="danger" pill className="ms-2">
+            Required
+          </Badge>
+        )}
       </CardHeader>
       <CardBody>
         <FormGroup>
@@ -105,7 +136,8 @@ const RoutingCard = ({
                     onClick={() => onRoleToggle(role.name)}
                     disabled={isSubmitting}
                   >
-                    {active && "✓ "}{role.name?.toUpperCase()}
+                    {active && "✓ "}
+                    {role.name?.toUpperCase()} ({role.count})
                   </Button>
                 );
               })}
@@ -116,7 +148,11 @@ const RoutingCard = ({
         <FormGroup>
           <Label className="fw-semibold">
             Notify Specific Users{" "}
-            {selectedUsers.length > 0 && <Badge color="info" pill className="ms-1">{selectedUsers.length}</Badge>}
+            {selectedUsers.length > 0 && (
+              <Badge color="info" pill className="ms-1">
+                {selectedUsers.length}
+              </Badge>
+            )}
           </Label>
           <AsyncSelect
             isMulti
@@ -127,12 +163,18 @@ const RoutingCard = ({
             isDisabled={isSubmitting}
             placeholder="Search by name or employee code..."
             noOptionsMessage={({ inputValue }) =>
-              inputValue?.length >= 2 ? "No employees found" : "Type at least 2 characters to search"
+              inputValue?.length >= 2
+                ? "No employees found"
+                : "Type at least 2 characters to search"
             }
           />
         </FormGroup>
 
-        {routingError && <Alert color="danger" className="mb-0 mt-2 py-2">{routingError}</Alert>}
+        {routingError && (
+          <Alert color="danger" className="mb-0 mt-2 py-2">
+            {routingError}
+          </Alert>
+        )}
       </CardBody>
     </Card>
   );
