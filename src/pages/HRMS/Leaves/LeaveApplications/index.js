@@ -34,7 +34,9 @@ const LeaveApplications = () => {
   const handleAuthError = useAuthError();
 
   const navigate = useNavigate();
-  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const user = JSON.parse(localStorage.getItem('micrologin'))?.user?._id
+  
 
   const { hasPermission, loading: isLoading } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "APPLY_LEAVE", "READ");
@@ -94,7 +96,8 @@ const LeaveApplications = () => {
         from: fromDate.toISOString(),
         to: toDate.toISOString(),
         manager: approvalAuthority,
-        reason: leaveReason
+        reason: leaveReason,
+        user
       }
 
       let res;

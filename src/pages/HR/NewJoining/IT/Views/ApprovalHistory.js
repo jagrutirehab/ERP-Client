@@ -120,10 +120,24 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     }
   }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
 
+
+  const normalizeEmploymentType = (type) => {
+    if (!type) return "-";
+
+    return type
+      .toLowerCase()
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
+
   const columns = [
     {
       name: <div>ECode</div>,
-      selector: row => row?.eCode || "-",
+      selector: (row) => {
+        console.log("ECode Row:", row);
+        return row?.eCode || "-";
+      },
       sortable: true,
     },
     {
@@ -147,6 +161,34 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       selector: row => capitalizeWords(row?.designation?.name?.replace(/_/g, " ") || "-"),
       wrap: true,
       minWidth: "120px"
+    },
+    {
+      name: <div>Employee Type</div>,
+      selector: row => capitalizeWords(row?.employeeType || "-"),
+      wrap: true,
+      minWidth: "130px"
+    },
+    {
+      name: <div>Employement Type</div>,
+      selector: (row) => {
+        return normalizeEmploymentType(row?.newEmploymentType) || "-";
+      },
+      wrap: true,
+      minWidth: "100px",
+    },
+    // 
+    {
+      name: <div>Employement Status</div>,
+      selector: (row) => renderStatusBadge(row?.employmentStatus) || "-",
+      wrap: true,
+      minWidth: "150px",
+      center: false,
+    },
+    {
+      name: <div>Position</div>,
+      selector: (row) => row?.position?.name || "-",
+      wrap: true,
+      minWidth: "120px",
     },
     {
       name: <div>Current Location</div>,
@@ -291,7 +333,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
             />
           </div>
           <div className="d-flex justify-content-end">
-              <RefreshButton loading={loading} onRefresh={fetchITApprovalHistory} />
+            <RefreshButton loading={loading} onRefresh={fetchITApprovalHistory} />
           </div>
         </div>
 

@@ -490,6 +490,7 @@ export const GET_DAILY_INVOICES = "/mi-reporting/get-daily-invoices";
 export const GET_COUNSLLING_SESSIONS = "/mi-reporting/get-counselling-sessions";
 export const GET_COUNSELLING_RECORDING = "/mi-reporting/get-counselling-recording";
 export const GET_DAILY_DASHBOARD = "/mi-reporting/daily-dashboard";
+export const GET_DOCS_COMPLIANCE = "/mi-reporting/docs-compliance";
 
 
 
@@ -704,3 +705,7 @@ export const GET_TRAINER_BY_ID="/trainings/get/trainer"
 export const EDIT_TRAINER = "/trainings/edit"
 export const DELETE_RECORD = "/trainings/delete"
 export const GET_DISCTINCT_ROLES = "/trainings/get/distinct/roles"
+
+
+// Positions 
+export const GET_POSITIONS = "/hr/get/positions"

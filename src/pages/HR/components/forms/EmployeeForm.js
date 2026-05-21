@@ -21,6 +21,7 @@ import {
   getAllUsers,
   getDepartments,
   getEmployeeId,
+  getPositions,
   postEmployee,
   updateEmployeeByKey,
   uploadFile,
@@ -37,6 +38,8 @@ import {
   employmentOptions,
   payrollOptions,
   statusOptions,
+  employmentStatus,
+  newEmploymentOptions,
 } from "../../../../Components/constants/HR";
 import { calculatePayroll } from "../../../../utils/calculatePayroll";
 import { normalizeDateForInput } from "../../../../utils/time";
@@ -103,8 +106,8 @@ const validationSchema = (mode, isEdit) =>
       mode === "NEW_JOINING"
         ? Yup.string().oneOf(["NEW_JOINING"])
         : Yup.string()
-            .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
-            .required("Status is required"),
+          .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
+          .required("Status is required"),
     state: Yup.string().required("State is required"),
     bankName: Yup.string().required("Bank name is required"),
     accountNo: Yup.string().required("Bank account number is required"),
@@ -163,6 +166,24 @@ const validationSchema = (mode, isEdit) =>
     LWFSalary: Yup.number().min(0).notRequired(),
     LWFEmployee: Yup.number().min(0).notRequired(),
     LWFEmployer: Yup.number().min(0).notRequired(),
+    uanNo: Yup.string().when("pfApplicable", {
+      is: true,
+      then: (schema) => schema.required("UAN No is required"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    pfNo: Yup.string().when("pfApplicable", {
+      is: true,
+      then: (schema) => schema.required("PF No is required"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
+    // newEmploymentType: Yup.string().required("Employment type is required"),
+    // employmentStatus: Yup.string().required("Employment status is required"),
+    // position: Yup.string()
+    //   .transform((value) => {
+    //     if (typeof value === "object" && value?._id) return value._id;
+    //     return value;
+    //   })
+    //   .required("Position is required"),
   });
 
 const getInitialValues = (initialData, mode) => ({
@@ -254,10 +275,13 @@ const getInitialValues = (initialData, mode) => ({
 
   users: initialData?.users
     ? initialData.users.map((u) => ({
-        value: u._id,
-        label: `${u.name} (${u.email})`,
-      }))
+      value: u._id,
+      label: `${u.name} (${u.email})`,
+    }))
     : [],
+  employmentStatus: initialData?.employmentStatus || "",
+  newEmploymentType: initialData?.newEmploymentType || "",
+  position: initialData?.position?._id || initialData?.position || "",
 });
 
 const EmployeeForm = ({
@@ -285,6 +309,7 @@ const EmployeeForm = ({
   const [previewOpen, setPreviewOpen] = useState(false);
   const [departmentOptions, setDepartmentOptions] = useState([]);
   const [department, setDepartment] = useState("");
+  const [positionOptions, setPositionOptions] = useState([]);
   const [manual, setManual] = useState({
     SPLAllowance: false,
   });
@@ -353,7 +378,6 @@ const EmployeeForm = ({
           if (key === "eCode" && mode === "NEW_JOINING") return;
           if (key === "users") return;
           if (value === undefined || value === null) return;
-
           formData.append(key, value);
         });
         let panUrl = values.panOld;
@@ -714,10 +738,32 @@ const EmployeeForm = ({
     ) ||
     (values.employmentType
       ? {
-          label: values.employmentType,
-          value: values.employmentType?.trim().toUpperCase(),
-        }
+        label: values.employmentType,
+        value: values.employmentType?.trim().toUpperCase(),
+      }
       : null);
+
+
+  useEffect(() => {
+    const fetchPositions = async () => {
+      try {
+        const res = await getPositions();
+        console.log("positions", res);
+
+        setPositionOptions(
+          (res?.data || []).map((p) => ({
+            label: p.name,
+            value: p._id,
+          }))
+        );
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error("Failed to fetch positions");
+        }
+      }
+    };
+    fetchPositions();
+  }, []);
 
   return (
     <>
@@ -831,15 +877,17 @@ const EmployeeForm = ({
             {errorText("designation")}
           </Col>
 
-          {/* EMPLOYMENT */}
+
+
+          {/* EMPLOYEE TYPE */}
           <Col md={6}>
             <Label htmlFor="employmentType">
-              Employment <span className="text-danger">*</span>
+              Employee Type <span className="text-danger">*</span>
             </Label>
 
             <Select
               inputId="employmentType"
-              placeholder="Select Employment Type"
+              placeholder="Select Employee Type"
               options={employmentOptions}
               value={selectedEmploymentOption}
               onChange={(opt) =>
@@ -854,6 +902,61 @@ const EmployeeForm = ({
 
             {errorText("employmentType")}
           </Col>
+
+          {/* EMPLOYEMENT TYPE */}
+          <Col md={6}>
+            <Label htmlFor="newEmploymentType">
+              Employment Type 
+              {/* <span className="text-danger">*</span> */}
+            </Label>
+            <Select
+              inputId="newEmploymentType"
+              placeholder="Select Employement Type"
+              options={newEmploymentOptions}
+              value={newEmploymentOptions.find(opt => opt.value === values.newEmploymentType) || null}
+              onChange={(opt) => form.setFieldValue("newEmploymentType", opt ? opt.value : "")}
+              onBlur={() => setFieldTouched("newEmploymentType", true)}
+              isClearable
+            />
+            {errorText("newEmploymentType")}
+          </Col>
+
+          {/* EMPLOYMENT STATUS */}
+          <Col md={6}>
+            <Label htmlFor="employmentStatus">
+              Employment Status 
+              {/* <span className="text-danger">*</span> */}
+            </Label>
+            <Select
+              inputId="employmentStatus"
+              placeholder="Select Employment Status"
+              options={employmentStatus}
+              value={employmentStatus.find(opt => opt.value === values.employmentStatus) || null}
+              onChange={(opt) => form.setFieldValue("employmentStatus", opt ? opt.value : "")}
+              onBlur={() => setFieldTouched("employmentStatus", true)}
+              isClearable
+            />
+            {errorText("employmentStatus")}
+          </Col>
+
+          {/* POSITION */}
+          <Col md={6}>
+            <Label htmlFor="position">
+              Position 
+              {/* <span className="text-danger">*</span> */}
+            </Label>
+            <Select
+              inputId="position"
+              placeholder="Select Position"
+              options={positionOptions}
+              value={positionOptions.find(opt => opt.value === values.position) || null}
+              onChange={(opt) => form.setFieldValue("position", opt ? opt.value : "")}
+              onBlur={() => setFieldTouched("position", true)}
+              isClearable
+            />
+            {errorText("position")}
+          </Col>
+
 
           {/* FIRST LOCATION */}
           <Col md={6}>
@@ -884,8 +987,8 @@ const EmployeeForm = ({
                 value={
                   values.transferredFrom
                     ? centerOptions.find(
-                        (o) => o.value === values.transferredFrom,
-                      )
+                      (o) => o.value === values.transferredFrom,
+                    )
                     : null
                 }
                 onChange={(opt) => setFieldValue("transferredFrom", opt.value)}
@@ -904,8 +1007,8 @@ const EmployeeForm = ({
               value={
                 values.currentLocation
                   ? centerOptions.find(
-                      (o) => o.value === values.currentLocation,
-                    )
+                    (o) => o.value === values.currentLocation,
+                  )
                   : null
               }
               onChange={(opt) => setFieldValue("currentLocation", opt.value)}
@@ -1124,7 +1227,7 @@ const EmployeeForm = ({
           {/* PF APPLICABLE */}
           <Col md={6}>
             <Label htmlFor="pfApplicable">
-              PF Applicable <span className="text-danger">*</span>
+              PF Available <span className="text-danger">*</span>
             </Label>
             <Select
               inputId="pfApplicable"
@@ -1147,24 +1250,34 @@ const EmployeeForm = ({
 
           {/* UAN NO */}
           <Col md={6}>
-            <Label htmlFor="uanNo">UAN No</Label>
+            <Label htmlFor="uanNo">
+              UAN No {values.pfApplicable === true && <span className="text-danger">*</span>}
+            </Label>
             <Input
               id="uanNo"
               name="uanNo"
               value={values.uanNo}
               onChange={handleChange}
+              invalid={touched.uanNo && !!errors.uanNo}
+              onBlur={() => setFieldTouched("uanNo", true)}
             />
+            {errorText("uanNo")}
           </Col>
 
           {/* PF NO */}
           <Col md={6}>
-            <Label htmlFor="pfNo">PF No</Label>
+            <Label htmlFor="pfNo">
+              PF No {values.pfApplicable === true && <span className="text-danger">*</span>}
+            </Label>
             <Input
               id="pfNo"
               name="pfNo"
               value={values.pfNo}
               onChange={handleChange}
+              invalid={touched.pfNo && !!errors.pfNo}
+              onBlur={() => setFieldTouched("pfNo", true)}
             />
+            {errorText("pfNo")}
           </Col>
 
           {/* ESIC */}
@@ -1967,23 +2080,23 @@ const EmployeeForm = ({
           {(mode !== "NEW_JOINING" ||
             view !== "PAGE" ||
             hasCreatePermission) && (
-            <Button
-              color="primary"
-              className="text-white"
-              onClick={form.handleSubmit}
-              disabled={
-                isSubmitting || !isValid || (isEdit && !initialData?._id)
-              }
-            >
-              {isSubmitting ? (
-                <Spinner size="sm" />
-              ) : initialData ? (
-                "Update Employee"
-              ) : (
-                "Save Employee"
-              )}
-            </Button>
-          )}
+              <Button
+                color="primary"
+                className="text-white"
+                onClick={form.handleSubmit}
+                disabled={
+                  isSubmitting || !isValid || (isEdit && !initialData?._id)
+                }
+              >
+                {isSubmitting ? (
+                  <Spinner size="sm" />
+                ) : initialData ? (
+                  "Update Employee"
+                ) : (
+                  "Save Employee"
+                )}
+              </Button>
+            )}
 
           {/* <Button onClick={() => console.log(errors)}>
             test

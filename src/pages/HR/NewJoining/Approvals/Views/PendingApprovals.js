@@ -21,6 +21,7 @@ import { getFilePreviewMeta } from "../../../../../utils/isPreviewable";
 import PreviewFile from "../../../../../Components/Common/PreviewFile";
 import { FILE_PREVIEW_CUTOFF } from "../../../../../Components/constants/HR";
 import RefreshButton from "../../../../../Components/Common/RefreshButton";
+import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 
 
 const customStyles = {
@@ -51,7 +52,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
-     const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams, setSearchParams] = useSearchParams();
     const querySearch = searchParams.get("q") || "";
     const queryCenter = searchParams.get("center") || "ALL";
     const queryEmployeeId = searchParams.get("id") || "";
@@ -244,6 +245,16 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         }
     };
 
+    const normalizeEmploymentType = (type) => {
+        if (!type) return "-";
+
+        return type
+            .toLowerCase()
+            .split("_")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+    };
+
     const columns = [
         {
             name: <div>Date</div>,
@@ -280,12 +291,33 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             minWidth: "130px"
         },
         {
-            name: <div>Employment</div>,
+            name: <div>Employee Type</div>,
             selector: row => capitalizeWords(row?.employmentType || "-"),
             wrap: true,
             minWidth: "100px"
         },
-
+        {
+            name: <div>Employement Type</div>,
+            selector: (row) => {
+                return normalizeEmploymentType(row?.newEmploymentType) || "-";
+            },
+            wrap: true,
+            minWidth: "100px",
+        },
+        // 
+        {
+            name: <div>Employement Status</div>,
+            selector: (row) => renderStatusBadge(row?.employmentStatus) || "-",
+            wrap: true,
+            minWidth: "150px",
+            center: false,
+        },
+        {
+            name: <div>Position</div>,
+            selector: (row) => row?.position?.name || "-",
+            wrap: true,
+            minWidth: "120px",
+        },
         {
             name: <div>First Location</div>,
             selector: row => capitalizeWords(row?.firstLocation?.title || "-"),

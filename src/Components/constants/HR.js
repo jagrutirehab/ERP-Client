@@ -78,20 +78,33 @@ export const TPMOptions = [
 ];
 
 export const employmentOptions = [
-    { label: "Full Time Employee", value: "FULL_TIME" },
-    { label: "Part Time Employee", value: "PART_TIME" },
-    { label: "Contractual", value: "CONTRACTUAL" },
-    { label: "Intern", value: "INTERN" },
+    { label: "Contract", value: "CONTRACTUAL" },
     { label: "Consultant", value: "CONSULTANT" },
+    { label: "Apprentice", value: "APPRENTICE" },
+    { label: "Intern", value: "INTERN" },
+    { label: "Consultant Session", value: "CONSULTANT_SESSION" },
+    { label: "FTE", value: "FULL_TIME" },
+];
+
+export const employmentStatus = [
+    { label: "Probation", value: "PROBATION" },
+    { label: "Training", value: "TRAINING" },
+    { label: "Permanent", value: "PERMANENT" },
+];
+
+export const newEmploymentOptions = [
+    { label: "Part Time", value: "PART_TIME" },
+    { label: "Full Time", value: "FULL_TIME" },
 ];
 
 export const filterEmploymentOptions = [
-    { label: "Full Time Employee", value: "FULL_TIME" },
-    { label: "Part Time Employee", value: "PART_TIME" },
+    { label: "FTE", value: "FULL_TIME" },
     { label: "Contractual", value: "CONTRACTUAL" },
     { label: "Intern", value: "INTERN" },
     { label: "Consultant", value: "CONSULTANT" },
     { label: "Vendor", value: "VENDOR" },
+    { label: "Apprentice", value: "APPRENTICE" },
+    { label: "Consultant Session", value: "CONSULTANT_SESSION" },
 ];
 
 export const employeeGroupOptions = [

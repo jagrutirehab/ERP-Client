@@ -26,6 +26,7 @@ const statusOptions = [
     { value: "ACTIVE", label: "Active" },
     { value: "RESIGNED", label: "Resigned" },
     { value: "FNF_CLOSED", label: "FNF Closed" },
+    // { value: "NEW_JOINING", label: "New Joining" },
 ];
 
 const AttendanceMetrics = () => {
