@@ -126,3 +126,40 @@ export const BLOOD_GROUP_OPTIONS = [
   "O+",
   "O-",
 ].map((v) => ({ value: v, label: v }));
+
+// ─── Suggested Medicines ──────────────────────────────────────────────────
+
+export const MEDICINE_CATEGORY_OPTIONS = [
+  { value: "WITHDRAWAL",  label: "Withdrawal (CDZ, antiepileptics)" },
+  { value: "GENERAL",     label: "General (Thiamine, B-Plex, antacids)" },
+  { value: "HEPATIC",     label: "Hepatic (Udiliv, Rifagut, Lornit)" },
+  { value: "MAINTENANCE", label: "Maintenance (Acamprosate, Topiramate)" },
+  { value: "DISCHARGE",   label: "Discharge prescription" },
+  { value: "SOS",         label: "SOS / PRN" },
+  { value: "OTHER",       label: "Other" },
+];
+
+export const MEDICINE_PRIORITY_OPTIONS = [
+  { value: "ROUTINE",   label: "Routine" },
+  { value: "HIGH",      label: "High" },
+  { value: "URGENT",    label: "Urgent" },
+  { value: "EMERGENCY", label: "Emergency" },
+];
+
+export const MEDICINE_INTAKE_OPTIONS = [
+  { value: "BEFORE_FOOD", label: "Before Food" },
+  { value: "AFTER_FOOD",  label: "After Food" },
+];
+
+export const emptySuggestedMedicine = () => ({
+  id: Date.now() + Math.random(),                  // local-only UI key
+  medicine: null,                                  // { value, label, snapshot? }
+  medicineSnapshot: { name: "", type: "", strength: "", unit: "" },
+  dosageAndFrequency: { morning: "", afternoon: "", evening: "", unit: "tab" },
+  applicableDays: [],                              // [] = throughout admission
+  instructions: "",
+  intake: MEDICINE_INTAKE_OPTIONS[1],               // After Food default
+  priority: MEDICINE_PRIORITY_OPTIONS[0],
+  category: MEDICINE_CATEGORY_OPTIONS[0],
+  rationale: "",
+});

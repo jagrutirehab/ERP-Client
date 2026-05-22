@@ -165,6 +165,68 @@ const RulePreviewOffcanvas = ({
                 ))}
               </div>
 
+              {/* Suggested Medicines — read-only summary */}
+              {rule.suggestedMedicines?.length > 0 && (
+                <div className="mb-3">
+                  {sectionLabel(
+                    "bx bx-capsule",
+                    `Suggested Medicines (${rule.suggestedMedicines.length})`,
+                  )}
+                  {rule.suggestedMedicines.map((m, mi) => {
+                    const snap = m.medicineSnapshot || {};
+                    const name =
+                      [snap.type, snap.name, snap.strength, snap.unit]
+                        .filter(Boolean)
+                        .join(" ") || "(Medicine)";
+                    const d = m.dosageAndFrequency || {};
+                    const dose = [d.morning || "0", d.afternoon || "0", d.evening || "0"]
+                      .join("-")
+                      .concat(d.unit ? ` ${d.unit}` : "");
+                    const days = Array.isArray(m.applicableDays) && m.applicableDays.length
+                      ? m.applicableDays.map((n) => `Day ${n}`).join(", ")
+                      : "Throughout admission";
+                    return (
+                      <div key={mi} className="mb-2 p-3 border rounded">
+                        <div className="d-flex justify-content-between align-items-start mb-1 flex-wrap gap-1">
+                          <div className="fw-semibold">
+                            {mi + 1}. {name}
+                          </div>
+                          <div className="d-flex gap-1 flex-wrap">
+                            {m.category && (
+                              <Badge color="secondary" pill>{m.category}</Badge>
+                            )}
+                            {m.priority && m.priority !== "ROUTINE" && (
+                              <Badge color="warning" pill>{m.priority}</Badge>
+                            )}
+                            {m.intake && (
+                              <Badge color="info" pill>
+                                {m.intake === "BEFORE_FOOD" ? "Before Food" : "After Food"}
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                        <div className="small">
+                          <strong className="text-muted">Dose:</strong> {dose}
+                          {" · "}
+                          <strong className="text-muted">Days:</strong> {days}
+                        </div>
+                        {m.instructions && (
+                          <div className="small text-muted mt-1">
+                            <i className="bx bx-info-circle me-1" />
+                            {m.instructions}
+                          </div>
+                        )}
+                        {m.rationale && (
+                          <div className="small text-muted mt-1 fst-italic">
+                            {m.rationale}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
               <div className="d-flex gap-2 mt-4 pt-3 border-top">
                 <Button color="primary" onClick={() => onEdit(rule)}>
                   <i className="bx bx-edit me-1" />Edit
