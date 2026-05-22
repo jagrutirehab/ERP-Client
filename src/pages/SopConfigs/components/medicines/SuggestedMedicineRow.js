@@ -190,6 +190,9 @@ const SuggestedMedicineRow = ({
               <Col xs={2}>
                 <Input
                   placeholder="Morning"
+                  type="number"
+                  min={0}
+                  max={1}
                   value={dose.morning || ""}
                   onChange={(e) =>
                     setNested("dosageAndFrequency", "morning", e.target.value)
@@ -201,6 +204,9 @@ const SuggestedMedicineRow = ({
               <Col xs={2}>
                 <Input
                   placeholder="Afternoon"
+                  type="number"
+                  min={0}
+                  max={1}
                   value={dose.afternoon || ""}
                   onChange={(e) =>
                     setNested("dosageAndFrequency", "afternoon", e.target.value)
@@ -212,6 +218,9 @@ const SuggestedMedicineRow = ({
               <Col xs={2}>
                 <Input
                   placeholder="Evening"
+                  type="number"
+                  min={0}
+                  max={1}
                   value={dose.evening || ""}
                   onChange={(e) =>
                     setNested("dosageAndFrequency", "evening", e.target.value)
