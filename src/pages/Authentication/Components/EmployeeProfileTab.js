@@ -179,7 +179,7 @@ const EmployeeProfileTab = ({ data, loading }) => {
                         <Field label="Employment Status" value={data.employmentStatus} />
                         <Field label="Payroll Type" value={data.payrollType} />
                         <Field label="Joining Date" value={data.joinningDate ? new Date(data.joinningDate).toLocaleDateString("en-GB", { day: "numeric", month: "short", year: "numeric" }) : "—"} />
-                        <Field label="Monthly CTC" value={data.monthlyCTC ? `₹${data.monthlyCTC}` : "—"} />
+                        {/* <Field label="Monthly CTC" value={data.monthlyCTC ? `₹${data.monthlyCTC}` : "—"} /> */}
                         <Field label="PF Applicable" value={data.pfApplicable ? "Yes" : "No"} />
                         <Field label="PF No." value={data.pfNo} />
                         <Field label="UAN No." value={data.uanNo} />
