@@ -21,6 +21,9 @@ import {
   OPERATOR_OPTIONS,
   TRIGGER_OPTIONS,
   PERIOD_OPTIONS,
+  MEDICINE_INTAKE_OPTIONS,
+  MEDICINE_PRIORITY_OPTIONS,
+  MEDICINE_CATEGORY_OPTIONS,
   emptyConditionItem,
   emptyTargetBlock,
   emptyForm,
@@ -28,6 +31,7 @@ import {
 import ConditionRow from "./ConditionRow";
 import MainBlock from "./MainBlock";
 import RoutingCard from "./RoutingCard";
+import SuggestedMedicinesSection from "./medicines/SuggestedMedicinesSection";
 import { sopGetFieldsByModel } from "../../../helpers/backend_helper";
 
 // Convert a single stored condition (DB shape) into the form's UI shape.
@@ -62,6 +66,51 @@ const hydrateCondition = (c) => ({
   schedule: hydrateSchedule(c.schedule),
 });
 
+// Builds an AsyncSelect option from a stored medicine doc + snapshot.
+// Re-uses the same shape as the AsyncSelect loader so the search input
+// displays the selected medicine on edit-mode hydration.
+const buildMedicineOption = (medicineId, snap) => {
+  if (!medicineId) return null;
+  const s = snap || {};
+  const label =
+    [s.type, s.name, s.strength, s.unit].filter(Boolean).join(" ") ||
+    "(Medicine)";
+  return {
+    value:
+      typeof medicineId === "string" ? medicineId : medicineId.toString(),
+    label,
+    snapshot: s,
+  };
+};
+
+const hydrateMedicine = (m) => ({
+  id: m._id?.toString?.() || `${Date.now()}-${Math.random()}`,
+  medicine: buildMedicineOption(m.medicine, m.medicineSnapshot),
+  medicineSnapshot: m.medicineSnapshot || {
+    name: "",
+    type: "",
+    strength: "",
+    unit: "",
+  },
+  dosageAndFrequency: {
+    morning:   m.dosageAndFrequency?.morning   || "",
+    afternoon: m.dosageAndFrequency?.afternoon || "",
+    evening:   m.dosageAndFrequency?.evening   || "",
+    unit:      m.dosageAndFrequency?.unit      || "",
+  },
+  applicableDays: Array.isArray(m.applicableDays)
+    ? m.applicableDays.filter((n) => Number.isInteger(n) && n >= 0)
+    : [],
+  instructions: m.instructions || "",
+  intake:
+    findOpt(MEDICINE_INTAKE_OPTIONS, m.intake) || MEDICINE_INTAKE_OPTIONS[1],
+  priority:
+    findOpt(MEDICINE_PRIORITY_OPTIONS, m.priority) || MEDICINE_PRIORITY_OPTIONS[0],
+  category:
+    findOpt(MEDICINE_CATEGORY_OPTIONS, m.category) || MEDICINE_CATEGORY_OPTIONS[0],
+  rationale: m.rationale || "",
+});
+
 const SOPForm = ({
   onSubmit,
   isSubmitting = false,
@@ -75,6 +124,7 @@ const SOPForm = ({
     conditions: [emptyConditionItem()],
   });
   const [targetBlocks, setTargetBlocks] = useState([emptyTargetBlock()]);
+  const [suggestedMedicines, setSuggestedMedicines] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
   const [topError, setTopError] = useState(null);
   const [modelFieldsCache, setModelFieldsCache] = useState({});
@@ -155,6 +205,11 @@ const SOPForm = ({
         }))
       : [emptyTargetBlock()];
     setTargetBlocks(blocks);
+
+    const meds = Array.isArray(initialValues.suggestedMedicines)
+      ? initialValues.suggestedMedicines.map(hydrateMedicine)
+      : [];
+    setSuggestedMedicines(meds);
 
     // Prefetch field metadata for every unique model referenced.
     const models = new Set();
@@ -245,6 +300,7 @@ const SOPForm = ({
     setForm(emptyForm());
     setSatisfyingCriteria({ conditions: [emptyConditionItem()] });
     setTargetBlocks([emptyTargetBlock()]);
+    setSuggestedMedicines([]);
     setFieldErrors({});
     setTopError(null);
   }, []);
@@ -279,6 +335,28 @@ const SOPForm = ({
     }
 
     return out;
+  };
+
+  // Converts a UI medicine into the server-shape: option objects → enum strings,
+  // snapshot kept verbatim, optional free-text fields dropped if blank.
+  const formatMedicine = (m) => {
+    const d = m.dosageAndFrequency || {};
+    return {
+      medicine: m.medicine?.value,
+      medicineSnapshot: m.medicineSnapshot || undefined,
+      dosageAndFrequency: {
+        morning:   (d.morning   || "").trim(),
+        afternoon: (d.afternoon || "").trim(),
+        evening:   (d.evening   || "").trim(),
+        unit:      (d.unit      || "").trim(),
+      },
+      applicableDays: Array.isArray(m.applicableDays) ? m.applicableDays : [],
+      instructions: m.instructions?.trim() || undefined,
+      intake: m.intake?.value,
+      priority: m.priority?.value,
+      category: m.category?.value,
+      rationale: m.rationale?.trim() || undefined,
+    };
   };
 
   const formatCondition = (c) => {
@@ -348,6 +426,34 @@ const SOPForm = ({
     });
     if (hasTargetErrors) errs.targetBlocks = targetErrors;
 
+    let hasMedErrors = false;
+    const medErrors = suggestedMedicines.map((m) => {
+      const mErr = {};
+      if (!m.medicine?.value) {
+        mErr.medicine = "Medicine is required";
+        hasMedErrors = true;
+      }
+      const d = m.dosageAndFrequency || {};
+      const hasAnyDose =
+        (d.morning && d.morning.trim()) ||
+        (d.afternoon && d.afternoon.trim()) ||
+        (d.evening && d.evening.trim());
+      if (!hasAnyDose) {
+        mErr.dose = "Enter at least one dose (Morning / Afternoon / Evening)";
+        hasMedErrors = true;
+      }
+      if (!d.unit || !d.unit.trim()) {
+        mErr.unit = "Unit is required";
+        hasMedErrors = true;
+      }
+      if (!m.intake?.value) {
+        mErr.intake = "Intake is required";
+        hasMedErrors = true;
+      }
+      return mErr;
+    });
+    if (hasMedErrors) errs.suggestedMedicines = medErrors;
+
     return { valid: !Object.keys(errs).length, errors: errs };
   };
 
@@ -394,6 +500,10 @@ const SOPForm = ({
       payload.satisfyingCriteria = {
         conditions: validSCConditions.map(formatCondition),
       };
+    }
+
+    if (suggestedMedicines.length > 0) {
+      payload.suggestedMedicines = suggestedMedicines.map(formatMedicine);
     }
 
     if (form.protocol.trim()) payload.protocol = form.protocol.trim();
@@ -649,6 +759,13 @@ const SOPForm = ({
           );
         })}
       </div>
+
+      <SuggestedMedicinesSection
+        medicines={suggestedMedicines}
+        onChange={setSuggestedMedicines}
+        isSubmitting={isSubmitting}
+        errors={fieldErrors.suggestedMedicines || []}
+      />
 
       <div className="d-flex justify-content-end gap-2">
         {onCancel && (
