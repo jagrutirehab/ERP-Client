@@ -3842,3 +3842,6 @@ export const getPositions = () => api.get(url.GET_POSITIONS, {
     "X-No-Cookie-Token": "true",
   },
 })
+
+// PROFILE
+export const getEmployeeProfile = () => api.get(url.GET_EMPLOYEE_PROFILE)

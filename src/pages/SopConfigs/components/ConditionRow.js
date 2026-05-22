@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import Select from "react-select";
 import { Input, Button, Row, Col, Label } from "reactstrap";
+import CreatableSelect from "react-select/creatable";
 import {
   GENDER_OPTIONS,
   OPERATOR_OPTIONS,
@@ -10,6 +11,7 @@ import {
   OPERATORS_BY_TYPE,
   BOOLEAN_OPTIONS,
   BLOOD_GROUP_OPTIONS,
+  PERIOD_OPTIONS,
 } from "../../../Components/constants/sopConstants";
 import { getICDCodes } from "../../../helpers/backend_helper";
 
@@ -270,20 +272,6 @@ const ConditionRow = ({
           </Col>
         )}
 
-        {isDelayed && (
-          <Col md={1}>
-            <Label className="small text-muted mb-1">Hours</Label>
-            <Input
-              type="number"
-              min="1"
-              placeholder="24"
-              value={condition.deadlineHours || ""}
-              onChange={(e) => onChange(idx, "deadlineHours", e.target.value)}
-              disabled={isDisabled}
-            />
-          </Col>
-        )}
-
         {!valueless && !isFieldExists && (
           <Col md={3}>
             <Label className="small text-muted mb-1">Value</Label>
@@ -304,6 +292,118 @@ const ConditionRow = ({
           </Button>
         </Col>
       </Row>
+
+      {/* DELAYED-only: schedule controls (Period + Days + Interval + Grace) */}
+      {isDelayed && (
+        <Row className="align-items-end mb-3 p-2 border rounded bg-light mx-0">
+          <Col md={3}>
+            <Label className="small text-muted mb-1">Period</Label>
+            <Select
+              options={PERIOD_OPTIONS}
+              value={condition.schedule?.period || PERIOD_OPTIONS[0]}
+              onChange={(v) =>
+                onChange(idx, "schedule", { ...condition.schedule, period: v })
+              }
+              isDisabled={isDisabled}
+            />
+          </Col>
+
+          {condition.schedule?.period?.value === "DAYS" && (
+            <Col md={4}>
+              <Label className="small text-muted mb-1">
+                Days (e.g. 1, 3, 7)
+              </Label>
+              <CreatableSelect
+                isMulti
+                isClearable
+                placeholder="Type a day number and press Enter..."
+                options={[]}
+                value={(condition.schedule?.days || []).map((d) => ({
+                  value: d,
+                  label: `Day ${d}`,
+                }))}
+                onChange={(selected) => {
+                  const nums = (selected || [])
+                    .map((o) => Number(o.value))
+                    .filter((n) => Number.isInteger(n) && n >= 0);
+                  onChange(idx, "schedule", {
+                    ...condition.schedule,
+                    days: [...new Set(nums)].sort((a, b) => a - b),
+                  });
+                }}
+                onCreateOption={(input) => {
+                  const n = Number(String(input).trim());
+                  if (!Number.isInteger(n) || n < 0) return;
+                  const next = [
+                    ...new Set([...(condition.schedule?.days || []), n]),
+                  ].sort((a, b) => a - b);
+                  onChange(idx, "schedule", {
+                    ...condition.schedule,
+                    days: next,
+                  });
+                }}
+                isValidNewOption={(input) =>
+                  /^\d+$/.test(String(input || "").trim())
+                }
+                formatCreateLabel={(input) => `Add Day ${input}`}
+                isDisabled={isDisabled}
+              />
+            </Col>
+          )}
+
+          {/* Hours field — label & semantics shift with Period:
+                DEADLINE   → "Deadline (h)" — one-time check at admission + N
+                CONTINUOUS → "Interval (h)" — every N hours
+                DAYS       → "Sub-interval (h)" — optional, per-day sub-cadence
+          */}
+          <Col md={2}>
+            <Label className="small text-muted mb-1">
+              {condition.schedule?.period?.value === "DEADLINE"
+                ? "Deadline (h)"
+                : condition.schedule?.period?.value === "CONTINUOUS"
+                  ? "Interval (h)"
+                  : "Sub-interval (h)"}
+            </Label>
+            <Input
+              type="number"
+              min="1"
+              step="1"
+              placeholder={
+                condition.schedule?.period?.value === "DAYS"
+                  ? "optional"
+                  : "required"
+              }
+              value={condition.schedule?.intervalHours ?? ""}
+              onChange={(e) =>
+                onChange(idx, "schedule", {
+                  ...condition.schedule,
+                  intervalHours: e.target.value.replace(/[^\d]/g, ""),
+                })
+              }
+              disabled={isDisabled}
+            />
+          </Col>
+
+          <Col md={2}>
+            <Label className="small text-muted mb-1">Grace (h)</Label>
+            <Input
+              type="number"
+              min="0"
+              step="1"
+              placeholder="0"
+              value={condition.schedule?.graceHours ?? 0}
+              onChange={(e) =>
+                onChange(idx, "schedule", {
+                  ...condition.schedule,
+                  graceHours: e.target.value.replace(/[^\d]/g, ""),
+                })
+              }
+              disabled={isDisabled}
+            />
+          </Col>
+        </Row>
+      )}
+
       {error && <small className="text-danger d-block mb-2">{error}</small>}
     </>
   );

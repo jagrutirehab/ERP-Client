@@ -709,3 +709,7 @@ export const GET_DISCTINCT_ROLES = "/trainings/get/distinct/roles"
 
 // Positions 
 export const GET_POSITIONS = "/hr/get/positions"
+
+
+// PROFILE
+export const GET_EMPLOYEE_PROFILE = "/profile/get"

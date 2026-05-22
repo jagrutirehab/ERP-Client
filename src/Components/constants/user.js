@@ -23,6 +23,7 @@ const userFields = [
     type: "checkbox",
     options: [],
   },
+  
 ];
 
 //tabs
@@ -31,3 +32,4 @@ export const ATTENDENCE = "ATTENDENCE";
 export const LEAVE_INFORMATION = "LEAVE_INFORMATION";
 export const JOINING_DETAILS = "JOINING_DETAILS";
 export const EXIT_FORMALITIES = "EXIT_FORMALITIES";
+export const EMPLOYEE_PROFILE = "EMPLOYEE_PROFILE";
