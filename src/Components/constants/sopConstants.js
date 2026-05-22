@@ -68,6 +68,17 @@ export const BOOLEAN_OPTIONS = [
   { value: false, label: "False" },
 ];
 
+// Period drives how the cron expands a DELAYED condition into checkpoints:
+//   - DEADLINE   : single one-time check at admission + `intervalHours`.
+//   - CONTINUOUS : every `intervalHours` from admission until discharge/now.
+//   - DAYS       : on each listed day; if intervalHours is also set, sub-divide
+//                  each day by that interval.
+export const PERIOD_OPTIONS = [
+  { value: "DEADLINE",   label: "Deadline (one-time)" },
+  { value: "CONTINUOUS", label: "Continuous (every N hours)" },
+  { value: "DAYS",       label: "Days (specific days)" },
+];
+
 export const emptyConditionItem = () => ({
   model: null,
   field: "",
@@ -75,6 +86,12 @@ export const emptyConditionItem = () => ({
   triggerType: TRIGGER_OPTIONS[0],
   deadlineHours: "",
   value: [],
+  schedule: {
+    period: PERIOD_OPTIONS[0],   // "Days" default
+    days: [],                     // e.g. [1, 3, 7] — day numbers since admission
+    intervalHours: "",            // optional integer (every N hours)
+    graceHours: 0,                // tolerance window in hours
+  },
 });
 
 export const emptyRouting = () => ({
@@ -109,3 +126,40 @@ export const BLOOD_GROUP_OPTIONS = [
   "O+",
   "O-",
 ].map((v) => ({ value: v, label: v }));
+
+// ─── Suggested Medicines ──────────────────────────────────────────────────
+
+export const MEDICINE_CATEGORY_OPTIONS = [
+  { value: "WITHDRAWAL",  label: "Withdrawal (CDZ, antiepileptics)" },
+  { value: "GENERAL",     label: "General (Thiamine, B-Plex, antacids)" },
+  { value: "HEPATIC",     label: "Hepatic (Udiliv, Rifagut, Lornit)" },
+  { value: "MAINTENANCE", label: "Maintenance (Acamprosate, Topiramate)" },
+  { value: "DISCHARGE",   label: "Discharge prescription" },
+  { value: "SOS",         label: "SOS / PRN" },
+  { value: "OTHER",       label: "Other" },
+];
+
+export const MEDICINE_PRIORITY_OPTIONS = [
+  { value: "ROUTINE",   label: "Routine" },
+  { value: "HIGH",      label: "High" },
+  { value: "URGENT",    label: "Urgent" },
+  { value: "EMERGENCY", label: "Emergency" },
+];
+
+export const MEDICINE_INTAKE_OPTIONS = [
+  { value: "BEFORE_FOOD", label: "Before Food" },
+  { value: "AFTER_FOOD",  label: "After Food" },
+];
+
+export const emptySuggestedMedicine = () => ({
+  id: Date.now() + Math.random(),                  // local-only UI key
+  medicine: null,                                  // { value, label, snapshot? }
+  medicineSnapshot: { name: "", type: "", strength: "", unit: "" },
+  dosageAndFrequency: { morning: "", afternoon: "", evening: "", unit: "tab" },
+  applicableDays: [],                              // [] = throughout admission
+  instructions: "",
+  intake: MEDICINE_INTAKE_OPTIONS[1],               // After Food default
+  priority: MEDICINE_PRIORITY_OPTIONS[0],
+  category: MEDICINE_CATEGORY_OPTIONS[0],
+  rationale: "",
+});

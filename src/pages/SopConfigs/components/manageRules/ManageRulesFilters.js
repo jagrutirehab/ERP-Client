@@ -3,13 +3,17 @@ import { SEVERITIES, SEVERITY_COLOR } from "../alerts/alertConstants";
 
 const ManageRulesFilters = ({
   counts,
-  search, onSearchChange,
-  activeFilter, onActiveFilterChange,
-  severityFilter, onToggleSeverity, onClearSeverity,
+  search,
+  onSearchChange,
+  activeFilter,
+  onActiveFilterChange,
+  severityFilter,
+  onToggleSeverity,
+  onClearSeverity,
 }) => {
   const activeButtons = [
-    { k: "all",      label: `All (${counts.total})` },
-    { k: "active",   label: `Active (${counts.active})` },
+    { k: "all", label: `All (${counts.total})` },
+    { k: "active", label: `Active (${counts.active})` },
     { k: "inactive", label: `Inactive (${counts.inactive})` },
   ];
 
@@ -17,7 +21,7 @@ const ManageRulesFilters = ({
     <div className="d-flex flex-wrap gap-3 align-items-center mb-3 p-2 bg-light rounded">
       <Input
         type="text"
-        placeholder="Search by rule name..."
+        placeholder="Search by SOP name..."
         value={search}
         onChange={(e) => onSearchChange(e.target.value)}
         style={{ width: 260 }}
