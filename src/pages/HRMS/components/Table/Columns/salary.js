@@ -113,6 +113,13 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         center: true
     },
     {
+        name: <div>Approved Leaves</div>,
+        selector: row => row?.attendance?.approvedLeaves || 0,
+        wrap: true,
+        center: true,
+        minWidth: "110px"
+    },
+    {
         name: <div>Working Days Attended</div>,
         selector: row => row?.attendance?.workingDaysAttended || 0,
         wrap: true,
