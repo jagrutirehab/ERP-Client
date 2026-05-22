@@ -54,7 +54,7 @@ const AddmissionCard = ({ data, children }) => {
                 <span>Provisional Diagnosis:</span>
                 <h6 className="display-6 fs-6 mb-0 ms-2">
                   {data.provisional_diagnosis.map((diagnosis, index) => (
-                    <span key={index}>{diagnosis.diagnosis}. </span>
+                    <span key={index}>{diagnosis.code}. </span>
                   ))}
                 </h6>
               </div>
