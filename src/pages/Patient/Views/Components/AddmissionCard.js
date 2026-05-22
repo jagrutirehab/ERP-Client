@@ -49,7 +49,7 @@ const AddmissionCard = ({ data, children }) => {
                 </h6>
               </div>
             )}
-            {data.provisional_diagnosis?.length > 0 && (
+            {/* {data.provisional_diagnosis?.length > 0 && (
               <div className="d-flex align-items-center">
                 <span>Provisional Diagnosis:</span>
                 <h6 className="display-6 fs-6 mb-0 ms-2">
@@ -58,7 +58,7 @@ const AddmissionCard = ({ data, children }) => {
                   ))}
                 </h6>
               </div>
-            )}
+            )} */}
           </div>
 
           <RenderWhen isTrue={data.addmissionDate && data.dischargeDate}>
