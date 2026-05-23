@@ -106,8 +106,8 @@ const validationSchema = (mode, isEdit) =>
       mode === "NEW_JOINING"
         ? Yup.string().oneOf(["NEW_JOINING"])
         : Yup.string()
-          .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
-          .required("Status is required"),
+            .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
+            .required("Status is required"),
     state: Yup.string().required("State is required"),
     bankName: Yup.string().required("Bank name is required"),
     accountNo: Yup.string().required("Bank account number is required"),
@@ -275,13 +275,18 @@ const getInitialValues = (initialData, mode) => ({
 
   users: initialData?.users
     ? initialData.users.map((u) => ({
-      value: u._id,
-      label: `${u.name} (${u.email})`,
-    }))
+        value: u._id,
+        label: `${u.name} (${u.email})`,
+      }))
     : [],
   employmentStatus: initialData?.employmentStatus || "",
   newEmploymentType: initialData?.newEmploymentType || "",
   position: initialData?.position?._id || initialData?.position || "",
+  incrementLetterOld: initialData?.financeDetails?.incrementLetter || "",
+  incrementLetterFile: null,
+  incrementIssued: initialData?.financeDetails?.incrementIssued
+    ? format(new Date(initialData.financeDetails.incrementIssued), "yyyy-MM-dd")
+    : "",
 });
 
 const EmployeeForm = ({
@@ -317,16 +322,19 @@ const EmployeeForm = ({
     panFile: false,
     adharFile: false,
     offerLetterFile: false,
+    incrementLetterFile: false,
   });
 
   const [uploadedAt, setUploadedAt] = useState({
     panOld: null,
     adharOld: null,
     offerLetterOld: null,
+    incrementLetterOld: null,
   });
   const panFileRef = useRef(null);
   const adharFileRef = useRef(null);
   const offerLetterRef = useRef(null);
+  const incrementLetterRef = useRef(null);
 
   const centerOptions = userCenters
     ?.filter((c) => centerAccess.includes(c._id))
@@ -383,6 +391,9 @@ const EmployeeForm = ({
         let panUrl = values.panOld;
         let adharUrl = values.adharOld;
         let offerLetterUrl = values.offerLetterOld;
+        let incrementLetterUrl = values.incrementLetterOld;
+        if (incrementLetterUrl)
+          formData.append("incrementLetter", incrementLetterUrl);
 
         if (panUrl) formData.append("panUrl", panUrl);
         if (adharUrl) formData.append("adharUrl", adharUrl);
@@ -405,6 +416,8 @@ const EmployeeForm = ({
         formData.delete("adharOld");
         formData.delete("basicPercentage");
         formData.delete("HRAPercentage");
+        formData.delete("incrementLetterOld");
+        formData.delete("incrementLetterFile");
 
         if (initialData?._id) {
           formData.delete("eCode");
@@ -738,11 +751,10 @@ const EmployeeForm = ({
     ) ||
     (values.employmentType
       ? {
-        label: values.employmentType,
-        value: values.employmentType?.trim().toUpperCase(),
-      }
+          label: values.employmentType,
+          value: values.employmentType?.trim().toUpperCase(),
+        }
       : null);
-
 
   useEffect(() => {
     const fetchPositions = async () => {
@@ -754,7 +766,7 @@ const EmployeeForm = ({
           (res?.data || []).map((p) => ({
             label: p.name,
             value: p._id,
-          }))
+          })),
         );
       } catch (error) {
         if (!handleAuthError(error)) {
@@ -877,8 +889,6 @@ const EmployeeForm = ({
             {errorText("designation")}
           </Col>
 
-
-
           {/* EMPLOYEE TYPE */}
           <Col md={6}>
             <Label htmlFor="employmentType">
@@ -906,15 +916,21 @@ const EmployeeForm = ({
           {/* EMPLOYEMENT TYPE */}
           <Col md={6}>
             <Label htmlFor="newEmploymentType">
-              Employment Type 
+              Employment Type
               {/* <span className="text-danger">*</span> */}
             </Label>
             <Select
               inputId="newEmploymentType"
               placeholder="Select Employement Type"
               options={newEmploymentOptions}
-              value={newEmploymentOptions.find(opt => opt.value === values.newEmploymentType) || null}
-              onChange={(opt) => form.setFieldValue("newEmploymentType", opt ? opt.value : "")}
+              value={
+                newEmploymentOptions.find(
+                  (opt) => opt.value === values.newEmploymentType,
+                ) || null
+              }
+              onChange={(opt) =>
+                form.setFieldValue("newEmploymentType", opt ? opt.value : "")
+              }
               onBlur={() => setFieldTouched("newEmploymentType", true)}
               isClearable
             />
@@ -924,15 +940,21 @@ const EmployeeForm = ({
           {/* EMPLOYMENT STATUS */}
           <Col md={6}>
             <Label htmlFor="employmentStatus">
-              Employment Status 
+              Employment Status
               {/* <span className="text-danger">*</span> */}
             </Label>
             <Select
               inputId="employmentStatus"
               placeholder="Select Employment Status"
               options={employmentStatus}
-              value={employmentStatus.find(opt => opt.value === values.employmentStatus) || null}
-              onChange={(opt) => form.setFieldValue("employmentStatus", opt ? opt.value : "")}
+              value={
+                employmentStatus.find(
+                  (opt) => opt.value === values.employmentStatus,
+                ) || null
+              }
+              onChange={(opt) =>
+                form.setFieldValue("employmentStatus", opt ? opt.value : "")
+              }
               onBlur={() => setFieldTouched("employmentStatus", true)}
               isClearable
             />
@@ -942,21 +964,25 @@ const EmployeeForm = ({
           {/* POSITION */}
           <Col md={6}>
             <Label htmlFor="position">
-              Position 
+              Position
               {/* <span className="text-danger">*</span> */}
             </Label>
             <Select
               inputId="position"
               placeholder="Select Position"
               options={positionOptions}
-              value={positionOptions.find(opt => opt.value === values.position) || null}
-              onChange={(opt) => form.setFieldValue("position", opt ? opt.value : "")}
+              value={
+                positionOptions.find((opt) => opt.value === values.position) ||
+                null
+              }
+              onChange={(opt) =>
+                form.setFieldValue("position", opt ? opt.value : "")
+              }
               onBlur={() => setFieldTouched("position", true)}
               isClearable
             />
             {errorText("position")}
           </Col>
-
 
           {/* FIRST LOCATION */}
           <Col md={6}>
@@ -987,8 +1013,8 @@ const EmployeeForm = ({
                 value={
                   values.transferredFrom
                     ? centerOptions.find(
-                      (o) => o.value === values.transferredFrom,
-                    )
+                        (o) => o.value === values.transferredFrom,
+                      )
                     : null
                 }
                 onChange={(opt) => setFieldValue("transferredFrom", opt.value)}
@@ -1007,8 +1033,8 @@ const EmployeeForm = ({
               value={
                 values.currentLocation
                   ? centerOptions.find(
-                    (o) => o.value === values.currentLocation,
-                  )
+                      (o) => o.value === values.currentLocation,
+                    )
                   : null
               }
               onChange={(opt) => setFieldValue("currentLocation", opt.value)}
@@ -1251,7 +1277,10 @@ const EmployeeForm = ({
           {/* UAN NO */}
           <Col md={6}>
             <Label htmlFor="uanNo">
-              UAN No {values.pfApplicable === true && <span className="text-danger">*</span>}
+              UAN No{" "}
+              {values.pfApplicable === true && (
+                <span className="text-danger">*</span>
+              )}
             </Label>
             <Input
               id="uanNo"
@@ -1267,7 +1296,10 @@ const EmployeeForm = ({
           {/* PF NO */}
           <Col md={6}>
             <Label htmlFor="pfNo">
-              PF No {values.pfApplicable === true && <span className="text-danger">*</span>}
+              PF No{" "}
+              {values.pfApplicable === true && (
+                <span className="text-danger">*</span>
+              )}
             </Label>
             <Input
               id="pfNo"
@@ -1760,6 +1792,104 @@ const EmployeeForm = ({
             />
           </Col>
 
+          {mode === "MASTER" && <Col md={6}>
+            <Label htmlFor="incrementIssued">Increment Issued Date</Label>
+            <Flatpickr
+              className="form-control"
+              id="incrementIssued"
+              name="incrementIssued"
+              value={values.incrementIssued}
+              onChange={([date]) => {
+                setFieldValue(
+                  "incrementIssued",
+                  date ? format(date, "yyyy-MM-dd") : "",
+                );
+              }}
+              options={{ dateFormat: "Y-m-d" }}
+            />
+          </Col>}
+
+          {/* INCREMENT LETTER FILE */}
+          {mode === "MASTER" && (
+            <Col md={6}>
+              <Label>Increment Letter</Label>
+
+              <input
+                type="file"
+                hidden
+                ref={incrementLetterRef}
+                accept="image/*,application/pdf"
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  e.target.value = "";
+                  if (!file) return;
+                  await handleFileUpload({
+                    file,
+                    path: "EMPLOYEE_INCREMENT_LETTER",
+                    urlField: "incrementLetterOld",
+                    fileField: "incrementLetterFile",
+                  });
+                }}
+              />
+
+              {values.incrementLetterOld ? (
+                <div className="d-flex gap-2 mt-2">
+                  <Button
+                    size="sm"
+                    color="info"
+                    onClick={() =>
+                      handleFilePreview(
+                        {
+                          url: values.incrementLetterOld,
+                          originalName: "IncrementLetter",
+                        },
+                        "incrementLetterOld",
+                      )
+                    }
+                    disabled={uploading.incrementLetterFile}
+                  >
+                    {getFileActionLabel(
+                      {
+                        url: values.incrementLetterOld,
+                        originalName: "IncrementLetter",
+                      },
+                      "incrementLetterOld",
+                    )}
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => incrementLetterRef.current.click()}
+                    disabled={uploading.incrementLetterFile}
+                  >
+                    {uploading.incrementLetterFile ? (
+                      <>
+                        <Spinner size="sm" className="me-1" /> Uploading
+                      </>
+                    ) : (
+                      "Upload New File"
+                    )}
+                  </Button>
+                </div>
+              ) : (
+                <div className="d-block">
+                  <Button
+                    size="sm"
+                    onClick={() => incrementLetterRef.current.click()}
+                    disabled={uploading.incrementLetterFile}
+                  >
+                    {uploading.incrementLetterFile ? (
+                      <>
+                        <Spinner size="sm" className="me-1" /> Uploading
+                      </>
+                    ) : (
+                      "Upload File"
+                    )}
+                  </Button>
+                </div>
+              )}
+            </Col>
+          )}
+
           {/* Short WAGES */}
           <Col md={6}>
             <Label htmlFor="shortWages">Short Wages</Label>
@@ -2080,23 +2210,23 @@ const EmployeeForm = ({
           {(mode !== "NEW_JOINING" ||
             view !== "PAGE" ||
             hasCreatePermission) && (
-              <Button
-                color="primary"
-                className="text-white"
-                onClick={form.handleSubmit}
-                disabled={
-                  isSubmitting || !isValid || (isEdit && !initialData?._id)
-                }
-              >
-                {isSubmitting ? (
-                  <Spinner size="sm" />
-                ) : initialData ? (
-                  "Update Employee"
-                ) : (
-                  "Save Employee"
-                )}
-              </Button>
-            )}
+            <Button
+              color="primary"
+              className="text-white"
+              onClick={form.handleSubmit}
+              disabled={
+                isSubmitting || !isValid || (isEdit && !initialData?._id)
+              }
+            >
+              {isSubmitting ? (
+                <Spinner size="sm" />
+              ) : initialData ? (
+                "Update Employee"
+              ) : (
+                "Save Employee"
+              )}
+            </Button>
+          )}
 
           {/* <Button onClick={() => console.log(errors)}>
             test
