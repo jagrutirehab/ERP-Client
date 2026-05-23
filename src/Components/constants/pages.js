@@ -388,19 +388,19 @@ export const Pharmacy = [
     id: "pharmacymanagement",
     label: "Inventory",
     link: "/pharmacy/management",
-    icon: "bx bx-building-house",
+    icon: "bx bx-package",
   },
   {
     id: "givenmedicines",
     label: "Medicine Given",
     link: "/pharmacy/given-med",
-    icon: "bx bx-building-house",
+    icon: "bx bx-capsule",
   },
   {
     id: "nurseGivenMedicines",
     label: "Nurse Given Medicine",
     link: "/pharmacy/nurse-given-med",
-    icon: "bx bx-building-house",
+    icon: "bx bx-capsule",
   },
   {
     id: "medicineaApproval",
@@ -417,7 +417,7 @@ export const Pharmacy = [
   {
     id: "requisition",
     label: "Requisition",
-    icon: "bx bx-fingerprint",
+    icon: "bx bx-notepad",
     isAccordion: true,
     children: [
       {
@@ -451,7 +451,13 @@ export const Pharmacy = [
     label: "Bill Upload History",
     link: "/pharmacy/bill-upload-dashboard",
     icon: "bx bx-history",
-  }
+  },
+  {
+    id: "sareyaanInventory",
+    label: "Sareyaan Inventory",
+    link: "/pharmacy/sareyaan-inventory",
+    icon: "bx bx-package",
+  },
 ];
 
 export const MIReporting = [

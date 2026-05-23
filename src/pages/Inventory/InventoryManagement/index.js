@@ -952,6 +952,7 @@ const InventoryManagement = () => {
                       <TableHead noWrap>ID</TableHead>
                       <TableHead noWrap>Medicine ID</TableHead>
                       <TableHead noWrap>Bar Code</TableHead>
+                      <TableHead noWrap>Code</TableHead>
                       <TableHead noWrap>Medicine Name</TableHead>
                       {/* <TableHead noWrap>Brand Name</TableHead> */}
                       <TableHead noWrap>Generic Name</TableHead>
@@ -1053,6 +1054,7 @@ const InventoryManagement = () => {
                               )}
                             </div>
                           </TableCell>
+                          <TableCell noWrap>{display(med?.code)}</TableCell>
                           <TableCell
                             noWrap
                             className="font-weight-bold text-primary"

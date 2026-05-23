@@ -3798,6 +3798,36 @@ export const exportInventoryUpdateReport = (billImportId) => {
   );
 };
 
+// SAREYAAN INVENTORY IMPORT
+export const getSareyaanInventoryImports = (params = {}) =>
+  api.get(url.SAREYAAN_INVENTORY_IMPORT_LIST, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, { arrayFormat: "repeat", skipNulls: true }),
+  });
+
+export const downloadSareyaanImportErrors = (importId) =>
+  axios.get(
+    `${url.SAREYAAN_INVENTORY_IMPORT_ERRORS_DOWNLOAD}/${importId}/errors/download`,
+    {
+      responseType: "blob",
+      headers: { "X-No-Cookie-Token": "true" },
+    }
+  );
+
+export const initSareyaanImport = (body) =>
+  api.create(`${url.SAREYAAN_INVENTORY_IMPORT_LIST}/init`, body, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const processSareyaanImportChunk = (importId, body) =>
+  api.create(
+    `${url.SAREYAAN_INVENTORY_IMPORT_LIST}/${importId}/chunk`,
+    body,
+    { headers: { "X-No-Cookie-Token": "true" } }
+  );
+
 
 
 // Create trainings

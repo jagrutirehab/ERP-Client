@@ -464,6 +464,10 @@ export const OCR_UPDATE_BILL_ERRORS = "/pharmacy/ocr/update-bill-errors";
 export const PHARMACY_REPORT_CONSOLIDATED = "/pharmacy/reports/consolidated";
 export const PHARMACY_REPORT_INVENTORY_UPDATE = "/pharmacy/reports/inventory-update";
 
+// SAREYAAN INVENTORY IMPORT
+export const SAREYAAN_INVENTORY_IMPORT_LIST = "/pharmacy/sareyaan-import";
+export const SAREYAAN_INVENTORY_IMPORT_ERRORS_DOWNLOAD = "/pharmacy/sareyaan-import";
+
 // MI REPORTING
 export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
 export const GET_CENTER_LEADS_MOM = "/mi-reporting/center-leads-mom";

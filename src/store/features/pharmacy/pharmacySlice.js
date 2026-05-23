@@ -18,6 +18,7 @@ import {
     requestingReviewInternalTransferRequisition,
     getPharmacyConsolidated,
     getMatchingMedicines,
+    getSareyaanInventoryImports,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -217,6 +218,18 @@ export const fetchPharmacyConsolidated = createAsyncThunk(
     async (params, { rejectWithValue }) => {
         try {
             const response = await getPharmacyConsolidated(params);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const fetchSareyaanInventoryImports = createAsyncThunk(
+    "pharmacy/fetchSareyaanInventoryImports",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await getSareyaanInventoryImports(params);
             return response;
         } catch (error) {
             return rejectWithValue(error);
@@ -476,6 +489,19 @@ export const pharmacySlice = createSlice({
                 };
             })
             .addCase(fetchPharmacyConsolidated.rejected, (state) => {
+                state.loading = false;
+            });
+
+        builder
+            .addCase(fetchSareyaanInventoryImports.pending, (state) => {
+                state.loading = true;
+            })
+            .addCase(fetchSareyaanInventoryImports.fulfilled, (state, { payload }) => {
+                state.loading = false;
+                state.data = payload?.data || [];
+                state.pagination = payload?.pagination || {};
+            })
+            .addCase(fetchSareyaanInventoryImports.rejected, (state) => {
                 state.loading = false;
             });
     }

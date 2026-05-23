@@ -10,20 +10,21 @@ import axios from "axios";
 const PreviewFile = ({ title = "Preview File", file, isOpen, toggle, allowDownload = false }) => {
   const [loading, setLoading] = useState(true);
   const [excelData, setExcelData] = useState([]);
-
   const url = file?.url;
+
+  const hasExt = (regex) =>
+    regex.test(url || "") || regex.test(file?.name || "");
+
   const isPdf =
-    file?.type === "application/pdf" ||
-    url?.toLowerCase().endsWith(".pdf");
+    file?.type === "application/pdf" || hasExt(/\.pdf$/i);
 
   const isImage =
-    file?.type?.startsWith("image/") ||
-    /\.(png|jpg|jpeg|webp)$/i.test(url);
+    file?.type?.startsWith("image/") || hasExt(/\.(png|jpg|jpeg|webp)$/i);
 
   const isExcel =
     file?.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
     file?.type === "application/vnd.ms-excel" ||
-    /\.(xlsx|xls)$/i.test(file?.name || url);
+    hasExt(/\.(xlsx|xls)$/i);
 
   const isLocalExcel = isExcel && file?.fileObj;
 
