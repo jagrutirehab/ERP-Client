@@ -5,7 +5,6 @@ import { useAlertsInbox } from "../components/alerts/useAlertsInbox";
 import AlertsHeader from "../components/alerts/AlertsHeader";
 import AlertsFilters from "../components/alerts/AlertsFilters";
 import AlertsList from "../components/alerts/AlertsList";
-import AlertsPagination from "../components/alerts/AlertsPagination";
 import AlertDetailOffcanvas from "../components/alerts/AlertDetailOffcanvas";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
@@ -81,18 +80,12 @@ const Alerts = () => {
       />
 
       <AlertsList
-        grouped={inbox.grouped}
-        filteredCount={inbox.alerts.length}
-        loading={inbox.loading}
-        onSelect={openDetail}
-      />
-
-      <AlertsPagination
+        alerts={inbox.alerts}
+        total={inbox.total}
         page={inbox.page}
         pageSize={inbox.pageSize}
-        totalPages={inbox.totalPages}
-        total={inbox.total}
         loading={inbox.loading}
+        onSelect={openDetail}
         onPageChange={inbox.setPage}
         onPageSizeChange={inbox.setPageSize}
       />
