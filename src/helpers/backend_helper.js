@@ -2220,6 +2220,16 @@ export const getDocsCompliance = (data) => {
   });
 };
 
+export const getDueAmount = (data) => {
+  return api.get(url.GET_DUE_AMOUNT, {
+    params: {
+      centerIds: data?.centerAccess,
+      patientType: data?.patientType,
+      month: data?.month,
+    }
+  });
+};
+
 
 
 

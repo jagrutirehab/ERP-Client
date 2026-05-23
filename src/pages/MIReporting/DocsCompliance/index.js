@@ -37,7 +37,17 @@ const DocsCompliance = () => {
         dispatch(fetchDocsCompliance({ centerAccess }));
     }, [dispatch, centerAccess]);
 
-    const months = useMemo(() => data.map((item) => item.month).sort((a, b) => b.localeCompare(a)), [data]);
+    const months = useMemo(() => {
+        const result = [];
+        const now = new Date();
+        for (let i = 0; i < 6; i++) {
+            const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, "0");
+            result.push(`${y}-${m}`);
+        }
+        return result;
+    }, []);
 
     const formatMonth = (m) => {
         const [year, month] = m.split("-");
@@ -195,7 +205,7 @@ const getCenterCellValue = (row, metricKey) => {
                                             </th>
                                             {months.map((month) => (
                                                 <th key={month} className="text-center fw-bold px-2 py-1" style={headerStyle}>
-                                                    {month}
+                                                    {formatMonth(month)}
                                                 </th>
                                             ))}
                                         </tr>
@@ -208,7 +218,7 @@ const getCenterCellValue = (row, metricKey) => {
                                                 </td>
                                                 {months.map((month) => (
                                                     <td key={month} className="text-center px-2 py-1" style={cellStyle(idx)}>
-                                                        {getCellValue(key, month)}
+                                                        {getCellValue(key, formatMonth(month))}
                                                     </td>
                                                 ))}
                                             </tr>
@@ -261,7 +271,7 @@ const getCenterCellValue = (row, metricKey) => {
                                                 </td>
                                                 {months.map((month) => (
                                                     <td key={month} className="text-center px-2 py-1" style={cellStyle(idx)}>
-                                                        {getCenterMonthValue(name, month)}
+                                                        {getCenterMonthValue(name, formatMonth(month))}
                                                     </td>
                                                 ))}
                                             </tr>
