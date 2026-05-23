@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "react-toastify";
+import { startOfDay, endOfDay } from "date-fns";
 import {
   getAllSopAlerts,
   markSopAlertRead,
@@ -10,16 +11,44 @@ import { dateLabel } from "./alertUtils";
 const SERVER_DEBOUNCE_MS = 350;
 const DEFAULT_PAGE_SIZE = 50;
 
+const todayDefaults = () => {
+  const now = new Date();
+  return {
+    dateFrom: startOfDay(now).toISOString(),
+    dateTo: endOfDay(now).toISOString(),
+  };
+};
+
+const initialFilters = () => ({
+  patients: [],         // array of { value, label } from AsyncSelect
+  rules: [],            // array of { value, label } from AsyncSelect
+  ...todayDefaults(),
+  readState: "all",     // all | unread | read
+  phase: "all",         // all | IMMEDIATE | DELAYED
+  severity: [],         // array of LOW/MEDIUM/HIGH/CRITICAL
+});
+
+// Translates UI filter state → server query params. Option-shaped fields
+// (patients, rules) are flattened to csv of ObjectIds; severity stays as csv
+// of enum tokens.
 const buildServerParams = (filters, page, pageSize) => {
   const out = { page, pageSize };
-  for (const [k, v] of Object.entries(filters)) {
-    if (v == null) continue;
-    if (Array.isArray(v)) {
-      if (v.length) out[k] = v.join(",");
-    } else if (String(v).trim() !== "") {
-      out[k] = v;
-    }
+
+  if (filters.patients?.length) {
+    out.patients = filters.patients.map((p) => p.value).join(",");
   }
+  if (filters.rules?.length) {
+    out.rules = filters.rules.map((r) => r.value).join(",");
+  }
+  if (filters.severity?.length) {
+    out.severity = filters.severity.join(",");
+  }
+  if (filters.dateFrom) out.dateFrom = filters.dateFrom;
+  if (filters.dateTo) out.dateTo = filters.dateTo;
+  if (filters.readState && filters.readState !== "all")
+    out.readState = filters.readState;
+  if (filters.phase && filters.phase !== "all") out.phase = filters.phase;
+
   return out;
 };
 
@@ -44,15 +73,9 @@ export const useAlertsInbox = () => {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(DEFAULT_PAGE_SIZE);
 
-  // Unified server-side filter state.
-  const [serverFilters, setServerFilters] = useState({
-    search: "",
-    dateFrom: "", // ISO string
-    dateTo: "", // ISO string
-    readState: "all", // all | unread | read
-    phase: "all", // all | IMMEDIATE | DELAYED
-    severity: [], // array of LOW/MEDIUM/HIGH/CRITICAL
-  });
+  // Unified server-side filter state. Defaults: today's date range, no
+  // patient/rule restriction, all severities/phases/read-states.
+  const [serverFilters, setServerFilters] = useState(initialFilters);
 
   // Debounced copy — only THIS triggers refetch.
   const [debouncedFilters, setDebouncedFilters] = useState(serverFilters);
@@ -94,15 +117,11 @@ export const useAlertsInbox = () => {
     setServerFilters((p) => ({ ...p, [key]: value }));
   }, []);
 
+  // "Clear all" returns to the same defaults the page boots with — today's
+  // window stays on so the user is never staring at "0 alerts ever" by
+  // accident; if they want all-time they can manually clear the date range.
   const clearServerFilters = useCallback(() => {
-    setServerFilters({
-      search: "",
-      dateFrom: "",
-      dateTo: "",
-      readState: "all",
-      phase: "all",
-      severity: [],
-    });
+    setServerFilters(initialFilters());
   }, []);
 
   const toggleSeverity = useCallback((sev) => {
