@@ -3583,6 +3583,9 @@ export const changeStatus = (data) => {
 export const approveIssue = (data) => {
   return axios.patch(url.APPROVE_ISSUE, data)
 }
+export const addIssueNote = (data) => {
+  return axios.patch(url.ADD_ISSUE_NOTE, data);
+};
 export const postIssue = (formData) => {
   return axios.post(url.POST_ISSUE, formData, {
     headers: {

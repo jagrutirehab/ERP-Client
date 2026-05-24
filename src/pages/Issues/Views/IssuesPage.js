@@ -13,6 +13,7 @@ import StatusModal from "../Components/StatusModal";
 import { approveIssue, changeStatus } from "../../../helpers/backend_helper";
 import { toast } from "react-toastify";
 import ApprovalModal from "../Components/ApprovalModal";
+import NotesTimelineModal from "../Components/NotesTimelineModal";
 import Select from "react-select";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
@@ -43,6 +44,8 @@ const IssuesPage = ({ type }) => {
     const [editRowId, setEditRowId] = useState(null);
     const [editedApproval, setEditedApproval] = useState("");
     const [editedApprovalBy, setEditedApprovalBy] = useState("");
+    const [notesModalOpen, setNotesModalOpen] = useState(false);
+    const [notesIssue, setNotesIssue] = useState(null);
     const token = JSON.parse(localStorage.getItem("user"))?.token;
 
     const { hasPermission } = usePermissions(token);
@@ -247,6 +250,11 @@ const IssuesPage = ({ type }) => {
     //     status.push("rejected")
     // }
 
+    const handleViewNotes = (row) => {
+        setNotesIssue(row);
+        setNotesModalOpen(true);
+    };
+
     const handleAction = ({ issue, nextStatus }) => {
         setSelectedIssue({
             ...issue,
@@ -339,7 +347,8 @@ const IssuesPage = ({ type }) => {
                             approvers,
                             setEditRowId,
                             canEdit,
-                            handleAction
+                            handleAction,
+                            handleViewNotes
                         )}
                     data={issues}
                     loading={loading}
@@ -380,6 +389,14 @@ const IssuesPage = ({ type }) => {
                 toggle={() => setApprovalModal(false)}
                 issue={approvalIssue}
                 onSubmit={handleApprovalSubmit}
+            />
+
+            <NotesTimelineModal
+                isOpen={notesModalOpen}
+                toggle={() => setNotesModalOpen(false)}
+                issue={notesIssue}
+                onSaved={loadIssues}
+                canEdit={canEdit}
             />
 
             {/* <StatusModal

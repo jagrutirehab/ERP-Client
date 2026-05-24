@@ -20,7 +20,8 @@ export const Issues = (
   approvers,
   setEditRowId,
   canEdit,
-  handleAction
+  handleAction,
+  handleViewNotes
 ) => [
     {
       name: <div className="text-center">Issue-Id</div>,
@@ -230,23 +231,15 @@ export const Issues = (
         },
         {
           name: <div className="text-center">Notes</div>,
-          width: "160px",
-          cell: (row) => {
-            const note =
-              row?.notes?.filter((d) => d?.status === status)?.[0]?.note || "-";
-
-            return (
-              <div
-                style={{
-                  whiteSpace: "normal",
-                  wordBreak: "break-word",
-                  lineHeight: "1.4",
-                }}
-              >
-                {note}
-              </div>
-            );
-          },
+          width: "140px",
+          cell: (row) => (
+            <span
+              style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+              onClick={() => handleViewNotes?.(row)}
+            >
+              View Notes
+            </span>
+          ),
         },
       ]
       : []),
