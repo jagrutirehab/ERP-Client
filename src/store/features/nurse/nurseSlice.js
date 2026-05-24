@@ -487,6 +487,25 @@ export const NurseSlice = createSlice({
     builder.addCase(
       markTomorrowActivityMedicines.fulfilled,
       (state, { payload }) => {
+        const flattenSchedule = (schedule, status) => {
+          if (!schedule) return [];
+          return Object.entries(schedule).flatMap(([slot, meds]) =>
+            (meds || []).map((med) => ({
+              ...med,
+              slot,
+              status,
+            }))
+          );
+        };
+        const activityCompleted = !!payload?.data?.completed;
+        const hasPendingRemoval =
+          Array.isArray(payload?.data?.retrievals?.morning) &&
+          payload.data.retrievals.morning.length > 0 ||
+          Array.isArray(payload?.data?.retrievals?.evening) &&
+          payload.data.retrievals.evening.length > 0 ||
+          Array.isArray(payload?.data?.retrievals?.night) &&
+          payload.data.retrievals.night.length > 0;
+
         const patientIndex = state.data.data.findIndex(
           (patient) => patient._id === payload.data.patient
         );
@@ -499,16 +518,24 @@ export const NurseSlice = createSlice({
           state.data.data[patientIndex].missedMedsCount =
             payload?.data?.missedCount ?? 0;
           state.data.data[patientIndex].medicinesToTakeNow = [];
+          state.data.data[patientIndex].medicinesToRemove = flattenSchedule(
+            payload?.data?.retrievals,
+            "remove_pending"
+          );
           state.data.data[patientIndex] = {
             ...state.data.data[patientIndex],
-            alertCount: payload.data.allCompleted
+            alertCount: activityCompleted
               ? state.data.data[patientIndex].alertCount - 1
               : state.data.data[patientIndex].alertCount,
-            flag: payload.data.allCompleted
-              ? state.data.data[patientIndex].alertCount > 1
+            flag: hasPendingRemoval
+              ? "urgent"
+              : payload?.data?.missedCount > 0
                 ? "attention"
-                : "stable"
-              : "attention",
+                : activityCompleted
+                  ? state.data.data[patientIndex].alertCount > 1
+                    ? "attention"
+                    : "stable"
+                  : state.data.data[patientIndex].flag,
           };
         }
       }

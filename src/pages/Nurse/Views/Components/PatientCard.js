@@ -7,6 +7,10 @@ import {
   Badge,
   Button,
   Spinner,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
 } from "reactstrap";
 import { useNavigate } from "react-router-dom";
 import { medicineSchema } from "./ActivityMedicineForm";
@@ -32,34 +36,50 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
   const navigate = useNavigate();
   const [showAllMedicines, setShowAllMedicines] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [missedCount, setMissedCount] = useState(0);
+  const [submissionValues, setSubmissionValues] = useState(null);
+
+  const toggleModal = () => setModalOpen(!modalOpen);
 
   const { color, border } = statusColors[patient.flag] || {
     color: "secondary",
     border: "#d9d9d9",
   };
 
+  const medicinesToTakeNow = patient?.medicinesToTakeNow || [];
+  const medicinesToRemove = patient?.medicinesToRemove || [];
+  const hasMedicineActions =
+    medicinesToTakeNow.length > 0 || medicinesToRemove.length > 0;
+
   const medicineFormInitialValues = {
-    medicines: patient?.medicinesToTakeNow?.flatMap((med, idx) => {
-      const slots = ["morning", "evening", "night"];
-      let doses = [];
+    medicines: [
+      ...medicinesToTakeNow.flatMap((med) => {
+        const slots = ["morning", "evening", "night"];
+        const doses = (med.dosage || "")
+          .split("-")
+          .map((dose) => (dose === "1/2" ? 0.5 : parseFloat(dose)));
 
-      doses = med.dosage
-        .split("-")
-        .map((dose) => (dose === "1/2" ? 0.5 : parseFloat(dose)));
-
-      return slots.flatMap((slot, i) => {
-        if (doses[i] > 0) {
-          return [
-            {
-              medicineIndex: med.medicineIndex,
-              slot,
-              status: "missed",
-            },
-          ];
-        }
-        return [];
-      });
-    }),
+        return slots.flatMap((slot, i) => {
+          if (doses[i] > 0) {
+            return [
+              {
+                medicineIndex: med.medicineIndex,
+                slot,
+                status: "pending",
+              },
+            ];
+          }
+          return [];
+        });
+      }),
+      ...medicinesToRemove.map((med) => ({
+        historyId: med.historyId,
+        medicineIndex: med.medicineIndex,
+        slot: med.slot,
+        status: "pending",
+      })),
+    ],
   };
 
   const handleSubmit = async (values) => {
@@ -71,12 +91,59 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
           patientId: patient._id,
         })
       ).unwrap();
-      toast.success("Medicines marked successfully!");
+      toast.success("Medicine activities updated successfully!");
     } catch (error) {
       toast.error(error.message || "Failed to mark medicines. Please try again.");
-    } finally{
+    } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const handleFormSubmit = (values) => {
+    const pendingNormalMedicines = values.medicines.filter(
+      (medicine) => !medicine.historyId && medicine.status === "pending"
+    );
+    const hasCompletedNormalMedicine = values.medicines.some(
+      (medicine) => !medicine.historyId && medicine.status === "completed"
+    );
+    const pendingRetrievals = values.medicines.filter(
+      (medicine) => medicine.historyId && medicine.status !== "retrieved"
+    );
+    const selectedRetrievalActions = values.medicines.filter(
+      (medicine) => medicine.historyId && medicine.status === "retrieved"
+    );
+
+    if (pendingRetrievals.length > 0) {
+      toast.error(
+        `Please retrieve ${pendingRetrievals.length} previously marked medicine${pendingRetrievals.length > 1 ? "s" : ""} before submitting.`
+      );
+      return;
+    }
+
+    if (pendingNormalMedicines.length > 0 && hasCompletedNormalMedicine) {
+      setMissedCount(pendingNormalMedicines.length);
+      setSubmissionValues({
+        medicines: values.medicines.map((medicine) =>
+          !medicine.historyId && medicine.status === "pending"
+            ? { ...medicine, status: "missed" }
+            : medicine
+        ),
+      });
+      setModalOpen(true);
+      return;
+    }
+
+    const medicinesToSubmit = values.medicines.filter((medicine) =>
+      medicine.historyId
+        ? medicine.status === "retrieved"
+        : ["completed", "missed"].includes(medicine.status)
+    );
+
+    if (!medicinesToSubmit.length && !selectedRetrievalActions.length) {
+      return;
+    }
+
+    handleSubmit({ medicines: medicinesToSubmit });
   };
 
   return (
@@ -115,7 +182,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
           <CardText className="text-muted mb-3">Room {30}</CardText>
 
           <div className="d-flex align-items-center mb-2 text-body-secondary">
-            <span className="text-danger me-2">❤️</span>
+            <span className="text-danger me-2">❤</span>
             <span>
               <strong>HR:</strong>{" "}
               {patient?.vitals?.pulse?.trim() !== ""
@@ -134,7 +201,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
           </div>
 
           <div className="d-flex align-items-center mb-2 text-body-secondary">
-            <span className="me-2">🌡️</span>
+            <span className="me-2">🌡</span>
             <span>
               <strong>Temp:</strong>{" "}
               {patient?.vitals?.temprature
@@ -145,28 +212,40 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
             </span>
           </div>
 
-          {patient.medicinesToTakeNow &&
-            patient.medicinesToTakeNow.length > 0 ? (
+          {hasMedicineActions ? (
             <Formik
               initialValues={medicineFormInitialValues}
               validationSchema={medicineSchema}
-              onSubmit={handleSubmit}
+              onSubmit={handleFormSubmit}
               enableReinitialize
             >
               {({ values, setFieldValue }) => {
                 const getSlotIndexes = (medicineIndex) =>
                   values.medicines
                     .map((med, i) =>
-                      med.medicineIndex === medicineIndex ? i : -1
+                      med.medicineIndex === medicineIndex && !med.historyId
+                        ? i
+                        : -1
                     )
                     .filter((i) => i !== -1);
 
-                const allMedicinesCompleted = patient.medicinesToTakeNow.every(
-                  (med) =>
+                const allTakeNowCompleted =
+                  medicinesToTakeNow.length === 0 ||
+                  medicinesToTakeNow.every((med) =>
                     getSlotIndexes(med.medicineIndex).every(
                       (i) => values.medicines[i].status === "completed"
                     )
-                );
+                  );
+                const allRemoveRetrieved =
+                  medicinesToRemove.length === 0 ||
+                  values.medicines
+                    .filter((m) => m.historyId)
+                    .every((m) => m.status === "retrieved");
+                const allMedicinesCompleted =
+                  (medicinesToTakeNow.length > 0 || medicinesToRemove.length > 0) &&
+                  allTakeNowCompleted &&
+                  allRemoveRetrieved;
+
                 return (
                   <Form>
                     <div
@@ -181,7 +260,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                               MEDICINE BOX FILLING DUE
                             </small>
                           </div>
-                          {patient.medicinesToTakeNow.length > 2 && (
+                          {medicinesToTakeNow.length > 2 && (
                             <button
                               type="button"
                               onClick={(e) => {
@@ -193,59 +272,114 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                             >
                               {showAllMedicines
                                 ? "Show Less"
-                                : `+${patient.medicinesToTakeNow.length - 2
-                                } more`}
+                                : `+${medicinesToTakeNow.length - 2} more`}
                             </button>
                           )}
                         </div>
                         <div>
-                          {(showAllMedicines
-                            ? patient.medicinesToTakeNow
-                            : patient.medicinesToTakeNow.slice(0, 2)
-                          ).map((medicine, idx) => {
-                            const slotIndexes = getSlotIndexes(
-                              medicine.medicineIndex
-                            );
-                            const allSlotsCompleted = slotIndexes.every(
-                              (i) => values.medicines[i].status === "completed"
-                            );
+                          {medicinesToTakeNow.length > 0 && (
+                            <>
+                              {(showAllMedicines
+                                ? medicinesToTakeNow
+                                : medicinesToTakeNow.slice(0, 2)
+                              ).map((medicine, idx) => {
+                                const slotIndexes = getSlotIndexes(
+                                  medicine.medicineIndex
+                                );
+                                const allSlotsCompleted = slotIndexes.every(
+                                  (i) =>
+                                    values.medicines[i].status === "completed"
+                                );
 
-                            return (
-                              <div
-                                key={idx}
-                                className="d-flex align-items-center text-body-secondary mb-1"
-                              >
-                                <label
-                                  onClick={(e) => e.stopPropagation()}
-                                  className="d-flex align-items-center fw-semibold small"
-                                >
-                                  <Field
-                                    type="checkbox"
-                                    checked={allSlotsCompleted}
-                                    onChange={(e) =>
-                                      slotIndexes.forEach((i) =>
-                                        setFieldValue(
-                                          `medicines[${i}].status`,
-                                          e.target.checked
-                                            ? "completed"
-                                            : "missed"
-                                        )
-                                      )
-                                    }
-                                    className="me-2"
-                                  />
-                                  <span>
-                                    {medicine.medicineName}{" "}
-                                    <span className="fw-bold">
-                                      {medicine.dosage}
-                                    </span>
-                                  </span>
-                                </label>
-                              </div>
-                            );
-                          })}
-                          {(patient.medicinesToTakeNow.length <= 2 ||
-                            showAllMedicines) && (
+                                return (
+                                  <div
+                                    key={`mark-${idx}`}
+                                    className="d-flex align-items-center text-body-secondary mb-1"
+                                  >
+                                    <label
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="d-flex align-items-center fw-semibold small"
+                                    >
+                                      <Field
+                                        type="checkbox"
+                                        checked={allSlotsCompleted}
+                                        onChange={(e) =>
+                                          slotIndexes.forEach((i) =>
+                                            setFieldValue(
+                                              `medicines[${i}].status`,
+                                              e.target.checked
+                                                ? "completed"
+                                                : "pending"
+                                            )
+                                          )
+                                        }
+                                        className="me-2"
+                                      />
+                                      <span>
+                                        {medicine.medicineName}{" "}
+                                        <span className="fw-bold">
+                                          {medicine.dosage}
+                                        </span>
+                                      </span>
+                                    </label>
+                                  </div>
+                                );
+                              })}
+                            </>
+                          )}
+
+                          {medicinesToRemove.length > 0 && (
+                            <>
+                              <small className="d-block text-danger fw-bold mt-2 mb-1">
+                                MEDICINES TO REMOVE
+                              </small>
+                              {medicinesToRemove.map((medicine, idx) => {
+                                const actionIndex = values.medicines.findIndex(
+                                  (med) => med.historyId === medicine.historyId
+                                );
+
+                                return (
+                                  <div
+                                    key={`remove-${medicine.historyId || idx}`}
+                                    className="d-flex align-items-center text-body-secondary mb-1"
+                                  >
+                                    <label
+                                      onClick={(e) => e.stopPropagation()}
+                                      className="d-flex align-items-center fw-semibold small text-danger"
+                                    >
+                                      <Field
+                                        type="checkbox"
+                                        checked={
+                                          values.medicines[actionIndex]?.status ===
+                                          "retrieved"
+                                        }
+                                        onChange={(e) =>
+                                          setFieldValue(
+                                            `medicines[${actionIndex}].status`,
+                                            e.target.checked
+                                              ? "retrieved"
+                                              : "pending"
+                                          )
+                                        }
+                                        className="me-2"
+                                      />
+                                      <span>
+                                        {medicine.medicineName}{" "}
+                                        <span className="fw-bold">
+                                          {medicine.dosage}
+                                        </span>
+                                      </span>
+                                    </label>
+                                  </div>
+                                );
+                              })}
+                            </>
+                          )}
+
+                          {(medicinesToRemove.length > 0 ||
+                            (medicinesToTakeNow.length > 0 &&
+                              (medicinesToTakeNow.length <= 2 ||
+                                showAllMedicines))) && (
                               <>
                                 <label
                                   className="d-flex align-items-center fw-semibold small"
@@ -256,42 +390,58 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                                     type="checkbox"
                                     checked={allMedicinesCompleted}
                                     onChange={(e) => {
-                                      patient.medicinesToTakeNow.forEach((med) =>
+                                      const checked = e.target.checked;
+                                      medicinesToTakeNow.forEach((med) =>
                                         getSlotIndexes(
-                                          med.medicineIndex,
-                                          values
+                                          med.medicineIndex
                                         ).forEach((i) =>
                                           setFieldValue(
                                             `medicines[${i}].status`,
-                                            e.target.checked
+                                            checked
                                               ? "completed"
-                                              : "missed"
+                                              : "pending"
                                           )
                                         )
                                       );
+                                      values.medicines.forEach((med, i) => {
+                                        if (med.historyId) {
+                                          setFieldValue(
+                                            `medicines[${i}].status`,
+                                            checked ? "retrieved" : "pending"
+                                          );
+                                        }
+                                      });
                                     }}
                                   />{" "}
                                   Select All
                                 </label>
-                                <div className="d-flex justify-content-end mt-3">
-                                  <Button
-                                    disabled={
-                                      !values.medicines.some(
-                                        (med) => med.status === "completed"
-                                      ) || isSubmitting
-                                    }
-                                    onClick={(e) => e.stopPropagation()}
-                                    type="submit"
-                                    size="sm"
-                                  >
-                                    {isSubmitting && (
-                                      <Spinner size="sm" className="me-2" />
-                                    )}
-                                    Submit
-                                  </Button>
-                                </div>
                               </>
                             )}
+
+                          <div className="d-flex justify-content-end mt-3">
+                            <Button
+                              disabled={
+                                !values.medicines.some(
+                                  (med) =>
+                                    med.status === "completed" ||
+                                    med.status === "retrieved"
+                                ) ||
+                                values.medicines.some(
+                                  (med) =>
+                                    med.historyId && med.status !== "retrieved"
+                                ) ||
+                                isSubmitting
+                              }
+                              onClick={(e) => e.stopPropagation()}
+                              type="submit"
+                              size="sm"
+                            >
+                              {isSubmitting && (
+                                <Spinner size="sm" className="me-2" />
+                              )}
+                              Submit
+                            </Button>
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -329,10 +479,11 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
             >
               <Badge
                 pill
-                className={`fw-bold ${patient.alertCount > 0 && patient?.flag !== "stable"
-                  ? `bg-${color} bg-opacity-25 text-${color}`
-                  : "bg-secondary bg-opacity-25 text-secondary"
-                  }`}
+                className={`fw-bold ${
+                  patient.alertCount > 0 && patient?.flag !== "stable"
+                    ? `bg-${color} bg-opacity-25 text-${color}`
+                    : "bg-secondary bg-opacity-25 text-secondary"
+                }`}
                 style={{ fontSize: "0.8rem", padding: "4px 8px" }}
               >
                 {patient.alertCount} Alerts
@@ -341,6 +492,38 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
           </div>
         </CardBody>
       </Card>
+      <Modal isOpen={modalOpen} toggle={toggleModal}>
+        <ModalHeader toggle={toggleModal}>Confirm Submission</ModalHeader>
+        <ModalBody>
+          You have {missedCount} medicine{missedCount > 1 ? "s" : ""} not
+          marked as completed. Are you sure you want to submit and mark them as
+          missed?
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={toggleModal}>
+            Cancel
+          </Button>
+          <Button
+            color="primary"
+            onClick={() => {
+              if (submissionValues) {
+                handleSubmit(submissionValues);
+                toggleModal();
+              }
+            }}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Spinner size="sm" className="me-2" />
+                Submitting...
+              </>
+            ) : (
+              "Yes, Submit"
+            )}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </>
   );
 };
