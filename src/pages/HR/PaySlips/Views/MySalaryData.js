@@ -9,6 +9,7 @@ import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import { formatCurrency } from '../../../../utils/formatCurrency';
 import { capitalizeWords } from '../../../../utils/toCapitalize';
 
+// 
 const MySalaryData = () => {
     const handleAuthError = useAuthError();
     const isMobile = useMediaQuery("(max-width: 1000px)");
