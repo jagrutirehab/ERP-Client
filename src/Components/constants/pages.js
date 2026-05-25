@@ -1060,6 +1060,13 @@ export const HR = [
         icon: "bx bx-user-check", // changed
         link: "/hr/pay-slip/my",
       },
+      {
+
+        id: "my-salary-data",
+        label: "My Salary Data",
+        icon: "bx bx-user-check",
+        link: "/hr/my/salary/data"
+      }
     ],
   },
   {

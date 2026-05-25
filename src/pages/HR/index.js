@@ -62,6 +62,7 @@ import TransferManagerApprovals from "../HRMS/TransferManagerApprovals";
 import MyPaySlips from "./PaySlips/Views/MyPaySlips";
 import EmployeePaySlips from "./PaySlips/Views/EmployeePaySlips";
 import ReportingMetrices from "../HRMS/Attendance/ReportingMetrices";
+import MySalaryData from "./PaySlips/Views/MySalaryData";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -232,6 +233,8 @@ const HR = () => {
 
 
                 <Route path={`/transfer/manager/approvals`} element={<TransferManagerApprovals />} />
+
+                 <Route path={`/my/salary/data`} element={<MySalaryData />} />
 
 
 

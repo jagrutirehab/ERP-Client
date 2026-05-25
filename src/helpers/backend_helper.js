@@ -1642,6 +1642,16 @@ export const getMyPayslips = (params = {}) => {
   });
 };
 
+export const getMySalaryData = (params) => {
+  return api.get(url.GET_MY_SALARY_DATA, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}
+
+
 export const getUserActivityById = ({ id, page = 1, limit = 12, token }) => {
   return userService.get(
     `${url.USER_ACTIVITY}/?userid=${id}&page=${page}&limit=${limit}`,

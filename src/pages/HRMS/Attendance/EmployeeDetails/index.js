@@ -5,7 +5,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { fetchAttendanceSummary } from '../../../../store/features/HRMS/hrmsSlice';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { getMonthRange } from '../../../../utils/time';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'react-toastify';
 import AttendanceSummaryCard from '../../components/AttendanceSummaryCard';
 import AttendanceLogs from '../../components/AttendanceLogs';
@@ -17,11 +17,17 @@ const EmployeeAttendance = () => {
     const employeeId = searchParams.get('id');
     const centerId = searchParams.get('centerId');
     const dispatch = useDispatch();
+    const location = useLocation();
 
     const [selectedMonth, setSelectedMonth] = useState(new Date());
+    const passedStart = location.state?.startDate;
+    const passedEnd = location.state?.endDate;
+    console.log("passedStart : ", passedStart);
+    console.log("passedEnd : ", passedEnd);
+
+    const usedPassedDates = useRef(false);
     const handleAuthError = useAuthError();
     const isMobile = useMediaQuery("(max-width: 1000px)");
-    const location = useLocation();
 
 
 
@@ -34,7 +40,16 @@ const EmployeeAttendance = () => {
 
     const fetchEmployeeAttendanceSummaryByMonth = async () => {
         try {
-            const { startDate, endDate } = getMonthRange(selectedMonth);
+            let startDate, endDate;
+
+            if (!usedPassedDates.current && passedStart && passedEnd) {
+                startDate = passedStart;
+                endDate = passedEnd;
+                usedPassedDates.current = true;
+            } else {
+                ({ startDate, endDate } = getMonthRange(selectedMonth));
+            }
+
             await dispatch(fetchAttendanceSummary({
                 startDate,
                 endDate,
@@ -132,6 +147,8 @@ const EmployeeAttendance = () => {
                             employeeId={employeeId}
                             centerId={centerId}
                             type={type}
+                            passedStart={passedStart}
+                            passedEnd={passedEnd}
                         />
                     </CardBody>
                 </Card>

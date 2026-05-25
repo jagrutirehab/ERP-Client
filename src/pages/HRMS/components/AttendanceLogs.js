@@ -17,10 +17,14 @@ import RegularizeModal from "../../../Components/Common/RegularizeModal";
 import LeaveModal from "./LeaveModal";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 
-const AttendanceLogs = ({ employeeId, centerId, type }) => {
+const AttendanceLogs = ({ employeeId, centerId, type, passedStart, passedEnd }) => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
-  const [reportDate, setReportDate] = useState(getTableRange());
+  const [reportDate, setReportDate] = useState(
+    passedStart && passedEnd
+      ? { start: new Date(passedStart), end: new Date(passedEnd) }
+      : getTableRange()
+  );
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(31);
   const [viewMode, setViewMode] = useState("table");
@@ -48,7 +52,7 @@ const AttendanceLogs = ({ employeeId, centerId, type }) => {
   const hasMyRegularizationPermission = hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "WRITE") || hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "DELETE");
 
   console.log("typeinlogs", type);
-  
+
 
   const loadMyAttendanceLogs = async () => {
     try {
@@ -115,7 +119,7 @@ const AttendanceLogs = ({ employeeId, centerId, type }) => {
     // canShowActionButton,
     hasMyRegularizationPermission,
     isSelf: !employeeId,
-    type : type
+    type: type
   });
 
   const reloadAttendance = () => {
