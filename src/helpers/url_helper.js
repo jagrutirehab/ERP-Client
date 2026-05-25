@@ -563,6 +563,8 @@ export const CHANGE_SALARY = "/hr/salary/change";
 
 export const GET_EMPLOYEE_PAYSLIPS = "/hr/payroll/employee-payslips";
 export const GET_MY_PAYSLIPS = "/hr/payroll/my-payslips";
+export const GET_MY_SALARY_DATA = "/hr/payroll/my-salary-data";
+
 
 
 // HRMS
@@ -708,7 +710,7 @@ export const GET_TRAINING_HISTORY = "/trainings/history"
 export const CREATE_TRAINER_RECORD = '/trainings/create/trainers'
 export const GET_USER_BY_ROLE = "/trainings/get/users/by/role"
 export const GET_TRAINERS = "/trainings/get/trainers"
-export const GET_TRAINER_BY_ID="/trainings/get/trainer"
+export const GET_TRAINER_BY_ID = "/trainings/get/trainer"
 export const EDIT_TRAINER = "/trainings/edit"
 export const DELETE_RECORD = "/trainings/delete"
 export const GET_DISCTINCT_ROLES = "/trainings/get/distinct/roles"
