@@ -192,6 +192,34 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             minWidth: "160px"
         },
         {
+            name: <div>Last Working Date</div>,
+            selector: row => {
+                if (!row?.exitDate) return "-";
+
+                const date = new Date(row.exitDate);
+
+                return date.toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                });
+            },
+            wrap: true,
+            minWidth: "250px"
+        },
+        {
+            name: <div>Email ID</div>,
+            selector: row => row?.email || "-",
+            wrap: true,
+            minWidth: "250px"
+        },
+        {
+            name: <div>Official Email ID</div>,
+            selector: row => row?.officialEmail || "-",
+            wrap: true,
+            minWidth: "250px"
+        },
+        {
             name: <div>Department</div>,
             selector: row => capitalizeWords(row?.department || "-"),
             wrap: true,
@@ -220,18 +248,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             wrap: true,
             minWidth: "140px"
         },
-        {
-            name: <div>Official Email ID</div>,
-            selector: row => row?.officialEmail || "-",
-            wrap: true,
-            minWidth: "250px"
-        },
-        {
-            name: <div>Email ID</div>,
-            selector: row => row?.email || "-",
-            wrap: true,
-            minWidth: "250px"
-        },
+
         ...(hasPermission("HR", "EXIT_EMPLOYEE_IT", "WRITE")
             ? [
                 {
