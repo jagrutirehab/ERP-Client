@@ -58,7 +58,10 @@ const AlertsFilters = ({
         label: `${p.name}${p.id?.value ? ` (UID ${p.id.value})` : p.patientId ? ` (${p.patientId})` : ""}`,
       }));
     } catch (err) {
-      console.warn("[AlertsFilters] patient search failed:", err?.message || err);
+      console.warn(
+        "[AlertsFilters] patient search failed:",
+        err?.message || err,
+      );
       return [];
     }
   };
@@ -72,9 +75,7 @@ const AlertsFilters = ({
       const list = res?.data || res?.payload || [];
       return list.map((r) => ({
         value: r._id,
-        label: r.protocol
-          ? `${r.ruleName} — ${r.protocol}`
-          : r.ruleName,
+        label: r.protocol ? `${r.ruleName} — ${r.protocol}` : r.ruleName,
       }));
     } catch (err) {
       console.warn("[AlertsFilters] rule search failed:", err?.message || err);
@@ -115,7 +116,7 @@ const AlertsFilters = ({
             loadOptions={loadPatientOptions}
             value={serverFilters.patients || []}
             onChange={(v) => onServerFilterChange("patients", v || [])}
-            placeholder="Type patient name..."
+            placeholder="Type patient name or uid..."
             noOptionsMessage={({ inputValue }) =>
               inputValue ? "No patients found" : "Type to search..."
             }
