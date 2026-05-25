@@ -6,6 +6,14 @@ import { timeAgo } from "./alertUtils";
 // Tabular alerts view. One row per SOPAlert. Click a row → opens the
 // offcanvas (pre-existing behaviour). Pagination is server-driven via the
 // `useAlertsInbox` hook.
+//
+// `react-data-table-component` v7 fires onRowClicked only when the click
+// target has the EXACT attribute data-tag="allowRowEvents" — it does not
+// walk up the DOM. So every element inside a custom cell renderer that a
+// user might click on (badges, inner divs, <small>, icons) must carry the
+// attribute, or clicks on the visible text are silently dropped.
+const RC = { "data-tag": "allowRowEvents" };
+
 const AlertsList = ({
   alerts,
   total,
@@ -35,7 +43,11 @@ const AlertsList = ({
       name: "Severity",
       width: "115px",
       cell: (row) => (
-        <Badge color={SEVERITY_COLOR[row.severity] || "secondary"} pill>
+        <Badge
+          {...RC}
+          color={SEVERITY_COLOR[row.severity] || "secondary"}
+          pill
+        >
           {row.severity}
         </Badge>
       ),
@@ -47,11 +59,12 @@ const AlertsList = ({
         const phase = PHASE_META[row.phase] || PHASE_META.IMMEDIATE;
         return (
           <Badge
+            {...RC}
             color={phase.color}
             pill
             className="d-inline-flex align-items-center"
           >
-            <i className={`${phase.icon} me-1`} />
+            <i {...RC} className={`${phase.icon} me-1`} />
             {phase.label}
           </Badge>
         );
@@ -61,12 +74,14 @@ const AlertsList = ({
       name: "Patient",
       grow: 1.2,
       cell: (row) => (
-        <div>
-          <div className={row.isRead ? "" : "fw-semibold"}>
+        <div {...RC}>
+          <div {...RC} className={row.isRead ? "" : "fw-semibold"}>
             {row.patient?.name || "Unknown"}
           </div>
           {row.patient?.uid && (
-            <small className="text-muted">UID {row.patient.uid}</small>
+            <small {...RC} className="text-muted">
+              UID {row.patient.uid}
+            </small>
           )}
         </div>
       ),
@@ -75,8 +90,8 @@ const AlertsList = ({
       name: "SOP",
       grow: 1.5,
       cell: (row) => (
-        <div>
-          <div className={row.isRead ? "text-muted" : "fw-semibold"}>
+        <div {...RC}>
+          <div {...RC} className={row.isRead ? "text-muted" : "fw-semibold"}>
             {row.rule?.ruleName || "(deleted rule)"}
           </div>
         </div>
@@ -86,9 +101,11 @@ const AlertsList = ({
       name: "Block",
       grow: 1.5,
       cell: (row) => (
-        <div>
+        <div {...RC}>
           {row.blockName && (
-            <small className="text-muted">{row.blockName}</small>
+            <small {...RC} className="text-muted">
+              {row.blockName}
+            </small>
           )}
         </div>
       ),
@@ -98,6 +115,7 @@ const AlertsList = ({
       grow: 2,
       cell: (row) => (
         <div
+          {...RC}
           className={row.isRead ? "text-muted" : ""}
           style={{
             whiteSpace: "normal",
@@ -114,7 +132,9 @@ const AlertsList = ({
       name: "When",
       width: "120px",
       cell: (row) => (
-        <small className="text-muted">{timeAgo(row.createdAt)}</small>
+        <small {...RC} className="text-muted">
+          {timeAgo(row.createdAt)}
+        </small>
       ),
     },
     {
@@ -122,7 +142,7 @@ const AlertsList = ({
       width: "80px",
       cell: (row) =>
         !row.isRead ? (
-          <Badge color="danger" pill>
+          <Badge {...RC} color="danger" pill>
             NEW
           </Badge>
         ) : null,
