@@ -496,6 +496,7 @@ export const GET_COUNSELLING_RECORDING = "/mi-reporting/get-counselling-recordin
 export const GET_DAILY_DASHBOARD = "/mi-reporting/daily-dashboard";
 export const GET_DOCS_COMPLIANCE = "/mi-reporting/docs-compliance";
 export const GET_DUE_AMOUNT = "/mi-reporting/get-due-amount";
+export const GET_MI_ATTENDANCE = "/mi-reporting/get-attendance";
 
 
 

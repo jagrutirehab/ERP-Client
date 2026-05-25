@@ -2230,6 +2230,14 @@ export const getDueAmount = (data) => {
   });
 };
 
+export const getMIAttendance = (data) => {
+  return api.get(url.GET_MI_ATTENDANCE, {
+    params: {
+      centerIds: data?.centerAccess,
+    }
+  });
+};
+
 
 
 

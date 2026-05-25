@@ -72,6 +72,7 @@ const Sidebar = () => {
     { id: "daily-dashboard", label: "Daily Dashboard", link: "/mi-reporting/daily-dashboard", icon: "bx bx-tachometer" },
     { id: "docs-compliance", label: "Docs Compliance", link: "/mi-reporting/docs-compliance", icon: "bx bx-task" },
     { id: "due-amount", label: "Due Amount", link: "/mi-reporting/due-amount", icon: "bx bx-wallet-alt" },
+    { id: "attendance", label: "Attendance", link: "/mi-reporting/attendance", icon: "bx bx-calendar-check" },
   ];
 
   const sidebarStyle = isMobile
