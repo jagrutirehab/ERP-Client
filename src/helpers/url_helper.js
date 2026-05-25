@@ -660,6 +660,7 @@ export const UPDATE_HR_ISSUE_REQUEST = "/issues/hr/issue/update"
 export const UPDATE_FINANCE_ISSUE_REQUEST = "/issues/finance/update/status"
 export const GET_FINANCE_ISSUES = "/issues/finance/issues/tax/compliance"
 export const GET_PAYSLIPS_ISSUES_REQUESTS = "/issues/get/finance/payslip/requests"
+export const ADD_ISSUE_NOTE = "/issues/note/add"
 
 // recordings
 export const GET_RECORDINGS = "/ozonetel/get";

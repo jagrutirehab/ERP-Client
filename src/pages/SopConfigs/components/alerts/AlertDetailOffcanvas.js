@@ -156,14 +156,6 @@ const AlertDetailOffcanvas = ({ isOpen, onClose, alert }) => {
                   </div>
                 </div>
               )}
-
-              {/* Footer */}
-              <div className="text-muted mt-4 pt-3 border-top">
-                <small className="d-block">
-                  <strong>Alert ID:</strong>{" "}
-                  <code className="user-select-all">{alert._id}</code>
-                </small>
-              </div>
             </div>
           </>
         ) : (

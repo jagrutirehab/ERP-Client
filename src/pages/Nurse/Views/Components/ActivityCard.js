@@ -7,6 +7,7 @@ import {
   ChevronUp,
   Calendar,
   XCircle,
+  Undo2,
 } from "lucide-react";
 import moment from "moment";
 import { Badge, Collapse } from "reactstrap";
@@ -69,6 +70,8 @@ const ActivityCard = ({ medicines, status }) => {
                         {
                           (status === "completed" ? (
                             <CheckCheck size={16} className="text-success" />
+                          ) : status === "retrieved" ? (
+                            <Undo2 size={16} className="text-warning" />
                           ) : (
                             <XCircle size={16} className="text-danger" />
                           ))
@@ -106,7 +109,15 @@ const ActivityCard = ({ medicines, status }) => {
                               "MMMM Do YYYY, h:mm:ss a"
                             )}
                           </span>)
-                         } 
+                         }
+                        {status === "retrieved" &&
+                         ( <span>
+                            <strong>Retrieved at:</strong>{" "}
+                            {moment(med?.updatedAt).format(
+                              "MMMM Do YYYY, h:mm:ss a"
+                            )}
+                          </span>)
+                        }
                       </small>
                     </div>
 
@@ -124,6 +135,20 @@ const ActivityCard = ({ medicines, status }) => {
                         Marked
                       </Badge>
                     )}
+                    {status === "retrieved" && (
+                      <Badge
+                        color="warning"
+                        pill
+                        className="ms-3 d-flex align-items-center gap-1"
+                        style={{
+                          padding: "0.5rem 0.75rem",
+                          fontSize: "0.75rem",
+                        }}
+                      >
+                        <Undo2 size={14} />
+                        Retrieved
+                      </Badge>
+                    )}
                   </div>
                 </div>
               ))}
@@ -136,17 +161,27 @@ const ActivityCard = ({ medicines, status }) => {
     <div className="text-center py-4">
       {status === "completed" ? (
         <Clock size={48} className="text-muted mb-2 opacity-75" />
+      ) : status === "retrieved" ? (
+        <Undo2 size={48} className="text-warning mb-2 opacity-75" />
       ) : (
         <CheckCircle size={48} className="text-success mb-2 opacity-75" />
       )}
 
       <h6 className="text-muted">
-        No {status === "completed" ? "Completed" : "Missed"} medications
+        No{" "}
+        {status === "completed"
+          ? "Completed"
+          : status === "retrieved"
+            ? "Retrieved"
+            : "Missed"}{" "}
+        medications
       </h6>
       <p className="text-muted small">
         {status === "completed"
           ? "Medications will appear here once they are marked"
-          : "All medications have been administered"}
+          : status === "retrieved"
+            ? "Retrieved medications will appear here once medicines are removed from the box"
+            : "All medications have been administered"}
       </p>
     </div>
   );
