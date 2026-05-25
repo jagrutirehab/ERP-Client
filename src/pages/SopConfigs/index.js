@@ -6,6 +6,7 @@ import SOPsidebar from "./Sidebar";
 import SaveRule from "./pages/SaveRule";
 import ManageRules from "./pages/ManageRules";
 import Alerts from "./pages/Alerts";
+import SopGuide from "./pages/SopGuide";
 
 const SOPindex = () => {
     const navigate = useNavigate();
@@ -52,6 +53,7 @@ const SOPindex = () => {
                                             <Route path="save/:id" element={<SaveRule />} />
                                             <Route path="manage" element={<ManageRules />} />
                                             <Route path="alerts" element={<Alerts />} />
+                                            <Route path="guide" element={<SopGuide />} />
                                         </Routes>
                                     </div>
                                 </Container>
