@@ -43,18 +43,24 @@ const Alerts = () => {
   const [selectedId, setSelectedId] = useState(null);
   const selected = selectedId ? inbox.getAlertById(selectedId) : null;
 
-  const openDetail = (alert) => {
+  // react-data-table-component passes (row, event). Stopping propagation
+  // prevents the click from bubbling past the row while the Offcanvas
+  // backdrop is mounting. markRead is deferred so it doesn't mutate the
+  // alerts array in the same commit that opens the offcanvas — otherwise
+  // DataTable re-renders mid-click and the first click is lost.
+  const openDetail = (alert, e) => {
+    if (e && typeof e.stopPropagation === "function") e.stopPropagation();
     setSelectedId(alert._id);
     setDetailOpen(true);
-    if (!alert.isRead) inbox.markRead(alert._id);
+    if (!alert.isRead) {
+      setTimeout(() => inbox.markRead(alert._id), 0);
+    }
   };
 
   const closeDetail = () => {
     setDetailOpen(false);
     setSelectedId(null);
   };
-
-  console.log({ inbox });
 
   return (
     <CardBody
