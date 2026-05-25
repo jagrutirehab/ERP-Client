@@ -171,11 +171,11 @@ const validationSchema = (mode, isEdit) =>
       then: (schema) => schema.required("UAN No is required"),
       otherwise: (schema) => schema.notRequired(),
     }),
-    pfNo: Yup.string().when("pfApplicable", {
-      is: true,
-      then: (schema) => schema.required("PF No is required"),
-      otherwise: (schema) => schema.notRequired(),
-    }),
+    // pfNo: Yup.string().when("pfApplicable", {
+    //   is: true,
+    //   then: (schema) => schema.required("PF No is required"),
+    //   otherwise: (schema) => schema.notRequired(),
+    // }),
     // newEmploymentType: Yup.string().required("Employment type is required"),
     // employmentStatus: Yup.string().required("Employment status is required"),
     // position: Yup.string()
@@ -1295,21 +1295,16 @@ const EmployeeForm = ({
 
           {/* PF NO */}
           <Col md={6}>
-            <Label htmlFor="pfNo">
-              PF No{" "}
-              {values.pfApplicable === true && (
-                <span className="text-danger">*</span>
-              )}
-            </Label>
+            <Label htmlFor="pfNo">PF No</Label>
             <Input
               id="pfNo"
               name="pfNo"
               value={values.pfNo}
               onChange={handleChange}
-              invalid={touched.pfNo && !!errors.pfNo}
+              // invalid={touched.pfNo && !!errors.pfNo}
               onBlur={() => setFieldTouched("pfNo", true)}
             />
-            {errorText("pfNo")}
+            {/* {errorText("pfNo")} */}
           </Col>
 
           {/* ESIC */}
