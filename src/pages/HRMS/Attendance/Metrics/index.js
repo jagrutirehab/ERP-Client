@@ -199,7 +199,12 @@ const AttendanceMetrics = () => {
     }
 
     const handleNavigate = (employeeId, centerId) => {
-        navigate(`/hr/attendance/employee?id=${employeeId}&centerId=${centerId}`)
+        navigate(`/hr/attendance/employee?id=${employeeId}&centerId=${centerId}`, {
+            state: {
+                startDate: reportDate.start,
+                endDate: reportDate.end
+            }
+        })
     }
 
     const columns = attendanceMetricsColumns({

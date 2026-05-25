@@ -464,6 +464,10 @@ export const OCR_UPDATE_BILL_ERRORS = "/pharmacy/ocr/update-bill-errors";
 export const PHARMACY_REPORT_CONSOLIDATED = "/pharmacy/reports/consolidated";
 export const PHARMACY_REPORT_INVENTORY_UPDATE = "/pharmacy/reports/inventory-update";
 
+// SAREYAAN INVENTORY IMPORT
+export const SAREYAAN_INVENTORY_IMPORT_LIST = "/pharmacy/sareyaan-import";
+export const SAREYAAN_INVENTORY_IMPORT_ERRORS_DOWNLOAD = "/pharmacy/sareyaan-import";
+
 // MI REPORTING
 export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
 export const GET_CENTER_LEADS_MOM = "/mi-reporting/center-leads-mom";
@@ -491,6 +495,8 @@ export const GET_COUNSLLING_SESSIONS = "/mi-reporting/get-counselling-sessions";
 export const GET_COUNSELLING_RECORDING = "/mi-reporting/get-counselling-recording";
 export const GET_DAILY_DASHBOARD = "/mi-reporting/daily-dashboard";
 export const GET_DOCS_COMPLIANCE = "/mi-reporting/docs-compliance";
+export const GET_DUE_AMOUNT = "/mi-reporting/get-due-amount";
+export const GET_MI_ATTENDANCE = "/mi-reporting/get-attendance";
 
 
 
@@ -557,6 +563,8 @@ export const CHANGE_SALARY = "/hr/salary/change";
 
 export const GET_EMPLOYEE_PAYSLIPS = "/hr/payroll/employee-payslips";
 export const GET_MY_PAYSLIPS = "/hr/payroll/my-payslips";
+export const GET_MY_SALARY_DATA = "/hr/payroll/my-salary-data";
+
 
 
 // HRMS
@@ -654,6 +662,7 @@ export const UPDATE_HR_ISSUE_REQUEST = "/issues/hr/issue/update"
 export const UPDATE_FINANCE_ISSUE_REQUEST = "/issues/finance/update/status"
 export const GET_FINANCE_ISSUES = "/issues/finance/issues/tax/compliance"
 export const GET_PAYSLIPS_ISSUES_REQUESTS = "/issues/get/finance/payslip/requests"
+export const ADD_ISSUE_NOTE = "/issues/note/add"
 
 // recordings
 export const GET_RECORDINGS = "/ozonetel/get";
@@ -701,7 +710,7 @@ export const GET_TRAINING_HISTORY = "/trainings/history"
 export const CREATE_TRAINER_RECORD = '/trainings/create/trainers'
 export const GET_USER_BY_ROLE = "/trainings/get/users/by/role"
 export const GET_TRAINERS = "/trainings/get/trainers"
-export const GET_TRAINER_BY_ID="/trainings/get/trainer"
+export const GET_TRAINER_BY_ID = "/trainings/get/trainer"
 export const EDIT_TRAINER = "/trainings/edit"
 export const DELETE_RECORD = "/trainings/delete"
 export const GET_DISCTINCT_ROLES = "/trainings/get/distinct/roles"

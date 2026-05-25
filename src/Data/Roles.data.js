@@ -175,6 +175,7 @@ export const permissionList = [
       },
       { name: "INVENTORY_STOCK_SUMMARY", label: "Inventory Stock Summary" },
       { name: "BILL_UPLOAD_DASHBOARD", label: "Bill Upload Dashboard" },
+      { name: "SAREYAAN_INVENTORY", label: "Sareyaan Inventory" },
     ],
   },
   {
@@ -351,6 +352,7 @@ export const permissionList = [
 
       { name: "EMPLOYEE_PAYSLIPS", label: "Employee Pay Slips" },
       { name: "MY_PAYSLIPS", label: "My Pay Slips" },
+      { name: "MY_SALARY_DATA", label: "My Salary Data" },
       // HR DASHBOARD
       { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
       { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },

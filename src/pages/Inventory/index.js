@@ -18,6 +18,7 @@ import StockSummary from "./StockSummary";
 import OCRBillImport from "./OCRBillImport/OCRBillImport";
 import BillUploadDashboard from "./BillUploadDashboard/BillUploadDashboard";
 import { usePermissions } from "../../Components/Hooks/useRoles";
+import SareyaanInventory from "./SareyaanInventory";
 
 const Pharmacy = () => {
   const navigate = useNavigate();
@@ -70,6 +71,7 @@ const Pharmacy = () => {
                 <Route path={`/stock-summary`} element={<StockSummary />} />
                 <Route path={`/ocr-bill-import`} element={<OCRBillImport />} />
                 <Route path={`/bill-upload-dashboard`} element={<BillUploadDashboard />} />
+                <Route path={`/sareyaan-inventory`} element={<SareyaanInventory />} />
               </Routes>
 
 

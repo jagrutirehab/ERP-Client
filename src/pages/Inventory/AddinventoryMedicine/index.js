@@ -113,6 +113,7 @@ const AddinventoryMedicine = ({
   } = useForm({
     defaultValues: {
       medicineId: defaultValues.medicineId || "",
+      code: defaultValues.code || "",
       medicineName: defaultValues.medicineName || "",
       brandName: defaultValues.medicineId?.brandName || defaultValues.brandName || "",
       genericName: defaultValues.medicineId?.genericName || defaultValues.genericName || "",
@@ -583,6 +584,7 @@ const AddinventoryMedicine = ({
           <div style={sharedStyles.section}>
             <p className="fw-semibold text-muted fs-12 text-uppercase mb-3" style={sharedStyles.sectionHeading}>Inventory Details</p>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+              <InputField label="Code" name="code" register={register} errors={errors} />
               <InputField label="Unit Type" name="unitType" register={register} errors={errors} disabled={true} />
               {/* <InputField label="Cost Price" name="costprice" type="number" step="any" validation={{ required: "Cost Price is required", min: { value: 0, message: "Must be non-negative" } }} />
               <InputField label="Value" name="value" type="number" step="any" validation={{ required: "Value is required", min: { value: 0, message: "Must be non-negative" } }} /> */}

@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import {
   Badge,
   Button,
@@ -8,8 +9,28 @@ import {
 } from "reactstrap";
 import { SEVERITY_COLOR, SEVERITY_HEX } from "../alerts/alertConstants";
 import { fmtDate } from "./ruleUtils";
+import { getICDCodes } from "../../../../helpers/backend_helper";
 
 const SEV_RANK = { LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 };
+
+// Fields that store ICD ObjectIds — mirrors the set in ConditionRow.js so the
+// preview renders human-readable ICD labels instead of opaque _ids.
+const ICD_FIELDS = new Set([
+  "provisional_diagnosis",
+  "doctorSignature.provisionaldiagnosis",
+]);
+
+const renderConditionValues = (c, icdMap) => {
+  if (!Array.isArray(c.value) || c.value.length === 0) return null;
+  if (ICD_FIELDS.has(c.field)) {
+    return c.value.map((v, i) => (
+      <Badge key={i} color="info" pill className="me-1 mb-1">
+        {icdMap.get(String(v)) || String(v)}
+      </Badge>
+    ));
+  }
+  return <code>{JSON.stringify(c.value)}</code>;
+};
 
 const sectionLabel = (icon, text) => (
   <small
@@ -36,6 +57,41 @@ const RulePreviewOffcanvas = ({
   onDelete,
 }) => {
   const worst = rule ? deriveWorstSeverity(rule) : null;
+
+  // ICD map (id → "text - code"). Lazily fetched the first time the offcanvas
+  // opens with a rule that has any ICD-referenced condition. The fetch is a
+  // single one-shot call; the map persists for the component's lifetime so
+  // re-opening on different rules doesn't refetch.
+  const [icdMap, setIcdMap] = useState(new Map());
+  const [icdLoaded, setIcdLoaded] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !rule || icdLoaded) return;
+    // Cheap check — only fetch if any condition (criteria or block) references
+    // an ICD field. Otherwise the map stays empty and renderConditionValues
+    // falls back to the raw JSON path.
+    const usesIcd =
+      rule.satisfyingCriteria?.conditions?.some((c) => ICD_FIELDS.has(c.field)) ||
+      rule.targetBlocks?.some((b) =>
+        b.conditions?.some((c) => ICD_FIELDS.has(c.field)),
+      );
+    if (!usesIcd) return;
+
+    (async () => {
+      try {
+        const res = await getICDCodes();
+        const list = Array.isArray(res) ? res : res?.data || [];
+        const map = new Map(
+          list.map((i) => [String(i._id), `${i.text} - ${i.code}`]),
+        );
+        setIcdMap(map);
+      } catch (err) {
+        console.warn("[RulePreviewOffcanvas] ICD fetch failed:", err?.message || err);
+      } finally {
+        setIcdLoaded(true);
+      }
+    })();
+  }, [isOpen, rule, icdLoaded]);
 
   return (
     <Offcanvas
@@ -111,11 +167,7 @@ const RulePreviewOffcanvas = ({
                         {c.model}.{c.field}
                       </code>{" "}
                       {c.operator}{" "}
-                      {c.value?.length ? (
-                        <code>{JSON.stringify(c.value)}</code>
-                      ) : (
-                        ""
-                      )}
+                      {renderConditionValues(c, icdMap)}
                     </div>
                   ))}
                 </div>
@@ -172,11 +224,7 @@ const RulePreviewOffcanvas = ({
                             {c.model}.{c.field}
                           </code>{" "}
                           {c.operator}{" "}
-                          {c.value?.length ? (
-                            <code>{JSON.stringify(c.value)}</code>
-                          ) : (
-                            ""
-                          )}
+                          {renderConditionValues(c, icdMap)}
                           {c.deadlineHours ? (
                             <span className="text-muted ms-1">
                               · {c.deadlineHours}h

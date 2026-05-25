@@ -270,7 +270,7 @@
                                                 }}
                                             >
                                                 {patient?.dod_data?.[key] ?? 0}
-                                            </td>
+                                             </td>
                                         ))}
                                     </tr>
                                 ))}

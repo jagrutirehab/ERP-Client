@@ -14,6 +14,7 @@ import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import MyPaySlips from "./Views/MyPaySlips";
 import EmployeePaySlips from "./Views/EmployeePaySlips";
+import MySalaryData from "./Views/MySalaryData";
 
 const tabStyles = {
   base: {
@@ -146,6 +147,22 @@ const Payslips = () => {
               </NavLink>
             </NavItem>
           )}
+
+          <NavItem>
+            <NavLink
+              tag="button"
+              type="button"
+              className={classnames({ active: activeTab === "MY_SALARY_DATA" })}
+              onClick={(e) => toggle("MY_SALARY_DATA", e)}
+              style={{
+                ...tabStyles.base,
+                ...(activeTab === "MY_SALARY_DATA" ? tabStyles.active : {}),
+              }}
+            >
+              My Salary Data
+            </NavLink>
+          </NavItem>
+
         </Nav>
 
         <TabContent activeTab={activeTab}>
@@ -158,6 +175,11 @@ const Payslips = () => {
               <EmployeePaySlips activeTab={activeTab} />
             </TabPane>
           )}
+
+          <TabPane tabId="MY_SALARY_DATA">
+            <MySalaryData activeTab={activeTab} />
+          </TabPane>
+
         </TabContent>
       </div>
     </CardBody>

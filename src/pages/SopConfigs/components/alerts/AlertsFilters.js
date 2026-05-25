@@ -1,8 +1,14 @@
 import Flatpickr from "react-flatpickr";
+import AsyncSelect from "react-select/async";
 import "flatpickr/dist/themes/material_blue.css";
-import { Button, ButtonGroup, Input, Row, Col } from "reactstrap";
+import { Button, ButtonGroup, Row, Col } from "reactstrap";
+import { useSelector } from "react-redux";
 import { SEVERITIES, SEVERITY_COLOR } from "./alertConstants";
 import { endOfDay, startOfDay } from "date-fns";
+import {
+  getSearchPatients,
+  listSopRules,
+} from "../../../../helpers/backend_helper";
 
 const READ_STATES = [
   { k: "all", label: "All" },
@@ -24,29 +30,67 @@ const AlertsFilters = ({
   onToggleSeverity,
   onClearSeverity,
 }) => {
+  const centerAccess = useSelector((s) => s.User?.centerAccess);
+
   const hasAnyServerFilter =
-    !!serverFilters.search ||
+    serverFilters.patients?.length > 0 ||
+    serverFilters.rules?.length > 0 ||
     !!serverFilters.dateFrom ||
     !!serverFilters.dateTo ||
     serverFilters.readState !== "all" ||
     serverFilters.phase !== "all" ||
     serverFilters.severity?.length > 0;
 
+  // ── Loaders for the AsyncSelect dropdowns ──
+
+  // Patients: searches by name; respects center access scope. Empty input
+  // returns no options (mirrors the existing patient search pattern).
+  const loadPatientOptions = async (input) => {
+    if (!input || input.trim().length < 1) return [];
+    try {
+      const res = await getSearchPatients({
+        name: input,
+        centerAccess: centerAccess?.map?.((c) => c._id) || centerAccess,
+      });
+      const list = res?.data || res?.payload || res || [];
+      return list.map((p) => ({
+        value: p._id,
+        label: `${p.name}${p.id?.value ? ` (UID ${p.id.value})` : p.patientId ? ` (${p.patientId})` : ""}`,
+      }));
+    } catch (err) {
+      console.warn(
+        "[AlertsFilters] patient search failed:",
+        err?.message || err,
+      );
+      return [];
+    }
+  };
+
+  // SOP rules: searches by ruleName + protocol via the existing listSopRules
+  // endpoint (regex match on ruleName). Empty input returns first page so the
+  // user gets a starter set on first focus.
+  const loadRuleOptions = async (input) => {
+    try {
+      const res = await listSopRules({ search: input || undefined });
+      const list = res?.data || res?.payload || [];
+      return list.map((r) => ({
+        value: r._id,
+        label: r.protocol ? `${r.ruleName} — ${r.protocol}` : r.ruleName,
+      }));
+    } catch (err) {
+      console.warn("[AlertsFilters] rule search failed:", err?.message || err);
+      return [];
+    }
+  };
+
   const handleDateChange = (dates) => {
     const dateFrom = dates?.[0];
     const dateTo = dates?.[1];
-    if (!dateFrom || !dateTo) {
-      return;
-    }
-
-    const start = startOfDay(dateFrom);
-    const end = endOfDay(dateTo);
-
-    onServerFilterChange("dateFrom", start);
-    onServerFilterChange("dateTo", end);
+    if (!dateFrom || !dateTo) return;
+    onServerFilterChange("dateFrom", startOfDay(dateFrom).toISOString());
+    onServerFilterChange("dateTo", endOfDay(dateTo).toISOString());
   };
 
-  // Flatpickr expects an array of Date objects (or empty)
   const flatpickrValue = serverFilters.dateFrom
     ? [
         new Date(serverFilters.dateFrom),
@@ -56,25 +100,44 @@ const AlertsFilters = ({
       ]
     : [];
 
-  console.log(flatpickrValue);
-
   return (
     <div className="mb-3 p-2 bg-light rounded">
-      {/* Row 1 — Search + Date range */}
+      {/* Row 1 — Patient + SOP Rule multi-selects */}
       <Row className="g-2 mb-2 align-items-end">
-        <Col md={7}>
+        <Col md={5}>
           <small className="text-muted d-block mb-1">
-            Search (patient name, UID, SOP name, protocol)
+            <i className="bx bx-user-circle me-1" />
+            Patient
           </small>
-          <Input
-            type="text"
-            placeholder="Type to search..."
-            value={serverFilters.search}
-            onChange={(e) => onServerFilterChange("search", e.target.value)}
-            bsSize="sm"
+          <AsyncSelect
+            isMulti
+            cacheOptions
+            defaultOptions={false}
+            loadOptions={loadPatientOptions}
+            value={serverFilters.patients || []}
+            onChange={(v) => onServerFilterChange("patients", v || [])}
+            placeholder="Type patient name or uid..."
+            noOptionsMessage={({ inputValue }) =>
+              inputValue ? "No patients found" : "Type to search..."
+            }
           />
         </Col>
-        <Col md={5}>
+        <Col md={4}>
+          <small className="text-muted d-block mb-1">
+            <i className="bx bx-list-check me-1" />
+            SOP Rule (name or protocol)
+          </small>
+          <AsyncSelect
+            isMulti
+            cacheOptions
+            defaultOptions
+            loadOptions={loadRuleOptions}
+            value={serverFilters.rules || []}
+            onChange={(v) => onServerFilterChange("rules", v || [])}
+            placeholder="Type rule name or protocol..."
+          />
+        </Col>
+        <Col md={3}>
           <small className="text-muted d-block mb-1">Date range</small>
           <Flatpickr
             key={serverFilters.dateFrom + "-" + serverFilters.dateTo}

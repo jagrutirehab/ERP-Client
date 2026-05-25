@@ -291,7 +291,7 @@ const pages = [
     label: "Trainings",
     name: "Trainings",
     link: "/trainings",
-    icon: "bx bx-book-reader"
+    icon: "bx bx-book-reader",
   },
   {
     id: "guidelines",
@@ -319,7 +319,7 @@ const pages = [
     label: "Recordings",
     name: "Recordings",
     link: "/recordings",
-    icon: "bx bx-microphone"
+    icon: "bx bx-microphone",
   },
   // {
   //   id: "hrms",
@@ -343,18 +343,13 @@ const pages = [
     icon: "bx bx-transfer",
   },
   {
-
     id: "sopconfigs",
     label: "SOP-configs",
     name: "SOP-configs",
     link: "/sop-configs",
     icon: "bx bx-transfer",
   },
-
-
 ];
-
-
 
 export const WebcamStats = [
   {
@@ -388,19 +383,19 @@ export const Pharmacy = [
     id: "pharmacymanagement",
     label: "Inventory",
     link: "/pharmacy/management",
-    icon: "bx bx-building-house",
+    icon: "bx bx-package",
   },
   {
     id: "givenmedicines",
     label: "Medicine Given",
     link: "/pharmacy/given-med",
-    icon: "bx bx-building-house",
+    icon: "bx bx-capsule",
   },
   {
     id: "nurseGivenMedicines",
     label: "Nurse Given Medicine",
     link: "/pharmacy/nurse-given-med",
-    icon: "bx bx-building-house",
+    icon: "bx bx-capsule",
   },
   {
     id: "medicineaApproval",
@@ -417,7 +412,7 @@ export const Pharmacy = [
   {
     id: "requisition",
     label: "Requisition",
-    icon: "bx bx-fingerprint",
+    icon: "bx bx-notepad",
     isAccordion: true,
     children: [
       {
@@ -438,7 +433,7 @@ export const Pharmacy = [
         link: "/pharmacy/requisition/medicine-requisition",
         icon: "bx bx-capsule",
       },
-    ]
+    ],
   },
   {
     id: "stockSummary",
@@ -451,7 +446,13 @@ export const Pharmacy = [
     label: "Bill Upload History",
     link: "/pharmacy/bill-upload-dashboard",
     icon: "bx bx-history",
-  }
+  },
+  {
+    id: "sareyaanInventory",
+    label: "Sareyaan Inventory",
+    link: "/pharmacy/sareyaan-inventory",
+    icon: "bx bx-package",
+  },
 ];
 
 export const MIReporting = [
@@ -642,7 +643,7 @@ export const HR = [
         id: "leave-balance-dashboard",
         label: "Leave Balance",
         link: "/hr/leave-balance/dashboard",
-        icon: "bx bx-layer"
+        icon: "bx bx-layer",
       },
       {
         id: "regularization-dashboard",
@@ -663,7 +664,6 @@ export const HR = [
         icon: "bx bx-history",
       },
       {
-
         id: "cancellations-history",
         label: "Cancellations History",
         link: "/hr/all/cancellations/req",
@@ -874,7 +874,7 @@ export const HR = [
         id: "monthly-attendance",
         label: "Monthly Attendance",
         link: "/hr/attendance/monthly",
-        icon: "bx bx-calendar"
+        icon: "bx bx-calendar",
       },
       {
         id: "attendance-metrics",
@@ -991,7 +991,6 @@ export const HR = [
         icon: "bx bx-party",
       },
       {
-
         id: "cancellations-requests",
         label: "Cancellations Requests",
         link: "/hr/leaves/get/cancellations",
@@ -1001,8 +1000,8 @@ export const HR = [
         id: "comp-off-requests",
         label: "Comp-Off Addition Requests",
         link: "/hr/leaves/get/comp-offs",
-        icon: "bx bx-calendar-check"
-      }
+        icon: "bx bx-calendar-check",
+      },
     ],
   },
   {
@@ -1045,22 +1044,29 @@ export const HR = [
   {
     id: "payslips",
     label: "Pay Slip",
-    icon: "bx bx-wallet",   // changed
+    icon: "bx bx-wallet", // changed
     link: "/hr/pay-slip",
     isAccordion: true,
     children: [
       {
         id: "employee-pay-slip",
         label: "Employees Pay Slip",
-        icon: "bx bx-group",   // changed
+        icon: "bx bx-group", // changed
         link: "/hr/pay-slip/employees",
       },
       {
         id: "my-pay-slip",
         label: "My Pay Slip",
-        icon: "bx bx-user-check",   // changed
+        icon: "bx bx-user-check", // changed
         link: "/hr/pay-slip/my",
       },
+      {
+
+        id: "my-salary-data",
+        label: "My Salary Data",
+        icon: "bx bx-user-check",
+        link: "/hr/my/salary/data"
+      }
     ],
   },
   {
@@ -1244,8 +1250,7 @@ export const ISSUES = [
     label: "Finance Tickets Approval",
     icon: "bx bx-receipt",
     link: "/issues/finance/payslips/tickets",
-  }
-
+  },
 ];
 
 export const RECORDINGS = [
@@ -1253,28 +1258,26 @@ export const RECORDINGS = [
     id: "call-recordings",
     label: "Call Recordings",
     link: "/recordings/call",
-    icon: "bx bx-phone"
+    icon: "bx bx-phone",
   },
   {
     id: "call-recordings-overview",
     label: "Call Recordings Overview",
     link: "/recordings/call/overview",
-    icon: "bx bx-analyse"
+    icon: "bx bx-analyse",
   },
   {
     id: "feedback-recordings",
     label: "Feedback Recordings",
     link: "/recordings/feedback",
-    icon: "bx bx-comment-detail"
+    icon: "bx bx-comment-detail",
   },
   {
     id: "feedback-recordings-overview",
     label: "Feedback Recordings Overview",
     link: "/recordings/feedback/overview",
-    icon: "bx bx-analyse"
+    icon: "bx bx-analyse",
   },
-
-
 ];
 
 export const SOP_CONFIGS = [
@@ -1292,7 +1295,7 @@ export const SOP_CONFIGS = [
       },
       {
         id: "sopconfigs-manage",
-        label: "Manage Rules",
+        label: "Manage SOPs",
         link: "/sop-configs/manage",
         icon: "bx bx-list-ul",
       },
@@ -1302,7 +1305,13 @@ export const SOP_CONFIGS = [
     id: "sopconfigs-alerts",
     label: "Alerts",
     link: "/sop-configs/alerts",
-    icon: "bx bx-bell"
+    icon: "bx bx-bell",
+  },
+  {
+    id: "sopconfigs-guide",
+    label: "How-to Guide",
+    link: "/sop-configs/guide",
+    icon: "bx bx-book-open",
   },
 ];
 export const TRAININGS = [
@@ -1310,37 +1319,37 @@ export const TRAININGS = [
     id: "upload-trainings",
     label: "Upload Trainings",
     link: "/trainings/upload",
-    icon: "bx bx-cloud-upload"
+    icon: "bx bx-cloud-upload",
   },
   {
     id: "view-trainings",
     label: "View Trainings",
     link: "/trainings/view",
-    icon: "bx bx-slideshow"
+    icon: "bx bx-slideshow",
   },
   {
     id: "all-trainings",
     label: "All Trainings",
     link: "/trainings/all",
-    icon: "bx bx-collection"
+    icon: "bx bx-collection",
   },
   {
     id: "training-history",
     label: "Training History",
     link: "/trainings/history",
-    icon: "bx bx-time-five"
+    icon: "bx bx-time-five",
   },
   {
     id: "create-training-record",
     label: "Create Trainer Record",
     link: "/trainings/create/record",
-    icon: "bx bx-edit-alt"
+    icon: "bx bx-edit-alt",
   },
   {
     id: "training-records",
     label: "Trainer Records",
     link: "/trainings/get/record",
-    icon: "bx bx-spreadsheet"
+    icon: "bx bx-spreadsheet",
   },
 ];
 

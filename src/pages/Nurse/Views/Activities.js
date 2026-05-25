@@ -13,6 +13,7 @@ import {
   XCircle,
   ChevronLeft,
   ChevronRight,
+  Undo2,
 } from "lucide-react";
 import ActivityCard from "./Components/ActivityCard";
 import moment from "moment";
@@ -62,7 +63,12 @@ const Activities = () => {
       getMedicineActivitiesByStatus({
         patientId: id,
         prescriptionId: selectedPrescriptionId,
-        status: activeTab === "COMPLETED" ? "completed" : "missed",
+        status:
+          activeTab === "COMPLETED"
+            ? "completed"
+            : activeTab === "RETRIEVED"
+              ? "retrieved"
+              : "missed",
         page,
         limit: LIMIT,
       })
@@ -134,12 +140,27 @@ const Activities = () => {
                   </div>
                 </NavLink>
               </NavItem>
+              <NavItem>
+                <NavLink
+                  className={`cursor-pointer ${
+                    activeTab === "RETRIEVED" ? "active" : ""
+                  }`}
+                  onClick={() => toggle("RETRIEVED")}
+                >
+                  <div className="d-flex align-items-center gap-2">
+                    <Undo2 size={16} className="text-warning" />
+                    Retrieved
+                  </div>
+                </NavLink>
+              </NavItem>
             </Nav>
 
             {medicineLoading ? (
               <Placeholder />
             ) : activeTab === "COMPLETED" ? (
               <ActivityCard medicines={medicines} status="completed" />
+            ) : activeTab === "RETRIEVED" ? (
+              <ActivityCard medicines={medicines} status="retrieved" />
             ) : (
               <ActivityCard medicines={medicines} status="missed" />
             )}

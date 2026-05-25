@@ -1642,6 +1642,16 @@ export const getMyPayslips = (params = {}) => {
   });
 };
 
+export const getMySalaryData = (params) => {
+  return api.get(url.GET_MY_SALARY_DATA, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+}
+
+
 export const getUserActivityById = ({ id, page = 1, limit = 12, token }) => {
   return userService.get(
     `${url.USER_ACTIVITY}/?userid=${id}&page=${page}&limit=${limit}`,
@@ -2214,6 +2224,24 @@ export const getDailyDashboard = (data) => {
 
 export const getDocsCompliance = (data) => {
   return api.get(url.GET_DOCS_COMPLIANCE, {
+    params: {
+      centerIds: data?.centerAccess,
+    }
+  });
+};
+
+export const getDueAmount = (data) => {
+  return api.get(url.GET_DUE_AMOUNT, {
+    params: {
+      centerIds: data?.centerAccess,
+      patientType: data?.patientType,
+      month: data?.month,
+    }
+  });
+};
+
+export const getMIAttendance = (data) => {
+  return api.get(url.GET_MI_ATTENDANCE, {
     params: {
       centerIds: data?.centerAccess,
     }
@@ -3573,6 +3601,9 @@ export const changeStatus = (data) => {
 export const approveIssue = (data) => {
   return axios.patch(url.APPROVE_ISSUE, data)
 }
+export const addIssueNote = (data) => {
+  return axios.patch(url.ADD_ISSUE_NOTE, data);
+};
 export const postIssue = (formData) => {
   return axios.post(url.POST_ISSUE, formData, {
     headers: {
@@ -3797,6 +3828,36 @@ export const exportInventoryUpdateReport = (billImportId) => {
     }
   );
 };
+
+// SAREYAAN INVENTORY IMPORT
+export const getSareyaanInventoryImports = (params = {}) =>
+  api.get(url.SAREYAAN_INVENTORY_IMPORT_LIST, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, { arrayFormat: "repeat", skipNulls: true }),
+  });
+
+export const downloadSareyaanImportErrors = (importId) =>
+  axios.get(
+    `${url.SAREYAAN_INVENTORY_IMPORT_ERRORS_DOWNLOAD}/${importId}/errors/download`,
+    {
+      responseType: "blob",
+      headers: { "X-No-Cookie-Token": "true" },
+    }
+  );
+
+export const initSareyaanImport = (body) =>
+  api.create(`${url.SAREYAAN_INVENTORY_IMPORT_LIST}/init`, body, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const processSareyaanImportChunk = (importId, body) =>
+  api.create(
+    `${url.SAREYAAN_INVENTORY_IMPORT_LIST}/${importId}/chunk`,
+    body,
+    { headers: { "X-No-Cookie-Token": "true" } }
+  );
 
 
 

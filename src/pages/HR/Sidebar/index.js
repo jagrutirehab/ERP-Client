@@ -195,6 +195,7 @@ const Sidebar = () => {
   const hasTransferApprovalsPermission = hasPermission("HR", "TRANSFER_MANAGER_APPROVALS", "READ");
   const hasMyPayslipsPermission = hasPermission("HR", "MY_PAYSLIPS", "READ");
   const hasEmployeePayslipsPermission = hasPermission("HR", "EMPLOYEE_PAYSLIPS", "READ");
+  const hasMySalaryDataPermission = hasPermission("HR", "MY_SALARY_DATA", "READ");
 
   const location = useLocation();
   const currentUrl = location.pathname + location.search;
@@ -347,6 +348,15 @@ const Sidebar = () => {
         });
         return page.children.length > 0;
       }
+    if (page.id === "payslips") {
+      page.children = page.children.filter((child) => {
+        if (child.id === "my-pay-slip" && !hasMyPayslipsPermission) return false;
+        if (child.id === "employee-pay-slip" && !hasEmployeePayslipsPermission) return false;
+        if (child.id === "my-salary-data" && !hasMySalaryDataPermission) return false;
+        return true;
+      });
+      return page.children.length > 0;
+    }
 
       if (page.id === "third-party-manpower") {
         page.children = page.children.filter((child) => {

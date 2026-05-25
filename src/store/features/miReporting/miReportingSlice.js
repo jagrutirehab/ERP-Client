@@ -24,6 +24,8 @@ import {
   getCounsellingRecordings,
   getDailyDashboard,
   getDocsCompliance,
+  getDueAmount,
+  getMIAttendance,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -57,6 +59,8 @@ const initialState = {
   counsellingRecordings:[],
   dailyDashboard:[],
   docsCompliance: [],
+  dueAmount: [],
+  miAttendance: [],
   loading: false,
   error: null,
 };
@@ -416,6 +420,30 @@ export const fetchDocsCompliance = createAsyncThunk(
   }
 );
 
+export const fetchDueAmount = createAsyncThunk(
+  "miReporting/fetchDueAmount",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getDueAmount(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to fetch Due Amount");
+    }
+  }
+);
+
+export const fetchMIAttendance = createAsyncThunk(
+  "miReporting/fetchMIAttendance",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getMIAttendance(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to fetch Attendance");
+    }
+  }
+);
+
 export const fetchDailyDashboard = createAsyncThunk(
   "miReporting/fetchDailyDashboard",
   async (data , { rejectWithValue }) => {
@@ -764,6 +792,34 @@ const miReportingSlice = createSlice({
         state.docsCompliance = action.payload.payload;
       })
       .addCase(fetchDocsCompliance.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      //Due Amount
+      .addCase(fetchDueAmount.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDueAmount.fulfilled, (state, action) => {
+        state.loading = false;
+        state.dueAmount = action.payload.payload || [];
+      })
+      .addCase(fetchDueAmount.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      //MI Attendance
+      .addCase(fetchMIAttendance.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMIAttendance.fulfilled, (state, action) => {
+        state.loading = false;
+        state.miAttendance = action.payload.payload || [];
+      })
+      .addCase(fetchMIAttendance.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

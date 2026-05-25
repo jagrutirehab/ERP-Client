@@ -165,14 +165,24 @@ const SaveRule = () => {
             )}
           </p>
         </div>
-        <Button
-          color="secondary"
-          outline
-          size="sm"
-          onClick={() => navigate("/sop-configs/manage")}
-        >
-          <i className="bx bx-arrow-back me-1" /> Back to list
-        </Button>
+        <div className="d-flex gap-2">
+          <Button
+            color="info"
+            outline
+            size="sm"
+            onClick={() => navigate("/sop-configs/guide")}
+          >
+            <i className="bx bx-book-open me-1" /> View Guide
+          </Button>
+          <Button
+            color="secondary"
+            outline
+            size="sm"
+            onClick={() => navigate("/sop-configs/manage")}
+          >
+            <i className="bx bx-arrow-back me-1" /> Back to list
+          </Button>
+        </div>
       </div>
 
       <div
