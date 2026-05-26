@@ -126,29 +126,36 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         center: true,
         minWidth: "110px"
     },
+    // {
+    //     name: <div>Short Wages</div>,
+    //     selector: row => formatCurrency(row?.salarySnapshot?.shortWages),
+    //     wrap: true,
+    //     center: true
+    // },
+    // {
+    //     name: <div>Minimum Wages</div>,
+    //     selector: row => formatCurrency(row?.salarySnapshot?.minimumWages),
+    //     wrap: true,
+    //     center: true
+    // },
+    // {
+    //     name: <div>HRA%</div>,
+    //     selector: row => `${row?.salarySnapshot?.HRAPercentage}%` || `0%`,
+    //     wrap: true,
+    //     center: true
+    // },
+    // {
+    //     name: <div>Basic%</div>,
+    //     selector: row => `${row?.salarySnapshot?.basicPercentage}%` || `0%`,
+    //     wrap: true,
+    //     center: true
+    // },
     {
-        name: <div>Short Wages</div>,
-        selector: row => formatCurrency(row?.salarySnapshot?.shortWages),
+        name: <div>Total cost of the company</div>,
+        selector: (row) => formatCurrency(row?.salarySnapshot?.totalCostToCompany),
         wrap: true,
-        center: true
-    },
-    {
-        name: <div>Minimum Wages</div>,
-        selector: row => formatCurrency(row?.salarySnapshot?.minimumWages),
-        wrap: true,
-        center: true
-    },
-    {
-        name: <div>HRA%</div>,
-        selector: row => `${row?.salarySnapshot?.HRAPercentage}%` || `0%`,
-        wrap: true,
-        center: true
-    },
-    {
-        name: <div>Basic%</div>,
-        selector: row => `${row?.salarySnapshot?.basicPercentage}%` || `0%`,
-        wrap: true,
-        center: true
+        center: true,
+        style: fixedCellStyle,
     },
     {
         name: <div>Basic Salary</div>,
@@ -242,20 +249,20 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         center: true,
         style: employerDeductionStyle,
     },
-    {
-        name: <div>PF Salary</div>,
-        selector: row => formatCurrency(row?.earned?.PFSalary),
-        wrap: true,
-        center: true,
-        style: PFAndESICSalaryCellStyle,
-    },
-    {
-        name: <div>ESIC Salary</div>,
-        selector: row => formatCurrency(row?.earned?.ESICSalary),
-        wrap: true,
-        center: true,
-        style: PFAndESICSalaryCellStyle,
-    },
+    // {
+    //     name: <div>PF Salary</div>,
+    //     selector: row => formatCurrency(row?.earned?.PFSalary),
+    //     wrap: true,
+    //     center: true,
+    //     style: PFAndESICSalaryCellStyle,
+    // },
+    // {
+    //     name: <div>ESIC Salary</div>,
+    //     selector: row => formatCurrency(row?.earned?.ESICSalary),
+    //     wrap: true,
+    //     center: true,
+    //     style: PFAndESICSalaryCellStyle,
+    // },
     {
         name: <div>PF Employee</div>,
         selector: row => formatCurrency(row?.earned?.PFEmployee),
@@ -311,6 +318,34 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         wrap: true,
         center: true,
         style: employeeDeductionStyle,
+    },
+    {
+        name: <div>PF Employer</div>,
+        selector: (row) => formatCurrency(row?.earned?.PFEmployer),
+        wrap: true,
+        center: true,
+        style: employerDeductionStyle
+    },
+    {
+        name: <div>Gratuity</div>,
+        selector: (row) => formatCurrency(row?.earned?.gratuity),
+        wrap: true,
+        center: true,
+        style: employerDeductionStyle
+    },
+    {
+        name: <div>ESIC Employer</div>,
+        selector: (row) => formatCurrency(row?.earned?.ESICEmployer),
+        wrap: true,
+        center: true,
+        style: employerDeductionStyle
+    },
+    {
+        name: <div>LWF Employer</div>,
+        selector: (row) => formatCurrency(row?.earned?.LWFEmployer),
+        wrap: true,
+        center: true,
+        style: employerDeductionStyle
     },
     {
         name: <div>Total Net Pay</div>,
@@ -411,39 +446,6 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         wrap: true,
         minWidth: "200px",
         maxWidth: "400px",
-    },
-    {
-        name: <div>PF Employer</div>,
-        selector: (row) => formatCurrency(row?.earned?.PFEmployee),
-        wrap: true,
-        center: true,
-        style: employerDeductionStyle
-    },
-    {
-        name: <div>ESIC Employer</div>,
-        selector: (row) => formatCurrency(row?.earned?.ESICEmployer),
-        wrap: true,
-        center: true,
-        style: employerDeductionStyle
-    },
-    {
-        name: <div>LWF Employer</div>,
-        selector: (row) => formatCurrency(row?.earned?.LWFEmployer),
-        wrap: true,
-        center: true,
-        style: employerDeductionStyle
-    },
-    {
-        name: <div>Total cost of the company after increment</div>,
-        selector: (row) => formatCurrency(row?.earned?.totalCostToCompany),
-        wrap: true,
-        center: true,
-    },
-    {
-        name: <div>gratuity</div>,
-        selector: (row) => formatCurrency(row?.earned?.gratuity),
-        wrap: true,
-        center: true,
     },
     {
         name: <div>Status</div>,

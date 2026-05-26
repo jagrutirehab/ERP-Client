@@ -4,10 +4,13 @@ import RenderWhen from "../../../../Components/Common/RenderWhen";
 const AlertsHeader = ({
   hasWritePermission,
   unreadCount,
+  totalCount,
   loading,
   bulkLoading,
+  exporting,
   onMarkAllRead,
   onRefresh,
+  onExport,
 }) => (
   <div className="d-flex align-items-start justify-content-between mb-3 flex-wrap gap-2">
     <div>
@@ -24,6 +27,30 @@ const AlertsHeader = ({
       </p>
     </div>
     <div className="d-flex gap-2">
+      <Button
+        color="success"
+        outline
+        size="sm"
+        onClick={onExport}
+        disabled={exporting || totalCount === 0}
+        title={
+          totalCount === 0
+            ? "Nothing to export with the current filters"
+            : "Download the current filtered view as CSV"
+        }
+      >
+        {exporting ? (
+          <>
+            <Spinner size="sm" className="me-1" />
+            Exporting…
+          </>
+        ) : (
+          <>
+            <i className="bx bx-download me-1" />
+            Export CSV
+          </>
+        )}
+      </Button>
       <RenderWhen isTrue={hasWritePermission}>
         <Button
           color="primary"

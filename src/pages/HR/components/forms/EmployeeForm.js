@@ -269,6 +269,8 @@ const getInitialValues = (initialData, mode) => ({
   TDSRate: initialData?.financeDetails?.TDSRate || 0,
 
   inHandSalary: initialData?.financeDetails?.inHandSalary || 0,
+  gratuity: initialData?.financeDetails?.gratuity || 0,
+  totalCostToCompany: initialData?.financeDetails?.totalCostToCompany || 0,
 
   debitStatementNarration:
     initialData?.financeDetails?.debitStatementNarration || "",
@@ -341,6 +343,8 @@ const EmployeeForm = ({
     .map((c) => ({
       value: c._id,
       label: c.title,
+      title: c.title,
+      address: c.address,
     }));
 
   useEffect(() => {
@@ -411,6 +415,8 @@ const EmployeeForm = ({
         formData.delete("ESICEmployee");
         formData.delete("ESICEmployer");
         formData.delete("inHandSalary");
+        formData.delete("gratuity");
+        formData.delete("totalCostToCompany");
         formData.delete("panOld");
         formData.delete("offerLetterOld");
         formData.delete("adharOld");
@@ -722,10 +728,25 @@ const EmployeeForm = ({
     });
   };
 
+  const payrollInitializedRef = useRef(false);
+
   useEffect(() => {
-    const payroll = calculatePayroll(values);
+    const selectedCenter = centerOptions?.find(
+      (o) => o.value === values.currentLocation,
+    );
+    const payroll = calculatePayroll({
+      ...values,
+      pfApplicable: values.employmentType === "FULL_TIME",
+      currentLocation: selectedCenter
+        ? { title: selectedCenter.title, address: selectedCenter.address }
+        : null,
+    });
+
+    const isFirstRunInEdit = isEdit && !payrollInitializedRef.current;
+    payrollInitializedRef.current = true;
 
     Object.entries(payroll).forEach(([key, value]) => {
+      if (isFirstRunInEdit && values[key]) return;
       if (values[key] !== value) {
         setFieldValue(key, value, false);
       }
@@ -734,7 +755,7 @@ const EmployeeForm = ({
     values.grossSalary,
     values.basicAmount,
     values.HRAAmount,
-    values.pfApplicable,
+    values.employmentType,
     values.gender,
     values.joinningDate,
     values.ESICSalary,
@@ -743,6 +764,8 @@ const EmployeeForm = ({
     values.TDSRate,
     values.insurance,
     values.minimumWages,
+    values.currentLocation,
+    values.LWFEmployer,
   ]);
 
   const selectedEmploymentOption =
@@ -2166,6 +2189,30 @@ const EmployeeForm = ({
               name="inHandSalary"
               value={values.inHandSalary}
               onChange={handleChange}
+            />
+          </Col>
+
+          {/* GRATUITY */}
+          <Col md={6}>
+            <Label htmlFor="gratuity">Gratuity</Label>
+            <Input
+              disabled
+              id="gratuity"
+              type="number"
+              name="gratuity"
+              value={values.gratuity}
+            />
+          </Col>
+
+          {/* TOTAL COST TO COMPANY */}
+          <Col md={6}>
+            <Label htmlFor="totalCostToCompany">Total Cost To Company</Label>
+            <Input
+              disabled
+              id="totalCostToCompany"
+              type="number"
+              name="totalCostToCompany"
+              value={values.totalCostToCompany}
             />
           </Col>
 
