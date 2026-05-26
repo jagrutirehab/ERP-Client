@@ -26,7 +26,7 @@ const statusColors = {
 const sopStatusConfig = {
   yes: { bg: "#9AD872", label: "Yes" },
   no: { bg: "#FF8383", label: "No" },
-  partial: { bg: "#ffd043", label: "Draft Only" },
+  partial: { bg: "#ffd043", label: "Pending Signed" },
   na: { bg: "#6c757d", label: "N/A" },
 };
 
