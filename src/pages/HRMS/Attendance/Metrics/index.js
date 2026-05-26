@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import { Button, CardBody, Input, Spinner, UncontrolledTooltip } from 'reactstrap';
+import { Button, CardBody, Input, Spinner } from 'reactstrap';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import Header from '../../../Report/Components/Header';
 import Select from "react-select";
@@ -13,7 +13,6 @@ import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';
 import { attendanceMetricsColumns } from '../../components/Table/Columns/attendanceMetrics';
 import { exportAttendanceMetrics } from '../../../../helpers/backend_helper';
-import { RotateCw } from 'lucide-react';
 import RefreshButton from '../../../../Components/Common/RefreshButton';
 
 const sortByOptions = [
@@ -29,7 +28,6 @@ const statusOptions = [
     { value: "FNF_CLOSED", label: "FNF Closed" },
     // { value: "NEW_JOINING", label: "New Joining" },
 ];
-
 
 const AttendanceMetrics = () => {
     const dispatch = useDispatch();
