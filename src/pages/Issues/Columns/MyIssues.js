@@ -9,7 +9,8 @@ export const MyIssuesCol = (
   activeTab,
   handleAction,
   type,
-  canChangeStatus
+  canChangeStatus,
+  handleViewNotes
 
 ) => {
   return [
@@ -246,23 +247,15 @@ export const MyIssuesCol = (
       ? [
         {
           name: <div className="text-center">Notes</div>,
-          width: "160px",
-          cell: (row) => {
-            const note =
-              row?.notes?.filter((d) => d?.status === activeTab)?.[0]?.note || "-";
-
-            return (
-              <div
-                style={{
-                  whiteSpace: "normal",
-                  wordBreak: "break-word",
-                  lineHeight: "1.4",
-                }}
-              >
-                {note}
-              </div>
-            );
-          },
+          width: "140px",
+          cell: (row) => (
+            <span
+              style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
+              onClick={() => handleViewNotes?.(row)}
+            >
+              View Notes
+            </span>
+          ),
         },
         {
           name: <div className="text-center">Action on</div>,

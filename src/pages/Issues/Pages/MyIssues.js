@@ -12,6 +12,7 @@ import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import StatusModal from "../Components/StatusModal";
 import { changeStatus } from "../../../helpers/backend_helper";
 import ApprovalModal from "../Components/ApprovalModal";
+import NotesTimelineModal from "../Components/NotesTimelineModal";
 import Select from "react-select";
 import { useSelector } from "react-redux";
 
@@ -56,6 +57,8 @@ const MyIssues = () => {
   const [assignModal, setAssignModal] = useState(false);
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [notesModalOpen, setNotesModalOpen] = useState(false);
+  const [notesIssue, setNotesIssue] = useState(null);
 
 
   const user = useSelector((state) => state.User);
@@ -138,6 +141,11 @@ const MyIssues = () => {
   const handleViewImages = (filesData) => {
     setFiles(filesData || []);
     setImageModal(true);
+  };
+
+  const handleViewNotes = (row) => {
+    setNotesIssue(row);
+    setNotesModalOpen(true);
   };
 
   const handleAction = ({ issue, nextStatus }) => {
@@ -235,7 +243,8 @@ const MyIssues = () => {
             status,
             handleAction,
             type,
-            canChangeStatus
+            canChangeStatus,
+            handleViewNotes
           )}
           data={issues}
           loading={loading}
@@ -266,6 +275,14 @@ const MyIssues = () => {
         onAssign={handleAssignSubmit}
         activeTab={status}
         title={`Update Issue Status`}
+      />
+
+      <NotesTimelineModal
+        isOpen={notesModalOpen}
+        toggle={() => setNotesModalOpen(false)}
+        issue={notesIssue}
+        onSaved={loadIssues}
+        canEdit={canChangeStatus}
       />
 
 
