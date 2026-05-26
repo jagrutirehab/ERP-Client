@@ -3712,6 +3712,11 @@ export const getUnreadSopAlerts = () => axios.get(url.GET_UNREAD_SOP_ALERTS);
 
 export const getAllSopAlerts = (params) => axios.get(url.GET_ALL_SOP_ALERTS, { params });
 
+// Returns the full axios response (NOT the unwrapped body) because the interceptor
+// preserves blob responses verbatim. Caller reads response.data (Blob) + headers.
+export const exportSopAlerts = (params) =>
+  axios.get(url.EXPORT_SOP_ALERTS, { params, responseType: "blob" });
+
 export const markSopAlertRead = (id) => axios.post(`${url.MARK_SOP_ALERT_READ}/${id}/read`);
 
 export const markAllSopAlertsRead = () => axios.post(url.MARK_ALL_SOP_ALERTS_READ);
