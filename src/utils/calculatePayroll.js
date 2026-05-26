@@ -1,5 +1,16 @@
+import { detectState } from "./detectState";
+
+
+const PTeligibleStates = [
+    "Maharashtra",
+    "Gujarat",
+    "Telangana",
+    "Tamil Nadu",
+    "Karnataka"
+];
+
 export const calculatePayroll = (values) => {
-    const PF_WAGE_CAP = 15000;
+    // const PF_WAGE_CAP = 15000;
 
     const gross = Number(values.grossSalary || 0);
     const basic = Number(values.basicAmount || 0);
@@ -8,6 +19,7 @@ export const calculatePayroll = (values) => {
     const conveyance = Number(values.conveyanceAllowance || 0);
     const ESICSalary = Number(values.ESICSalary || 0);
     const minimumWages = Number(values.minimumWages || 0);
+    const currentLocation = values.currentLocation || {};
 
     // short wages
     const diffPaise = Math.round((minimumWages - basic) * 100);
@@ -21,26 +33,42 @@ export const calculatePayroll = (values) => {
     let PFEmployer = 0;
     let PFSalary = 0;
 
+    // if (values.pfApplicable) {
+    //     PFSalary = Math.min(basic + spl + conveyance, PF_WAGE_CAP);
+    //     PFEmployee = Math.round(PFSalary * 0.12);
+    //     PFEmployer = Math.round(PFSalary * 0.12);
+    // }
+
+    // new rule from 25.05.2026
     if (values.pfApplicable) {
-        PFSalary = Math.min(basic + spl + conveyance, PF_WAGE_CAP);
-        PFEmployee = Math.round(PFSalary * 0.12);
-        PFEmployer = Math.round(PFSalary * 0.12);
+        PFEmployee = 1800;
+        PFEmployer = 1950;
+        PFSalary = 0;
     }
 
     // ----- PT -----
     let PT = 0;
-    const gender = values.gender;
+    const gender = values.gender?.toUpperCase();
     const month = values.joinningDate
         ? new Date(values.joinningDate).getMonth() + 1
         : null;
-
-    if (gender === "MALE") {
-        if (gross >= 7501 && gross <= 10000) PT = 175;
-        else if (gross >= 10001) PT = month === 2 ? 300 : 200;
-    }
-
-    if (gender === "FEMALE" && gross > 25000) {
-        PT = month === 2 ? 300 : 200;
+        console.log(PTeligibleStates.includes(detectState(currentLocation.address)))
+    if (PTeligibleStates.includes(detectState(currentLocation.address)) || currentLocation.title === "Head-Office") {
+        if (gender === "MALE") {
+            if (gross <= 7500) {
+                PT = 0;
+            } else if (gross <= 10000) {
+                PT = 175;
+            } else {
+                PT = month === 2 ? 300 : 200;
+            }
+        } else if (gender === "FEMALE") {
+            if (gross > 24999) {
+                PT = month === 2 ? 300 : 200;
+            } else {
+                PT = 0;
+            }
+        }
     }
 
     // ----- TDS -----
@@ -57,6 +85,7 @@ export const calculatePayroll = (values) => {
 
     // ----- Other deductions -----
     const LWFEmployee = Number(values.LWFEmployee || 0);
+    const LWFEmployer = Number(values.LWFEmployer || 0);
     const insurance = Number(values.insurance || 0);
 
     const deductions =
@@ -68,6 +97,9 @@ export const calculatePayroll = (values) => {
         insurance;
 
     const inHandSalary = Math.max(gross - deductions, 0);
+
+    const gratuity = Math.round(((basic + spl + conveyance) * 4.81) / 100);
+    const totalCostToCompany = gross + PFEmployer + ESICEmployer + LWFEmployer + gratuity;
 
     return {
         PFEmployee,
@@ -82,6 +114,8 @@ export const calculatePayroll = (values) => {
         inHandSalary,
         shortWages,
         basicPercentage,
-        HRAPercentage
+        HRAPercentage,
+        gratuity,
+        totalCostToCompany,
     };
 };

@@ -20,6 +20,7 @@ import {
   processSareyaanImportChunk,
   uploadFile,
 } from "../../../helpers/backend_helper";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const CHUNK_SIZE = 300;
 
@@ -70,6 +71,7 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
   const [progress, setProgress] = useState({ done: 0, total: 0 });
   const [displayedDone, setDisplayedDone] = useState(0);
   const [result, setResult] = useState(null);
+  const handleAuthError = useAuthError();
 
   const targetRef = useRef(0);
   const totalRef = useRef(0);
@@ -82,7 +84,7 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
       setSelectedFile(null);
       setUploadStage("");
       setUploading(false);
-    setUploadStage("");
+      setUploadStage("");
       setProgress({ done: 0, total: 0 });
       setDisplayedDone(0);
       setResult(null);
@@ -262,10 +264,10 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
       const renamedName = `sareyaan_stock_${stamp}.${ext}`;
       const renamedFile = selectedFile
         ? new File([selectedFile], renamedName, {
-            type:
-              selectedFile.type ||
-              "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-          })
+          type:
+            selectedFile.type ||
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        })
         : null;
 
       let fileUrl = "";
@@ -320,16 +322,18 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
         `Import complete — ${totalSuccess} succeeded, ${totalFailed} failed`
       );
       setUploading(false);
-    setUploadStage("");
+      setUploadStage("");
       if (typeof onUploaded === "function") onUploaded(importId);
       return;
     } catch (err) {
-      const msg =
-        err?.response?.data?.message || err?.message || "Upload failed";
-      toast.error(msg);
+      if (!handleAuthError(err)) {
+        const msg =
+          err?.response?.data?.message || err?.message || "Upload failed";
+        toast.error(msg);
+      }
+      setUploading(false);
+      setUploadStage("");
     }
-    setUploading(false);
-    setUploadStage("");
   };
 
   const total = progress.total || totalRef.current || 0;

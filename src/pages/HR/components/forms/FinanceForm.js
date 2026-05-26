@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Button, Row, Col, Label, Input, Spinner } from "reactstrap";
 import Select from "react-select";
@@ -230,15 +230,22 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
     [initialData, isEdit, selectedEmployee]
   );
 
+  const payrollInitializedRef = useRef(false);
+
   useEffect(() => {
     const payroll = calculatePayroll({
       ...form.values,
-      pfApplicable: employeeData?.pfApplicable ?? false,
+      pfApplicable: employeeData?.employmentType === "FULL_TIME",
       gender: employeeData?.gender || "",
       joinningDate: employeeData?.joinningDate || "",
+      currentLocation: employeeData?.currentLocation || null,
     });
 
+    const isFirstRunInEdit = isEdit && !payrollInitializedRef.current;
+    payrollInitializedRef.current = true;
+
     Object.entries(payroll).forEach(([key, value]) => {
+      if (isFirstRunInEdit && form.values[key]) return;
       if (form.values[key] !== value) {
         form.setFieldValue(key, value, false);
       }

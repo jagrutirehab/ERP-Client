@@ -133,7 +133,7 @@ export const accountOptions = [
 export const legends = [
     { label: "Fixed Salary", color: "#ffc000" },
     { label: "Earned Salary", color: "#f8cbad" },
-    { label: "PF / ESIC Salary", color: "#A9D08E" },
+    // { label: "PF / ESIC Salary", color: "#A9D08E" },
     { label: "Employee Deduction", color: "#8EA9DB" },
     { label: "Employer Deduction", color: "#7B8FD1" },
 ];
