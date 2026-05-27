@@ -18,7 +18,7 @@ import { sareyaanInventoryColumns } from "../Columns/Pharmacy/SareyaanInventoryC
 import SareyaanUploadModal from "./SareyaanUploadModal";
 import DateRangeFilter from "../../../Components/Common/DateRangeFilter";
 
-const SAREYAAN_CENTER_ID = "69df2e66732bc118687e38d9";
+const SAREYAAN_CENTER_ID = process.env.REACT_APP_ENV === "production" ? "69c5311b0a5aee96ac8d5b8c" : "69df2e66732bc118687e38d9";
 const SAREYAAN_CENTER_LABEL = "Sareyaan Pharma";
 
 const SareyaanInventory = () => {
