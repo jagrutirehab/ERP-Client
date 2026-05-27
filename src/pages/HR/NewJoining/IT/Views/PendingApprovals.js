@@ -17,7 +17,7 @@ import DataTableComponent from "../../../../../Components/Common/DataTable";
 import RefreshButton from "../../../../../Components/Common/RefreshButton";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 
-const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }) => {
+const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles, designationOptions = []  }) => {
 
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
@@ -36,6 +36,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     const [selectedEmail, setSelectedEmail] = useState("");
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
     const [reason, setReason] = useState("");
+    const [selectedDesignation, setSelectedDesignation] = useState(null);
 
     const centerOptions = [
         ...(user?.centerAccess?.length > 1
@@ -92,7 +93,8 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 limit,
                 centers,
                 view: "NEW_JOINING_PENDING",
-                ...search.trim() !== "" && { search: debouncedSearch }
+                ...search.trim() !== "" && { search: debouncedSearch },
+                ...(selectedDesignation && { designation: selectedDesignation }),
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -105,7 +107,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchPendingITApprovals();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles, selectedDesignation]);
 
 
     const handleApproveStart = (row) => {
@@ -378,6 +380,17 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                             />
                         </div>
 
+                        <div style={{ width: "180px" }}>
+    <Select
+        options={designationOptions}
+        value={designationOptions.find(o => o.value === selectedDesignation) || null}
+        onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
+        placeholder="Designation"
+        isClearable
+        classNamePrefix="react-select"
+    />
+</div>
+
                     </div>
 
                     <RefreshButton loading={loading} onRefresh={fetchPendingITApprovals} />
@@ -407,6 +420,18 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+
+                    <div style={{ width: "100%" }}>
+    <Select
+        options={designationOptions}
+        value={designationOptions.find(o => o.value === selectedDesignation) || null}
+        onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
+        placeholder="Designation"
+        isClearable
+        classNamePrefix="react-select"
+    />
+</div>
+
                     <div className="d-flex justify-content-end">
                         <RefreshButton loading={loading} onRefresh={fetchPendingITApprovals} />
                     </div>

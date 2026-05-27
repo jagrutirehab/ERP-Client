@@ -36,7 +36,7 @@ const customStyles = {
   },
 };
 
-const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
+const ApprovalHistory = ({ activeTab, hasUserPermission, roles, designationOptions = []  }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const { data, pagination, loading } = useSelector((state) => state.HR);
@@ -46,6 +46,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [limit, setLimit] = useState(10);
+  const [selectedDesignation, setSelectedDesignation] = useState(null);
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -104,7 +105,8 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         limit,
         centers,
         view: "NEW_JOINING_HISTORY",
-        ...search.trim() !== "" && { search: debouncedSearch }
+        ...search.trim() !== "" && { search: debouncedSearch },
+        ...(selectedDesignation && { designation: selectedDesignation }),
       })).unwrap();
     } catch (error) {
       console.log(error)
@@ -118,7 +120,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     if (activeTab === "HISTORY" && hasUserPermission) {
       fetchITApprovalHistory();
     }
-  }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+  }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles, selectedDesignation]);
 
 
   const normalizeEmploymentType = (type) => {
@@ -135,7 +137,6 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     {
       name: <div>ECode</div>,
       selector: (row) => {
-        console.log("ECode Row:", row);
         return row?.eCode || "-";
       },
       sortable: true,
@@ -303,7 +304,16 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-
+<div style={{ width: "180px" }}>
+    <Select
+        options={designationOptions}
+        value={designationOptions.find(o => o.value === selectedDesignation) || null}
+        onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
+        placeholder="Designation"
+        isClearable
+        classNamePrefix="react-select"
+    />
+</div>
           </div>
 
           <RefreshButton loading={loading} onRefresh={fetchITApprovalHistory} />
@@ -332,6 +342,17 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
               onChange={(e) => setSearch(e.target.value)}
             />
           </div>
+
+          <div style={{ width: "100%" }}>
+    <Select
+        options={designationOptions}
+        value={designationOptions.find(o => o.value === selectedDesignation) || null}
+        onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
+        placeholder="Designation"
+        isClearable
+        classNamePrefix="react-select"
+    />
+</div>
           <div className="d-flex justify-content-end">
             <RefreshButton loading={loading} onRefresh={fetchITApprovalHistory} />
           </div>

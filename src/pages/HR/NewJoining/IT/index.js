@@ -14,6 +14,7 @@ import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import PendingApprovals from "./Views/PendingApprovals";
 import ApprovalHistory from "./Views/ApprovalHistory";
+import { getDesignations } from "../../../../helpers/backend_helper";
 
 
 const NEWJoiningIT = () => {
@@ -21,6 +22,7 @@ const NEWJoiningIT = () => {
     const isMobile = useMediaQuery("(max-width: 1000px)");
     const [searchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "PENDING");
+     const [designationOptions, setDesignationOptions] = useState([]); 
 
 
     const microUser = localStorage.getItem("micrologin");
@@ -35,6 +37,22 @@ const NEWJoiningIT = () => {
         }
     }, [loading, hasUserPermission, navigate]);
 
+           useEffect(() => {
+        const fetchDesignations = async () => {
+            try {
+                const res = await getDesignations();
+                console.log("Res", res);
+                
+                setDesignationOptions(
+                    res?.data
+                );
+            } catch (err) {
+                console.log(err);
+            }
+        };
+        fetchDesignations();
+    }, []);
+
 
     if (loading) {
         return (
@@ -44,9 +62,14 @@ const NEWJoiningIT = () => {
         )
     }
 
+    
+
     const toggle = (tab) => {
         if (activeTab !== tab) setActiveTab(tab);
     };
+
+
+
     return (
         <CardBody
             className="p-3 bg-white"
@@ -84,6 +107,7 @@ const NEWJoiningIT = () => {
                             hasUserPermission={hasUserPermission}
                             hasPermission={hasPermission}
                             roles={roles}
+                            designationOptions={designationOptions}
                         />
                     </TabPane>
                     <TabPane tabId="HISTORY">
@@ -92,6 +116,7 @@ const NEWJoiningIT = () => {
                             hasUserPermission={hasUserPermission}
                             hasPermission={hasPermission}
                             roles={roles}
+                            designationOptions={designationOptions}
                         />
                     </TabPane>
                 </TabContent>
