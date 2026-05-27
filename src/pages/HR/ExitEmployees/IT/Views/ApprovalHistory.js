@@ -44,6 +44,16 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
+    const [lwdFilter, setLwdFilter] = useState("ALL");
+const [lwdFrom, setLwdFrom] = useState("");
+const [lwdTo, setLwdTo] = useState("");
+
+const lwdOptions = [
+  { value: "ALL", label: "All" },
+  { value: "BEFORE_TODAY", label: "Before Today" },
+  { value: "AFTER_TODAY", label: "After Today" },
+  { value: "CUSTOM", label: "Custom Range" },
+];
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -91,6 +101,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     }, [search]);
 
     const fetchITApprovalHistory = async () => {
+        const today = new Date().toISOString();
         try {
             const centers =
                 selectedCenter === "ALL"
@@ -102,7 +113,11 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
                 limit,
                 centers,
                 view: "EXIT_EMPLOYEE_HISTORY",
-                ...search.trim() !== "" && { search: debouncedSearch }
+                ...search.trim() !== "" && { search: debouncedSearch },
+                 ...(lwdFilter === "BEFORE_TODAY" && { lwdTo: today }),
+            ...(lwdFilter === "AFTER_TODAY" && { lwdFrom: today }),
+            ...(lwdFilter === "CUSTOM" && lwdFrom && { lwdFrom }),
+            ...(lwdFilter === "CUSTOM" && lwdTo && { lwdTo }),
             })).unwrap();
         } catch (error) {
             console.log(error)
@@ -116,7 +131,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         if (activeTab === "HISTORY" && hasUserPermission) {
             fetchITApprovalHistory();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles,  lwdFilter, lwdFrom, lwdTo]);
 
     const columns = [
         {
@@ -133,9 +148,11 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         {
             name: <div>Last Working Date</div>,
             selector: row => {
+                console.log("Row", row);
+                
                 if (!row?.exitDate) return "-";
 
-                const date = new Date(row.exitDate);
+                const date = new Date(row?.exitDate);
 
                 return date.toLocaleDateString("en-GB", {
                     day: "2-digit",
@@ -266,7 +283,25 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                         </div>
+                        <div style={{ width: "180px" }}>
+        <Select
+            options={lwdOptions}
+            value={lwdOptions.find(o => o.value === lwdFilter)}
+            onChange={(opt) => { setLwdFilter(opt.value); setLwdFrom(""); setLwdTo(""); setPage(1); }}
+            placeholder="Last Working Date"
+        />
+    </div>
 
+    {lwdFilter === "CUSTOM" && (
+        <>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdFrom} onChange={(e) => { setLwdFrom(e.target.value); setPage(1); }} />
+            </div>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdTo} onChange={(e) => { setLwdTo(e.target.value); setPage(1); }} />
+            </div>
+        </>
+    )}
                     </div>
 
                 </div>
@@ -294,7 +329,25 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <div style={{ width: "180px" }}>
+        <Select
+            options={lwdOptions}
+            value={lwdOptions.find(o => o.value === lwdFilter)}
+            onChange={(opt) => { setLwdFilter(opt.value); setLwdFrom(""); setLwdTo(""); setPage(1); }}
+            placeholder="Last Working Date"
+        />
+    </div>
 
+    {lwdFilter === "CUSTOM" && (
+        <>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdFrom} onChange={(e) => { setLwdFrom(e.target.value); setPage(1); }} />
+            </div>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdTo} onChange={(e) => { setLwdTo(e.target.value); setPage(1); }} />
+            </div>
+        </>
+    )}
                 </div>
 
             </div>
