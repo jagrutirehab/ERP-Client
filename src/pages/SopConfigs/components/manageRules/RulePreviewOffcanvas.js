@@ -306,8 +306,8 @@ const RulePreviewOffcanvas = ({
                     const d = m.dosageAndFrequency || {};
                     const dose = [
                       d.morning || "0",
-                      d.afternoon || "0",
                       d.evening || "0",
+                      d.night || "0",
                     ]
                       .join("-")
                       .concat(d.unit ? ` ${d.unit}` : "");
@@ -334,9 +334,7 @@ const RulePreviewOffcanvas = ({
                             )}
                             {m.intake && (
                               <Badge color="info" pill>
-                                {m.intake === "BEFORE_FOOD"
-                                  ? "Before Food"
-                                  : "After Food"}
+                                {m.intake}
                               </Badge>
                             )}
                           </div>
