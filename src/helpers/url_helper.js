@@ -133,7 +133,7 @@ export const EDIT_LAB_REPORT = "/chart/lab-report";
 export const POST_GENERAL_LAB_REPORT = "/chart/lab-report/general";
 export const EDIT_GENERAL_LAB_REPORT = "/chart/lab-report/general";
 export const DELETE_LAB_REPORT_FILE = "/chart/lab-report";
-export const GENERATE_LAB_SUMMARY = "/chart/generate/summary/lab-report"
+export const GENERATE_LAB_SUMMARY = "/chart/generate/summary/lab-report";
 export const GET_AI_EXPIRY_SUMMARY = "/chart/expiry-summary/generate";
 export const VALIDATE_AI_EXPIRY_SUMMARY = "/chart/expiry-summary/validate";
 
@@ -273,8 +273,10 @@ export const GET_OPD_ANALYTICS = "/report/opd";
 export const GET_BOOKING_ANALYTICS = "/report/booking";
 export const GET_ADMISSION_FORMS = "/report/admission-forms";
 export const GET_ADMISSION_FORMS_CSV = "/report/admission-forms-csv";
-export const GET_ADVANCE_PAYMENT_DEPOSIT_ANALYTICS = "/report/advance-payment-deposit";
-export const GET_ADVANCE_PAYMENT_DEPOSIT_CSV = "/report/advance-payment-deposit-csv";
+export const GET_ADVANCE_PAYMENT_DEPOSIT_ANALYTICS =
+  "/report/advance-payment-deposit";
+export const GET_ADVANCE_PAYMENT_DEPOSIT_CSV =
+  "/report/advance-payment-deposit-csv";
 
 //NOTIFICATION
 export const GET_BILL_NOTIFICATION = "notification/bill";
@@ -340,9 +342,9 @@ export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES =
   "/nurse/next-day-medicines";
 export const GET_ACTIVITIES_BY_STATUS = "/nurse/activities";
 export const GET_NURSE_GIVEN_MEDICINES = "/nurse/medicine-records";
-export const GET_NURSE_GIVEN_MEDICINE_DETAILS = "/nurse/medicine-record-details";
+export const GET_NURSE_GIVEN_MEDICINE_DETAILS =
+  "/nurse/medicine-record-details";
 export const GET_PRESCRIPTION_HISTORY = "/nurse/prescription-history";
-
 
 // alerts
 export const GET_ALERTS_BY_PATIENT = "/alerts/nurse";
@@ -438,14 +440,16 @@ export const UPDATE_AUDIT_STATUS = "/pharmacy/audit/status";
 export const DOWNLOAD_AUDIT_FAILED_MEDICINES = "/pharmacy/audit/failed";
 
 // PHARMACY REQUISITION - INTERNAL TRANSFER
-export const PHARMACY_INTERNAL_TRANSFER = "/pharmacy/requisition/internal-transfer";
+export const PHARMACY_INTERNAL_TRANSFER =
+  "/pharmacy/requisition/internal-transfer";
 export const PHARMACY_MEDICINE_SEARCH = "/pharmacy/search";
 export const PHARMACY_STOCK_BY_IDS = "/pharmacy/stock-by-ids";
 export const PHARMACY_STOCK_BY_MEDICINES = "/pharmacy/stock-by-medicines";
 export const PHARMACY_BATCHES_BY_MEDICINES = "/pharmacy/batches-by-medicines";
 
 // PHARMACY REQUISITION - MEDICINE REQUISITION
-export const PHARMACY_MEDICINE_REQUISITION = "/pharmacy/requisition/medicine-requisition";
+export const PHARMACY_MEDICINE_REQUISITION =
+  "/pharmacy/requisition/medicine-requisition";
 
 // INVENTORY STOCK SUMMARY
 export const PHARMACY_CONSOLIDATED = "/pharmacy/consolidated";
@@ -453,20 +457,24 @@ export const PHARMACY_CONSOLIDATED = "/pharmacy/consolidated";
 // PHARMACY OCR BILL IMPORT
 export const OCR_UPLOAD_BILL = "/pharmacy/ocr/upload-bill";
 export const OCR_CHECK_PHARMACY_BATCH = "/pharmacy/ocr/check-pharmacy-batch";
-export const OCR_CHECK_EXISTING_MEDICINE = "/pharmacy/ocr/check-pharmacy-medicine";
+export const OCR_CHECK_EXISTING_MEDICINE =
+  "/pharmacy/ocr/check-pharmacy-medicine";
 export const OCR_CONFIRM_MEDICINES = "/pharmacy/ocr/confirm-medicines";
 export const OCR_GET_BILL_DETAILS = "/pharmacy/ocr/bill-import";
-export const OCR_GET_MATCHING_MEDICINES = "/pharmacy/ocr/get-matching-medicines";
+export const OCR_GET_MATCHING_MEDICINES =
+  "/pharmacy/ocr/get-matching-medicines";
 export const OCR_GET_BILL_UPLOADS = "/pharmacy/ocr/bill-uploads";
 export const OCR_UPDATE_BILL_ERRORS = "/pharmacy/ocr/update-bill-errors";
 
 // PHARMACY EXCEL REPORTS
 export const PHARMACY_REPORT_CONSOLIDATED = "/pharmacy/reports/consolidated";
-export const PHARMACY_REPORT_INVENTORY_UPDATE = "/pharmacy/reports/inventory-update";
+export const PHARMACY_REPORT_INVENTORY_UPDATE =
+  "/pharmacy/reports/inventory-update";
 
 // SAREYAAN INVENTORY IMPORT
 export const SAREYAAN_INVENTORY_IMPORT_LIST = "/pharmacy/sareyaan-import";
-export const SAREYAAN_INVENTORY_IMPORT_ERRORS_DOWNLOAD = "/pharmacy/sareyaan-import";
+export const SAREYAAN_INVENTORY_IMPORT_ERRORS_DOWNLOAD =
+  "/pharmacy/sareyaan-import";
 
 // MI REPORTING
 export const GET_MI_HUBSPOT_CONTACTS = "/mi-reporting/hubspot-contacts";
@@ -493,15 +501,12 @@ export const GET_PATIENT_DOCS = "/mi-reporting/get-patient-docs";
 export const GET_OPD_PATIENT_DOCS = "/mi-reporting/get-opd-patient-docs";
 export const GET_DAILY_INVOICES = "/mi-reporting/get-daily-invoices";
 export const GET_COUNSLLING_SESSIONS = "/mi-reporting/get-counselling-sessions";
-export const GET_COUNSELLING_RECORDING = "/mi-reporting/get-counselling-recording";
+export const GET_COUNSELLING_RECORDING =
+  "/mi-reporting/get-counselling-recording";
 export const GET_DAILY_DASHBOARD = "/mi-reporting/daily-dashboard";
 export const GET_DOCS_COMPLIANCE = "/mi-reporting/docs-compliance";
 export const GET_DUE_AMOUNT = "/mi-reporting/get-due-amount";
 export const GET_MI_ATTENDANCE = "/mi-reporting/get-attendance";
-
-
-
-
 
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
@@ -566,8 +571,6 @@ export const GET_EMPLOYEE_PAYSLIPS = "/hr/payroll/employee-payslips";
 export const GET_MY_PAYSLIPS = "/hr/payroll/my-payslips";
 export const GET_MY_SALARY_DATA = "/hr/payroll/my-salary-data";
 
-
-
 // HRMS
 export const GET_BALANCE_LEAVES = "/hrms/get/my/balance/leaves";
 export const ATTENDANCE = "/hrms/attendance";
@@ -600,40 +603,43 @@ export const GET_MY_LEAVES = "/hrms/get/my/leaves";
 export const RETRIEVE_ACTION = "/hrms/leaves";
 export const ADD_POLICIES = "/hrms/employee/policy";
 export const GET_POLICIES = "/hrms/employee/get/policies";
-export const GET_LATEST_POLICY = "/hrms/latest/policy"
+export const GET_LATEST_POLICY = "/hrms/latest/policy";
 export const ADMIN_GET_ALL_LEAVES = "/hrms/admin/get/leaves/info";
 export const GET_FESTIVE_LEAVES_LISTS = "/hrms/get/all/lists";
 export const POST_FESTIVE_LEAVES_LIST = "/hrms/post/festive-leaves/list";
 export const ADD_LEAVES_TO_EXISTING_LIST = "/hrms/post/list/in";
 export const UPDATE_LEAVE = "/hrms/update/leave-in/list";
 export const DELETE_LEAVE = "/hrms/delete/leave-in/list";
-export const CANCELLATION_REQUEST = "/hrms/leave/cancellation/request"
-export const GET_CANCELLATIONS_HISTORY = "/hrms/leave/get/cancellations/hr"
-export const DIRECT_CANCELLATIONS = "/hrms/leave/direct/approve/cancellation"
-export const GET_CANCELLATION_REQUEST = "/hrms/leave/get/cancellations"
-export const ACTION_ON_CANCELLATION_REQUEST = "/hrms/leave/cancellation"
-export const GET_ALL_EMPLOYEE_LEAVE_BALANCE = "/hrms/leaves/balance/all-employees";
+export const CANCELLATION_REQUEST = "/hrms/leave/cancellation/request";
+export const GET_CANCELLATIONS_HISTORY = "/hrms/leave/get/cancellations/hr";
+export const DIRECT_CANCELLATIONS = "/hrms/leave/direct/approve/cancellation";
+export const GET_CANCELLATION_REQUEST = "/hrms/leave/get/cancellations";
+export const ACTION_ON_CANCELLATION_REQUEST = "/hrms/leave/cancellation";
+export const GET_ALL_EMPLOYEE_LEAVE_BALANCE =
+  "/hrms/leaves/balance/all-employees";
 
 export const REQUEST_REGULARIZATION = "/hrms/request/regularization";
 export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
 export const GET_REGULARIZATION_REQUESTS = "/hrms/get/regularizations/requests";
 export const UPDATE_REGULARIZATION = "/hrms/regularize";
-export const GET_ALL_EMPLOYEE_REGULARIZATIONS = "/hrms/regularizations/employees/summary";
+export const GET_ALL_EMPLOYEE_REGULARIZATIONS =
+  "/hrms/regularizations/employees/summary";
 export const GET_REGULARIZATIONS_BY_EMPLOYEE = "/hrms/regularizations/employee";
-export const GET_COMP_REQUESTS = "/hrms/leave/get/comp-off/requests"
-export const ACTION_ON_COMP_REQUESTS = "/hrms/leave/mark/comp-off/request"
-export const POST_COMP_OFF_REQUEST = "/hrms/leave/request/comp-off"
+export const GET_COMP_REQUESTS = "/hrms/leave/get/comp-off/requests";
+export const ACTION_ON_COMP_REQUESTS = "/hrms/leave/mark/comp-off/request";
+export const POST_COMP_OFF_REQUEST = "/hrms/leave/request/comp-off";
 
-export const GET_PENDING_APPROVALS_BY_MANAGER_ID = "/hrms/get/pendings"
-export const TRANSFER_MANAGER_PENDING_APPROVALS = "/hrms/transfer/pendings"
-export const GET_EMPLOYEES_WITHOUT_FILTER = "/hrms/get/employees/without/filter"
-export const GET_TEMPORARY_MANAGER = "/hrms/get/temporary/manager"
+export const GET_PENDING_APPROVALS_BY_MANAGER_ID = "/hrms/get/pendings";
+export const TRANSFER_MANAGER_PENDING_APPROVALS = "/hrms/transfer/pendings";
+export const GET_EMPLOYEES_WITHOUT_FILTER =
+  "/hrms/get/employees/without/filter";
+export const GET_TEMPORARY_MANAGER = "/hrms/get/temporary/manager";
 
 // FOR HR
-export const GET_LEAVES = "/hrms/leave/get/leaves"
-export const APPROVE_LEAVE = "/hrms/leave/change/status/byhr"
-export const GET_ALL_COMP_OFFS = "/hrms/leave/get/all/comp-offs"
-export const GET_MY_COMP_OFFS = "/hrms/leaves/get/my/comp-offs"
+export const GET_LEAVES = "/hrms/leave/get/leaves";
+export const APPROVE_LEAVE = "/hrms/leave/change/status/byhr";
+export const GET_ALL_COMP_OFFS = "/hrms/leave/get/all/comp-offs";
+export const GET_MY_COMP_OFFS = "/hrms/leaves/get/my/comp-offs";
 
 // CAPACITY ASSESSMENT FORM
 export const SUBMIT_ASSESSMENT_FROM =
@@ -651,77 +657,77 @@ export const GET_TALLY_PENDING_UPDATES = "/tally/logs/pending-updates";
 export const GET_TALLY_LOGS_EXPORT_CSV = "/tally/logs/export-csv";
 
 // Issues
-export const GET_ISSUES = "/issues/get"
-export const GET_MY_ISSUES = "/issues/my/tickets"
-export const CHANGE_STATUS = "/issues/change/status"
-export const APPROVE_ISSUE = "/issues/approval"
-export const POST_ISSUE = "/issues/post"
-export const GET_TICKET_DASHBOARD_DATA = "/issues/get/dashboard-data"
-export const GET_RAISED_TICKETS = "/issues/get/my/raised/tickets"
-export const GET_HR_ISSUES_REQUESTS = "/issues/hr/issues/request"
-export const UPDATE_HR_ISSUE_REQUEST = "/issues/hr/issue/update"
-export const UPDATE_FINANCE_ISSUE_REQUEST = "/issues/finance/update/status"
-export const GET_FINANCE_ISSUES = "/issues/finance/issues/tax/compliance"
-export const GET_PAYSLIPS_ISSUES_REQUESTS = "/issues/get/finance/payslip/requests"
-export const ADD_ISSUE_NOTE = "/issues/note/add"
+export const GET_ISSUES = "/issues/get";
+export const GET_MY_ISSUES = "/issues/my/tickets";
+export const CHANGE_STATUS = "/issues/change/status";
+export const APPROVE_ISSUE = "/issues/approval";
+export const POST_ISSUE = "/issues/post";
+export const GET_TICKET_DASHBOARD_DATA = "/issues/get/dashboard-data";
+export const GET_RAISED_TICKETS = "/issues/get/my/raised/tickets";
+export const GET_HR_ISSUES_REQUESTS = "/issues/hr/issues/request";
+export const UPDATE_HR_ISSUE_REQUEST = "/issues/hr/issue/update";
+export const UPDATE_FINANCE_ISSUE_REQUEST = "/issues/finance/update/status";
+export const GET_FINANCE_ISSUES = "/issues/finance/issues/tax/compliance";
+export const GET_PAYSLIPS_ISSUES_REQUESTS =
+  "/issues/get/finance/payslip/requests";
+export const ADD_ISSUE_NOTE = "/issues/note/add";
 
 // recordings
 export const GET_RECORDINGS = "/ozonetel/get";
 export const GET_RECORDING_BY_ID = "/ozonetel/get";
 export const GENERATE_OVERVIEW_RECORDING = "/ozonetel/generate-overview-by-id";
-export const BULK_GENERATE_OVERVIEW_RECORDING = "/ozonetel/generate-bulk-overview";
+export const BULK_GENERATE_OVERVIEW_RECORDING =
+  "/ozonetel/generate-bulk-overview";
 export const UPLOAD_XLSX_FILE = "/ozonetel/upload/file";
-export const GET_CALL_RECORDING_OVERVIEW = "/ozonetel/get/call/overviews"
-
+export const GET_CALL_RECORDING_OVERVIEW = "/ozonetel/get/call/overviews";
 
 // Feedback Recordings
 export const GET_FEEDBACK_RECORDINGS = "/feedback/recordings";
 export const GET_FEEDBACK_RECORDING_BY_ID = "/feedback/recordings";
-export const GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-overview";
-export const BULK_GENERATE_FEEDBACK_OVERVIEW_RECORDING = "/feedback/generate-bulk-overview";
+export const GENERATE_FEEDBACK_OVERVIEW_RECORDING =
+  "/feedback/generate-overview";
+export const BULK_GENERATE_FEEDBACK_OVERVIEW_RECORDING =
+  "/feedback/generate-bulk-overview";
 export const UPLOAD_FEEDBACK_XLSX_FILE = "/feedback/upload/file";
-export const GET_FEEDBACK_RECORDING_OVERVIEW = "/feedback/get/feedback/overviews"
+export const GET_FEEDBACK_RECORDING_OVERVIEW =
+  "/feedback/get/feedback/overviews";
 
 // generate AI Summary
-export const GET_AI_SUMMARY = "/chart/generateSummary"
-export const VALIDATE_SUMMARY = "/chart/validate/response"
-
+export const GET_AI_SUMMARY = "/chart/generateSummary";
+export const VALIDATE_SUMMARY = "/chart/validate/response";
 
 // SOP CONFIGS
-export const CONFIGURATION_SOP = "/sop/create"
-export const GET_ROLES = "/sop/getroles"
-export const GET_FIELDS = "/sop/fields"
-export const GET_ALL_SOP_ALERTS = "/sop/alerts"
-export const EXPORT_SOP_ALERTS = "/sop/alerts/export"
-export const GET_UNREAD_SOP_ALERTS = "/sop/alerts/unread"
-export const MARK_SOP_ALERT_READ = "/sop/alerts"
-export const MARK_ALL_SOP_ALERTS_READ = "/sop/alerts/mark-all-read"
+export const CONFIGURATION_SOP = "/sop/create";
+export const GET_ROLES = "/sop/getroles";
+export const GET_FIELDS = "/sop/fields";
+export const GET_ALL_SOP_ALERTS = "/sop/alerts";
+export const EXPORT_SOP_ALERTS = "/sop/alerts/export";
+export const GET_UNREAD_SOP_ALERTS = "/sop/alerts/unread";
+export const MARK_SOP_ALERT_READ = "/sop/alerts";
+export const MARK_ALL_SOP_ALERTS_READ = "/sop/alerts/mark-all-read";
 
-export const SOP_RULES = "/sop/rules"
-export const SOP_SUGGESTED_MEDICINES = "/sop/suggested-medicines"
-
+export const SOP_RULES = "/sop/rules";
+export const SOP_SUGGESTED_MEDICINES = "/sop/suggested-medicines";
 
 // trainings
 
-export const CREATE_TRAININGS = "/trainings/create"
-export const GET_BY_ROLES = "/trainings/get/by/roles"
-export const ACKNOWLEDGE_TRAINING = "/trainings/acknowledge"
-export const GET_ALL_TRAININGS = "/trainings/get"
-export const EDIT_TRAINING = "/trainings/edit"
-export const GET_TRAINING_BY_ID = "/trainings"
-export const GET_TRAINING_HISTORY = "/trainings/history"
-export const CREATE_TRAINER_RECORD = '/trainings/create/trainers'
-export const GET_USER_BY_ROLE = "/trainings/get/users/by/role"
-export const GET_TRAINERS = "/trainings/get/trainers"
-export const GET_TRAINER_BY_ID = "/trainings/get/trainer"
-export const EDIT_TRAINER = "/trainings/edit"
-export const DELETE_RECORD = "/trainings/delete"
-export const GET_DISCTINCT_ROLES = "/trainings/get/distinct/roles"
+export const CREATE_TRAININGS = "/trainings/create";
+export const GET_BY_ROLES = "/trainings/get/by/roles";
+export const ACKNOWLEDGE_TRAINING = "/trainings/acknowledge";
+export const GET_ALL_TRAININGS = "/trainings/get";
+export const EDIT_TRAINING = "/trainings/edit/training";
+export const GET_TRAINING_BY_ID = "/trainings";
+export const GET_TRAINING_HISTORY = "/trainings/history";
+export const CREATE_TRAINER_RECORD = "/trainings/create/trainers";
+export const GET_USER_BY_ROLE = "/trainings/get/users/by/role";
+export const GET_TRAINERS = "/trainings/get/trainers";
+export const GET_TRAINER_BY_ID = "/trainings/get/trainer";
+export const EDIT_TRAINER = "/trainings/edit";
+export const DELETE_RECORD = "/trainings/delete";
+export const GET_DISCTINCT_ROLES = "/trainings/get/distinct/roles";
 
-
-// Positions 
-export const GET_POSITIONS = "/hr/get/positions"
-
+// Positions
+export const GET_POSITIONS = "/hr/get/positions";
 
 // PROFILE
-export const GET_EMPLOYEE_PROFILE = "/profile/get"
+export const GET_EMPLOYEE_PROFILE = "/profile/get";
