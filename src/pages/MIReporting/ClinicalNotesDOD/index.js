@@ -55,11 +55,11 @@
             allHeaders,
             ...filteredData.map((patient) => [
                 ...labels.map((label) =>
-                    label === "Total (Current Month)"
+                    label === "MTD"
                         ? patientMonthTotals[patient.patient_id] ?? 0
                         : patient[labelsMapping[label]] ?? ""
                 ),
-                ...last30Days.map(({ label }) => patient[label] ?? ""),
+                ...last30Days.map(({ key }) => patient[key] ?? ""),
             ]),
         ];
 
@@ -83,7 +83,7 @@
 
     const labels=[
             "Patient Name",
-             "Total (Current Month)",
+             "MTD",
             "Center Name",
             "Patient UID",
             "Psychologist Name",
@@ -92,7 +92,7 @@
 
             ]
 
-    const fixedColWidths = [240, 120, 90, 100];
+    const fixedColWidths = [240, 55, 90, 100];
 
     const labelsMapping={
             "Psychologist Name":"psychologist_name",
@@ -100,7 +100,7 @@
              "Patient Name":"patient",
              "Patient UID":"patient_id",
             "Assigned Patients":"assigned_patients",
-            "Total (Current Month)":"total",
+            "MTD":"total",
 
 
     }
@@ -112,7 +112,7 @@
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             const key =d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
-            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).replace(/ /g, "-");
             days.push({ key, label });
         }
         return days;
@@ -141,7 +141,7 @@
         const totals = {};
         filteredData.forEach((patient) => {
             totals[patient.patient_id] = currentMonthDays.reduce(
-                (sum, { label }) => sum + (Number(patient[label]) || 0),
+                (sum, { key }) => sum + (Number(patient[key]) || 0),
                 0
             );
         });
@@ -165,7 +165,7 @@
         >       
          <div className="row">
             <div className="col-12">
-            <div className="p-3">
+            <div className="p-3 pb-0">
                 <div className="row align-items-center">
                 <div className="col-sm-6 col-8" >
                     <div className="d-flex align-items-center">
@@ -210,7 +210,7 @@
                 </div>
             </div>
 
-            <div className="p-3 p-lg-4">
+            <div className="p-3 p-lg-4 pt-1">
                 <Row className="g-2 align-items-center mb-4">
                     <Col md={2}>
                         <Select
@@ -262,7 +262,7 @@
                                             {i === 5 ? "Total (Single Day)" : ""}
                                         </th>
                                     ))}
-                                    {last30Days.map(({ key, label }) => (
+                                    {last30Days.map(({ key }) => (
                                         <th
                                             key={key}
                                             className="text-center fw-bold px-1 py-1"
@@ -273,7 +273,7 @@
                                                 whiteSpace: "nowrap",
                                             }}
                                         >
-                                            {dateTotals[label] || ""}
+                                            {dateTotals[key] || ""}
                                         </th>
                                     ))}
                                 </tr>
@@ -326,7 +326,7 @@
                                                     minWidth: fixedColWidths[i],
                                                 }}
                                             >
-                                                {label === "Total (Current Month)"
+                                                {label === "MTD"
                                                     ? patientMonthTotals[patient.patient_id] ?? 0
                                                     : patient[labelsMapping[label]]}
                                             </td>
@@ -341,7 +341,7 @@
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {patient[label] ?? 0}
+                                                {patient[key] ?? 0}
                                             </td>
                                         ))}
 

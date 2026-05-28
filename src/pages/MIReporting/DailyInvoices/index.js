@@ -51,16 +51,22 @@ const DailyInvoices = () => {
         const from = dateFrom ? startOfDay(dateFrom) : null;
         const to = dateTo ? endOfDay(dateTo) : null;
 
-        return data.filter(item => {
-            if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
-            if (selectedStatus !== "ALL" && item?.status !== selectedStatus) return false;
-            if (item?.invoice_due_date) {
-                const due = new Date(item.invoice_due_date);
-                if (from && due < from) return false;
-                if (to && due > to) return false;
-            }
-            return true;
-        });
+        return data
+            .filter(item => {
+                if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
+                if (selectedStatus !== "ALL" && item?.status !== selectedStatus) return false;
+                if (item?.invoice_due_date) {
+                    const due = new Date(item.invoice_due_date);
+                    if (from && due < from) return false;
+                    if (to && due > to) return false;
+                }
+                return true;
+            })
+            .sort((a, b) => {
+                const dateA = a.invoice_due_date ? new Date(a.invoice_due_date) : Infinity;
+                const dateB = b.invoice_due_date ? new Date(b.invoice_due_date) : Infinity;
+                return dateA - dateB;
+            });
     }, [data, selectedCenter, selectedStatus, dateFrom, dateTo]);
 
     
@@ -252,14 +258,15 @@ const DailyInvoices = () => {
 
                     {!loading && !error && (
                         <>
-                    <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
+                    <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh", display: "inline-block", maxWidth: "100%" }}>
                         <Table
-                            className="mb-0 w-100"
+                            className="mb-0"
                             style={{
                                 borderCollapse: "separate",
                                 borderSpacing: 0,
                                 fontSize: "0.78rem",
-                                tableLayout: "fixed",
+                                tableLayout: "auto",
+                                width: "auto",
                             }}
                         >
                             <thead>
@@ -288,21 +295,36 @@ const DailyInvoices = () => {
                             <tbody>
                                 {filteredData.map((patient, idx) => (
                                     <tr key={patient?.patient_uid ?? idx}>
-                                        {labels.map((label) => (
-                                            <td
-                                                key={label}
-                                                className="text-center px-1 py-2"
-                                                style={{
-                                                    border: "1px solid #d6dde8",
-                                                    background: idx % 2 === 0 ? "#f8fafc" : "#fff",
-                                                    whiteSpace: "normal",
-                                                    wordBreak: "break-word",
-                                                   
-                                                }}
-                                            >
-                                                {patient[labelsMapping[label]]}
-                                            </td>
-                                        ))}
+                                        {labels.map((label) => {
+                                            const raw = patient[labelsMapping[label]];
+                                            const isDate = label === "Admission Date" || label === "Invoice Due Date";
+                                            const value = isDate && raw
+                                                ? new Date(raw).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")
+                                                : raw;
+                                            const isStatus = label === "Status";
+                                            const statusColors = {
+                                                "Due Today": "#fff9c4",
+                                                "Overdue": "#ffcdd2",
+                                                "Upcoming": "#c8e6c9",
+                                            };
+                                            const cellBg = isStatus
+                                                ? (statusColors[value] || (idx % 2 === 0 ? "#f8fafc" : "#fff"))
+                                                : (idx % 2 === 0 ? "#f8fafc" : "#fff");
+                                            return (
+                                                <td
+                                                    key={label}
+                                                    className="text-center px-1 py-2"
+                                                    style={{
+                                                        border: "1px solid #d6dde8",
+                                                        background: cellBg,
+                                                        whiteSpace: "normal",
+                                                        wordBreak: "break-word",
+                                                    }}
+                                                >
+                                                    {value}
+                                                </td>
+                                            );
+                                        })}
                                     </tr>
                                 ))}
                             </tbody>
