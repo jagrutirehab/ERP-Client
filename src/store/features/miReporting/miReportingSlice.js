@@ -17,6 +17,7 @@ import {
   getRoundNotesDOD,
   getClinicalNotesDOD,
   getVitalSignsDOD,
+  getNursesDOD,
   getPatientDocs,
   getOpdPatientDocs,
   getDailyInvoices,
@@ -61,6 +62,7 @@ const initialState = {
   docsCompliance: [],
   dueAmount: [],
   miAttendance: [],
+  nursesDOD: [],
   loading: false,
   error: null,
 };
@@ -440,6 +442,18 @@ export const fetchMIAttendance = createAsyncThunk(
       return response;
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch Attendance");
+    }
+  }
+);
+
+export const fetchNursesDOD = createAsyncThunk(
+  "miReporting/fetchNursesDOD",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getNursesDOD(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to fetch Nurses DOD");
     }
   }
 );
@@ -836,9 +850,23 @@ const miReportingSlice = createSlice({
       .addCase(fetchDailyDashboard.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      //Nurses DOD
+      .addCase(fetchNursesDOD.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchNursesDOD.fulfilled, (state, action) => {
+        state.loading = false;
+        state.nursesDOD = action.payload.payload || [];
+      })
+      .addCase(fetchNursesDOD.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
 
-      
+
   },
 });
 

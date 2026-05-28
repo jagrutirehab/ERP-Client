@@ -147,18 +147,18 @@ export const MEDICINE_PRIORITY_OPTIONS = [
 ];
 
 export const MEDICINE_INTAKE_OPTIONS = [
-  { value: "BEFORE_FOOD", label: "Before Food" },
-  { value: "AFTER_FOOD",  label: "After Food" },
+  { value: "Before food", label: "Before food" },
+  { value: "After food",  label: "After food" },
 ];
 
 export const emptySuggestedMedicine = () => ({
   id: Date.now() + Math.random(),                  // local-only UI key
   medicine: null,                                  // { value, label, snapshot? }
   medicineSnapshot: { name: "", type: "", strength: "", unit: "" },
-  dosageAndFrequency: { morning: "", afternoon: "", evening: "", unit: "tab" },
+  dosageAndFrequency: { morning: "", evening: "", night: "", unit: "tab" },
   applicableDays: [],                              // [] = throughout admission
   instructions: "",
-  intake: MEDICINE_INTAKE_OPTIONS[1],               // After Food default
+  intake: MEDICINE_INTAKE_OPTIONS[1],               // After food default
   priority: MEDICINE_PRIORITY_OPTIONS[0],
   category: MEDICINE_CATEGORY_OPTIONS[0],
   rationale: "",

@@ -198,7 +198,7 @@ const Attendance = () => {
                                                                 whiteSpace: "nowrap",
                                                             }}
                                                         >
-                                                            {dateTotals[key] || ""}
+                                                            {dateTotals[key] ?? ""}
                                                         </th>
                                                     ))}
                                                 </tr>

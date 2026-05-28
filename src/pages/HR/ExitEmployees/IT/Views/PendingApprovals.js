@@ -37,7 +37,7 @@ const customStyles = {
 };
 
 
-const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }) => {
+const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles}) => {
 
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
@@ -51,9 +51,15 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     const [limit, setLimit] = useState(10);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalLoading, setModalLoading] = useState(false);
-    const [actionType, setActionType] = useState(null); // APPROVE | REJECT
+    const [actionType, setActionType] = useState(null);
     const [reason, setReason] = useState("");
     const [usersLinkedToEmployee, setUsersLinkedToEmployee] = useState([]);
+    const [lwdFilter, setLwdFilter] = useState("ALL");
+const [lwdFrom, setLwdFrom] = useState("");
+const [lwdTo, setLwdTo] = useState("");
+
+
+
 
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -102,6 +108,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     }, [search]);
 
     const fetchPendingITApprovals = async () => {
+        const today = new Date().toISOString();
         try {
             const centers =
                 selectedCenter === "ALL"
@@ -113,7 +120,11 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 limit,
                 centers,
                 view: "EXIT_EMPLOYEE_PENDING",
-                ...search.trim() !== "" && { search: debouncedSearch }
+                ...search.trim() !== "" && { search: debouncedSearch },
+                ...(lwdFilter === "BEFORE_TODAY" && { lwdTo: today }),
+    ...(lwdFilter === "AFTER_TODAY" && { lwdFrom: today }),
+    ...(lwdFilter === "CUSTOM" && lwdFrom && { lwdFrom }),
+    ...(lwdFilter === "CUSTOM" && lwdTo && { lwdTo }),
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -126,7 +137,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchPendingITApprovals();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles, lwdFilter, lwdFrom, lwdTo]);
 
 
     const fetchUsersLinkedToEmployee = async (employeeId) => {
@@ -298,6 +309,13 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             : [])
     ];
 
+    const lwdOptions = [
+  { value: "ALL", label: "All" },
+  { value: "BEFORE_TODAY", label: "Before Today" },
+  { value: "AFTER_TODAY", label: "After Today" },
+  { value: "CUSTOM", label: "Custom Range" },
+];
+
     return (
 
         <>
@@ -330,6 +348,27 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                             />
                         </div>
 
+<div style={{ width: "180px" }}> 
+  <Select
+    options={lwdOptions}
+    value={lwdOptions.find(o => o.value === lwdFilter)}
+    onChange={(opt) => { setLwdFilter(opt.value); setLwdFrom(""); setLwdTo(""); setPage(1); }}
+    placeholder="Last Working Date"
+  />
+</div>
+
+{lwdFilter === "CUSTOM" && (
+        <>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdFrom} onChange={(e) => { setLwdFrom(e.target.value); setPage(1); }} />
+            </div>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdTo} onChange={(e) => { setLwdTo(e.target.value); setPage(1); }} />
+            </div>
+        </>
+    )}
+
+
                     </div>
                 </div>
 
@@ -357,6 +396,26 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+
+            <div style={{ width: "180px" }}> 
+  <Select
+    options={lwdOptions}
+    value={lwdOptions.find(o => o.value === lwdFilter)}
+    onChange={(opt) => { setLwdFilter(opt.value); setLwdFrom(""); setLwdTo(""); setPage(1); }}
+    placeholder="Last Working Date"
+  />
+</div>
+
+{lwdFilter === "CUSTOM" && (
+        <>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdFrom} onChange={(e) => { setLwdFrom(e.target.value); setPage(1); }} />
+            </div>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdTo} onChange={(e) => { setLwdTo(e.target.value); setPage(1); }} />
+            </div>
+        </>
+    )}
                 </div>
 
             </div>
