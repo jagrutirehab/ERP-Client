@@ -2150,6 +2150,14 @@ export const getVitalSignsDOD = (data) => {
   });
 };
 
+export const getNursesDOD = (data) => {
+  return api.get(url.GET_NURSES_DOD, {
+    params: {
+      centerIds: data?.centerAccess,
+    }
+  });
+};
+
 
 export const getPatientDocs = (data) => {
 
