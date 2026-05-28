@@ -3774,6 +3774,11 @@ export const updateSopRule = (id, payload) => axios.patch(`${url.SOP_RULES}/${id
 export const toggleSopRuleActive = (id, isActive) => axios.patch(`${url.SOP_RULES}/${id}/active`, { isActive });
 export const deleteSopRule = (id) => axios.delete(`${url.SOP_RULES}/${id}`);
 
+export const getSopSuggestedMedicines = (patientId, today) =>
+  axios.get(`${url.SOP_SUGGESTED_MEDICINES}/${patientId}`, {
+    params: today ? { today } : undefined,
+  });
+
 // OCR BILL IMPORT
 export const getMatchingMedicines = (data) =>
   api.create(url.OCR_GET_MATCHING_MEDICINES, data, {

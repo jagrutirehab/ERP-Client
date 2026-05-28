@@ -39,6 +39,7 @@ import {
 } from "../../../Components/constants/patient";
 import MedicineDropdown from "../Dropdowns/Medicine";
 import MedicineTable from "../Tables/MedicineForm";
+import SopSuggestedMedicines from "./SopSuggestedMedicines";
 import { connect, useDispatch } from "react-redux";
 import {
   addGeneralPrescription,
@@ -533,6 +534,28 @@ const Prescription = ({
               </>
             )}
             {medicineDropdown}
+            {patient?._id && (patient?.addmission?._id || patient?.addmission) && (
+              <Col xs={12} className="mb-3">
+                <SopSuggestedMedicines
+                  patientId={patient._id}
+                  existingMedicines={medicines}
+                  onPopulate={(newMeds) =>
+                    setMedicines((prev) => {
+                      const existing = new Set(
+                        prev
+                          .map((m) => m?.medicine?.name?.toLowerCase?.().trim())
+                          .filter(Boolean),
+                      );
+                      const fresh = newMeds.filter((m) => {
+                        const n = m?.medicine?.name?.toLowerCase?.().trim();
+                        return n && !existing.has(n);
+                      });
+                      return [...fresh, ...prev];
+                    })
+                  }
+                />
+              </Col>
+            )}
             {medicineTable}
             {/* {(prescriptionFormFields || []).map((item, idx) => (
               <Col xs={12} md={6}>
