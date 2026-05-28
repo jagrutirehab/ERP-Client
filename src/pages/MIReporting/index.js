@@ -34,6 +34,7 @@ import DailyDashboard from "./DailyDashboard";
 import DocsCompliance from "./DocsCompliance";
 import DueAmount from "./DueAmount";
 import Attendance from "./Attendance";
+import NursesDOD from "./NursesDOD";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -246,6 +247,11 @@ const MiReporting = () => {
                   {hasMISPermission&&<Route
                     path="/attendance"
                     element={<Attendance />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/nurses-dod"
+                    element={<NursesDOD />}
                   />}
                   
                   

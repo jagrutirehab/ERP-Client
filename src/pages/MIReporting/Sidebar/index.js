@@ -73,6 +73,7 @@ const Sidebar = () => {
     { id: "docs-compliance", label: "Docs Compliance", link: "/mi-reporting/docs-compliance", icon: "bx bx-task" },
     { id: "due-amount", label: "Due Amount", link: "/mi-reporting/due-amount", icon: "bx bx-wallet-alt" },
     { id: "attendance", label: "Attendance", link: "/mi-reporting/attendance", icon: "bx bx-calendar-check" },
+    { id: "nurses-dod", label: "Nurses DOD", link: "/mi-reporting/nurses-dod", icon: "bx bx-capsule" },
   ];
 
   const sidebarStyle = isMobile

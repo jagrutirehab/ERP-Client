@@ -181,7 +181,7 @@ const SuggestedMedicineRow = ({
             disabled={isDisabled}
           />
 
-          {/* Row 3 — Daily dose (Morning / Afternoon / Evening + Unit + Intake) */}
+          {/* Row 3 — Daily dose (Morning / Evening / Night + Unit + Intake) */}
           <FormGroup>
             <Label className="small text-muted mb-1">
               Daily Dose <span className="text-danger">*</span>
@@ -203,20 +203,6 @@ const SuggestedMedicineRow = ({
               </Col>
               <Col xs={2}>
                 <Input
-                  placeholder="Afternoon"
-                  type="number"
-                  min={0}
-                  max={1}
-                  value={dose.afternoon || ""}
-                  onChange={(e) =>
-                    setNested("dosageAndFrequency", "afternoon", e.target.value)
-                  }
-                  disabled={isDisabled}
-                  invalid={!!error.dose}
-                />
-              </Col>
-              <Col xs={2}>
-                <Input
                   placeholder="Evening"
                   type="number"
                   min={0}
@@ -224,6 +210,20 @@ const SuggestedMedicineRow = ({
                   value={dose.evening || ""}
                   onChange={(e) =>
                     setNested("dosageAndFrequency", "evening", e.target.value)
+                  }
+                  disabled={isDisabled}
+                  invalid={!!error.dose}
+                />
+              </Col>
+              <Col xs={2}>
+                <Input
+                  placeholder="Night"
+                  type="number"
+                  min={0}
+                  max={1}
+                  value={dose.night || ""}
+                  onChange={(e) =>
+                    setNested("dosageAndFrequency", "night", e.target.value)
                   }
                   disabled={isDisabled}
                   invalid={!!error.dose}
