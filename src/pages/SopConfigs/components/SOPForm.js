@@ -93,10 +93,10 @@ const hydrateMedicine = (m) => ({
     unit: "",
   },
   dosageAndFrequency: {
-    morning:   m.dosageAndFrequency?.morning   || "",
-    afternoon: m.dosageAndFrequency?.afternoon || "",
-    evening:   m.dosageAndFrequency?.evening   || "",
-    unit:      m.dosageAndFrequency?.unit      || "",
+    morning: m.dosageAndFrequency?.morning || "",
+    evening: m.dosageAndFrequency?.evening || "",
+    night:   m.dosageAndFrequency?.night   || "",
+    unit:    m.dosageAndFrequency?.unit    || "",
   },
   applicableDays: Array.isArray(m.applicableDays)
     ? m.applicableDays.filter((n) => Number.isInteger(n) && n >= 0)
@@ -345,10 +345,10 @@ const SOPForm = ({
       medicine: m.medicine?.value,
       medicineSnapshot: m.medicineSnapshot || undefined,
       dosageAndFrequency: {
-        morning:   (d.morning   || "").trim(),
-        afternoon: (d.afternoon || "").trim(),
-        evening:   (d.evening   || "").trim(),
-        unit:      (d.unit      || "").trim(),
+        morning: (d.morning || "").trim(),
+        evening: (d.evening || "").trim(),
+        night:   (d.night   || "").trim(),
+        unit:    (d.unit    || "").trim(),
       },
       applicableDays: Array.isArray(m.applicableDays) ? m.applicableDays : [],
       instructions: m.instructions?.trim() || undefined,
@@ -436,10 +436,10 @@ const SOPForm = ({
       const d = m.dosageAndFrequency || {};
       const hasAnyDose =
         (d.morning && d.morning.trim()) ||
-        (d.afternoon && d.afternoon.trim()) ||
-        (d.evening && d.evening.trim());
+        (d.evening && d.evening.trim()) ||
+        (d.night && d.night.trim());
       if (!hasAnyDose) {
-        mErr.dose = "Enter at least one dose (Morning / Afternoon / Evening)";
+        mErr.dose = "Enter at least one dose (Morning / Evening / Night)";
         hasMedErrors = true;
       }
       if (!d.unit || !d.unit.trim()) {
