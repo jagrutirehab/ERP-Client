@@ -59,11 +59,11 @@ const CounsellingSessions = () => {
             allHeaders,
             ...filteredData.map((patient) => [
                 ...labels.map((label) =>
-                    label === "Total (Current Month)"
+                    label === "MTD"
                         ? psychologistMonthTotals[patient.psychologist] ?? 0
                         : patient[labelsMapping[label]] ?? ""
                 ),
-                ...last30Days.map(({ label }) => patient[label] ?? ""),
+                ...last30Days.map(({ key }) => patient[key] ?? ""),
             ]),
         ];
 
@@ -88,19 +88,19 @@ const CounsellingSessions = () => {
 
     const labels=[
             "Psychologist Name",
-            "Total (Current Month)",
+            "MTD",
             "Center Name",
             "Current Patients Count",
 
             ]
 
-    const fixedColWidths = [220, 120, 90, 100];
+    const fixedColWidths = [220, 55, 90, 100];
 
     const labelsMapping={
             "Psychologist Name":"psychologist",
             "Center Name":"center_name",
             "Current Patients Count":"assigned_patients",
-            "Total (Current Month)":"total"
+            "MTD":"total"
 
 
     }
@@ -112,7 +112,7 @@ const CounsellingSessions = () => {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             const key = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
-            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).replace(/ /g, "-");
             days.push({ key, label });
         }
         return days;
@@ -141,7 +141,7 @@ const CounsellingSessions = () => {
         const totals = {};
         filteredData.forEach((psychologist) => {
             totals[psychologist.psychologist] = currentMonthDays.reduce(
-                (sum, { label }) => sum + (Number(psychologist[label]) || 0),
+                (sum, { key }) => sum + (Number(psychologist[key]) || 0),
                 0
             );
         });
@@ -165,7 +165,7 @@ const CounsellingSessions = () => {
         >       
          <div className="row">
             <div className="col-12">
-            <div className="p-3">
+            <div className="p-3 pb-0">
                 <div className="row align-items-center">
                 <div className="col-sm-6 col-8" >
                     <div className="d-flex align-items-center">
@@ -210,7 +210,7 @@ const CounsellingSessions = () => {
                 </div>
             </div>
 
-            <div className="p-3 p-lg-4">
+            <div className="p-3 p-lg-4 pt-1">
                 <Row className="g-2 align-items-center mb-4">
                     <Col md={2}>
                         <Select
@@ -326,7 +326,7 @@ const CounsellingSessions = () => {
                                                     ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
                                                 }}
                                             >
-                                                {label === "Total (Current Month)"
+                                                {label === "MTD"
                                                     ? psychologistMonthTotals[psychologist.psychologist] ?? 0
                                                     : psychologist[labelsMapping[label]]}
                                             </td>
@@ -341,7 +341,7 @@ const CounsellingSessions = () => {
                                                     whiteSpace: "nowrap",
                                                 }}
                                             >
-                                                {psychologist[label] ?? ""}
+                                                {psychologist[key] ?? ""}
                                             </td>
                                         ))}
 

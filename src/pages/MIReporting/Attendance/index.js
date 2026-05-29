@@ -25,6 +25,7 @@ const Attendance = () => {
 
     const filteredData = useMemo(() => {
         return data.filter((item) => {
+            // console.log(item)
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
             return true;
         });
@@ -36,8 +37,9 @@ const Attendance = () => {
         for (let i = 1; i < 30; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
-            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
-            days.push({ key: label, label });
+            const key = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).replace(/ /g, "-");
+            days.push({ key, label });
         }
         return days;
     }, []);
@@ -50,21 +52,22 @@ const Attendance = () => {
         })),
     ], [data]);
 
-    const labels = ["Ecode", "Employee Name", "Center Name", "Designation", "Actual Attendance"];
-    const fixedColWidths = [90, 180, 120, 220, 120, 100];
+    const labels = ["Ecode", "Employee Name", "Center Name", "Designation","MTD", "Actual Attendance",];
+    const fixedColWidths = [90, 180, 120, 220, 55, 120];
     const labelsMapping = {
         "Ecode": "ecode",
         "Employee Name": "employee_name",
         "Center Name": "center_name",
         "Designation": "designation",
         "Actual Attendance": "actual_attendance",
-        // "Att Till Date": "att_till_date",
+        "MTD": "att_till_date",
     };
 
     const dateTotals = useMemo(() => {
         const totals = {};
         last30Days.forEach(({ key }) => {
-            totals[key] = filteredData.reduce((sum, row) => sum + (Number(row[key]) || 0), 0);
+            
+            totals[key] = filteredData.reduce((sum, row) => sum + (row[key]=="P"?1: 0), 0);
         });
         return totals;
     }, [filteredData, last30Days]);
@@ -84,7 +87,7 @@ const Attendance = () => {
             allHeaders,
             ...filteredData.map((emp) => [
                 ...labels.map((label) => emp[labelsMapping[label]] ?? ""),
-                ...last30Days.map(({ label }) => emp[label] ?? ""),
+                ...last30Days.map(({ key }) => emp[key] ?? ""),
             ]),
         ];
 
@@ -103,7 +106,7 @@ const Attendance = () => {
         >
             <div className="row">
                 <div className="col-12">
-                    <div className="p-3">
+                    <div className="p-3 pb-0">
                         <div className="row align-items-center">
                             <div className="col-sm-6 col-8">
                                 <div className="d-flex align-items-center">
@@ -141,7 +144,7 @@ const Attendance = () => {
                         </div>
                     </div>
 
-                    <div className="p-3 p-lg-4">
+                    <div className="p-3 p-lg-4 pt-1">
                         <Row className="g-2 align-items-center mb-4">
                             <Col md={2}>
                                 <Select
@@ -177,6 +180,38 @@ const Attendance = () => {
                                                             className="text-center fw-bold px-1 py-1"
                                                             style={{
                                                                 border: "1px solid #cfd8e3",
+                                                                background: "#002a00",
+                                                                color: "white",
+                                                                whiteSpace: "nowrap",
+                                                                minWidth: fixedColWidths[i],
+                                                                ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 11 }),
+                                                            }}
+                                                        >
+                                                            {i === labels.length - 1 ? "Total Employees" : ""}
+                                                        </th>
+                                                    ))}
+                                                    {last30Days.map(({ key }) => (
+                                                        <th
+                                                            key={key}
+                                                            className="text-center fw-bold px-1 py-1"
+                                                            style={{
+                                                                border: "1px solid #cfd8e3",
+                                                                background: "#002a00",
+                                                                color: "white",
+                                                                whiteSpace: "nowrap",
+                                                            }}
+                                                        >
+                                                            {filteredData.length}
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                                <tr>
+                                                    {labels.map((label, i) => (
+                                                        <th
+                                                            key={label}
+                                                            className="text-center fw-bold px-1 py-1"
+                                                            style={{
+                                                                border: "1px solid #cfd8e3",
                                                                 background: "#004d00",
                                                                 color: "white",
                                                                 whiteSpace: "nowrap",
@@ -184,7 +219,7 @@ const Attendance = () => {
                                                                 ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 11 }),
                                                             }}
                                                         >
-                                                            {i === labels.length - 1 ? "Total (Single Day)" : ""}
+                                                            {i === labels.length - 1 ? "Actual Present" : ""}
                                                         </th>
                                                     ))}
                                                     {last30Days.map(({ key }) => (
@@ -254,7 +289,7 @@ const Attendance = () => {
                                                                 {emp[labelsMapping[label]] ?? ""}
                                                             </td>
                                                         ))}
-                                                        {last30Days.map(({ key, label }) => (
+                                                        {last30Days.map(({ key }) => (
                                                             <td
                                                                 key={key}
                                                                 className="text-center px-1 py-1"
@@ -264,7 +299,7 @@ const Attendance = () => {
                                                                     whiteSpace: "nowrap",
                                                                 }}
                                                             >
-                                                                {emp[label] ?? ""}
+                                                                {emp[key] ?? ""}
                                                             </td>
                                                         ))}
                                                     </tr>

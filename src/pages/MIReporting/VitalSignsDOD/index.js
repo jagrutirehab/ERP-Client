@@ -29,7 +29,7 @@
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             const key = d.toISOString().slice(0, 10);
-            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).replace(/ /g, "-");
             days.push({ key, label });
         }
         return days;
@@ -55,17 +55,25 @@
         })),
     ], [data]);
 
-    const fixedLabels = ["Patient Name","Total (Current Month)", "Center Name", "Patient UID", "Psychologist Name"];
-    const fixedColWidths = [150, 120, 150, 80, 100];
+    const labels = ["Patient Name", "MTD", "Center Name", "Patient UID", "Psychologist Name"];
+    const fixedColWidths = [220, 55, 150, 80, 100];
+
+    const labelsMapping = {
+        "Patient Name": "patient_name",
+        "MTD": "current_month_total",
+        "Center Name": "center_name",
+        "Patient UID": "patient_id",
+        "Psychologist Name": "psychologist_name",
+    };
 
     const prepareCsvData = () => {
         setCsvLoading(true);
 
-        const allHeaders = [...fixedLabels, ...last30Days.map(({ label }) => label)];
+        const allHeaders = [...labels, ...last30Days.map(({ label }) => label)];
 
         const totalsRow = [
             "Total",
-            ...Array(fixedLabels.length - 1).fill(""),
+            ...Array(labels.length - 1).fill(""),
             ...last30Days.map(({ key }) => dateTotals[key] || ""),
         ];
 
@@ -73,11 +81,7 @@
             totalsRow,
             allHeaders,
             ...filteredData.map((patient) => [
-                patient?.patient_name ?? "",
-                patient?.center_name ?? "",
-                patient?.psychologist_name ?? "",
-                patient?.patient_id ?? "",
-                patient?.current_month_total ?? "",
+                ...labels.map((label) => patient[labelsMapping[label]] ?? ""),
                 ...last30Days.map(({ key }) => patient?.dod_data?.[key] ?? ""),
             ]),
         ];
@@ -97,7 +101,7 @@
         >
          <div className="row">
             <div className="col-12">
-            <div className="p-3">
+            <div className="p-3 pb-0">
                 <div className="row align-items-center">
                 <div className="col-sm-6 col-8">
                     <div className="d-flex align-items-center">
@@ -135,7 +139,7 @@
                 </div>
             </div>
 
-            <div className="p-3 p-lg-4">
+            <div className="p-3 p-lg-4 pt-1">
                 <Row className="g-2 align-items-center mb-4">
                     <Col md={2}>
                         <Select
@@ -170,7 +174,7 @@
                         >
                             <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
                                 <tr>
-                                    {fixedLabels.map((label, i) => {
+                                    {labels.map((label, i) => {
                                         const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);
                                         return (
                                         <th
@@ -205,7 +209,7 @@
                                     ))}
                                 </tr>
                                 <tr>
-                                    {fixedLabels.map((label, i) => {
+                                    {labels.map((label, i) => {
                                         const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);
                                         return (
                                         <th
@@ -217,7 +221,7 @@
                                                 color: "white",
                                                 whiteSpace: "nowrap",
                                                 minWidth: fixedColWidths[i],
-                                                ...(i < 2 && { position: "sticky", left, zIndex: 1 }),
+                                                ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                             }}
                                         >
                                             {label}
@@ -244,21 +248,21 @@
                             <tbody>
                                 {filteredData.map((patient, idx) => (
                                     <tr key={patient?.patient_id ?? idx}>
-                                        <td className="text-center px-1 py-1" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 0, zIndex: 3, minWidth: 150 }}>
-                                            {patient?.patient_name ?? ""}
-                                        </td>
-                                        <td className="text-center px-1 py-1" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", position: "sticky", left: 150, zIndex: 3, minWidth: 120 }}>
-                                            {patient?.current_month_total ?? 0}
-                                        </td>
-                                        <td className="text-center px-1 py-1" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", minWidth: 150 }}>
-                                            {patient?.center_name ?? ""}
-                                        </td>
-                                        <td className="text-center px-1 py-1" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", minWidth: 80 }}>
-                                            {patient?.patient_id ?? ""}
-                                        </td>
-                                        <td className="text-center px-1 py-1" style={{ border: "1px solid #d6dde8", background: idx % 2 === 0 ? "#f8fafc" : "#fff", whiteSpace: "nowrap", minWidth: 100 }}>
-                                            {patient?.psychologist_name ?? "-"}
-                                        </td>
+                                        {labels.map((label, i) => (
+                                            <td
+                                                key={label}
+                                                className="text-center px-1 py-1"
+                                                style={{
+                                                    border: "1px solid #d6dde8",
+                                                    background: idx % 2 === 0 ? "#f8fafc" : "#fff",
+                                                    whiteSpace: "nowrap",
+                                                    minWidth: fixedColWidths[i],
+                                                    ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
+                                                }}
+                                            >
+                                                {patient[labelsMapping[label]] ?? ""}
+                                            </td>
+                                        ))}
                                         {last30Days.map(({ key }) => (
                                             <td
                                                 key={key}
@@ -270,7 +274,7 @@
                                                 }}
                                             >
                                                 {patient?.dod_data?.[key] ?? 0}
-                                             </td>
+                                            </td>
                                         ))}
                                     </tr>
                                 ))}

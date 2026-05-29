@@ -60,6 +60,8 @@ const DueAmount = () => {
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [selectedPatientType, setSelectedPatientType] = useState("admitted");
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 100;
   const currentMonthLabel = new Date().toLocaleDateString("en-GB", { month: "short", year: "numeric" });
   const [selectedMonth, setSelectedMonth] = useState({ value: currentMonthLabel, label: currentMonthLabel });
   const [csvData, setCsvData] = useState([]);
@@ -98,11 +100,20 @@ const DueAmount = () => {
     ], [data]);
 
   const filteredData = useMemo(() => {
-    return data.filter((item) => {
-      if (selectedCenter !== "ALL" && item.center_name !== selectedCenter) return false;
-      return true;
-    });
+    setCurrentPage(1);
+    return data
+      .filter((item) => {
+        if (selectedCenter !== "ALL" && item.center_name !== selectedCenter) return false;
+        return true;
+      })
+      .sort((a, b) => Number(a.due_amount ?? 0) - Number(b.due_amount ?? 0));
   }, [data, selectedCenter]);
+
+  const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
+  const pagedData = useMemo(
+    () => filteredData.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
+    [filteredData, currentPage]
+  );
 
   const getCellValue = (item, label) => {
     const raw = item[labelsMapping[label]];
@@ -130,7 +141,7 @@ const DueAmount = () => {
     >
       <div className="row">
         <div className="col-12">
-          <div className="p-3">
+          <div className="px-3 py-1">
             <div className="row align-items-center">
               <div className="col-sm-6 col-8">
                 <div className="d-flex align-items-center">
@@ -163,7 +174,7 @@ const DueAmount = () => {
           </div>
 
           <div className="p-3 p-lg-4">
-            <Row className="g-2 align-items-center mb-4">
+            <Row className="g-2 align-items-center mb-2">
               <Col md={2}>
                 <Select
                   value={centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]}
@@ -202,7 +213,7 @@ const DueAmount = () => {
                 {!loading && !error && (
                   <div
                     className="shadow-sm bg-white"
-                    style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}
+                    style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "calc(100vh - 290px)" }}
                   >
                     <Table
                       className="mb-0 w-100"
@@ -230,14 +241,14 @@ const DueAmount = () => {
                         </tr>
                       </thead>
                       <tbody>
-                        {filteredData.length === 0 ? (
+                        {pagedData.length === 0 ? (
                           <tr>
                             <td colSpan={labels.length} className="text-center py-4 text-muted">
                               No data found
                             </td>
                           </tr>
                         ) : (
-                          filteredData.map((item, idx) => {
+                          pagedData.map((item, idx) => {
                             const due = Number(item.due_amount);
                             return (
                               <tr key={item.patient_uid ?? idx}>
@@ -269,6 +280,39 @@ const DueAmount = () => {
                 )}
               </CardBody>
             </Card>
+
+            {totalPages > 1 && (
+              <div className="d-flex justify-content-between align-items-center mt-3">
+                <span className="text-muted" style={{ fontSize: "0.82rem" }}>
+                  Showing {(currentPage - 1) * PAGE_SIZE + 1}–{Math.min(currentPage * PAGE_SIZE, filteredData.length)} of {filteredData.length}
+                </span>
+                <div className="d-flex gap-1">
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={() => setCurrentPage(1)}
+                    disabled={currentPage === 1}
+                  >«</button>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={() => setCurrentPage((p) => p - 1)}
+                    disabled={currentPage === 1}
+                  >‹</button>
+                  <span className="btn btn-sm btn-secondary disabled" style={{ minWidth: 80 }}>
+                    {currentPage} / {totalPages}
+                  </span>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={() => setCurrentPage((p) => p + 1)}
+                    disabled={currentPage === totalPages}
+                  >›</button>
+                  <button
+                    className="btn btn-sm btn-outline-secondary"
+                    onClick={() => setCurrentPage(totalPages)}
+                    disabled={currentPage === totalPages}
+                  >»</button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
