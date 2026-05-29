@@ -51,12 +51,12 @@ const MiReporting = () => {
 
   useEffect(() => {
     if (permissionLoader) return;
-    if (!hasHubspotReportingPermission) {
-      navigate("/unauthorized");
-      return;
-    }
+    // if (!hasHubspotReportingPermission) {
+    //   navigate("/unauthorized");
+    //   return;
+    // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [hasHubspotReportingPermission, permissionLoader]);
+  }, [ permissionLoader]);
 
   const hasHubspotCenterLeadsPermission = hasPermission(
     "HUBSPOT_REPORTING",
