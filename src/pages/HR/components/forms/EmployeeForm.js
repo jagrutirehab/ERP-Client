@@ -178,12 +178,12 @@ const validationSchema = (mode, isEdit) =>
     // }),
     // newEmploymentType: Yup.string().required("Employment type is required"),
     // employmentStatus: Yup.string().required("Employment status is required"),
-    // position: Yup.string()
-    //   .transform((value) => {
-    //     if (typeof value === "object" && value?._id) return value._id;
-    //     return value;
-    //   })
-    //   .required("Position is required"),
+    position: Yup.string()
+      .transform((value) => {
+        if (typeof value === "object" && value?._id) return value._id;
+        return value;
+      })
+      .required("Position is required"),
   });
 
 const getInitialValues = (initialData, mode) => ({
@@ -783,23 +783,44 @@ const EmployeeForm = ({
     const fetchPositions = async () => {
       try {
         const res = await getPositions();
-        console.log("positions", res);
+        const rawData = res?.data || [];
 
-        setPositionOptions(
-          (res?.data || []).map((p) => ({
-            label: p.name,
-            value: p._id,
-          })),
+        const mapped = rawData.flatMap((p) =>
+          (p.positions || [])
+            .filter((pos) => !pos.deleted)
+            .map((pos) => ({
+              label: pos.name,
+              value: pos._id,
+              department: p.department?.department,
+              departmentId: p.department?._id,
+            })),
         );
+
+        setPositionOptions(mapped);
+
+        const deptsMapped = rawData
+          .filter((p) => p.department?._id)
+          .map((p) => ({
+            label: p.department?.department,
+            value: p.department?._id,
+          }));
+
+        setDepartmentOptions((prev) => {
+          const existingValues = new Set(prev.map((o) => o.value));
+          const newOnes = deptsMapped.filter(
+            (d) => !existingValues.has(d.value),
+          );
+          return [...prev, ...newOnes];
+        });
       } catch (error) {
         if (!handleAuthError(error)) {
           toast.error("Failed to fetch positions");
         }
       }
     };
+
     fetchPositions();
   }, []);
-
   return (
     <>
       <div>
@@ -836,7 +857,6 @@ const EmployeeForm = ({
               {errorText("eCode")}
             </Col>
           )}
-
           <Col md={6}>
             <Label htmlFor="name">
               Employee Name <span className="text-danger">*</span>
@@ -852,17 +872,17 @@ const EmployeeForm = ({
             {errorText("name")}
           </Col>
 
-          {/* DEPARTMENT */}
+          {/* DEPARTMENT
           <Col md={6}>
             <Label htmlFor="department">
               Department <span className="text-danger">*</span>
             </Label>
-
             <CreatableSelect
               inputId="department"
-              placeholder="Search or create department"
+              placeholder="Auto-filled from position"
               isClearable
               isSearchable
+              isDisabled={!!values.position}
               options={departmentOptions}
               value={
                 departmentOptions.find(
@@ -874,13 +894,11 @@ const EmployeeForm = ({
               }}
               onBlur={() => setFieldTouched("department", true)}
               onCreateOption={(inputValue) => {
-                setDepartment(inputValue);
                 handleCreateDepartment(inputValue);
               }}
             />
-
             {errorText("department")}
-          </Col>
+          </Col> */}
 
           {/* DESIGNATION */}
           <Col md={6}>
@@ -911,7 +929,6 @@ const EmployeeForm = ({
 
             {errorText("designation")}
           </Col>
-
           {/* EMPLOYEE TYPE */}
           <Col md={6}>
             <Label htmlFor="employmentType">
@@ -935,7 +952,6 @@ const EmployeeForm = ({
 
             {errorText("employmentType")}
           </Col>
-
           {/* EMPLOYEMENT TYPE */}
           <Col md={6}>
             <Label htmlFor="newEmploymentType">
@@ -959,7 +975,6 @@ const EmployeeForm = ({
             />
             {errorText("newEmploymentType")}
           </Col>
-
           {/* EMPLOYMENT STATUS */}
           <Col md={6}>
             <Label htmlFor="employmentStatus">
@@ -983,12 +998,10 @@ const EmployeeForm = ({
             />
             {errorText("employmentStatus")}
           </Col>
-
           {/* POSITION */}
           <Col md={6}>
             <Label htmlFor="position">
-              Position
-              {/* <span className="text-danger">*</span> */}
+              Position <span className="text-danger">*</span>
             </Label>
             <Select
               inputId="position"
@@ -998,15 +1011,47 @@ const EmployeeForm = ({
                 positionOptions.find((opt) => opt.value === values.position) ||
                 null
               }
-              onChange={(opt) =>
-                form.setFieldValue("position", opt ? opt.value : "")
-              }
+              onChange={(opt) => {
+                form.setFieldValue("position", opt ? opt.value : "");
+                if (opt?.departmentId) {
+                  form.setFieldValue("department", opt.departmentId);
+                  form.setFieldTouched("department", true, false);
+                } else {
+                  form.setFieldValue("department", "");
+                }
+              }}
               onBlur={() => setFieldTouched("position", true)}
               isClearable
             />
             {errorText("position")}
           </Col>
-
+          {/* DEPARTMENT */}
+          <Col md={6}>
+            <Label htmlFor="department">
+              Department <span className="text-danger">*</span>
+            </Label>
+            <CreatableSelect
+              inputId="department"
+              placeholder="Select Position"
+              isClearable
+              isSearchable
+              isDisabled={true}
+              options={departmentOptions}
+              value={
+                departmentOptions.find(
+                  (opt) => opt.value === values.department,
+                ) || null
+              }
+              onChange={(option) => {
+                form.setFieldValue("department", option ? option.value : "");
+              }}
+              onBlur={() => setFieldTouched("department", true)}
+              onCreateOption={(inputValue) => {
+                handleCreateDepartment(inputValue);
+              }}
+            />
+            {errorText("department")}
+          </Col>
           {/* FIRST LOCATION */}
           <Col md={6}>
             <Label htmlFor="firstLocation">
@@ -1025,7 +1070,6 @@ const EmployeeForm = ({
             />
             {errorText("firstLocation")}
           </Col>
-
           {/* TRANSFERRED FROM */}
           {mode !== "NEW_JOINING" && (
             <Col md={6}>
@@ -1044,7 +1088,6 @@ const EmployeeForm = ({
               />
             </Col>
           )}
-
           {/* CURRENT LOCATION */}
           <Col md={6}>
             <Label htmlFor="currentLocation">
@@ -1065,7 +1108,6 @@ const EmployeeForm = ({
             />
             {errorText("currentLocation")}
           </Col>
-
           {/* STATE */}
           <Col md={6}>
             <Label htmlFor="state">
@@ -1083,7 +1125,6 @@ const EmployeeForm = ({
 
             {errorText("state")}
           </Col>
-
           {/* PAYROLL */}
           <Col md={6}>
             <Label htmlFor="payroll">
@@ -1102,7 +1143,6 @@ const EmployeeForm = ({
             />
             {errorText("payrollType")}
           </Col>
-
           {/* DATE OF JOINING */}
           <Col md={6}>
             <Label htmlFor="joinningDate">
@@ -1126,7 +1166,6 @@ const EmployeeForm = ({
             />
             {errorText("joinningDate")}
           </Col>
-
           {/* EXIT DATE */}
           <Col md={6}>
             <Label htmlFor="exitDate">Last Working Day</Label>
@@ -1146,7 +1185,6 @@ const EmployeeForm = ({
               }}
             />
           </Col>
-
           {/* STATUS */}
           {mode !== "NEW_JOINING" && (
             <Col md={6}>
@@ -1167,7 +1205,6 @@ const EmployeeForm = ({
               {errorText("status")}
             </Col>
           )}
-
           {/* GENDER */}
           <Col md={6}>
             <Label htmlFor="gender">
@@ -1186,7 +1223,6 @@ const EmployeeForm = ({
             />
             {errorText("gender")}
           </Col>
-
           {/* DOB */}
           <Col md={6}>
             <Label htmlFor="dob">
@@ -1240,7 +1276,6 @@ const EmployeeForm = ({
             />
             {errorText("accountNo")}
           </Col>
-
           {/* BENIFICIARY NAME */}
           <Col md={6}>
             <Label htmlFor="accountHolderName">
@@ -1256,7 +1291,6 @@ const EmployeeForm = ({
             />
             {errorText("accountName")}
           </Col>
-
           {/* IFSC */}
           <Col md={6}>
             <Label htmlFor="IFSCCode">
@@ -1272,7 +1306,6 @@ const EmployeeForm = ({
             />
             {errorText("IFSCCode")}
           </Col>
-
           {/* PF APPLICABLE */}
           <Col md={6}>
             <Label htmlFor="pfApplicable">
@@ -1296,7 +1329,6 @@ const EmployeeForm = ({
             />
             {errorText("pfApplicable")}
           </Col>
-
           {/* UAN NO */}
           <Col md={6}>
             <Label htmlFor="uanNo">
@@ -1315,7 +1347,6 @@ const EmployeeForm = ({
             />
             {errorText("uanNo")}
           </Col>
-
           {/* PF NO */}
           <Col md={6}>
             <Label htmlFor="pfNo">PF No</Label>
@@ -1329,7 +1360,6 @@ const EmployeeForm = ({
             />
             {/* {errorText("pfNo")} */}
           </Col>
-
           {/* ESIC */}
           <Col md={6}>
             <Label htmlFor="esicIpCode">ESIC IP Code</Label>
@@ -1340,7 +1370,6 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
-
           {/* AADHAAR NO*/}
           <Col md={6}>
             <Label htmlFor="adharNo">
@@ -1356,7 +1385,6 @@ const EmployeeForm = ({
             />
             {errorText("adharNo")}
           </Col>
-
           {/* ADHAAR FILE */}
           <Col md={6}>
             <Label>
@@ -1441,7 +1469,6 @@ const EmployeeForm = ({
 
             {errorText("adharOld")}
           </Col>
-
           {/* PAN NO*/}
           <Col md={6}>
             <Label htmlFor="pan">
@@ -1460,7 +1487,6 @@ const EmployeeForm = ({
             />
             {errorText("pan")}
           </Col>
-
           {/* PAN FILE */}
           <Col md={6}>
             <Label>
@@ -1544,7 +1570,6 @@ const EmployeeForm = ({
 
             {errorText("panOld")}
           </Col>
-
           {/* OFFER LETTER FILE */}
           <Col md={6}>
             <Label>
@@ -1629,7 +1654,6 @@ const EmployeeForm = ({
 
             {errorText("offerLetterOld")}
           </Col>
-
           {/* FATHER NAME */}
           <Col md={6}>
             <Label htmlFor="father">
@@ -1645,7 +1669,6 @@ const EmployeeForm = ({
             />
             {errorText("father")}
           </Col>
-
           {/* MOBILE */}
           <Col md={6}>
             <Label htmlFor="mobile">
@@ -1681,7 +1704,6 @@ const EmployeeForm = ({
 
             {errorText("mobile")}
           </Col>
-
           {/* OFFICIAL EMAIL */}
           <Col md={6}>
             <Label htmlFor="officialEmail">Official Email</Label>
@@ -1693,7 +1715,6 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
-
           {/* EMAIL */}
           <Col md={6}>
             <Label htmlFor="email">Email</Label>
@@ -1705,7 +1726,6 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
-
           {/* MONTHLY CTC */}
           <Col md={6}>
             <Label htmlFor="monthlyCTC">Monthly CTC</Label>
@@ -1717,7 +1737,6 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
-
           {/* BIOMETRIC ID */}
           <Col md={6}>
             <Label htmlFor="biometricId">Biometric ID</Label>
@@ -1729,7 +1748,6 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
-
           {/* LINK USERS */}
           {mode !== "NEW_JOINING" && (
             <Col md={12}>
@@ -1810,22 +1828,24 @@ const EmployeeForm = ({
             />
           </Col>
 
-          {mode === "MASTER" && <Col md={6}>
-            <Label htmlFor="incrementIssued">Increment Issued Date</Label>
-            <Flatpickr
-              className="form-control"
-              id="incrementIssued"
-              name="incrementIssued"
-              value={values.incrementIssued}
-              onChange={([date]) => {
-                setFieldValue(
-                  "incrementIssued",
-                  date ? format(date, "yyyy-MM-dd") : "",
-                );
-              }}
-              options={{ dateFormat: "Y-m-d" }}
-            />
-          </Col>}
+          {mode === "MASTER" && (
+            <Col md={6}>
+              <Label htmlFor="incrementIssued">Increment Issued Date</Label>
+              <Flatpickr
+                className="form-control"
+                id="incrementIssued"
+                name="incrementIssued"
+                value={values.incrementIssued}
+                onChange={([date]) => {
+                  setFieldValue(
+                    "incrementIssued",
+                    date ? format(date, "yyyy-MM-dd") : "",
+                  );
+                }}
+                options={{ dateFormat: "Y-m-d" }}
+              />
+            </Col>
+          )}
 
           {/* INCREMENT LETTER FILE */}
           {mode === "MASTER" && (
