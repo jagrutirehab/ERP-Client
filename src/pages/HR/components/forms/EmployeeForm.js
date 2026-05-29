@@ -351,7 +351,7 @@ const EmployeeForm = ({
     const loadDesignations = async () => {
       try {
         dispatch(
-          fetchDesignations({ status: ["PENDING", "APPROVED"] }),
+          fetchDesignations({ status: ["PENDING", "APPROVED"], version: 2 }),
         ).unwrap();
       } catch (error) {
         if (!handleAuthError(error)) {
@@ -787,7 +787,7 @@ const EmployeeForm = ({
 
         const mapped = rawData.flatMap((p) =>
           (p.positions || [])
-            .filter((pos) => !pos.deleted)
+            .filter((pos) => !pos.deleted && pos.version === 2)
             .map((pos) => ({
               label: pos.name,
               value: pos._id,
@@ -821,6 +821,9 @@ const EmployeeForm = ({
 
     fetchPositions();
   }, []);
+
+  console.log("designationOptions", designationOptions);
+
   return (
     <>
       <div>
@@ -914,7 +917,7 @@ const EmployeeForm = ({
                 (mode === "NEW_JOINING" && !hasCreatePermission)
               }
               isLoading={designationLoading || creatingDesignation}
-              options={designationOptions}
+              options={designationOptions?.filter((opt) => opt.version === 2)}
               value={
                 designationOptions.find(
                   (opt) => opt.value === values.designation,
