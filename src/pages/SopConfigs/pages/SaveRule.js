@@ -9,6 +9,8 @@ import {
   sopConfigure,
   getSopRuleById,
   updateSopRule,
+  uploadSopRuleDocument,
+  deleteSopRuleDocument,
 } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
@@ -31,6 +33,61 @@ const SaveRule = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [pendingPayload, setPendingPayload] = useState(null);
   const [modalOpen, setModalOpen] = useState(false);
+
+  // Document state. In create mode `pendingDocument` rides along with the rule
+  // save; in edit mode upload + delete each go through their own API call.
+  const [pendingDocument, setPendingDocument] = useState(null);
+  const [isRemovingDocument, setIsRemovingDocument] = useState(false);
+  const [isUploadingDocument, setIsUploadingDocument] = useState(false);
+  const [removeDocModalOpen, setRemoveDocModalOpen] = useState(false);
+
+  const handleUploadDocument = async (file) => {
+    if (!isEdit || !initialValues?._id || !file) return;
+    setIsUploadingDocument(true);
+    try {
+      const res = await uploadSopRuleDocument(initialValues._id, file);
+      const updatedDoc = res?.data?.document;
+      if (updatedDoc) {
+        setInitialValues((prev) =>
+          prev ? { ...prev, document: updatedDoc } : prev,
+        );
+        toast.success("Document uploaded.");
+      } else {
+        toast.warn("Upload finished but the rule didn't return the new document.");
+      }
+    } catch (err) {
+      toast.error(err?.message || "Failed to upload document");
+    } finally {
+      setIsUploadingDocument(false);
+    }
+  };
+
+  const handleRemoveExistingDocument = () => {
+    if (!isEdit || !initialValues?._id) return;
+    setRemoveDocModalOpen(true);
+  };
+
+  const confirmRemoveDocument = async () => {
+    if (!isEdit || !initialValues?._id) return;
+    setIsRemovingDocument(true);
+    try {
+      await deleteSopRuleDocument(initialValues._id);
+      setInitialValues((prev) =>
+        prev ? { ...prev, document: undefined } : prev,
+      );
+      toast.success("Document removed.");
+      setRemoveDocModalOpen(false);
+    } catch (err) {
+      toast.error(err?.message || "Failed to remove document");
+    } finally {
+      setIsRemovingDocument(false);
+    }
+  };
+
+  const cancelRemoveDocument = () => {
+    if (isRemovingDocument) return;
+    setRemoveDocModalOpen(false);
+  };
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -87,14 +144,19 @@ const SaveRule = () => {
     setIsSubmitting(true);
     try {
       if (isEdit) {
+        // Update path is JSON-only. The document is managed exclusively via
+        // the delete-on-edit-card action — never re-uploaded from this form.
         await updateSopRule(id, pendingPayload);
-        toast.success("Rule updated.");
       } else {
-        await sopConfigure(pendingPayload);
-        toast.success("Rule created.");
+        // Create path is a single multipart call: rule payload + optional
+        // document in one request.
+        await sopConfigure(pendingPayload, pendingDocument || null);
       }
+
+      toast.success(isEdit ? "Rule updated." : "Rule created.");
       setModalOpen(false);
       setPendingPayload(null);
+      setPendingDocument(null);
       navigate("/sop-configs/manage");
       return true;
     } catch (err) {
@@ -199,6 +261,12 @@ const SaveRule = () => {
           initialValues={initialValues}
           submitLabel={isEdit ? "Save Changes" : "Create SOP Rule"}
           submittingLabel={isEdit ? "Saving..." : "Creating..."}
+          pendingDocument={pendingDocument}
+          onPendingDocumentChange={setPendingDocument}
+          onUploadDocument={handleUploadDocument}
+          onRemoveDocument={handleRemoveExistingDocument}
+          isRemovingDocument={isRemovingDocument}
+          isUploadingDocument={isUploadingDocument}
         />
       </div>
 
@@ -220,6 +288,28 @@ const SaveRule = () => {
         onConfirm={handleConfirm}
         onCancel={handleCancel}
         isLoading={isSubmitting}
+      />
+
+      <ConfirmModal
+        isOpen={removeDocModalOpen}
+        title="Remove Document"
+        message={
+          <span>
+            Permanently remove the attached document
+            {initialValues?.document?.originalName && (
+              <>
+                {" "}
+                <strong>{initialValues.document.originalName}</strong>
+              </>
+            )}
+            ? This can't be undone.
+          </span>
+        }
+        confirmLabel="Yes, Remove"
+        cancelLabel="Cancel"
+        onConfirm={confirmRemoveDocument}
+        onCancel={cancelRemoveDocument}
+        isLoading={isRemovingDocument}
       />
     </CardBody>
   );
