@@ -573,6 +573,12 @@ export const setting = [
     link: "/setting/symptoms",
     icon: "bx bx-health",
   },
+  {
+    id: "hrconfigs",
+    label: "HR-Configurations",
+    link: "/setting/hr/configs",
+    icon: "bx bx-health",
+  },
 ];
 
 export const recyclebin = [
@@ -1061,12 +1067,11 @@ export const HR = [
         link: "/hr/pay-slip/my",
       },
       {
-
         id: "my-salary-data",
         label: "My Salary Data",
         icon: "bx bx-user-check",
-        link: "/hr/my/salary/data"
-      }
+        link: "/hr/my/salary/data",
+      },
     ],
   },
   {

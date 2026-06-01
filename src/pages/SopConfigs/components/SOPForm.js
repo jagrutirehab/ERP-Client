@@ -32,6 +32,7 @@ import ConditionRow from "./ConditionRow";
 import MainBlock from "./MainBlock";
 import RoutingCard from "./RoutingCard";
 import SuggestedMedicinesSection from "./medicines/SuggestedMedicinesSection";
+import SOPDocumentSection from "./SOPDocumentSection";
 import { sopGetFieldsByModel } from "../../../helpers/backend_helper";
 
 // Convert a single stored condition (DB shape) into the form's UI shape.
@@ -118,6 +119,15 @@ const SOPForm = ({
   initialValues = null,
   submitLabel = "Create SOP Rule",
   submittingLabel = "Creating...",
+  // Document state is owned by the parent (SaveRule). In create mode the
+  // pending file rides with the rule submit; in edit mode the parent handles
+  // upload/delete via separate calls.
+  pendingDocument = null,
+  onPendingDocumentChange,
+  onUploadDocument,
+  onRemoveDocument,
+  isRemovingDocument = false,
+  isUploadingDocument = false,
 }) => {
   const [form, setForm] = useState(emptyForm());
   const [satisfyingCriteria, setSatisfyingCriteria] = useState({
@@ -765,6 +775,18 @@ const SOPForm = ({
         onChange={setSuggestedMedicines}
         isSubmitting={isSubmitting}
         errors={fieldErrors.suggestedMedicines || []}
+      />
+
+      <SOPDocumentSection
+        mode={initialValues ? "edit" : "create"}
+        document={initialValues?.document || null}
+        pendingFile={pendingDocument}
+        onPendingFileChange={onPendingDocumentChange}
+        onUploadFile={onUploadDocument}
+        onRemoveExisting={onRemoveDocument}
+        isSubmitting={isSubmitting}
+        isRemoving={isRemovingDocument}
+        isUploading={isUploadingDocument}
       />
 
       <div className="d-flex justify-content-end gap-2">
