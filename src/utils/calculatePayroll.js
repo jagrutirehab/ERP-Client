@@ -10,7 +10,7 @@ const PTeligibleStates = [
 ];
 
 export const calculatePayroll = (values) => {
-    // const PF_WAGE_CAP = 15000;
+    const PF_WAGE_CAP = 15000;
 
     const gross = Number(values.grossSalary || 0);
     const basic = Number(values.basicAmount || 0);
@@ -33,18 +33,18 @@ export const calculatePayroll = (values) => {
     let PFEmployer = 0;
     let PFSalary = 0;
 
-    // if (values.pfApplicable) {
-    //     PFSalary = Math.min(basic + spl + conveyance, PF_WAGE_CAP);
-    //     PFEmployee = Math.round(PFSalary * 0.12);
-    //     PFEmployer = Math.round(PFSalary * 0.12);
-    // }
+    if (values.pfApplicable) {
+        PFSalary = Math.min(basic + spl + conveyance, PF_WAGE_CAP);
+        PFEmployee = Math.round(PFSalary * 0.12);
+        PFEmployer = Math.round(PFSalary * 0.13);
+    }
 
     // new rule from 25.05.2026
-    if (values.pfApplicable) {
-        PFEmployee = 1800;
-        PFEmployer = 1950;
-        PFSalary = 0;
-    }
+    // if (values.pfApplicable) {
+    //     PFEmployee = 1800;
+    //     PFEmployer = 1950;
+    //     PFSalary = 0;
+    // }
 
     // ----- PT -----
     let PT = 0;
@@ -52,7 +52,7 @@ export const calculatePayroll = (values) => {
     const month = values.joinningDate
         ? new Date(values.joinningDate).getMonth() + 1
         : null;
-        console.log(PTeligibleStates.includes(detectState(currentLocation.address)))
+    console.log(PTeligibleStates.includes(detectState(currentLocation.address)))
     if (PTeligibleStates.includes(detectState(currentLocation.address)) || currentLocation.title === "Head-Office") {
         if (gender === "MALE") {
             if (gross <= 7500) {
