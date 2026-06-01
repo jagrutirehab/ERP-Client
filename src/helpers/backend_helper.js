@@ -3745,8 +3745,16 @@ export const validateAIExpirySummary = (summary) => {
   return axios.patch(url.VALIDATE_AI_EXPIRY_SUMMARY, summary)
 }
 
-export const sopConfigure = (data) => {
-  return axios.post(url.CONFIGURATION_SOP, data)
+// Always multipart so the optional reference document (PDF/DOCX) rides along
+// in the same request. The JSON rule(s) ship as a stringified `payload` field;
+// the server tolerates both shapes.
+export const sopConfigure = (data, documentFile = null) => {
+  const fd = new FormData();
+  fd.append("payload", JSON.stringify(data));
+  if (documentFile) fd.append("document", documentFile);
+  return axios.post(url.CONFIGURATION_SOP, fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
 }
 
 export const sopGetRoles = (data) => {
@@ -3773,6 +3781,16 @@ export const getSopRuleById = (id) => axios.get(`${url.SOP_RULES}/${id}`);
 export const updateSopRule = (id, payload) => axios.patch(`${url.SOP_RULES}/${id}`, payload);
 export const toggleSopRuleActive = (id, isActive) => axios.patch(`${url.SOP_RULES}/${id}/active`, { isActive });
 export const deleteSopRule = (id) => axios.delete(`${url.SOP_RULES}/${id}`);
+
+export const uploadSopRuleDocument = (id, file) => {
+  const fd = new FormData();
+  fd.append("document", file);
+  return axios.post(`${url.SOP_RULES}/${id}/document`, fd, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+};
+export const deleteSopRuleDocument = (id) =>
+  axios.delete(`${url.SOP_RULES}/${id}/document`);
 
 export const getSopSuggestedMedicines = (patientId, today) =>
   axios.get(`${url.SOP_SUGGESTED_MEDICINES}/${patientId}`, {

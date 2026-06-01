@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import {
   Badge,
   Button,
+  Modal,
+  ModalBody,
+  ModalHeader,
   Offcanvas,
   OffcanvasBody,
   OffcanvasHeader,
@@ -10,6 +13,7 @@ import {
 import { SEVERITY_COLOR, SEVERITY_HEX } from "../alerts/alertConstants";
 import { fmtDate } from "./ruleUtils";
 import { getICDCodes } from "../../../../helpers/backend_helper";
+import { buildDocumentViewerSrc } from "../SOPDocumentSection";
 
 const SEV_RANK = { LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 };
 
@@ -64,6 +68,7 @@ const RulePreviewOffcanvas = ({
   // re-opening on different rules doesn't refetch.
   const [icdMap, setIcdMap] = useState(new Map());
   const [icdLoaded, setIcdLoaded] = useState(false);
+  const [docPreviewOpen, setDocPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (!isOpen || !rule || icdLoaded) return;
@@ -151,6 +156,38 @@ const RulePreviewOffcanvas = ({
               {loading && (
                 <div className="text-muted small mb-2">
                   <Spinner size="sm" /> loading detail…
+                </div>
+              )}
+
+              {rule.document?.url && (
+                <div className="d-flex align-items-center justify-content-between p-2 mb-3 border rounded bg-light">
+                  <div className="d-flex align-items-center gap-2 min-w-0">
+                    <i
+                      className={`bx ${
+                        (rule.document.type === "application/pdf" ||
+                          /\.pdf$/i.test(
+                            rule.document.originalName || rule.document.name || "",
+                          ))
+                          ? "bxs-file-pdf text-danger"
+                          : "bxs-file-doc text-primary"
+                      }`}
+                      style={{ fontSize: "1.4rem" }}
+                    />
+                    <div className="small text-truncate">
+                      <div className="fw-semibold text-truncate">
+                        {rule.document.originalName || rule.document.name}
+                      </div>
+                      <div className="text-muted">Reference document</div>
+                    </div>
+                  </div>
+                  <Button
+                    size="sm"
+                    color="primary"
+                    outline
+                    onClick={() => setDocPreviewOpen(true)}
+                  >
+                    <i className="bx bx-show me-1" /> View
+                  </Button>
                 </div>
               )}
 
@@ -361,16 +398,49 @@ const RulePreviewOffcanvas = ({
                 </div>
               )}
 
-              <div className="d-flex gap-2 mt-4 pt-3 border-top">
+              <div className="d-flex gap-2 mt-4 pt-3 border-top flex-wrap">
                 <Button color="primary" onClick={() => onEdit(rule)}>
                   <i className="bx bx-edit me-1" />
                   Edit
                 </Button>
+                {rule.document?.url && (
+                  <Button
+                    color="info"
+                    outline
+                    onClick={() => setDocPreviewOpen(true)}
+                  >
+                    <i className="bx bx-show me-1" />
+                    View Document
+                  </Button>
+                )}
                 <Button color="danger" outline onClick={() => onDelete(rule)}>
                   <i className="bx bx-trash me-1" />
                   Delete
                 </Button>
               </div>
+
+              <Modal
+                isOpen={docPreviewOpen}
+                toggle={() => setDocPreviewOpen(false)}
+                size="xl"
+                centered
+                fade={false}
+              >
+                <ModalHeader toggle={() => setDocPreviewOpen(false)}>
+                  {rule.document?.originalName ||
+                    rule.document?.name ||
+                    "Reference Document"}
+                </ModalHeader>
+                <ModalBody className="p-0">
+                  {rule.document?.url && (
+                    <iframe
+                      title="SOP Document Preview"
+                      src={buildDocumentViewerSrc(rule.document)}
+                      style={{ width: "100%", height: "75vh", border: "none" }}
+                    />
+                  )}
+                </ModalBody>
+              </Modal>
             </div>
           </>
         )}
