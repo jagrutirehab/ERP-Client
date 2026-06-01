@@ -283,7 +283,10 @@ const getInitialValues = (initialData, mode) => ({
     : [],
   employmentStatus: initialData?.employmentStatus || "",
   newEmploymentType: initialData?.newEmploymentType || "",
-  position: initialData?.position?._id || initialData?.position || "",
+  position:
+    initialData?.position?._id?.toString() ||
+    initialData?.position?.toString() ||
+    "",
   incrementLetterOld: initialData?.financeDetails?.incrementLetter || "",
   incrementLetterFile: null,
   incrementIssued: initialData?.financeDetails?.incrementIssued
@@ -337,6 +340,7 @@ const EmployeeForm = ({
   const adharFileRef = useRef(null);
   const offerLetterRef = useRef(null);
   const incrementLetterRef = useRef(null);
+  const positionCorrectedRef = useRef(false);
 
   const centerOptions = userCenters
     ?.filter((c) => centerAccess.includes(c._id))
@@ -785,18 +789,38 @@ const EmployeeForm = ({
         const res = await getPositions();
         const rawData = res?.data || [];
 
+        console.log("rawData", rawData);
+
         const mapped = rawData.flatMap((p) =>
           (p.positions || [])
             .filter((pos) => !pos.deleted && pos.version === 2)
             .map((pos) => ({
               label: pos.name,
-              value: pos._id,
+              value: pos._id.toString(),
+              outerDocId: p._id.toString(),
               department: p.department?.department,
               departmentId: p.department?._id,
             })),
         );
 
         setPositionOptions(mapped);
+
+        if (
+          isEdit &&
+          initialData?.position?.name &&
+          !positionCorrectedRef.current
+        ) {
+          const matched = mapped.find(
+            (opt) => opt.label === initialData.position.name,
+          );
+          if (matched) {
+            positionCorrectedRef.current = true;
+            setFieldValue("position", matched.value);
+            if (matched.departmentId) {
+              setFieldValue("department", matched.departmentId);
+            }
+          }
+        }
 
         const deptsMapped = rawData
           .filter((p) => p.department?._id)
@@ -821,8 +845,6 @@ const EmployeeForm = ({
 
     fetchPositions();
   }, []);
-
-  console.log("designationOptions", designationOptions);
 
   return (
     <>
@@ -1011,7 +1033,15 @@ const EmployeeForm = ({
               placeholder="Select Position"
               options={positionOptions}
               value={
-                positionOptions.find((opt) => opt.value === values.position) ||
+                positionOptions.find(
+                  (opt) =>
+                    opt.value?.toString() === values.position?.toString(),
+                ) ||
+                (!positionCorrectedRef.current
+                  ? positionOptions.find(
+                      (opt) => opt.label === initialData?.position?.name,
+                    )
+                  : null) ||
                 null
               }
               onChange={(opt) => {
