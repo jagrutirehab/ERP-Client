@@ -17,66 +17,6 @@ import Adm06ClinicalCarePathwaysSOP from "./Prints/Adm-06_Clinical_Care_Pathways
 const guidelines = [
   {
     id: 1,
-    name: "Accounting Guidelines",
-    description:
-      "Accounting Guidelines are a set of rules and procedures that guide the accounting process in a business. They ensure that the financial records are accurate and compliant with the relevant laws and regulations.",
-    lastUpdated: "January 15, 2024",
-    status: "Active",
-    type: "Accounting",
-    print: AccountingChecklistPrint,
-  },
-  {
-    id: 2,
-    name: "Admission Discharge Guidelines",
-    description:
-      "Admission Discharge Guidelines are a set of rules and procedures that guide the admission and discharge process in a business. They ensure that the patient is admitted and discharged in a safe and compliant manner.",
-    lastUpdated: "January 15, 2024",
-    status: "Active",
-    type: "Admission Discharge",
-    print: AdmissionDischargePrint,
-  },
-  {
-    id: 3,
-    name: "Enquiry Taking Guidelines",
-    description:
-      "Enquiry Taking Guidelines are a set of rules and procedures that guide the enquiry taking process in a business. They ensure that the enquiry is taken in a safe and compliant manner.",
-    lastUpdated: "January 15, 2024",
-    status: "Active",
-    type: "Enquiry",
-    print: EnquiryTakingPrint,
-  },
-  {
-    id: 4,
-    name: "Hygiene Maintenance Guidelines",
-    description:
-      "Hygiene Maintenance Guidelines are a set of rules and procedures that guide the hygiene maintenance process in a business. They ensure that the hygiene is maintained in a safe and compliant manner.",
-    lastUpdated: "January 15, 2024",
-    status: "Active",
-    type: "Hygiene Maintenance",
-    print: HygieneMaintenancePrint,
-  },
-  {
-    id: 5,
-    name: "Rehabilitation Guidelines",
-    description:
-      "Rehabilitation Guidelines are a set of rules and procedures that guide the rehabilitation process in a business. They ensure that the rehabilitation is done in a safe and compliant manner.",
-    lastUpdated: "January 15, 2024",
-    status: "Active",
-    type: "Rehabilitation",
-    print: RehabilitationGuidelinesPrint,
-  },
-  {
-    id: 6,
-    name: "Bedside Notes Guidelines",
-    description:
-      "Bedside Notes Guidelines are a set of rules and procedures that guide the bedside notes process in a business. They ensure that the bedside notes are taken in a safe and compliant manner.",
-    lastUpdated: "January 15, 2024",
-    status: "Active",
-    type: "Bedside Notes",
-    print: BedsideNotesPrint,
-  },
-  {
-    id: 7,
     name: "Adm-01 — Voluntary (Independent) Admission SOP",
     description:
       "Mandatory clinical, legal, and administrative procedure for admitting a patient under Independent (Voluntary) Admission per MHCA 2017 Sections 86 & 87 — informed consent, capacity assessment, patient rights, and EMR gate checklist.",
@@ -86,7 +26,7 @@ const guidelines = [
     print: Adm01VoluntaryAdmissionSOP,
   },
   {
-    id: 8,
+    id: 2,
     name: "Adm-02 — Admission Rejection & Referral Criteria SOP",
     description:
       "Evidence-informed criteria for refusing admission to JRCPL facilities and the protocol for safe referral of rejected patients to appropriate medical facilities — covers clinical instability, medical risk, de-addiction, geriatric, and administrative grounds.",
@@ -96,7 +36,7 @@ const guidelines = [
     print: Adm02RejectionCriteriaSOP,
   },
   {
-    id: 9,
+    id: 3,
     name: "Adm-03 — Admission Laboratory Investigations SOP",
     description:
       "Standardised admission lab protocol for Psychiatry (≤50), Elderly (>50), and De-addiction patients — routine panels, age- and substance-specific add-ons, repeat monitoring schedule, and critical-value action thresholds.",
@@ -106,7 +46,7 @@ const guidelines = [
     print: Adm03LabInvestigationsSOP,
   },
   {
-    id: 10,
+    id: 4,
     name: "Adm-04 — Decision-Making Capacity Assessment SOP",
     description:
       "Step-by-step procedure for assessing, documenting, and acting on decision-making capacity under MHCA 2017 Section 4 — the four-point test, NR identification, admission classification, mandatory reassessment, and prohibited actions.",
@@ -116,7 +56,7 @@ const guidelines = [
     print: Adm04CapacityAssessmentSOP,
   },
   {
-    id: 11,
+    id: 5,
     name: "Adm-05 — Emergency & Involuntary Admission SOP",
     description:
       "Complete framework for emergency and involuntary (supported) admissions under MHCA 2017 — 72-hour Emergency Admission Certificate, Sec. 89 supported, Sec. 90 dual-psychiatrist involuntary, MHRB compliance timeline, and restraint legal boundaries.",
@@ -126,7 +66,7 @@ const guidelines = [
     print: Adm05EmergencyInvoluntarySOP,
   },
   {
-    id: 12,
+    id: 6,
     name: "Adm-06 — Clinical Care Pathways, Programme Duration & LOS Policy",
     description:
       "Authoritative reference for all six clinical programmes — Acute Psychiatric, Psychiatric Rehab, Alcohol De-Addiction, Drug De-Addiction, Elderly/Dementia, and End of Life — with standard duration, phase structure, outcome milestones, and cross-programme governance.",
@@ -134,6 +74,66 @@ const guidelines = [
     status: "Active",
     type: "Programme — LOS",
     print: Adm06ClinicalCarePathwaysSOP,
+  },
+  {
+    id: 7,
+    name: "Accounting Guidelines",
+    description:
+      "Accounting Guidelines are a set of rules and procedures that guide the accounting process in a business. They ensure that the financial records are accurate and compliant with the relevant laws and regulations.",
+    lastUpdated: "January 15, 2024",
+    status: "Active",
+    type: "Accounting",
+    print: AccountingChecklistPrint,
+  },
+  {
+    id: 8,
+    name: "Admission Discharge Guidelines",
+    description:
+      "Admission Discharge Guidelines are a set of rules and procedures that guide the admission and discharge process in a business. They ensure that the patient is admitted and discharged in a safe and compliant manner.",
+    lastUpdated: "January 15, 2024",
+    status: "Active",
+    type: "Admission Discharge",
+    print: AdmissionDischargePrint,
+  },
+  {
+    id: 9,
+    name: "Enquiry Taking Guidelines",
+    description:
+      "Enquiry Taking Guidelines are a set of rules and procedures that guide the enquiry taking process in a business. They ensure that the enquiry is taken in a safe and compliant manner.",
+    lastUpdated: "January 15, 2024",
+    status: "Active",
+    type: "Enquiry",
+    print: EnquiryTakingPrint,
+  },
+  {
+    id: 10,
+    name: "Hygiene Maintenance Guidelines",
+    description:
+      "Hygiene Maintenance Guidelines are a set of rules and procedures that guide the hygiene maintenance process in a business. They ensure that the hygiene is maintained in a safe and compliant manner.",
+    lastUpdated: "January 15, 2024",
+    status: "Active",
+    type: "Hygiene Maintenance",
+    print: HygieneMaintenancePrint,
+  },
+  {
+    id: 11,
+    name: "Rehabilitation Guidelines",
+    description:
+      "Rehabilitation Guidelines are a set of rules and procedures that guide the rehabilitation process in a business. They ensure that the rehabilitation is done in a safe and compliant manner.",
+    lastUpdated: "January 15, 2024",
+    status: "Active",
+    type: "Rehabilitation",
+    print: RehabilitationGuidelinesPrint,
+  },
+  {
+    id: 12,
+    name: "Bedside Notes Guidelines",
+    description:
+      "Bedside Notes Guidelines are a set of rules and procedures that guide the bedside notes process in a business. They ensure that the bedside notes are taken in a safe and compliant manner.",
+    lastUpdated: "January 15, 2024",
+    status: "Active",
+    type: "Bedside Notes",
+    print: BedsideNotesPrint,
   },
 ];
 
