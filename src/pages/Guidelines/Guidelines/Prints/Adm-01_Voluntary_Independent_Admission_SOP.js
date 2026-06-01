@@ -29,7 +29,7 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           </p>
         </div>
 
-        <table className="w-100 mb-4" style={{ borderCollapse: "collapse" }}>
+        <table className="w-100 mb-4" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
           <tbody>
             <tr><td style={tableHeadStyle}>Doc ID</td><td style={tableCellStyle}>Adm-01</td></tr>
             <tr><td style={tableHeadStyle}>Version</td><td style={tableCellStyle}>Version 2.0</td></tr>
@@ -52,8 +52,8 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           consent and request discharge.
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">1. Purpose</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>1. Purpose</h3>
           <p>
             This SOP defines the mandatory clinical, legal, and administrative procedure for admitting a patient
             under Independent (Voluntary) Admission at Jagrutii Rehab Centre Pvt. Ltd. under Section 86 and
@@ -66,8 +66,8 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           </p>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">2. Scope</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>2. Scope</h3>
           <ul className="list-disc pl-6 space-y-1">
             <li>All patients presenting for voluntary admission across all 18 JRCPL centres</li>
             <li>All four clinical verticals</li>
@@ -76,9 +76,9 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           </ul>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">3. Definitions</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>3. Definitions</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Term</th><th style={tableHeadStyle}>Definition</th></tr>
             </thead>
@@ -92,9 +92,9 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">4. Legal Framework — MHCA 2017</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>4. Legal Framework — MHCA 2017</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Section</th><th style={tableHeadStyle}>Subject</th><th style={tableHeadStyle}>Requirement</th></tr>
             </thead>
@@ -109,9 +109,9 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">5. Pre-Admission Process</h3>
-          <h4 className="font-semibold mt-3 mb-1">5.1 First Contact &amp; Initial Triage</h4>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>5. Pre-Admission Process</h3>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>5.1 First Contact &amp; Initial Triage</h4>
           <ol className="list-decimal pl-6 space-y-1">
             <li>Reception or admissions coordinator receives the patient/family and ascertains nature of presentation, urgency, and admission category.</li>
             <li>Pre-Admission Screening Checklist (ADM-F-001) initiated — vitals, BSL, ECG if indicated.</li>
@@ -119,8 +119,8 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
             <li>If medically stable — proceed to clinical assessment.</li>
           </ol>
 
-          <h4 className="font-semibold mt-3 mb-1">5.2 Clinical Assessment by Treating Psychiatrist</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>5.2 Clinical Assessment by Treating Psychiatrist</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Assessment Domain</th><th style={tableHeadStyle}>Content</th></tr>
             </thead>
@@ -142,9 +142,9 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           </div>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">6. Admission Consent Process</h3>
-          <h4 className="font-semibold mt-3 mb-1">6.1 Information Disclosure — Mandatory Before Consent</h4>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>6. Admission Consent Process</h3>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>6.1 Information Disclosure — Mandatory Before Consent</h4>
           <p>The treating psychiatrist must personally explain (in language the patient understands):</p>
           <ul className="list-disc pl-6 space-y-1">
             <li>Their diagnosis and clinical formulation</li>
@@ -158,7 +158,7 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
             <li>Grievance redressal process (CL-05)</li>
           </ul>
 
-          <h4 className="font-semibold mt-3 mb-1">6.2 Consent Documentation</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>6.2 Consent Documentation</h4>
           <ol className="list-decimal pl-6 space-y-1">
             <li>Patient signs JRCPL Admission Consent Form (ADM-F-002) — voluntarily, without coercion.</li>
             <li>If a patient cannot sign (physical disability) — thumb impression with two witnesses is acceptable.</li>
@@ -168,9 +168,9 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           </ol>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">7. Admission Execution</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>7. Admission Execution</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Step</th><th style={tableHeadStyle}>Action</th><th style={tableHeadStyle}>Responsible</th><th style={tableHeadStyle}>Timeframe</th></tr>
             </thead>
@@ -185,8 +185,8 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">7.1 Post-Admission Clinical Milestones</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>7.1 Post-Admission Clinical Milestones</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Timeframe</th><th style={tableHeadStyle}>Requirement</th><th style={tableHeadStyle}>Responsible</th></tr>
             </thead>
@@ -200,9 +200,9 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">8. Patient Rights During Voluntary Admission</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>8. Patient Rights During Voluntary Admission</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Right</th><th style={tableHeadStyle}>How JRCPL Ensures This</th></tr>
             </thead>
@@ -218,9 +218,9 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">9. EMR Gate — Documentation Checklist</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>9. EMR Gate — Documentation Checklist</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Item</th><th style={tableHeadStyle}>Form</th><th style={tableHeadStyle}>Responsible</th><th style={tableHeadStyle}>Timeframe</th></tr>
             </thead>
@@ -240,9 +240,9 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">10. KPI Monitoring</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>10. KPI Monitoring</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>KPI</th><th style={tableHeadStyle}>Target</th><th style={tableHeadStyle}>Measured By</th><th style={tableHeadStyle}>Frequency</th></tr>
             </thead>
@@ -256,9 +256,9 @@ const Adm01VoluntaryAdmissionSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">11. Revision History</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>11. Revision History</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Version</th><th style={tableHeadStyle}>Date</th><th style={tableHeadStyle}>Revised By</th><th style={tableHeadStyle}>Summary of Changes</th></tr>
             </thead>

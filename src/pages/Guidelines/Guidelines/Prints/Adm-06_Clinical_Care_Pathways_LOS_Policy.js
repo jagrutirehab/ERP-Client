@@ -41,7 +41,7 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
           </p>
         </div>
 
-        <table className="w-100 mb-4" style={{ borderCollapse: "collapse" }}>
+        <table className="w-100 mb-4" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
           <tbody>
             <tr><td style={tableHeadStyle}>Doc ID</td><td style={tableCellStyle}>Adm-06</td></tr>
             <tr><td style={tableHeadStyle}>Version</td><td style={tableCellStyle}>1.0</td></tr>
@@ -64,10 +64,10 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
           notification.
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">1. Overview — JRCPL Clinical Programmes</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>1. Overview — JRCPL Clinical Programmes</h3>
           <p>JRCPL operates six distinct clinical programmes across all 18 centres and four clinical verticals.</p>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Programme</th><th style={tableHeadStyle}>Vertical</th><th style={tableHeadStyle}>Standard Duration</th><th style={tableHeadStyle}>Review Cycle</th><th style={tableHeadStyle}>MHCA Category</th></tr>
             </thead>
@@ -82,8 +82,8 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">2. Core Clinical Principles</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>2. Core Clinical Principles</h3>
           <ul className="list-disc pl-6 space-y-1">
             <li>Length of stay is a clinical decision made by the treating psychiatrist in consultation with the MDT — never an administrative, financial, or family-driven decision</li>
             <li>Every patient receives an Estimated Length of Stay (ELOS) at admission, documented in the EMR</li>
@@ -97,11 +97,11 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
         <div style={programmeHeaderStyle}>
           <strong>Programme 1 — Acute Psychiatric Stabilisation</strong> · Standard duration: 7 to 30 days | Severity-determined
         </div>
-        <div className="mb-6">
-          <h4 className="font-semibold mt-3 mb-1">1.1 Programme Definition</h4>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>1.1 Programme Definition</h4>
           <p>Short-term, intensive inpatient programme for patients presenting with acute psychiatric illness requiring immediate clinical intervention. Duration is determined entirely by clinical severity and response to treatment.</p>
 
-          <h4 className="font-semibold mt-3 mb-1">1.2 Indications for Admission</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>1.2 Indications for Admission</h4>
           <ul className="list-disc pl-6 space-y-1">
             <li>Active suicidal ideation or recent suicide attempt (C-SSRS score 4–5)</li>
             <li>Acute psychosis — first episode or relapse with risk behaviour</li>
@@ -112,8 +112,8 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
             <li>Post-discharge relapse requiring rapid re-stabilisation</li>
           </ul>
 
-          <h4 className="font-semibold mt-3 mb-1">1.3 Standard Programme Duration</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>1.3 Standard Programme Duration</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Severity Level</th><th style={tableHeadStyle}>Clinical Criteria</th><th style={tableHeadStyle}>Standard Duration</th><th style={tableHeadStyle}>MHCA Category</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Mild-Moderate</td><td style={tableCellStyle}>Stable vitals; responsive to initial pharmacotherapy; insight present; low immediate risk</td><td style={tableCellStyle}>7–14 days</td><td style={tableCellStyle}>§86 Voluntary</td></tr>
@@ -123,8 +123,8 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">1.4 Phase Structure</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>1.4 Phase Structure</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Phase</th><th style={tableHeadStyle}>Days</th><th style={tableHeadStyle}>Clinical Focus</th><th style={tableHeadStyle}>Key Milestones</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Phase 1</td><td style={tableCellStyle}>Day 1–3</td><td style={tableCellStyle}>Safety, stabilisation, baseline assessment</td><td style={tableCellStyle}>C-SSRS, MSE, labs, risk classification, medication initiation, MHCA admission category confirmed</td></tr>
@@ -133,7 +133,7 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">1.5 Discharge Criteria</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>1.5 Discharge Criteria</h4>
           <ul className="list-disc pl-6 space-y-1">
             <li>C-SSRS active ideation score 0 for ≥ 5 consecutive days</li>
             <li>No uncontrolled psychosis, mania, or severe agitation</li>
@@ -148,11 +148,11 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
         <div style={programmeHeaderStyle}>
           <strong>Programme 2 — Psychiatric Rehabilitation</strong> · Standard duration: 90 days | Review every 30 days
         </div>
-        <div className="mb-6">
-          <h4 className="font-semibold mt-3 mb-1">2.1 Programme Definition</h4>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>2.1 Programme Definition</h4>
           <p>Structured, long-term inpatient programme for patients with moderate-to-severe psychiatric illness who require comprehensive rehabilitation beyond acute stabilisation. Integrates pharmacotherapy, structured psychotherapy, occupational therapy, family therapy, and relapse prevention into a phased clinical pathway.</p>
 
-          <h4 className="font-semibold mt-3 mb-1">2.2 Indications</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>2.2 Indications</h4>
           <ul className="list-disc pl-6 space-y-1">
             <li>Chronic or recurrent psychiatric illness with poor community functioning (schizophrenia spectrum, bipolar disorder, treatment-resistant depression)</li>
             <li>First episode psychosis requiring extended monitoring and rehabilitation</li>
@@ -161,8 +161,8 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
             <li>Inadequate response to outpatient management</li>
           </ul>
 
-          <h4 className="font-semibold mt-3 mb-1">2.3 Three-Phase Structure — 90 Days</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>2.3 Three-Phase Structure — 90 Days</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Phase</th><th style={tableHeadStyle}>Days</th><th style={tableHeadStyle}>Clinical Focus</th><th style={tableHeadStyle}>Outcome Milestone</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Phase 1 — Stabilise</td><td style={tableCellStyle}>Day 1–30</td><td style={tableCellStyle}>Workup; optimise pharmacotherapy; psychoeducation; ADL baseline; family engagement; risk classification</td><td style={tableCellStyle}>Stable medication for 14 days; PANSS/CGI improvement ≥15%; basic ADL independent; no acute risk</td></tr>
@@ -171,7 +171,7 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">2.4 Extension Beyond 90 Days — Three Pathways</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>2.4 Extension Beyond 90 Days — Three Pathways</h4>
           <div style={calloutStyle}>
             A significant proportion of patients with severe or treatment-resistant psychiatric illness will
             require admission beyond 90 days. This is an expected and appropriate clinical outcome — not a
@@ -190,9 +190,9 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
         <div style={programmeHeaderStyle}>
           <strong>Programme 3 — Alcohol De-Addiction</strong> · Standard duration: 45 days | Phase-based review
         </div>
-        <div className="mb-6">
-          <h4 className="font-semibold mt-3 mb-1">3.1 Phase Structure — 45 Days</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>3.1 Phase Structure — 45 Days</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Phase</th><th style={tableHeadStyle}>Days</th><th style={tableHeadStyle}>Clinical Focus</th><th style={tableHeadStyle}>Key Milestones</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Phase 1 — Detoxification</td><td style={tableCellStyle}>Day 1–7</td><td style={tableCellStyle}>CIWA-Ar monitored withdrawal; benzodiazepine taper; thiamine, vitamins; 4-hourly vitals; absolute rest; LFT/labs</td><td style={tableCellStyle}>CIWA-Ar ≤ 8; vitals stable; no seizures; sleep stabilising; medically fit</td></tr>
@@ -208,7 +208,7 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
             withdrawal without ICU backup.
           </div>
 
-          <h4 className="font-semibold mt-3 mb-1">3.2 Medical Protocol — Detoxification</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>3.2 Medical Protocol — Detoxification</h4>
           <ul className="list-disc pl-6 space-y-1">
             <li>CIWA-Ar every 4 hours (Phase 1); every 8 hours (Phase 2)</li>
             <li>Benzodiazepine protocol: symptom-triggered or fixed-dose taper per JRCPL detox protocol</li>
@@ -222,8 +222,8 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
         <div style={programmeHeaderStyle}>
           <strong>Programme 4 — Drug De-Addiction</strong> · Standard duration: 90 days | Phase-based review
         </div>
-        <div className="mb-6">
-          <h4 className="font-semibold mt-3 mb-1">4.1 Why 90 Days — Clinical Rationale</h4>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>4.1 Why 90 Days — Clinical Rationale</h4>
           <div style={calloutStyle}>
             Meaningful neuroplastic recovery from substance-induced changes in the reward pathway requires a
             minimum of 90 days of structured abstinence and rehabilitation. Shorter programmes show
@@ -231,8 +231,8 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
             Act compulsory treatment provisions (§64A), and IPS De-Addiction guidelines 2022.
           </div>
 
-          <h4 className="font-semibold mt-3 mb-1">4.2 Phase Structure — 90 Days</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>4.2 Phase Structure — 90 Days</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Phase</th><th style={tableHeadStyle}>Days</th><th style={tableHeadStyle}>Clinical Focus</th><th style={tableHeadStyle}>Key Milestones</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Phase 1 — Detox &amp; Stabilise</td><td style={tableCellStyle}>Day 1–14</td><td style={tableCellStyle}>COWS-monitored withdrawal; MAT initiation if indicated; UDS; labs; psychiatric comorbidity assessment</td><td style={tableCellStyle}>COWS ≤ 8; medically stable; MAT optimised; no acute psychiatric crisis</td></tr>
@@ -242,8 +242,8 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">4.3 Substance-Specific Protocols</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>4.3 Substance-Specific Protocols</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Substance</th><th style={tableHeadStyle}>Detox Protocol</th><th style={tableHeadStyle}>MAT Consideration</th><th style={tableHeadStyle}>Special Considerations</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Opioids</td><td style={tableCellStyle}>COWS every 4–6 hours; buprenorphine induction if indicated</td><td style={tableCellStyle}>Buprenorphine/naloxone or extended-release naltrexone</td><td style={tableCellStyle}>HIV/HCV screening mandatory; needle sharing history; TB screen</td></tr>
@@ -258,9 +258,9 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
         <div style={programmeHeaderStyle}>
           <strong>Programme 5 — Elderly &amp; Dementia Care</strong> · Condition-dependent | Long-term residency eligible | Review every 30 days
         </div>
-        <div className="mb-6">
-          <h4 className="font-semibold mt-3 mb-1">5.1 Programme Streams</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>5.1 Programme Streams</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Stream</th><th style={tableHeadStyle}>Target Population</th><th style={tableHeadStyle}>Duration</th><th style={tableHeadStyle}>Review</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Acute geriatric psychiatric stabilisation</td><td style={tableCellStyle}>Acute psychiatric crisis; new-onset BPSD in dementia; delirium</td><td style={tableCellStyle}>2–6 weeks (episode-based)</td><td style={tableCellStyle}>Every 7 days</td></tr>
@@ -270,7 +270,7 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">5.2 Core Clinical Principles</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>5.2 Core Clinical Principles</h4>
           <ul className="list-disc pl-6 space-y-1">
             <li>Sleep stabilisation first: orexin antagonists and prolonged-release melatonin preferred over antipsychotics</li>
             <li>Minimum pharmacological burden: lowest effective dose; avoid polypharmacy and PRN stacking</li>
@@ -285,8 +285,8 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
         <div style={programmeHeaderStyle}>
           <strong>Programme 6 — End of Life &amp; Palliative Care (Hospice)</strong> · Duration of need | Weekly MDT review
         </div>
-        <div className="mb-6">
-          <h4 className="font-semibold mt-3 mb-1">6.1 Eligibility Criteria</h4>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>6.1 Eligibility Criteria</h4>
           <ul className="list-disc pl-6 space-y-1">
             <li>Advanced dementia with severe functional decline (Barthel Index ≤ 20; MMSE ≤ 10)</li>
             <li>Terminal psychiatric illness with severe treatment-resistant symptoms</li>
@@ -296,8 +296,8 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
             <li>Advance Directive specifying comfort care has been made or agreed with NR</li>
           </ul>
 
-          <h4 className="font-semibold mt-3 mb-1">6.2 Core Palliative Principles</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>6.2 Core Palliative Principles</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Principle</th><th style={tableHeadStyle}>What This Means at JRCPL</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Comfort over cure</td><td style={tableCellStyle}>Treatment goals shift from disease modification to symptom relief, comfort, and quality of remaining life</td></tr>
@@ -316,11 +316,11 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
           </div>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">7. Cross-Programme Clinical Governance</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>7. Cross-Programme Clinical Governance</h3>
 
-          <h4 className="font-semibold mt-3 mb-1">7.1 MHCA Compliance by Programme</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>7.1 MHCA Compliance by Programme</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Programme</th><th style={tableHeadStyle}>Typical MHCA Category</th><th style={tableHeadStyle}>Review Requirement</th><th style={tableHeadStyle}>MHRB Notification</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>P1 Acute</td><td style={tableCellStyle}>§86 (voluntary); §98 (emergency); §89 if capacity absent</td><td style={tableCellStyle}>7-day (§89) or 14-day (§90)</td><td style={tableCellStyle}>§89: within 7 days; §98: within 24 hours</td></tr>
@@ -331,8 +331,8 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">7.2 KPI Monitoring — All Programmes</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>7.2 KPI Monitoring — All Programmes</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>KPI</th><th style={tableHeadStyle}>Target</th><th style={tableHeadStyle}>Measured By</th><th style={tableHeadStyle}>Frequency</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>ELOS documented at admission for all patients</td><td style={tableCellStyle}>100%</td><td style={tableCellStyle}>Centre Head</td><td style={tableCellStyle}>Monthly</td></tr>
@@ -349,8 +349,8 @@ const Adm06ClinicalCarePathwaysSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">8. Related Documents</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>8. Related Documents</h3>
           <ul className="list-disc pl-6 space-y-1">
             <li>RC-03 — Discharge Planning &amp; Readiness SOP</li>
             <li>RC-04 — Against Medical Advice (AMA) Discharge SOP</li>

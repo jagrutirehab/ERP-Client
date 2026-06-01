@@ -28,7 +28,7 @@ const Adm03LabInvestigationsSOP = forwardRef((props, ref) => {
           </p>
         </div>
 
-        <table className="w-100 mb-4" style={{ borderCollapse: "collapse" }}>
+        <table className="w-100 mb-4" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
           <tbody>
             <tr>
               <td style={tableHeadStyle}>Doc ID</td><td style={tableCellStyle}>Adm-03</td>
@@ -48,8 +48,8 @@ const Adm03LabInvestigationsSOP = forwardRef((props, ref) => {
           </tbody>
         </table>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">1. Purpose</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>1. Purpose</h3>
           <p>
             This SOP establishes a standardised protocol for admission laboratory investigations at Jagrutii
             Rehab Centre, ensuring safe, evidence-based, and comprehensive baseline assessment for all patients
@@ -57,8 +57,8 @@ const Adm03LabInvestigationsSOP = forwardRef((props, ref) => {
           </p>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">2. Scope</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>2. Scope</h3>
           <ul className="list-disc pl-6 space-y-1">
             <li>All newly admitted patients at Jagrutii Rehab Centre</li>
             <li>Applies to: Psychiatry patients (all ages ≤50 years), Elderly patients (&gt;50 years), De-addiction patients</li>
@@ -66,10 +66,10 @@ const Adm03LabInvestigationsSOP = forwardRef((props, ref) => {
           </ul>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">3. Psychiatry Patients (Age ≤ 50 Years) — Admission Labs</h3>
-          <h4 className="font-semibold mt-3 mb-1">3.1 Routine Panel</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>3. Psychiatry Patients (Age ≤ 50 Years) — Admission Labs</h3>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>3.1 Routine Panel</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Investigation</th><th style={tableHeadStyle}>Purpose / Rationale</th><th style={tableHeadStyle}>Priority</th></tr>
             </thead>
@@ -95,11 +95,11 @@ const Adm03LabInvestigationsSOP = forwardRef((props, ref) => {
           <p className="text-muted mt-2"><em>⚠ UDS and VDRL to be done selectively based on clinical history and presentation.</em></p>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">4. Elderly Patients (Age &gt; 50 Years) — Admission Labs</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>4. Elderly Patients (Age &gt; 50 Years) — Admission Labs</h3>
           <p><em>All investigations in Section 3 apply, PLUS the following additional tests mandatory for elderly patients:</em></p>
-          <h4 className="font-semibold mt-3 mb-1">4.1 Additional / Enhanced Panel for Elderly</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>4.1 Additional / Enhanced Panel for Elderly</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Investigation</th><th style={tableHeadStyle}>Rationale (Elderly Specific)</th><th style={tableHeadStyle}>Priority</th></tr>
             </thead>
@@ -122,12 +122,12 @@ const Adm03LabInvestigationsSOP = forwardRef((props, ref) => {
           <p className="text-muted mt-2"><em>⚠ For patients on multiple medications, renal and hepatic panels should be repeated at Day 7 and Day 30.</em></p>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">5. De-addiction Patients — Admission Labs</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>5. De-addiction Patients — Admission Labs</h3>
           <p>De-addiction admissions require targeted investigations based on the primary substance(s) of abuse. All routine psychiatric labs (Section 3) apply plus the following substance-specific additions:</p>
 
-          <h4 className="font-semibold mt-3 mb-1">5.1 Universal De-addiction Panel (All Substances)</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>5.1 Universal De-addiction Panel (All Substances)</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Investigation</th><th style={tableHeadStyle}>Rationale</th><th style={tableHeadStyle}>Priority</th></tr>
             </thead>
@@ -143,8 +143,8 @@ const Adm03LabInvestigationsSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">5.2 Substance-Specific Additional Tests</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>5.2 Substance-Specific Additional Tests</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Substance</th><th style={tableHeadStyle}>Additional Investigations</th><th style={tableHeadStyle}>Rationale</th></tr>
             </thead>
@@ -160,9 +160,9 @@ const Adm03LabInvestigationsSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">6. Repeat Lab Monitoring Schedule</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>6. Repeat Lab Monitoring Schedule</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Patient Category</th><th style={tableHeadStyle}>Repeat Interval</th><th style={tableHeadStyle}>Tests Repeated</th><th style={tableHeadStyle}>Trigger for Urgent Repeat</th></tr>
             </thead>
@@ -177,9 +177,9 @@ const Adm03LabInvestigationsSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">7. Responsibilities</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>7. Responsibilities</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Role</th><th style={tableHeadStyle}>Responsibility</th></tr>
             </thead>
@@ -192,12 +192,12 @@ const Adm03LabInvestigationsSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">8. Critical Lab Values — Immediate Action Required</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>8. Critical Lab Values — Immediate Action Required</h3>
           <div style={warnStyle}>
             ⚠ Any critical value must be verbally communicated to the treating physician within 15 minutes of result.
           </div>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Parameter</th><th style={tableHeadStyle}>Critical Threshold</th><th style={tableHeadStyle}>Immediate Action</th></tr>
             </thead>
@@ -214,8 +214,8 @@ const Adm03LabInvestigationsSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">9. Documentation &amp; Compliance</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>9. Documentation &amp; Compliance</h3>
           <ul className="list-disc pl-6 space-y-1">
             <li>All investigations must be ordered and documented in the patient's Electronic Medical Record (EMR) / Case Sheet at the time of admission.</li>
             <li>Lab results must be filed in the patient's record and reviewed/signed by the treating physician.</li>
