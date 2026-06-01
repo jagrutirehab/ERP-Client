@@ -20,6 +20,7 @@ const AddPositionsCard = ({
   removePositionRow,
   updatePositionRow,
   handleAddPositions,
+  readOnly,
 }) => {
   const isFormValid = positionRows.some(
     (row) => row.department && row.names.trim(),
@@ -142,26 +143,28 @@ const AddPositionsCard = ({
           department.
         </p>
 
-        <div className="d-flex justify-content-end">
-          <Button
-            color="success"
-            className="text-white px-4"
-            onClick={handleAddPositions}
-            disabled={addingPositions || !isFormValid}
-          >
-            {addingPositions ? (
-              <>
-                <Spinner size="sm" className="me-2" />
-                Saving...
-              </>
-            ) : (
-              <>
-                <i className="ri-save-line me-2" />
-                Save Positions
-              </>
-            )}
-          </Button>
-        </div>
+        {!readOnly && (
+          <div className="d-flex justify-content-end">
+            <Button
+              color="success"
+              className="text-white px-4"
+              onClick={handleAddPositions}
+              disabled={addingPositions || !isFormValid}
+            >
+              {addingPositions ? (
+                <>
+                  <Spinner size="sm" className="me-2" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <i className="ri-save-line me-2" />
+                  Save Positions
+                </>
+              )}
+            </Button>
+          </div>
+        )}
       </CardBody>
     </Card>
   );

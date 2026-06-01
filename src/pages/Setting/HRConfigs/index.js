@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col } from "reactstrap";
+import { Row, Col, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
 import {
   getDepartments,
@@ -10,12 +10,15 @@ import {
 import PositionsOverviewCard from "./components/PositionsOverviewCard";
 import AddPositionsCard from "./components/AddPositionsCard";
 import DepartmentsCard from "./components/DepartmentsCard";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
 
 const HrConfigurations = () => {
   const [departments, setDepartments] = useState([]);
   const [deptLoading, setDeptLoading] = useState(false);
   const [newDeptName, setNewDeptName] = useState("");
   const [addingDept, setAddingDept] = useState(false);
+  const navigate = useNavigate();
 
   const [positionRows, setPositionRows] = useState([
     { department: "", names: "" },
@@ -27,6 +30,28 @@ const HrConfigurations = () => {
 
   const [deptSearch, setDeptSearch] = useState("");
   const [positionSearch, setPositionSearch] = useState("");
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const {
+    loading: permissionLoader,
+    hasPermission,
+    roles: userRoles,
+  } = usePermissions(token);
+  const hasUserPermission = hasPermission(
+    "SETTING",
+    "HRCONFIGURATIONSSETTING",
+    "READ",
+  );
+
+  const hasRead = hasPermission("SETTING", "HRCONFIGURATIONSSETTING", "READ");
+  const hasWrite = hasPermission("SETTING", "HRCONFIGURATIONSSETTING", "WRITE");
+  const hasDelete = hasPermission(
+    "SETTING",
+    "HRCONFIGURATIONSSETTING",
+    "DELETE",
+  );
+  const isReadOnly = hasRead && !hasWrite && !hasDelete;
 
   const fetchDepartments = async () => {
     try {
@@ -56,6 +81,22 @@ const HrConfigurations = () => {
     fetchDepartments();
     fetchPositions();
   }, []);
+
+  if (permissionLoader) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ minHeight: 300 }}
+      >
+        <Spinner color="primary" style={{ width: "3rem", height: "3rem" }} />
+      </div>
+    );
+  }
+
+  if (!hasUserPermission) {
+    navigate("/unauthorized");
+    return null;
+  }
 
   const handleAddDepartment = async () => {
     const trimmed = newDeptName.trim();
@@ -178,6 +219,7 @@ const HrConfigurations = () => {
             removePositionRow={removePositionRow}
             updatePositionRow={updatePositionRow}
             handleAddPositions={handleAddPositions}
+            readOnly={isReadOnly}
           />
         </Col>
       </Row>
