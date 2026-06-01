@@ -3908,3 +3908,11 @@ export const getPositions = () =>
 
 // PROFILE
 export const getEmployeeProfile = () => api.get(url.GET_EMPLOYEE_PROFILE);
+
+// HR CONFIGS
+export const addDepartments = (data) => api.create(url.ADD_DEPARTMENTS, data);
+
+export const addPositions = (payload) =>
+  api.create(url.ADD_POSITIONS, payload, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
