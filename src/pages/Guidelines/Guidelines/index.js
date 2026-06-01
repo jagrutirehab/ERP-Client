@@ -7,6 +7,12 @@ import Guideline from "./Guideline";
 import HygieneMaintenancePrint from "./Prints/HygienePrint";
 import RehabilitationGuidelinesPrint from "./Prints/RehabPrint";
 import BedsideNotesPrint from "./Prints/BedsideNotesPrint";
+import Adm01VoluntaryAdmissionSOP from "./Prints/Adm-01_Voluntary_Independent_Admission_SOP";
+import Adm02RejectionCriteriaSOP from "./Prints/Adm-02_Admission_Rejection_Criteria_SOP";
+import Adm03LabInvestigationsSOP from "./Prints/Adm-03_Admission_Lab_Investigations_SOP";
+import Adm04CapacityAssessmentSOP from "./Prints/Adm-04_Capacity_Assessment_SOP";
+import Adm05EmergencyInvoluntarySOP from "./Prints/Adm-05_Emergency_Involuntary_Admission_SOP";
+import Adm06ClinicalCarePathwaysSOP from "./Prints/Adm-06_Clinical_Care_Pathways_LOS_Policy";
 
 const guidelines = [
   {
@@ -68,6 +74,66 @@ const guidelines = [
     status: "Active",
     type: "Bedside Notes",
     print: BedsideNotesPrint,
+  },
+  {
+    id: 7,
+    name: "Adm-01 — Voluntary (Independent) Admission SOP",
+    description:
+      "Mandatory clinical, legal, and administrative procedure for admitting a patient under Independent (Voluntary) Admission per MHCA 2017 Sections 86 & 87 — informed consent, capacity assessment, patient rights, and EMR gate checklist.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Admission — MHCA",
+    print: Adm01VoluntaryAdmissionSOP,
+  },
+  {
+    id: 8,
+    name: "Adm-02 — Admission Rejection & Referral Criteria SOP",
+    description:
+      "Evidence-informed criteria for refusing admission to JRCPL facilities and the protocol for safe referral of rejected patients to appropriate medical facilities — covers clinical instability, medical risk, de-addiction, geriatric, and administrative grounds.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Triage — Safety",
+    print: Adm02RejectionCriteriaSOP,
+  },
+  {
+    id: 9,
+    name: "Adm-03 — Admission Laboratory Investigations SOP",
+    description:
+      "Standardised admission lab protocol for Psychiatry (≤50), Elderly (>50), and De-addiction patients — routine panels, age- and substance-specific add-ons, repeat monitoring schedule, and critical-value action thresholds.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Admission — Investigations",
+    print: Adm03LabInvestigationsSOP,
+  },
+  {
+    id: 10,
+    name: "Adm-04 — Decision-Making Capacity Assessment SOP",
+    description:
+      "Step-by-step procedure for assessing, documenting, and acting on decision-making capacity under MHCA 2017 Section 4 — the four-point test, NR identification, admission classification, mandatory reassessment, and prohibited actions.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Governance — MHCA",
+    print: Adm04CapacityAssessmentSOP,
+  },
+  {
+    id: 11,
+    name: "Adm-05 — Emergency & Involuntary Admission SOP",
+    description:
+      "Complete framework for emergency and involuntary (supported) admissions under MHCA 2017 — 72-hour Emergency Admission Certificate, Sec. 89 supported, Sec. 90 dual-psychiatrist involuntary, MHRB compliance timeline, and restraint legal boundaries.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Emergency — MHCA",
+    print: Adm05EmergencyInvoluntarySOP,
+  },
+  {
+    id: 12,
+    name: "Adm-06 — Clinical Care Pathways, Programme Duration & LOS Policy",
+    description:
+      "Authoritative reference for all six clinical programmes — Acute Psychiatric, Psychiatric Rehab, Alcohol De-Addiction, Drug De-Addiction, Elderly/Dementia, and End of Life — with standard duration, phase structure, outcome milestones, and cross-programme governance.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Programme — LOS",
+    print: Adm06ClinicalCarePathwaysSOP,
   },
 ];
 
