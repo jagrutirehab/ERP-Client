@@ -36,7 +36,7 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           </p>
         </div>
 
-        <table className="w-100 mb-4" style={{ borderCollapse: "collapse" }}>
+        <table className="w-100 mb-4" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
           <tbody>
             <tr><td style={tableHeadStyle}>Doc ID</td><td style={tableCellStyle}>Adn-05</td></tr>
             <tr><td style={tableHeadStyle}>Version</td><td style={tableCellStyle}>Version 2.0</td></tr>
@@ -58,8 +58,8 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           be trained, assessed, and signed off on this SOP before independent practice.
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">1. Purpose</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>1. Purpose</h3>
           <p>
             This SOP defines the complete clinical, legal, and administrative framework for managing emergency
             psychiatric admissions and involuntary (supported) admissions at JRCPL across all 18 centres and
@@ -67,8 +67,8 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           </p>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">2. Scope</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>2. Scope</h3>
           <ul className="list-disc pl-6 space-y-1">
             <li>All patients presenting to any JRCPL centre in a psychiatric emergency</li>
             <li>All patients for whom involuntary (supported) admission under MHCA 2017 is being considered</li>
@@ -78,9 +78,9 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           </ul>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">3. Admission Categories &amp; Legal Basis</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>3. Admission Categories &amp; Legal Basis</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Admission Category</th><th style={tableHeadStyle}>Legal Basis</th><th style={tableHeadStyle}>Core Criteria</th><th style={tableHeadStyle}>Max Initial Period</th></tr>
             </thead>
@@ -93,9 +93,9 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">4. Key Definitions</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>4. Key Definitions</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Term</th><th style={tableHeadStyle}>Definition</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Nominated Representative (NR)</td><td style={tableCellStyle}>Person nominated by patient under MHCA Sec. 14 to make decisions when capacity is absent. May be family, guardian, or legal representative. Not automatically the nearest relative.</td></tr>
@@ -106,18 +106,18 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">5. Part A — Emergency Admission (MHCA Sec. 94, 98)</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>5. Part A — Emergency Admission (MHCA Sec. 94, 98)</h3>
 
-          <h4 className="font-semibold mt-3 mb-1">5.1 Criteria for Emergency Admission</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>5.1 Criteria for Emergency Admission</h4>
           <div style={warnStyle}>
             ⚠ The patient must have, or appear to have, a mental illness AND pose an immediate risk of serious
             harm to themselves or others OR be in immediate danger of serious deterioration AND the standard
             admission process (obtaining consent) is not practicable in the circumstances.
           </div>
 
-          <h4 className="font-semibold mt-3 mb-1">5.2 Emergency Admission — Step-by-Step Protocol</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>5.2 Emergency Admission — Step-by-Step Protocol</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Step</th><th style={tableHeadStyle}>Action</th><th style={tableHeadStyle}>Responsible</th><th style={tableHeadStyle}>Time Target</th></tr>
             </thead>
@@ -135,13 +135,13 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">5.3 The 72-Hour Clock — Non-Negotiable</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>5.3 The 72-Hour Clock — Non-Negotiable</h4>
           <div style={calloutStyle}>
             The 72-hour period begins at the time the EAC-001 is signed — NOT from the patient's time of arrival.
             The Grievance Officer maintains a live 72-hour watch-list. An alert is generated 12 hours before the
             window closes. Continued detention without legal basis after 72 hours = unlawful detention (Sec. 99).
           </div>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Timepoint</th><th style={tableHeadStyle}>Mandatory Action</th><th style={tableHeadStyle}>Responsible</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>At EAC signing</td><td style={tableCellStyle}>72-hour clock recorded in EMR and on physical watch-list; Grievance Officer notified</td><td style={tableCellStyle}>Psychiatrist / Grievance Officer</td></tr>
@@ -151,7 +151,7 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">5.4 Extension Beyond 72 Hours</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>5.4 Extension Beyond 72 Hours</h4>
           <ol className="list-decimal pl-6 space-y-1">
             <li>Extension requires a SEPARATE psychiatric evaluation confirming ongoing risk criteria.</li>
             <li>A second certificate from an independent psychiatrist (not employed by JRCPL) must be obtained.</li>
@@ -160,10 +160,10 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           </ol>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">6. Part B — Supported Admission (MHCA Sec. 89)</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>6. Part B — Supported Admission (MHCA Sec. 89)</h3>
 
-          <h4 className="font-semibold mt-3 mb-1">6.1 Criteria</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>6.1 Criteria</h4>
           <ul className="list-disc pl-6 space-y-1">
             <li>Patient has mental illness (formally assessed)</li>
             <li>Patient lacks decision-making capacity (formally assessed using Cap-Form-001)</li>
@@ -171,7 +171,7 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
             <li>Two JRCPL psychiatrist certificates confirm the criteria are met</li>
           </ul>
 
-          <h4 className="font-semibold mt-3 mb-1">6.2 Step-by-Step Protocol</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>6.2 Step-by-Step Protocol</h4>
           <ol className="list-decimal pl-6 space-y-1">
             <li>The treating psychiatrist formally assesses and documents loss of capacity (Cap-Form-001).</li>
             <li>NR identified — verify NR status; if no NR, escalate to Clinical Director.</li>
@@ -183,11 +183,11 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           </ol>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">7. Part C — Involuntary Admission (MHCA Sec. 90)</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>7. Part C — Involuntary Admission (MHCA Sec. 90)</h3>
 
-          <h4 className="font-semibold mt-3 mb-1">7.1 Criteria — ALL must be met</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>7.1 Criteria — ALL must be met</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Criterion</th><th style={tableHeadStyle}>Documentation Required</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Patient has mental illness</td><td style={tableCellStyle}>Diagnosis documented per MHCA Sec. 3 — clinical assessment by treating psychiatrist</td></tr>
@@ -198,7 +198,7 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">7.2 Step-by-Step Protocol</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>7.2 Step-by-Step Protocol</h4>
           <ol className="list-decimal pl-6 space-y-1">
             <li>The treating psychiatrist documents all five Sec. 90 criteria in detail in the EMR.</li>
             <li>Certificate 1 signed by treating (JRCPL) psychiatrist — MHCA Sec. 90 Certificate of Involuntary Admission (IA-F-001).</li>
@@ -213,8 +213,8 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
             a single certificate beyond 72 hours is unlawful and constitutes criminal liability under Sec. 99.
           </div>
 
-          <h4 className="font-semibold mt-3 mb-1">7.3 MHRB Compliance Timeline</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>7.3 MHRB Compliance Timeline</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Milestone</th><th style={tableHeadStyle}>Timeline</th><th style={tableHeadStyle}>Responsible</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>MHRB written notification of involuntary admission</td><td style={tableCellStyle}>Within 7 days of admission</td><td style={tableCellStyle}>Grievance Officer</td></tr>
@@ -226,9 +226,9 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">8. Patient Rights in Emergency / Involuntary Admission</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>8. Patient Rights in Emergency / Involuntary Admission</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Right</th><th style={tableHeadStyle}>JRCPL Obligation</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Right to be informed of admission status and reason</td><td style={tableCellStyle}>Even in emergency — inform as soon as patient is able to receive information; document</td></tr>
@@ -240,8 +240,8 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">9. Restraint in Emergency — Legal Boundaries</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>9. Restraint in Emergency — Legal Boundaries</h3>
           <div style={warnStyle}>
             ⚠ Physical restraint is a LAST RESORT under MHCA 2017. Permitted ONLY when there is imminent risk
             of serious harm AND no less restrictive intervention is effective. Restraint as punishment,
@@ -255,9 +255,9 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           </ul>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">10. Roles &amp; Responsibilities</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>10. Roles &amp; Responsibilities</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Role</th><th style={tableHeadStyle}>Responsibility</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Treating Psychiatrist</td><td style={tableCellStyle}>Clinical decision authority for all admission categories; certificates; MHRB communications; family briefing</td></tr>
@@ -270,9 +270,9 @@ const Adm05EmergencyInvoluntarySOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">11. KPI Monitoring</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>11. KPI Monitoring</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>KPI</th><th style={tableHeadStyle}>Target</th><th style={tableHeadStyle}>Measured By</th><th style={tableHeadStyle}>Frequency</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Emergency Admission Certificate completed before formal admission</td><td style={tableCellStyle}>100%</td><td style={tableCellStyle}>Grievance Officer</td><td style={tableCellStyle}>Monthly</td></tr>

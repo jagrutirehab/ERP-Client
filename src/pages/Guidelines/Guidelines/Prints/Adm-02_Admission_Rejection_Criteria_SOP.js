@@ -36,7 +36,7 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
           </p>
         </div>
 
-        <table className="w-100 mb-4" style={{ borderCollapse: "collapse" }}>
+        <table className="w-100 mb-4" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
           <tbody>
             <tr><td style={tableHeadStyle}>Doc ID</td><td style={tableCellStyle}>ADM-002</td></tr>
             <tr><td style={tableHeadStyle}>Version</td><td style={tableCellStyle}>Version 2.0</td></tr>
@@ -58,8 +58,8 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
           family consent or financial discussion.
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">1. Purpose &amp; Rationale</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>1. Purpose &amp; Rationale</h3>
           <p>
             This SOP establishes the mandatory, evidence-informed criteria for refusing admission to Jagrutii
             Rehab Centre Pvt. Ltd. facilities, and the protocol for safe referral of rejected patients to
@@ -73,8 +73,8 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
           <p>This version (v2.0) consolidates and supersedes all prior versions of this document.</p>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">2. Scope</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>2. Scope</h3>
           <ul className="list-disc pl-6 space-y-1">
             <li>All staff involved in the admissions process: psychiatrists, medical officers, nursing staff, admissions coordinators, reception staff</li>
             <li>All four verticals: Psychiatric Care, De-Addiction, Elderly Care, Child &amp; Adolescent Psychiatry</li>
@@ -83,9 +83,9 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
           </ul>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">3. Mandatory Pre-Admission Screening</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>3. Mandatory Pre-Admission Screening</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Screening</th><th style={tableHeadStyle}>Indication</th><th style={tableHeadStyle}>Trigger for Rejection / Further Action</th></tr>
             </thead>
@@ -98,12 +98,12 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">4. Admission Rejection Criteria</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>4. Admission Rejection Criteria</h3>
           <p>Admission MUST be refused when any of the following criteria are present. This list must be applied without exception.</p>
 
-          <h4 className="font-semibold mt-3 mb-1">Category A — Clinical Instability</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Category A — Clinical Instability</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>#</th><th style={tableHeadStyle}>Criterion</th><th style={tableHeadStyle}>Action</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>A1</td><td style={tableCellStyle}>Drowsy, semi-conscious, or unconscious patient (GCS &lt; 15)</td><td style={tableCellStyle}>Emergency referral — ambulance if required</td></tr>
@@ -113,8 +113,8 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">Category B — Medical Risk Conditions</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Category B — Medical Risk Conditions</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>#</th><th style={tableHeadStyle}>Criterion</th><th style={tableHeadStyle}>Action</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>B1</td><td style={tableCellStyle}>Severe intoxication WITH jaundice / known liver disease / suspected overdose / suspected poisoning</td><td style={tableCellStyle}>Emergency referral — liver / toxicology workup required</td></tr>
@@ -126,8 +126,8 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">Category C — De-Addiction Specific</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Category C — De-Addiction Specific</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>#</th><th style={tableHeadStyle}>Criterion</th><th style={tableHeadStyle}>Action</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>C1</td><td style={tableCellStyle}>Severe alcohol withdrawal with CIWA-Ar score &gt; 15 AND unstable vitals</td><td style={tableCellStyle}>Medical detox unit / general hospital; return to JRCPL after stabilisation</td></tr>
@@ -136,8 +136,8 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">Category D — Geriatric Specific</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Category D — Geriatric Specific</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>#</th><th style={tableHeadStyle}>Criterion</th><th style={tableHeadStyle}>Action</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>D1</td><td style={tableCellStyle}>Acute medical complaint in elderly patient (sudden onset confusion, chest pain, fall with suspected fracture)</td><td style={tableCellStyle}>Emergency general hospital referral</td></tr>
@@ -146,8 +146,8 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">Category E — Administrative &amp; Legal</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Category E — Administrative &amp; Legal</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>#</th><th style={tableHeadStyle}>Criterion</th><th style={tableHeadStyle}>Action</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>E1</td><td style={tableCellStyle}>Family / legally responsible party refuses mandatory consent or required documentation</td><td style={tableCellStyle}>Cannot admit; document refusal; advise legal pathway</td></tr>
@@ -157,9 +157,9 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">5. Mandatory Referral Protocol</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>5. Mandatory Referral Protocol</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Step</th><th style={tableHeadStyle}>Action</th><th style={tableHeadStyle}>Responsible</th><th style={tableHeadStyle}>Timeline</th></tr>
             </thead>
@@ -175,8 +175,8 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">6. Re-Admission Pathway</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>6. Re-Admission Pathway</h3>
           <p>Following medical stabilisation at a general hospital or higher-level facility, the patient may return for JRCPL re-assessment provided:</p>
           <ul className="list-disc pl-6 space-y-1">
             <li>Written discharge summary from treating physician confirming medical stability</li>
@@ -192,8 +192,8 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
           </div>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">7. MHCA 2017 — Non-Discrimination Clause</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>7. MHCA 2017 — Non-Discrimination Clause</h3>
           <p>
             MHCA 2017 Section 19 prohibits discrimination in access to mental healthcare. Admission rejection
             must be based SOLELY on the clinical and administrative criteria defined in Section 4. Rejection on
@@ -203,9 +203,9 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
           </p>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">8. KPI Monitoring</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>8. KPI Monitoring</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>KPI</th><th style={tableHeadStyle}>Target</th><th style={tableHeadStyle}>Measured By</th><th style={tableHeadStyle}>Frequency</th></tr>
             </thead>
@@ -219,9 +219,9 @@ const Adm02RejectionCriteriaSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">9. Revision History</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>9. Revision History</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Version</th><th style={tableHeadStyle}>Date</th><th style={tableHeadStyle}>Revised By</th><th style={tableHeadStyle}>Summary of Changes</th></tr>
             </thead>

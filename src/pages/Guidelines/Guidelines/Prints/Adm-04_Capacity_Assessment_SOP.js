@@ -36,7 +36,7 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           </p>
         </div>
 
-        <table className="w-100 mb-4" style={{ borderCollapse: "collapse" }}>
+        <table className="w-100 mb-4" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
           <tbody>
             <tr><td style={tableHeadStyle}>Doc ID</td><td style={tableCellStyle}>Adm-04</td></tr>
             <tr><td style={tableHeadStyle}>Version</td><td style={tableCellStyle}>Version 1.0</td></tr>
@@ -57,8 +57,8 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           appearance, behaviour, or any other characteristic. Capacity is decision-specific and time-specific.
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">1. Purpose</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>1. Purpose</h3>
           <p>
             This SOP defines the mandatory step-by-step clinical procedure for assessing, documenting, and
             acting on decision-making capacity at JRCPL. It applies at every stage of the patient's care
@@ -67,8 +67,8 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           </p>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">2. Scope</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>2. Scope</h3>
           <ul className="list-disc pl-6 space-y-1">
             <li>All patients at admission where voluntary consent cannot be immediately confirmed</li>
             <li>All patients before any significant treatment decision: new medication class, ECT under §95, detoxification protocol</li>
@@ -80,9 +80,9 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           </ul>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">3. Who Conducts the Assessment</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>3. Who Conducts the Assessment</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Role</th><th style={tableHeadStyle}>Assessment Authority</th><th style={tableHeadStyle}>Qualification</th></tr>
             </thead>
@@ -95,12 +95,12 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">4. Step-by-Step Capacity Assessment Procedure</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>4. Step-by-Step Capacity Assessment Procedure</h3>
 
-          <h4 className="font-semibold mt-3 mb-1">Step 1 — Identify the trigger</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Step 1 — Identify the trigger</h4>
           <p>Confirm that a capacity assessment is required for a specific decision. Document the specific decision being assessed — not a general capacity assessment.</p>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Trigger Category</th><th style={tableHeadStyle}>Examples</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Admission</td><td style={tableCellStyle}>Patient presenting for inpatient admission; voluntary consent cannot be confirmed</td></tr>
@@ -112,7 +112,7 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">Step 2 — Optimise conditions before assessing</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Step 2 — Optimise conditions before assessing</h4>
           <ul className="list-disc pl-6 space-y-1">
             <li>Choose the best time of day — avoid peak sedation, acute agitation, or night-time</li>
             <li>Ensure quiet, private space — free from disturbances and other patients</li>
@@ -121,13 +121,13 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
             <li>Allow adequate time — never rush the assessment</li>
           </ul>
 
-          <h4 className="font-semibold mt-3 mb-1">Step 3 — Conduct the four-point capacity test (MHCA 2017 §4)</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Step 3 — Conduct the four-point capacity test (MHCA 2017 §4)</h4>
           <div style={warnStyle}>
             ⚠ All four criteria must be individually assessed and individually documented. A capacity note that
             only states "patient lacks capacity" without documenting the outcome of each criterion is legally
             insufficient under MHCA 2017.
           </div>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Criterion</th><th style={tableHeadStyle}>Question / Method / Documentation</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>1 — Understand</td><td style={tableCellStyle}>Ask patient to explain their condition and proposed treatment in their own words. Document the patient's own words showing level of understanding.</td></tr>
@@ -137,8 +137,8 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">Step 4 — Record the outcome</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Step 4 — Record the outcome</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Outcome</th><th style={tableHeadStyle}>Next Step</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Has capacity — all 4 criteria met</td><td style={tableCellStyle}>Obtain patient's own written informed consent (§86 form). No NR or family consent required.</td></tr>
@@ -147,7 +147,7 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">Step 5 — When capacity is absent: identify NR and classify admission</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Step 5 — When capacity is absent: identify NR and classify admission</h4>
           <ol className="list-decimal pl-6 space-y-1">
             <li>Document absence of capacity — complete Cap-Form. Record which criteria failed and the clinical evidence for each failure.</li>
             <li>Identify Nominated Representative (NR): default hierarchy — spouse &gt; parent &gt; adult child &gt; sibling. If no NR within 24 hours: escalate to Clinical Director immediately.</li>
@@ -158,8 +158,8 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
             <li>Set mandatory reassessment date in EMR: §89 every 7 days; §90 every 14 days.</li>
           </ol>
 
-          <h4 className="font-semibold mt-3 mb-1">Step 6 — MHCA admission classification when capacity is absent</h4>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Step 6 — MHCA admission classification when capacity is absent</h4>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead>
               <tr><th style={tableHeadStyle}>Situation</th><th style={tableHeadStyle}>MHCA Section &amp; Requirement</th><th style={tableHeadStyle}>Duration &amp; MHRB</th></tr>
             </thead>
@@ -172,9 +172,9 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
             </tbody>
           </table>
 
-          <h4 className="font-semibold mt-3 mb-1">Step 7 — Mandatory reassessment</h4>
+          <h4 className="font-semibold mt-3 mb-1" style={{ marginTop: "1.25rem", marginBottom: "0.5rem" }}>Step 7 — Mandatory reassessment</h4>
           <p>When capacity returns, voluntary consent must be offered immediately and the admission converted to §86.</p>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Admission Category</th><th style={tableHeadStyle}>Reassessment Requirement &amp; Action When Capacity Returns</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>§89 Supported</td><td style={tableCellStyle}>Every 7 days — mandatory. When capacity returns: convert to §86; obtain new voluntary consent.</td></tr>
@@ -185,8 +185,8 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">5. Fluctuating Capacity — Special Protocol</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>5. Fluctuating Capacity — Special Protocol</h3>
           <ul className="list-disc pl-6 space-y-1">
             <li>Defer non-urgent decisions to the time when capacity is most likely present</li>
             <li>Reassess before each significant decision — yesterday's assessment does not apply today</li>
@@ -195,9 +195,9 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           </ul>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">6. Escalation Protocol</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>6. Escalation Protocol</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Trigger</th><th style={tableHeadStyle}>Action &amp; Timeline</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Capacity in genuine doubt among the treating team</td><td style={tableCellStyle}>Convene MDT within 24 hours; involve Clinical Psychologist for psychometric input (MMSE, MoCA)</td></tr>
@@ -210,8 +210,8 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">7. EMR Documentation Requirements — CAP-Form</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>7. EMR Documentation Requirements — CAP-Form</h3>
           <p>Every capacity assessment must be documented in the EMR using Form CAP-Form. All fields are mandatory.</p>
           <ul className="list-disc pl-6 space-y-1">
             <li>Date and time of assessment</li>
@@ -225,8 +225,8 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           </ul>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">8. Prohibited Actions</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>8. Prohibited Actions</h3>
           <div style={warnStyle}>
             ⚠ The following are prohibited under MHCA 2017 and constitute criminal offences. Any staff member
             who observes or is asked to participate in these must escalate to the Clinical Director immediately.
@@ -241,9 +241,9 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           </ul>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">9. Roles &amp; Responsibilities</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>9. Roles &amp; Responsibilities</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>Role</th><th style={tableHeadStyle}>Responsibility</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Treating Psychiatrist</td><td style={tableCellStyle}>Conducts and signs all capacity assessments; completes Cap-Form; classifies admission under correct MHCA section; sets EMR reassessment alerts</td></tr>
@@ -256,9 +256,9 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">10. KPI Monitoring</h3>
-          <table className="w-100" style={{ borderCollapse: "collapse" }}>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>10. KPI Monitoring</h3>
+          <table className="w-100" style={{ borderCollapse: "collapse", marginTop: "0.5rem", marginBottom: "0.75rem" }}>
             <thead><tr><th style={tableHeadStyle}>KPI</th><th style={tableHeadStyle}>Target | Measured By | Frequency</th></tr></thead>
             <tbody>
               <tr><td style={tableCellStyle}>Capacity assessment with all 4 criteria individually documented</td><td style={tableCellStyle}>100% | Centre Manager | Monthly</td></tr>
@@ -274,8 +274,8 @@ const Adm04CapacityAssessmentSOP = forwardRef((props, ref) => {
           </table>
         </div>
 
-        <div className="mb-6">
-          <h3 className="text-1.2xl font-bold mb-2">11. Related Documents</h3>
+        <div className="mb-6" style={{ marginBottom: "2rem" }}>
+          <h3 className="text-1.2xl font-bold mb-2" style={{ marginTop: "0.5rem", marginBottom: "0.75rem" }}>11. Related Documents</h3>
           <ul className="list-disc pl-6 space-y-1">
             <li>JRCPL/GOV/CA/001 — Decision-Making Capacity Assessment Policy v2.0</li>
             <li>Form Cap-Form — Capacity Assessment Form</li>
