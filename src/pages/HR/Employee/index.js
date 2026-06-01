@@ -5,12 +5,21 @@ import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
 import Select from "react-select";
 import { Pencil, Trash2 } from "lucide-react";
-import { fetchDesignations, getMasterEmployees } from "../../../store/features/HR/hrSlice";
+import {
+  fetchDesignations,
+  getMasterEmployees,
+} from "../../../store/features/HR/hrSlice";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import DeleteConfirmModal from "../components/DeleteConfirmModal";
-import { deleteEmployee, exportEmployeesXLSX, getDepartments, getPositions, getEmployeeDetailsById } from "../../../helpers/backend_helper";
+import {
+  deleteEmployee,
+  exportEmployeesXLSX,
+  getDepartments,
+  getPositions,
+  getEmployeeDetailsById,
+} from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -19,7 +28,13 @@ import EmployeeModal from "../components/EmployeeModal";
 import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge";
 import { getFilePreviewMeta } from "../../../utils/isPreviewable";
 import PreviewFile from "../../../Components/Common/PreviewFile";
-import { FILE_PREVIEW_CUTOFF, filterEmploymentOptions, statusOptions, newEmploymentOptions, employmentStatus as employmentStatusOptions } from "../../../Components/constants/HR";
+import {
+  FILE_PREVIEW_CUTOFF,
+  filterEmploymentOptions,
+  statusOptions,
+  newEmploymentOptions,
+  employmentStatus as employmentStatusOptions,
+} from "../../../Components/constants/HR";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 import DataTableComponent from "../../../Components/Common/DataTable";
 
@@ -46,7 +61,6 @@ const Employee = () => {
 
   const [selectedEmploymentStatus, setSelectedEmploymentStatus] = useState([]);
 
-
   const [isExcelGenerating, setIsExcelGenerating] = useState(false);
 
   const [selectedCenters, setSelectedCenters] = useState([]);
@@ -55,7 +69,9 @@ const Employee = () => {
   const [selectedEmploymentType, setSelectedEmploymentType] = useState([]);
   const [selectedStatus, setSelectedStatus] = useState([]);
   const [selectedPosition, setSelectedPosition] = useState([]);
-  const [selectedNewEmploymentType, setSelectedNewEmploymentType] = useState([]);
+  const [selectedNewEmploymentType, setSelectedNewEmploymentType] = useState(
+    [],
+  );
   const [positionOptions, setPositionOptions] = useState([]);
 
   const { designations, designationLoading } = useSelector((state) => state.HR);
@@ -72,17 +88,15 @@ const Employee = () => {
   } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "MASTER_EMPLOYEE", "READ");
 
-
-
   const centerOptions = [
     ...(user?.centerAccess?.length > 1
       ? [
-        {
-          value: "ALL",
-          label: "All Centers",
-          isDisabled: false,
-        },
-      ]
+          {
+            value: "ALL",
+            label: "All Centers",
+            isDisabled: false,
+          },
+        ]
       : []),
     ...(user?.centerAccess?.map((id) => {
       const center = user?.userCenters?.find((c) => c._id === id);
@@ -117,35 +131,52 @@ const Employee = () => {
   }, [search]);
 
   useEffect(() => {
-    // TO
     const fetchDropdowns = async () => {
       try {
         const [deptRes, posRes] = await Promise.all([
           getDepartments(),
           getPositions(),
         ]);
+
         setDepartmentOptions(
-          (deptRes?.data || []).map((d) => ({ label: d.department, value: d._id }))
+          (deptRes?.data || []).map((d) => ({
+            label: d.department,
+            value: d._id,
+          })),
         );
-        setPositionOptions(
-          (posRes?.data || []).map((p) => ({ label: p.name, value: p._id }))
+
+        const rawData = posRes?.data || [];
+
+        const mappedPositions = rawData.flatMap((p) =>
+          (p.positions || [])
+            .filter((pos) => !pos.deleted)
+            .map((pos) => ({
+              label: pos.name,
+              value: pos._id,
+              department: p.department?.department,
+              departmentId: p.department?._id,
+            })),
         );
+
+        setPositionOptions(mappedPositions);
+
         dispatch(fetchDesignations({ status: ["PENDING", "APPROVED"] }));
       } catch (error) {
         if (!handleAuthError(error)) {
-          toast.error(error.message || "Failed to fetch designations")
+          toast.error(error.message || "Failed to fetch dropdowns");
         }
       }
     };
+
     fetchDropdowns();
   }, [dispatch]);
+
+  console.log("positionOptions", positionOptions);
 
   const fetchMasterEmployeeList = async () => {
     try {
       const centers =
-        selectedCenters.length === 0
-          ? user?.centerAccess
-          : selectedCenters;
+        selectedCenters.length === 0 ? user?.centerAccess : selectedCenters;
 
       await dispatch(
         getMasterEmployees({
@@ -154,13 +185,33 @@ const Employee = () => {
           centers,
           view: "MASTER",
           ...(search.trim() !== "" && { search: debouncedSearch }),
-          ...(selectedDepartment.length > 0 && { department: selectedDepartment.map(d => d.value).join(",") }),
-          ...(selectedDesignation.length > 0 && { designation: selectedDesignation.map(d => d.value).join(",") }),
-          ...(selectedEmploymentType.length > 0 && { employmentType: selectedEmploymentType.map(e => e.value).join(",") }),
-          ...(selectedStatus.length > 0 && { status: selectedStatus.map(s => s.value).join(",") }),
-          ...(selectedPosition.length > 0 && { position: selectedPosition.map(p => p.value).join(",") }),
-          ...(selectedNewEmploymentType.length > 0 && { newEmploymentType: selectedNewEmploymentType.map(e => e.value).join(",") }),
-          ...(selectedEmploymentStatus.length > 0 && { employmentStatus: selectedEmploymentStatus.map(s => s.value).join(",") }),
+          ...(selectedDepartment.length > 0 && {
+            department: selectedDepartment.map((d) => d.value).join(","),
+          }),
+          ...(selectedDesignation.length > 0 && {
+            designation: selectedDesignation.map((d) => d.value).join(","),
+          }),
+          ...(selectedEmploymentType.length > 0 && {
+            employmentType: selectedEmploymentType
+              .map((e) => e.value)
+              .join(","),
+          }),
+          ...(selectedStatus.length > 0 && {
+            status: selectedStatus.map((s) => s.value).join(","),
+          }),
+          ...(selectedPosition.length > 0 && {
+            position: selectedPosition.map((p) => p.value).join(","),
+          }),
+          ...(selectedNewEmploymentType.length > 0 && {
+            newEmploymentType: selectedNewEmploymentType
+              .map((e) => e.value)
+              .join(","),
+          }),
+          ...(selectedEmploymentStatus.length > 0 && {
+            employmentStatus: selectedEmploymentStatus
+              .map((s) => s.value)
+              .join(","),
+          }),
         }),
       ).unwrap();
     } catch (error) {
@@ -222,7 +273,9 @@ const Employee = () => {
       setModalOpen(true);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error.message || "Failed to fetch employee finance details");
+        toast.error(
+          error.message || "Failed to fetch employee finance details",
+        );
       }
     } finally {
       setModalLoading(false);
@@ -246,21 +299,37 @@ const Employee = () => {
     setIsExcelGenerating(true);
     try {
       const centers =
-        selectedCenters.length === 0
-          ? user?.centerAccess
-          : selectedCenters;
+        selectedCenters.length === 0 ? user?.centerAccess : selectedCenters;
 
       const response = await exportEmployeesXLSX({
         centers,
         view: "MASTER",
         ...(debouncedSearch.trim() !== "" && { search: debouncedSearch }),
-        ...(selectedDepartment.length > 0 && { department: selectedDepartment.map(d => d.value).join(",") }),
-        ...(selectedDesignation.length > 0 && { designation: selectedDesignation.map(d => d.value).join(",") }),
-        ...(selectedEmploymentType.length > 0 && { employmentType: selectedEmploymentType.map(e => e.value).join(",") }),
-        ...(selectedStatus.length > 0 && { status: selectedStatus.map(s => s.value).join(",") }),
-        ...(selectedPosition.length > 0 && { position: selectedPosition.map(p => p.value).join(",") }),
-        ...(selectedNewEmploymentType.length > 0 && { newEmploymentType: selectedNewEmploymentType.map(e => e.value).join(",") }),
-        ...(selectedEmploymentStatus.length > 0 && { employmentStatus: selectedEmploymentStatus.map(s => s.value).join(",") }),
+        ...(selectedDepartment.length > 0 && {
+          department: selectedDepartment.map((d) => d.value).join(","),
+        }),
+        ...(selectedDesignation.length > 0 && {
+          designation: selectedDesignation.map((d) => d.value).join(","),
+        }),
+        ...(selectedEmploymentType.length > 0 && {
+          employmentType: selectedEmploymentType.map((e) => e.value).join(","),
+        }),
+        ...(selectedStatus.length > 0 && {
+          status: selectedStatus.map((s) => s.value).join(","),
+        }),
+        ...(selectedPosition.length > 0 && {
+          position: selectedPosition.map((p) => p.value).join(","),
+        }),
+        ...(selectedNewEmploymentType.length > 0 && {
+          newEmploymentType: selectedNewEmploymentType
+            .map((e) => e.value)
+            .join(","),
+        }),
+        ...(selectedEmploymentStatus.length > 0 && {
+          employmentStatus: selectedEmploymentStatus
+            .map((s) => s.value)
+            .join(","),
+        }),
       });
 
       const blob = new Blob([response.data], {
@@ -276,13 +345,14 @@ const Employee = () => {
       window.URL.revokeObjectURL(url);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error.message || "Something went wrong while generating xlsx file");
+        toast.error(
+          error.message || "Something went wrong while generating xlsx file",
+        );
       }
     } finally {
       setIsExcelGenerating(false);
     }
   };
-
 
   const normalizeEmploymentType = (type) => {
     if (!type) return "-";
@@ -338,7 +408,9 @@ const Employee = () => {
     },
     {
       name: <div>Employee Type</div>,
-      selector: (row) => filterEmploymentOptions.find(opt => opt.value === row?.employmentType)?.label || capitalizeWords(row?.employmentType || "-"),
+      selector: (row) =>
+        filterEmploymentOptions.find((opt) => opt.value === row?.employmentType)
+          ?.label || capitalizeWords(row?.employmentType || "-"),
       wrap: true,
       minWidth: "100px",
     },
@@ -350,7 +422,7 @@ const Employee = () => {
       wrap: true,
       minWidth: "100px",
     },
-    // 
+    //
     {
       name: <div>Employement Status</div>,
       selector: (row) => renderStatusBadge(row?.employmentStatus) || "-",
@@ -526,7 +598,7 @@ const Employee = () => {
         const meta = getFilePreviewMeta(
           { url: row?.adhar?.url },
           row?.updatedAt,
-          FILE_PREVIEW_CUTOFF
+          FILE_PREVIEW_CUTOFF,
         );
 
         return (
@@ -541,7 +613,7 @@ const Employee = () => {
               handleFilePreview(
                 { url: row?.adhar?.url },
                 row?.updatedAt,
-                FILE_PREVIEW_CUTOFF
+                FILE_PREVIEW_CUTOFF,
               )
             }
           >
@@ -564,7 +636,7 @@ const Employee = () => {
         const meta = getFilePreviewMeta(
           { url: row?.pan?.url },
           row?.updatedAt,
-          FILE_PREVIEW_CUTOFF
+          FILE_PREVIEW_CUTOFF,
         );
 
         return (
@@ -579,7 +651,7 @@ const Employee = () => {
               handleFilePreview(
                 { url: row?.pan?.url },
                 row?.updatedAt,
-                FILE_PREVIEW_CUTOFF
+                FILE_PREVIEW_CUTOFF,
               )
             }
           >
@@ -628,7 +700,7 @@ const Employee = () => {
         const meta = getFilePreviewMeta(
           { url: row?.offerLetter },
           row?.updatedAt,
-          FILE_PREVIEW_CUTOFF
+          FILE_PREVIEW_CUTOFF,
         );
 
         return (
@@ -643,7 +715,7 @@ const Employee = () => {
               handleFilePreview(
                 { url: row?.offerLetter },
                 row?.updatedAt,
-                FILE_PREVIEW_CUTOFF
+                FILE_PREVIEW_CUTOFF,
               )
             }
           >
@@ -679,48 +751,52 @@ const Employee = () => {
     },
     ...(hasPermission("HR", "MASTER_EMPLOYEE", "WRITE")
       ? [
-        {
-          name: <div>Actions</div>,
-          cell: (row) => (
-            <div className="d-flex gap-2">
-              <CheckPermission
-                accessRolePermission={roles?.permissions}
-                subAccess={"MASTER_EMPLOYEE"}
-                permission={"edit"}
-              >
-                <button
-                  className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                  onClick={() => {
-                    handleEditEmployee(row);
-                  }}
+          {
+            name: <div>Actions</div>,
+            cell: (row) => (
+              <div className="d-flex gap-2">
+                <CheckPermission
+                  accessRolePermission={roles?.permissions}
+                  subAccess={"MASTER_EMPLOYEE"}
+                  permission={"edit"}
                 >
-                  {(modalLoading && selectedEmployee?._id === row?._id) ? <Spinner size={"sm"} /> : <Pencil size={16} />}
-                </button>
-              </CheckPermission>
+                  <button
+                    className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+                    onClick={() => {
+                      handleEditEmployee(row);
+                    }}
+                  >
+                    {modalLoading && selectedEmployee?._id === row?._id ? (
+                      <Spinner size={"sm"} />
+                    ) : (
+                      <Pencil size={16} />
+                    )}
+                  </button>
+                </CheckPermission>
 
-              <CheckPermission
-                accessRolePermission={roles?.permissions}
-                subAccess={"MASTER_EMPLOYEE"}
-                permission={"delete"}
-              >
-                <button
-                  className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
-                  onClick={() => {
-                    setSelectedEmployee(row);
-                    setDeleteModalOpen(true);
-                  }}
+                <CheckPermission
+                  accessRolePermission={roles?.permissions}
+                  subAccess={"MASTER_EMPLOYEE"}
+                  permission={"delete"}
                 >
-                  <Trash2 size={16} />
-                </button>
-              </CheckPermission>
-            </div>
-          ),
-          ignoreRowClick: true,
-          allowOverflow: true,
-          button: true,
-          minWidth: "140px",
-        },
-      ]
+                  <button
+                    className="btn btn-sm btn-outline-danger d-flex align-items-center gap-1"
+                    onClick={() => {
+                      setSelectedEmployee(row);
+                      setDeleteModalOpen(true);
+                    }}
+                  >
+                    <Trash2 size={16} />
+                  </button>
+                </CheckPermission>
+              </div>
+            ),
+            ignoreRowClick: true,
+            allowOverflow: true,
+            button: true,
+            minWidth: "140px",
+          },
+        ]
       : []),
   ];
 
@@ -745,9 +821,14 @@ const Employee = () => {
         <div className="row g-2 mb-2">
           <div className="col-md-3">
             <Select
-              value={centerOptions.filter(opt => selectedCenters.includes(opt.value))}
-              onChange={(options) => { setSelectedCenters(options ? options.map(o => o.value) : []); setPage(1); }}
-              options={centerOptions.filter(opt => opt.value !== "ALL")}
+              value={centerOptions.filter((opt) =>
+                selectedCenters.includes(opt.value),
+              )}
+              onChange={(options) => {
+                setSelectedCenters(options ? options.map((o) => o.value) : []);
+                setPage(1);
+              }}
+              options={centerOptions.filter((opt) => opt.value !== "ALL")}
               placeholder="All Centers"
               classNamePrefix="react-select"
               isMulti
@@ -766,7 +847,10 @@ const Employee = () => {
           <div className="col-md-3">
             <Select
               value={selectedStatus}
-              onChange={(options) => { setSelectedStatus(options || []); setPage(1); }}
+              onChange={(options) => {
+                setSelectedStatus(options || []);
+                setPage(1);
+              }}
               options={statusOptions}
               placeholder="Filter by Status"
               classNamePrefix="react-select"
@@ -777,7 +861,10 @@ const Employee = () => {
           <div className="col-md-3">
             <Select
               value={selectedEmploymentType}
-              onChange={(options) => { setSelectedEmploymentType(options || []); setPage(1); }}
+              onChange={(options) => {
+                setSelectedEmploymentType(options || []);
+                setPage(1);
+              }}
               options={filterEmploymentOptions}
               placeholder="Filter by Employee type"
               classNamePrefix="react-select"
@@ -792,7 +879,10 @@ const Employee = () => {
           <div className="col-md-3">
             <Select
               value={selectedDepartment}
-              onChange={(options) => { setSelectedDepartment(options || []); setPage(1); }}
+              onChange={(options) => {
+                setSelectedDepartment(options || []);
+                setPage(1);
+              }}
               options={departmentOptions}
               placeholder="Filter by Department"
               classNamePrefix="react-select"
@@ -803,7 +893,10 @@ const Employee = () => {
           <div className="col-md-3">
             <Select
               value={selectedDesignation}
-              onChange={(options) => { setSelectedDesignation(options || []); setPage(1); }}
+              onChange={(options) => {
+                setSelectedDesignation(options || []);
+                setPage(1);
+              }}
               options={designations}
               placeholder="Filter by Designation"
               classNamePrefix="react-select"
@@ -815,7 +908,10 @@ const Employee = () => {
           <div className="col-md-3">
             <Select
               value={selectedPosition}
-              onChange={(options) => { setSelectedPosition(options || []); setPage(1); }}
+              onChange={(options) => {
+                setSelectedPosition(options || []);
+                setPage(1);
+              }}
               options={positionOptions}
               placeholder="Filter by Position"
               classNamePrefix="react-select"
@@ -826,7 +922,10 @@ const Employee = () => {
           <div className="col-md-3">
             <Select
               value={selectedNewEmploymentType}
-              onChange={(options) => { setSelectedNewEmploymentType(options || []); setPage(1); }}
+              onChange={(options) => {
+                setSelectedNewEmploymentType(options || []);
+                setPage(1);
+              }}
               options={newEmploymentOptions}
               placeholder="Filter by Employment Type"
               classNamePrefix="react-select"
@@ -841,7 +940,10 @@ const Employee = () => {
           <div className="col-md-3">
             <Select
               value={selectedEmploymentStatus}
-              onChange={(options) => { setSelectedEmploymentStatus(options || []); setPage(1); }}
+              onChange={(options) => {
+                setSelectedEmploymentStatus(options || []);
+                setPage(1);
+              }}
               options={employmentStatusOptions}
               placeholder="Filter by Employment Status"
               classNamePrefix="react-select"
@@ -850,7 +952,10 @@ const Employee = () => {
             />
           </div>
           <div className="col-md-9 d-flex justify-content-end gap-2 align-items-center">
-            <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
+            <RefreshButton
+              loading={loading}
+              onRefresh={fetchMasterEmployeeList}
+            />
             <CheckPermission
               accessRolePermission={roles?.permissions}
               subAccess={"MASTER_EMPLOYEE"}
@@ -862,7 +967,11 @@ const Employee = () => {
                 onClick={handleExportXLSX}
                 disabled={isExcelGenerating || loading}
               >
-                {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
+                {isExcelGenerating ? (
+                  <Spinner size="sm" />
+                ) : (
+                  <i className="ri-file-excel-2-line" />
+                )}
                 Export Excel
               </Button>
               <Button

@@ -30,7 +30,7 @@
     }, [centerDodData]);
 
     const formatDate = (dateStr) =>
-        new Date(dateStr).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+        new Date(dateStr).toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).replace(/ /g, "-");
 
     const currentMonthDates = useMemo(() => {
         const now = new Date();
@@ -90,8 +90,8 @@
         { label: "11PM-6AM",   key: "Late Night" },
     ];
 
-    const sessionFixedLabels = ["Round Session", "Total (Current Month)", "Session"];
-    const dodFixedLabels = ["Round Taken By",  "Total (Current Month)","Center Name", "Role", "Total (Last 30 Days)"];
+    const sessionFixedLabels = ["Round Session", "MTD", "Session"];
+    const dodFixedLabels = ["Round Taken By",  "MTD","Center Name", "Role", "Total (Last 30 Days)"];
 
     const prepareCsvData = () => {
         setCsvLoading(true);
@@ -155,8 +155,8 @@
         }, 100);
     };
 
-    const sessionColWidths = [130, 100, 100];
-    const dodColWidths = [220, 120, 100, 100, 100];
+    const sessionColWidths = [130, 55, 100];
+    const dodColWidths = [220, 55, 100, 100, 100];
 
     const thStyle = (top, dark, left = null, width = null) => ({
         border: "1px solid #cfd8e3",
@@ -182,7 +182,7 @@
         <div className="w-100 mt-4 mt-sm-0" style={{ flex: 1, width: "100%", maxWidth: "100%", minWidth: 0 }}>
         <div className="row">
             <div className="col-12">
-            <div className="p-3">
+            <div className="p-3 pb-0">
                 <div className="row align-items-center">
                 <div className="col-sm-6 col-8">
                     <div className="d-flex align-items-center">
@@ -220,7 +220,7 @@
                 </div>
             </div>
 
-            <div className="p-3 p-lg-4">
+            <div className="p-3 p-lg-4 pt-1">
                 <Row className="g-2 align-items-center mb-4">
                     <Col md={2}>
                         <Select

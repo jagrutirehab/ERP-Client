@@ -32,6 +32,11 @@ const Sidebar = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const { loading: permissionLoader, hasPermission } = usePermissions(token);
+   const hasHubspotReportingPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    null,
+    "READ"
+  );
   const hasHubspotCenterLeadsPermission = hasPermission("HUBSPOT_REPORTING", "HUBSPOT_CENTER_LEADS_COUNT", "READ");
   const hasHubspotOwnerLeadsPermission = hasPermission("HUBSPOT_REPORTING", "HUBSPOT_OWNER_LEADS_COUNT", "READ");
   const hasHubspotCityQualityPermission = hasPermission("HUBSPOT_REPORTING", "HUBSPOT_CITY_QUALITY_BREAKDOWN", "READ");
@@ -155,58 +160,61 @@ const Sidebar = () => {
         onMouseLeave={() => !isMobile && setIsHovered(false)}
         style={sidebarStyle}
       >
-        <div className="ps-4 pe-3 pt-4">
-          <div className="d-flex align-items-start">
-            <div className="d-flex justify-content-between w-100 mb-2">
-              <div
-                onClick={toggleCollapse}
-                className="d-flex align-items-center justify-content-between w-100 cursor-pointer"
-                style={{ cursor: "pointer" }}
-              >
-                {showLabels && <h5 className="pb-0 mb-0">Hubspot Reporting</h5>}
-                <i className={`mdi mdi-chevron-${isOpen ? "up" : "down"} fs-4`}></i>
-              </div>
-              {isMobile && (
-                <button
-                  onClick={() => setIsMobileOpen(false)}
-                  type="button"
-                  className="btn btn-sm px-2"
-                >
-                  <i className="bx bx-x fs-5"></i>
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-
         <PerfectScrollbar className="chat-room-list" style={{ flex: 1, minHeight: 0 }}>
           <div className="chat-message-list">
-            <Collapse isOpen={isOpen}>
-              <ul className="list-unstyled chat-list chat-user-list users-list" id="userList">
-                {(HubspotReporting || []).filter((m) => m).map((page, idx) => (
-                  <li key={idx} className={location.pathname === page.link ? "active" : ""}>
-                    <Link to={page.link} onClick={() => isMobile && setIsMobileOpen(false)}>
-                      <div className={`d-flex align-items-center ${showLabels ? "" : "justify-content-center"}`}>
-                        <div
-                          className="flex-shrink-0 chat-user-img online align-self-center ms-0"
-                          style={{ marginRight: showLabels ? "0.5rem" : "0" }}
-                        >
-                          <div className="avatar-xxs">
-                            <i className={`${page.icon} fs-4`}></i>
+          {hasHubspotReportingPermission && (
+            <>
+              <div className="ps-4 pe-3 pt-4">
+                <div className="d-flex align-items-start">
+                  <div className="d-flex justify-content-between w-100 mb-2">
+                    <div
+                      onClick={toggleCollapse}
+                      className="d-flex align-items-center justify-content-between w-100 cursor-pointer"
+                      style={{ cursor: "pointer" }}
+                    >
+                      {showLabels && <h5 className="pb-0 mb-0">Hubspot Reporting</h5>}
+                      <i className={`mdi mdi-chevron-${isOpen ? "up" : "down"} fs-4`}></i>
+                    </div>
+                    {isMobile && (
+                      <button
+                        onClick={() => setIsMobileOpen(false)}
+                        type="button"
+                        className="btn btn-sm px-2"
+                      >
+                        <i className="bx bx-x fs-5"></i>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <Collapse isOpen={isOpen}>
+                <ul className="list-unstyled chat-list chat-user-list users-list" id="userList">
+                  {(HubspotReporting || []).filter((m) => m).map((page, idx) => (
+                    <li key={idx} className={location.pathname === page.link ? "active" : ""}>
+                      <Link to={page.link} onClick={() => isMobile && setIsMobileOpen(false)}>
+                        <div className={`d-flex align-items-center ${showLabels ? "" : "justify-content-center"}`}>
+                          <div
+                            className="flex-shrink-0 chat-user-img online align-self-center ms-0"
+                            style={{ marginRight: showLabels ? "0.5rem" : "0" }}
+                          >
+                            <div className="avatar-xxs">
+                              <i className={`${page.icon} fs-4`}></i>
+                            </div>
+                            <span className="user-status"></span>
                           </div>
-                          <span className="user-status"></span>
+                          {showLabels && (
+                            <div className="flex-grow-1 overflow-hidden">
+                              <p className="text-truncate font-semi-bold fs-15 mb-0">{page.label || ""}</p>
+                            </div>
+                          )}
                         </div>
-                        {showLabels && (
-                          <div className="flex-grow-1 overflow-hidden">
-                            <p className="text-truncate font-semi-bold fs-15 mb-0">{page.label || ""}</p>
-                          </div>
-                        )}
-                      </div>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </Collapse>
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </Collapse>
+            </>
+          )}
           </div>
 
           {hasMISPermission && (

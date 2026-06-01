@@ -380,16 +380,33 @@ export const hrSlice = createSlice({
       .addCase(fetchDesignations.pending, (state) => {
         state.designationLoading = true;
       })
+      // .addCase(fetchDesignations.fulfilled, (state, { payload }) => {
+      //   state.designationLoading = false;
+      //   state.designations = payload.data;
+      // })
       .addCase(fetchDesignations.fulfilled, (state, { payload }) => {
         state.designationLoading = false;
-        state.designations = payload.data;
+        state.designations = (payload.data || []).map((d) => ({
+          ...d,
+          label: d.label || d.name,
+          value: d.value || d._id,
+          version: d.version,
+        }));
       })
       .addCase(fetchDesignations.rejected, (state) => {
         state.designationLoading = false;
       });
 
+    // builder.addCase(addDesignation.fulfilled, (state, { payload }) => {
+    //   state.designations.push(payload.data);
+    // });
     builder.addCase(addDesignation.fulfilled, (state, { payload }) => {
-      state.designations.push(payload.data);
+      state.designations.push({
+        ...payload.data,
+        label: payload.data.label || payload.data.name,
+        value: payload.data.value || payload.data._id,
+        version: payload.data.version || 2,
+      });
     });
 
     builder

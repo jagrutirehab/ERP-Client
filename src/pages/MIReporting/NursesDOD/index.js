@@ -34,18 +34,18 @@ const NursesDOD = () => {
         "Patient UID",
         "Patient Name",
         "Center Name",
+        "MTD",
         "Prescription Count",
-        "Total (Current Month)",
     ];
 
-    const fixedColWidths = [90, 180, 120, 130, 130];
+    const fixedColWidths = [90, 180, 120, 55, 55];
 
     const labelsMapping = {
         "Patient UID": "patient_id",
         "Patient Name": "patient_name",
         "Center Name": "center_name",
         "Prescription Count": "prescription_count",
-        "Total (Current Month)": "total_current_month",
+        "MTD": "total_current_month",
     };
 
     const last30Days = useMemo(() => {
@@ -55,7 +55,7 @@ const NursesDOD = () => {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             const key = d.toISOString().slice(0, 10);
-            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).replace(/ /g, "-");
             days.push({ key, label });
         }
         return days;
@@ -109,7 +109,7 @@ const NursesDOD = () => {
         <div className="w-100 mt-4 mt-sm-0" style={{ flex: 1, width: "100%", maxWidth: "100%", minWidth: 0 }}>
             <div className="row">
                 <div className="col-12">
-                    <div className="p-3">
+                    <div className="p-3 pb-0">
                         <div className="row align-items-center">
                             <div className="col-sm-6 col-8">
                                 <div className="d-flex align-items-center">
@@ -147,7 +147,7 @@ const NursesDOD = () => {
                         </div>
                     </div>
 
-                    <div className="p-3 p-lg-4">
+                    <div className="p-3 p-lg-4 pt-1">
                         <Row className="g-2 align-items-center mb-4">
                             <Col md={2}>
                                 <Select
@@ -205,7 +205,7 @@ const NursesDOD = () => {
                                                                     whiteSpace: "nowrap",
                                                                 }}
                                                             >
-                                                                {dateTotals[label] || ""}
+                                                                {dateTotals[key] || ""}
                                                             </th>
                                                         ))}
                                                     </tr>
