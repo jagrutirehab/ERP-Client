@@ -735,3 +735,5 @@ export const GET_EMPLOYEE_PROFILE = "/profile/get";
 // HR configurations
 export const ADD_DEPARTMENTS = "/hr/create/departments";
 export const ADD_POSITIONS = "/hr/create/positions";
+
+// export const GET_LEAVES_

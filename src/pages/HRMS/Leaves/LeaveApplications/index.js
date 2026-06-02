@@ -35,8 +35,7 @@ const LeaveApplications = () => {
 
   const navigate = useNavigate();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
-  const user = JSON.parse(localStorage.getItem('micrologin'))?.user?._id
-  
+  const user = JSON.parse(localStorage.getItem("micrologin"))?.user?._id;
 
   const { hasPermission, loading: isLoading } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "APPLY_LEAVE", "READ");
@@ -55,7 +54,7 @@ const LeaveApplications = () => {
         const res = await getMyManager(token);
 
         setManagerName(res?.data?.manager?.name || "");
-        setManager(res?.data?.manager || {})
+        setManager(res?.data?.manager || {});
         setApprovalAuthority(res?.data?.manager?._id || "");
       } catch (error) {
         // console.log(error);
@@ -72,8 +71,6 @@ const LeaveApplications = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-
 
     if (!fromDate || !toDate || !leaveReason) {
       toast.error("All fields are required");
@@ -97,14 +94,13 @@ const LeaveApplications = () => {
         to: toDate.toISOString(),
         manager: approvalAuthority,
         reason: leaveReason,
-        user
-      }
+        user,
+      };
 
       let res;
       if (leaveType === "COMP_OFF_REQUEST") {
         res = await postCompOffRequest(compOffPayload, token);
         console.log("res", res);
-
       } else {
         res = await postLeaveRequest(payload, token);
       }
@@ -122,8 +118,12 @@ const LeaveApplications = () => {
     }
   };
 
-
-
+  // const getLeavesAndRegularizations = async () => {
+  //   try {
+  //   } catch (error) {
+  //     console.log("Error", error);
+  //   }
+  // };
 
   return (
     <CardBody
@@ -185,7 +185,9 @@ const LeaveApplications = () => {
                   <option value="WEEK_OFFS">Week Off</option>
                   <option value="FESTIVE_LEAVE">Festive Leave</option>
                   <option value="LEAVE_WTIHOUT_PAYS">Unpaid Leave</option>
-                  <option value="COMP_OFF_REQUEST">Comp-Off Addition Request</option>
+                  <option value="COMP_OFF_REQUEST">
+                    Comp-Off Addition Request
+                  </option>
                   <option value="COMP_OFF">Comp-Off Apply</option>
                 </select>
               </div>
@@ -199,7 +201,6 @@ const LeaveApplications = () => {
                   disabled
                 />
               </div>
-            
 
               <div className="mb-3">
                 <label className="form-label">
@@ -216,11 +217,11 @@ const LeaveApplications = () => {
                   {(!fromDate ||
                     !toDate ||
                     fromDate.toDateString() === toDate.toDateString()) && (
-                      <>
-                        <option value="FIRST_HALF">First Half</option>
-                        <option value="SECOND_HALF">Second Half</option>
-                      </>
-                    )}
+                    <>
+                      <option value="FIRST_HALF">First Half</option>
+                      <option value="SECOND_HALF">Second Half</option>
+                    </>
+                  )}
                 </select>
               </div>
 
