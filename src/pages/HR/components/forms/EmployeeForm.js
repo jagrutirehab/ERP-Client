@@ -740,7 +740,7 @@ const EmployeeForm = ({
     );
     const payroll = calculatePayroll({
       ...values,
-      pfApplicable: values.employmentType === "FULL_TIME",
+      pfApplicable: values.newEmploymentType === "FULL_TIME",
       currentLocation: selectedCenter
         ? { title: selectedCenter.title, address: selectedCenter.address }
         : null,
@@ -759,7 +759,7 @@ const EmployeeForm = ({
     values.grossSalary,
     values.basicAmount,
     values.HRAAmount,
-    values.employmentType,
+    values.newEmploymentType,
     values.gender,
     values.joinningDate,
     values.ESICSalary,
