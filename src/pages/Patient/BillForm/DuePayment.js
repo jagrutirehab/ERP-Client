@@ -78,7 +78,7 @@ const DuePayment = ({
   const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [fromDate, setFromDate] = useState("");
-  const [selectedIndex, setSelectedIndex] = useState(null)
+  const [selectedIndex, setSelectedIndex] = useState(null);
 
   const ptCenter = center ? center : patient?.center?._id;
 
@@ -131,8 +131,7 @@ const DuePayment = ({
             .nullable()
             .when("category", {
               is: (val) => val?.toLowerCase() === "room charges",
-              then: (schema) =>
-                schema.required("From Date is required"),
+              then: (schema) => schema.required("From Date is required"),
             })
             .test(
               "fromDate-check",
@@ -141,15 +140,14 @@ const DuePayment = ({
                 const { toDate } = this.parent;
                 if (!value || !toDate) return true;
                 return new Date(value) <= new Date(toDate);
-              }
+              },
             ),
 
           toDate: Yup.date()
             .nullable()
             .when("category", {
               is: (val) => val?.toLowerCase() === "room charges",
-              then: (schema) =>
-                schema.required("To Date is required"),
+              then: (schema) => schema.required("To Date is required"),
             })
             .test(
               "toDate-check",
@@ -158,9 +156,9 @@ const DuePayment = ({
                 const { fromDate } = this.parent;
                 if (!value || !fromDate) return true;
                 return new Date(value) >= new Date(fromDate);
-              }
+              },
             ),
-        })
+        }),
       ),
 
       // ...(type === "IPD" && {
@@ -307,7 +305,7 @@ const DuePayment = ({
                     ? new Date(item.toDate).toISOString().split("T")[0]
                     : "",
                   isNew: false,
-                  discountReason : item.discountReason || ""
+                  discountReason: item.discountReason || "",
                 })),
               );
             }
@@ -443,7 +441,7 @@ const DuePayment = ({
             ? new Date(item.toDate).toISOString().split("T")[0]
             : "",
           isNew: false,
-          discountReason : item.discountReason || ""
+          discountReason: item.discountReason || "",
         })),
       );
       setGrandTotal(invoice.grandTotal);
@@ -502,9 +500,6 @@ const DuePayment = ({
         undefined;
       //
 
-
-
-
       setInvoiceList((prevValue) => {
         const prevArray = Array.isArray(prevValue) ? prevValue : [];
 
@@ -524,7 +519,7 @@ const DuePayment = ({
             fromDate: "",
             toDate: "",
             isNew: true,
-            discountReason : "",
+            discountReason: "",
           },
         ];
       });
@@ -625,6 +620,13 @@ const DuePayment = ({
     setInvoiceList((prev) =>
       prev.map((item) => {
         if (editBillData) {
+          return {
+            ...item,
+            availablePrices: availablePrices[item.slot] || [],
+          };
+        }
+
+        if (!item.isNew) {
           return {
             ...item,
             availablePrices: availablePrices[item.slot] || [],
