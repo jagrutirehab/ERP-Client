@@ -3,6 +3,7 @@ import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
 
 import {
+  getLeavesAndRegs,
   getMyManager,
   getTemporaryManager,
   postCompOffRequest,
@@ -31,6 +32,7 @@ const LeaveApplications = () => {
   const [message, setMessage] = useState("");
   const [managerName, setManagerName] = useState("");
   const [manager, setManager] = useState();
+  const [regularizationDates, setRegularizationDates] = useState([]);
   const handleAuthError = useAuthError();
 
   const navigate = useNavigate();
@@ -118,12 +120,62 @@ const LeaveApplications = () => {
     }
   };
 
-  // const getLeavesAndRegularizations = async () => {
-  //   try {
-  //   } catch (error) {
-  //     console.log("Error", error);
-  //   }
-  // };
+  const getLeavesAndRegularizations = async () => {
+    try {
+      const response = await getLeavesAndRegs();
+
+      setRegularizationDates(response?.regularizations || []);
+    } catch (error) {
+      console.log("Error", error);
+    }
+  };
+
+  useEffect(() => {
+    getLeavesAndRegularizations();
+  }, []);
+
+  const toISTDayKey = (dateInput) => {
+    const ms = new Date(dateInput).getTime() + 330 * 60 * 1000;
+    const d = new Date(ms);
+    return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+  };
+
+  const regDayKeys = new Set(regularizationDates.map(toISTDayKey));
+
+  const formatDate = (date) => {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${String(date.getDate()).padStart(2, "0")} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  const conflictingDates = (() => {
+    if (!fromDate || !toDate) return [];
+    const conflicts = [];
+    const current = new Date(fromDate);
+    current.setHours(0, 0, 0, 0);
+    const end = new Date(toDate);
+    end.setHours(0, 0, 0, 0);
+    while (current <= end) {
+      const key = `${current.getFullYear()}-${current.getMonth()}-${current.getDate()}`;
+      if (regDayKeys.has(key)) conflicts.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+    return conflicts;
+  })();
+
+  const hasRegConflict = conflictingDates.length > 0;
 
   return (
     <CardBody
@@ -238,10 +290,18 @@ const LeaveApplications = () => {
                 />
               </div>
 
+              {hasRegConflict && (
+                <div className="alert alert-danger py-2 text-center mb-2">
+                  Regularized date(s) in selected range:{" "}
+                  <strong>{conflictingDates.map(formatDate).join(", ")}</strong>
+                  . Please adjust your dates.
+                </div>
+              )}
+
               {!isLoading && (hasWrite || hasDelete) && (
                 <button
                   type="submit"
-                  disabled={loading}
+                  disabled={loading || hasRegConflict}
                   className="btn btn-primary w-100 py-2 fw-semibold d-flex justify-content-center align-items-center"
                 >
                   {loading ? (

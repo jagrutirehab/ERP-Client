@@ -12,11 +12,24 @@ const isFutureDate = (date) => {
 
 const canShowRegularizeButton = (row) => {
   const regularizationStatus = row?.regularizations?.regularization_id?.status;
+  const leaveStatus = row?.leave?.status;
+  const hasActiveLeave =
+    leaveStatus === "pending" || leaveStatus === "approved";
   return (
     (!row?.regularizations?.regularization_id ||
       regularizationStatus === "REJECTED") &&
-    !isFutureDate(row?.date)
+    !isFutureDate(row?.date) &&
+    !hasActiveLeave
   );
+};
+
+const canShowLeaveButton = (row) => {
+  const regStatus = row?.regularizations?.regularization_id?.status;
+  const hasActiveReg = regStatus && regStatus !== "REJECTED";
+  const leaveStatus = row?.leave?.status;
+  const hasActiveLeave =
+    leaveStatus === "pending" || leaveStatus === "approved";
+  return !hasActiveReg && !hasActiveLeave;
 };
 
 export const myAttendanceLogsColumns = ({
@@ -28,101 +41,100 @@ export const myAttendanceLogsColumns = ({
   // canShowActionButton,
   hasMyRegularizationPermission,
   isSelf,
-  type
+  type,
 }) => [
-    {
-      name: <div>Date</div>,
-      selector: (row) => (
-        <div className="d-flex flex-column gap-1">
-          <span className="fw-semibold">{row?.date}</span>
-          {renderStatusBadge(row?.status)}
-        </div>
-      ),
-      wrap: true,
-    },
-    {
-      name: <div>Shift Timing</div>,
-      selector: (row) => {
-        const hasTiming = row?.timing?.start != null && row?.timing?.end != null;
-        console.log("TYPEINPROPER", type);
-        
+  {
+    name: <div>Date</div>,
+    selector: (row) => (
+      <div className="d-flex flex-column gap-1">
+        <span className="fw-semibold">{row?.date}</span>
+        {renderStatusBadge(row?.status)}
+      </div>
+    ),
+    wrap: true,
+  },
+  {
+    name: <div>Shift Timing</div>,
+    selector: (row) => {
+      const hasTiming = row?.timing?.start != null && row?.timing?.end != null;
+      console.log("TYPEINPROPER", type);
 
-        return (
-          <div className="d-flex flex-column gap-1">
-            <span>
-              {hasTiming
-                ? `${minutesToTime(row.timing.start)} - ${minutesToTime(
+      return (
+        <div className="d-flex flex-column gap-1">
+          <span>
+            {hasTiming
+              ? `${minutesToTime(row.timing.start)} - ${minutesToTime(
                   row.timing.end,
                 )}`
-                : "--"}
-            </span>
+              : "--"}
+          </span>
 
-            {leaveTypes.includes(row?.status) &&
-              renderStatusBadge(row?.shiftTime)}
-          </div>
-        );
-      },
-      wrap: true,
-      minWidth: "110px",
+          {leaveTypes.includes(row?.status) &&
+            renderStatusBadge(row?.shiftTime)}
+        </div>
+      );
     },
-    {
-      name: <div>Type</div>,
-      selector: (row) => capitalizeWords(row?.source) || "-",
-    },
-    {
-      name: <div>Check-In</div>,
-      selector: (row) => {
-        if (row?.firstCheckIn != null) {
-          return minutesToTime(row.firstCheckIn);
-        }
+    wrap: true,
+    minWidth: "110px",
+  },
+  {
+    name: <div>Type</div>,
+    selector: (row) => capitalizeWords(row?.source) || "-",
+  },
+  {
+    name: <div>Check-In</div>,
+    selector: (row) => {
+      if (row?.firstCheckIn != null) {
+        return minutesToTime(row.firstCheckIn);
+      }
 
-        if (isToday(row.date) && ["ABSENT", "PENDING"].includes(row.status)) {
-          return renderStatusBadge("PENDING");
-        }
+      if (isToday(row.date) && ["ABSENT", "PENDING"].includes(row.status)) {
+        return renderStatusBadge("PENDING");
+      }
 
-        return "--";
-      },
+      return "--";
     },
-    {
-      name: <div>Check-Out</div>,
-      selector: (row) => {
-        if (row?.lastCheckOut != null) {
-          return minutesToTime(row.lastCheckOut);
-        }
+  },
+  {
+    name: <div>Check-Out</div>,
+    selector: (row) => {
+      if (row?.lastCheckOut != null) {
+        return minutesToTime(row.lastCheckOut);
+      }
 
-        if (isToday(row.date) && ["PENDING"].includes(row.status)) {
-          return renderStatusBadge("PENDING");
-        }
+      if (isToday(row.date) && ["PENDING"].includes(row.status)) {
+        return renderStatusBadge("PENDING");
+      }
 
-        return "--";
-      },
+      return "--";
     },
-    {
-      name: <div>Work Duration</div>,
-      selector: (row) => (
-        <span>
-          {row?.workDuration > 0 ? `${minutesToTime(row.workDuration)} hr` : "--"}
-        </span>
-      ),
+  },
+  {
+    name: <div>Work Duration</div>,
+    selector: (row) => (
+      <span>
+        {row?.workDuration > 0 ? `${minutesToTime(row.workDuration)} hr` : "--"}
+      </span>
+    ),
+  },
+  {
+    name: <div>Regularization Status</div>,
+    cell: (row) => {
+      const status = row?.regularizations?.regularization_id?.status;
+      return renderStatusBadge(status);
     },
-    {
-      name: <div>Regularization Status</div>,
-      cell: (row) => {
-        const status = row?.regularizations?.regularization_id?.status;
-        return renderStatusBadge(status);
-      },
-      wrap: true,
+    wrap: true,
+  },
+  {
+    name: <div>Leave Status</div>,
+    cell: (row) => {
+      const status = row?.leave?.status;
+      return renderStatusBadge(status?.toUpperCase());
     },
-    {
-      name: <div>Leave Status</div>,
-      cell: (row) => {
-        const status = row?.leave?.status;
-        return renderStatusBadge(status?.toUpperCase());
-      },
-      wrap: true,
-    },
-    ...(hasMyRegularizationPermission && type !== "directreporting"
-      ? [
+    wrap: true,
+  },
+  ...(hasMyRegularizationPermission && type !== "directreporting"
+    ? [
         {
           name: <div className="text-center">Action</div>,
           cell: (row) =>
@@ -141,29 +153,32 @@ export const myAttendanceLogsColumns = ({
                     Regularize
                   </Button>
                 )}
-                {row?.leave?.status !== "approved" && !isSelf && (
-                  <Button
-                    size="sm"
-                    color="primary"
-                    className="text-white"
-                    onClick={() => {
-                      setSelectedRow(row);
-                      setLeaveModalOpen(true);
-                    }}
-                  >
-                    Leave
-                  </Button>
-                )}
+                {
+                  // row?.leave?.status !== "approved" &&
+                  !isSelf && canShowLeaveButton(row) && (
+                    <Button
+                      size="sm"
+                      color="primary"
+                      className="text-white"
+                      onClick={() => {
+                        setSelectedRow(row);
+                        setLeaveModalOpen(true);
+                      }}
+                    >
+                      Leave
+                    </Button>
+                  )
+                }
               </div>
             ),
           wrap: true,
           minWidth: "220px",
         },
       ]
-      : []),
+    : []),
 
-    ...(hasUserAllViewPermission
-      ? [
+  ...(hasUserAllViewPermission
+    ? [
         {
           name: <div>Check-In Device</div>,
           selector: (row) =>
@@ -209,5 +224,5 @@ export const myAttendanceLogsColumns = ({
           minWidth: "150px",
         },
       ]
-      : []),
-  ];
+    : []),
+];
