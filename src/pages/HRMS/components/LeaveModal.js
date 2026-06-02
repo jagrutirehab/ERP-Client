@@ -14,12 +14,17 @@ import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
 import { toast } from "react-toastify";
 import {
+  getLeavesAndRegs,
   getManagerByEmployeeId,
   postCompOffRequest,
   postLeaveRequest,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { leaveTypeOptions, leaveTypes, shiftTimeOptions } from "../../../Components/constants/HRMS";
+import {
+  leaveTypeOptions,
+  leaveTypes,
+  shiftTimeOptions,
+} from "../../../Components/constants/HRMS";
 
 const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
   const [fromDate, setFromDate] = useState(null);
@@ -30,6 +35,7 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
   const [managerId, setManagerId] = useState(null);
   const [managerName, setManagerName] = useState("");
   const [loading, setLoading] = useState(false);
+  const [regularizationDates, setRegularizationDates] = useState([]);
   const handleAuthError = useAuthError();
 
   const loggedInUser = JSON.parse(localStorage.getItem("authUser"));
@@ -61,6 +67,7 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
   useEffect(() => {
     if (isOpen) {
       fetchManager();
+      getLeavesAndRegularizations();
     }
   }, [isOpen]);
 
@@ -76,9 +83,7 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
   }, [row]);
 
   const isSameDay =
-    fromDate &&
-    toDate &&
-    fromDate.toDateString() === toDate.toDateString();
+    fromDate && toDate && fromDate.toDateString() === toDate.toDateString();
 
   const handleSubmit = async () => {
     if (!fromDate || !toDate || !leaveReason) {
@@ -106,8 +111,8 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
         to: toDate.toISOString(),
         manager: managerId,
         reason: leaveReason,
-        employee : employeeId
-      }
+        employee: employeeId,
+      };
 
       if (employeeId) {
         payload.employeeId = employeeId;
@@ -117,7 +122,6 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
       if (leaveType === "COMP_OFF_REQUEST") {
         res = await postCompOffRequest(compOffPayload, token);
         console.log("res", res);
-
       } else {
         res = await postLeaveRequest(payload, token);
       }
@@ -134,11 +138,63 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
     }
   };
 
+  const getLeavesAndRegularizations = async () => {
+    console.log("fetching regs for", employeeId);
+    try {
+      const response = await getLeavesAndRegs(employeeId);
+      console.log("response", response);
+      setRegularizationDates(response?.regularizations || []);
+    } catch (error) {
+      console.log("Error", error);
+    }
+  };
+
+  const toISTDayKey = (dateInput) => {
+    const ms = new Date(dateInput).getTime() + 330 * 60 * 1000;
+    const d = new Date(ms);
+    return `${d.getUTCFullYear()}-${d.getUTCMonth()}-${d.getUTCDate()}`;
+  };
+
+  const formatDate = (date) => {
+    const months = [
+      "Jan",
+      "Feb",
+      "Mar",
+      "Apr",
+      "May",
+      "Jun",
+      "Jul",
+      "Aug",
+      "Sep",
+      "Oct",
+      "Nov",
+      "Dec",
+    ];
+    return `${String(date.getDate()).padStart(2, "0")} ${months[date.getMonth()]} ${date.getFullYear()}`;
+  };
+
+  const regDayKeys = new Set(regularizationDates.map(toISTDayKey));
+
+  const conflictingDates = (() => {
+    if (!fromDate || !toDate) return [];
+    const conflicts = [];
+    const current = new Date(fromDate);
+    current.setHours(0, 0, 0, 0);
+    const end = new Date(toDate);
+    end.setHours(0, 0, 0, 0);
+    while (current <= end) {
+      const key = `${current.getFullYear()}-${current.getMonth()}-${current.getDate()}`;
+      if (regDayKeys.has(key)) conflicts.push(new Date(current));
+      current.setDate(current.getDate() + 1);
+    }
+    return conflicts;
+  })();
+
+  const hasRegConflict = conflictingDates.length > 0;
+
   return (
     <Modal isOpen={isOpen} toggle={toggle} centered size="lg">
-      <ModalHeader toggle={toggle}>
-        Leave Request For {row?.date}
-      </ModalHeader>
+      <ModalHeader toggle={toggle}>Leave Request For {row?.date}</ModalHeader>
 
       <ModalBody>
         {/* Manager */}
@@ -226,11 +282,22 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
         </div>
       </ModalBody>
 
+      {hasRegConflict && (
+        <div className="alert alert-danger py-2 text-center mt-3 mb-0">
+          Regularized date(s) in selected range:{" "}
+          <strong>{conflictingDates.map(formatDate).join(", ")}</strong>. Please
+          adjust your dates.
+        </div>
+      )}
       <ModalFooter>
         <Button color="secondary" onClick={toggle}>
           Cancel
         </Button>
-        <Button color="success" onClick={handleSubmit} disabled={loading}>
+        <Button
+          color="success"
+          onClick={handleSubmit}
+          disabled={loading || hasRegConflict}
+        >
           {loading ? (
             <>
               <Spinner size="sm" className="me-2" />

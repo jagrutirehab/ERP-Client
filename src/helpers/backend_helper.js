@@ -3916,3 +3916,10 @@ export const addPositions = (payload) =>
   api.create(url.ADD_POSITIONS, payload, {
     headers: { "X-No-Cookie-Token": "true" },
   });
+
+export const getLeavesAndRegs = (emp) => {
+  return api.get(url.GET_LEAVES_AND_REGULARIZATIONS, {
+    params: emp ? { employeeId: emp } : {},
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
