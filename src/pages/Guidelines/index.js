@@ -23,6 +23,11 @@ import Wf05PatientAdmissionWorkflowPage from "./Guidelines/WF-05_Patient_Admissi
 import Wf06PatientDischargeWorkflowPage from "./Guidelines/WF-06_Patient_Discharge_Workflow";
 import Wf07MdtMeetingWorkflowPage from "./Guidelines/WF-07_MDT_Meeting_Workflow";
 import Wf08NursingInChargeWorkflowPage from "./Guidelines/WF-08_Nursing_InCharge_Shift_Handover_Workflow";
+import Cl01SchizophreniaProtocolPage from "./Guidelines/CL-01_Schizophrenia_Spectrum_Disorders";
+import Cl02BipolarSpectrumDisordersPage from "./Guidelines/CL-02_Bipolar_Spectrum_Disorders";
+import Cl03DepressiveDisordersPage from "./Guidelines/CL-03_Depressive_Disorders";
+import Cl04AnxietyDisordersPage from "./Guidelines/CL-04_Anxiety_Disorders";
+import Cl05AlcoholUseDisorderWithdrawalPage from "./Guidelines/CL-05_Alcohol_Use_Disorder_Withdrawal";
 // import Main from "./Main";
 // import PatientDetails from "./PatientDetails";
 
@@ -176,6 +181,36 @@ const Guidelines = () => {
                     icon: "bx bx-transfer",
                     category: "workflow",
                   },
+                  {
+                    id: "cl-01-schizophrenia-spectrum-disorders",
+                    label: "CL-01 Schizophrenia Spectrum Disorders",
+                    link: "cl-01-schizophrenia-spectrum-disorders",
+                    icon: "bx bx-brain",
+                  },
+                  {
+                    id: "cl-02-bipolar-spectrum-disorders",
+                    label: "CL-02 Bipolar Spectrum Disorders",
+                    link: "cl-02-bipolar-spectrum-disorders",
+                    icon: "bx bx-pulse",
+                  },
+                  {
+                    id: "cl-03-depressive-disorders",
+                    label: "CL-03 Depressive Disorders",
+                    link: "cl-03-depressive-disorders",
+                    icon: "bx bx-sad",
+                  },
+                  {
+                    id: "cl-04-anxiety-disorders",
+                    label: "CL-04 Anxiety Disorders",
+                    link: "cl-04-anxiety-disorders",
+                    icon: "bx bx-heart-circle",
+                  },
+                  {
+                    id: "cl-05-alcohol-use-disorder-withdrawal",
+                    label: "CL-05 Alcohol Use Disorder & Withdrawal",
+                    link: "cl-05-alcohol-use-disorder-withdrawal",
+                    icon: "bx bx-droplet",
+                  },
                 ]}
               />
               <Routes>
@@ -259,6 +294,26 @@ const Guidelines = () => {
                 <Route
                   path="wf-08-nursing-incharge-shift-handover-workflow"
                   element={<Wf08NursingInChargeWorkflowPage />}
+                />
+                <Route
+                  path="cl-01-schizophrenia-spectrum-disorders"
+                  element={<Cl01SchizophreniaProtocolPage />}
+                />
+                <Route
+                  path="cl-02-bipolar-spectrum-disorders"
+                  element={<Cl02BipolarSpectrumDisordersPage />}
+                />
+                <Route
+                  path="cl-03-depressive-disorders"
+                  element={<Cl03DepressiveDisordersPage />}
+                />
+                <Route
+                  path="cl-04-anxiety-disorders"
+                  element={<Cl04AnxietyDisordersPage />}
+                />
+                <Route
+                  path="cl-05-alcohol-use-disorder-withdrawal"
+                  element={<Cl05AlcoholUseDisorderWithdrawalPage />}
                 />
               </Routes>
             </div>
