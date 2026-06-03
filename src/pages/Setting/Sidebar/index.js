@@ -22,10 +22,35 @@ const Sidebar = () => {
     }
   };
 
+  const hasHRConfigPerm = hasPermission(
+    "SETTING",
+    "HRCONFIGURATIONSSETTING",
+    "READ",
+  );
+  const hasMedicinePerm = hasPermission("SETTING", "MEDICINESETTING", "READ");
+  const hasBillingPerm = hasPermission("SETTING", "INVOICESETTING", "READ");
+  const hasCalenderPerm = hasPermission("SETTING", "CALENDERSETTING", "READ");
+  const hasOfferPerm = hasPermission("SETTING", "OFFERCODESETTING", "READ");
+  const hasTaxPerm = hasPermission("SETTING", "TAXMANAGEMENTSETTING", "READ");
+  const hasTherapiesPerm = hasPermission("SETTING", "THERAPIESSETTING", "READ");
+  const hasConditionsPerm = hasPermission(
+    "SETTING",
+    "CONDITIONSSETTING",
+    "READ",
+  );
+  const hasSymptomsPerm = hasPermission("SETTING", "SYMPTOMSETTING", "READ");
+
   const filteredSettings = (setting || []).filter((page) => {
-    if (page.id === "roles" && !hasUserPermission) {
-      return false;
-    }
+    if (page.id === "roles" && !hasUserPermission) return false;
+    if (page.id === "hrconfigs" && !hasHRConfigPerm) return false;
+    if (page.id === "medicine" && !hasMedicinePerm) return false;
+    if (page.id === "billing" && !hasBillingPerm) return false;
+    if (page.id === "calender" && !hasCalenderPerm) return false;
+    if (page.id === "offer" && !hasOfferPerm) return false;
+    if (page.id === "taxmanagement" && !hasTaxPerm) return false;
+    if (page.id === "therapies" && !hasTherapiesPerm) return false;
+    if (page.id === "conditions" && !hasConditionsPerm) return false;
+    if (page.id === "symptoms" && !hasSymptomsPerm) return false;
     return true;
   });
 
@@ -62,9 +87,7 @@ const Sidebar = () => {
                 <li
                   className={setting.id === location.pathname ? "active" : ""}
                 >
-                  <Link
-                    to={page.link}
-                  >
+                  <Link to={page.link}>
                     <div className="d-flex align-items-center">
                       <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
                         <div className="avatar-xxs">
