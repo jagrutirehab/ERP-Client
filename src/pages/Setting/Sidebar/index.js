@@ -28,7 +28,7 @@ const Sidebar = () => {
     "READ",
   );
   const hasMedicinePerm = hasPermission("SETTING", "MEDICINESETTING", "READ");
-  const hasBillingPerm = hasPermission("SETTING", "INVOICESETTING", "READ");
+  // const hasBillingPerm = hasPermission("SETTING", "INVOICESETTING", "READ");
   const hasCalenderPerm = hasPermission("SETTING", "CALENDERSETTING", "READ");
   const hasOfferPerm = hasPermission("SETTING", "OFFERCODESETTING", "READ");
   const hasTaxPerm = hasPermission("SETTING", "TAXMANAGEMENTSETTING", "READ");
@@ -44,7 +44,7 @@ const Sidebar = () => {
     if (page.id === "roles" && !hasUserPermission) return false;
     if (page.id === "hrconfigs" && !hasHRConfigPerm) return false;
     if (page.id === "medicine" && !hasMedicinePerm) return false;
-    if (page.id === "billing" && !hasBillingPerm) return false;
+    // if (page.id === "billing" && !hasBillingPerm) return false;
     if (page.id === "calender" && !hasCalenderPerm) return false;
     if (page.id === "offer" && !hasOfferPerm) return false;
     if (page.id === "taxmanagement" && !hasTaxPerm) return false;
