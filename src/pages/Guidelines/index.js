@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Container } from "reactstrap";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 import SecondaryLeftSidebar from "../../Components/Common/LeftSidebar";
 import GuidelinesDashboard from "./Guidelines";
 import AccountingGuidelines from "./Guidelines/AccountingGuidelines";
@@ -15,10 +15,24 @@ import Adm03LabInvestigationsSOPPage from "./Guidelines/Adm-03_Admission_Lab_Inv
 import Adm04CapacityAssessmentSOPPage from "./Guidelines/Adm-04_Capacity_Assessment_SOP";
 import Adm05EmergencyInvoluntarySOPPage from "./Guidelines/Adm-05_Emergency_Involuntary_Admission_SOP";
 import Adm06ClinicalCarePathwaysSOPPage from "./Guidelines/Adm-06_Clinical_Care_Pathways_LOS_Policy";
+import Wf01PsychiatristOnDutyWorkflowPage from "./Guidelines/WF-01_Psychiatrist_On_Duty_Workflow";
+import Wf02StaffNurseOnDutyWorkflowPage from "./Guidelines/WF-02_Staff_Nurse_On_Duty_Workflow";
+import Wf03PsychologistOnDutyWorkflowPage from "./Guidelines/WF-03_Psychologist_On_Duty_Workflow";
+import Wf04MswOnDutyWorkflowPage from "./Guidelines/WF-04_MSW_On_Duty_Workflow";
+import Wf05PatientAdmissionWorkflowPage from "./Guidelines/WF-05_Patient_Admission_Workflow";
+import Wf06PatientDischargeWorkflowPage from "./Guidelines/WF-06_Patient_Discharge_Workflow";
+import Wf07MdtMeetingWorkflowPage from "./Guidelines/WF-07_MDT_Meeting_Workflow";
+import Wf08NursingInChargeWorkflowPage from "./Guidelines/WF-08_Nursing_InCharge_Shift_Handover_Workflow";
 // import Main from "./Main";
 // import PatientDetails from "./PatientDetails";
 
 const Guidelines = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  }, [location.pathname]);
+
   return (
     <React.Fragment>
       <div className="page-conten overflow-hidden">
@@ -106,6 +120,62 @@ const Guidelines = () => {
                     link: "bedside-notes-guidelines",
                     icon: "bx bx-notepad", // notes
                   },
+                  {
+                    id: "wf-01-psychiatrist-on-duty-workflow",
+                    label: "WF-01 Psychiatrist On-Duty Workflow",
+                    link: "wf-01-psychiatrist-on-duty-workflow",
+                    icon: "bx bx-user-voice",
+                    category: "workflow",
+                  },
+                  {
+                    id: "wf-02-staff-nurse-on-duty-workflow",
+                    label: "WF-02 Staff Nurse On-Duty Workflow",
+                    link: "wf-02-staff-nurse-on-duty-workflow",
+                    icon: "bx bx-plus-medical",
+                    category: "workflow",
+                  },
+                  {
+                    id: "wf-03-psychologist-on-duty-workflow",
+                    label: "WF-03 Psychologist On-Duty Workflow",
+                    link: "wf-03-psychologist-on-duty-workflow",
+                    icon: "bx bx-brain",
+                    category: "workflow",
+                  },
+                  {
+                    id: "wf-04-msw-on-duty-workflow",
+                    label: "WF-04 MSW On-Duty Workflow",
+                    link: "wf-04-msw-on-duty-workflow",
+                    icon: "bx bx-group",
+                    category: "workflow",
+                  },
+                  {
+                    id: "wf-05-patient-admission-workflow",
+                    label: "WF-05 Patient Admission Workflow",
+                    link: "wf-05-patient-admission-workflow",
+                    icon: "bx bx-user-plus",
+                    category: "workflow",
+                  },
+                  {
+                    id: "wf-06-patient-discharge-workflow",
+                    label: "WF-06 Patient Discharge Workflow",
+                    link: "wf-06-patient-discharge-workflow",
+                    icon: "bx bx-log-out",
+                    category: "workflow",
+                  },
+                  {
+                    id: "wf-07-mdt-meeting-workflow",
+                    label: "WF-07 MDT Meeting Workflow",
+                    link: "wf-07-mdt-meeting-workflow",
+                    icon: "bx bx-conversation",
+                    category: "workflow",
+                  },
+                  {
+                    id: "wf-08-nursing-incharge-shift-handover-workflow",
+                    label: "WF-08 Nursing In-Charge Shift Handover Workflow",
+                    link: "wf-08-nursing-incharge-shift-handover-workflow",
+                    icon: "bx bx-transfer",
+                    category: "workflow",
+                  },
                 ]}
               />
               <Routes>
@@ -157,6 +227,38 @@ const Guidelines = () => {
                 <Route
                   path="bedside-notes-guidelines"
                   element={<BedsideNotesGuidelines />}
+                />
+                <Route
+                  path="wf-01-psychiatrist-on-duty-workflow"
+                  element={<Wf01PsychiatristOnDutyWorkflowPage />}
+                />
+                <Route
+                  path="wf-02-staff-nurse-on-duty-workflow"
+                  element={<Wf02StaffNurseOnDutyWorkflowPage />}
+                />
+                <Route
+                  path="wf-03-psychologist-on-duty-workflow"
+                  element={<Wf03PsychologistOnDutyWorkflowPage />}
+                />
+                <Route
+                  path="wf-04-msw-on-duty-workflow"
+                  element={<Wf04MswOnDutyWorkflowPage />}
+                />
+                <Route
+                  path="wf-05-patient-admission-workflow"
+                  element={<Wf05PatientAdmissionWorkflowPage />}
+                />
+                <Route
+                  path="wf-06-patient-discharge-workflow"
+                  element={<Wf06PatientDischargeWorkflowPage />}
+                />
+                <Route
+                  path="wf-07-mdt-meeting-workflow"
+                  element={<Wf07MdtMeetingWorkflowPage />}
+                />
+                <Route
+                  path="wf-08-nursing-incharge-shift-handover-workflow"
+                  element={<Wf08NursingInChargeWorkflowPage />}
                 />
               </Routes>
             </div>

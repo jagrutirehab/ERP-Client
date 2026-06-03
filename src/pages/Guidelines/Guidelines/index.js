@@ -13,6 +13,15 @@ import Adm03LabInvestigationsSOP from "./Prints/Adm-03_Admission_Lab_Investigati
 import Adm04CapacityAssessmentSOP from "./Prints/Adm-04_Capacity_Assessment_SOP";
 import Adm05EmergencyInvoluntarySOP from "./Prints/Adm-05_Emergency_Involuntary_Admission_SOP";
 import Adm06ClinicalCarePathwaysSOP from "./Prints/Adm-06_Clinical_Care_Pathways_LOS_Policy";
+import Wf01PsychiatristOnDutyWorkflow from "./Prints/WF-01_Psychiatrist_On_Duty_Workflow";
+import Wf02StaffNurseOnDutyWorkflow from "./Prints/WF-02_Staff_Nurse_On_Duty_Workflow";
+import Wf03PsychologistOnDutyWorkflow from "./Prints/WF-03_Psychologist_On_Duty_Workflow";
+import Wf04MswOnDutyWorkflow from "./Prints/WF-04_MSW_On_Duty_Workflow";
+import Wf05PatientAdmissionWorkflow from "./Prints/WF-05_Patient_Admission_Workflow";
+import Wf06PatientDischargeWorkflow from "./Prints/WF-06_Patient_Discharge_Workflow";
+import Wf07MdtMeetingWorkflow from "./Prints/WF-07_MDT_Meeting_Workflow";
+import Wf08NursingInChargeWorkflow from "./Prints/WF-08_Nursing_InCharge_Shift_Handover_Workflow";
+import Select from "react-select";
 
 const guidelines = [
   {
@@ -24,6 +33,8 @@ const guidelines = [
     status: "Active",
     type: "Admission — MHCA",
     print: Adm01VoluntaryAdmissionSOP,
+    link: "adm-01-voluntary-admission-sop",
+    category: "admission",
   },
   {
     id: 2,
@@ -34,6 +45,8 @@ const guidelines = [
     status: "Active",
     type: "Triage — Safety",
     print: Adm02RejectionCriteriaSOP,
+    link: "adm-02-rejection-criteria-sop",
+    category: "admission",
   },
   {
     id: 3,
@@ -44,6 +57,8 @@ const guidelines = [
     status: "Active",
     type: "Admission — Investigations",
     print: Adm03LabInvestigationsSOP,
+    link: "adm-03-lab-investigations-sop",
+    category: "admission",
   },
   {
     id: 4,
@@ -54,6 +69,8 @@ const guidelines = [
     status: "Active",
     type: "Clinical Governance — MHCA",
     print: Adm04CapacityAssessmentSOP,
+    link: "adm-04-capacity-assessment-sop",
+    category: "admission",
   },
   {
     id: 5,
@@ -64,6 +81,8 @@ const guidelines = [
     status: "Active",
     type: "Emergency — MHCA",
     print: Adm05EmergencyInvoluntarySOP,
+    link: "adm-05-emergency-involuntary-sop",
+    category: "admission",
   },
   {
     id: 6,
@@ -74,6 +93,8 @@ const guidelines = [
     status: "Active",
     type: "Programme — LOS",
     print: Adm06ClinicalCarePathwaysSOP,
+    link: "adm-06-clinical-care-pathways-sop",
+    category: "admission",
   },
   {
     id: 7,
@@ -84,6 +105,8 @@ const guidelines = [
     status: "Active",
     type: "Accounting",
     print: AccountingChecklistPrint,
+    link: "accounting-guidelines",
+    category: "general",
   },
   {
     id: 8,
@@ -94,6 +117,8 @@ const guidelines = [
     status: "Active",
     type: "Admission Discharge",
     print: AdmissionDischargePrint,
+    link: "admission-discharge-guidelines",
+    category: "general",
   },
   {
     id: 9,
@@ -104,6 +129,8 @@ const guidelines = [
     status: "Active",
     type: "Enquiry",
     print: EnquiryTakingPrint,
+    link: "enquiry-guidelines",
+    category: "general",
   },
   {
     id: 10,
@@ -114,6 +141,9 @@ const guidelines = [
     status: "Active",
     type: "Hygiene Maintenance",
     print: HygieneMaintenancePrint,
+    link: "hygiene-guidelines",
+    category: "general",
+
   },
   {
     id: 11,
@@ -124,6 +154,8 @@ const guidelines = [
     status: "Active",
     type: "Rehabilitation",
     print: RehabilitationGuidelinesPrint,
+    link: "rehabilitation-guidelines",
+    category: "general",
   },
   {
     id: 12,
@@ -134,20 +166,134 @@ const guidelines = [
     status: "Active",
     type: "Bedside Notes",
     print: BedsideNotesPrint,
+    link: "bedside-notes-guidelines",
+    category: "general",
   },
+  {
+    id: 13,
+    name: "WF-01 — Psychiatrist On Duty Workflow",
+    description:
+      "Start-of-duty sequence, 7 leadership standards (decision-making, staff education, behavioural safety, documentation, error correction, MDT leadership, system safety), and end-of-duty sign-off checklist for psychiatrists, senior residents, and medical officers.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Workflow",
+    print: Wf01PsychiatristOnDutyWorkflow,
+    link: "wf-01-psychiatrist-on-duty-workflow",
+    category: "workflow",
+  },
+  {
+    id: 14,
+    name: "WF-02 — Staff Nurse On-Duty Workflow",
+    description:
+      "Eight-step shift-start sequence, core duties covering observation levels, five-rights medication, vitals thresholds, injection register, I/O charts, physical care, and restraint, plus end-of-shift SBAR handover checklist.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Workflow",
+    print: Wf02StaffNurseOnDutyWorkflow,
+    link: "wf-02-staff-nurse-on-duty-workflow",
+    category: "workflow",
+  },
+  {
+    id: 15,
+    name: "WF-03 — Psychologist On-Duty Workflow",
+    description:
+      "Eight-step pre-session preparation, core duty streams (individual therapy, group therapy, assessment, family counselling, intake, supervision) with same-day documentation requirements, and end-of-duty sign-off for psychologists and counsellors.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Workflow",
+    print: Wf03PsychologistOnDutyWorkflow,
+    link: "wf-03-psychologist-on-duty-workflow",
+    category: "workflow",
+  },
+  {
+    id: 16,
+    name: "WF-04 — MSW On-Duty Workflow",
+    description:
+      "Eight-step start-of-duty preparation, core duty streams (social assessment, family counselling, discharge planning, community linkage, legal/financial aid, intake, patient advocacy), and end-of-duty documentation checklist for medical social workers.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Workflow",
+    print: Wf04MswOnDutyWorkflow,
+    link: "wf-04-msw-on-duty-workflow",
+    category: "workflow",
+  },
+  {
+    id: 17,
+    name: "WF-05 — Patient Admission Workflow",
+    description:
+      "Five-stage admission protocol: triage, clinical assessment (MSE, capacity, risk, legal basis), consent and registration, ward orientation, and post-admission milestones — with documentation gate checklist per MHCA 2017 and NABH ACC.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Workflow",
+    print: Wf05PatientAdmissionWorkflow,
+    link: "wf-05-patient-admission-workflow",
+    category: "workflow",
+  },
+  {
+    id: 18,
+    name: "WF-06 — Patient Discharge Workflow",
+    description:
+      "Five-stage discharge process: planning (5–7 days prior), clinical clearance, documentation (summary, CCP, relapse plan), financial clearance, and post-discharge MSW follow-up — with discharge-type definitions and documentation gate checklist.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Workflow",
+    print: Wf06PatientDischargeWorkflow,
+    link: "wf-06-patient-discharge-workflow",
+    category: "workflow",
+  },
+  {
+    id: 19,
+    name: "WF-07 — MDT Meeting Workflow",
+    description:
+      "Weekly MDT structure: quorum requirements, mandatory attendees, 7-item standing agenda (new admissions, high-risk, treatment review, discharge, incidents, legal/family, documentation gaps), before/during/after workflow, and key standards with audit indicators.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Workflow",
+    print: Wf07MdtMeetingWorkflow,
+    link: "wf-07-mdt-meeting-workflow",
+    category: "workflow",
+  },
+  {
+    id: 20,
+    name: "WF-08 — Nursing In-Charge Shift Handover Workflow",
+    description:
+      "Four-stage accountability framework: shift start (NDPS count, observation levels, team brief), SBAR handover format, during-shift governance (observation, medication, vitals, restraint, incidents, registers), and shift-end checklist — with dual escalation triggers and audit standards.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Workflow",
+    print: Wf08NursingInChargeWorkflow,
+    link: "wf-08-nursing-incharge-shift-handover-workflow",
+    category: "workflow",
+  },
+];
+
+const categories = [
+  { value: "all", label: "All" },
+  { value: "admission", label: "Admission" },
+  { value: "workflow", label: "Workflow" },
+  { value: "sops", label: "SOPs" },
+  { value: "general", label: "General" },
 ];
 
 const GuidelinesDashboard = () => {
   const [query, setQuery] = useState("");
+  const [selectedOption, setSelectedOption] = useState({ value: "all", label: "All" });
 
   const filteredGuidelines = useMemo(() => {
-    const q = query.trim().toLowerCase();
-    if (!q) return guidelines;
     return guidelines.filter((g) => {
-      const haystack = `${g.name} ${g.description} ${g.type}`.toLowerCase();
-      return haystack.includes(q);
+      const matchesSearch =
+        !query ||
+        `${g.name} ${g.description} ${g.type}`
+          .toLowerCase()
+          .includes(query.toLowerCase());
+
+      const matchesCategory =
+        selectedOption.value === "all" ||
+        g.category === selectedOption.value;
+
+      return matchesSearch && matchesCategory;
     });
-  }, [query]);
+  }, [query, selectedOption]);
 
   return (
     <div className="w-100 d-flex flex-column w-100 bg-white p-4 gap-2 mb-4">
@@ -155,35 +301,41 @@ const GuidelinesDashboard = () => {
       <p className="text-muted lead">
         Manage your guidelines with ease and efficiency
       </p>
-      <div className="">
-        <div className="w-100 w-md-auto" style={{ maxWidth: "300px" }}>
-          <div className="position-relative w-100">
-            <Search
-              className="position-absolute"
-              style={{
-                left: "8px", // left end alignment
-                top: "50%", // vertical center
-                transform: "translateY(-50%)",
-                height: "18px",
-                width: "18px",
-                color: "#6c757d",
-                pointerEvents: "none", // icon won't capture clicks
-              }}
-              aria-hidden="true"
-            />
-            <input
-              type="text"
-              placeholder="Search guidelines..."
-              className={`form-control`}
-              style={{
-                paddingLeft: "36px", // leave room for the icon
-                paddingRight: "12px",
-                height: "40px",
-              }}
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-            />
-          </div>
+      <div className="d-flex gap-2 align-items-center">
+        <div className="position-relative" style={{ width: "280px" }}>
+          <Search
+            className="position-absolute"
+            style={{
+              left: "8px",
+              top: "50%",
+              transform: "translateY(-50%)",
+              height: "18px",
+              width: "18px",
+              color: "#6c757d",
+              pointerEvents: "none",
+              zIndex: 1,
+            }}
+          />
+          <input
+            type="text"
+            placeholder="Search guidelines..."
+            className="form-control"
+            style={{
+              paddingLeft: "36px",
+              height: "40px",
+            }}
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+          />
+        </div>
+
+        <div style={{ minWidth: "200px" }}>
+          <Select
+            options={categories}
+            placeholder="Select category..."
+            value={selectedOption}
+            onChange={setSelectedOption}
+          />
         </div>
       </div>
       <div className="mt-4">
