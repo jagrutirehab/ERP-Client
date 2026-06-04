@@ -35,11 +35,24 @@ const rbcOverrideStyle = `
 `;
 
 
+const getBaseStatus = (status) =>
+    status?.endsWith("_HALF_DAY_PRESENT") ? "HALF_DAY_PRESENT" : status;
+
+const getStatusLabel = (status) => {
+    if (status?.endsWith("_HALF_DAY_PRESENT")) {
+        const base = status.replace(/_HALF_DAY_PRESENT$/, "");
+        const baseLabel = statusTitleMap[base] || base;
+        return `${baseLabel} - Half Day Present`;
+    }
+    return statusTitleMap[status] || status;
+};
+
 const AttendanceEvent = ({ event }) => {
     const item = event.resource;
     if (!item || item.status === "FUTURE") return null;
 
     const { status, firstCheckIn, lastCheckOut, workDuration, date } = item;
+    const baseStatus = getBaseStatus(status);
 
     return (
         <div style={styles.cardWrapper}>
@@ -47,7 +60,7 @@ const AttendanceEvent = ({ event }) => {
                 style={{
                     ...styles.statusBar,
                     backgroundColor:
-                        styles.statusBarColor[status] || "#e5e7eb",
+                        styles.statusBarColor[baseStatus] || "#e5e7eb",
                 }}
             />
 
@@ -74,10 +87,10 @@ const AttendanceEvent = ({ event }) => {
                 <div
                     style={{
                         ...styles.status,
-                        ...styles.statusColor[status],
+                        ...styles.statusColor[baseStatus],
                     }}
                 >
-                    {statusTitleMap[status] || status}
+                    {getStatusLabel(status)}
                 </div>
             </div>
         </div>
@@ -85,7 +98,8 @@ const AttendanceEvent = ({ event }) => {
 };
 
 const eventStyleGetter = (event) => {
-    const bg = styles.eventBg[event.status] || styles.eventBg.DEFAULT;
+    const baseStatus = getBaseStatus(event.status);
+    const bg = styles.eventBg[baseStatus] || styles.eventBg.DEFAULT;
 
     return {
         style: {
