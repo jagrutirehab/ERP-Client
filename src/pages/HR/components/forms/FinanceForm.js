@@ -235,7 +235,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
   useEffect(() => {
     const payroll = calculatePayroll({
       ...form.values,
-      pfApplicable: employeeData?.employmentType === "FULL_TIME",
+      pfApplicable: employeeData?.newEmploymentType === "FULL_TIME",
       gender: employeeData?.gender || "",
       joinningDate: employeeData?.joinningDate || "",
       currentLocation: employeeData?.currentLocation || null,
