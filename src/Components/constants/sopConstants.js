@@ -18,18 +18,22 @@ export const GENDER_OPTIONS = [
   { value: "Female", label: "Female" },
   { value: "Both", label: "Both" },
 ];
-export const TARGET_OPTIONS = toSelectOptions([
-  "Addmission",
-  "Patient",
-  "VitalSign",
-  "Prescription",
-  "DetailAdmission",
-  "ciwaTest",
-  "ramsaySedationTest",
-  "morseTest",
-  "glasgowTest",
-  "LabReport",
-]);
+export const TARGET_OPTIONS = [
+  // value stays "Addmission" — the persisted model name has a legacy typo in the
+  // DB; only the display label is corrected here.
+  { value: "Addmission", label: "Admission" },
+  ...toSelectOptions([
+    "Patient",
+    "VitalSign",
+    "Prescription",
+    "DetailAdmission",
+    "ciwaTest",
+    "ramsaySedationTest",
+    "morseTest",
+    "glasgowTest",
+    "LabReport",
+  ]),
+];
 export const OPERATOR_OPTIONS = [
   "GREATER_THAN",
   "LESS_THAN",
