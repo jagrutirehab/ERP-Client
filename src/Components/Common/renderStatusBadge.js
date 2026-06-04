@@ -279,14 +279,35 @@ export const renderStatusBadge = (stage) => {
       text: "Permanent",
       color: "success"
     },
-  };
+    FESTIVE_LEAVE_HALF_DAY_PRESENT: {
+      text: "Festive Leave - Half Day Present",
+      color: "warning"
+    },
+    EARNED_LEAVE_HALF_DAY_PRESENT: {
+      text: "Earned Leave - Half Day Present",
+      color: "warning"
+    },
+    COMP_OFF_HALF_DAY_PRESENT: {
+      text: "Comp-Off Leave - Half Day Present",
+      color: "warning"
+    },
+    WEEK_OFFS_HALF_DAY_PRESENT: {
+      text: "Week Off - Half Day Present",
+      color: "warning"
+    },
+    LEAVE_WTIHOUT_PAYS_HALF_DAY_PRESENT: {
+      text: "Leave Without Pay - Half Day Present",
+      color: "warning"
+    },
+    
+};
 
-  const config = map[stage];
-  if (!config) return "-";
+const config = map[stage];
+if (!config) return "-";
 
-  return (
-    <Badge color={config.color} style={badgeStyle}>
-      {config.text}
-    </Badge>
-  );
+return (
+  <Badge color={config.color} style={badgeStyle}>
+    {config.text}
+  </Badge>
+);
 };

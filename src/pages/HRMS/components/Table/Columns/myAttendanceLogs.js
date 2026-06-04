@@ -69,7 +69,7 @@ export const myAttendanceLogsColumns = ({
               : "--"}
           </span>
 
-          {leaveTypes.includes(row?.status) &&
+          {(leaveTypes.includes(row?.status) || leaveTypes.some(lt => row?.status?.startsWith(lt + "_"))) &&
             renderStatusBadge(row?.shiftTime)}
         </div>
       );
