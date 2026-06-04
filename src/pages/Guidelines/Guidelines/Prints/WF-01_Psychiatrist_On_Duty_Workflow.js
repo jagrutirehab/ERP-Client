@@ -26,18 +26,18 @@ const DOC_CONTROL_ROWS = [
 const CORE_DOMAINS = [
   {
     domain: "Clinical Decision-Making",
-    standard: "Daily ward round every patient · formal written entry every 24 hrs · all treatment plans countersigned within 24 hrs of admission",
-    indicator: "100% plans countersigned · zero unsigned entries",
+    standard: "Daily ward round every patient · Formal written entry every 24 hrs · All treatment plans countersigned within 24 hrs of admission",
+    indicator: "100% plans countersigned · Zero unsigned entries",
   },
   {
     domain: "Staff Education",
-    standard: "One clinical learning point shared with nursing at each ward round (< 3 min) · min. 2 structured teaching sessions per unit per month",
-    indicator: "Teaching register · monthly audit",
+    standard: "One clinical learning point shared with nursing at each ward round (< 3 min) · Min. 2 structured teaching sessions per unit per month",
+    indicator: "Teaching register · Monthly audit",
   },
   {
     domain: "Behavioural Safety",
     standard: "De-escalation first-line always · restraint only on written psychiatrist order when de-escalation has failed · post-incident debrief within 24 hrs",
-    indicator: "Restraint register · debrief log",
+    indicator: "Restraint register · Debrief log",
   },
   {
     domain: "Documentation",
@@ -46,12 +46,12 @@ const CORE_DOMAINS = [
   },
   {
     domain: "Error Correction",
-    standard: "Stop error immediately and calmly · explain correct approach privately · teach · debrief within 24 hrs · supervision log entry",
+    standard: "Stop error immediately and calmly · Explain correct approach privately · Teach · Debrief within 24 hrs · Supervision log entry",
     indicator: "Supervision log · 2-week follow-up",
   },
   {
     domain: "MDT Leadership",
-    standard: "Chair weekly MDT · agenda: high-risk, upcoming discharge, staff concerns, incidents · MDT decisions in case notes same day",
+    standard: "Chair weekly MDT · Agenda: high-risk, upcoming discharge, observation levels correctstaff concerns, incidents · MDT decisions in case notes same day",
     indicator: "≥ 95% MDT meetings held",
   },
   {
@@ -78,10 +78,10 @@ const Wf01PsychiatristOnDutyWorkflow = forwardRef((props, ref) => (
       <div style={{ marginBottom: "1.5rem" }}>
         <SectionHeader>START OF DUTY — Complete in Sequence Before Ward Round</SectionHeader>
         <ChecklistItem><span><strong>Sign in</strong> &nbsp; Log duty start time · Duty register</span></ChecklistItem>
-        <ChecklistItem><span><strong>Receive handover from outgoing doctor</strong> &nbsp; Critical patients · overnight events · pending orders · clinical changes</span></ChecklistItem>
-        <ChecklistItem><span><strong>Review nursing notes &amp; incident register</strong> &nbsp; Flag patients deteriorated overnight · confirm restraint log</span></ChecklistItem>
-        <ChecklistItem><span><strong>Brief with Nursing In-Charge</strong> &nbsp; High-risk list confirmed · observation levels correct · any medication refusals?</span></ChecklistItem>
-        <ChecklistItem><span><strong>Identify priority patients for first round</strong> &nbsp; New admissions (&lt; 24 hrs) · suicidal / high-risk · clinically changed · pending orders</span></ChecklistItem>
+        <ChecklistItem><span><strong>Receive handover from outgoing doctor</strong> &nbsp; Critical patients · Overnight events · Pending orders · Clinical changes</span></ChecklistItem>
+        <ChecklistItem><span><strong>Review nursing notes &amp; incident register</strong> &nbsp; Flag patients deteriorated overnight · Confirm restraint log</span></ChecklistItem>
+        <ChecklistItem><span><strong>Brief with Nursing In-Charge</strong> &nbsp; High-risk list confirmed · Observation levels correct · Any medication refusals?</span></ChecklistItem>
+        <ChecklistItem><span><strong>Identify priority patients for first round</strong> &nbsp; New admissions (&lt; 24 hrs) · Suicidal / high-risk · Clinically changed · Pending orders</span></ChecklistItem>
         <ChecklistItem><span><strong>Commence ward round</strong> &nbsp; Highest priority first</span></ChecklistItem>
       </div>
 

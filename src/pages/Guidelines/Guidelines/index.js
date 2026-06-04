@@ -21,6 +21,11 @@ import Wf05PatientAdmissionWorkflow from "./Prints/WF-05_Patient_Admission_Workf
 import Wf06PatientDischargeWorkflow from "./Prints/WF-06_Patient_Discharge_Workflow";
 import Wf07MdtMeetingWorkflow from "./Prints/WF-07_MDT_Meeting_Workflow";
 import Wf08NursingInChargeWorkflow from "./Prints/WF-08_Nursing_InCharge_Shift_Handover_Workflow";
+import Cl01SchizophreniaProtocol from "./Prints/CL-01_Schizophrenia_Spectrum_Disorders";
+import Cl02BipolarSpectrumDisorders from "./Prints/CL-02_Bipolar_Spectrum_Disorders";
+import Cl03DepressiveDisorders from "./Prints/CL-03_Depressive_Disorders";
+import Cl04AnxietyDisorders from "./Prints/CL-04_Anxiety_Disorders";
+import Cl05AlcoholUseDisorderWithdrawal from "./Prints/CL-05_Alcohol_Use_Disorder_Withdrawal";
 import Select from "react-select";
 
 const guidelines = [
@@ -264,6 +269,66 @@ const guidelines = [
     print: Wf08NursingInChargeWorkflow,
     link: "wf-08-nursing-incharge-shift-handover-workflow",
     category: "workflow",
+  },
+  {
+    id: 21,
+    name: "CL-01 — Schizophrenia Spectrum Disorders",
+    description:
+      "10-module treatment protocol covering admission assessment (PANSS/BPRS), MDT treatment planning, pharmacological management (antipsychotics, clozapine monitoring), psychosocial interventions, nursing care, emergency management, documentation standards, discharge criteria, rehabilitation, and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl01SchizophreniaProtocol,
+    link: "cl-01-schizophrenia-spectrum-disorders",
+    category: "sops",
+  },
+  {
+    id: 22,
+    name: "CL-02 — Bipolar Spectrum Disorders",
+    description:
+      "Evidence-based protocol for Bipolar I/II, Cyclothymia, and Schizoaffective (bipolar type) covering diagnostic classification, admission assessment (YMRS/HAM-D/C-SSRS), baseline investigations with alert thresholds, episode phase identification, pharmacological management (mania, bipolar depression, lithium toxicity), psychological interventions (acute Phase A and recovery Phase B), discharge criteria, and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl02BipolarSpectrumDisorders,
+    link: "cl-02-bipolar-spectrum-disorders",
+    category: "sops",
+  },
+  {
+    id: 23,
+    name: "CL-03 — Depressive Disorders",
+    description:
+      "Evidence-based protocol for MDD and recurrent depression covering severity grading (PHQ-9/HAM-D), pharmacological management by severity (SSRI/SNRI/TCA, augmentation, ECT indications), psychotherapy protocol (CBT, BA, IPT, family psychoeducation), monitoring phases, rehabilitation, discharge criteria, and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl03DepressiveDisorders,
+    link: "cl-03-depressive-disorders",
+    category: "sops",
+  },
+  {
+    id: 24,
+    name: "CL-04 — Anxiety Disorders",
+    description:
+      "Comprehensive 14-section protocol for GAD, Panic Disorder, Social Anxiety, Specific Phobia, and Agoraphobia — covering diagnostic classification, screening battery, medical rule-outs, differential diagnosis, disorder-specific pharmacotherapy and CBT models (Clark's panic model, Clark-Wells SAD model), comorbidity management, monitoring, psychotherapy delivery standards, safety monitoring, discharge criteria, relapse prevention plan, and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl04AnxietyDisorders,
+    link: "cl-04-anxiety-disorders",
+    category: "sops",
+  },
+  {
+    id: 25,
+    name: "CL-05 — Alcohol Use Disorder & Withdrawal",
+    description:
+      "Inpatient alcohol withdrawal protocol covering admission assessment, mandatory baseline investigations with alert thresholds, 10-day fixed-dose Chlordiazepoxide (CDZ) taper, antiepileptics, general medicines, hepatic encephalopathy management, post-withdrawal maintenance (days 10–45), discharge prescription, elderly dose adjustments (age ≥ 60), and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl05AlcoholUseDisorderWithdrawal,
+    link: "cl-05-alcohol-use-disorder-withdrawal",
+    category: "sops",
   },
 ];
 

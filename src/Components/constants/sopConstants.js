@@ -18,18 +18,22 @@ export const GENDER_OPTIONS = [
   { value: "Female", label: "Female" },
   { value: "Both", label: "Both" },
 ];
-export const TARGET_OPTIONS = toSelectOptions([
-  "Addmission",
-  "Patient",
-  "VitalSign",
-  "Prescription",
-  "DetailAdmission",
-  "ciwaTest",
-  "ramsaySedationTest",
-  "morseTest",
-  "glasgowTest",
-  "LabReport",
-]);
+export const TARGET_OPTIONS = [
+  // value stays "Addmission" — the persisted model name has a legacy typo in the
+  // DB; only the display label is corrected here.
+  { value: "Addmission", label: "Admission" },
+  ...toSelectOptions([
+    "Patient",
+    "VitalSign",
+    "Prescription",
+    "DetailAdmission",
+    "ciwaTest",
+    "ramsaySedationTest",
+    "morseTest",
+    "glasgowTest",
+    "LabReport",
+  ]),
+];
 export const OPERATOR_OPTIONS = [
   "GREATER_THAN",
   "LESS_THAN",
@@ -39,6 +43,7 @@ export const OPERATOR_OPTIONS = [
   "NOT_EQUALS",
   "EXISTS",
   "NOT_EXISTS",
+  "ARRAY_ANY_MATCHES",
 ].map((op) => ({ value: op, label: op.replace(/_/g, " ") }));
 
 export const OPERATORS_BY_TYPE = {
@@ -61,6 +66,31 @@ export const OPERATORS_BY_TYPE = {
   Boolean: ["EQUALS", "NOT_EQUALS", "EXISTS", "NOT_EXISTS"],
   Array: ["EQUALS", "NOT_EQUALS", "EXISTS", "NOT_EXISTS"],
   String: ["EQUALS", "NOT_EQUALS", "EXISTS", "NOT_EXISTS"],
+  // Synthetic type emitted by the server for the LabReport flagged-items
+  // field. Only one operator is meaningful here and the value editor is a
+  // bespoke "test name + severity threshold" pair handled in ConditionRow.
+  FlaggedItemArray: ["ARRAY_ANY_MATCHES"],
+};
+
+// Severity threshold dropdown for LabReport flagged-items conditions.
+// "Very Low" intentionally omitted — the server's severityRank treats it as
+// equivalent to "Very High" at evaluation time.
+export const SEVERITY_THRESHOLD_OPTIONS = [
+  "Normal",
+  "Low",
+  "Medium",
+  "High",
+  "Very High",
+].map((s) => ({ value: s, label: s }));
+
+// Wildcard test sentinel for LabReport flagged-items conditions. Selecting it
+// stores arrayMatch.keyValue = "*", which the server evaluates as "match ANY
+// flagged test" — i.e. fire if any test meets the severity threshold. Must
+// stay in sync with ANY_LAB_TEST in the server's labTestCatalogue.js.
+export const ANY_LAB_TEST = "*";
+export const ANY_LAB_TEST_OPTION = {
+  value: ANY_LAB_TEST,
+  label: "⚡ Any test (wildcard)",
 };
 
 export const BOOLEAN_OPTIONS = [
@@ -92,6 +122,9 @@ export const emptyConditionItem = () => ({
     intervalHours: "",            // optional integer (every N hours)
     graceHours: 0,                // tolerance window in hours
   },
+  // Populated only when operator is ARRAY_ANY_MATCHES (today: LabReport
+  // flagged-items conditions).
+  arrayMatch: null,
 });
 
 export const emptyRouting = () => ({

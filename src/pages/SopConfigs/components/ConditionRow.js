@@ -12,8 +12,22 @@ import {
   BOOLEAN_OPTIONS,
   BLOOD_GROUP_OPTIONS,
   PERIOD_OPTIONS,
+  SEVERITY_THRESHOLD_OPTIONS,
+  ANY_LAB_TEST_OPTION,
 } from "../../../Components/constants/sopConstants";
-import { getICDCodes } from "../../../helpers/backend_helper";
+import { getICDCodes, sopGetLabTests } from "../../../helpers/backend_helper";
+
+// Cache lab-test catalogue at module scope — same across all ConditionRow
+// instances in a session. Loaded lazily the first time a row needs it.
+let _labTestsPromise = null;
+const loadLabTests = () => {
+  if (!_labTestsPromise) {
+    _labTestsPromise = sopGetLabTests()
+      .then((res) => res?.data || res || { tests: [], severityThresholds: [] })
+      .catch(() => ({ tests: [], severityThresholds: [] }));
+  }
+  return _labTestsPromise;
+};
 
 const ICD_FIELDS = new Set([
   "provisional_diagnosis",
@@ -34,6 +48,7 @@ const ConditionRow = ({
 }) => {
   const [icdOptions, setIcdOptions] = useState([]);
   const [isLoadingIcd, setIsLoadingIcd] = useState(false);
+  const [labTests, setLabTests] = useState([]);
 
   const fieldOptions = modelFieldsCache[condition.model?.value] || [];
   const selectedField = fieldOptions.find((f) => f.value === condition.field);
@@ -45,15 +60,18 @@ const ConditionRow = ({
   const isGender = condition.field === "gender";
   const isBloodGroup = condition.field === "detailAdmission.bloodGroup";
   const isBoolean = fieldType === "Boolean";
+  const isFlaggedItems = fieldType === "FlaggedItemArray";
   const isDelayed = condition.triggerType?.value === "DELAYED";
   const hasEnum =
     !!fieldEnumOpts && !isGender && !isProvisional && !isBloodGroup;
 
-  const allowedOps = isBoolean
-    ? ["EQUALS"]
-    : isFieldExists
-      ? []
-      : OPERATORS_BY_TYPE[fieldType] || OPERATORS_BY_TYPE.String;
+  const allowedOps = isFlaggedItems
+    ? ["ARRAY_ANY_MATCHES"]
+    : isBoolean
+      ? ["EQUALS"]
+      : isFieldExists
+        ? []
+        : OPERATORS_BY_TYPE[fieldType] || OPERATORS_BY_TYPE.String;
 
   console.log({ allowedOps });
 
@@ -65,6 +83,18 @@ const ConditionRow = ({
   useEffect(() => {
     if (isProvisional && icdOptions.length === 0) fetchIcd();
   }, [condition.field]);
+
+  useEffect(() => {
+    if (!isFlaggedItems) return;
+    let cancelled = false;
+    loadLabTests().then((data) => {
+      if (cancelled) return;
+      setLabTests(Array.isArray(data?.tests) ? data.tests : []);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isFlaggedItems]);
 
   const fetchIcd = async () => {
     setIsLoadingIcd(true);
@@ -89,6 +119,7 @@ const ConditionRow = ({
     onChange(idx, "field", "");
     onChange(idx, "value", []);
     onChange(idx, "operator", { value: "EXISTS", label: "EXISTS" });
+    onChange(idx, "arrayMatch", null);
     if (selected?.value) onModelChange(selected.value);
   };
 
@@ -98,18 +129,76 @@ const ConditionRow = ({
       fieldOptions.find((f) => f.value === newField)?.type || "String";
     onChange(idx, "field", newField);
     onChange(idx, "value", []);
-    onChange(
-      idx,
-      "operator",
-      newField === "FIELD_EXISTS"
-        ? { value: "EXISTS", label: "EXISTS" }
-        : newType === "Boolean"
-          ? { value: "EQUALS", label: "EQUALS" }
-          : { value: "EQUALS", label: "EQUALS" },
-    );
+    if (newType === "FlaggedItemArray") {
+      onChange(idx, "operator", { value: "ARRAY_ANY_MATCHES", label: "ARRAY ANY MATCHES" });
+      onChange(idx, "arrayMatch", {
+        keyField: "canonicalName",
+        keyValue: "",
+        compareField: "severity",
+      });
+    } else {
+      onChange(
+        idx,
+        "operator",
+        newField === "FIELD_EXISTS"
+          ? { value: "EXISTS", label: "EXISTS" }
+          : newType === "Boolean"
+            ? { value: "EQUALS", label: "EQUALS" }
+            : { value: "EQUALS", label: "EQUALS" },
+      );
+      onChange(idx, "arrayMatch", null);
+    }
     if (ICD_FIELDS.has(newField)) fetchIcd();
   };
+  // FlaggedItemArray gets a bespoke pair of selectors: Test Name + Severity
+  // threshold. Packed into condition.arrayMatch.keyValue and condition.value.
+  const renderFlaggedItemsEditor = () => {
+    // Wildcard option first: "Any test" fires on any flagged test that meets
+    // the severity threshold, instead of pinning to one catalogue test.
+    const testOpts = [
+      ANY_LAB_TEST_OPTION,
+      ...labTests.map((t) => ({
+        value: t.id,
+        label: t.display || t.id,
+      })),
+    ];
+    const selectedTest =
+      testOpts.find((o) => o.value === condition.arrayMatch?.keyValue) || null;
+    const selectedSeverity =
+      SEVERITY_THRESHOLD_OPTIONS.find((o) => o.value === condition.value?.[0]) ||
+      null;
+    return (
+      <div>
+        <Select
+          options={testOpts}
+          value={selectedTest}
+          onChange={(s) =>
+            onChange(idx, "arrayMatch", {
+              ...(condition.arrayMatch || {
+                keyField: "canonicalName",
+                compareField: "severity",
+              }),
+              keyValue: s?.value || "",
+            })
+          }
+          isDisabled={isDisabled || testOpts.length === 0}
+          placeholder={testOpts.length === 0 ? "Loading tests..." : "Select test..."}
+        />
+        <div className="mt-1">
+          <Select
+            options={SEVERITY_THRESHOLD_OPTIONS}
+            value={selectedSeverity}
+            onChange={(s) => onChange(idx, "value", s ? [s.value] : [])}
+            isDisabled={isDisabled}
+            placeholder="Severity ≥ ..."
+          />
+        </div>
+      </div>
+    );
+  };
+
   const renderValue = () => {
+    if (isFlaggedItems) return renderFlaggedItemsEditor();
     if (isProvisional) {
       return (
         <Select
@@ -153,7 +242,7 @@ const ConditionRow = ({
             Array.isArray(condition.value) && condition.value.length === 2
               ? { value: "Both", label: "Both" }
               : GENDER_OPTIONS.find((o) => o.value === condition.value?.[0]) ||
-                null
+              null
           }
           onChange={(s) => {
             if (!s) return onChange(idx, "value", []);
@@ -297,7 +386,7 @@ const ConditionRow = ({
       {isDelayed && (
         <Row className="align-items-end mb-3 p-2 border rounded bg-light mx-0">
           <Col md={3}>
-            <Label className="small text-muted mb-1">Period</Label>
+            <Label className="small text-muted mb-1">Cycle</Label>
             <Select
               options={PERIOD_OPTIONS}
               value={condition.schedule?.period || PERIOD_OPTIONS[0]}
