@@ -3726,6 +3726,8 @@ export const sopGetRoles = (data) => {
 export const sopGetFieldsByModel = (model) =>
   axios.get(`${url.GET_FIELDS}/${model}`);
 
+export const sopGetLabTests = () => axios.get(url.GET_SOP_LAB_TESTS);
+
 export const getUnreadSopAlerts = () => axios.get(url.GET_UNREAD_SOP_ALERTS);
 
 export const getAllSopAlerts = (params) =>

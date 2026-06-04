@@ -65,6 +65,13 @@ const hydrateCondition = (c) => ({
   deadlineHours: c.deadlineHours != null ? String(c.deadlineHours) : "",
   value: Array.isArray(c.value) ? c.value : c.value != null ? [c.value] : [],
   schedule: hydrateSchedule(c.schedule),
+  arrayMatch: c.arrayMatch
+    ? {
+        keyField: c.arrayMatch.keyField || "",
+        keyValue: c.arrayMatch.keyValue ?? "",
+        compareField: c.arrayMatch.compareField || "",
+      }
+    : null,
 });
 
 // Builds an AsyncSelect option from a stored medicine doc + snapshot.
@@ -390,6 +397,17 @@ const SOPForm = ({
       }
     }
 
+    // ARRAY_ANY_MATCHES carries its compositional shape in arrayMatch — the
+    // server validator + evaluator both look here for {keyField, keyValue,
+    // compareField}. Skipped for every other operator.
+    if (c.operator?.value === "ARRAY_ANY_MATCHES" && c.arrayMatch) {
+      out.arrayMatch = {
+        keyField: c.arrayMatch.keyField,
+        keyValue: c.arrayMatch.keyValue,
+        compareField: c.arrayMatch.compareField,
+      };
+    }
+
     // Schedule is only meaningful for DELAYED conditions, and only when the
     // user picked a non-default pattern.
     if (c.triggerType?.value === "DELAYED") {
@@ -414,6 +432,14 @@ const SOPForm = ({
         } else if (!c.field) {
           bErr.conditions[cIdx] = "Field is required";
           hasTargetErrors = true;
+        } else if (c.operator?.value === "ARRAY_ANY_MATCHES") {
+          if (!c.arrayMatch?.keyValue) {
+            bErr.conditions[cIdx] = "Pick a test for this condition";
+            hasTargetErrors = true;
+          } else if (!c.value?.[0]) {
+            bErr.conditions[cIdx] = "Pick a severity threshold";
+            hasTargetErrors = true;
+          }
         }
       });
       if (!block.name?.trim()) {

@@ -700,6 +700,7 @@ export const VALIDATE_SUMMARY = "/chart/validate/response";
 export const CONFIGURATION_SOP = "/sop/create";
 export const GET_ROLES = "/sop/getroles";
 export const GET_FIELDS = "/sop/fields";
+export const GET_SOP_LAB_TESTS = "/sop/lab-tests";
 export const GET_ALL_SOP_ALERTS = "/sop/alerts";
 export const EXPORT_SOP_ALERTS = "/sop/alerts/export";
 export const GET_UNREAD_SOP_ALERTS = "/sop/alerts/unread";
