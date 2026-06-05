@@ -331,6 +331,13 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
                             }
                           };
 
+                          // Tests the AI didn't find are injected as placeholders
+                          // (value "Nill"). Flag them red as "Not available".
+                          const isMissing = item.value === "Nill";
+                          const dotColor = isMissing
+                            ? "#dc3545"
+                            : getColor(item.severity);
+
                           return (
                             <li
                               key={i}
@@ -347,7 +354,7 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
                                   width: "10px",
                                   height: "10px",
                                   borderRadius: "50%",
-                                  backgroundColor: getColor(item.severity),
+                                  backgroundColor: dotColor,
                                   marginRight: "10px",
                                 }}
                               />
@@ -355,7 +362,9 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
                               {/* text */}
                               <span>
                                 {item.name}: {item.value}{" "}
-                                <strong>({item.severity})</strong>
+                                <strong>
+                                  ({isMissing ? "Not available" : item.severity})
+                                </strong>
                               </span>
                             </li>
                           );
