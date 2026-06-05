@@ -35,6 +35,7 @@ import Cl12OCD from "./Prints/CL-12_OCD";
 import Cl13PTSD from "./Prints/CL-13_PTSD";
 import Cl14PersonalityDisorders from "./Prints/CL-14_Personality_Disorders";
 import Cl15EatingDisorders from "./Prints/CL-15_Eating_Disorders";
+import Cl16CannabisPolysubstance from "./Prints/CL-16_Cannabis_Polysubstance";
 import Select from "react-select";
 
 const guidelines = [
@@ -445,6 +446,18 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl15EatingDisorders,
     link: "cl-15-eating-disorders",
+    category: "sops",
+  },
+  {
+    id: 35,
+    name: "CL-16 — Cannabis & Poly-substance Use Disorder",
+    description:
+      "De-addiction protocol: CUDIT-R cannabis screening, cannabis withdrawal management (7 symptoms), cannabis-induced psychosis (Olanzapine/Risperidone), BZD dependence taper (diazepam equivalent conversion; CIWA-Ar monitoring), stimulant crash/withdrawal/psychosis, poly-substance prioritisation framework (Alcohol/BZD first), and rehabilitation programme (MET, CBT, 12-Step, family therapy).",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl16CannabisPolysubstance,
+    link: "cl-16-cannabis-polysubstance",
     category: "sops",
   },
 ];

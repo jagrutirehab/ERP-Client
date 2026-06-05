@@ -37,6 +37,7 @@ import Cl12OCDPage from "./Guidelines/CL-12_OCD";
 import Cl13PTSDPage from "./Guidelines/CL-13_PTSD";
 import Cl14PersonalityDisordersPage from "./Guidelines/CL-14_Personality_Disorders";
 import Cl15EatingDisordersPage from "./Guidelines/CL-15_Eating_Disorders";
+import Cl16CannabisPolysubstancePage from "./Guidelines/CL-16_Cannabis_Polysubstance";
 // import Main from "./Main";
 // import PatientDetails from "./PatientDetails";
 
@@ -274,6 +275,12 @@ const Guidelines = () => {
                     link: "cl-15-eating-disorders",
                     icon: "bx bx-dish",
                   },
+                  {
+                    id: "cl-16-cannabis-polysubstance",
+                    label: "CL-16 Cannabis & Poly-substance Use Disorder",
+                    link: "cl-16-cannabis-polysubstance",
+                    icon: "bx bx-leaf",
+                  },
                 ]}
               />
               <Routes>
@@ -413,6 +420,10 @@ const Guidelines = () => {
                 <Route
                   path="cl-15-eating-disorders"
                   element={<Cl15EatingDisordersPage />}
+                />
+                <Route
+                  path="cl-16-cannabis-polysubstance"
+                  element={<Cl16CannabisPolysubstancePage />}
                 />
               </Routes>
             </div>
