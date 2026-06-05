@@ -75,13 +75,19 @@ export const OPERATORS_BY_TYPE = {
 // Severity threshold dropdown for LabReport flagged-items conditions.
 // "Very Low" intentionally omitted — the server's severityRank treats it as
 // equivalent to "Very High" at evaluation time.
+// LabReport flagged-items severity options. Plain values match that severity
+// EXACTLY; the "… and above" values match that level and anything of higher
+// concern (the server parses the " and above" suffix). Ordered so each range
+// option sits right after its base for intuitive scanning.
 export const SEVERITY_THRESHOLD_OPTIONS = [
-  "Normal",
-  "Low",
-  "Medium",
-  "High",
-  "Very High",
-].map((s) => ({ value: s, label: s }));
+  { value: "Normal", label: "Normal" },
+  { value: "Low", label: "Low" },
+  { value: "Medium", label: "Medium" },
+  { value: "Medium and above", label: "Medium and above" },
+  { value: "High", label: "High" },
+  { value: "High and above", label: "High and above" },
+  { value: "Very High", label: "Very High" },
+];
 
 // Wildcard test sentinel for LabReport flagged-items conditions. Selecting it
 // stores arrayMatch.keyValue = "*", which the server evaluates as "match ANY
