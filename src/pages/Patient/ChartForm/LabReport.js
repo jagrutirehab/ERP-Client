@@ -325,7 +325,7 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
                                 return "#ffc107";
                               case "Low":
                               case "Very Low":
-                                return "#dc3545";
+                                return "#17a2b8";
                               default:
                                 return "#28a745";
                             }
