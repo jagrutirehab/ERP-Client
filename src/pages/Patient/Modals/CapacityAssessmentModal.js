@@ -529,6 +529,7 @@ Remarks: ${me?.remarks || ""}
                 { id: "amaRequest", label: "AMA request" },
                 { id: "useOfRestraint", label: "Use of restraint" },
                 { id: "ectConsent", label: "ECT consent" },
+                { id: "routineExamination", label: "Routine Examination" },
               ].map((item) => (
                 <FormGroup check key={item.id} className="mb-0">
                   <Input
@@ -757,7 +758,6 @@ Remarks: ${me?.remarks || ""}
                 { id: "withdrawalRisk", label: "Severe withdrawal risk" },
                 { id: "abscondingRisk", label: "Absconding risk" },
                 { id: "vulnerableAdult", label: "Vulnerable adult" },
-                { id: "routineExamination", label: "Routine Examination" },
               ].map((risk) => (
                 <FormGroup check key={risk.id}>
                   <Input
