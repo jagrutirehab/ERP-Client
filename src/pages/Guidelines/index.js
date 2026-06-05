@@ -28,6 +28,15 @@ import Cl02BipolarSpectrumDisordersPage from "./Guidelines/CL-02_Bipolar_Spectru
 import Cl03DepressiveDisordersPage from "./Guidelines/CL-03_Depressive_Disorders";
 import Cl04AnxietyDisordersPage from "./Guidelines/CL-04_Anxiety_Disorders";
 import Cl05AlcoholUseDisorderWithdrawalPage from "./Guidelines/CL-05_Alcohol_Use_Disorder_Withdrawal";
+import Cl06OpioidUseDisorderWithdrawalPage from "./Guidelines/CL-06_Opioid_Use_Disorder_Withdrawal";
+import Cl07ADHDPage from "./Guidelines/CL-07_ADHD";
+import Cl08AutismSpectrumDisorderPage from "./Guidelines/CL-08_Autism_Spectrum_Disorder";
+import Cl09InsomniaDementiaElderlyPage from "./Guidelines/CL-09_Insomnia_Dementia_Elderly";
+import Cl10TrichotillomaniaBFRBsPage from "./Guidelines/CL-10_Trichotillomania_BFRBs";
+import Cl12OCDPage from "./Guidelines/CL-12_OCD";
+import Cl13PTSDPage from "./Guidelines/CL-13_PTSD";
+import Cl14PersonalityDisordersPage from "./Guidelines/CL-14_Personality_Disorders";
+import Cl15EatingDisordersPage from "./Guidelines/CL-15_Eating_Disorders";
 // import Main from "./Main";
 // import PatientDetails from "./PatientDetails";
 
@@ -211,6 +220,60 @@ const Guidelines = () => {
                     link: "cl-05-alcohol-use-disorder-withdrawal",
                     icon: "bx bx-droplet",
                   },
+                  {
+                    id: "cl-06-opioid-use-disorder-withdrawal",
+                    label: "CL-06 Opioid Use Disorder & Withdrawal",
+                    link: "cl-06-opioid-use-disorder-withdrawal",
+                    icon: "bx bx-capsule",
+                  },
+                  {
+                    id: "cl-07-adhd",
+                    label: "CL-07 ADHD",
+                    link: "cl-07-adhd",
+                    icon: "bx bx-bolt-circle",
+                  },
+                  {
+                    id: "cl-08-autism-spectrum-disorder",
+                    label: "CL-08 Autism Spectrum Disorder",
+                    link: "cl-08-autism-spectrum-disorder",
+                    icon: "bx bx-infinite",
+                  },
+                  {
+                    id: "cl-09-insomnia-dementia-elderly",
+                    label: "CL-09 Insomnia & Behavioural Symptoms in Elderly / Dementia",
+                    link: "cl-09-insomnia-dementia-elderly",
+                    icon: "bx bx-moon",
+                  },
+                  {
+                    id: "cl-10-trichotillomania-bfrbs",
+                    label: "CL-10 Trichotillomania & BFRBs",
+                    link: "cl-10-trichotillomania-bfrbs",
+                    icon: "bx bx-scissors",
+                  },
+                  {
+                    id: "cl-12-ocd",
+                    label: "CL-12 Obsessive-Compulsive Disorder",
+                    link: "cl-12-ocd",
+                    icon: "bx bx-rotate-left",
+                  },
+                  {
+                    id: "cl-13-ptsd",
+                    label: "CL-13 PTSD & Complex PTSD",
+                    link: "cl-13-ptsd",
+                    icon: "bx bx-shield-x",
+                  },
+                  {
+                    id: "cl-14-personality-disorders",
+                    label: "CL-14 Personality Disorders",
+                    link: "cl-14-personality-disorders",
+                    icon: "bx bx-user-x",
+                  },
+                  {
+                    id: "cl-15-eating-disorders",
+                    label: "CL-15 Eating Disorders",
+                    link: "cl-15-eating-disorders",
+                    icon: "bx bx-dish",
+                  },
                 ]}
               />
               <Routes>
@@ -314,6 +377,42 @@ const Guidelines = () => {
                 <Route
                   path="cl-05-alcohol-use-disorder-withdrawal"
                   element={<Cl05AlcoholUseDisorderWithdrawalPage />}
+                />
+                <Route
+                  path="cl-06-opioid-use-disorder-withdrawal"
+                  element={<Cl06OpioidUseDisorderWithdrawalPage />}
+                />
+                <Route
+                  path="cl-07-adhd"
+                  element={<Cl07ADHDPage />}
+                />
+                <Route
+                  path="cl-08-autism-spectrum-disorder"
+                  element={<Cl08AutismSpectrumDisorderPage />}
+                />
+                <Route
+                  path="cl-09-insomnia-dementia-elderly"
+                  element={<Cl09InsomniaDementiaElderlyPage />}
+                />
+                <Route
+                  path="cl-10-trichotillomania-bfrbs"
+                  element={<Cl10TrichotillomaniaBFRBsPage />}
+                />
+                <Route
+                  path="cl-12-ocd"
+                  element={<Cl12OCDPage />}
+                />
+                <Route
+                  path="cl-13-ptsd"
+                  element={<Cl13PTSDPage />}
+                />
+                <Route
+                  path="cl-14-personality-disorders"
+                  element={<Cl14PersonalityDisordersPage />}
+                />
+                <Route
+                  path="cl-15-eating-disorders"
+                  element={<Cl15EatingDisordersPage />}
                 />
               </Routes>
             </div>

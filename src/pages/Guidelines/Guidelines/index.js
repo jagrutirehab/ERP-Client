@@ -26,6 +26,15 @@ import Cl02BipolarSpectrumDisorders from "./Prints/CL-02_Bipolar_Spectrum_Disord
 import Cl03DepressiveDisorders from "./Prints/CL-03_Depressive_Disorders";
 import Cl04AnxietyDisorders from "./Prints/CL-04_Anxiety_Disorders";
 import Cl05AlcoholUseDisorderWithdrawal from "./Prints/CL-05_Alcohol_Use_Disorder_Withdrawal";
+import Cl06OpioidUseDisorderWithdrawal from "./Prints/CL-06_Opioid_Use_Disorder_Withdrawal";
+import Cl07ADHD from "./Prints/CL-07_ADHD";
+import Cl08AutismSpectrumDisorder from "./Prints/CL-08_Autism_Spectrum_Disorder";
+import Cl09InsomniaDementiaElderly from "./Prints/CL-09_Insomnia_Dementia_Elderly";
+import Cl10TrichotillomaniaBFRBs from "./Prints/CL-10_Trichotillomania_BFRBs";
+import Cl12OCD from "./Prints/CL-12_OCD";
+import Cl13PTSD from "./Prints/CL-13_PTSD";
+import Cl14PersonalityDisorders from "./Prints/CL-14_Personality_Disorders";
+import Cl15EatingDisorders from "./Prints/CL-15_Eating_Disorders";
 import Select from "react-select";
 
 const guidelines = [
@@ -328,6 +337,114 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl05AlcoholUseDisorderWithdrawal,
     link: "cl-05-alcohol-use-disorder-withdrawal",
+    category: "sops",
+  },
+  {
+    id: 26,
+    name: "CL-06 — Opioid Use Disorder & Withdrawal",
+    description:
+      "Inpatient OUD protocol: COWS assessment, Buprenorphine induction & titration, Naloxone overdose protocol, OST programme, special populations (pregnancy, HIV), psychological interventions (MET, CBT, NA), NDPS Act compliance, and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl06OpioidUseDisorderWithdrawal,
+    link: "cl-06-opioid-use-disorder-withdrawal",
+    category: "sops",
+  },
+  {
+    id: 27,
+    name: "CL-07 — ADHD",
+    description:
+      "ADHD protocol across age groups: DSM-5-TR criteria, rating scales (Vanderbilt, Conners, ASRS), pharmacotherapy (Methylphenidate, Atomoxetine, Guanfacine), psychosocial interventions (PMT, CBT, school accommodations), monitoring, and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl07ADHD,
+    link: "cl-07-adhd",
+    category: "sops",
+  },
+  {
+    id: 28,
+    name: "CL-08 — Autism Spectrum Disorder",
+    description:
+      "ASD protocol: DSM-5-TR dual-domain criteria, diagnostic battery (M-CHAT-R/F, ADOS-2, ISAA), core interventions (EIBI, ABA, SLT, OT), target-symptom pharmacotherapy (Risperidone, Melatonin), family counselling (RPWD Act 2016), and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl08AutismSpectrumDisorder,
+    link: "cl-08-autism-spectrum-disorder",
+    category: "sops",
+  },
+  {
+    id: 29,
+    name: "CL-09 — Insomnia & Behavioural Symptoms in Elderly / Dementia",
+    description:
+      "Geriatric sleep & BPSD protocol: 6-phenotype classification, non-pharmacological first-line steps, pre-antipsychotic dementia checklist, 5-tier pharmacological hierarchy (Melatonin → SSRI → Donepezil → Trazodone → last-resort antipsychotic), and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl09InsomniaDementiaElderly,
+    link: "cl-09-insomnia-dementia-elderly",
+    category: "sops",
+  },
+  {
+    id: 30,
+    name: "CL-10 — Trichotillomania & Body-Focused Repetitive Behaviours",
+    description:
+      "Trichotillomania & BFRB protocol: DSM-5 criteria, 3 subtypes (automatic/focused/mixed), assessment (MGH-HPS, Milwaukee Inventory), behavioural therapies (HRT & ComB Grade A, ACT), pharmacotherapy (NAC, Clomipramine), and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl10TrichotillomaniaBFRBs,
+    link: "cl-10-trichotillomania-bfrbs",
+    category: "sops",
+  },
+  {
+    id: 31,
+    name: "CL-12 — Obsessive-Compulsive Disorder (OCD)",
+    description:
+      "OCD protocol (NICE NG59): 6 symptom dimensions, Y-BOCS/OCI-R scales, SSRI pharmacotherapy at OCD doses, augmentation (Risperidone/Aripiprazole/NAC), 8-component ERP with SUDS hierarchy (IPD 5×/week), treatment-resistant pathway, and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl12OCD,
+    link: "cl-12-ocd",
+    category: "sops",
+  },
+  {
+    id: 32,
+    name: "CL-13 — Post-Traumatic Stress Disorder (PTSD)",
+    description:
+      "PTSD & C-PTSD protocol (NICE NG116/ISTSS 2019): PCL-5/IES-R/ITQ scales, 3-phase model (Stabilisation → Trauma Processing → Integration), TF-CBT & EMDR Grade A, pharmacotherapy (Sertraline, Prazosin; benzodiazepines contraindicated), crisis management, and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl13PTSD,
+    link: "cl-13-ptsd",
+    category: "sops",
+  },
+  {
+    id: 33,
+    name: "CL-14 — Personality Disorders",
+    description:
+      "BPD & ASPD protocol: ICD-11 severity specifiers, DSM-5-TR 9-criterion BPD diagnosis, symptom-targeted pharmacotherapy (Lamotrigine, Aripiprazole; benzodiazepines contraindicated), 6-module DBT programme, 4-tier crisis management, ASPD HCR-20 risk assessment, and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl14PersonalityDisorders,
+    link: "cl-14-personality-disorders",
+    category: "sops",
+  },
+  {
+    id: 34,
+    name: "CL-15 — Eating Disorders",
+    description:
+      "Eating disorders protocol (AN, BN, BED, ARFID): MARSIPAN medical risk stratification, BMI-stratified refeeding (Thiamine/phosphate mandatory), 4-phase nutritional rehab, psychotherapy (CBT-E & MANTRA Grade A, FBT for adolescents), pharmacotherapy (Fluoxetine for BN, Lisdexamfetamine for BED; Bupropion contraindicated), and KPIs.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl15EatingDisorders,
+    link: "cl-15-eating-disorders",
     category: "sops",
   },
 ];
