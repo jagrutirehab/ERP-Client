@@ -87,6 +87,13 @@ const LabReport = ({ data, date }) => {
                             }
                           };
 
+                          // Tests the AI didn't find are injected as placeholders
+                          // (value "Nill"). Flag them red as "Not available".
+                          const isMissing = item.value === "Nill";
+                          const dotColor = isMissing
+                            ? "#dc3545"
+                            : getColor(item.severity);
+
                           return (
                             <li
                               key={i}
@@ -103,14 +110,16 @@ const LabReport = ({ data, date }) => {
                                   width: "8px",
                                   height: "8px",
                                   borderRadius: "50%",
-                                  backgroundColor: getColor(item.severity),
+                                  backgroundColor: dotColor,
                                   marginRight: "8px",
                                 }}
                               />
 
                               <span>
                                 {item.name}: {item.value}{" "}
-                                <strong>({item.severity})</strong>
+                                <strong>
+                                  ({isMissing ? "Not available" : item.severity})
+                                </strong>
                               </span>
                             </li>
                           );
