@@ -53,9 +53,9 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
     },
     {
         name: <div>Employee Status</div>,
-        selector: row => row?.employeeStatus || "-",
+        selector: row => row?.employee?.status || "-",
         cell: row => {
-            const status = row?.employeeStatus;
+            const status = row?.employee?.status;
             const colorMap = {
                 ACTIVE: "success",
                 RESIGNED: "danger",

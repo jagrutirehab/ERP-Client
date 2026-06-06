@@ -382,7 +382,7 @@ const CreateTrainers = () => {
     const [activeRecordIdx, setActiveRecordIdx] = useState(0);
     const searchTimeout = useRef(null);
 
-    const token = JSON.parse(localStorage.getItem("user"))?.token;
+    const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
     const { hasPermission } = usePermissions(token);
     const hasWritePermission = hasPermission("TRAININGS", "CREATE_TRAINING_RECORD", "WRITE");
     const canEdit = hasWritePermission;

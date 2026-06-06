@@ -27,7 +27,7 @@ const AllTrainings = () => {
     const [appliedFrom, setAppliedFrom] = useState("")
     const [appliedTo, setAppliedTo] = useState("")
 
-    const token = JSON.parse(localStorage.getItem("user"))?.token
+    const token = JSON.parse(localStorage.getItem("micrologin"))?.token
     const { hasPermission } = usePermissions(token)
     const hasWritePermission = hasPermission("TRAININGS", "ALL_TRAININGS", "WRITE")
     const hasDeletePermission = hasPermission("TRAININGS", "ALL_TRAININGS", "DELETE")
