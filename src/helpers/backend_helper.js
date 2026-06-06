@@ -465,8 +465,11 @@ export const getChartsAddmissions = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
-export const getCharts = (data) =>
-  api.get(url.GET_CHARTS, { addmission: data });
+export const getCharts = (data) => {
+  const addmission = typeof data === 'string' ? data : data.addmissionId;
+  const chartType = typeof data === 'string' ? 'All' : data.chartType;
+  return api.get(url.GET_CHARTS, { addmission, chartType });
+};
 export const getLatestCharts = ({ patient, limit }) =>
   api.get(`${url.GET_LATEST_CHARTS}?patient=${patient}&limit=${limit}`);
 export const getGeneralCharts = (data) => api.get(url.GET_GENERAL_CHARTS, data);

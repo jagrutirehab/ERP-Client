@@ -1100,8 +1100,8 @@ export const chartSlice = createSlice({
           (el) => el._id === payload.addmission,
         );
         state.data[findIndex] = {
-          charts: payload.payload,
           ...state.data[findIndex],
+          charts: payload.payload,
         };
       })
       .addCase(fetchCharts.rejected, (state) => {

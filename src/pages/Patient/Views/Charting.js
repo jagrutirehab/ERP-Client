@@ -46,6 +46,7 @@ const Charting = ({
   const [dateModal, setDateModal] = useState(false);
   const [chartType, setChartType] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [filterChartType, setFilterChartType] = useState({});
   const toggleModal = () => setDateModal(!dateModal);
 
   const handleAdmitPatient = () => {
@@ -86,9 +87,10 @@ const Charting = ({
 
   useEffect(() => {
     if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
-      dispatch(fetchCharts(addmissionId));
+      const typeForAdmission = filterChartType[addmissionId] || "All";
+      dispatch(fetchCharts({ addmissionId, chartType: typeForAdmission }));
     }
-  }, [dispatch, patient, addmissionId]);
+  }, [dispatch, patient, addmissionId, filterChartType]);
 
   useEffect(() => {
     if (tab === CLINIC_TEST) {
@@ -183,11 +185,13 @@ const Charting = ({
           setChartType={setChartType}
           toggleAccordian={toggleAccordian}
           setAddmissionId={setAddmissionId}
+          filterChartType={filterChartType}
+          setFilterChartType={setFilterChartType}
         />
       )
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addmissionsCharts, tab, loading, open, patient]);
+  }, [addmissionsCharts, tab, loading, open, patient, filterChartType]);
 
   const clinicalTestComponent = useMemo(() => {
     return (
