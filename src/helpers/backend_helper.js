@@ -3870,8 +3870,8 @@ export const getByRoles = (params) => {
   return axios.get(url.GET_BY_ROLES, { params: params });
 };
 
-export const acknowledgeTraining = (trainingId) =>
-  axios.patch(`${url.ACKNOWLEDGE_TRAINING}/${trainingId}`);
+export const acknowledgeTraining = (trainingId, score) =>
+  axios.patch(`${url.ACKNOWLEDGE_TRAINING}/${trainingId}/${score}`);
 export const getAllTrainings = (params) =>
   api.get(url.GET_ALL_TRAININGS, { params });
 

@@ -17,7 +17,7 @@ const Trainings = () => {
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({})
   const [activeTab, setActiveTab] = useState("pending")
-  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("TRAININGS", "VIEW_TRAININGS", "READ");
   const hasWritePermission = hasPermission("TRAININGS", "VIEW_TRAININGS", "WRITE");

@@ -17,7 +17,7 @@ const formatDateOnly = (d) =>
 
 const TrainingCard = ({ record, onEdit, onDelete }) => {
     const navigate = useNavigate();
-    const token = JSON.parse(localStorage.getItem("user"))?.token
+    const token = JSON.parse(localStorage.getItem("micrologin"))?.token
     const { hasPermission } = usePermissions(token)
     const hasWritePermission = hasPermission("TRAININGS", "TRAINING_RECORDS", "WRITE")
     const hasDeletePermission = hasPermission("TRAININGS", "TRAINING_RECORDS", "DELETE")
