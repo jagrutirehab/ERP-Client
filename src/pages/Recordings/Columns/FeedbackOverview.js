@@ -28,21 +28,21 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
 
       row._parsedGemini = {
 
-        
+
         reception: d?.onboarding_facilities?.reception_experience?.value,
         tour: d?.onboarding_facilities?.manager_provided_tour?.value,
         hygiene: d?.onboarding_facilities?.hygiene_satisfaction?.value,
         room: d?.onboarding_facilities?.room_satisfaction?.value,
         queries: d?.onboarding_facilities?.queries_resolved?.value,
 
-       
+
         psych: d?.clinical_feedback?.psych_discussion_held?.value,
         psychRating: d?.clinical_feedback?.psych_experience_rating?.value,
         empathy: d?.clinical_feedback?.staff_empathy_professionalism?.value,
         treatment: d?.clinical_feedback?.treatment_plan_satisfaction?.value,
         family: d?.clinical_feedback?.family_involvement?.value,
 
-        
+
         status: d?.patient_outcomes?.status_vs_admission?.value,
         improvement: d?.patient_outcomes?.visible_improvement?.value,
         behavior: d?.patient_outcomes?.progress_areas?.behavior,
@@ -51,20 +51,20 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
         sleep: d?.patient_outcomes?.progress_areas?.sleep,
         communication: d?.patient_outcomes?.progress_areas?.communication,
 
-        
+
         updates: d?.communication_support?.regular_updates_received?.value,
         clarity: d?.communication_support?.updates_clear_helpful?.value,
         frequency: d?.communication_support?.call_frequency?.value,
         support: d?.communication_support?.family_support_adequacy?.value,
         concerns: d?.communication_support?.concerns_addressed_promptly?.value,
 
-        
+
         belongings: d?.discharge_loyalty?.belongings_returned?.value,
         nps: d?.discharge_loyalty?.nps_score?.value,
         suggestion: d?.discharge_loyalty?.improvement_suggestions,
         notes: d?.discharge_loyalty?.discharge_experience_notes,
 
-       
+
         strengths: d?.audit_report?.strengths || [],
         weaknesses: d?.audit_report?.weaknesses || [],
         coaching: d?.audit_report?.coaching_points || "",
@@ -124,11 +124,20 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
       },
       width: "140px",
     },
-
     {
-      name: "Call Date",
+      name: <div className="text-center">Caller Number</div>,
+      selector: (row) => row?.Caller_No || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center font-bold">Call Date</div>,
       selector: (row) => row?.Call_Date || "-",
       width: "130px",
+    },
+    {
+      name: <div className="text-center">Caller Type</div>,
+      selector: (row) => row?.Call_Type?.split("_")?.[0] || "-",
+      width: "160px",
     },
     {
       name: <div className="text-center font-bold">Talk Time</div>,
@@ -186,8 +195,8 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
     },
 
 
-    { name: "Reception Experience", selector: (r) => getParsed(r)?.reception || "-",  width: "200px" },
-    { name: "Manager Provided Tour", selector: (r) => getParsed(r)?.tour || "-",  width: "200px" },
+    { name: "Reception Experience", selector: (r) => getParsed(r)?.reception || "-", width: "200px" },
+    { name: "Manager Provided Tour", selector: (r) => getParsed(r)?.tour || "-", width: "200px" },
     { name: "Hygiene Satisfaction", selector: (r) => getParsed(r)?.hygiene || "-", width: "200px" },
     { name: "Room Satisfaction", selector: (r) => getParsed(r)?.room || "-", width: "200px" },
     { name: "Queries Resolved", selector: (r) => getParsed(r)?.queries || "-", width: "200px" },
@@ -239,7 +248,7 @@ export const FeedbackRecordingsOverviewColumns = ({ page, limit }) => {
         return (
           <div
             style={{
-              whiteSpace: "pre-wrap", 
+              whiteSpace: "pre-wrap",
               wordBreak: "break-word",
               padding: "12px 0px",
             }}
