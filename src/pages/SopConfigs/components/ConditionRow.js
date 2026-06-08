@@ -135,6 +135,7 @@ const ConditionRow = ({
         keyField: "canonicalName",
         keyValue: "",
         compareField: "severity",
+        comparator: "SEVERITY",
       });
     } else {
       onChange(
@@ -150,49 +151,174 @@ const ConditionRow = ({
     }
     if (ICD_FIELDS.has(newField)) fetchIcd();
   };
-  // FlaggedItemArray gets a bespoke pair of selectors: Test Name + Severity
-  // threshold. Packed into condition.arrayMatch.keyValue and condition.value.
+  // FlaggedItemArray supports two modes, set via arrayMatch.comparator:
+  //   SEVERITY (default) — Test + severity bucket (existing behaviour).
+  //   GREATER_THAN / LESS_THAN / *_OR_EQUAL / BETWEEN — Test + numeric ULN
+  //     multiplier (or other numeric compareField) + threshold value(s).
+  // The mode toggle drives which sub-editor renders.
+  const MODE_OPTIONS = [
+    { value: "SEVERITY", label: "By severity" },
+    { value: "GREATER_THAN", label: "ULN multiplier  >" },
+    { value: "GREATER_THAN_OR_EQUAL", label: "ULN multiplier  ≥" },
+    { value: "LESS_THAN", label: "ULN multiplier  <" },
+    { value: "LESS_THAN_OR_EQUAL", label: "ULN multiplier  ≤" },
+    { value: "BETWEEN", label: "ULN multiplier  between" },
+  ];
+
   const renderFlaggedItemsEditor = () => {
-    // Wildcard option first: "Any test" fires on any flagged test that meets
-    // the severity threshold, instead of pinning to one catalogue test.
+    const comparator = condition.arrayMatch?.comparator || "SEVERITY";
+    const isSeverityMode = comparator === "SEVERITY";
+
+    // Test options:
+    //   Severity mode keeps the wildcard ("Any test").
+    //   Numeric modes only allow catalogue entries that carry a ULN — a
+    //   per-test multiplier comparison against a test with uln=null is
+    //   meaningless. Sodium/eGFR etc. should use numericValue + GREATER_THAN
+    //   on an explicit threshold instead (left for future UI; the API
+    //   already supports it via compareField:"numericValue").
+    const testsForMode = isSeverityMode
+      ? labTests
+      : labTests.filter((t) => t.uln != null);
     const testOpts = [
-      ANY_LAB_TEST_OPTION,
-      ...labTests.map((t) => ({
+      ...(isSeverityMode ? [ANY_LAB_TEST_OPTION] : []),
+      ...testsForMode.map((t) => ({
         value: t.id,
         label: t.display || t.id,
+        uln: t.uln,
+        unit: t.unit,
       })),
     ];
+
     const selectedTest =
       testOpts.find((o) => o.value === condition.arrayMatch?.keyValue) || null;
     const selectedSeverity =
       SEVERITY_THRESHOLD_OPTIONS.find((o) => o.value === condition.value?.[0]) ||
       null;
+    const selectedMode =
+      MODE_OPTIONS.find((o) => o.value === comparator) || MODE_OPTIONS[0];
+
+    // Switching mode wipes test/value so we never leave stale state (e.g. a
+    // severity token in `value` while the comparator is GREATER_THAN, which
+    // the server validator would reject).
+    const handleModeChange = (next) => {
+      const nextComparator = next?.value || "SEVERITY";
+      const isNextSeverity = nextComparator === "SEVERITY";
+      onChange(idx, "arrayMatch", {
+        keyField: "canonicalName",
+        keyValue: "",
+        compareField: isNextSeverity ? "severity" : "ulnMultiplier",
+        comparator: nextComparator,
+      });
+      onChange(idx, "value", []);
+    };
+
+    const handleTestChange = (s) =>
+      onChange(idx, "arrayMatch", {
+        ...(condition.arrayMatch || {
+          keyField: "canonicalName",
+          compareField: isSeverityMode ? "severity" : "ulnMultiplier",
+          comparator,
+        }),
+        keyValue: s?.value || "",
+      });
+
+    // Derived hint for numeric mode: "3 × 40 IU/L = 120 IU/L" so the
+    // rule author can sanity-check the threshold in real-world units.
+    const hint = (() => {
+      if (isSeverityMode || !selectedTest?.uln) return null;
+      const a = Number(condition.value?.[0]);
+      if (comparator === "BETWEEN") {
+        const b = Number(condition.value?.[1]);
+        if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+        return `≈ ${(a * selectedTest.uln).toFixed(2)} – ${(b * selectedTest.uln).toFixed(2)} ${selectedTest.unit}`;
+      }
+      if (!Number.isFinite(a)) return null;
+      return `≈ ${(a * selectedTest.uln).toFixed(2)} ${selectedTest.unit}  (ULN = ${selectedTest.uln} ${selectedTest.unit})`;
+    })();
+
     return (
       <div>
         <Select
-          options={testOpts}
-          value={selectedTest}
-          onChange={(s) =>
-            onChange(idx, "arrayMatch", {
-              ...(condition.arrayMatch || {
-                keyField: "canonicalName",
-                compareField: "severity",
-              }),
-              keyValue: s?.value || "",
-            })
-          }
-          isDisabled={isDisabled || testOpts.length === 0}
-          placeholder={testOpts.length === 0 ? "Loading tests..." : "Select test..."}
+          options={MODE_OPTIONS}
+          value={selectedMode}
+          onChange={handleModeChange}
+          isDisabled={isDisabled}
+          placeholder="Mode..."
         />
         <div className="mt-1">
           <Select
-            options={SEVERITY_THRESHOLD_OPTIONS}
-            value={selectedSeverity}
-            onChange={(s) => onChange(idx, "value", s ? [s.value] : [])}
-            isDisabled={isDisabled}
-            placeholder="Severity ≥ ..."
+            options={testOpts}
+            value={selectedTest}
+            onChange={handleTestChange}
+            isDisabled={isDisabled || testOpts.length === 0}
+            placeholder={
+              testOpts.length === 0
+                ? "Loading tests..."
+                : isSeverityMode
+                  ? "Select test..."
+                  : "Select test (× ULN)..."
+            }
           />
         </div>
+        {isSeverityMode ? (
+          <div className="mt-1">
+            <Select
+              options={SEVERITY_THRESHOLD_OPTIONS}
+              value={selectedSeverity}
+              onChange={(s) => onChange(idx, "value", s ? [s.value] : [])}
+              isDisabled={isDisabled}
+              placeholder="Severity ≥ ..."
+            />
+          </div>
+        ) : comparator === "BETWEEN" ? (
+          <Row className="g-1 mt-1">
+            <Col xs={6}>
+              <Input
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="low × ULN"
+                value={condition.value?.[0] ?? ""}
+                onChange={(e) =>
+                  onChange(idx, "value", [
+                    e.target.value,
+                    condition.value?.[1] ?? "",
+                  ])
+                }
+                disabled={isDisabled}
+              />
+            </Col>
+            <Col xs={6}>
+              <Input
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="high × ULN"
+                value={condition.value?.[1] ?? ""}
+                onChange={(e) =>
+                  onChange(idx, "value", [
+                    condition.value?.[0] ?? "",
+                    e.target.value,
+                  ])
+                }
+                disabled={isDisabled}
+              />
+            </Col>
+          </Row>
+        ) : (
+          <div className="mt-1">
+            <Input
+              type="number"
+              step="0.1"
+              min="0"
+              placeholder="× ULN (e.g. 3)"
+              value={condition.value?.[0] ?? ""}
+              onChange={(e) => onChange(idx, "value", [e.target.value])}
+              disabled={isDisabled}
+            />
+          </div>
+        )}
+        {hint && <small className="text-muted d-block mt-1">{hint}</small>}
       </div>
     );
   };

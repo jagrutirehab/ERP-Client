@@ -49,7 +49,7 @@ These are the `Model / field` pairs you'll see in the form's "Condition" rows.
 | Patient gender | `Patient` | `gender` |
 | "Document exists" check | *(any)* | `FIELD_EXISTS` |
 
-> **Lab values (AST, ALT, Bilirubin, Creatinine, Ammonia, electrolytes)** referenced in Section VI cannot be encoded as numeric thresholds today — `LabReport` only exposes `reports.aiResponse` and `reports.aiStatus`. The deadline-based "labs must be done" rules (Tier 3 below) work fine via `FIELD_EXISTS`. The specific-value rules are deferred until the LabReport field catalogue is expanded.
+> **Lab values (AST, ALT, Bilirubin, Creatinine, Ammonia, electrolytes)** referenced in Section VI are queried via `LabReport.reports.aiResponse.flaggedItems[]` with the `ARRAY_ANY_MATCHES` operator. Each flagged item carries `numericValue`, `valueUnit`, and `ulnMultiplier` (derived server-side from the catalogue's ULN), so PDF Section VI tier thresholds (3-5× / 5-10× / >10× ULN) map 1:1 to SOP rules. See **Tier 5** below.
 
 ---
 
@@ -454,17 +454,193 @@ Action Guidance:
 
 ---
 
+# TIER 5 — Lab Deviations (Section VI)
+
+These rules fire off the LabReport's AI-extracted `flaggedItems[]`. Each flagged
+item now carries `numericValue`, `valueUnit`, and `ulnMultiplier` (derived
+server-side from the lab-test catalogue's ULN), so PDF Section VI's
+tier thresholds map to SOP rules 1:1.
+
+In the form: pick **LabReport → reports.aiResponse.flaggedItems**, then in the
+mode dropdown choose **ULN multiplier >**, **ULN multiplier between**, etc.
+The form shows a derived hint (e.g. *"≈ 120 IU/L (ULN = 40 IU/L)"*) so the
+threshold is verifiable in real-world units.
+
+```mermaid
+flowchart TD
+  Lab[LabReport saved → AI extraction] --> Fi[flaggedItems[] with<br/>numericValue + ulnMultiplier]
+  Fi --> Eng[Engine evaluates rules]
+  Eng -->|AST 3-5× ULN|  M[HIGH: Mild → reduce CDZ 25%]
+  Eng -->|AST 5-10× ULN| Mod[CRITICAL: Moderate → reduce 50% / switch Lorazepam]
+  Eng -->|AST >10× ULN|  S[CRITICAL: Severe → STOP CDZ, ICU review]
+  Eng -->|Bilirubin >3× ULN| B[CRITICAL: switch to Lorazepam, hold CBZ]
+  Eng -->|Creatinine >3× ULN| C[CRITICAL: nephrology + transfer]
+  Eng -->|Ammonia >3× ULN| A[CRITICAL: HE protocol]
+```
+
+### Rule 21 — AST/ALT Mild (3–5× ULN)
+
+```
+Rule Name:        AWP-LFT-Mild
+Severity:         HIGH
+Source:           Section VI.A — AST/ALT 3–5× ULN
+Target Block:
+  • LabReport · reports.aiResponse.flaggedItems · ARRAY_ANY_MATCHES
+    arrayMatch: { keyField: "canonicalName", keyValue: "AST",
+                  compareField: "ulnMultiplier",
+                  comparator: "BETWEEN" }
+    value: [3, 5]
+Alert Template:
+  Patient {patient.name} AST {field.value} — Mild deviation (3–5× ULN). Reduce CDZ by 25%.
+Action Guidance:
+  Increase LFT monitoring to every 48h; add Udiliv 300 mg BD.
+```
+
+> Duplicate this rule for ALT (`keyValue: "ALT"`).
+
+### Rule 22 — AST/ALT Moderate (5–10× ULN)
+
+```
+Rule Name:        AWP-LFT-Moderate
+Severity:         CRITICAL
+Source:           Section VI.A — AST/ALT 5–10× ULN
+Target Block:
+  • LabReport · reports.aiResponse.flaggedItems · ARRAY_ANY_MATCHES
+    arrayMatch: { keyField: "canonicalName", keyValue: "AST",
+                  compareField: "ulnMultiplier",
+                  comparator: "BETWEEN" }
+    value: [5, 10]
+Alert Template:
+  Patient {patient.name} AST — Moderate (5–10× ULN). Reduce CDZ 50% OR switch to Lorazepam.
+Action Guidance:
+  AVOID Carbamazepine. Lorazepam 0.5–1 mg every 6h preferred. GI consult. Daily LFT.
+```
+
+### Rule 23 — AST/ALT Severe (> 10× ULN)
+
+```
+Rule Name:        AWP-LFT-Severe
+Severity:         CRITICAL
+Source:           Section VI.A — AST/ALT > 10× ULN
+Target Block:
+  • LabReport · reports.aiResponse.flaggedItems · ARRAY_ANY_MATCHES
+    arrayMatch: { keyField: "canonicalName", keyValue: "AST",
+                  compareField: "ulnMultiplier",
+                  comparator: "GREATER_THAN" }
+    value: [10]
+Alert Template:
+  Patient {patient.name} AST > 10× ULN — STOP CDZ, switch to Lorazepam, ICU review.
+Action Guidance:
+  Senior Physician / Hepatologist STAT. ICU review. Full hepatic protocol.
+  Hold Carbamazepine & Topiramate.
+```
+
+### Rule 24 — Bilirubin > 3× ULN
+
+```
+Rule Name:        AWP-Bilirubin-Critical
+Severity:         CRITICAL
+Source:           Section VI.B — Bilirubin > 3× ULN (> 3.6 mg/dL)
+Target Block:
+  • LabReport · reports.aiResponse.flaggedItems · ARRAY_ANY_MATCHES
+    arrayMatch: { keyField: "canonicalName", keyValue: "BILIRUBIN_TOTAL",
+                  compareField: "ulnMultiplier",
+                  comparator: "GREATER_THAN" }
+    value: [3]
+Alert Template:
+  Patient {patient.name} Total Bilirubin > 3× ULN — discontinue CDZ, hold CBZ.
+Action Guidance:
+  Switch to Lorazepam 0.5–1 mg every 6–8h. HOLD Carbamazepine.
+  Initiate full Hepatic Encephalopathy Protocol. Hepatology consult within 24h.
+```
+
+### Rule 25 — Creatinine > 3× ULN
+
+```
+Rule Name:        AWP-Creatinine-Critical
+Severity:         CRITICAL
+Source:           Section VI.C — Creatinine > 3× ULN (> 3.6 mg/dL)
+Target Block:
+  • LabReport · reports.aiResponse.flaggedItems · ARRAY_ANY_MATCHES
+    arrayMatch: { keyField: "canonicalName", keyValue: "CREATININE",
+                  compareField: "ulnMultiplier",
+                  comparator: "GREATER_THAN" }
+    value: [3]
+Alert Template:
+  Patient {patient.name} Creatinine > 3× ULN — AKI risk, nephrology + transfer.
+Action Guidance:
+  Section VIII.A: dialysis risk; transfer to tertiary centre.
+```
+
+### Rule 26 — Ammonia > 3× ULN
+
+```
+Rule Name:        AWP-Ammonia-Critical
+Severity:         CRITICAL
+Source:           Section VI.D — Ammonia > 3× ULN (> 105 µmol/L)
+Target Block:
+  • LabReport · reports.aiResponse.flaggedItems · ARRAY_ANY_MATCHES
+    arrayMatch: { keyField: "canonicalName", keyValue: "AMMONIA",
+                  compareField: "ulnMultiplier",
+                  comparator: "GREATER_THAN" }
+    value: [3]
+Alert Template:
+  Patient {patient.name} Ammonia > 3× ULN — activate HE protocol.
+Action Guidance:
+  Section VI.D: activate Hepatic Encephalopathy Protocol. Limit dietary protein.
+  Avoid all sedating medications until ammonia normalises.
+```
+
+### Rule 27 — Severe Hyponatraemia (Na < 120 mEq/L)
+
+```
+Rule Name:        AWP-Na-Critical
+Severity:         CRITICAL
+Source:           Section VIII.B — Na < 120 mEq/L (transfer threshold)
+Target Block:
+  • LabReport · reports.aiResponse.flaggedItems · ARRAY_ANY_MATCHES
+    arrayMatch: { keyField: "canonicalName", keyValue: "SODIUM",
+                  compareField: "numericValue",
+                  comparator: "LESS_THAN" }
+    value: [120]
+Alert Template:
+  Patient {patient.name} Na {field.value} mEq/L — severe hyponatraemia, transfer immediately.
+Action Guidance:
+  Section VIII.B: seizure risk, cerebral oedema. HOLD Carbamazepine.
+  IV correction requires ICU monitoring.
+```
+
+> Same pattern for **K < 2.5 mEq/L** (POTASSIUM, LESS_THAN, 2.5) and
+> **Mg < 0.4 mmol/L** (MAGNESIUM, LESS_THAN, 0.4) — they use `numericValue`
+> because the protocol thresholds are absolute, not ULN-multipliers.
+
+### Rule 28 — eGFR < 30 (renal transfer)
+
+```
+Rule Name:        AWP-eGFR-Critical
+Severity:         CRITICAL
+Source:           Section VIII.A — eGFR < 30 mL/min/1.73m²
+Target Block:
+  • LabReport · reports.aiResponse.flaggedItems · ARRAY_ANY_MATCHES
+    arrayMatch: { keyField: "canonicalName", keyValue: "EGFR",
+                  compareField: "numericValue",
+                  comparator: "LESS_THAN" }
+    value: [30]
+Alert Template:
+  Patient {patient.name} eGFR {field.value} — severe CKD/AKI, nephrology + transfer.
+Action Guidance:
+  Section VIII.A: drug accumulation risk; requires nephrology input.
+  STOP Acamprosate (contraindicated), reduce Levetiracetam.
+```
+
+---
+
 # Rules deferred (need system extension)
 
-These exist in the protocol but **can't be encoded yet**. Notes for what to do later.
+These remain blocked on system capabilities outside Section VI's threshold scope.
 
 | AWP reference | Reason deferred | What to add |
 |---|---|---|
-| Section VI.A — AST/ALT > 120 / > 200 / > 400 | `LabReport.tests.*` not in field catalogue | Expose `tests.ast`, `tests.alt`, etc. in `ALLOWED_FIELDS.LabReport` |
-| Section VI.B — Bilirubin > 3.6 | Same as above | Expose `tests.bilirubin` |
-| Section VI.C — Creatinine > 3.6, eGFR < 30 | Same | Expose `tests.creatinine`, `tests.eGFR` |
-| Section VI.D — Ammonia > 105 | Same | Expose `tests.ammonia` |
-| Section VI.E — Na < 120, K < 2.5, Mg < 0.4 | Same | Expose `tests.sodium`, etc. |
 | Section VIII.C.4 — "GCS drop + RR > 20 + SpO2 < 95%" | Requires temporal comparison (delta from baseline) | Add a new operator that compares to most-recent prior record |
 | Section VIII.D — "Refractory seizures (> 2 episodes)" | Requires counting events in a window | Add windowed-count aggregation |
 
@@ -493,8 +669,9 @@ gantt
     section Week 4 — Elderly
     Tier 4 with Satisfying Crit.  :     t4, after t3b, 3d
 
-    section Later
-    Lab fields + Section VI rules :     later, after t4, 7d
+    section Week 5 — Lab Deviations
+    Tier 5 (Section VI rules)     :     t5, after t4, 3d
+    Lab AI smoke test             :     t5b, after t5, 2d
 ```
 
 **Why this order:**
@@ -536,8 +713,9 @@ Expect to see:
 | 2 — Urgent Escalation | 5 | HIGH / MEDIUM | IMMEDIATE | II, V.D, IX, VIII.C |
 | 3 — Time Deadlines | 6 | HIGH / MEDIUM | DELAYED (cron) | I, V.D, IX |
 | 4 — Elderly Variants | 4 | HIGH | IMMEDIATE + Satisfying Criteria | V |
-| **Total ready today** | **20** | | | |
-| Deferred (lab values, temporal patterns) | ~10 | | needs system extension | VI, VIII.C.4 |
+| 5 — Lab Deviations | 8 | HIGH / CRITICAL | IMMEDIATE (on lab AI extraction) | VI, VIII.A, VIII.B |
+| **Total ready today** | **28** | | | |
+| Deferred (temporal/windowed patterns) | ~2 | | needs system extension | VIII.C.4, VIII.D |
 
 ---
 
