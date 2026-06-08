@@ -47,6 +47,9 @@ import Cl18GeriatricPsychiatryPage from "./Guidelines/CL-18_Geriatric_Psychiatry
 import Cl19IntellectualDisabilityNeurodevelopmentalPage from "./Guidelines/CL-19_Intellectual_Disability_Neurodevelopmental";
 import Cl20FirstEpisodePsychosisPage from "./Guidelines/CL-20_First_Episode_Psychosis";
 import Se01SuicideRiskPreventionPage from "./Guidelines/SE-01_Suicide_Risk_Prevention_Management";
+import Se02ViolenceAggressionManagementPage from "./Guidelines/SE-02_Violence_Aggression_Management";
+import Se03RestraintSeclusionGovernancePage from "./Guidelines/SE-03_Restraint_Seclusion_Governance";
+import Se04MedicalEmergencyIcuEscalationPage from "./Guidelines/SE-04_Medical_Emergency_ICU_Escalation";
 // import Main from "./Main";
 // import PatientDetails from "./PatientDetails";
 
@@ -344,6 +347,24 @@ const Guidelines = () => {
                     link: "se-01-suicide-risk-prevention",
                     icon: "bx bx-shield-alt-2",
                   },
+                  {
+                    id: "se-02-violence-aggression-management",
+                    label: "SE-02 Violence & Aggression Management",
+                    link: "se-02-violence-aggression-management",
+                    icon: "bx bx-error-alt",
+                  },
+                  {
+                    id: "se-03-restraint-seclusion-governance",
+                    label: "SE-03 Restraint & Seclusion Governance",
+                    link: "se-03-restraint-seclusion-governance",
+                    icon: "bx bx-lock-alt",
+                  },
+                  {
+                    id: "se-04-medical-emergency-icu-escalation",
+                    label: "SE-04 Medical Emergency & ICU Escalation",
+                    link: "se-04-medical-emergency-icu-escalation",
+                    icon: "bx bx-plus-medical",
+                  },
                 ]}
               />
               <Routes>
@@ -523,6 +544,18 @@ const Guidelines = () => {
                 <Route
                   path="se-01-suicide-risk-prevention"
                   element={<Se01SuicideRiskPreventionPage />}
+                />
+                <Route
+                  path="se-02-violence-aggression-management"
+                  element={<Se02ViolenceAggressionManagementPage />}
+                />
+                <Route
+                  path="se-03-restraint-seclusion-governance"
+                  element={<Se03RestraintSeclusionGovernancePage />}
+                />
+                <Route
+                  path="se-04-medical-emergency-icu-escalation"
+                  element={<Se04MedicalEmergencyIcuEscalationPage />}
                 />
               </Routes>
             </div>

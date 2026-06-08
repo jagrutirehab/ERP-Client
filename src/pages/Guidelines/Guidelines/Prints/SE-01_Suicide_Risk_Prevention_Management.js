@@ -1,106 +1,16 @@
 import React, { forwardRef, Fragment } from "react";
+import {
+  RED, cell, NAVY,
+  SectionHeader, SubTitle, BulletList, NumberedList,
+  DataTable, ControlTable, WarningBox, AlertBox,
+  ResponseStep, CalloutBox, SEDocHeader, SEAuthorisation,
+} from "./SEComponents";
 
-const NAVY = "#1e2d5a";
-const GOLD = "#c9a035";
-const BLUE = "#1a3a6b";
-const RED = "#c0392b";
-const AMBER = "#e67e22";
-
-const cell = { border: "1px solid #c8cfd8", padding: "6px 10px", verticalAlign: "top" };
-const headCell = { ...cell, background: NAVY, color: "#fff", fontWeight: "bold" };
-const altCell = { ...cell, background: "#f5f7fb" };
-
-const SectionHeader = ({ children }) => (
-  <div style={{ background: NAVY, padding: "8px 14px", marginTop: "1.5rem", marginBottom: "0.75rem" }}>
-    <span style={{ color: GOLD, fontWeight: "bold", fontSize: "0.95rem", letterSpacing: "0.05em" }}>{children}</span>
-  </div>
-);
-
-const SubTitle = ({ children }) => (
-  <div style={{ color: BLUE, fontWeight: "bold", fontSize: "0.95rem", borderBottom: `2px solid ${BLUE}`, paddingBottom: "3px", marginTop: "1rem", marginBottom: "0.5rem" }}>
-    {children}
-  </div>
-);
-
-const BulletList = ({ items }) => (
-  <ul style={{ paddingLeft: "1.25rem", margin: "0 0 0.75rem" }}>
-    {items.map((item, i) => <li key={i} style={{ marginBottom: "3px" }}>{item}</li>)}
-  </ul>
-);
-
-const NumberedList = ({ items, start = 1 }) => (
-  <ol start={start} style={{ paddingLeft: "1.4rem", margin: "0 0 0.75rem" }}>
-    {items.map((item, i) => <li key={i} style={{ marginBottom: "4px" }}>{item}</li>)}
-  </ol>
-);
-
-const DataTable = ({ cols, rows }) => (
-  <table style={{ borderCollapse: "collapse", width: "100%", marginBottom: "0.75rem" }}>
-    <thead>
-      <tr>{cols.map((c, i) => <th key={i} style={{ ...headCell, width: c.width }}>{c.label}</th>)}</tr>
-    </thead>
-    <tbody>
-      {rows.map((row, i) => (
-        <tr key={i}>
-          {row.map((cell_, j) => (
-            <td key={j} style={{ ...(i % 2 === 0 ? cell : altCell), ...(j === 0 ? { fontWeight: "bold" } : {}) }}>{cell_}</td>
-          ))}
-        </tr>
-      ))}
-    </tbody>
-  </table>
-);
-
-const ControlTable = ({ rows }) => (
-  <table style={{ borderCollapse: "collapse", width: "100%", marginBottom: "1rem" }}>
-    <tbody>
-      {rows.map(([label, value], i) => (
-        <tr key={label}>
-          <td style={{ ...cell, background: i % 2 === 0 ? "#eef1f8" : "#f8f9fc", color: NAVY, fontWeight: "bold", width: "22%" }}>{label}</td>
-          <td style={{ ...cell, background: i % 2 === 0 ? "#fafbfd" : "#fff" }}>{value}</td>
-        </tr>
-      ))}
-    </tbody>
-  </table>
-);
-
-const WarningBox = ({ title, children, color = AMBER }) => (
-  <div style={{ border: `2px solid ${color}`, borderRadius: "4px", padding: "8px 12px", background: color === RED ? "#fff5f5" : "#fffbf0", marginBottom: "0.75rem" }}>
-    {title && <div style={{ fontWeight: "bold", color, marginBottom: "4px" }}>{title}</div>}
-    <div style={{ color: color === RED ? RED : "#7a4f00" }}>{children}</div>
-  </div>
-);
-
-const AlertBox = ({ title, children }) => (
-  <div style={{ background: "#fff3cd", border: "1px solid #ffc107", borderRadius: "4px", padding: "8px 12px", marginBottom: "0.75rem" }}>
-    <div style={{ fontWeight: "bold", color: "#856404", marginBottom: "4px" }}>{title}</div>
-    <div style={{ color: "#533f03" }}>{children}</div>
-  </div>
-);
-
+// SE-01 specific — sentinel event banner
 const SentinelBox = ({ children }) => (
   <div style={{ background: "#fff5f5", border: `2px solid ${RED}`, borderRadius: "4px", padding: "8px 12px", marginBottom: "0.75rem" }}>
     <div style={{ fontWeight: "bold", color: RED, marginBottom: "4px" }}>🚨 Suicide Attempt = Sentinel Event</div>
     <div style={{ color: "#333" }}>{children}</div>
-  </div>
-);
-
-const SystemBox = ({ children }) => (
-  <div style={{ background: "#fdf3f3", border: `1px solid ${RED}`, borderRadius: "4px", padding: "10px 14px", marginBottom: "1rem" }}>
-    <div style={{ fontWeight: "bold", color: RED, marginBottom: "4px" }}>● System Responsibility</div>
-    <div>{children}</div>
-  </div>
-);
-
-const ResponseStep = ({ num, title, items, titleColor = BLUE }) => (
-  <div style={{ display: "flex", gap: "12px", marginBottom: "0.75rem", border: "1px solid #c8cfd8", borderRadius: "4px", overflow: "hidden" }}>
-    <div style={{ background: NAVY, color: "#fff", fontWeight: "bold", fontSize: "1.1rem", minWidth: "48px", display: "flex", alignItems: "center", justifyContent: "center" }}>{num}</div>
-    <div style={{ padding: "8px 10px", flex: 1 }}>
-      <div style={{ color: titleColor, fontWeight: "bold", marginBottom: "4px" }}>{title}</div>
-      <ul style={{ paddingLeft: "1.1rem", margin: 0 }}>
-        {items.map((item, i) => <li key={i} style={{ marginBottom: "2px" }}>{item}</li>)}
-      </ul>
-    </div>
   </div>
 );
 
@@ -224,32 +134,20 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
   <Fragment>
     <div ref={ref} className={`${props.classnames} px-6 py-10 absolute -z-10`}>
 
-      {/* Header */}
       <div className={`${props.heading} mb-4`}>
-        <div style={{ display: "flex", alignItems: "stretch", border: `2px solid ${NAVY}`, marginBottom: "1rem" }}>
-          <div style={{ background: NAVY, padding: "12px 16px", flex: 1 }}>
-            <div style={{ color: GOLD, fontWeight: "bold", fontSize: "1rem" }}>JAGRUTII REHAB CENTRE PVT. LTD.</div>
-            <div style={{ color: "#fff", fontWeight: "bold", fontSize: "0.85rem" }}>Clinical Excellence Framework — Standard Operating Procedure</div>
-          </div>
-          <div style={{ background: GOLD, padding: "12px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minWidth: "80px" }}>
-            <div style={{ color: NAVY, fontWeight: "bold", fontSize: "1.6rem", lineHeight: 1 }}>SE-01</div>
-            <div style={{ color: NAVY, fontSize: "0.75rem", fontWeight: "bold" }}>Version 2.0</div>
-          </div>
-        </div>
-        <div style={{ border: `1px solid ${NAVY}`, background: "#f5f7fb", padding: "10px", textAlign: "center", marginBottom: "1rem" }}>
-          <div style={{ fontSize: "0.85rem", color: NAVY, fontWeight: "bold", letterSpacing: "0.05em" }}>CLINICAL TREATMENT PROTOCOL</div>
-          <div style={{ fontSize: "1.4rem", fontWeight: "bold", color: NAVY }}>Suicide Risk Prevention &amp; Management</div>
-          <div style={{ fontSize: "0.8rem", color: "#555", marginTop: "4px" }}>MHCA 2017 • C-SSRS • NABH Patient Safety Goal 4 • All Verticals</div>
-        </div>
+        <SEDocHeader
+          docCode="SE-01"
+          title="Suicide Risk Prevention & Management"
+          tagline="MHCA 2017 • C-SSRS • NABH Patient Safety Goal 4 • All Verticals"
+        />
       </div>
 
       <ControlTable rows={CONTROL_ROWS} />
 
-      <SystemBox>
+      <CalloutBox title="System Responsibility">
         Suicide prevention is an organisational system responsibility — not the assumption of any single individual. A patient's death by suicide or a serious attempt is a sentinel event. Every component of this SOP is mandatory. Failure to follow observation, documentation, or response protocols is a patient safety failure and a clinical governance violation.
-      </SystemBox>
+      </CalloutBox>
 
-      {/* 1. PURPOSE */}
       <SectionHeader>1. Purpose</SectionHeader>
       <p style={{ margin: "0 0 0.5rem" }}>This SOP establishes the clinical, environmental, and organisational standards for preventing suicide and managing suicidal risk across all centres of Jagrutii Rehab Centre Pvt. Ltd. It covers:</p>
       <BulletList items={[
@@ -264,7 +162,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "Post-incident review, staff support, and learning",
       ]} />
 
-      {/* 2. SCOPE */}
       <SectionHeader>2. Scope</SectionHeader>
       <BulletList items={[
         "All inpatients across all four clinical verticals",
@@ -273,7 +170,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "All staff categories who interact with patients: psychiatric, nursing, counselling, social work, support",
       ]} />
 
-      {/* 3. REGULATORY */}
       <SectionHeader>3. Regulatory &amp; Clinical Framework</SectionHeader>
       <SubTitle>3.1 MHCA 2017</SubTitle>
       <BulletList items={[
@@ -288,7 +184,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "Documentation of suicide risk assessment at admission and at key clinical transitions is a NABH audit requirement",
       ]} />
 
-      {/* 4. ASSESSMENT */}
       <SectionHeader>4. Suicide Risk Assessment — C-SSRS Based</SectionHeader>
       <p style={{ margin: "0 0 0.75rem" }}>The Columbia Suicide Severity Rating Scale (C-SSRS) is the standardised tool for suicide risk assessment across all Jagrutii Rehab Centre verticals. Clinical judgement is used in conjunction with C-SSRS scores.</p>
       <SubTitle>4.1 When Assessment Is Mandatory</SubTitle>
@@ -297,7 +192,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         rows={TOUCHPOINT_ROWS}
       />
 
-      {/* 5. RISK STRATIFICATION */}
       <SectionHeader>5. Risk Stratification — Clinical Criteria</SectionHeader>
       <DataTable
         cols={[{ label: "Risk Level", width: "12%" }, { label: "Clinical Criteria", width: "38%" }, { label: "C-SSRS Indicative Score", width: "20%" }, { label: "Observation Level" }]}
@@ -307,7 +201,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         Risk level is dynamic. Any nursing staff member who observes a change in the patient's presentation suggesting escalation of risk MUST immediately notify the duty psychiatrist — they do not wait for the next scheduled review. Risk escalation is a clinical emergency. Downgrading risk level from High to Moderate or Low requires treating psychiatrist documentation with clinical rationale.
       </AlertBox>
 
-      {/* 6. OBSERVATION */}
       <SectionHeader>6. Observation Levels &amp; Documentation Requirements</SectionHeader>
       <SubTitle>6.1 Observation Standards by Level</SubTitle>
       <DataTable
@@ -335,7 +228,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "When downgrading from 1:1: C-SSRS reassessment documented; clinical rationale stated; Centre Head informed",
       ]} />
 
-      {/* 7. ENVIRONMENTAL SAFETY */}
       <SectionHeader>7. Environmental Safety</SectionHeader>
       <SubTitle>7.1 Ligature Risk Assessment</SubTitle>
       <p style={{ margin: "0 0 0.5rem" }}>A ligature risk assessment of the physical environment must be completed:</p>
@@ -352,7 +244,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "CCTV coverage reviewed monthly to ensure high-risk patient areas have no blind spots",
       ]} />
 
-      {/* 8. SAFETY PLANNING */}
       <SectionHeader>8. Safety Planning</SectionHeader>
       <p style={{ margin: "0 0 0.75rem" }}>A Safety Plan is a personalised, collaboratively developed written plan that helps a patient recognise warning signs and take specific steps to reduce risk. It is a therapeutic tool, not a signature form.</p>
       <SubTitle>8.1 When a Safety Plan Is Required</SubTitle>
@@ -363,7 +254,7 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
       ]} />
       <SubTitle>8.2 Safety Plan Components (Stanley-Brown Framework)</SubTitle>
       <DataTable
-        cols={[{ label: "Step", width: "7%", center: true }, { label: "Component", width: "28%" }, { label: "Clinical Guidance" }]}
+        cols={[{ label: "Step", width: "7%" }, { label: "Component", width: "28%" }, { label: "Clinical Guidance" }]}
         rows={SAFETY_PLAN_ROWS}
       />
       <BulletList items={[
@@ -372,7 +263,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "Safety plan reviewed and updated at each risk re-assessment",
       ]} />
 
-      {/* 9. MEANS RESTRICTION */}
       <SectionHeader>9. Means Restriction &amp; Medication Safety</SectionHeader>
       <p style={{ margin: "0 0 0.75rem" }}>Restricting access to lethal means is one of the most evidence-based interventions in suicide prevention. At Jagrutii Rehab Centre, means restriction applies to both the physical environment and medication management.</p>
       <SubTitle>9.1 Medication Safety for High-Risk Patients</SubTitle>
@@ -391,7 +281,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "Patient informed of the reason for removal; approach is therapeutic and non-punitive",
       ]} />
 
-      {/* 10. IMMEDIATE RESPONSE */}
       <SectionHeader>10. Immediate Response to Suicide Attempt</SectionHeader>
       <SentinelBox>
         Any suicide attempt by a patient under Jagrutii Rehab Centre's care — whether completed, incomplete, or aborted — is a Sentinel Event. The full incident response protocol below is mandatory in every case.
@@ -440,7 +329,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "Peer patients on the ward: ward staff conduct wellbeing check; consider group debriefing session",
       ]} />
 
-      {/* 11. STAFF COMMUNICATION */}
       <SectionHeader>11. Staff Communication Protocol</SectionHeader>
       <BulletList items={[
         "When High risk is identified: nursing team briefed in writing at each shift handover; risk flag activated in EMR; observation sheet initiated",
@@ -450,7 +338,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "Security staff briefed on observation status (without clinical details) where they are involved in monitoring",
       ]} />
 
-      {/* 12. FAMILY/NR */}
       <SectionHeader>12. Family / NR Communication</SectionHeader>
       <NumberedList items={[
         "Family / NR informed of the patient's elevated risk in a planned, calm conversation by the treating psychiatrist — not communicated by nursing staff or administration",
@@ -461,7 +348,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "After a serious attempt: family offered a family counselling session; carer burden and carer mental health acknowledged",
       ]} />
 
-      {/* 13. DISCHARGE */}
       <SectionHeader>13. Discharge Safety Standards</SectionHeader>
       <p style={{ margin: "0 0 0.75rem" }}>Discharge of a patient with any current or recent suicidal risk requires the following mandatory actions before discharge is finalised:</p>
       <DataTable
@@ -472,7 +358,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         The evidence base for post-discharge follow-up contact within 24–48 hours in high-risk patients is strong. This call is not a courtesy — it is a clinical safety intervention. It must be documented in the EMR with the content of the conversation and the patient's reported state. If the patient is unreachable, the family / NR is contacted and the attempt is documented.
       </AlertBox>
 
-      {/* 14. AMA */}
       <SectionHeader>14. Self-Discharge Against Medical Advice — High-Risk Patients</SectionHeader>
       <p style={{ margin: "0 0 0.5rem" }}>If a patient on High-risk status attempts to leave against medical advice:</p>
       <NumberedList items={[
@@ -485,7 +370,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "Incident documented in EMR as high-risk AMA; post-departure welfare follow-up by Social Worker within 24 hours",
       ]} />
 
-      {/* 15. SPECIAL POPULATIONS */}
       <SectionHeader>15. Special Population Protocols</SectionHeader>
       <SubTitle>15.1 De-Addiction Vertical</SubTitle>
       <BulletList items={[
@@ -516,7 +400,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "MHRB application by the patient: never treated as evidence of increased risk or used as justification for more restrictive measures",
       ]} />
 
-      {/* 16. NEAR-MISS */}
       <SectionHeader>16. Near-Miss &amp; Remote Communication of Suicidal Ideation</SectionHeader>
       <SubTitle>16.1 Near-Miss Events</SubTitle>
       <BulletList items={[
@@ -534,7 +417,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "If family reports suicidal ideation in a current inpatient patient after a home visit: duty psychiatrist informed immediately; C-SSRS reassessment on return",
       ]} />
 
-      {/* 17. POST-INCIDENT REVIEW */}
       <SectionHeader>17. Post-Incident Review — Serious Attempt or Death</SectionHeader>
       <NumberedList items={[
         "Incident Report (IR-F-001) completed within 1 hour by Nursing In-Charge",
@@ -546,7 +428,6 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "NABH Sentinel Event Report filed as required",
       ]} />
 
-      {/* 18. STAFF SUPPORT */}
       <SectionHeader>18. Staff Psychological Support Post-Incident</SectionHeader>
       <p style={{ margin: "0 0 0.75rem" }}>Staff involved in a patient suicide attempt or death are at significant risk of psychological distress, moral injury, and burnout. Jagrutii Rehab Centre has a duty of care to its staff in these situations.</p>
       <NumberedList items={[
@@ -558,28 +439,24 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         "Staff involved in a patient death must not be rostered for high-dependency observation duties for a minimum of 48 hours post-incident",
       ]} />
 
-      {/* 19. ROLES */}
       <SectionHeader>19. Roles &amp; Responsibilities</SectionHeader>
       <DataTable
         cols={[{ label: "Role", width: "28%" }, { label: "Responsibilities" }]}
         rows={ROLES_ROWS}
       />
 
-      {/* 20. KPIs */}
       <SectionHeader>20. KPIs &amp; Audit</SectionHeader>
       <DataTable
-        cols={[{ label: "KPI" }, { label: "Target", width: "12%", center: true }, { label: "Review Frequency", width: "14%", center: true }]}
+        cols={[{ label: "KPI" }, { label: "Target", width: "12%" }, { label: "Review Frequency", width: "14%" }]}
         rows={KPI_ROWS}
       />
 
-      {/* 21. RELATED DOCUMENTS */}
       <SectionHeader>21. Related Documents</SectionHeader>
       <DataTable
         cols={[{ label: "Doc ID", width: "18%" }, { label: "Title", width: "38%" }, { label: "Relationship" }]}
         rows={RELATED_ROWS}
       />
 
-      {/* 22. REVIEW */}
       <SectionHeader>22. Review &amp; Version Control</SectionHeader>
       <table style={{ borderCollapse: "collapse", width: "100%", marginBottom: "1rem" }}>
         <tbody>
@@ -592,46 +469,8 @@ const Se01SuicideRiskPrevention = forwardRef((props, ref) => (
         </tbody>
       </table>
 
-      {/* AUTHORISATION */}
       <SectionHeader>Authorisation &amp; Sign-Off</SectionHeader>
-      <table style={{ borderCollapse: "collapse", width: "100%", marginBottom: "1rem" }}>
-        <thead>
-          <tr>
-            <th style={{ ...headCell, width: "33.33%" }}>Prepared By</th>
-            <th style={{ ...headCell, width: "33.33%" }}>Reviewed By</th>
-            <th style={{ ...headCell, width: "33.33%" }}>Approved By</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style={cell}>
-              <div style={{ fontWeight: "bold" }}>Dr. Amar Shinde</div>
-              <div>Clinical Director</div>
-              <div>Jagrutii Rehab Centre Pvt. Ltd.</div>
-              <div style={{ marginTop: "8px" }}>Date: _______________</div>
-            </td>
-            <td style={cell}>
-              <div style={{ fontWeight: "bold" }}>Dr. Bharat Mali</div>
-              <div>Regional Head</div>
-              <div>Jagrutii Rehab Centre Pvt. Ltd.</div>
-              <div style={{ marginTop: "8px" }}>Date: _______________</div>
-            </td>
-            <td style={cell}>
-              <div style={{ fontWeight: "bold" }}>Dr. Amar Shinde</div>
-              <div>Founder &amp; Clinical Director</div>
-              <div>Jagrutii Rehab Centre Pvt. Ltd.</div>
-              <div style={{ marginTop: "8px" }}>Date: _______________</div>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-
-      <p className="text-muted text-center" style={{ fontSize: "0.8rem", fontStyle: "italic", marginTop: "1rem" }}>
-        SE-01 | Version 2.0 | June 2025 | Jagrutii Rehab Centre Pvt. Ltd. | CONFIDENTIAL
-      </p>
-      <p className="text-muted text-center" style={{ fontSize: "0.8rem", fontStyle: "italic" }}>
-        This is a controlled clinical document of Jagrutii Rehab Centre Pvt. Ltd. Any reproduction or distribution without written authorisation from the Clinical Director is prohibited. Governed under MHCA 2017 and NABH standards.
-      </p>
+      <SEAuthorisation docCode="SE-01" />
 
     </div>
   </Fragment>

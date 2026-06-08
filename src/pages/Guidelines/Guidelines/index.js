@@ -45,6 +45,9 @@ import Cl18GeriatricPsychiatry from "./Prints/CL-18_Geriatric_Psychiatry";
 import Cl19IntellectualDisabilityNeurodevelopmental from "./Prints/CL-19_Intellectual_Disability_Neurodevelopmental";
 import Cl20FirstEpisodePsychosis from "./Prints/CL-20_First_Episode_Psychosis";
 import Se01SuicideRiskPrevention from "./Prints/SE-01_Suicide_Risk_Prevention_Management";
+import Se02ViolenceAggressionManagement from "./Prints/SE-02_Violence_Aggression_Management";
+import Se03RestraintSeclusionGovernance from "./Prints/SE-03_Restraint_Seclusion_Governance";
+import Se04MedicalEmergencyIcuEscalation from "./Prints/SE-04_Medical_Emergency_ICU_Escalation";
 import Select from "react-select";
 
 const guidelines = [
@@ -481,7 +484,7 @@ const guidelines = [
     link: "cl-16-cannabis-polysubstance",
     category: "clinical sops",
   },
-   {
+  {
     id: 36,
     name: "CL-17 — Child & Adolescent Psychiatry",
     description:
@@ -493,7 +496,7 @@ const guidelines = [
     link: "cl-17-child-adolescent-psychiatry",
     category: "clinical sops",
   },
-   {
+  {
     id: 37,
     name: "CL-18 — Geriatric Psychiatry",
     description:
@@ -517,7 +520,7 @@ const guidelines = [
     link: "cl-19-intellectual-disability",
     category: "clinical sops",
   },
-   {
+  {
     id: 39,
     name: "CL-20 — First-Episode Psychosis (FEP)",
     description:
@@ -575,7 +578,43 @@ const guidelines = [
     type: "Safety & Emergency — SE Series",
     print: Se01SuicideRiskPrevention,
     link: "se-01-suicide-risk-prevention",
-    category: "sops",
+    category: "clinical sops",
+  },
+  {
+    id: 45,
+    name: "SE-02 — Violence & Aggression Prevention & Management SOP",
+    description:
+      "Jagrutii-wide violence prevention & management SOP — Safewards proactive model, STAMP early warning framework, NICE NG10 7-step de-escalation, 3-level escalation response, RT stepwise protocol with doses & contraindications, post-RT monitoring, physical intervention prohibitions (prone restraint = criminal offence), 6-step post-incident protocol, special populations (de-addiction/child/elderly/pregnancy/involuntary), and 12 KPIs.",
+    lastUpdated: "June 08, 2026",
+    status: "Active",
+    type: "Safety & Emergency — SE Series",
+    print: Se02ViolenceAggressionManagement,
+    link: "se-02-violence-aggression-management",
+    category: "clinical sops",
+  },
+  {
+    id: 46,
+    name: "SE-03 — Restraint & Seclusion Governance SOP",
+    description:
+      "JRCPL v2 governance SOP for physical, mechanical, chemical restraint & seclusion — 5 non-negotiable principles (prone restraint = criminal), MHCA Sec. 94/97/99/100/115 legal matrix, 3-criteria indications, 6 contraindications, authorisation framework (15–30 min limits), 5-step procedure, 8-parameter monitoring with escalation thresholds, duration limits table, seclusion room specs & 8-step protocol, dual documentation (RR-F-001 + EMR), MHRB notification for involuntary patients, patient debrief, RCA trigger matrix (9 triggers), special populations (elderly/paediatric/pregnant/involuntary/de-addiction), training competency table, and 12 KPIs (3 zero-tolerance).",
+    lastUpdated: "June 08, 2026",
+    status: "Active",
+    type: "Safety & Emergency — SE Series",
+    print: Se03RestraintSeclusionGovernance,
+    link: "se-03-restraint-seclusion-governance",
+    category: "clinical sops",
+  },
+  {
+    id: 47,
+    name: "SE-04 — Medical Emergency & ICU Escalation SOP",
+    description:
+      "Jagruti SOP for medical emergencies (seizure, DTs, overdose, cardiac arrest, respiratory distress, lithium toxicity, Clozapine reaction) — 5-step immediate response (BLS/ABC/vitals), stabilisation measures, ICU escalation criteria, ambulance & transfer protocol, 7-item emergency equipment checklist (crash cart/O2/oximeter), EMR documentation requirements, 72-hr post-event review, and 4 KPIs.",
+    lastUpdated: "June 09, 2026",
+    status: "Active",
+    type: "Safety & Emergency — SE Series",
+    print: Se04MedicalEmergencyIcuEscalation,
+    link: "se-04-medical-emergency-icu-escalation",
+    category: "clinical sops",
   },
 ];
 
