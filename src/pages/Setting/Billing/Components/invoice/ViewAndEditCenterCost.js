@@ -327,6 +327,8 @@ import {
 import { toast } from "react-toastify";
 import CentersModal from "./CentersModal";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import CheckPermission from "../../../../../Components/HOC/CheckPermission";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 
 const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
   const [editingId, setEditingId] = useState(null);
@@ -334,6 +336,11 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
   const [prodata, setproData] = useState(null);
   const [loading, setLoading] = useState(false);
   const [showCentersModal, setShowCentersModal] = useState(false);
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { roles } = usePermissions(token);
 
   const loadProcedures = async () => {
     if (!data?._id) return;
@@ -448,14 +455,19 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
         <ModalBody style={{ maxHeight: "60vh", overflowY: "auto" }}>
           <div className="d-flex justify-content-between mb-3">
             <h6>Centers & Category Units</h6>
-            <Button
-              size="sm"
-              color="primary"
-              outline
-              onClick={() => setShowCentersModal(true)}
-            >
-              Add Centers
-            </Button>
+            <CheckPermission
+              accessRolePermission={roles?.permissions}
+              permission={"edit"}
+              subAccess={"INVOICESETTING"}>
+              <Button
+                size="sm"
+                color="primary"
+                outline
+                onClick={() => setShowCentersModal(true)}
+              >
+                Add Centers
+              </Button>
+            </CheckPermission>
           </div>
 
           <CentersModal
@@ -463,7 +475,7 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
             toggle={() => setShowCentersModal(false)}
             onSave={handleSaveCenters}
             proData={data}
-            existingCenterIds={existingCenterIds} 
+            existingCenterIds={existingCenterIds}
           />
 
           {loading ? (
@@ -556,27 +568,37 @@ const ViewAndEditCenterCost = ({ isOpen, toggle, data }) => {
                             </>
                           ) : (
                             <div className="d-flex justify-content-center gap-2">
-                              <Button
-                                size="sm"
-                                color="info"
-                                outline
-                                disabled={!hasCenter}
-                                title={!hasCenter ? "Center missing" : "Edit"}
-                                onClick={() => handleEdit(row)}
-                              >
-                                <i className="ri-edit-2-line"></i>
-                              </Button>
+                              <CheckPermission
+                                accessRolePermission={roles?.permissions}
+                                permission={"edit"}
+                                subAccess={"INVOICESETTING"}>
+                                <Button
+                                  size="sm"
+                                  color="info"
+                                  outline
+                                  disabled={!hasCenter}
+                                  title={!hasCenter ? "Center missing" : "Edit"}
+                                  onClick={() => handleEdit(row)}
+                                >
+                                  <i className="ri-edit-2-line"></i>
+                                </Button>
+                              </CheckPermission>
+                              <CheckPermission
+                                accessRolePermission={roles?.permissions}
+                                permission={"delete"}
+                                subAccess={"INVOICESETTING"}>
 
-                              <Button
-                                size="sm"
-                                color="danger"
-                                outline
-                                disabled={!hasCenter}
-                                title={!hasCenter ? "Center missing" : "Delete"}
-                                onClick={() => hasCenter && handleDelete(row)}
-                              >
-                                <i className="ri-delete-bin-6-line"></i>
-                              </Button>
+                                <Button
+                                  size="sm"
+                                  color="danger"
+                                  outline
+                                  disabled={!hasCenter}
+                                  title={!hasCenter ? "Center missing" : "Delete"}
+                                  onClick={() => hasCenter && handleDelete(row)}
+                                >
+                                  <i className="ri-delete-bin-6-line"></i>
+                                </Button>
+                              </CheckPermission>
                             </div>
                           )}
                         </td>

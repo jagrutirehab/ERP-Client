@@ -11,6 +11,8 @@ import PropTypes from "prop-types";
 import EditBillItem from "./EditItem";
 import ViewAndEditCenterCost from "./ViewAndEditCenterCost";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
+import CheckPermission from "../../../../../Components/HOC/CheckPermission";
 
 const InvoiceProcedureList = ({
   items,
@@ -29,6 +31,12 @@ const InvoiceProcedureList = ({
   const [editRowId, setEditRowId] = useState(null);
   const [editCost, setEditCost] = useState(false);
   const [selectedItemData, setSelectedItemData] = useState(null);
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { roles } = usePermissions(token);
+
   const toggleUpdateForm = (idx, data) =>
     setUpdateItem({
       isForm: true,
@@ -106,20 +114,25 @@ const InvoiceProcedureList = ({
 
                 <td className="text-left">
                   <div className="d-flex justify-content-left gap-2">
-                    <Button
-                      id={`categoryEdit-${idx}`}
-                      size="sm"
-                      color="info"
-                      onClick={() => setEditRowId(item._id)}
-                    >
-                      <i className="ri-quill-pen-line"></i>
-                    </Button>
-                    <UncontrolledTooltip
-                      placement="top"
-                      target={`categoryEdit-${idx}`}
-                    >
-                      Edit Category
-                    </UncontrolledTooltip>
+                    <CheckPermission
+                      accessRolePermission={roles?.permissions}
+                      permission={"edit"}
+                      subAccess={"INVOICESETTING"}>
+                      <Button
+                        id={`categoryEdit-${idx}`}
+                        size="sm"
+                        color="info"
+                        onClick={() => setEditRowId(item._id)}
+                      >
+                        <i className="ri-quill-pen-line"></i>
+                      </Button>
+                      <UncontrolledTooltip
+                        placement="top"
+                        target={`categoryEdit-${idx}`}
+                      >
+                        Edit Category
+                      </UncontrolledTooltip>
+                    </CheckPermission>
 
                     <Button
                       id={`viewEditCentersBtn-${idx}`}
@@ -138,21 +151,25 @@ const InvoiceProcedureList = ({
                     >
                       View & Edit Centers
                     </UncontrolledTooltip>
-
-                    <Button
-                      id="deletePro"
-                      size="sm"
-                      color="danger"
-                      outline
-                      onClick={() =>
-                        setDeleteItem({ isOpen: true, data: item._id })
-                      }
-                    >
-                      <i className="ri-close-circle-line"></i>
-                    </Button>
-                    <UncontrolledTooltip placement="top" target="deletePro">
-                      Delete Procedure Data
-                    </UncontrolledTooltip>
+                    <CheckPermission
+                      accessRolePermission={roles?.permissions}
+                      permission={"delete"}
+                      subAccess={"INVOICESETTING"}>
+                      <Button
+                        id="deletePro"
+                        size="sm"
+                        color="danger"
+                        outline
+                        onClick={() =>
+                          setDeleteItem({ isOpen: true, data: item._id })
+                        }
+                      >
+                        <i className="ri-close-circle-line"></i>
+                      </Button>
+                      <UncontrolledTooltip placement="top" target="deletePro">
+                        Delete Procedure Data
+                      </UncontrolledTooltip>
+                    </CheckPermission>
                   </div>
                 </td>
               </tr>
