@@ -3260,14 +3260,17 @@ export const getLatestPolicy = () => {
 
 // department
 
-export const getDepartments = () => {
-  return api.get(`${url.GET_DEPARTMENTS}`, {
+export const getDepartments = (params = {}) => {
+  const endpoint = params.version
+    ? `${url.GET_DEPARTMENTS}?version=${params.version}`
+    : url.GET_DEPARTMENTS;
+
+  return api.get(endpoint, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
   });
 };
-
 export const createDepartment = (data) => {
   return api.create(`${url.CREATE_DEPARTMENTS}`, data, {
     headers: {

@@ -33,11 +33,20 @@ import Cl07ADHDPage from "./Guidelines/CL-07_ADHD";
 import Cl08AutismSpectrumDisorderPage from "./Guidelines/CL-08_Autism_Spectrum_Disorder";
 import Cl09InsomniaDementiaElderlyPage from "./Guidelines/CL-09_Insomnia_Dementia_Elderly";
 import Cl10TrichotillomaniaBFRBsPage from "./Guidelines/CL-10_Trichotillomania_BFRBs";
+import Cl11AgitationManagementPage from "./Guidelines/CL-11_Agitation_Management";
+import JagrutiiAgitationSOPPage from "./Guidelines/Jagrutii_Agitation_SOP";
+import JagrutiiElectrolyteEmergencySOPPage from "./Guidelines/Jagrutii_Electrolyte_Emergency_SOP";
+import JagrutiiViolentPatientSOPPage from "./Guidelines/Jagrutii_Violent_Patient_SOP";
 import Cl12OCDPage from "./Guidelines/CL-12_OCD";
 import Cl13PTSDPage from "./Guidelines/CL-13_PTSD";
 import Cl14PersonalityDisordersPage from "./Guidelines/CL-14_Personality_Disorders";
 import Cl15EatingDisordersPage from "./Guidelines/CL-15_Eating_Disorders";
 import Cl16CannabisPolysubstancePage from "./Guidelines/CL-16_Cannabis_Polysubstance";
+import Cl17ChildAdolescentPsychiatryPage from "./Guidelines/CL-17_Child_Adolescent_Psychiatry";
+import Cl18GeriatricPsychiatryPage from "./Guidelines/CL-18_Geriatric_Psychiatry";
+import Cl19IntellectualDisabilityNeurodevelopmentalPage from "./Guidelines/CL-19_Intellectual_Disability_Neurodevelopmental";
+import Cl20FirstEpisodePsychosisPage from "./Guidelines/CL-20_First_Episode_Psychosis";
+import Se01SuicideRiskPreventionPage from "./Guidelines/SE-01_Suicide_Risk_Prevention_Management";
 // import Main from "./Main";
 // import PatientDetails from "./PatientDetails";
 
@@ -252,6 +261,12 @@ const Guidelines = () => {
                     icon: "bx bx-scissors",
                   },
                   {
+                    id: "cl-11-agitation-management",
+                    label: "CL-11 Agitation Management",
+                    link: "cl-11-agitation-management",
+                    icon: "bx bx-error-circle",
+                  },
+                  {
                     id: "cl-12-ocd",
                     label: "CL-12 Obsessive-Compulsive Disorder",
                     link: "cl-12-ocd",
@@ -280,6 +295,54 @@ const Guidelines = () => {
                     label: "CL-16 Cannabis & Poly-substance Use Disorder",
                     link: "cl-16-cannabis-polysubstance",
                     icon: "bx bx-leaf",
+                  },
+                  {
+                    id: "cl-17-child-adolescent-psychiatry",
+                    label: "CL-17 Child & Adolescent Psychiatry",
+                    link: "cl-17-child-adolescent-psychiatry",
+                    icon: "bx bx-child",
+                  },
+                  {
+                    id: "cl-18-geriatric-psychiatry",
+                    label: "CL-18 Geriatric Psychiatry",
+                    link: "cl-18-geriatric-psychiatry",
+                    icon: "bx bx-user-circle",
+                  },
+                  {
+                    id: "cl-19-intellectual-disability",
+                    label: "CL-19 Intellectual Disability & Neurodevelopmental Disorders",
+                    link: "cl-19-intellectual-disability",
+                    icon: "bx bx-accessibility",
+                  },
+                  {
+                    id: "cl-20-first-episode-psychosis",
+                    label: "CL-20 First-Episode Psychosis",
+                    link: "cl-20-first-episode-psychosis",
+                    icon: "bx bx-help-circle",
+                  },
+                  {
+                    id: "jagrutii-agitation-sop",
+                    label: "Jagrutii SOP — Agitation Management",
+                    link: "jagrutii-agitation-sop",
+                    icon: "bx bx-file",
+                  },
+                  {
+                    id: "jagrutii-electrolyte-emergency-sop",
+                    label: "Jagrutii SOP — Electrolyte Emergency",
+                    link: "jagrutii-electrolyte-emergency-sop",
+                    icon: "bx bx-pulse",
+                  },
+                  {
+                    id: "jagrutii-violent-patient-sop",
+                    label: "Jagrutii SOP — Violent / Aggressive Patients",
+                    link: "jagrutii-violent-patient-sop",
+                    icon: "bx bx-shield-x",
+                  },
+                  {
+                    id: "se-01-suicide-risk-prevention",
+                    label: "SE-01 Suicide Risk Prevention & Management",
+                    link: "se-01-suicide-risk-prevention",
+                    icon: "bx bx-shield-alt-2",
                   },
                 ]}
               />
@@ -406,6 +469,22 @@ const Guidelines = () => {
                   element={<Cl10TrichotillomaniaBFRBsPage />}
                 />
                 <Route
+                  path="cl-11-agitation-management"
+                  element={<Cl11AgitationManagementPage />}
+                />
+                <Route
+                  path="jagrutii-agitation-sop"
+                  element={<JagrutiiAgitationSOPPage />}
+                />
+                <Route
+                  path="jagrutii-electrolyte-emergency-sop"
+                  element={<JagrutiiElectrolyteEmergencySOPPage />}
+                />
+                <Route
+                  path="jagrutii-violent-patient-sop"
+                  element={<JagrutiiViolentPatientSOPPage />}
+                />
+                <Route
                   path="cl-12-ocd"
                   element={<Cl12OCDPage />}
                 />
@@ -424,6 +503,26 @@ const Guidelines = () => {
                 <Route
                   path="cl-16-cannabis-polysubstance"
                   element={<Cl16CannabisPolysubstancePage />}
+                />
+                <Route
+                  path="cl-17-child-adolescent-psychiatry"
+                  element={<Cl17ChildAdolescentPsychiatryPage />}
+                />
+                <Route
+                  path="cl-18-geriatric-psychiatry"
+                  element={<Cl18GeriatricPsychiatryPage />}
+                />
+                <Route
+                  path="cl-19-intellectual-disability"
+                  element={<Cl19IntellectualDisabilityNeurodevelopmentalPage />}
+                />
+                <Route
+                  path="cl-20-first-episode-psychosis"
+                  element={<Cl20FirstEpisodePsychosisPage />}
+                />
+                <Route
+                  path="se-01-suicide-risk-prevention"
+                  element={<Se01SuicideRiskPreventionPage />}
                 />
               </Routes>
             </div>
