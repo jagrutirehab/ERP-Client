@@ -92,6 +92,11 @@ export const callRecordingsColumns = (
       width: "160px",
     },
     {
+      name: <div className="text-center">Campaign</div>,
+      selector: (row) => row?.Campaign?.split("_")?.[0] || "-",
+      width: "160px",
+    },
+    {
       name: <div className="text-center">Status</div>,
       selector: (row) => row?.Status || "-",
       width: "160px",

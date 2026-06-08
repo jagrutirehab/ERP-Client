@@ -465,8 +465,11 @@ export const getChartsAddmissions = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
-export const getCharts = (data) =>
-  api.get(url.GET_CHARTS, { addmission: data });
+export const getCharts = (data) => {
+  const addmission = typeof data === 'string' ? data : data.addmissionId;
+  const chartType = typeof data === 'string' ? 'All' : data.chartType;
+  return api.get(url.GET_CHARTS, { addmission, chartType });
+};
 export const getLatestCharts = ({ patient, limit }) =>
   api.get(`${url.GET_LATEST_CHARTS}?patient=${patient}&limit=${limit}`);
 export const getGeneralCharts = (data) => api.get(url.GET_GENERAL_CHARTS, data);
@@ -3257,14 +3260,17 @@ export const getLatestPolicy = () => {
 
 // department
 
-export const getDepartments = () => {
-  return api.get(`${url.GET_DEPARTMENTS}`, {
+export const getDepartments = (params = {}) => {
+  const endpoint = params.version
+    ? `${url.GET_DEPARTMENTS}?version=${params.version}`
+    : url.GET_DEPARTMENTS;
+
+  return api.get(endpoint, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
   });
 };
-
 export const createDepartment = (data) => {
   return api.create(`${url.CREATE_DEPARTMENTS}`, data, {
     headers: {
@@ -3870,8 +3876,8 @@ export const getByRoles = (params) => {
   return axios.get(url.GET_BY_ROLES, { params: params });
 };
 
-export const acknowledgeTraining = (trainingId) =>
-  axios.patch(`${url.ACKNOWLEDGE_TRAINING}/${trainingId}`);
+export const acknowledgeTraining = (trainingId, score) =>
+  axios.patch(`${url.ACKNOWLEDGE_TRAINING}/${trainingId}/${score}`);
 export const getAllTrainings = (params) =>
   api.get(url.GET_ALL_TRAININGS, { params });
 

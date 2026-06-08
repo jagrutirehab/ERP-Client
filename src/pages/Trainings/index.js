@@ -12,6 +12,7 @@ import TrainingHistoryDetail from "./Pages/HistoryDetail";
 import CreateTrainers from "./Pages/CreateTrainers";
 import TrainingRecords from "./Pages/TrainingRecords";
 import TrainingRecordDetail from "./Pages/TrainingRecordDetail";
+import QuestionaryTest from "./Components/QuestionaryTest";
 
 const Trainingindex = () => {
     const navigate = useNavigate();
@@ -60,6 +61,7 @@ const Trainingindex = () => {
                                             <Route path="create/record" element={<CreateTrainers />} />
                                             <Route path="get/record" element={<TrainingRecords />} />
                                             <Route path="records/:id" element={<TrainingRecordDetail />} />
+                                            <Route path="questionary/:id" element={<QuestionaryTest />} />
 
                                         </Routes>
                                     </div>

@@ -19,7 +19,7 @@ const TrainingHistory = () => {
     const [openAccordions, setOpenAccordions] = useState({})
     const [editTraining, setEditTraining] = useState(null)
     const [fileModal, setFileModal] = useState({ open: false, file: null })
-    const token = JSON.parse(localStorage.getItem("user"))?.token;
+    const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
     const { hasPermission } = usePermissions(token);
     const hasUserPermission = hasPermission("TRAININGS", "ALL_TRAININGS", "READ");
     const hasWritePermission = hasPermission("TRAININGS", "ALL_TRAININGS", "WRITE");

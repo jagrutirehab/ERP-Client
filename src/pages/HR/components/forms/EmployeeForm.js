@@ -28,7 +28,7 @@ import {
 } from "../../../../helpers/backend_helper";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import {
-  addDesignation,
+  // addDesignation,
   fetchDesignations,
 } from "../../../../store/features/HR/hrSlice";
 import {
@@ -106,8 +106,8 @@ const validationSchema = (mode, isEdit) =>
       mode === "NEW_JOINING"
         ? Yup.string().oneOf(["NEW_JOINING"])
         : Yup.string()
-            .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
-            .required("Status is required"),
+          .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
+          .required("Status is required"),
     state: Yup.string().required("State is required"),
     bankName: Yup.string().required("Bank name is required"),
     accountNo: Yup.string().required("Bank account number is required"),
@@ -277,9 +277,9 @@ const getInitialValues = (initialData, mode) => ({
 
   users: initialData?.users
     ? initialData.users.map((u) => ({
-        value: u._id,
-        label: `${u.name} (${u.email})`,
-      }))
+      value: u._id,
+      label: `${u.name} (${u.email})`,
+    }))
     : [],
   employmentStatus: initialData?.employmentStatus || "",
   newEmploymentType: initialData?.newEmploymentType || "",
@@ -313,12 +313,12 @@ const EmployeeForm = ({
   const isEdit = !!initialData?._id;
   const [eCodeLoader, setECodeLoader] = useState(false);
   const [linking, setLinking] = useState(false);
-  const [creatingDesignation, setCreatingDesignation] = useState(false);
+  // const [creatingDesignation, setCreatingDesignation] = useState(false);
 
   const [previewFile, setPreviewFile] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [departmentOptions, setDepartmentOptions] = useState([]);
-  const [department, setDepartment] = useState("");
+  // const [department, setDepartment] = useState("");
   const [positionOptions, setPositionOptions] = useState([]);
   const [manual, setManual] = useState({
     SPLAllowance: false,
@@ -562,31 +562,31 @@ const EmployeeForm = ({
     ) : null;
   };
 
-  const handleCreateDesignation = async (inputValue) => {
-    if (mode === "NEW_JOINING" && !hasCreatePermission) {
-      toast.error("You don't have permission to create designation");
-      return;
-    }
+  // const handleCreateDesignation = async (inputValue) => {
+  //   if (mode === "NEW_JOINING" && !hasCreatePermission) {
+  //     toast.error("You don't have permission to create designation");
+  //     return;
+  //   }
 
-    try {
-      setCreatingDesignation(true);
-      const response = await dispatch(
-        addDesignation({
-          name: inputValue,
-          status: mode === "NEW_JOINING" ? "PENDING" : "APPROVED",
-        }),
-      ).unwrap();
-      form.setFieldValue("designation", response.data.value);
-      form.setFieldTouched("designation", true, false);
-      toast.success("designation created successfully");
-    } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error("something went wrong while creating new designation");
-      }
-    } finally {
-      setCreatingDesignation(false);
-    }
-  };
+  //   try {
+  //     setCreatingDesignation(true);
+  //     const response = await dispatch(
+  //       addDesignation({
+  //         name: inputValue,
+  //         status: mode === "NEW_JOINING" ? "PENDING" : "APPROVED",
+  //       }),
+  //     ).unwrap();
+  //     form.setFieldValue("designation", response.data.value);
+  //     form.setFieldTouched("designation", true, false);
+  //     toast.success("designation created successfully");
+  //   } catch (error) {
+  //     if (!handleAuthError(error)) {
+  //       toast.error("something went wrong while creating new designation");
+  //     }
+  //   } finally {
+  //     setCreatingDesignation(false);
+  //   }
+  // };
 
   const generateEmployeeId = async () => {
     setECodeLoader(true);
@@ -778,9 +778,9 @@ const EmployeeForm = ({
     ) ||
     (values.employmentType
       ? {
-          label: values.employmentType,
-          value: values.employmentType?.trim().toUpperCase(),
-        }
+        label: values.employmentType,
+        value: values.employmentType?.trim().toUpperCase(),
+      }
       : null);
 
   useEffect(() => {
@@ -930,16 +930,19 @@ const EmployeeForm = ({
             <Label htmlFor="designation">
               Designation <span className="text-danger">*</span>
             </Label>
-            <CreatableSelect
+            <Select
               inputId="designation"
-              placeholder="Select or create designation if not listed"
+              placeholder="Select designation"
               isClearable
               isDisabled={
-                designationLoading ||
-                (mode === "NEW_JOINING" && !hasCreatePermission)
+                designationLoading
+                // ||
+                // (mode === "NEW_JOINING" && !hasCreatePermission)
               }
-              isLoading={designationLoading || creatingDesignation}
-              options={designationOptions?.filter((opt) => opt.version === 2)}
+              isLoading={designationLoading
+                // || creatingDesignation
+              }
+              options={designationOptions}
               value={
                 designationOptions.find(
                   (opt) => opt.value === values.designation,
@@ -949,7 +952,7 @@ const EmployeeForm = ({
                 form.setFieldValue("designation", option ? option.value : "")
               }
               onBlur={() => setFieldTouched("designation", true)}
-              onCreateOption={handleCreateDesignation}
+            // onCreateOption={handleCreateDesignation}
             />
 
             {errorText("designation")}
@@ -1039,8 +1042,8 @@ const EmployeeForm = ({
                 ) ||
                 (!positionCorrectedRef.current
                   ? positionOptions.find(
-                      (opt) => opt.label === initialData?.position?.name,
-                    )
+                    (opt) => opt.label === initialData?.position?.name,
+                  )
                   : null) ||
                 null
               }
@@ -1113,8 +1116,8 @@ const EmployeeForm = ({
                 value={
                   values.transferredFrom
                     ? centerOptions.find(
-                        (o) => o.value === values.transferredFrom,
-                      )
+                      (o) => o.value === values.transferredFrom,
+                    )
                     : null
                 }
                 onChange={(opt) => setFieldValue("transferredFrom", opt.value)}
@@ -1132,8 +1135,8 @@ const EmployeeForm = ({
               value={
                 values.currentLocation
                   ? centerOptions.find(
-                      (o) => o.value === values.currentLocation,
-                    )
+                    (o) => o.value === values.currentLocation,
+                  )
                   : null
               }
               onChange={(opt) => setFieldValue("currentLocation", opt.value)}
@@ -2305,23 +2308,23 @@ const EmployeeForm = ({
           {(mode !== "NEW_JOINING" ||
             view !== "PAGE" ||
             hasCreatePermission) && (
-            <Button
-              color="primary"
-              className="text-white"
-              onClick={form.handleSubmit}
-              disabled={
-                isSubmitting || !isValid || (isEdit && !initialData?._id)
-              }
-            >
-              {isSubmitting ? (
-                <Spinner size="sm" />
-              ) : initialData ? (
-                "Update Employee"
-              ) : (
-                "Save Employee"
-              )}
-            </Button>
-          )}
+              <Button
+                color="primary"
+                className="text-white"
+                onClick={form.handleSubmit}
+                disabled={
+                  isSubmitting || !isValid || (isEdit && !initialData?._id)
+                }
+              >
+                {isSubmitting ? (
+                  <Spinner size="sm" />
+                ) : initialData ? (
+                  "Update Employee"
+                ) : (
+                  "Save Employee"
+                )}
+              </Button>
+            )}
 
           {/* <Button onClick={() => console.log(errors)}>
             test

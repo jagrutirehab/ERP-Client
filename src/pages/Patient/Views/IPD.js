@@ -16,7 +16,7 @@ import { connect, useDispatch } from "react-redux";
 import Placeholder from "./Components/Placeholder";
 import Charts from "../Charts";
 import { admitDischargePatient, togglePrint } from "../../../store/actions";
-import { EDIT_ADMISSION, IPD } from "../../../Components/constants/patient";
+import { EDIT_ADMISSION, IPD, records } from "../../../Components/constants/patient";
 
 import { toast } from "react-toastify";
 import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
@@ -33,6 +33,8 @@ const IPDComponent = ({
   toggleAccordian,
   setAddmissionId,
   user,
+  filterChartType,
+  setFilterChartType,
 }) => {
   const dispatch = useDispatch();
   const handlePatientTypeChange = async (patientId, patientType) => {
@@ -90,6 +92,25 @@ const IPDComponent = ({
                       <p className="mb-0">{capitalizeWords(addmission.patientType)}</p>
                     </div>
                   </RenderWhen>
+                </div>
+                <div className="d-flex align-items-center gap-1 ms-2">
+                  <Label className="mb-0 text-nowrap">
+                    Chart Type:
+                  </Label>
+                  <Input
+                    className="form-control"
+                    bsSize="sm"
+                    type="select"
+                    value={filterChartType[addmission._id] || "All"}
+                    onChange={(e) => setFilterChartType(prev => ({...prev, [addmission._id]: e.target.value}))}
+                  >
+                    <option value="All">All</option>
+                    {records.map((r) => (
+                      <option key={r.category} value={r.category}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </Input>
                 </div>
                 <CheckPermission permission={"create"} subAccess={"Charting"}>
                   <RenderWhen isTrue={!addmission.dischargeDate}>

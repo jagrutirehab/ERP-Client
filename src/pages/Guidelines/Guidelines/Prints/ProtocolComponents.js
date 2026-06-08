@@ -132,6 +132,39 @@ export const ProtocolApproval = ({ docCode, docTitle }) => (
   </>
 );
 
+export const ProtocolApprovalNew = ({ docCode, docTitle }) => (
+  <>
+    <SectionTitle>Approval &amp; Authorisation</SectionTitle>
+    <table style={{ borderCollapse: "collapse", marginBottom: "1rem", width: "100%" }}>
+      <thead>
+        <tr>
+          <th style={{ ...headCell, width: "33.33%" }}>Prepared By</th>
+          <th style={{ ...headCell, width: "33.33%" }}>Reviewed By</th>
+          <th style={{ ...headCell, width: "33.33%" }}>Approved By</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td style={cell}>Clinical Team<br />JRCPL</td>
+          <td style={cell}>Quality Manager<br />JRCPL</td>
+          <td style={cell}>Dr. Amar Shinde<br />Founder &amp; Clinical Director</td>
+        </tr>
+        <tr>
+          <td style={cell}>Signature: ___________</td>
+          <td style={cell}>Signature: ___________</td>
+          <td style={cell}>Signature: ___________</td>
+        </tr>
+      </tbody>
+    </table>
+    <p className="text-muted text-center" style={{ fontSize: "0.8rem", fontStyle: "italic" }}>
+      This is a controlled clinical document of Jaiswal Rehabilitation Centre for Psychiatric &amp; Lifestyle (JRCPL). Any reproduction or distribution without written authorisation from the Clinical Director is prohibited. Governed under MHCA 2017 and NABH standards.
+    </p>
+    <p className="text-muted text-center" style={{ fontSize: "0.8rem" }}>
+      JRCPL — {docCode} {docTitle} v2.0 &nbsp;|&nbsp; CONFIDENTIAL — Clinical Use Only
+    </p>
+  </>
+);
+
 export const ProtocolWrapper = forwardRef(({ classnames, children }, ref) => (
   <div ref={ref} className={`${classnames} px-6 py-10 absolute -z-10`}>
     {children}

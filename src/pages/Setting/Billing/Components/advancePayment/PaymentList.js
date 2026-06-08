@@ -2,6 +2,8 @@ import React from "react";
 import { Button, Row, Col, Table, Input } from "reactstrap";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
+import CheckPermission from "../../../../../Components/HOC/CheckPermission";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 
 const PaymentAccountsList = ({
   items,
@@ -15,6 +17,11 @@ const PaymentAccountsList = ({
 }) => {
   const start = (currentPage - 1) * itemsPerPage + 1;
   const end = Math.min(start + items?.length - 1, totalItems);
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { roles } = usePermissions(token);
 
   return (
     <div className="p-4 bg-light rounded shadow-sm">
@@ -54,16 +61,21 @@ const PaymentAccountsList = ({
                 {item.name}
               </td>
               <td className="text-center">
-                <Button
-                  size="sm"
-                  color="danger"
-                  outline
-                  onClick={() =>
-                    setDeleteItem({ isOpen: true, data: item._id })
-                  }
-                >
-                  <i className="ri-close-circle-line"></i>
-                </Button>
+                <CheckPermission
+                  accessRolePermission={roles?.permissions}
+                  permission={"delete"}
+                  subAccess={"ADVANCEPAYMENTSETTING"}>
+                  <Button
+                    size="sm"
+                    color="danger"
+                    outline
+                    onClick={() =>
+                      setDeleteItem({ isOpen: true, data: item._id })
+                    }
+                  >
+                    <i className="ri-close-circle-line"></i>
+                  </Button>
+                </CheckPermission>
               </td>
             </tr>
           ))}

@@ -23,36 +23,24 @@ const TrainingDetail = () => {
   const [fileLoading, setFileLoading] = useState(true);
 
   const file = training?.files?.[0];
+  const hasQuestionary = training?.questionary?.length > 0;
 
   useEffect(() => {
     const load = async () => {
       try {
         const response = await getTrainingById(id);
-        console.log("response", response);
-
         setTraining(response?.data);
-
-        // If there are no files, immediately set fileLoading to false
         if (!response?.data?.files || response.data.files.length === 0) {
           setFileLoading(false);
         }
       } catch {
         toast.error("Failed to load training");
       } finally {
-        setLoading(false); // This is your main page loading state
+        setLoading(false);
       }
     };
     load();
   }, [id]);
-
-  // useEffect(() => {
-  //     if (file?.type === 'application/pdf' && file?.url) {
-  //         const link = document.createElement('link')
-  //         link.rel = 'prefetch'
-  //         link.href = `https://docs.google.com/viewer?url=${encodeURIComponent(file.url)}&embedded=true`
-  //         document.head.appendChild(link)
-  //     }
-  // }, [file?.url])
 
   const handleAcknowledge = async () => {
     try {
@@ -61,6 +49,8 @@ const TrainingDetail = () => {
       toast.success("Acknowledged successfully");
       navigate(-1);
     } catch (error) {
+      console.log("Error", error);
+
       toast.error(error?.response?.data?.message || "Failed to acknowledge");
     } finally {
       setAckLoading(false);
@@ -68,12 +58,24 @@ const TrainingDetail = () => {
     }
   };
 
-  if (loading)
+  const handleNext = () => {
+    navigate(`/trainings/questionary/${id}`, {
+      state: {
+        questionary: training.questionary,
+        trainingName: training.trainingName,
+        activeTab,
+        canEdit,
+      },
+    });
+  };
+
+  if (loading) {
     return (
       <div className="text-center py-5">
         <Spinner color="primary" />
       </div>
     );
+  }
 
   return (
     <CardBody className="p-3 bg-white">
@@ -133,7 +135,6 @@ const TrainingDetail = () => {
         </div>
       )}
 
-      {/* WORD DOCUMENT VIEWER */}
       {(file?.originalName?.toLowerCase().endsWith(".doc") ||
         file?.originalName?.toLowerCase().endsWith(".docx")) && (
         <div className="mb-4">
@@ -150,9 +151,7 @@ const TrainingDetail = () => {
             style={{ border: "none" }}
             onLoad={() => setFileLoading(false)}
             title="Document Viewer"
-          ></iframe>
-
-          {/* Fallback download link just in case the viewer fails */}
+          />
           <div className="mt-2 text-end">
             <a
               href={file.url}
@@ -168,24 +167,45 @@ const TrainingDetail = () => {
 
       {activeTab === "pending" && canEdit && !fileLoading && (
         <div className="p-3 border rounded">
-          <FormGroup check className="mb-3">
-            <Input
-              type="checkbox"
-              checked={checked}
-              onChange={(e) => setChecked(e.target.checked)}
-            />
-            <Label check className="small">
-              I acknowledge that I have read, understood, and will adhere to the
-              instructions and policies described in this manual.
-            </Label>
-          </FormGroup>
-          <Button
-            color="primary"
-            disabled={!checked}
-            onClick={() => setConfirmModal(true)}
-          >
-            I Acknowledge
-          </Button>
+          {hasQuestionary ? (
+            <>
+              <FormGroup check className="mb-3">
+                <Input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(e) => setChecked(e.target.checked)}
+                />
+                <Label check className="medium">
+                  I have read the training and understood it, and I am ready to
+                  proceed to the test.
+                </Label>
+              </FormGroup>
+              <Button color="primary" disabled={!checked} onClick={handleNext}>
+                Next
+              </Button>
+            </>
+          ) : (
+            <>
+              <FormGroup check className="mb-3">
+                <Input
+                  type="checkbox"
+                  checked={checked}
+                  onChange={(e) => setChecked(e.target.checked)}
+                />
+                <Label check className="small">
+                  I acknowledge that I have read, understood, and will adhere to
+                  the instructions and policies described in this manual.
+                </Label>
+              </FormGroup>
+              <Button
+                color="primary"
+                disabled={!checked}
+                onClick={() => setConfirmModal(true)}
+              >
+                I Acknowledge
+              </Button>
+            </>
+          )}
         </div>
       )}
 

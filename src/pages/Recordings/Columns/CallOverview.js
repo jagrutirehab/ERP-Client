@@ -78,9 +78,19 @@ export const CallRecordingsOverviewColumns = ({ page, limit }) => {
       width: "140px",
     },
     {
+      name: <div className="text-center">Caller Number</div>,
+      selector: (row) => row?.Caller_No || "-",
+      width: "160px",
+    },
+    {
       name: <div className="text-center font-bold">Call Date</div>,
       selector: (row) => row?.Call_Date || "-",
       width: "130px",
+    },
+    {
+      name: <div className="text-center">Caller Type</div>,
+      selector: (row) => row?.Call_Type?.split("_")?.[0] || "-",
+      width: "160px",
     },
     {
       name: <div className="text-center font-bold">Talk Time</div>,

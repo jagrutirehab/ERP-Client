@@ -70,6 +70,7 @@ const hydrateCondition = (c) => ({
         keyField: c.arrayMatch.keyField || "",
         keyValue: c.arrayMatch.keyValue ?? "",
         compareField: c.arrayMatch.compareField || "",
+        comparator: c.arrayMatch.comparator || "SEVERITY",
       }
     : null,
 });
@@ -399,12 +400,15 @@ const SOPForm = ({
 
     // ARRAY_ANY_MATCHES carries its compositional shape in arrayMatch — the
     // server validator + evaluator both look here for {keyField, keyValue,
-    // compareField}. Skipped for every other operator.
+    // compareField, comparator}. comparator drives severity-vs-numeric mode;
+    // omitting it makes the server default to SEVERITY and reject a numeric
+    // compareField like "ulnMultiplier". Skipped for every other operator.
     if (c.operator?.value === "ARRAY_ANY_MATCHES" && c.arrayMatch) {
       out.arrayMatch = {
         keyField: c.arrayMatch.keyField,
         keyValue: c.arrayMatch.keyValue,
         compareField: c.arrayMatch.compareField,
+        comparator: c.arrayMatch.comparator || "SEVERITY",
       };
     }
 
