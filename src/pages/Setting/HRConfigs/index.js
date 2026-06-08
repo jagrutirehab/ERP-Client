@@ -56,7 +56,7 @@ const HrConfigurations = () => {
   const fetchDepartments = async () => {
     try {
       setDeptLoading(true);
-      const res = await getDepartments();
+      const res = await getDepartments({ version: 2 });
       setDepartments(res?.data || []);
     } catch {
       toast.error("Failed to fetch departments");

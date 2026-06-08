@@ -31,11 +31,20 @@ import Cl07ADHD from "./Prints/CL-07_ADHD";
 import Cl08AutismSpectrumDisorder from "./Prints/CL-08_Autism_Spectrum_Disorder";
 import Cl09InsomniaDementiaElderly from "./Prints/CL-09_Insomnia_Dementia_Elderly";
 import Cl10TrichotillomaniaBFRBs from "./Prints/CL-10_Trichotillomania_BFRBs";
+import Cl11AgitationManagement from "./Prints/CL-11_Agitation_Management";
+import JagrutiiAgitationSOP from "./Prints/Jagrutii_Agitation_SOP";
+import JagrutiiElectrolyteEmergencySOP from "./Prints/Jagrutii_Electrolyte_Emergency_SOP";
+import JagrutiiViolentPatientSOP from "./Prints/Jagrutii_Violent_Patient_SOP";
 import Cl12OCD from "./Prints/CL-12_OCD";
 import Cl13PTSD from "./Prints/CL-13_PTSD";
 import Cl14PersonalityDisorders from "./Prints/CL-14_Personality_Disorders";
 import Cl15EatingDisorders from "./Prints/CL-15_Eating_Disorders";
 import Cl16CannabisPolysubstance from "./Prints/CL-16_Cannabis_Polysubstance";
+import Cl17ChildAdolescentPsychiatry from "./Prints/CL-17_Child_Adolescent_Psychiatry";
+import Cl18GeriatricPsychiatry from "./Prints/CL-18_Geriatric_Psychiatry";
+import Cl19IntellectualDisabilityNeurodevelopmental from "./Prints/CL-19_Intellectual_Disability_Neurodevelopmental";
+import Cl20FirstEpisodePsychosis from "./Prints/CL-20_First_Episode_Psychosis";
+import Se01SuicideRiskPrevention from "./Prints/SE-01_Suicide_Risk_Prevention_Management";
 import Select from "react-select";
 
 const guidelines = [
@@ -290,7 +299,7 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl01SchizophreniaProtocol,
     link: "cl-01-schizophrenia-spectrum-disorders",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 22,
@@ -302,7 +311,7 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl02BipolarSpectrumDisorders,
     link: "cl-02-bipolar-spectrum-disorders",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 23,
@@ -314,7 +323,7 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl03DepressiveDisorders,
     link: "cl-03-depressive-disorders",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 24,
@@ -326,7 +335,7 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl04AnxietyDisorders,
     link: "cl-04-anxiety-disorders",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 25,
@@ -338,7 +347,7 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl05AlcoholUseDisorderWithdrawal,
     link: "cl-05-alcohol-use-disorder-withdrawal",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 26,
@@ -350,7 +359,7 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl06OpioidUseDisorderWithdrawal,
     link: "cl-06-opioid-use-disorder-withdrawal",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 27,
@@ -362,7 +371,7 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl07ADHD,
     link: "cl-07-adhd",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 28,
@@ -374,7 +383,7 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl08AutismSpectrumDisorder,
     link: "cl-08-autism-spectrum-disorder",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 29,
@@ -386,7 +395,7 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl09InsomniaDementiaElderly,
     link: "cl-09-insomnia-dementia-elderly",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 30,
@@ -398,7 +407,19 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl10TrichotillomaniaBFRBs,
     link: "cl-10-trichotillomania-bfrbs",
-    category: "sops",
+    category: "clinical sops",
+  },
+  {
+    id: 40,
+    name: "CL-11 — Agitation Management in Rehabilitation Settings",
+    description:
+      "Agitation protocol (NICE NG10): 7-cause classification (withdrawal/psychosis/delirium/mood/pain/environmental/personality), 8-mechanism clinical principles, STAMP early warning framework, NICE-aligned de-escalation techniques, RT stepped protocol (Lorazepam+Olanzapine oral → IM Haloperidol+Promethazine; IM olanzapine+BZD combination contraindicated), mandatory post-RT monitoring (GCS/RR/SpO₂/BP/ECG thresholds), documentation standards, and KPIs.",
+    lastUpdated: "June 06, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl11AgitationManagement,
+    link: "cl-11-agitation-management",
+    category: "clinical sops",
   },
   {
     id: 31,
@@ -410,7 +431,7 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl12OCD,
     link: "cl-12-ocd",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 32,
@@ -422,7 +443,7 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl13PTSD,
     link: "cl-13-ptsd",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 33,
@@ -434,30 +455,126 @@ const guidelines = [
     type: "Clinical Protocol",
     print: Cl14PersonalityDisorders,
     link: "cl-14-personality-disorders",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 34,
     name: "CL-15 — Eating Disorders",
     description:
-      "Eating disorders protocol (AN, BN, BED, ARFID): MARSIPAN medical risk stratification, BMI-stratified refeeding (Thiamine/phosphate mandatory), 4-phase nutritional rehab, psychotherapy (CBT-E & MANTRA Grade A, FBT for adolescents), pharmacotherapy (Fluoxetine for BN, Lisdexamfetamine for BED; Bupropion contraindicated), and KPIs.",
+      "Inpatient eating disorders protocol (AN/BN/BED/ARFID) — MARSIPAN medical risk triage, BMI-stratified refeeding, CBT-E & MANTRA psychotherapy, pharmacotherapy guide (Bupropion contraindicated), and adolescent FBT pathway.",
     lastUpdated: "June 01, 2026",
     status: "Active",
     type: "Clinical Protocol",
     print: Cl15EatingDisorders,
     link: "cl-15-eating-disorders",
-    category: "sops",
+    category: "clinical sops",
   },
   {
     id: 35,
     name: "CL-16 — Cannabis & Poly-substance Use Disorder",
     description:
-      "De-addiction protocol: CUDIT-R cannabis screening, cannabis withdrawal management (7 symptoms), cannabis-induced psychosis (Olanzapine/Risperidone), BZD dependence taper (diazepam equivalent conversion; CIWA-Ar monitoring), stimulant crash/withdrawal/psychosis, poly-substance prioritisation framework (Alcohol/BZD first), and rehabilitation programme (MET, CBT, 12-Step, family therapy).",
+      "De-addiction protocol for cannabis & poly-substance use — CUDIT-R screening, cannabis withdrawal & psychosis management, BZD taper guide, stimulant protocols, poly-substance prioritisation (Alcohol/BZD first), and CBT/MET rehabilitation.",
     lastUpdated: "June 01, 2026",
     status: "Active",
     type: "Clinical Protocol",
     print: Cl16CannabisPolysubstance,
     link: "cl-16-cannabis-polysubstance",
+    category: "clinical sops",
+  },
+   {
+    id: 36,
+    name: "CL-17 — Child & Adolescent Psychiatry",
+    description:
+      "Child & adolescent psychiatry protocol (< 18 yrs) — legal framework (MHCA/POCSO/JJ Act), 7-domain developmental assessment, age-stratified rating scales, paediatric psychotropic guide, and no-minors-in-adult-ward standard.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl17ChildAdolescentPsychiatry,
+    link: "cl-17-child-adolescent-psychiatry",
+    category: "clinical sops",
+  },
+   {
+    id: 37,
+    name: "CL-18 — Geriatric Psychiatry",
+    description:
+      "Geriatric psychiatry protocol (≥ 60 yrs) — CGA within 48 hrs (MoCA/GDS-15/Barthel/Morse Fall), Beers Criteria avoid-list, late-life depression/anxiety/delirium/BPSD management, antipsychotic black box warning, and caregiver burden screening (ZBI).",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl18GeriatricPsychiatry,
+    link: "cl-18-geriatric-psychiatry",
+    category: "clinical sops",
+  },
+  {
+    id: 38,
+    name: "CL-19 — Intellectual Disability & Neurodevelopmental Disorders",
+    description:
+      "Rights-based intellectual disability protocol (RPWD 2016/MHCA 2017) — IQ & adaptive functioning assessment (Vineland-3/MISIC), PAS-ADD comorbidity screen, FBA + PBS behavioural plan, stepped pharmacotherapy with diagnostic overshadowing warning, and 7-domain rehabilitation.",
+    lastUpdated: "June 06, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl19IntellectualDisabilityNeurodevelopmental,
+    link: "cl-19-intellectual-disability",
+    category: "clinical sops",
+  },
+   {
+    id: 39,
+    name: "CL-20 — First-Episode Psychosis (FEP)",
+    description:
+      "First-Episode Psychosis protocol — ICD-11 8-diagnosis classification, mandatory medical exclusion workup (anti-NMDA-R/MRI), DUP tracking, low-dose antipsychotic guide (Clozapine for TRS only), metabolic monitoring, 4-phase CBTp, 6-session family intervention, and UHR/prodromal pathway.",
+    lastUpdated: "June 06, 2026",
+    status: "Active",
+    type: "Clinical Protocol",
+    print: Cl20FirstEpisodePsychosis,
+    link: "cl-20-first-episode-psychosis",
+    category: "clinical sops",
+  },
+  {
+    id: 43,
+    name: "Jagrutii SOP — Handling Violent / Aggressive Patients",
+    description:
+      "Jagrutii SOP for violent/aggressive patients — 8 safety principles, de-escalation protocol, escalation to duty doctor & security, restraint & medication guidelines, and documentation requirements.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Emergency Protocol",
+    print: JagrutiiViolentPatientSOP,
+    link: "jagrutii-violent-patient-sop",
+    category: "clinical sops",
+  },
+  {
+    id: 42,
+    name: "Jagrutii SOP — Electrolyte Emergency Management",
+    description:
+      "Jagrutii emergency electrolyte protocol — Na⁺ & K⁺ 3-tier severity thresholds, emergency transfer criteria, 6 mandatory management steps, and documentation requirements.",
+    lastUpdated: "June 01, 2026",
+    status: "Active",
+    type: "Emergency Protocol",
+    print: JagrutiiElectrolyteEmergencySOP,
+    link: "jagrutii-electrolyte-emergency-sop",
+    category: "clinical sops",
+  },
+  {
+    id: 41,
+    name: "Jagrutii SOP — Management of Agitated Patients in Rehabilitation Settings",
+    description:
+      "Original Jagrutii agitation SOP — 8 clinical principles (stimulus control, milieu therapy, withdrawal stabilisation), clinical insight, and golden rule. Superseded by CL-11.",
+    lastUpdated: "June 01, 2026",
+    status: "Superseded",
+    type: "Clinical Protocol",
+    print: JagrutiiAgitationSOP,
+    link: "jagrutii-agitation-sop",
+    category: "clinical sops",
+  },
+  {
+    id: 44,
+    name: "SE-01 — Suicide Risk Prevention & Management SOP",
+    description:
+      "Jagrutii-wide suicide risk prevention SOP — C-SSRS at 8 mandatory touchpoints, 4-level risk stratification, observation & documentation standards, environmental ligature safety, Stanley-Brown safety planning, 6-step sentinel event response, special populations (de-addiction/child/elderly/involuntary), and 11 KPIs.",
+    lastUpdated: "June 08, 2026",
+    status: "Active",
+    type: "Safety & Emergency — SE Series",
+    print: Se01SuicideRiskPrevention,
+    link: "se-01-suicide-risk-prevention",
     category: "sops",
   },
 ];
@@ -466,7 +583,7 @@ const categories = [
   { value: "all", label: "All" },
   { value: "admission", label: "Admission" },
   { value: "workflow", label: "Workflow" },
-  { value: "sops", label: "SOPs" },
+  { value: "clinical sops", label: "Clinical SOPs" },
   { value: "general", label: "General" },
 ];
 

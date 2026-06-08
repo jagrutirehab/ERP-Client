@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import CreatableSelect from "react-select/creatable";
 import Select from "react-select";
 import { Button, Form, FormGroup, Label, Input, Spinner } from "reactstrap";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
@@ -96,7 +95,7 @@ const HiringForm = ({
     const loadDesignations = async () => {
       try {
         dispatch(
-          fetchDesignations({ status: ["PENDING", "APPROVED"] }),
+          fetchDesignations({ status: ["PENDING", "APPROVED"], version: 2 }),
         ).unwrap();
       } catch (error) {
         if (!handleAuthError(error)) {
@@ -150,29 +149,29 @@ const HiringForm = ({
     },
   });
 
-  const handleCreateDesignation = async (inputValue) => {
-    if (view === "PAGE" && !hasCreatePermission) {
-      toast.error("You don't have permission to create designation");
-      return;
-    }
+  // const handleCreateDesignation = async (inputValue) => {
+  //   if (view === "PAGE" && !hasCreatePermission) {
+  //     toast.error("You don't have permission to create designation");
+  //     return;
+  //   }
 
-    try {
-      setCreatingDesignation(true);
-      const response = await dispatch(
-        addDesignation({ name: inputValue, status: "PENDING" }),
-      ).unwrap();
-      console.log(response);
-      form.setFieldValue("designation", response.data.value);
-      form.setFieldTouched("designation", true, false);
-      toast.success("designation created successfully");
-    } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error("something went wrong while creating new designation");
-      }
-    } finally {
-      setCreatingDesignation(false);
-    }
-  };
+  //   try {
+  //     setCreatingDesignation(true);
+  //     const response = await dispatch(
+  //       addDesignation({ name: inputValue, status: "PENDING" }),
+  //     ).unwrap();
+  //     console.log(response);
+  //     form.setFieldValue("designation", response.data.value);
+  //     form.setFieldTouched("designation", true, false);
+  //     toast.success("designation created successfully");
+  //   } catch (error) {
+  //     if (!handleAuthError(error)) {
+  //       toast.error("something went wrong while creating new designation");
+  //     }
+  //   } finally {
+  //     setCreatingDesignation(false);
+  //   }
+  // };
 
   const fetchEmployees = async (searchText) => {
     if (!searchText || searchText.length < 2) {
@@ -342,12 +341,14 @@ const HiringForm = ({
           Designation <span className="text-danger">*</span>
         </Label>
 
-        <CreatableSelect
+        <Select
           inputId="designation"
-          placeholder="Select or create designation"
+          placeholder="Select designation"
           isClearable
           isDisabled={designationLoading}
-          isLoading={designationLoading || creatingDesignation}
+          isLoading={designationLoading
+            // || creatingDesignation
+          }
           options={designationOptions}
           value={
             designationOptions.find(
@@ -358,7 +359,7 @@ const HiringForm = ({
             form.setFieldValue("designation", option ? option.value : "")
           }
           onBlur={() => form.setFieldTouched("designation", true)}
-          onCreateOption={handleCreateDesignation}
+        // onCreateOption={handleCreateDesignation}
         />
 
         {form.touched.designation && form.errors.designation && (
