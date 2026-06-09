@@ -1617,13 +1617,35 @@ export const chartSlice = createSlice({
       })
       .addCase(updateDischargeSummary.fulfilled, (state, { payload }) => {
         state.loading = false;
-        const findIndex = state.data.findIndex(
-          (el) => el._id === payload.payload.addmission,
-        );
-        const findChartIndex = state.data[findIndex].charts.findIndex(
-          (chart) => chart._id === payload.payload._id,
-        );
-        state.data[findIndex].charts[findChartIndex] = payload.payload;
+        const updatedChart = payload.payload;
+        const chartType = payload.type || updatedChart?.type;
+        if (chartType === "GENERAL") {
+          const findIndex = state.charts?.findIndex(
+            (el) => el._id === updatedChart._id,
+          );
+          if (findIndex >= 0) {
+            state.charts[findIndex] = updatedChart;
+          }
+        } else if (chartType === "OPD") {
+          const findIndex = state.opdData?.findIndex(
+            (el) => el._id === updatedChart._id,
+          );
+          if (findIndex >= 0) {
+            state.opdData[findIndex] = updatedChart;
+          }
+        } else if (state.data?.length > 0) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === updatedChart.addmission,
+          );
+          if (findIndex >= 0 && state.data[findIndex]?.charts) {
+            const findChartIndex = state.data[findIndex].charts.findIndex(
+              (chart) => chart._id === updatedChart._id,
+            );
+            if (findChartIndex >= 0) {
+              state.data[findIndex].charts[findChartIndex] = updatedChart;
+            }
+          }
+        }
       })
       .addCase(updateDischargeSummary.rejected, (state) => {
         state.loading = false;
@@ -1658,13 +1680,35 @@ export const chartSlice = createSlice({
       })
       .addCase(updateExpirySummary.fulfilled, (state, { payload }) => {
         state.loading = false;
-        const findIndex = state.data.findIndex(
-          (el) => el._id === payload.payload.addmission,
-        );
-        const findChartIndex = state.data[findIndex].charts.findIndex(
-          (chart) => chart._id === payload.payload._id,
-        );
-        state.data[findIndex].charts[findChartIndex] = payload.payload;
+        const updatedChart = payload.payload;
+        const chartType = payload.type || updatedChart?.type;
+        if (chartType === "GENERAL") {
+          const findIndex = state.charts?.findIndex(
+            (el) => el._id === updatedChart._id,
+          );
+          if (findIndex >= 0) {
+            state.charts[findIndex] = updatedChart;
+          }
+        } else if (chartType === "OPD") {
+          const findIndex = state.opdData?.findIndex(
+            (el) => el._id === updatedChart._id,
+          );
+          if (findIndex >= 0) {
+            state.opdData[findIndex] = updatedChart;
+          }
+        } else if (state.data?.length > 0) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === updatedChart.addmission,
+          );
+          if (findIndex >= 0 && state.data[findIndex]?.charts) {
+            const findChartIndex = state.data[findIndex].charts.findIndex(
+              (chart) => chart._id === updatedChart._id,
+            );
+            if (findChartIndex >= 0) {
+              state.data[findIndex].charts[findChartIndex] = updatedChart;
+            }
+          }
+        }
       })
       .addCase(updateExpirySummary.rejected, (state) => {
         state.loading = false;
@@ -1738,19 +1782,34 @@ export const chartSlice = createSlice({
       })
       .addCase(updateDetailAdmission.fulfilled, (state, { payload }) => {
         state.loading = false;
-        if (payload.type === "GENERAL") {
-          const findIndex = state.charts.findIndex(
-            (el) => el._id === payload.payload._id,
+        const updatedChart = payload.payload;
+        const chartType = payload.type || updatedChart?.type;
+        if (chartType === "GENERAL") {
+          const findIndex = state.charts?.findIndex(
+            (el) => el._id === updatedChart._id,
           );
-          state.charts[findIndex] = payload.payload;
-        } else {
+          if (findIndex >= 0) {
+            state.charts[findIndex] = updatedChart;
+          }
+        } else if (chartType === "OPD") {
+          const findIndex = state.opdData?.findIndex(
+            (el) => el._id === updatedChart._id,
+          );
+          if (findIndex >= 0) {
+            state.opdData[findIndex] = updatedChart;
+          }
+        } else if (state.data?.length > 0) {
           const findIndex = state.data.findIndex(
-            (el) => el._id === payload.payload.addmission,
+            (el) => el._id === updatedChart.addmission,
           );
-          const findChartIndex = state.data[findIndex].charts.findIndex(
-            (chart) => chart._id === payload.payload._id,
-          );
-          state.data[findIndex].charts[findChartIndex] = payload.payload;
+          if (findIndex >= 0 && state.data[findIndex]?.charts) {
+            const findChartIndex = state.data[findIndex].charts.findIndex(
+              (chart) => chart._id === updatedChart._id,
+            );
+            if (findChartIndex >= 0) {
+              state.data[findIndex].charts[findChartIndex] = updatedChart;
+            }
+          }
         }
       })
       .addCase(updateDetailAdmission.rejected, (state) => {

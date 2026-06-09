@@ -4,8 +4,11 @@ import { Button } from "reactstrap";
 import { getICDCodes, validateChart } from "../../../../helpers/backend_helper";
 import { toast } from "react-toastify";
 import ValidateConfirmationModal from "../Components/ValidateConfirmationModal";
+import { useDispatch } from "react-redux";
+import { setEventChart } from "../../../../store/features/booking/bookingSlice";
 
 const DoctorSignature = ({ validation, closeForm, editChartData, author }) => {
+  const dispatch = useDispatch();
 
   const [icdOptions, setIcdOptions] = useState([]);
 
@@ -75,8 +78,25 @@ const DoctorSignature = ({ validation, closeForm, editChartData, author }) => {
   const handleValidate = async () => {
     setLoading(true);
     try {
-      await validateChart(editChartData?._id);
+      const response = await validateChart(editChartData?._id);
       toast.success("Successfully Validated.");
+      setIsVerified(true);
+      dispatch({
+        type: "editDetailAdmission/fulfilled",
+        payload: {
+          type: response.payload.type,
+          payload: response.payload,
+        },
+      });
+      if (response?.payload?.type === "OPD" && response.payload.appointment) {
+        dispatch(
+          setEventChart({
+            chart: response.payload,
+            appointment: response.payload.appointment,
+            patient: response.payload.patient,
+          })
+        );
+      }
       closeForm();
     } catch (error) {
       console.log(error);
@@ -90,7 +110,7 @@ const DoctorSignature = ({ validation, closeForm, editChartData, author }) => {
     <>
       <RenderFields fields={fields} validation={validation} />
       <div className="mt-3 d-flex gap-3 justify-content-end">
-        {editChartData && !editChartData.validatorId && editChartData.needsValidation && author?.role === "DOCTOR" && (
+        {editChartData && !editChartData.validatorId && editChartData.needsValidation && author?.role === "DOCTOR" && !isVerified && (
           <Button
             disabled={loading || validation.dirty}
             onClick={() => setIsModalOpen(true)}

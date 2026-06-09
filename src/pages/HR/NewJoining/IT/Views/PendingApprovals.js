@@ -233,6 +233,12 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles, 
             minWidth: "120px"
         },
         {
+            name: <div>Position</div>,
+            selector: (row) => row?.position?.name || "-",
+            wrap: true,
+            minWidth: "120px",
+        },
+        {
             name: <div>Employee Type</div>,
             selector: row => capitalizeWords(row?.employeeType || "-"),
             wrap: true,
@@ -253,12 +259,6 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles, 
             wrap: true,
             minWidth: "150px",
             center: false,
-        },
-        {
-            name: <div>Position</div>,
-            selector: (row) => row?.position?.name || "-",
-            wrap: true,
-            minWidth: "120px",
         },
         {
             name: <div>Current Location</div>,

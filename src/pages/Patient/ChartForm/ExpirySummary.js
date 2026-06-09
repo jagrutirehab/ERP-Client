@@ -21,6 +21,7 @@ import {
   createEditChart,
   updateExpirySummary,
 } from "../../../store/actions";
+import { setEventChart } from "../../../store/features/booking/bookingSlice";
 import { toast } from "react-toastify";
 import { getAIExpirySummary, validateAIExpirySummary, validateChart } from "../../../helpers/backend_helper";
 import { FaCheck } from "react-icons/fa";
@@ -367,6 +368,15 @@ const ExpirySummary = ({
           payload: response.payload,
         },
       });
+      if (response?.payload?.type === "OPD" && response.payload.appointment) {
+        dispatch(
+          setEventChart({
+            chart: response.payload,
+            appointment: response.payload.appointment,
+            patient: response.payload.patient,
+          })
+        );
+      }
       toast.success(response?.message || "Successfully Validated.");
     } catch (error) {
       console.log(error);

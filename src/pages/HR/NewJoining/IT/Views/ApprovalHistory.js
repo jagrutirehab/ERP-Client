@@ -36,7 +36,7 @@ const customStyles = {
   },
 };
 
-const ApprovalHistory = ({ activeTab, hasUserPermission, roles, designationOptions = []  }) => {
+const ApprovalHistory = ({ activeTab, hasUserPermission, roles, designationOptions = [] }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const { data, pagination, loading } = useSelector((state) => state.HR);
@@ -164,6 +164,12 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles, designationOptio
       minWidth: "120px"
     },
     {
+      name: <div>Position</div>,
+      selector: (row) => row?.position?.name || "-",
+      wrap: true,
+      minWidth: "120px",
+    },
+    {
       name: <div>Employee Type</div>,
       selector: row => capitalizeWords(row?.employeeType || "-"),
       wrap: true,
@@ -184,12 +190,6 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles, designationOptio
       wrap: true,
       minWidth: "150px",
       center: false,
-    },
-    {
-      name: <div>Position</div>,
-      selector: (row) => row?.position?.name || "-",
-      wrap: true,
-      minWidth: "120px",
     },
     {
       name: <div>Current Location</div>,
@@ -304,16 +304,16 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles, designationOptio
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-<div style={{ width: "180px" }}>
-    <Select
-        options={designationOptions}
-        value={designationOptions.find(o => o.value === selectedDesignation) || null}
-        onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
-        placeholder="Designation"
-        isClearable
-        classNamePrefix="react-select"
-    />
-</div>
+            <div style={{ width: "180px" }}>
+              <Select
+                options={designationOptions}
+                value={designationOptions.find(o => o.value === selectedDesignation) || null}
+                onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
+                placeholder="Designation"
+                isClearable
+                classNamePrefix="react-select"
+              />
+            </div>
           </div>
 
           <RefreshButton loading={loading} onRefresh={fetchITApprovalHistory} />
@@ -344,15 +344,15 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles, designationOptio
           </div>
 
           <div style={{ width: "100%" }}>
-    <Select
-        options={designationOptions}
-        value={designationOptions.find(o => o.value === selectedDesignation) || null}
-        onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
-        placeholder="Designation"
-        isClearable
-        classNamePrefix="react-select"
-    />
-</div>
+            <Select
+              options={designationOptions}
+              value={designationOptions.find(o => o.value === selectedDesignation) || null}
+              onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
+              placeholder="Designation"
+              isClearable
+              classNamePrefix="react-select"
+            />
+          </div>
           <div className="d-flex justify-content-end">
             <RefreshButton loading={loading} onRefresh={fetchITApprovalHistory} />
           </div>

@@ -24,6 +24,7 @@ import {
   fetchCharts,
   updateDischargeSummary,
 } from "../../../store/actions";
+import { setEventChart } from "../../../store/features/booking/bookingSlice";
 import { toast } from "react-toastify";
 import { getAIDischargeSummary, getCharts, validateAISummary, validateChart } from "../../../helpers/backend_helper";
 import { FaCheck } from "react-icons/fa";
@@ -556,6 +557,15 @@ const DischargeSummary = ({
           payload: response.payload,
         },
       });
+      if (response?.payload?.type === "OPD" && response.payload.appointment) {
+        dispatch(
+          setEventChart({
+            chart: response.payload,
+            appointment: response.payload.appointment,
+            patient: response.payload.patient,
+          })
+        );
+      }
       toast.success(response?.message || "Successfully Validated.")
 
     } catch (error) {
