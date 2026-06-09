@@ -136,6 +136,8 @@ export const emptyConditionItem = () => ({
 export const emptyRouting = () => ({
   selectedRoles: [],
   selectedUsers: [],
+  notifyAdmissionDoctor: false,
+  notifyAdmissionPsychologist: false,
 });
 
 export const emptyTargetBlock = () => ({

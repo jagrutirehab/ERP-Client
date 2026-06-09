@@ -294,8 +294,20 @@ const RulePreviewOffcanvas = ({
                           {u.label}
                         </Badge>
                       ))}
+                      {b.routing?.notifyAdmissionDoctor && (
+                        <Badge color="warning" pill className="me-1">
+                          Current Doctor
+                        </Badge>
+                      )}
+                      {b.routing?.notifyAdmissionPsychologist && (
+                        <Badge color="warning" pill className="me-1">
+                          Current Psychologist
+                        </Badge>
+                      )}
                       {!b.routing?.notifyRoles?.length &&
-                        !b._specificUsersDetailed?.length && (
+                        !b._specificUsersDetailed?.length &&
+                        !b.routing?.notifyAdmissionDoctor &&
+                        !b.routing?.notifyAdmissionPsychologist && (
                           <span className="text-muted">—</span>
                         )}
                     </div>

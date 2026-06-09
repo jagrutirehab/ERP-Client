@@ -11,6 +11,7 @@ import {
   Badge,
   Alert,
   Spinner,
+  Input,
 } from "reactstrap";
 import {
   sopGetRoles,
@@ -24,9 +25,15 @@ const RoutingCard = ({
   onRoleToggle,
   selectedUsers,
   onUsersChange,
+  notifyAdmissionDoctor = false,
+  notifyAdmissionPsychologist = false,
+  onSpecialRoutingToggle,
+  idPrefix = "",
   routingError,
   isSubmitting,
 }) => {
+  const doctorId = `notifyAdmissionDoctor-${idPrefix}`;
+  const psychId = `notifyAdmissionPsychologist-${idPrefix}`;
   const [roles, setRoles] = useState([]);
   const [rolesLoading, setRolesLoading] = useState(true);
   const [rolesError, setRolesError] = useState(null);
@@ -168,6 +175,48 @@ const RoutingCard = ({
                 : "Type at least 2 characters to search"
             }
           />
+        </FormGroup>
+
+        <FormGroup>
+          <Label className="fw-semibold mb-2">Patient's Care Team</Label>
+          <div className="form-check">
+            <Input
+              type="checkbox"
+              id={doctorId}
+              checked={!!notifyAdmissionDoctor}
+              disabled={isSubmitting}
+              onChange={(e) =>
+                onSpecialRoutingToggle?.(
+                  "notifyAdmissionDoctor",
+                  e.target.checked,
+                )
+              }
+            />
+            <Label htmlFor={doctorId} className="form-check-label ms-1">
+              Notify patient&apos;s current admission doctor
+            </Label>
+          </div>
+          <div className="form-check">
+            <Input
+              type="checkbox"
+              id={psychId}
+              checked={!!notifyAdmissionPsychologist}
+              disabled={isSubmitting}
+              onChange={(e) =>
+                onSpecialRoutingToggle?.(
+                  "notifyAdmissionPsychologist",
+                  e.target.checked,
+                )
+              }
+            />
+            <Label htmlFor={psychId} className="form-check-label ms-1">
+              Notify patient&apos;s current admission psychologist
+            </Label>
+          </div>
+          <small className="text-muted d-block mt-1">
+            Resolved to the assigned doctor/psychologist on the patient&apos;s
+            current admission when the alert fires.
+          </small>
         </FormGroup>
 
         {routingError && (
