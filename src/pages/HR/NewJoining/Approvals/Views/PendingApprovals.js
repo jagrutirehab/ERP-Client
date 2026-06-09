@@ -290,6 +290,12 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             wrap: true,
             minWidth: "130px"
         },
+         {
+            name: <div>Position</div>,
+            selector: (row) => row?.position?.name || "-",
+            wrap: true,
+            minWidth: "120px",
+        },
         {
             name: <div>Employee Type</div>,
             selector: row => capitalizeWords(row?.employmentType || "-"),
@@ -304,19 +310,12 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             wrap: true,
             minWidth: "100px",
         },
-        // 
         {
             name: <div>Employement Status</div>,
             selector: (row) => renderStatusBadge(row?.employmentStatus) || "-",
             wrap: true,
             minWidth: "150px",
             center: false,
-        },
-        {
-            name: <div>Position</div>,
-            selector: (row) => row?.position?.name || "-",
-            wrap: true,
-            minWidth: "120px",
         },
         {
             name: <div>First Location</div>,

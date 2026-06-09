@@ -394,6 +394,12 @@ const Employee = () => {
       minWidth: "120px",
     },
     {
+      name: <div>Position</div>,
+      selector: (row) => row?.position?.name || "-",
+      wrap: true,
+      minWidth: "120px",
+    },
+    {
       name: <div>Current Manager</div>,
       selector: (row) => {
         const manager = row?.currentManager;
@@ -422,19 +428,12 @@ const Employee = () => {
       wrap: true,
       minWidth: "100px",
     },
-    //
     {
       name: <div>Employement Status</div>,
       selector: (row) => renderStatusBadge(row?.employmentStatus) || "-",
       wrap: true,
       minWidth: "150px",
       center: false,
-    },
-    {
-      name: <div>Position</div>,
-      selector: (row) => row?.position?.name || "-",
-      wrap: true,
-      minWidth: "120px",
     },
     {
       name: <div>First Location</div>,
