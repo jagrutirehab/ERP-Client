@@ -681,7 +681,7 @@ const DischargeSummary = ({
                       )}
                     </Button>
                   )
-                ) : (editChartData && !editChartData.validatorId && (editChartData.needsValidation || editChartData.geminiResponseIsVerified === false) && !isEditVerified && author?.role === "PSYCHIATRIST") ? (
+                ) : (editChartData && !editChartData.validatorId && (editChartData.needsValidation || editChartData.geminiResponseIsVerified === false) && !isEditVerified && author?.role === "DOCTOR") ? (
                   <Button
                     type="button"
                     disabled={loading || validation.dirty || (editSummary && !_.isEqual(dischargeAdvise, editSummary.medicine))}

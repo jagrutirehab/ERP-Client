@@ -16,10 +16,6 @@ const authRoles = [
     value: "PSYCHOLOGIST",
   },
   {
-    name: "PSYCHIATRIST",
-    value: "PSYCHIATRIST",
-  },
-  {
     name: "MSW",
     value: "MSW",
   },

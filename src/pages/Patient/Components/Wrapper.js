@@ -158,7 +158,7 @@ const Wrapper = ({
               )}
 
               {needsValidation && (
-                user?.role === "PSYCHIATRIST" ? (
+                user?.role === "DOCTOR" ? (
                   <button
                     className="btn btn-sm btn-soft-success d-inline-flex align-items-center py-0 px-2 ms-2"
                     style={{ height: "22px", fontSize: "11px", cursor: "pointer" }}
@@ -284,7 +284,7 @@ const Wrapper = ({
                   )}
                   <DropdownMenu>
                     {needsValidation ? (
-                      user?.role === "PSYCHIATRIST" && (
+                      user?.role === "DOCTOR" && (
                         <DropdownItem
                           onClick={(e) => {
                             e.preventDefault();

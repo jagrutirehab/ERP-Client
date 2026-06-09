@@ -604,7 +604,7 @@ const ExpirySummary = ({
                     )}
                   </Button>
                 )
-              ) : (editChartData && !editChartData.validatorId && (editChartData.needsValidation || editChartData.geminiResponseIsVerified === false) && !isEditVerified && author?.role === "PSYCHIATRIST") ? (
+              ) : (editChartData && !editChartData.validatorId && (editChartData.needsValidation || editChartData.geminiResponseIsVerified === false) && !isEditVerified && author?.role === "DOCTOR") ? (
                 <Button
                   type="button"
                   disabled={loading || validation.dirty}
