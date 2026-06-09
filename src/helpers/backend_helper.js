@@ -570,6 +570,8 @@ export const editDetailAdmission = (data) =>
   api.put(url.EDIT_DETAIL_ADMISSION, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+export const validateChart = (chartId) =>
+  api.update(`/chart/${chartId}/validate`);
 export const postGeneralDetailAdmission = (data) =>
   api.create(url.POST_GENERAL_DETAIL_ADMISSION, data, {
     headers: { "Content-Type": "multipart/form-data" },

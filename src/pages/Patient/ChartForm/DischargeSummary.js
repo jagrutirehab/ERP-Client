@@ -25,7 +25,7 @@ import {
   updateDischargeSummary,
 } from "../../../store/actions";
 import { toast } from "react-toastify";
-import { getAIDischargeSummary, getCharts, validateAISummary } from "../../../helpers/backend_helper";
+import { getAIDischargeSummary, getCharts, validateAISummary, validateChart } from "../../../helpers/backend_helper";
 import { FaCheck } from "react-icons/fa";
 import ValidateConfirmationModal from "./Components/ValidateConfirmationModal";
 
@@ -542,7 +542,12 @@ const DischargeSummary = ({
   const handleValidateResponse = async () => {
     setLoading(true)
     try {
-      const response = await validateAISummary({ summary: editSummary?._id });
+      let response;
+      if (editChartData?.geminiResponseIsVerified === false) {
+        response = await validateAISummary({ summary: editSummary?._id });
+      } else {
+        response = await validateChart(editChartData?._id);
+      }
       console.log("ValidateResponse", response);
       setIsEditVerified(true);
       dispatch({
@@ -676,8 +681,11 @@ const DischargeSummary = ({
                       )}
                     </Button>
                   )
-                ) : editChartData?.geminiResponseIsVerified === false && !isEditVerified ? (
+                ) : (editChartData && !editChartData.validatorId && (editChartData.needsValidation || editChartData.geminiResponseIsVerified === false) && !isEditVerified && author?.role === "PSYCHIATRIST") ? (
                   <Button
+                    type="button"
+                    disabled={loading || validation.dirty || (editSummary && !_.isEqual(dischargeAdvise, editSummary.medicine))}
+                    title={(validation.dirty || (editSummary && !_.isEqual(dischargeAdvise, editSummary.medicine))) ? "Please save your changes before validating" : ""}
                     onClick={() => {
                       setValidateType("edit");
                       toggleModal();

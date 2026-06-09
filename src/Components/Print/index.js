@@ -132,9 +132,10 @@ const Print = ({
 
   let printAllCharts = [];
   if (printData?.printAdmissionCharts) {
-    printAllCharts = patientAdmissionsCharts?.find(
+    const rawCharts = patientAdmissionsCharts?.find(
       (adm) => adm._id === printData.printAdmissionCharts
-    )?.charts;
+    )?.charts || [];
+    printAllCharts = rawCharts.filter((c) => !c.needsValidation || c.validatorId);
   }
 
   return (

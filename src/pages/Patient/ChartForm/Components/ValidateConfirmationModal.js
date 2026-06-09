@@ -12,11 +12,11 @@ const ValidateConfirmationModal = ({ isOpen, toggle, onConfirm, loading, isVerif
             <ModalBody>
                 {isVerified ? (
                     <p className="mb-0">
-                        Are you sure you want to <strong>remove validation</strong> from this discharge summary?
+                        Are you sure you want to <strong>remove validation</strong> from this chart?
                     </p>
                 ) : (
                     <p className="mb-0">
-                        I have read all the details carefully and confirm that the discharge summary is accurate.
+                        I have read all the details carefully and confirm that the chart is accurate.
                     </p>
                 )}
             </ModalBody>

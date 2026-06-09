@@ -16,7 +16,7 @@ import { connect, useDispatch } from "react-redux";
 import Placeholder from "./Components/Placeholder";
 import Charts from "../Charts";
 import { admitDischargePatient, togglePrint } from "../../../store/actions";
-import { EDIT_ADMISSION, IPD, records } from "../../../Components/constants/patient";
+import { EDIT_ADMISSION, IPD, records, PRESCRIPTION, COUNSELLING_NOTE, DETAIL_ADMISSION, VITAL_SIGN } from "../../../Components/constants/patient";
 
 import { toast } from "react-toastify";
 import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
@@ -105,11 +105,21 @@ const IPDComponent = ({
                     onChange={(e) => setFilterChartType(prev => ({...prev, [addmission._id]: e.target.value}))}
                   >
                     <option value="All">All</option>
-                    {records.map((r) => (
-                      <option key={r.category} value={r.category}>
-                        {r.name}
-                      </option>
-                    ))}
+                    {records
+                      .filter((r) => {
+                        if (user?.role === "NURSE") {
+                          return ![PRESCRIPTION, COUNSELLING_NOTE, DETAIL_ADMISSION].includes(r.category);
+                        }
+                        if (["PSYCHOLOGIST", "MSW", "PSW"].includes(user?.role)) {
+                          return ![PRESCRIPTION, VITAL_SIGN].includes(r.category);
+                        }
+                        return true;
+                      })
+                      .map((r) => (
+                        <option key={r.category} value={r.category}>
+                          {r.name}
+                        </option>
+                      ))}
                   </Input>
                 </div>
                 <CheckPermission permission={"create"} subAccess={"Charting"}>

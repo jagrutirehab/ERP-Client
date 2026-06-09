@@ -332,6 +332,9 @@ const OPDView = ({
                                             doc.doctor
                                           )
                                         }
+                                        geminiResponseGeneratedBy={doc.chart?.geminiResponseGeneratedBy}
+                                        geminiResponseIsVerified={doc.chart?.geminiResponseIsVerified}
+                                        validatorId={doc.chart?.validatorId}
                                         // disableEdit={doc?.dischargeDate ? true : false}
                                         // disableDelete={addmission?.dischargeDate ? true : false}
                                       >
@@ -354,6 +357,9 @@ const OPDView = ({
                                             doc.doctor
                                           )
                                         }
+                                        geminiResponseGeneratedBy={doc.chart?.geminiResponseGeneratedBy}
+                                        geminiResponseIsVerified={doc.chart?.geminiResponseIsVerified}
+                                        validatorId={doc.chart?.validatorId}
                                         // disableEdit={doc?.dischargeDate ? true : false}
                                         // disableDelete={addmission?.dischargeDate ? true : false}
                                       >

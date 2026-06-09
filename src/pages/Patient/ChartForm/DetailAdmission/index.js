@@ -794,6 +794,8 @@ const DetailAdmission = ({
                   validation={validation}
                   setFormStep={setFormStep}
                   closeForm={closeForm}
+                  editChartData={editChartData}
+                  author={author}
                 />
               )}
             </Form>

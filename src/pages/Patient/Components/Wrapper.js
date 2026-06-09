@@ -24,8 +24,10 @@ import {
   WRITE_OFF,
 } from "../../../Components/constants/patient";
 import { connect, useDispatch } from "react-redux";
-import { createEditBill } from "../../../store/actions";
+import { createEditBill, fetchCharts, fetchGeneralCharts, fetchChartsAddmissions } from "../../../store/actions";
+import { validateChart } from "../../../helpers/backend_helper";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
+import ValidateConfirmationModal from "../ChartForm/Components/ValidateConfirmationModal";
 
 const Wrapper = ({
   item,
@@ -48,6 +50,7 @@ const Wrapper = ({
   geminiResponseIsVerified,
   geminiResponseGeneratedBy,
   validatorId,
+  user,
 }) => {
   const dispatch = useDispatch();
   const [showRelatives, setShowRelatives] = React.useState(
@@ -55,6 +58,34 @@ const Wrapper = ({
   );
   const chart = item?.chart;
   const bill = item?.bill;
+
+  const needsValidation = chart && item.needsValidation && !item.validatorId;
+
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [loading, setLoading] = React.useState(false);
+
+  const handleValidateChart = async () => {
+    setLoading(true);
+    try {
+      await validateChart(item._id);
+      toast.success("Chart validated successfully");
+      if (item.type === "GENERAL") {
+        dispatch(fetchGeneralCharts({ patient: item.patient, type: "GENERAL" }));
+      } else if (item.type === "OPD") {
+        dispatch(fetchGeneralCharts({ patient: item.patient, type: "OPD" }));
+      } else {
+        dispatch(fetchCharts({ addmissionId: item.addmission, chartType: "All" }));
+        if (item.addmission) {
+          dispatch(fetchChartsAddmissions([item.addmission]));
+        }
+      }
+    } catch (err) {
+      toast.error(err.message || "Failed to validate chart");
+    } finally {
+      setLoading(false);
+      setIsModalOpen(false);
+    }
+  };
 
   const handleToggleRelatives = async (e) => {
     e.stopPropagation();
@@ -125,6 +156,28 @@ const Wrapper = ({
                   AI
                 </span>
               )}
+
+              {needsValidation && (
+                user?.role === "PSYCHIATRIST" ? (
+                  <button
+                    className="btn btn-sm btn-soft-success d-inline-flex align-items-center py-0 px-2 ms-2"
+                    style={{ height: "22px", fontSize: "11px", cursor: "pointer" }}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setIsModalOpen(true);
+                    }}
+                  >
+                    <i className="ri-checkbox-circle-line me-1"></i> Validate
+                  </button>
+                ) : (
+                  <span
+                    className="badge badge-soft-warning d-inline-flex align-items-center py-1 px-2 ms-2"
+                    style={{ fontSize: "11px" }}
+                  >
+                    <i className="ri-time-line me-1"></i> Pending Validation
+                  </span>
+                )
+              )}
             </h5>
             <RenderWhen isTrue={!bill && chart && item.type === "IPD"}>
               <div className="form-check form-switch ms-3 d-flex align-items-center">
@@ -148,7 +201,9 @@ const Wrapper = ({
             <div>
               {validatorId && (
                 <div className="d-flex align-items-center">
-                  <span className="fs-xs-9">Ai-Summary Verified By:</span>
+                  <span className="fs-xs-9">
+                    {geminiResponseGeneratedBy ? "Ai-Summary Verified By:" : "Verified By:"}
+                  </span>
                   <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
                     {validatorId?.name}
                   </h6>
@@ -228,17 +283,32 @@ const Wrapper = ({
                     </DropdownToggle>
                   )}
                   <DropdownMenu>
-                    <RenderWhen
-                      isTrue={showPrint && geminiResponseIsVerified !== false}
-                    >
-                      <DropdownItem
-                        onClick={() => printItem(item, patient)}
-                        href="#"
+                    {needsValidation ? (
+                      user?.role === "PSYCHIATRIST" && (
+                        <DropdownItem
+                          onClick={(e) => {
+                            e.preventDefault();
+                            setIsModalOpen(true);
+                          }}
+                          href="#"
+                        >
+                          <i className="ri-checkbox-circle-line align-bottom text-success me-2"></i>{" "}
+                          Validate
+                        </DropdownItem>
+                      )
+                    ) : (
+                      <RenderWhen
+                        isTrue={showPrint && geminiResponseIsVerified !== false}
                       >
-                        <i className="ri-printer-line align-bottom text-muted me-2"></i>{" "}
-                        Print
-                      </DropdownItem>
-                    </RenderWhen>
+                        <DropdownItem
+                          onClick={() => printItem(item, patient)}
+                          href="#"
+                        >
+                          <i className="ri-printer-line align-bottom text-muted me-2"></i>{" "}
+                          Print
+                        </DropdownItem>
+                      </RenderWhen>
+                    )}
                     {disableEdit || item?.bill === WRITE_OFF ? (
                       ""
                     ) : (
@@ -312,6 +382,12 @@ const Wrapper = ({
           </div>
         </div>
       </Col>
+      <ValidateConfirmationModal
+        isOpen={isModalOpen}
+        toggle={() => setIsModalOpen(!isModalOpen)}
+        loading={loading}
+        onConfirm={handleValidateChart}
+      />
     </motion.div>
   );
 };
@@ -328,6 +404,7 @@ Wrapper.propTypes = {
 
 const mapStateToProps = (state) => ({
   patient: state.Patient.patient,
+  user: state.User.user,
 });
 
 export default connect(mapStateToProps)(Wrapper);

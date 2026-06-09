@@ -22,7 +22,7 @@ import {
   updateExpirySummary,
 } from "../../../store/actions";
 import { toast } from "react-toastify";
-import { getAIExpirySummary, validateAIExpirySummary } from "../../../helpers/backend_helper";
+import { getAIExpirySummary, validateAIExpirySummary, validateChart } from "../../../helpers/backend_helper";
 import { FaCheck } from "react-icons/fa";
 import ValidateConfirmationModal from "./Components/ValidateConfirmationModal";
 
@@ -354,7 +354,12 @@ const ExpirySummary = ({
   const handleValidateResponse = async () => {
     setLoading(true);
     try {
-      const response = await validateAIExpirySummary({ summary: editSummary?._id });
+      let response;
+      if (editChartData?.geminiResponseIsVerified === false) {
+        response = await validateAIExpirySummary({ summary: editSummary?._id });
+      } else {
+        response = await validateChart(editChartData?._id);
+      }
       setIsEditVerified(true);
       dispatch({
         type: "editExpirySummary/fulfilled",
@@ -599,8 +604,11 @@ const ExpirySummary = ({
                     )}
                   </Button>
                 )
-              ) : editChartData?.geminiResponseIsVerified === false && !isEditVerified ? (
+              ) : (editChartData && !editChartData.validatorId && (editChartData.needsValidation || editChartData.geminiResponseIsVerified === false) && !isEditVerified && author?.role === "PSYCHIATRIST") ? (
                 <Button
+                  type="button"
+                  disabled={loading || validation.dirty}
+                  title={validation.dirty ? "Please save your changes before validating" : ""}
                   onClick={() => {
                     setValidateType("edit");
                     toggleModal();

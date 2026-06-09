@@ -23,6 +23,9 @@ import {
   PRESCRIPTION,
   records,
   testRecord,
+  COUNSELLING_NOTE,
+  DETAIL_ADMISSION,
+  VITAL_SIGN,
 } from "../../../Components/constants/patient";
  
 //redux
@@ -40,6 +43,7 @@ const ChartDate = ({
   chartDate,
   editChartData,
   patient,
+  user,
 }) => {
   const dispatch = useDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);
@@ -160,40 +164,50 @@ const ChartDate = ({
                 Add Records
               </DropdownToggle>
               <DropdownMenu flip={false} color="warning">
-                {(records || []).map((item, idx) => {
-                  return (
-                    <DropdownItem
-                      disabled={
-                        editChartData.data &&
-                        editChartData.data.chart !== item.category
-                          ? true
-                          : type === "GENERAL" &&
-                              (item.category === DISCHARGE_SUMMARY ||
-                                item.category === EXPIRY_SUMMARY)
+                {(records || [])
+                  .filter((item) => {
+                    if (user?.role === "NURSE") {
+                      return ![PRESCRIPTION, COUNSELLING_NOTE, DETAIL_ADMISSION].includes(item.category);
+                    }
+                    if (["PSYCHOLOGIST", "MSW", "PSW"].includes(user?.role)) {
+                      return ![PRESCRIPTION, VITAL_SIGN].includes(item.category);
+                    }
+                    return true;
+                  })
+                  .map((item, idx) => {
+                    return (
+                      <DropdownItem
+                        disabled={
+                          editChartData.data &&
+                          editChartData.data.chart !== item.category
                             ? true
-                            : false
-                      }
-                      key={idx + item.category}
-                      onClick={() => {
-                        dispatch(
-                          createEditChart({
-                            ...editChartData,
-                            chart: item.category,
-                            patient,
-                            isOpen: true,
-                            type,
-                            ...(item.category === PRESCRIPTION && {
-                              populatePreviousAppointment: true,
+                            : type === "GENERAL" &&
+                                (item.category === DISCHARGE_SUMMARY ||
+                                  item.category === EXPIRY_SUMMARY)
+                              ? true
+                              : false
+                        }
+                        key={idx + item.category}
+                        onClick={() => {
+                          dispatch(
+                            createEditChart({
+                              ...editChartData,
+                              chart: item.category,
+                              patient,
+                              isOpen: true,
+                              type,
+                              ...(item.category === PRESCRIPTION && {
+                                populatePreviousAppointment: true,
+                              }),
                             }),
-                          }),
-                        );
-                        toggle();
-                      }}
-                    >
-                      {item.name}
-                    </DropdownItem>
-                  );
-                })}
+                          );
+                          toggle();
+                        }}
+                      >
+                        {item.name}
+                      </DropdownItem>
+                    );
+                  })}
               </DropdownMenu>
             </Dropdown>
           ) : (
@@ -252,6 +266,7 @@ const mapStateToProps = (state) => ({
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm,
   patient: state.Patient.patient,
+  user: state.User.user,
 });
 
 export default connect(mapStateToProps)(ChartDate);
