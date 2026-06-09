@@ -22,6 +22,7 @@ const todayDefaults = () => {
 const initialFilters = () => ({
   patients: [],         // array of { value, label } from AsyncSelect
   rules: [],            // array of { value, label } from AsyncSelect
+  centers: [],          // array of center _ids (empty = all accessible)
   ...todayDefaults(),
   readState: "all",     // all | unread | read
   phase: "all",         // all | IMMEDIATE | DELAYED
@@ -39,6 +40,9 @@ const buildServerParams = (filters, page, pageSize) => {
   }
   if (filters.rules?.length) {
     out.rules = filters.rules.map((r) => r.value).join(",");
+  }
+  if (filters.centers?.length) {
+    out.centers = filters.centers.join(",");
   }
   if (filters.severity?.length) {
     out.severity = filters.severity.join(",");

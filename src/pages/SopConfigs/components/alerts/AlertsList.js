@@ -87,6 +87,17 @@ const AlertsList = ({
       ),
     },
     {
+      name: "Center",
+      grow: 1,
+      cell: (row) => (
+        <div {...RC}>
+          <small {...RC} className="text-muted">
+            {row.center?.title || "—"}
+          </small>
+        </div>
+      ),
+    },
+    {
       name: "SOP",
       grow: 1.5,
       cell: (row) => (

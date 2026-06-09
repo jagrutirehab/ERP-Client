@@ -17,6 +17,7 @@ const buildExportParams = (f) => {
   const out = {};
   if (f.patients?.length) out.patients = f.patients.map((p) => p.value).join(",");
   if (f.rules?.length) out.rules = f.rules.map((r) => r.value).join(",");
+  if (f.centers?.length) out.centers = f.centers.join(",");
   if (f.severity?.length) out.severity = f.severity.join(",");
   if (f.dateFrom) out.dateFrom = f.dateFrom;
   if (f.dateTo) out.dateTo = f.dateTo;

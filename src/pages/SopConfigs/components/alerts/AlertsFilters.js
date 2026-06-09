@@ -9,6 +9,7 @@ import {
   getSearchPatients,
   listSopRules,
 } from "../../../../helpers/backend_helper";
+import CenterDropdown from "../../../Report/Components/Doctor/components/CenterDropDown";
 
 const READ_STATES = [
   { k: "all", label: "All" },
@@ -31,10 +32,19 @@ const AlertsFilters = ({
   onClearSeverity,
 }) => {
   const centerAccess = useSelector((s) => s.User?.centerAccess);
+  const allCenters = useSelector((s) => s.Center?.data);
+
+  // Center options scoped to the user's center access — same source the
+  // Finance report uses. centerAccess may be a list of ids or of objects.
+  const accessIds = (centerAccess || []).map((c) => c?._id || c);
+  const centerOptions = (allCenters || [])
+    .filter((c) => accessIds.includes(c._id))
+    .map((c) => ({ _id: c._id, title: c.title }));
 
   const hasAnyServerFilter =
     serverFilters.patients?.length > 0 ||
     serverFilters.rules?.length > 0 ||
+    serverFilters.centers?.length > 0 ||
     !!serverFilters.dateFrom ||
     !!serverFilters.dateTo ||
     serverFilters.readState !== "all" ||
@@ -150,8 +160,15 @@ const AlertsFilters = ({
         </Col>
       </Row>
 
-      {/* Row 2 — Read state + Phase + Severity + Clear */}
+      {/* Row 2 — Center + Read state + Phase + Severity + Clear */}
       <div className="d-flex flex-wrap gap-3 align-items-center">
+        <CenterDropdown
+          options={centerOptions}
+          value={serverFilters.centers || []}
+          onChange={(ids) => onServerFilterChange("centers", ids)}
+          className=""
+        />
+
         <ButtonGroup size="sm">
           {READ_STATES.map(({ k, label }) => (
             <Button

@@ -220,6 +220,9 @@ const SOPForm = ({
           referenceSection: b.referenceSection || "",
           selectedRoles: b.routing?.notifyRoles || [],
           selectedUsers: b._specificUsersDetailed || [],
+          notifyAdmissionDoctor: b.routing?.notifyAdmissionDoctor || false,
+          notifyAdmissionPsychologist:
+            b.routing?.notifyAdmissionPsychologist || false,
         }))
       : [emptyTargetBlock()];
     setTargetBlocks(blocks);
@@ -282,6 +285,15 @@ const SOPForm = ({
     setTargetBlocks((prev) => {
       const next = [...prev];
       next[blockIdx] = { ...next[blockIdx], selectedUsers: selected || [] };
+      return next;
+    });
+    clearError("targetBlocks");
+  };
+
+  const handleBlockSpecialRoutingToggle = (blockIdx, field, checked) => {
+    setTargetBlocks((prev) => {
+      const next = [...prev];
+      next[blockIdx] = { ...next[blockIdx], [field]: checked };
       return next;
     });
     clearError("targetBlocks");
@@ -456,7 +468,9 @@ const SOPForm = ({
       }
       const hasRouting =
         (block.selectedRoles?.length || 0) +
-          (block.selectedUsers?.length || 0) >
+          (block.selectedUsers?.length || 0) +
+          (block.notifyAdmissionDoctor ? 1 : 0) +
+          (block.notifyAdmissionPsychologist ? 1 : 0) >
         0;
       if (!hasRouting) {
         bErr.routing = "Add at least one notification channel";
@@ -531,6 +545,10 @@ const SOPForm = ({
           }),
           ...(block.selectedUsers?.length && {
             notifySpecificUsers: block.selectedUsers.map((u) => u.value),
+          }),
+          ...(block.notifyAdmissionDoctor && { notifyAdmissionDoctor: true }),
+          ...(block.notifyAdmissionPsychologist && {
+            notifyAdmissionPsychologist: true,
           }),
         },
       })),
@@ -752,6 +770,14 @@ const SOPForm = ({
                     }
                     selectedUsers={block.selectedUsers || []}
                     onUsersChange={(sel) => handleBlockUsersChange(bIdx, sel)}
+                    notifyAdmissionDoctor={block.notifyAdmissionDoctor}
+                    notifyAdmissionPsychologist={
+                      block.notifyAdmissionPsychologist
+                    }
+                    onSpecialRoutingToggle={(field, checked) =>
+                      handleBlockSpecialRoutingToggle(bIdx, field, checked)
+                    }
+                    idPrefix={bIdx}
                     routingError={blockErrors.routing}
                     isSubmitting={isSubmitting}
                   />
