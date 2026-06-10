@@ -119,7 +119,9 @@ const Call = () => {
         Index: index + 1,
         UCID: row?.UCID || "-",
         Agent: row?.Agent || "-",
+        "Caller Number": row?.Caller_No || "-",
         "Call Date": row?.Call_Date || "-",
+        "Caller Type": row?.Call_Type?.split("_")?.[0] || "-",
         "Talk Time": row?.Talk_Time || "-",
         "Recording URL": row?.Files?.recording_url || row?.Files?.Recording_URL || "-",
 
