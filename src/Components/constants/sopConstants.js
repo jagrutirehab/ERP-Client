@@ -33,6 +33,7 @@ export const TARGET_OPTIONS = [
     "glasgowTest",
     "LabReport",
   ]),
+  { value: "ClinicalNote", label: "Clinical Note" },
 ];
 export const OPERATOR_OPTIONS = [
   "GREATER_THAN",
