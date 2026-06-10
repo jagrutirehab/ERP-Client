@@ -2,15 +2,21 @@ import React from "react";
 import { Card, CardBody, CardHeader, Button, Label } from "reactstrap";
 import ConditionRow from "./ConditionRow";
 import { emptyConditionItem } from "../../../Components/constants/sopConstants";
+import CenterDropdown from "../../Report/Components/Doctor/components/CenterDropDown";
 
 const MainBlock = ({
   satisfyingCriteria,
   setSatisfyingCriteria,
+  centerOptions = [],
+  centersError,
   modelFieldsCache,
   fetchModelFields,
   isSubmitting,
   fieldErrors,
 }) => {
+  const handleCentersChange = (ids) => {
+    setSatisfyingCriteria((prev) => ({ ...prev, centers: ids }));
+  };
   const addCondition = () => {
     setSatisfyingCriteria((prev) => ({
       ...prev,
@@ -54,6 +60,27 @@ const MainBlock = ({
         </Button>
       </CardHeader>
       <CardBody>
+        {/* Center applicability — the rule only fires for patients in these
+            centers. Required (select one or many). */}
+        <div className="mb-3 pb-3 border-bottom">
+          <Label className="fw-semibold d-block mb-1">
+            Applicable Centers <span className="text-danger">*</span>
+          </Label>
+          <small className="text-muted d-block mb-2">
+            This SOP only generates alerts for patients in the selected
+            center(s).
+          </small>
+          <CenterDropdown
+            options={centerOptions}
+            value={satisfyingCriteria.centers || []}
+            onChange={handleCentersChange}
+            className=""
+          />
+          {centersError && (
+            <div className="text-danger small mt-1">{centersError}</div>
+          )}
+        </div>
+
         {satisfyingCriteria.conditions.map((c, cIdx) => (
           <ConditionRow
             key={cIdx}
