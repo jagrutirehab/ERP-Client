@@ -1,4 +1,5 @@
 import React, { useState, useCallback, useEffect } from "react";
+import { useSelector } from "react-redux";
 import Select from "react-select";
 import {
   Card,
@@ -140,7 +141,16 @@ const SOPForm = ({
   const [form, setForm] = useState(emptyForm());
   const [satisfyingCriteria, setSatisfyingCriteria] = useState({
     conditions: [emptyConditionItem()],
+    centers: [],
   });
+
+  // Center options scoped to the user's access — same source the alerts filter
+  // and finance report use. The rule's centers gate which patients it applies to.
+  const allCenters = useSelector((s) => s.Center?.data);
+  const centerAccess = useSelector((s) => s.User?.centerAccess);
+  const centerOptions = (allCenters || [])
+    .filter((c) => (centerAccess || []).map((a) => a?._id || a).includes(c._id))
+    .map((c) => ({ _id: c._id, title: c.title }));
   const [targetBlocks, setTargetBlocks] = useState([emptyTargetBlock()]);
   const [suggestedMedicines, setSuggestedMedicines] = useState([]);
   const [fieldErrors, setFieldErrors] = useState({});
@@ -202,8 +212,12 @@ const SOPForm = ({
       ? {
           conditions:
             initialValues.satisfyingCriteria.conditions.map(hydrateCondition),
+          centers: initialValues.satisfyingCriteria.centers || [],
         }
-      : { conditions: [emptyConditionItem()] };
+      : {
+          conditions: [emptyConditionItem()],
+          centers: initialValues.satisfyingCriteria?.centers || [],
+        };
     setSatisfyingCriteria(sc);
 
     const blocks = initialValues.targetBlocks?.length
@@ -328,7 +342,7 @@ const SOPForm = ({
 
   const resetForm = useCallback(() => {
     setForm(emptyForm());
-    setSatisfyingCriteria({ conditions: [emptyConditionItem()] });
+    setSatisfyingCriteria({ conditions: [emptyConditionItem()], centers: [] });
     setTargetBlocks([emptyTargetBlock()]);
     setSuggestedMedicines([]);
     setFieldErrors({});
@@ -437,6 +451,8 @@ const SOPForm = ({
   const validate = () => {
     const errs = {};
     if (!form.ruleName.trim()) errs.ruleName = "Rule name is required";
+    if (!satisfyingCriteria.centers?.length)
+      errs.satisfyingCriteriaCenters = "Select at least one center";
 
     let hasTargetErrors = false;
     const targetErrors = targetBlocks.map((block) => {
@@ -554,11 +570,14 @@ const SOPForm = ({
       })),
     };
 
-    if (validSCConditions.length > 0) {
-      payload.satisfyingCriteria = {
+    // Always send satisfyingCriteria so the rule's centers persist even when
+    // there are no filter conditions.
+    payload.satisfyingCriteria = {
+      centers: satisfyingCriteria.centers || [],
+      ...(validSCConditions.length > 0 && {
         conditions: validSCConditions.map(formatCondition),
-      };
-    }
+      }),
+    };
 
     if (suggestedMedicines.length > 0) {
       payload.suggestedMedicines = suggestedMedicines.map(formatMedicine);
@@ -625,6 +644,8 @@ const SOPForm = ({
       <MainBlock
         satisfyingCriteria={satisfyingCriteria}
         setSatisfyingCriteria={setSatisfyingCriteria}
+        centerOptions={centerOptions}
+        centersError={fieldErrors.satisfyingCriteriaCenters}
         modelFieldsCache={modelFieldsCache}
         fetchModelFields={fetchModelFields}
         isSubmitting={isSubmitting}

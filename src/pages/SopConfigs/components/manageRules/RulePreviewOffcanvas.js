@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import {
   Badge,
   Button,
@@ -69,6 +70,12 @@ const RulePreviewOffcanvas = ({
   const [icdMap, setIcdMap] = useState(new Map());
   const [icdLoaded, setIcdLoaded] = useState(false);
   const [docPreviewOpen, setDocPreviewOpen] = useState(false);
+
+  // Map center id → title for displaying the rule's applicable centers.
+  const allCenters = useSelector((s) => s.Center?.data);
+  const centerTitle = (id) =>
+    (allCenters || []).find((c) => String(c._id) === String(id))?.title ||
+    String(id);
 
   useEffect(() => {
     if (!isOpen || !rule || icdLoaded) return;
@@ -188,6 +195,18 @@ const RulePreviewOffcanvas = ({
                   >
                     <i className="bx bx-show me-1" /> View
                   </Button>
+                </div>
+              )}
+
+              {/* Applicable centers — which centers this SOP fires for */}
+              {rule.satisfyingCriteria?.centers?.length > 0 && (
+                <div className="mb-3 p-3 border rounded">
+                  {sectionLabel("bx bx-category-alt", "Applicable Centers")}
+                  {rule.satisfyingCriteria.centers.map((id) => (
+                    <Badge key={String(id)} color="info" pill className="me-1 mb-1">
+                      {centerTitle(id)}
+                    </Badge>
+                  ))}
                 </div>
               )}
 
