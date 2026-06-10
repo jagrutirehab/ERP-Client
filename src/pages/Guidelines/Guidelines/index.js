@@ -48,6 +48,8 @@ import Se01SuicideRiskPrevention from "./Prints/SE-01_Suicide_Risk_Prevention_Ma
 import Se02ViolenceAggressionManagement from "./Prints/SE-02_Violence_Aggression_Management";
 import Se03RestraintSeclusionGovernance from "./Prints/SE-03_Restraint_Seclusion_Governance";
 import Se04MedicalEmergencyIcuEscalation from "./Prints/SE-04_Medical_Emergency_ICU_Escalation";
+import Cc07EctGovernanceSOP from "./Prints/CC-07_ECT_Governance_SOP";
+import JagrutiiAlcoholWithdrawalProtocolV2 from "./Prints/Jagruti_Alcohol_Withdrawal_Protocol_V2";
 import Select from "react-select";
 
 const guidelines = [
@@ -614,6 +616,30 @@ const guidelines = [
     type: "Safety & Emergency — SE Series",
     print: Se04MedicalEmergencyIcuEscalation,
     link: "se-04-medical-emergency-icu-escalation",
+    category: "clinical sops",
+  },
+  {
+    id: 48,
+    name: "CC-07 — Electroconvulsive Therapy (ECT) Governance SOP",
+    description:
+      "Jagruti ECT governance SOP — MHCA 2017 compliance (unmodified ECT prohibited, anaesthesia mandatory), 5 clinical indications, pre-ECT risk assessment (CV/neuro/ICP/ECG), 3-step capacity & consent procedure (nominee consent for supported admission), 6-item pre-procedure checklist, anaesthesia monitoring (pulse/BP/SpO2/ECG), per-session documentation (electrode placement/stimulus/seizure duration), post-ECT recovery, complication management (5 types), privileging by Clinical Director, and 4 KPIs.",
+    lastUpdated: "June 09, 2026",
+    status: "Active",
+    type: "Clinical Care — CC Series",
+    print: Cc07EctGovernanceSOP,
+    link: "cc-07-ect-governance-sop",
+    category: "clinical sops",
+  },
+  {
+    id: 49,
+    name: "Jagruti — Alcohol Withdrawal Management Protocol V2.0",
+    description:
+      "Comprehensive inpatient alcohol withdrawal management protocol for Jagruti Rehabilitation Centre — CDZ 10-day fixed-dose taper, antiepileptics, general medicines, hepatic encephalopathy & portal hypertension management, post-withdrawal maintenance (Days 10–45), discharge prescription, elderly dose adjustments (≥ 60 yr), lab deviation protocols (> 3× ULN for LFT/bilirubin/renal/ammonia/electrolytes), quick reference matrix, and multi-organ transfer criteria.",
+    lastUpdated: "June 10, 2026",
+    status: "Active",
+    type: "De-Addiction Protocol",
+    print: JagrutiiAlcoholWithdrawalProtocolV2,
+    link: "jagruti-alcohol-withdrawal-protocol-v2",
     category: "clinical sops",
   },
 ];

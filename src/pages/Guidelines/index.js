@@ -50,6 +50,8 @@ import Se01SuicideRiskPreventionPage from "./Guidelines/SE-01_Suicide_Risk_Preve
 import Se02ViolenceAggressionManagementPage from "./Guidelines/SE-02_Violence_Aggression_Management";
 import Se03RestraintSeclusionGovernancePage from "./Guidelines/SE-03_Restraint_Seclusion_Governance";
 import Se04MedicalEmergencyIcuEscalationPage from "./Guidelines/SE-04_Medical_Emergency_ICU_Escalation";
+import Cc07EctGovernanceSOPPage from "./Guidelines/CC-07_ECT_Governance_SOP";
+import JagrutiiAlcoholWithdrawalProtocolV2Page from "./Guidelines/Jagruti_Alcohol_Withdrawal_Protocol_V2";
 // import Main from "./Main";
 // import PatientDetails from "./PatientDetails";
 
@@ -365,6 +367,18 @@ const Guidelines = () => {
                     link: "se-04-medical-emergency-icu-escalation",
                     icon: "bx bx-plus-medical",
                   },
+                  {
+                    id: "cc-07-ect-governance-sop",
+                    label: "CC-07 ECT Governance SOP",
+                    link: "cc-07-ect-governance-sop",
+                    icon: "bx bx-pulse",
+                  },
+                  {
+                    id: "jagruti-alcohol-withdrawal-protocol-v2",
+                    label: "Jagruti — Alcohol Withdrawal Protocol V2",
+                    link: "jagruti-alcohol-withdrawal-protocol-v2",
+                    icon: "bx bx-capsule",
+                  },
                 ]}
               />
               <Routes>
@@ -556,6 +570,14 @@ const Guidelines = () => {
                 <Route
                   path="se-04-medical-emergency-icu-escalation"
                   element={<Se04MedicalEmergencyIcuEscalationPage />}
+                />
+                <Route
+                  path="cc-07-ect-governance-sop"
+                  element={<Cc07EctGovernanceSOPPage />}
+                />
+                <Route
+                  path="jagruti-alcohol-withdrawal-protocol-v2"
+                  element={<JagrutiiAlcoholWithdrawalProtocolV2Page />}
                 />
               </Routes>
             </div>
