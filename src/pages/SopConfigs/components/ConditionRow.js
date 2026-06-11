@@ -563,6 +563,30 @@ const ConditionRow = ({
                 formatCreateLabel={(input) => `Add Day ${input}`}
                 isDisabled={isDisabled}
               />
+              {(condition.schedule?.days || []).length > 0 && (
+                <div className="form-check mt-2">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id={`daysOnwards-${idx}`}
+                    checked={!!condition.schedule?.daysOnwards}
+                    disabled={isDisabled}
+                    onChange={(e) =>
+                      onChange(idx, "schedule", {
+                        ...condition.schedule,
+                        daysOnwards: e.target.checked,
+                      })
+                    }
+                  />
+                  <label
+                    className="form-check-label small"
+                    htmlFor={`daysOnwards-${idx}`}
+                  >
+                    Day {Math.max(...condition.schedule.days)} onwards (then due
+                    every day until discharge)
+                  </label>
+                </div>
+              )}
             </Col>
           )}
 
