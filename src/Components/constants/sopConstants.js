@@ -126,6 +126,7 @@ export const emptyConditionItem = () => ({
   schedule: {
     period: PERIOD_OPTIONS[0],   // "Days" default
     days: [],                     // e.g. [1, 3, 7] — day numbers since admission
+    daysOnwards: false,           // DAYS only: due every day after the max listed day
     intervalHours: "",            // optional integer (every N hours)
     graceHours: 0,                // tolerance window in hours
   },

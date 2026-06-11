@@ -967,12 +967,11 @@ const UserForm = ({
                       name={field.name}
                       style={{
                         padding: "10px",
-                        border: `1px solid ${
-                          validation.touched[field.name] &&
+                        border: `1px solid ${validation.touched[field.name] &&
                           validation.errors[field.name]
-                            ? "#ef4444"
-                            : "#d1d5db"
-                        }`,
+                          ? "#ef4444"
+                          : "#d1d5db"
+                          }`,
                         borderRadius: "6px",
                         fontSize: "15px",
                         outline: "none",
@@ -984,12 +983,11 @@ const UserForm = ({
                         (e.target.style.border = "1px solid #3b82f6")
                       }
                       onBlur={(e) => {
-                        e.target.style.border = `1px solid ${
-                          validation.touched[field.name] &&
+                        e.target.style.border = `1px solid ${validation.touched[field.name] &&
                           validation.errors[field.name]
-                            ? "#ef4444"
-                            : "#d1d5db"
-                        }`;
+                          ? "#ef4444"
+                          : "#d1d5db"
+                          }`;
                         validation.handleBlur(e);
                       }}
                       onChange={validation.handleChange}
@@ -1271,12 +1269,11 @@ const UserForm = ({
                       }
                       style={{
                         padding: "10px",
-                        border: `1px solid ${
-                          validation.touched[field.name] &&
+                        border: `1px solid ${validation.touched[field.name] &&
                           validation.errors[field.name]
-                            ? "#ef4444"
-                            : "#d1d5db"
-                        }`,
+                          ? "#ef4444"
+                          : "#d1d5db"
+                          }`,
                         borderRadius: "6px",
                         fontSize: "15px",
                         outline: "none",
@@ -1290,12 +1287,11 @@ const UserForm = ({
                         (e.target.style.border = "1px solid #3b82f6")
                       }
                       onBlur={(e) => {
-                        e.target.style.border = `1px solid ${
-                          validation.touched[field.name] &&
+                        e.target.style.border = `1px solid ${validation.touched[field.name] &&
                           validation.errors[field.name]
-                            ? "#ef4444"
-                            : "#d1d5db"
-                        }`;
+                          ? "#ef4444"
+                          : "#d1d5db"
+                          }`;
                         validation.handleBlur(e);
                       }}
                       onChange={validation.handleChange}
@@ -1678,87 +1674,45 @@ const UserForm = ({
 
           {(validation.values.role === "DOCTOR" ||
             validation.values.role === "COUNSELLOR") && (
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: "24px" }}
-            >
               <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
+                style={{ display: "flex", flexDirection: "column", gap: "24px" }}
               >
-                <label
+                <div
                   style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
                   }}
                 >
-                  Signature
-                </label>
-                {cropSignature ? (
-                  <div
+                  <label
                     style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "20px",
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
                     }}
                   >
-                    <img
-                      src={cropSignature.dataURI}
-                      alt="Edited Signature"
+                    Signature
+                  </label>
+                  {cropSignature ? (
+                    <div
                       style={{
-                        maxWidth: "250px",
-                        height: "auto",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "4px",
-                        padding: "4px",
-                        backgroundColor: "#f9fafb",
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "20px",
                       }}
-                    />
-                    <button
-                      type="button"
-                      style={{
-                        padding: "10px 20px",
-                        backgroundColor: "#ef4444",
-                        color: "#ffffff",
-                        borderRadius: "6px",
-                        cursor: "pointer",
-                        transition: "background-color 0.2s",
-                      }}
-                      onMouseOver={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#dc2626")
-                      }
-                      onMouseOut={(e) =>
-                        (e.currentTarget.style.backgroundColor = "#ef4444")
-                      }
-                      onClick={() => setCropSignature(null)}
                     >
-                      Clear Signature
-                    </button>
-                  </div>
-                ) : userData?.signature?.url ? (
-                  <div
-                    style={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: "20px",
-                    }}
-                  >
-                    <img
-                      src={userData.signature}
-                      alt="Current Signature"
-                      style={{
-                        maxWidth: "250px",
-                        height: "auto",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: "4px",
-                        padding: "4px",
-                        backgroundColor: "#f9fafb",
-                      }}
-                    />
-                    <div style={{ display: "flex", gap: "10px" }}>
+                      <img
+                        src={cropSignature.dataURI}
+                        alt="Edited Signature"
+                        style={{
+                          maxWidth: "250px",
+                          height: "auto",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "4px",
+                          padding: "4px",
+                          backgroundColor: "#f9fafb",
+                        }}
+                      />
                       <button
                         type="button"
                         style={{
@@ -1775,761 +1729,795 @@ const UserForm = ({
                         onMouseOut={(e) =>
                           (e.currentTarget.style.backgroundColor = "#ef4444")
                         }
-                        onClick={() => {
-                          setCropSignature(null);
-                          validation.setFieldValue("signature", "");
-                        }}
+                        onClick={() => setCropSignature(null)}
                       >
-                        Remove
+                        Clear Signature
                       </button>
-                      <label
-                        htmlFor="signatureInput"
+                    </div>
+                  ) : userData?.signature?.url ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "20px",
+                      }}
+                    >
+                      <img
+                        src={userData.signature}
+                        alt="Current Signature"
                         style={{
-                          padding: "10px 20px",
-                          backgroundColor: "#3b82f6",
-                          color: "#ffffff",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          transition: "background-color 0.2s",
+                          maxWidth: "250px",
+                          height: "auto",
+                          border: "1px solid #e5e7eb",
+                          borderRadius: "4px",
+                          padding: "4px",
+                          backgroundColor: "#f9fafb",
                         }}
-                        onMouseOver={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#2563eb")
-                        }
-                        onMouseOut={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#3b82f6")
-                        }
-                      >
-                        Change
-                      </label>
+                      />
+                      <div style={{ display: "flex", gap: "10px" }}>
+                        <button
+                          type="button"
+                          style={{
+                            padding: "10px 20px",
+                            backgroundColor: "#ef4444",
+                            color: "#ffffff",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            transition: "background-color 0.2s",
+                          }}
+                          onMouseOver={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#dc2626")
+                          }
+                          onMouseOut={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#ef4444")
+                          }
+                          onClick={() => {
+                            setCropSignature(null);
+                            validation.setFieldValue("signature", "");
+                          }}
+                        >
+                          Remove
+                        </button>
+                        <label
+                          htmlFor="signatureInput"
+                          style={{
+                            padding: "10px 20px",
+                            backgroundColor: "#3b82f6",
+                            color: "#ffffff",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            transition: "background-color 0.2s",
+                          }}
+                          onMouseOver={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#2563eb")
+                          }
+                          onMouseOut={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#3b82f6")
+                          }
+                        >
+                          Change
+                        </label>
+                        <input
+                          id="signatureInput"
+                          type="file"
+                          accept="image/*"
+                          style={{ display: "none" }}
+                          onChange={onSignatureChange}
+                        />
+                      </div>
+                    </div>
+                  ) : (
+                    <div>
                       <input
-                        id="signatureInput"
                         type="file"
                         accept="image/*"
-                        style={{ display: "none" }}
+                        style={{
+                          padding: "10px",
+                          border: "1px solid #d1d5db",
+                          borderRadius: "6px",
+                          fontSize: "15px",
+                          outline: "none",
+                          width: "100%",
+                          backgroundColor: "#ffffff",
+                          transition: "border-color 0.2s",
+                        }}
+                        onFocus={(e) =>
+                          (e.target.style.border = "1px solid #3b82f6")
+                        }
+                        onBlur={(e) =>
+                          (e.target.style.border = "1px solid #d1d5db")
+                        }
                         onChange={onSignatureChange}
                       />
-                    </div>
-                  </div>
-                ) : (
-                  <div>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      style={{
-                        padding: "10px",
-                        border: "1px solid #d1d5db",
-                        borderRadius: "6px",
-                        fontSize: "15px",
-                        outline: "none",
-                        width: "100%",
-                        backgroundColor: "#ffffff",
-                        transition: "border-color 0.2s",
-                      }}
-                      onFocus={(e) =>
-                        (e.target.style.border = "1px solid #3b82f6")
-                      }
-                      onBlur={(e) =>
-                        (e.target.style.border = "1px solid #d1d5db")
-                      }
-                      onChange={onSignatureChange}
-                    />
-                    <p
-                      style={{
-                        fontSize: "13px",
-                        color: "#6b7280",
-                        marginTop: "8px",
-                      }}
-                    >
-                      Upload a clear signature image (PNG format recommended)
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Patient Concerns
-                </label>
-                <CreatableSelect
-                  isMulti
-                  name="patientsConcern"
-                  options={options}
-                  classNamePrefix="react-select"
-                  onChange={handleChange}
-                  onCreateOption={handleCreate}
-                  value={validation.values.patientsConcern || []}
-                />
-                {validation.touched.patientsConcern &&
-                  validation.errors.patientsConcern && (
-                    <p
-                      style={{
-                        color: "#ef4444",
-                        fontSize: "13px",
-                        marginTop: "6px",
-                      }}
-                    >
-                      {validation.errors.patientsConcern}
-                    </p>
-                  )}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Degrees
-                </label>
-                <input
-                  type="text"
-                  name="degrees"
-                  placeholder="Enter degrees"
-                  style={{
-                    padding: "10px",
-                    border: `1px solid ${
-                      validation.touched.degrees && validation.errors.degrees
-                        ? "#ef4444"
-                        : "#d1d5db"
-                    }`,
-                    borderRadius: "6px",
-                    fontSize: "15px",
-                    outline: "none",
-                    width: "100%",
-                    backgroundColor: "#ffffff",
-                    transition: "border-color 0.2s",
-                  }}
-                  onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
-                  onBlur={(e) => {
-                    e.target.style.border = `1px solid ${
-                      validation.touched.degrees && validation.errors.degrees
-                        ? "#ef4444"
-                        : "#d1d5db"
-                    }`;
-                    validation.handleBlur(e);
-                  }}
-                  onChange={validation.handleChange}
-                  value={validation.values.degrees || ""}
-                />
-                {validation.touched.degrees && validation.errors.degrees && (
-                  <p
-                    style={{
-                      color: "#ef4444",
-                      fontSize: "13px",
-                      marginTop: "6px",
-                    }}
-                  >
-                    {validation.errors.degrees}
-                  </p>
-                )}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Languages Spoken
-                </label>
-                <CreatableSelect
-                  isMulti
-                  name="languages"
-                  options={languages}
-                  classNamePrefix="react-select"
-                  onChange={handleLanChange}
-                  onCreateOption={handleLanCreate}
-                  value={validation.values.languages || []}
-                />
-                {validation.touched.languages &&
-                  validation.errors.languages && (
-                    <p
-                      style={{
-                        color: "#ef4444",
-                        fontSize: "13px",
-                        marginTop: "6px",
-                      }}
-                    >
-                      {validation.errors.languages}
-                    </p>
-                  )}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Speciality
-                </label>
-                <input
-                  type="text"
-                  name="speciality"
-                  placeholder="Enter speciality"
-                  style={{
-                    padding: "10px",
-                    border: `1px solid ${
-                      validation.touched.speciality &&
-                      validation.errors.speciality
-                        ? "#ef4444"
-                        : "#d1d5db"
-                    }`,
-                    borderRadius: "6px",
-                    fontSize: "15px",
-                    outline: "none",
-                    width: "100%",
-                    backgroundColor: "#ffffff",
-                    transition: "border-color 0.2s",
-                  }}
-                  onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
-                  onBlur={(e) => {
-                    e.target.style.border = `1px solid ${
-                      validation.touched.speciality &&
-                      validation.errors.speciality
-                        ? "#ef4444"
-                        : "#d1d5db"
-                    }`;
-                    validation.handleBlur(e);
-                  }}
-                  onChange={validation.handleChange}
-                  value={validation.values.speciality || ""}
-                />
-                {validation.touched.speciality &&
-                  validation.errors.speciality && (
-                    <p
-                      style={{
-                        color: "#ef4444",
-                        fontSize: "13px",
-                        marginTop: "6px",
-                      }}
-                    >
-                      {validation.errors.speciality}
-                    </p>
-                  )}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Registration Number
-                </label>
-                <input
-                  type="text"
-                  name="registrationNo"
-                  placeholder="Enter registration number"
-                  style={{
-                    padding: "10px",
-                    border: `1px solid ${
-                      validation.touched.registrationNo &&
-                      validation.errors.registrationNo
-                        ? "#ef4444"
-                        : "#d1d5db"
-                    }`,
-                    borderRadius: "6px",
-                    fontSize: "15px",
-                    outline: "none",
-                    width: "100%",
-                    backgroundColor: "#ffffff",
-                    transition: "border-color 0.2s",
-                  }}
-                  onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
-                  onBlur={(e) => {
-                    e.target.style.border = `1px solid ${
-                      validation.touched.registrationNo &&
-                      validation.errors.registrationNo
-                        ? "#ef4444"
-                        : "#d1d5db"
-                    }`;
-                    validation.handleBlur(e);
-                  }}
-                  onChange={validation.handleChange}
-                  value={validation.values.registrationNo || ""}
-                />
-                {validation.touched.registrationNo &&
-                  validation.errors.registrationNo && (
-                    <p
-                      style={{
-                        color: "#ef4444",
-                        fontSize: "13px",
-                        marginTop: "6px",
-                      }}
-                    >
-                      {validation.errors.registrationNo}
-                    </p>
-                  )}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Unit
-                </label>
-                <input
-                  type="text"
-                  name="unit"
-                  placeholder="Enter Unit"
-                  style={{
-                    padding: "10px",
-                    border: `1px solid ${
-                      validation.touched.unit && validation.errors.unit
-                        ? "#ef4444"
-                        : "#d1d5db"
-                    }`,
-                    borderRadius: "6px",
-                    fontSize: "15px",
-                    outline: "none",
-                    width: "100%",
-                    backgroundColor: "#ffffff",
-                    transition: "border-color 0.2s",
-                  }}
-                  onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
-                  onBlur={(e) => {
-                    e.target.style.border = `1px solid ${
-                      validation.touched.unit && validation.errors.unit
-                        ? "#ef4444"
-                        : "#d1d5db"
-                    }`;
-                    validation.handleBlur(e);
-                  }}
-                  onChange={validation.handleChange}
-                  value={validation.values.unit || ""}
-                />
-                {validation.touched.unit && validation.errors.unit && (
-                  <p
-                    style={{
-                      color: "#ef4444",
-                      fontSize: "13px",
-                      marginTop: "6px",
-                    }}
-                  >
-                    {validation.errors.unit}
-                  </p>
-                )}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Bio
-                </label>
-                <textarea
-                  name="bio"
-                  placeholder="Enter bio"
-                  style={{
-                    padding: "10px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "6px",
-                    fontSize: "15px",
-                    outline: "none",
-                    width: "100%",
-                    minHeight: "120px",
-                    backgroundColor: "#ffffff",
-                    transition: "border-color 0.2s",
-                  }}
-                  onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
-                  onBlur={(e) => {
-                    e.target.style.border = "1px solid #d1d5db";
-                    validation.handleBlur(e);
-                  }}
-                  onChange={validation.handleChange}
-                  value={validation.values.bio || ""}
-                />
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Expertise
-                </label>
-                <CreatableSelect
-                  isMulti
-                  name="expertise"
-                  options={expertise}
-                  classNamePrefix="react-select"
-                  onChange={handleExpertiseChange}
-                  onCreateOption={handleExpertiseCreate}
-                  value={validation.values.expertise || []}
-                />
-                {validation.touched.expertise &&
-                  validation.errors.expertise && (
-                    <p
-                      style={{
-                        color: "#ef4444",
-                        fontSize: "13px",
-                        marginTop: "6px",
-                      }}
-                    >
-                      {validation.errors.expertise}
-                    </p>
-                  )}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Conditions
-                </label>
-                <CreatableSelect
-                  isMulti
-                  name="conditions"
-                  options={mergedConditionOptions}
-                  classNamePrefix="react-select"
-                  onChange={handleConditionChange}
-                  onCreateOption={handleConditionCreate}
-                  value={validation.values.conditions || []}
-                />
-                {validation.touched.conditions &&
-                  validation.errors.conditions && (
-                    <p
-                      style={{
-                        color: "#ef4444",
-                        fontSize: "13px",
-                        marginTop: "6px",
-                      }}
-                    >
-                      {validation.errors.conditions}
-                    </p>
-                  )}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Therapies
-                </label>
-                <CreatableSelect
-                  isMulti
-                  name="therapies"
-                  options={mergedTherapyOptions}
-                  classNamePrefix="react-select"
-                  onChange={handleTherapiesChange}
-                  onCreateOption={handleTherapiesCreate}
-                  value={validation.values.therapies || []}
-                />
-                {validation.touched.therapies &&
-                  validation.errors.therapies && (
-                    <p
-                      style={{
-                        color: "#ef4444",
-                        fontSize: "13px",
-                        marginTop: "6px",
-                      }}
-                    >
-                      {validation.errors.therapies}
-                    </p>
-                  )}
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "10px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  Years of Experience
-                </label>
-                <input
-                  type="text"
-                  name="experience"
-                  placeholder="Enter years of experience"
-                  style={{
-                    padding: "10px",
-                    border: "1px solid #d1d5db",
-                    borderRadius: "6px",
-                    fontSize: "15px",
-                    outline: "none",
-                    width: "100%",
-                    backgroundColor: "#ffffff",
-                    transition: "border-color 0.2s",
-                  }}
-                  onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
-                  onBlur={(e) => {
-                    e.target.style.border = "1px solid #d1d5db";
-                    validation.handleBlur(e);
-                  }}
-                  onChange={validation.handleChange}
-                  value={validation.values.experience || ""}
-                />
-              </div>
-
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "16px",
-                }}
-              >
-                <label
-                  style={{
-                    fontSize: "15px",
-                    fontWeight: "500",
-                    color: "#374151",
-                  }}
-                >
-                  FAQs
-                </label>
-                {faqs.map((faq, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      display: "grid",
-                      gridTemplateColumns: "1fr 1fr",
-                      gap: "20px",
-                      padding: "20px",
-                      backgroundColor: "#f9fafb",
-                      borderRadius: "8px",
-                      marginBottom: "20px",
-                    }}
-                  >
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                      }}
-                    >
-                      <label
+                      <p
                         style={{
-                          fontSize: "15px",
-                          fontWeight: "500",
-                          color: "#374151",
+                          fontSize: "13px",
+                          color: "#6b7280",
+                          marginTop: "8px",
                         }}
                       >
-                        Question
-                      </label>
-                      <input
-                        type="text"
-                        name="question"
-                        placeholder="Enter question"
-                        style={{
-                          padding: "10px",
-                          border: "1px solid #d1d5db",
-                          borderRadius: "6px",
-                          fontSize: "15px",
-                          outline: "none",
-                          width: "100%",
-                          backgroundColor: "#ffffff",
-                          transition: "border-color 0.2s",
-                        }}
-                        onFocus={(e) =>
-                          (e.target.style.border = "1px solid #3b82f6")
-                        }
-                        onBlur={(e) =>
-                          (e.target.style.border = "1px solid #d1d5db")
-                        }
-                        onChange={(e) => handleFaqChange(i, e)}
-                        value={faq.question || ""}
-                      />
+                        Upload a clear signature image (PNG format recommended)
+                      </p>
                     </div>
-                    <div
-                      style={{
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: "10px",
-                      }}
-                    >
-                      <label
-                        style={{
-                          fontSize: "15px",
-                          fontWeight: "500",
-                          color: "#374151",
-                        }}
-                      >
-                        Answer
-                      </label>
-                      <textarea
-                        name="answer"
-                        placeholder="Enter answer"
-                        style={{
-                          padding: "10px",
-                          border: "1px solid #d1d5db",
-                          borderRadius: "6px",
-                          fontSize: "15px",
-                          outline: "none",
-                          width: "100%",
-                          minHeight: "100px",
-                          backgroundColor: "#ffffff",
-                          transition: "border-color 0.2s",
-                        }}
-                        onFocus={(e) =>
-                          (e.target.style.border = "1px solid #3b82f6")
-                        }
-                        onBlur={(e) =>
-                          (e.target.style.border = "1px solid #d1d5db")
-                        }
-                        onChange={(e) => handleFaqChange(i, e)}
-                        value={faq.answer || ""}
-                      />
-                    </div>
-                    <div
-                      style={{
-                        gridColumn: "1 / -1",
-                        display: "flex",
-                        justifyContent: "flex-end",
-                      }}
-                    >
-                      <button
-                        type="button"
-                        style={{
-                          padding: "10px 16px",
-                          backgroundColor: "#ef4444",
-                          color: "#ffffff",
-                          borderRadius: "6px",
-                          cursor: "pointer",
-                          transition: "background-color 0.2s",
-                        }}
-                        onMouseOver={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#dc2626")
-                        }
-                        onMouseOut={(e) =>
-                          (e.currentTarget.style.backgroundColor = "#ef4444")
-                        }
-                        onClick={() =>
-                          setFaqs(faqs.filter((_, index) => index !== i))
-                        }
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  </div>
-                ))}
-                <button
-                  type="button"
+                  )}
+                </div>
+
+                <div
                   style={{
-                    padding: "10px 20px",
-                    backgroundColor: "#3b82f6",
-                    color: "#ffffff",
-                    borderRadius: "6px",
-                    cursor: "pointer",
-                    transition: "background-color 0.2s",
-                    alignSelf: "flex-start",
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
                   }}
-                  onMouseOver={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#2563eb")
-                  }
-                  onMouseOut={(e) =>
-                    (e.currentTarget.style.backgroundColor = "#3b82f6")
-                  }
-                  onClick={() =>
-                    setFaqs([...faqs, { question: "", answer: "" }])
-                  }
                 >
-                  Add FAQ
-                </button>
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Patient Concerns
+                  </label>
+                  <CreatableSelect
+                    isMulti
+                    name="patientsConcern"
+                    options={options}
+                    classNamePrefix="react-select"
+                    onChange={handleChange}
+                    onCreateOption={handleCreate}
+                    value={validation.values.patientsConcern || []}
+                  />
+                  {validation.touched.patientsConcern &&
+                    validation.errors.patientsConcern && (
+                      <p
+                        style={{
+                          color: "#ef4444",
+                          fontSize: "13px",
+                          marginTop: "6px",
+                        }}
+                      >
+                        {validation.errors.patientsConcern}
+                      </p>
+                    )}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Degrees
+                  </label>
+                  <input
+                    type="text"
+                    name="degrees"
+                    placeholder="Enter degrees"
+                    style={{
+                      padding: "10px",
+                      border: `1px solid ${validation.touched.degrees && validation.errors.degrees
+                        ? "#ef4444"
+                        : "#d1d5db"
+                        }`,
+                      borderRadius: "6px",
+                      fontSize: "15px",
+                      outline: "none",
+                      width: "100%",
+                      backgroundColor: "#ffffff",
+                      transition: "border-color 0.2s",
+                    }}
+                    onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
+                    onBlur={(e) => {
+                      e.target.style.border = `1px solid ${validation.touched.degrees && validation.errors.degrees
+                        ? "#ef4444"
+                        : "#d1d5db"
+                        }`;
+                      validation.handleBlur(e);
+                    }}
+                    onChange={validation.handleChange}
+                    value={validation.values.degrees || ""}
+                  />
+                  {validation.touched.degrees && validation.errors.degrees && (
+                    <p
+                      style={{
+                        color: "#ef4444",
+                        fontSize: "13px",
+                        marginTop: "6px",
+                      }}
+                    >
+                      {validation.errors.degrees}
+                    </p>
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Languages Spoken
+                  </label>
+                  <CreatableSelect
+                    isMulti
+                    name="languages"
+                    options={languages}
+                    classNamePrefix="react-select"
+                    onChange={handleLanChange}
+                    onCreateOption={handleLanCreate}
+                    value={validation.values.languages || []}
+                  />
+                  {validation.touched.languages &&
+                    validation.errors.languages && (
+                      <p
+                        style={{
+                          color: "#ef4444",
+                          fontSize: "13px",
+                          marginTop: "6px",
+                        }}
+                      >
+                        {validation.errors.languages}
+                      </p>
+                    )}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Speciality
+                  </label>
+                  <input
+                    type="text"
+                    name="speciality"
+                    placeholder="Enter speciality"
+                    style={{
+                      padding: "10px",
+                      border: `1px solid ${validation.touched.speciality &&
+                        validation.errors.speciality
+                        ? "#ef4444"
+                        : "#d1d5db"
+                        }`,
+                      borderRadius: "6px",
+                      fontSize: "15px",
+                      outline: "none",
+                      width: "100%",
+                      backgroundColor: "#ffffff",
+                      transition: "border-color 0.2s",
+                    }}
+                    onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
+                    onBlur={(e) => {
+                      e.target.style.border = `1px solid ${validation.touched.speciality &&
+                        validation.errors.speciality
+                        ? "#ef4444"
+                        : "#d1d5db"
+                        }`;
+                      validation.handleBlur(e);
+                    }}
+                    onChange={validation.handleChange}
+                    value={validation.values.speciality || ""}
+                  />
+                  {validation.touched.speciality &&
+                    validation.errors.speciality && (
+                      <p
+                        style={{
+                          color: "#ef4444",
+                          fontSize: "13px",
+                          marginTop: "6px",
+                        }}
+                      >
+                        {validation.errors.speciality}
+                      </p>
+                    )}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Registration Number
+                  </label>
+                  <input
+                    type="text"
+                    name="registrationNo"
+                    placeholder="Enter registration number"
+                    style={{
+                      padding: "10px",
+                      border: `1px solid ${validation.touched.registrationNo &&
+                        validation.errors.registrationNo
+                        ? "#ef4444"
+                        : "#d1d5db"
+                        }`,
+                      borderRadius: "6px",
+                      fontSize: "15px",
+                      outline: "none",
+                      width: "100%",
+                      backgroundColor: "#ffffff",
+                      transition: "border-color 0.2s",
+                    }}
+                    onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
+                    onBlur={(e) => {
+                      e.target.style.border = `1px solid ${validation.touched.registrationNo &&
+                        validation.errors.registrationNo
+                        ? "#ef4444"
+                        : "#d1d5db"
+                        }`;
+                      validation.handleBlur(e);
+                    }}
+                    onChange={validation.handleChange}
+                    value={validation.values.registrationNo || ""}
+                  />
+                  {validation.touched.registrationNo &&
+                    validation.errors.registrationNo && (
+                      <p
+                        style={{
+                          color: "#ef4444",
+                          fontSize: "13px",
+                          marginTop: "6px",
+                        }}
+                      >
+                        {validation.errors.registrationNo}
+                      </p>
+                    )}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Unit
+                  </label>
+                  <input
+                    type="text"
+                    name="unit"
+                    placeholder="Enter Unit"
+                    style={{
+                      padding: "10px",
+                      border: `1px solid ${validation.touched.unit && validation.errors.unit
+                        ? "#ef4444"
+                        : "#d1d5db"
+                        }`,
+                      borderRadius: "6px",
+                      fontSize: "15px",
+                      outline: "none",
+                      width: "100%",
+                      backgroundColor: "#ffffff",
+                      transition: "border-color 0.2s",
+                    }}
+                    onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
+                    onBlur={(e) => {
+                      e.target.style.border = `1px solid ${validation.touched.unit && validation.errors.unit
+                        ? "#ef4444"
+                        : "#d1d5db"
+                        }`;
+                      validation.handleBlur(e);
+                    }}
+                    onChange={validation.handleChange}
+                    value={validation.values.unit || ""}
+                  />
+                  {validation.touched.unit && validation.errors.unit && (
+                    <p
+                      style={{
+                        color: "#ef4444",
+                        fontSize: "13px",
+                        marginTop: "6px",
+                      }}
+                    >
+                      {validation.errors.unit}
+                    </p>
+                  )}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Bio
+                  </label>
+                  <textarea
+                    name="bio"
+                    placeholder="Enter bio"
+                    style={{
+                      padding: "10px",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "6px",
+                      fontSize: "15px",
+                      outline: "none",
+                      width: "100%",
+                      minHeight: "120px",
+                      backgroundColor: "#ffffff",
+                      transition: "border-color 0.2s",
+                    }}
+                    onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
+                    onBlur={(e) => {
+                      e.target.style.border = "1px solid #d1d5db";
+                      validation.handleBlur(e);
+                    }}
+                    onChange={validation.handleChange}
+                    value={validation.values.bio || ""}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Expertise
+                  </label>
+                  <CreatableSelect
+                    isMulti
+                    name="expertise"
+                    options={expertise}
+                    classNamePrefix="react-select"
+                    onChange={handleExpertiseChange}
+                    onCreateOption={handleExpertiseCreate}
+                    value={validation.values.expertise || []}
+                  />
+                  {validation.touched.expertise &&
+                    validation.errors.expertise && (
+                      <p
+                        style={{
+                          color: "#ef4444",
+                          fontSize: "13px",
+                          marginTop: "6px",
+                        }}
+                      >
+                        {validation.errors.expertise}
+                      </p>
+                    )}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Conditions
+                  </label>
+                  <CreatableSelect
+                    isMulti
+                    name="conditions"
+                    options={mergedConditionOptions}
+                    classNamePrefix="react-select"
+                    onChange={handleConditionChange}
+                    onCreateOption={handleConditionCreate}
+                    value={validation.values.conditions || []}
+                  />
+                  {validation.touched.conditions &&
+                    validation.errors.conditions && (
+                      <p
+                        style={{
+                          color: "#ef4444",
+                          fontSize: "13px",
+                          marginTop: "6px",
+                        }}
+                      >
+                        {validation.errors.conditions}
+                      </p>
+                    )}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Therapies
+                  </label>
+                  <CreatableSelect
+                    isMulti
+                    name="therapies"
+                    options={mergedTherapyOptions}
+                    classNamePrefix="react-select"
+                    onChange={handleTherapiesChange}
+                    onCreateOption={handleTherapiesCreate}
+                    value={validation.values.therapies || []}
+                  />
+                  {validation.touched.therapies &&
+                    validation.errors.therapies && (
+                      <p
+                        style={{
+                          color: "#ef4444",
+                          fontSize: "13px",
+                          marginTop: "6px",
+                        }}
+                      >
+                        {validation.errors.therapies}
+                      </p>
+                    )}
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "10px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    Years of Experience
+                  </label>
+                  <input
+                    type="text"
+                    name="experience"
+                    placeholder="Enter years of experience"
+                    style={{
+                      padding: "10px",
+                      border: "1px solid #d1d5db",
+                      borderRadius: "6px",
+                      fontSize: "15px",
+                      outline: "none",
+                      width: "100%",
+                      backgroundColor: "#ffffff",
+                      transition: "border-color 0.2s",
+                    }}
+                    onFocus={(e) => (e.target.style.border = "1px solid #3b82f6")}
+                    onBlur={(e) => {
+                      e.target.style.border = "1px solid #d1d5db";
+                      validation.handleBlur(e);
+                    }}
+                    onChange={validation.handleChange}
+                    value={validation.values.experience || ""}
+                  />
+                </div>
+
+                <div
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    gap: "16px",
+                  }}
+                >
+                  <label
+                    style={{
+                      fontSize: "15px",
+                      fontWeight: "500",
+                      color: "#374151",
+                    }}
+                  >
+                    FAQs
+                  </label>
+                  {faqs.map((faq, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: "grid",
+                        gridTemplateColumns: "1fr 1fr",
+                        gap: "20px",
+                        padding: "20px",
+                        backgroundColor: "#f9fafb",
+                        borderRadius: "8px",
+                        marginBottom: "20px",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
+                        <label
+                          style={{
+                            fontSize: "15px",
+                            fontWeight: "500",
+                            color: "#374151",
+                          }}
+                        >
+                          Question
+                        </label>
+                        <input
+                          type="text"
+                          name="question"
+                          placeholder="Enter question"
+                          style={{
+                            padding: "10px",
+                            border: "1px solid #d1d5db",
+                            borderRadius: "6px",
+                            fontSize: "15px",
+                            outline: "none",
+                            width: "100%",
+                            backgroundColor: "#ffffff",
+                            transition: "border-color 0.2s",
+                          }}
+                          onFocus={(e) =>
+                            (e.target.style.border = "1px solid #3b82f6")
+                          }
+                          onBlur={(e) =>
+                            (e.target.style.border = "1px solid #d1d5db")
+                          }
+                          onChange={(e) => handleFaqChange(i, e)}
+                          value={faq.question || ""}
+                        />
+                      </div>
+                      <div
+                        style={{
+                          display: "flex",
+                          flexDirection: "column",
+                          gap: "10px",
+                        }}
+                      >
+                        <label
+                          style={{
+                            fontSize: "15px",
+                            fontWeight: "500",
+                            color: "#374151",
+                          }}
+                        >
+                          Answer
+                        </label>
+                        <textarea
+                          name="answer"
+                          placeholder="Enter answer"
+                          style={{
+                            padding: "10px",
+                            border: "1px solid #d1d5db",
+                            borderRadius: "6px",
+                            fontSize: "15px",
+                            outline: "none",
+                            width: "100%",
+                            minHeight: "100px",
+                            backgroundColor: "#ffffff",
+                            transition: "border-color 0.2s",
+                          }}
+                          onFocus={(e) =>
+                            (e.target.style.border = "1px solid #3b82f6")
+                          }
+                          onBlur={(e) =>
+                            (e.target.style.border = "1px solid #d1d5db")
+                          }
+                          onChange={(e) => handleFaqChange(i, e)}
+                          value={faq.answer || ""}
+                        />
+                      </div>
+                      <div
+                        style={{
+                          gridColumn: "1 / -1",
+                          display: "flex",
+                          justifyContent: "flex-end",
+                        }}
+                      >
+                        <button
+                          type="button"
+                          style={{
+                            padding: "10px 16px",
+                            backgroundColor: "#ef4444",
+                            color: "#ffffff",
+                            borderRadius: "6px",
+                            cursor: "pointer",
+                            transition: "background-color 0.2s",
+                          }}
+                          onMouseOver={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#dc2626")
+                          }
+                          onMouseOut={(e) =>
+                            (e.currentTarget.style.backgroundColor = "#ef4444")
+                          }
+                          onClick={() =>
+                            setFaqs(faqs.filter((_, index) => index !== i))
+                          }
+                        >
+                          Remove
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  <button
+                    type="button"
+                    style={{
+                      padding: "10px 20px",
+                      backgroundColor: "#3b82f6",
+                      color: "#ffffff",
+                      borderRadius: "6px",
+                      cursor: "pointer",
+                      transition: "background-color 0.2s",
+                      alignSelf: "flex-start",
+                    }}
+                    onMouseOver={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#2563eb")
+                    }
+                    onMouseOut={(e) =>
+                      (e.currentTarget.style.backgroundColor = "#3b82f6")
+                    }
+                    onClick={() =>
+                      setFaqs([...faqs, { question: "", answer: "" }])
+                    }
+                  >
+                    Add FAQ
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
 
           <div
             style={{

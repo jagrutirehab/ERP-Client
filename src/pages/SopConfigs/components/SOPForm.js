@@ -43,6 +43,7 @@ const hydrateSchedule = (s) => {
     return {
       period: PERIOD_OPTIONS[0],
       days: [],
+      daysOnwards: false,
       intervalHours: "",
       graceHours: 0,
     };
@@ -50,6 +51,7 @@ const hydrateSchedule = (s) => {
   return {
     period: findOpt(PERIOD_OPTIONS, s.period) || PERIOD_OPTIONS[0],
     days: Array.isArray(s.days) ? s.days.filter((n) => Number.isFinite(n)) : [],
+    daysOnwards: !!s.daysOnwards,
     intervalHours: s.intervalHours != null ? String(s.intervalHours) : "",
     graceHours: s.graceHours != null ? Number(s.graceHours) : 0,
   };
@@ -374,6 +376,8 @@ const SOPForm = ({
             .filter((n) => Number.isInteger(n) && n >= 0)
             .sort((a, b) => a - b)
         : [];
+      // "onwards": due every day after the highest listed day.
+      out.daysOnwards = !!s.daysOnwards;
       // intervalHours is optional for DAYS — if set, sub-divides each day.
       if (interval != null && interval > 0) out.intervalHours = interval;
     }
