@@ -50,6 +50,12 @@ import Se03RestraintSeclusionGovernance from "./Prints/SE-03_Restraint_Seclusion
 import Se04MedicalEmergencyIcuEscalation from "./Prints/SE-04_Medical_Emergency_ICU_Escalation";
 import Cc07EctGovernanceSOP from "./Prints/CC-07_ECT_Governance_SOP";
 import JagrutiiAlcoholWithdrawalProtocolV2 from "./Prints/Jagruti_Alcohol_Withdrawal_Protocol_V2";
+import PsCl01PPolysubstanceUseDisorder from "./Prints/PS-CL-01-P_Polysubstance_Use_Disorder";
+import PsCl01CPolysubstanceCounsellingProgramme from "./Prints/PS-CL-01-C_Polysubstance_Counselling_Programme";
+import SczCl01PSchizophreniaPharmacological from "./Prints/SCZ-CL-01-P_Schizophrenia_Pharmacological";
+import Cl05CAlcoholCounsellingProgramme from "./Prints/CL-05-C_Alcohol_Counselling_Programme";
+import Cl05PAlcoholPharmacological from "./Prints/CL-05-P_Alcohol_Pharmacological";
+import SczCl01CSchizophreniaRehabilitation from "./Prints/SCZ-CL-01-C_Schizophrenia_Rehabilitation";
 import Select from "react-select";
 
 const guidelines = [
@@ -355,6 +361,30 @@ const guidelines = [
     category: "clinical sops",
   },
   {
+    id: 53,
+    name: "CL-05-C — Counselling & Psychosocial Programme: Alcohol De-Addiction",
+    description:
+      "12-Day Detox Phase + 33-Day Therapeutic Phase (45 Days Total | 5 Clinical Phases) — core therapeutic modalities (MET, CBT, MBRP, 12-Step, FST, MGRP, NT, DBT, OT, PSE), MDT counselling roles, standard daily routine, day-by-day counselling schedule across all 45 days, 9-session family programme, outcome measurement schedule (AUDIT, CAGE, PACS, PHQ-9, GAD-7, URICA, WHO-5), documentation requirements, and KPIs.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "De-Addiction Protocol",
+    print: Cl05CAlcoholCounsellingProgramme,
+    link: "cl-05-c-alcohol-counselling-programme",
+    category: "clinical sops",
+  },
+  {
+    id: 54,
+    name: "CL-05-P — Pharmacological Protocol: Alcohol Withdrawal & De-Addiction Management",
+    description:
+      "12-Day Extended Detox + Post-Withdrawal Maintenance (Days 13–45) — admission assessment (intoxicated state, baseline investigations), CDZ fixed-dose taper (standard adult & elderly ≥ 60 yrs), CIWA-Ar guided PRN protocol, antiepileptics (Levetiracetam/Carbamazepine), general/supportive medicines (Thiamine IV mandatory, B-Plex, Magnesium, Pantoprazole, Udiliv, IV Fluids), hepatic encephalopathy protocol (Rifagut, Duphalac, Lornit), post-withdrawal maintenance (Acamprosate, Topiramate, Baclofen, Naltrexone, Gabapentin, SSRI), discharge prescription (Disulfiram consent requirement), monitoring schedule, and KPIs.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "De-Addiction Protocol",
+    print: Cl05PAlcoholPharmacological,
+    link: "cl-05-p-alcohol-pharmacological",
+    category: "clinical sops",
+  },
+  {
     id: 26,
     name: "CL-06 — Opioid Use Disorder & Withdrawal",
     description:
@@ -631,6 +661,30 @@ const guidelines = [
     category: "clinical sops",
   },
   {
+    id: 50,
+    name: "PS-CL-01-P — Pharmacological Protocol: Polysubstance Use Disorder",
+    description:
+      "15-Day Extended Detox + 75-Day Post-Withdrawal Maintenance (90-Day Total Programme) — substance use profile mapping (Alcohol/Opioids/Cannabis/Stimulants/BZD/Inhalants), mandatory baseline investigations, CDZ taper (standard & elderly), Buprenorphine-Naloxone induction & taper, stimulant/cannabis symptomatic management, hepatic encephalopathy protocol, monitoring schedule, post-withdrawal maintenance (MAT, anticraving, SSRI), discharge prescription, lab-deviation adjustments, and KPIs.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "De-Addiction Protocol",
+    print: PsCl01PPolysubstanceUseDisorder,
+    link: "ps-cl-01-p-polysubstance-use-disorder",
+    category: "clinical sops",
+  },
+  {
+    id: 51,
+    name: "PS-CL-01-C — Counselling & Psychosocial Programme: Polysubstance Use Disorder",
+    description:
+      "15-Day Detox + 75-Day Therapeutic Phase (90-Day Total | 5 Clinical Phases) — core therapeutic modalities (MET, CBT, MBRP, DBT, 12-Step, FST, MGRP, NT, TF-CBT, OT, PSE), MDT counselling roles, standard daily routine, day-by-day counselling schedule across all 90 days, 16-session family programme, outcome measurement schedule (ASSIST, AUDIT, PHQ-9, GAD-7, URICA, PACS/VACS), documentation requirements, and KPIs.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "De-Addiction Protocol",
+    print: PsCl01CPolysubstanceCounsellingProgramme,
+    link: "ps-cl-01-c-psud-counselling-programme",
+    category: "clinical sops",
+  },
+  {
     id: 49,
     name: "Jagruti — Alcohol Withdrawal Management Protocol V2.0",
     description:
@@ -640,6 +694,30 @@ const guidelines = [
     type: "De-Addiction Protocol",
     print: JagrutiiAlcoholWithdrawalProtocolV2,
     link: "jagruti-alcohol-withdrawal-protocol-v2",
+    category: "clinical sops",
+  },
+  {
+    id: 55,
+    name: "SCZ-CL-01-C — Psychosocial Rehabilitation Programme: Schizophrenia Spectrum Disorders",
+    description:
+      "90-Day Psychosocial Rehabilitation Programme — Phase 1 (Days 1–15 Acute Stabilisation), Phase 2 (Days 16–45 Consolidation & Intensive Rehabilitation), Phase 3 (Days 46–90 Maintenance, Recovery Skills & Discharge Preparation). Integrates CBTp (7 modules), ACT (3 sessions), CogRem (7 modules), SST (7 sessions), Behavioural Family Therapy (18 sessions), WRAP, Relapse Prevention Planning (RPP), and OT/Community Reintegration. Outcome measures: PANSS (9 checkpoints), AIMS, ITAQ, S-QoL 18, MoCA/RBANS, C-SSRS. Day-by-day schedule with MDT roles, standard daily routine, family programme, documentation requirements, and KPIs.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Psychiatric Rehabilitation Protocol",
+    print: SczCl01CSchizophreniaRehabilitation,
+    link: "scz-cl-01-c-schizophrenia-rehabilitation",
+    category: "clinical sops",
+  },
+  {
+    id: 52,
+    name: "SCZ-CL-01-P — Pharmacological Protocol: Schizophrenia Spectrum Disorders",
+    description:
+      "90-Day Programme (Acute Stabilisation D1–15 · Consolidation D16–45 · Maintenance Prep D46–90) — first-line antipsychotic selection & decision tree, dose titration schedule, acute agitation management (oral/IM/refractory), LAI antipsychotics (Risperidone/Paliperidone/Aripiprazole/Haloperidol/Zuclopenthixol Decanoate), Clozapine protocol for treatment-resistant schizophrenia, adjunctive medications, metabolic risk monitoring by antipsychotic, 90-day monitoring schedule, discharge prescription, lab-deviation adjustments, and KPIs.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Psychiatric Protocol",
+    print: SczCl01PSchizophreniaPharmacological,
+    link: "scz-cl-01-p-schizophrenia-pharmacological",
     category: "clinical sops",
   },
 ];

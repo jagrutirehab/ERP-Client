@@ -88,7 +88,7 @@ const AlertsList = ({
     },
     {
       name: "Center",
-      grow: 1,
+      width: "120px",
       cell: (row) => (
         <div {...RC}>
           <small {...RC} className="text-muted">
@@ -99,7 +99,7 @@ const AlertsList = ({
     },
     {
       name: "SOP",
-      grow: 1.5,
+      width: "150px",
       cell: (row) => (
         <div {...RC}>
           <div {...RC} className={row.isRead ? "text-muted" : "fw-semibold"}>
@@ -120,6 +120,60 @@ const AlertsList = ({
           )}
         </div>
       ),
+    },
+    {
+      name: "Routed To",
+      width: "210px",
+      wrap: true,
+      cell: (row) => {
+        const r = row.routing || {};
+        const roles = r.notifyRoles || [];
+        const users = row._specificUsersDetailed || [];
+        const hasAny =
+          roles.length ||
+          users.length ||
+          r.notifyAdmissionDoctor ||
+          r.notifyAdmissionPsychologist;
+        const badgeStyle = {
+          whiteSpace: "normal",
+          wordBreak: "break-word",
+          maxWidth: "100%",
+          textAlign: "left",
+        };
+        return (
+          <div
+            {...RC}
+            className="d-flex flex-wrap gap-1 py-1"
+            style={{ maxWidth: "100%", overflow: "hidden" }}
+          >
+            {roles.map((role) => (
+              <Badge {...RC} key={`role-${role}`} color="info" pill style={badgeStyle}>
+                {role}
+              </Badge>
+            ))}
+            {r.notifyAdmissionDoctor && (
+              <Badge {...RC} color="warning" pill style={badgeStyle}>
+                Patient&apos;s Doctor
+              </Badge>
+            )}
+            {r.notifyAdmissionPsychologist && (
+              <Badge {...RC} color="warning" pill style={badgeStyle}>
+                Patient&apos;s Psychologist
+              </Badge>
+            )}
+            {users.map((u, i) => (
+              <Badge {...RC} key={`user-${i}`} color="secondary" pill style={badgeStyle}>
+                {u}
+              </Badge>
+            ))}
+            {!hasAny && (
+              <small {...RC} className="text-muted">
+                —
+              </small>
+            )}
+          </div>
+        );
+      },
     },
     {
       name: "Message",
