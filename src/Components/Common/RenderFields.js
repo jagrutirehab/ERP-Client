@@ -5,9 +5,7 @@ import Select from "react-select";
 import * as Yup from "yup";
 
 const RenderFields = ({ fields, validation }) => {
-
-
-  console.log('fields', fields)
+  console.log("fields", fields);
 
   return (
     <React.Fragment>
@@ -45,9 +43,11 @@ const RenderFields = ({ fields, validation }) => {
           return (
             <Col key={i + field} xs={12} lg={6}>
               <div className="mb-3">
-                {!field.labelHidden && <Label htmlFor={field.name} className="form-label">
-                  {field.label}
-                </Label>}
+                {!field.labelHidden && (
+                  <Label htmlFor={field.name} className="form-label">
+                    {field.label}
+                  </Label>
+                )}
                 {field.type === "select" ? (
                   <>
                     <Input
@@ -60,7 +60,7 @@ const RenderFields = ({ fields, validation }) => {
                       value={validation.values[field.name] || ""}
                       invalid={
                         validation.touched[field.name] &&
-                          validation.errors[field.name]
+                        validation.errors[field.name]
                           ? true
                           : false
                       }
@@ -89,30 +89,34 @@ const RenderFields = ({ fields, validation }) => {
                       isMulti={field.isMulti || false}
                       value={
                         field.isMulti
-                          ? (field.options || []).filter(opt =>
-                            (validation.values[field.name] || []).includes(opt.value)
-                          )
+                          ? (field.options || []).filter((opt) =>
+                              (validation.values[field.name] || []).includes(
+                                opt.value,
+                              ),
+                            )
                           : (field.options || []).find(
-                            opt => opt.value === validation.values[field.name]
-                          ) || null
+                              (opt) =>
+                                opt.value === validation.values[field.name],
+                            ) || null
                       }
                       onChange={(selected) => {
                         if (field.isMulti) {
                           validation.setFieldValue(
                             field.name,
-                            selected ? selected.map(item => item.value) : []
+                            selected ? selected.map((item) => item.value) : [],
                           );
                         } else {
                           validation.setFieldValue(
                             field.name,
-                            selected ? selected.value : ""
+                            selected ? selected.value : "",
                           );
                         }
                         validation.setFieldTouched(field.name, true);
                       }}
-                      onBlur={() => validation.setFieldTouched(field.name, true)}
+                      onBlur={() =>
+                        validation.setFieldTouched(field.name, true)
+                      }
                       classNamePrefix="react-select"
-
                       styles={{
                         control: (base) => ({
                           ...base,
@@ -133,107 +137,116 @@ const RenderFields = ({ fields, validation }) => {
                           {validation.errors[field.name]}
                         </div>
                       )}
-
                   </>
-                )
-
-                  : field.type === "checkbox" ? (
-                    <>
-                      <div className="d-flex flex-wrap">
-                        {(field.options || []).map((item, idx) => {
-                          return (
-                            <React.Fragment key={idx}>
-                              <div>
-                                <div className="d-flex me-3 mb-2 align-items-center">
-                                  <Input
-                                    className="me-2 mt-0"
-                                    type={field.type}
-                                    name={field.name}
-                                    value={item}
-                                    onChange={validation.handleChange}
-                                    checked={
-                                      Array.isArray(validation.values[field.name]) &&
-                                      validation.values[field.name].includes(item)
-                                    }
-                                  />
-                                  <Label className="form-label fs-6 mb-0">
-                                    {item.charAt(0).toUpperCase() + item.slice(1)}
-                                  </Label>
-                                </div>
-                              </div>
-                            </React.Fragment>
-                          );
-                        })}
-                        {validation.touched[field.name] &&
-                          validation.errors[field.name] && (
-                            <div className="text-danger mt-1" style={{ fontSize: "0.875em" }}>
-                              {validation.errors[field.name]}
-                            </div>
-                          )}
-                      </div>
-                    </>
-                  ) : field.type === "radio" ? (
-                    <div className="d-flex flex-wrap gap-2">
-                      {(field.options || []).map((opt, idx) => {
-                        const value = typeof opt === "string" ? opt : opt.value;
-                        const label = typeof opt === "string" ? capitalizeWords(opt) : opt.label;
-
+                ) : field.type === "checkbox" ? (
+                  <>
+                    <div className="d-flex flex-wrap">
+                      {(field.options || []).map((item, idx) => {
                         return (
-                          <div
-                            key={idx}
-                            className="d-flex align-items-center px-2 py-1"
-                            style={{
-                              cursor: "pointer",
-                              minWidth: "120px",
-                            }}
-                          >
-                            <Input
-                              type="radio"
-                              name={field.name}
-                              value={value}
-                              onChange={validation.handleChange}
-                              checked={validation.values[field.name] === value}
-                              style={{
-                                width: "14px",
-                                height: "14px",
-                                cursor: "pointer",
-                              }}
-                            />
-                            <Label
-                              className="mb-0 ms-1"
-                              style={{
-                                fontSize: "0.85rem",
-                                fontWeight: 500,
-                                cursor: "pointer",
-                                marginTop: "1.5px",
-                              }}
-                            >
-                              {label}
-                            </Label>
-                          </div>
+                          <React.Fragment key={idx}>
+                            <div>
+                              <div className="d-flex me-3 mb-2 align-items-center">
+                                <Input
+                                  className="me-2 mt-0"
+                                  type={field.type}
+                                  name={field.name}
+                                  value={item}
+                                  onChange={validation.handleChange}
+                                  checked={
+                                    Array.isArray(
+                                      validation.values[field.name],
+                                    ) &&
+                                    validation.values[field.name].includes(item)
+                                  }
+                                />
+                                <Label className="form-label fs-6 mb-0">
+                                  {item.charAt(0).toUpperCase() + item.slice(1)}
+                                </Label>
+                              </div>
+                            </div>
+                          </React.Fragment>
                         );
                       })}
+                      {validation.touched[field.name] &&
+                        validation.errors[field.name] && (
+                          <div
+                            className="text-danger mt-1"
+                            style={{ fontSize: "0.875em" }}
+                          >
+                            {validation.errors[field.name]}
+                          </div>
+                        )}
                     </div>
-                  ) : (
-                    <Input
-                      name={field.name}
-                      className="form-control"
-                      placeholder={`Enter ${field.label}`}
-                      type={field.type}
-                      onChange={validation.handleChange}
-                      onBlur={validation.handleBlur}
-                      value={validation.values[field.name] || ""}
-                      invalid={
-                        validation.touched[field.name] &&
-                          validation.errors[field.name]
-                          ? true
-                          : false
-                      }
-                    />
-                  )
-                }
+                  </>
+                ) : field.type === "radio" ? (
+                  <div className="d-flex flex-wrap gap-2">
+                    {(field.options || []).map((opt, idx) => {
+                      const value = typeof opt === "string" ? opt : opt.value;
+                      const label =
+                        typeof opt === "string"
+                          ? capitalizeWords(opt)
+                          : opt.label;
+
+                      return (
+                        <div
+                          key={idx}
+                          className="d-flex align-items-center px-2 py-1"
+                          style={{
+                            cursor: "pointer",
+                            minWidth: "120px",
+                          }}
+                        >
+                          <Input
+                            type="radio"
+                            name={field.name}
+                            value={value}
+                            onChange={validation.handleChange}
+                            checked={validation.values[field.name] === value}
+                            onClick={() => {
+                              if (validation.values[field.name] === value) {
+                                validation.setFieldValue(field.name, "");
+                              }
+                            }}
+                            style={{
+                              width: "14px",
+                              height: "14px",
+                              cursor: "pointer",
+                            }}
+                          />
+                          <Label
+                            className="mb-0 ms-1"
+                            style={{
+                              fontSize: "0.85rem",
+                              fontWeight: 500,
+                              cursor: "pointer",
+                              marginTop: "1.5px",
+                            }}
+                          >
+                            {label}
+                          </Label>
+                        </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <Input
+                    name={field.name}
+                    className="form-control"
+                    placeholder={`Enter ${field.label}`}
+                    type={field.type}
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values[field.name] || ""}
+                    invalid={
+                      validation.touched[field.name] &&
+                      validation.errors[field.name]
+                        ? true
+                        : false
+                    }
+                  />
+                )}
                 {validation.touched[field.name] &&
-                  validation.errors[field.name] ? (
+                validation.errors[field.name] ? (
                   <FormFeedback type="invalid">
                     {validation.errors[field.name]}
                   </FormFeedback>
