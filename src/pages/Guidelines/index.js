@@ -52,6 +52,12 @@ import Se03RestraintSeclusionGovernancePage from "./Guidelines/SE-03_Restraint_S
 import Se04MedicalEmergencyIcuEscalationPage from "./Guidelines/SE-04_Medical_Emergency_ICU_Escalation";
 import Cc07EctGovernanceSOPPage from "./Guidelines/CC-07_ECT_Governance_SOP";
 import JagrutiiAlcoholWithdrawalProtocolV2Page from "./Guidelines/Jagruti_Alcohol_Withdrawal_Protocol_V2";
+import PsCl01PPolysubstanceUseDisorderPage from "./Guidelines/PS-CL-01-P_Polysubstance_Use_Disorder";
+import PsCl01CPolysubstanceCounsellingProgrammePage from "./Guidelines/PS-CL-01-C_Polysubstance_Counselling_Programme";
+import SczCl01PSchizophreniaPharmacologicalPage from "./Guidelines/SCZ-CL-01-P_Schizophrenia_Pharmacological";
+import Cl05CAlcoholCounsellingProgrammePage from "./Guidelines/CL-05-C_Alcohol_Counselling_Programme";
+import Cl05PAlcoholPharmacologicalPage from "./Guidelines/CL-05-P_Alcohol_Pharmacological";
+import SczCl01CSchizophreniaRehabilitationPage from "./Guidelines/SCZ-CL-01-C_Schizophrenia_Rehabilitation";
 // import Main from "./Main";
 // import PatientDetails from "./PatientDetails";
 
@@ -236,6 +242,18 @@ const Guidelines = () => {
                     icon: "bx bx-droplet",
                   },
                   {
+                    id: "cl-05-c-alcohol-counselling-programme",
+                    label: "CL-05-C — Alcohol Counselling Programme",
+                    link: "cl-05-c-alcohol-counselling-programme",
+                    icon: "bx bx-conversation",
+                  },
+                  {
+                    id: "cl-05-p-alcohol-pharmacological",
+                    label: "CL-05-P — Alcohol Pharmacological Protocol",
+                    link: "cl-05-p-alcohol-pharmacological",
+                    icon: "bx bx-capsule",
+                  },
+                  {
                     id: "cl-06-opioid-use-disorder-withdrawal",
                     label: "CL-06 Opioid Use Disorder & Withdrawal",
                     link: "cl-06-opioid-use-disorder-withdrawal",
@@ -379,6 +397,30 @@ const Guidelines = () => {
                     link: "jagruti-alcohol-withdrawal-protocol-v2",
                     icon: "bx bx-capsule",
                   },
+                  {
+                    id: "ps-cl-01-c-psud-counselling-programme",
+                    label: "PS-CL-01-C — PSUD Counselling Programme",
+                    link: "ps-cl-01-c-psud-counselling-programme",
+                    icon: "bx bx-conversation",
+                  },
+                  {
+                    id: "ps-cl-01-p-polysubstance-use-disorder",
+                    label: "PS-CL-01-P — Polysubstance Use Disorder Protocol",
+                    link: "ps-cl-01-p-polysubstance-use-disorder",
+                    icon: "bx bx-capsule",
+                  },
+                  {
+                    id: "scz-cl-01-c-schizophrenia-rehabilitation",
+                    label: "SCZ-CL-01-C — Schizophrenia Rehabilitation Programme",
+                    link: "scz-cl-01-c-schizophrenia-rehabilitation",
+                    icon: "bx bx-brain",
+                  },
+                  {
+                    id: "scz-cl-01-p-schizophrenia-pharmacological",
+                    label: "SCZ-CL-01-P — Schizophrenia Pharmacological Protocol",
+                    link: "scz-cl-01-p-schizophrenia-pharmacological",
+                    icon: "bx bx-brain",
+                  },
                 ]}
               />
               <Routes>
@@ -484,6 +526,14 @@ const Guidelines = () => {
                   element={<Cl05AlcoholUseDisorderWithdrawalPage />}
                 />
                 <Route
+                  path="cl-05-c-alcohol-counselling-programme"
+                  element={<Cl05CAlcoholCounsellingProgrammePage />}
+                />
+                <Route
+                  path="cl-05-p-alcohol-pharmacological"
+                  element={<Cl05PAlcoholPharmacologicalPage />}
+                />
+                <Route
                   path="cl-06-opioid-use-disorder-withdrawal"
                   element={<Cl06OpioidUseDisorderWithdrawalPage />}
                 />
@@ -578,6 +628,22 @@ const Guidelines = () => {
                 <Route
                   path="jagruti-alcohol-withdrawal-protocol-v2"
                   element={<JagrutiiAlcoholWithdrawalProtocolV2Page />}
+                />
+                <Route
+                  path="ps-cl-01-p-polysubstance-use-disorder"
+                  element={<PsCl01PPolysubstanceUseDisorderPage />}
+                />
+                <Route
+                  path="ps-cl-01-c-psud-counselling-programme"
+                  element={<PsCl01CPolysubstanceCounsellingProgrammePage />}
+                />
+                <Route
+                  path="scz-cl-01-c-schizophrenia-rehabilitation"
+                  element={<SczCl01CSchizophreniaRehabilitationPage />}
+                />
+                <Route
+                  path="scz-cl-01-p-schizophrenia-pharmacological"
+                  element={<SczCl01PSchizophreniaPharmacologicalPage />}
                 />
               </Routes>
             </div>

@@ -70,26 +70,36 @@ export const Table = ({ cols, rows }) => (
 );
 
 
-export const ProtocolHeader = ({ heading, clCode, title, icdLine }) => (
-  <div className={`${heading} mb-4`}>
-    <div style={{ display: "flex", alignItems: "stretch", border: `2px solid ${NAVY}`, marginBottom: "1rem" }}>
-      <div style={{ background: NAVY, padding: "12px 16px", flex: 1 }}>
-        <div style={{ color: GOLD, fontWeight: "bold", fontSize: "1rem" }}>JAISWAL REHABILITATION CENTRE</div>
-        <div style={{ color: "#fff", fontWeight: "bold", fontSize: "0.9rem" }}>FOR PSYCHIATRIC &amp; LIFESTYLE (JRCPL)</div>
-        <div style={{ color: "#ccc", fontSize: "0.8rem" }}>Clinical Excellence Framework — Treatment Protocol</div>
+export const ProtocolHeader = ({ heading, clCode, title, icdLine, org, subtitle }) => {
+  const isJagrutii = org === "jagrutii";
+  const tagline = subtitle || (isJagrutii
+    ? "Clinical Excellence Framework — De-Addiction Vertical"
+    : "Clinical Excellence Framework — Treatment Protocol");
+  return (
+    <div className={`${heading} mb-4`}>
+      <div style={{ display: "flex", alignItems: "stretch", border: `2px solid ${NAVY}`, marginBottom: "1rem" }}>
+        <div style={{ background: NAVY, padding: "12px 16px", flex: 1 }}>
+          <div style={{ color: GOLD, fontWeight: "bold", fontSize: "1rem" }}>
+            {isJagrutii ? "JAGRUTII REHAB CENTRE PVT. LTD." : "JAISWAL REHABILITATION CENTRE"}
+          </div>
+          {!isJagrutii && (
+            <div style={{ color: "#fff", fontWeight: "bold", fontSize: "0.9rem" }}>FOR PSYCHIATRIC &amp; LIFESTYLE (JRCPL)</div>
+          )}
+          <div style={{ color: "#ccc", fontSize: "0.8rem" }}>{tagline}</div>
+        </div>
+        <div style={{ background: GOLD, padding: "12px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minWidth: "80px" }}>
+          <div style={{ color: NAVY, fontWeight: "bold", fontSize: "1.6rem", lineHeight: 1 }}>{clCode}</div>
+          <div style={{ color: NAVY, fontSize: "0.75rem", fontWeight: "bold" }}>Version 2.0</div>
+        </div>
       </div>
-      <div style={{ background: GOLD, padding: "12px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minWidth: "80px" }}>
-        <div style={{ color: NAVY, fontWeight: "bold", fontSize: "1.6rem", lineHeight: 1 }}>{clCode}</div>
-        <div style={{ color: NAVY, fontSize: "0.75rem", fontWeight: "bold" }}>Version 2.0</div>
+      <div style={{ border: `1px solid ${NAVY}`, background: "#f5f7fb", padding: "10px", textAlign: "center", marginBottom: "1rem" }}>
+        <div style={{ fontSize: "0.85rem", color: NAVY, fontWeight: "bold", letterSpacing: "0.05em" }}>CLINICAL TREATMENT PROTOCOL</div>
+        <div style={{ fontSize: "1.4rem", fontWeight: "bold", color: NAVY }}>{title}</div>
+        <div style={{ fontSize: "0.8rem", color: "#555", marginTop: "4px" }}>{icdLine}</div>
       </div>
     </div>
-    <div style={{ border: `1px solid ${NAVY}`, background: "#f5f7fb", padding: "10px", textAlign: "center", marginBottom: "1rem" }}>
-      <div style={{ fontSize: "0.85rem", color: NAVY, fontWeight: "bold", letterSpacing: "0.05em" }}>CLINICAL TREATMENT PROTOCOL</div>
-      <div style={{ fontSize: "1.4rem", fontWeight: "bold", color: NAVY }}>{title}</div>
-      <div style={{ fontSize: "0.8rem", color: "#555", marginTop: "4px" }}>{icdLine}</div>
-    </div>
-  </div>
-);
+  );
+};
 
 export const ProtocolControlTable = ({ rows }) => (
   <table className="w-100" style={{ borderCollapse: "collapse", marginBottom: "1rem" }}>
@@ -139,28 +149,30 @@ export const ProtocolApprovalNew = ({ docCode, docTitle }) => (
       <thead>
         <tr>
           <th style={{ ...headCell, width: "33.33%" }}>Prepared By</th>
-          <th style={{ ...headCell, width: "33.33%" }}>Reviewed By</th>
+          <th style={{ ...headCell, width: "33.33%" }}>COO Authorisation</th>
           <th style={{ ...headCell, width: "33.33%" }}>Approved By</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td style={cell}>Clinical Team<br />JRCPL</td>
-          <td style={cell}>Quality Manager<br />JRCPL</td>
-          <td style={cell}>Dr. Amar Shinde<br />Founder &amp; Clinical Director</td>
+          <td style={cell}>Dr. Amar Shinde<br />Clinical Director</td>
+          <td style={cell}>Mr. Surjit<br />COO, JRCPL</td>
+          <td style={cell}>Dr. Bharat Mali<br />Cluster Head Psychiatrist</td>
         </tr>
         <tr>
-          <td style={cell}>Signature: ___________</td>
-          <td style={cell}>Signature: ___________</td>
-          <td style={cell}>Signature: ___________</td>
+          <td style={cell}>Signature: _______________</td>
+          <td style={cell}>Signature: _______________</td>
+          <td style={cell}>Signature: _______________</td>
+        </tr>
+        <tr>
+          <td style={cell}>Date: _________________</td>
+          <td style={cell}>Date: _________________</td>
+          <td style={cell}>Date: _________________</td>
         </tr>
       </tbody>
     </table>
     <p className="text-muted text-center" style={{ fontSize: "0.8rem", fontStyle: "italic" }}>
-      This is a controlled clinical document of Jaiswal Rehabilitation Centre for Psychiatric &amp; Lifestyle (JRCPL). Any reproduction or distribution without written authorisation from the Clinical Director is prohibited. Governed under MHCA 2017 and NABH standards.
-    </p>
-    <p className="text-muted text-center" style={{ fontSize: "0.8rem" }}>
-      JRCPL — {docCode} {docTitle} v2.0 &nbsp;|&nbsp; CONFIDENTIAL — Clinical Use Only
+      This is a controlled clinical document of Jagrutii Rehab Centre Pvt. Ltd. Reproduction or distribution without written authorisation from the Clinical Director is prohibited.
     </p>
   </>
 );
