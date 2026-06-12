@@ -70,11 +70,12 @@ export const Table = ({ cols, rows }) => (
 );
 
 
-export const ProtocolHeader = ({ heading, clCode, title, icdLine, org, subtitle }) => {
+export const ProtocolHeader = ({ heading, clCode, title, icdLine, org, subtitle, version }) => {
   const isJagrutii = org === "jagrutii";
   const tagline = subtitle || (isJagrutii
     ? "Clinical Excellence Framework — De-Addiction Vertical"
     : "Clinical Excellence Framework — Treatment Protocol");
+  const ver = version || "2.0";
   return (
     <div className={`${heading} mb-4`}>
       <div style={{ display: "flex", alignItems: "stretch", border: `2px solid ${NAVY}`, marginBottom: "1rem" }}>
@@ -89,7 +90,7 @@ export const ProtocolHeader = ({ heading, clCode, title, icdLine, org, subtitle 
         </div>
         <div style={{ background: GOLD, padding: "12px 20px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minWidth: "80px" }}>
           <div style={{ color: NAVY, fontWeight: "bold", fontSize: "1.6rem", lineHeight: 1 }}>{clCode}</div>
-          <div style={{ color: NAVY, fontSize: "0.75rem", fontWeight: "bold" }}>Version 2.0</div>
+          <div style={{ color: NAVY, fontSize: "0.75rem", fontWeight: "bold" }}>Version {ver}</div>
         </div>
       </div>
       <div style={{ border: `1px solid ${NAVY}`, background: "#f5f7fb", padding: "10px", textAlign: "center", marginBottom: "1rem" }}>
@@ -114,68 +115,78 @@ export const ProtocolControlTable = ({ rows }) => (
   </table>
 );
 
-export const ProtocolApproval = ({ docCode, docTitle }) => (
-  <>
-    <SectionTitle>Approval &amp; Authorisation</SectionTitle>
-    <table className="w-100" style={{ borderCollapse: "collapse", marginBottom: "1rem" }}>
-      <thead>
-        <tr>
-          <th style={headCell}>Prepared By</th>
-          <th style={headCell}>COO</th>
-          <th style={headCell}>Approved By</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style={cell}>Dr. Amar Shinde, Clinical Director</td>
-          <td style={cell}>Mr. Surjit, COO, JRCPL</td>
-          <td style={cell}>Dr. Bharat Mali, Cluster Head Psychiatrist</td>
-        </tr>
-      </tbody>
-    </table>
-    <p className="text-muted text-center" style={{ fontSize: "0.8rem", fontStyle: "italic" }}>
-      This is a controlled clinical document of Jaiswal Rehabilitation Centre for Psychiatric &amp; Lifestyle (JRCPL). Any reproduction or distribution without written authorisation from the Clinical Director is prohibited. Governed under MHCA 2017 and NABH standards.
-    </p>
-    <p className="text-muted text-center" style={{ fontSize: "0.8rem" }}>
-      JRCPL — {docCode} {docTitle} v2.0 &nbsp;|&nbsp; CONFIDENTIAL — Clinical Use Only
-    </p>
-  </>
-);
+export const ProtocolApproval = ({ docCode, docTitle, preparedBy, coo, approvedBy }) => {
+  const pb = preparedBy || { name: "Dr. Amar Shinde", title: "Clinical Director" };
+  const cooData = coo || { name: "Mr. Surjit", title: "COO, JRCPL" };
+  const ab = approvedBy || { name: "Dr. Bharat Mali", title: "Cluster Head Psychiatrist" };
+  return (
+    <>
+      <SectionTitle>Approval &amp; Authorisation</SectionTitle>
+      <table className="w-100" style={{ borderCollapse: "collapse", marginBottom: "1rem" }}>
+        <thead>
+          <tr>
+            <th style={headCell}>Prepared By</th>
+            <th style={headCell}>COO</th>
+            <th style={headCell}>Approved By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style={cell}>{pb.name}, {pb.title}</td>
+            <td style={cell}>{cooData.name}, {cooData.title}</td>
+            <td style={cell}>{ab.name}, {ab.title}</td>
+          </tr>
+        </tbody>
+      </table>
+      <p className="text-muted text-center" style={{ fontSize: "0.8rem", fontStyle: "italic" }}>
+        This is a controlled clinical document of Jaiswal Rehabilitation Centre for Psychiatric &amp; Lifestyle (JRCPL). Any reproduction or distribution without written authorisation from the Clinical Director is prohibited. Governed under MHCA 2017 and NABH standards.
+      </p>
+      <p className="text-muted text-center" style={{ fontSize: "0.8rem" }}>
+        JRCPL — {docCode} {docTitle} v2.0 &nbsp;|&nbsp; CONFIDENTIAL — Clinical Use Only
+      </p>
+    </>
+  );
+};
 
-export const ProtocolApprovalNew = ({ docCode, docTitle }) => (
-  <>
-    <SectionTitle>Approval &amp; Authorisation</SectionTitle>
-    <table style={{ borderCollapse: "collapse", marginBottom: "1rem", width: "100%" }}>
-      <thead>
-        <tr>
-          <th style={{ ...headCell, width: "33.33%" }}>Prepared By</th>
-          <th style={{ ...headCell, width: "33.33%" }}>COO Authorisation</th>
-          <th style={{ ...headCell, width: "33.33%" }}>Approved By</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td style={cell}>Dr. Amar Shinde<br />Clinical Director</td>
-          <td style={cell}>Mr. Surjit<br />COO, JRCPL</td>
-          <td style={cell}>Dr. Bharat Mali<br />Cluster Head Psychiatrist</td>
-        </tr>
-        <tr>
-          <td style={cell}>Signature: _______________</td>
-          <td style={cell}>Signature: _______________</td>
-          <td style={cell}>Signature: _______________</td>
-        </tr>
-        <tr>
-          <td style={cell}>Date: _________________</td>
-          <td style={cell}>Date: _________________</td>
-          <td style={cell}>Date: _________________</td>
-        </tr>
-      </tbody>
-    </table>
-    <p className="text-muted text-center" style={{ fontSize: "0.8rem", fontStyle: "italic" }}>
-      This is a controlled clinical document of Jagrutii Rehab Centre Pvt. Ltd. Reproduction or distribution without written authorisation from the Clinical Director is prohibited.
-    </p>
-  </>
-);
+export const ProtocolApprovalNew = ({ docCode, docTitle, preparedBy, coo, approvedBy }) => {
+  const pb = preparedBy || { name: "Dr. Amar Shinde", title: "Clinical Director" };
+  const cooData = coo || { name: "Mr. Surjit", title: "COO, JRCPL" };
+  const ab = approvedBy || { name: "Dr. Bharat Mali", title: "Cluster Head Psychiatrist" };
+  return (
+    <>
+      <SectionTitle>Approval &amp; Authorisation</SectionTitle>
+      <table style={{ borderCollapse: "collapse", marginBottom: "1rem", width: "100%" }}>
+        <thead>
+          <tr>
+            <th style={{ ...headCell, width: "33.33%" }}>Prepared By</th>
+            <th style={{ ...headCell, width: "33.33%" }}>COO Authorisation</th>
+            <th style={{ ...headCell, width: "33.33%" }}>Approved By</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td style={cell}>{pb.name}<br />{pb.title}</td>
+            <td style={cell}>{cooData.name}<br />{cooData.title}</td>
+            <td style={cell}>{ab.name}<br />{ab.title}</td>
+          </tr>
+          <tr>
+            <td style={cell}>Signature: _______________</td>
+            <td style={cell}>Signature: _______________</td>
+            <td style={cell}>Signature: _______________</td>
+          </tr>
+          <tr>
+            <td style={cell}>Date: _________________</td>
+            <td style={cell}>Date: _________________</td>
+            <td style={cell}>Date: _________________</td>
+          </tr>
+        </tbody>
+      </table>
+      <p className="text-muted text-center" style={{ fontSize: "0.8rem", fontStyle: "italic" }}>
+        This is a controlled clinical document of Jagrutii Rehab Centre Pvt. Ltd. Reproduction or distribution without written authorisation from the Clinical Director is prohibited.
+      </p>
+    </>
+  );
+};
 
 export const ProtocolWrapper = forwardRef(({ classnames, children }, ref) => (
   <div ref={ref} className={`${classnames} px-6 py-10 absolute -z-10`}>

@@ -58,6 +58,17 @@ import SczCl01PSchizophreniaPharmacologicalPage from "./Guidelines/SCZ-CL-01-P_S
 import Cl05CAlcoholCounsellingProgrammePage from "./Guidelines/CL-05-C_Alcohol_Counselling_Programme";
 import Cl05PAlcoholPharmacologicalPage from "./Guidelines/CL-05-P_Alcohol_Pharmacological";
 import SczCl01CSchizophreniaRehabilitationPage from "./Guidelines/SCZ-CL-01-C_Schizophrenia_Rehabilitation";
+import Dis01DischargeClosureMasterSOPPage from "./Guidelines/Dis-01_Discharge_Closure_Master_SOP";
+import Dis02DischargePlanningReadinessSOPPage from "./Guidelines/Dis-02_Discharge_Planning_Readiness_SOP";
+import Dis03AMADischargeSOPPage from "./Guidelines/Dis-03_AMA_Discharge_SOP";
+import Dis04ExpiryManagementSOPPage from "./Guidelines/Dis-04_Expiry_Management_SOP";
+import Dis05AbscondingPatientSOPPage from "./Guidelines/Dis-05_Absconding_Patient_SOP";
+import Dis06TransferAnotherFacilitySOPPage from "./Guidelines/Dis-06_Transfer_Another_Facility_SOP";
+import Dis07EmergencyHospitalTransferSOPPage from "./Guidelines/Dis-07_Emergency_Hospital_Transfer_SOP";
+import Dis08ProgrammeCompletionDischargeSOPPage from "./Guidelines/Dis-08_Programme_Completion_Discharge_SOP";
+import Dis09ContinuationOfCarePlanSOPPage from "./Guidelines/Dis-09_Continuation_of_Care_Plan_SOP";
+import Dis10AdministrativeClosureSOPPage from "./Guidelines/Dis-10_Administrative_Closure_SOP";
+import Dis11LegalPoliceCourtClosureSOPPage from "./Guidelines/Dis-11_Legal_Police_Court_Closure_SOP";
 // import Main from "./Main";
 // import PatientDetails from "./PatientDetails";
 
@@ -405,7 +416,7 @@ const Guidelines = () => {
                   },
                   {
                     id: "ps-cl-01-p-polysubstance-use-disorder",
-                    label: "PS-CL-01-P — Polysubstance Use Disorder Protocol",
+                    label: "POLY SUBD Pharmacological Protocol",
                     link: "ps-cl-01-p-polysubstance-use-disorder",
                     icon: "bx bx-capsule",
                   },
@@ -420,6 +431,72 @@ const Guidelines = () => {
                     label: "SCZ-CL-01-P — Schizophrenia Pharmacological Protocol",
                     link: "scz-cl-01-p-schizophrenia-pharmacological",
                     icon: "bx bx-brain",
+                  },
+                  {
+                    id: "dis-01-discharge-closure-master-sop",
+                    label: "Dis-01 — Discharge & Closure Master SOP",
+                    link: "dis-01-discharge-closure-master-sop",
+                    icon: "bx bx-door-open",
+                  },
+                  {
+                    id: "dis-02-discharge-planning-readiness-sop",
+                    label: "Dis-02 — Discharge Planning & Readiness SOP",
+                    link: "dis-02-discharge-planning-readiness-sop",
+                    icon: "bx bx-calendar-check",
+                  },
+                  {
+                    id: "dis-03-ama-discharge-sop",
+                    label: "Dis-03 — AMA Discharge SOP",
+                    link: "dis-03-ama-discharge-sop",
+                    icon: "bx bx-log-out",
+                  },
+                  {
+                    id: "dis-04-expiry-management-sop",
+                    label: "Dis-04 — Expiry Management SOP",
+                    link: "dis-04-expiry-management-sop",
+                    icon: "bx bx-heart",
+                  },
+                  {
+                    id: "dis-05-absconding-patient-sop",
+                    label: "Dis-05 — Absconding Patient SOP",
+                    link: "dis-05-absconding-patient-sop",
+                    icon: "bx bx-run",
+                  },
+                  {
+                    id: "dis-06-transfer-another-facility-sop",
+                    label: "Dis-06 — Transfer to Another Facility SOP",
+                    link: "dis-06-transfer-another-facility-sop",
+                    icon: "bx bx-transfer",
+                  },
+                  {
+                    id: "dis-07-emergency-hospital-transfer-sop",
+                    label: "Dis-07 — Emergency Hospital Transfer SOP",
+                    link: "dis-07-emergency-hospital-transfer-sop",
+                    icon: "bx bx-ambulance",
+                  },
+                  {
+                    id: "dis-08-programme-completion-discharge-sop",
+                    label: "Dis-08 — Programme Completion Discharge SOP",
+                    link: "dis-08-programme-completion-discharge-sop",
+                    icon: "bx bx-check-circle",
+                  },
+                  {
+                    id: "dis-09-continuation-of-care-plan-sop",
+                    label: "Dis-09 — Continuation of Care Plan SOP",
+                    link: "dis-09-continuation-of-care-plan-sop",
+                    icon: "bx bx-list-check",
+                  },
+                  {
+                    id: "dis-10-administrative-closure-sop",
+                    label: "Dis-10 — Administrative Closure SOP",
+                    link: "dis-10-administrative-closure-sop",
+                    icon: "bx bx-file-blank",
+                  },
+                  {
+                    id: "dis-11-legal-police-court-closure-sop",
+                    label: "Dis-11 — Legal / Police / Court-Directed Closure SOP",
+                    link: "dis-11-legal-police-court-closure-sop",
+                    icon: "bx bx-shield-alt-2",
                   },
                 ]}
               />
@@ -640,6 +717,50 @@ const Guidelines = () => {
                 <Route
                   path="scz-cl-01-c-schizophrenia-rehabilitation"
                   element={<SczCl01CSchizophreniaRehabilitationPage />}
+                />
+                <Route
+                  path="dis-01-discharge-closure-master-sop"
+                  element={<Dis01DischargeClosureMasterSOPPage />}
+                />
+                <Route
+                  path="dis-02-discharge-planning-readiness-sop"
+                  element={<Dis02DischargePlanningReadinessSOPPage />}
+                />
+                <Route
+                  path="dis-03-ama-discharge-sop"
+                  element={<Dis03AMADischargeSOPPage />}
+                />
+                <Route
+                  path="dis-04-expiry-management-sop"
+                  element={<Dis04ExpiryManagementSOPPage />}
+                />
+                <Route
+                  path="dis-05-absconding-patient-sop"
+                  element={<Dis05AbscondingPatientSOPPage />}
+                />
+                <Route
+                  path="dis-06-transfer-another-facility-sop"
+                  element={<Dis06TransferAnotherFacilitySOPPage />}
+                />
+                <Route
+                  path="dis-07-emergency-hospital-transfer-sop"
+                  element={<Dis07EmergencyHospitalTransferSOPPage />}
+                />
+                <Route
+                  path="dis-08-programme-completion-discharge-sop"
+                  element={<Dis08ProgrammeCompletionDischargeSOPPage />}
+                />
+                <Route
+                  path="dis-09-continuation-of-care-plan-sop"
+                  element={<Dis09ContinuationOfCarePlanSOPPage />}
+                />
+                <Route
+                  path="dis-10-administrative-closure-sop"
+                  element={<Dis10AdministrativeClosureSOPPage />}
+                />
+                <Route
+                  path="dis-11-legal-police-court-closure-sop"
+                  element={<Dis11LegalPoliceCourtClosureSOPPage />}
                 />
                 <Route
                   path="scz-cl-01-p-schizophrenia-pharmacological"
