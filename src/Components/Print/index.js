@@ -135,7 +135,10 @@ const Print = ({
     const rawCharts = patientAdmissionsCharts?.find(
       (adm) => adm._id === printData.printAdmissionCharts
     )?.charts || [];
-    printAllCharts = rawCharts.filter((c) => !c.needsValidation || c.validatorId);
+    printAllCharts = rawCharts.filter((c) =>
+      (!c.needsValidation || !!c.doctorValidatorId) &&
+      (!c.geminiResponseGeneratedBy || !!c.validatorId)
+    );
   }
 
   return (
