@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import Flatpickr from "react-flatpickr";
 import AsyncSelect from "react-select/async";
 import "flatpickr/dist/themes/material_blue.css";
@@ -40,6 +41,21 @@ const AlertsFilters = ({
   const centerOptions = (allCenters || [])
     .filter((c) => accessIds.includes(c._id))
     .map((c) => ({ _id: c._id, title: c.title }));
+
+  // Pre-select all centers on initial load so alerts aren't filtered to none.
+  useEffect(() => {
+    if (
+      centerOptions.length > 0 &&
+      (!serverFilters.centers || serverFilters.centers.length === 0)
+    ) {
+      onServerFilterChange(
+        "centers",
+        centerOptions.map((c) => c._id),
+      );
+    }
+    // Only run when centerOptions first become available
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centerOptions.length]);
 
   const hasAnyServerFilter =
     serverFilters.patients?.length > 0 ||
