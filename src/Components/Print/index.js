@@ -136,7 +136,8 @@ const Print = ({
       (adm) => adm._id === printData.printAdmissionCharts
     )?.charts || [];
     printAllCharts = rawCharts.filter((c) =>
-      !!c.doctorValidatorId && (!c.geminiResponseGeneratedBy || !!c.validatorId)
+      (!c.needsValidation || !!c.doctorValidatorId) &&
+      (!c.geminiResponseGeneratedBy || !!c.validatorId)
     );
   }
 

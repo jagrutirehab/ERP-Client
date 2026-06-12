@@ -60,16 +60,25 @@ const Wrapper = ({
   const chart = item?.chart;
   const bill = item?.bill;
 
-  // Needs doctor validation when flagged and doctor hasn't validated yet
   const needsValidation = chart && item.needsValidation && !item.doctorValidatorId;
-  // Needs AI content validation when AI-generated but content not yet reviewed
   const needsAIValidation = !!item.geminiResponseGeneratedBy && !item.validatorId;
-  // Print allowed only when doctor has validated AND (no AI, or AI content also validated)
-  const canPrint = showPrint && !!item.doctorValidatorId && (!item.geminiResponseGeneratedBy || !!item.validatorId);
+  const canPrint = showPrint &&
+    (!item.needsValidation || !!item.doctorValidatorId) &&
+    (!item.geminiResponseGeneratedBy || !!item.validatorId);
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
-  const [aiValidateLoading, setAIValidateLoading] = React.useState(false);
+  const [pendingAction, setPendingAction] = React.useState(null); // 'doctor' | 'ai'
   const [loading, setLoading] = React.useState(false);
+
+  const openModal = (action) => {
+    setPendingAction(action);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setPendingAction(null);
+  };
 
   const refreshCharts = () => {
     if (item.type === "GENERAL") {
@@ -84,37 +93,29 @@ const Wrapper = ({
     }
   };
 
-  const handleValidateChart = async () => {
+  const handleConfirm = async () => {
     setLoading(true);
     try {
-      await validateChart(item._id);
-      toast.success("Chart validated successfully");
+      if (pendingAction === "ai") {
+        const summaryId = item.chart === "EXPIRY_SUMMARY"
+          ? item.expirySummary?._id
+          : item.dischargeSummary?._id;
+        if (item.chart === "EXPIRY_SUMMARY") {
+          await validateAIExpirySummary({ summary: summaryId });
+        } else {
+          await validateAISummary({ summary: summaryId });
+        }
+        toast.success("AI content validated successfully");
+      } else {
+        await validateChart(item._id);
+        toast.success("Chart validated successfully");
+      }
       refreshCharts();
     } catch (err) {
-      toast.error(err.message || "Failed to validate chart");
+      toast.error(err.message || "Failed to validate");
     } finally {
       setLoading(false);
-      setIsModalOpen(false);
-    }
-  };
-
-  const handleValidateAIContent = async () => {
-    setAIValidateLoading(true);
-    try {
-      const summaryId = item.chart === "EXPIRY_SUMMARY"
-        ? item.expirySummary?._id
-        : item.dischargeSummary?._id;
-      if (item.chart === "EXPIRY_SUMMARY") {
-        await validateAIExpirySummary({ summary: summaryId });
-      } else {
-        await validateAISummary({ summary: summaryId });
-      }
-      toast.success("AI content validated successfully");
-      refreshCharts();
-    } catch (err) {
-      toast.error(err.message || "Failed to validate AI content");
-    } finally {
-      setAIValidateLoading(false);
+      closeModal();
     }
   };
 
@@ -196,26 +197,13 @@ const Wrapper = ({
                   <i className="ri-robot-line me-1"></i> AI-Summary Validation Pending
                 </span>
               )}
-              {needsValidation && (
-                user?.role === "DOCTOR" ? (
-                  <button
-                    className="btn btn-sm btn-soft-success d-inline-flex align-items-center py-0 px-2 ms-2"
-                    style={{ height: "22px", fontSize: "11px", cursor: "pointer" }}
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setIsModalOpen(true);
-                    }}
-                  >
-                    <i className="ri-checkbox-circle-line me-1"></i> Validate
-                  </button>
-                ) : (
-                  <span
-                    className="badge badge-soft-warning d-inline-flex align-items-center py-1 px-2 ms-2"
-                    style={{ fontSize: "11px" }}
-                  >
-                    <i className="ri-time-line me-1"></i> Pending Validation By Doctor
-                  </span>
-                )
+              {needsValidation && !needsAIValidation && (
+                <span
+                  className="badge badge-soft-warning d-inline-flex align-items-center py-1 px-2 ms-2"
+                  style={{ fontSize: "11px" }}
+                >
+                  <i className="ri-time-line me-1"></i> Pending Validation By Doctor
+                </span>
               )}
             </h5>
             <RenderWhen isTrue={!bill && chart && item.type === "IPD"}>
@@ -330,20 +318,16 @@ const Wrapper = ({
                   <DropdownMenu>
                     {needsAIValidation && (
                       <DropdownItem
-                        onClick={handleValidateAIContent}
-                        disabled={aiValidateLoading}
+                        onClick={() => openModal("ai")}
                         href="#"
                       >
                         <i className="ri-robot-line align-bottom text-info me-2"></i>{" "}
-                        {aiValidateLoading ? "Validating AI..." : "Validate AI Content"}
+                        Validate AI Summary
                       </DropdownItem>
                     )}
-                    {needsValidation && user?.role === "DOCTOR" && (
+                    {needsValidation && !needsAIValidation && user?.role === "DOCTOR" && (
                       <DropdownItem
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setIsModalOpen(true);
-                        }}
+                        onClick={() => openModal("doctor")}
                         href="#"
                       >
                         <i className="ri-checkbox-circle-line align-bottom text-success me-2"></i>{" "}
@@ -434,9 +418,9 @@ const Wrapper = ({
       </Col>
       <ValidateConfirmationModal
         isOpen={isModalOpen}
-        toggle={() => setIsModalOpen(!isModalOpen)}
+        toggle={closeModal}
         loading={loading}
-        onConfirm={handleValidateChart}
+        onConfirm={handleConfirm}
       />
     </motion.div>
   );
