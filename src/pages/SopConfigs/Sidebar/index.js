@@ -23,21 +23,12 @@ const SOPsidebar = () => {
     "MANAGE",
     "READ",
   );
-  const hasAlertsPermission = hasPermission(
-    "SOPCONFIGS",
-    "ALERT_HISTORY",
-    "READ",
-  );
 
   const navigate = useNavigate();
 
   const filteredSOPOptions = SOP_CONFIGS?.filter((page) => {
     if (page.id === "sopconfigs-create") {
       if (!hasConfigurationPermission) return false;
-      return true;
-    }
-    if (page.id === "sopconfigs-alerts") {
-      if (!hasAlertsPermission) return false;
       return true;
     }
 

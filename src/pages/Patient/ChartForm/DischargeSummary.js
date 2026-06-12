@@ -443,7 +443,7 @@ const DischargeSummary = ({
             : "",
       });
 
-      toast.success(response?.message || "AI Summary Generated");
+      toast.success(response?.message || "AI-Summary Generated");
 
     } catch (error) {
       toast.error("Failed to Generate the summary, please try again");
@@ -691,7 +691,7 @@ const DischargeSummary = ({
                       )}
                     </Button>
                   )
-                ) : (editChartData && !editChartData.validatorId && (editChartData.needsValidation || editChartData.geminiResponseIsVerified === false) && !isEditVerified && author?.role === "DOCTOR") ? (
+                ) : (editChartData && !editChartData.doctorValidatorId && (editChartData.needsValidation || editChartData.geminiResponseIsVerified === false) && !isEditVerified && author?.role === "DOCTOR") ? (
                   <Button
                     type="button"
                     disabled={loading || validation.dirty || (editSummary && !_.isEqual(dischargeAdvise, editSummary.medicine))}
