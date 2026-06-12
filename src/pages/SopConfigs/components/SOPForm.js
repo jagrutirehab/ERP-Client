@@ -476,6 +476,12 @@ const SOPForm = ({
             bErr.conditions[cIdx] = "Pick a severity threshold";
             hasTargetErrors = true;
           }
+        } else if (c.operator?.value === "OLDER_THAN_DAYS") {
+          const days = Number(c.value?.[0]);
+          if (!Number.isFinite(days) || days <= 0) {
+            bErr.conditions[cIdx] = "Enter a positive number of days";
+            hasTargetErrors = true;
+          }
         }
       });
       if (!block.name?.trim()) {

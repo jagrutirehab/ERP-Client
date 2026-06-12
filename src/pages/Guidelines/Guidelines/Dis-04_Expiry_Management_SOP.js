@@ -1,11 +1,11 @@
 import React, { useRef } from "react";
-import PsCl01PPolysubstanceUseDisorder from "./Prints/PS-CL-01-P_Polysubstance_Use_Disorder";
+import Dis04ExpiryManagementSOP from "./Prints/Dis-04_Expiry_Management_SOP";
 import { handlePrint } from "../../../utils/print";
 import { Printer } from "lucide-react";
 
-const TITLE = "PS-CL-01-P — Pharmacological Protocol: Polysubstance Use Disorder (15-Day Extended Detox  +  75-Day Post-Withdrawal Maintenance | 90-Day Programme)";
+const TITLE = "Dis-04 — Expiry Management SOP";
 
-const PsCl01PPolysubstanceUseDisorderPage = () => {
+const Dis04ExpiryManagementSOPPage = () => {
   const printRef = useRef();
 
   return (
@@ -21,10 +21,10 @@ const PsCl01PPolysubstanceUseDisorderPage = () => {
           Print
         </button>
       </div>
-      <PsCl01PPolysubstanceUseDisorder ref={printRef} classnames={"hidden print:block"} />
-      <PsCl01PPolysubstanceUseDisorder heading="hidden" />
+      <Dis04ExpiryManagementSOP ref={printRef} classnames={"hidden print:block"} />
+      <Dis04ExpiryManagementSOP heading="hidden" />
     </div>
   );
 };
 
-export default PsCl01PPolysubstanceUseDisorderPage;
+export default Dis04ExpiryManagementSOPPage;
