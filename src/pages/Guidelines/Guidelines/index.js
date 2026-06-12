@@ -56,6 +56,17 @@ import SczCl01PSchizophreniaPharmacological from "./Prints/SCZ-CL-01-P_Schizophr
 import Cl05CAlcoholCounsellingProgramme from "./Prints/CL-05-C_Alcohol_Counselling_Programme";
 import Cl05PAlcoholPharmacological from "./Prints/CL-05-P_Alcohol_Pharmacological";
 import SczCl01CSchizophreniaRehabilitation from "./Prints/SCZ-CL-01-C_Schizophrenia_Rehabilitation";
+import Dis01DischargeClosureMasterSOP from "./Prints/Dis-01_Discharge_Closure_Master_SOP";
+import Dis02DischargePlanningReadinessSOP from "./Prints/Dis-02_Discharge_Planning_Readiness_SOP";
+import Dis03AMADischargeSOP from "./Prints/Dis-03_AMA_Discharge_SOP";
+import Dis04ExpiryManagementSOP from "./Prints/Dis-04_Expiry_Management_SOP";
+import Dis05AbscondingPatientSOP from "./Prints/Dis-05_Absconding_Patient_SOP";
+import Dis06TransferAnotherFacilitySOP from "./Prints/Dis-06_Transfer_Another_Facility_SOP";
+import Dis07EmergencyHospitalTransferSOP from "./Prints/Dis-07_Emergency_Hospital_Transfer_SOP";
+import Dis08ProgrammeCompletionDischargeSOP from "./Prints/Dis-08_Programme_Completion_Discharge_SOP";
+import Dis09ContinuationOfCarePlanSOP from "./Prints/Dis-09_Continuation_of_Care_Plan_SOP";
+import Dis10AdministrativeClosureSOP from "./Prints/Dis-10_Administrative_Closure_SOP";
+import Dis11LegalPoliceCourtClosureSOP from "./Prints/Dis-11_Legal_Police_Court_Closure_SOP";
 import Select from "react-select";
 
 const guidelines = [
@@ -720,6 +731,138 @@ const guidelines = [
     link: "scz-cl-01-p-schizophrenia-pharmacological",
     category: "clinical sops",
   },
+  {
+    id: 56,
+    name: "Dis-01 — Discharge & Closure Management SOP: Master Document",
+    description:
+      "Master discharge SOP — ten exit pathways (planned, LAMA/DAMA, absconding, transfer, referral, death/expiry, emergency transfer, programme completion, administrative closure, legal/court-directed), universal 8-stage workflow, medico-legal protection framework, and KPIs.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Discharge & Closure SOP",
+    print: Dis01DischargeClosureMasterSOP,
+    link: "dis-01-discharge-closure-master-sop",
+    category: "discharge sops",
+  },
+  {
+    id: 57,
+    name: "Dis-02 — Discharge Planning & Readiness SOP",
+    description:
+      "Discharge readiness criteria (clinical stability, functional, insight/adherence, family/social), 7-day planning timeline, high-risk discharge DPM protocol, mandatory discharge summary content, medication handover, MDT roles, EMR gate checklist, and KPIs.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Discharge & Closure SOP",
+    print: Dis02DischargePlanningReadinessSOP,
+    link: "dis-02-discharge-planning-readiness-sop",
+    category: "discharge sops",
+  },
+  {
+    id: 58,
+    name: "Dis-03 — Against Medical Advice (AMA) Discharge SOP",
+    description:
+      "AMA discharge medico-legal framework — MHCA 2017 legal basis, 6-step protocol (escalation, clinical assessment, capacity decision tree, risk counselling, documentation, discharge execution), high-risk AMA escalation matrix, detention legal boundary, post-AMA follow-up, and KPIs.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Discharge & Closure SOP",
+    print: Dis03AMADischargeSOP,
+    link: "dis-03-ama-discharge-sop",
+    category: "discharge sops",
+  },
+  {
+    id: 59,
+    name: "Dis-04 — Expiry Management SOP",
+    description:
+      "In-facility death management — 9-step protocol (emergency identification, resuscitation, death declaration, MLC assessment with 2-hour police intimation, family communication, police intimation, expiry summary, body handover, administrative closure), CPR quick reference sheet, and KPIs.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Discharge & Closure SOP",
+    print: Dis04ExpiryManagementSOP,
+    link: "dis-04-expiry-management-sop",
+    category: "discharge sops",
+  },
+  {
+    id: 60,
+    name: "Dis-05 — Absconding Patient — Response, Search & Management Protocol",
+    description:
+      "Absconding patient response SOP — risk assessment & prevention matrix (7 factors), 15-minute activation protocol, police intimation matrix (involuntary/high-risk/voluntary/minor/NDPS), MHCA 2017 Sec. 103 recall framework, patient return 7-step protocol, documentation checklist, and KPIs.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Discharge & Closure SOP",
+    print: Dis05AbscondingPatientSOP,
+    link: "dis-05-absconding-patient-sop",
+    category: "discharge sops",
+  },
+  {
+    id: 61,
+    name: "Dis-06 — Transfer to Another Facility SOP",
+    description:
+      "Clinical transfer SOP (planned & unplanned) — 6 indications table, 5-step decision & authorisation protocol, mandatory documentation checklist (7 documents), transfer escort protocol with SBAR handover procedure, and post-transfer follow-up checklist.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Discharge & Closure SOP",
+    print: Dis06TransferAnotherFacilitySOP,
+    link: "dis-06-transfer-another-facility-sop",
+    category: "discharge sops",
+  },
+  {
+    id: 62,
+    name: "Dis-07 — Emergency Hospital Transfer SOP",
+    description:
+      "Life-threatening emergency transfer protocol — 7-condition activation criteria table, 8-step ≤20-minute response timeline, Emergency Transfer Pack (6 documents), empanelled hospital preparation, MLC auto-assessment for all transfers within 24 hrs of admission, and post-transfer documentation checklist.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Discharge & Closure SOP",
+    print: Dis07EmergencyHospitalTransferSOP,
+    link: "dis-07-emergency-hospital-transfer-sop",
+    category: "discharge sops",
+  },
+  {
+    id: 63,
+    name: "Dis-08 — Programme Completion Discharge SOP",
+    description:
+      "Structured programme completion discharge for all six clinical programmes — 9-criterion completion checklist, MDT Final Discharge Review (mandatory, 48–72 hrs before discharge), discharge day step-by-step timeline, programme-specific requirements (P1–P6), and NABH mandatory discharge summary format.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Discharge & Closure SOP",
+    print: Dis08ProgrammeCompletionDischargeSOP,
+    link: "dis-08-programme-completion-discharge-sop",
+    category: "discharge sops",
+  },
+  {
+    id: 64,
+    name: "Dis-09 — Continuation of Care Plan SOP",
+    description:
+      "Post-discharge CCP standard — CCP authorship & completion timeline (8 components), vertical-specific OPD follow-up schedule, relapse warning signs by vertical, crisis contact protocol, structured follow-up call protocol (48 hrs/7 days/30 days/90 days), call script, and readmission criteria & pathway.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Discharge & Closure SOP",
+    print: Dis09ContinuationOfCarePlanSOP,
+    link: "dis-09-continuation-of-care-plan-sop",
+    category: "discharge sops",
+  },
+  {
+    id: 65,
+    name: "Dis-10 — Administrative Closure SOP",
+    description:
+      "Post-exit administrative closure standard — 4-section checklist (clinical documentation, billing & accounts, physical closure, EMR & digital closure), medical records retention schedule (7 record types with retention periods & destruction authorisation), record request & release matrix (6 requestor types), and NABH audit readiness closed-file standards.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Discharge & Closure SOP",
+    print: Dis10AdministrativeClosureSOP,
+    link: "dis-10-administrative-closure-sop",
+    category: "discharge sops",
+  },
+  {
+    id: 66,
+    name: "Dis-11 — Legal / Police / Court-Directed Closure SOP",
+    description:
+      "Legal-directed closure medico-legal framework — 6 closure types (court order, police handover, MHRB, NDPS, guardianship, human rights), 6-step verification protocol (Clinical Director mandatory), MHCA 2017 patient rights during legal closure, 8-step police handover protocol, and documentation matrix (8 documents with timing).",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Discharge & Closure SOP",
+    print: Dis11LegalPoliceCourtClosureSOP,
+    link: "dis-11-legal-police-court-closure-sop",
+    category: "discharge sops",
+  },
 ];
 
 const categories = [
@@ -727,6 +870,7 @@ const categories = [
   { value: "admission", label: "Admission" },
   { value: "workflow", label: "Workflow" },
   { value: "clinical sops", label: "Clinical SOPs" },
+  { value: "discharge sops", label: "Discharge SOPs" },
   { value: "general", label: "General" },
 ];
 
