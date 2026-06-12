@@ -36,16 +36,24 @@ export const TARGET_OPTIONS = [
   { value: "ClinicalNote", label: "Clinical Note" },
 ];
 export const OPERATOR_OPTIONS = [
-  "GREATER_THAN",
-  "LESS_THAN",
-  "GREATER_THAN_OR_EQUAL",
-  "LESS_THAN_OR_EQUAL",
-  "EQUALS",
-  "NOT_EQUALS",
-  "EXISTS",
-  "NOT_EXISTS",
-  "ARRAY_ANY_MATCHES",
-].map((op) => ({ value: op, label: op.replace(/_/g, " ") }));
+  ...[
+    "GREATER_THAN",
+    "LESS_THAN",
+    "GREATER_THAN_OR_EQUAL",
+    "LESS_THAN_OR_EQUAL",
+    "EQUALS",
+    "NOT_EQUALS",
+    "EXISTS",
+    "NOT_EXISTS",
+    "ARRAY_ANY_MATCHES",
+  ].map((op) => ({ value: op, label: op.replace(/_/g, " ") })),
+  // Relative-date operator (Date fields). Value is a number of days; passes
+  // when the field is older than that many days from now.
+  { value: "OLDER_THAN_DAYS", label: "Older than (days)" },
+];
+
+// Operators whose value editor is a plain number of days against a Date field.
+export const RELATIVE_DAY_OPERATORS = new Set(["OLDER_THAN_DAYS"]);
 
 export const OPERATORS_BY_TYPE = {
   Number: [
@@ -63,6 +71,7 @@ export const OPERATORS_BY_TYPE = {
     "LESS_THAN_OR_EQUAL",
     "EXISTS",
     "NOT_EXISTS",
+    "OLDER_THAN_DAYS",
   ],
   Boolean: ["EQUALS", "NOT_EQUALS", "EXISTS", "NOT_EXISTS"],
   Array: ["EQUALS", "NOT_EQUALS", "EXISTS", "NOT_EXISTS"],
