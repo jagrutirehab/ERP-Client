@@ -50,6 +50,11 @@ export const permissionList = [
     ],
   },
   {
+    key: "ALERT",
+    label: "Alert",
+    subModules: []
+  },
+  {
     key: "REFERRAL",
     label: "Referral",
     subModules: [
@@ -427,7 +432,7 @@ export const permissionList = [
     label: "Sop Configs",
     subModules: [
       { name: "MANAGE", label: "Manage" },
-      { name: "ALERT_HISTORY", label: "Alert History" },
+      // { name: "ALERT_HISTORY", label: "Alert History" },
     ],
   },
   {

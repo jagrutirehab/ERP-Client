@@ -213,6 +213,13 @@ const pages = [
     ],
   },
   {
+    id: "alert",
+    label: "Alert",
+    name: "Alert",
+    link: "/alert",
+    icon: "bx bx-bell",
+  },
+  {
     id: "referral",
     label: "Referral",
     name: "Referral",
@@ -1287,12 +1294,6 @@ export const SOP_CONFIGS = [
         icon: "bx bx-list-ul",
       },
     ],
-  },
-  {
-    id: "sopconfigs-alerts",
-    label: "Alerts",
-    link: "/sop-configs/alerts",
-    icon: "bx bx-bell",
   },
   {
     id: "sopconfigs-guide",
