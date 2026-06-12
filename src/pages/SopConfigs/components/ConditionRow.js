@@ -14,6 +14,7 @@ import {
   PERIOD_OPTIONS,
   SEVERITY_THRESHOLD_OPTIONS,
   ANY_LAB_TEST_OPTION,
+  RELATIVE_DAY_OPERATORS,
 } from "../../../Components/constants/sopConstants";
 import { getICDCodes, sopGetLabTests } from "../../../helpers/backend_helper";
 
@@ -325,6 +326,23 @@ const ConditionRow = ({
 
   const renderValue = () => {
     if (isFlaggedItems) return renderFlaggedItemsEditor();
+
+    // Relative-date operators (e.g. OLDER_THAN_DAYS) take a plain number of
+    // days, not a date. Stored as a single-element array to match the other
+    // numeric value editors.
+    if (RELATIVE_DAY_OPERATORS.has(condition.operator?.value)) {
+      return (
+        <Input
+          type="number"
+          min="1"
+          step="1"
+          placeholder="days (e.g. 90)"
+          value={condition.value?.[0] ?? ""}
+          onChange={(e) => onChange(idx, "value", [e.target.value])}
+          disabled={isDisabled}
+        />
+      );
+    }
     if (isProvisional) {
       return (
         <Select
