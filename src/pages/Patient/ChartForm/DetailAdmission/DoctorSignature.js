@@ -110,7 +110,7 @@ const DoctorSignature = ({ validation, closeForm, editChartData, author }) => {
     <>
       <RenderFields fields={fields} validation={validation} />
       <div className="mt-3 d-flex gap-3 justify-content-end">
-        {editChartData && !editChartData.validatorId && editChartData.needsValidation && author?.role === "DOCTOR" && !isVerified && (
+        {editChartData && !editChartData.doctorValidatorId && editChartData.needsValidation && author?.role === "DOCTOR" && !isVerified && (
           <Button
             disabled={loading || validation.dirty}
             onClick={() => setIsModalOpen(true)}

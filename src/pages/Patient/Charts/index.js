@@ -204,6 +204,7 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                 geminiResponseGeneratedBy={chart?.geminiResponseGeneratedBy}
                 geminiResponseIsVerified={chart?.geminiResponseIsVerified}
                 validatorId={chart?.validatorId}
+                doctorValidatorId={chart?.doctorValidatorId}
               >
                 {chart.chart === PRESCRIPTION && (
                   <Prescription data={chart?.prescription} />

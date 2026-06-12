@@ -272,7 +272,7 @@ const ExpirySummary = ({
             : validation.values.expiryDateTime,
       });
 
-      toast.success(response?.message || "AI Summary Generated");
+      toast.success(response?.message || "AI-Summary Generated");
 
     } catch (error) {
       toast.error("Failed to Generate the summary, please try again");
@@ -614,7 +614,7 @@ const ExpirySummary = ({
                     )}
                   </Button>
                 )
-              ) : (editChartData && !editChartData.validatorId && (editChartData.needsValidation || editChartData.geminiResponseIsVerified === false) && !isEditVerified && author?.role === "DOCTOR") ? (
+              ) : (editChartData && !editChartData.doctorValidatorId && (editChartData.needsValidation || editChartData.geminiResponseIsVerified === false) && !isEditVerified && author?.role === "DOCTOR") ? (
                 <Button
                   type="button"
                   disabled={loading || validation.dirty}

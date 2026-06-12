@@ -25,7 +25,7 @@ import {
 } from "../../../Components/constants/patient";
 import { connect, useDispatch } from "react-redux";
 import { createEditBill, fetchCharts, fetchGeneralCharts, fetchChartsAddmissions } from "../../../store/actions";
-import { validateChart } from "../../../helpers/backend_helper";
+import { validateChart, validateAISummary, validateAIExpirySummary } from "../../../helpers/backend_helper";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import ValidateConfirmationModal from "../ChartForm/Components/ValidateConfirmationModal";
 
@@ -50,6 +50,7 @@ const Wrapper = ({
   geminiResponseIsVerified,
   geminiResponseGeneratedBy,
   validatorId,
+  doctorValidatorId,
   user,
 }) => {
   const dispatch = useDispatch();
@@ -59,31 +60,61 @@ const Wrapper = ({
   const chart = item?.chart;
   const bill = item?.bill;
 
-  const needsValidation = chart && item.needsValidation && !item.validatorId;
+  // Needs doctor validation when flagged and doctor hasn't validated yet
+  const needsValidation = chart && item.needsValidation && !item.doctorValidatorId;
+  // Needs AI content validation when AI-generated but content not yet reviewed
+  const needsAIValidation = !!item.geminiResponseGeneratedBy && !item.validatorId;
+  // Print allowed only when doctor has validated AND (no AI, or AI content also validated)
+  const canPrint = showPrint && !!item.doctorValidatorId && (!item.geminiResponseGeneratedBy || !!item.validatorId);
 
   const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [aiValidateLoading, setAIValidateLoading] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
+
+  const refreshCharts = () => {
+    if (item.type === "GENERAL") {
+      dispatch(fetchGeneralCharts({ patient: item.patient, type: "GENERAL" }));
+    } else if (item.type === "OPD") {
+      dispatch(fetchGeneralCharts({ patient: item.patient, type: "OPD" }));
+    } else {
+      dispatch(fetchCharts({ addmissionId: item.addmission, chartType: "All" }));
+      if (item.addmission) {
+        dispatch(fetchChartsAddmissions([item.addmission]));
+      }
+    }
+  };
 
   const handleValidateChart = async () => {
     setLoading(true);
     try {
       await validateChart(item._id);
       toast.success("Chart validated successfully");
-      if (item.type === "GENERAL") {
-        dispatch(fetchGeneralCharts({ patient: item.patient, type: "GENERAL" }));
-      } else if (item.type === "OPD") {
-        dispatch(fetchGeneralCharts({ patient: item.patient, type: "OPD" }));
-      } else {
-        dispatch(fetchCharts({ addmissionId: item.addmission, chartType: "All" }));
-        if (item.addmission) {
-          dispatch(fetchChartsAddmissions([item.addmission]));
-        }
-      }
+      refreshCharts();
     } catch (err) {
       toast.error(err.message || "Failed to validate chart");
     } finally {
       setLoading(false);
       setIsModalOpen(false);
+    }
+  };
+
+  const handleValidateAIContent = async () => {
+    setAIValidateLoading(true);
+    try {
+      const summaryId = item.chart === "EXPIRY_SUMMARY"
+        ? item.expirySummary?._id
+        : item.dischargeSummary?._id;
+      if (item.chart === "EXPIRY_SUMMARY") {
+        await validateAIExpirySummary({ summary: summaryId });
+      } else {
+        await validateAISummary({ summary: summaryId });
+      }
+      toast.success("AI content validated successfully");
+      refreshCharts();
+    } catch (err) {
+      toast.error(err.message || "Failed to validate AI content");
+    } finally {
+      setAIValidateLoading(false);
     }
   };
 
@@ -157,6 +188,14 @@ const Wrapper = ({
                 </span>
               )}
 
+              {needsAIValidation && (
+                <span
+                  className="badge badge-soft-info d-inline-flex align-items-center py-1 px-2 ms-2"
+                  style={{ fontSize: "11px" }}
+                >
+                  <i className="ri-robot-line me-1"></i> AI-Summary Validation Pending
+                </span>
+              )}
               {needsValidation && (
                 user?.role === "DOCTOR" ? (
                   <button
@@ -174,7 +213,7 @@ const Wrapper = ({
                     className="badge badge-soft-warning d-inline-flex align-items-center py-1 px-2 ms-2"
                     style={{ fontSize: "11px" }}
                   >
-                    <i className="ri-time-line me-1"></i> Pending Validation
+                    <i className="ri-time-line me-1"></i> Pending Validation By Doctor
                   </span>
                 )
               )}
@@ -201,11 +240,17 @@ const Wrapper = ({
             <div>
               {validatorId && (
                 <div className="d-flex align-items-center">
-                  <span className="fs-xs-9">
-                    {geminiResponseGeneratedBy ? "Ai-Summary Verified By:" : "Verified By:"}
-                  </span>
+                  <span className="fs-xs-9">AI-Summary Validated By:</span>
                   <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
                     {validatorId?.name}
+                  </h6>
+                </div>
+              )}
+              {doctorValidatorId && (
+                <div className="d-flex align-items-center">
+                  <span className="fs-xs-9">Doctor Validated By:</span>
+                  <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
+                    {doctorValidatorId?.name}
                   </h6>
                 </div>
               )}
@@ -283,32 +328,37 @@ const Wrapper = ({
                     </DropdownToggle>
                   )}
                   <DropdownMenu>
-                    {needsValidation ? (
-                      user?.role === "DOCTOR" && (
-                        <DropdownItem
-                          onClick={(e) => {
-                            e.preventDefault();
-                            setIsModalOpen(true);
-                          }}
-                          href="#"
-                        >
-                          <i className="ri-checkbox-circle-line align-bottom text-success me-2"></i>{" "}
-                          Validate
-                        </DropdownItem>
-                      )
-                    ) : (
-                      <RenderWhen
-                        isTrue={showPrint && geminiResponseIsVerified !== false}
+                    {needsAIValidation && (
+                      <DropdownItem
+                        onClick={handleValidateAIContent}
+                        disabled={aiValidateLoading}
+                        href="#"
                       >
-                        <DropdownItem
-                          onClick={() => printItem(item, patient)}
-                          href="#"
-                        >
-                          <i className="ri-printer-line align-bottom text-muted me-2"></i>{" "}
-                          Print
-                        </DropdownItem>
-                      </RenderWhen>
+                        <i className="ri-robot-line align-bottom text-info me-2"></i>{" "}
+                        {aiValidateLoading ? "Validating AI..." : "Validate AI Content"}
+                      </DropdownItem>
                     )}
+                    {needsValidation && user?.role === "DOCTOR" && (
+                      <DropdownItem
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setIsModalOpen(true);
+                        }}
+                        href="#"
+                      >
+                        <i className="ri-checkbox-circle-line align-bottom text-success me-2"></i>{" "}
+                        Validate
+                      </DropdownItem>
+                    )}
+                    <RenderWhen isTrue={canPrint}>
+                      <DropdownItem
+                        onClick={() => printItem(item, patient)}
+                        href="#"
+                      >
+                        <i className="ri-printer-line align-bottom text-muted me-2"></i>{" "}
+                        Print
+                      </DropdownItem>
+                    </RenderWhen>
                     {disableEdit || item?.bill === WRITE_OFF ? (
                       ""
                     ) : (
