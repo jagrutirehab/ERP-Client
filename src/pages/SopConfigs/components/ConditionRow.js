@@ -12,6 +12,8 @@ import {
   BOOLEAN_OPTIONS,
   BLOOD_GROUP_OPTIONS,
   PERIOD_OPTIONS,
+  PER_OPTIONS,
+  emptyBand,
   SEVERITY_THRESHOLD_OPTIONS,
   ANY_LAB_TEST_OPTION,
   RELATIVE_DAY_OPERATORS,
@@ -63,6 +65,7 @@ const ConditionRow = ({
   const isBoolean = fieldType === "Boolean";
   const isFlaggedItems = fieldType === "FlaggedItemArray";
   const isDelayed = condition.triggerType?.value === "DELAYED";
+  const isFrequency = condition.schedule?.period?.value === "FREQUENCY";
   const hasEnum =
     !!fieldEnumOpts && !isGender && !isProvisional && !isBloodGroup;
 
@@ -321,6 +324,131 @@ const ConditionRow = ({
         )}
         {hint && <small className="text-muted d-block mt-1">{hint}</small>}
       </div>
+    );
+  };
+
+  // FREQUENCY band table — "N documents per period over a day range". Each row
+  // mirrors a clinical-policy line (e.g. From 5 · To 30 · 2 · per week). Empty
+  // "To day" + the onwards toggle means "from this day until discharge".
+  const setBands = (bands) =>
+    onChange(idx, "schedule", { ...condition.schedule, bands });
+
+  const renderFrequencyBands = () => {
+    const bands = condition.schedule?.bands || [];
+    return (
+      <Col md={12} className="mt-2">
+        <div className="d-flex justify-content-between align-items-center mb-1">
+          <Label className="small text-muted mb-0">
+            Frequency bands — N documents per period within a day range
+          </Label>
+          <Button
+            type="button"
+            size="sm"
+            color="secondary"
+            outline
+            onClick={() => setBands([...bands, emptyBand()])}
+            disabled={isDisabled}
+          >
+            + Add band
+          </Button>
+        </div>
+        {bands.length === 0 && (
+          <small className="text-muted d-block">
+            e.g. From 5 · To 30 · 2 · per week.
+          </small>
+        )}
+        {bands.map((band, bi) => {
+          const updateBand = (patch) =>
+            setBands(bands.map((x, i) => (i === bi ? { ...x, ...patch } : x)));
+          return (
+            <Row className="g-1 mb-1 align-items-center" key={bi}>
+              <Col xs={2}>
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="From day"
+                  value={band.fromDay ?? ""}
+                  onChange={(e) =>
+                    updateBand({ fromDay: e.target.value.replace(/[^\d]/g, "") })
+                  }
+                  disabled={isDisabled}
+                />
+              </Col>
+              <Col xs={2}>
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="To day"
+                  value={band.onwards ? "" : (band.toDay ?? "")}
+                  onChange={(e) =>
+                    updateBand({ toDay: e.target.value.replace(/[^\d]/g, "") })
+                  }
+                  disabled={isDisabled || band.onwards}
+                />
+              </Col>
+              <Col xs={2} className="d-flex align-items-center">
+                <div className="form-check mb-0">
+                  <input
+                    type="checkbox"
+                    className="form-check-input"
+                    id={`onwards-${idx}-${bi}`}
+                    checked={!!band.onwards}
+                    disabled={isDisabled}
+                    onChange={(e) =>
+                      updateBand(
+                        e.target.checked
+                          ? { onwards: true, toDay: "" }
+                          : { onwards: false },
+                      )
+                    }
+                  />
+                  <label
+                    className="form-check-label small"
+                    htmlFor={`onwards-${idx}-${bi}`}
+                  >
+                    onwards
+                  </label>
+                </div>
+              </Col>
+              <Col xs={2}>
+                <Input
+                  type="number"
+                  min="1"
+                  step="1"
+                  placeholder="Times"
+                  value={band.times ?? ""}
+                  onChange={(e) =>
+                    updateBand({ times: e.target.value.replace(/[^\d]/g, "") })
+                  }
+                  disabled={isDisabled}
+                />
+              </Col>
+              <Col xs={3}>
+                <Select
+                  options={PER_OPTIONS}
+                  value={band.per || PER_OPTIONS[1]}
+                  onChange={(v) => updateBand({ per: v })}
+                  isDisabled={isDisabled}
+                />
+              </Col>
+              <Col xs={1}>
+                <Button
+                  type="button"
+                  color="danger"
+                  outline
+                  size="sm"
+                  onClick={() => setBands(bands.filter((_, i) => i !== bi))}
+                  disabled={isDisabled}
+                >
+                  ×
+                </Button>
+              </Col>
+            </Row>
+          );
+        })}
+      </Col>
     );
   };
 
@@ -612,52 +740,59 @@ const ConditionRow = ({
                 DEADLINE   → "Deadline (h)" — one-time check at admission + N
                 CONTINUOUS → "Interval (h)" — every N hours
                 DAYS       → "Sub-interval (h)" — optional, per-day sub-cadence
+              Hidden for FREQUENCY (it uses the band table instead).
           */}
-          <Col md={2}>
-            <Label className="small text-muted mb-1">
-              {condition.schedule?.period?.value === "DEADLINE"
-                ? "Deadline (h)"
-                : condition.schedule?.period?.value === "CONTINUOUS"
-                  ? "Interval (h)"
-                  : "Sub-interval (h)"}
-            </Label>
-            <Input
-              type="number"
-              min="1"
-              step="1"
-              placeholder={
-                condition.schedule?.period?.value === "DAYS"
-                  ? "optional"
-                  : "required"
-              }
-              value={condition.schedule?.intervalHours ?? ""}
-              onChange={(e) =>
-                onChange(idx, "schedule", {
-                  ...condition.schedule,
-                  intervalHours: e.target.value.replace(/[^\d]/g, ""),
-                })
-              }
-              disabled={isDisabled}
-            />
-          </Col>
+          {!isFrequency && (
+            <Col md={2}>
+              <Label className="small text-muted mb-1">
+                {condition.schedule?.period?.value === "DEADLINE"
+                  ? "Deadline (h)"
+                  : condition.schedule?.period?.value === "CONTINUOUS"
+                    ? "Interval (h)"
+                    : "Sub-interval (h)"}
+              </Label>
+              <Input
+                type="number"
+                min="1"
+                step="1"
+                placeholder={
+                  condition.schedule?.period?.value === "DAYS"
+                    ? "optional"
+                    : "required"
+                }
+                value={condition.schedule?.intervalHours ?? ""}
+                onChange={(e) =>
+                  onChange(idx, "schedule", {
+                    ...condition.schedule,
+                    intervalHours: e.target.value.replace(/[^\d]/g, ""),
+                  })
+                }
+                disabled={isDisabled}
+              />
+            </Col>
+          )}
 
-          <Col md={2}>
-            <Label className="small text-muted mb-1">Grace (h)</Label>
-            <Input
-              type="number"
-              min="0"
-              step="1"
-              placeholder="0"
-              value={condition.schedule?.graceHours ?? 0}
-              onChange={(e) =>
-                onChange(idx, "schedule", {
-                  ...condition.schedule,
-                  graceHours: e.target.value.replace(/[^\d]/g, ""),
-                })
-              }
-              disabled={isDisabled}
-            />
-          </Col>
+          {!isFrequency && (
+            <Col md={2}>
+              <Label className="small text-muted mb-1">Grace (h)</Label>
+              <Input
+                type="number"
+                min="0"
+                step="1"
+                placeholder="0"
+                value={condition.schedule?.graceHours ?? 0}
+                onChange={(e) =>
+                  onChange(idx, "schedule", {
+                    ...condition.schedule,
+                    graceHours: e.target.value.replace(/[^\d]/g, ""),
+                  })
+                }
+                disabled={isDisabled}
+              />
+            </Col>
+          )}
+
+          {isFrequency && renderFrequencyBands()}
         </Row>
       )}
 

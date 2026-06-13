@@ -22,6 +22,7 @@ import {
   OPERATOR_OPTIONS,
   TRIGGER_OPTIONS,
   PERIOD_OPTIONS,
+  PER_OPTIONS,
   MEDICINE_INTAKE_OPTIONS,
   MEDICINE_PRIORITY_OPTIONS,
   MEDICINE_CATEGORY_OPTIONS,
@@ -46,6 +47,7 @@ const hydrateSchedule = (s) => {
       daysOnwards: false,
       intervalHours: "",
       graceHours: 0,
+      bands: [],
     };
   }
   return {
@@ -54,6 +56,16 @@ const hydrateSchedule = (s) => {
     daysOnwards: !!s.daysOnwards,
     intervalHours: s.intervalHours != null ? String(s.intervalHours) : "",
     graceHours: s.graceHours != null ? Number(s.graceHours) : 0,
+    // FREQUENCY bands → UI rows (toDay null = "onwards").
+    bands: Array.isArray(s.bands)
+      ? s.bands.map((b) => ({
+          fromDay: b.fromDay != null ? String(b.fromDay) : "",
+          toDay: b.toDay != null ? String(b.toDay) : "",
+          times: b.times != null ? String(b.times) : "",
+          per: findOpt(PER_OPTIONS, b.per) || PER_OPTIONS[1],
+          onwards: b.toDay == null,
+        }))
+      : [],
   };
 };
 
@@ -380,6 +392,19 @@ const SOPForm = ({
       out.daysOnwards = !!s.daysOnwards;
       // intervalHours is optional for DAYS — if set, sub-divides each day.
       if (interval != null && interval > 0) out.intervalHours = interval;
+    } else if (period === "FREQUENCY") {
+      // Rate-over-range bands. Empty / onwards "To day" → toDay: null.
+      out.bands = (Array.isArray(s.bands) ? s.bands : [])
+        .map((b) => ({
+          fromDay: Number(b.fromDay),
+          toDay:
+            b.onwards || b.toDay === "" || b.toDay == null
+              ? null
+              : Number(b.toDay),
+          times: Number(b.times),
+          per: b.per?.value || b.per || "WEEK",
+        }))
+        .filter((b) => Number.isFinite(b.fromDay) && Number.isFinite(b.times));
     }
 
     return out;
@@ -480,6 +505,28 @@ const SOPForm = ({
           const days = Number(c.value?.[0]);
           if (!Number.isFinite(days) || days <= 0) {
             bErr.conditions[cIdx] = "Enter a positive number of days";
+            hasTargetErrors = true;
+          }
+        } else if (
+          c.triggerType?.value === "DELAYED" &&
+          c.schedule?.period?.value === "FREQUENCY"
+        ) {
+          const bands = c.schedule?.bands || [];
+          const bad = bands.some(
+            (b) =>
+              !(Number(b.fromDay) >= 0) ||
+              !(Number(b.times) >= 1) ||
+              (!b.onwards &&
+                b.toDay !== "" &&
+                b.toDay != null &&
+                Number(b.toDay) < Number(b.fromDay)),
+          );
+          if (bands.length === 0) {
+            bErr.conditions[cIdx] = "Add at least one frequency band";
+            hasTargetErrors = true;
+          } else if (bad) {
+            bErr.conditions[cIdx] =
+              "Each band needs From day, Times ≥ 1, and To ≥ From (or onwards)";
             hasTargetErrors = true;
           }
         }

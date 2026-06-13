@@ -119,11 +119,31 @@ export const BOOLEAN_OPTIONS = [
 //   - CONTINUOUS : every `intervalHours` from admission until discharge/now.
 //   - DAYS       : on each listed day; if intervalHours is also set, sub-divide
 //                  each day by that interval.
+//   - FREQUENCY  : "N documents per period over a day-range" — a `bands` table
+//                  (e.g. 2/week between admission day 5–30).
 export const PERIOD_OPTIONS = [
   { value: "DEADLINE",   label: "Deadline (one-time)" },
   { value: "CONTINUOUS", label: "Continuous (every N hours)" },
   { value: "DAYS",       label: "Days (specific days)" },
+  { value: "FREQUENCY",  label: "Frequency (N per period)" },
 ];
+
+// FREQUENCY band period unit.
+export const PER_OPTIONS = [
+  { value: "DAY",   label: "per day" },
+  { value: "WEEK",  label: "per week" },
+  { value: "MONTH", label: "per month" },
+];
+
+// One row of a FREQUENCY schedule. `onwards` (toDay empty) means the band runs
+// from `fromDay` until discharge.
+export const emptyBand = () => ({
+  fromDay: "",
+  toDay: "",
+  times: "",
+  per: PER_OPTIONS[1], // per week
+  onwards: false,
+});
 
 export const emptyConditionItem = () => ({
   model: null,
@@ -138,6 +158,7 @@ export const emptyConditionItem = () => ({
     daysOnwards: false,           // DAYS only: due every day after the max listed day
     intervalHours: "",            // optional integer (every N hours)
     graceHours: 0,                // tolerance window in hours
+    bands: [],                    // FREQUENCY only: [{ fromDay, toDay, times, per, onwards }]
   },
   // Populated only when operator is ARRAY_ANY_MATCHES (today: LabReport
   // flagged-items conditions).
