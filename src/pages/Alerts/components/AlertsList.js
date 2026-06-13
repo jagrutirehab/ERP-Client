@@ -122,6 +122,27 @@ const AlertsList = ({
       ),
     },
     {
+      name: "Window",
+      width: "150px",
+      cell: (row) =>
+        row.window?.label ? (
+          <Badge
+            {...RC}
+            color="light"
+            pill
+            className="text-dark border"
+            style={{ whiteSpace: "normal", textAlign: "left" }}
+          >
+            <i className="bx bx-calendar me-1" />
+            {row.window.label}
+          </Badge>
+        ) : (
+          <small {...RC} className="text-muted">
+            —
+          </small>
+        ),
+    },
+    {
       name: "Routed To",
       width: "210px",
       wrap: true,

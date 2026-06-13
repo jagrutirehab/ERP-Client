@@ -108,10 +108,16 @@ const AlertDetailOffcanvas = ({ isOpen, onClose, alert }) => {
               </Row>
               {/* Specific rule (block name) that fired */}
               <Row className="mb-3">
-                <Col xs={12}>
+                <Col xs={alert.window?.label ? 6 : 12}>
                   {sectionLabel("bx bx-target-lock", "Rule")}
                   <div>{alert.blockName || "—"}</div>
                 </Col>
+                {alert.window?.label && (
+                  <Col xs={6}>
+                    {sectionLabel("bx bx-calendar", "Window / period")}
+                    <div>{alert.window.label}</div>
+                  </Col>
+                )}
               </Row>
 
               {/* Action Guidance */}
