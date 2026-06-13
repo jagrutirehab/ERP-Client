@@ -69,6 +69,7 @@ import Dis08ProgrammeCompletionDischargeSOPPage from "./Guidelines/Dis-08_Progra
 import Dis09ContinuationOfCarePlanSOPPage from "./Guidelines/Dis-09_Continuation_of_Care_Plan_SOP";
 import Dis10AdministrativeClosureSOPPage from "./Guidelines/Dis-10_Administrative_Closure_SOP";
 import Dis11LegalPoliceCourtClosureSOPPage from "./Guidelines/Dis-11_Legal_Police_Court_Closure_SOP";
+import JrcplAdmissionsPathwayFlowchartPage from "./Guidelines/Jrcpl_Admissions_Pathway_Flowchart";
 // import Main from "./Main";
 // import PatientDetails from "./PatientDetails";
 
@@ -221,6 +222,12 @@ const Guidelines = () => {
                     link: "wf-08-nursing-incharge-shift-handover-workflow",
                     icon: "bx bx-transfer",
                     category: "workflow",
+                  },
+                  {
+                    id: "jrcpl-admissions-pathway-flowchart",
+                    label: "JRCPL — Admissions Pathway Flowchart",
+                    link: "jrcpl-admissions-pathway-flowchart",
+                    icon: "bx bx-git-branch",
                   },
                   {
                     id: "cl-01-schizophrenia-spectrum-disorders",
@@ -581,6 +588,10 @@ const Guidelines = () => {
                 <Route
                   path="wf-08-nursing-incharge-shift-handover-workflow"
                   element={<Wf08NursingInChargeWorkflowPage />}
+                />
+                <Route
+                  path="jrcpl-admissions-pathway-flowchart"
+                  element={<JrcplAdmissionsPathwayFlowchartPage />}
                 />
                 <Route
                   path="cl-01-schizophrenia-spectrum-disorders"

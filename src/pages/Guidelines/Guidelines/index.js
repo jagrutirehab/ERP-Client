@@ -67,6 +67,7 @@ import Dis08ProgrammeCompletionDischargeSOP from "./Prints/Dis-08_Programme_Comp
 import Dis09ContinuationOfCarePlanSOP from "./Prints/Dis-09_Continuation_of_Care_Plan_SOP";
 import Dis10AdministrativeClosureSOP from "./Prints/Dis-10_Administrative_Closure_SOP";
 import Dis11LegalPoliceCourtClosureSOP from "./Prints/Dis-11_Legal_Police_Court_Closure_SOP";
+import JrcplAdmissionsPathwayFlowchart from "./Prints/Jrcpl_Admissions_Pathway_Flowchart";
 import Select from "react-select";
 
 const guidelines = [
@@ -309,6 +310,18 @@ const guidelines = [
     type: "Workflow",
     print: Wf08NursingInChargeWorkflow,
     link: "wf-08-nursing-incharge-shift-handover-workflow",
+    category: "workflow",
+  },
+  {
+    id: 67,
+    name: "JRCPL — Admissions Pathway Flowchart",
+    description:
+      "Visual flowchart of the MHCA 2017 admissions pathway — Independent Admission (Forms 86/87), Emergency Admission (Form 98, 72+48 hrs), Supported Admission, capacity assessment decision trees, Form 89 (30-day renewal cycle), Form 90 (90-day extended review), and capacity regained / still lacking resolution pathways.",
+    lastUpdated: "June 2026",
+    status: "Active",
+    type: "Clinical Reference — MHCA 2017",
+    print: JrcplAdmissionsPathwayFlowchart,
+    link: "jrcpl-admissions-pathway-flowchart",
     category: "workflow",
   },
   {
