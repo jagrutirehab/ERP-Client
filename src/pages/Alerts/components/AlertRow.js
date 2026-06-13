@@ -37,6 +37,11 @@ const AlertRow = ({ alert, onClick }) => {
             {!alert.isRead && (
               <Badge color="danger" pill className="ms-1">NEW</Badge>
             )}
+            {alert.window?.label && (
+              <Badge color="light" pill className="text-dark border d-inline-flex align-items-center">
+                <i className="bx bx-calendar me-1" />{alert.window.label}
+              </Badge>
+            )}
           </div>
           <div
             className={`mb-1 ${alert.isRead ? "text-muted" : "fw-semibold"}`}
