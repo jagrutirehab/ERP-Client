@@ -163,9 +163,9 @@ const AdmitPatient = ({
       center: Yup.string().required("Please select center"),
       psychologist: Yup.string().required("Please select Psychologist"),
       doctor: Yup.string().required("Please select Doctor"),
-      // provisional_diagnosis: Yup.array()
-      //   .min(1, "Please select at least one Provisional Diagnosis")
-      //   .required("Please select Provisional Diagnosis"),
+      provisional_diagnosis: Yup.array()
+        .min(1, "Please select at least one Provisional Diagnosis")
+        .required("Please select Provisional Diagnosis"),
       Ipdnum: Yup.string().required("Please Wait for Ipd file number"),
     }),
     onSubmit: async (values) => {
@@ -422,6 +422,7 @@ const AdmitPatient = ({
       type: "select",
       options: icdOptions,
       isMulti: true,
+      required: true,
     },
     {
       label: "Doctor",
@@ -941,9 +942,7 @@ const AdmitPatient = ({
             const step2Fields = [
               "center",
               "addmissionDate",
-              ...admissionFields
-                .filter((f) => f.name !== "provisional_diagnosis")
-                .map((f) => f.name),
+              ...admissionFields.map((f) => f.name),
             ];
 
             // Touch all step 2 fields
