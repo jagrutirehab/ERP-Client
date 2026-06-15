@@ -34,6 +34,8 @@ export const TARGET_OPTIONS = [
     "LabReport",
   ]),
   { value: "ClinicalNote", label: "Clinical Note" },
+  { value: "MentalExamination", label: "Mental Status Examination" },
+  { value: "CounsellingNote", label: "Counselling Note" },
 ];
 export const OPERATOR_OPTIONS = [
   ...[
