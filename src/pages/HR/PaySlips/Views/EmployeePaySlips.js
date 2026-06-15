@@ -22,6 +22,7 @@ import {
   useDebouncedValue,
   writeStickyFilters,
 } from "../payslipUtils";
+import {capitalizeWords} from "../../../../utils/toCapitalize";
 import { format } from "date-fns";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 
@@ -229,7 +230,17 @@ const EmployeePaySlipsTab = () => {
       },
       {
         name: "Designation",
-        cell: (row) => displayValue(row.designation),
+        cell: (row) => capitalizeWords(row.designation),
+        minWidth: "150px",
+      },
+      {
+        name: "Department",
+        cell: (row) => capitalizeWords(row.department),
+        minWidth: "150px",
+      },
+      {
+        name: "Position",
+        cell: (row) => capitalizeWords(row.position),
         minWidth: "150px",
       },
       {

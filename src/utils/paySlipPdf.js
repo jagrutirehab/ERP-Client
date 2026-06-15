@@ -255,8 +255,12 @@ const PayslipPdf = ({ row }) => {
       "Working Days Attended",      row?.workingDaysAttended ?? "--",
     ],
     [
-      "Department",                 row?.department,          
+      "Department",                 row?.department,
       "Payable Days",               row?.payableDays         ?? "--",
+    ],
+    [
+      "Position",                   row?.position,
+      "Total Working Days",         row?.totalWorkingDays    ?? "--",
     ],
     [
       "PAN",                        row?.pan,

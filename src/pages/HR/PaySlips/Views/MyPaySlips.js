@@ -17,6 +17,7 @@ import {
   useDebouncedValue,
   writeStickyFilters,
 } from "../payslipUtils";
+import {capitalizeWords} from "../../../../utils/toCapitalize";
 
 const FILTER_KEY = "hr_my_payslip_filters";
 
@@ -148,7 +149,17 @@ const MyPaySlipsTab = () => {
     },
     {
       name: "Designation",
-      cell: (row) => displayValue(row.designation),
+      cell: (row) => capitalizeWords(row.designation),
+      minWidth: "150px",
+    },
+    {
+      name: "Department",
+      cell: (row) => capitalizeWords(row.department),
+      minWidth: "150px",
+    },
+    {
+      name: "Position",
+      cell: (row) => capitalizeWords(row.position),
       minWidth: "150px",
     },
     {
