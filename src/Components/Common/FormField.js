@@ -129,16 +129,31 @@ const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
                       placeholder={`Select ${field.label}`}
                       menuPortalTarget={document.body}
                       styles={{
-                        menuPortal: base => ({ ...base, zIndex: 9999 })
+                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                        control: (base) => ({
+                          ...base,
+                          borderColor:
+                            validation.touched[field.name] &&
+                            validation.errors[field.name]
+                              ? "#dc3545"
+                              : base.borderColor,
+                          "&:hover": {
+                            borderColor:
+                              validation.touched[field.name] &&
+                              validation.errors[field.name]
+                                ? "#dc3545"
+                                : base.borderColor,
+                          },
+                        }),
                       }}
                     />
 
-                    {/* {validation.touched[field.name] &&
+                    {validation.touched[field.name] &&
                       validation.errors[field.name] && (
                         <FormFeedback type="invalid" className="d-block">
                           {validation.errors[field.name]}
                         </FormFeedback>
-                      )} */}
+                      )}
                   </>
                 ) : (
                   <>
