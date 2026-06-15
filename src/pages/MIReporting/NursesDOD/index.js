@@ -13,6 +13,8 @@ const NursesDOD = () => {
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [dataFormat, setDataFormat] = useState("percentage");
+    const [countType, setCountType] = useState("completed");
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
@@ -35,7 +37,7 @@ const NursesDOD = () => {
         "Patient Name",
         "Center Name",
         "MTD",
-        "Prescription Count",
+        "Presc. Count",
     ];
 
     const fixedColWidths = [90, 180, 120, 55, 55];
@@ -44,14 +46,14 @@ const NursesDOD = () => {
         "Patient UID": "patient_id",
         "Patient Name": "patient_name",
         "Center Name": "center_name",
-        "Prescription Count": "prescription_count",
+        "Presc. Count": "prescription_count",
         "MTD": "total_current_month",
     };
 
     const last30Days = useMemo(() => {
         const days = [];
         const today = new Date();
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 60; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             const key = d.toISOString().slice(0, 10);
@@ -64,11 +66,34 @@ const NursesDOD = () => {
     const dateTotals = useMemo(() => {
         const totals = {};
         last30Days.forEach(({ key }) => {
-            // console.log(key)
-            totals[key] = filteredData.reduce((sum, row) => sum + (Number(row.dod_data?.[key]?.result_count) || 0), 0);
+            totals[key] = filteredData.reduce((sum, row) => {
+                const entry = row.dod_data?.[key];
+                const val = countType === "missed"
+                    ? Number(entry?.missed_count) || 0
+                    : Number(entry?.result_count) || 0;
+                return sum + val;
+            }, 0);
+        });
+        return totals;
+    }, [filteredData, last30Days, countType]);
+
+    const dateShouldBeTotals = useMemo(() => {
+        const totals = {};
+        last30Days.forEach(({ key }) => {
+            totals[key] = filteredData.reduce((sum, row) => sum + (Number(row.dod_data?.[key]?.should_be_count) || 0), 0);
         });
         return totals;
     }, [filteredData, last30Days]);
+
+    const getDateTotalDisplay = (key) => {
+        const count = dateTotals[key] || 0;
+        if (dataFormat === "percentage") {
+            const shouldBe = dateShouldBeTotals[key] || 0;
+            if (!shouldBe) return "";
+            return `${Math.round((count / shouldBe) * 100)}%`;
+        }
+        return count || "";
+    };
 
     const centerOptions = useMemo(() => [
         { value: "ALL", label: "All Centers" },
@@ -78,6 +103,19 @@ const NursesDOD = () => {
         })),
     ], [data]);
 
+    const getCellValue = (dodEntry) => {
+        const completed = dodEntry?.result_count ?? null;
+        const missed = dodEntry?.missed_count ?? null;
+        const shouldBe = dodEntry?.should_be_count ?? null;
+        const count = countType === "missed" ? missed : completed;
+        if (count == null) return "";
+        if (dataFormat === "percentage") {
+            if (!shouldBe) return "";
+            return `${Math.round((count / shouldBe) * 100)}%`;
+        }
+        return count;
+    };
+
     const prepareCsvData = () => {
         setCsvLoading(true);
 
@@ -85,7 +123,7 @@ const NursesDOD = () => {
         const totalsRow = [
             "Total",
             ...Array(labels.length - 1).fill(""),
-            ...last30Days.map(({ key }) => dateTotals[key] || ""),
+            ...last30Days.map(({ key }) => getDateTotalDisplay(key)),
         ];
 
         const rows = [
@@ -93,7 +131,7 @@ const NursesDOD = () => {
             allHeaders,
             ...filteredData.map((patient) => [
                 ...labels.map((label) => patient[labelsMapping[label]] ?? ""),
-                ...last30Days.map(({ key }) => patient.dod_data?.[key]?.result_count ?? ""),
+                ...last30Days.map(({ key }) => getCellValue(patient.dod_data?.[key])),
             ]),
         ];
 
@@ -157,6 +195,28 @@ const NursesDOD = () => {
                                     placeholder="Center..."
                                 />
                             </Col>
+                            <Col md={2}>
+                                <Select
+                                    value={{ value: dataFormat, label: dataFormat === "percentage" ? "Percentage" : "Number" }}
+                                    onChange={(opt) => setDataFormat(opt.value)}
+                                    options={[
+                                        { value: "percentage", label: "Percentage" },
+                                        { value: "number", label: "Number" },
+                                    ]}
+                                    placeholder="Data Format..."
+                                />
+                            </Col>
+                            <Col md={2}>
+                                <Select
+                                    value={{ value: countType, label: countType === "completed" ? "Completed" : "Missed" }}
+                                    onChange={(opt) => setCountType(opt.value)}
+                                    options={[
+                                        { value: "completed", label: "Completed" },
+                                        { value: "missed", label: "Missed" },
+                                    ]}
+                                    placeholder="Count Type..."
+                                />
+                            </Col>
                         </Row>
                         <Card>
                             <CardBody>
@@ -191,7 +251,7 @@ const NursesDOD = () => {
                                                                     ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                                                 }}
                                                             >
-                                                                {i === labels.length - 1 ? "Total (Single Day)" : ""}
+                                                                {i === labels.length - 1 ? "Total (Single Day)" : i === labels.length - 3 ? "Pt. Count" : i === labels.length - 2 ? `${filteredData.length}` : ""}
                                                             </th>
                                                         ))}
                                                         {last30Days.map(({ key, label }) => (
@@ -205,7 +265,7 @@ const NursesDOD = () => {
                                                                     whiteSpace: "nowrap",
                                                                 }}
                                                             >
-                                                                {dateTotals[key] || ""}
+                                                                {getDateTotalDisplay(key)}
                                                             </th>
                                                         ))}
                                                     </tr>
@@ -271,7 +331,7 @@ const NursesDOD = () => {
                                                                         whiteSpace: "nowrap",
                                                                     }}
                                                                 >
-                                                                    {patient.dod_data?.[key]?.result_count ?? 0}
+                                                                    {getCellValue(patient.dod_data?.[key])}
                                                                 </td>
                                                             ))}
                                                         </tr>

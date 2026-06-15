@@ -19,6 +19,8 @@ const METRICS = [
     { label: "Clinical Notes",       key: "clinical_notes"       },
     { label: "Counselling Sessions", key: "counselling_sessions" },
     { label: "Round Notes",          key: "round_notes"          },
+    { label: "Counselling Recording",key: "counselling_recording"},
+
 ];
 
 const DocsCompliance = () => {
@@ -66,6 +68,7 @@ const DocsCompliance = () => {
             { value: "Total", label: "All Centers" },
             ...[...names]
                 .filter((n) => n !== "Total")
+                .sort((a, b) => a.localeCompare(b))
                 .map((n) => ({ value: n, label: n })),
         ];
     }, [data]);
@@ -124,7 +127,7 @@ const getCenterCellValue = (row, metricKey) => {
                 if (row.center_name) names.add(row.center_name);
             });
         });
-        return [...names];
+        return [...names].sort((a, b) => a.localeCompare(b));
     }, [data]);
 
     const getCenterMonthValue = (centerName, month) => {
@@ -210,7 +213,7 @@ const getCenterCellValue = (row, metricKey) => {
                                             ))}
                                         </tr>
                                     </thead>
-                                    <tbody>
+                                    <tbody> 
                                         {METRICS.map(({ label, key }, idx) => (
                                             <tr key={key}>
                                                 <td className="px-2 py-1 fw-semibold" style={cellStyle(idx)}>

@@ -67,7 +67,7 @@ const Attendance = () => {
         const totals = {};
         last30Days.forEach(({ key }) => {
             
-            totals[key] = filteredData.reduce((sum, row) => sum + (row[key]=="P"?1: 0), 0);
+            totals[key] = filteredData.reduce((sum, row) => sum + (Number(row[key]) || 0), 0);
         });
         return totals;
     }, [filteredData, last30Days]);
@@ -286,7 +286,9 @@ const Attendance = () => {
                                                                     ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
                                                                 }}
                                                             >
-                                                                {emp[labelsMapping[label]] ?? ""}
+                                                                {label === "Designation"
+                                                                    ? (emp[labelsMapping[label]] ?? "").slice(0, 25)
+                                                                    : emp[labelsMapping[label]] ?? ""}
                                                             </td>
                                                         ))}
                                                         {last30Days.map(({ key }) => (
