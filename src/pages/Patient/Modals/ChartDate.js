@@ -20,6 +20,7 @@ import CustomModal from "../../../Components/Common/Modal";
 import {
   DISCHARGE_SUMMARY,
   EXPIRY_SUMMARY,
+  OUTPASS,
   PRESCRIPTION,
   records,
   testRecord,
@@ -183,7 +184,8 @@ const ChartDate = ({
                             ? true
                             : type === "GENERAL" &&
                                 (item.category === DISCHARGE_SUMMARY ||
-                                  item.category === EXPIRY_SUMMARY)
+                                  item.category === EXPIRY_SUMMARY ||
+                                  item.category === OUTPASS)
                               ? true
                               : false
                         }

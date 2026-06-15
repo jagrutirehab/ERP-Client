@@ -20,6 +20,7 @@ import {
 import { Link } from "react-router-dom";
 import Select from "react-select";
 import { toast } from "react-toastify";
+import moment from "moment";
 
 //redux
 import { connect, useDispatch } from "react-redux";
@@ -192,6 +193,20 @@ const PatientTopbar = ({
                       <p className="text-truncate text-muted fs-14 mb-0 userStatus">
                         {/* <small>Online</small> */}
                       </p>
+                      {patient?.isOnOutpass && patient?.outpass && (
+                        <span
+                          className="badge bg-warning text-dark mt-1 d-inline-block text-wrap"
+                          style={{ whiteSpace: "normal", maxWidth: "100%" }}
+                        >
+                          <i className="ri-walk-line me-1"></i>
+                          On Outpass:{" "}
+                          {moment(patient.outpass.fromDate).format(
+                            "DD MMM, YYYY",
+                          )}{" "}
+                          -{" "}
+                          {moment(patient.outpass.toDate).format("DD MMM, YYYY")}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>

@@ -10,6 +10,7 @@ import {
   EXPIRY_SUMMARY,
   LAB_REPORT,
   MENTAL_EXAMINATION,
+  OUTPASS,
   PRESCRIPTION,
   RELATIVE_VISIT,
   VITAL_SIGN,
@@ -34,6 +35,7 @@ import ClinicalNote from "./ClinicalNote";
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import LabReport from "./LabReport";
 import RelativeVisit from "./RelativeVisit";
+import Outpass from "./Outpass";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
@@ -211,6 +213,9 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                 )}
                 {chart.chart === RELATIVE_VISIT && (
                   <RelativeVisit data={chart?.relativeVisit} />
+                )}
+                {chart.chart === OUTPASS && (
+                  <Outpass data={chart?.outpass} />
                 )}
                 {chart.chart === DISCHARGE_SUMMARY && (
                   <DischargeSummary data={chart?.dischargeSummary} />

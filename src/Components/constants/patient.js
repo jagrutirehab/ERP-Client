@@ -13,6 +13,7 @@ const COUNSELLING_NOTE = "COUNSELLING_NOTE";
 const LAB_REPORT = "LAB_REPORT";
 const PROCEDURE = "PROCEDURE";
 const RELATIVE_VISIT = "RELATIVE_VISIT";
+const OUTPASS = "OUTPASS";
 const DISCHARGE_SUMMARY = "DISCHARGE_SUMMARY";
 const EXPIRY_SUMMARY = "EXPIRY_SUMMARY";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
@@ -80,6 +81,10 @@ const records = [
   {
     name: "Relative Visit",
     category: RELATIVE_VISIT,
+  },
+  {
+    name: "Outpass",
+    category: OUTPASS,
   },
   {
     name: "Discharge Summary",
@@ -830,6 +835,24 @@ const relativeVisitFields = [
     type: "textarea",
   },
   ...clinicalNoteFields,
+];
+
+const outpassFields = [
+  {
+    label: "From Date",
+    name: "fromDate",
+    type: "date",
+  },
+  {
+    label: "To Date",
+    name: "toDate",
+    type: "date",
+  },
+  {
+    label: "Note",
+    name: "note",
+    type: "textarea",
+  },
 ];
 
 const dischargeSummaryFields = [
@@ -2391,6 +2414,7 @@ export {
   LAB_REPORT,
   PROCEDURE,
   RELATIVE_VISIT,
+  OUTPASS,
   DISCHARGE_SUMMARY,
   EXPIRY_SUMMARY,
   DETAIL_ADMISSION,
@@ -2423,6 +2447,7 @@ export {
   mentalExaminationV2Fields,
   counsellingNoteFields,
   relativeVisitFields,
+  outpassFields,
   dischargeSummaryFields,
   expirySummaryFields,
   //PATIENT FIELDS

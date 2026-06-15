@@ -554,6 +554,8 @@ export const postGeneralRealtiveVisit = (data) =>
   api.create(url.POST_GENERAL_RELATIVE_VISIT, data);
 export const editGeneralRealtiveVisit = (data) =>
   api.put(url.EDIT_GENERAL_RELATIVE_VISIT, data);
+export const postOutpass = (data) => api.create(url.POST_OUTPASS, data);
+export const editOutpass = (data) => api.put(url.EDIT_OUTPASS, data);
 export const postDischargeSummary = (data) =>
   api.create(url.POST_DISCHARGE_SUMMARY, data);
 export const editDischargeSummary = (data) =>

@@ -59,7 +59,7 @@ const IPDComponent = ({
               data={addmission}
               toggleModal={toggleModal}
             >
-              <div className="d-flex align-items-center gap-2">
+              <div className="d-flex align-items-center flex-wrap gap-2 mt-2 mt-md-0">
                 <div className="d-flex align-items-center gap-1">
                   <RenderWhen isTrue={!addmission.dischargeDate}>
                     <Label className="mb-0 text-nowrap">
