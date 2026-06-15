@@ -1653,6 +1653,18 @@ export const getMyPayslips = (params = {}) => {
   });
 };
 
+export const getEmployeePayslipById = (id) => {
+  return api.get(`${url.GET_EMPLOYEE_PAYSLIPS}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getMyPayslipById = (id) => {
+  return api.get(`${url.GET_MY_PAYSLIPS}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 export const getMySalaryData = (params) => {
   return api.get(url.GET_MY_SALARY_DATA, {
     params,

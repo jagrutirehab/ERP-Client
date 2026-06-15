@@ -3,20 +3,23 @@ import { Button, CardBody, Input, Spinner } from "reactstrap";
 import Select from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { endOfYear, startOfYear } from "date-fns";
-import { Download } from "lucide-react";
+import { Eye } from "lucide-react";
 import { toast } from "react-toastify";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { fetchMyPayslips } from "../../../../store/features/HR/hrSlice";
 import {
+  buildPayslipPreviewFile,
   displayMoney,
   displayValue,
-  downloadPayslipPdfById,
   monthLabel,
   readStickyFilters,
   useDebouncedValue,
   writeStickyFilters,
 } from "../payslipUtils";
+import { getMyPayslipById } from "../../../../helpers/backend_helper";
+import PreviewFile from "../../../../Components/Common/PreviewFile";
+import RefreshButton from "../../../../Components/Common/RefreshButton";
 import {capitalizeWords} from "../../../../utils/toCapitalize";
 
 const FILTER_KEY = "hr_my_payslip_filters";
@@ -50,6 +53,7 @@ const MyPaySlipsTab = () => {
     initialFilters.year ? Number(initialFilters.year) : currentYear
   );
   const [downloadingId, setDownloadingId] = useState("");
+  const [previewFile,   setPreviewFile]   = useState(null);
 
   const debouncedSearch = useDebouncedValue(search);
 
@@ -108,16 +112,27 @@ const MyPaySlipsTab = () => {
 
   useEffect(() => { runFetch(); }, [fetchKey]); // eslint-disable-line
 
-  const handleDownload = async (row) => {
+  const handlePreview = async (row) => {
     try {
       setDownloadingId(row._id);
-      await downloadPayslipPdfById(row._id, data);
-      toast.success("Payslip downloaded");
-    } catch {
-      toast.error("Failed to generate payslip PDF");
+      const res = await getMyPayslipById(row._id);
+      if (!res?.success || !res?.data) {
+        throw new Error("Payslip not found");
+      }
+      const file = await buildPayslipPreviewFile(res.data);
+      setPreviewFile(file);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to generate payslip PDF");
+      }
     } finally {
       setDownloadingId("");
     }
+  };
+
+  const closePreview = () => {
+    if (previewFile?.url) window.URL.revokeObjectURL(previewFile.url);
+    setPreviewFile(null);
   };
 
   const columns = useMemo(() => [
@@ -130,16 +145,17 @@ const MyPaySlipsTab = () => {
       name: "Month",
       cell: (row) => displayValue(monthLabel(row)),
       sortable: true,
-      minWidth: "140px",
+      minWidth: "130px",
     },
     {
-      name: "Employee Code",
+      name: "Emp Code",
       cell: (row) => displayValue(row.employeeCode),
-      minWidth: "140px",
+      minWidth: "110px",
     },
     {
       name: "Employee Name",
       cell: (row) => displayValue(row.employeeName),
+      sortable: true,
       minWidth: "180px",
     },
     {
@@ -163,10 +179,16 @@ const MyPaySlipsTab = () => {
       minWidth: "150px",
     },
     {
-      name: "Deductions",
+      name: "Gross Salary",
+      cell: (row) => displayMoney(row.grossSalary),
+      right: true,
+      minWidth: "130px",
+    },
+    {
+      name: "Total Deductions",
       cell: (row) => displayMoney(row.totalDeductions),
       right: true,
-      minWidth: "120px",
+      minWidth: "140px",
     },
     {
       name: "Net Pay",
@@ -175,31 +197,31 @@ const MyPaySlipsTab = () => {
       minWidth: "110px",
     },
     {
-      name: "LOP Days",
-      cell: (row) => displayValue(row.lopDays),
+      name: "Total Days",
+      cell: (row) => displayValue(row.totalDays),
       right: true,
       minWidth: "100px",
     },
     {
-      name: "Days Attended",
-      cell: (row) => displayValue(row.workingDaysAttended),
+      name: "Payable Days",
+      cell: (row) => displayValue(row.payableDays),
       right: true,
-      minWidth: "120px",
+      minWidth: "110px",
     },
     {
-      name: "Download",
+      name: "Preview",
       center: true,
-      minWidth: "110px",
+      minWidth: "100px",
       cell: (row) => (
         <Button
           color="primary"
           size="sm"
           className="d-inline-flex align-items-center justify-content-center text-white"
-          onClick={() => handleDownload(row)}
+          onClick={() => handlePreview(row)}
           disabled={downloadingId === row._id}
-          title="Download payslip"
+          title="Preview payslip"
         >
-          {downloadingId === row._id ? <Spinner size="sm" /> : <Download size={15} />}
+          {downloadingId === row._id ? <Spinner size="sm" /> : <Eye size={16} />}
         </Button>
       ),
     },
@@ -207,8 +229,9 @@ const MyPaySlipsTab = () => {
 
   return (
     <CardBody className="p-3 bg-white" style={{ width: "80%" }}>
-      <div className="mb-4 text-center text-md-start">
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="fw-bold text-primary mb-0">MY PAY SLIPS</h4>
+        <RefreshButton loading={loading} onRefresh={runFetch} />
       </div>
 
       <div className="d-flex flex-wrap gap-2 align-items-center mb-3">
@@ -259,6 +282,14 @@ const MyPaySlipsTab = () => {
             ? "Forms are not available yet"
             : "No payslips found"
         }
+      />
+
+      <PreviewFile
+        title="Payslip Preview"
+        file={previewFile}
+        isOpen={!!previewFile}
+        toggle={closePreview}
+        allowDownload
       />
     </CardBody>
   );

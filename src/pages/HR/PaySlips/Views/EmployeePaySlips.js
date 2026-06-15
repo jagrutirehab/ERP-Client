@@ -3,7 +3,7 @@ import { Button, CardBody, Input, Spinner } from "reactstrap";
 import Select from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { endOfMonth, startOfMonth } from "date-fns";
-import { Calendar, Download } from "lucide-react";
+import { Calendar, Eye } from "lucide-react";
 import Flatpickr from "react-flatpickr";
 import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect";
 import "flatpickr/dist/themes/material_blue.css";
@@ -14,14 +14,17 @@ import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { fetchEmployeePayslips } from "../../../../store/features/HR/hrSlice";
 import {
+  buildPayslipPreviewFile,
   displayMoney,
   displayValue,
-  downloadPayslipPdfById,
   monthLabel,
   readStickyFilters,
   useDebouncedValue,
   writeStickyFilters,
 } from "../payslipUtils";
+import { getEmployeePayslipById } from "../../../../helpers/backend_helper";
+import PreviewFile from "../../../../Components/Common/PreviewFile";
+import RefreshButton from "../../../../Components/Common/RefreshButton";
 import {capitalizeWords} from "../../../../utils/toCapitalize";
 import { format } from "date-fns";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
@@ -51,6 +54,7 @@ const EmployeePaySlipsTab = () => {
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [downloadingId, setDownloadingId] = useState("");
+  const [previewFile, setPreviewFile] = useState(null);
 
   const debouncedSearch = useDebouncedValue(search);
 
@@ -68,8 +72,8 @@ const EmployeePaySlipsTab = () => {
   const {
     data = [],
     pagination,
-    loading,
   } = useSelector((state) => state.HR.employeePayslips.data);
+  const loading = useSelector((state) => state.HR.employeePayslips.loading);
 
   const hasUserPermission = hasPermission("HR", "EMPLOYEE_PAYSLIPS", "READ");
 
@@ -187,16 +191,27 @@ const EmployeePaySlipsTab = () => {
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
-  const handleDownload = async (row) => {
+  const handlePreview = async (row) => {
     try {
       setDownloadingId(row._id);
-      await downloadPayslipPdfById(row._id, data);
-      toast.success("Payslip downloaded");
-    } catch {
-      toast.error("Failed to generate payslip PDF");
+      const res = await getEmployeePayslipById(row._id);
+      if (!res?.success || !res?.data) {
+        throw new Error("Payslip not found");
+      }
+      const file = await buildPayslipPreviewFile(res.data);
+      setPreviewFile(file);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to generate payslip PDF");
+      }
     } finally {
       setDownloadingId("");
     }
+  };
+
+  const closePreview = () => {
+    if (previewFile?.url) window.URL.revokeObjectURL(previewFile.url);
+    setPreviewFile(null);
   };
 
   const columns = useMemo(
@@ -244,6 +259,12 @@ const EmployeePaySlipsTab = () => {
         minWidth: "150px",
       },
       {
+        name:"Gross Salary",
+        cell: (row) => displayMoney(row.grossSalary),
+        right: true,
+        minWidth: "130px",
+      },
+      {
         name: "Total Deductions",
         cell: (row) => displayMoney(row.totalDeductions),
         right: true,
@@ -263,12 +284,12 @@ const EmployeePaySlipsTab = () => {
       },
       {
         name: "Payable Days",
-        cell: (row) => displayValue(row.workingDaysAttended),
+        cell: (row) => displayValue(row.payableDays),
         right: true,
         minWidth: "110px",
       },
       {
-        name: "Download",
+        name: "Preview",
         center: true,
         minWidth: "100px",
         cell: (row) => (
@@ -276,14 +297,14 @@ const EmployeePaySlipsTab = () => {
             color="primary"
             size="sm"
             className="d-inline-flex align-items-center justify-content-center text-white"
-            onClick={() => handleDownload(row)}
+            onClick={() => handlePreview(row)}
             disabled={downloadingId === row._id}
-            title="Download payslip"
+            title="Preview payslip"
           >
             {downloadingId === row._id ? (
               <Spinner size="sm" />
             ) : (
-              <Download size={16} />
+              <Eye size={16} />
             )}
           </Button>
         ),
@@ -299,8 +320,9 @@ const EmployeePaySlipsTab = () => {
       className="p-3 bg-white"
       style={isMobile ? { width: "100%" } : { width: "80%" }}
     >
-      <div className="text-center text-md-start mb-4">
+      <div className="d-flex justify-content-between align-items-center mb-4">
         <h4 className="fw-bold text-primary mb-0">EMPLOYEES PAY SLIPS</h4>
+        <RefreshButton loading={loading} onRefresh={fetchPayslips} />
       </div>
 
       <div className="d-flex flex-column flex-lg-row gap-2 align-items-stretch align-items-lg-center mb-3">
@@ -355,6 +377,14 @@ const EmployeePaySlipsTab = () => {
         loading={loading || permissionLoader}
         pagination={pagination}
         noDataComponent="No payslips found"
+      />
+
+      <PreviewFile
+        title="Payslip Preview"
+        file={previewFile}
+        isOpen={!!previewFile}
+        toggle={closePreview}
+        allowDownload
       />
     </CardBody>
   );
