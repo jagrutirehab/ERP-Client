@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState as useReactState } from "react";
 import PropTypes from "prop-types";
 import {
   Col,
@@ -57,8 +57,19 @@ const Wrapper = ({
   const [showRelatives, setShowRelatives] = React.useState(
     item?.showToRelatives || false,
   );
+  const [copied, setCopied] = useReactState(false);
   const chart = item?.chart;
   const bill = item?.bill;
+
+  const handleCopyId = async () => {
+    try {
+      await navigator.clipboard.writeText(item?._id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Failed to copy ID");
+    }
+  };
 
   const needsValidation = chart && item.needsValidation && !item.doctorValidatorId;
   const needsAIValidation = !!item.geminiResponseGeneratedBy && !item.validatorId;
@@ -170,9 +181,27 @@ const Wrapper = ({
               {" "}
               <h6 className="fs-md-12 fs-xs-9 text-info">{itemId}</h6>
             </RenderWhen>
-            {/* <h5 className="display-6 fs-14 text-start">
-              {chartName === "Mental Examination" ? "Clinical Note" : chartName} 
-            </h5> */}
+            {user?.email === "owais@gmail.com" && (
+              <button
+                type="button"
+                onClick={handleCopyId}
+                title="Copy ID"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "2px 4px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <i
+                  className={`ri-${copied ? "check" : "file-copy"}-line fs-6 ${
+                    copied ? "text-success" : "text-muted"
+                  }`}
+                />
+              </button>
+            )}
             <h5 className="display-6 fs-14 text-start d-flex align-items-center gap-2">
               {chartName === "Mental Examination" ? "Clinical Note" : chartName}
 
