@@ -36,6 +36,18 @@ export const TARGET_OPTIONS = [
   { value: "ClinicalNote", label: "Clinical Note" },
   { value: "MentalExamination", label: "Mental Status Examination" },
   { value: "CounsellingNote", label: "Counselling Note" },
+  // Clinical-test family
+  { value: "ybocTest", label: "Y-BOCS Test" },
+  { value: "SSRSTest", label: "C-SSRS Test" },
+  { value: "ymrsTest", label: "YMRS Test" },
+  { value: "hamdTest", label: "HAM-D Test" },
+  { value: "hamaTest", label: "HAM-A Test" },
+  { value: "mpqTest", label: "MPQ Test" },
+  { value: "acdsTest", label: "ACDS Test" },
+  { value: "MMSETest", label: "MMSE Test" },
+  { value: "panssTest", label: "PANSS Test" },
+  { value: "clinicalTest", label: "Clinical Test" },
+  { value: "rorTest", label: "Rorschach Test" },
 ];
 export const OPERATOR_OPTIONS = [
   ...[
