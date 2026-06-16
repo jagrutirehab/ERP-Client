@@ -132,7 +132,7 @@ const SalaryCard = ({ record }) => {
 
                     <Section title="Deductions">
                         <Field label="PF Employee" value={formatCurrency(fd.PFEmployee)} />
-                        <Field label="PF Employer" value={formatCurrency(fd.PFAmount)} />
+                        <Field label="PF Employer" value={formatCurrency(fd.PFEmployer)} />
                         <Field label="ESIC Employee" value={formatCurrency(fd.ESICEmployee)} />
                         <Field label="ESIC Employer" value={formatCurrency(fd.ESICEmployer)} />
                         <Field label="PT" value={formatCurrency(fd.PT)} />
