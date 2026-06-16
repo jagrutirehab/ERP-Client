@@ -13,6 +13,7 @@ import {
   LAB_REPORT,
   PRESCRIPTION,
   RELATIVE_VISIT,
+  OUTPASS,
   VITAL_SIGN,
   MENTAL_EXAMINATION,
 } from "../../../Components/constants/patient";
@@ -26,6 +27,7 @@ import ExpirySummary from "./ExpirySummary";
 import VitalSign from "./VitalSign";
 import { createEditChart } from "../../../store/actions";
 import RelativeVisit from "./RelativeVisit";
+import Outpass from "./Outpass";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
@@ -44,6 +46,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const isVitalSigns = chart.chart === VITAL_SIGN;
   const isLabReports = chart.chart === LAB_REPORT;
   const isRelativeVisit = chart.chart === RELATIVE_VISIT;
+  const isOutpass = chart.chart === OUTPASS;
   const isDischargeSummary = chart.chart === DISCHARGE_SUMMARY;
   const isExpirySummary = chart.chart === EXPIRY_SUMMARY;
   const isDetailAdmission = chart.chart === DETAIL_ADMISSION;
@@ -65,6 +68,8 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
                 ? "Expiry Summary"
                 : isRelativeVisit
                 ? "Relative Visit"
+                : isOutpass
+                ? "Outpass"
                 : isMentalExamination
                   ? "Clinical Notes"
                   : "Detail Admission";
@@ -93,6 +98,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isVitalSigns && <VitalSign {...rest} />}
         {isLabReports && <LabReport {...rest} />}
         {isRelativeVisit && <RelativeVisit {...rest} />}
+        {isOutpass && <Outpass {...rest} />}
         {isDischargeSummary && <DischargeSummary {...rest} />}
         {isExpirySummary && <ExpirySummary {...rest} />}
         {isDetailAdmission && <DetailAdmission {...rest} closeForm={toggleForm} />}

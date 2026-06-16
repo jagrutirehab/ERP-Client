@@ -554,6 +554,8 @@ export const postGeneralRealtiveVisit = (data) =>
   api.create(url.POST_GENERAL_RELATIVE_VISIT, data);
 export const editGeneralRealtiveVisit = (data) =>
   api.put(url.EDIT_GENERAL_RELATIVE_VISIT, data);
+export const postOutpass = (data) => api.create(url.POST_OUTPASS, data);
+export const editOutpass = (data) => api.put(url.EDIT_OUTPASS, data);
 export const postDischargeSummary = (data) =>
   api.create(url.POST_DISCHARGE_SUMMARY, data);
 export const editDischargeSummary = (data) =>
@@ -1648,6 +1650,18 @@ export const getMyPayslips = (params = {}) => {
     paramsSerializer: (queryParams) => {
       return qs.stringify(queryParams, { arrayFormat: "repeat" });
     },
+  });
+};
+
+export const getEmployeePayslipById = (id) => {
+  return api.get(`${url.GET_EMPLOYEE_PAYSLIPS}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getMyPayslipById = (id) => {
+  return api.get(`${url.GET_MY_PAYSLIPS}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
   });
 };
 

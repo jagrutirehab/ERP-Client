@@ -93,14 +93,25 @@ const BillDate = ({
 
   const isPaymentCenter = paymentCenters.includes(PatientCenter);
 
+  const MALAD_EAST_CENTER_IDS = ["65b0143a5f1da510dc3094cb"];
+  const isMaladEastAdvancePayment =
+    MALAD_EAST_CENTER_IDS.includes(PatientCenter) &&
+    editBillData?.bill === ADVANCE_PAYMENT;
+
   const isGurgaonAdvancePayment =
     (patient?.center?._id === "694e565ed6e6dd32a39c9815" ||
       patient?.center?.title === "Gurgaon") &&
     editBillData?.bill === ADVANCE_PAYMENT;
 
   useEffect(() => {
-    if (isOpen) dispatch(setBillDate(new Date().toISOString()));
-  }, [dispatch, isOpen]);
+    if (isOpen) {
+      const initialDate = new Date();
+      // Malad-East advance payment: default to one day before today (date & time)
+      if (isMaladEastAdvancePayment)
+        initialDate.setDate(initialDate.getDate() - 1);
+      dispatch(setBillDate(initialDate.toISOString()));
+    }
+  }, [dispatch, isOpen, isMaladEastAdvancePayment]);
 
   console.log({ billDate, editBillData, patient, admission });
 
@@ -163,11 +174,15 @@ const BillDate = ({
                   options={{
                     dateFormat: "d M, Y",
                     disableMobile: true,
-                    maxDate: editBillData.bill
-                      ? new Date()
-                      : new Date(
-                          new Date().setMonth(new Date().getMonth() + 1),
-                        ),
+                    maxDate: isMaladEastAdvancePayment
+                      ? new Date(
+                          new Date().setDate(new Date().getDate() - 1),
+                        ) // Malad-East advance payment: only allow up to one day before today
+                      : editBillData.bill
+                        ? new Date()
+                        : new Date(
+                            new Date().setMonth(new Date().getMonth() + 1),
+                          ),
                     ...(isGurgaonAdvancePayment && {
                       enable: [
                         function (date) {

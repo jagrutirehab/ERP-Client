@@ -27,6 +27,18 @@ export const mySalaryDataColumns = () => [
         minWidth: "150px",
     },
     {
+        name: "Department",
+        selector: (row) => row.employee?.department?.department || "—",
+        cell: (row) => capitalizeWords(row.employee?.department?.department?.replace(/_/g, " ")) || "—",
+        minWidth: "150px",
+    },
+    {
+        name: "Position",
+        selector: (row) => row.employee?.position?.name || "—",
+        cell: (row) => capitalizeWords(row.employee?.position?.name?.replace(/_/g, " ")) || "—",
+        minWidth: "150px",
+    },
+    {
         name: "Employment Type",
         selector: (row) => row.employee?.employmentType || "—",
         cell: (row) => capitalizeWords(row.employee?.employmentType?.replace(/_/g, " ")) || "—",

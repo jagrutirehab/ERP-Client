@@ -11,6 +11,7 @@ import {
   IPD,
   LAB_REPORT,
   MENTAL_EXAMINATION,
+  OUTPASS,
   PRESCRIPTION,
   RELATIVE_VISIT,
   VITAL_SIGN,
@@ -25,6 +26,7 @@ import ExpirySummary from "./ExpirySummary";
 import LabReport from "./LabReport";
 import RenderWhen from "../../Common/RenderWhen";
 import RelativeVisit from "./RelativeVisit";
+import Outpass from "./Outpass";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
@@ -101,6 +103,15 @@ const Charts = ({ charts, patient, doctor, admission }) => {
               }
             >
               <RelativeVisit
+                chart={chart}
+                center={chart.center}
+                patient={patient}
+                admission={admission}
+              />
+            </RenderWhen>
+
+            <RenderWhen isTrue={chart?.chart === OUTPASS && chart.type === IPD}>
+              <Outpass
                 chart={chart}
                 center={chart.center}
                 patient={patient}

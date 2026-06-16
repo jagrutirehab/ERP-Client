@@ -99,6 +99,14 @@ const SalaryCard = ({ record }) => {
                     <p className="fw-semibold mb-0">{capitalizeWords(record.employee?.designation?.name?.replace(/_/g, " ")) || "—"}</p>
                 </div>
                 <div className="col-6 col-md-3">
+                    <p className="text-muted mb-1" style={{ fontSize: "0.75rem" }}>Department</p>
+                    <p className="fw-semibold mb-0">{capitalizeWords(record.employee?.department?.department?.replace(/_/g, " ")) || "—"}</p>
+                </div>
+                <div className="col-6 col-md-3">
+                    <p className="text-muted mb-1" style={{ fontSize: "0.75rem" }}>Position</p>
+                    <p className="fw-semibold mb-0">{capitalizeWords(record.employee?.position?.name?.replace(/_/g, " ")) || "—"}</p>
+                </div>
+                <div className="col-6 col-md-3">
                     <p className="text-muted mb-1" style={{ fontSize: "0.75rem" }}>Employment Type</p>
                     <p className="fw-semibold mb-0">{capitalizeWords(record.employee?.employmentType?.replace(/_/g, " ")) || "—"}</p>
                 </div>

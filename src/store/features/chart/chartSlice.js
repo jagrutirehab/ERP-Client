@@ -12,6 +12,7 @@ import {
   editExpirySummary,
   editLabReport,
   editMentalExamination,
+  editOutpass,
   editPrescription,
   editRealtiveVisit,
   editVitalSign,
@@ -36,6 +37,7 @@ import {
   postGeneralVitalSign,
   postLabReport,
   postMentalExamination,
+  postOutpass,
   postPrescription,
   postRealtiveVisit,
   postVitalSign,
@@ -45,7 +47,7 @@ import { setAlert } from "../alert/alertSlice";
 import { IPD, OPD } from "../../../Components/constants/patient";
 import { togglePrint } from "../print/printSlice";
 import { removeEventChart, setEventChart } from "../booking/bookingSlice";
-import { replacePatient, setMedicines, viewPatient } from "../../actions";
+import { fetchPatientById, replacePatient, setMedicines, viewPatient } from "../../actions";
 
 const initialState = {
   data: [],
@@ -679,6 +681,52 @@ export const updateRelativeVisit = createAsyncThunk(
   },
 );
 
+export const addOutpass = createAsyncThunk(
+  "postOutpass",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postOutpass(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Outpass Chart Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      // refresh patient so the "On Outpass" badge reflects the new date range
+      if (data?.patient) dispatch(fetchPatientById(data.patient));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updateOutpass = createAsyncThunk(
+  "editOutpass",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editOutpass(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Outpass Chart Updated Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      // refresh patient so the "On Outpass" badge reflects the updated date range
+      if (data?.patient) dispatch(fetchPatientById(data.patient));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
 export const addDischargeSummary = createAsyncThunk(
   "postDischargeSummary",
   async (data, { rejectWithValue, dispatch }) => {
@@ -985,6 +1033,11 @@ export const removeChart = createAsyncThunk(
 
       if (response.payload?.type === OPD) {
         dispatch(removeEventChart(response.payload));
+      }
+
+      // if an outpass was deleted, refresh patient so the "On Outpass" badge clears
+      if (response.chart?.outpass && response.payload?.patient) {
+        dispatch(fetchPatientById(response.payload.patient));
       }
 
       return response;
@@ -1585,6 +1638,45 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(updateRelativeVisit.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addOutpass.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addOutpass.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        }
+      })
+      .addCase(addOutpass.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateOutpass.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateOutpass.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload.payload.addmission,
+        );
+        const findChartIndex = state.data[findIndex].charts.findIndex(
+          (chart) => chart._id === payload.payload._id,
+        );
+        state.data[findIndex].charts[findChartIndex] = payload.payload;
+      })
+      .addCase(updateOutpass.rejected, (state) => {
         state.loading = false;
       });
 

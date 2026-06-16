@@ -65,6 +65,16 @@ export const downloadPayslipPdfById = async (payslipId, payslips = []) => {
   return downloadPayslipPdf(payslip);
 };
 
+// Build a file descriptor for the <PreviewFile> component: generates the payslip
+// PDF in-browser from a full payslip row and exposes it as a blob URL.
+// The caller fetches the full row by id first, then revokes the URL when done.
+export const buildPayslipPreviewFile = async (row) => {
+  const blob = await pdf(<PayslipPdf row={row} />).toBlob();
+  const url = window.URL.createObjectURL(blob);
+  const name = buildPayslipFileName(row);
+  return { url, type: "application/pdf", name, originalName: name };
+};
+
 export const useDebouncedValue = (value, delay = 450) => {
   const [debouncedValue, setDebouncedValue] = useState(value);
 

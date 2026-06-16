@@ -200,6 +200,8 @@ export {
   addRelativeVisit,
   addGeneralRelativeVisit,
   updateRelativeVisit,
+  addOutpass,
+  updateOutpass,
   addDischargeSummary,
   updateDischargeSummary,
   addExpirySummary,

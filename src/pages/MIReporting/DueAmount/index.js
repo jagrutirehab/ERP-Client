@@ -109,6 +109,14 @@ const DueAmount = () => {
       .sort((a, b) => Number(a.due_amount ?? 0) - Number(b.due_amount ?? 0));
   }, [data, selectedCenter]);
 
+  const negativeDueSum = useMemo(
+    () => filteredData.reduce((sum, item) => {
+      const due = Number(item.due_amount ?? 0);
+      return due < 0 ? sum + due : sum;
+    }, 0),
+    [filteredData]
+  );
+
   const totalPages = Math.ceil(filteredData.length / PAGE_SIZE);
   const pagedData = useMemo(
     () => filteredData.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE),
@@ -217,14 +225,14 @@ const DueAmount = () => {
                   >
                     <Table
                       className="mb-0 w-100"
-                      style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.78rem" }}
+                      style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.72rem" }}
                     >
                       <thead>
                         <tr>
                           {labels.map((label) => (
                             <th
                               key={label}
-                              className="text-center fw-bold px-2 py-2"
+                              className="text-center fw-bold px-1 py-1"
                               style={{
                                 border: "1px solid #cfd8e3",
                                 background: "green",
@@ -236,6 +244,11 @@ const DueAmount = () => {
                               }}
                             >
                               {label}
+                              {label === "Due Amount" && negativeDueSum < 0 && (
+                                <div style={{ fontWeight: "normal", fontSize: "0.72rem", color: "#ffcdd2", marginTop: 2 }}>
+                                  Total: {formatCurrency(negativeDueSum)}
+                                </div>
+                              )}
                             </th>
                           ))}
                         </tr>
@@ -257,7 +270,7 @@ const DueAmount = () => {
                                   return (
                                     <td
                                       key={label}
-                                      className="text-center px-2 py-2"
+                                      className="text-center px-1 py-1"
                                       style={{
                                         border: "1px solid #d6dde8",
                                         background: idx % 2 === 0 ? "#f8fafc" : "#fff",

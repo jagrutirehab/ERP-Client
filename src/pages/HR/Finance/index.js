@@ -231,6 +231,15 @@ const FinanceDashboard = () => {
       minWidth: "150px",
     },
     {
+      name: <div>Position</div>,
+      selector: (row) =>
+        capitalizeWords(
+          row?.employee?.position?.name?.replace(/_/g, " ") || "-",
+        ),
+      wrap: true,
+      minWidth: "150px",
+    },
+    {
       name: <div>Current Status</div>,
       selector: (row) =>
         capitalizeWords(row?.employee?.status?.replace(/_/g, " ") || "-"),

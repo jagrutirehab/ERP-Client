@@ -93,6 +93,12 @@ const PatientDocs = () => {
 
 
 
+    const DOC_LABELS = new Set([
+        "Admission Form", "Consent Form", "Bio Data", "Profile Photo",
+        "Prescription", "History", "Belongings Form", "Lab Report",
+    ]);
+
+    
     const labels=[
             "Patient UID",
             "Patient Name",
@@ -133,6 +139,17 @@ const PatientDocs = () => {
         
     }
 
+    const compliance = useMemo(() => {
+        const total = filteredData.length;
+        const result = {};
+        DOC_LABELS.forEach((label) => {
+            const field = labelsMapping[label];
+            const yesCount = filteredData.filter((p) => p[field] === "Yes").length;
+            result[label] = total > 0 ? `${Math.round((yesCount / total) * 100)}%` : "-";
+        });
+        return result;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filteredData]);
 
 
 
@@ -270,6 +287,27 @@ const PatientDocs = () => {
                             </thead>
 
                             <tbody>
+                                <tr>
+                                    {labels.map((label) => (
+                                        <td
+                                            key={label}
+                                            className="text-center px-1 py-2 fw-bold"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#004d00",
+                                                color: "white",
+                                                whiteSpace: "normal",
+                                                wordBreak: "break-word",
+                                            }}
+                                        >
+                                            {label === "Patient Name"
+                                                ? "Compliance"
+                                                : DOC_LABELS.has(label)
+                                                ? compliance[label]
+                                                : ""}
+                                        </td>
+                                    ))}
+                                </tr>
                                 {filteredData.map((patient, idx) => (
                                     <tr key={patient?.patient_uid ?? idx}>
                                         {labels.map((label) => (
