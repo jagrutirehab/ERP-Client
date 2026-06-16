@@ -768,15 +768,12 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         <Col md={6}>
           <Label htmlFor="ESICSalary">ESIC Salary</Label>
           <Input
+            disabled
             id="ESICSalary"
             name="ESICSalary"
             type="number"
             value={form.values.ESICSalary}
-            onChange={handleNumericFieldChange}
-            onBlur={form.handleBlur}
-            invalid={form.touched.ESICSalary && !!form.errors.ESICSalary}
           />
-          {errorText("ESICSalary")}
         </Col>
 
         <Col md={6}>

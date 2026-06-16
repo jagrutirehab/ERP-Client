@@ -2137,11 +2137,11 @@ const EmployeeForm = ({
           <Col md={6}>
             <Label htmlFor="ESICSalary">ESIC Salary</Label>
             <Input
+              disabled
               id="ESICSalary"
               type="number"
               name="ESICSalary"
               value={values.ESICSalary}
-              onChange={handleChange}
             />
           </Col>
 

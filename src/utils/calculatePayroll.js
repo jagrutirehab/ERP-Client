@@ -17,7 +17,8 @@ export const calculatePayroll = (values) => {
     const hra = Number(values.HRAAmount || 0);
     const spl = Number(values.SPLAllowance || 0);
     const conveyance = Number(values.conveyanceAllowance || 0);
-    const ESICSalary = Number(values.ESICSalary || 0);
+    // ESIC salary is derived as Basic + SPL Allowance
+    const ESICSalary = basic + spl;
     const minimumWages = Number(values.minimumWages || 0);
     const currentLocation = values.currentLocation || {};
 
@@ -108,6 +109,7 @@ export const calculatePayroll = (values) => {
         PFSalary,
         PT,
         TDSAmount,
+        ESICSalary,
         ESICEmployee,
         ESICEmployer,
         deductions,
