@@ -1,5 +1,6 @@
 import React from "react";
 import { Document, Page, StyleSheet, Text, View, Svg, Path } from "@react-pdf/renderer";
+import { normalizeUnderscores } from "./normalizeUnderscore";
 
 // react-pdf's <Image> can't rasterize SVG, so the Jagruti logo is drawn with
 // native <Svg>/<Path>. Fills are inlined here since react-pdf ignores the
@@ -122,6 +123,7 @@ const styles = StyleSheet.create({
   tHeaderR:  { fontFamily: "Helvetica-Bold", fontSize: 9, textAlign: "right" },
   tTotal:    { fontFamily: "Helvetica-Bold", fontSize: 9.5 },
   tRight:    { textAlign: "right" },
+  tItalic:   { fontFamily: "Helvetica-Oblique" },
 });
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -263,7 +265,7 @@ const PayslipPdf = ({ row }) => {
       "LOP Days",                   row?.lopDays             ?? "--",
     ],
     [
-      "Designation",                row?.designation,        
+      "Designation",                normalizeUnderscores(row?.designation),
       "Working Days Attended",      row?.workingDaysAttended ?? "--",
     ],
     [
@@ -271,7 +273,7 @@ const PayslipPdf = ({ row }) => {
       "Payable Days",               row?.payableDays         ?? "--",
     ],
     [
-      "Position",                   row?.position,
+      "Position",                   row?.position?.toUpperCase(),
       "PF Number",                  row?.pfNumber,
     ],
     [
@@ -412,7 +414,7 @@ const PayslipPdf = ({ row }) => {
                 <Text style={[styles.tSmall, styles.tBold]}>Note :</Text>
               </View>
               <View style={styles.footerValueCell}>
-                <Text style={styles.tSmall}>
+                <Text style={[styles.tSmall, styles.tItalic]}>
                   This payslip is computer generated, hence no signature is required.
                 </Text>
               </View>

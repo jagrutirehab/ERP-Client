@@ -26,6 +26,7 @@ import { getEmployeePayslipById } from "../../../../helpers/backend_helper";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
 import {capitalizeWords} from "../../../../utils/toCapitalize";
+import {normalizeUnderscores} from "../../../../utils/normalizeUnderscore";
 import { format } from "date-fns";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 
@@ -245,7 +246,7 @@ const EmployeePaySlipsTab = () => {
       },
       {
         name: "Designation",
-        cell: (row) => capitalizeWords(row.designation),
+        cell: (row) => capitalizeWords(normalizeUnderscores(row.designation)),
         minWidth: "150px",
       },
       {
