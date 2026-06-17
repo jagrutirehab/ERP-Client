@@ -108,8 +108,8 @@ export const filterEmploymentOptions = [
 ];
 
 export const employeeGroupOptions = [
-    { label: "PF Working", value: "PF_WORKING" },
-    { label: "Trust", value: "TRUST" }
+    { label: "PF Included", value: "PF_INCLUDED" },
+    { label: "PF Excluded", value: "PF_EXCLUDED" }
 ];
 
 export const accountOptions = [
