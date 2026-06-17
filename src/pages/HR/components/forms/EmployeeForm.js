@@ -157,6 +157,8 @@ const validationSchema = (mode, isEdit) =>
     HRAPercentage: Yup.number().min(0).max(100).notRequired(),
     statutoryBonus: Yup.number().min(0).notRequired(),
     insurance: Yup.number().min(0).notRequired(),
+    // variable: Yup.number().min(0).notRequired(),
+    // reimbursement: Yup.number().min(0).notRequired(),
     TDSRate: Yup.number().min(0).max(100).notRequired(),
     pfAmount: Yup.number().min(0).notRequired(),
     SPLAllowance: Yup.number().min(0).notRequired(),
@@ -254,6 +256,8 @@ const getInitialValues = (initialData, mode) => ({
   statutoryBonus: initialData?.financeDetails?.statutoryBonus || 0,
 
   insurance: initialData?.financeDetails?.insurance || 0,
+  // variable: initialData?.financeDetails?.variable || 0,
+  // reimbursement: initialData?.financeDetails?.reimbursement || 0,
   ESICSalary: initialData?.financeDetails?.ESICSalary || 0,
   ESICEmployee: initialData?.financeDetails?.ESICEmployee || 0,
   ESICEmployer: initialData?.financeDetails?.ESICEmployer || 0,
@@ -767,6 +771,8 @@ const EmployeeForm = ({
     values.LWFEmployee,
     values.TDSRate,
     values.insurance,
+    // values.variable,
+    // values.reimbursement,
     values.minimumWages,
     values.currentLocation,
     values.LWFEmployer,
@@ -789,7 +795,6 @@ const EmployeeForm = ({
         const res = await getPositions();
         const rawData = res?.data || [];
 
-        console.log("rawData", rawData);
 
         const mapped = rawData.flatMap((p) =>
           (p.positions || [])
@@ -801,6 +806,10 @@ const EmployeeForm = ({
               department: p.department?.department,
               departmentId: p.department?._id,
             })),
+        );
+
+        mapped.sort((a, b) =>
+          a.label.localeCompare(b.label, undefined, { sensitivity: "base" }),
         );
 
         setPositionOptions(mapped);
@@ -2096,6 +2105,30 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
+
+          {/* VARIABLE */}
+          {/* <Col md={6}>
+            <Label htmlFor="variable">Variable</Label>
+            <Input
+              id="variable"
+              type="number"
+              name="variable"
+              value={values.variable}
+              onChange={handleChange}
+            />
+          </Col> */}
+
+          {/* REIMBURSEMENT */}
+          {/* <Col md={6}>
+            <Label htmlFor="reimbursement">Reimbursement</Label>
+            <Input
+              id="reimbursement"
+              type="number"
+              name="reimbursement"
+              value={values.reimbursement}
+              onChange={handleChange}
+            />
+          </Col> */}
 
           {/* LWF SALARY */}
           <Col md={6}>
