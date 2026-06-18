@@ -12,6 +12,7 @@ import Select from "react-select";
 import DataTable from 'react-data-table-component';
 import { renderStatusBadge } from '../../../../../Components/Common/renderStatusBadge';
 import { useSearchParams } from 'react-router-dom';
+import { normalizeUnderscores } from '../../../../../utils/normalizeUnderscore';
 
 const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
     const dispatch = useDispatch();
@@ -142,7 +143,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         },
         {
             name: <div>Reason of Leaving</div>,
-            selector: row => capitalizeWords(row?.reason || "-"),
+            selector: row =>  capitalizeWords(normalizeUnderscores(row?.reason) || "-"),
             wrap: true,
             minWidth: "140px",
         },

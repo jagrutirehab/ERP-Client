@@ -18,6 +18,7 @@ import DeleteConfirmModal from '../../components/DeleteConfirmModal';
 import ApproveModal from '../../components/ApproveModal';
 import Select from "react-select";
 import EditExitEmployeeModal from '../../components/EditExitEmployeeModal';
+import { normalizeUnderscores } from '../../../../utils/normalizeUnderscore';
 
 const ExitApprovals = () => {
     const dispatch = useDispatch();
@@ -188,7 +189,7 @@ const ExitApprovals = () => {
         },
         {
             name: <div>Reason of Leaving</div>,
-            selector: row => row?.reason || "-",
+            selector: row =>  capitalizeWords(normalizeUnderscores(row?.reason) || "-"),
             wrap: true,
             minWidth: "180px"
         },
