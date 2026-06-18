@@ -218,6 +218,12 @@ const Status = ({ activeTab }) => {
       minWidth: "120px",
     },
     {
+      name: <div>Position</div>,
+      selector: (row) => row?.position?.name || "-",
+      wrap: true,
+      minWidth: "150px",
+    },
+    {
       name: <div>Center</div>,
       selector: (row) => capitalizeWords(row?.center?.title || "-"),
       wrap: true,

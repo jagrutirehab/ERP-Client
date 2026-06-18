@@ -7,14 +7,12 @@ import Select from "react-select";
 import { Button, Form, FormGroup, Label, Input, Spinner } from "reactstrap";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
-import {
-  addDesignation,
-  fetchDesignations,
-} from "../../../../store/features/HR/hrSlice";
+import { fetchDesignations } from "../../../../store/features/HR/hrSlice";
 import { HiringPreferredGenderOptions } from "../../../../Components/constants/HR";
 import {
   editHiring,
   getEmployeesBySearch,
+  getPositions,
   postHiring,
 } from "../../../../helpers/backend_helper";
 import PhoneInputWithCountrySelect from "react-phone-number-input";
@@ -44,6 +42,10 @@ const validationSchema = Yup.object({
     .integer("Required count must be an integer")
     .min(1, "At least 1 position is required")
     .required("Required count is required"),
+
+  position: Yup.string()
+    .required("Position is required")
+    .matches(objectIdRegex, "Invalid Position"),
 });
 
 const debounce = (fn, delay = 400) => {
@@ -76,9 +78,9 @@ const HiringForm = ({
     (state) => state.User,
   );
   const isEdit = !!initialData?._id;
-  console.log("isEdit", isEdit);
 
-  const [creatingDesignation, setCreatingDesignation] = useState(false);
+  const [positionOptions, setPositionOptions] = useState([]);
+  const [positionLoading, setPositionLoading] = useState(false);
   const [employees, setEmployees] = useState([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [searchText, setSearchText] = useState("");
@@ -105,6 +107,36 @@ const HiringForm = ({
     };
 
     loadDesignations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch]);
+
+  useEffect(() => {
+    const loadPositions = async () => {
+      try {
+        setPositionLoading(true);
+        const res = await getPositions();
+        const rawData = res?.data || [];
+        const mapped = rawData.flatMap((p) =>
+          (p.positions || [])
+            .filter((pos) => !pos.deleted && pos.version === 2)
+            .map((pos) => ({
+              label: pos.name,
+              value: pos._id.toString(),
+            })),
+        );
+        mapped.sort((a, b) => a.label.localeCompare(b.label));
+        setPositionOptions(mapped);
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error("Failed to fetch positions");
+        }
+      } finally {
+        setPositionLoading(false);
+      }
+    };
+
+    loadPositions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const form = useFormik({
@@ -117,6 +149,7 @@ const HiringForm = ({
       preferredGender: initialData?.preferredGender || "",
       requiredCount: initialData?.requiredCount || 1,
       centerManager: initialData?.centerManager || "",
+      position: initialData?.position?._id?.toString() || initialData?.position?.toString() || "",
     },
     validationSchema,
     onSubmit: async (values, { setSubmitting }) => {
@@ -148,30 +181,6 @@ const HiringForm = ({
       }
     },
   });
-
-  // const handleCreateDesignation = async (inputValue) => {
-  //   if (view === "PAGE" && !hasCreatePermission) {
-  //     toast.error("You don't have permission to create designation");
-  //     return;
-  //   }
-
-  //   try {
-  //     setCreatingDesignation(true);
-  //     const response = await dispatch(
-  //       addDesignation({ name: inputValue, status: "PENDING" }),
-  //     ).unwrap();
-  //     console.log(response);
-  //     form.setFieldValue("designation", response.data.value);
-  //     form.setFieldTouched("designation", true, false);
-  //     toast.success("designation created successfully");
-  //   } catch (error) {
-  //     if (!handleAuthError(error)) {
-  //       toast.error("something went wrong while creating new designation");
-  //     }
-  //   } finally {
-  //     setCreatingDesignation(false);
-  //   }
-  // };
 
   const fetchEmployees = async (searchText) => {
     if (!searchText || searchText.length < 2) {
@@ -212,11 +221,15 @@ const HiringForm = ({
     if (!isEdit) {
       fetchEmployees();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit]);
 
   const debouncedFetchEmployees = useMemo(() => {
     return debounce(fetchEmployees, 400);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const { setFieldValue } = form;
 
   useEffect(() => {
     if (isEdit && initialData?.centerManager) {
@@ -232,8 +245,9 @@ const HiringForm = ({
         return alreadyExists ? prev : [existingOption, ...prev];
       });
 
-      form.setFieldValue("centerManager", existingOption.value);
+      setFieldValue("centerManager", existingOption.value);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, initialData]);
 
   return (
@@ -265,10 +279,9 @@ const HiringForm = ({
         )}
       </FormGroup>
 
-      {/* Center Manager */}
       <FormGroup>
         <Label htmlFor="centerManager">
-          Requirement Raising For <span className="text-danger"></span>
+          Requirement Raising For
         </Label>
 
         <Select
@@ -304,8 +317,6 @@ const HiringForm = ({
         )}
       </FormGroup>
 
-      {/* Center Manager */}
-
       <FormGroup>
         <Label htmlFor="contactNumber">
           Contact Number <span className="text-danger">*</span>
@@ -336,6 +347,7 @@ const HiringForm = ({
           }}
         />
       </FormGroup>
+
       <FormGroup>
         <Label htmlFor="designation">
           Designation <span className="text-danger">*</span>
@@ -346,9 +358,7 @@ const HiringForm = ({
           placeholder="Select designation"
           isClearable
           isDisabled={designationLoading}
-          isLoading={designationLoading
-            // || creatingDesignation
-          }
+          isLoading={designationLoading}
           options={designationOptions}
           value={
             designationOptions.find(
@@ -359,13 +369,39 @@ const HiringForm = ({
             form.setFieldValue("designation", option ? option.value : "")
           }
           onBlur={() => form.setFieldTouched("designation", true)}
-        // onCreateOption={handleCreateDesignation}
         />
 
         {form.touched.designation && form.errors.designation && (
           <div className="text-danger small mt-1">
             {form.errors.designation}
           </div>
+        )}
+      </FormGroup>
+
+      <FormGroup>
+        <Label htmlFor="position">
+          Position <span className="text-danger">*</span>
+        </Label>
+
+        <Select
+          inputId="position"
+          placeholder="Select Position"
+          isClearable
+          isLoading={positionLoading}
+          isDisabled={positionLoading}
+          options={positionOptions}
+          value={
+            positionOptions.find((opt) => opt.value === form.values.position) ||
+            null
+          }
+          onChange={(option) =>
+            form.setFieldValue("position", option ? option.value : "")
+          }
+          onBlur={() => form.setFieldTouched("position", true)}
+        />
+
+        {form.touched.position && form.errors.position && (
+          <div className="text-danger small mt-1">{form.errors.position}</div>
         )}
       </FormGroup>
 

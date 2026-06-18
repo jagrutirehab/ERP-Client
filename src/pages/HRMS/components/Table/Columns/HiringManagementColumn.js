@@ -31,6 +31,12 @@ export const HiringActionColumns = ({ onActionClick }) => [
     minWidth: "120px",
   },
   {
+    name: <div>Position</div>,
+    selector: (row) => row?.position?.name || "-",
+    wrap: true,
+    minWidth: "150px",
+  },
+  {
     name: <Center>Center</Center>,
     cell: (row) => <Center>{row?.center?.title || "-"}</Center>,
     minWidth: "120px",
