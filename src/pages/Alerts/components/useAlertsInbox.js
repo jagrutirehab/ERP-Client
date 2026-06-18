@@ -27,6 +27,7 @@ const initialFilters = () => ({
   ...todayDefaults(),
   readState: "all",     // all | unread | read
   phase: "all",         // all | IMMEDIATE | DELAYED
+  resolvedState: "all", // all | resolved | unresolved
   severity: [],         // array of LOW/MEDIUM/HIGH/CRITICAL
 });
 
@@ -53,6 +54,8 @@ const buildServerParams = (filters, page, pageSize) => {
   if (filters.readState && filters.readState !== "all")
     out.readState = filters.readState;
   if (filters.phase && filters.phase !== "all") out.phase = filters.phase;
+  if (filters.resolvedState && filters.resolvedState !== "all")
+    out.resolvedState = filters.resolvedState;
 
   return out;
 };

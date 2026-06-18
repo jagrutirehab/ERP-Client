@@ -245,6 +245,11 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                           ? "Website Listing On"
                           : "Website Listing Off"}
                       </Badge>
+                      {center.globalAccess && (
+                        <Badge pill color="info" className="mt-2 ms-1">
+                          Global Access
+                        </Badge>
+                      )}
                     </CardHeader>
                     {/* <img className="img-fluid" src={img4} alt="Card cap" /> */}
                     <CardBody className="p-4 text-center">

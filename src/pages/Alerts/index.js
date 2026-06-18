@@ -24,6 +24,8 @@ const buildExportParams = (f) => {
   if (f.dateTo) out.dateTo = f.dateTo;
   if (f.readState && f.readState !== "all") out.readState = f.readState;
   if (f.phase && f.phase !== "all") out.phase = f.phase;
+  if (f.resolvedState && f.resolvedState !== "all")
+    out.resolvedState = f.resolvedState;
   return out;
 };
 

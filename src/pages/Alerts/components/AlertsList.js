@@ -237,23 +237,39 @@ const AlertsList = ({
     },
     {
       name: "Action",
-      width: "130px",
-      // button:true + ignoreRowClick keeps clicks in this cell from opening the
-      // detail offcanvas — the cell's contents intentionally omit the
+      width: "220px",
+      // ignoreRowClick keeps clicks in this cell from opening the detail
+      // offcanvas — the cell's contents intentionally omit the
       // data-tag="allowRowEvents" attribute the row-click handler keys off.
-      button: true,
       ignoreRowClick: true,
       cell: (row) =>
         row.resolution?.resolved ? (
-          <Badge
-            color="success"
-            pill
-            className="d-inline-flex align-items-center"
-            title={row.resolution?.note || "Resolved"}
-          >
-            <i className="bx bx-check-circle me-1" />
-            Resolved
-          </Badge>
+          <div className="py-1" style={{ whiteSpace: "normal", minWidth: 0 }}>
+            <Badge
+              color="success"
+              pill
+              className="d-inline-flex align-items-center mb-1"
+            >
+              <i className="bx bx-check-circle me-1" />
+              Resolved
+            </Badge>
+            {row.resolution?.note && (
+              <div
+                className="text-muted"
+                title={row.resolution.note}
+                style={{
+                  fontSize: "0.75rem",
+                  lineHeight: 1.3,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {row.resolution.note}
+              </div>
+            )}
+          </div>
         ) : canResolve ? (
           <Button
             size="sm"
