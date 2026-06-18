@@ -1,5 +1,5 @@
 import DataTable from "react-data-table-component";
-import { Badge, Spinner } from "reactstrap";
+import { Badge, Button, Spinner } from "reactstrap";
 import { SEVERITY_COLOR, SEVERITY_HEX, PHASE_META } from "./alertConstants";
 import { timeAgo } from "./alertUtils";
 
@@ -20,7 +20,9 @@ const AlertsList = ({
   page,
   pageSize,
   loading,
+  canResolve,
   onSelect,
+  onResolve,
   onPageChange,
   onPageSizeChange,
 }) => {
@@ -225,13 +227,48 @@ const AlertsList = ({
     },
     {
       name: "",
-      width: "80px",
+      width: "70px",
       cell: (row) =>
         !row.isRead ? (
           <Badge {...RC} color="danger" pill>
             NEW
           </Badge>
         ) : null,
+    },
+    {
+      name: "Action",
+      width: "130px",
+      // button:true + ignoreRowClick keeps clicks in this cell from opening the
+      // detail offcanvas — the cell's contents intentionally omit the
+      // data-tag="allowRowEvents" attribute the row-click handler keys off.
+      button: true,
+      ignoreRowClick: true,
+      cell: (row) =>
+        row.resolution?.resolved ? (
+          <Badge
+            color="success"
+            pill
+            className="d-inline-flex align-items-center"
+            title={row.resolution?.note || "Resolved"}
+          >
+            <i className="bx bx-check-circle me-1" />
+            Resolved
+          </Badge>
+        ) : canResolve ? (
+          <Button
+            size="sm"
+            color="primary"
+            outline
+            onClick={(e) => {
+              e.stopPropagation();
+              onResolve(row);
+            }}
+          >
+            Resolve
+          </Button>
+        ) : (
+          <small className="text-muted">—</small>
+        ),
     },
   ];
 

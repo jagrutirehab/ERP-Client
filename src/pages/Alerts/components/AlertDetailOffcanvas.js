@@ -142,6 +142,27 @@ const AlertDetailOffcanvas = ({ isOpen, onClose, alert }) => {
                 </div>
               )}
 
+              {/* Resolution */}
+              {alert.resolution?.resolved && (
+                <div
+                  className="mb-3 p-3 rounded"
+                  style={{
+                    background: "rgba(25, 135, 84, 0.1)",
+                    borderLeft: "4px solid #198754",
+                  }}
+                >
+                  {sectionLabel("bx bx-check-circle", "Resolved")}
+                  <div className="fw-medium">
+                    {alert.resolution.note || "—"}
+                  </div>
+                  {alert.resolution.resolvedAt && (
+                    <small className="text-muted">
+                      {new Date(alert.resolution.resolvedAt).toLocaleString()}
+                    </small>
+                  )}
+                </div>
+              )}
+
               {/* Routing */}
               {(alert.routing?.notifyRoles?.length > 0 ||
                 alert.routing?.notifySpecificUsers?.length > 0) && (

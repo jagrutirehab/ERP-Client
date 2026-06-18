@@ -3766,6 +3766,10 @@ export const markSopAlertRead = (id) =>
 export const markAllSopAlertsRead = () =>
   axios.post(url.MARK_ALL_SOP_ALERTS_READ);
 
+// Records the action taken to close an alert. `note` is required server-side.
+export const resolveSopAlert = (id, note) =>
+  axios.post(`${url.RESOLVE_SOP_ALERT}/${id}/resolve`, { note });
+
 export const listSopRules = (params) => axios.get(url.SOP_RULES, { params });
 export const getSopRuleById = (id) => axios.get(`${url.SOP_RULES}/${id}`);
 export const updateSopRule = (id, payload) =>
