@@ -100,6 +100,8 @@ const getFinanceInitialValues = (initialData) => ({
   LWFEmployee: initialData?.financeDetails?.LWFEmployee || 0,
   LWFEmployer: initialData?.financeDetails?.LWFEmployer || 0,
   insurance: initialData?.financeDetails?.insurance || 0,
+  // variable: initialData?.financeDetails?.variable || 0,
+  // reimbursement: initialData?.financeDetails?.reimbursement || 0,
   TDSRate: initialData?.financeDetails?.TDSRate || 0,
   debitStatementNarration:
     initialData?.financeDetails?.debitStatementNarration || "",
@@ -114,6 +116,8 @@ const getFinanceInitialValues = (initialData) => ({
   ESICEmployee: initialData?.financeDetails?.ESICEmployee || 0,
   ESICEmployer: initialData?.financeDetails?.ESICEmployer || 0,
   inHandSalary: initialData?.financeDetails?.inHandSalary || 0,
+  // gratuity: initialData?.financeDetails?.gratuity || 0,
+  // totalCostToCompany: initialData?.financeDetails?.totalCostToCompany || 0,
 });
 
 const validationSchema = (isEdit, step) => {
@@ -154,6 +158,8 @@ const validationSchema = (isEdit, step) => {
     conveyanceAllowance: buildGrossBoundSchema("Conveyance Allowance"),
     statutoryBonus: buildGrossBoundSchema("Statutory Bonus"),
     insurance: buildNumberSchema("Insurance"),
+    // variable: buildNumberSchema("Variable"),
+    // reimbursement: buildNumberSchema("Reimbursement"),
     TDSRate: buildNumberSchema("TDS Rate", { max: 100 }),
     ESICSalary: buildNumberSchema("ESIC Salary"),
     LWFSalary: buildNumberSchema("LWF Salary"),
@@ -199,6 +205,8 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
           LWFEmployee: Number(values.LWFEmployee),
           LWFEmployer: Number(values.LWFEmployer),
           insurance: Number(values.insurance),
+          // variable: Number(values.variable),
+          // reimbursement: Number(values.reimbursement),
           TDSRate: Number(values.TDSRate),
           debitStatementNarration: values.debitStatementNarration || "",
         };
@@ -261,6 +269,8 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
     form.values.conveyanceAllowance,
     form.values.grossSalary,
     form.values.insurance,
+    // form.values.variable,
+    // form.values.reimbursement,
     form.values.minimumWages,
     form.values.TDSRate,
   ]);
@@ -723,6 +733,34 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
           {errorText("insurance")}
         </Col>
 
+        {/* <Col md={6}>
+          <Label htmlFor="variable">Variable</Label>
+          <Input
+            id="variable"
+            name="variable"
+            type="number"
+            value={form.values.variable}
+            onChange={handleNumericFieldChange}
+            onBlur={form.handleBlur}
+            invalid={form.touched.variable && !!form.errors.variable}
+          />
+          {errorText("variable")}
+        </Col>
+
+        <Col md={6}>
+          <Label htmlFor="reimbursement">Reimbursement</Label>
+          <Input
+            id="reimbursement"
+            name="reimbursement"
+            type="number"
+            value={form.values.reimbursement}
+            onChange={handleNumericFieldChange}
+            onBlur={form.handleBlur}
+            invalid={form.touched.reimbursement && !!form.errors.reimbursement}
+          />
+          {errorText("reimbursement")}
+        </Col> */}
+
         <Col md={6}>
           <Label htmlFor="LWFSalary">LWF Salary</Label>
           <Input
@@ -849,6 +887,26 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             value={form.values.inHandSalary}
           />
         </Col>
+
+        {/* <Col md={6}>
+          <Label htmlFor="gratuity">Gratuity</Label>
+          <Input
+            disabled
+            id="gratuity"
+            type="number"
+            value={form.values.gratuity}
+          />
+        </Col> */}
+
+        {/* <Col md={6}>
+          <Label htmlFor="totalCostToCompany">Total Cost To Company</Label>
+          <Input
+            disabled
+            id="totalCostToCompany"
+            type="number"
+            value={form.values.totalCostToCompany}
+          />
+        </Col> */}
 
         <Col md={6}>
           <Label htmlFor="debitStatementNarration">
