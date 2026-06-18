@@ -706,6 +706,7 @@ export const EXPORT_SOP_ALERTS = "/sop/alerts/export";
 export const GET_UNREAD_SOP_ALERTS = "/sop/alerts/unread";
 export const MARK_SOP_ALERT_READ = "/sop/alerts";
 export const MARK_ALL_SOP_ALERTS_READ = "/sop/alerts/mark-all-read";
+export const RESOLVE_SOP_ALERT = "/sop/alerts";
 
 export const SOP_RULES = "/sop/rules";
 export const SOP_SUGGESTED_MEDICINES = "/sop/suggested-medicines";
