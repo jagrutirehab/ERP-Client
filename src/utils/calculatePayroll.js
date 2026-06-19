@@ -88,6 +88,9 @@ export const calculatePayroll = (values) => {
     const LWFEmployee = Number(values.LWFEmployee || 0);
     const LWFEmployer = Number(values.LWFEmployer || 0);
     const insurance = Number(values.insurance || 0);
+    // variable & reimbursement are pure YEARLY CTC-only add-ons handled at the
+    // yearly level (added straight to yearly CTC), so they are NOT part of the
+    // monthly gross, deductions, in-hand, or monthly totalCostToCompany.
 
     const deductions =
         PFEmployee +
@@ -100,7 +103,7 @@ export const calculatePayroll = (values) => {
     const inHandSalary = Math.max(gross - deductions, 0);
 
     const gratuity = Math.round(((basic + spl + conveyance) * 4.81) / 100);
-    const totalCostToCompany = gross + PFEmployer + ESICEmployer + LWFEmployer + gratuity;
+    const totalCostToCompany = gross + PFEmployer + ESICEmployer + LWFEmployer + gratuity + insurance;
 
     return {
         PFEmployee,

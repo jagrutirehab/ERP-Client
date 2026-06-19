@@ -25,6 +25,12 @@ import FinanceModal from "../components/FinanceModal";
 import { format } from "date-fns";
 import { ExpandableText } from "../../../Components/Common/ExpandableText";
 
+const AMOUNT_VIEWS = [
+  { value: "BOTH", label: "Mo + Yr" },
+  { value: "MONTHLY", label: "Monthly" },
+  { value: "YEARLY", label: "Yearly" },
+];
+
 const FinanceDashboard = () => {
   const dispatch = useDispatch();
   const { centerAccess, userCenters } = useSelector((state) => state.User);
@@ -47,6 +53,7 @@ const FinanceDashboard = () => {
     value: "ACTIVE",
     label: "Active",
   });
+  const [amountView, setAmountView] = useState("BOTH");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("CHANGE"); // "EDIT" or "CHANGE"
@@ -64,12 +71,12 @@ const FinanceDashboard = () => {
   const centerOptions = [
     ...(centerAccess?.length > 1
       ? [
-          {
-            value: "ALL",
-            label: "All Centers",
-            isDisabled: false,
-          },
-        ]
+        {
+          value: "ALL",
+          label: "All Centers",
+          isDisabled: false,
+        },
+      ]
       : []),
     ...(centerAccess?.map((id) => {
       const center = userCenters?.find((c) => c._id === id);
@@ -171,28 +178,56 @@ const FinanceDashboard = () => {
     selectedActive,
   ]);
 
+  const renderAmount = (monthlyVal, annualVal) => {
+    const monthly = formatCurrency(monthlyVal);
+    if (amountView === "MONTHLY") return monthly;
+    const yearly = formatCurrency(
+      annualVal != null && !isNaN(annualVal) ? annualVal : 0,
+    );
+    if (amountView === "YEARLY") return yearly;
+    return (
+      <div style={{ lineHeight: 1.4 }}>
+        <div style={{ fontSize: "0.8rem", fontWeight: 500 }}>{monthly}</div>
+        <div style={{ fontSize: "0.7rem", color: "#6c757d" }}>{yearly}/yr</div>
+      </div>
+    );
+  };
+
+  const amountHeader = (label) => (
+    <div>
+      <div>{label}</div>
+      {amountView === "BOTH" && (
+        <div style={{ fontSize: "0.65rem", color: "#6c757d", fontWeight: 400 }}>
+          Mo / Yr
+        </div>
+      )}
+    </div>
+  );
+
+  const colWidth = amountView === "BOTH" ? "160px" : "130px";
+
   const columns = [
     ...(hasEditPermission
       ? [
-          {
-            name: <div>Action</div>,
-            cell: (row) => (
-              <button
-                className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
-                title="Edit Finance"
-                onClick={() => {
-                  setSelectedRecord(row);
-                  setModalMode("EDIT");
-                  setModalOpen(true);
-                }}
-              >
-                <Pencil size={16} />
-              </button>
-            ),
-            width: "70px",
-            ignoreRowClick: true,
-          },
-        ]
+        {
+          name: <div>Action</div>,
+          cell: (row) => (
+            <button
+              className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
+              title="Edit Finance"
+              onClick={() => {
+                setSelectedRecord(row);
+                setModalMode("EDIT");
+                setModalOpen(true);
+              }}
+            >
+              <Pencil size={16} />
+            </button>
+          ),
+          width: "70px",
+          ignoreRowClick: true,
+        },
+      ]
       : []),
     {
       name: <div>ECode</div>,
@@ -273,16 +308,18 @@ const FinanceDashboard = () => {
       minWidth: "160px",
     },
     {
-      name: <div>Short Wages</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.shortWages),
+      name: amountHeader("Short Wages"),
+      selector: (row) => row?.financeDetails?.shortWages,
+      cell: (row) => renderAmount(row?.financeDetails?.shortWages),
       sortable: true,
-      minWidth: "120px",
+      minWidth: colWidth,
     },
     {
-      name: <div>Minimum Wages</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.minimumWages),
+      name: amountHeader("Minimum Wages"),
+      selector: (row) => row?.financeDetails?.minimumWages,
+      cell: (row) => renderAmount(row?.financeDetails?.minimumWages),
       sortable: true,
-      minWidth: "120px",
+      minWidth: colWidth,
     },
     {
       name: <div>HRA %</div>,
@@ -297,101 +334,198 @@ const FinanceDashboard = () => {
       minWidth: "90px",
     },
     {
-      name: <div>Basic Salary</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.basicAmount),
+      name: amountHeader("Basic Salary"),
+      selector: (row) => row?.financeDetails?.basicAmount,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.basicAmount,
+          row?.financeDetails?.annual?.basicAmount,
+        ),
       sortable: true,
-      minWidth: "130px",
+      minWidth: colWidth,
     },
     {
-      name: <div>HRA</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.HRAAmount),
+      name: amountHeader("HRA"),
+      selector: (row) => row?.financeDetails?.HRAAmount,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.HRAAmount,
+          row?.financeDetails?.annual?.HRAAmount,
+        ),
       sortable: true,
-      minWidth: "120px",
+      minWidth: colWidth,
     },
     {
-      name: <div>SPL Allowance</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.SPLAllowance),
+      name: amountHeader("SPL Allowance"),
+      selector: (row) => row?.financeDetails?.SPLAllowance,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.SPLAllowance,
+          row?.financeDetails?.annual?.SPLAllowance,
+        ),
       sortable: true,
-      minWidth: "130px",
+      minWidth: colWidth,
     },
     {
-      name: <div>Conveyance Allowance</div>,
-      selector: (row) =>
-        formatCurrency(row?.financeDetails?.conveyanceAllowance),
+      name: amountHeader("Conveyance Allowance"),
+      selector: (row) => row?.financeDetails?.conveyanceAllowance,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.conveyanceAllowance,
+          row?.financeDetails?.annual?.conveyanceAllowance,
+        ),
       sortable: true,
-      minWidth: "120px",
+      minWidth: colWidth,
     },
     {
-      name: <div>Statutory Bonus</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.statutoryBonus),
+      name: amountHeader("Statutory Bonus"),
+      selector: (row) => row?.financeDetails?.statutoryBonus,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.statutoryBonus,
+          row?.financeDetails?.annual?.statutoryBonus,
+        ),
       sortable: true,
-      minWidth: "140px",
+      minWidth: colWidth,
     },
     {
-      name: <div>Gross Salary</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.grossSalary),
+      name: amountHeader("Gross Salary"),
+      selector: (row) => row?.financeDetails?.grossSalary,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.grossSalary,
+          row?.financeDetails?.annual?.grossSalary,
+        ),
       sortable: true,
-      minWidth: "130px",
+      minWidth: colWidth,
     },
     {
-      name: <div>Insurance</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.insurance),
+      name: amountHeader("Variable"),
+      selector: (row) => row?.financeDetails?.variable,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.variable,
+          row?.financeDetails?.annual?.variable,
+        ),
       sortable: true,
-      minWidth: "110px",
+      minWidth: colWidth,
     },
     {
-      name: <div>ESIC Salary</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.ESICSalary),
+      name: amountHeader("Reimbursement"),
+      selector: (row) => row?.financeDetails?.reimbursement,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.reimbursement,
+          row?.financeDetails?.annual?.reimbursement,
+        ),
       sortable: true,
-      minWidth: "120px",
+      minWidth: colWidth,
     },
     {
-      name: <div>LWF Employer</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.LWFEmployer),
+      name: amountHeader("Insurance"),
+      selector: (row) => row?.financeDetails?.insurance,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.insurance,
+          row?.financeDetails?.annual?.insurance,
+        ),
       sortable: true,
-      minWidth: "130px",
+      minWidth: colWidth,
     },
     {
-      name: <div>PF Employee</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.PFEmployee),
+      name: amountHeader("ESIC Salary"),
+      selector: (row) => row?.financeDetails?.ESICSalary,
+      cell: (row) => renderAmount(row?.financeDetails?.ESICSalary, row?.financeDetails?.ESICSalary),
       sortable: true,
-      minWidth: "120px",
+      minWidth: colWidth,
     },
     {
-      name: <div>PF Employer</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.PFAmount),
+      name: amountHeader("LWF Employer"),
+      selector: (row) => row?.financeDetails?.LWFEmployer,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.LWFEmployer,
+          row?.financeDetails?.annual?.LWFEmployer,
+        ),
       sortable: true,
-      minWidth: "120px",
+      minWidth: colWidth,
     },
     {
-      name: <div>PF Salary</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.PFSalary),
+      name: amountHeader("PF Employee"),
+      selector: (row) => row?.financeDetails?.PFEmployee,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.PFEmployee,
+          row?.financeDetails?.annual?.PFEmployee,
+        ),
       sortable: true,
-      minWidth: "120px",
+      minWidth: colWidth,
     },
     {
-      name: <div>PT</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.PT),
+      name: amountHeader("PF Employer"),
+      selector: (row) => row?.financeDetails?.PFEmployer,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.PFEmployer,
+          row?.financeDetails?.annual?.PFEmployer,
+        ),
       sortable: true,
-      minWidth: "90px",
+      minWidth: colWidth,
     },
     {
-      name: <div>ESIC Employee</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.ESICEmployee),
+      name: amountHeader("PF Salary"),
+      selector: (row) => row?.financeDetails?.PFSalary,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.PFSalary,
+          row?.financeDetails?.annual?.PFSalary,
+        ),
       sortable: true,
-      minWidth: "130px",
+      minWidth: colWidth,
     },
     {
-      name: <div>ESIC Employer</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.ESICEmployer),
+      name: amountHeader("PT"),
+      selector: (row) => row?.financeDetails?.PT,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.PT,
+          row?.financeDetails?.annual?.PT,
+        ),
       sortable: true,
-      minWidth: "130px",
+      minWidth: colWidth,
     },
     {
-      name: <div>In Hand Salary</div>,
-      selector: (row) => formatCurrency(row?.financeDetails?.inHandSalary),
+      name: amountHeader("ESIC Employee"),
+      selector: (row) => row?.financeDetails?.ESICEmployee,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.ESICEmployee,
+          row?.financeDetails?.annual?.ESICEmployee,
+        ),
       sortable: true,
-      minWidth: "140px",
+      minWidth: colWidth,
+    },
+    {
+      name: amountHeader("ESIC Employer"),
+      selector: (row) => row?.financeDetails?.ESICEmployer,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.ESICEmployer,
+          row?.financeDetails?.annual?.ESICEmployer,
+        ),
+      sortable: true,
+      minWidth: colWidth,
+    },
+    {
+      name: amountHeader("In Hand Salary"),
+      selector: (row) => row?.financeDetails?.inHandSalary,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.inHandSalary,
+          row?.financeDetails?.annual?.inHandSalary,
+        ),
+      sortable: true,
+      minWidth: colWidth,
     },
     {
       name: <div>Debit Statement Narration</div>,
@@ -583,7 +717,23 @@ const FinanceDashboard = () => {
               isLoading={designationLoading}
             />
           </div>
-          <div className="col-md-6 d-flex justify-content-end gap-2 align-items-center">
+          <div className="col-md-6 d-flex justify-content-end gap-2 align-items-center flex-wrap">
+            <div
+              className="btn-group btn-group-sm"
+              role="group"
+              title="Amount display mode"
+            >
+              {AMOUNT_VIEWS.map((v) => (
+                <button
+                  key={v.value}
+                  type="button"
+                  className={`btn btn-${amountView === v.value ? "primary" : "outline-primary"}`}
+                  onClick={() => setAmountView(v.value)}
+                >
+                  {v.label}
+                </button>
+              ))}
+            </div>
             <RefreshButton
               loading={loading}
               onRefresh={fetchEmployeeFinanceList}

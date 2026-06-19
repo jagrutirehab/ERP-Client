@@ -42,6 +42,11 @@ import {
   newEmploymentOptions,
 } from "../../../../Components/constants/HR";
 import { calculatePayroll } from "../../../../utils/calculatePayroll";
+import {
+  annualToMonthly,
+  annualFieldValue,
+  annualBreakupGross,
+} from "../../../../utils/salaryUnit";
 import { normalizeDateForInput } from "../../../../utils/time";
 import { downloadFile } from "../../../../Components/Common/downloadFile";
 import { format } from "date-fns";
@@ -157,8 +162,8 @@ const validationSchema = (mode, isEdit) =>
     HRAPercentage: Yup.number().min(0).max(100).notRequired(),
     statutoryBonus: Yup.number().min(0).notRequired(),
     insurance: Yup.number().min(0).notRequired(),
-    // variable: Yup.number().min(0).notRequired(),
-    // reimbursement: Yup.number().min(0).notRequired(),
+    variable: Yup.number().min(0).notRequired(),
+    reimbursement: Yup.number().min(0).notRequired(),
     TDSRate: Yup.number().min(0).max(100).notRequired(),
     pfAmount: Yup.number().min(0).notRequired(),
     SPLAllowance: Yup.number().min(0).notRequired(),
@@ -180,6 +185,15 @@ const validationSchema = (mode, isEdit) =>
     // }),
     // newEmploymentType: Yup.string().required("Employment type is required"),
     // employmentStatus: Yup.string().required("Employment status is required"),
+    minimumWorkHours: Yup.number()
+      .min(0, "Must be at least 0")
+      .max(24, "Cannot exceed 24 hours")
+      .when("newEmploymentType", {
+        is: "PART_TIME",
+        then: (schema) =>
+          schema.required("Minimum work hours is required for part-time"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
     position: Yup.string()
       .transform((value) => {
         if (typeof value === "object" && value?._id) return value._id;
@@ -245,25 +259,28 @@ const getInitialValues = (initialData, mode) => ({
 
   minimumWages: initialData?.financeDetails?.minimumWages || 0,
   shortWages: initialData?.financeDetails?.shortWages || 0,
-  grossSalary: initialData?.financeDetails?.grossSalary || 0,
+  grossSalary: annualBreakupGross(initialData?.financeDetails),
 
   basicPercentage: initialData?.financeDetails?.basicPercentage || 0,
-  basicAmount: initialData?.financeDetails?.basicAmount || 0,
-  HRAAmount: initialData?.financeDetails?.HRAAmount || 0,
+  basicAmount: annualFieldValue(initialData?.financeDetails, "basicAmount"),
+  HRAAmount: annualFieldValue(initialData?.financeDetails, "HRAAmount"),
   HRAPercentage: initialData?.financeDetails?.HRAPercentage || 0,
-  SPLAllowance: initialData?.financeDetails?.SPLAllowance || 0,
-  conveyanceAllowance: initialData?.financeDetails?.conveyanceAllowance || 0,
-  statutoryBonus: initialData?.financeDetails?.statutoryBonus || 0,
+  SPLAllowance: annualFieldValue(initialData?.financeDetails, "SPLAllowance"),
+  conveyanceAllowance: annualFieldValue(
+    initialData?.financeDetails,
+    "conveyanceAllowance"
+  ),
+  statutoryBonus: annualFieldValue(initialData?.financeDetails, "statutoryBonus"),
 
-  insurance: initialData?.financeDetails?.insurance || 0,
-  // variable: initialData?.financeDetails?.variable || 0,
-  // reimbursement: initialData?.financeDetails?.reimbursement || 0,
+  insurance: annualFieldValue(initialData?.financeDetails, "insurance"),
+  variable: initialData?.financeDetails?.variable || 0,
+  reimbursement: initialData?.financeDetails?.reimbursement || 0,
   ESICSalary: initialData?.financeDetails?.ESICSalary || 0,
   ESICEmployee: initialData?.financeDetails?.ESICEmployee || 0,
   ESICEmployer: initialData?.financeDetails?.ESICEmployer || 0,
-  LWFSalary: initialData?.financeDetails?.ESICSalary || 0,
-  LWFEmployee: initialData?.financeDetails?.LWFEmployee || 0,
-  LWFEmployer: initialData?.financeDetails?.LWFEmployer || 0,
+  LWFSalary: annualFieldValue(initialData?.financeDetails, "LWFSalary"),
+  LWFEmployee: annualFieldValue(initialData?.financeDetails, "LWFEmployee"),
+  LWFEmployer: annualFieldValue(initialData?.financeDetails, "LWFEmployer"),
 
   PFEmployee: initialData?.financeDetails?.PFEmployee || 0,
   PFEmployer: initialData?.financeDetails?.PFEmployer || 0,
@@ -287,6 +304,9 @@ const getInitialValues = (initialData, mode) => ({
     : [],
   employmentStatus: initialData?.employmentStatus || "",
   newEmploymentType: initialData?.newEmploymentType || "",
+  minimumWorkHours: initialData?.minimumWorkHours
+    ? initialData.minimumWorkHours / 60
+    : "",
   position:
     initialData?.position?._id?.toString() ||
     initialData?.position?.toString() ||
@@ -400,6 +420,15 @@ const EmployeeForm = ({
           if (value === undefined || value === null) return;
           formData.append(key, value);
         });
+
+        if (values.newEmploymentType === "PART_TIME" && values.minimumWorkHours) {
+          formData.set("minimumWorkHours", Math.round(Number(values.minimumWorkHours) * 60));
+        } else {
+          formData.delete("minimumWorkHours");
+        }
+
+        // Amount fields above are yearly; the server splits them into monthly.
+        formData.append("salaryUnit", "ANNUAL");
         let panUrl = values.panOld;
         let adharUrl = values.adharOld;
         let offerLetterUrl = values.offerLetterOld;
@@ -565,6 +594,33 @@ const EmployeeForm = ({
       <div className="text-danger small">{errors[field]}</div>
     ) : null;
   };
+
+  const monthlyView = annualToMonthly(values);
+  const monthlyHint = (field) => (
+    <div className="text-muted small mt-1">
+      Monthly ≈ ₹{(monthlyView[field] || 0).toLocaleString("en-IN")}
+    </div>
+  );
+
+  const yearlyValue = (field) => Math.round(Number(values[field]) || 0) * 12;
+  const monthlyHintFrom = (field) => (
+    <div className="text-muted small mt-1">
+      Monthly ≈ ₹{(Math.round(Number(values[field]) || 0)).toLocaleString("en-IN")}
+    </div>
+  );
+
+  const ptMonthly = Math.round(Number(values.PT) || 0);
+  const ptIsBumpSlab = ptMonthly === 200 || ptMonthly === 300;
+  const ptRegularMonthly = ptMonthly === 300 ? 200 : ptMonthly;
+  const ptYearly = ptIsBumpSlab ? ptRegularMonthly * 11 + 300 : ptMonthly * 12;
+
+  const deductionsYearly =
+    yearlyValue("deductions") + ptYearly - ptMonthly * 12;
+
+  const ctcYearly =
+    yearlyValue("totalCostToCompany") +
+    Number(values.variable || 0) +
+    Number(values.reimbursement || 0);
 
   // const handleCreateDesignation = async (inputValue) => {
   //   if (mode === "NEW_JOINING" && !hasCreatePermission) {
@@ -742,8 +798,11 @@ const EmployeeForm = ({
     const selectedCenter = centerOptions?.find(
       (o) => o.value === values.currentLocation,
     );
+    // values holds YEARLY amounts; calculatePayroll is monthly, so feed it the
+    // monthly equivalents (the derived fields it returns are therefore monthly).
     const payroll = calculatePayroll({
       ...values,
+      ...annualToMonthly(values),
       pfApplicable: values.newEmploymentType === "FULL_TIME",
       currentLocation: selectedCenter
         ? { title: selectedCenter.title, address: selectedCenter.address }
@@ -771,11 +830,32 @@ const EmployeeForm = ({
     values.LWFEmployee,
     values.TDSRate,
     values.insurance,
-    // values.variable,
-    // values.reimbursement,
+    values.variable,
+    values.reimbursement,
     values.minimumWages,
     values.currentLocation,
     values.LWFEmployer,
+  ]);
+
+  
+  useEffect(() => {
+    const total =
+      Number(values.basicAmount || 0) +
+      Number(values.HRAAmount || 0) +
+      Number(values.SPLAllowance || 0) +
+      Number(values.conveyanceAllowance || 0) +
+      Number(values.statutoryBonus || 0);
+    if (Number(values.grossSalary || 0) !== total) {
+      setFieldValue("grossSalary", total, false);
+    }
+  }, [
+    values.basicAmount,
+    values.HRAAmount,
+    values.SPLAllowance,
+    values.conveyanceAllowance,
+    values.statutoryBonus,
+    values.grossSalary,
+    setFieldValue,
   ]);
 
   const selectedEmploymentOption =
@@ -1012,6 +1092,32 @@ const EmployeeForm = ({
             />
             {errorText("newEmploymentType")}
           </Col>
+          {/* MINIMUM WORK HOURS — visible only for Part Time */}
+          {values.newEmploymentType === "PART_TIME" && (
+            <Col md={6}>
+              <Label htmlFor="minimumWorkHours">
+                Minimum Work Hours <span className="text-danger">*</span>
+              </Label>
+              <Input
+                id="minimumWorkHours"
+                type="number"
+                name="minimumWorkHours"
+                min={0}
+                max={24}
+                value={values.minimumWorkHours}
+                onChange={handleChange}
+                onBlur={() => setFieldTouched("minimumWorkHours", true)}
+                placeholder="Enter hours per day"
+                invalid={touched.minimumWorkHours && !!errors.minimumWorkHours}
+              />
+              {values.minimumWorkHours !== "" && (
+                <div className="text-muted small mt-1">
+                  = {Math.round(Number(values.minimumWorkHours) * 60)} minutes
+                </div>
+              )}
+              {errorText("minimumWorkHours")}
+            </Col>
+          )}
           {/* EMPLOYMENT STATUS */}
           <Col md={6}>
             <Label htmlFor="employmentStatus">
@@ -1863,7 +1969,7 @@ const EmployeeForm = ({
 
           {/* MINIMUM WAGES */}
           <Col md={6}>
-            <Label htmlFor="minimumWages">Minimum Wages</Label>
+            <Label htmlFor="minimumWages">Minimum Wages (Monthly)</Label>
             <Input
               id="minimumWages"
               type="number"
@@ -1975,34 +2081,33 @@ const EmployeeForm = ({
 
           {/* Short WAGES */}
           <Col md={6}>
-            <Label htmlFor="shortWages">Short Wages</Label>
+            <Label htmlFor="shortWages">Short Wages (Monthly)</Label>
             <Input
               disabled
               id="shortWages"
               type="number"
               name="shortWages"
               value={values.shortWages}
-              onChange={handleChange}
             />
           </Col>
 
           {/* GROSS SALARY */}
           <Col md={6}>
-            <Label htmlFor="grossSalary">Gross Salary</Label>
+            <Label htmlFor="grossSalary">Gross Salary (Yearly)</Label>
             <Input
+              disabled
               id="grossSalary"
               type="number"
               name="grossSalary"
               value={values.grossSalary}
-              onChange={handleChange}
-              onBlur={() => setFieldTouched("grossSalary", true)}
             />
             {errorText("grossSalary")}
+            {monthlyHint("grossSalary")}
           </Col>
 
           {/* BASIC AMOUNT */}
           <Col md={6}>
-            <Label htmlFor="basicAmount">Basic Amount</Label>
+            <Label htmlFor="basicAmount">Basic Amount (Yearly)</Label>
             <Input
               id="basicAmount"
               type="number"
@@ -2011,6 +2116,7 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
             {errorText("basicAmount")}
+            {monthlyHint("basicAmount")}
           </Col>
 
           {/* BASIC PERCENTAGE */}
@@ -2029,7 +2135,7 @@ const EmployeeForm = ({
 
           {/* HRA */}
           <Col md={6}>
-            <Label htmlFor="HRA">HRA</Label>
+            <Label htmlFor="HRA">HRA (Yearly)</Label>
             <Input
               id="HRA"
               type="number"
@@ -2037,6 +2143,7 @@ const EmployeeForm = ({
               value={values.HRAAmount}
               onChange={handleChange}
             />
+            {monthlyHint("HRAAmount")}
           </Col>
 
           {/* HRA PERCENTAGE */}
@@ -2055,7 +2162,7 @@ const EmployeeForm = ({
 
           {/* SPECIAL ALLOWANCE */}
           <Col md={6}>
-            <Label htmlFor="SPLAllowance">SPL Allowance</Label>
+            <Label htmlFor="SPLAllowance">SPL Allowance (Yearly)</Label>
             <Input
               name="SPLAllowance"
               type="number"
@@ -2068,11 +2175,12 @@ const EmployeeForm = ({
                 handleChange(e);
               }}
             />
+            {monthlyHint("SPLAllowance")}
           </Col>
 
           {/* CONVEYANCE ALLOWANCE */}
           <Col md={6}>
-            <Label htmlFor="conveyanceAllowance">Conveyance Allowance</Label>
+            <Label htmlFor="conveyanceAllowance">Conveyance Allowance (Yearly)</Label>
             <Input
               id="conveyanceAllowance"
               type="number"
@@ -2080,11 +2188,12 @@ const EmployeeForm = ({
               value={values.conveyanceAllowance}
               onChange={handleChange}
             />
+            {monthlyHint("conveyanceAllowance")}
           </Col>
 
           {/* STATUTORY BONUS */}
           <Col md={6}>
-            <Label htmlFor="statutoryBonus">Statutory Bonus</Label>
+            <Label htmlFor="statutoryBonus">Statutory Bonus (Yearly)</Label>
             <Input
               id="statutoryBonus"
               type="number"
@@ -2092,11 +2201,12 @@ const EmployeeForm = ({
               value={values.statutoryBonus}
               onChange={handleChange}
             />
+            {monthlyHint("statutoryBonus")}
           </Col>
 
           {/* INSURANCE */}
           <Col md={6}>
-            <Label htmlFor="insurance">Insurance</Label>
+            <Label htmlFor="insurance">Insurance (Yearly)</Label>
             <Input
               id="insurance"
               type="number"
@@ -2104,11 +2214,12 @@ const EmployeeForm = ({
               value={values.insurance}
               onChange={handleChange}
             />
+            {monthlyHint("insurance")}
           </Col>
 
           {/* VARIABLE */}
-          {/* <Col md={6}>
-            <Label htmlFor="variable">Variable</Label>
+          <Col md={6}>
+            <Label htmlFor="variable">Variable (Yearly)</Label>
             <Input
               id="variable"
               type="number"
@@ -2116,11 +2227,12 @@ const EmployeeForm = ({
               value={values.variable}
               onChange={handleChange}
             />
-          </Col> */}
+            <div className="text-muted small mt-1">Added to yearly CTC</div>
+          </Col>
 
           {/* REIMBURSEMENT */}
-          {/* <Col md={6}>
-            <Label htmlFor="reimbursement">Reimbursement</Label>
+          <Col md={6}>
+            <Label htmlFor="reimbursement">Reimbursement (Yearly)</Label>
             <Input
               id="reimbursement"
               type="number"
@@ -2128,11 +2240,12 @@ const EmployeeForm = ({
               value={values.reimbursement}
               onChange={handleChange}
             />
-          </Col> */}
+            <div className="text-muted small mt-1">Added to yearly CTC</div>
+          </Col>
 
           {/* LWF SALARY */}
           <Col md={6}>
-            <Label htmlFor="LWFSalary">LWF Salary</Label>
+            <Label htmlFor="LWFSalary">LWF Salary (Yearly)</Label>
             <Input
               id="LWFSalary"
               type="number"
@@ -2140,11 +2253,12 @@ const EmployeeForm = ({
               value={values.LWFSalary}
               onChange={handleChange}
             />
+            {monthlyHint("LWFSalary")}
           </Col>
 
           {/* LWF EMPLOYEE */}
           <Col md={6}>
-            <Label htmlFor="LWFEmployee">LWF Employee</Label>
+            <Label htmlFor="LWFEmployee">LWF Employee (Yearly)</Label>
             <Input
               id="LWFEmployee"
               type="number"
@@ -2152,11 +2266,12 @@ const EmployeeForm = ({
               value={values.LWFEmployee}
               onChange={handleChange}
             />
+            {monthlyHint("LWFEmployee")}
           </Col>
 
           {/* LWF EMPLOYER */}
           <Col md={6}>
-            <Label htmlFor="LWFEmployer">LWF Employer</Label>
+            <Label htmlFor="LWFEmployer">LWF Employer (Yearly)</Label>
             <Input
               id="LWFEmployer"
               type="number"
@@ -2164,44 +2279,46 @@ const EmployeeForm = ({
               value={values.LWFEmployer}
               onChange={handleChange}
             />
+            {monthlyHint("LWFEmployer")}
           </Col>
 
           {/* ESIC SALARY */}
           <Col md={6}>
-            <Label htmlFor="ESICSalary">ESIC Salary</Label>
+            <Label htmlFor="ESICSalary">ESIC Salary (Yearly)</Label>
             <Input
               disabled
               id="ESICSalary"
               type="number"
               name="ESICSalary"
-              value={values.ESICSalary}
+              value={yearlyValue("ESICSalary")}
             />
+            {monthlyHintFrom("ESICSalary")}
           </Col>
 
           {/* ESIC EMPLOYEE */}
           <Col md={6}>
-            <Label htmlFor="ESICEmployee">ESIC Employee</Label>
+            <Label htmlFor="ESICEmployee">ESIC Employee (Yearly)</Label>
             <Input
               disabled
               id="ESICEmployee"
               type="number"
               name="ESICEmployee"
-              value={values.ESICEmployee}
-              onChange={handleChange}
+              value={yearlyValue("ESICEmployee")}
             />
+            {monthlyHintFrom("ESICEmployee")}
           </Col>
 
           {/* ESIC EMPLOYER */}
           <Col md={6}>
-            <Label htmlFor="ESICEmployer">ESIC Employer</Label>
+            <Label htmlFor="ESICEmployer">ESIC Employer (Yearly)</Label>
             <Input
               disabled
               id="ESICEmployer"
               type="number"
               name="ESICEmployer"
-              value={values.ESICEmployer}
-              onChange={handleChange}
+              value={yearlyValue("ESICEmployer")}
             />
+            {monthlyHintFrom("ESICEmployer")}
           </Col>
 
           {/* TDS RATE */}
@@ -2218,91 +2335,109 @@ const EmployeeForm = ({
 
           {/* PT */}
           <Col md={6}>
-            <Label htmlFor="PT">PT</Label>
+            <Label htmlFor="PT">PT (Yearly)</Label>
             <Input
               disabled
               id="PT"
               type="number"
               name="PT"
-              value={values.PT}
-              onChange={handleChange}
+              value={ptYearly}
             />
+            <div className="text-muted small mt-1">
+              Monthly ≈ ₹{ptRegularMonthly.toLocaleString("en-IN")}
+              {ptIsBumpSlab ? " (₹300 in February)" : ""}
+            </div>
           </Col>
 
           {/* PF AMOUNT */}
           <Col md={6}>
-            <Label htmlFor="PFAmount">PF Amount</Label>
+            <Label htmlFor="PFAmount">PF Amount (Yearly)</Label>
             <Input
               disabled
               id="PFAmount"
               type="number"
               name="PFAmount"
-              value={values.PFAmount}
-              onChange={handleChange}
+              value={yearlyValue("PFAmount")}
             />
+            {monthlyHintFrom("PFAmount")}
           </Col>
 
           {/* PF EMPLOYEE */}
           <Col md={6}>
-            <Label htmlFor="PFEmployee">PF Employee Contribution</Label>
+            <Label htmlFor="PFEmployee">PF Employee Contribution (Yearly)</Label>
             <Input
               disabled
               id="PFEmployee"
               type="number"
               name="PFEmployee"
-              value={values.PFEmployee}
-              onChange={handleChange}
+              value={yearlyValue("PFEmployee")}
             />
+            {monthlyHintFrom("PFEmployee")}
           </Col>
 
           {/* PF EMPLOYER */}
           <Col md={6}>
-            <Label htmlFor="PFEmployer">PF Employer Contribution</Label>
+            <Label htmlFor="PFEmployer">PF Employer Contribution (Yearly)</Label>
             <Input
               disabled
               id="PFEmployer"
               type="number"
               name="PFEmployer"
-              value={values.PFEmployer}
-              onChange={handleChange}
+              value={yearlyValue("PFEmployer")}
             />
+            {monthlyHintFrom("PFEmployer")}
+          </Col>
+
+          {/* TOTAL DEDUCTIONS */}
+          <Col md={6}>
+            <Label htmlFor="deductions">Total Deductions (Yearly)</Label>
+            <Input
+              disabled
+              id="deductions"
+              type="number"
+              name="deductions"
+              value={deductionsYearly}
+            />
+            {monthlyHintFrom("deductions")}
           </Col>
 
           {/* IN HAND SALARY */}
           <Col md={6}>
-            <Label htmlFor="inHandSalary">In Hand Salary</Label>
+            <Label htmlFor="inHandSalary">In Hand Salary (Yearly)</Label>
             <Input
               disabled
               id="inHandSalary"
               type="number"
               name="inHandSalary"
-              value={values.inHandSalary}
-              onChange={handleChange}
+              value={yearlyValue("inHandSalary")}
             />
+            {monthlyHintFrom("inHandSalary")}
           </Col>
 
           {/* GRATUITY */}
           <Col md={6}>
-            <Label htmlFor="gratuity">Gratuity</Label>
+            <Label htmlFor="gratuity">Gratuity (Yearly)</Label>
             <Input
               disabled
               id="gratuity"
               type="number"
               name="gratuity"
-              value={values.gratuity}
+              value={yearlyValue("gratuity")}
             />
+            {monthlyHintFrom("gratuity")}
           </Col>
 
           {/* TOTAL COST TO COMPANY */}
           <Col md={6}>
-            <Label htmlFor="totalCostToCompany">Total Cost To Company</Label>
+            <Label htmlFor="totalCostToCompany">Total Cost To Company (Yearly)</Label>
             <Input
               disabled
               id="totalCostToCompany"
               type="number"
               name="totalCostToCompany"
-              value={values.totalCostToCompany}
+              value={ctcYearly}
             />
+            {monthlyHintFrom("totalCostToCompany")}
           </Col>
 
           {/* DEBIT STATEMENT NARRATION */}
