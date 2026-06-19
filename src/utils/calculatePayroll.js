@@ -103,7 +103,7 @@ export const calculatePayroll = (values) => {
     const inHandSalary = Math.max(gross - deductions, 0);
 
     const gratuity = Math.round(((basic + spl + conveyance) * 4.81) / 100);
-    const totalCostToCompany = gross + PFEmployer + ESICEmployer + LWFEmployer + gratuity + insurance;
+    const totalCostToCompany = gross + PFEmployer + ESICEmployer + LWFEmployer + gratuity;
 
     return {
         PFEmployee,

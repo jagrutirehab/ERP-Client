@@ -255,15 +255,15 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
   const payrollInitializedRef = useRef(false);
 
   useEffect(() => {
-    // form.values holds YEARLY amounts; calculatePayroll is monthly, so feed it
-    // the monthly equivalents (the derived fields below are therefore monthly).
+   
     const payroll = calculatePayroll({
       ...form.values,
       ...annualToMonthly(form.values),
       pfApplicable: employeeData?.newEmploymentType === "FULL_TIME",
       gender: employeeData?.gender || "",
       joinningDate: employeeData?.joinningDate || "",
-      currentLocation: employeeData?.currentLocation || null,
+      currentLocation:
+        employeeData?.center || employeeData?.currentLocation || null,
     });
 
     const isFirstRunInEdit = isEdit && !payrollInitializedRef.current;
@@ -370,8 +370,6 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
   const deductionsYearly =
     yearlyValue("deductions") + ptYearly - ptMonthly * 12;
 
-  // Yearly CTC = monthly recurring CTC × 12 + the pure-yearly add-ons
-  // (variable, reimbursement), which are added once, not split into monthly.
   const ctcYearly =
     yearlyValue("totalCostToCompany") +
     Number(form.values.variable || 0) +
