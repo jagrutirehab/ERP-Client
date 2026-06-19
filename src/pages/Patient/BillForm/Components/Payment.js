@@ -151,7 +151,7 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                       <option value={""} selected defaultValue={""}>
                         No Bank Account Selected
                       </option>
-                      {(paymentAccounts || []).map((item) => (
+                      {(paymentAccounts || []).filter((acc) => acc.name === "pinelabs" && (item.paymentMode === "CARD" || item.paymentMode === "UPI")).map((item) => (
                         <option key={item._id} value={item.name}>
                           {item.name}
                         </option>
