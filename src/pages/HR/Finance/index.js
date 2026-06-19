@@ -435,7 +435,7 @@ const FinanceDashboard = () => {
     {
       name: amountHeader("ESIC Salary"),
       selector: (row) => row?.financeDetails?.ESICSalary,
-      cell: (row) => renderAmount(row?.financeDetails?.ESICSalary, row?.financeDetails?.ESICSalary),
+      cell: (row) => renderAmount(row?.financeDetails?.ESICSalary, row?.financeDetails?.annual?.ESICSalary),
       sortable: true,
       minWidth: colWidth,
     },
@@ -473,12 +473,12 @@ const FinanceDashboard = () => {
       minWidth: colWidth,
     },
     {
-      name: amountHeader("PF Salary"),
-      selector: (row) => row?.financeDetails?.PFSalary,
+      name: amountHeader("PF Amount"),
+      selector: (row) => row?.financeDetails?.PFAmount,
       cell: (row) =>
         renderAmount(
-          row?.financeDetails?.PFSalary,
-          row?.financeDetails?.annual?.PFSalary,
+          row?.financeDetails?.PFAmount,
+          row?.financeDetails?.annual?.PFAmount,
         ),
       sortable: true,
       minWidth: colWidth,

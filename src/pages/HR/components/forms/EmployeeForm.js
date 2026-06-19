@@ -273,8 +273,8 @@ const getInitialValues = (initialData, mode) => ({
   statutoryBonus: annualFieldValue(initialData?.financeDetails, "statutoryBonus"),
 
   insurance: annualFieldValue(initialData?.financeDetails, "insurance"),
-  variable: initialData?.financeDetails?.variable || 0,
-  reimbursement: initialData?.financeDetails?.reimbursement || 0,
+  variable: initialData?.financeDetails?.annual?.variable ?? initialData?.financeDetails?.variable ?? 0,
+  reimbursement: initialData?.financeDetails?.annual?.reimbursement ?? initialData?.financeDetails?.reimbursement ?? 0,
   ESICSalary: initialData?.financeDetails?.ESICSalary || 0,
   ESICEmployee: initialData?.financeDetails?.ESICEmployee || 0,
   ESICEmployer: initialData?.financeDetails?.ESICEmployer || 0,
