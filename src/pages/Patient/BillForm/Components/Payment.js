@@ -151,11 +151,22 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                       <option value={""} selected defaultValue={""}>
                         No Bank Account Selected
                       </option>
-                      {(paymentAccounts || []).filter((acc) => acc.name === "pinelabs" && (item.paymentMode === "CARD" || item.paymentMode === "UPI")).map((item) => (
-                        <option key={item._id} value={item.name}>
-                          {item.name}
-                        </option>
-                      ))}
+                      {(paymentAccounts || [])
+                        .filter((acc) => {
+                          const isCardOrUpi = item.paymentMode === "CARD" || item.paymentMode === "UPI";
+                          if (isCardOrUpi) {
+                            // Show all accounts (including pinelabs)
+                            return true;
+                          } else {
+                            // For BANK, CHEQUE, etc. — exclude pinelabs
+                            return acc.name !== "pinelabs";
+                          }
+                        })
+                        .map((acc) => (
+                          <option key={acc._id} value={acc.name}>
+                            {acc.name}
+                          </option>
+                        ))}
                     </Input>
                   </Col>
                 )}
