@@ -165,9 +165,11 @@ const AdmissionSummary = ({ patient, addmission }) => {
                       key={i}
                       className="border rounded p-2"
                       style={{
-                        minWidth: "140px",
-                        maxWidth: "160px",
+                        minWidth: "180px",
+                        maxWidth: "180px",
                         minHeight: "200px",
+                        maxHeight: "400px",
+                        overflowY: "auto",
                       }}
                     >
                       <div
@@ -194,7 +196,7 @@ const AdmissionSummary = ({ patient, addmission }) => {
                             <span className="fw-semibold">
                               Interpretation:{" "}
                             </span>
-                            {t.systemInterpretation.split(":")[0]}
+                            {t.systemInterpretation.split(/:\s(?![^(]*\))/)[0]}
                           </div>
                         )}
                     </div>
