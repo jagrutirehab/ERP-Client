@@ -11,6 +11,7 @@ import { ExpandableText } from "../../../../../Components/Common/ExpandableText"
 import DataTable from "react-data-table-component";
 import Select from "react-select";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
+import { normalizeUnderscores } from "../../../../../utils/normalizeUnderscore";
 
 
 const customStyles = {
@@ -183,9 +184,15 @@ const lwdOptions = [
         },
         {
             name: <div>Designation</div>,
-            selector: row => capitalizeWords(row?.designation?.name || "-"),
+            selector: row => capitalizeWords(normalizeUnderscores(row?.designation?.name) || "-"),
             wrap: true,
             minWidth: "100px"
+        },
+        {
+            name: <div>Position</div>,
+            selector: (row) => row?.position?.name || "-",
+            wrap: true,
+            minWidth: "120px",
         },
         {
             name: <div>Current Location</div>,

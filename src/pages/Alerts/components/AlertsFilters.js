@@ -24,6 +24,12 @@ const PHASE_STATES = [
   { k: "DELAYED", label: "Delayed" },
 ];
 
+const RESOLVED_STATES = [
+  { k: "all", label: "All" },
+  { k: "unresolved", label: "Unresolved" },
+  { k: "resolved", label: "Resolved" },
+];
+
 const AlertsFilters = ({
   total,
   serverFilters,
@@ -65,6 +71,7 @@ const AlertsFilters = ({
     !!serverFilters.dateTo ||
     serverFilters.readState !== "all" ||
     serverFilters.phase !== "all" ||
+    serverFilters.resolvedState !== "all" ||
     serverFilters.severity?.length > 0;
 
   // ── Loaders for the AsyncSelect dropdowns ──
@@ -207,6 +214,21 @@ const AlertsFilters = ({
               outline={serverFilters.phase !== k}
               size="sm"
               onClick={() => onServerFilterChange("phase", k)}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+
+        <div className="d-flex gap-1 align-items-center">
+          <small className="text-muted me-1">Resolution:</small>
+          {RESOLVED_STATES.map(({ k, label }) => (
+            <Button
+              key={k}
+              color={serverFilters.resolvedState === k ? "primary" : "secondary"}
+              outline={serverFilters.resolvedState !== k}
+              size="sm"
+              onClick={() => onServerFilterChange("resolvedState", k)}
             >
               {label}
             </Button>

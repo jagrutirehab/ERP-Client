@@ -1,5 +1,5 @@
 import DataTable from "react-data-table-component";
-import { Badge, Spinner } from "reactstrap";
+import { Badge, Button, Spinner } from "reactstrap";
 import { SEVERITY_COLOR, SEVERITY_HEX, PHASE_META } from "./alertConstants";
 import { timeAgo } from "./alertUtils";
 
@@ -20,7 +20,9 @@ const AlertsList = ({
   page,
   pageSize,
   loading,
+  canResolve,
   onSelect,
+  onResolve,
   onPageChange,
   onPageSizeChange,
 }) => {
@@ -225,13 +227,64 @@ const AlertsList = ({
     },
     {
       name: "",
-      width: "80px",
+      width: "70px",
       cell: (row) =>
         !row.isRead ? (
           <Badge {...RC} color="danger" pill>
             NEW
           </Badge>
         ) : null,
+    },
+    {
+      name: "Action",
+      width: "220px",
+      // ignoreRowClick keeps clicks in this cell from opening the detail
+      // offcanvas — the cell's contents intentionally omit the
+      // data-tag="allowRowEvents" attribute the row-click handler keys off.
+      ignoreRowClick: true,
+      cell: (row) =>
+        row.resolution?.resolved ? (
+          <div className="py-1" style={{ whiteSpace: "normal", minWidth: 0 }}>
+            <Badge
+              color="success"
+              pill
+              className="d-inline-flex align-items-center mb-1"
+            >
+              <i className="bx bx-check-circle me-1" />
+              Resolved
+            </Badge>
+            {row.resolution?.note && (
+              <div
+                className="text-muted"
+                title={row.resolution.note}
+                style={{
+                  fontSize: "0.75rem",
+                  lineHeight: 1.3,
+                  display: "-webkit-box",
+                  WebkitLineClamp: 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                }}
+              >
+                {row.resolution.note}
+              </div>
+            )}
+          </div>
+        ) : canResolve ? (
+          <Button
+            size="sm"
+            color="primary"
+            outline
+            onClick={(e) => {
+              e.stopPropagation();
+              onResolve(row);
+            }}
+          >
+            Resolve
+          </Button>
+        ) : (
+          <small className="text-muted">—</small>
+        ),
     },
   ];
 
