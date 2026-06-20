@@ -466,8 +466,8 @@ export const getChartsAddmissions = (data) =>
     },
   });
 export const getCharts = (data) => {
-  const addmission = typeof data === 'string' ? data : data.addmissionId;
-  const chartType = typeof data === 'string' ? 'All' : data.chartType;
+  const addmission = typeof data === "string" ? data : data.addmissionId;
+  const chartType = typeof data === "string" ? "All" : data.chartType;
   return api.get(url.GET_CHARTS, { addmission, chartType });
 };
 export const getLatestCharts = ({ patient, limit }) =>
@@ -3950,4 +3950,12 @@ export const getLeavesAndRegs = (emp) => {
     params: emp ? { employeeId: emp } : {},
     headers: { "X-No-Cookie-Token": "true" },
   });
+};
+
+export const generateAddmissionSummary = (data) => {
+  return axios.post(url.GENERATE_ADDMISSION_SUMMARY, data);
+};
+
+export const getAddmissionSummary = (addmission) => {
+  return api.get(`${url.GET_ADDMISSION_SUMMARY}/${addmission}`);
 };

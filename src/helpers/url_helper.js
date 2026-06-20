@@ -742,3 +742,8 @@ export const ADD_POSITIONS = "/hr/create/positions";
 
 export const GET_LEAVES_AND_REGULARIZATIONS =
   "/hrms/get-my-leaves/regularizations";
+
+export const GENERATE_ADDMISSION_SUMMARY =
+  "/patient/generate/addmission/summary";
+
+export const GET_ADDMISSION_SUMMARY = "/patient/get/addmission/summary";
