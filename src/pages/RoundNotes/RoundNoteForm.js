@@ -83,35 +83,41 @@ const PatientSearchCell = React.memo(({ index, control, setValue, errors }) => {
         name={`notes.${index}.patient`}
         control={control}
         render={({ field }) => {
-          // Format the stored value for react-select format: { label, value }
-          const selectValue = field.value?._id
-            ? {
-                label: field.value.name, // Will show the previously selected name
-                value: field.value._id,
-                original: field.value,
-              }
-            : null;
+          // field.value is an array of { _id, name }. Tolerate a legacy single
+          // object too (older form state / carried-forward notes).
+          const selected = Array.isArray(field.value)
+            ? field.value
+            : field.value?._id
+              ? [field.value]
+              : [];
+
+          // Format the stored value for react-select (multi) format.
+          const selectValue = selected
+            .filter((p) => p?._id)
+            .map((p) => ({
+              label: p.name,
+              value: p._id,
+              original: p,
+            }));
 
           return (
             <PatientAsyncSelect
+              isMulti
               value={selectValue}
-              onChange={(selectedOption) => {
-                if (selectedOption) {
-                  // If a patient is selected
-                  field.onChange({
-                    _id: selectedOption.value,
-                    name: selectedOption.original.name,
-                  });
-                  // Automatically switch the category
-                  setValue(
-                    `notes.${index}.patientsCategory`,
-                    "Selected Patients",
-                  );
-                } else {
-                  // If the user clears the selection
-                  field.onChange({ _id: null, name: "" });
-                  setValue(`notes.${index}.patientsCategory`, "All Patients");
-                }
+              onChange={(selectedOptions) => {
+                const options = selectedOptions || [];
+                field.onChange(
+                  options.map((o) => ({
+                    _id: o.value,
+                    name: o.original?.name ?? o.label,
+                  })),
+                );
+                // Automatically switch the category based on whether any
+                // specific patient is selected.
+                setValue(
+                  `notes.${index}.patientsCategory`,
+                  options.length ? "Selected Patients" : "All Patients",
+                );
               }}
             />
           );
@@ -146,7 +152,15 @@ export const CarryForwardStrip = ({ notes, onUse, onCloseCarryForward }) => {
                 <div>
                   <strong>{moment(note.occursAt).format("MMM D, YYYY")}</strong>
                   <div className="text-muted small">
-                    {note.patient?.name || "General Round"}
+                    {(Array.isArray(note.patient)
+                      ? note.patient
+                      : note.patient
+                        ? [note.patient]
+                        : []
+                    )
+                      .map((p) => p?.name)
+                      .filter(Boolean)
+                      .join(", ") || "General Round"}
                   </div>
                 </div>
                 <Badge color="warning" pill>
@@ -228,7 +242,7 @@ const RoundNoteForm = ({
       center: "",
       notes: Array.from({ length: 5 }).map(() => ({
         floor: "",
-        patient: { _id: null, name: "" },
+        patient: [],
         patientsCategory: "All Patients",
         note: "",
       })),
@@ -252,12 +266,16 @@ const RoundNoteForm = ({
       // transform data.notes to fields format
       const transformedNotes = (data.notes || []).map((n) => ({
         floor: n.floor || "",
-        patient: n.patient
-          ? {
-              name: `${n.patient.name}`,
-              _id: n.patient._id,
-            }
-          : null,
+        // patient may come back as a single populated object (legacy docs) or
+        // an array of them (new multi-select docs) — normalize to an array.
+        patient: (Array.isArray(n.patient)
+          ? n.patient
+          : n.patient
+            ? [n.patient]
+            : []
+        )
+          .filter((p) => p?._id)
+          .map((p) => ({ _id: p._id, name: p.name })),
         patientsCategory: n.patientsCategory || "All Patients",
         note: n.note || "",
       }));
@@ -290,7 +308,7 @@ const RoundNoteForm = ({
       // create mode: use carryForwardSource if provided to prefill first row(s)
       const baseNotes = Array.from({ length: 5 }).map(() => ({
         floor: "",
-        patient: { name: "", _id: "" },
+        patient: [],
         patientsCategory: "All Patients",
         roundTakenBy: [],
         note: "",
@@ -346,12 +364,14 @@ const RoundNoteForm = ({
         .filter(
           (n) =>
             (n.note && n.note.trim().length > 0 && n.patientsCategory) ||
-            n.patient?._id ||
+            n.patient?.length ||
             n.floor,
         ) // Only include rows with actual content
         .map((n) => ({
           floor: n.floor || "",
-          patient: n.patient?._id || null,
+          patient: (Array.isArray(n.patient) ? n.patient : n.patient ? [n.patient] : [])
+            .map((p) => p._id)
+            .filter(Boolean),
           patientsCategory: n.patientsCategory || "All Patients",
           note: n.note,
         })),
@@ -365,7 +385,7 @@ const RoundNoteForm = ({
       center: "",
       notes: Array.from({ length: 5 }).map(() => ({
         floor: "",
-        patient: { _id: null, name: "" },
+        patient: [],
         patientsCategory: "All Patients",
         note: "",
       })),
@@ -385,14 +405,12 @@ const RoundNoteForm = ({
             setValue("notes", [
               {
                 floor: note.floor || "",
-                patient: note.patient
-                  ? {
-                      label: `${note.patient.name} (${
-                        note.patient.patientId || ""
-                      })`,
-                      value: note.patient._id,
-                    }
-                  : null,
+                patient: (Array.isArray(note.patient)
+                  ? note.patient
+                  : note.patient
+                    ? [note.patient]
+                    : []
+                ).map((p) => ({ _id: p._id, name: p.name })),
                 patientsCategory: note.patientsCategory || "All Patients",
                 roundTakenBy:
                   (note.roundTakenBy || []).map((m) => ({
@@ -405,7 +423,7 @@ const RoundNoteForm = ({
               ...Array.from({ length: Math.max(0, Math.max(5 - 1, 0)) }).map(
                 () => ({
                   floor: "",
-                  patient: null,
+                  patient: [],
                   patientsCategory: "All Patients",
                   roundTakenBy: [],
                   note: "",
@@ -581,7 +599,7 @@ const RoundNoteForm = ({
                   onClick={() =>
                     append({
                       floor: "",
-                      patient: null,
+                      patient: [],
                       patientsCategory: "All Patients",
                       roundTakenBy: [],
                       note: "",
@@ -597,7 +615,7 @@ const RoundNoteForm = ({
                       append(
                         Array.from({ length: 5 }).map(() => ({
                           floor: "",
-                          patient: null,
+                          patient: [],
                           patientsCategory: "All Patients",
                           roundTakenBy: [],
                           note: "",
@@ -612,7 +630,7 @@ const RoundNoteForm = ({
                       append(
                         Array.from({ length: 10 }).map(() => ({
                           floor: "",
-                          patient: null,
+                          patient: [],
                           patientsCategory: "All Patients",
                           roundTakenBy: [],
                           note: "",
@@ -734,7 +752,9 @@ const RoundNoteForm = ({
                           <Select
                             {...field}
                             isMulti={false}
-                            isDisabled={!!watch(`notes.${index}.patient._id`)}
+                            isDisabled={
+                              watch(`notes.${index}.patient`)?.length > 0
+                            }
                             options={[
                               {
                                 label: "Selected Patients",

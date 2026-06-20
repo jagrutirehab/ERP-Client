@@ -27,6 +27,7 @@ import {
   COUNSELLING_NOTE,
   DETAIL_ADMISSION,
   VITAL_SIGN,
+  ROUND_NOTE,
 } from "../../../Components/constants/patient";
  
 //redux
@@ -167,6 +168,9 @@ const ChartDate = ({
               <DropdownMenu flip={false} color="warning">
                 {(records || [])
                   .filter((item) => {
+                    // Round-note charts are auto-generated from Round Notes —
+                    // never offered as a manually creatable chart type.
+                    if (item.category === ROUND_NOTE) return false;
                     if (user?.role === "NURSE") {
                       return ![PRESCRIPTION, COUNSELLING_NOTE, DETAIL_ADMISSION].includes(item.category);
                     }
