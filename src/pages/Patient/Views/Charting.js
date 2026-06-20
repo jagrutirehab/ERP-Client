@@ -30,6 +30,7 @@ import IPDComponent from "./IPD";
 import ClinicalTest from "./ClinicalTest";
 import Notes from "../../Nurse/Views/Notes";
 import AdmissionSummary from "./AdmissionSummary";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const Charting = ({
   patient,
@@ -50,6 +51,22 @@ const Charting = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [filterChartType, setFilterChartType] = useState({});
   const toggleModal = () => setDateModal(!dateModal);
+
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const user = JSON.parse(localStorage.getItem("micrologin"))?.user?._id;
+
+  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const hasUserPermission = hasPermission(
+    "PATIENTS",
+    "ADDMISSIONSUMMARY",
+    "READ",
+  );
+
+  const hasRead = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "READ");
+  const hasWrite = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "WRITE");
+  const hasDelete = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "DELETE");
+  const isReadOnly = hasRead && !hasWrite && !hasDelete;
+  const canAccessAdmissionSummary = hasRead || hasWrite || hasDelete;
 
   const handleAdmitPatient = () => {
     dispatch(admitDischargePatient({ data: null, isOpen: ADMIT_PATIENT }));
@@ -296,18 +313,20 @@ const Charting = ({
               Notes
             </button>
           </li>
-          <li className="nav-item rounded-0">
-            <button
-              onClick={() => setTab(ADMISSION_SUMMARY)}
-              className={`nav-link rounded-0 ${
-                tab === ADMISSION_SUMMARY
-                  ? "border-0 border-2 border-top border-primary"
-                  : "active"
-              }`}
-            >
-              Summary
-            </button>
-          </li>
+          {canAccessAdmissionSummary && (
+            <li className="nav-item rounded-0">
+              <button
+                onClick={() => setTab(ADMISSION_SUMMARY)}
+                className={`nav-link rounded-0 ${
+                  tab === ADMISSION_SUMMARY
+                    ? "border-0 border-2 border-top border-primary"
+                    : "active"
+                }`}
+              >
+                Summary
+              </button>
+            </li>
+          )}
         </ul>
       </div>
       {uploadProgress > 0 && (

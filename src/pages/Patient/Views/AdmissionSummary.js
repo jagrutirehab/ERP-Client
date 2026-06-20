@@ -18,13 +18,13 @@ const AdmissionSummary = ({ patient, addmission }) => {
   const { hasPermission, loading: isLoading } = usePermissions(token);
   const hasUserPermission = hasPermission(
     "PATIENTS",
-    "SUMMARYGENERATION",
+    "ADDMISSIONSUMMARY",
     "READ",
   );
 
-  const hasRead = hasPermission("PATIENTS", "SUMMARYGENERATION", "READ");
-  const hasWrite = hasPermission("PATIENTS", "SUMMARYGENERATION", "WRITE");
-  const hasDelete = hasPermission("PATIENTS", "SUMMARYGENERATION", "DELETE");
+  const hasRead = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "READ");
+  const hasWrite = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "WRITE");
+  const hasDelete = hasPermission("PATIENTS", "ADDMISSIONSUMMARY", "DELETE");
   const isReadOnly = hasRead && !hasWrite && !hasDelete;
 
   const load = async () => {
