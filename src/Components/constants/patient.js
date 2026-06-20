@@ -19,6 +19,7 @@ const EXPIRY_SUMMARY = "EXPIRY_SUMMARY";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 const MENTAL_EXAMINATION_V2 = "MENTAL_EXAMINATION_V2";
+const ROUND_NOTE = "ROUND_NOTE";
 //Chart Bill Types
 const OPD = "OPD";
 const IPD = "IPD";
@@ -97,6 +98,10 @@ const records = [
   {
     name: "Detail History",
     category: DETAIL_ADMISSION,
+  },
+  {
+    name: "Round Notes",
+    category: ROUND_NOTE,
   },
 ];
 
@@ -2420,6 +2425,7 @@ export {
   DETAIL_ADMISSION,
   MENTAL_EXAMINATION,
   MENTAL_EXAMINATION_V2,
+  ROUND_NOTE,
   //PATIENT BILLS
   INVOICE,
   ADVANCE_PAYMENT,

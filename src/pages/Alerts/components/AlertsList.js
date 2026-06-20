@@ -2,6 +2,9 @@ import DataTable from "react-data-table-component";
 import { Badge, Button, Spinner } from "reactstrap";
 import { SEVERITY_COLOR, SEVERITY_HEX, PHASE_META } from "./alertConstants";
 import { timeAgo } from "./alertUtils";
+import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { setTotalAmount, viewPatient } from "../../../store/actions";
 
 // Tabular alerts view. One row per SOPAlert. Click a row → opens the
 // offcanvas (pre-existing behaviour). Pagination is server-driven via the
@@ -26,6 +29,9 @@ const AlertsList = ({
   onPageChange,
   onPageSizeChange,
 }) => {
+  const dispatch = useDispatch();
+
+
   const columns = [
     {
       name: "",
@@ -76,16 +82,30 @@ const AlertsList = ({
       name: "Patient",
       grow: 1.2,
       cell: (row) => (
-        <div {...RC}>
-          <div {...RC} className={row.isRead ? "" : "fw-semibold"}>
-            {row.patient?.name || "Unknown"}
-          </div>
-          {row.patient?.uid && (
-            <small {...RC} className="text-muted">
-              UID {row.patient.uid}
-            </small>
-          )}
-        </div>
+        <Link
+          key={row.patient?._id}
+          to={`/patient/${row.patient?._id}`}
+          onClick={() => {
+            dispatch(viewPatient(row.patient));
+            dispatch(
+              setTotalAmount({
+                totalPayable: 0,
+                totalAdvance: 0,
+              })
+            );
+          }}
+          className="dropdown-item fs-13 notify-item"
+        > <div {...RC}>
+            <div {...RC} className={row.isRead ? "" : "fw-semibold"}>
+              {row.patient?.name || "Unknown"}
+            </div>
+            {row.patient?.uid && (
+              <small {...RC} className="text-muted">
+                UID {row.patient.uid}
+              </small>
+            )}
+          </div></Link>
+
       ),
     },
     {
