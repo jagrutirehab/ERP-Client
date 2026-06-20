@@ -12,6 +12,7 @@ import {
   MENTAL_EXAMINATION,
   PRESCRIPTION,
   RELATIVE_VISIT,
+  ROUND_NOTE,
   VITAL_SIGN,
 } from "../../../Components/constants/patient";
 
@@ -37,6 +38,7 @@ import RelativeVisit from "./RelativeVisit";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
+import RoundNoteChart from "./RoundNoteChart";
 import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
 import { api } from "../../../config";
@@ -198,8 +200,16 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                 editItem={editChart}
                 deleteItem={getChart}
                 printItem={printChart}
-                // disableEdit={addmission?.dischargeDate ? true : false}
-                disableDelete={addmission?.dischargeDate ? true : false}
+                // Round-note charts are auto-generated read-only snapshots —
+                // they are edited/removed only from the Round Notes screen.
+                disableEdit={
+                  chart.chart === ROUND_NOTE ||
+                  (addmission?.dischargeDate ? true : false)
+                }
+                disableDelete={
+                  chart.chart === ROUND_NOTE ||
+                  (addmission?.dischargeDate ? true : false)
+                }
                 itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
                 geminiResponseGeneratedBy={chart?.geminiResponseGeneratedBy}
                 geminiResponseIsVerified={chart?.geminiResponseIsVerified}
@@ -235,6 +245,9 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                 )}
                 {chart.chart === MENTAL_EXAMINATION && (
                   <MentalExamination data={chart.mentalExamination} />
+                )}
+                {chart.chart === ROUND_NOTE && (
+                  <RoundNoteChart data={chart.roundNoteChart} />
                 )}
               </Wrapper>
             ))}
