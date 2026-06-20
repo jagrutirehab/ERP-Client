@@ -7,6 +7,7 @@ import AlertsHeader from "./components/AlertsHeader";
 import AlertsFilters from "./components/AlertsFilters";
 import AlertsList from "./components/AlertsList";
 import AlertDetailOffcanvas from "./components/AlertDetailOffcanvas";
+import ResolveAlertModal from "./components/ResolveAlertModal";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
 import { exportSopAlerts } from "../../helpers/backend_helper";
@@ -23,6 +24,8 @@ const buildExportParams = (f) => {
   if (f.dateTo) out.dateTo = f.dateTo;
   if (f.readState && f.readState !== "all") out.readState = f.readState;
   if (f.phase && f.phase !== "all") out.phase = f.phase;
+  if (f.resolvedState && f.resolvedState !== "all")
+    out.resolvedState = f.resolvedState;
   return out;
 };
 
@@ -75,6 +78,31 @@ const Alerts = () => {
   const [selectedId, setSelectedId] = useState(null);
   const [exporting, setExporting] = useState(false);
   const selected = selectedId ? inbox.getAlertById(selectedId) : null;
+
+  // Resolve-modal state. `resolveTarget` holds the alert being resolved;
+  // `resolving` guards against double-submits while the request is in flight.
+  const [resolveTarget, setResolveTarget] = useState(null);
+  const [resolving, setResolving] = useState(false);
+
+  const openResolve = (alert) => setResolveTarget(alert);
+  const closeResolve = () => {
+    if (resolving) return;
+    setResolveTarget(null);
+  };
+
+  const submitResolve = async (note) => {
+    if (!resolveTarget) return;
+    setResolving(true);
+    try {
+      await inbox.resolveAlert(resolveTarget._id, note);
+      toast.success("Alert resolved");
+      setResolveTarget(null);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to resolve alert");
+    } finally {
+      setResolving(false);
+    }
+  };
 
   // CSV export — re-hits the API with the same filter set (no pagination) and
   // hands the resulting blob to an invisible <a download> click. The server
@@ -180,7 +208,9 @@ const Alerts = () => {
           page={inbox.page}
           pageSize={inbox.pageSize}
           loading={inbox.loading}
+          canResolve={hasWritePermission}
           onSelect={openDetail}
+          onResolve={openResolve}
           onPageChange={inbox.setPage}
           onPageSizeChange={inbox.setPageSize}
         />
@@ -189,6 +219,14 @@ const Alerts = () => {
           isOpen={detailOpen}
           onClose={closeDetail}
           alert={selected}
+        />
+
+        <ResolveAlertModal
+          isOpen={!!resolveTarget}
+          alert={resolveTarget}
+          submitting={resolving}
+          onClose={closeResolve}
+          onSubmit={submitResolve}
         />
       </CardBody>
     </div>

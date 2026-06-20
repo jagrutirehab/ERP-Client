@@ -252,6 +252,12 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
       minWidth: "100px"
     },
     {
+      name: <div>Position</div>,
+      selector: (row) => row?.position?.name || "-",
+      wrap: true,
+      minWidth: "120px",
+    },
+    {
       name: <div>Current Location</div>,
       selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
       wrap: true,

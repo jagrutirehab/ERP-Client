@@ -16,6 +16,7 @@ import {
   getEmployeeEmails,
   updateExitITStatus,
 } from "../../../../../helpers/backend_helper";
+import { normalizeUnderscores } from "../../../../../utils/normalizeUnderscore";
 
 const customStyles = {
   table: {
@@ -68,12 +69,12 @@ const PendingApprovals = ({
   const centerOptions = [
     ...(user?.centerAccess?.length > 1
       ? [
-          {
-            value: "ALL",
-            label: "All Centers",
-            isDisabled: false,
-          },
-        ]
+        {
+          value: "ALL",
+          label: "All Centers",
+          isDisabled: false,
+        },
+      ]
       : []),
     ...(user?.centerAccess?.map((id) => {
       const center = user?.userCenters?.find((c) => c._id === id);
@@ -194,50 +195,50 @@ const PendingApprovals = ({
   const columns = [
     ...(hasPermission("HR", "EXIT_EMPLOYEE_IT", "WRITE")
       ? [
-          {
-            name: <div>Actions</div>,
-            cell: (row) => (
-              <div className="d-flex gap-2">
-                <CheckPermission
-                  accessRolePermission={roles?.permissions}
-                  subAccess="EXIT_EMPLOYEE_IT"
-                  permission="edit"
+        {
+          name: <div>Actions</div>,
+          cell: (row) => (
+            <div className="d-flex gap-2">
+              <CheckPermission
+                accessRolePermission={roles?.permissions}
+                subAccess="EXIT_EMPLOYEE_IT"
+                permission="edit"
+              >
+                <Button
+                  color="success"
+                  className="text-white"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedEmployee(row);
+                    setActionType("APPROVE");
+                    setIsModalOpen(true);
+                    fetchUsersLinkedToEmployee(row?.employeeId);
+                  }}
                 >
-                  <Button
-                    color="success"
-                    className="text-white"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedEmployee(row);
-                      setActionType("APPROVE");
-                      setIsModalOpen(true);
-                      fetchUsersLinkedToEmployee(row?.employeeId);
-                    }}
-                  >
-                    <CheckCheck size={18} />
-                  </Button>
+                  <CheckCheck size={18} />
+                </Button>
 
-                  <Button
-                    color="danger"
-                    className="text-white"
-                    size="sm"
-                    onClick={() => {
-                      setSelectedEmployee(row);
-                      setActionType("REJECT");
-                      setIsModalOpen(true);
-                    }}
-                  >
-                    <X size={16} />
-                  </Button>
-                </CheckPermission>
-              </div>
-            ),
-            ignoreRowClick: true,
-            allowOverflow: true,
-            button: true,
-            minWidth: "180px",
-          },
-        ]
+                <Button
+                  color="danger"
+                  className="text-white"
+                  size="sm"
+                  onClick={() => {
+                    setSelectedEmployee(row);
+                    setActionType("REJECT");
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <X size={16} />
+                </Button>
+              </CheckPermission>
+            </div>
+          ),
+          ignoreRowClick: true,
+          allowOverflow: true,
+          button: true,
+          minWidth: "180px",
+        },
+      ]
       : []),
     {
       name: <div>Date</div>,
@@ -296,9 +297,15 @@ const PendingApprovals = ({
     },
     {
       name: <div>Designation</div>,
-      selector: (row) => capitalizeWords(row?.designation?.name || "-"),
+      selector: (row) => capitalizeWords(normalizeUnderscores(row?.designation?.name) || "-"),
       wrap: true,
       minWidth: "100px",
+    },
+    {
+      name: <div>Position</div>,
+      selector: (row) => row?.position?.name || "-",
+      wrap: true,
+      minWidth: "120px",
     },
     {
       name: <div>Current Location</div>,

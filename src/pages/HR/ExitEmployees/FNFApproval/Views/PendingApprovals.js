@@ -19,6 +19,7 @@ import AddExitEmployeeModal from "../../../components/EditExitEmployeeModal";
 import DeleteConfirmModal from "../../../components/DeleteConfirmModal";
 import ApproveModal from "../../../components/ApproveModal";
 import { useSearchParams } from "react-router-dom";
+import { normalizeUnderscores } from "../../../../../utils/normalizeUnderscore";
 
 
 const PendingApprovals = ({ activeTab }) => {
@@ -199,7 +200,7 @@ const PendingApprovals = ({ activeTab }) => {
         },
         {
             name: <div>Reason of Leaving</div>,
-            selector: row => row?.reason || "-",
+            selector: row => capitalizeWords(normalizeUnderscores(row?.reason) || "-"),
             wrap: true,
             minWidth: "130px"
         },

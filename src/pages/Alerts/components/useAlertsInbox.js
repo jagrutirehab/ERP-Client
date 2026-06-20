@@ -5,6 +5,7 @@ import {
   getAllSopAlerts,
   markSopAlertRead,
   markAllSopAlertsRead,
+  resolveSopAlert,
 } from "../../../helpers/backend_helper";
 import { dateLabel } from "./alertUtils";
 
@@ -26,6 +27,7 @@ const initialFilters = () => ({
   ...todayDefaults(),
   readState: "all",     // all | unread | read
   phase: "all",         // all | IMMEDIATE | DELAYED
+  resolvedState: "all", // all | resolved | unresolved
   severity: [],         // array of LOW/MEDIUM/HIGH/CRITICAL
 });
 
@@ -52,6 +54,8 @@ const buildServerParams = (filters, page, pageSize) => {
   if (filters.readState && filters.readState !== "all")
     out.readState = filters.readState;
   if (filters.phase && filters.phase !== "all") out.phase = filters.phase;
+  if (filters.resolvedState && filters.resolvedState !== "all")
+    out.resolvedState = filters.resolvedState;
 
   return out;
 };
@@ -187,6 +191,29 @@ export const useAlertsInbox = () => {
     }
   }, [load, debouncedFilters, page, pageSize]);
 
+  // Resolve an alert with a free-text note. On success the server returns the
+  // resolution snapshot; we patch the row in place (and flip it read, mirroring
+  // the server) so the UI updates without a refetch. Throws on failure so the
+  // caller can keep the modal open and surface the error.
+  const resolveAlert = useCallback(async (id, note) => {
+    const res = await resolveSopAlert(id, note);
+    const resolution = res?.resolution || {
+      resolved: true,
+      note,
+      resolvedAt: new Date().toISOString(),
+    };
+    let wasUnread = false;
+    setAlerts((prev) =>
+      prev.map((a) => {
+        if (a._id !== id) return a;
+        if (!a.isRead) wasUnread = true;
+        return { ...a, resolution, isRead: true };
+      }),
+    );
+    if (wasUnread) setTotalUnread((u) => Math.max(0, u - 1));
+    return res;
+  }, []);
+
   const getAlertById = useCallback(
     (id) => alerts.find((a) => a._id === id) || null,
     [alerts],
@@ -217,6 +244,7 @@ export const useAlertsInbox = () => {
     load: () => load(debouncedFilters, page, pageSize),
     markRead,
     markAllRead,
+    resolveAlert,
     getAlertById,
   };
 };

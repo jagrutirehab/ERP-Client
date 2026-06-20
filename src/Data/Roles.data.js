@@ -47,12 +47,13 @@ export const permissionList = [
       { name: "PATIENTSHISTORY", label: "Paitents History" },
       { name: "PATIENTSBILLING", label: "Paitents Bill" },
       { name: "PATIENTCHARTS", label: "Paitents Chart" },
+      { name: "ADDMISSIONSUMMARY", label: "Addmission Summary" },
     ],
   },
   {
     key: "ALERT",
     label: "Alert",
-    subModules: []
+    subModules: [],
   },
   {
     key: "REFERRAL",
