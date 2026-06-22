@@ -536,9 +536,9 @@ const RoundNoteForm = ({
                   />
                 )}
               />
-              {errors.roundTakenBy && (
+              {errors.center && (
                 <small className="text-danger d-block">
-                  Select at least one staff
+                  Center is required
                 </small>
               )}
             </FormGroup>
