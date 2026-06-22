@@ -562,32 +562,32 @@ const DetailAdmission = ({
             return Array.isArray(value) && value.filter(Boolean).length > 0;
           }
         )
-        .test(
-          "no-overlap",
-          "Final Diagnosis cannot be the same as Provisional Diagnosis",
-          function (value) {
+      // .test(
+      //   "no-overlap",
+      //   "Final Diagnosis cannot be the same as Provisional Diagnosis",
+      //   function (value) {
 
-            const provisional = this.parent.provisionaldiagnosis;
+      //     const provisional = this.parent.provisionaldiagnosis;
 
-            const finalArr = Array.isArray(value)
-              ? value.filter(Boolean)
-              : [];
+      //     const finalArr = Array.isArray(value)
+      //       ? value.filter(Boolean)
+      //       : [];
 
-            const provisionalArr = Array.isArray(provisional)
-              ? provisional.filter(Boolean)
-              : [];
+      //     const provisionalArr = Array.isArray(provisional)
+      //       ? provisional.filter(Boolean)
+      //       : [];
 
-            if (finalArr.length === 0 || provisionalArr.length === 0) {
-              return true;
-            }
+      //     if (finalArr.length === 0 || provisionalArr.length === 0) {
+      //       return true;
+      //     }
 
-            const hasOverlap = finalArr.some(v =>
-              provisionalArr.includes(v)
-            );
+      //     const hasOverlap = finalArr.some(v =>
+      //       provisionalArr.includes(v)
+      //     );
 
-            return !hasOverlap;
-          }
-        ),
+      //     return !hasOverlap;
+      //   }
+      // ),
 
 
 
