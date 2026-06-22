@@ -229,39 +229,49 @@ const AdmissionSummary = ({ patient, addmission }) => {
                           <tr key={testName}>
                             <td className="fw-semibold">{testName}</td>
                             {allDates.map((date) => {
-                              const test = tests?.find((t) => t?.date === date);
+                              const matchingTests = tests?.filter(
+                                (t) => t?.date === date,
+                              );
                               return (
                                 <td key={date}>
-                                  {test ? (
-                                    <>
-                                      {test?.systemTotalScore &&
-                                        test?.systemTotalScore !== "-" && (
-                                          <div style={{ fontSize: "0.8rem" }}>
-                                            <span className="fw-semibold">
-                                              Score:{" "}
-                                            </span>
-                                            {test?.systemTotalScore}
-                                          </div>
-                                        )}
-                                      {test?.systemInterpretation &&
-                                        test?.systemInterpretation !== "-" && (
-                                          <div style={{ fontSize: "0.8rem" }}>
-                                            <span className="fw-semibold">
-                                              Interpretation:{" "}
-                                            </span>
-                                            {test?.systemInterpretation.includes(
-                                              ":",
-                                            ) &&
-                                            test?.systemInterpretation.split(
-                                              ":",
-                                            )[0].length < 30
-                                              ? test?.systemInterpretation.split(
-                                                  ":",
-                                                )[0]
-                                              : getInterpretation(test)}
-                                          </div>
-                                        )}
-                                    </>
+                                  {matchingTests?.length > 0 ? (
+                                    matchingTests.map((test, idx) => (
+                                      <div
+                                        key={idx}
+                                        className={
+                                          idx > 0 ? "mt-2 pt-2 border-top" : ""
+                                        }
+                                      >
+                                        {test?.systemTotalScore &&
+                                          test?.systemTotalScore !== "-" && (
+                                            <div style={{ fontSize: "0.8rem" }}>
+                                              <span className="fw-semibold">
+                                                Score:{" "}
+                                              </span>
+                                              {test?.systemTotalScore}
+                                            </div>
+                                          )}
+                                        {test?.systemInterpretation &&
+                                          test?.systemInterpretation !==
+                                            "-" && (
+                                            <div style={{ fontSize: "0.8rem" }}>
+                                              <span className="fw-semibold">
+                                                Interpretation:{" "}
+                                              </span>
+                                              {test?.systemInterpretation.includes(
+                                                ":",
+                                              ) &&
+                                              test?.systemInterpretation.split(
+                                                ":",
+                                              )[0].length < 30
+                                                ? test?.systemInterpretation.split(
+                                                    ":",
+                                                  )[0]
+                                                : getInterpretation(test)}
+                                            </div>
+                                          )}
+                                      </div>
+                                    ))
                                   ) : (
                                     <span className="text-muted">-</span>
                                   )}
@@ -277,7 +287,6 @@ const AdmissionSummary = ({ patient, addmission }) => {
               </CardBody>
             </Card>
           )}
-
           {summary?.vitalSummary?.length > 0 && (
             <Card className="mb-3 shadow-none border">
               <CardHeader className="bg-light py-2">
