@@ -846,7 +846,7 @@ const EmployeeForm = ({
       Number(values.conveyanceAllowance || 0) +
       Number(values.statutoryBonus || 0);
     if (Number(values.grossSalary || 0) !== total) {
-      setFieldValue("grossSalary", total, false);
+      setFieldValue("grossSalary", total, true);
     }
   }, [
     values.basicAmount,
