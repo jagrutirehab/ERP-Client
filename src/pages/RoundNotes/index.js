@@ -560,7 +560,7 @@ const RoundNotes = () => {
         mode={drawer.mode}
         data={drawer.data}
         staffLoading={staffLoading}
-        setCenterIds={setCenterIds}
+        setCenterIds={() => {}}
         carryForwardSource={drawer.carryForwardSource}
         floors={floors}
         onClose={() =>
