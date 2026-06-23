@@ -139,3 +139,12 @@ code {
     opacity: 1 !important;
     visibility: visible !important;
 }
+
+.chat-wrapper > .w-100 {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.patient-content {
+  overflow-x: auto !important;
+}
