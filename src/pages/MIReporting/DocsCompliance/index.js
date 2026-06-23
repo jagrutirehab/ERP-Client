@@ -20,7 +20,8 @@ const METRICS = [
     { label: "Counselling Sessions", key: "counselling_sessions" },
     { label: "Round Notes",          key: "round_notes"          },
     { label: "Counselling Recording",key: "counselling_recording"},
-
+    { label: "Due Amount",           key: "due_amount"           },
+    { label: "Prescription Status",  key: "prescription_status"  },
 ];
 
 const DocsCompliance = () => {
