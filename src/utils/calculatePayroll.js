@@ -17,7 +17,6 @@ export const calculatePayroll = (values) => {
     const hra = Number(values.HRAAmount || 0);
     const spl = Number(values.SPLAllowance || 0);
     const conveyance = Number(values.conveyanceAllowance || 0);
-    // ESIC salary is derived as Basic + SPL Allowance
     const ESICSalary = basic + spl;
     const minimumWages = Number(values.minimumWages || 0);
     const currentLocation = values.currentLocation || {};
@@ -53,7 +52,7 @@ export const calculatePayroll = (values) => {
     const month = values.joinningDate
         ? new Date(values.joinningDate).getMonth() + 1
         : null;
-    console.log(PTeligibleStates.includes(detectState(currentLocation.address)))
+    // console.log(PTeligibleStates.includes(detectState(currentLocation.address)))
     if (PTeligibleStates.includes(detectState(currentLocation.address)) || currentLocation.title === "Head-Office") {
         if (gender === "MALE") {
             if (gross <= 7500) {
@@ -80,9 +79,9 @@ export const calculatePayroll = (values) => {
         TDSAmount = Math.round((gross * TDSPercent) / 100);
     }
 
-    // ----- ESIC -----
-    const ESICEmployee = Math.round((ESICSalary * 0.75) / 100);
-    const ESICEmployer = Math.round((ESICSalary * 3.25) / 100);
+    // ESIC applies only when basic + special allowance ≤ ₹21,000
+    const ESICEmployee = ESICSalary <= 21000 ? Math.round((ESICSalary * 0.75) / 100) : 0;
+    const ESICEmployer = ESICSalary <= 21000 ? Math.round((ESICSalary * 3.25) / 100) : 0;
 
     // ----- Other deductions -----
     const LWFEmployee = Number(values.LWFEmployee || 0);
@@ -102,7 +101,8 @@ export const calculatePayroll = (values) => {
 
     const inHandSalary = Math.max(gross - deductions, 0);
 
-    const gratuity = Math.round(((basic + spl + conveyance) * 4.81) / 100);
+    // const gratuity = Math.round(((basic + spl + conveyance) * 4.81) / 100);
+    const gratuity = Math.round(basic * 15 / 26 / 12);
     const totalCostToCompany = gross + PFEmployer + ESICEmployer + LWFEmployer + gratuity;
 
     return {
