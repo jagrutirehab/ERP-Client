@@ -610,12 +610,9 @@ const EmployeeForm = ({
   );
 
   const ptMonthly = Math.round(Number(values.PT) || 0);
-  const ptIsBumpSlab = ptMonthly === 200 || ptMonthly === 300;
-  const ptRegularMonthly = ptMonthly === 300 ? 200 : ptMonthly;
-  const ptYearly = ptIsBumpSlab ? ptRegularMonthly * 11 + 300 : ptMonthly * 12;
+  const ptYearly = ptMonthly * 12;
 
-  const deductionsYearly =
-    yearlyValue("deductions") + ptYearly - ptMonthly * 12;
+  const deductionsYearly = yearlyValue("deductions");
 
   const ctcYearly =
     yearlyValue("totalCostToCompany") +
@@ -2348,8 +2345,7 @@ const EmployeeForm = ({
               value={ptYearly}
             />
             <div className="text-muted small mt-1">
-              Monthly ≈ ₹{ptRegularMonthly.toLocaleString("en-IN")}
-              {ptIsBumpSlab ? " (₹300 in February)" : ""}
+              Monthly ≈ ₹{ptMonthly.toLocaleString("en-IN")}
             </div>
           </Col>
 

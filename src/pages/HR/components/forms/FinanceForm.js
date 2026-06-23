@@ -358,17 +358,12 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
     </div>
   );
 
-  // Professional Tax carries a February surcharge (₹300 vs ₹200 in the higher
-  // slab), so its yearly total is 11 normal months + February, not PT × 12.
+  // Professional Tax now uses flat state-wise slabs, so the yearly total is
+  // simply the monthly PT across all 12 months.
   const ptMonthly = Math.round(Number(form.values.PT) || 0);
-  const ptIsBumpSlab = ptMonthly === 200 || ptMonthly === 300;
-  const ptRegularMonthly = ptMonthly === 300 ? 200 : ptMonthly;
-  const ptYearly = ptIsBumpSlab ? ptRegularMonthly * 11 + 300 : ptMonthly * 12;
+  const ptYearly = ptMonthly * 12;
 
-  // Yearly deductions = monthly × 12, but the PT portion uses the true yearly PT
-  // (which carries the February surcharge) instead of PT × 12.
-  const deductionsYearly =
-    yearlyValue("deductions") + ptYearly - ptMonthly * 12;
+  const deductionsYearly = yearlyValue("deductions");
 
   const ctcYearly =
     yearlyValue("totalCostToCompany") +
@@ -937,8 +932,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
           <Label htmlFor="PT">PT (Yearly)</Label>
           <Input disabled id="PT" type="number" value={ptYearly} />
           <div className="text-muted small mt-1">
-            Monthly ≈ ₹{ptRegularMonthly.toLocaleString("en-IN")}
-            {ptIsBumpSlab ? " (₹300 in February)" : ""}
+            Monthly ≈ ₹{ptMonthly.toLocaleString("en-IN")}
           </div>
         </Col>
 

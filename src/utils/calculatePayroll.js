@@ -9,6 +9,43 @@ const PTeligibleStates = [
     "Karnataka"
 ];
 
+function calculatePT(grossSalary, state) {
+    switch (state.trim()) {
+        case "Gujarat":
+            return grossSalary > 12000 ? 200 : 0;
+
+        case "Haryana":
+            return 0;
+
+        case "Karnataka":
+            return grossSalary >= 25000 ? 200 : 0;
+
+        case "Maharashtra":
+            if (grossSalary <= 7500) return 0;
+            if (grossSalary <= 10000) return 175;
+            return 200;
+
+        case "Tamil Nadu":
+            if (grossSalary <= 21000) return 0;
+            if (grossSalary <= 30000) return 180;
+            if (grossSalary <= 45000) return 425;
+            if (grossSalary <= 60000) return 930;
+            if (grossSalary <= 75000) return 1025;
+            return 1250;
+
+        case "Telangana":
+            if (grossSalary <= 15000) return 0;
+            if (grossSalary <= 20000) return 150;
+            return 200;
+
+        case "Uttar Pradesh":
+            return 0;
+
+        default:
+            return 0;
+    }
+}
+
 export const calculatePayroll = (values) => {
     const PF_WAGE_CAP = 15000;
 
@@ -48,28 +85,35 @@ export const calculatePayroll = (values) => {
 
     // ----- PT -----
     let PT = 0;
-    const gender = values.gender?.toUpperCase();
-    const month = values.joinningDate
-        ? new Date(values.joinningDate).getMonth() + 1
-        : null;
+    // old rule
+    // const gender = values.gender?.toUpperCase();
+    // const month = values.joinningDate
+    //     ? new Date(values.joinningDate).getMonth() + 1
+    //     : null;
     // console.log(PTeligibleStates.includes(detectState(currentLocation.address)))
-    if (PTeligibleStates.includes(detectState(currentLocation.address)) || currentLocation.title === "Head-Office") {
-        if (gender === "MALE") {
-            if (gross <= 7500) {
-                PT = 0;
-            } else if (gross <= 10000) {
-                PT = 175;
-            } else {
-                PT = month === 2 ? 300 : 200;
-            }
-        } else if (gender === "FEMALE") {
-            if (gross > 24999) {
-                PT = month === 2 ? 300 : 200;
-            } else {
-                PT = 0;
-            }
-        }
-    }
+    // if (PTeligibleStates.includes(detectState(currentLocation.address)) || currentLocation.title === "Head-Office") {
+    //     if (gender === "MALE") {
+    //         if (gross <= 7500) {
+    //             PT = 0;
+    //         } else if (gross <= 10000) {
+    //             PT = 175;
+    //         } else {
+    //             PT = month === 2 ? 300 : 200;
+    //         }
+    //     } else if (gender === "FEMALE") {
+    //         if (gross > 24999) {
+    //             PT = month === 2 ? 300 : 200;
+    //         } else {
+    //             PT = 0;
+    //         }
+    //     }
+    // }
+
+    // new rule
+    const ptState = currentLocation.title === "Head-Office"
+        ? "Maharashtra"
+        : (detectState(currentLocation.address) || "");
+    PT = calculatePT(gross, ptState);
 
     // ----- TDS -----
     let TDSAmount = 0;
