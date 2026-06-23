@@ -59,7 +59,7 @@ const buildNumberSchema = (label, { max } = {}) => {
     schema = schema.max(max, `${label} cannot be more than ${max}`);
   }
 
-  return schema.optional();
+  return schema.required(`${label} is required`);
 };
 
 const buildGrossBoundSchema = (label) =>
@@ -144,8 +144,8 @@ const validationSchema = (isEdit, step) => {
   return Yup.object().shape({
     changeType: Yup.string().optional(),
     note: Yup.string().optional(),
-    employeeGroups: Yup.string().nullable().optional(),
-    account: Yup.string().nullable().optional(),
+    employeeGroups: Yup.string().required("Employee Group is required"),
+    account: Yup.string().required("Account is required"),
     minimumWages: buildNumberSchema("Minimum Wages"),
     grossSalary: Yup.number()
       .transform((value, originalValue) =>
@@ -177,7 +177,7 @@ const validationSchema = (isEdit, step) => {
     LWFSalary: buildNumberSchema("LWF Salary"),
     LWFEmployee: buildNumberSchema("LWF Employee"),
     LWFEmployer: buildNumberSchema("LWF Employer"),
-    debitStatementNarration: Yup.string().nullable().optional(),
+    debitStatementNarration: Yup.string().required("Debit Statement Narration is required"),
   });
 };
 
@@ -623,7 +623,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
 
       <Row className="g-3 mx-2">
         <Col md={6}>
-          <Label htmlFor="employeeGroups">Employee Group</Label>
+          <Label htmlFor="employeeGroups">Employee Group <span className="text-danger">*</span></Label>
           <Select
             inputId="employeeGroups"
             options={employeeGroupOptions}
@@ -635,11 +635,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             onChange={(opt) =>
               form.setFieldValue("employeeGroups", opt ? opt.value : "")
             }
+            onBlur={() => form.setFieldTouched("employeeGroups", true)}
           />
+          {errorText("employeeGroups")}
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="account">Account</Label>
+          <Label htmlFor="account">Account <span className="text-danger">*</span></Label>
           <Select
             inputId="account"
             options={accountOptions}
@@ -650,7 +652,9 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             onChange={(opt) =>
               form.setFieldValue("account", opt ? opt.value : "")
             }
+            onBlur={() => form.setFieldTouched("account", true)}
           />
+          {errorText("account")}
         </Col>
 
         <Col md={6}>
@@ -679,7 +683,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="grossSalary">Gross Salary (Yearly)</Label>
+          <Label htmlFor="grossSalary">Gross Salary (Yearly) <span className="text-danger">*</span></Label>
           <Input
             disabled
             id="grossSalary"
@@ -692,7 +696,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="basicAmount">Basic Amount (Yearly)</Label>
+          <Label htmlFor="basicAmount">Basic Amount (Yearly) <span className="text-danger">*</span></Label>
           <Input
             id="basicAmount"
             name="basicAmount"
@@ -718,7 +722,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="HRAAmount">HRA (Yearly)</Label>
+          <Label htmlFor="HRAAmount">HRA (Yearly) <span className="text-danger">*</span></Label>
           <Input
             id="HRAAmount"
             name="HRAAmount"
@@ -744,7 +748,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="SPLAllowance">SPL Allowance (Yearly)</Label>
+          <Label htmlFor="SPLAllowance">SPL Allowance (Yearly) <span className="text-danger">*</span></Label>
           <Input
             id="SPLAllowance"
             name="SPLAllowance"
@@ -759,7 +763,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="conveyanceAllowance">Conveyance Allowance (Yearly)</Label>
+          <Label htmlFor="conveyanceAllowance">Conveyance Allowance (Yearly) <span className="text-danger">*</span></Label>
           <Input
             id="conveyanceAllowance"
             name="conveyanceAllowance"
@@ -777,7 +781,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="statutoryBonus">Statutory Bonus (Yearly)</Label>
+          <Label htmlFor="statutoryBonus">Statutory Bonus (Yearly) <span className="text-danger">*</span></Label>
           <Input
             id="statutoryBonus"
             name="statutoryBonus"
@@ -1012,7 +1016,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
 
         <Col md={6}>
           <Label htmlFor="debitStatementNarration">
-            Debit Statement Narration
+            Debit Statement Narration <span className="text-danger">*</span>
           </Label>
           <Input
             id="debitStatementNarration"
@@ -1025,7 +1029,9 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
               )
             }
             onBlur={form.handleBlur}
+            invalid={form.touched.debitStatementNarration && !!form.errors.debitStatementNarration}
           />
+          {errorText("debitStatementNarration")}
         </Col>
       </Row>
 

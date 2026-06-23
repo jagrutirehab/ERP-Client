@@ -126,8 +126,8 @@ const validationSchema = (mode, isEdit) =>
       .test("pan-uploaded", "PAN file is required", (value) => !!value),
     adharOld: Yup.string().required("Aadhaar file is required"),
     offerLetterOld: Yup.string().required("Offer letter is required"),
-    employeeGroups: Yup.string().notRequired(),
-    account: Yup.string().notRequired(),
+    employeeGroups: Yup.string().required("Employee Group is required"),
+    account: Yup.string().required("Account is required"),
     minimumWages: Yup.number().min(0).notRequired(),
     grossSalary: Yup.number()
       .min(0)
@@ -156,19 +156,19 @@ const validationSchema = (mode, isEdit) =>
           return Number(gross) === breakupTotal;
         },
       ),
-    basicAmount: Yup.number().min(0).notRequired(),
+    basicAmount: Yup.number().min(0).required("Basic Amount is required"),
     basicPercentage: Yup.number().min(0).max(100).notRequired(),
-    HRAAmount: Yup.number().min(0).notRequired(),
+    HRAAmount: Yup.number().min(0).required("HRA is required"),
     HRAPercentage: Yup.number().min(0).max(100).notRequired(),
-    statutoryBonus: Yup.number().min(0).notRequired(),
+    statutoryBonus: Yup.number().min(0).required("Statutory Bonus is required"),
     insurance: Yup.number().min(0).notRequired(),
     variable: Yup.number().min(0).notRequired(),
     reimbursement: Yup.number().min(0).notRequired(),
     TDSRate: Yup.number().min(0).max(100).notRequired(),
     pfAmount: Yup.number().min(0).notRequired(),
-    SPLAllowance: Yup.number().min(0).notRequired(),
-    conveyanceAllowance: Yup.number().min(0).notRequired(),
-    debitStatementNarration: Yup.string().notRequired(),
+    SPLAllowance: Yup.number().min(0).required("SPL Allowance is required"),
+    conveyanceAllowance: Yup.number().min(0).required("Conveyance Allowance is required"),
+    debitStatementNarration: Yup.string().required("Debit Statement Narration is required"),
     ESICSalary: Yup.number().min(0).notRequired(),
     LWFSalary: Yup.number().min(0).notRequired(),
     LWFEmployee: Yup.number().min(0).notRequired(),
@@ -1940,7 +1940,7 @@ const EmployeeForm = ({
         <Row className="g-3 mx-2">
           {/* EMPLOYEE GROUPS */}
           <Col md={6}>
-            <Label htmlFor="employeeGroups">Employee Group</Label>
+            <Label htmlFor="employeeGroups">Employee Group <span className="text-danger">*</span></Label>
             <Select
               inputId="employeeGroups"
               options={employeeGroupOptions}
@@ -1949,13 +1949,15 @@ const EmployeeForm = ({
                   (opt) => opt.value === values.employeeGroups,
                 ) || null
               }
-              onChange={(opt) => setFieldValue("employeeGroups", opt.value)}
+              onChange={(opt) => setFieldValue("employeeGroups", opt ? opt.value : "")}
+              onBlur={() => setFieldTouched("employeeGroups", true)}
             />
+            {errorText("employeeGroups")}
           </Col>
 
           {/* ACCOUNT */}
           <Col md={6}>
-            <Label htmlFor="account">Account</Label>
+            <Label htmlFor="account">Account <span className="text-danger">*</span></Label>
             <Select
               inputId="account"
               options={accountOptions}
@@ -1963,8 +1965,10 @@ const EmployeeForm = ({
                 accountOptions.find((opt) => opt.value === values.account) ||
                 null
               }
-              onChange={(opt) => setFieldValue("account", opt.value)}
+              onChange={(opt) => setFieldValue("account", opt ? opt.value : "")}
+              onBlur={() => setFieldTouched("account", true)}
             />
+            {errorText("account")}
           </Col>
 
           {/* MINIMUM WAGES */}
@@ -2093,7 +2097,7 @@ const EmployeeForm = ({
 
           {/* GROSS SALARY */}
           <Col md={6}>
-            <Label htmlFor="grossSalary">Gross Salary (Yearly)</Label>
+            <Label htmlFor="grossSalary">Gross Salary (Yearly) <span className="text-danger">*</span></Label>
             <Input
               disabled
               id="grossSalary"
@@ -2107,7 +2111,7 @@ const EmployeeForm = ({
 
           {/* BASIC AMOUNT */}
           <Col md={6}>
-            <Label htmlFor="basicAmount">Basic Amount (Yearly)</Label>
+            <Label htmlFor="basicAmount">Basic Amount (Yearly) <span className="text-danger">*</span></Label>
             <Input
               id="basicAmount"
               type="number"
@@ -2135,7 +2139,7 @@ const EmployeeForm = ({
 
           {/* HRA */}
           <Col md={6}>
-            <Label htmlFor="HRA">HRA (Yearly)</Label>
+            <Label htmlFor="HRA">HRA (Yearly) <span className="text-danger">*</span></Label>
             <Input
               id="HRA"
               type="number"
@@ -2162,7 +2166,7 @@ const EmployeeForm = ({
 
           {/* SPECIAL ALLOWANCE */}
           <Col md={6}>
-            <Label htmlFor="SPLAllowance">SPL Allowance (Yearly)</Label>
+            <Label htmlFor="SPLAllowance">SPL Allowance (Yearly) <span className="text-danger">*</span></Label>
             <Input
               name="SPLAllowance"
               type="number"
@@ -2180,7 +2184,7 @@ const EmployeeForm = ({
 
           {/* CONVEYANCE ALLOWANCE */}
           <Col md={6}>
-            <Label htmlFor="conveyanceAllowance">Conveyance Allowance (Yearly)</Label>
+            <Label htmlFor="conveyanceAllowance">Conveyance Allowance (Yearly) <span className="text-danger">*</span></Label>
             <Input
               id="conveyanceAllowance"
               type="number"
@@ -2193,7 +2197,7 @@ const EmployeeForm = ({
 
           {/* STATUTORY BONUS */}
           <Col md={6}>
-            <Label htmlFor="statutoryBonus">Statutory Bonus (Yearly)</Label>
+            <Label htmlFor="statutoryBonus">Statutory Bonus (Yearly) <span className="text-danger">*</span></Label>
             <Input
               id="statutoryBonus"
               type="number"
@@ -2443,7 +2447,7 @@ const EmployeeForm = ({
           {/* DEBIT STATEMENT NARRATION */}
           <Col md={6}>
             <Label htmlFor="debitStatementNarration">
-              Debit Statement Narration
+              Debit Statement Narration <span className="text-danger">*</span>
             </Label>
 
             <Input
@@ -2458,7 +2462,10 @@ const EmployeeForm = ({
                   },
                 })
               }
+              onBlur={() => setFieldTouched("debitStatementNarration", true)}
+              invalid={touched.debitStatementNarration && !!errors.debitStatementNarration}
             />
+            {errorText("debitStatementNarration")}
           </Col>
         </Row>
 
