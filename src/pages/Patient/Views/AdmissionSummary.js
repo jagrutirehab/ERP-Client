@@ -196,7 +196,7 @@ const AdmissionSummary = ({ patient, addmission }) => {
                 <h6 className="mb-0 fw-bold text-primary">Clinical Tests</h6>
               </CardHeader>
               <CardBody className="p-0">
-                <div className="table-responsive">
+                <div style={{ overflowX: "auto", width: "100%" }}>
                   <table className="table table-bordered table-sm mb-0">
                     <thead className="table-light">
                       <tr>
@@ -293,7 +293,7 @@ const AdmissionSummary = ({ patient, addmission }) => {
                 <h6 className="mb-0 fw-bold text-primary">Vital Signs</h6>
               </CardHeader>
               <CardBody className="p-0">
-                <div className="table-responsive">
+                <div style={{ overflowX: "auto", width: "100%" }}>
                   <table className="table table-bordered table-sm mb-0">
                     <thead className="table-light">
                       <tr>
