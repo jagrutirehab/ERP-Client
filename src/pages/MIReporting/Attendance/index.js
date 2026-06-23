@@ -31,10 +31,10 @@ const Attendance = () => {
         });
     }, [data, selectedCenter]);
 
-    const last30Days = useMemo(() => {
+    const last60Days = useMemo(() => {
         const days = [];
         const today = new Date();
-        for (let i = 1; i < 30; i++) {
+        for (let i = 1; i <= 60; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             const key = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
@@ -65,21 +65,21 @@ const Attendance = () => {
 
     const dateTotals = useMemo(() => {
         const totals = {};
-        last30Days.forEach(({ key }) => {
+        last60Days.forEach(({ key }) => {
             
             totals[key] = filteredData.reduce((sum, row) => sum + (Number(row[key]) || 0), 0);
         });
         return totals;
-    }, [filteredData, last30Days]);
+    }, [filteredData, last60Days]);
 
     const prepareCsvData = () => {
         setCsvLoading(true);
 
-        const allHeaders = [...labels, ...last30Days.map(({ label }) => label)];
+        const allHeaders = [...labels, ...last60Days.map(({ label }) => label)];
         const totalsRow = [
             "Total",
             ...Array(labels.length - 1).fill(""),
-            ...last30Days.map(({ key }) => dateTotals[key] || ""),
+            ...last60Days.map(({ key }) => dateTotals[key] || ""),
         ];
 
         const rows = [
@@ -87,7 +87,7 @@ const Attendance = () => {
             allHeaders,
             ...filteredData.map((emp) => [
                 ...labels.map((label) => emp[labelsMapping[label]] ?? ""),
-                ...last30Days.map(({ key }) => emp[key] ?? ""),
+                ...last60Days.map(({ key }) => emp[key] ?? ""),
             ]),
         ];
 
@@ -190,7 +190,7 @@ const Attendance = () => {
                                                             {i === labels.length - 1 ? "Total Employees" : ""}
                                                         </th>
                                                     ))}
-                                                    {last30Days.map(({ key }) => (
+                                                    {last60Days.map(({ key }) => (
                                                         <th
                                                             key={key}
                                                             className="text-center fw-bold px-1 py-1"
@@ -222,7 +222,7 @@ const Attendance = () => {
                                                             {i === labels.length - 1 ? "Actual Present" : ""}
                                                         </th>
                                                     ))}
-                                                    {last30Days.map(({ key }) => (
+                                                    {last60Days.map(({ key }) => (
                                                         <th
                                                             key={key}
                                                             className="text-center fw-bold px-1 py-1"
@@ -254,7 +254,7 @@ const Attendance = () => {
                                                             {label}
                                                         </th>
                                                     ))}
-                                                    {last30Days.map(({ key, label }) => (
+                                                    {last60Days.map(({ key, label }) => (
                                                         <th
                                                             key={key}
                                                             className="text-center fw-bold px-1 py-1"
@@ -291,7 +291,7 @@ const Attendance = () => {
                                                                     : emp[labelsMapping[label]] ?? ""}
                                                             </td>
                                                         ))}
-                                                        {last30Days.map(({ key }) => (
+                                                        {last60Days.map(({ key }) => (
                                                             <td
                                                                 key={key}
                                                                 className="text-center px-1 py-1"
