@@ -26,6 +26,7 @@ const AlertsList = ({
   canResolve,
   onSelect,
   onResolve,
+  onAddNote,
   onPageChange,
   onPageSizeChange,
 }) => {
@@ -256,11 +257,96 @@ const AlertsList = ({
         ) : null,
     },
     {
+      name: "Notes",
+      width: "260px",
+      // ignoreRowClick so clicking inside the notes cell doesn't open the
+      // detail offcanvas.
+      ignoreRowClick: true,
+      cell: (row) => {
+        const notes = row.notes || [];
+        return (
+          <div style={{ padding: "6px 0", width: "100%" }}>
+            {/* Existing notes list */}
+            {notes.length > 0 && (
+              <div
+                style={{
+                  maxHeight: 110,
+                  overflowY: "auto",
+                  marginBottom: 6,
+                }}
+              >
+                {notes.map((n, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      background: "#f8f9fa",
+                      border: "1px solid #e9ecef",
+                      borderRadius: 6,
+                      padding: "5px 8px",
+                      marginBottom: 4,
+                      fontSize: "0.72rem",
+                      lineHeight: 1.4,
+                    }}
+                  >
+                    <div style={{ color: "#212529", wordBreak: "break-word" }}>
+                      {n.text}
+                    </div>
+                    <div style={{ color: "#6c757d", marginTop: 2 }}>
+                      <i className="bx bx-user me-1" style={{ fontSize: "0.65rem" }} />
+                      {n.addedByName || "Unknown"}
+                      {n.addedAt && (
+                        <>
+                          {" · "}
+                          {new Date(n.addedAt).toLocaleDateString("en-PK", {
+                            day: "numeric",
+                            month: "short",
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          })}
+                        </>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Add Note button */}
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onAddNote(row);
+              }}
+              style={{
+                background: "transparent",
+                border: "1px dashed #0d6efd",
+                borderRadius: 6,
+                color: "#0d6efd",
+                fontSize: "0.75rem",
+                padding: "3px 10px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                transition: "background 0.15s",
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "rgba(13,110,253,0.07)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "transparent")
+              }
+            >
+              <i className="bx bx-plus" />
+              Add Note
+            </button>
+          </div>
+        );
+      },
+    },
+    {
       name: "Action",
-      width: "220px",
-      // ignoreRowClick keeps clicks in this cell from opening the detail
-      // offcanvas — the cell's contents intentionally omit the
-      // data-tag="allowRowEvents" attribute the row-click handler keys off.
+      width: "180px",
       ignoreRowClick: true,
       cell: (row) =>
         row.resolution?.resolved ? (
@@ -273,33 +359,34 @@ const AlertsList = ({
               <i className="bx bx-check-circle me-1" />
               Resolved
             </Badge>
-            {row.resolution?.note && (
-              <div
-                className="text-muted"
-                title={row.resolution.note}
-                style={{
-                  fontSize: "0.75rem",
-                  lineHeight: 1.3,
-                  display: "-webkit-box",
-                  WebkitLineClamp: 3,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                }}
-              >
-                {row.resolution.note}
+            {row.resolution?.resolvedByName && (
+              <div style={{ fontSize: "0.72rem", color: "#6c757d", lineHeight: 1.3 }}>
+                <i className="bx bx-user me-1" />
+                {row.resolution.resolvedByName}
+              </div>
+            )}
+            {row.resolution?.resolvedAt && (
+              <div style={{ fontSize: "0.72rem", color: "#6c757d" }}>
+                {new Date(row.resolution.resolvedAt).toLocaleDateString("en-PK", {
+                  day: "numeric",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
               </div>
             )}
           </div>
         ) : canResolve ? (
           <Button
             size="sm"
-            color="primary"
+            color="success"
             outline
             onClick={(e) => {
               e.stopPropagation();
               onResolve(row);
             }}
           >
+            <i className="bx bx-check me-1" />
             Resolve
           </Button>
         ) : (
