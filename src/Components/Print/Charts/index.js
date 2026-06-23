@@ -13,6 +13,7 @@ import {
   MENTAL_EXAMINATION,
   PRESCRIPTION,
   RELATIVE_VISIT,
+  ROUND_NOTE,
   VITAL_SIGN,
 } from "../../constants/patient";
 
@@ -28,6 +29,7 @@ import RelativeVisit from "./RelativeVisit";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
+import RoundNote from "./RoundNote";
 
 const styles = StyleSheet.create({
   page: {
@@ -179,6 +181,15 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                 center={chart.center}
                 patient={patient}
                 admission={admission} />
+            </RenderWhen>
+
+            <RenderWhen isTrue={chart?.chart === ROUND_NOTE}>
+              <RoundNote
+                chart={chart}
+                center={chart.center}
+                patient={patient}
+                admission={admission}
+              />
             </RenderWhen>
           </Page>
         ))}

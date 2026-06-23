@@ -3752,9 +3752,13 @@ export const markSopAlertRead = (id) =>
 export const markAllSopAlertsRead = () =>
   axios.post(url.MARK_ALL_SOP_ALERTS_READ);
 
-// Records the action taken to close an alert. `note` is required server-side.
-export const resolveSopAlert = (id, note) =>
-  axios.post(`${url.RESOLVE_SOP_ALERT}/${id}/resolve`, { note });
+// Marks an alert as resolved. No note required — resolution is now a single click.
+export const resolveSopAlert = (id) =>
+  axios.post(`${url.RESOLVE_SOP_ALERT}/${id}/resolve`);
+
+// Appends a free-text note to an alert. Returns the new note with addedByName.
+export const addAlertNote = (id, text) =>
+  axios.post(`${url.RESOLVE_SOP_ALERT}/${id}/notes`, { text });
 
 export const listSopRules = (params) => axios.get(url.SOP_RULES, { params });
 export const getSopRuleById = (id) => axios.get(`${url.SOP_RULES}/${id}`);

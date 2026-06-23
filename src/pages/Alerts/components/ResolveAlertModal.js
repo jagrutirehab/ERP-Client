@@ -1,31 +1,18 @@
-import { useEffect, useState } from "react";
 import {
   Modal,
   ModalHeader,
   ModalBody,
   ModalFooter,
   Button,
-  Label,
-  Input,
   Spinner,
 } from "reactstrap";
 
-// Small modal for closing the loop on an alert. The user types what action
-// they took and clicks Resolve. The note is required — the Resolve button stays
-// disabled until there's non-whitespace text. Resets its textarea whenever it
-// opens for a different alert.
+// Confirmation modal for resolving an alert. No note required — resolution
+// is a simple one-click action. Free-text notes have their own "Add Note" flow.
 const ResolveAlertModal = ({ isOpen, alert, submitting, onClose, onSubmit }) => {
-  const [note, setNote] = useState("");
-
-  useEffect(() => {
-    if (isOpen) setNote("");
-  }, [isOpen, alert?._id]);
-
-  const trimmed = note.trim();
-
   const handleSubmit = () => {
-    if (!trimmed || submitting) return;
-    onSubmit(trimmed);
+    if (submitting) return;
+    onSubmit();
   };
 
   return (
@@ -40,30 +27,36 @@ const ResolveAlertModal = ({ isOpen, alert, submitting, onClose, onSubmit }) => 
             {alert.message}
           </p>
         )}
-        <Label for="sop-resolution-note" className="form-label">
-          Resolution note <span className="text-danger">*</span>
-        </Label>
-        <Input
-          id="sop-resolution-note"
-          type="textarea"
-          rows={4}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          placeholder="Describe the action taken to resolve this alert…"
-          disabled={submitting}
-          autoFocus
-        />
+        <div
+          className="p-3 rounded"
+          style={{
+            background: "rgba(25, 135, 84, 0.08)",
+            borderLeft: "4px solid #198754",
+          }}
+        >
+          <div className="d-flex align-items-center gap-2">
+            <i className="bx bx-check-circle text-success fs-18" />
+            <span className="fw-medium">
+              Mark this alert as resolved?
+            </span>
+          </div>
+          <small className="text-muted d-block mt-1">
+            This action will close the alert. You can still add notes before or
+            after resolving.
+          </small>
+        </div>
       </ModalBody>
       <ModalFooter>
         <Button color="light" onClick={onClose} disabled={submitting}>
           Cancel
         </Button>
         <Button
-          color="primary"
+          color="success"
           onClick={handleSubmit}
-          disabled={submitting || !trimmed}
+          disabled={submitting}
         >
           {submitting && <Spinner size="sm" className="me-1" />}
+          <i className="bx bx-check me-1" />
           Resolve
         </Button>
       </ModalFooter>
