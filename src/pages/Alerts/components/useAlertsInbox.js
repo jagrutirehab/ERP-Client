@@ -6,6 +6,7 @@ import {
   markSopAlertRead,
   markAllSopAlertsRead,
   resolveSopAlert,
+  addAlertNote,
 } from "../../../helpers/backend_helper";
 import { dateLabel } from "./alertUtils";
 
@@ -195,11 +196,10 @@ export const useAlertsInbox = () => {
   // resolution snapshot; we patch the row in place (and flip it read, mirroring
   // the server) so the UI updates without a refetch. Throws on failure so the
   // caller can keep the modal open and surface the error.
-  const resolveAlert = useCallback(async (id, note) => {
-    const res = await resolveSopAlert(id, note);
+  const resolveAlert = useCallback(async (id) => {
+    const res = await resolveSopAlert(id);
     const resolution = res?.resolution || {
       resolved: true,
-      note,
       resolvedAt: new Date().toISOString(),
     };
     let wasUnread = false;
@@ -211,6 +211,24 @@ export const useAlertsInbox = () => {
       }),
     );
     if (wasUnread) setTotalUnread((u) => Math.max(0, u - 1));
+    return res;
+  }, []);
+
+  // Append a note to an alert. On success patches the row in place so the
+  // notes column updates immediately without a full refetch. Throws on failure
+  // so the caller (modal) can surface the error.
+  const addNote = useCallback(async (id, text) => {
+    const res = await addAlertNote(id, text);
+    const newNote = res?.note;
+    if (newNote) {
+      setAlerts((prev) =>
+        prev.map((a) =>
+          a._id === id
+            ? { ...a, notes: [...(a.notes || []), newNote] }
+            : a,
+        ),
+      );
+    }
     return res;
   }, []);
 
@@ -245,6 +263,7 @@ export const useAlertsInbox = () => {
     markRead,
     markAllRead,
     resolveAlert,
+    addNote,
     getAlertById,
   };
 };
