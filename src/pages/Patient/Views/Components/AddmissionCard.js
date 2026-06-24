@@ -2,23 +2,15 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Col } from "reactstrap";
 import { connect } from "react-redux";
+import { format } from "date-fns";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
 
-// ✅ Helper to format ISO date string in UTC to "DD Month YYYY"
+// Helper to format ISO date string in the browser's local timezone (e.g. IST)
 const formatDate = (isoDateStr) => {
   if (!isoDateStr) return "N/A";
   const date = new Date(isoDateStr);
-
-  const day = date.getUTCDate().toString().padStart(2, "0");
-  const month = date.toLocaleString("en-US", {
-    month: "long",
-    timeZone: "UTC",
-  });
-  const year = date.getUTCFullYear();
-  // const hour = date.getHours();
-  // const minute = date.getMinutes();
-
-  return `${day} ${month} ${year}`;
+  if (isNaN(date)) return "N/A";
+  return format(date, "dd MMMM yyyy");
 };
 
 const AddmissionCard = ({ data, children }) => {
