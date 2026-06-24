@@ -127,7 +127,7 @@ const validationSchema = (mode, isEdit) =>
     adharOld: Yup.string().required("Aadhaar file is required"),
     offerLetterOld: Yup.string().required("Offer letter is required"),
     employeeGroups: Yup.string().required("Employee Group is required"),
-    account: Yup.string().required("Account is required"),
+    account: Yup.string().notRequired(),
     minimumWages: Yup.number().min(0).notRequired(),
     grossSalary: Yup.number()
       .min(0)
@@ -168,7 +168,7 @@ const validationSchema = (mode, isEdit) =>
     pfAmount: Yup.number().min(0).notRequired(),
     SPLAllowance: Yup.number().min(0).required("SPL Allowance is required"),
     conveyanceAllowance: Yup.number().min(0).required("Conveyance Allowance is required"),
-    debitStatementNarration: Yup.string().required("Debit Statement Narration is required"),
+    debitStatementNarration: Yup.string().notRequired(),
     ESICSalary: Yup.number().min(0).notRequired(),
     LWFSalary: Yup.number().min(0).notRequired(),
     LWFEmployee: Yup.number().min(0).notRequired(),
@@ -1954,7 +1954,7 @@ const EmployeeForm = ({
 
           {/* ACCOUNT */}
           <Col md={6}>
-            <Label htmlFor="account">Account <span className="text-danger">*</span></Label>
+            <Label htmlFor="account">Account</Label>
             <Select
               inputId="account"
               options={accountOptions}
@@ -2443,7 +2443,7 @@ const EmployeeForm = ({
           {/* DEBIT STATEMENT NARRATION */}
           <Col md={6}>
             <Label htmlFor="debitStatementNarration">
-              Debit Statement Narration <span className="text-danger">*</span>
+              Debit Statement Narration
             </Label>
 
             <Input

@@ -145,7 +145,7 @@ const validationSchema = (isEdit, step) => {
     changeType: Yup.string().optional(),
     note: Yup.string().optional(),
     employeeGroups: Yup.string().required("Employee Group is required"),
-    account: Yup.string().required("Account is required"),
+    account: Yup.string().notRequired(),
     minimumWages: buildNumberSchema("Minimum Wages"),
     grossSalary: Yup.number()
       .transform((value, originalValue) =>
@@ -177,7 +177,7 @@ const validationSchema = (isEdit, step) => {
     LWFSalary: buildNumberSchema("LWF Salary"),
     LWFEmployee: buildNumberSchema("LWF Employee"),
     LWFEmployer: buildNumberSchema("LWF Employer"),
-    debitStatementNarration: Yup.string().required("Debit Statement Narration is required"),
+    debitStatementNarration: Yup.string().notRequired(),
   });
 };
 
@@ -636,7 +636,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="account">Account <span className="text-danger">*</span></Label>
+          <Label htmlFor="account">Account</Label>
           <Select
             inputId="account"
             options={accountOptions}
@@ -1010,7 +1010,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
 
         <Col md={6}>
           <Label htmlFor="debitStatementNarration">
-            Debit Statement Narration <span className="text-danger">*</span>
+            Debit Statement Narration
           </Label>
           <Input
             id="debitStatementNarration"
