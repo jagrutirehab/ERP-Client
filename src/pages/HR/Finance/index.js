@@ -433,9 +433,13 @@ const FinanceDashboard = () => {
       minWidth: colWidth,
     },
     {
-      name: amountHeader("ESIC Salary"),
-      selector: (row) => row?.financeDetails?.ESICSalary,
-      cell: (row) => renderAmount(row?.financeDetails?.ESICSalary, row?.financeDetails?.annual?.ESICSalary),
+      name: amountHeader("LWF Employee"),
+      selector: (row) => row?.financeDetails?.LWFEmployee,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.LWFEmployee,
+          row?.financeDetails?.annual?.LWFEmployee,
+        ),
       sortable: true,
       minWidth: colWidth,
     },
@@ -517,12 +521,45 @@ const FinanceDashboard = () => {
       minWidth: colWidth,
     },
     {
+      name: amountHeader("TDS"),
+      selector: (row) => row?.financeDetails?.TDSAmount,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.TDSAmount,
+          row?.financeDetails?.annual?.TDSAmount,
+        ),
+      sortable: true,
+      minWidth: colWidth,
+    },
+    {
       name: amountHeader("In Hand Salary"),
       selector: (row) => row?.financeDetails?.inHandSalary,
       cell: (row) =>
         renderAmount(
           row?.financeDetails?.inHandSalary,
           row?.financeDetails?.annual?.inHandSalary,
+        ),
+      sortable: true,
+      minWidth: colWidth,
+    },
+    {
+      name: amountHeader("Gratuity"),
+      selector: (row) => row?.financeDetails?.gratuity,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.gratuity,
+          row?.financeDetails?.annual?.gratuity,
+        ),
+      sortable: true,
+      minWidth: colWidth,
+    },
+    {
+      name: amountHeader("Total CTC"),
+      selector: (row) => row?.financeDetails?.totalCostToCompany,
+      cell: (row) =>
+        renderAmount(
+          row?.financeDetails?.totalCostToCompany,
+          row?.financeDetails?.annual?.totalCostToCompany,
         ),
       sortable: true,
       minWidth: colWidth,
