@@ -193,6 +193,14 @@ const FinanceDashboard = () => {
     );
   };
 
+
+  const renderSalaryAmount = (row, monthlyVal, annualVal) => {
+    if (row?.financeDetails?.paymentType === "PER_SESSION") {
+      return `${formatCurrency(monthlyVal)} / session`;
+    }
+    return renderAmount(monthlyVal, annualVal);
+  };
+
   const amountHeader = (label) => (
     <div>
       <div>{label}</div>
@@ -535,7 +543,8 @@ const FinanceDashboard = () => {
       name: amountHeader("In Hand Salary"),
       selector: (row) => row?.financeDetails?.inHandSalary,
       cell: (row) =>
-        renderAmount(
+        renderSalaryAmount(
+          row,
           row?.financeDetails?.inHandSalary,
           row?.financeDetails?.annual?.inHandSalary,
         ),
@@ -557,12 +566,26 @@ const FinanceDashboard = () => {
       name: amountHeader("Total CTC"),
       selector: (row) => row?.financeDetails?.totalCostToCompany,
       cell: (row) =>
-        renderAmount(
+        renderSalaryAmount(
+          row,
           row?.financeDetails?.totalCostToCompany,
           row?.financeDetails?.annual?.totalCostToCompany,
         ),
       sortable: true,
       minWidth: colWidth,
+    },
+    {
+      name: <div>Payment Type</div>,
+      selector: (row) => row?.financeDetails?.paymentType || "-",
+      cell: (row) => {
+        const paymentType = row?.financeDetails?.paymentType;
+        if (!paymentType) return "-";
+        if (paymentType === "PER_SESSION") return "Per Session";
+        if (paymentType === "MONTHLY") return "Monthly";
+        return paymentType;
+      },
+      sortable: true,
+      minWidth: "140px",
     },
     {
       name: <div>Debit Statement Narration</div>,
