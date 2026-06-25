@@ -3645,6 +3645,49 @@ export const getPayslipsIssuesRequests = (params = {}) => {
   });
 };
 
+// EMployee Forms
+
+export const postEmployeeForm = (data) => {
+  return axios.post(url.POST_EMPLOYEE_FORM, data, {
+    headers: {
+      "Content-Type": undefined,
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getEmployeeForms = (params) => {
+  return axios.get(url.EMPLOYEE_FORMS, {
+    params,
+    headers: {
+      "Content-Type": undefined,
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getMyEmploymentForms = (params = {}) => {
+  return axios.get(url.GET_MY_FORMS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const deleteEmployeeForm = (docId, fileId) => {
+  return axios.delete(url.DELETE_EMPLOYEE_FORM, {
+    data: { docId, fileId },
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editEmployeeForm = (data) => {
+  return axios.patch(url.EDIT_EMPLOYEE_FORM, data, {
+    headers: {
+      "Content-Type": undefined,
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // Recordings
 // Call recordings
 export const getCallRecordings = (params = {}) => {

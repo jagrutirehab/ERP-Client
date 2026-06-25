@@ -1079,6 +1079,33 @@ export const HR = [
         icon: "bx bx-user-check",
         link: "/hr/my/salary/data",
       },
+      {
+        id: "my-salary-forms",
+        label: "My Salary and Forms",
+        icon: "bx bx-folder-open",
+        link: "/hr/my/forms",
+      },
+    ],
+  },
+  {
+    id: "employeeform",
+    label: "Employee Forms",
+    icon: "bx bx-file",
+    link: "/hr/employee",
+    isAccordion: true,
+    children: [
+      {
+        id: "uploademployeeform",
+        label: "Upload Employee Form",
+        icon: "bx bx-upload",
+        link: "/hr/upload/employee/form",
+      },
+      {
+        id: "employeeforms",
+        label: "Employee Forms",
+        icon: "bx bx-file",
+        link: "/hr/employee/forms",
+      },
     ],
   },
   {
