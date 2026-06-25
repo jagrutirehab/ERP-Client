@@ -63,6 +63,9 @@ import MyPaySlips from "./PaySlips/Views/MyPaySlips";
 import EmployeePaySlips from "./PaySlips/Views/EmployeePaySlips";
 import ReportingMetrices from "../HRMS/Attendance/ReportingMetrices";
 import MySalaryData from "./PaySlips/Views/MySalaryData";
+import UploadForm from "./employeeForms/UploadForm";
+import Forms from "./employeeForms/Forms";
+import MyForms from "./employeeForms/MyForms";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -101,7 +104,6 @@ const HR = () => {
                 {/* <Route path={`/dashboard`} element={<HRDashboard />} /> */}
                 <Route path={`/employee`} element={<Employee />} />
                 {/* <Route path={`/approvals`} element={<ApprovalDashboard />} /> */}
-
                 <Route
                   path={`/new-joinings/add`}
                   element={<AddNewJoiningRequest />}
@@ -111,7 +113,6 @@ const HR = () => {
                   element={<NewJoiningApprovals />}
                 />
                 <Route path={`/new-joinings/it`} element={<NewJoiningIT />} />
-
                 <Route
                   path={`/exit-employees/add`}
                   element={<AddExitRequest />}
@@ -125,7 +126,6 @@ const HR = () => {
                   path={`/exit-employees/it`}
                   element={<ExitEmployeeIT />}
                 />
-
                 <Route
                   path={`/salary-advance/add`}
                   element={<AddSalaryAdvanceRequest />}
@@ -134,7 +134,6 @@ const HR = () => {
                   path={`/salary-advance/approval`}
                   element={<SalaryAdvanceApproval />}
                 />
-
                 <Route
                   path={`/transfer-employees/add`}
                   element={<AddTransferRequest />}
@@ -155,18 +154,23 @@ const HR = () => {
                   path={`/transfer-employees/it`}
                   element={<TransferEmployeeIT />}
                 />
-
                 <Route path={`/hiring/add`} element={<AddHiringRequest />} />
                 <Route path={`/hiring/approval`} element={<HiringApproval />} />
-                <Route path={`/hiring/management`} element={<HiringManagement />} />
-
+                <Route
+                  path={`/hiring/management`}
+                  element={<HiringManagement />}
+                />
                 <Route path={`/tpm/add`} element={<AddTPMRequest />} />
                 <Route path={`/tpm/approval`} element={<TPMApproval />} />
-
-
-                <Route path={`/attendance/main/dashboard`} element={<MainDashboard />} />
+                <Route
+                  path={`/attendance/main/dashboard`}
+                  element={<MainDashboard />}
+                />
                 <Route path={`/attendance/logs`} element={<AttendanceLogs />} />
-                <Route path={`/attendance/monthly`} element={<AttendanceMonthly />} />
+                <Route
+                  path={`/attendance/monthly`}
+                  element={<AttendanceMonthly />}
+                />
                 <Route
                   path={`/attendance/metrics`}
                   element={<AttendanceMetrics />}
@@ -185,59 +189,106 @@ const HR = () => {
                   path={`/reporting/manage`}
                   element={<ManageEmployeeReportings />}
                 />
-
-                <Route path={`/attendance/my/regularizations`} element={<MyRegularizations />} />
-                <Route path={`/attendance/regularizations/requests`} element={<GetRegularizationsRequest />} />
-
-
+                <Route
+                  path={`/attendance/my/regularizations`}
+                  element={<MyRegularizations />}
+                />
+                <Route
+                  path={`/attendance/regularizations/requests`}
+                  element={<GetRegularizationsRequest />}
+                />
                 <Route path={`/leaves/history`} element={<LeaveHistory />} />
                 <Route path={`/leaves/apply`} element={<LeaveApplications />} />
                 <Route path={`/leaves/manage`} element={<ManageLeaves />} />
                 <Route path={`/leaves/my/leaves`} element={<MyLeaves />} />
-                <Route path={`/leaves/my/balance/leaves`} element={<GetBalanceLeaves />} />
+                <Route
+                  path={`/leaves/my/balance/leaves`}
+                  element={<GetBalanceLeaves />}
+                />
                 <Route path={`/policies`} element={<Policies />} />
                 <Route
                   path={"/leaves/history/for/:id"}
                   element={<IndividualLeavesOfEmp />}
                 />
-                <Route path={`/leaves/festive/leaves`} element={<FestiveLeaves />} />
-                <Route path={`/leaves/get/cancellations`} element={<CancellationRequestsPage />} />
-
-                <Route path={`/leaves/get/comp-offs`} element={<CompOffRequests />} />
-                <Route path={`/leaves/my/compOffs`} element={<RaisedCompOffsRequest />} />
-
-                <Route path={`/incentives/add`} element={<AddIncentivesRequest />} />
-                <Route path={`/incentives/approval`} element={<IncentivesApproval />} />
-
+                <Route
+                  path={`/leaves/festive/leaves`}
+                  element={<FestiveLeaves />}
+                />
+                <Route
+                  path={`/leaves/get/cancellations`}
+                  element={<CancellationRequestsPage />}
+                />
+                <Route
+                  path={`/leaves/get/comp-offs`}
+                  element={<CompOffRequests />}
+                />
+                <Route
+                  path={`/leaves/my/compOffs`}
+                  element={<RaisedCompOffsRequest />}
+                />
+                <Route
+                  path={`/incentives/add`}
+                  element={<AddIncentivesRequest />}
+                />
+                <Route
+                  path={`/incentives/approval`}
+                  element={<IncentivesApproval />}
+                />
                 <Route path={`/salary`} element={<Salary />} />
-
-                <Route path={`/my-pending-approvals`} element={<MyDashboard />} />
-
+                <Route
+                  path={`/my-pending-approvals`}
+                  element={<MyDashboard />}
+                />
                 <Route path={`/finance`} element={<FinanceDashboard />} />
-                <Route path={`/pay-slip/my`} element={<MyPaySlips/>} />
-
-                <Route path={`/pay-slip/employees`} element={<EmployeePaySlips/>} />
-
-                <Route path={`/reporting/shift-roster/list`} element={<ShiftRoaster />} />
-                <Route path={`/reporting/shift-roster/assign`} element={<AssignShift />} />
-                <Route path={`/reporting/shift-roster/assign/:reportingId`} element={<AssignShift />} />
-
-                <Route path={`/leave-balance/dashboard`} element={<EmployeeLeaveBalanceDashboard />} />
-                <Route path={`/regularization/dashboard`} element={<EmployeeRegularizationSummaryDashboard />} />
-                <Route path={`/regularization/:employeeId`} element={<EmployeeRegularizationDetails />} />
-
-                <Route path={`/all/leave/history`} element={<AllLeaveHistory />} />
-
-                <Route path={`/all/cancellations/req`} element={<CancellationRequestsHr />} />
+                <Route path={`/pay-slip/my`} element={<MyPaySlips />} />
+                <Route
+                  path={`/pay-slip/employees`}
+                  element={<EmployeePaySlips />}
+                />
+                <Route
+                  path={`/reporting/shift-roster/list`}
+                  element={<ShiftRoaster />}
+                />
+                <Route
+                  path={`/reporting/shift-roster/assign`}
+                  element={<AssignShift />}
+                />
+                <Route
+                  path={`/reporting/shift-roster/assign/:reportingId`}
+                  element={<AssignShift />}
+                />
+                <Route
+                  path={`/leave-balance/dashboard`}
+                  element={<EmployeeLeaveBalanceDashboard />}
+                />
+                <Route
+                  path={`/regularization/dashboard`}
+                  element={<EmployeeRegularizationSummaryDashboard />}
+                />
+                <Route
+                  path={`/regularization/:employeeId`}
+                  element={<EmployeeRegularizationDetails />}
+                />
+                <Route
+                  path={`/all/leave/history`}
+                  element={<AllLeaveHistory />}
+                />
+                <Route
+                  path={`/all/cancellations/req`}
+                  element={<CancellationRequestsHr />}
+                />
                 <Route path={`/all/compOffs`} element={<AllCompOffs />} />
-
-
-                <Route path={`/transfer/manager/approvals`} element={<TransferManagerApprovals />} />
-
-                 <Route path={`/my/salary/data`} element={<MySalaryData />} />
-
-
-
+                <Route
+                  path={`/transfer/manager/approvals`}
+                  element={<TransferManagerApprovals />}
+                />
+                <Route path={`/my/salary/data`} element={<MySalaryData />} />
+                <Route
+                  path={`/upload/employee/form`}
+                  element={<UploadForm />}
+                />
+                <Route path={`/employee/forms`} element={<Forms />} />
+                <Route path={`/my/forms`} element={<MyForms />} />
               </Routes>
             </div>
           </Container>
