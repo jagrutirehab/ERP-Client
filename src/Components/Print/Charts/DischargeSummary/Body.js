@@ -82,14 +82,14 @@ const styles = StyleSheet.create({
 });
 
 const clean = (value) => {
-  if (value === null || value === undefined) return "";
-  return (
-    String(value)
-      .replace(/[\u200B-\u200D\uFEFF]/g, "")
-      // eslint-disable-next-line no-control-regex
-      .replace(/[^\x00-\x7F\u0900-\u097F]/g, "")
-      .trim()
-  );
+  if (value == null) return "";
+
+  return String(value)
+    .replace(/[\u2010-\u2015\u2212]/g, "-")
+    .replace(/[\u2018\u2019]/g, "'")
+    .replace(/[\u201C\u201D]/g, '"')
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .trim();
 };
 
 const SummaryBody = ({ chart, patient }) => {
