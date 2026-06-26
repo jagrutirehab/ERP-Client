@@ -123,6 +123,14 @@ export const filterEmploymentOptions = [
     { label: "Consultant Session", value: "CONSULTANT_SESSION" },
 ];
 
+export const categoryOptions = [
+    { label: "Consultant", value: "CONSULTANT" },
+    { label: "Non Aadhaar", value: "NON_AADHAAR" },
+    { label: "Intern", value: "INTERN" },
+    { label: "Form 11", value: "FORM11" },
+    { label: "PF", value: "PF" },
+];
+
 export const employeeGroupOptions = [
     { label: "PF Included", value: "PF_INCLUDED" },
     { label: "PF Excluded", value: "PF_EXCLUDED" }

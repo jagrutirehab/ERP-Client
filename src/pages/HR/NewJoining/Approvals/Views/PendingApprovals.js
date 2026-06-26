@@ -19,7 +19,7 @@ import ApproveModal from "../../../components/ApproveModal";
 import Select from "react-select";
 import { getFilePreviewMeta } from "../../../../../utils/isPreviewable";
 import PreviewFile from "../../../../../Components/Common/PreviewFile";
-import { FILE_PREVIEW_CUTOFF } from "../../../../../Components/constants/HR";
+import { FILE_PREVIEW_CUTOFF, categoryOptions } from "../../../../../Components/constants/HR";
 import RefreshButton from "../../../../../Components/Common/RefreshButton";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 
@@ -293,6 +293,15 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
          {
             name: <div>Position</div>,
             selector: (row) => row?.position?.name || "-",
+            wrap: true,
+            minWidth: "120px",
+        },
+        {
+            name: <div>Category</div>,
+            selector: (row) =>
+                categoryOptions.find((opt) => opt.value === row?.category)?.label ||
+                row?.category ||
+                "-",
             wrap: true,
             minWidth: "120px",
         },

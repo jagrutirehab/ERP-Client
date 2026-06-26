@@ -42,6 +42,7 @@ import {
   newEmploymentOptions,
   paymentTypeOptions,
   isSimplifiedFinanceType,
+  categoryOptions,
 } from "../../../../Components/constants/HR";
 import { calculatePayroll } from "../../../../utils/calculatePayroll";
 import {
@@ -147,6 +148,7 @@ const validationSchema = (mode, isEdit) =>
         is: (v) => isSimplifiedFinanceType(v),
         then: (s) =>
           s
+            .moreThan(0, "In Hand Salary must be greater than 0")
             .required("In Hand Salary is required")
             .test(
               "inhand-not-above-ctc",
@@ -164,7 +166,10 @@ const validationSchema = (mode, isEdit) =>
       .min(0)
       .when("employmentType", {
         is: (v) => isSimplifiedFinanceType(v),
-        then: (s) => s.required("Annual CTC is required"),
+        then: (s) =>
+          s
+            .moreThan(0, "Annual CTC must be greater than 0")
+            .required("Annual CTC is required"),
         otherwise: (s) => s.notRequired(),
       }),
     grossSalary: Yup.number()
@@ -311,6 +316,7 @@ const getInitialValues = (initialData, mode) => ({
 
   monthlyCTC: initialData?.monthlyCTC || 0,
   biometricId: initialData?.biometricId || "",
+  category: initialData?.category || "",
 
   panFile: null,
   adharFile: null,
@@ -1264,6 +1270,26 @@ const EmployeeForm = ({
               isClearable
             />
             {errorText("employmentStatus")}
+          </Col>
+          {/* CATEGORY */}
+          <Col md={6}>
+            <Label htmlFor="category">Category</Label>
+            <Select
+              inputId="category"
+              placeholder="Select Category"
+              options={categoryOptions}
+              value={
+                categoryOptions.find(
+                  (opt) => opt.value === values.category,
+                ) || null
+              }
+              onChange={(opt) =>
+                form.setFieldValue("category", opt ? opt.value : "")
+              }
+              onBlur={() => setFieldTouched("category", true)}
+              isClearable
+            />
+            {errorText("category")}
           </Col>
           {/* POSITION */}
           <Col md={6}>
