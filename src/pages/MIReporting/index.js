@@ -35,6 +35,7 @@ import DocsCompliance from "./DocsCompliance";
 import DueAmount from "./DueAmount";
 import Attendance from "./Attendance";
 import NursesDOD from "./NursesDOD";
+import CenterWiseMOM from "./CenterWiseMOM";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -180,7 +181,13 @@ const MiReporting = () => {
                     element={<OwnerLeadStatus />}
                   />
                 )}
-                
+                {hasHubspotReportingPermission && (
+                  <Route
+                    path="/center-wise-mom"
+                    element={<CenterWiseMOM />}
+                  />
+                )}
+
                 {hasMISPermission&&<Route
                     path="/refund-amount"
                     element={<RefundAmountMOM />}

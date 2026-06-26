@@ -2078,6 +2078,18 @@ export const getCenterLeadsMoM = (params = {}) => {
   });
 };
 
+export const getCenterWiseMOM = (params = {}) => {
+  return api.get(url.GET_CENTER_WISE_MOM, {
+    params,
+  });
+};
+
+export const getCampaignWiseMOM = (params = {}) => {
+  return api.get(url.GET_CAMPAIGN_WISE_MOM, {
+    params,
+  });
+};
+
 export const getCenterLeadsMTD = (params = {}) => {
   return api.get(url.GET_CENTER_LEADS_MTD, {
     params,

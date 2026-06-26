@@ -492,6 +492,8 @@ export const GET_CITY_VISITED_DATE = "/mi-reporting/city-visited-date";
 export const GET_OWNER_VISITED_DATE = "/mi-reporting/owner-visited-date";
 export const GET_CITY_LEAD_STATUS = "/mi-reporting/city-lead-status";
 export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
+export const GET_CENTER_WISE_MOM = "/mi-reporting/center-wise-mom";
+export const GET_CAMPAIGN_WISE_MOM = "/mi-reporting/campaign-wise-mom";
 
 //MIS Reports
 export const GET_REFUND_AMOUNT_MOM = "/mi-reporting/refund-amount-mom";
