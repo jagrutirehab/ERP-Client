@@ -34,6 +34,7 @@ import {
   statusOptions,
   newEmploymentOptions,
   employmentStatus as employmentStatusOptions,
+  categoryOptions,
 } from "../../../Components/constants/HR";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 import DataTableComponent from "../../../Components/Common/DataTable";
@@ -396,6 +397,15 @@ const Employee = () => {
     {
       name: <div>Position</div>,
       selector: (row) => row?.position?.name || "-",
+      wrap: true,
+      minWidth: "120px",
+    },
+    {
+      name: <div>Category</div>,
+      selector: (row) =>
+        categoryOptions.find((opt) => opt.value === row?.category)?.label ||
+        row?.category ||
+        "-",
       wrap: true,
       minWidth: "120px",
     },

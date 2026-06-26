@@ -42,6 +42,7 @@ import {
   newEmploymentOptions,
   paymentTypeOptions,
   isSimplifiedFinanceType,
+  categoryOptions,
 } from "../../../../Components/constants/HR";
 import { calculatePayroll } from "../../../../utils/calculatePayroll";
 import {
@@ -315,6 +316,7 @@ const getInitialValues = (initialData, mode) => ({
 
   monthlyCTC: initialData?.monthlyCTC || 0,
   biometricId: initialData?.biometricId || "",
+  category: initialData?.category || "",
 
   panFile: null,
   adharFile: null,
@@ -1268,6 +1270,26 @@ const EmployeeForm = ({
               isClearable
             />
             {errorText("employmentStatus")}
+          </Col>
+          {/* CATEGORY */}
+          <Col md={6}>
+            <Label htmlFor="category">Category</Label>
+            <Select
+              inputId="category"
+              placeholder="Select Category"
+              options={categoryOptions}
+              value={
+                categoryOptions.find(
+                  (opt) => opt.value === values.category,
+                ) || null
+              }
+              onChange={(opt) =>
+                form.setFieldValue("category", opt ? opt.value : "")
+              }
+              onBlur={() => setFieldTouched("category", true)}
+              isClearable
+            />
+            {errorText("category")}
           </Col>
           {/* POSITION */}
           <Col md={6}>
