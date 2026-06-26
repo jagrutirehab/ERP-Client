@@ -147,6 +147,7 @@ const validationSchema = (mode, isEdit) =>
         is: (v) => isSimplifiedFinanceType(v),
         then: (s) =>
           s
+            .moreThan(0, "In Hand Salary must be greater than 0")
             .required("In Hand Salary is required")
             .test(
               "inhand-not-above-ctc",
@@ -164,7 +165,10 @@ const validationSchema = (mode, isEdit) =>
       .min(0)
       .when("employmentType", {
         is: (v) => isSimplifiedFinanceType(v),
-        then: (s) => s.required("Annual CTC is required"),
+        then: (s) =>
+          s
+            .moreThan(0, "Annual CTC must be greater than 0")
+            .required("Annual CTC is required"),
         otherwise: (s) => s.notRequired(),
       }),
     grossSalary: Yup.number()
