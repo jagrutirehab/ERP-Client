@@ -86,6 +86,22 @@ export const employmentOptions = [
     { label: "FTE", value: "FULL_TIME" },
 ];
 
+export const SIMPLIFIED_FINANCE_TYPES = [
+    "CONTRACTUAL",
+    "CONSULTANT",
+    "INTERN",
+    "APPRENTICE",
+    "CONSULTANT_SESSION",
+];
+
+export const isSimplifiedFinanceType = (type) =>
+    SIMPLIFIED_FINANCE_TYPES.includes((type || "").trim().toUpperCase());
+
+export const paymentTypeOptions = [
+    { label: "Monthly", value: "MONTHLY" },
+    { label: "Per Session", value: "PER_SESSION" },
+];
+
 export const employmentStatus = [
     { label: "Probation", value: "PROBATION" },
     { label: "Training", value: "TRAINING" },

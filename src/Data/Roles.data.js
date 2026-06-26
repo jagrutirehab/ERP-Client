@@ -360,6 +360,9 @@ export const permissionList = [
       { name: "EMPLOYEE_PAYSLIPS", label: "Employee Pay Slips" },
       { name: "MY_PAYSLIPS", label: "My Pay Slips" },
       { name: "MY_SALARY_DATA", label: "My Salary Data" },
+      { name: "MY_SALARY_AND_FORMS", label: "My Salary And Forms" },
+      { name: "UPLOAD_EMPLOYEE_FORM", label: "Upload Employee Form" },
+      { name: "EMPLOYEE_FORMS", label: "Employee Forms" },
       // HR DASHBOARD
       { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
       { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },

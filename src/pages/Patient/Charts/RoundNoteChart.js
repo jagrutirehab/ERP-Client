@@ -1,6 +1,5 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { format } from "date-fns";
 
 // Read-only view of an auto-generated round-note chart. The content is a
 // snapshot of a Round Note row — it is edited only from the Round Notes screen.
@@ -20,12 +19,7 @@ const RoundNoteChart = ({ data }) => {
             </span>
           )}
           {data?.floor && (
-            <span className="badge bg-soft-info text-info">{data.floor}</span>
-          )}
-          {data?.roundDate && (
-            <small className="text-muted">
-              {format(new Date(data.roundDate), "dd MMM yyyy")}
-            </small>
+            <span className="badge bg-soft-info text-info">Floor: {data.floor}</span>
           )}
         </div>
 

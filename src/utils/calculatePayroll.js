@@ -9,6 +9,43 @@ const PTeligibleStates = [
     "Karnataka"
 ];
 
+function calculatePT(grossSalary, state) {
+    switch (state.trim()) {
+        case "Gujarat":
+            return grossSalary > 12000 ? 200 : 0;
+
+        case "Haryana":
+            return 0;
+
+        case "Karnataka":
+            return grossSalary >= 25000 ? 200 : 0;
+
+        case "Maharashtra":
+            if (grossSalary <= 7500) return 0;
+            if (grossSalary <= 10000) return 175;
+            return 200;
+
+        case "Tamil Nadu":
+            if (grossSalary <= 21000) return 0;
+            if (grossSalary <= 30000) return 180;
+            if (grossSalary <= 45000) return 425;
+            if (grossSalary <= 60000) return 930;
+            if (grossSalary <= 75000) return 1025;
+            return 1250;
+
+        case "Telangana":
+            if (grossSalary <= 15000) return 0;
+            if (grossSalary <= 20000) return 150;
+            return 200;
+
+        case "Uttar Pradesh":
+            return 0;
+
+        default:
+            return 0;
+    }
+}
+
 export const calculatePayroll = (values) => {
     const PF_WAGE_CAP = 15000;
 
@@ -17,7 +54,6 @@ export const calculatePayroll = (values) => {
     const hra = Number(values.HRAAmount || 0);
     const spl = Number(values.SPLAllowance || 0);
     const conveyance = Number(values.conveyanceAllowance || 0);
-    // ESIC salary is derived as Basic + SPL Allowance
     const ESICSalary = basic + spl;
     const minimumWages = Number(values.minimumWages || 0);
     const currentLocation = values.currentLocation || {};
@@ -49,28 +85,35 @@ export const calculatePayroll = (values) => {
 
     // ----- PT -----
     let PT = 0;
-    const gender = values.gender?.toUpperCase();
-    const month = values.joinningDate
-        ? new Date(values.joinningDate).getMonth() + 1
-        : null;
-    console.log(PTeligibleStates.includes(detectState(currentLocation.address)))
-    if (PTeligibleStates.includes(detectState(currentLocation.address)) || currentLocation.title === "Head-Office") {
-        if (gender === "MALE") {
-            if (gross <= 7500) {
-                PT = 0;
-            } else if (gross <= 10000) {
-                PT = 175;
-            } else {
-                PT = month === 2 ? 300 : 200;
-            }
-        } else if (gender === "FEMALE") {
-            if (gross > 24999) {
-                PT = month === 2 ? 300 : 200;
-            } else {
-                PT = 0;
-            }
-        }
-    }
+    // old rule
+    // const gender = values.gender?.toUpperCase();
+    // const month = values.joinningDate
+    //     ? new Date(values.joinningDate).getMonth() + 1
+    //     : null;
+    // console.log(PTeligibleStates.includes(detectState(currentLocation.address)))
+    // if (PTeligibleStates.includes(detectState(currentLocation.address)) || currentLocation.title === "Head-Office") {
+    //     if (gender === "MALE") {
+    //         if (gross <= 7500) {
+    //             PT = 0;
+    //         } else if (gross <= 10000) {
+    //             PT = 175;
+    //         } else {
+    //             PT = month === 2 ? 300 : 200;
+    //         }
+    //     } else if (gender === "FEMALE") {
+    //         if (gross > 24999) {
+    //             PT = month === 2 ? 300 : 200;
+    //         } else {
+    //             PT = 0;
+    //         }
+    //     }
+    // }
+
+    // new rule
+    const ptState = currentLocation.title === "Head-Office"
+        ? "Maharashtra"
+        : (detectState(currentLocation.address) || "");
+    PT = calculatePT(gross, ptState);
 
     // ----- TDS -----
     let TDSAmount = 0;
@@ -80,9 +123,9 @@ export const calculatePayroll = (values) => {
         TDSAmount = Math.round((gross * TDSPercent) / 100);
     }
 
-    // ----- ESIC -----
-    const ESICEmployee = Math.round((ESICSalary * 0.75) / 100);
-    const ESICEmployer = Math.round((ESICSalary * 3.25) / 100);
+    // ESIC applies only when basic + special allowance ≤ ₹21,000
+    const ESICEmployee = ESICSalary <= 21000 ? Math.round((ESICSalary * 0.75) / 100) : 0;
+    const ESICEmployer = ESICSalary <= 21000 ? Math.round((ESICSalary * 3.25) / 100) : 0;
 
     // ----- Other deductions -----
     const LWFEmployee = Number(values.LWFEmployee || 0);
@@ -102,7 +145,8 @@ export const calculatePayroll = (values) => {
 
     const inHandSalary = Math.max(gross - deductions, 0);
 
-    const gratuity = Math.round(((basic + spl + conveyance) * 4.81) / 100);
+    // const gratuity = Math.round(((basic + spl + conveyance) * 4.81) / 100);
+    const gratuity = Math.round(basic * 15 / 26 / 12);
     const totalCostToCompany = gross + PFEmployer + ESICEmployer + LWFEmployer + gratuity;
 
     return {

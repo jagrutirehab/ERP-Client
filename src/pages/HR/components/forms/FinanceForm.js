@@ -16,6 +16,8 @@ import { getExitEmployeesBySearch } from "../../../../store/features/HR/hrSlice"
 import {
   accountOptions,
   employeeGroupOptions,
+  paymentTypeOptions,
+  isSimplifiedFinanceType,
 } from "../../../../Components/constants/HR";
 import { calculatePayroll } from "../../../../utils/calculatePayroll";
 import {
@@ -59,7 +61,7 @@ const buildNumberSchema = (label, { max } = {}) => {
     schema = schema.max(max, `${label} cannot be more than ${max}`);
   }
 
-  return schema.optional();
+  return schema.required(`${label} is required`);
 };
 
 const buildGrossBoundSchema = (label) =>
@@ -130,9 +132,22 @@ const getFinanceInitialValues = (initialData) => ({
   inHandSalary: initialData?.financeDetails?.inHandSalary || 0,
   gratuity: initialData?.financeDetails?.gratuity || 0,
   totalCostToCompany: initialData?.financeDetails?.totalCostToCompany || 0,
+
+  // Simplified finance (contractual/consultant/intern/apprentice/consultant-session)
+  paymentType: initialData?.financeDetails?.paymentType || "MONTHLY",
+  // PER_SESSION stores a flat rate (no annual snapshot) — read it verbatim;
+  // otherwise read the yearly figure (annual snapshot, else monthly × 12).
+  annualInHandSalary:
+    initialData?.financeDetails?.paymentType === "PER_SESSION"
+      ? initialData?.financeDetails?.inHandSalary || 0
+      : annualFieldValue(initialData?.financeDetails, "inHandSalary"),
+  annualCTC:
+    initialData?.financeDetails?.paymentType === "PER_SESSION"
+      ? initialData?.financeDetails?.totalCostToCompany || 0
+      : annualFieldValue(initialData?.financeDetails, "totalCostToCompany"),
 });
 
-const validationSchema = (isEdit, step) => {
+const validationSchema = (isEdit, step, simplified) => {
   if (step === 1 && !isEdit) {
     return Yup.object().shape({
       employeeId: Yup.string().required("Employee is required"),
@@ -141,11 +156,30 @@ const validationSchema = (isEdit, step) => {
     });
   }
 
+  if (simplified) {
+    return Yup.object().shape({
+      changeType: Yup.string().optional(),
+      note: Yup.string().optional(),
+      paymentType: Yup.string().required("Payment Type is required"),
+      annualInHandSalary: buildNumberSchema("In Hand Salary").test(
+        "inhand-not-above-ctc",
+        "In Hand Salary cannot be greater than Annual CTC",
+        function (value) {
+          const { annualCTC } = this.parent;
+          if (value == null || annualCTC == null || annualCTC === "")
+            return true;
+          return Number(value) <= Number(annualCTC);
+        }
+      ),
+      annualCTC: buildNumberSchema("Annual CTC"),
+    });
+  }
+
   return Yup.object().shape({
     changeType: Yup.string().optional(),
     note: Yup.string().optional(),
-    employeeGroups: Yup.string().nullable().optional(),
-    account: Yup.string().nullable().optional(),
+    employeeGroups: Yup.string().required("Employee Group is required"),
+    account: Yup.string().notRequired(),
     minimumWages: buildNumberSchema("Minimum Wages"),
     grossSalary: Yup.number()
       .transform((value, originalValue) =>
@@ -177,7 +211,7 @@ const validationSchema = (isEdit, step) => {
     LWFSalary: buildNumberSchema("LWF Salary"),
     LWFEmployee: buildNumberSchema("LWF Employee"),
     LWFEmployer: buildNumberSchema("LWF Employer"),
-    debitStatementNarration: Yup.string().nullable().optional(),
+    debitStatementNarration: Yup.string().notRequired(),
   });
 };
 
@@ -189,12 +223,16 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
   const isEdit = mode === "EDIT";
   const [step, setStep] = useState(isEdit ? 2 : 1);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [inHandManual, setInHandManual] = useState(isEdit);
+
+  const employeeForType = isEdit ? initialData?.employee : selectedEmployee?.raw;
+  const simplified = isSimplifiedFinanceType(employeeForType?.employmentType);
 
   const form = useFormik({
     enableReinitialize: true,
     validateOnMount: true,
     initialValues: getFinanceInitialValues(isEdit ? initialData : null),
-    validationSchema: validationSchema(isEdit, step),
+    validationSchema: validationSchema(isEdit, step, simplified),
     onSubmit: async (values) => {
       if (step === 1 && !isEdit) {
         setStep(2);
@@ -202,7 +240,34 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
       }
 
       try {
+        if (simplified) {
+          const simplifiedPayload = {
+            financeMode: "SIMPLIFIED",
+            paymentType: values.paymentType || "MONTHLY",
+            inHandSalary: Number(values.annualInHandSalary) || 0,
+            totalCostToCompany: Number(values.annualCTC) || 0,
+            salaryUnit: "ANNUAL",
+          };
+
+          if (isEdit) {
+            if (values.changeType) simplifiedPayload.changeType = values.changeType;
+            if (values.note) simplifiedPayload.note = values.note;
+            await editFinance(initialData._id, simplifiedPayload);
+            toast.success("Finance details updated successfully");
+          } else {
+            simplifiedPayload.employeeId = values.employeeId;
+            simplifiedPayload.changeType = values.changeType;
+            if (values.note) simplifiedPayload.note = values.note;
+            await changeSalary(simplifiedPayload);
+            toast.success("Salary changed successfully");
+          }
+
+          onSuccess?.();
+          return;
+        }
+
         const payload = {
+          financeMode: "FULL",
           employeeGroups: values.employeeGroups || "",
           account: values.account || "",
           grossSalary: Number(values.grossSalary),
@@ -252,10 +317,14 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
     [initialData, isEdit, selectedEmployee]
   );
 
+  // PER_SESSION amounts are flat per-session rates — not yearly — so we drop the
+  // "(Yearly)" label and the monthly (÷12) preview for them.
+  const perSession = simplified && form.values.paymentType === "PER_SESSION";
+
   const payrollInitializedRef = useRef(false);
 
   useEffect(() => {
-   
+    if (simplified) return;
     const payroll = calculatePayroll({
       ...form.values,
       ...annualToMonthly(form.values),
@@ -290,11 +359,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
     form.values.reimbursement,
     form.values.minimumWages,
     form.values.TDSRate,
+    simplified,
   ]);
 
   // Gross is the sum of the breakup components (read-only). Keep it in sync as
   // HR edits the components so it can never drift from the breakup total.
   useEffect(() => {
+    if (simplified) return;
     const total = getSalaryBreakupTotal(form.values);
     if (getNumericValue(form.values.grossSalary) !== total) {
       form.setFieldValue("grossSalary", total, false);
@@ -306,6 +377,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
     form.values.SPLAllowance,
     form.values.conveyanceAllowance,
     form.values.statutoryBonus,
+    simplified,
   ]);
 
   const loadEmployeeOptions = (inputValue) => {
@@ -358,17 +430,12 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
     </div>
   );
 
-  // Professional Tax carries a February surcharge (₹300 vs ₹200 in the higher
-  // slab), so its yearly total is 11 normal months + February, not PT × 12.
+  // Professional Tax now uses flat state-wise slabs, so the yearly total is
+  // simply the monthly PT across all 12 months.
   const ptMonthly = Math.round(Number(form.values.PT) || 0);
-  const ptIsBumpSlab = ptMonthly === 200 || ptMonthly === 300;
-  const ptRegularMonthly = ptMonthly === 300 ? 200 : ptMonthly;
-  const ptYearly = ptIsBumpSlab ? ptRegularMonthly * 11 + 300 : ptMonthly * 12;
+  const ptYearly = ptMonthly * 12;
 
-  // Yearly deductions = monthly × 12, but the PT portion uses the true yearly PT
-  // (which carries the February surcharge) instead of PT × 12.
-  const deductionsYearly =
-    yearlyValue("deductions") + ptYearly - ptMonthly * 12;
+  const deductionsYearly = yearlyValue("deductions");
 
   const ctcYearly =
     yearlyValue("totalCostToCompany") +
@@ -622,8 +689,106 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
       </Col>
 
       <Row className="g-3 mx-2">
+        {simplified && (
+          <>
+            {/* ANNUAL CTC */}
+            <Col md={6}>
+              <Label htmlFor="annualCTC">
+                {perSession ? "CTC (Per Session)" : "Annual CTC"}{" "}
+                <span className="text-danger">*</span>
+              </Label>
+              <Input
+                id="annualCTC"
+                name="annualCTC"
+                type="number"
+                min={0}
+                value={form.values.annualCTC}
+                onChange={(e) => {
+                  handleNumericFieldChange(e);
+                  // In Hand mirrors CTC until the user overrides it.
+                  if (!inHandManual) {
+                    form.setFieldValue("annualInHandSalary", e.target.value);
+                  }
+                }}
+                onBlur={form.handleBlur}
+                invalid={form.touched.annualCTC && !!form.errors.annualCTC}
+              />
+              {errorText("annualCTC")}
+              {!perSession && (
+                <div className="text-muted small mt-1">
+                  Monthly ≈ ₹
+                  {Math.round(
+                    (Number(form.values.annualCTC) || 0) / 12,
+                  ).toLocaleString("en-IN")}
+                </div>
+              )}
+            </Col>
+
+            {/* IN HAND SALARY (Yearly entry, monthly preview) */}
+            <Col md={6}>
+              <Label htmlFor="annualInHandSalary">
+                In Hand Salary {perSession ? "(Per Session)" : "(Yearly)"}{" "}
+                <span className="text-danger">*</span>
+              </Label>
+              <Input
+                id="annualInHandSalary"
+                name="annualInHandSalary"
+                type="number"
+                min={0}
+                value={form.values.annualInHandSalary}
+                onChange={(e) => {
+                  setInHandManual(true);
+                  handleNumericFieldChange(e);
+                }}
+                onBlur={form.handleBlur}
+                invalid={
+                  form.touched.annualInHandSalary &&
+                  !!form.errors.annualInHandSalary
+                }
+              />
+              {errorText("annualInHandSalary")}
+              {!perSession && (
+                <div className="text-muted small mt-1">
+                  Monthly ≈ ₹
+                  {Math.round(
+                    (Number(form.values.annualInHandSalary) || 0) / 12,
+                  ).toLocaleString("en-IN")}
+                </div>
+              )}
+              {!inHandManual && (
+                <div className="text-muted small">
+                  Auto-filled from Annual CTC — edit to override.
+                </div>
+              )}
+            </Col>
+
+            {/* PAYMENT TYPE */}
+            <Col md={6}>
+              <Label htmlFor="paymentType">
+                Payment Type <span className="text-danger">*</span>
+              </Label>
+              <Select
+                inputId="paymentType"
+                options={paymentTypeOptions}
+                value={
+                  paymentTypeOptions.find(
+                    (opt) => opt.value === form.values.paymentType,
+                  ) || null
+                }
+                onChange={(opt) =>
+                  form.setFieldValue("paymentType", opt ? opt.value : "")
+                }
+                onBlur={() => form.setFieldTouched("paymentType", true)}
+              />
+              {errorText("paymentType")}
+            </Col>
+          </>
+        )}
+
+        {!simplified && (
+          <>
         <Col md={6}>
-          <Label htmlFor="employeeGroups">Employee Group</Label>
+          <Label htmlFor="employeeGroups">Employee Group <span className="text-danger">*</span></Label>
           <Select
             inputId="employeeGroups"
             options={employeeGroupOptions}
@@ -635,7 +800,9 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             onChange={(opt) =>
               form.setFieldValue("employeeGroups", opt ? opt.value : "")
             }
+            onBlur={() => form.setFieldTouched("employeeGroups", true)}
           />
+          {errorText("employeeGroups")}
         </Col>
 
         <Col md={6}>
@@ -650,7 +817,9 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             onChange={(opt) =>
               form.setFieldValue("account", opt ? opt.value : "")
             }
+            onBlur={() => form.setFieldTouched("account", true)}
           />
+          {errorText("account")}
         </Col>
 
         <Col md={6}>
@@ -679,7 +848,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="grossSalary">Gross Salary (Yearly)</Label>
+          <Label htmlFor="grossSalary">Gross Salary (Yearly) <span className="text-danger">*</span></Label>
           <Input
             disabled
             id="grossSalary"
@@ -692,7 +861,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="basicAmount">Basic Amount (Yearly)</Label>
+          <Label htmlFor="basicAmount">Basic Amount (Yearly) <span className="text-danger">*</span></Label>
           <Input
             id="basicAmount"
             name="basicAmount"
@@ -718,7 +887,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="HRAAmount">HRA (Yearly)</Label>
+          <Label htmlFor="HRAAmount">HRA (Yearly) <span className="text-danger">*</span></Label>
           <Input
             id="HRAAmount"
             name="HRAAmount"
@@ -744,7 +913,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="SPLAllowance">SPL Allowance (Yearly)</Label>
+          <Label htmlFor="SPLAllowance">SPL Allowance (Yearly) <span className="text-danger">*</span></Label>
           <Input
             id="SPLAllowance"
             name="SPLAllowance"
@@ -759,7 +928,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="conveyanceAllowance">Conveyance Allowance (Yearly)</Label>
+          <Label htmlFor="conveyanceAllowance">Conveyance Allowance (Yearly) <span className="text-danger">*</span></Label>
           <Input
             id="conveyanceAllowance"
             name="conveyanceAllowance"
@@ -777,7 +946,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="statutoryBonus">Statutory Bonus (Yearly)</Label>
+          <Label htmlFor="statutoryBonus">Statutory Bonus (Yearly) <span className="text-danger">*</span></Label>
           <Input
             id="statutoryBonus"
             name="statutoryBonus"
@@ -933,8 +1102,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
           <Label htmlFor="PT">PT (Yearly)</Label>
           <Input disabled id="PT" type="number" value={ptYearly} />
           <div className="text-muted small mt-1">
-            Monthly ≈ ₹{ptRegularMonthly.toLocaleString("en-IN")}
-            {ptIsBumpSlab ? " (₹300 in February)" : ""}
+            Monthly ≈ ₹{ptMonthly.toLocaleString("en-IN")}
           </div>
         </Col>
 
@@ -1025,8 +1193,12 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
               )
             }
             onBlur={form.handleBlur}
+            invalid={form.touched.debitStatementNarration && !!form.errors.debitStatementNarration}
           />
+          {errorText("debitStatementNarration")}
         </Col>
+          </>
+        )}
       </Row>
 
       <div className="d-flex gap-2 justify-content-end my-4 mx-3">

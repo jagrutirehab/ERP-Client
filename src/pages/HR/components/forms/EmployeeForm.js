@@ -40,6 +40,8 @@ import {
   statusOptions,
   employmentStatus,
   newEmploymentOptions,
+  paymentTypeOptions,
+  isSimplifiedFinanceType,
 } from "../../../../Components/constants/HR";
 import { calculatePayroll } from "../../../../utils/calculatePayroll";
 import {
@@ -126,48 +128,108 @@ const validationSchema = (mode, isEdit) =>
       .test("pan-uploaded", "PAN file is required", (value) => !!value),
     adharOld: Yup.string().required("Aadhaar file is required"),
     offerLetterOld: Yup.string().required("Offer letter is required"),
-    employeeGroups: Yup.string().notRequired(),
+    employeeGroups: Yup.string().when("employmentType", {
+      is: (v) => isSimplifiedFinanceType(v),
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("Employee Group is required"),
+    }),
     account: Yup.string().notRequired(),
     minimumWages: Yup.number().min(0).notRequired(),
+    // Simplified finance fields (only required for the simplified employee types)
+    paymentType: Yup.string().when("employmentType", {
+      is: (v) => isSimplifiedFinanceType(v),
+      then: (s) => s.required("Payment Type is required"),
+      otherwise: (s) => s.notRequired(),
+    }),
+    annualInHandSalary: Yup.number()
+      .min(0)
+      .when("employmentType", {
+        is: (v) => isSimplifiedFinanceType(v),
+        then: (s) =>
+          s
+            .required("In Hand Salary is required")
+            .test(
+              "inhand-not-above-ctc",
+              "In Hand Salary cannot be greater than Annual CTC",
+              function (value) {
+                const { annualCTC } = this.parent;
+                if (value == null || annualCTC == null || annualCTC === "")
+                  return true;
+                return Number(value) <= Number(annualCTC);
+              },
+            ),
+        otherwise: (s) => s.notRequired(),
+      }),
+    annualCTC: Yup.number()
+      .min(0)
+      .when("employmentType", {
+        is: (v) => isSimplifiedFinanceType(v),
+        then: (s) => s.required("Annual CTC is required"),
+        otherwise: (s) => s.notRequired(),
+      }),
     grossSalary: Yup.number()
       .min(0)
-      .required("Gross Salary is required")
-      .test(
-        "gross-breakup-exact-match",
-        "Basic + HRA + SPL + Conveyance + Statutory Bonus must be equal to Gross Salary",
-        function (gross) {
-          const {
-            basicAmount = 0,
-            HRAAmount = 0,
-            SPLAllowance = 0,
-            conveyanceAllowance = 0,
-            statutoryBonus = 0,
-          } = this.parent;
+      .when("employmentType", {
+        is: (v) => isSimplifiedFinanceType(v),
+        then: (s) => s.notRequired(),
+        otherwise: (s) =>
+          s.required("Gross Salary is required").test(
+            "gross-breakup-exact-match",
+            "Basic + HRA + SPL + Conveyance + Statutory Bonus must be equal to Gross Salary",
+            function (gross) {
+              const {
+                basicAmount = 0,
+                HRAAmount = 0,
+                SPLAllowance = 0,
+                conveyanceAllowance = 0,
+                statutoryBonus = 0,
+              } = this.parent;
 
-          const breakupTotal =
-            Number(basicAmount) +
-            Number(HRAAmount) +
-            Number(SPLAllowance) +
-            Number(conveyanceAllowance) +
-            Number(statutoryBonus);
+              const breakupTotal =
+                Number(basicAmount) +
+                Number(HRAAmount) +
+                Number(SPLAllowance) +
+                Number(conveyanceAllowance) +
+                Number(statutoryBonus);
 
-          if (gross === undefined || gross === null) return true;
+              if (gross === undefined || gross === null) return true;
 
-          return Number(gross) === breakupTotal;
-        },
-      ),
-    basicAmount: Yup.number().min(0).notRequired(),
+              return Number(gross) === breakupTotal;
+            },
+          ),
+      }),
+    basicAmount: Yup.number().min(0).when("employmentType", {
+      is: (v) => isSimplifiedFinanceType(v),
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("Basic Amount is required"),
+    }),
     basicPercentage: Yup.number().min(0).max(100).notRequired(),
-    HRAAmount: Yup.number().min(0).notRequired(),
+    HRAAmount: Yup.number().min(0).when("employmentType", {
+      is: (v) => isSimplifiedFinanceType(v),
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("HRA is required"),
+    }),
     HRAPercentage: Yup.number().min(0).max(100).notRequired(),
-    statutoryBonus: Yup.number().min(0).notRequired(),
+    statutoryBonus: Yup.number().min(0).when("employmentType", {
+      is: (v) => isSimplifiedFinanceType(v),
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("Statutory Bonus is required"),
+    }),
     insurance: Yup.number().min(0).notRequired(),
     variable: Yup.number().min(0).notRequired(),
     reimbursement: Yup.number().min(0).notRequired(),
     TDSRate: Yup.number().min(0).max(100).notRequired(),
     pfAmount: Yup.number().min(0).notRequired(),
-    SPLAllowance: Yup.number().min(0).notRequired(),
-    conveyanceAllowance: Yup.number().min(0).notRequired(),
+    SPLAllowance: Yup.number().min(0).when("employmentType", {
+      is: (v) => isSimplifiedFinanceType(v),
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("SPL Allowance is required"),
+    }),
+    conveyanceAllowance: Yup.number().min(0).when("employmentType", {
+      is: (v) => isSimplifiedFinanceType(v),
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("Conveyance Allowance is required"),
+    }),
     debitStatementNarration: Yup.string().notRequired(),
     ESICSalary: Yup.number().min(0).notRequired(),
     LWFSalary: Yup.number().min(0).notRequired(),
@@ -293,6 +355,19 @@ const getInitialValues = (initialData, mode) => ({
   gratuity: initialData?.financeDetails?.gratuity || 0,
   totalCostToCompany: initialData?.financeDetails?.totalCostToCompany || 0,
 
+  // Simplified finance (contractual/consultant/intern/apprentice/consultant-session)
+  paymentType: initialData?.financeDetails?.paymentType || "MONTHLY",
+  // PER_SESSION stores a flat rate (no annual snapshot) — read it verbatim;
+  // otherwise read the yearly figure (annual snapshot, else monthly × 12).
+  annualInHandSalary:
+    initialData?.financeDetails?.paymentType === "PER_SESSION"
+      ? initialData?.financeDetails?.inHandSalary || 0
+      : annualFieldValue(initialData?.financeDetails, "inHandSalary"),
+  annualCTC:
+    initialData?.financeDetails?.paymentType === "PER_SESSION"
+      ? initialData?.financeDetails?.totalCostToCompany || 0
+      : annualFieldValue(initialData?.financeDetails, "totalCostToCompany"),
+
   debitStatementNarration:
     initialData?.financeDetails?.debitStatementNarration || "",
 
@@ -346,6 +421,10 @@ const EmployeeForm = ({
   const [positionOptions, setPositionOptions] = useState([]);
   const [manual, setManual] = useState({
     SPLAllowance: false,
+    // Simplified: In Hand Salary auto-mirrors Annual CTC until the user edits
+    // it. Existing records start "manual" so a CTC edit can't clobber a stored,
+    // intentionally-different In Hand value.
+    annualInHandSalary: !!initialData?._id,
   });
   const [uploading, setUploading] = useState({
     panFile: false,
@@ -462,6 +541,42 @@ const EmployeeForm = ({
         formData.delete("incrementLetterOld");
         formData.delete("incrementLetterFile");
 
+        // Client-only mirror fields — never sent to the server as-is.
+        formData.delete("annualInHandSalary");
+        formData.delete("annualCTC");
+        formData.delete("paymentType");
+
+        const isSimplified = isSimplifiedFinanceType(values.employmentType);
+        formData.set("financeMode", isSimplified ? "SIMPLIFIED" : "FULL");
+
+        if (isSimplified) {
+          // Send the three yearly figures; the server splits them into monthly.
+          formData.set("inHandSalary", values.annualInHandSalary || 0);
+          formData.set("totalCostToCompany", values.annualCTC || 0);
+          formData.set("paymentType", values.paymentType || "MONTHLY");
+          // Drop the full-breakup fields the simplified flow doesn't use.
+          [
+            "employeeGroups",
+            "account",
+            "grossSalary",
+            "basicAmount",
+            "HRAAmount",
+            "SPLAllowance",
+            "conveyanceAllowance",
+            "statutoryBonus",
+            "minimumWages",
+            "ESICSalary",
+            "LWFSalary",
+            "LWFEmployee",
+            "LWFEmployer",
+            "insurance",
+            "TDSRate",
+            "variable",
+            "reimbursement",
+            "debitStatementNarration",
+          ].forEach((key) => formData.delete(key));
+        }
+
         if (initialData?._id) {
           formData.delete("eCode");
           await editEmployee(initialData._id, formData);
@@ -502,6 +617,14 @@ const EmployeeForm = ({
     touched,
     isValid,
   } = form;
+
+  // Contractual / consultant / intern / apprentice / consultant-session use the
+  // simplified finance section (In Hand Salary, Annual CTC, Payment Type) and
+  // skip the full salary breakup + payroll computation.
+  const simplified = isSimplifiedFinanceType(values.employmentType);
+  // PER_SESSION amounts are flat per-session rates — not yearly — so we drop the
+  // "(Yearly)" label and the monthly (÷12) preview for them.
+  const perSession = simplified && values.paymentType === "PER_SESSION";
 
   const touchFileFields = () => {
     setTouched(
@@ -610,12 +733,9 @@ const EmployeeForm = ({
   );
 
   const ptMonthly = Math.round(Number(values.PT) || 0);
-  const ptIsBumpSlab = ptMonthly === 200 || ptMonthly === 300;
-  const ptRegularMonthly = ptMonthly === 300 ? 200 : ptMonthly;
-  const ptYearly = ptIsBumpSlab ? ptRegularMonthly * 11 + 300 : ptMonthly * 12;
+  const ptYearly = ptMonthly * 12;
 
-  const deductionsYearly =
-    yearlyValue("deductions") + ptYearly - ptMonthly * 12;
+  const deductionsYearly = yearlyValue("deductions");
 
   const ctcYearly =
     yearlyValue("totalCostToCompany") +
@@ -795,6 +915,7 @@ const EmployeeForm = ({
   const payrollInitializedRef = useRef(false);
 
   useEffect(() => {
+    if (simplified) return;
     const selectedCenter = centerOptions?.find(
       (o) => o.value === values.currentLocation,
     );
@@ -835,10 +956,12 @@ const EmployeeForm = ({
     values.minimumWages,
     values.currentLocation,
     values.LWFEmployer,
+    simplified,
   ]);
 
-  
+
   useEffect(() => {
+    if (simplified) return;
     const total =
       Number(values.basicAmount || 0) +
       Number(values.HRAAmount || 0) +
@@ -846,7 +969,7 @@ const EmployeeForm = ({
       Number(values.conveyanceAllowance || 0) +
       Number(values.statutoryBonus || 0);
     if (Number(values.grossSalary || 0) !== total) {
-      setFieldValue("grossSalary", total, false);
+      setFieldValue("grossSalary", total, true);
     }
   }, [
     values.basicAmount,
@@ -856,6 +979,7 @@ const EmployeeForm = ({
     values.statutoryBonus,
     values.grossSalary,
     setFieldValue,
+    simplified,
   ]);
 
   const selectedEmploymentOption =
@@ -1938,9 +2062,104 @@ const EmployeeForm = ({
         </Col>
 
         <Row className="g-3 mx-2">
+          {simplified && (
+            <>
+              {/* ANNUAL CTC */}
+              <Col md={6}>
+                <Label htmlFor="annualCTC">
+                  {perSession ? "CTC (Per Session)" : "Annual CTC"}{" "}
+                  <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="annualCTC"
+                  type="number"
+                  name="annualCTC"
+                  min={0}
+                  value={values.annualCTC}
+                  onChange={(e) => {
+                    handleChange(e);
+                    // In Hand mirrors CTC until the user overrides it.
+                    if (!manual.annualInHandSalary) {
+                      setFieldValue("annualInHandSalary", e.target.value);
+                    }
+                  }}
+                  onBlur={() => setFieldTouched("annualCTC", true)}
+                  invalid={touched.annualCTC && !!errors.annualCTC}
+                />
+                {errorText("annualCTC")}
+                {!perSession && (
+                  <div className="text-muted small mt-1">
+                    Monthly ≈ ₹
+                    {Math.round(
+                      (Number(values.annualCTC) || 0) / 12,
+                    ).toLocaleString("en-IN")}
+                  </div>
+                )}
+              </Col>
+
+              {/* IN HAND SALARY (Yearly entry, monthly preview) */}
+              <Col md={6}>
+                <Label htmlFor="annualInHandSalary">
+                  In Hand Salary {perSession ? "(Per Session)" : "(Yearly)"}{" "}
+                  <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="annualInHandSalary"
+                  type="number"
+                  name="annualInHandSalary"
+                  min={0}
+                  value={values.annualInHandSalary}
+                  onChange={(e) => {
+                    setManual((prev) => ({ ...prev, annualInHandSalary: true }));
+                    handleChange(e);
+                  }}
+                  onBlur={() => setFieldTouched("annualInHandSalary", true)}
+                  invalid={touched.annualInHandSalary && !!errors.annualInHandSalary}
+                />
+                {errorText("annualInHandSalary")}
+                {!perSession && (
+                  <div className="text-muted small mt-1">
+                    Monthly ≈ ₹
+                    {Math.round(
+                      (Number(values.annualInHandSalary) || 0) / 12,
+                    ).toLocaleString("en-IN")}
+                  </div>
+                )}
+                {!manual.annualInHandSalary && (
+                  <div className="text-muted small">
+                    Auto-filled from Annual CTC — edit to override.
+                  </div>
+                )}
+              </Col>
+
+              {/* PAYMENT TYPE */}
+              <Col md={6}>
+                <Label htmlFor="paymentType">
+                  Payment Type <span className="text-danger">*</span>
+                </Label>
+                <Select
+                  inputId="paymentType"
+                  options={paymentTypeOptions}
+                  value={
+                    paymentTypeOptions.find(
+                      (opt) => opt.value === values.paymentType,
+                    ) || null
+                  }
+                  onChange={(opt) =>
+                    setFieldValue("paymentType", opt ? opt.value : "")
+                  }
+                  onBlur={() => setFieldTouched("paymentType", true)}
+                />
+                {errorText("paymentType")}
+              </Col>
+            </>
+          )}
+
+          {!simplified && (
+            <>
           {/* EMPLOYEE GROUPS */}
           <Col md={6}>
-            <Label htmlFor="employeeGroups">Employee Group</Label>
+            <Label htmlFor="employeeGroups">Employee Group <span className="text-danger">*</span></Label>
             <Select
               inputId="employeeGroups"
               options={employeeGroupOptions}
@@ -1949,8 +2168,10 @@ const EmployeeForm = ({
                   (opt) => opt.value === values.employeeGroups,
                 ) || null
               }
-              onChange={(opt) => setFieldValue("employeeGroups", opt.value)}
+              onChange={(opt) => setFieldValue("employeeGroups", opt ? opt.value : "")}
+              onBlur={() => setFieldTouched("employeeGroups", true)}
             />
+            {errorText("employeeGroups")}
           </Col>
 
           {/* ACCOUNT */}
@@ -1963,8 +2184,10 @@ const EmployeeForm = ({
                 accountOptions.find((opt) => opt.value === values.account) ||
                 null
               }
-              onChange={(opt) => setFieldValue("account", opt.value)}
+              onChange={(opt) => setFieldValue("account", opt ? opt.value : "")}
+              onBlur={() => setFieldTouched("account", true)}
             />
+            {errorText("account")}
           </Col>
 
           {/* MINIMUM WAGES */}
@@ -2093,7 +2316,7 @@ const EmployeeForm = ({
 
           {/* GROSS SALARY */}
           <Col md={6}>
-            <Label htmlFor="grossSalary">Gross Salary (Yearly)</Label>
+            <Label htmlFor="grossSalary">Gross Salary (Yearly) <span className="text-danger">*</span></Label>
             <Input
               disabled
               id="grossSalary"
@@ -2107,7 +2330,7 @@ const EmployeeForm = ({
 
           {/* BASIC AMOUNT */}
           <Col md={6}>
-            <Label htmlFor="basicAmount">Basic Amount (Yearly)</Label>
+            <Label htmlFor="basicAmount">Basic Amount (Yearly) <span className="text-danger">*</span></Label>
             <Input
               id="basicAmount"
               type="number"
@@ -2135,7 +2358,7 @@ const EmployeeForm = ({
 
           {/* HRA */}
           <Col md={6}>
-            <Label htmlFor="HRA">HRA (Yearly)</Label>
+            <Label htmlFor="HRA">HRA (Yearly) <span className="text-danger">*</span></Label>
             <Input
               id="HRA"
               type="number"
@@ -2162,7 +2385,7 @@ const EmployeeForm = ({
 
           {/* SPECIAL ALLOWANCE */}
           <Col md={6}>
-            <Label htmlFor="SPLAllowance">SPL Allowance (Yearly)</Label>
+            <Label htmlFor="SPLAllowance">SPL Allowance (Yearly) <span className="text-danger">*</span></Label>
             <Input
               name="SPLAllowance"
               type="number"
@@ -2180,7 +2403,7 @@ const EmployeeForm = ({
 
           {/* CONVEYANCE ALLOWANCE */}
           <Col md={6}>
-            <Label htmlFor="conveyanceAllowance">Conveyance Allowance (Yearly)</Label>
+            <Label htmlFor="conveyanceAllowance">Conveyance Allowance (Yearly) <span className="text-danger">*</span></Label>
             <Input
               id="conveyanceAllowance"
               type="number"
@@ -2193,7 +2416,7 @@ const EmployeeForm = ({
 
           {/* STATUTORY BONUS */}
           <Col md={6}>
-            <Label htmlFor="statutoryBonus">Statutory Bonus (Yearly)</Label>
+            <Label htmlFor="statutoryBonus">Statutory Bonus (Yearly) <span className="text-danger">*</span></Label>
             <Input
               id="statutoryBonus"
               type="number"
@@ -2344,8 +2567,7 @@ const EmployeeForm = ({
               value={ptYearly}
             />
             <div className="text-muted small mt-1">
-              Monthly ≈ ₹{ptRegularMonthly.toLocaleString("en-IN")}
-              {ptIsBumpSlab ? " (₹300 in February)" : ""}
+              Monthly ≈ ₹{ptMonthly.toLocaleString("en-IN")}
             </div>
           </Col>
 
@@ -2458,8 +2680,13 @@ const EmployeeForm = ({
                   },
                 })
               }
+              onBlur={() => setFieldTouched("debitStatementNarration", true)}
+              invalid={touched.debitStatementNarration && !!errors.debitStatementNarration}
             />
+            {errorText("debitStatementNarration")}
           </Col>
+            </>
+          )}
         </Row>
 
         <div className="d-flex gap-2 justify-content-end my-4 mx-3">

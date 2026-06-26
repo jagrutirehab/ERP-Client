@@ -3657,6 +3657,49 @@ export const getPayslipsIssuesRequests = (params = {}) => {
   });
 };
 
+// EMployee Forms
+
+export const postEmployeeForm = (data) => {
+  return axios.post(url.POST_EMPLOYEE_FORM, data, {
+    headers: {
+      "Content-Type": undefined,
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getEmployeeForms = (params) => {
+  return axios.get(url.EMPLOYEE_FORMS, {
+    params,
+    headers: {
+      "Content-Type": undefined,
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getMyEmploymentForms = (params = {}) => {
+  return axios.get(url.GET_MY_FORMS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const deleteEmployeeForm = (docId, fileId) => {
+  return axios.delete(url.DELETE_EMPLOYEE_FORM, {
+    data: { docId, fileId },
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editEmployeeForm = (data) => {
+  return axios.patch(url.EDIT_EMPLOYEE_FORM, data, {
+    headers: {
+      "Content-Type": undefined,
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // Recordings
 // Call recordings
 export const getCallRecordings = (params = {}) => {
@@ -3778,9 +3821,13 @@ export const markSopAlertRead = (id) =>
 export const markAllSopAlertsRead = () =>
   axios.post(url.MARK_ALL_SOP_ALERTS_READ);
 
-// Records the action taken to close an alert. `note` is required server-side.
-export const resolveSopAlert = (id, note) =>
-  axios.post(`${url.RESOLVE_SOP_ALERT}/${id}/resolve`, { note });
+// Marks an alert as resolved. No note required — resolution is now a single click.
+export const resolveSopAlert = (id) =>
+  axios.post(`${url.RESOLVE_SOP_ALERT}/${id}/resolve`);
+
+// Appends a free-text note to an alert. Returns the new note with addedByName.
+export const addAlertNote = (id, text) =>
+  axios.post(`${url.RESOLVE_SOP_ALERT}/${id}/notes`, { text });
 
 export const listSopRules = (params) => axios.get(url.SOP_RULES, { params });
 export const getSopRuleById = (id) => axios.get(`${url.SOP_RULES}/${id}`);

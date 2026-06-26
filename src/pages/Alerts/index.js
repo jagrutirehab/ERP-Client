@@ -8,6 +8,7 @@ import AlertsFilters from "./components/AlertsFilters";
 import AlertsList from "./components/AlertsList";
 import AlertDetailOffcanvas from "./components/AlertDetailOffcanvas";
 import ResolveAlertModal from "./components/ResolveAlertModal";
+import AddNoteModal from "./components/AddNoteModal";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
 import { exportSopAlerts } from "../../helpers/backend_helper";
@@ -90,17 +91,41 @@ const Alerts = () => {
     setResolveTarget(null);
   };
 
-  const submitResolve = async (note) => {
+  const submitResolve = async () => {
     if (!resolveTarget) return;
     setResolving(true);
     try {
-      await inbox.resolveAlert(resolveTarget._id, note);
+      await inbox.resolveAlert(resolveTarget._id);
       toast.success("Alert resolved");
       setResolveTarget(null);
     } catch (err) {
       toast.error(err?.response?.data?.message || "Failed to resolve alert");
     } finally {
       setResolving(false);
+    }
+  };
+
+  // Add-note modal state
+  const [noteTarget, setNoteTarget] = useState(null);
+  const [addingNote, setAddingNote] = useState(false);
+
+  const openAddNote = (alert) => setNoteTarget(alert);
+  const closeAddNote = () => {
+    if (addingNote) return;
+    setNoteTarget(null);
+  };
+
+  const submitNote = async (text) => {
+    if (!noteTarget) return;
+    setAddingNote(true);
+    try {
+      await inbox.addNote(noteTarget._id, text);
+      toast.success("Note added");
+      setNoteTarget(null);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || "Failed to add note");
+    } finally {
+      setAddingNote(false);
     }
   };
 
@@ -211,6 +236,7 @@ const Alerts = () => {
           canResolve={hasWritePermission}
           onSelect={openDetail}
           onResolve={openResolve}
+          onAddNote={openAddNote}
           onPageChange={inbox.setPage}
           onPageSizeChange={inbox.setPageSize}
         />
@@ -227,6 +253,14 @@ const Alerts = () => {
           submitting={resolving}
           onClose={closeResolve}
           onSubmit={submitResolve}
+        />
+
+        <AddNoteModal
+          isOpen={!!noteTarget}
+          alert={noteTarget}
+          submitting={addingNote}
+          onClose={closeAddNote}
+          onSubmit={submitNote}
         />
       </CardBody>
     </div>
