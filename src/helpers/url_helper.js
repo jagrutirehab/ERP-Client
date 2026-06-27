@@ -755,3 +755,14 @@ export const GENERATE_ADDMISSION_SUMMARY =
   "/patient/generate/addmission/summary";
 
 export const GET_ADDMISSION_SUMMARY = "/patient/get/addmission/summary";
+
+export const POST_PSYCHO_DIAGNOSTIC_FORM = "/chart/psycho-diagnostic-form";
+export const EDIT_PSYCHO_DIAGNOSTIC_FORM = "/chart/psycho-diagnostic-form";
+export const POST_GENERAL_PSYCHO_DIAGNOSTIC_FORM =
+  "/chart/psycho-diagnostic-form/general";
+export const EDIT_GENERAL_PSYCHO_DIAGNOSTIC_FORM =
+  "/chart/psycho-diagnostic-form/general";
+export const DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE =
+  "/chart/psycho-diagnostic-form";
+export const GENERATE_PSYCHO_DIAGNOSTIC_SUMMARY =
+  "/chart/generate/summary/psycho-diagnostic-form";

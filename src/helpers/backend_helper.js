@@ -4018,3 +4018,26 @@ export const generateAddmissionSummary = (data) => {
 export const getAddmissionSummary = (addmission) => {
   return api.get(`${url.GET_ADDMISSION_SUMMARY}/${addmission}`);
 };
+
+export const postPsychoDiagnosticForm = (data) =>
+  api.create(url.POST_PSYCHO_DIAGNOSTIC_FORM, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const editPsychoDiagnosticForm = (data) =>
+  api.put(url.EDIT_PSYCHO_DIAGNOSTIC_FORM, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const postGeneralPsychoDiagnosticForm = (data) =>
+  api.create(url.POST_GENERAL_PSYCHO_DIAGNOSTIC_FORM, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const editGeneralPsychoDiagnosticForm = (data) =>
+  api.put(url.EDIT_GENERAL_PSYCHO_DIAGNOSTIC_FORM, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const generatePsychoDiagnosticForm = (data) =>
+  api.create(url.GENERATE_PSYCHO_DIAGNOSTIC_SUMMARY, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const deletePsychoDiagnosticFormFile = (data) =>
+  api.update(url.DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE, data);
