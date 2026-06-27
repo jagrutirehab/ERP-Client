@@ -214,6 +214,10 @@ export {
   resetOpdPatientCharts,
   fetchOPDPrescription,
   setPtLatestOPDPrescription,
+  addPsychoDiagnosticForm,
+  addGeneralPsychoDiagnosticForm,
+  updatePsychoDiagnosticForm,
+  removePsychoDiagnosticFormFile,
 } from "./features/chart/chartSlice";
 
 // bill

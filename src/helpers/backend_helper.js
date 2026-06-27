@@ -2078,6 +2078,22 @@ export const getCenterLeadsMoM = (params = {}) => {
   });
 };
 
+export const getCenterWiseMOM = (params = {}) => {
+  return api.get(url.GET_CENTER_WISE_MOM, {
+    params,
+  });
+};
+
+export const getCampaignWiseMOM = (params = {}) => {
+  return api.get(url.GET_CAMPAIGN_WISE_MOM, {
+    params,
+  });
+};
+
+export const getCenterWiseStatusMOM = (params = {}) => {
+  return api.get(url.GET_CENTER_WISE_STATUS_MOM, { params });
+};
+
 export const getCenterLeadsMTD = (params = {}) => {
   return api.get(url.GET_CENTER_LEADS_MTD, {
     params,
@@ -4006,3 +4022,26 @@ export const generateAddmissionSummary = (data) => {
 export const getAddmissionSummary = (addmission) => {
   return api.get(`${url.GET_ADDMISSION_SUMMARY}/${addmission}`);
 };
+
+export const postPsychoDiagnosticForm = (data) =>
+  api.create(url.POST_PSYCHO_DIAGNOSTIC_FORM, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const editPsychoDiagnosticForm = (data) =>
+  api.put(url.EDIT_PSYCHO_DIAGNOSTIC_FORM, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const postGeneralPsychoDiagnosticForm = (data) =>
+  api.create(url.POST_GENERAL_PSYCHO_DIAGNOSTIC_FORM, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const editGeneralPsychoDiagnosticForm = (data) =>
+  api.put(url.EDIT_GENERAL_PSYCHO_DIAGNOSTIC_FORM, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const generatePsychoDiagnosticForm = (data) =>
+  api.create(url.GENERATE_PSYCHO_DIAGNOSTIC_SUMMARY, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const deletePsychoDiagnosticFormFile = (data) =>
+  api.update(url.DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE, data);

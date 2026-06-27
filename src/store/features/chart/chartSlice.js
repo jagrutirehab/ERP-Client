@@ -42,12 +42,21 @@ import {
   postRealtiveVisit,
   postVitalSign,
   submitAssessment,
+  postPsychoDiagnosticForm,
+  postGeneralPsychoDiagnosticForm,
+  editPsychoDiagnosticForm,
+  deletePsychoDiagnosticFormFile,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 import { IPD, OPD } from "../../../Components/constants/patient";
 import { togglePrint } from "../print/printSlice";
 import { removeEventChart, setEventChart } from "../booking/bookingSlice";
-import { fetchPatientById, replacePatient, setMedicines, viewPatient } from "../../actions";
+import {
+  fetchPatientById,
+  replacePatient,
+  setMedicines,
+  viewPatient,
+} from "../../actions";
 
 const initialState = {
   data: [],
@@ -610,6 +619,82 @@ export const updateLabReport = createAsyncThunk(
       );
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addPsychoDiagnosticForm = createAsyncThunk(
+  "postPsychoDiagnosticForm",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postPsychoDiagnosticForm(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Psycho Diagnostic Form Saved Successfully",
+        }),
+      );
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addGeneralPsychoDiagnosticForm = createAsyncThunk(
+  "postGeneralPsychoDiagnosticForm",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postGeneralPsychoDiagnosticForm(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Psycho Diagnostic Form Saved Successfully",
+        }),
+      );
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updatePsychoDiagnosticForm = createAsyncThunk(
+  "editPsychoDiagnosticForm",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editPsychoDiagnosticForm(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Psycho Diagnostic Form Updated Successfully",
+        }),
+      );
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const removePsychoDiagnosticFormFile = createAsyncThunk(
+  "deletePsychoDiagnosticFormFile",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await deletePsychoDiagnosticFormFile(data);
+      dispatch(
+        setAlert({ type: "success", message: "File Deleted Successfully" }),
+      );
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -2061,6 +2146,98 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(addCapacityAssessment.rejected, (state) => {
+        state.loading = false;
+      });
+    builder
+      .addCase(addPsychoDiagnosticForm.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addPsychoDiagnosticForm.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addPsychoDiagnosticForm.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addGeneralPsychoDiagnosticForm.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(
+        addGeneralPsychoDiagnosticForm.fulfilled,
+        (state, { payload }) => {
+          state.loading = false;
+          state.charts = [payload.payload, ...(state.charts || [])];
+        },
+      )
+      .addCase(addGeneralPsychoDiagnosticForm.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updatePsychoDiagnosticForm.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updatePsychoDiagnosticForm.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id,
+          );
+          state.charts[findIndex] = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission,
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id,
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+        }
+      })
+      .addCase(updatePsychoDiagnosticForm.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(removePsychoDiagnosticFormFile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(
+        removePsychoDiagnosticFormFile.fulfilled,
+        (state, { payload }) => {
+          state.loading = false;
+          if (payload.type === "GENERAL") {
+            const findIndex = state.charts.findIndex(
+              (el) => el._id === payload.payload._id,
+            );
+            state.charts[findIndex] = payload.payload;
+            state.chartForm.data = payload.payload;
+          } else {
+            const findIndex = state.data.findIndex(
+              (el) => el._id === payload.payload.addmission,
+            );
+            const findChartIndex = state.data[findIndex].charts.findIndex(
+              (chart) => chart._id === payload.payload._id,
+            );
+            state.data[findIndex].charts[findChartIndex] = payload.payload;
+            state.chartForm.data = payload.payload;
+          }
+        },
+      )
+      .addCase(removePsychoDiagnosticFormFile.rejected, (state) => {
         state.loading = false;
       });
   },

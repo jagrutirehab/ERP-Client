@@ -27,6 +27,9 @@ import {
   getDocsCompliance,
   getDueAmount,
   getMIAttendance,
+  getCenterWiseMOM,
+  getCampaignWiseMOM,
+  getCenterWiseStatusMOM,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -63,6 +66,9 @@ const initialState = {
   dueAmount: [],
   miAttendance: [],
   nursesDOD: [],
+  centerWiseMOM: [],
+  campaignWiseMOM: [],
+  centerWiseStatusMOM: [],
   loading: false,
   error: null,
 };
@@ -79,6 +85,51 @@ export const fetchMIHubSpotContacts = createAsyncThunk(
         error.response?.data?.message ||
           error.message ||
           "Failed to fetch contacts"
+      );
+    }
+  }
+);
+
+// Center Wise MoM
+export const fetchCenterWiseMOM = createAsyncThunk(
+  "miReporting/fetchCenterWiseMOM",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await getCenterWiseMOM(params);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch center wise MoM"
+      );
+    }
+  }
+);
+
+// Center Status Matrix
+export const fetchCenterWiseStatusMOM = createAsyncThunk(
+  "miReporting/fetchCenterWiseStatusMOM",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await getCenterWiseStatusMOM(params);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch center status matrix"
+      );
+    }
+  }
+);
+
+// Campaign Wise MoM
+export const fetchCampaignWiseMOM = createAsyncThunk(
+  "miReporting/fetchCampaignWiseMOM",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await getCampaignWiseMOM(params);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch campaign wise MoM"
       );
     }
   }
@@ -862,6 +913,45 @@ const miReportingSlice = createSlice({
         state.nursesDOD = action.payload.payload || [];
       })
       .addCase(fetchNursesDOD.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Center Wise MoM
+      .addCase(fetchCenterWiseMOM.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCenterWiseMOM.fulfilled, (state, action) => {
+        state.loading = false;
+        state.centerWiseMOM = action.payload.payload || [];
+      })
+      .addCase(fetchCenterWiseMOM.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Campaign Wise MoM
+      .addCase(fetchCampaignWiseMOM.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCampaignWiseMOM.fulfilled, (state, action) => {
+        state.loading = false;
+        state.campaignWiseMOM = action.payload.payload || [];
+      })
+      .addCase(fetchCampaignWiseMOM.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Center Status Matrix
+      .addCase(fetchCenterWiseStatusMOM.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCenterWiseStatusMOM.fulfilled, (state, action) => {
+        state.loading = false;
+        state.centerWiseStatusMOM = action.payload.payload || [];
+      })
+      .addCase(fetchCenterWiseStatusMOM.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
