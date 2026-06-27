@@ -118,7 +118,7 @@ const MiReporting = () => {
 
   return (
     <React.Fragment>
-      <div className="page-content" style={{ overflowX: "hidden" }}>
+      <div className="page-content" style={{ overflowX: "clip" }}>
         <div className="">
           <Container fluid>
             <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1" style={{ alignItems: "flex-start" }}>

@@ -2090,6 +2090,10 @@ export const getCampaignWiseMOM = (params = {}) => {
   });
 };
 
+export const getCenterWiseStatusMOM = (params = {}) => {
+  return api.get(url.GET_CENTER_WISE_STATUS_MOM, { params });
+};
+
 export const getCenterLeadsMTD = (params = {}) => {
   return api.get(url.GET_CENTER_LEADS_MTD, {
     params,

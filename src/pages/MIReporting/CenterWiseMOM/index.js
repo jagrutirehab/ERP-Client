@@ -5,7 +5,7 @@ import { CSVLink } from "react-csv";
 import Select from "react-select";
 import {
   fetchCenterWiseMOM,
-  fetchCampaignWiseMOM,
+  fetchCenterWiseStatusMOM,
 } from "../../../store/features/miReporting/miReportingSlice";
 
 const AGENT_OPTIONS = [
@@ -77,29 +77,6 @@ const CAMPAIGN_OPTIONS = [
   { value: "Campaign_1", label: "Campaign_1" },
 ];
 
-const CENTER_OPTIONS = [
-  { value: "", label: "All Centers" },
-  { value: "J-Pune", label: "J-Pune" },
-  { value: "NA", label: "NA" },
-  { value: "J-Noida", label: "J-Noida" },
-  { value: "J-Malad West", label: "J-Malad West" },
-  { value: "J-Chennai", label: "J-Chennai" },
-  { value: "J-Ahmedabad", label: "J-Ahmedabad" },
-  { value: "J-Malad", label: "J-Malad" },
-  { value: "J-Thane", label: "J-Thane" },
-  { value: "J-Gurgaon", label: "J-Gurgaon" },
-  { value: "Olive-Navi Mumbai (Kopar)", label: "Olive-Navi Mumbai (Kopar)" },
-  { value: "J-Bangalore", label: "J-Bangalore" },
-  { value: "J-Navi Mumbai (Taloja)", label: "J-Navi Mumbai (Taloja)" },
-  { value: "Olive-Noida", label: "Olive-Noida" },
-  { value: "J-Hyderabad", label: "J-Hyderabad" },
-  { value: "Nashik", label: "Nashik" },
-  { value: "Aroha-Noida", label: "Aroha-Noida" },
-  { value: "Olive - Baner", label: "Olive - Baner" },
-  { value: "Aroha-Faridabad", label: "Aroha-Faridabad" },
-  { value: "J - Chennai T Nagar", label: "J - Chennai T Nagar" },
-];
-
 const headerStyle = {
   border: "1px solid #cfd8e3",
   background: "#004d00",
@@ -122,96 +99,23 @@ const totalCellStyle = {
   color: "#1d4ed8",
 };
 
-// Reusable compact MOM table
-const MOMTable = ({ data, months, getCount, totals, displayFormat, loading, error, getName }) => (
-  <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10, display: "inline-block", width: "auto", maxWidth: "100%" }}>
-    <CardBody className="p-0">
-      {loading && (
-        <div className="text-center py-4" style={{ minWidth: 200 }}>
-          <Spinner color="primary" />
-          <p className="mt-2 text-muted mb-0">Loading data...</p>
-        </div>
-      )}
-      {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
-      {!loading && !error && (
-        <div style={{ overflowX: "auto", borderRadius: 10, overflow: "hidden" }}>
-          <Table className="mb-0" style={{ borderCollapse: "collapse", fontSize: "0.78rem", width: "max-content" }}>
-            <thead>
-              <tr>
-                <th className="text-center fw-bold px-2 py-1" style={headerStyle}>Name</th>
-                {months.map((month) => (
-                  <th key={month} className="text-center fw-bold px-2 py-1" style={headerStyle}>{month}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {data && data.length > 0 ? (
-                <>
-                  {data.map((item, idx) => (
-                    <tr key={idx}>
-                      <td className="px-2 py-1 fw-semibold" style={cellStyle(idx)}>{getName(item)}</td>
-                      {months.map((month) => {
-                        const value = getCount(item, month);
-                        const total = totals[month] || 0;
-                        const display =
-                          displayFormat === "percentage"
-                            ? total > 0 ? `${((value / total) * 100).toFixed(1)}%` : "0%"
-                            : value;
-                        return (
-                          <td key={month} className="text-center px-2 py-1" style={{ ...cellStyle(idx), color: value > 0 ? "#1e293b" : "#94a3b8" }}>
-                            {display}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-                  <tr>
-                    <td className="px-2 py-1 fw-bold" style={{ ...totalCellStyle, color: "black", whiteSpace: "nowrap" }}>Total</td>
-                    {months.map((month) => (
-                      <td key={month} className="text-center px-2 py-1 fw-bold" style={totalCellStyle}>
-                        {displayFormat === "percentage" ? "100%" : (totals[month] ?? 0)}
-                      </td>
-                    ))}
-                  </tr>
-                </>
-              ) : (
-                <tr>
-                  <td colSpan={months.length + 1} className="text-center text-muted py-4" style={{ border: "1px solid #d6dde8" }}>
-                    No data available
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </Table>
-        </div>
-      )}
-    </CardBody>
-  </Card>
-);
-
 const CenterWiseMOM = () => {
   const dispatch = useDispatch();
-  const { centerWiseMOM, campaignWiseMOM, loading, error } = useSelector(
+  const { centerWiseMOM, centerWiseStatusMOM, loading, error } = useSelector(
     (state) => state.MIReporting
   );
 
-  // Common filters (shared between both tables)
-  const [commonFilters, setCommonFilters] = useState({
+  const [filters, setFilters] = useState({
     hs_lead_status: "",
     hubspot_owner_id: "",
   });
-
   const [displayFormat, setDisplayFormat] = useState("number");
+  const [campaign, setCampaign] = useState("");
 
-  // Per-table filters
-  const [centerWiseCampaign, setCenterWiseCampaign] = useState("");
-  const [campaignWiseCenter, setCampaignWiseCenter] = useState("");
-
-  // CSV refs
-  const centerCsvRef = useRef();
-  const campaignCsvRef = useRef();
-  const [centerCsvData, setCenterCsvData] = useState([]);
-  const [campaignCsvData, setCampaignCsvData] = useState([]);
+  const csvRef = useRef();
+  const [csvData, setCsvData] = useState([]);
+  const matrixCsvRef = useRef();
+  const [matrixCsvData, setMatrixCsvData] = useState([]);
 
   const months = useMemo(() => {
     const result = [];
@@ -224,40 +128,25 @@ const CenterWiseMOM = () => {
     return result;
   }, []);
 
-  // Fetch center-wise data
   useEffect(() => {
     const params = {};
-    if (commonFilters.hs_lead_status) params.hs_lead_status = commonFilters.hs_lead_status;
-    if (commonFilters.hubspot_owner_id) params.hubspot_owner_id = commonFilters.hubspot_owner_id;
-    if (centerWiseCampaign) params.leadSource = centerWiseCampaign;
+    if (filters.hs_lead_status) params.hs_lead_status = filters.hs_lead_status;
+    if (filters.hubspot_owner_id) params.hubspot_owner_id = filters.hubspot_owner_id;
+    if (campaign) params.lead_source = campaign;
     dispatch(fetchCenterWiseMOM(params));
-  }, [dispatch, commonFilters, centerWiseCampaign]);
-
-  // Fetch campaign-wise data
-  useEffect(() => {
-    const params = {};
-    if (commonFilters.hs_lead_status) params.hs_lead_status = commonFilters.hs_lead_status;
-    if (commonFilters.hubspot_owner_id) params.hubspot_owner_id = commonFilters.hubspot_owner_id;
-    if (campaignWiseCenter) params.center = campaignWiseCenter;
-    dispatch(fetchCampaignWiseMOM(params));
-  }, [dispatch, commonFilters, campaignWiseCenter]);
+    dispatch(fetchCenterWiseStatusMOM(params));
+  }, [dispatch, filters, campaign]);
 
   const getCount = (item, month) => {
     const stat = item.stats?.find((s) => s.month === month);
     return stat ? stat.count : 0;
   };
 
-  const sortedCenterData = useMemo(() =>
+  const sortedData = useMemo(() =>
     [...centerWiseMOM].sort((a, b) => (a.center || "").localeCompare(b.center || "")),
   [centerWiseMOM]);
 
-  const sortedCampaignData = useMemo(() =>
-    [...campaignWiseMOM].sort((a, b) =>
-      (a.leadSource || a.campaign || a.name || "").localeCompare(b.leadSource || b.campaign || b.name || "")
-    ),
-  [campaignWiseMOM]);
-
-  const centerTotals = useMemo(() => {
+  const totals = useMemo(() => {
     const result = {};
     months.forEach((month) => {
       result[month] = centerWiseMOM.reduce((sum, item) => sum + getCount(item, month), 0);
@@ -266,160 +155,287 @@ const CenterWiseMOM = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerWiseMOM, months]);
 
-  const campaignTotals = useMemo(() => {
-    const result = {};
-    months.forEach((month) => {
-      result[month] = campaignWiseMOM.reduce((sum, item) => sum + getCount(item, month), 0);
-    });
-    return result;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [campaignWiseMOM, months]);
-
   const csvHeaders = useMemo(() => {
-    const headers = [{ label: "#", key: "id" }, { label: "Name", key: "name" }];
+    const headers = [{ label: "#", key: "id" }, { label: "Center", key: "name" }];
     months.forEach((month) => headers.push({ label: month, key: month }));
     return headers;
   }, [months]);
 
-  const buildCsvRows = (data, nameKey) => {
-    const rows = data.map((item, idx) => {
-      const row = { id: idx + 1, name: item[nameKey] };
+  // Center Status Matrix derived data
+  // Response: [{ center, total, stats: [{ month, statusBreakdown: [{ status, count }] }] }]
+  // Table: rows=centers, cols=lead statuses, + Center Total column
+
+  const matrixStatuses = useMemo(() => {
+    const set = new Set();
+    centerWiseStatusMOM.forEach((item) => {
+      item.stats?.forEach((stat) => {
+        stat.statusBreakdown?.forEach((s) => set.add(s.status));
+      });
+    });
+    return Array.from(set).sort();
+  }, [centerWiseStatusMOM]);
+
+  // pivot[center][status] = total count across all months
+  const matrixPivot = useMemo(() => {
+    const pivot = {};
+    centerWiseStatusMOM.forEach((item) => {
+      pivot[item.center] = {};
+      item.stats?.forEach((stat) => {
+        stat.statusBreakdown?.forEach((s) => {
+          pivot[item.center][s.status] = (pivot[item.center][s.status] || 0) + s.count;
+        });
+      });
+    });
+    return pivot;
+  }, [centerWiseStatusMOM]);
+
+  const matrixSortedCenters = useMemo(() =>
+    [...centerWiseStatusMOM].sort((a, b) => (a.center || "").localeCompare(b.center || "")),
+  [centerWiseStatusMOM]);
+
+  // Column totals (per status across all centers)
+  const matrixStatusTotals = useMemo(() => {
+    const result = {};
+    matrixStatuses.forEach((status) => {
+      result[status] = centerWiseStatusMOM.reduce(
+        (sum, item) => sum + (matrixPivot[item.center]?.[status] || 0),
+        0
+      );
+    });
+    return result;
+  }, [matrixPivot, matrixStatuses, centerWiseStatusMOM]);
+
+  const matrixCsvHeaders = useMemo(() => {
+    const headers = [{ label: "Center", key: "center" }, { label: "Center Total", key: "_total" }];
+    matrixStatuses.forEach((s) => headers.push({ label: s, key: s }));
+    return headers;
+  }, [matrixStatuses]);
+
+  const exportMatrixCsv = () => {
+    const rows = matrixSortedCenters.map((item) => {
+      const r = { center: item.center, _total: item.total || 0 };
+      matrixStatuses.forEach((s) => { r[s] = matrixPivot[item.center]?.[s] || 0; });
+      return r;
+    });
+    const grandTotal = centerWiseStatusMOM.reduce((s, item) => s + (item.total || 0), 0);
+    const totalRow = { center: "Total", _total: grandTotal };
+    matrixStatuses.forEach((s) => { totalRow[s] = matrixStatusTotals[s] || 0; });
+    rows.push(totalRow);
+    setMatrixCsvData(rows);
+    setTimeout(() => matrixCsvRef.current.link.click(), 100);
+  };
+
+  const exportCsv = () => {
+    const rows = sortedData.map((item, idx) => {
+      const row = { id: idx + 1, name: item.center };
       months.forEach((month) => { row[month] = getCount(item, month); });
       return row;
     });
     const totalRow = { id: "", name: "Total" };
-    months.forEach((month) => { totalRow[month] = (month in centerTotals ? centerTotals[month] : 0); });
+    months.forEach((month) => { totalRow[month] = totals[month] ?? 0; });
     rows.push(totalRow);
-    return rows;
-  };
-
-  const exportCenterCsv = () => {
-    setCenterCsvData(buildCsvRows(sortedCenterData, "center"));
-    setTimeout(() => centerCsvRef.current.link.click(), 100);
-  };
-
-  const exportCampaignCsv = () => {
-    const rows = sortedCampaignData.map((item, idx) => {
-      const row = { id: idx + 1, name: item.leadSource || item.campaign || item.name };
-      months.forEach((month) => { row[month] = getCount(item, month); });
-      return row;
-    });
-    const totalRow = { id: "", name: "Total" };
-    months.forEach((month) => { totalRow[month] = campaignTotals[month] ?? 0; });
-    rows.push(totalRow);
-    setCampaignCsvData(rows);
-    setTimeout(() => campaignCsvRef.current.link.click(), 100);
+    setCsvData(rows);
+    setTimeout(() => csvRef.current.link.click(), 100);
   };
 
   return (
     <div className="w-100 mt-4 mt-sm-0" style={{ flex: 1, width: "100%", maxWidth: "100%", minWidth: 0 }}>
       <div className="row">
         <div className="col-12">
-          {/* Header */}
-          <div className="p-3">
-            <div className="d-flex align-items-center">
-              <div className="flex-shrink-0 chat-user-img online user-own-img align-self-center me-3 ms-0">
-                <i className="bx bx-bar-chart-alt-2 fs-1"></i>
-              </div>
-              <h6 className="text-truncate mb-0 fs-18">Center Wise - Month on Month</h6>
-            </div>
-          </div>
+          
 
           <div className="px-3 pb-3">
-            {/* Common filters */}
-            <Row className="g-2 align-items-center mb-4">
-              <Col xs="auto">
-                <Select
-                  value={LEAD_STATUS_OPTIONS.find((o) => o.value === commonFilters.hs_lead_status) || LEAD_STATUS_OPTIONS[0]}
-                  onChange={(opt) => setCommonFilters((prev) => ({ ...prev, hs_lead_status: opt?.value || "" }))}
-                  options={LEAD_STATUS_OPTIONS}
-                  placeholder="Lead Status..."
-                  styles={{ container: (b) => ({ ...b, minWidth: 180 }) }}
-                />
-              </Col>
-              <Col xs="auto">
-                <Select
-                  value={AGENT_OPTIONS.find((o) => o.value === commonFilters.hubspot_owner_id) || AGENT_OPTIONS[0]}
-                  onChange={(opt) => setCommonFilters((prev) => ({ ...prev, hubspot_owner_id: opt?.value || "" }))}
-                  options={AGENT_OPTIONS}
-                  placeholder="Select Agent..."
-                  styles={{ container: (b) => ({ ...b, minWidth: 180 }) }}
-                />
-              </Col>
-              <Col xs="auto">
-                <Select
-                  value={displayFormat === "percentage" ? { value: "percentage", label: "Percentage" } : { value: "number", label: "Number" }}
-                  onChange={(opt) => setDisplayFormat(opt.value)}
-                  options={[{ value: "number", label: "Number" }, { value: "percentage", label: "Percentage" }]}
-                  styles={{ container: (b) => ({ ...b, minWidth: 140 }) }}
-                />
-              </Col>
-            </Row>
-
-            {/* ── Both tables side by side ── */}
-            <div className="d-flex gap-4 align-items-start flex-wrap">
-
-            {/* ── Center Wise ── */}
-            <div style={{ minWidth: 0 }}>
-              <div className="d-flex align-items-center justify-content-between mb-2 gap-2 flex-wrap">
-                <h6 className="mb-0 fw-bold">Center Wise</h6>
-                <div className="d-flex align-items-center gap-2">
+            {/* Sticky filter bar */}
+            <div style={{ position: "sticky", top: 0, zIndex: 50, background: "#fff", paddingTop: 8, paddingBottom: 8, marginBottom: 12, borderBottom: "1px solid #e2e8f0" }}>
+              <Row className="g-2 align-items-center">
+                <Col xs="auto">
                   <Select
-                    value={CAMPAIGN_OPTIONS.find((o) => o.value === centerWiseCampaign) || CAMPAIGN_OPTIONS[0]}
-                    onChange={(opt) => setCenterWiseCampaign(opt?.value || "")}
+                    value={AGENT_OPTIONS.find((o) => o.value === filters.hubspot_owner_id) || AGENT_OPTIONS[0]}
+                    onChange={(opt) => setFilters((prev) => ({ ...prev, hubspot_owner_id: opt?.value || "" }))}
+                    options={AGENT_OPTIONS}
+                    placeholder="Select Agent..."
+                    styles={{ container: (b) => ({ ...b, minWidth: 180 }) }}
+                  />
+                </Col>
+                <Col xs="auto">
+                  <Select
+                    value={CAMPAIGN_OPTIONS.find((o) => o.value === campaign) || CAMPAIGN_OPTIONS[0]}
+                    onChange={(opt) => setCampaign(opt?.value || "")}
                     options={CAMPAIGN_OPTIONS}
                     placeholder="Campaign..."
                     styles={{ container: (b) => ({ ...b, minWidth: 200 }) }}
                   />
-                  <Button color="info" size="sm" onClick={exportCenterCsv} disabled={!centerWiseMOM?.length}>
-                    Export CSV
-                  </Button>
-                  <CSVLink data={centerCsvData} filename="center-wise-mom.csv" headers={csvHeaders} className="d-none" ref={centerCsvRef} />
-                </div>
-              </div>
-              <MOMTable
-                data={sortedCenterData}
-                months={months}
-                getCount={getCount}
-                totals={centerTotals}
-                displayFormat={displayFormat}
-                loading={loading}
-                error={error}
-                getName={(item) => item.center}
-              />
-            </div>
-
-            {/* ── Campaign Wise ── */}
-            <div style={{ minWidth: 0 }}>
-              <div className="d-flex align-items-center justify-content-between mb-2 gap-2 flex-wrap">
-                <h6 className="mb-0 fw-bold">Campaign Wise</h6>
-                <div className="d-flex align-items-center gap-2">
+                </Col>
+                <Col xs="auto">
                   <Select
-                    value={CENTER_OPTIONS.find((o) => o.value === campaignWiseCenter) || CENTER_OPTIONS[0]}
-                    onChange={(opt) => setCampaignWiseCenter(opt?.value || "")}
-                    options={CENTER_OPTIONS}
-                    placeholder="Center..."
-                    styles={{ container: (b) => ({ ...b, minWidth: 200 }) }}
+                    value={displayFormat === "percentage" ? { value: "percentage", label: "Percentage" } : { value: "number", label: "Number" }}
+                    onChange={(opt) => setDisplayFormat(opt.value)}
+                    options={[{ value: "number", label: "Number" }, { value: "percentage", label: "Percentage" }]}
+                    styles={{ container: (b) => ({ ...b, minWidth: 140 }) }}
                   />
-                  <Button color="info" size="sm" onClick={exportCampaignCsv} disabled={!campaignWiseMOM?.length}>
-                    Export CSV
-                  </Button>
-                  <CSVLink data={campaignCsvData} filename="campaign-wise-mom.csv" headers={csvHeaders} className="d-none" ref={campaignCsvRef} />
-                </div>
-              </div>
-              <MOMTable
-                data={sortedCampaignData}
-                months={months}
-                getCount={getCount}
-                totals={campaignTotals}
-                displayFormat={displayFormat}
-                loading={loading}
-                error={error}
-                getName={(item) => item.leadSource || item.campaign || item.name}
-              />
+                </Col>
+              </Row>
             </div>
 
-            </div>{/* end side-by-side wrapper */}
+            {/* ── Center × Lead Status Matrix ── */}
+            <div className="mb-4">
+              <div className="d-flex align-items-center justify-content-between mb-2 gap-2">
+                <h6 className="mb-0 fw-bold">Center × Lead Status</h6>
+                <div className="d-flex align-items-center gap-2">
+                  <Button color="info" size="sm" onClick={exportMatrixCsv} disabled={!centerWiseStatusMOM?.length}>
+                    Export CSV
+                  </Button>
+                  <CSVLink data={matrixCsvData} filename="center-status-matrix.csv" headers={matrixCsvHeaders} className="d-none" ref={matrixCsvRef} />
+                </div>
+              </div>
+              <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10, display: "inline-block", width: "auto", maxWidth: "100%" }}>
+                <CardBody className="p-0">
+                  {loading && (
+                    <div className="text-center py-4" style={{ minWidth: 200 }}>
+                      <Spinner color="primary" />
+                      <p className="mt-2 text-muted mb-0">Loading data...</p>
+                    </div>
+                  )}
+                  {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
+                  {!loading && !error && (
+                    <div style={{ overflowX: "auto", borderRadius: 10, overflow: "hidden" }}>
+                      <Table className="mb-0" style={{ borderCollapse: "collapse", fontSize: "0.78rem", width: "max-content" }}>
+                        <thead>
+                          <tr>
+                            <th className="text-center fw-bold px-2 py-1" style={headerStyle}>Center Name</th>
+                            <th className="text-center fw-bold px-2 py-1" style={headerStyle}>Center Total</th>
+                            {matrixStatuses.map((status) => (
+                              <th key={status} className="text-center fw-bold px-2 py-1" style={headerStyle}>{status}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {matrixSortedCenters && matrixSortedCenters.length > 0 ? (
+                            <>
+                              {matrixSortedCenters.map((item, idx) => (
+                                <tr key={idx}>
+                                  <td className="px-2 py-1 fw-semibold" style={cellStyle(idx)}>{item.center}</td>
+                                  <td className="text-center px-2 py-1 fw-semibold" style={{ ...cellStyle(idx), color: (item.total || 0) > 0 ? "#1e293b" : "#94a3b8" }}>
+                                    {item.total || 0}
+                                  </td>
+                                  {matrixStatuses.map((status) => {
+                                    const value = matrixPivot[item.center]?.[status] || 0;
+                                    return (
+                                      <td key={status} className="text-center px-2 py-1" style={{ ...cellStyle(idx), color: value > 0 ? "#1e293b" : "#94a3b8" }}>
+                                        {value}
+                                      </td>
+                                    );
+                                  })}
+                                </tr>
+                              ))}
+                              <tr>
+                                <td className="px-2 py-1 fw-bold" style={{ ...totalCellStyle, color: "black", whiteSpace: "nowrap" }}>Total</td>
+                                <td className="text-center px-2 py-1 fw-bold" style={totalCellStyle}>
+                                  {centerWiseStatusMOM.reduce((s, item) => s + (item.total || 0), 0)}
+                                </td>
+                                {matrixStatuses.map((status) => (
+                                  <td key={status} className="text-center px-2 py-1 fw-bold" style={totalCellStyle}>
+                                    {matrixStatusTotals[status] || 0}
+                                  </td>
+                                ))}
+                              </tr>
+                            </>
+                          ) : (
+                            <tr>
+                              <td colSpan={matrixStatuses.length + 2} className="text-center text-muted py-4" style={{ border: "1px solid #d6dde8" }}>
+                                No data available
+                              </td>
+                            </tr>
+                          )}
+                        </tbody>
+                      </Table>
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            </div>
+
+            {/* ── Center Wise MoM ── */}
+            <div className="mb-2">
+              <h6 className="fw-bold mb-2">Center Wise - Month on Month</h6>
+              <div className="d-flex align-items-center gap-2 flex-wrap">
+                <Select
+                  value={LEAD_STATUS_OPTIONS.find((o) => o.value === filters.hs_lead_status) || LEAD_STATUS_OPTIONS[0]}
+                  onChange={(opt) => setFilters((prev) => ({ ...prev, hs_lead_status: opt?.value || "" }))}
+                  options={LEAD_STATUS_OPTIONS}
+                  placeholder="Lead Status..."
+                  styles={{ container: (b) => ({ ...b, minWidth: 180 }) }}
+                />
+                <Button color="info" size="sm" onClick={exportCsv} disabled={!centerWiseMOM?.length}>
+                  Export CSV
+                </Button>
+                <CSVLink data={csvData} filename="center-wise-mom.csv" headers={csvHeaders} className="d-none" ref={csvRef} />
+              </div>
+            </div>
+            <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10, display: "inline-block", width: "auto", maxWidth: "100%" }}>
+              <CardBody className="p-0">
+                {loading && (
+                  <div className="text-center py-4" style={{ minWidth: 200 }}>
+                    <Spinner color="primary" />
+                    <p className="mt-2 text-muted mb-0">Loading data...</p>
+                  </div>
+                )}
+                {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
+                {!loading && !error && (
+                  <div style={{ overflowX: "auto", borderRadius: 10, overflow: "hidden" }}>
+                    <Table className="mb-0" style={{ borderCollapse: "collapse", fontSize: "0.78rem", width: "max-content" }}>
+                      <thead>
+                        <tr>
+                          <th className="text-center fw-bold px-2 py-1" style={headerStyle}>Center</th>
+                          {months.map((month) => (
+                            <th key={month} className="text-center fw-bold px-2 py-1" style={headerStyle}>{month}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {sortedData && sortedData.length > 0 ? (
+                          <>
+                            {sortedData.map((item, idx) => (
+                              <tr key={idx}>
+                                <td className="px-2 py-1 fw-semibold" style={cellStyle(idx)}>{item.center}</td>
+                                {months.map((month) => {
+                                  const value = getCount(item, month);
+                                  const total = totals[month] || 0;
+                                  const display =
+                                    displayFormat === "percentage"
+                                      ? total > 0 ? `${((value / total) * 100).toFixed(1)}%` : "0%"
+                                      : value;
+                                  return (
+                                    <td key={month} className="text-center px-2 py-1" style={{ ...cellStyle(idx), color: value > 0 ? "#1e293b" : "#94a3b8" }}>
+                                      {display}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                            <tr>
+                              <td className="px-2 py-1 fw-bold" style={{ ...totalCellStyle, color: "black", whiteSpace: "nowrap" }}>Total</td>
+                              {months.map((month) => (
+                                <td key={month} className="text-center px-2 py-1 fw-bold" style={totalCellStyle}>
+                                  {displayFormat === "percentage" ? "100%" : (totals[month] ?? 0)}
+                                </td>
+                              ))}
+                            </tr>
+                          </>
+                        ) : (
+                          <tr>
+                            <td colSpan={months.length + 1} className="text-center text-muted py-4" style={{ border: "1px solid #d6dde8" }}>
+                              No data available
+                            </td>
+                          </tr>
+                        )}
+                      </tbody>
+                    </Table>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+
           </div>
         </div>
       </div>

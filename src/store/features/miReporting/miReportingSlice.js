@@ -29,6 +29,7 @@ import {
   getMIAttendance,
   getCenterWiseMOM,
   getCampaignWiseMOM,
+  getCenterWiseStatusMOM,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -67,6 +68,7 @@ const initialState = {
   nursesDOD: [],
   centerWiseMOM: [],
   campaignWiseMOM: [],
+  centerWiseStatusMOM: [],
   loading: false,
   error: null,
 };
@@ -98,6 +100,21 @@ export const fetchCenterWiseMOM = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.message || "Failed to fetch center wise MoM"
+      );
+    }
+  }
+);
+
+// Center Status Matrix
+export const fetchCenterWiseStatusMOM = createAsyncThunk(
+  "miReporting/fetchCenterWiseStatusMOM",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const response = await getCenterWiseStatusMOM(params);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch center status matrix"
       );
     }
   }
@@ -922,6 +939,19 @@ const miReportingSlice = createSlice({
         state.campaignWiseMOM = action.payload.payload || [];
       })
       .addCase(fetchCampaignWiseMOM.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Center Status Matrix
+      .addCase(fetchCenterWiseStatusMOM.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCenterWiseStatusMOM.fulfilled, (state, action) => {
+        state.loading = false;
+        state.centerWiseStatusMOM = action.payload.payload || [];
+      })
+      .addCase(fetchCenterWiseStatusMOM.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
