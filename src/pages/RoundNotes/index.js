@@ -341,10 +341,10 @@ const RoundNotes = () => {
                   />
                 </FormGroup>
                 <FormGroup>
-                  <Label>Search notes</Label>
+                  <Label>Search</Label>
                   <Input
                     type="text"
-                    placeholder="Search text..."
+                    placeholder="Search note, floor, patient name or UID..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
