@@ -15,6 +15,7 @@ import {
   RELATIVE_VISIT,
   ROUND_NOTE,
   VITAL_SIGN,
+  PSYCHO_DIAGNOSTIC_FORM,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -44,10 +45,8 @@ import RoundNoteChart from "./RoundNoteChart";
 import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
 import { api } from "../../../config";
+import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
 const Charts = ({ addmission, charts, toggleDateModal }) => {
-
-
-
   const dispatch = useDispatch();
   const [, forceUpdate] = useState(0);
 
@@ -56,7 +55,6 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
     isOpen: false,
   });
   const [socketReady, setSocketReady] = useState(false);
-
 
   const socketRef = useRef(null);
 
@@ -115,11 +113,14 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
     console.log("[AI] Registering onAny listener");
 
     const handler = (eventName, data) => {
-      if (!eventName.startsWith("lab-report-ai:")) return;
+      if (
+        !eventName.startsWith("lab-report-ai:") &&
+        !eventName.startsWith("psycho-diagnostic-ai:")
+      )
+        return;
       console.log(`[AI] Socket received: ${eventName}`, data);
       console.log("addmissionRef.current?._id", addmissionRef.current?._id);
       console.log("Addmission ref", addmissionRef);
-
 
       setTimeout(() => {
         if (addmissionRef.current?._id) {
@@ -129,10 +130,13 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
         } else {
           // General flow — get patient from charts data
           // const patientId = chartsRef.current?.[0]?.patient;
-          const patientId = chartsRef.current?.[chartsRef.current.length - 1]?.patient
-            || chartsRef.current?.[0]?.patient;
+          const patientId =
+            chartsRef.current?.[chartsRef.current.length - 1]?.patient ||
+            chartsRef.current?.[0]?.patient;
           if (patientId) {
-            dispatch(fetchGeneralCharts({ patient: patientId, type: "GENERAL" }));
+            dispatch(
+              fetchGeneralCharts({ patient: patientId, type: "GENERAL" }),
+            );
           }
         }
       }, 2000);
@@ -180,14 +184,11 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
         modal: true,
         patient,
         doctor: addmission?.doctor,
-      })
+      }),
     );
   };
 
   console.log("CHARTING", charts);
-
-
-
 
   return (
     <React.Fragment>
@@ -224,9 +225,7 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                 {chart.chart === RELATIVE_VISIT && (
                   <RelativeVisit data={chart?.relativeVisit} />
                 )}
-                {chart.chart === OUTPASS && (
-                  <Outpass data={chart?.outpass} />
-                )}
+                {chart.chart === OUTPASS && <Outpass data={chart?.outpass} />}
                 {chart.chart === DISCHARGE_SUMMARY && (
                   <DischargeSummary data={chart?.dischargeSummary} />
                 )}
@@ -243,7 +242,16 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                   <CounsellingNote data={chart.counsellingNote} />
                 )}
                 {chart.chart === LAB_REPORT && (
-                  <LabReport data={chart.labReport?.reports} date={chart.labReport?.updatedAt} />
+                  <LabReport
+                    data={chart.labReport?.reports}
+                    date={chart.labReport?.updatedAt}
+                  />
+                )}
+                {chart.chart === PSYCHO_DIAGNOSTIC_FORM && (
+                  <PsychoDiagnosticForm
+                    data={chart.psychoDiagnosticForm?.reports}
+                    date={chart.psychoDiagnosticForm?.updatedAt}
+                  />
                 )}
                 {chart.chart === DETAIL_ADMISSION && (
                   <DetailAdmission data={chart.detailAdmission} />

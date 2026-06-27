@@ -492,6 +492,9 @@ export const GET_CITY_VISITED_DATE = "/mi-reporting/city-visited-date";
 export const GET_OWNER_VISITED_DATE = "/mi-reporting/owner-visited-date";
 export const GET_CITY_LEAD_STATUS = "/mi-reporting/city-lead-status";
 export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
+export const GET_CENTER_WISE_MOM = "/mi-reporting/center-wise-mom";
+export const GET_CAMPAIGN_WISE_MOM = "/mi-reporting/campaign-wise-mom";
+export const GET_CENTER_WISE_STATUS_MOM = "/mi-reporting/center-lead-status-mom";
 
 //MIS Reports
 export const GET_REFUND_AMOUNT_MOM = "/mi-reporting/refund-amount-mom";
@@ -753,3 +756,14 @@ export const GENERATE_ADDMISSION_SUMMARY =
   "/patient/generate/addmission/summary";
 
 export const GET_ADDMISSION_SUMMARY = "/patient/get/addmission/summary";
+
+export const POST_PSYCHO_DIAGNOSTIC_FORM = "/chart/psycho-diagnostic-form";
+export const EDIT_PSYCHO_DIAGNOSTIC_FORM = "/chart/psycho-diagnostic-form";
+export const POST_GENERAL_PSYCHO_DIAGNOSTIC_FORM =
+  "/chart/psycho-diagnostic-form/general";
+export const EDIT_GENERAL_PSYCHO_DIAGNOSTIC_FORM =
+  "/chart/psycho-diagnostic-form/general";
+export const DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE =
+  "/chart/psycho-diagnostic-form";
+export const GENERATE_PSYCHO_DIAGNOSTIC_SUMMARY =
+  "/chart/generate/summary/psycho-diagnostic-form";

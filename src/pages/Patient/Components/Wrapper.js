@@ -11,7 +11,7 @@ import {
 } from "reactstrap";
 import { APIClient } from "../../../helpers/api_helper";
 import { toast } from "react-toastify";
- 
+
 //framer motion
 import { motion } from "framer-motion";
 
@@ -24,8 +24,17 @@ import {
   WRITE_OFF,
 } from "../../../Components/constants/patient";
 import { connect, useDispatch } from "react-redux";
-import { createEditBill, fetchCharts, fetchGeneralCharts, fetchChartsAddmissions } from "../../../store/actions";
-import { validateChart, validateAISummary, validateAIExpirySummary } from "../../../helpers/backend_helper";
+import {
+  createEditBill,
+  fetchCharts,
+  fetchGeneralCharts,
+  fetchChartsAddmissions,
+} from "../../../store/actions";
+import {
+  validateChart,
+  validateAISummary,
+  validateAIExpirySummary,
+} from "../../../helpers/backend_helper";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import ValidateConfirmationModal from "../ChartForm/Components/ValidateConfirmationModal";
 
@@ -71,9 +80,12 @@ const Wrapper = ({
     }
   };
 
-  const needsValidation = chart && item.needsValidation && !item.doctorValidatorId;
-  const needsAIValidation = !!item.geminiResponseGeneratedBy && !item.validatorId;
-  const canPrint = showPrint &&
+  const needsValidation =
+    chart && item.needsValidation && !item.doctorValidatorId;
+  const needsAIValidation =
+    !!item.geminiResponseGeneratedBy && !item.validatorId;
+  const canPrint =
+    showPrint &&
     (!item.needsValidation || !!item.doctorValidatorId) &&
     (!item.geminiResponseGeneratedBy || !!item.validatorId);
 
@@ -97,7 +109,9 @@ const Wrapper = ({
     } else if (item.type === "OPD") {
       dispatch(fetchGeneralCharts({ patient: item.patient, type: "OPD" }));
     } else {
-      dispatch(fetchCharts({ addmissionId: item.addmission, chartType: "All" }));
+      dispatch(
+        fetchCharts({ addmissionId: item.addmission, chartType: "All" }),
+      );
       if (item.addmission) {
         dispatch(fetchChartsAddmissions([item.addmission]));
       }
@@ -108,9 +122,10 @@ const Wrapper = ({
     setLoading(true);
     try {
       if (pendingAction === "ai") {
-        const summaryId = item.chart === "EXPIRY_SUMMARY"
-          ? item.expirySummary?._id
-          : item.dischargeSummary?._id;
+        const summaryId =
+          item.chart === "EXPIRY_SUMMARY"
+            ? item.expirySummary?._id
+            : item.dischargeSummary?._id;
         if (item.chart === "EXPIRY_SUMMARY") {
           await validateAIExpirySummary({ summary: summaryId });
         } else {
@@ -145,7 +160,6 @@ const Wrapper = ({
       toast.error("Failed to update chart visibility");
     }
   };
-
 
   const chartName = chart
     ? chart
@@ -203,7 +217,12 @@ const Wrapper = ({
               </button>
             )}
             <h5 className="display-6 fs-14 text-start d-flex align-items-center gap-2">
-              {chartName === "Mental Examination" ? "Clinical Note" : chartName}
+              {/* {chartName === "Mental Examination" ? "Clinical Note" : chartName} */}
+              {chartName === "Mental Examination"
+                ? "Clinical Note"
+                : chartName === "Psycho Diagnostic Form"
+                  ? "Psycho Diagnostic Report"
+                  : chartName}
 
               {geminiResponseGeneratedBy && (
                 <span
@@ -223,7 +242,8 @@ const Wrapper = ({
                   className="badge badge-soft-info d-inline-flex align-items-center py-1 px-2 ms-2"
                   style={{ fontSize: "11px" }}
                 >
-                  <i className="ri-robot-line me-1"></i> AI-Summary Validation Pending
+                  <i className="ri-robot-line me-1"></i> AI-Summary Validation
+                  Pending
                 </span>
               )}
               {needsValidation && !needsAIValidation && (
@@ -231,7 +251,8 @@ const Wrapper = ({
                   className="badge badge-soft-warning d-inline-flex align-items-center py-1 px-2 ms-2"
                   style={{ fontSize: "11px" }}
                 >
-                  <i className="ri-time-line me-1"></i> Pending Validation By Doctor
+                  <i className="ri-time-line me-1"></i> Pending Validation By
+                  Doctor
                 </span>
               )}
             </h5>
@@ -346,23 +367,22 @@ const Wrapper = ({
                   )}
                   <DropdownMenu>
                     {needsAIValidation && (
-                      <DropdownItem
-                        onClick={() => openModal("ai")}
-                        href="#"
-                      >
+                      <DropdownItem onClick={() => openModal("ai")} href="#">
                         <i className="ri-robot-line align-bottom text-info me-2"></i>{" "}
                         Validate AI Summary
                       </DropdownItem>
                     )}
-                    {needsValidation && !needsAIValidation && user?.role === "DOCTOR" && (
-                      <DropdownItem
-                        onClick={() => openModal("doctor")}
-                        href="#"
-                      >
-                        <i className="ri-checkbox-circle-line align-bottom text-success me-2"></i>{" "}
-                        Validate
-                      </DropdownItem>
-                    )}
+                    {needsValidation &&
+                      !needsAIValidation &&
+                      user?.role === "DOCTOR" && (
+                        <DropdownItem
+                          onClick={() => openModal("doctor")}
+                          href="#"
+                        >
+                          <i className="ri-checkbox-circle-line align-bottom text-success me-2"></i>{" "}
+                          Validate
+                        </DropdownItem>
+                      )}
                     <RenderWhen isTrue={canPrint}>
                       <DropdownItem
                         onClick={() => printItem(item, patient)}

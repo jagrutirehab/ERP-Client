@@ -35,6 +35,7 @@ import DocsCompliance from "./DocsCompliance";
 import DueAmount from "./DueAmount";
 import Attendance from "./Attendance";
 import NursesDOD from "./NursesDOD";
+import CenterWiseMOM from "./CenterWiseMOM";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -117,7 +118,7 @@ const MiReporting = () => {
 
   return (
     <React.Fragment>
-      <div className="page-content" style={{ overflowX: "hidden" }}>
+      <div className="page-content" style={{ overflowX: "clip" }}>
         <div className="">
           <Container fluid>
             <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1" style={{ alignItems: "flex-start" }}>
@@ -180,7 +181,13 @@ const MiReporting = () => {
                     element={<OwnerLeadStatus />}
                   />
                 )}
-                
+                {hasHubspotReportingPermission && (
+                  <Route
+                    path="/center-wise-mom"
+                    element={<CenterWiseMOM />}
+                  />
+                )}
+
                 {hasMISPermission&&<Route
                     path="/refund-amount"
                     element={<RefundAmountMOM />}

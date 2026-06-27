@@ -16,6 +16,7 @@ import {
   OUTPASS,
   VITAL_SIGN,
   MENTAL_EXAMINATION,
+  PSYCHO_DIAGNOSTIC_FORM,
 } from "../../../Components/constants/patient";
 
 //forms
@@ -31,6 +32,7 @@ import Outpass from "./Outpass";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
+import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
 
 const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const dispatch = useDispatch();
@@ -51,6 +53,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const isExpirySummary = chart.chart === EXPIRY_SUMMARY;
   const isDetailAdmission = chart.chart === DETAIL_ADMISSION;
   const isMentalExamination = chart.chart === MENTAL_EXAMINATION;
+  const isPsychoDiagnosticForm = chart.chart === PSYCHO_DIAGNOSTIC_FORM;
 
   const title = isPrescription
     ? "Prescription"
@@ -67,12 +70,14 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
               : isExpirySummary
                 ? "Expiry Summary"
                 : isRelativeVisit
-                ? "Relative Visit"
-                : isOutpass
-                ? "Outpass"
-                : isMentalExamination
-                  ? "Clinical Notes"
-                  : "Detail Admission";
+                  ? "Relative Visit"
+                  : isOutpass
+                    ? "Outpass"
+                    : isMentalExamination
+                      ? "Clinical Notes"
+                      : isPsychoDiagnosticForm
+                        ? "Psycho Diagnostic Report"
+                        : "Detail Admission";
 
   // console.log({ type });
 
@@ -101,8 +106,11 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isOutpass && <Outpass {...rest} />}
         {isDischargeSummary && <DischargeSummary {...rest} />}
         {isExpirySummary && <ExpirySummary {...rest} />}
-        {isDetailAdmission && <DetailAdmission {...rest} closeForm={toggleForm} />}
+        {isDetailAdmission && (
+          <DetailAdmission {...rest} closeForm={toggleForm} />
+        )}
         {isMentalExamination && <MentalExamination {...rest} />}
+        {isPsychoDiagnosticForm && <PsychoDiagnosticForm {...rest} />}
       </CustomModal>
     </React.Fragment>
   );

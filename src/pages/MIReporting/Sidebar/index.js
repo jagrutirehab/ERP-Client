@@ -62,6 +62,7 @@ const Sidebar = () => {
     hasHubspotOwnerVisitedPermission ? { id: "owner-visited-date", label: "Owner Visited Date", link: "/mi-reporting/owner-visited-date", icon: "bx bx-calendar-star" } : null,
     hasHubspotCityLeadStatusPermission ? { id: "city-lead-status", label: "City Lead Status", link: "/mi-reporting/city-lead-status", icon: "bx bx-bar-chart" } : null,
     hasHubspotOwnerLeadStatusPermission ? { id: "owner-lead-status", label: "Owner Lead Status", link: "/mi-reporting/owner-lead-status", icon: "bx bx-bar-chart-square" } : null,
+    hasHubspotReportingPermission ? { id: "center-wise-mom", label: "Center Wise (MoM)", link: "/mi-reporting/center-wise-mom", icon: "bx bx-building" } : null,
   ];
 
   const MISReports = [
