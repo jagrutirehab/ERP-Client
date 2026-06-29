@@ -13,6 +13,7 @@ import {
   MENTAL_EXAMINATION,
   OUTPASS,
   PRESCRIPTION,
+  PSYCHO_DIAGNOSTIC_FORM,
   RELATIVE_VISIT,
   ROUND_NOTE,
   VITAL_SIGN,
@@ -32,6 +33,7 @@ import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
 import RoundNote from "./RoundNote";
+import PsychoDiagnosis from "./PsychoDiagnosis";
 
 const styles = StyleSheet.create({
   page: {
@@ -91,6 +93,19 @@ const Charts = ({ charts, patient, doctor, admission }) => {
               }
             >
               <LabReport
+                chart={chart}
+                center={chart.center}
+                patient={patient}
+                admission={admission}
+              />
+            </RenderWhen>
+            <RenderWhen
+              isTrue={
+                chart?.chart === PSYCHO_DIAGNOSTIC_FORM &&
+                (chart.type === IPD || chart.type === GENERAL)
+              }
+            >
+              <PsychoDiagnosis
                 chart={chart}
                 center={chart.center}
                 patient={patient}
@@ -191,7 +206,8 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                 chart={chart}
                 center={chart.center}
                 patient={patient}
-                admission={admission} />
+                admission={admission}
+              />
             </RenderWhen>
 
             <RenderWhen isTrue={chart?.chart === ROUND_NOTE}>
