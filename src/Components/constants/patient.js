@@ -80,10 +80,10 @@ const records = [
     name: "Lab Reports",
     category: LAB_REPORT,
   },
-  // {
-  //   name: "Pyscho Diagnostic Report",
-  //   category: PSYCHO_DIAGNOSTIC_FORM,
-  // },
+  {
+    name: "Pyscho Diagnostic Report",
+    category: PSYCHO_DIAGNOSTIC_FORM,
+  },
   {
     name: "Relative Visit",
     category: RELATIVE_VISIT,
