@@ -110,7 +110,7 @@ const validationSchema = (mode, isEdit) =>
       .test("is-valid-phone", "Invalid phone number", function (value) {
         return isValidPhoneNumber(value || "");
       }),
-    email: Yup.string().email("Invalid email").notRequired(),
+    email: Yup.string().trim().email("Invalid email").notRequired(),
     status:
       mode === "NEW_JOINING"
         ? Yup.string().oneOf(["NEW_JOINING"])
@@ -313,9 +313,9 @@ const getInitialValues = (initialData, mode) => ({
   father: initialData?.father || "",
   mobile: initialData?.mobile || "",
   officialEmail: initialData?.officialEmail || "",
-  email: initialData?.email || "",
+  email: initialData?.email?.trim() || "",
 
-  monthlyCTC: initialData?.monthlyCTC || 0,
+  // monthlyCTC: initialData?.monthlyCTC || 0,
   biometricId: initialData?.biometricId || "",
   category: initialData?.category || "",
 
@@ -2028,7 +2028,7 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
-          {/* MONTHLY CTC */}
+          {/* MONTHLY CTC — input removed; kept for reference
           <Col md={6}>
             <Label htmlFor="monthlyCTC">Monthly CTC</Label>
             <Input
@@ -2039,6 +2039,7 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
+          */}
           {/* BIOMETRIC ID */}
           <Col md={6}>
             <Label htmlFor="biometricId">Biometric ID</Label>
