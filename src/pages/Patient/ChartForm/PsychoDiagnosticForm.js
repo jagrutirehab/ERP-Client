@@ -26,9 +26,9 @@ import {
   updatePsychoDiagnosticForm,
 } from "../../../store/actions";
 import { PSYCHO_DIAGNOSTIC_FORM } from "../../../Components/constants/patient";
-import UploadedFiles from "./Components/UploadedFiles";
 import { toast } from "react-toastify";
 import { generatePsychoDiagnosticForm } from "../../../helpers/backend_helper";
+import PsychoDiagnosisUploadedFiles from "./Components/PsychoDiagnosisUploadedFiles";
 
 registerPlugin(
   FilePondPluginImageExifOrientation,
@@ -178,7 +178,7 @@ const PsychoDiagnosticForm = ({
             <Col xs={12} className="mt-3 mb-4">
               {editPsychoForm?.reports?.length > 0 && (
                 <>
-                  <UploadedFiles
+                  <PsychoDiagnosisUploadedFiles
                     id={editChartData._id}
                     chartId={editPsychoForm._id}
                     files={editPsychoForm.reports}
