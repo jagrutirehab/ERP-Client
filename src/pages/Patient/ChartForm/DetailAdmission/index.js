@@ -9,6 +9,7 @@ import { useFormik } from "formik";
 import convertToFormData from "../../../../utils/convertToFormData";
 // import DetailAdmissionForm from "./DetailAdmissionForm";
 import DetailHistoryForm from "./DetailHistoryForm";
+import SpecialRequirementsForm from "./SpecialRequirementsForm";
 import MentalExamination from "./MentalExamination";
 import PhysicalExamination from "./PhysicalExamination";
 import DoctorSignature from "./DoctorSignature";
@@ -29,6 +30,7 @@ import MentalExaminationV2 from "./MentalExaminationV2";
 // const CONSET_FILES = "CONSENT_FILES";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const DETAIL_HISTORY = "DETAIL_HISTORY";
+const SPECIAL_REQUIREMENTS = "SPECIAL_REQUIREMENTS";
 const CHIEF_COMPLAINTS = "CHIEF_COMPLAINTS";
 // const PROVISIONAL_DIAGNOSIS = "PROVISIONAL_DIAGNOSIS";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
@@ -130,6 +132,9 @@ const DetailAdmission = ({
 
   const detailAdmissionForm = editChartData?.detailAdmission;
   const isOldMentalExamination = Boolean(detailAdmissionForm?.mentalExamination);
+
+  // bridge stored Boolean (true/false/undefined) <-> Yes/No radio value
+  const triToYesNo = (v) => (v === true ? "yes" : v === false ? "no" : "");
 
   console.log("detailAdmissionForm", detailAdmissionForm);
 
@@ -252,6 +257,18 @@ const DetailAdmission = ({
       socialSupport: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.socialSupport
         : "",
+
+      // special requirements (Yes/No radios -> stored as Boolean; "" = not answered)
+      physiotherapy: triToYesNo(detailAdmissionForm?.specialRequirements?.physiotherapy),
+      walking: triToYesNo(detailAdmissionForm?.specialRequirements?.walking),
+      homeMedicines: triToYesNo(detailAdmissionForm?.specialRequirements?.homeMedicines),
+      exercise: triToYesNo(detailAdmissionForm?.specialRequirements?.exercise),
+      foodRequirement: triToYesNo(detailAdmissionForm?.specialRequirements?.foodRequirement),
+      externalDoctorVisits: triToYesNo(
+        detailAdmissionForm?.specialRequirements?.externalDoctorVisits
+      ),
+      extraCareTaker: triToYesNo(detailAdmissionForm?.specialRequirements?.extraCareTaker),
+
       // ChiefComplaints
 
       line1: detailAdmissionForm
@@ -705,6 +722,12 @@ const DetailAdmission = ({
             >
               Diagnosis & Plan
             </Button>
+            <Button
+              outline={formStep !== SPECIAL_REQUIREMENTS}
+              onClick={() => setFormStep(SPECIAL_REQUIREMENTS)}
+            >
+              Special Requirements
+            </Button>
           </div>
           <div className="mt-4">
             <Form
@@ -793,6 +816,13 @@ const DetailAdmission = ({
                 <DoctorSignature
                   validation={validation}
                   setFormStep={setFormStep}
+                  step={SPECIAL_REQUIREMENTS}
+                />
+              )}
+
+              {formStep === SPECIAL_REQUIREMENTS && (
+                <SpecialRequirementsForm
+                  validation={validation}
                   closeForm={closeForm}
                   editChartData={editChartData}
                   author={author}

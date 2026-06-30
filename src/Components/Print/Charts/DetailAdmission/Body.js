@@ -3,6 +3,7 @@ import { StyleSheet, Font } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 import DetailInfo from "./DetailInfo";
 import DetailHistory from "./DetailHistory";
+import SpecialRequirements from "./SpecialRequirements";
 import MentalExamination from "./MentalExamination";
 import PhysicalExamination from "./PhysicalExamination";
 import Diagnosis from "./Diagnosis";
@@ -131,6 +132,7 @@ const Body = ({ chart, patient, admission }) => {
       <CheifComplaint data={data.ChiefComplaints} styles={styles} />
       {/* <ProvisionalDiagnosis data={data.ProvisionalDiagnosis} styles={styles} /> */}
       <DetailHistory data={data.detailHistory} styles={styles} />
+      <SpecialRequirements data={data.specialRequirements} styles={styles} />
       {isOldMentalExamination ? <MentalExamination data={data.mentalExamination} styles={styles} /> : <MentalExaminationBody data={data.mentalExaminationV2} from={DETAIL_ADMISSION} />}
       <PhysicalExamination data={data.physicalExamination} styles={styles} />
       <Diagnosis data={data.doctorSignature} styles={styles} />
