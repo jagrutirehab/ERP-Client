@@ -540,6 +540,34 @@ export const editGeneralLabReport = (data) =>
   api.put(url.EDIT_GENERAL_LAB_REPORT, data, {
     headers: { "Content-Type": "multipart/form-data" },
   });
+// Input - Output chart
+export const postInputOutput = (data) =>
+  api.create(url.POST_INPUT_OUTPUT, data);
+export const editInputOutput = (data) => api.put(url.EDIT_INPUT_OUTPUT, data);
+export const postGeneralInputOutput = (data) =>
+  api.create(url.POST_GENERAL_INPUT_OUTPUT, data);
+// Nurse SOS Procedure chart
+export const postNurseSosProcedure = (data) =>
+  api.create(url.POST_NURSE_SOS_PROCEDURE, data);
+export const editNurseSosProcedure = (data) =>
+  api.put(url.EDIT_NURSE_SOS_PROCEDURE, data);
+export const postGeneralNurseSosProcedure = (data) =>
+  api.create(url.POST_GENERAL_NURSE_SOS_PROCEDURE, data);
+// Patient Injury Marks chart
+export const postInjuryMarks = (data) =>
+  api.create(url.POST_INJURY_MARKS, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const editInjuryMarks = (data) =>
+  api.put(url.EDIT_INJURY_MARKS, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const postGeneralInjuryMarks = (data) =>
+  api.create(url.POST_GENERAL_INJURY_MARKS, data, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+export const deleteInjuryMarksFile = (data) =>
+  api.update(url.DELETE_INJURY_MARKS_FILE, data);
 
 export const generateLabReport = (data) =>
   api.create(url.GENERATE_LAB_SUMMARY, data, {
