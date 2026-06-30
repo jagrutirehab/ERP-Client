@@ -23,9 +23,9 @@ const SummaryCard = ({ title, children, compact }) => (
   </div>
 );
 
-// latest admission's doctor-validated special requirements (Yes only)
-// and the room selection from the admission's consent form (latest entry)
-const SpecialRequirementsSummary = ({ addmissionsCharts, consentfromRaw }) => {
+const SpecialRequirementsSummary = ({ addmissionsCharts, consentfromRaw, isAdmit }) => {
+  if (!isAdmit) return null;
+
   const latestAdmission = (addmissionsCharts || [])[0];
   const specialRequirements = getAdmissionSpecialRequirements(
     latestAdmission?.charts
@@ -60,6 +60,7 @@ const SpecialRequirementsSummary = ({ addmissionsCharts, consentfromRaw }) => {
 const mapStateToProps = (state) => ({
   addmissionsCharts: state.Chart.data,
   consentfromRaw: state.Patient?.patient?.addmission?.consentfromRaw,
+  isAdmit: state.Patient?.patient?.isAdmit,
 });
 
 export default connect(mapStateToProps)(SpecialRequirementsSummary);

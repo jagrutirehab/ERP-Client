@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { useSelector } from "react-redux";
 import { Col, Row } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import FileCard from "../../../Components/Common/FileCard";
@@ -10,14 +9,6 @@ import { COUNSELLING_NOTE, mentalExaminationV2Fields } from "../../../Components
 import { SPECIAL_REQUIREMENT_LABELS } from "../../../utils/specialRequirements";
 
 const DetailAdmission = ({ data }) => {
-  // room selection comes from the admission's consent form (latest entry)
-  const consentfromRaw = useSelector(
-    (state) => state.Patient?.patient?.addmission?.consentfromRaw
-  );
-  const roomType = consentfromRaw?.length
-    ? consentfromRaw[consentfromRaw.length - 1]?.roomType
-    : null;
-
   const [fileModal, setFileModal] = useState({
     img: null,
     isOpen: false,
@@ -46,7 +37,7 @@ const DetailAdmission = ({ data }) => {
     }
   });
 
-  console.log("data?.doctorSignature", data?.doctorSignature);
+  // console.log("data?.doctorSignature", data?.doctorSignature);
 
 
   return (
@@ -126,42 +117,24 @@ const DetailAdmission = ({ data }) => {
           const answered = sr
             ? order.filter((k) => sr[k] === true || sr[k] === false)
             : [];
-          const hasSR = answered.length > 0;
-          const hasRoom = Boolean(roomType);
-          if (!hasSR && !hasRoom) return null;
+          if (answered.length === 0) return null;
           return (
             <>
-              {hasSR && (
-                <>
-                  <h6 className="fs-xs-12 fs-md-14 display-6">
-                    Special Requirements
-                  </h6>
-                  {answered.map((k, i) => (
-                    <Col key={i} xs={12}>
-                      <div className="mt-1 mb-1">
-                        <p className="fs-xs-9 fs-md-11 mb-0">
-                          <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                            {SPECIAL_REQUIREMENT_LABELS[k]}:-
-                          </span>
-                          {sr[k] === true ? "Yes" : "No"}
-                        </p>
-                      </div>
-                    </Col>
-                  ))}
-                </>
-              )}
-              {hasRoom && (
-                <Col xs={12}>
+              <h6 className="fs-xs-12 fs-md-14 display-6">
+                Special Requirements
+              </h6>
+              {answered.map((k, i) => (
+                <Col key={i} xs={12}>
                   <div className="mt-1 mb-1">
                     <p className="fs-xs-9 fs-md-11 mb-0">
                       <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                        Room Selection:-
+                        {SPECIAL_REQUIREMENT_LABELS[k]}:-
                       </span>
-                      {roomType}
+                      {sr[k] === true ? "Yes" : "No"}
                     </p>
                   </div>
                 </Col>
-              )}
+              ))}
               <Divider />
             </>
           );
