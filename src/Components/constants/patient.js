@@ -19,6 +19,9 @@ const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 const MENTAL_EXAMINATION_V2 = "MENTAL_EXAMINATION_V2";
 const ROUND_NOTE = "ROUND_NOTE";
+const INPUT_OUTPUT = "INPUT_OUTPUT";
+const NURSE_SOS_PROCEDURE = "NURSE_SOS_PROCEDURE";
+const INJURY_MARKS = "INJURY_MARKS";
 //Chart Bill Types
 const OPD = "OPD";
 const IPD = "IPD";
@@ -61,6 +64,18 @@ const records = [
   {
     name: "Vital Signs",
     category: VITAL_SIGN,
+  },
+  {
+    name: "Input - Output",
+    category: INPUT_OUTPUT,
+  },
+  {
+    name: "Nurse SOS Procedure",
+    category: NURSE_SOS_PROCEDURE,
+  },
+  {
+    name: "Patient Injury Marks",
+    category: INJURY_MARKS,
   },
   // {
   //   name: "Clinical Notes v2",
@@ -254,6 +269,35 @@ const vitalSignFields = [
     name: "bloodSugar",
     type: "text",
   },
+];
+
+// Columns for each row of the Input - Output chart
+const inputOutputColumns = [
+  {
+    label: "Intake",
+    name: "intake",
+  },
+  {
+    label: "Output",
+    name: "output",
+  },
+  {
+    label: "IV Fluid",
+    name: "ivFluid",
+  },
+  {
+    label: "Remark",
+    name: "remark",
+  },
+];
+
+// Activity types for the Nurse - SOS Procedure chart
+const nurseSosActivityTypes = [
+  "Injection Given",
+  "IV Fluids",
+  "Dressing",
+  "Medicine",
+  "Other",
 ];
 
 const clinicalNoteFields = [
@@ -2402,6 +2446,9 @@ export {
   MENTAL_EXAMINATION,
   MENTAL_EXAMINATION_V2,
   ROUND_NOTE,
+  INPUT_OUTPUT,
+  NURSE_SOS_PROCEDURE,
+  INJURY_MARKS,
   //PATIENT BILLS
   INVOICE,
   ADVANCE_PAYMENT,
@@ -2424,6 +2471,8 @@ export {
   //PATIENT CHARTS FORMS FIELDS
   prescriptionFormFields,
   vitalSignFields,
+  inputOutputColumns,
+  nurseSosActivityTypes,
   clinicalNoteFields,
   mentalExaminationFields,
   mentalExaminationV2Fields,

@@ -15,6 +15,10 @@ import {
   RELATIVE_VISIT,
   VITAL_SIGN,
   MENTAL_EXAMINATION,
+  PSYCHO_DIAGNOSTIC_FORM,
+  INPUT_OUTPUT,
+  NURSE_SOS_PROCEDURE,
+  INJURY_MARKS,
 } from "../../../Components/constants/patient";
 
 //forms
@@ -29,6 +33,10 @@ import RelativeVisit from "./RelativeVisit";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
+import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
+import InputOutput from "./InputOutput";
+import NurseSosProcedure from "./NurseSosProcedure";
+import InjuryMarks from "./InjuryMarks";
 
 const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const dispatch = useDispatch();
@@ -48,6 +56,10 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const isExpirySummary = chart.chart === EXPIRY_SUMMARY;
   const isDetailAdmission = chart.chart === DETAIL_ADMISSION;
   const isMentalExamination = chart.chart === MENTAL_EXAMINATION;
+  const isPsychoDiagnosticForm = chart.chart === PSYCHO_DIAGNOSTIC_FORM;
+  const isInputOutput = chart.chart === INPUT_OUTPUT;
+  const isNurseSosProcedure = chart.chart === NURSE_SOS_PROCEDURE;
+  const isInjuryMarks = chart.chart === INJURY_MARKS;
 
   const title = isPrescription
     ? "Prescription"
@@ -64,10 +76,20 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
               : isExpirySummary
                 ? "Expiry Summary"
                 : isRelativeVisit
-                ? "Relative Visit"
-                : isMentalExamination
-                  ? "Clinical Notes"
-                  : "Detail Admission";
+                  ? "Relative Visit"
+                  : isOutpass
+                    ? "Outpass"
+                    : isMentalExamination
+                      ? "Clinical Notes"
+                      : isPsychoDiagnosticForm
+                        ? "Psycho Diagnostic Report"
+                        : isInputOutput
+                          ? "Input - Output"
+                          : isNurseSosProcedure
+                            ? "Nurse SOS Procedure"
+                            : isInjuryMarks
+                              ? "Patient Injury Marks"
+                              : "Detail Admission";
 
   // console.log({ type });
 
@@ -97,8 +119,12 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isExpirySummary && <ExpirySummary {...rest} />}
         {isDetailAdmission && <DetailAdmission {...rest} closeForm={toggleForm} />}
         {isMentalExamination && <MentalExamination {...rest} />}
-      </CustomModal>
-    </React.Fragment>
+        {isPsychoDiagnosticForm && <PsychoDiagnosticForm {...rest} />}
+        {isInputOutput && <InputOutput {...rest} />}
+        {isNurseSosProcedure && <NurseSosProcedure {...rest} />}
+        {isInjuryMarks && <InjuryMarks {...rest} />}
+      </CustomModal >
+    </React.Fragment >
   );
 };
 

@@ -40,6 +40,20 @@ import {
   postRealtiveVisit,
   postVitalSign,
   submitAssessment,
+  postPsychoDiagnosticForm,
+  postGeneralPsychoDiagnosticForm,
+  editPsychoDiagnosticForm,
+  deletePsychoDiagnosticFormFile,
+  postInputOutput,
+  postGeneralInputOutput,
+  editInputOutput,
+  postNurseSosProcedure,
+  postGeneralNurseSosProcedure,
+  editNurseSosProcedure,
+  postInjuryMarks,
+  postGeneralInjuryMarks,
+  editInjuryMarks,
+  deleteInjuryMarksFile,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 import { IPD, OPD } from "../../../Components/constants/patient";
@@ -1017,6 +1031,214 @@ export const addCapacityAssessment = createAsyncThunk(
   },
 );
 
+export const addInputOutput = createAsyncThunk(
+  "postInputOutput",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postInputOutput(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Input Output Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addGeneralInputOutput = createAsyncThunk(
+  "postGeneralInputOutput",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postGeneralInputOutput(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "General Input Output Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updateInputOutput = createAsyncThunk(
+  "editInputOutput",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editInputOutput(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Input Output Updated Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addNurseSosProcedure = createAsyncThunk(
+  "postNurseSosProcedure",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postNurseSosProcedure(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Nurse SOS Procedure Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addGeneralNurseSosProcedure = createAsyncThunk(
+  "postGeneralNurseSosProcedure",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postGeneralNurseSosProcedure(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "General Nurse SOS Procedure Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updateNurseSosProcedure = createAsyncThunk(
+  "editNurseSosProcedure",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editNurseSosProcedure(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Nurse SOS Procedure Updated Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addInjuryMarks = createAsyncThunk(
+  "postInjuryMarks",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postInjuryMarks(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Injury Marks Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addGeneralInjuryMarks = createAsyncThunk(
+  "postGeneralInjuryMarks",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postGeneralInjuryMarks(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "General Injury Marks Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updateInjuryMarks = createAsyncThunk(
+  "editInjuryMarks",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editInjuryMarks(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Injury Marks Updated Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const removeInjuryMarksFile = createAsyncThunk(
+  "deleteInjuryMarksFile",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await deleteInjuryMarksFile(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "File Deleted Successfully",
+        }),
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
 export const chartSlice = createSlice({
   name: "Chart",
   initialState,
@@ -1969,6 +2191,309 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(addCapacityAssessment.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addPsychoDiagnosticForm.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addPsychoDiagnosticForm.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addPsychoDiagnosticForm.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addGeneralPsychoDiagnosticForm.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(
+        addGeneralPsychoDiagnosticForm.fulfilled,
+        (state, { payload }) => {
+          state.loading = false;
+          state.charts = [payload.payload, ...(state.charts || [])];
+        },
+      )
+      .addCase(addGeneralPsychoDiagnosticForm.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updatePsychoDiagnosticForm.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updatePsychoDiagnosticForm.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id,
+          );
+          state.charts[findIndex] = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission,
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id,
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+        }
+      })
+      .addCase(updatePsychoDiagnosticForm.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(removePsychoDiagnosticFormFile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(
+        removePsychoDiagnosticFormFile.fulfilled,
+        (state, { payload }) => {
+          state.loading = false;
+          if (payload.type === "GENERAL") {
+            const findIndex = state.charts.findIndex(
+              (el) => el._id === payload.payload._id,
+            );
+            state.charts[findIndex] = payload.payload;
+            state.chartForm.data = payload.payload;
+          } else {
+            const findIndex = state.data.findIndex(
+              (el) => el._id === payload.payload.addmission,
+            );
+            const findChartIndex = state.data[findIndex].charts.findIndex(
+              (chart) => chart._id === payload.payload._id,
+            );
+            state.data[findIndex].charts[findChartIndex] = payload.payload;
+            state.chartForm.data = payload.payload;
+          }
+        },
+      )
+      .addCase(removePsychoDiagnosticFormFile.rejected, (state) => {
+        state.loading = false;
+      });
+
+    // Input - Output chart
+    builder
+      .addCase(addInputOutput.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addInputOutput.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addInputOutput.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addGeneralInputOutput.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addGeneralInputOutput.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.charts = [payload.payload, ...(state.charts || [])];
+      })
+      .addCase(addGeneralInputOutput.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateInputOutput.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateInputOutput.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id,
+          );
+          state.charts[findIndex] = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission,
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id,
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+        }
+      })
+      .addCase(updateInputOutput.rejected, (state) => {
+        state.loading = false;
+      });
+
+    // Nurse SOS Procedure chart
+    builder
+      .addCase(addNurseSosProcedure.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addNurseSosProcedure.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addNurseSosProcedure.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addGeneralNurseSosProcedure.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addGeneralNurseSosProcedure.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.charts = [payload.payload, ...(state.charts || [])];
+      })
+      .addCase(addGeneralNurseSosProcedure.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateNurseSosProcedure.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateNurseSosProcedure.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id,
+          );
+          state.charts[findIndex] = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission,
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id,
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+        }
+      })
+      .addCase(updateNurseSosProcedure.rejected, (state) => {
+        state.loading = false;
+      });
+
+    // Patient Injury Marks chart
+    builder
+      .addCase(addInjuryMarks.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addInjuryMarks.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addInjuryMarks.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addGeneralInjuryMarks.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addGeneralInjuryMarks.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.charts = [payload.payload, ...(state.charts || [])];
+      })
+      .addCase(addGeneralInjuryMarks.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateInjuryMarks.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateInjuryMarks.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id,
+          );
+          state.charts[findIndex] = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission,
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id,
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+        }
+      })
+      .addCase(updateInjuryMarks.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(removeInjuryMarksFile.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removeInjuryMarksFile.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id,
+          );
+          state.charts[findIndex] = payload.payload;
+          state.chartForm.data = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission,
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id,
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+          state.chartForm.data = payload.payload;
+        }
+      })
+      .addCase(removeInjuryMarksFile.rejected, (state) => {
         state.loading = false;
       });
   },

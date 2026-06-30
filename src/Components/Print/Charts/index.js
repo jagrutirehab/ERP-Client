@@ -15,6 +15,9 @@ import {
   RELATIVE_VISIT,
   ROUND_NOTE,
   VITAL_SIGN,
+  INPUT_OUTPUT,
+  NURSE_SOS_PROCEDURE,
+  INJURY_MARKS,
 } from "../../constants/patient";
 
 //charts
@@ -30,6 +33,10 @@ import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
 import RoundNote from "./RoundNote";
+import PsychoDiagnosis from "./PsychoDiagnosis";
+import InputOutput from "./InputOutput";
+import NurseSosProcedure from "./NurseSosProcedure";
+import InjuryMarks from "./InjuryMarks";
 
 const styles = StyleSheet.create({
   page: {
@@ -185,6 +192,48 @@ const Charts = ({ charts, patient, doctor, admission }) => {
 
             <RenderWhen isTrue={chart?.chart === ROUND_NOTE}>
               <RoundNote
+                chart={chart}
+                center={chart.center}
+                patient={patient}
+                admission={admission}
+              />
+            </RenderWhen>
+
+            <RenderWhen
+              isTrue={
+                chart?.chart === INPUT_OUTPUT &&
+                (chart.type === IPD || chart.type === GENERAL)
+              }
+            >
+              <InputOutput
+                chart={chart}
+                center={chart.center}
+                patient={patient}
+                admission={admission}
+              />
+            </RenderWhen>
+
+            <RenderWhen
+              isTrue={
+                chart?.chart === NURSE_SOS_PROCEDURE &&
+                (chart.type === IPD || chart.type === GENERAL)
+              }
+            >
+              <NurseSosProcedure
+                chart={chart}
+                center={chart.center}
+                patient={patient}
+                admission={admission}
+              />
+            </RenderWhen>
+
+            <RenderWhen
+              isTrue={
+                chart?.chart === INJURY_MARKS &&
+                (chart.type === IPD || chart.type === GENERAL)
+              }
+            >
+              <InjuryMarks
                 chart={chart}
                 center={chart.center}
                 patient={patient}

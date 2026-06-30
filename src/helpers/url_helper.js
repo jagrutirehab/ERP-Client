@@ -165,6 +165,17 @@ export const POST_GENERAL_MENTAL_EXAMINATION =
   "/chart/mental-examination/general";
 export const EDIT_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const LAST_MENTAL_EXAMINATION = "/chart/mental-examination";
+export const POST_INPUT_OUTPUT = "/chart/input-output";
+export const EDIT_INPUT_OUTPUT = "/chart/input-output";
+export const POST_GENERAL_INPUT_OUTPUT = "/chart/input-output/general";
+export const POST_NURSE_SOS_PROCEDURE = "/chart/nurse-sos-procedure";
+export const EDIT_NURSE_SOS_PROCEDURE = "/chart/nurse-sos-procedure";
+export const POST_GENERAL_NURSE_SOS_PROCEDURE =
+  "/chart/nurse-sos-procedure/general";
+export const POST_INJURY_MARKS = "/chart/injury-marks";
+export const EDIT_INJURY_MARKS = "/chart/injury-marks";
+export const POST_GENERAL_INJURY_MARKS = "/chart/injury-marks/general";
+export const DELETE_INJURY_MARKS_FILE = "/chart/injury-marks";
 export const DELETE_CHART = "/chart";
 export const POST_RESTORE_CHART = "/chart/restore";
 export const DELETE_CHART_PERMANENTLY = "/chart/delete-permanently";

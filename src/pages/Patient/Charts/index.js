@@ -14,6 +14,10 @@ import {
   RELATIVE_VISIT,
   ROUND_NOTE,
   VITAL_SIGN,
+  PSYCHO_DIAGNOSTIC_FORM,
+  INPUT_OUTPUT,
+  NURSE_SOS_PROCEDURE,
+  INJURY_MARKS,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -39,12 +43,14 @@ import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
 import RoundNoteChart from "./RoundNoteChart";
+import InputOutput from "./InputOutput";
+import NurseSosProcedure from "./NurseSosProcedure";
+import InjuryMarks from "./InjuryMarks";
 import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
 import { api } from "../../../config";
+
 const Charts = ({ addmission, charts, toggleDateModal }) => {
-
-
 
   const dispatch = useDispatch();
   const [, forceUpdate] = useState(0);
@@ -248,6 +254,18 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                 )}
                 {chart.chart === ROUND_NOTE && (
                   <RoundNoteChart data={chart.roundNoteChart} />
+                )}
+                {chart.chart === INPUT_OUTPUT && (
+                  <InputOutput data={chart.inputOutput} />
+                )}
+                {chart.chart === NURSE_SOS_PROCEDURE && (
+                  <NurseSosProcedure data={chart.nurseSosProcedure} />
+                )}
+                {chart.chart === INJURY_MARKS && (
+                  <InjuryMarks
+                    data={chart.injuryMarks?.marks}
+                    date={chart.injuryMarks?.updatedAt}
+                  />
                 )}
               </Wrapper>
             ))}
