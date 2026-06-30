@@ -14,6 +14,9 @@ import {
   PRESCRIPTION,
   RELATIVE_VISIT,
   VITAL_SIGN,
+  INPUT_OUTPUT,
+  NURSE_SOS_PROCEDURE,
+  INJURY_MARKS,
 } from "../../../constants/patient";
 import _ from "lodash";
 
@@ -31,6 +34,9 @@ import Header from "./Header";
 import Footer from "./Footer";
 import MentalExamination from "./MentalExamination";
 import CounsellingNote from "./CounsellingNote";
+import InputOutput from "./InputOutput";
+import NurseSosProcedure from "./NurseSosProcedure";
+import InjuryMarks from "./InjuryMarks";
 
 const styles = StyleSheet.create({
   page: {
@@ -162,6 +168,45 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                 </RenderWhen>
                 <RenderWhen isTrue={chart?.chart === MENTAL_EXAMINATION}>
                   <MentalExamination
+                    chart={chart}
+                    center={chart.center}
+                    patient={patient}
+                  />
+                </RenderWhen>
+
+                <RenderWhen
+                  isTrue={
+                    chart?.chart === INPUT_OUTPUT &&
+                    (chart.type === IPD || chart.type === GENERAL)
+                  }
+                >
+                  <InputOutput
+                    chart={chart}
+                    center={chart.center}
+                    patient={patient}
+                  />
+                </RenderWhen>
+
+                <RenderWhen
+                  isTrue={
+                    chart?.chart === NURSE_SOS_PROCEDURE &&
+                    (chart.type === IPD || chart.type === GENERAL)
+                  }
+                >
+                  <NurseSosProcedure
+                    chart={chart}
+                    center={chart.center}
+                    patient={patient}
+                  />
+                </RenderWhen>
+
+                <RenderWhen
+                  isTrue={
+                    chart?.chart === INJURY_MARKS &&
+                    (chart.type === IPD || chart.type === GENERAL)
+                  }
+                >
+                  <InjuryMarks
                     chart={chart}
                     center={chart.center}
                     patient={patient}

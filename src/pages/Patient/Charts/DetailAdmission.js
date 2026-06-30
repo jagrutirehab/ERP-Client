@@ -6,6 +6,7 @@ import FileCard from "../../../Components/Common/FileCard";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import { convertSnakeToTitle } from "../../../utils/convertSnakeToTitle";
 import { COUNSELLING_NOTE, mentalExaminationV2Fields } from "../../../Components/constants/patient";
+import { SPECIAL_REQUIREMENT_LABELS } from "../../../utils/specialRequirements";
 
 const DetailAdmission = ({ data }) => {
   const [fileModal, setFileModal] = useState({
@@ -36,7 +37,7 @@ const DetailAdmission = ({ data }) => {
     }
   });
 
-  console.log("data?.doctorSignature", data?.doctorSignature);
+  // console.log("data?.doctorSignature", data?.doctorSignature);
 
 
   return (
@@ -110,6 +111,34 @@ const DetailAdmission = ({ data }) => {
             </Col>
           ))}
         {data?.detailHistory && <Divider />}
+        {(() => {
+          const sr = data?.specialRequirements;
+          const order = Object.keys(SPECIAL_REQUIREMENT_LABELS);
+          const answered = sr
+            ? order.filter((k) => sr[k] === true || sr[k] === false)
+            : [];
+          if (answered.length === 0) return null;
+          return (
+            <>
+              <h6 className="fs-xs-12 fs-md-14 display-6">
+                Special Requirements
+              </h6>
+              {answered.map((k, i) => (
+                <Col key={i} xs={12}>
+                  <div className="mt-1 mb-1">
+                    <p className="fs-xs-9 fs-md-11 mb-0">
+                      <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                        {SPECIAL_REQUIREMENT_LABELS[k]}:-
+                      </span>
+                      {sr[k] === true ? "Yes" : "No"}
+                    </p>
+                  </div>
+                </Col>
+              ))}
+              <Divider />
+            </>
+          );
+        })()}
         {(data?.mentalExamination || data?.mentalExaminationV2) && (
           <h6 className="fs-xs-12 fs-md-14 display-6">
             Mental Status Examination
