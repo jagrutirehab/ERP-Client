@@ -132,10 +132,10 @@ const Body = ({ chart, patient, admission }) => {
       <CheifComplaint data={data.ChiefComplaints} styles={styles} />
       {/* <ProvisionalDiagnosis data={data.ProvisionalDiagnosis} styles={styles} /> */}
       <DetailHistory data={data.detailHistory} styles={styles} />
-      <SpecialRequirements data={data.specialRequirements} styles={styles} />
       {isOldMentalExamination ? <MentalExamination data={data.mentalExamination} styles={styles} /> : <MentalExaminationBody data={data.mentalExaminationV2} from={DETAIL_ADMISSION} />}
       <PhysicalExamination data={data.physicalExamination} styles={styles} />
       <Diagnosis data={data.doctorSignature} styles={styles} />
+      <SpecialRequirements data={data.specialRequirements} styles={styles} />
       <DoctorSignature doctor={patient} />
       {/* <View style={{ ...styles.mrgnTop10, ...styles.mrgnBottom10 }}>
         {chart.drNotes && (
