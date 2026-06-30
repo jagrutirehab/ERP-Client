@@ -17,6 +17,9 @@ import {
   VITAL_SIGN,
   MENTAL_EXAMINATION,
   PSYCHO_DIAGNOSTIC_FORM,
+  INPUT_OUTPUT,
+  NURSE_SOS_PROCEDURE,
+  INJURY_MARKS,
 } from "../../../Components/constants/patient";
 
 //forms
@@ -33,6 +36,9 @@ import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
 import MentalExamination from "./MentalExamination";
 import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
+import InputOutput from "./InputOutput";
+import NurseSosProcedure from "./NurseSosProcedure";
+import InjuryMarks from "./InjuryMarks";
 
 const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const dispatch = useDispatch();
@@ -54,6 +60,9 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const isDetailAdmission = chart.chart === DETAIL_ADMISSION;
   const isMentalExamination = chart.chart === MENTAL_EXAMINATION;
   const isPsychoDiagnosticForm = chart.chart === PSYCHO_DIAGNOSTIC_FORM;
+  const isInputOutput = chart.chart === INPUT_OUTPUT;
+  const isNurseSosProcedure = chart.chart === NURSE_SOS_PROCEDURE;
+  const isInjuryMarks = chart.chart === INJURY_MARKS;
 
   const title = isPrescription
     ? "Prescription"
@@ -77,7 +86,13 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
                       ? "Clinical Notes"
                       : isPsychoDiagnosticForm
                         ? "Psycho Diagnostic Report"
-                        : "Detail Admission";
+                        : isInputOutput
+                          ? "Input - Output"
+                          : isNurseSosProcedure
+                            ? "Nurse SOS Procedure"
+                            : isInjuryMarks
+                              ? "Patient Injury Marks"
+                              : "Detail Admission";
 
   // console.log({ type });
 
@@ -111,8 +126,11 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         )}
         {isMentalExamination && <MentalExamination {...rest} />}
         {isPsychoDiagnosticForm && <PsychoDiagnosticForm {...rest} />}
-      </CustomModal>
-    </React.Fragment>
+        {isInputOutput && <InputOutput {...rest} />}
+        {isNurseSosProcedure && <NurseSosProcedure {...rest} />}
+        {isInjuryMarks && <InjuryMarks {...rest} />}
+      </CustomModal >
+    </React.Fragment >
   );
 };
 
