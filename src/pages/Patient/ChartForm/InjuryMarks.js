@@ -156,6 +156,23 @@ const InjuryMarks = ({ author, patient, chartDate, editChartData, type }) => {
                 </Col>
                 <Col xs={12} md={6}>
                   <Label>
+                    Description<span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    type="textarea"
+                    bsSize="sm"
+                    name="description"
+                    required
+                    rows={3}
+                    value={mark.description || ""}
+                    onChange={(e) =>
+                      updateMark(idx, "description", e.target.value)
+                    }
+                    className="form-control rounded"
+                  />
+                </Col>
+                <Col xs={12} md={6}>
+                  <Label>
                     Photo<span className="text-danger">*</span>
                   </Label>
                   <Input
@@ -182,23 +199,6 @@ const InjuryMarks = ({ author, patient, chartDate, editChartData, type }) => {
                     />
                   )}
                 </Col>
-                <Col xs={12} md={6}>
-                  <Label>
-                    Description<span className="text-danger">*</span>
-                  </Label>
-                  <Input
-                    type="textarea"
-                    bsSize="sm"
-                    name="description"
-                    required
-                    rows={3}
-                    value={mark.description || ""}
-                    onChange={(e) =>
-                      updateMark(idx, "description", e.target.value)
-                    }
-                    className="form-control rounded"
-                  />
-                </Col>
                 <Col xs={12}>
                   <hr className="my-2" />
                 </Col>
@@ -207,7 +207,7 @@ const InjuryMarks = ({ author, patient, chartDate, editChartData, type }) => {
 
             <Col xs={12}>
               <Button onClick={addMark} type="button" color="secondary" size="sm">
-                Add Photo
+                Add Injury
               </Button>
             </Col>
 
