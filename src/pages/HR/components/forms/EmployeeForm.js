@@ -274,18 +274,19 @@ const validationSchema = (mode, isEdit) =>
         then: (schema) => schema.max(7, "Cannot exceed 7 days per week"),
         otherwise: (schema) => schema.max(31, "Cannot exceed 31 days per month"),
       })
-      .when("newEmploymentType", {
-        is: "PART_TIME",
+      .when(["newEmploymentType", "minimumPresentUnit"], {
+        // Days aren't captured for "Per Session" — hours per session are used instead.
+        is: (type, unit) => type === "PART_TIME" && unit !== "SESSION",
         then: (schema) =>
           schema.required("Minimum present days is required for part-time"),
         otherwise: (schema) => schema.notRequired(),
       }),
     minimumPresentUnit: Yup.string()
-      .oneOf(["WEEK", "MONTH"], "Select a valid unit")
+      .oneOf(["WEEK", "MONTH", "SESSION"], "Select a valid unit")
       .when("newEmploymentType", {
         is: "PART_TIME",
         then: (schema) =>
-          schema.required("Please select week or month"),
+          schema.required("Please select week, month or session"),
         otherwise: (schema) => schema.notRequired(),
       }),
     position: Yup.string()
@@ -543,13 +544,17 @@ const EmployeeForm = ({
           formData.delete("minimumWorkHours");
         }
 
-        if (
-          values.newEmploymentType === "PART_TIME" &&
-          values.minimumPresentDays !== "" &&
-          values.minimumPresentUnit
-        ) {
-          formData.set("minimumPresentDays", Number(values.minimumPresentDays));
+        if (values.newEmploymentType === "PART_TIME" && values.minimumPresentUnit) {
           formData.set("minimumPresentUnit", values.minimumPresentUnit);
+          // "Per Session" captures only hours (minimumWorkHours), never a day count.
+          if (
+            values.minimumPresentUnit !== "SESSION" &&
+            values.minimumPresentDays !== ""
+          ) {
+            formData.set("minimumPresentDays", Number(values.minimumPresentDays));
+          } else {
+            formData.delete("minimumPresentDays");
+          }
         } else {
           formData.delete("minimumPresentDays");
           formData.delete("minimumPresentUnit");
@@ -1303,7 +1308,9 @@ const EmployeeForm = ({
           {values.newEmploymentType === "PART_TIME" && (
             <Col md={6}>
               <Label htmlFor="minimumWorkHours">
-                Minimum Work Hours <span className="text-danger">*</span>
+                Minimum Work Hours
+                {values.minimumPresentUnit === "SESSION" && " (per session)"}{" "}
+                <span className="text-danger">*</span>
               </Label>
               <Input
                 id="minimumWorkHours"
@@ -1314,7 +1321,11 @@ const EmployeeForm = ({
                 value={values.minimumWorkHours}
                 onChange={handleChange}
                 onBlur={() => setFieldTouched("minimumWorkHours", true)}
-                placeholder="Enter hours per day"
+                placeholder={
+                  values.minimumPresentUnit === "SESSION"
+                    ? "Enter hours per session"
+                    : "Enter hours per day"
+                }
                 invalid={touched.minimumWorkHours && !!errors.minimumWorkHours}
               />
               {values.minimumWorkHours !== "" && (
@@ -1329,26 +1340,36 @@ const EmployeeForm = ({
           {values.newEmploymentType === "PART_TIME" && (
             <Col md={6}>
               <Label htmlFor="minimumPresentDays">
-                Minimum Present Days <span className="text-danger">*</span>
+                Minimum Presence
+                {values.minimumPresentUnit !== "SESSION" && (
+                  <span className="text-danger"> *</span>
+                )}
               </Label>
               <div className="d-flex" style={{ gap: "8px" }}>
-                <div style={{ flex: 1 }}>
-                  <Input
-                    id="minimumPresentDays"
-                    type="number"
-                    name="minimumPresentDays"
-                    min={0}
-                    max={values.minimumPresentUnit === "WEEK" ? 7 : 31}
-                    value={values.minimumPresentDays}
-                    onChange={handleChange}
-                    onBlur={() => setFieldTouched("minimumPresentDays", true)}
-                    placeholder="Enter number of days"
-                    invalid={
-                      touched.minimumPresentDays && !!errors.minimumPresentDays
-                    }
-                  />
-                </div>
-                <div style={{ width: "160px" }}>
+                {values.minimumPresentUnit !== "SESSION" && (
+                  <div style={{ flex: 1 }}>
+                    <Input
+                      id="minimumPresentDays"
+                      type="number"
+                      name="minimumPresentDays"
+                      min={0}
+                      max={values.minimumPresentUnit === "WEEK" ? 7 : 31}
+                      value={values.minimumPresentDays}
+                      onChange={handleChange}
+                      onBlur={() => setFieldTouched("minimumPresentDays", true)}
+                      placeholder="Enter number of days"
+                      invalid={
+                        touched.minimumPresentDays && !!errors.minimumPresentDays
+                      }
+                    />
+                  </div>
+                )}
+                <div
+                  style={{
+                    width:
+                      values.minimumPresentUnit === "SESSION" ? "100%" : "160px",
+                  }}
+                >
                   <Select
                     inputId="minimumPresentUnit"
                     placeholder="Select unit"
@@ -1369,12 +1390,20 @@ const EmployeeForm = ({
                   />
                 </div>
               </div>
-              {values.minimumPresentDays !== "" && values.minimumPresentUnit && (
+              {values.minimumPresentUnit === "SESSION" ? (
                 <div className="text-muted small mt-1">
-                  = {values.minimumPresentDays} day
-                  {Number(values.minimumPresentDays) === 1 ? "" : "s"} per{" "}
-                  {values.minimumPresentUnit === "WEEK" ? "week" : "month"}
+                  Requirement is measured per session — set the hours in Minimum
+                  Work Hours above.
                 </div>
+              ) : (
+                values.minimumPresentDays !== "" &&
+                values.minimumPresentUnit && (
+                  <div className="text-muted small mt-1">
+                    = {values.minimumPresentDays} day
+                    {Number(values.minimumPresentDays) === 1 ? "" : "s"} per{" "}
+                    {values.minimumPresentUnit === "WEEK" ? "week" : "month"}
+                  </div>
+                )
               )}
               {errorText("minimumPresentDays")}
               {errorText("minimumPresentUnit")}
