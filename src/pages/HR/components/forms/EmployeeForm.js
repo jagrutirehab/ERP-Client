@@ -63,6 +63,16 @@ import { format } from "date-fns";
 import { getFilePreviewMeta } from "../../../../utils/isPreviewable";
 import { FILE_PREVIEW_CUTOFF } from "../../../../Components/constants/HR";
 
+// Minimum work hours are stored in the DB as total minutes (e.g. 115).
+// In the form we keep the value as total minutes too, but present it to the
+// user as separate Hours / Minutes inputs and an "HH:MM" preview (e.g. 01:55).
+const minutesToHHMM = (mins) => {
+  const total = Math.max(0, Math.round(Number(mins) || 0));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+};
+
 const validationSchema = (mode, isEdit) =>
   Yup.object({
     name: Yup.string().required("Employee name is required"),
@@ -260,7 +270,7 @@ const validationSchema = (mode, isEdit) =>
     // employmentStatus: Yup.string().required("Employment status is required"),
     minimumWorkHours: Yup.number()
       .min(0, "Must be at least 0")
-      .max(24, "Cannot exceed 24 hours")
+      .max(24 * 60, "Cannot exceed 24 hours")
       .when("newEmploymentType", {
         is: "PART_TIME",
         then: (schema) =>
@@ -412,9 +422,8 @@ const getInitialValues = (initialData, mode) => ({
     : [],
   employmentStatus: initialData?.employmentStatus || "",
   newEmploymentType: initialData?.newEmploymentType || "",
-  minimumWorkHours: initialData?.minimumWorkHours
-    ? initialData.minimumWorkHours / 60
-    : "",
+  minimumWorkHours:
+    initialData?.minimumWorkHours != null ? initialData.minimumWorkHours : "",
   minimumPresentDays:
     initialData?.minimumPresentDays != null
       ? initialData.minimumPresentDays
@@ -539,7 +548,7 @@ const EmployeeForm = ({
         });
 
         if (values.newEmploymentType === "PART_TIME" && values.minimumWorkHours) {
-          formData.set("minimumWorkHours", Math.round(Number(values.minimumWorkHours) * 60));
+          formData.set("minimumWorkHours", Math.round(Number(values.minimumWorkHours)));
         } else {
           formData.delete("minimumWorkHours");
         }
@@ -1312,27 +1321,74 @@ const EmployeeForm = ({
                 {values.minimumPresentUnit === "SESSION" && " (per session)"}{" "}
                 <span className="text-danger">*</span>
               </Label>
-              <Input
-                id="minimumWorkHours"
-                type="number"
-                name="minimumWorkHours"
-                min={0}
-                max={24}
-                value={values.minimumWorkHours}
-                onChange={handleChange}
-                onBlur={() => setFieldTouched("minimumWorkHours", true)}
-                placeholder={
-                  values.minimumPresentUnit === "SESSION"
-                    ? "Enter hours per session"
-                    : "Enter hours per day"
-                }
-                invalid={touched.minimumWorkHours && !!errors.minimumWorkHours}
-              />
-              {values.minimumWorkHours !== "" && (
-                <div className="text-muted small mt-1">
-                  = {Math.round(Number(values.minimumWorkHours) * 60)} minutes
-                </div>
-              )}
+              {(() => {
+                const isEmpty =
+                  values.minimumWorkHours === "" ||
+                  values.minimumWorkHours == null;
+                const totalMinutes = isEmpty
+                  ? 0
+                  : Number(values.minimumWorkHours);
+                const hoursPart = Math.floor(totalMinutes / 60);
+                const minutesPart = totalMinutes % 60;
+                const invalid =
+                  touched.minimumWorkHours && !!errors.minimumWorkHours;
+                return (
+                  <div
+                    className="d-flex align-items-center"
+                    style={{ gap: "8px" }}
+                  >
+                    <Input
+                      id="minimumWorkHours"
+                      type="number"
+                      min={0}
+                      max={24}
+                      step={1}
+                      value={isEmpty ? "" : hoursPart}
+                      onChange={(e) => {
+                        const h =
+                          e.target.value === ""
+                            ? 0
+                            : parseInt(e.target.value, 10) || 0;
+                        setFieldValue("minimumWorkHours", h * 60 + minutesPart);
+                      }}
+                      onBlur={() => setFieldTouched("minimumWorkHours", true)}
+                      placeholder="HH"
+                      invalid={invalid}
+                      style={{ width: "80px" }}
+                    />
+                    <span className="fw-bold">:</span>
+                    <Input
+                      id="minimumWorkMinutes"
+                      type="number"
+                      min={0}
+                      max={59}
+                      step={1}
+                      value={isEmpty ? "" : minutesPart}
+                      onChange={(e) => {
+                        let m =
+                          e.target.value === ""
+                            ? 0
+                            : parseInt(e.target.value, 10) || 0;
+                        if (m > 59) m = 59;
+                        if (m < 0) m = 0;
+                        setFieldValue("minimumWorkHours", hoursPart * 60 + m);
+                      }}
+                      onBlur={() => setFieldTouched("minimumWorkHours", true)}
+                      placeholder="MM"
+                      invalid={invalid}
+                      style={{ width: "80px" }}
+                    />
+                    <span className="text-muted small">hours : minutes</span>
+                  </div>
+                );
+              })()}
+              {values.minimumWorkHours !== "" &&
+                values.minimumWorkHours != null && (
+                  <div className="text-muted small mt-1">
+                    = {minutesToHHMM(values.minimumWorkHours)} hours (
+                    {Math.round(Number(values.minimumWorkHours))} minutes)
+                  </div>
+                )}
               {errorText("minimumWorkHours")}
             </Col>
           )}
