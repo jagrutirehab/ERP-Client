@@ -45,7 +45,12 @@ import {
   isSimplifiedFinanceType,
   categoryOptions,
 } from "../../../../Components/constants/HR";
-import { calculatePayroll } from "../../../../utils/calculatePayroll";
+import {
+  calculatePayroll,
+  resolveLWFState,
+  lwfAnnual,
+  lwfScheduleText,
+} from "../../../../utils/calculatePayroll";
 import {
   annualToMonthly,
   annualFieldValue,
@@ -238,7 +243,6 @@ const validationSchema = (mode, isEdit) =>
     }),
     debitStatementNarration: Yup.string().notRequired(),
     ESICSalary: Yup.number().min(0).notRequired(),
-    LWFSalary: Yup.number().min(0).notRequired(),
     LWFEmployee: Yup.number().min(0).notRequired(),
     LWFEmployer: Yup.number().min(0).notRequired(),
     uanNo: Yup.string().when("pfApplicable", {
@@ -347,7 +351,6 @@ const getInitialValues = (initialData, mode) => ({
   ESICSalary: initialData?.financeDetails?.ESICSalary || 0,
   ESICEmployee: initialData?.financeDetails?.ESICEmployee || 0,
   ESICEmployer: initialData?.financeDetails?.ESICEmployer || 0,
-  LWFSalary: annualFieldValue(initialData?.financeDetails, "LWFSalary"),
   LWFEmployee: annualFieldValue(initialData?.financeDetails, "LWFEmployee"),
   LWFEmployer: annualFieldValue(initialData?.financeDetails, "LWFEmployer"),
 
@@ -573,7 +576,6 @@ const EmployeeForm = ({
             "statutoryBonus",
             "minimumWages",
             "ESICSalary",
-            "LWFSalary",
             "LWFEmployee",
             "LWFEmployer",
             "insurance",
@@ -987,6 +989,41 @@ const EmployeeForm = ({
     values.grossSalary,
     setFieldValue,
     simplified,
+  ]);
+
+  // LWF is derived from the work-location's state + monthly wage base, never
+  // entered by hand. The stored yearly figure is the TRUE annual (sum of the
+  // applicable months), not a monthly amount × 12 — most states only charge LWF
+  // in one or two months.
+  const lwfState = useMemo(() => {
+    const selectedCenter = centerOptions?.find(
+      (o) => o.value === values.currentLocation,
+    );
+    return resolveLWFState(
+      selectedCenter
+        ? { title: selectedCenter.title, address: selectedCenter.address }
+        : null,
+    );
+  }, [centerOptions, values.currentLocation]);
+
+  useEffect(() => {
+    if (simplified) return;
+    const monthlyGross = annualToMonthly(values).grossSalary;
+    const annual = lwfAnnual(lwfState, monthlyGross);
+
+    if (Number(values.LWFEmployee) !== annual.employee)
+      setFieldValue("LWFEmployee", annual.employee, false);
+    if (Number(values.LWFEmployer) !== annual.employer)
+      setFieldValue("LWFEmployer", annual.employer, false);
+  }, [
+    lwfState,
+    values.basicAmount,
+    values.HRAAmount,
+    values.SPLAllowance,
+    values.conveyanceAllowance,
+    values.statutoryBonus,
+    simplified,
+    setFieldValue,
   ]);
 
   const selectedEmploymentOption =
@@ -2494,20 +2531,7 @@ const EmployeeForm = ({
             <div className="text-muted small mt-1">Added to yearly CTC</div>
           </Col>
 
-          {/* LWF SALARY */}
-          <Col md={6}>
-            <Label htmlFor="LWFSalary">LWF Salary (Yearly)</Label>
-            <Input
-              id="LWFSalary"
-              type="number"
-              name="LWFSalary"
-              value={values.LWFSalary}
-              onChange={handleChange}
-            />
-            {monthlyHint("LWFSalary")}
-          </Col>
-
-          {/* LWF EMPLOYEE */}
+          {/* LWF EMPLOYEE — auto-calculated from state */}
           <Col md={6}>
             <Label htmlFor="LWFEmployee">LWF Employee (Yearly)</Label>
             <Input
@@ -2515,12 +2539,19 @@ const EmployeeForm = ({
               type="number"
               name="LWFEmployee"
               value={values.LWFEmployee}
-              onChange={handleChange}
+              readOnly
+              disabled
             />
-            {monthlyHint("LWFEmployee")}
+            {lwfScheduleText(lwfState) ? (
+              <div className="text-muted small mt-1">
+                Charged {lwfScheduleText(lwfState)}
+              </div>
+            ) : (
+              <div className="text-muted small mt-1">No LWF for this state</div>
+            )}
           </Col>
 
-          {/* LWF EMPLOYER */}
+          {/* LWF EMPLOYER — auto-calculated from state */}
           <Col md={6}>
             <Label htmlFor="LWFEmployer">LWF Employer (Yearly)</Label>
             <Input
@@ -2528,9 +2559,16 @@ const EmployeeForm = ({
               type="number"
               name="LWFEmployer"
               value={values.LWFEmployer}
-              onChange={handleChange}
+              readOnly
+              disabled
             />
-            {monthlyHint("LWFEmployer")}
+            {lwfScheduleText(lwfState) ? (
+              <div className="text-muted small mt-1">
+                Charged {lwfScheduleText(lwfState)}
+              </div>
+            ) : (
+              <div className="text-muted small mt-1">No LWF for this state</div>
+            )}
           </Col>
 
           {/* ESIC SALARY */}

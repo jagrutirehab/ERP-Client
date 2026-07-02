@@ -19,7 +19,12 @@ import {
   paymentTypeOptions,
   isSimplifiedFinanceType,
 } from "../../../../Components/constants/HR";
-import { calculatePayroll } from "../../../../utils/calculatePayroll";
+import {
+  calculatePayroll,
+  resolveLWFState,
+  lwfAnnual,
+  lwfScheduleText,
+} from "../../../../utils/calculatePayroll";
 import {
   annualToMonthly,
   annualFieldValue,
@@ -109,7 +114,6 @@ const getFinanceInitialValues = (initialData) => ({
   // Minimum wages is a MONTHLY statutory floor (not converted).
   minimumWages: initialData?.financeDetails?.minimumWages || 0,
   ESICSalary: initialData?.financeDetails?.ESICSalary || 0,
-  LWFSalary: annualFieldValue(initialData?.financeDetails, "LWFSalary"),
   LWFEmployee: annualFieldValue(initialData?.financeDetails, "LWFEmployee"),
   LWFEmployer: annualFieldValue(initialData?.financeDetails, "LWFEmployer"),
   insurance: annualFieldValue(initialData?.financeDetails, "insurance"),
@@ -208,7 +212,6 @@ const validationSchema = (isEdit, step, simplified) => {
     reimbursement: buildNumberSchema("Reimbursement"),
     TDSRate: buildNumberSchema("TDS Rate", { max: 100 }),
     ESICSalary: buildNumberSchema("ESIC Salary"),
-    LWFSalary: buildNumberSchema("LWF Salary"),
     LWFEmployee: buildNumberSchema("LWF Employee"),
     LWFEmployer: buildNumberSchema("LWF Employer"),
     debitStatementNarration: Yup.string().notRequired(),
@@ -278,7 +281,6 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
           statutoryBonus: Number(values.statutoryBonus),
           minimumWages: Number(values.minimumWages),
           ESICSalary: Number(values.ESICSalary),
-          LWFSalary: Number(values.LWFSalary),
           LWFEmployee: Number(values.LWFEmployee),
           LWFEmployer: Number(values.LWFEmployer),
           insurance: Number(values.insurance),
@@ -372,6 +374,34 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
     }
   }, [
     form,
+    form.values.basicAmount,
+    form.values.HRAAmount,
+    form.values.SPLAllowance,
+    form.values.conveyanceAllowance,
+    form.values.statutoryBonus,
+    simplified,
+  ]);
+
+  // LWF is derived from the employee's work-location state + monthly wage base,
+  // never entered by hand. The yearly figure is the TRUE annual (sum of the
+  // applicable months), not a monthly amount × 12.
+  const lwfState = useMemo(
+    () => resolveLWFState(employeeData?.center || employeeData?.currentLocation),
+    [employeeData]
+  );
+
+  useEffect(() => {
+    if (simplified) return;
+    const monthlyGross = annualToMonthly(form.values).grossSalary;
+    const annual = lwfAnnual(lwfState, monthlyGross);
+
+    if (Number(form.values.LWFEmployee) !== annual.employee)
+      form.setFieldValue("LWFEmployee", annual.employee, false);
+    if (Number(form.values.LWFEmployer) !== annual.employer)
+      form.setFieldValue("LWFEmployer", annual.employer, false);
+  }, [
+    form,
+    lwfState,
     form.values.basicAmount,
     form.values.HRAAmount,
     form.values.SPLAllowance,
@@ -1006,33 +1036,20 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         </Col>
 
         <Col md={6}>
-          <Label htmlFor="LWFSalary">LWF Salary (Yearly)</Label>
-          <Input
-            id="LWFSalary"
-            name="LWFSalary"
-            type="number"
-            value={form.values.LWFSalary}
-            onChange={handleNumericFieldChange}
-            onBlur={form.handleBlur}
-            invalid={form.touched.LWFSalary && !!form.errors.LWFSalary}
-          />
-          {errorText("LWFSalary")}
-          {monthlyHint("LWFSalary")}
-        </Col>
-
-        <Col md={6}>
           <Label htmlFor="LWFEmployee">LWF Employee (Yearly)</Label>
           <Input
             id="LWFEmployee"
             name="LWFEmployee"
             type="number"
             value={form.values.LWFEmployee}
-            onChange={handleNumericFieldChange}
-            onBlur={form.handleBlur}
-            invalid={form.touched.LWFEmployee && !!form.errors.LWFEmployee}
+            readOnly
+            disabled
           />
-          {errorText("LWFEmployee")}
-          {monthlyHint("LWFEmployee")}
+          <div className="text-muted small mt-1">
+            {lwfScheduleText(lwfState)
+              ? `Charged ${lwfScheduleText(lwfState)}`
+              : "No LWF for this state"}
+          </div>
         </Col>
 
         <Col md={6}>
@@ -1042,12 +1059,14 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             name="LWFEmployer"
             type="number"
             value={form.values.LWFEmployer}
-            onChange={handleNumericFieldChange}
-            onBlur={form.handleBlur}
-            invalid={form.touched.LWFEmployer && !!form.errors.LWFEmployer}
+            readOnly
+            disabled
           />
-          {errorText("LWFEmployer")}
-          {monthlyHint("LWFEmployer")}
+          <div className="text-muted small mt-1">
+            {lwfScheduleText(lwfState)
+              ? `Charged ${lwfScheduleText(lwfState)}`
+              : "No LWF for this state"}
+          </div>
         </Col>
 
         <Col md={6}>
