@@ -41,6 +41,7 @@ import {
   statusOptions,
   employmentStatus,
   newEmploymentOptions,
+  presentUnitOptions,
   paymentTypeOptions,
   isSimplifiedFinanceType,
   categoryOptions,
@@ -266,6 +267,27 @@ const validationSchema = (mode, isEdit) =>
           schema.required("Minimum work hours is required for part-time"),
         otherwise: (schema) => schema.notRequired(),
       }),
+    minimumPresentDays: Yup.number()
+      .min(0, "Must be at least 0")
+      .when("minimumPresentUnit", {
+        is: "WEEK",
+        then: (schema) => schema.max(7, "Cannot exceed 7 days per week"),
+        otherwise: (schema) => schema.max(31, "Cannot exceed 31 days per month"),
+      })
+      .when("newEmploymentType", {
+        is: "PART_TIME",
+        then: (schema) =>
+          schema.required("Minimum present days is required for part-time"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+    minimumPresentUnit: Yup.string()
+      .oneOf(["WEEK", "MONTH"], "Select a valid unit")
+      .when("newEmploymentType", {
+        is: "PART_TIME",
+        then: (schema) =>
+          schema.required("Please select week or month"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
     position: Yup.string()
       .transform((value) => {
         if (typeof value === "object" && value?._id) return value._id;
@@ -392,6 +414,11 @@ const getInitialValues = (initialData, mode) => ({
   minimumWorkHours: initialData?.minimumWorkHours
     ? initialData.minimumWorkHours / 60
     : "",
+  minimumPresentDays:
+    initialData?.minimumPresentDays != null
+      ? initialData.minimumPresentDays
+      : "",
+  minimumPresentUnit: initialData?.minimumPresentUnit || "",
   position:
     initialData?.position?._id?.toString() ||
     initialData?.position?.toString() ||
@@ -514,6 +541,18 @@ const EmployeeForm = ({
           formData.set("minimumWorkHours", Math.round(Number(values.minimumWorkHours) * 60));
         } else {
           formData.delete("minimumWorkHours");
+        }
+
+        if (
+          values.newEmploymentType === "PART_TIME" &&
+          values.minimumPresentDays !== "" &&
+          values.minimumPresentUnit
+        ) {
+          formData.set("minimumPresentDays", Number(values.minimumPresentDays));
+          formData.set("minimumPresentUnit", values.minimumPresentUnit);
+        } else {
+          formData.delete("minimumPresentDays");
+          formData.delete("minimumPresentUnit");
         }
 
         // Amount fields above are yearly; the server splits them into monthly.
@@ -1284,6 +1323,61 @@ const EmployeeForm = ({
                 </div>
               )}
               {errorText("minimumWorkHours")}
+            </Col>
+          )}
+          {/* MINIMUM PRESENT DAYS — visible only for Part Time */}
+          {values.newEmploymentType === "PART_TIME" && (
+            <Col md={6}>
+              <Label htmlFor="minimumPresentDays">
+                Minimum Present Days <span className="text-danger">*</span>
+              </Label>
+              <div className="d-flex" style={{ gap: "8px" }}>
+                <div style={{ flex: 1 }}>
+                  <Input
+                    id="minimumPresentDays"
+                    type="number"
+                    name="minimumPresentDays"
+                    min={0}
+                    max={values.minimumPresentUnit === "WEEK" ? 7 : 31}
+                    value={values.minimumPresentDays}
+                    onChange={handleChange}
+                    onBlur={() => setFieldTouched("minimumPresentDays", true)}
+                    placeholder="Enter number of days"
+                    invalid={
+                      touched.minimumPresentDays && !!errors.minimumPresentDays
+                    }
+                  />
+                </div>
+                <div style={{ width: "160px" }}>
+                  <Select
+                    inputId="minimumPresentUnit"
+                    placeholder="Select unit"
+                    options={presentUnitOptions}
+                    value={
+                      presentUnitOptions.find(
+                        (opt) => opt.value === values.minimumPresentUnit,
+                      ) || null
+                    }
+                    onChange={(opt) =>
+                      form.setFieldValue(
+                        "minimumPresentUnit",
+                        opt ? opt.value : "",
+                      )
+                    }
+                    onBlur={() => setFieldTouched("minimumPresentUnit", true)}
+                    isClearable
+                  />
+                </div>
+              </div>
+              {values.minimumPresentDays !== "" && values.minimumPresentUnit && (
+                <div className="text-muted small mt-1">
+                  = {values.minimumPresentDays} day
+                  {Number(values.minimumPresentDays) === 1 ? "" : "s"} per{" "}
+                  {values.minimumPresentUnit === "WEEK" ? "week" : "month"}
+                </div>
+              )}
+              {errorText("minimumPresentDays")}
+              {errorText("minimumPresentUnit")}
             </Col>
           )}
           {/* EMPLOYMENT STATUS */}

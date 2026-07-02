@@ -113,6 +113,11 @@ export const newEmploymentOptions = [
     { label: "Full Time", value: "FULL_TIME" },
 ];
 
+export const presentUnitOptions = [
+    { label: "Per Week", value: "WEEK" },
+    { label: "Per Month", value: "MONTH" },
+];
+
 export const filterEmploymentOptions = [
     { label: "FTE", value: "FULL_TIME" },
     { label: "Contractual", value: "CONTRACTUAL" },
