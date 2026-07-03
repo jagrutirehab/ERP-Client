@@ -24,6 +24,7 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
   const [managerId, setManagerId] = useState();
   const [managerName, setManagerName] = useState();
   const [loading, setLoading] = useState(false);
+  const [timeError, setTimeError] = useState("");
   const handleAuthError = useAuthError();
 
   console.log("employeeId", employeeId);
@@ -71,12 +72,28 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
       setCheckIn("");
       setCheckOut("");
       setDescription("");
+      setTimeError("");
     }
   }, [row]);
 
   // console.log("Row", row?._id);
 
   const handleSubmit = async () => {
+    if (!checkIn || !checkOut) {
+      const msg = "Please select both check-in and check-out time";
+      setTimeError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    if (checkIn === checkOut) {
+      const msg = "Check-in and check-out time cannot be the same";
+      setTimeError(msg);
+      toast.error(msg);
+      return;
+    }
+
+    setTimeError("");
     setLoading(true);
     try {
       const data = {
@@ -140,7 +157,11 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
             <Input
               type="time"
               value={checkIn}
-              onChange={(e) => setCheckIn(e.target.value)}
+              invalid={!!timeError}
+              onChange={(e) => {
+                setCheckIn(e.target.value);
+                setTimeError("");
+              }}
             />
           </div>
 
@@ -149,9 +170,17 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
             <Input
               type="time"
               value={checkOut}
-              onChange={(e) => setCheckOut(e.target.value)}
+              invalid={!!timeError}
+              onChange={(e) => {
+                setCheckOut(e.target.value);
+                setTimeError("");
+              }}
             />
           </div>
+
+          {timeError && (
+            <div className="col-12 mt-2 text-danger small">{timeError}</div>
+          )}
         </div>
 
         {/* Description */}
