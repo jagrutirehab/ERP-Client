@@ -5,6 +5,7 @@ const TIMELINE_VIEW = "TIMELINE";
 const BELONGINGS_VIEW = "BELONGINGS";
 const OPD_VIEW = "OPD";
 export const ADMISSION_SUMMARY = "ADMISSION_SUMMARY";
+export const BIO_DATA = "BIO_DATA";
 //Charts
 const PRESCRIPTION = "PRESCRIPTION";
 const VITAL_SIGN = "VITAL_SIGN";
@@ -1633,7 +1634,7 @@ let addPatientFields = [
     label: "Religion",
     name: "religion",
     type: "select",
-    isReactSelect: true,
+    useReactSelect: true,
     options: [
       { value: "HINDU", label: "Hindu" },
       { value: "MUSLIM", label: "Muslim" },
@@ -1650,7 +1651,7 @@ let addPatientFields = [
     label: "Socio Economic Status",
     name: "socioeconomicstatus",
     type: "select",
-    isReactSelect: true,
+    useReactSelect: true,
     options: [
       { value: "L", label: "L — Lower" },
       { value: "M", label: "M — Middle" },
@@ -1711,6 +1712,77 @@ let addPatientFields = [
   //   name: "psychologist",
   //   type: "select",
   // },
+  {
+    label: "Education / Qualification",
+    name: "education",
+    type: "select",
+    useReactSelect: true,
+    options: [
+      { value: "Illiterate", label: "Illiterate" },
+      { value: "Primary", label: "Primary" },
+      { value: "Middle School", label: "Middle School" },
+      { value: "Secondary / SSC", label: "Secondary / SSC" },
+      { value: "Higher Secondary / HSC", label: "Higher Secondary / HSC" },
+      { value: "Diploma / ITI", label: "Diploma / ITI" },
+      { value: "Graduate", label: "Graduate" },
+      { value: "Post-Graduate", label: "Post-Graduate" },
+      { value: "Professional", label: "Professional" },
+      { value: "Doctorate", label: "Doctorate" },
+      { value: "Other", label: "Other" },
+    ],
+  },
+  {
+    label: "Occupation",
+    name: "occupation",
+    type: "select",
+    useReactSelect: true,
+    options: [
+      { value: "Unemployed", label: "Unemployed" },
+      { value: "Student", label: "Student" },
+      { value: "Homemaker", label: "Homemaker" },
+      { value: "Retired", label: "Retired" },
+      { value: "Self-Employed / Business", label: "Self-Employed / Business" },
+      { value: "Private Sector Employee", label: "Private Sector Employee" },
+      { value: "Government Employee", label: "Government Employee" },
+      { value: "Skilled Labour", label: "Skilled Labour" },
+      {
+        value: "Unskilled / Daily Wage Labour",
+        label: "Unskilled / Daily Wage Labour",
+      },
+      { value: "Agriculture / Farmer", label: "Agriculture / Farmer" },
+      { value: "Professional", label: "Professional" },
+      { value: "Armed Forces / Police", label: "Armed Forces / Police" },
+      { value: "Other", label: "Other" },
+    ],
+  },
+  {
+    label: "Occupation Detail",
+    name: "occupationDetail",
+    type: "text",
+  },
+  {
+    label: "Languages Known",
+    name: "languagesKnown",
+    type: "select",
+    useReactSelect: true,
+    isMulti: true,
+    options: [
+      { value: "Hindi", label: "Hindi" },
+      { value: "English", label: "English" },
+      { value: "Marathi", label: "Marathi" },
+      { value: "Gujarati", label: "Gujarati" },
+      { value: "Punjabi", label: "Punjabi" },
+      { value: "Bengali", label: "Bengali" },
+      { value: "Tamil", label: "Tamil" },
+      { value: "Telugu", label: "Telugu" },
+      { value: "Kannada", label: "Kannada" },
+      { value: "Malayalam", label: "Malayalam" },
+      { value: "Odia", label: "Odia" },
+      { value: "Urdu", label: "Urdu" },
+      { value: "Konkani", label: "Konkani" },
+      { value: "Other", label: "Other" },
+    ],
+  },
 ];
 
 const patientGuradianFields = [

@@ -22,6 +22,7 @@ import {
   CLINIC_TEST,
   NOTES,
   ADMISSION_SUMMARY,
+  BIO_DATA,
 } from "../../../Components/constants/patient";
 import OPDView from "./OPD";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
@@ -31,6 +32,7 @@ import ClinicalTest from "./ClinicalTest";
 import Notes from "../../Nurse/Views/Notes";
 import AdmissionSummary from "./AdmissionSummary";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import BioData from "./BioData";
 
 const Charting = ({
   patient,
@@ -313,6 +315,7 @@ const Charting = ({
               Notes
             </button>
           </li>
+
           {canAccessAdmissionSummary && (
             <li className="nav-item rounded-0">
               <button
@@ -327,6 +330,18 @@ const Charting = ({
               </button>
             </li>
           )}
+          <li className="nav-item rounded-0">
+            <button
+              onClick={() => setTab(BIO_DATA)}
+              className={`nav-link rounded-0 ${
+                tab === BIO_DATA
+                  ? "border-0 border-2 border-top border-primary"
+                  : "active"
+              }`}
+            >
+              Bio-data
+            </button>
+          </li>
         </ul>
       </div>
       {uploadProgress > 0 && (
@@ -389,6 +404,8 @@ const Charting = ({
           patient={patient._id}
           addmission={addmissionsCharts?.[0]?._id || patient?.addmission?._id}
         />
+      ) : tab === BIO_DATA ? (
+        <BioData patient={patient} />
       ) : (
         ""
       )}
