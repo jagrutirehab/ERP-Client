@@ -109,9 +109,9 @@
   "scripts": {
     "start:prod": "serve -s build",
     "dev": "env-cmd -f .env.development react-scripts start",
-    "build": "NODE_OPTIONS=--max-old-space-size=4096 react-scripts build",
-    "build:staging": "NODE_OPTIONS=--max-old-space-size=4096 env-cmd -f .env.staging react-scripts build",
-    "build:prod": "NODE_OPTIONS=--max-old-space-size=4096 env-cmd -f .env.production react-scripts build",
+    "build": "GENERATE_SOURCEMAP=false NODE_OPTIONS=--max-old-space-size=4096 react-scripts build",
+    "build:staging": "GENERATE_SOURCEMAP=false NODE_OPTIONS=--max-old-space-size=4096 env-cmd -f .env.staging react-scripts build",
+    "build:prod": "GENERATE_SOURCEMAP=false NODE_OPTIONS=--max-old-space-size=4096 env-cmd -f .env.production react-scripts build",
     "test": "craco test --detectOpenHandles",
     "eject": "react-scripts eject"
   },
