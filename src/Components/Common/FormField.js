@@ -116,20 +116,70 @@ const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
                     <Select
                       isMulti
                       options={field.options || []}
-                      value={(field.options || []).filter(opt =>
-                        validation.values[field.name]?.includes(opt.value)
+                      value={(field.options || []).filter((opt) =>
+                        validation.values[field.name]?.includes(opt.value),
                       )}
                       onChange={(selected) =>
                         validation.setFieldValue(
                           field.name,
-                          selected ? selected.map(s => s.value) : []
+                          selected ? selected.map((s) => s.value) : [],
                         )
                       }
-                      onBlur={() => validation.setFieldTouched(field.name, true)}
+                      onBlur={() =>
+                        validation.setFieldTouched(field.name, true)
+                      }
                       placeholder={`Select ${field.label}`}
                       menuPortalTarget={document.body}
                       styles={{
-                        menuPortal: base => ({ ...base, zIndex: 9999 }),
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        control: (base) => ({
+                          ...base,
+                          borderColor:
+                            validation.touched[field.name] &&
+                            validation.errors[field.name]
+                              ? "#dc3545"
+                              : base.borderColor,
+                          "&:hover": {
+                            borderColor:
+                              validation.touched[field.name] &&
+                              validation.errors[field.name]
+                                ? "#dc3545"
+                                : base.borderColor,
+                          },
+                        }),
+                      }}
+                    />
+
+                    {validation.touched[field.name] &&
+                      validation.errors[field.name] && (
+                        <FormFeedback type="invalid" className="d-block">
+                          {validation.errors[field.name]}
+                        </FormFeedback>
+                      )}
+                  </>
+                ) : field.useReactSelect ? (
+                  <>
+                    <Select
+                      options={field.options || []}
+                      value={
+                        (field.options || []).find(
+                          (opt) => opt.value === validation.values[field.name],
+                        ) || null
+                      }
+                      onChange={(selected) =>
+                        validation.setFieldValue(
+                          field.name,
+                          selected ? selected.value : "",
+                        )
+                      }
+                      onBlur={() =>
+                        validation.setFieldTouched(field.name, true)
+                      }
+                      placeholder={`Select ${field.label}`}
+                      isClearable
+                      menuPortalTarget={document.body}
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                         control: (base) => ({
                           ...base,
                           borderColor:
@@ -169,10 +219,7 @@ const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
                           Choose here
                         </option>
                         {(field.options || []).map((option, idx) => (
-                          <option
-                            key={idx}
-                            value={option._id || option.value}
-                          >
+                          <option key={idx} value={option._id || option.value}>
                             {option.name || option.label}
                           </option>
                         ))}
