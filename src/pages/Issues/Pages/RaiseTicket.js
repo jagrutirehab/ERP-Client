@@ -3,7 +3,10 @@ import { CardBody, Form, Input, Label, Row, Col } from "reactstrap";
 import Select from "react-select";
 import debounce from "lodash.debounce";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
-import { getEmployeesBySearch, postIssue } from "../../../helpers/backend_helper";
+import {
+  getEmployeesBySearch,
+  postIssue,
+} from "../../../helpers/backend_helper";
 import { getAllCenters } from "../../../helpers/backend_helper";
 import TicketForm from "../Components/TicketForm";
 import { toast } from "react-toastify";
@@ -22,7 +25,13 @@ const initialFormState = {
   requestType: null,
   hrDescription: "",
   manager: "",
-  financeIssueType : "",
+  financeIssueType: "",
+  maintenanceCategory: null,
+  maintenanceOtherCategory: "",
+  maintenanceTitle: "",
+  maintenanceDescription: "",
+  maintenanceLocation: "",
+  maintenancePriority: null,
   files: [],
 };
 const RaiseTicket = () => {
@@ -40,7 +49,6 @@ const RaiseTicket = () => {
   const [form, setForm] = useState(initialFormState);
   const fileInputRef = useRef(null);
 
-
   const token = JSON.parse(localStorage.getItem("user"))?.token;
   const { hasPermission, loading: isLoading } = usePermissions(token);
 
@@ -52,7 +60,6 @@ const RaiseTicket = () => {
   console.log("Has Delete Perm", hasDeletePermission);
   const canSubmit = hasWritePermission || hasDeletePermission;
   console.log("Can Submit", canSubmit);
-
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -111,7 +118,6 @@ const RaiseTicket = () => {
     return debounce(fetchEmployees, 400);
   }, []);
 
-
   useEffect(() => {
     const fetchCenters = async () => {
       try {
@@ -136,7 +142,7 @@ const RaiseTicket = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    setLoader(true)
+    setLoader(true);
     try {
       const formData = new FormData();
 
@@ -156,14 +162,8 @@ const RaiseTicket = () => {
       }
 
       if (issueType === "REVIEW_SUBMISSION") {
-        formData.append(
-          "responsibleReviewer",
-          form.responsibleReviewer?.value
-        );
-        formData.append(
-          "reviewTakenFrom",
-          form.reviewTakenFrom?.value
-        );
+        formData.append("responsibleReviewer", form.responsibleReviewer?.value);
+        formData.append("reviewTakenFrom", form.reviewTakenFrom?.value);
       }
 
       if (issueType === "HR") {
@@ -172,9 +172,23 @@ const RaiseTicket = () => {
         // formData.append("manager", form.manager);
       }
 
-       if (issueType === "FINANCE") {
+      if (issueType === "FINANCE") {
         formData.append("financeIssueType", form.financeIssueType?.value);
         formData.append("description", form.financeDescription);
+      }
+
+      if (issueType === "MAINTENANCE") {
+        formData.append("category", form.maintenanceCategory?.value);
+        if (form.maintenanceCategory?.value === "OTHERS") {
+          formData.append("otherCategory", form.maintenanceOtherCategory);
+        }
+        formData.append("title", form.maintenanceTitle);
+        formData.append("description", form.maintenanceDescription);
+        formData.append("location", form.maintenanceLocation);
+        formData.append(
+          "priority",
+          form.maintenancePriority?.value || "MEDIUM",
+        );
       }
 
       if (form.files && form.files.length) {
@@ -182,8 +196,6 @@ const RaiseTicket = () => {
           formData.append("files", file);
         }
       }
-
-
 
       const response = await postIssue(formData);
 
@@ -195,7 +207,6 @@ const RaiseTicket = () => {
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
-
     } catch (error) {
       console.log(error);
       toast.error(error?.message || "Error Posting Issue");
