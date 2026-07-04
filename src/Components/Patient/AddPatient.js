@@ -133,6 +133,12 @@ const AddPatient = ({
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
       socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
       areatype: editData ? editData.areatype : "",
+      socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
+      areatype: editData ? editData.areatype : "",
+      education: editData ? editData.education : "",
+      occupation: editData ? editData.occupation : "",
+      occupationDetail: editData ? editData.occupationDetail : "",
+      languagesKnown: editData ? editData.languagesKnown || [] : [],
     },
     validationSchema: Yup.object({
       id: Yup.string()
@@ -159,9 +165,13 @@ const AddPatient = ({
       guardianRelation: Yup.string().required("Please Enter Guardian Relation"),
       guardianPhoneNumber: Yup.string()
         .required("Please Enter Guardian Phone Number")
-        .test("is-valid-guardian-phone", "Invalid phone number", function (value) {
-          return isValidPhoneNumber(value || "");
-        }),
+        .test(
+          "is-valid-guardian-phone",
+          "Invalid phone number",
+          function (value) {
+            return isValidPhoneNumber(value || "");
+          },
+        ),
       referralPhoneNumber: Yup.string()
         .nullable()
         .notRequired()
@@ -776,7 +786,8 @@ const AddPatient = ({
                         height: "42px",
                         padding: "0.5rem 0.75rem",
                         border: `1px solid ${
-                          validation.touched[f.name] && validation.errors[f.name]
+                          validation.touched[f.name] &&
+                          validation.errors[f.name]
                             ? "#ef4444"
                             : "#d1d5db"
                         }`,
@@ -802,14 +813,16 @@ const AddPatient = ({
                         fontSize: "1rem",
                         fontWeight: "400",
                         border: `1px solid ${
-                          validation.touched[f.name] && validation.errors[f.name]
+                          validation.touched[f.name] &&
+                          validation.errors[f.name]
                             ? "#ef4444"
                             : "#d1d5db"
                         }`,
                         borderRadius: "0.375rem",
                         outline: "none",
                         boxShadow:
-                          validation.touched[f.name] && validation.errors[f.name]
+                          validation.touched[f.name] &&
+                          validation.errors[f.name]
                             ? "0 0 0 2px rgba(239, 68, 68, 0.3)"
                             : "0 0 0 2px rgba(96, 165, 250, 0.3)",
                         transition:

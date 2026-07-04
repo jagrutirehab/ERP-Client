@@ -4051,6 +4051,10 @@ export const getAddmissionSummary = (addmission) => {
   return api.get(`${url.GET_ADDMISSION_SUMMARY}/${addmission}`);
 };
 
+export const getPatientBioData = (id) => {
+  return api.get(`${url.GET_PATIENT_BIODATA}/${id}`);
+};
+
 export const postPsychoDiagnosticForm = (data) =>
   api.create(url.POST_PSYCHO_DIAGNOSTIC_FORM, data, {
     headers: { "Content-Type": "multipart/form-data" },
