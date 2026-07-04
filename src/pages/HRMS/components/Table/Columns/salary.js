@@ -39,6 +39,12 @@ const employerDeductionStyle = {
     backgroundColor: "#7B8FD1",
 };
 
+// Non-FULL_TIME employees have no salary breakup — their record is just an
+// inHandSalary + CTC. For them the "Gross Salary" columns are meaningless (0),
+// so we show the inHandSalary (fixed / earned) in their place.
+const isSimplifiedEmployee = (row) =>
+    (row?.employee?.employmentType || "").trim().toUpperCase() !== "FULL_TIME";
+
 export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, onReject, hasEditPermission, approvalStatusFilter }) => [
     {
         name: <div>ECode</div>,
@@ -194,7 +200,11 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
     {
         name: <div>Gross Salary</div>,
-        selector: row => formatCurrency(row?.salarySnapshot?.grossSalary),
+        selector: row => formatCurrency(
+            isSimplifiedEmployee(row)
+                ? row?.salarySnapshot?.inHandSalary
+                : row?.salarySnapshot?.grossSalary
+        ),
         wrap: true,
         center: true,
         style: fixedCellStyle,
@@ -251,7 +261,11 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
     {
         name: <div>Gross Salary</div>,
-        selector: row => formatCurrency(row?.earned?.grossSalary),
+        selector: row => formatCurrency(
+            isSimplifiedEmployee(row)
+                ? row?.earned?.inHandSalary
+                : row?.earned?.grossSalary
+        ),
         wrap: true,
         center: true,
         style: employerDeductionStyle,
