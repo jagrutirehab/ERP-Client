@@ -19,12 +19,12 @@ const styles = StyleSheet.create({
   },
 });
 
-const BioDataPdf = ({ patient, user }) => {
+const BioDataPdf = ({ patient, user, addmission }) => {
   return (
     <Document>
       <Page size="A4" style={styles.page}>
         <Header date={new Date()} patient={patient || {}} user={user || {}} />
-        <Body patient={patient} />
+        <Body patient={patient} addmission={addmission} />
         <Footer />
       </Page>
     </Document>

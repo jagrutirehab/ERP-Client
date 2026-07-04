@@ -66,7 +66,7 @@ InfoItem.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
-const Body = ({ patient }) => {
+const Body = ({ patient, addmission }) => {
   if (!patient) return null;
 
   const fullAddress = [
@@ -98,7 +98,7 @@ const Body = ({ patient }) => {
             <InfoItem label="Age" value={patient.age} />
             <InfoItem label="Marital Status" value={patient.maritalstatus} />
             <InfoItem label="Religion" value={patient.religion} />
-            <InfoItem label="Nationality" value={patient.nationality} />
+            {/* <InfoItem label="Nationality" value={patient.nationality} /> */}
             <InfoItem
               label="Aadhaar Card Number"
               value={patient.aadhaarCardNumber}
@@ -116,10 +116,10 @@ const Body = ({ patient }) => {
               label="Address"
               value={capitalizeWords(patient.address)}
             />
-            <InfoItem
+            {/* <InfoItem
               label="Full Address"
               value={capitalizeWords(fullAddress)}
-            />
+            /> */}
           </View>
           <View style={styles.divider} />
         </View>
@@ -173,10 +173,12 @@ const Body = ({ patient }) => {
               value={patient.socioeconomicstatus}
             />
             <InfoItem label="Area Type" value={patient.areatype} />
-            <InfoItem label="IPD File Number" value={patient.ipdFileNumber} />
+            <InfoItem label="IPD Number" value={addmission?.[0]?.Ipdnum} />
             <InfoItem
               label="Provisional Diagnosis"
-              value={patient.provisionalDiagnosis}
+              value={addmission?.[0]?.provisional_diagnosis
+                ?.map((p) => p.code)
+                .join(", ")}
             />
             <InfoItem
               label="Referred By"

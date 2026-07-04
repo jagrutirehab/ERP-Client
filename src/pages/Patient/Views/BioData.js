@@ -22,12 +22,14 @@ InfoItem.propTypes = {
   value: PropTypes.oneOfType([PropTypes.string, PropTypes.number]),
 };
 
-const BioData = ({ patient }) => {
+const BioData = ({ patient, addmission }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User.user);
   const [isPdfOpen, setIsPdfOpen] = useState(false);
 
   if (!patient) return null;
+
+  console.log("addmission", addmission);
 
   const handleEdit = () => {
     dispatch(
@@ -149,11 +151,13 @@ const BioData = ({ patient }) => {
               label="Socioeconomic Status"
               value={patient.socioeconomicstatus}
             />
-            <InfoItem label="Area Type" value={patient.areatype} />
-            <InfoItem label="IPD File Number" value={patient.ipdFileNumber} />
+            <InfoItem label="Area Type" value={patient?.areatype} />
+            <InfoItem label="IPD Number" value={addmission?.[0]?.Ipdnum} />
             <InfoItem
               label="Provisional Diagnosis"
-              value={patient.provisionalDiagnosis}
+              value={addmission?.[0]?.provisional_diagnosis
+                ?.map((p) => p.code)
+                .join(", ")}
             />
             <InfoItem
               label="Referred By"
@@ -174,7 +178,7 @@ const BioData = ({ patient }) => {
       >
         {isPdfOpen && (
           <PDFViewer style={{ width: "100%", height: "75vh", border: "none" }}>
-            <BioDataPdf patient={patient} user={user} />
+            <BioDataPdf patient={patient} user={user} addmission={addmission} />
           </PDFViewer>
         )}
       </CustomModal>
