@@ -405,7 +405,7 @@ const Charting = ({
           addmission={addmissionsCharts?.[0]?._id || patient?.addmission?._id}
         />
       ) : tab === BIO_DATA ? (
-        <BioData patient={patient} />
+        <BioData patient={patient} addmission={addmissionsCharts} />
       ) : (
         ""
       )}
