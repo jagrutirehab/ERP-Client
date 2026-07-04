@@ -201,6 +201,13 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
 
     {
+        name: <div>Total Cost To Company</div>,
+        selector: row => formatCurrency(row?.earned?.totalCostToCompany),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
+    {
         name: <div>Basic Salary</div>,
         selector: row => formatCurrency(row?.earned?.basicAmount),
         wrap: true,
