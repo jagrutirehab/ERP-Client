@@ -60,7 +60,11 @@ import {
 import { setAlert } from "../alert/alertSlice";
 import { IPD, OPD } from "../../../Components/constants/patient";
 import { togglePrint } from "../print/printSlice";
-import { removeEventChart, setEventChart } from "../booking/bookingSlice";
+import {
+  removeEventChart,
+  setEventChart,
+  setEventPsychoDiagnostic,
+} from "../booking/bookingSlice";
 import {
   fetchPatientById,
   replacePatient,
@@ -648,6 +652,26 @@ export const addPsychoDiagnosticForm = createAsyncThunk(
           message: "Psycho Diagnostic Form Saved Successfully",
         }),
       );
+      // Booking flow: update the appointment's psycho slot on the calendar and
+      // open the print modal (mirrors the prescription flow).
+      if (response?.appointment) {
+        dispatch(
+          setEventPsychoDiagnostic({
+            psychoDiagnosticForm: response.payload,
+            appointment: response.appointment,
+          }),
+        );
+        if (response.patient) dispatch(viewPatient(response.patient));
+        dispatch(
+          togglePrint({
+            modal: true,
+            data: response.payload,
+            patient: response.patient,
+            center: response.center,
+            doctor: response.doctor,
+          }),
+        );
+      }
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
     } catch (error) {
@@ -688,6 +712,16 @@ export const updatePsychoDiagnosticForm = createAsyncThunk(
           message: "Psycho Diagnostic Form Updated Successfully",
         }),
       );
+      // Booking flow: refresh the appointment's psycho slot on the calendar.
+      if (response?.appointment) {
+        dispatch(
+          setEventPsychoDiagnostic({
+            psychoDiagnosticForm: response.payload,
+            appointment: response.appointment,
+          }),
+        );
+        if (response.patient) dispatch(viewPatient(response.patient));
+      }
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
     } catch (error) {
@@ -2372,6 +2406,9 @@ export const chartSlice = createSlice({
       })
       .addCase(addPsychoDiagnosticForm.fulfilled, (state, { payload }) => {
         state.loading = false;
+        // Booking (appointment) charts are reflected on the calendar via
+        // setEventPsychoDiagnostic; don't touch the patient-timeline state.
+        if (payload?.payload?.appointment) return;
         if (payload.isAddmissionAvailable) {
           const findIndex = state.data.findIndex(
             (el) => el._id === payload.addmission,
@@ -2410,6 +2447,8 @@ export const chartSlice = createSlice({
       })
       .addCase(updatePsychoDiagnosticForm.fulfilled, (state, { payload }) => {
         state.loading = false;
+        // Booking (appointment) charts are refreshed via setEventPsychoDiagnostic.
+        if (payload?.payload?.appointment) return;
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
             (el) => el._id === payload.payload._id,

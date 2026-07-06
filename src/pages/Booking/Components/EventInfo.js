@@ -17,6 +17,7 @@ import {
   MENTAL_EXAMINATION,
   OPD,
   PRESCRIPTION,
+  PSYCHO_DIAGNOSTIC_FORM,
 } from "../../../Components/constants/patient";
 import MeetingComponent from "../../Meeting/Components";
 import { Link } from "react-router-dom";
@@ -367,6 +368,91 @@ const EventInfo = ({
             >
               Create Prescription
             </button>
+          ) : (
+            ""
+          )}
+          {data?.doctor?.role === "DOCTOR" ||
+          data?.doctor?.role === "COUNSELLOR" ||
+          data?.doctor?.role === "PSW" ? (
+            data?.psychoDiagnosticForm ? (
+              <>
+                <button
+                  onClick={() => {
+                    setAppointment(data);
+                    dispatch(
+                      setChartDate(
+                        data.psychoDiagnosticForm?.date ||
+                          new Date().toISOString()
+                      )
+                    );
+                    dispatch(
+                      createEditChart({
+                        chart: PSYCHO_DIAGNOSTIC_FORM,
+                        isOpen: true,
+                        type: isAdmit ? IPD : OPD,
+                        data: data.psychoDiagnosticForm,
+                        patient: data.patient,
+                        center: data.center?._id,
+                        doctor: {
+                          ...data.doctor,
+                          profilePicture: null,
+                        },
+                        appointment: data,
+                        shouldPrintAfterSave: true,
+                        populatePreviousAppointment: false,
+                      })
+                    );
+                  }}
+                  disabled={data?.isCancelled}
+                  className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                >
+                  Edit Psycho Report
+                </button>
+                <button
+                  onClick={() => {
+                    setAppointment(data);
+                    dispatch(
+                      togglePrint({
+                        data: data.psychoDiagnosticForm,
+                        modal: true,
+                        patient: data.patient,
+                        center: data.center,
+                        doctor: {
+                          ...data.doctor,
+                          profilePicture: null,
+                        },
+                      })
+                    );
+                  }}
+                  disabled={data?.isCancelled}
+                  className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                >
+                  View Psycho Report
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  dispatch(setChartDate(new Date().toISOString()));
+                  dispatch(
+                    createEditChart({
+                      chart: PSYCHO_DIAGNOSTIC_FORM,
+                      isOpen: true,
+                      type: isAdmit ? IPD : OPD,
+                      patient: data.patient,
+                      center: data.center?._id,
+                      appointment: data,
+                      shouldPrintAfterSave: true,
+                      populatePreviousAppointment: false,
+                    })
+                  );
+                }}
+                disabled={data?.isCancelled}
+                className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+              >
+                Create Psycho Report
+              </button>
+            )
           ) : (
             ""
           )}
