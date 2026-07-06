@@ -59,7 +59,10 @@ const PsychoDiagnosticForm = ({
       author: author._id,
       patient: patient._id,
       center: center || patient?.center?._id || patient?.center,
-      addmission: patient.addmission?._id,
+      // Booking-flow patients carry `addmission` as an unpopulated ObjectId
+      // (no `._id`); patient-module patients carry it populated. Handle both,
+      // mirroring the Prescription form.
+      addmission: patient?.addmission?._id || patient?.addmission || "",
       reports,
       chart: PSYCHO_DIAGNOSTIC_FORM,
       type,
