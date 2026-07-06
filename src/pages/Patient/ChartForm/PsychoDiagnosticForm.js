@@ -42,6 +42,8 @@ const PsychoDiagnosticForm = ({
   chartDate,
   editChartData,
   type,
+  appointment,
+  center,
 }) => {
   const dispatch = useDispatch();
   const [reports, setReports] = useState([]);
@@ -56,7 +58,7 @@ const PsychoDiagnosticForm = ({
     initialValues: {
       author: author._id,
       patient: patient._id,
-      center: patient.center._id,
+      center: center || patient?.center?._id || patient?.center,
       addmission: patient.addmission?._id,
       reports,
       chart: PSYCHO_DIAGNOSTIC_FORM,
@@ -89,6 +91,9 @@ const PsychoDiagnosticForm = ({
         formData.append("description", report.description || "");
         formData.append("aiResponse", JSON.stringify(report.aiResponse || {}));
       });
+
+      // Booking flow: link the report to the appointment's psycho slot.
+      if (appointment?._id) formData.append("appointment", appointment._id);
 
       if (editPsychoForm) {
         formData.append("id", editChartData._id);
@@ -361,13 +366,20 @@ PsychoDiagnosticForm.propTypes = {
   chartDate: PropTypes.any.isRequired,
   editChartData: PropTypes.object,
   type: PropTypes.string.isRequired,
+  appointment: PropTypes.object,
+  center: PropTypes.any,
 };
 
 const mapStateToProps = (state) => ({
   author: state.User.user,
-  patient: state.Patient.patient,
+  // Prefer the chart form's patient (set for both the patient-module and the
+  // booking flow); fall back to the currently-viewed patient.
+  patient: state.Chart.chartForm?.patient || state.Patient.patient,
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm?.data,
+  type: state.Chart.chartForm?.type,
+  appointment: state.Chart.chartForm?.appointment,
+  center: state.Chart.chartForm?.center,
 });
 
 export default connect(mapStateToProps)(PsychoDiagnosticForm);

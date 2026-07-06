@@ -9,6 +9,7 @@ import {
   EXPIRY_SUMMARY,
   GENERAL,
   IPD,
+  OPD,
   LAB_REPORT,
   MENTAL_EXAMINATION,
   OUTPASS,
@@ -108,7 +109,9 @@ const Charts = ({ charts, patient, doctor, admission }) => {
             <RenderWhen
               isTrue={
                 chart?.chart === PSYCHO_DIAGNOSTIC_FORM &&
-                (chart.type === IPD || chart.type === GENERAL)
+                (chart.type === IPD ||
+                  chart.type === GENERAL ||
+                  chart.type === OPD)
               }
             >
               <PsychoDiagnosis
