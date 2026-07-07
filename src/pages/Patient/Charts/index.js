@@ -142,7 +142,7 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
             chartsRef.current?.[0]?.patient;
           if (patientId) {
             dispatch(
-              fetchGeneralCharts({ patient: patientId, type: "GENERAL" }),
+              fetchGeneralCharts({ patient: patientId, type: "OPD" }),
             );
           }
         }
