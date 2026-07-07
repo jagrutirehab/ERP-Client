@@ -701,38 +701,38 @@ const Employee = () => {
     //     wrap: true,
     //     minWidth: "100px"
     // },
-    {
-      name: <div>Offer Letter</div>,
-      selector: (row) => {
-        if (!row?.offerLetter) return "-";
+    // {
+    //   name: <div>Offer Letter</div>,
+    //   selector: (row) => {
+    //     if (!row?.offerLetter) return "-";
 
-        const meta = getFilePreviewMeta(
-          { url: row?.offerLetter },
-          row?.updatedAt,
-          FILE_PREVIEW_CUTOFF,
-        );
+    //     const meta = getFilePreviewMeta(
+    //       { url: row?.offerLetter },
+    //       row?.updatedAt,
+    //       FILE_PREVIEW_CUTOFF,
+    //     );
 
-        return (
-          <span
-            style={{
-              color: meta.canPreview ? "#007bff" : "#28a745",
-              textDecoration: "underline",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-            }}
-            onClick={() =>
-              handleFilePreview(
-                { url: row?.offerLetter },
-                row?.updatedAt,
-                FILE_PREVIEW_CUTOFF,
-              )
-            }
-          >
-            {meta.action === "preview" ? "Preview" : "Download"}
-          </span>
-        );
-      },
-    },
+    //     return (
+    //       <span
+    //         style={{
+    //           color: meta.canPreview ? "#007bff" : "#28a745",
+    //           textDecoration: "underline",
+    //           cursor: "pointer",
+    //           fontSize: "0.875rem",
+    //         }}
+    //         onClick={() =>
+    //           handleFilePreview(
+    //             { url: row?.offerLetter },
+    //             row?.updatedAt,
+    //             FILE_PREVIEW_CUTOFF,
+    //           )
+    //         }
+    //       >
+    //         {meta.action === "preview" ? "Preview" : "Download"}
+    //       </span>
+    //     );
+    //   },
+    // },
     {
       name: <div>Created By</div>,
       selector: (row) => (

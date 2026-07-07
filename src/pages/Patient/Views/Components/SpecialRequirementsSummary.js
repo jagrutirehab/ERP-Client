@@ -2,8 +2,9 @@ import React from "react";
 import { connect } from "react-redux";
 import SpecialRequirementsChips from "../../../../Components/Common/SpecialRequirementsChips";
 import {
-  getAdmissionSpecialRequirements,
+  getLatestDisplayableDetailAdmission,
   getSelectedSpecialRequirements,
+  isOldChart,
 } from "../../../../utils/specialRequirements";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 
@@ -27,23 +28,37 @@ const SpecialRequirementsSummary = ({ addmissionsCharts, consentfromRaw, isAdmit
   if (!isAdmit) return null;
 
   const latestAdmission = (addmissionsCharts || [])[0];
-  const specialRequirements = getAdmissionSpecialRequirements(
+  const latestDetailAdmission = getLatestDisplayableDetailAdmission(
     latestAdmission?.charts
   );
+  const specialRequirements =
+    latestDetailAdmission?.detailAdmission?.specialRequirements || null;
   const hasChips =
     getSelectedSpecialRequirements(specialRequirements).length > 0;
+  // old detail admissions predate the feature, so requirements were never captured
+  const oldChart = !hasChips && isOldChart(latestDetailAdmission);
 
   const roomType = consentfromRaw?.length
     ? consentfromRaw[consentfromRaw.length - 1]?.roomType
     : null;
 
-  if (!hasChips && !roomType) return null;
+  if (!hasChips && !oldChart && !roomType) return null;
 
   return (
     <React.Fragment>
       {hasChips && (
         <SummaryCard title="SPECIAL REQUIREMENTS">
           <SpecialRequirementsChips data={specialRequirements} label="" />
+        </SummaryCard>
+      )}
+      {oldChart && (
+        <SummaryCard title="SPECIAL REQUIREMENTS" compact>
+          <span
+            className="text-muted fst-italic"
+            style={{ fontSize: "0.7rem" }}
+          >
+            Old chart — special requirements not recorded
+          </span>
         </SummaryCard>
       )}
       {roomType && (
