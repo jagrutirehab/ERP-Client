@@ -422,7 +422,7 @@ export const Issues = (
     width: "180px",
   },
 
-  ...(status === "new" && type !== "HR" && type !== "COMPLAINT" && canEdit
+  ...(status === "new" && type !== "HR" && canEdit
     ? [
         {
           name: <div className="text-center">Assign</div>,
@@ -538,7 +538,7 @@ export const Issues = (
 
   // canChangeStatus &&
   ...((type === "HR" ||
-    type === "COMPLAINT" ||
+    (type === "COMPLAINT" && status !== "new") ||
     (type === "MAINTENANCE" && status !== "new")) &&
   canEdit &&
   (status !== "resolved" || status === "")
