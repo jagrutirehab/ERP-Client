@@ -53,6 +53,9 @@ const PsychoDiagnosticForm = ({
 
   const editPsychoForm = editChartData?.psychoDiagnosticForm;
 
+  console.log({ chartDate });
+
+
   const validation = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -66,7 +69,7 @@ const PsychoDiagnosticForm = ({
       reports,
       chart: PSYCHO_DIAGNOSTIC_FORM,
       type,
-      date: chartDate,
+      date: chartDate || new Date(),
     },
     validationSchema: Yup.object({
       reports: Yup.array().test(
