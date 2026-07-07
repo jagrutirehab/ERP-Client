@@ -68,7 +68,9 @@ const IssuesPage = ({ type }) => {
           ? hasPermission("ISSUES", "HR_ISSUES", "WRITE")
           : type === "MAINTENANCE"
             ? hasPermission("ISSUES", "MAINTENANCE_ISSUES", "WRITE")
-            : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "WRITE");
+            : type === "COMPLAINT"
+              ? hasPermission("ISSUES", "COMPLAINT_ISSUES", "WRITE")
+              : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "WRITE");
   const hasDeletePermission =
     type === "TECH"
       ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "DELETE")
@@ -78,8 +80,9 @@ const IssuesPage = ({ type }) => {
           ? hasPermission("ISSUES", "HR_ISSUES", "WRITE")
           : type === "MAINTENANCE"
             ? hasPermission("ISSUES", "MAINTENANCE_ISSUES", "WRITE")
-            : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "DELETE");
-
+            : type === "COMPLAINT"
+              ? hasPermission("ISSUES", "COMPLAINT_ISSUES", "WRITE")
+              : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "DELETE");
   const canEdit = hasWritePermission || hasDeletePermission;
 
   console.log("Can Edit", canEdit);

@@ -72,8 +72,7 @@ const TicketForm = ({
 
   const isFormValid = () => {
     if (!selectedCenter) return false;
-
-    if (!form.requestedFrom) return false;
+    if (issueType !== "COMPLAINT" && !form.requestedFrom) return false;
     if (!form.contact) return false;
 
     if (issueType === "TECH" && !form.description) return false;
@@ -108,6 +107,17 @@ const TicketForm = ({
       if (!form.maintenanceDescription) return false;
     }
 
+    if (issueType === "COMPLAINT") {
+      if (!form.complaintCategory) return false;
+      if (
+        form.complaintCategory?.value === "OTHERS" &&
+        !form.complaintOtherCategory
+      )
+        return false;
+      if (!form.complaintSubject) return false;
+      if (!form.complaintDescription) return false;
+    }
+
     // if (!form.files || form.files.length === 0) return false;
 
     return true;
@@ -118,6 +128,7 @@ const TicketForm = ({
     { value: "HR", label: "HR" },
     { value: "FINANCE", label: "FINANCE" },
     { value: "MAINTENANCE", label: "MAINTENANCE" },
+    { value: "COMPLAINT", label: "COMPLAINT" },
 
     // { value: "PURCHASE", label: "PURCHASE" },
     // { value: "REVIEW_SUBMISSION", label: "REVIEW SUBMISSION" },
@@ -503,6 +514,116 @@ const TicketForm = ({
                 rows="3"
                 name="maintenanceDescription"
                 value={form.maintenanceDescription || ""}
+                onChange={handleChange}
+              />
+            </Col>
+          </>
+        )}
+
+        {issueType === "COMPLAINT" && (
+          <>
+            <Col md={12}>
+              <div className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id="anonymousCheck"
+                  checked={form.anonymous || false}
+                  onChange={(e) =>
+                    setForm({ ...form, anonymous: e.target.checked })
+                  }
+                />
+                <label
+                  className="form-check-label fw-semibold"
+                  htmlFor="anonymousCheck"
+                >
+                  Submit anonymously (your name will not be shown)
+                </label>
+              </div>
+            </Col>
+
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Category<span className="text-danger">*</span>
+              </Label>
+              <Select
+                placeholder="Select Category"
+                options={[
+                  { value: "STAFF", label: "Staff" },
+                  { value: "CENTER", label: "Center" },
+                  { value: "MANAGER", label: "Manager" },
+                  { value: "FACILITY", label: "Facility" },
+                  { value: "OTHERS", label: "Others" },
+                ]}
+                value={form.complaintCategory}
+                onChange={(option) =>
+                  setForm({
+                    ...form,
+                    complaintCategory: option,
+                    complaintOtherCategory: "",
+                  })
+                }
+              />
+            </Col>
+
+            {form.complaintCategory?.value === "OTHERS" && (
+              <Col md={6}>
+                <Label className="fw-semibold">
+                  Please specify<span className="text-danger">*</span>
+                </Label>
+                <Input
+                  type="text"
+                  name="complaintOtherCategory"
+                  value={form.complaintOtherCategory || ""}
+                  onChange={handleChange}
+                />
+              </Col>
+            )}
+
+            <Col md={6}>
+              <Label className="fw-semibold">Complaint Against</Label>
+              <Select
+                placeholder="Search employee..."
+                options={employees.filter(
+                  (emp) => emp.value !== form.requestedFrom?.value,
+                )}
+                value={form.complaintAgainst}
+                isLoading={loadingEmployees}
+                styles={selectStyles}
+                isClearable
+                onInputChange={(value, { action }) => {
+                  if (action === "input-change") {
+                    debouncedFetchEmployees(value);
+                  }
+                }}
+                onChange={(option) =>
+                  setForm({ ...form, complaintAgainst: option })
+                }
+              />
+            </Col>
+
+            <Col md={12}>
+              <Label className="fw-semibold">
+                Subject<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="text"
+                name="complaintSubject"
+                placeholder="Brief subject of the complaint"
+                value={form.complaintSubject || ""}
+                onChange={handleChange}
+              />
+            </Col>
+
+            <Col md={12}>
+              <Label className="fw-semibold">
+                Description<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="textarea"
+                rows="4"
+                name="complaintDescription"
+                value={form.complaintDescription || ""}
                 onChange={handleChange}
               />
             </Col>

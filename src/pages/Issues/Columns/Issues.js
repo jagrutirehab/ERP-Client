@@ -31,7 +31,10 @@ export const Issues = (
   },
   {
     name: <div className="text-center">Author</div>,
-    selector: (row) => row?.author?.name || "-",
+    selector: (row) =>
+      row?.issueType === "COMPLAINT" && row?.complaintIssue?.anonymous
+        ? "Anonymous"
+        : row?.author?.name || "-",
     // center: true,
     width: "160px",
   },
@@ -243,7 +246,9 @@ export const Issues = (
             };
             return (
               <Badge
-                color={priorityColors[row?.maintenanceIssue?.priority] || "secondary"}
+                color={
+                  priorityColors[row?.maintenanceIssue?.priority] || "secondary"
+                }
                 pill
               >
                 {row?.maintenanceIssue?.priority || "-"}
@@ -284,6 +289,60 @@ export const Issues = (
               </div>
             );
           },
+        },
+      ]
+    : []),
+
+  ...(type === "COMPLAINT"
+    ? [
+        {
+          name: <div className="text-center">Subject</div>,
+          selector: (row) => row?.complaintIssue?.subject || "-",
+          width: "200px",
+        },
+        {
+          name: <div className="text-center">Category</div>,
+          selector: (row) =>
+            row?.complaintIssue?.category === "OTHERS"
+              ? row?.complaintIssue?.otherCategory || "Others"
+              : row?.complaintIssue?.category || "-",
+          width: "160px",
+        },
+        {
+          name: <div className="text-center">Complaint Against</div>,
+          selector: (row) => row?.complaintIssue?.complaintAgainst?.name || "-",
+          width: "180px",
+        },
+        {
+          name: <div className="text-center">Description</div>,
+          width: "220px",
+          cell: (row) => (
+            <div
+              style={{
+                maxHeight: "80px",
+                overflowY: "auto",
+                wordBreak: "break-word",
+              }}
+            >
+              {row?.complaintIssue?.description || "-"}
+            </div>
+          ),
+        },
+        {
+          name: <div className="text-center">Images</div>,
+          width: "140px",
+          cell: (row) => (
+            <span
+              style={{
+                color: "#0d6efd",
+                cursor: "pointer",
+                fontWeight: "500",
+              }}
+              onClick={() => handleViewImages(row?.complaintIssue?.files)}
+            >
+              View Images
+            </span>
+          ),
         },
       ]
     : []),
@@ -363,7 +422,8 @@ export const Issues = (
     width: "180px",
   },
 
-...(status === "new" && type !== "HR" && canEdit   ? [
+  ...(status === "new" && type !== "HR" && type !== "COMPLAINT" && canEdit
+    ? [
         {
           name: <div className="text-center">Assign</div>,
           width: "140px",
@@ -477,7 +537,9 @@ export const Issues = (
     : []),
 
   // canChangeStatus &&
-...((type === "HR" || (type === "MAINTENANCE" && status !== "new")) &&
+  ...((type === "HR" ||
+    type === "COMPLAINT" ||
+    (type === "MAINTENANCE" && status !== "new")) &&
   canEdit &&
   (status !== "resolved" || status === "")
     ? [

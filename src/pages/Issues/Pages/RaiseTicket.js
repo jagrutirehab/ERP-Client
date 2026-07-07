@@ -32,6 +32,12 @@ const initialFormState = {
   maintenanceDescription: "",
   maintenanceLocation: "",
   maintenancePriority: null,
+  anonymous: false,
+  complaintCategory: null,
+  complaintOtherCategory: "",
+  complaintAgainst: null,
+  complaintSubject: "",
+  complaintDescription: "",
   files: [],
 };
 const RaiseTicket = () => {
@@ -146,7 +152,9 @@ const RaiseTicket = () => {
     try {
       const formData = new FormData();
 
-      formData.append("requestedFrom", form.requestedFrom?.value);
+      if (form.requestedFrom?.value) {
+        formData.append("requestedFrom", form.requestedFrom.value);
+      }
       formData.append("center", form.center);
       formData.append("issueType", issueType);
       formData.append("contact", form.contact);
@@ -189,6 +197,19 @@ const RaiseTicket = () => {
           "priority",
           form.maintenancePriority?.value || "MEDIUM",
         );
+      }
+
+      if (issueType === "COMPLAINT") {
+        formData.append("anonymous", form.anonymous);
+        formData.append("category", form.complaintCategory?.value);
+        if (form.complaintCategory?.value === "OTHERS") {
+          formData.append("otherCategory", form.complaintOtherCategory);
+        }
+        if (form.complaintAgainst?.value) {
+          formData.append("complaintAgainst", form.complaintAgainst.value);
+        }
+        formData.append("subject", form.complaintSubject);
+        formData.append("description", form.complaintDescription);
       }
 
       if (form.files && form.files.length) {

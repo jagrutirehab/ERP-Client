@@ -64,7 +64,7 @@ const Issues = () => {
                                             <Route path="review-submissions" element={<IssuesPage type={"REVIEW_SUBMISSION"} />} />
                                             <Route path="hr/issues" element={<IssuesPage type={"HR"} />} />
                                             <Route path="maintenance/issues" element={<IssuesPage type={"MAINTENANCE"} />} />
-                                            
+                                            <Route path="complaint/issues" element={<IssuesPage type={"COMPLAINT"} />} />
                                             <Route path="/my/finance/tickets" element={<FinanceIssues />} />
                                             <Route path="/finance/payslips/tickets" element={<PayslipsRequests />} />
 

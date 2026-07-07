@@ -1266,6 +1266,13 @@ export const ISSUES = [
     icon: "bx bx-wrench",
     link: "/issues/maintenance/issues",
   },
+    {
+    id: "complaint-issues",
+    label: "Complaint Tickets", 
+    icon: "bx bx-flag",
+    link: "/issues/complaint/issues",
+  },
+
   {
     id: "my-issues",
     label: "My Assigned Tickets",
