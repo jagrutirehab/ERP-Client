@@ -30,6 +30,7 @@ import {
   getCenterWiseMOM,
   getCampaignWiseMOM,
   getCenterWiseStatusMOM,
+  getCashPerCenter,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -69,6 +70,7 @@ const initialState = {
   centerWiseMOM: [],
   campaignWiseMOM: [],
   centerWiseStatusMOM: [],
+  cashPerCenter: [],
   loading: false,
   error: null,
 };
@@ -328,6 +330,21 @@ export const fetchRefundAmountMOM = createAsyncThunk(
        console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Refund amount mom"
+      );
+    }
+  }
+);
+
+
+export const fetchCashPerCenter = createAsyncThunk(
+  "miReporting/fetchCashPerCenter",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getCashPerCenter(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch cash per center"
       );
     }
   }
@@ -952,6 +969,19 @@ const miReportingSlice = createSlice({
         state.centerWiseStatusMOM = action.payload.payload || [];
       })
       .addCase(fetchCenterWiseStatusMOM.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Cash Per Center
+      .addCase(fetchCashPerCenter.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCashPerCenter.fulfilled, (state, action) => {
+        state.loading = false;
+        state.cashPerCenter = action.payload.payload || [];
+      })
+      .addCase(fetchCashPerCenter.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

@@ -24,6 +24,7 @@ import {
 import AppointmentCard from "./Components/AppointmentCard";
 import Wrapper from "../Components/Wrapper";
 import Prescription from "../Charts/Prescription";
+import PsychoDiagnosticForm from "../Charts/PsychoDiagnosticForm";
 import OPDInvoice from "../Bills/OPDInvoice";
 import {
   INVOICE,
@@ -367,6 +368,33 @@ const OPDView = ({
                                       >
                                         <ClinicalNote
                                           data={doc.chart?.clinicalNote}
+                                        />
+                                      </Wrapper>
+                                    )}
+                                    {doc.psychoDiagnosticForm && (
+                                      <Wrapper
+                                        item={doc.psychoDiagnosticForm}
+                                        editItem={editChart}
+                                        deleteItem={getItem}
+                                        name="OPD"
+                                        printItem={(item, patient) =>
+                                          printChart(
+                                            item,
+                                            patient,
+                                            doc.center,
+                                            doc.doctor
+                                          )
+                                        }
+                                      >
+                                        <PsychoDiagnosticForm
+                                          data={
+                                            doc.psychoDiagnosticForm
+                                              ?.psychoDiagnosticForm?.reports
+                                          }
+                                          date={
+                                            doc.psychoDiagnosticForm
+                                              ?.psychoDiagnosticForm?.updatedAt
+                                          }
                                         />
                                       </Wrapper>
                                     )}

@@ -36,6 +36,7 @@ import DueAmount from "./DueAmount";
 import Attendance from "./Attendance";
 import NursesDOD from "./NursesDOD";
 import CenterWiseMOM from "./CenterWiseMOM";
+import CashPerCenter from "./CashPerCenter";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -259,6 +260,11 @@ const MiReporting = () => {
                   {hasMISPermission&&<Route
                     path="/nurses-dod"
                     element={<NursesDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/cash-per-center"
+                    element={<CashPerCenter />}
                   />}
                   
                   

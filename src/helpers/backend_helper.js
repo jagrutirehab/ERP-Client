@@ -2296,6 +2296,14 @@ export const getDueAmount = (data) => {
   });
 };
 
+export const getCashPerCenter = (data) => {
+  return api.get(url.GET_CASH_PER_CENTER, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getMIAttendance = (data) => {
   return api.get(url.GET_MI_ATTENDANCE, {
     params: {
