@@ -60,7 +60,11 @@ import {
 import { setAlert } from "../alert/alertSlice";
 import { IPD, OPD } from "../../../Components/constants/patient";
 import { togglePrint } from "../print/printSlice";
-import { removeEventChart, setEventChart } from "../booking/bookingSlice";
+import {
+  removeEventChart,
+  setEventChart,
+  setEventPsychoDiagnostic,
+} from "../booking/bookingSlice";
 import {
   fetchPatientById,
   replacePatient,
@@ -648,6 +652,26 @@ export const addPsychoDiagnosticForm = createAsyncThunk(
           message: "Psycho Diagnostic Form Saved Successfully",
         }),
       );
+      // Booking flow: update the appointment's psycho slot on the calendar and
+      // open the print modal (mirrors the prescription flow).
+      if (response?.appointment) {
+        dispatch(
+          setEventPsychoDiagnostic({
+            psychoDiagnosticForm: response.payload,
+            appointment: response.appointment,
+          }),
+        );
+        if (response.patient) dispatch(viewPatient(response.patient));
+        dispatch(
+          togglePrint({
+            modal: true,
+            data: response.payload,
+            patient: response.patient,
+            center: response.center,
+            doctor: response.doctor,
+          }),
+        );
+      }
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
     } catch (error) {
@@ -688,6 +712,16 @@ export const updatePsychoDiagnosticForm = createAsyncThunk(
           message: "Psycho Diagnostic Form Updated Successfully",
         }),
       );
+      // Booking flow: refresh the appointment's psycho slot on the calendar.
+      if (response?.appointment) {
+        dispatch(
+          setEventPsychoDiagnostic({
+            psychoDiagnosticForm: response.payload,
+            appointment: response.appointment,
+          }),
+        );
+        if (response.patient) dispatch(viewPatient(response.patient));
+      }
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
     } catch (error) {
@@ -705,6 +739,17 @@ export const removePsychoDiagnosticFormFile = createAsyncThunk(
       dispatch(
         setAlert({ type: "success", message: "File Deleted Successfully" }),
       );
+      // Booking/OPD flow: refresh the appointment's psycho slot on the calendar
+      // and OPD card so the removed file disappears there too (these read from
+      // the Booking store, not the open chart form).
+      if (response?.appointment) {
+        dispatch(
+          setEventPsychoDiagnostic({
+            psychoDiagnosticForm: response.payload,
+            appointment: response.appointment,
+          }),
+        );
+      }
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -2372,6 +2417,9 @@ export const chartSlice = createSlice({
       })
       .addCase(addPsychoDiagnosticForm.fulfilled, (state, { payload }) => {
         state.loading = false;
+        // Booking (appointment) charts are reflected on the calendar via
+        // setEventPsychoDiagnostic; don't touch the patient-timeline state.
+        if (payload?.payload?.appointment) return;
         if (payload.isAddmissionAvailable) {
           const findIndex = state.data.findIndex(
             (el) => el._id === payload.addmission,
@@ -2410,6 +2458,8 @@ export const chartSlice = createSlice({
       })
       .addCase(updatePsychoDiagnosticForm.fulfilled, (state, { payload }) => {
         state.loading = false;
+        // Booking (appointment) charts are refreshed via setEventPsychoDiagnostic.
+        if (payload?.payload?.appointment) return;
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
             (el) => el._id === payload.payload._id,
@@ -2437,21 +2487,30 @@ export const chartSlice = createSlice({
         removePsychoDiagnosticFormFile.fulfilled,
         (state, { payload }) => {
           state.loading = false;
+          // Keep the open edit form in sync with the file removal in every
+          // context (patient timeline, OPD tab, booking calendar).
+          if (state.chartForm) state.chartForm.data = payload.payload;
+
           if (payload.type === "GENERAL") {
-            const findIndex = state.charts.findIndex(
+            const findIndex = (state.charts || []).findIndex(
               (el) => el._id === payload.payload._id,
             );
-            state.charts[findIndex] = payload.payload;
-            state.chartForm.data = payload.payload;
+            if (findIndex > -1) state.charts[findIndex] = payload.payload;
           } else {
-            const findIndex = state.data.findIndex(
+            // Only patch the admission timeline when that admission is loaded.
+            // In the OPD tab / booking calendar `state.data` doesn't hold this
+            // admission (findIndex === -1), so guard against reading `.charts`
+            // of undefined — the form is already refreshed via chartForm above.
+            const findIndex = (state.data || []).findIndex(
               (el) => el._id === payload.payload.addmission,
             );
-            const findChartIndex = state.data[findIndex].charts.findIndex(
-              (chart) => chart._id === payload.payload._id,
-            );
-            state.data[findIndex].charts[findChartIndex] = payload.payload;
-            state.chartForm.data = payload.payload;
+            if (findIndex > -1 && state.data[findIndex]?.charts) {
+              const findChartIndex = state.data[findIndex].charts.findIndex(
+                (chart) => chart._id === payload.payload._id,
+              );
+              if (findChartIndex > -1)
+                state.data[findIndex].charts[findChartIndex] = payload.payload;
+            }
           }
         },
       )

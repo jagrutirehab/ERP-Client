@@ -416,6 +416,8 @@ export const permissionList = [
       // { name: "REVIEW_SUBMISSIONS", label: "Review Submissions" },
       { name: "MY_ISSUES", label: "My Assigned Issues" },
       { name: "MY_RAISED_TICKETS", label: "My Raised Tickets" },
+      { name: "MAINTENANCE_ISSUES", label: "Maintenance Issues" },
+      { name: "COMPLAINT_ISSUES", label: "Complaint Issues" },
     ],
   },
   {

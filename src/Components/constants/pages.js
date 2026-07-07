@@ -1260,12 +1260,19 @@ export const ISSUES = [
     link: "/issues/hr/issues",
   },
 
-  // {
-  //   id: "hr-issues-requests",
-  //   label: "HR Tickets Requests",
-  //   icon: "bx bx-envelope-open",
-  //   link: "/issues/hr/issues/requests",
-  // },
+  {
+    id: "maintenance-issues",
+    label: "Maintenance Tickets",
+    icon: "bx bx-wrench",
+    link: "/issues/maintenance/issues",
+  },
+    {
+    id: "complaint-issues",
+    label: "Complaint Tickets", 
+    icon: "bx bx-flag",
+    link: "/issues/complaint/issues",
+  },
+
   {
     id: "my-issues",
     label: "My Assigned Tickets",

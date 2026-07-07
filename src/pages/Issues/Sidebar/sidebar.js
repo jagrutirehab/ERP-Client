@@ -22,6 +22,8 @@ const IssuesSidebar = () => {
   // const hasTicketDashboardPermission = hasPermission("ISSUES", "TICKET_DASHBOARD", "READ");
   const hasTechnicalIssuesPermission = hasPermission("ISSUES", "TECHNICAL_ISSUES", "READ");
   const hasHRIssuesPermission = hasPermission("ISSUES", "HR_ISSUES", "READ");
+  const hasMaintenanceIssuesPermission = hasPermission("ISSUES", "MAINTENANCE_ISSUES", "READ");
+  const hasComplaintIssuesPermission = hasPermission("ISSUES", "COMPLAINT_ISSUES", "READ");
   // const hasHRIssuesRequestsPermission = hasPermission("ISSUES", "HR_ISSUES_REQUESTS", "READ");
 
 
@@ -34,7 +36,8 @@ const IssuesSidebar = () => {
     if (page.id === "tech-issues") return hasTechnicalIssuesPermission;
 
     if (page.id === "hr-issues") return hasHRIssuesPermission;
-
+    if (page.id === "maintenance-issues") return hasMaintenanceIssuesPermission;
+    if (page.id === "complaint-issues") return hasComplaintIssuesPermission;
     // if (page.id === "hr-issues-requests") return hasHRIssuesRequestsPermission;
     // if (page.id === "purchase-issues") return hasPermission("ISSUES", "PURCHASE_ISSUES", "READ");
     // if (page.id === "review-submissions") return hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "READ");
