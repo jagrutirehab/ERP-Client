@@ -102,10 +102,12 @@ const PatientSearchCell = React.memo(({ index, control, setValue, errors }) => {
 
           return (
             <PatientAsyncSelect
-              isMulti
+              isMulti={false}
               value={selectValue}
               onChange={(selectedOptions) => {
-                const options = selectedOptions || [];
+                console.log({ selectedOptions });
+                const options = [selectedOptions] || [];
+
                 field.onChange(
                   options.map((o) => ({
                     _id: o.value,
