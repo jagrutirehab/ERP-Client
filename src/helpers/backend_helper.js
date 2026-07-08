@@ -828,6 +828,21 @@ export const getReportUpdated = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+export const getTransactionsAnalytics = (data) =>
+  api.get(url.GET_TRANSACTIONS_ANALYTICS, {
+    params: data,
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+export const exportTransactionsAnalyticsCSV = (data) =>
+  api.get(url.GET_TRANSACTIONS_ANALYTICS_CSV, {
+    params: data,
+    responseType: "blob",
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
 export const getDBLogs = (data) =>
   api.get(url.GET_DB_LOGS, {
     params: data,

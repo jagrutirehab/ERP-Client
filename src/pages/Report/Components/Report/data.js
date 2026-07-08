@@ -9,6 +9,7 @@ export const DISCHARGE_DATE = "DISCAHRGE_DATE";
 export const ADMIT_PATIENT = "ADMIT_PATIENT";
 export const DISCHARGE_PATIENT = "DISCHARGE_PATIENT";
 export const INTERN = "INTERN";
+export const ONLINE_OPD = "ONLINE_OPD";
 
 export const payments = [
   { label: "All Transactions", value: ALL_TRANSACTIONS },
@@ -17,6 +18,7 @@ export const payments = [
   { label: "IPD Due Amount", value: DUE_AMOUNT },
   { label: "OPD Bills", value: OPD_BILL },
   { label: "Interns", value: INTERN },
+  { label: "Online OPD", value: ONLINE_OPD },
 ];
 
 export const calendar = ["Daily", "Monthly", "Pre Doctor", "Pre Procedure"];
