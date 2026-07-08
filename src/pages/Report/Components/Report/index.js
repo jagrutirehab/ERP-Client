@@ -72,6 +72,7 @@ const Report = ({
         limit,
         startDate: startOfDay(reportDate.start).toISOString(),
         endDate: endOfDay(reportDate.end).toISOString(),
+        patient: patient?._id || "",
         centerAccess,
       }),
     );
@@ -84,6 +85,7 @@ const Report = ({
       const response = await exportTransactionsAnalyticsCSV({
         startDate: startOfDay(reportDate.start).toISOString(),
         endDate: endOfDay(reportDate.end).toISOString(),
+        patient: patient?._id || "",
         centerAccess,
       });
       const blob = new Blob([response.data], {
