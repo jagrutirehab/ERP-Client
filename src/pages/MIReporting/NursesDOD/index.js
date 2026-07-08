@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
+import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col, Input } from "reactstrap";
 import { CSVLink } from "react-csv";
 import { fetchNursesDOD } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
@@ -15,6 +16,9 @@ const NursesDOD = () => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [dataFormat, setDataFormat] = useState("percentage");
     const [countType, setCountType] = useState("completed");
+    const [searchInput, setSearchInput] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
@@ -23,32 +27,56 @@ const NursesDOD = () => {
         dispatch(fetchNursesDOD({ centerAccess }));
     }, [dispatch, centerAccess]);
 
+    useEffect(() => {
+        if (searchInput === searchTerm) return;
+        setIsSearching(true);
+        const timeout = setTimeout(() => {
+            setSearchTerm(searchInput);
+            setIsSearching(false);
+        }, 1500);
+        return () => clearTimeout(timeout);
+    }, [searchInput, searchTerm]);
+
     const data = useMemo(() => nursesDOD?.data || [], [nursesDOD]);
 
     const filteredData = useMemo(() => {
+        const term = searchTerm.trim().toLowerCase();
         return data.filter((item) => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
+            if (term) {
+                const uid = (item?.patient_id || "").toLowerCase();
+                const name = (item?.patient_name || "").toLowerCase();
+                if (!uid.includes(term) && !name.includes(term)) return false;
+            }
             return true;
         });
-    }, [data, selectedCenter]);
+    }, [data, selectedCenter, searchTerm]);
 
     const labels = [
         "Patient UID",
         "Patient Name",
         "Center Name",
+        "Ad. Date",
+        "Last Outpass",
         "MTD",
         "Presc. Count",
     ];
 
-    const fixedColWidths = [90, 180, 120, 55, 55];
+    const fixedColWidths = [90, 180, 120, 90, 100, 55, 55];
 
     const labelsMapping = {
         "Patient UID": "patient_id",
         "Patient Name": "patient_name",
         "Center Name": "center_name",
+        "Ad. Date": "admission_date",
+        "Last Outpass": "last_outpass",
         "Presc. Count": "prescription_count",
         "MTD": "total_current_month",
     };
+
+    const lastOutpassColIdx = labels.indexOf("Last Outpass");
+    const mtdColIdx = labels.indexOf("MTD");
+    const prescCountColIdx = labels.indexOf("Presc. Count");
 
     const last30Days = useMemo(() => {
         const days = [];
@@ -217,21 +245,29 @@ const NursesDOD = () => {
                                     placeholder="Count Type..."
                                 />
                             </Col>
+                            <Col md={2}>
+                                <Input
+                                    type="text"
+                                    placeholder="Search UID or Name..."
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                />
+                            </Col>
                         </Row>
                         <Card>
                             <CardBody>
-                                {loading && (
+                                {(loading || isSearching) && (
                                     <div className="text-center py-5">
                                         <Spinner color="primary" />
-                                        <p className="mt-2 text-muted">Loading data...</p>
+                                        <p className="mt-2 text-muted">{isSearching ? "Searching..." : "Loading data..."}</p>
                                     </div>
                                 )}
 
-                                {error && !loading && <Alert color="danger">{error}</Alert>}
+                                {error && !loading && !isSearching && <Alert color="danger">{error}</Alert>}
 
-                                {!loading && !error && (
+                                {!loading && !isSearching && !error && (
                                     <>
-                                        <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
+                                        <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh", paddingBottom: 10 }}>
                                             <Table
                                                 className="mb-0 w-100"
                                                 style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.68rem" }}
@@ -251,7 +287,7 @@ const NursesDOD = () => {
                                                                     ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                                                 }}
                                                             >
-                                                                {i === labels.length - 1 ? "Total (Single Day)" : i === labels.length - 3 ? "Pt. Count" : i === labels.length - 2 ? `${filteredData.length}` : ""}
+                                                                {i === prescCountColIdx ? "Total (Single Day)" : i === lastOutpassColIdx ? "Pt. Count" : i === mtdColIdx ? `${filteredData.length}` : ""}
                                                             </th>
                                                         ))}
                                                         {last30Days.map(({ key, label }) => (
@@ -318,7 +354,13 @@ const NursesDOD = () => {
                                                                         ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
                                                                     }}
                                                                 >
-                                                                    {patient[labelsMapping[label]] ?? ""}
+                                                                    {(label === "Patient Name" || label === "Patient UID")
+                                                        ? (
+                                                            <Link to={`/nurse/p/${patient.patient_mongo_id}`} className="text-dark">
+                                                                {patient[labelsMapping[label]]}
+                                                            </Link>
+                                                        )
+                                                        : patient[labelsMapping[label]] ?? ""}
                                                                 </td>
                                                             ))}
                                                             {last30Days.map(({ key }) => (
