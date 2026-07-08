@@ -9,6 +9,7 @@ import {
   getReportUpdated,
   getCenterBedsAnalytics as getCenterBedsAnalyticsApi,
   getAdmissionForms,
+  getTransactionsAnalytics,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 
@@ -19,6 +20,7 @@ const initialState = {
   lead: null,
   opd: null,
   booking: null,
+  transactions: null,
   doctor: null,
   centerBeds: [],
   admissionForms: null,
@@ -28,6 +30,8 @@ const initialState = {
   currentPage: 0,
   limit: 0,
   total: 0,
+  grandTotal: 0,
+  refundTotal: 0,
 };
 
 export const fetchReport = createAsyncThunk(
@@ -113,6 +117,19 @@ export const fetchBookingAnalytics = createAsyncThunk(
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await getBookingAnalytics(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const fetchTransactionsAnalytics = createAsyncThunk(
+  "getTransactionsAnalytics",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getTransactionsAnalytics(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -225,6 +242,23 @@ const reportSlice = createSlice({
         state.limit = payload.limit;
       })
       .addCase(fetchBookingAnalytics.rejected, (state) => {
+        state.loading = false;
+      });
+    builder
+      .addCase(fetchTransactionsAnalytics.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchTransactionsAnalytics.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.transactions = payload.payload;
+        state.total = payload.total;
+        state.grandTotal = payload.grandTotal;
+        state.refundTotal = payload.refundTotal;
+        state.totalPages = payload.totalPages;
+        state.currentPage = payload.currentPage;
+        state.limit = payload.limit;
+      })
+      .addCase(fetchTransactionsAnalytics.rejected, (state) => {
         state.loading = false;
       });
     builder
