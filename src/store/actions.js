@@ -315,6 +315,7 @@ export {
   fetchLeadAnalytics,
   fetchOPDAnalytics,
   fetchBookingAnalytics,
+  fetchTransactionsAnalytics,
   fetchCenterBedsAnalytics,
   fetchAdmissionForms,
 } from "./features/report/reportSlice";
