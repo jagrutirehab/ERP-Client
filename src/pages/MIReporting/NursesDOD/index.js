@@ -16,7 +16,9 @@ const NursesDOD = () => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [dataFormat, setDataFormat] = useState("percentage");
     const [countType, setCountType] = useState("completed");
+    const [searchInput, setSearchInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
@@ -24,6 +26,16 @@ const NursesDOD = () => {
     useEffect(() => {
         dispatch(fetchNursesDOD({ centerAccess }));
     }, [dispatch, centerAccess]);
+
+    useEffect(() => {
+        if (searchInput === searchTerm) return;
+        setIsSearching(true);
+        const timeout = setTimeout(() => {
+            setSearchTerm(searchInput);
+            setIsSearching(false);
+        }, 1500);
+        return () => clearTimeout(timeout);
+    }, [searchInput, searchTerm]);
 
     const data = useMemo(() => nursesDOD?.data || [], [nursesDOD]);
 
@@ -237,23 +249,23 @@ const NursesDOD = () => {
                                 <Input
                                     type="text"
                                     placeholder="Search UID or Name..."
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
                                 />
                             </Col>
                         </Row>
                         <Card>
                             <CardBody>
-                                {loading && (
+                                {(loading || isSearching) && (
                                     <div className="text-center py-5">
                                         <Spinner color="primary" />
-                                        <p className="mt-2 text-muted">Loading data...</p>
+                                        <p className="mt-2 text-muted">{isSearching ? "Searching..." : "Loading data..."}</p>
                                     </div>
                                 )}
 
-                                {error && !loading && <Alert color="danger">{error}</Alert>}
+                                {error && !loading && !isSearching && <Alert color="danger">{error}</Alert>}
 
-                                {!loading && !error && (
+                                {!loading && !isSearching && !error && (
                                     <>
                                         <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh", paddingBottom: 10 }}>
                                             <Table
