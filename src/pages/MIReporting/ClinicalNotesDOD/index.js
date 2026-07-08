@@ -1,4 +1,5 @@
     import React, { useEffect, useMemo, useRef, useState } from "react";
+    import { Link } from "react-router-dom";
     import { useDispatch, useSelector, shallowEqual } from "react-redux";
     import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
     import { CSVLink } from "react-csv";
@@ -86,13 +87,14 @@
              "MTD",
             "Center Name",
             "Patient UID",
+            "Last Outpass",
             "Psychologist Name",
             "Assigned Patients",
-           
+
 
             ]
 
-    const fixedColWidths = [240, 55, 90, 100];
+    const fixedColWidths = [240, 55, 90, 100, 100];
 
     const labelsMapping={
             "Psychologist Name":"psychologist_name",
@@ -101,6 +103,7 @@
              "Patient UID":"patient_id",
             "Assigned Patients":"assigned_patients",
             "MTD":"total",
+            "Last Outpass":"last_outpass",
 
 
     }
@@ -259,7 +262,7 @@
                                                 ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                             }}
                                         >
-                                            {i === 5 ? "Total (Single Day)" : ""}
+                                            {i === labels.length - 1 ? "Total (Single Day)" : ""}
                                         </th>
                                     ))}
                                     {last30Days.map(({ key }) => (
@@ -328,7 +331,13 @@
                                             >
                                                 {label === "MTD"
                                                     ? patientMonthTotals[patient.patient_id] ?? 0
-                                                    : patient[labelsMapping[label]]}
+                                                    : (label === "Patient Name" || label === "Patient UID")
+                                                        ? (
+                                                            <Link to={`/patient/${patient.patient_mongo_id}`} className="text-dark">
+                                                                {patient[labelsMapping[label]]}
+                                                            </Link>
+                                                        )
+                                                        : patient[labelsMapping[label]]}
                                             </td>
                                         ))}
                                         {last30Days.map(({ key,label }) => (

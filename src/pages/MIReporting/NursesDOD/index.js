@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
+import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col, Input } from "reactstrap";
 import { CSVLink } from "react-csv";
 import { fetchNursesDOD } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
@@ -15,6 +16,7 @@ const NursesDOD = () => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [dataFormat, setDataFormat] = useState("percentage");
     const [countType, setCountType] = useState("completed");
+    const [searchTerm, setSearchTerm] = useState("");
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
@@ -26,29 +28,41 @@ const NursesDOD = () => {
     const data = useMemo(() => nursesDOD?.data || [], [nursesDOD]);
 
     const filteredData = useMemo(() => {
+        const term = searchTerm.trim().toLowerCase();
         return data.filter((item) => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
+            if (term) {
+                const uid = (item?.patient_id || "").toLowerCase();
+                const name = (item?.patient_name || "").toLowerCase();
+                if (!uid.includes(term) && !name.includes(term)) return false;
+            }
             return true;
         });
-    }, [data, selectedCenter]);
+    }, [data, selectedCenter, searchTerm]);
 
     const labels = [
         "Patient UID",
         "Patient Name",
         "Center Name",
+        "Last Outpass",
         "MTD",
         "Presc. Count",
     ];
 
-    const fixedColWidths = [90, 180, 120, 55, 55];
+    const fixedColWidths = [90, 180, 120, 100, 55, 55];
 
     const labelsMapping = {
         "Patient UID": "patient_id",
         "Patient Name": "patient_name",
         "Center Name": "center_name",
+        "Last Outpass": "last_outpass",
         "Presc. Count": "prescription_count",
         "MTD": "total_current_month",
     };
+
+    const centerNameColIdx = labels.indexOf("Center Name");
+    const mtdColIdx = labels.indexOf("MTD");
+    const prescCountColIdx = labels.indexOf("Presc. Count");
 
     const last30Days = useMemo(() => {
         const days = [];
@@ -217,6 +231,14 @@ const NursesDOD = () => {
                                     placeholder="Count Type..."
                                 />
                             </Col>
+                            <Col md={2}>
+                                <Input
+                                    type="text"
+                                    placeholder="Search UID or Name..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                            </Col>
                         </Row>
                         <Card>
                             <CardBody>
@@ -251,7 +273,7 @@ const NursesDOD = () => {
                                                                     ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                                                 }}
                                                             >
-                                                                {i === labels.length - 1 ? "Total (Single Day)" : i === labels.length - 3 ? "Pt. Count" : i === labels.length - 2 ? `${filteredData.length}` : ""}
+                                                                {i === prescCountColIdx ? "Total (Single Day)" : i === centerNameColIdx ? "Pt. Count" : i === mtdColIdx ? `${filteredData.length}` : ""}
                                                             </th>
                                                         ))}
                                                         {last30Days.map(({ key, label }) => (
@@ -318,7 +340,13 @@ const NursesDOD = () => {
                                                                         ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
                                                                     }}
                                                                 >
-                                                                    {patient[labelsMapping[label]] ?? ""}
+                                                                    {(label === "Patient Name" || label === "Patient UID")
+                                                        ? (
+                                                            <Link to={`/nurse/p/${patient.patient_mongo_id}`} className="text-dark">
+                                                                {patient[labelsMapping[label]]}
+                                                            </Link>
+                                                        )
+                                                        : patient[labelsMapping[label]] ?? ""}
                                                                 </td>
                                                             ))}
                                                             {last30Days.map(({ key }) => (
