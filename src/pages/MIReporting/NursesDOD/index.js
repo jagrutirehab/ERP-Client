@@ -44,23 +44,25 @@ const NursesDOD = () => {
         "Patient UID",
         "Patient Name",
         "Center Name",
+        "Ad. Date",
         "Last Outpass",
         "MTD",
         "Presc. Count",
     ];
 
-    const fixedColWidths = [90, 180, 120, 100, 55, 55];
+    const fixedColWidths = [90, 180, 120, 90, 100, 55, 55];
 
     const labelsMapping = {
         "Patient UID": "patient_id",
         "Patient Name": "patient_name",
         "Center Name": "center_name",
+        "Ad. Date": "admission_date",
         "Last Outpass": "last_outpass",
         "Presc. Count": "prescription_count",
         "MTD": "total_current_month",
     };
 
-    const centerNameColIdx = labels.indexOf("Center Name");
+    const lastOutpassColIdx = labels.indexOf("Last Outpass");
     const mtdColIdx = labels.indexOf("MTD");
     const prescCountColIdx = labels.indexOf("Presc. Count");
 
@@ -253,7 +255,7 @@ const NursesDOD = () => {
 
                                 {!loading && !error && (
                                     <>
-                                        <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
+                                        <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh", paddingBottom: 10 }}>
                                             <Table
                                                 className="mb-0 w-100"
                                                 style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.68rem" }}
@@ -273,7 +275,7 @@ const NursesDOD = () => {
                                                                     ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                                                 }}
                                                             >
-                                                                {i === prescCountColIdx ? "Total (Single Day)" : i === centerNameColIdx ? "Pt. Count" : i === mtdColIdx ? `${filteredData.length}` : ""}
+                                                                {i === prescCountColIdx ? "Total (Single Day)" : i === lastOutpassColIdx ? "Pt. Count" : i === mtdColIdx ? `${filteredData.length}` : ""}
                                                             </th>
                                                         ))}
                                                         {last30Days.map(({ key, label }) => (

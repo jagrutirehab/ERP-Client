@@ -83,10 +83,11 @@
 
 
     const labels=[
+            "Patient UID",
             "Patient Name",
              "MTD",
             "Center Name",
-            "Patient UID",
+            "Ad. Date",
             "Last Outpass",
             "Psychologist Name",
             "Assigned Patients",
@@ -94,7 +95,7 @@
 
             ]
 
-    const fixedColWidths = [240, 55, 90, 100, 100];
+    const fixedColWidths = [100, 240, 55, 90, 90, 100];
 
     const labelsMapping={
             "Psychologist Name":"psychologist_name",
@@ -103,10 +104,14 @@
              "Patient UID":"patient_id",
             "Assigned Patients":"assigned_patients",
             "MTD":"total",
+            "Ad. Date":"admission_date",
             "Last Outpass":"last_outpass",
 
 
     }
+
+    const adDateColIdx = labels.indexOf("Ad. Date");
+    const lastOutpassColIdx = labels.indexOf("Last Outpass");
 
     const last30Days = useMemo(() => {
         const days = [];
@@ -259,10 +264,10 @@
                                                 color: "white",
                                                 whiteSpace: "nowrap",
                                                 minWidth: fixedColWidths[i],
-                                                ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
+                                                ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                             }}
                                         >
-                                            {i === labels.length - 1 ? "Total (Single Day)" : ""}
+                                            {i === labels.length - 1 ? "Total (Single Day)" : i === adDateColIdx ? "Pt. Count" : i === lastOutpassColIdx ? `${filteredData.length}` : ""}
                                         </th>
                                     ))}
                                     {last30Days.map(({ key }) => (
@@ -289,9 +294,9 @@
                                                 border: "1px solid #cfd8e3",
                                                 background: "green",
                                                 color: "white",
-                                                whiteSpace: i===2?"wrap":"nowrap",
+                                                whiteSpace: label==="Center Name"?"wrap":"nowrap",
                                                 minWidth: fixedColWidths[i],
-                                                ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
+                                                ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                             }}
                                         >
                                             {label}
@@ -325,7 +330,7 @@
                                                     border: "1px solid #d6dde8",
                                                     background: idx % 2 === 0 ? "#f8fafc" : "#fff",
                                                     whiteSpace: "nowrap",
-                                                    ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
+                                                    ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
                                                     minWidth: fixedColWidths[i],
                                                 }}
                                             >

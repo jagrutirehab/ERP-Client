@@ -56,17 +56,21 @@
         })),
     ], [data]);
 
-    const labels = ["Patient Name", "MTD", "Center Name", "Patient UID", "Last Outpass", "Psychologist Name"];
-    const fixedColWidths = [220, 55, 150, 80, 100, 100];
+    const labels = ["Patient UID", "Patient Name", "MTD", "Center Name", "Ad. Date", "Last Outpass", "Psychologist Name"];
+    const fixedColWidths = [80, 220, 55, 150, 90, 100, 100];
 
     const labelsMapping = {
         "Patient Name": "patient_name",
         "MTD": "current_month_total",
         "Center Name": "center_name",
         "Patient UID": "patient_id",
+        "Ad. Date": "admission_date",
         "Last Outpass": "last_outpass",
         "Psychologist Name": "psychologist_name",
     };
+
+    const lastOutpassColIdx = labels.indexOf("Last Outpass");
+    const adDateColIdx = labels.indexOf("Ad. Date");
 
     const prepareCsvData = () => {
         setCsvLoading(true);
@@ -188,10 +192,10 @@
                                                 color: "white",
                                                 whiteSpace: "nowrap",
                                                 minWidth: fixedColWidths[i],
-                                                ...(i < 2 && { position: "sticky", left, zIndex: 1 }),
+                                                ...(i < 3 && { position: "sticky", left, zIndex: 1 }),
                                             }}
                                         >
-                                            {i === labels.length - 1 ? "Total (Single Day)" : ""}
+                                            {i === labels.length - 1 ? "Total (Single Day)" : i === adDateColIdx ? "Pt. Count" : i === lastOutpassColIdx ? `${filteredData.length}` : ""}
                                         </th>
                                         );
                                     })}
@@ -223,7 +227,7 @@
                                                 color: "white",
                                                 whiteSpace: "nowrap",
                                                 minWidth: fixedColWidths[i],
-                                                ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
+                                                ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                             }}
                                         >
                                             {label}
@@ -259,7 +263,7 @@
                                                     background: idx % 2 === 0 ? "#f8fafc" : "#fff",
                                                     whiteSpace: "nowrap",
                                                     minWidth: fixedColWidths[i],
-                                                    ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
+                                                    ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
                                                 }}
                                             >
                                                 {(label === "Patient Name" || label === "Patient UID")
