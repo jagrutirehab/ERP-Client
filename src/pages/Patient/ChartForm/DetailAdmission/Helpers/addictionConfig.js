@@ -1,0 +1,318 @@
+import { SUBSTANCE_PROFILE_ROWS } from "./Fields";
+
+const P = "addictionFields";
+
+const addictionConfig = [
+  {
+    title: "Substance Use History",
+    items: [
+      {
+        kind: "grid",
+        path: `${P}.substanceProfile`,
+        title: "Substance Profile Grid",
+        rowLabelKey: "substance",
+        rowLabels: SUBSTANCE_PROFILE_ROWS,
+        columns: [
+          { key: "ageOfFirstUse", label: "Age of First Use", type: "text" },
+          { key: "currentUse", label: "Current Use", type: "text" },
+          { key: "frequency", label: "Frequency", type: "text" },
+          { key: "quantityDose", label: "Quantity / Dose", type: "text" },
+          {
+            key: "route",
+            label: "Route",
+            type: "select",
+            options: [
+              "Oral",
+              "Smoking / Inhalation",
+              "Intravenous",
+              "Intranasal",
+              "Sublingual",
+              "Other",
+            ],
+          },
+          { key: "lastUse", label: "Last Use", type: "text" },
+        ],
+      },
+      {
+        kind: "field",
+        path: `${P}.patternOfUse.primarySubstanceOfConcern`,
+        label: "Primary substance of concern",
+        type: "select",
+        options: [
+          "Alcohol",
+          "Opioids",
+          "Cannabis",
+          "Tobacco",
+          "Benzo",
+          "Stimulants",
+          "Poly-substance",
+          "Other",
+        ],
+      },
+      {
+        kind: "field",
+        path: `${P}.patternOfUse.polySubstanceDetails`,
+        label: "Poly-substance use details",
+        type: "textarea",
+      },
+      {
+        kind: "field",
+        path: `${P}.patternOfUse.pattern`,
+        label: "Pattern of use",
+        type: "select",
+        options: ["Daily", "Binge", "Episodic", "Situational", "Weekend"],
+      },
+      {
+        kind: "field",
+        path: `${P}.patternOfUse.typicalDailyQuantity`,
+        label: "Typical daily quantity (primary substance)",
+        type: "text",
+      },
+      {
+        kind: "field",
+        path: `${P}.patternOfUse.usualTimeOfFirstUse`,
+        label: "Usual time of first use in the day",
+        type: "text",
+      },
+      {
+        kind: "field",
+        path: `${P}.patternOfUse.triggersHighRiskSituations`,
+        label: "Triggers / High-risk situations",
+        type: "textarea",
+      },
+      {
+        kind: "field",
+        path: `${P}.dependenceFeatures.craving`,
+        label: "Craving",
+        type: "yesno",
+      },
+      {
+        kind: "field",
+        path: `${P}.dependenceFeatures.lossOfControl`,
+        label: "Loss of control over use",
+        type: "yesno",
+      },
+      {
+        kind: "field",
+        path: `${P}.dependenceFeatures.tolerance`,
+        label: "Tolerance (need more for same effect)",
+        type: "yesno",
+      },
+      {
+        kind: "field",
+        path: `${P}.dependenceFeatures.withdrawal`,
+        label: "Withdrawal symptoms",
+        type: "yesno",
+      },
+      {
+        kind: "field",
+        path: `${P}.dependenceFeatures.withdrawalSymptoms`,
+        label: "Withdrawal symptoms (describe)",
+        type: "textarea",
+      },
+      {
+        kind: "field",
+        path: `${P}.dependenceFeatures.neglectOfActivities`,
+        label: "Neglect of other activities",
+        type: "yesno",
+      },
+      {
+        kind: "field",
+        path: `${P}.dependenceFeatures.continuedUseDespiteHarm`,
+        label: "Continued use despite harm",
+        type: "yesno",
+      },
+      {
+        kind: "field",
+        path: `${P}.dependenceFeatures.severity`,
+        label: "Severity (clinician rating)",
+        type: "text",
+      },
+      {
+        kind: "field",
+        path: `${P}.routeOfAdministration.primaryRoute`,
+        label: "Primary route",
+        type: "select",
+        options: [
+          "Oral",
+          "Smoking / Inhalation",
+          "Intravenous",
+          "Intranasal",
+          "Sublingual",
+          "Other",
+        ],
+      },
+      {
+        kind: "field",
+        path: `${P}.routeOfAdministration.ivNeedleSharing`,
+        label: "IV drug use — needle sharing",
+        type: "select",
+        options: ["Yes", "No", "N/A"],
+      },
+      {
+        kind: "field",
+        path: `${P}.routeOfAdministration.hivHepScreeningDone`,
+        label: "HIV / Hepatitis screening done?",
+        type: "yesno",
+      },
+      {
+        kind: "field",
+        path: `${P}.routeOfAdministration.hivHepResult`,
+        label: "HIV / Hepatitis screening result",
+        type: "text",
+      },
+    ],
+  },
+  {
+    title: "History of Present Illness",
+    items: [
+      {
+        kind: "field",
+        path: `${P}.illnessHistory.onsetAge`,
+        label: "Onset — age at first use",
+        type: "text",
+      },
+      {
+        kind: "field",
+        path: `${P}.illnessHistory.circumstancesOfFirstUse`,
+        label: "Circumstances of first use",
+        type: "textarea",
+      },
+      {
+        kind: "field",
+        path: `${P}.illnessHistory.progression`,
+        label: "Progression — how use escalated",
+        type: "textarea",
+      },
+      {
+        kind: "field",
+        path: `${P}.illnessHistory.abstinencePeriods`,
+        label: "Periods of abstinence (longest / dates)",
+        type: "textarea",
+      },
+      {
+        kind: "field",
+        path: `${P}.illnessHistory.relapseTriggers`,
+        label: "Relapse triggers identified",
+        type: "textarea",
+      },
+      {
+        kind: "field",
+        path: `${P}.illnessHistory.stageOfChange`,
+        label: "Current stage of change (Prochaska)",
+        type: "select",
+        options: [
+          "Precontemplation",
+          "Contemplation",
+          "Preparation",
+          "Action",
+          "Maintenance",
+          "Relapse",
+        ],
+      },
+    ],
+  },
+  {
+    title: "Past Treatment History",
+    items: [
+      {
+        kind: "field",
+        path: `${P}.pastTreatment.previousAttempts`,
+        label: "Previous treatment attempts",
+        type: "multiselect",
+        options: [
+          "None",
+          "Detox only",
+          "Short-term rehab (<1 month)",
+          "Long-term rehab (>1 month)",
+          "OPD / Counselling",
+          "OST / MAT",
+          "AA / NA / Self-help",
+        ],
+      },
+      {
+        kind: "field",
+        path: `${P}.pastTreatment.numberOfAdmissions`,
+        label: "Number of previous admissions",
+        type: "number",
+      },
+      {
+        kind: "field",
+        path: `${P}.pastTreatment.centresNames`,
+        label: "Name of centres / hospitals",
+        type: "text",
+      },
+      {
+        kind: "field",
+        path: `${P}.pastTreatment.pastMedications`,
+        label:
+          "Medications used in past (e.g. Naltrexone, Buprenorphine, Disulfiram)",
+        type: "textarea",
+      },
+      {
+        kind: "field",
+        path: `${P}.pastTreatment.outcomeReasonForRelapse`,
+        label: "Outcome / Reason for relapse / dropout",
+        type: "textarea",
+      },
+      {
+        kind: "field",
+        path: `${P}.pastTreatment.ostCurrent`,
+        label: "OST / MAT currently?",
+        type: "yesno",
+      },
+      {
+        kind: "field",
+        path: `${P}.pastTreatment.ostDetails`,
+        label: "OST details (drug, dose, centre)",
+        type: "textarea",
+      },
+    ],
+  },
+  {
+    title: "Psychosocial & Support Assessment",
+    items: [
+      {
+        kind: "field",
+        path: `${P}.psychosocialSupport.familySupport`,
+        label: "Social support — family",
+        type: "select",
+        options: ["Strong", "Moderate", "Poor", "Absent"],
+      },
+      {
+        kind: "field",
+        path: `${P}.psychosocialSupport.peerSupport`,
+        label: "Social support — friends / peers",
+        type: "select",
+        options: ["Pro-recovery", "Mixed", "Drug-using peers only"],
+      },
+      {
+        kind: "field",
+        path: `${P}.psychosocialSupport.livingArrangementPostDischarge`,
+        label: "Living arrangement post-discharge",
+        type: "textarea",
+      },
+      {
+        kind: "field",
+        path: `${P}.psychosocialSupport.employmentStability`,
+        label: "Employment / financial stability",
+        type: "select",
+        options: ["Stable", "Unstable", "Unemployed"],
+      },
+      {
+        kind: "field",
+        path: `${P}.psychosocialSupport.leisureHobbiesProtectiveFactors`,
+        label: "Leisure / hobbies / protective factors",
+        type: "textarea",
+      },
+      {
+        kind: "field",
+        path: `${P}.psychosocialSupport.spiritualCulturalBeliefs`,
+        label: "Spiritual / cultural beliefs (if relevant)",
+        type: "textarea",
+      },
+    ],
+  },
+];
+
+export default addictionConfig;
