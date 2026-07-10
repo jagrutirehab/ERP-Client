@@ -57,7 +57,7 @@ const CashPerCenter = () => {
   const data = cashPerCenter?.data;
 
   const [selectedReport, setSelectedReport] = useState("closing_balance");
-  const [selectedBreakdownCenter, setSelectedBreakdownCenter] = useState("");
+  const [selectedBreakdownCenter, setSelectedBreakdownCenter] = useState(null);
   const [csvData, setCsvData] = useState([]);
   const [csvLoading, setCsvLoading] = useState(false);
   const csvRef = useRef();
@@ -178,109 +178,113 @@ const CashPerCenter = () => {
 
       <div className="px-3 pb-3">
         <Row className="g-3">
-          <Col lg={6}>
-            <Row className="g-2 align-items-center mb-3">
-              <Col xs="auto">
-                <Select
-                  value={ALL_REPORT_OPTIONS.find(
-                    (o) => o.value === selectedReport
+          {centerAccess.length > 1 && (
+            <Col lg={12}>
+              <Row className="g-2 align-items-center mb-3">
+                <Col xs="auto">
+                  <Select
+                    value={ALL_REPORT_OPTIONS.find(
+                      (o) => o.value === selectedReport
+                    )}
+                    onChange={(opt) => setSelectedReport(opt.value)}
+                    options={ALL_REPORT_OPTIONS}
+                    placeholder="Select data..."
+                    styles={{ container: (b) => ({ ...b, minWidth: 200 }) }}
+                  />
+                </Col>
+              </Row>
+
+              <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10, display: "inline-block", width: "auto", maxWidth: "100%" }}>
+                <CardBody className="p-0">
+                  {loading && (
+                    <div className="text-center py-4">
+                      <Spinner color="primary" />
+                      <p className="mt-2 text-muted mb-0">Loading data...</p>
+                    </div>
                   )}
-                  onChange={(opt) => setSelectedReport(opt.value)}
-                  options={ALL_REPORT_OPTIONS}
-                  placeholder="Select data..."
-                  styles={{ container: (b) => ({ ...b, minWidth: 200 }) }}
-                />
-              </Col>
-            </Row>
 
-            <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
-              <CardBody className="p-0">
-                {loading && (
-                  <div className="text-center py-4">
-                    <Spinner color="primary" />
-                    <p className="mt-2 text-muted mb-0">Loading data...</p>
-                  </div>
-                )}
+                  {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
 
-                {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
-
-                {!loading && !error && (
-                  <div style={{ overflowX: "auto" }}>
-                    <Table
-                      className="mb-0"
-                      style={{ borderCollapse: "collapse", fontSize: "0.78rem", width: "100%" }}
-                    >
-                      <thead>
-                        <tr>
-                          <th className="text-center fw-bold px-2 py-1" style={headerStyle}>
-                            Center Name
-                          </th>
-                          {months.map((month) => (
-                            <th key={month} className="text-center fw-bold px-2 py-1" style={headerStyle}>
-                              {month}
+                  {!loading && !error && (
+                    <div style={{ overflowX: "auto" }}>
+                      <Table
+                        className="mb-0"
+                        style={{ borderCollapse: "collapse", fontSize: "0.7rem", width: "max-content" }}
+                      >
+                        <thead>
+                          <tr>
+                            <th className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 110 }}>
+                              Center Name
                             </th>
-                          ))}
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {centers.length > 0 ? (
-                          <>
-                            {centers.map((center, idx) => (
-                              <tr key={center}>
-                                <td className="px-2 py-1 fw-semibold" style={cellStyle(idx)}>
-                                  {center}
+                            {months.map((month) => (
+                              <th key={month} className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 60 }}>
+                                {month}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {centers.length > 0 ? (
+                            <>
+                              {centers.map((center, idx) => (
+                                <tr key={center}>
+                                  <td className="px-1 py-1 fw-semibold" style={cellStyle(idx)}>
+                                    {center}
+                                  </td>
+                                  {months.map((month) => (
+                                    <td key={month} className="text-center px-1 py-1" style={cellStyle(idx)}>
+                                      {getValue(center, month)}
+                                    </td>
+                                  ))}
+                                </tr>
+                              ))}
+                              <tr>
+                                <td className="px-1 py-1 fw-bold" style={{ ...totalCellStyle, color: "black" }}>
+                                  Total
                                 </td>
                                 {months.map((month) => (
-                                  <td key={month} className="text-center px-2 py-1" style={cellStyle(idx)}>
-                                    {getValue(center, month)}
+                                  <td key={month} className="text-center px-1 py-1 fw-bold" style={totalCellStyle}>
+                                    {totals[month] ?? 0}
                                   </td>
                                 ))}
                               </tr>
-                            ))}
+                            </>
+                          ) : (
                             <tr>
-                              <td className="px-2 py-1 fw-bold" style={{ ...totalCellStyle, color: "black" }}>
-                                Total
+                              <td colSpan={months.length + 1} className="text-center text-muted py-4" style={{ border: "1px solid #d6dde8" }}>
+                                No data available
                               </td>
-                              {months.map((month) => (
-                                <td key={month} className="text-center px-2 py-1 fw-bold" style={totalCellStyle}>
-                                  {totals[month] ?? 0}
-                                </td>
-                              ))}
                             </tr>
-                          </>
-                        ) : (
-                          <tr>
-                            <td colSpan={months.length + 1} className="text-center text-muted py-4" style={{ border: "1px solid #d6dde8" }}>
-                              No data available
-                            </td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </Table>
-                  </div>
-                )}
-              </CardBody>
-            </Card>
-          </Col>
+                          )}
+                        </tbody>
+                      </Table>
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
+            </Col>
+          )}
 
-          <Col lg={6}>
-            <Row className="g-2 align-items-center mb-3">
-              <Col xs="auto">
-                <Select
-                  value={
-                    centerFilterOptions.find(
-                      (o) => o.value === activeBreakdownCenter
-                    ) || null
-                  }
-                  onChange={(opt) => setSelectedBreakdownCenter(opt?.value || "")}
-                  options={centerFilterOptions}
-                  placeholder="Center..."
-                  styles={{ container: (b) => ({ ...b, minWidth: 200 }) }}
-                />
-              </Col>
-            </Row>
+          <Col lg={12} className={centerAccess.length > 1 ? "mt-4" : ""}>
+            {centerAccess.length > 1 && (
+              <Row className="g-2 align-items-center mb-3">
+                <Col xs="auto">
+                  <Select
+                    value={
+                      centerFilterOptions.find(
+                        (o) => o.value === activeBreakdownCenter
+                      ) || null
+                    }
+                    onChange={(opt) => setSelectedBreakdownCenter(opt?.value || "")}
+                    options={centerFilterOptions}
+                    placeholder="Center..."
+                    styles={{ container: (b) => ({ ...b, minWidth: 200 }) }}
+                  />
+                </Col>
+              </Row>
+            )}
 
-            <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
+            <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10, display: "inline-block", width: "auto", maxWidth: "100%" }}>
               <CardBody className="p-0">
                 {loading && (
                   <div className="text-center py-4">
@@ -295,15 +299,15 @@ const CashPerCenter = () => {
                   <div style={{ overflowX: "auto" }}>
                     <Table
                       className="mb-0"
-                      style={{ borderCollapse: "collapse", fontSize: "0.78rem", width: "100%" }}
+                      style={{ borderCollapse: "collapse", fontSize: "0.7rem", width: "max-content" }}
                     >
                       <thead>
                         <tr>
-                          <th className="text-center fw-bold px-2 py-1" style={headerStyle}>
+                          <th className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 150 }}>
                             Data
                           </th>
                           {months.map((month) => (
-                            <th key={month} className="text-center fw-bold px-2 py-1" style={headerStyle}>
+                            <th key={month} className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 60 }}>
                               {month}
                             </th>
                           ))}
@@ -313,11 +317,11 @@ const CashPerCenter = () => {
                         {activeBreakdownCenter ? (
                           ALL_REPORT_OPTIONS.map((option, idx) => (
                             <tr key={option.value}>
-                              <td className="px-2 py-1 fw-semibold" style={cellStyle(idx)}>
+                              <td className="px-1 py-1 fw-semibold" style={cellStyle(idx)}>
                                 {option.label}
                               </td>
                               {months.map((month) => (
-                                <td key={month} className="text-center px-2 py-1" style={cellStyle(idx)}>
+                                <td key={month} className="text-center px-1 py-1" style={cellStyle(idx)}>
                                   {pivot[activeBreakdownCenter]?.[month]?.[option.value] ?? 0}
                                 </td>
                               ))}
