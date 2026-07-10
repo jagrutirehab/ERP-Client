@@ -102,7 +102,7 @@ const IPDComponent = ({
                     bsSize="sm"
                     type="select"
                     value={filterChartType[addmission._id] || "All"}
-                    onChange={(e) => setFilterChartType(prev => ({...prev, [addmission._id]: e.target.value}))}
+                    onChange={(e) => setFilterChartType(prev => ({ ...prev, [addmission._id]: e.target.value }))}
                   >
                     <option value="All">All</option>
                     {records
@@ -115,6 +115,7 @@ const IPDComponent = ({
                         }
                         return true;
                       })
+                      .sort((a, b) => a.name.localeCompare(b.name))
                       .map((r) => (
                         <option key={r.category} value={r.category}>
                           {r.name}
@@ -209,8 +210,8 @@ const IPDComponent = ({
                   >
                     <i
                       className={`${open === idx.toString()
-                          ? " ri-arrow-up-s-line"
-                          : "ri-arrow-down-s-line"
+                        ? " ri-arrow-up-s-line"
+                        : "ri-arrow-down-s-line"
                         } fs-6`}
                     ></i>
                   </Button>
