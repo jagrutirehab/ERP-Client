@@ -41,6 +41,7 @@ const customStyles = {
 const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
+    const centerList = useSelector((state) => state.Center.data);
     const { auditHistory, loading: auditListLoading } = useSelector(
         (state) => state.Pharmacy
     );
@@ -74,10 +75,10 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         ...(user?.centerAccess?.length > 1
             ? [{ value: "ALL", label: "All Centers" }]
             : []),
-        ...(user?.centerAccess?.map((id) => {
-            const center = user?.userCenters?.find((c) => c._id === id);
-            return { value: id, label: center?.title || "Unknown" };
-        }) || []),
+        ...(centerList?.map((c) => ({
+            value: c._id,
+            label: c.title,
+        })) || []),
     ];
 
     const selectedCenterOption =

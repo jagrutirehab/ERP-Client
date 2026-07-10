@@ -62,11 +62,9 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const user = useSelector((state) => state.User);
-  const requisingCenterOptions = (user?.centerAccess || [])
-    .map((cid) => {
-        const center = (user?.userCenters || []).find((c) => c._id === cid);
-        return { value: cid, label: center?.title || "Unknown Center" };
-    });
+  const centerList = useSelector((state) => state.Center.data);
+  const requisingCenterOptions = (centerList || [])
+    .map((c) => ({ value: c._id, label: c.title }));
 
   const checkStrength = async (name, strength) => {
     if (!name || !strength) {

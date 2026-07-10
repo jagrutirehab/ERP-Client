@@ -38,7 +38,6 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     const employeeSearchTimerRef = useRef(null);
 
     const centerOptions = centers
-        ?.filter((c) => centerAccess.includes(c._id))
         .map((c) => ({
             _id: c._id,
             title: c.title,

@@ -19,6 +19,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
     const handleAuthError = useAuthError();
     const { medicineApprovals, loading } = useSelector((state) => state.Pharmacy);
     const user = useSelector((state) => state.User);
+    const centerList = useSelector((state) => state.Center.data);
     const [updatingRowId, setUpdatingRowId] = useState(null);
     const [modalOpen, setModalOpen] = useState(false);
     const [selectedRow, setSelectedRow] = useState(null);
@@ -57,13 +58,10 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             : []
         ),
         ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
+            centerList?.map(c => ({
+                value: c._id,
+                label: c.title,
+            })) || []
         )
     ];
 
