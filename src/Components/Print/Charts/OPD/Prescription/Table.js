@@ -221,7 +221,7 @@ const PrescriptionTable = ({ medicines }) => {
                       // ...styles.fontSizeMd,
                     }}
                   >
-                    {item.intake}{" - "}{getMedicineFrequencyLabel(item.frequency)}{" - "}{item.duration} {item.unit}
+                    {item.intake}{" - "}{getMedicineFrequencyLabel(item)}{" - "}{item.duration} {item.unit}
                   </Text>
                 </View>
 
