@@ -238,7 +238,10 @@ export const calculatePayroll = (values) => {
     const inHandSalary = Math.max(gross - deductions, 0);
 
     // const gratuity = Math.round(((basic + spl + conveyance) * 4.81) / 100);
-    const gratuity = Math.round(basic * 15 / 26 / 12);
+    // old rule
+    // const gratuity = Math.round(basic * 15 / 26 / 12);
+    // new rule from 10.07.2026 (basic + spl)
+    const gratuity = Math.round((basic + spl) * 15 / 26 / 12);
     const totalCostToCompany = gross + PFEmployer + ESICEmployer + LWFEmployer + gratuity;
 
     return {
