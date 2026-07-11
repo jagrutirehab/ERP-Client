@@ -2475,8 +2475,8 @@ const EmployeeForm = ({
             />
           </Col>
 
-          {/* IS IT AN INCREMENT? */}
-          {mode === "MASTER" && (
+          {/* IS IT AN INCREMENT? — only when editing an existing employee */}
+          {mode === "MASTER" && isEdit && (
             <Col md={6}>
               <Label htmlFor="isIncrement">Is it an increment?</Label>
               <Select
@@ -2496,7 +2496,7 @@ const EmployeeForm = ({
             </Col>
           )}
 
-          {mode === "MASTER" && values.isIncrement === "YES" && (
+          {mode === "MASTER" && isEdit && values.isIncrement === "YES" && (
             <Col md={6}>
               <Label htmlFor="incrementIssued">
                 Increment Issued Date <span className="text-danger">*</span>
@@ -2519,7 +2519,7 @@ const EmployeeForm = ({
           )}
 
           {/* INCREMENT APPLICABLE DATE */}
-          {mode === "MASTER" && values.isIncrement === "YES" && (
+          {mode === "MASTER" && isEdit && values.isIncrement === "YES" && (
             <Col md={6}>
               <Label htmlFor="incrementApplicable">
                 Increment Applicable Date <span className="text-danger">*</span>
@@ -2542,7 +2542,7 @@ const EmployeeForm = ({
           )}
 
           {/* INCREMENT LETTER FILE */}
-          {mode === "MASTER" && values.isIncrement === "YES" && (
+          {mode === "MASTER" && isEdit && values.isIncrement === "YES" && (
             <Col md={6}>
               <Label>Increment Letter</Label>
 
