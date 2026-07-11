@@ -246,6 +246,11 @@ export const permissionList = [
     subModules: [
       // master employee
       { name: "MASTER_EMPLOYEE", label: "Master Employee" },
+      // Offer Letter column in Master Employee
+      {
+        name: "PREVIEW_OFFER_LETTER",
+        label: "Preview Offer Letter (Master Employee)",
+      },
       // new joining
       { name: "NEW_JOINING_ADD_REQUEST", label: "New Joinings Add Request" },
       { name: "NEW_JOINING_APPROVAL", label: "New Joinings Approval" },
