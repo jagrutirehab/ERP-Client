@@ -305,6 +305,16 @@ const validationSchema = (mode, isEdit) =>
         return value;
       })
       .required("Position is required"),
+    incrementIssued: Yup.string().when("isIncrement", {
+      is: "YES",
+      then: (s) => s.required("Increment issued date is required"),
+      otherwise: (s) => s.notRequired(),
+    }),
+    incrementApplicable: Yup.string().when("isIncrement", {
+      is: "YES",
+      then: (s) => s.required("Increment applicable date is required"),
+      otherwise: (s) => s.notRequired(),
+    }),
   });
 
 const getInitialValues = (initialData, mode) => ({
@@ -437,6 +447,17 @@ const getInitialValues = (initialData, mode) => ({
   incrementLetterFile: null,
   incrementIssued: initialData?.financeDetails?.incrementIssued
     ? format(new Date(initialData.financeDetails.incrementIssued), "yyyy-MM-dd")
+    : "",
+  isIncrement:
+    initialData?.financeDetails?.incrementIssued &&
+    initialData?.financeDetails?.incrementApplicable
+      ? "YES"
+      : "NO",
+  incrementApplicable: initialData?.financeDetails?.incrementApplicable
+    ? format(
+        new Date(initialData.financeDetails.incrementApplicable),
+        "yyyy-MM-dd",
+      )
     : "",
 });
 
@@ -574,9 +595,6 @@ const EmployeeForm = ({
         let panUrl = values.panOld;
         let adharUrl = values.adharOld;
         let offerLetterUrl = values.offerLetterOld;
-        let incrementLetterUrl = values.incrementLetterOld;
-        if (incrementLetterUrl)
-          formData.append("incrementLetter", incrementLetterUrl);
 
         if (panUrl) formData.append("panUrl", panUrl);
         if (adharUrl) formData.append("adharUrl", adharUrl);
@@ -603,6 +621,17 @@ const EmployeeForm = ({
         formData.delete("HRAPercentage");
         formData.delete("incrementLetterOld");
         formData.delete("incrementLetterFile");
+        formData.delete("isIncrement");
+        formData.delete("incrementIssued");
+        formData.delete("incrementApplicable");
+        if (values.isIncrement === "YES") {
+          if (values.incrementLetterOld)
+            formData.set("incrementLetter", values.incrementLetterOld);
+          if (values.incrementIssued)
+            formData.set("incrementIssued", values.incrementIssued);
+          if (values.incrementApplicable)
+            formData.set("incrementApplicable", values.incrementApplicable);
+        }
 
         // Client-only mirror fields — never sent to the server as-is.
         formData.delete("annualInHandSalary");
@@ -2446,11 +2475,34 @@ const EmployeeForm = ({
             />
           </Col>
 
+          {/* IS IT AN INCREMENT? */}
           {mode === "MASTER" && (
             <Col md={6}>
-              <Label htmlFor="incrementIssued">Increment Issued Date</Label>
+              <Label htmlFor="isIncrement">Is it an increment?</Label>
+              <Select
+                inputId="isIncrement"
+                options={[
+                  { label: "No", value: "NO" },
+                  { label: "Yes", value: "YES" },
+                ]}
+                value={{
+                  label: values.isIncrement === "YES" ? "Yes" : "No",
+                  value: values.isIncrement,
+                }}
+                onChange={(opt) =>
+                  setFieldValue("isIncrement", opt ? opt.value : "NO")
+                }
+              />
+            </Col>
+          )}
+
+          {mode === "MASTER" && values.isIncrement === "YES" && (
+            <Col md={6}>
+              <Label htmlFor="incrementIssued">
+                Increment Issued Date <span className="text-danger">*</span>
+              </Label>
               <Flatpickr
-                className="form-control"
+                className={`form-control ${errors.incrementIssued ? "is-invalid" : ""}`}
                 id="incrementIssued"
                 name="incrementIssued"
                 value={values.incrementIssued}
@@ -2462,11 +2514,35 @@ const EmployeeForm = ({
                 }}
                 options={{ dateFormat: "Y-m-d" }}
               />
+              {errorText("incrementIssued")}
+            </Col>
+          )}
+
+          {/* INCREMENT APPLICABLE DATE */}
+          {mode === "MASTER" && values.isIncrement === "YES" && (
+            <Col md={6}>
+              <Label htmlFor="incrementApplicable">
+                Increment Applicable Date <span className="text-danger">*</span>
+              </Label>
+              <Flatpickr
+                className={`form-control ${errors.incrementApplicable ? "is-invalid" : ""}`}
+                id="incrementApplicable"
+                name="incrementApplicable"
+                value={values.incrementApplicable}
+                onChange={([date]) => {
+                  setFieldValue(
+                    "incrementApplicable",
+                    date ? format(date, "yyyy-MM-dd") : "",
+                  );
+                }}
+                options={{ dateFormat: "Y-m-d" }}
+              />
+              {errorText("incrementApplicable")}
             </Col>
           )}
 
           {/* INCREMENT LETTER FILE */}
-          {mode === "MASTER" && (
+          {mode === "MASTER" && values.isIncrement === "YES" && (
             <Col md={6}>
               <Label>Increment Letter</Label>
 
