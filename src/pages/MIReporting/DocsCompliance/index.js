@@ -43,7 +43,7 @@ const DocsCompliance = () => {
     const months = useMemo(() => {
         const result = [];
         const now = new Date();
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 9; i++) {
             const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
             const y = d.getFullYear();
             const m = String(d.getMonth() + 1).padStart(2, "0");
