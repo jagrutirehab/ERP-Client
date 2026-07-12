@@ -15,11 +15,15 @@ const canShowRegularizeButton = (row) => {
   const leaveStatus = row?.leave?.status;
   const hasActiveLeave =
     leaveStatus === "pending" || leaveStatus === "approved";
+  const hasCheckIn = row?.firstCheckIn != null;
+  const hasCheckOut = row?.lastCheckOut != null;
+  const hasAnyPunch = hasCheckIn || hasCheckOut;
   return (
     (!row?.regularizations?.regularization_id ||
       regularizationStatus === "REJECTED") &&
     !isFutureDate(row?.date) &&
-    !hasActiveLeave
+    !hasActiveLeave &&
+    !hasAnyPunch
   );
 };
 

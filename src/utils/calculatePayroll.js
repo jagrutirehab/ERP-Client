@@ -19,7 +19,9 @@ const PTeligibleStates = [
 // Fixed-amount states: a flat rupee amount charged in each applicable month.
 // `months` are 1-based calendar months (6 = June, 12 = December).
 const FIXED_LWF = {
-    Maharashtra: { employee: 12, employer: 36, months: [6, 12] },
+    // old rule till 08.07.2026
+    // Maharashtra: { employee: 12, employer: 36, months: [6, 12] },
+    Maharashtra: { employee: 25, employer: 75, months: [6, 12] },
     Karnataka: { employee: 20, employer: 40, months: [12] },
     Gujarat: { employee: 6, employer: 12, months: [6, 12] },
     "Tamil Nadu": { employee: 10, employer: 20, months: [6, 12] },
@@ -238,7 +240,10 @@ export const calculatePayroll = (values) => {
     const inHandSalary = Math.max(gross - deductions, 0);
 
     // const gratuity = Math.round(((basic + spl + conveyance) * 4.81) / 100);
-    const gratuity = Math.round(basic * 15 / 26 / 12);
+    // old rule
+    // const gratuity = Math.round(basic * 15 / 26 / 12);
+    // new rule from 10.07.2026 (basic + spl)
+    const gratuity = Math.round((basic + spl) * 15 / 26 / 12);
     const totalCostToCompany = gross + PFEmployer + ESICEmployer + LWFEmployer + gratuity;
 
     return {

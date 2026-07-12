@@ -24,6 +24,7 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const dispatch = useDispatch();
     const { pendingPatients, loading } = useSelector((state) => state.Pharmacy);
     const user = useSelector((state) => state.User);
+    const centerList = useSelector((state) => state.Center.data);
     const handleAuthError = useAuthError();
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
@@ -41,13 +42,10 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
             : []
         ),
         ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
+            centerList?.map(c => ({
+                value: c._id,
+                label: c.title,
+            })) || []
         )
     ];
 

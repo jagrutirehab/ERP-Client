@@ -19,6 +19,7 @@ import {
 } from "../../../Components/constants/HR";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import DataTableComponent from "../../../Components/Common/DataTable";
+import PreviewFile from "../../../Components/Common/PreviewFile";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import FinanceModal from "../components/FinanceModal";
@@ -58,6 +59,8 @@ const FinanceDashboard = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("CHANGE"); // "EDIT" or "CHANGE"
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -605,22 +608,37 @@ const FinanceDashboard = () => {
       minWidth: "150px",
     },
     {
+      name: <div>Increment Applicable</div>,
+      selector: (row) => {
+        const date = row?.financeDetails?.incrementApplicable;
+        if (!date || isNaN(new Date(date))) return "-";
+        return format(new Date(date), "dd MMM yyyy");
+      },
+      wrap: true,
+      minWidth: "150px",
+    },
+    {
       name: <div>Increment Letter</div>,
       selector: (row) => {
-        if (!row?.financeDetails?.incrementLetter) return "-";
+        const url = row?.financeDetails?.incrementLetter;
+        if (!url) return "-";
         return (
-          <a
-            href={row.financeDetails.incrementLetter}
-            target="_blank"
-            rel="noreferrer"
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={() => {
+              setPreviewFile({ url, originalName: "IncrementLetter" });
+              setPreviewOpen(true);
+            }}
             style={{
               color: "#007bff",
               textDecoration: "underline",
               fontSize: "0.875rem",
+              cursor: "pointer",
             }}
           >
             View
-          </a>
+          </span>
         );
       },
       wrap: true,
@@ -841,6 +859,17 @@ const FinanceDashboard = () => {
           fetchEmployeeFinanceList();
         }}
         mode={modalMode}
+      />
+
+      <PreviewFile
+        title="Increment Letter"
+        file={previewFile}
+        isOpen={previewOpen}
+        toggle={() => {
+          setPreviewOpen(false);
+          setPreviewFile(null);
+        }}
+        allowDownload
       />
     </CardBody>
   );
