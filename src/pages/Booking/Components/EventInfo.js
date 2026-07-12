@@ -214,7 +214,7 @@ const EventInfo = ({
             </div>
           </div>
         )}
-        <div className="d-flex justify-content-end mt-3">
+        <div className="d-flex flex-wrap justify-content-end gap-2 mt-3">
           {data?.chart &&
           (data?.doctor?.role === "COUNSELLOR" ||
             data?.doctor?.role === "PSW") ? (
@@ -238,7 +238,7 @@ const EventInfo = ({
                 }}
                 disabled={data?.isCancelled}
                 // style={{ pointerEvents: 'auto' }}
-                className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                className="btn btn-primary btn-sm text-nowrap fs-10"
               >
                 Edit Note
               </button>
@@ -260,7 +260,7 @@ const EventInfo = ({
                 }}
                 disabled={data?.isCancelled}
                 // style={{ pointerEvents: 'auto' }}
-                className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                className="btn btn-primary btn-sm text-nowrap fs-10"
               >
                 View Note
               </button>
@@ -285,7 +285,7 @@ const EventInfo = ({
               }}
               disabled={data?.isCancelled}
               // style={{ pointerEvents: 'auto' }}
-              className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+              className="btn btn-primary btn-sm text-nowrap fs-10"
             >
               Create Note
             </button>
@@ -317,7 +317,7 @@ const EventInfo = ({
                 }}
                 disabled={data?.isCancelled}
                 // style={{ pointerEvents: 'auto' }}
-                className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                className="btn btn-primary btn-sm text-nowrap fs-10"
               >
                 Edit Prescription
               </button>
@@ -339,7 +339,7 @@ const EventInfo = ({
                 }}
                 disabled={data?.isCancelled}
                 // style={{ pointerEvents: 'auto' }}
-                className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                className="btn btn-primary btn-sm text-nowrap fs-10"
               >
                 View Prescription
               </button>
@@ -364,7 +364,7 @@ const EventInfo = ({
               }}
               disabled={data?.isCancelled}
               // style={{ pointerEvents: 'auto' }}
-              className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+              className="btn btn-primary btn-sm text-nowrap fs-10"
             >
               Create Prescription
             </button>
@@ -404,7 +404,7 @@ const EventInfo = ({
                     );
                   }}
                   disabled={data?.isCancelled}
-                  className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                  className="btn btn-primary btn-sm text-nowrap fs-10"
                 >
                   Edit Psycho Report
                 </button>
@@ -425,7 +425,7 @@ const EventInfo = ({
                     );
                   }}
                   disabled={data?.isCancelled}
-                  className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                  className="btn btn-primary btn-sm text-nowrap fs-10"
                 >
                   View Psycho Report
                 </button>
@@ -448,7 +448,7 @@ const EventInfo = ({
                   );
                 }}
                 disabled={data?.isCancelled}
-                className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                className="btn btn-primary btn-sm text-nowrap fs-10"
               >
                 Create Psycho Report
               </button>
