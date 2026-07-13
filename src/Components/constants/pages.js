@@ -322,6 +322,13 @@ const pages = [
     icon: "bx bx-error-circle",
   },
   {
+    id: "marketing",
+    label: "Marketing",
+    name: "Marketing",
+    link: "/marketing/*",
+    icon: "bx bx-map-pin",
+  },
+  {
     id: "recordings",
     label: "Recordings",
     name: "Recordings",
@@ -1266,9 +1273,9 @@ export const ISSUES = [
     icon: "bx bx-wrench",
     link: "/issues/maintenance/issues",
   },
-    {
+  {
     id: "complaint-issues",
-    label: "Complaint Tickets", 
+    label: "Complaint Tickets",
     icon: "bx bx-flag",
     link: "/issues/complaint/issues",
   },
@@ -1296,6 +1303,21 @@ export const ISSUES = [
     label: "Finance Tickets Approval",
     icon: "bx bx-receipt",
     link: "/issues/finance/payslips/tickets",
+  },
+];
+
+export const MARKETING = [
+  {
+    id: "visit-log-add",
+    label: "Add Visit Log",
+    icon: "bx bx-plus-circle",
+    link: "/marketing/visit-log/add",
+  },
+  {
+    id: "visit-log-list",
+    label: "All Visit Logs",
+    icon: "bx bx-list-ul",
+    link: "/marketing/visit-log/list",
   },
 ];
 

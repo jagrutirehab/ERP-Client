@@ -4100,3 +4100,49 @@ export const generatePsychoDiagnosticForm = (data) =>
   });
 export const deletePsychoDiagnosticFormFile = (data) =>
   api.update(url.DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE, data);
+
+
+// Marketing - Visit Log
+export const createVisitLog = (formData) =>
+  axios.post(url.POST_VISIT_LOG, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+
+export const getVisitLogs = (params = {}) =>
+  axios.get(url.GET_VISIT_LOGS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const getVisitLogById = (id) =>
+  axios.get(`${url.GET_VISIT_LOGS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const updateVisitLog = (id, data) =>
+  axios.put(`${url.GET_VISIT_LOGS}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const deleteVisitLog = (id) =>
+  axios.delete(`${url.GET_VISIT_LOGS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const searchDoctors = (q) =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors/search`, {
+    params: { q },
+    headers: { "X-No-Cookie-Token": "true" },
+  });
