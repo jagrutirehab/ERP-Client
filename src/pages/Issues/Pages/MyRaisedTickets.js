@@ -59,8 +59,8 @@ const MyRaisedTickets = () => {
     const [selectedIssue, setSelectedIssue] = useState(null);
     const [selectedCenter, setSelectedCenter] = useState("ALL");
 
-
     const user = useSelector((state) => state.User);
+    const centers = useSelector((state) => state.Center.data);
 
     const loadIssues = async () => {
         try {
@@ -127,7 +127,7 @@ const MyRaisedTickets = () => {
             ]
             : []),
         ...(user?.centerAccess?.map((id) => {
-            const center = user?.userCenters?.find((c) => c._id === id);
+            const center = centers?.find((c) => c._id === id);
             return {
                 value: id,
                 label: center?.title || "Unknown Center",
@@ -194,7 +194,7 @@ const MyRaisedTickets = () => {
 
 
 
-console.log("issues", issues);
+    console.log("issues", issues);
 
 
 

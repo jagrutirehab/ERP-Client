@@ -20,6 +20,7 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 const IssuesPage = ({ type }) => {
     const isMobile = useMediaQuery("(max-width: 1000px)");
     const user = useSelector((state) => state.User);
+    const centers = useSelector((state) => state.Center.data)
 
     const [issues, setIssues] = useState([]);
     const [description, setDescription] = useState("");
@@ -54,9 +55,6 @@ const IssuesPage = ({ type }) => {
     const hasDeletePermission = type === "TECH" ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "DELETE") : type === "PURCHASE" ? hasPermission("ISSUES", "PURCHASE_ISSUES", "DELETE") : type === "HR" ? hasPermission("ISSUES", "HR_ISSUES", "WRITE") : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "DELETE");
 
     const canEdit = hasWritePermission || hasDeletePermission;
-
-    console.log("Can Edit", canEdit);
-
 
     const approvers = ["HEMANT", "SURJEET", "SHIVANI", "VIKAS"];
 
@@ -127,7 +125,7 @@ const IssuesPage = ({ type }) => {
             ]
             : []),
         ...(user?.centerAccess?.map((id) => {
-            const center = user?.userCenters?.find((c) => c._id === id);
+            const center = centers?.find((c) => c._id === id);
             return {
                 value: id,
                 label: center?.title || "Unknown Center",
