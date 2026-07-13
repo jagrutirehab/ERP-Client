@@ -781,3 +781,6 @@ export const DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE =
   "/chart/psycho-diagnostic-form";
 export const GENERATE_PSYCHO_DIAGNOSTIC_SUMMARY =
   "/chart/generate/summary/psycho-diagnostic-form";
+
+export const POST_VISIT_LOG = "/marketing/visit-log";
+export const GET_VISIT_LOGS = "/marketing/visit-log";
