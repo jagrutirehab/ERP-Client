@@ -460,12 +460,18 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
     </div>
   );
 
-  // Professional Tax now uses flat state-wise slabs, so the yearly total is
-  // simply the monthly PT across all 12 months.
+  // Professional Tax uses flat state-wise slabs. Most states are monthly, so the
+  // yearly total is monthly PT × 12; Tamil Nadu is half-yearly, so calculatePayroll
+  // supplies the exact annual (slab × 2) via PTAnnual.
   const ptMonthly = Math.round(Number(form.values.PT) || 0);
-  const ptYearly = ptMonthly * 12;
+  const ptYearly = form.values.PTAnnual !== undefined
+    ? Math.round(Number(form.values.PTAnnual) || 0)
+    : ptMonthly * 12;
 
-  const deductionsYearly = yearlyValue("deductions");
+  // Mirror the server: annual deductions swap the monthly PT × 12 for the exact
+  // PT annual (matters for Tamil Nadu's half-yearly PT).
+  const deductionsYearly =
+    (Math.round(Number(form.values.deductions) || 0) - ptMonthly) * 12 + ptYearly;
 
   const ctcYearly =
     yearlyValue("totalCostToCompany") +

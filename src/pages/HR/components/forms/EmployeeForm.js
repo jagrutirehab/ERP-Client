@@ -605,6 +605,7 @@ const EmployeeForm = ({
         formData.delete("PFEmployer");
         formData.delete("PFAmount");
         formData.delete("PT");
+        formData.delete("PTAnnual");
         formData.delete("shortWages");
         formData.delete("PFSalary");
         formData.delete("PFAmount");
@@ -831,10 +832,17 @@ const EmployeeForm = ({
     </div>
   );
 
+  // Tamil Nadu PT is half-yearly, so calculatePayroll supplies the exact annual
+  // (slab × 2) via PTAnnual; other states are simply monthly PT × 12.
   const ptMonthly = Math.round(Number(values.PT) || 0);
-  const ptYearly = ptMonthly * 12;
+  const ptYearly = values.PTAnnual !== undefined
+    ? Math.round(Number(values.PTAnnual) || 0)
+    : ptMonthly * 12;
 
-  const deductionsYearly = yearlyValue("deductions");
+  // annual deductions swap the monthly PT × 12 for the exact
+  // PT annual (matters for Tamil Nadu's half-yearly PT).
+  const deductionsYearly =
+    (Math.round(Number(values.deductions) || 0) - ptMonthly) * 12 + ptYearly;
 
   const ctcYearly =
     yearlyValue("totalCostToCompany") +

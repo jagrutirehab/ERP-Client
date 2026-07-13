@@ -394,23 +394,26 @@ const FinanceDashboard = () => {
       minWidth: colWidth,
     },
     {
-      name: amountHeader("Variable"),
-      selector: (row) => row?.financeDetails?.variable,
+      // Variable is a pure yearly CTC add-on — never split into monthly, so show
+      // only the yearly value regardless of the Monthly/Yearly toggle.
+      name: "Variable (Yearly)",
+      selector: (row) =>
+        row?.financeDetails?.annual?.variable ?? row?.financeDetails?.variable ?? 0,
       cell: (row) =>
-        renderAmount(
-          row?.financeDetails?.variable,
-          row?.financeDetails?.annual?.variable,
+        formatCurrency(
+          row?.financeDetails?.annual?.variable ?? row?.financeDetails?.variable ?? 0,
         ),
       sortable: true,
       minWidth: colWidth,
     },
     {
-      name: amountHeader("Reimbursement"),
-      selector: (row) => row?.financeDetails?.reimbursement,
+      // Reimbursement is a pure yearly CTC add-on — never split into monthly.
+      name: "Reimbursement (Yearly)",
+      selector: (row) =>
+        row?.financeDetails?.annual?.reimbursement ?? row?.financeDetails?.reimbursement ?? 0,
       cell: (row) =>
-        renderAmount(
-          row?.financeDetails?.reimbursement,
-          row?.financeDetails?.annual?.reimbursement,
+        formatCurrency(
+          row?.financeDetails?.annual?.reimbursement ?? row?.financeDetails?.reimbursement ?? 0,
         ),
       sortable: true,
       minWidth: colWidth,
