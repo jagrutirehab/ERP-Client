@@ -325,7 +325,7 @@ const pages = [
     id: "marketing",
     label: "Marketing",
     name: "Marketing",
-    link: "/marketing/*",
+    link: "/marketing",
     icon: "bx bx-map-pin",
   },
   {
