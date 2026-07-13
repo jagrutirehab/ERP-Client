@@ -469,7 +469,7 @@ const AddVisitLog = () => {
   };
 
   return (
-    <div className="page-content visit-log-wizard">
+    <div className="visit-log-wizard">
       <style>{`
         .visit-log-wizard {
           --vlw-primary: #3577f1;

@@ -257,11 +257,11 @@ const VisitLogList = () => {
   };
 
   return (
-    <div className="page-content">
+    <div className="">
       <Row className="justify-content-center">
         <Col xs={12} xl={11}>
           {/*Header*/}
-          <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
+          <div className="d-flex align-items-center justify-content-between mb-4 mt-3 flex-wrap gap-2">
             <div className="d-flex align-items-center">
               <div
                 className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
