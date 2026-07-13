@@ -21,6 +21,7 @@ import {
   getEmployeeDetailsById,
 } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { downloadFile } from "../../../Components/Common/downloadFile";
@@ -89,24 +90,7 @@ const Employee = () => {
   } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "MASTER_EMPLOYEE", "READ");
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [
-          {
-            value: "ALL",
-            label: "All Centers",
-            isDisabled: false,
-          },
-        ]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
   // const selectedCenterOption =
   //   centerOptions.find((opt) => opt.value === selectedCenter) ||

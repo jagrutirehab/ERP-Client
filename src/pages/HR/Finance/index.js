@@ -7,6 +7,7 @@ import { Pencil } from "lucide-react";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import {
   fetchDesignations,
   fetchFinance,
@@ -34,7 +35,8 @@ const AMOUNT_VIEWS = [
 
 const FinanceDashboard = () => {
   const dispatch = useDispatch();
-  const { centerAccess, userCenters } = useSelector((state) => state.User);
+  const { centerAccess } = useSelector((state) => state.User);
+  const centerOptions = useCenterOptions();
   const { data, pagination, loading, designations, designationLoading } =
     useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
@@ -70,25 +72,6 @@ const FinanceDashboard = () => {
     hasPermission("HR", "FINANCE", "WRITE") ||
     hasPermission("HR", "FINANCE", "DELETE");
   const hasDeletePermission = hasPermission("HR", "FINANCE", "DELETE");
-
-  const centerOptions = [
-    ...(centerAccess?.length > 1
-      ? [
-        {
-          value: "ALL",
-          label: "All Centers",
-          isDisabled: false,
-        },
-      ]
-      : []),
-    ...(centerAccess?.map((id) => {
-      const center = userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === selectedCenter) ||

@@ -9,6 +9,7 @@ import { usePermissions } from '../../../Components/Hooks/useRoles';
 import { useSelector } from 'react-redux';
 import Select from "react-select";
 import { AllCompOffsCol } from '../components/columns/AllCompOffCol';
+import { useCenterOptions } from '../../../Components/Hooks/useCenterOptions';
 
 const AllCompOffs = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -116,24 +117,7 @@ const AllCompOffs = () => {
     value: currentYear - i,
   }));
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [
-        {
-          value: "ALL",
-          label: "All Centers",
-          isDisabled: false,
-        },
-      ]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
 
   useEffect(() => {

@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useAuthError } from '../../../../../Components/Hooks/useAuthError';
 import { usePermissions } from '../../../../../Components/Hooks/useRoles';
 import { useMediaQuery } from '../../../../../Components/Hooks/useMediaQuery';
+import { useCenterOptions } from '../../../../../Components/Hooks/useCenterOptions';
 import { fetchDesignations, fetchTPMs } from '../../../../../store/features/HR/hrSlice';
 import { TPMOptions } from '../../../../../Components/constants/HR';
 import { toast } from 'react-toastify';
@@ -55,25 +56,7 @@ const PendingApprovals = ({ activeTab }) => {
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === filters.center

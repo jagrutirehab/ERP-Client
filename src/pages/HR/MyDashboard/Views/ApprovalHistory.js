@@ -14,11 +14,12 @@ import PropTypes from 'prop-types';
 import { capitalizeWords } from '../../../../utils/toCapitalize';
 import DataTableComponent from '../../../../Components/Common/DataTable';
 import { myDashboardTypeOptions } from '../../../../Components/constants/HR';
+import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
 
 const ApprovalHistory = ({ activeTab }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { centerAccess, userCenters } = useSelector((state) => state.User);
+  const { centerAccess } = useSelector((state) => state.User);
   const { data, pagination, loading } = useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
   const [selectedCenter, setSelectedCenter] = useState("ALL");
@@ -32,25 +33,7 @@ const ApprovalHistory = ({ activeTab }) => {
   const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "MY_PENDING_APPROVALS", "READ");
 
-  const centerOptions = [
-    ...(centerAccess?.length > 1
-      ? [{
-        value: "ALL",
-        label: "All Centers",
-        isDisabled: false,
-      }]
-      : []
-    ),
-    ...(
-      centerAccess?.map(id => {
-        const center = userCenters?.find(c => c._id === id);
-        return {
-          value: id,
-          label: center?.title || "Unknown Center"
-        };
-      }) || []
-    )
-  ];
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption = centerOptions.find(
     opt => opt.value === selectedCenter

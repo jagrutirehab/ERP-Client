@@ -12,7 +12,7 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
-import { useSelector } from "react-redux";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 
 const ALL_CENTERS_OPTION = { value: "all", label: "All Centers" };
 
@@ -45,20 +45,7 @@ const TransferManagerApprovals = () => {
 
   const [error, setError] = useState("");
   const [actionLoading, setActionLoading] = useState(false);
-  const user = useSelector((state) => state.User);
-
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [{ value: "ALL", label: "All Centers" }]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
   const token = JSON.parse(localStorage.getItem("user"))?.token;
 

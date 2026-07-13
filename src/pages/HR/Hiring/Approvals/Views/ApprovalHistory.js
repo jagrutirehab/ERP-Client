@@ -12,6 +12,7 @@ import {
 import { toast } from "react-toastify";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import Select from "react-select";
 import { Button, Spinner } from "reactstrap";
 import DataTable from "react-data-table-component";
@@ -52,24 +53,7 @@ const ApprovalHistory = ({ activeTab }) => {
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [
-        {
-          value: "ALL",
-          label: "All Centers",
-          isDisabled: false,
-        },
-      ]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === filters.center) ||

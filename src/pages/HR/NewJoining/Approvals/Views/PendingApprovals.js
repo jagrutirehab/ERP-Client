@@ -3,6 +3,7 @@ import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { getMasterEmployees } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { deleteEmployee, getEmployeeDetailsById, updateNewJoiningStatus } from "../../../../../helpers/backend_helper";
@@ -76,25 +77,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter

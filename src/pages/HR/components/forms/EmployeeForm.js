@@ -520,7 +520,8 @@ const EmployeeForm = ({
       label: c.title,
       title: c.title,
       address: c.address,
-    }));
+    }))
+    .sort((a, b) => (a.label || "").localeCompare(b.label || ""));
 
   useEffect(() => {
     const loadDesignations = async () => {
