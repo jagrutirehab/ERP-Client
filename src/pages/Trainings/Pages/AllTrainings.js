@@ -39,7 +39,7 @@ const AllTrainings = () => {
         ...(user?.centerAccess?.map(cid => {
             const center = user?.userCenters?.find(c => c._id === cid)
             return { value: cid, label: center?.title || "Unknown Center" }
-        }) || [])
+        }) || []).sort((a, b) => a.label.localeCompare(b.label)),
     ]
 
     const loadTrainings = async (pageNum = 1, tab = activeTab) => {
@@ -270,20 +270,20 @@ const AllTrainings = () => {
                     )}
                     {((file?.originalName || file?.name)?.toLowerCase().endsWith('.doc') ||
                         (file?.originalName || file?.name)?.toLowerCase().endsWith('.docx')) && (
-                        <iframe
-                            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.url)}`}
-                            width="100%"
-                            height="600px"
-                            style={{ border: 'none' }}
-                            title="Document Viewer"
-                        />
-                    )}
+                            <iframe
+                                src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.url)}`}
+                                width="100%"
+                                height="600px"
+                                style={{ border: 'none' }}
+                                title="Document Viewer"
+                            />
+                        )}
                     {!file?.type?.startsWith('image/') &&
                         file?.type !== 'application/pdf' &&
                         !(file?.originalName || file?.name)?.toLowerCase().endsWith('.doc') &&
                         !(file?.originalName || file?.name)?.toLowerCase().endsWith('.docx') && (
-                        <p className="text-muted text-center py-5">Preview not available for this file type</p>
-                    )}
+                            <p className="text-muted text-center py-5">Preview not available for this file type</p>
+                        )}
                 </ModalBody>
                 <ModalFooter>
                     <a href={file?.url} target="_blank" rel="noreferrer" className="btn btn-primary btn-sm">Download</a>

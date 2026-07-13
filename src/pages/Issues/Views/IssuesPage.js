@@ -64,20 +64,18 @@ const IssuesPage = ({ type }) => {
         try {
             setLoading(true);
 
-            let centers = [];
+            let cntrs = [];
 
             if (selectedCenter === "") {
-                centers = [];
-            }
-            else if (selectedCenter === "ALL") {
-                centers = user?.centerAccess || [];
-            }
-            else {
-                centers = [selectedCenter];
+                cntrs = [];
+            } else if (selectedCenter === "ALL") {
+                cntrs = user?.centerAccess || [];
+            } else {
+                cntrs = [selectedCenter];
             }
 
             const data = await fetchIssues(type, {
-                centers,
+                cntrs,
                 status: activeTab,
                 page,
                 limit,
@@ -114,7 +112,6 @@ const IssuesPage = ({ type }) => {
         setImageModal(true);
     };
 
-
     const centerOptions = [
         ...(user?.centerAccess?.length > 1
             ? [
@@ -130,7 +127,7 @@ const IssuesPage = ({ type }) => {
                 value: id,
                 label: center?.title || "Unknown Center",
             };
-        }) || []),
+        }) || []).sort((a, b) => a.label.localeCompare(b.label)),
     ];
 
     const handleAssign = (row) => {

@@ -16,7 +16,7 @@ import Select from "react-select";
 import { useSelector } from "react-redux";
 import { MyRaisedTicketsColumns } from "../Columns/MyRaisedTickets";
 
-const issueTypes = ["TECH", "HR", "FINANCE"];
+const issueTypes = ["TECH", "HR", "FINANCE", "MAINTENANCE", "COMPLAINT"];
 // "PURCHASE", "REVIEW_SUBMISSION"
 
 const statuses = [
@@ -132,7 +132,7 @@ const MyRaisedTickets = () => {
                 value: id,
                 label: center?.title || "Unknown Center",
             };
-        }) || []),
+        }) || []).sort((a, b) => a.label.localeCompare(b.label)),
     ];
 
     const handleViewDescription = (desc) => {
