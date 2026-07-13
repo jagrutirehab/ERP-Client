@@ -12,6 +12,7 @@ import { toast } from "react-toastify";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
 import { fetchEmployeePayslips } from "../../../../store/features/HR/hrSlice";
 import {
   buildPayslipPreviewFile,
@@ -66,9 +67,7 @@ const EmployeePaySlipsTab = () => {
   // ✅ KEY FIX: read centerAccess directly from state.User (same as Salary.jsx)
   // NOT from state.User.user.centerAccess — that nested value can be stale
   // when a parent center selector calls changeUserAccess and updates the slice
-  const { centerAccess = [], userCenters = [] } = useSelector(
-    (state) => state.User,
-  );
+  const { centerAccess = [] } = useSelector((state) => state.User);
 
   const {
     data = [],
@@ -78,18 +77,7 @@ const EmployeePaySlipsTab = () => {
 
   const hasUserPermission = hasPermission("HR", "EMPLOYEE_PAYSLIPS", "READ");
 
-  const centerOptions = useMemo(
-    () => [
-      ...(centerAccess.length > 1
-        ? [{ value: "ALL", label: "All Centers" }]
-        : []),
-      ...centerAccess.map((id) => {
-        const center = userCenters.find((c) => c._id === id);
-        return { value: id, label: center?.title || "Unknown Center" };
-      }),
-    ],
-    [centerAccess, userCenters],
-  );
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === selectedCenter) ||

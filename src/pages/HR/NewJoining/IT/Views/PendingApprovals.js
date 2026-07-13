@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
 import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
@@ -38,25 +39,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles, 
     const [reason, setReason] = useState("");
     const [selectedDesignation, setSelectedDesignation] = useState(null);
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter

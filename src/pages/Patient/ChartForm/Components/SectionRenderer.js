@@ -22,8 +22,10 @@ const SectionRenderer = ({ sections, values, onChange }) => {
     <>
       {sections?.map((section) => (
         <div key={section.title} className="mb-4">
-          <div className="d-flex align-items-center gap-3 mb-3">
-            <h6 className="display-6 fs-5 text-nowrap">{section.title}</h6>
+          <div className="d-flex align-items-center flex-wrap gap-2 gap-md-3 mb-3">
+            <h6 className="fs-xs-16 fs-md-14 display-6 mb-0">
+              {section?.title}
+            </h6>
             <Divider />
           </div>
 

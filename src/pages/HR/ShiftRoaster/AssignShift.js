@@ -14,7 +14,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { getExitEmployeesBySearch } from "../../../store/features/HR/hrSlice";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { setRotationalShifts, getRotationalShifts } from "../../../helpers/backend_helper";
+import { setRotationalShifts, getRotationalShifts, getEmployeeWeekOffBalance } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
@@ -53,6 +53,7 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
   const [empSearch, setEmpSearch] = useState("");
   const [searching, setSearching] = useState(false);
   const [selectedEmployee, setSelectedEmployee] = useState(() => initialData?.selectedEmployee || null);
+  const [weekOffBalance, setWeekOffBalance] = useState(() => initialData?.weekOffBalance || null);
 
   const [roster, setRoster] = useState(() => initialData?.roster || {});
   const [weekStart, setWeekStart] = useState(() => {
@@ -99,6 +100,25 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
     onDataChange({ selectedEmployee, roster });
   }, [selectedEmployee, roster]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // ── fetch week-off balance whenever the selected employee changes (edit rows get it prefilled from initialData) ──
+  useEffect(() => {
+    if (!selectedEmployee?.value) {
+      setWeekOffBalance(null);
+      return;
+    }
+    if (isEditRow && initialData?.weekOffBalance) return;
+
+    let cancelled = false;
+    getEmployeeWeekOffBalance(selectedEmployee.value)
+      .then((res) => {
+        if (!cancelled) setWeekOffBalance(res?.data || res);
+      })
+      .catch(() => {
+        if (!cancelled) setWeekOffBalance(null);
+      });
+    return () => { cancelled = true; };
+  }, [selectedEmployee?.value]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // ── cell helpers ──
   const getCell = (day) => roster[format(day, "yyyy-MM-dd")] || null;
 
@@ -123,10 +143,21 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
         // toggle off — remove entry
         const n = { ...prev }; delete n[key]; return n;
       }
+
+      if (weekOffBalance) {
+        const newlySelected = Object.entries(prev).filter(
+          ([d, v]) => v.weekOff && initialData?.roster?.[d]?.weekOff !== true
+        ).length;
+        if (newlySelected >= weekOffBalance.pending) {
+          toast.error("No week-off balance remaining for this employee.");
+          return prev;
+        }
+      }
+
       // toggle on — set weekOff, clear times
       return { ...prev, [key]: { start: null, end: null, weekOff: true } };
     });
-  }, []);
+  }, [weekOffBalance, initialData]);
 
   const copyToNextWeek = () => {
     const replacements = {};
@@ -150,6 +181,11 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
   const weekOffDays = useMemo(
     () => Object.entries(roster).filter(([, v]) => v.weekOff).map(([d]) => d).sort(),
     [roster]
+  );
+
+  const newWeekOffCount = useMemo(
+    () => weekOffDays.filter((d) => initialData?.roster?.[d]?.weekOff !== true).length,
+    [weekOffDays, initialData]
   );
 
   const weekLabel = `${format(weekStart, "dd MMM")} – ${format(addDays(weekStart, 6), "dd MMM yyyy")}`;
@@ -237,6 +273,19 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
             </Button>
           </div>
           <div className="d-flex align-items-center gap-2">
+            {selectedEmployee && weekOffBalance && (
+              <span
+                className={`badge ${newWeekOffCount >= weekOffBalance.pending ? "bg-danger" : ""}`}
+                style={
+                  newWeekOffCount >= weekOffBalance.pending
+                    ? { fontSize: "12px" }
+                    : { background: "#e7e3ff", color: "#4b3f9e", fontSize: "12px" }
+                }
+                title="Week-offs selected in this session vs. available balance (max 15)"
+              >
+                Week Off {newWeekOffCount}/{weekOffBalance.pending}
+              </span>
+            )}
             {filledShifts.length > 0 && (
               <span className="badge bg-primary" style={{ fontSize: "12px" }}>
                 {filledShifts.length} shift{filledShifts.length !== 1 ? "s" : ""} added
@@ -349,8 +398,14 @@ const EmployeeShiftRow = ({ rowIndex, dispatch, centerAccess, handleAuthError, o
                       {/* week off toggle */}
                       <button
                         className="btn btn-sm w-100"
-                        style={{ fontSize: "10px", padding: "2px 4px", border: "1px dashed #adb5bd", color: "#6c757d", background: "transparent" }}
+                        style={{
+                          fontSize: "10px", padding: "2px 4px",
+                          border: `1px dashed ${weekOffBalance && newWeekOffCount >= weekOffBalance.pending ? "#e0a3a8" : "#adb5bd"}`,
+                          color: weekOffBalance && newWeekOffCount >= weekOffBalance.pending ? "#adb5bd" : "#6c757d",
+                          background: "transparent",
+                        }}
                         onClick={() => toggleWeekOff(day)}
+                        title={weekOffBalance && newWeekOffCount >= weekOffBalance.pending ? "No week-off balance remaining" : undefined}
                       >
                         <Moon size={10} className="me-1" />Week Off
                       </button>
@@ -478,6 +533,7 @@ const AssignShift = () => {
             reportingId: r._id || editId,
           },
           roster,
+          weekOffBalance: r.weekOffBalance || null,
         };
         setRows([{ id: newRowId(), initialData, data: {} }]);
       })

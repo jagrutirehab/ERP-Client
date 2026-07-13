@@ -176,9 +176,7 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
     {
       name: "Duration",
       selector: (row, idx) =>
-        `${row?.duration} ${row?.unit} - ${getMedicineFrequencyLabel(
-          row?.frequency
-        )}`,
+        `${row?.duration} ${row?.unit} - ${getMedicineFrequencyLabel(row)}`,
       wrap: true,
     },
     {

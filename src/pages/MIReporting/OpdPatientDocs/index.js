@@ -286,7 +286,7 @@ const OpdPatientDocs = () => {
                                                     ? new Date(patient[labelsMapping[label]]).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")
                                                     : (label === "Patient Name" || label === "Patient UID")
                                                         ? (
-                                                            <Link to={`/patient/${patient.patient_mongo_id}`} className="text-dark">
+                                                            <Link to={`/patient/${patient.patient_mongo_id}`} className="text-dark" target="_blank" rel="noopener noreferrer">
                                                                 {patient[labelsMapping[label]]}
                                                             </Link>
                                                         )

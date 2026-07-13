@@ -13,6 +13,7 @@ import DataTable from 'react-data-table-component';
 import { renderStatusBadge } from '../../../../../Components/Common/renderStatusBadge';
 import { useSearchParams } from 'react-router-dom';
 import { normalizeUnderscores } from '../../../../../utils/normalizeUnderscore';
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 
 const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
     const dispatch = useDispatch();
@@ -31,25 +32,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter

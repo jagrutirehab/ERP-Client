@@ -48,6 +48,7 @@ const PayslipsRequests = () => {
 
     const debounceTimer = useRef(null);
 
+    const centers = useSelector((state) => state.Center.data);
 
     const loadRequests = async () => {
         setLoading(true);
@@ -152,12 +153,12 @@ const PayslipsRequests = () => {
             ]
             : []),
         ...(user?.centerAccess?.map((id) => {
-            const center = user?.userCenters?.find((c) => c._id === id);
+            const center = centers?.find((c) => c._id === id);
             return {
                 value: id,
                 label: center?.title || "Unknown Center",
             };
-        }) || []),
+        }) || []).sort((a, b) => a.label.localeCompare(b.label)),
     ];
 
 

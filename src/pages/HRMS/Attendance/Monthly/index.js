@@ -21,6 +21,7 @@ import { fetchMonthlyAttendance } from '../../../../store/features/HR/hrSlice';
 import { getMonthRange } from '../../../../utils/time';
 import RefreshButton from '../../../../Components/Common/RefreshButton';
 import AttendanceHistoryModal from '../../components/AttendanceHistoryModal';
+import { useCenterOptions } from '../../../../Components/Hooks/useCenterOptions';
 
 const AttendanceMonthly = () => {
     const dispatch = useDispatch();
@@ -75,18 +76,7 @@ const AttendanceMonthly = () => {
         }
     }, [selectedCenter, centerAccess]);
 
-    const centerOptions = [
-        ...(centerAccess?.length > 1
-            ? [{ value: "ALL", label: "All Centers" }]
-            : []),
-        ...(centerAccess?.map((id) => {
-            const center = userCenters?.find((c) => c._id === id);
-            return {
-                value: id,
-                label: center?.title || "Unknown Center",
-            };
-        }) || []),
-    ];
+    const centerOptions = useCenterOptions();
 
     const templateCenterOptions =
         (centerAccess?.map((id) => {
