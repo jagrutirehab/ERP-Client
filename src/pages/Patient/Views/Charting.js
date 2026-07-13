@@ -402,6 +402,7 @@ const Charting = ({
       ) : tab === ADMISSION_SUMMARY ? (
         <AdmissionSummary
           patient={patient._id}
+          patientProfile={patient}
           addmission={addmissionsCharts?.[0]?._id || patient?.addmission?._id}
         />
       ) : tab === BIO_DATA ? (

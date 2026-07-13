@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
 import { useFormik } from "formik";
 import { TPMOptions } from "../../../../Components/constants/HR";
 import { fetchDesignations } from "../../../../store/features/HR/hrSlice";
@@ -43,16 +44,9 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const { designations: designationOptions, designationLoading } = useSelector((state) => state.HR);
-    const { centerAccess, userCenters } = useSelector((state) => state.User);
     const isEdit = !!initialData?._id;
 
-    const centerOptions =
-        userCenters
-            ?.filter(center => centerAccess?.includes(center._id))
-            .map(center => ({
-                value: center._id,
-                label: center.title,
-            })) || [];
+    const centerOptions = useCenterOptions({ includeAll: false });
 
     useEffect(() => {
         const loadDesignations = async () => {

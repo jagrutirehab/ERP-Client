@@ -16,7 +16,7 @@ import Select from "react-select";
 import { useSelector } from "react-redux";
 import { MyRaisedTicketsColumns } from "../Columns/MyRaisedTickets";
 
-const issueTypes = ["TECH", "HR", "FINANCE","MAINTENANCE","COMPLAINT"];
+const issueTypes = ["TECH", "HR", "FINANCE", "MAINTENANCE", "COMPLAINT"];
 // "PURCHASE", "REVIEW_SUBMISSION"
 
 const statuses = [
@@ -59,8 +59,8 @@ const MyRaisedTickets = () => {
     const [selectedIssue, setSelectedIssue] = useState(null);
     const [selectedCenter, setSelectedCenter] = useState("ALL");
 
-
     const user = useSelector((state) => state.User);
+    const centers = useSelector((state) => state.Center.data);
 
     const loadIssues = async () => {
         try {
@@ -127,12 +127,12 @@ const MyRaisedTickets = () => {
             ]
             : []),
         ...(user?.centerAccess?.map((id) => {
-            const center = user?.userCenters?.find((c) => c._id === id);
+            const center = centers?.find((c) => c._id === id);
             return {
                 value: id,
                 label: center?.title || "Unknown Center",
             };
-        }) || []),
+        }) || []).sort((a, b) => a.label.localeCompare(b.label)),
     ];
 
     const handleViewDescription = (desc) => {
@@ -194,7 +194,7 @@ const MyRaisedTickets = () => {
 
 
 
-console.log("issues", issues);
+    console.log("issues", issues);
 
 
 

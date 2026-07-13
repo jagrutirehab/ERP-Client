@@ -24,7 +24,12 @@ const Prescription = ({ data, startDate, endDate }) => {
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Dr Notes:-
               </span>
-              <span className="fs-xs-9 fs-md-12">{data.drNotes}</span>
+              <span
+                className="fs-xs-9 fs-md-12"
+                style={{ whiteSpace: "pre-line" }}
+              >
+                {data.drNotes}
+              </span>
             </p>
           </div>
         )}

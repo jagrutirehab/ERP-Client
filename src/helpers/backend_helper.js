@@ -612,6 +612,8 @@ export const editGeneralDetailAdmission = (data) =>
   });
 export const deleteDetailAdmissionFile = (data) =>
   api.update(url.DELETE_DETAIL_ADMISSION_FILE, data);
+export const getFinalDiagnosis = (addmission) =>
+  api.get(url.GET_FINAL_DIAGNOSIS, { addmission });
 
 export const postMentalExamination = (data) => {
   return api.create(url.POST_MENTAL_EXAMINATION, data);
@@ -3395,6 +3397,14 @@ export const getRotationalShifts = (id) => {
   });
 };
 
+export const getEmployeeWeekOffBalance = (employeeId) => {
+  return api.get(`/hrms/employee/${employeeId}/week-off-balance`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const getEmployeeLeaves = (employeeId, params = {}) => {
   return api.get(`/hrms/leaves/employee/${employeeId}`, {
     params,
@@ -4100,3 +4110,49 @@ export const generatePsychoDiagnosticForm = (data) =>
   });
 export const deletePsychoDiagnosticFormFile = (data) =>
   api.update(url.DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE, data);
+
+
+// Marketing - Visit Log
+export const createVisitLog = (formData) =>
+  axios.post(url.POST_VISIT_LOG, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+
+export const getVisitLogs = (params = {}) =>
+  axios.get(url.GET_VISIT_LOGS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const getVisitLogById = (id) =>
+  axios.get(`${url.GET_VISIT_LOGS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const updateVisitLog = (id, data) =>
+  axios.put(`${url.GET_VISIT_LOGS}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const deleteVisitLog = (id) =>
+  axios.delete(`${url.GET_VISIT_LOGS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const searchDoctors = (q) =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors/search`, {
+    params: { q },
+    headers: { "X-No-Cookie-Token": "true" },
+  });

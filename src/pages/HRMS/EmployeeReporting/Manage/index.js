@@ -11,6 +11,7 @@ import { toast } from 'react-toastify';
 import DataTableComponent from '../../../../Components/Common/DataTable';
 import { employeeReportingsColumns } from '../../components/Table/Columns/employeeReportings';
 import EditEmployeeReportingModal from '../../components/EditEmployeeReportingModal';
+import { useCenterOptions } from '../../../../Components/Hooks/useCenterOptions';
 
 const sortByOptions = [
     { value: "ALL", label: "All" },
@@ -22,7 +23,7 @@ const ManageEmployeeReportings = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width: 1000px)");
-    const { centerAccess, userCenters } = useSelector((state) => state.User);
+    const { centerAccess } = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HRMS);
     const handleAuthError = useAuthError();
     const [selectedCenter, setSelectedCenter] = useState("ALL");
@@ -56,25 +57,7 @@ const ManageEmployeeReportings = () => {
             "DELETE"
         );
 
-    const centerOptions = [
-        ...(centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            centerAccess?.map(id => {
-                const center = userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter

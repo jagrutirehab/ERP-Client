@@ -356,7 +356,7 @@ const NursesDOD = () => {
                                                                 >
                                                                     {(label === "Patient Name" || label === "Patient UID")
                                                         ? (
-                                                            <Link to={`/nurse/p/${patient.patient_mongo_id}`} className="text-dark">
+                                                            <Link to={`/nurse/p/${patient.patient_mongo_id}`} className="text-dark" target="_blank" rel="noopener noreferrer">
                                                                 {patient[labelsMapping[label]]}
                                                             </Link>
                                                         )

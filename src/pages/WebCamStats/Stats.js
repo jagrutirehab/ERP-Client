@@ -34,6 +34,7 @@ const alertOptions = [
 
 const Stats = () => {
   const user = useSelector((state) => state.User);
+  const centers = useSelector((state) => state.Center.data);
 
   const [loading, setLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -169,12 +170,12 @@ const Stats = () => {
       ? [{ value: "ALL", label: "All Centers" }]
       : []),
     ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
+      const center = centers?.find((c) => c._id === id);
       return {
         value: id,
         label: center?.title || "Unknown Center",
       };
-    }) || []),
+    }) || []).sort((a, b) => a.label.localeCompare(b.label)),
   ];
 
   const selectedCenterOption =

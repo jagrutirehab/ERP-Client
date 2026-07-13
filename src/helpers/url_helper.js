@@ -120,6 +120,7 @@ export const GET_CHARTS = "/chart";
 export const GET_LATEST_CHARTS = "/chart/latest";
 export const GET_GENERAL_CHARTS = "/chart/general";
 export const GET_DELETED_CHARTS = "/chart/deleted";
+export const GET_FINAL_DIAGNOSIS = "/chart/final-diagnosis";
 export const POST_PRESCRIPTION = "/chart/prescription";
 export const EDIT_PRESCRIPTION = "/chart/prescription";
 export const POST_GENERAL_PRESCRIPTION = "/chart/prescription/general";
@@ -783,3 +784,6 @@ export const DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE =
   "/chart/psycho-diagnostic-form";
 export const GENERATE_PSYCHO_DIAGNOSTIC_SUMMARY =
   "/chart/generate/summary/psycho-diagnostic-form";
+
+export const POST_VISIT_LOG = "/marketing/visit-log";
+export const GET_VISIT_LOGS = "/marketing/visit-log";

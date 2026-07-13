@@ -17,7 +17,7 @@ import Select from "react-select";
 import { useSelector } from "react-redux";
 
 // const issueTypes = ["TECH", "PURCHASE", "REVIEW_SUBMISSION"];
-const issueTypes = ["TECH",  "FINANCE","MAINTENANCE", "COMPLAINT"];
+const issueTypes = ["TECH", "FINANCE", "MAINTENANCE", "COMPLAINT"];
 // "HR",
 
 const statuses = [
@@ -62,6 +62,7 @@ const MyIssues = () => {
 
 
   const user = useSelector((state) => state.User);
+  const centers = useSelector((state) => state.Center.data);
 
   const loadIssues = async () => {
     try {
@@ -125,12 +126,12 @@ const MyIssues = () => {
       ]
       : []),
     ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
+      const center = centers?.find((c) => c._id === id);
       return {
         value: id,
         label: center?.title || "Unknown Center",
       };
-    }) || []),
+    }) || []).sort((a, b) => a.label.localeCompare(b.label)),
   ];
 
   const handleViewDescription = (desc) => {
@@ -167,7 +168,7 @@ const MyIssues = () => {
     try {
       const response = await changeStatus(payload)
       toast.success(response?.message || "STATUS CHANGED SUCCESSFULLY.")
-      setStatus(data?.status)
+      // setStatus(data?.status)
       loadIssues();
 
     } catch (error) {
@@ -215,7 +216,7 @@ const MyIssues = () => {
             value={issueTypeOptions.find((o) => o.value === type)}
             onChange={(selected) => setType(selected.value)}
             styles={{ container: (base) => ({ ...base, width: 200 }) }}
-            // isDisabled={true}
+          // isDisabled={true}
           />
 
           {/* Status */}

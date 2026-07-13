@@ -10,6 +10,7 @@ import CancellationConfirmationModal from '../components/CancellationConfirmatio
 import { useSelector } from 'react-redux';
 import Select from "react-select";
 import { usePermissions } from '../../../Components/Hooks/useRoles';
+import { useCenterOptions } from '../../../Components/Hooks/useCenterOptions';
 
 const AllLeaveHistory = () => {
   const [activeTab, setActiveTab] = useState("pending");
@@ -154,24 +155,7 @@ const AllLeaveHistory = () => {
 
 
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [
-        {
-          value: "ALL",
-          label: "All Centers",
-          isDisabled: false,
-        },
-      ]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
 
   useEffect(() => {

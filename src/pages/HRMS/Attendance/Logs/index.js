@@ -18,6 +18,7 @@ import AttendanceHistoryModal from "../../components/AttendanceHistoryModal";
 import AttendanceUploadModal from "../../components/AttendanceUploadModal";
 import { downloadAttendanceTemplate, refetchBiometricAttendanace } from "../../../../helpers/backend_helper";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
+import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
 
 const statusOptions = [
     { value: "", label: "All Status" },
@@ -182,18 +183,7 @@ const AttendanceLogs = () => {
         }
     }, [selectedCenter, user?.centerAccess]);
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{ value: "ALL", label: "All Centers" }]
-            : []),
-        ...(user?.centerAccess?.map((id) => {
-            const center = user?.userCenters?.find((c) => c._id === id);
-            return {
-                value: id,
-                label: center?.title || "Unknown Center",
-            };
-        }) || []),
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption =
         centerOptions.find((opt) => opt.value === selectedCenter) ||

@@ -20,6 +20,7 @@ import DataTableComponent from "../../../Components/Common/DataTable";
 import { FormColumns } from "../components/columns/FormColumn";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 
 const FILE_TYPE_OPTIONS = [
   { value: "Form26AS", label: "Form 26AS" },
@@ -82,15 +83,7 @@ const Forms = () => {
   const hasWrite = hasPermission("HR", "EMPLOYEE_FORMS", "WRITE");
   const hasDelete = hasPermission("HR", "EMPLOYEE_FORMS", "DELETE");
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [{ value: "ALL", label: "All Centers" }]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return { value: id, label: center?.title || "Unknown Center" };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
   const fetchForms = useCallback(async (params = {}) => {
     try {

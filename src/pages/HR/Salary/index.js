@@ -14,6 +14,7 @@ import { toast } from 'react-toastify';
 import { actionPayroll, editPayrollRemarks, fetchPayrolls } from '../../../store/features/HR/hrSlice';
 import DataTableComponent from '../../../Components/Common/DataTable';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
+import { useCenterOptions } from '../../../Components/Hooks/useCenterOptions';
 import { salaryColumns } from '../../HRMS/components/Table/Columns/salary';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
 import { exportPayrollsXLSX, generatePayroll, getPayrollGenerationStatus, payrollBulkAction } from '../../../helpers/backend_helper';
@@ -112,8 +113,9 @@ const Salary = () => {
     const { hasPermission, loading: permissionLoader, roles } =
         usePermissions(token);
 
-    const { centerAccess, userCenters } = useSelector((state) => state.User);
+    const { centerAccess } = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
+    const centerOptions = useCenterOptions();
 
     const hasUserPermission = hasPermission(
         "HR",
@@ -122,25 +124,6 @@ const Salary = () => {
     );
 
     const hasEditPermission = hasPermission("HR", "SALARY", "WRITE") || hasPermission("HR", "SALARY", "DELETE");
-
-    const centerOptions = [
-        ...(centerAccess?.length > 1
-            ? [
-                {
-                    value: "ALL",
-                    label: "All Centers",
-                    isDisabled: false,
-                },
-            ]
-            : []),
-        ...(centerAccess?.map((id) => {
-            const center = userCenters?.find((c) => c._id === id);
-            return {
-                value: id,
-                label: center?.title || "Unknown Center",
-            };
-        }) || []),
-    ];
 
     const selectedCenterOption =
         centerOptions.find((opt) => opt.value === selectedCenter) ||

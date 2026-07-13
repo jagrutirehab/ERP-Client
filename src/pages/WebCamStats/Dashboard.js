@@ -43,6 +43,7 @@ const COLORS = [
 
 const Dashboard = () => {
   const user = useSelector((state) => state.User);
+  const centers = useSelector((state) => state.Center.data)
   // --- State ---
   const [stats, setStats] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -55,12 +56,12 @@ const Dashboard = () => {
       ? [{ value: "ALL", label: "All Centers" }]
       : []),
     ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
+      const center = centers?.find((c) => c._id === id);
       return {
         value: id,
         label: center?.title || "Unknown Center",
       };
-    }) || []),
+    }) || []).sort((a, b) => a.label.localeCompare(b.label)),
   ];
 
   const selectedCenterOption =
