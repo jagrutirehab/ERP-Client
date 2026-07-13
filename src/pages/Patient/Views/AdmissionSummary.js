@@ -7,7 +7,7 @@ import {
 import { normalizeSummary } from "./Components/normalizeSummary";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
-const AdmissionSummary = ({ patient, addmission }) => {
+const AdmissionSummary = ({ patient, patientProfile, addmission }) => {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -24,7 +24,11 @@ const AdmissionSummary = ({ patient, addmission }) => {
   const load = async () => {
     setLoading(true);
     try {
-      const response = await getAddmissionSummary(addmission);
+      console.log("patient", patientProfile);
+
+      const response = await getAddmissionSummary(
+        patientProfile?.addmission?._id,
+      );
       const raw = response?.data?.summary;
       const normalized = normalizeSummary(raw);
       setSummary(normalized);
