@@ -114,7 +114,7 @@ const TrainingRecords = () => {
         ...(user?.centerAccess?.map((id) => {
             const center = user?.userCenters?.find((c) => c._id === id);
             return { value: id, label: center?.title || "Unknown Center" };
-        }) || []),
+        }) || []).sort((a, b) => a.label.localeCompare(b.label)),
     ];
 
     const fetchRecords = useCallback(async () => {

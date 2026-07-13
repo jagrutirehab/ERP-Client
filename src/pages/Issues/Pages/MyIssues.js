@@ -131,7 +131,7 @@ const MyIssues = () => {
         value: id,
         label: center?.title || "Unknown Center",
       };
-    }) || []),
+    }) || []).sort((a, b) => a.label.localeCompare(b.label)),
   ];
 
   const handleViewDescription = (desc) => {

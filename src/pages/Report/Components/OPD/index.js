@@ -343,7 +343,7 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
       value: id,
       label:
         user?.userCenters?.find((c) => c._id === id)?.title || "Unknown Center",
-    })) || []),
+    })) || []).sort((a, b) => a.label.localeCompare(b.label)),
   ];
 
   const opdChargesLabels = [
@@ -387,8 +387,7 @@ const OPDAnalytics = ({ data, centerAccess, total }) => {
         paymentMode: d.bill?.receiptInvoice?.paymentModes
           ?.map(
             (pm) =>
-              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${
-                pm.bank || ""
+              `${pm.amount} - ${pm.type} ${pm.transactionId || ""} ${pm.bank || ""
               } ${pm.chequeNumber || ""} ${pm.cardNumber || ""}`,
           )
           .join(", "),

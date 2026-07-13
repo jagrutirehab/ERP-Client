@@ -94,18 +94,18 @@ const IssuesPage = ({ type }) => {
         try {
             setLoading(true);
 
-            let centers = [];
+            let cntrs = [];
 
             if (selectedCenter === "") {
-                centers = [];
+                cntrs = [];
             } else if (selectedCenter === "ALL") {
-                centers = user?.centerAccess || [];
+                cntrs = user?.centerAccess || [];
             } else {
-                centers = [selectedCenter];
+                cntrs = [selectedCenter];
             }
 
             const data = await fetchIssues(type, {
-                centers,
+                cntrs,
                 status: activeTab,
                 page,
                 limit,
@@ -164,7 +164,7 @@ const IssuesPage = ({ type }) => {
                 value: id,
                 label: center?.title || "Unknown Center",
             };
-        }) || []),
+        }) || []).sort((a, b) => a.label.localeCompare(b.label)),
     ];
 
     const handleAssign = (row) => {
