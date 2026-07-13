@@ -56,6 +56,7 @@ import {
   postGeneralInjuryMarks,
   editInjuryMarks,
   deleteInjuryMarksFile,
+  getFinalDiagnosis,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 import { IPD, OPD } from "../../../Components/constants/patient";
@@ -83,6 +84,8 @@ const initialState = {
   },
   patientLatestOPDPrescription: null,
   patientLatestMentalExamination: null,
+  finalDiagnosis: null,
+  finalDiagnosisLoading: false,
   chartDate: null,
   chartLoading: false,
   generalChartLoading: false,
@@ -162,6 +165,20 @@ export const fetchCounsellingNote = createAsyncThunk(
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+// Latest final diagnosis of the current admission (shown in the patient topbar).
+// Kept silent on failure — it is a non-critical accessory, not a primary action.
+export const fetchFinalDiagnosis = createAsyncThunk(
+  "getFinalDiagnosis",
+  async (addmissionId, { rejectWithValue }) => {
+    try {
+      const response = await getFinalDiagnosis(addmissionId);
+      return response;
+    } catch (error) {
       return rejectWithValue("something went wrong");
     }
   },
@@ -1489,6 +1506,19 @@ export const chartSlice = createSlice({
       })
       .addCase(fetchCounsellingNote.rejected, (state) => {
         state.loading = false;
+      });
+
+    builder
+      .addCase(fetchFinalDiagnosis.pending, (state) => {
+        state.finalDiagnosisLoading = true;
+      })
+      .addCase(fetchFinalDiagnosis.fulfilled, (state, { payload }) => {
+        state.finalDiagnosisLoading = false;
+        state.finalDiagnosis = payload.payload;
+      })
+      .addCase(fetchFinalDiagnosis.rejected, (state) => {
+        state.finalDiagnosisLoading = false;
+        state.finalDiagnosis = null;
       });
 
     builder

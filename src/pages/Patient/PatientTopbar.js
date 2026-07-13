@@ -31,6 +31,7 @@ import {
   viewProfile,
   fetchDoctors,
   editAdmissionAssignment,
+  fetchFinalDiagnosis,
 } from "../../store/actions";
 
 //assets
@@ -43,6 +44,22 @@ import AssignNurseModal from "./Views/Components/AssignNurseModal";
 import { unAssignNurse } from "../../store/features/patient/patientSlice";
 // import RenderWhen from "../../Components/Common/RenderWhen";
 
+// Turns the doctorSignature.diagnosis array (ICD code objects) into a readable
+// string. Mirrors how Charts/DetailAdmission.js renders "Final Diagnosis".
+const formatFinalDiagnosis = (finalDiagnosis) => {
+  const diagnosis = finalDiagnosis?.diagnosis;
+  if (!Array.isArray(diagnosis) || diagnosis.length === 0) return "";
+  return diagnosis
+    .map((item) => {
+      if (!item) return "";
+      if (typeof item === "object" && item.code) return item.code;
+      if (typeof item === "string") return item;
+      return "";
+    })
+    .filter(Boolean)
+    .join(", ");
+};
+
 const PatientTopbar = ({
   patient,
   user,
@@ -54,6 +71,8 @@ const PatientTopbar = ({
   nurseLoading,
   setDeletePatient,
   assignedNurse,
+  finalDiagnosis,
+  finalDiagnosisLoading,
 }) => {
   const dispatch = useDispatch();
 
@@ -78,6 +97,23 @@ const PatientTopbar = ({
       dispatch(fetchDoctors({ center: admission.center?._id }));
     }
   }, [dispatch, admission?.center]);
+
+  // Current (active) admission id — always present on the patient object,
+  // independent of whether the charts tab has been opened.
+  const currentAdmissionId = patient?.addmission?._id;
+
+  useEffect(() => {
+    if (currentAdmissionId) {
+      dispatch(fetchFinalDiagnosis(currentAdmissionId));
+    }
+  }, [dispatch, currentAdmissionId]);
+
+  const finalDiagnosisText = formatFinalDiagnosis(finalDiagnosis);
+  // Only trust the store value once it belongs to the admission on screen —
+  // otherwise (initial load, or switching patients) keep showing the skeleton
+  // instead of flashing stale data from the previously viewed patient.
+  const isFinalDiagnosisReady =
+    !finalDiagnosisLoading && finalDiagnosis?.addmission === currentAdmissionId;
 
   const handleEditClick = () => {
     if (admission?.doctor) {
@@ -169,7 +205,7 @@ const PatientTopbar = ({
                       />
                       <span className="user-status"></span>
                     </div>
-                    <div className="flex-grow-1">
+                    <div className="flex-grow-1" style={{ minWidth: 0 }}>
                       <h5 className="mb-0 fs-16 text-wrap">
                         <a
                           className="text-reset text-capitalize username d-block"
@@ -190,6 +226,28 @@ const PatientTopbar = ({
                           </span>
                         </a>
                       </h5>
+                      {currentAdmissionId && (
+                        <p
+                          className="text-truncate text-muted fs-13 mb-0 mt-1"
+                          title={
+                            isFinalDiagnosisReady
+                              ? finalDiagnosisText || "Not specified"
+                              : undefined
+                          }
+                        >
+                          <span className="fw-semibold">Final Diagnosis:</span>{" "}
+                          {isFinalDiagnosisReady ? (
+                            finalDiagnosisText || "Not specified"
+                          ) : (
+                            <span className="placeholder-glow">
+                              <span
+                                className="placeholder rounded"
+                                style={{ width: "140px", maxWidth: "60%" }}
+                              ></span>
+                            </span>
+                          )}
+                        </p>
+                      )}
                       <p className="text-truncate text-muted fs-14 mb-0 userStatus">
                         {/* <small>Online</small> */}
                       </p>
@@ -693,6 +751,8 @@ const mapStateToProps = (state) => ({
   loading: state.Patient.admissionLoading,
   nurseLoading: state.Patient.nurseLoading,
   assignedNurse: state.Patient.patient.assignedNurse,
+  finalDiagnosis: state.Chart.finalDiagnosis,
+  finalDiagnosisLoading: state.Chart.finalDiagnosisLoading,
 });
 
 export default connect(mapStateToProps)(PatientTopbar);

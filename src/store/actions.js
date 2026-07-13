@@ -178,6 +178,7 @@ export {
   setChartDate,
   fetchChartsAddmissions,
   fetchCharts,
+  fetchFinalDiagnosis,
   fetchGeneralCharts,
   addPrescription,
   addGeneralPrescription,

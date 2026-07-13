@@ -59,6 +59,7 @@ const FinanceIssues = () => {
 
 
   const user = useSelector((state) => state.User);
+  const centers = useSelector((state) => state.Center.data);
 
   const loadIssues = async () => {
     try {
@@ -109,7 +110,7 @@ const FinanceIssues = () => {
       if (!user?.centerAccess) return;
       loadIssues();
     }
-  }, [ status, page, limit, selectedCenter, user?.centerAccess]);
+  }, [status, page, limit, selectedCenter, user?.centerAccess]);
 
 
   const centerOptions = [
@@ -122,7 +123,7 @@ const FinanceIssues = () => {
       ]
       : []),
     ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
+      const center = centers?.find((c) => c._id === id);
       return {
         value: id,
         label: center?.title || "Unknown Center",
@@ -167,10 +168,10 @@ const FinanceIssues = () => {
     }
   }
 
-//   const issueTypeOptions = issueTypes.map((t) => ({
-//     value: t,
-//     label: t,
-//   }));
+  //   const issueTypeOptions = issueTypes.map((t) => ({
+  //     value: t,
+  //     label: t,
+  //   }));
 
   const statusOptions = statuses.map((s) => ({
     value: s,
@@ -178,7 +179,7 @@ const FinanceIssues = () => {
   }));
 
   console.log("issues", issues);
-  
+
 
 
   return (
@@ -204,7 +205,7 @@ const FinanceIssues = () => {
             styles={{ container: (base) => ({ ...base, width: 200 }) }}
           />
 
-        
+
           {/* Status */}
           <Select
             options={[
