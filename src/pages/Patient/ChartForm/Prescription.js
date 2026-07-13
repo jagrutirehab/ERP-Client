@@ -92,13 +92,12 @@ const formatDrNotesDate = (value) => {
   return format(Number.isNaN(d.getTime()) ? new Date() : d, "dd MMM, yyyy");
 };
 
-export const buildDrNotesPrefill = (previousNotes, chartDate) => {
-  const today = formatDrNotesDate(chartDate);
-
-  // Split the previous notes into { date, body } entries on date-header lines.
+// Splits a Dr Notes value into { date, body } entries on date-header lines.
+// Entries with no note written under their header are dropped.
+export const parseDrNotesEntries = (text) => {
   const entries = [];
   let current = null;
-  (previousNotes || "").split("\n").forEach((line) => {
+  (text || "").split("\n").forEach((line) => {
     if (DR_NOTES_DATE_LINE.test(line)) {
       current = { date: line.trim(), lines: [] };
       entries.push(current);
@@ -112,15 +111,27 @@ export const buildDrNotesPrefill = (previousNotes, chartDate) => {
     }
   });
 
-  const history = entries
+  return entries
     .map((e) => ({ date: e.date, body: e.lines.join("\n").trim() }))
-    .filter((e) => e.body) // drop headers nobody wrote under
-    .slice(-DR_NOTES_HISTORY_LIMIT)
-    .map((e) => (e.date ? `${e.date}\n${e.body}` : e.body))
-    .join("\n\n");
+    .filter((e) => e.body); // drop headers nobody wrote under
+};
 
+const composeDrNotesEntries = (entries) =>
+  entries.map((e) => (e.date ? `${e.date}\n${e.body}` : e.body)).join("\n\n");
+
+export const buildDrNotesPrefill = (previousNotes, chartDate) => {
+  const today = formatDrNotesDate(chartDate);
+  const history = composeDrNotesEntries(
+    parseDrNotesEntries(previousNotes).slice(-DR_NOTES_HISTORY_LIMIT),
+  );
   return history ? `${history}\n\n${today}\n` : `${today}\n`;
 };
+
+// Run on save (create only): drops dangling date headers with nothing written
+// under them — e.g. the seeded "today" header when the doctor saved without
+// adding a note — so a lone date is never stored as the whole Dr Notes.
+export const cleanDrNotesForSave = (value) =>
+  composeDrNotesEntries(parseDrNotesEntries(value));
 
 const Prescription = ({
   drugs,
@@ -182,11 +193,14 @@ const Prescription = ({
       chart: PRESCRIPTION,
       age: patient ? patient.age : "",
       dateOfBirth: patient ? patient.dateOfBirth : "",
+      // Every new prescription starts with today's date header; populate mode
+      // additionally carries the previous windowed history above it.
       drNotes: isEditMode
         ? editPrescription?.drNotes || ""
-        : isPopulateMode
-          ? buildDrNotesPrefill(ptLatestOPDPrescription?.drNotes, chartDate)
-          : "",
+        : buildDrNotesPrefill(
+            isPopulateMode ? ptLatestOPDPrescription?.drNotes : "",
+            chartDate,
+          ),
       diagnosis: sourcePrescription?.diagnosis || "",
       // diagnosis2: editPrescription
       //   ? editPrescription.diagnosis2
@@ -260,6 +274,7 @@ const Prescription = ({
         dispatch(
           addGeneralPrescription({
             ...values,
+            drNotes: cleanDrNotesForSave(values.drNotes),
             medicines,
             icdCode: values.icdCode?.value || null,
             icdCode2: formattedICD2,
@@ -271,6 +286,7 @@ const Prescription = ({
         dispatch(
           addPrescription({
             ...values,
+            drNotes: cleanDrNotesForSave(values.drNotes),
             appointment: appointment?._id,
             medicines,
             shouldPrintAfterSave,
