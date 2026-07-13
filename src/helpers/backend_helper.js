@@ -612,6 +612,8 @@ export const editGeneralDetailAdmission = (data) =>
   });
 export const deleteDetailAdmissionFile = (data) =>
   api.update(url.DELETE_DETAIL_ADMISSION_FILE, data);
+export const getFinalDiagnosis = (addmission) =>
+  api.get(url.GET_FINAL_DIAGNOSIS, { addmission });
 
 export const postMentalExamination = (data) => {
   return api.create(url.POST_MENTAL_EXAMINATION, data);

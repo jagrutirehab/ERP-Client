@@ -14,6 +14,7 @@ import {
 import PropTypes from "prop-types";
 import _ from "lodash";
 import Select from "react-select";
+import { format } from "date-fns";
 
 //flatpicker
 import Flatpicker from "react-flatpickr";
@@ -64,6 +65,62 @@ import { Link } from "react-router-dom";
 import axios from "axios";
 import { getICDCodes } from "../../../helpers/backend_helper.js";
 import { normalizeMedicineFrequency } from "../../../helpers/prescriptionFrequency";
+
+
+// Dr Notes carry-forward
+//
+// When a new prescription is created (populate mode), the Dr Notes field is
+// pre-filled with the previous prescription's notes as dated entries:
+//
+//   05 Jul, 2026
+//   <that visit's note>
+//
+//   08 Jul, 2026
+//   <that visit's note>
+//
+// Only the latest DR_NOTES_HISTORY_LIMIT entries are kept — so the carried
+// history stays bounded instead of growing with every prescription — and
+// today's date header is appended for the doctor to write under. Because we
+// always re-parse the single latest snapshot (never concatenate several
+// prescriptions), entries are never duplicated.
+const DR_NOTES_HISTORY_LIMIT = 5;
+// A line that is ONLY a date, e.g. "05 Jul, 2026" / "5 Jul 2026" — our entry header.
+const DR_NOTES_DATE_LINE = /^\s*\d{1,2}\s+[A-Za-z]{3,9},?\s+\d{4}\s*$/;
+
+const formatDrNotesDate = (value) => {
+  const d = value ? new Date(value) : new Date();
+  return format(Number.isNaN(d.getTime()) ? new Date() : d, "dd MMM, yyyy");
+};
+
+export const buildDrNotesPrefill = (previousNotes, chartDate) => {
+  const today = formatDrNotesDate(chartDate);
+
+  // Split the previous notes into { date, body } entries on date-header lines.
+  const entries = [];
+  let current = null;
+  (previousNotes || "").split("\n").forEach((line) => {
+    if (DR_NOTES_DATE_LINE.test(line)) {
+      current = { date: line.trim(), lines: [] };
+      entries.push(current);
+    } else {
+      if (!current) {
+        // Text before any date header (legacy notes) — kept as one entry.
+        current = { date: null, lines: [] };
+        entries.push(current);
+      }
+      current.lines.push(line);
+    }
+  });
+
+  const history = entries
+    .map((e) => ({ date: e.date, body: e.lines.join("\n").trim() }))
+    .filter((e) => e.body) // drop headers nobody wrote under
+    .slice(-DR_NOTES_HISTORY_LIMIT)
+    .map((e) => (e.date ? `${e.date}\n${e.body}` : e.body))
+    .join("\n\n");
+
+  return history ? `${history}\n\n${today}\n` : `${today}\n`;
+};
 
 const Prescription = ({
   drugs,
@@ -125,7 +182,11 @@ const Prescription = ({
       chart: PRESCRIPTION,
       age: patient ? patient.age : "",
       dateOfBirth: patient ? patient.dateOfBirth : "",
-      drNotes: sourcePrescription?.drNotes || "",
+      drNotes: isEditMode
+        ? editPrescription?.drNotes || ""
+        : isPopulateMode
+          ? buildDrNotesPrefill(ptLatestOPDPrescription?.drNotes, chartDate)
+          : "",
       diagnosis: sourcePrescription?.diagnosis || "",
       // diagnosis2: editPrescription
       //   ? editPrescription.diagnosis2
@@ -177,9 +238,9 @@ const Prescription = ({
       console.log("values", values);
       const formattedICD2 = Array.isArray(values.icdCode2)
         ? values.icdCode2.map((item) => ({
-            code_id: item?.value,
-            code: item?.label,
-          }))
+          code_id: item?.value,
+          code: item?.label,
+        }))
         : [];
       if (editPrescription) {
         dispatch(
@@ -277,7 +338,7 @@ const Prescription = ({
           d.name?.toLowerCase().trim() === m.name?.toLowerCase().trim() &&
           String(d.strength).trim() === String(m.strength).trim() &&
           String(d.unit).trim().toLowerCase() ===
-            String(m.unit).trim().toLowerCase(),
+          String(m.unit).trim().toLowerCase(),
       );
 
       if (match) {
@@ -300,7 +361,10 @@ const Prescription = ({
     setMedicines(fixed);
 
     if (ptLatestOPDPrescription && !editPrescription) {
-      validation.setFieldValue("drNotes", ptLatestOPDPrescription.drNotes);
+      validation.setFieldValue(
+        "drNotes",
+        buildDrNotesPrefill(ptLatestOPDPrescription.drNotes, chartDate),
+      );
       validation.setFieldValue("diagnosis", ptLatestOPDPrescription.diagnosis);
       // validation.setFieldValue("diagnosis2", ptLatestOPDPrescription.diagnosis2);
       validation.setFieldValue("notes", ptLatestOPDPrescription.notes);
@@ -464,21 +528,21 @@ const Prescription = ({
   // }, [allICDCodes]);
 
   useEffect(() => {
-  if (!allICDCodes.length) return;
+    if (!allICDCodes.length) return;
 
-  if (!sourcePrescription?.icdCode2?.length) {
-    validation.setFieldValue("icdCode2", []);
-    return;
-  }
+    if (!sourcePrescription?.icdCode2?.length) {
+      validation.setFieldValue("icdCode2", []);
+      return;
+    }
 
-  const selected = sourcePrescription.icdCode2
-    .map((item) =>
-      allICDCodes.find((opt) => opt.value === item.code_id)
-    )
-    .filter(Boolean);
+    const selected = sourcePrescription.icdCode2
+      .map((item) =>
+        allICDCodes.find((opt) => opt.value === item.code_id)
+      )
+      .filter(Boolean);
 
-  validation.setFieldValue("icdCode2", selected);
-}, [allICDCodes, sourcePrescription]);
+    validation.setFieldValue("icdCode2", selected);
+  }, [allICDCodes, sourcePrescription]);
 
   return (
     <React.Fragment>
