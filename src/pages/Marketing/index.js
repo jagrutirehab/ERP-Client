@@ -15,8 +15,7 @@ const Marketing = () => {
     document.title = "Marketing | Jagruti Rehab";
   }, []);
 
-  // Wait for permissions to finish loading before deciding access —
-  // otherwise the first render (before data arrives) wrongly shows 404
+
   if (loading) {
     return (
       <div
