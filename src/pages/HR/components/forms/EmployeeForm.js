@@ -631,6 +631,13 @@ const EmployeeForm = ({
             formData.set("incrementIssued", values.incrementIssued);
           if (values.incrementApplicable)
             formData.set("incrementApplicable", values.incrementApplicable);
+        } else if (
+          initialData?.financeDetails?.incrementIssued ||
+          initialData?.financeDetails?.incrementApplicable
+        ) {
+          formData.set("incrementIssued", "");
+          formData.set("incrementApplicable", "");
+          formData.set("incrementLetter", "");
         }
 
         // Client-only mirror fields — never sent to the server as-is.
