@@ -456,6 +456,14 @@ export const permissionList = [
       { name: "TRAINING_RECORDS", label: "Trainer Records" },
     ],
   },
+  {
+    key: "MARKETING", 
+    label: "Marketing",
+    subModules: [
+      { name: "ADD_VISIT_LOG", label: "Add Visit Log" },
+      { name: "VIEW_VISIT_LOGS", label: "View All Visit Logs" },
+    ],
+  },
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];
