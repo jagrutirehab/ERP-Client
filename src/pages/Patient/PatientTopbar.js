@@ -231,13 +231,13 @@ const PatientTopbar = ({
                           className="text-truncate text-muted fs-13 mb-0 mt-1"
                           title={
                             isFinalDiagnosisReady
-                              ? finalDiagnosisText || "Not specified"
+                              ? finalDiagnosisText || "N/A"
                               : undefined
                           }
                         >
                           <span className="fw-semibold">Final Diagnosis:</span>{" "}
                           {isFinalDiagnosisReady ? (
-                            finalDiagnosisText || "Not specified"
+                            finalDiagnosisText || "N/A"
                           ) : (
                             <span className="placeholder-glow">
                               <span
@@ -625,7 +625,7 @@ const PatientTopbar = ({
                             }),
                           )
                         }
-                        // href="#"
+                      // href="#"
                       >
                         <i className="ri-inbox-archive-line align-bottom text-muted me-2"></i>{" "}
                         Discharge Patient
