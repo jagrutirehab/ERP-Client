@@ -167,7 +167,7 @@ const MyIssues = () => {
     try {
       const response = await changeStatus(payload)
       toast.success(response?.message || "STATUS CHANGED SUCCESSFULLY.")
-      setStatus(data?.status)
+      // setStatus(data?.status)
       loadIssues();
 
     } catch (error) {
