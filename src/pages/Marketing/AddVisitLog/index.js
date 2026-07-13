@@ -13,6 +13,7 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { createVisitLog, searchDoctors } from "../../../helpers/backend_helper";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const STEPS = [
   { key: "visit", label: "Visit Details" },
@@ -30,8 +31,16 @@ const INTEREST_OPTIONS = [
 ];
 
 const AddVisitLog = () => {
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const { hasPermission } = usePermissions(token);
+  const canWrite = hasPermission("MARKETING", "ADD_VISIT_LOG", "WRITE");
   const [activeStep, setActiveStep] = useState(0);
-  const [gps, setGps] = useState({ lat: null, lng: null, error: null, updatedAt: null });
+  const [gps, setGps] = useState({
+    lat: null,
+    lng: null,
+    error: null,
+    updatedAt: null,
+  });
   const [gpsRefreshing, setGpsRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
@@ -45,8 +54,14 @@ const AddVisitLog = () => {
   const streamRef = useRef(null);
 
   //Collateral proof
-  const [collateralProofFiles, setCollateralProofFiles] = useState({ pricing: null, centre: null });
-  const [collateralProofPreviews, setCollateralProofPreviews] = useState({ pricing: null, centre: null });
+  const [collateralProofFiles, setCollateralProofFiles] = useState({
+    pricing: null,
+    centre: null,
+  });
+  const [collateralProofPreviews, setCollateralProofPreviews] = useState({
+    pricing: null,
+    centre: null,
+  });
   const pricingProofInputRef = useRef(null);
   const centreProofInputRef = useRef(null);
 
@@ -60,7 +75,10 @@ const AddVisitLog = () => {
 
   const fetchLocation = (isManualRefresh = false) => {
     if (!navigator.geolocation) {
-      setGps((g) => ({ ...g, error: "Geolocation not supported on this device" }));
+      setGps((g) => ({
+        ...g,
+        error: "Geolocation not supported on this device",
+      }));
       return;
     }
     if (isManualRefresh) setGpsRefreshing(true);
@@ -180,7 +198,10 @@ const AddVisitLog = () => {
         }
         formData.append("selfie", selfieFile, "selfie.jpg");
         if (collateralProofFiles.pricing) {
-          formData.append("collateralProofPricing", collateralProofFiles.pricing);
+          formData.append(
+            "collateralProofPricing",
+            collateralProofFiles.pricing,
+          );
         }
         if (collateralProofFiles.centre) {
           formData.append("collateralProofCentre", collateralProofFiles.centre);
@@ -197,7 +218,9 @@ const AddVisitLog = () => {
         setDoctorQuery("");
         setActiveStep(0);
       } catch (err) {
-        toast.error(err?.response?.data?.message || "Failed to submit visit log");
+        toast.error(
+          err?.response?.data?.message || "Failed to submit visit log",
+        );
       } finally {
         setSubmitting(false);
       }
@@ -269,7 +292,10 @@ const AddVisitLog = () => {
     const file = e.target.files?.[0];
     if (file) {
       setCollateralProofFiles((f) => ({ ...f, [type]: file }));
-      setCollateralProofPreviews((p) => ({ ...p, [type]: URL.createObjectURL(file) }));
+      setCollateralProofPreviews((p) => ({
+        ...p,
+        [type]: URL.createObjectURL(file),
+      }));
     }
   };
 
@@ -337,15 +363,26 @@ const AddVisitLog = () => {
         (t.visitType && err.visitType) ||
         (t.metWith && err.metWith)
       );
-    if (idx === 2) return t.collateralGiven && (err.collateralGiven || err.pricingBrochure);
+    if (idx === 2)
+      return t.collateralGiven && (err.collateralGiven || err.pricingBrochure);
     if (idx === 3)
-      return (t.visitNotes && err.visitNotes) || (t.interestLevel && err.interestLevel);
+      return (
+        (t.visitNotes && err.visitNotes) ||
+        (t.interestLevel && err.interestLevel)
+      );
     return false;
   };
 
   const STEP_FIELDS = [
     ["areaLocality"],
-    ["doctorName", "clinicName", "contactNumber", "specialisation", "visitType", "metWith"],
+    [
+      "doctorName",
+      "clinicName",
+      "contactNumber",
+      "specialisation",
+      "visitType",
+      "metWith",
+    ],
     ["collateralGiven", "pricingBrochure"],
     ["visitNotes", "interestLevel"],
     [],
@@ -390,7 +427,9 @@ const AddVisitLog = () => {
 
   const handleFinalSubmit = async () => {
     if (!gps.lat || !gps.lng) {
-      toast.error("GPS location not available. Please enable location and reload the page.");
+      toast.error(
+        "GPS location not available. Please enable location and reload the page.",
+      );
       return;
     }
     if (!selfieFile) {
@@ -652,9 +691,16 @@ const AddVisitLog = () => {
               {/* ---- Header ---- */}
               <div>
                 <h4 className="wizard-title">Add Visit Log</h4>
-                <p className="wizard-subtitle">Record a field visit to a doctor or clinic</p>
+                <p className="wizard-subtitle">
+                  Record a field visit to a doctor or clinic
+                </p>
 
-                <div className={"gps-card " + (gps.error ? "is-warn" : gps.lat ? "is-ok" : "")}>
+                <div
+                  className={
+                    "gps-card " +
+                    (gps.error ? "is-warn" : gps.lat ? "is-ok" : "")
+                  }
+                >
                   <div className="gps-card-info">
                     <span className="gps-card-icon">
                       {gps.error ? (
@@ -670,12 +716,16 @@ const AddVisitLog = () => {
                       {!gps.error && !gps.lat && "Fetching your location…"}
                       {gps.lat && gps.lng && (
                         <>
-                          Location verified &middot; {gps.lat.toFixed(5)}, {gps.lng.toFixed(5)}
+                          Location verified &middot; {gps.lat.toFixed(5)},{" "}
+                          {gps.lng.toFixed(5)}
                           {gps.updatedAt && (
                             <span className="gps-card-time">
                               {" "}
                               &middot; updated{" "}
-                              {gps.updatedAt.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                              {gps.updatedAt.toLocaleTimeString([], {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              })}
                             </span>
                           )}
                         </>
@@ -690,13 +740,17 @@ const AddVisitLog = () => {
                     onClick={() => fetchLocation(true)}
                     disabled={gpsRefreshing}
                   >
-                    <i className={"bx bx-refresh" + (gpsRefreshing ? " bx-spin" : "")} />
+                    <i
+                      className={
+                        "bx bx-refresh" + (gpsRefreshing ? " bx-spin" : "")
+                      }
+                    />
                     {gpsRefreshing ? "Refreshing…" : "Refresh"}
                   </Button>
                 </div>
               </div>
 
-                {/* Step indicator MOBILE */}
+              {/* Step indicator MOBILE */}
               <div className="d-md-none mt-4">
                 <div className="d-flex justify-content-between align-items-center mb-2">
                   <span className="fw-semibold fs-14">
@@ -709,7 +763,9 @@ const AddVisitLog = () => {
                 <div className="mobile-progress-track">
                   <div
                     className="mobile-progress-fill"
-                    style={{ width: `${((activeStep + 1) / STEPS.length) * 100}%` }}
+                    style={{
+                      width: `${((activeStep + 1) / STEPS.length) * 100}%`,
+                    }}
                   />
                 </div>
               </div>
@@ -722,13 +778,19 @@ const AddVisitLog = () => {
                     type="button"
                     className={
                       "stepper-item " +
-                      (idx === activeStep ? "is-active " : idx < activeStep ? "is-done" : "")
+                      (idx === activeStep
+                        ? "is-active "
+                        : idx < activeStep
+                          ? "is-done"
+                          : "")
                     }
                     onClick={() => goToStep(idx)}
                   >
                     <span className="stepper-num">
                       {String(idx + 1).padStart(2, "0")}
-                      {stepHasError(idx) && <i className="bx bx-error-circle text-danger ms-1" />}
+                      {stepHasError(idx) && (
+                        <i className="bx bx-error-circle text-danger ms-1" />
+                      )}
                     </span>
                     <span className="stepper-label">{step.label}</span>
                   </button>
@@ -743,7 +805,8 @@ const AddVisitLog = () => {
                       <Col xs={12} lg={7}>
                         <div className="field-group">
                           <Label className="field-label">
-                            Area / Locality <span className="field-required">*</span>
+                            Area / Locality{" "}
+                            <span className="field-required">*</span>
                           </Label>
                           <Input
                             name="areaLocality"
@@ -751,11 +814,18 @@ const AddVisitLog = () => {
                             value={validation.values.areaLocality}
                             onChange={validation.handleChange}
                             onBlur={validation.handleBlur}
-                            invalid={validation.touched.areaLocality && !!validation.errors.areaLocality}
+                            invalid={
+                              validation.touched.areaLocality &&
+                              !!validation.errors.areaLocality
+                            }
                             autoFocus
                           />
-                          <FormFeedback>{validation.errors.areaLocality}</FormFeedback>
-                          <div className="field-hint">Helps map your visit coverage across the territory</div>
+                          <FormFeedback>
+                            {validation.errors.areaLocality}
+                          </FormFeedback>
+                          <div className="field-hint">
+                            Helps map your visit coverage across the territory
+                          </div>
                         </div>
                       </Col>
                     </Row>
@@ -767,7 +837,8 @@ const AddVisitLog = () => {
                       <Col xs={12} lg={6}>
                         <div className="field-group">
                           <Label className="field-label">
-                            New or Repeat Visit? <span className="field-required">*</span>
+                            New or Repeat Visit?{" "}
+                            <span className="field-required">*</span>
                           </Label>
                           <Input
                             type="select"
@@ -778,20 +849,28 @@ const AddVisitLog = () => {
                               clearSelectedDoctor();
                             }}
                             onBlur={validation.handleBlur}
-                            invalid={validation.touched.visitType && !!validation.errors.visitType}
+                            invalid={
+                              validation.touched.visitType &&
+                              !!validation.errors.visitType
+                            }
                           >
-                            <option value="" disabled hidden>Choose here</option>
+                            <option value="" disabled hidden>
+                              Choose here
+                            </option>
                             <option value="FIRST_VISIT">First Visit</option>
                             <option value="REPEAT_VISIT">Repeat Visit</option>
                           </Input>
-                          <FormFeedback>{validation.errors.visitType}</FormFeedback>
+                          <FormFeedback>
+                            {validation.errors.visitType}
+                          </FormFeedback>
                         </div>
                       </Col>
 
                       <Col xs={12} lg={6}>
                         <div className="field-group">
                           <Label className="field-label">
-                            Who Did You Meet? <span className="field-required">*</span>
+                            Who Did You Meet?{" "}
+                            <span className="field-required">*</span>
                           </Label>
                           <Input
                             type="select"
@@ -799,14 +878,23 @@ const AddVisitLog = () => {
                             value={validation.values.metWith}
                             onChange={validation.handleChange}
                             onBlur={validation.handleBlur}
-                            invalid={validation.touched.metWith && !!validation.errors.metWith}
+                            invalid={
+                              validation.touched.metWith &&
+                              !!validation.errors.metWith
+                            }
                           >
-                            <option value="" disabled hidden>Choose here</option>
-                            <option value="DOCTOR_DIRECTLY">Doctor Directly</option>
+                            <option value="" disabled hidden>
+                              Choose here
+                            </option>
+                            <option value="DOCTOR_DIRECTLY">
+                              Doctor Directly
+                            </option>
                             <option value="RECEPTIONIST">Receptionist</option>
                             <option value="STAFF">Staff</option>
                           </Input>
-                          <FormFeedback>{validation.errors.metWith}</FormFeedback>
+                          <FormFeedback>
+                            {validation.errors.metWith}
+                          </FormFeedback>
                         </div>
                       </Col>
 
@@ -816,54 +904,73 @@ const AddVisitLog = () => {
                           <Col xs={12} lg={6}>
                             <div className="field-group">
                               <Label className="field-label">
-                                Doctor Name <span className="field-required">*</span>
+                                Doctor Name{" "}
+                                <span className="field-required">*</span>
                               </Label>
                               <Input
                                 name="doctorName"
                                 value={validation.values.doctorName}
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                invalid={validation.touched.doctorName && !!validation.errors.doctorName}
+                                invalid={
+                                  validation.touched.doctorName &&
+                                  !!validation.errors.doctorName
+                                }
                               />
-                              <FormFeedback>{validation.errors.doctorName}</FormFeedback>
+                              <FormFeedback>
+                                {validation.errors.doctorName}
+                              </FormFeedback>
                             </div>
                           </Col>
                           <Col xs={12} lg={6}>
                             <div className="field-group">
                               <Label className="field-label">
-                                Clinic / Hospital Name <span className="field-required">*</span>
+                                Clinic / Hospital Name{" "}
+                                <span className="field-required">*</span>
                               </Label>
                               <Input
                                 name="clinicName"
                                 value={validation.values.clinicName}
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                invalid={validation.touched.clinicName && !!validation.errors.clinicName}
+                                invalid={
+                                  validation.touched.clinicName &&
+                                  !!validation.errors.clinicName
+                                }
                               />
-                              <FormFeedback>{validation.errors.clinicName}</FormFeedback>
+                              <FormFeedback>
+                                {validation.errors.clinicName}
+                              </FormFeedback>
                             </div>
                           </Col>
                           <Col xs={12} lg={6}>
                             <div className="field-group">
                               <Label className="field-label">
-                                Phone Number <span className="field-required">*</span>
+                                Phone Number{" "}
+                                <span className="field-required">*</span>
                               </Label>
                               <Input
                                 name="contactNumber"
                                 value={validation.values.contactNumber}
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                invalid={validation.touched.contactNumber && !!validation.errors.contactNumber}
+                                invalid={
+                                  validation.touched.contactNumber &&
+                                  !!validation.errors.contactNumber
+                                }
                                 maxLength={10}
                                 inputMode="numeric"
                               />
-                              <FormFeedback>{validation.errors.contactNumber}</FormFeedback>
+                              <FormFeedback>
+                                {validation.errors.contactNumber}
+                              </FormFeedback>
                             </div>
                           </Col>
                           <Col xs={12} lg={6}>
                             <div className="field-group">
                               <Label className="field-label">
-                                Specialisation <span className="field-required">*</span>
+                                Specialisation{" "}
+                                <span className="field-required">*</span>
                               </Label>
                               <Input
                                 name="specialisation"
@@ -871,9 +978,14 @@ const AddVisitLog = () => {
                                 value={validation.values.specialisation}
                                 onChange={validation.handleChange}
                                 onBlur={validation.handleBlur}
-                                invalid={validation.touched.specialisation && !!validation.errors.specialisation}
+                                invalid={
+                                  validation.touched.specialisation &&
+                                  !!validation.errors.specialisation
+                                }
                               />
-                              <FormFeedback>{validation.errors.specialisation}</FormFeedback>
+                              <FormFeedback>
+                                {validation.errors.specialisation}
+                              </FormFeedback>
                             </div>
                           </Col>
                         </>
@@ -884,7 +996,8 @@ const AddVisitLog = () => {
                         <Col xs={12}>
                           <div className="field-group">
                             <Label className="field-label">
-                              Search Doctor <span className="field-required">*</span>
+                              Search Doctor{" "}
+                              <span className="field-required">*</span>
                             </Label>
 
                             {!selectedDoctor ? (
@@ -892,15 +1005,23 @@ const AddVisitLog = () => {
                                 <Input
                                   placeholder="Type doctor name to search…"
                                   value={doctorQuery}
-                                  onChange={(e) => handleDoctorQueryChange(e.target.value)}
+                                  onChange={(e) =>
+                                    handleDoctorQueryChange(e.target.value)
+                                  }
                                 />
                                 {doctorSearching && (
-                                  <div className="text-muted fs-13 mt-2">Searching…</div>
+                                  <div className="text-muted fs-13 mt-2">
+                                    Searching…
+                                  </div>
                                 )}
                                 {doctorResults.length > 0 && (
                                   <div
                                     className="border rounded mt-1 overflow-hidden"
-                                    style={{ background: "#fff", position: "relative", zIndex: 5 }}
+                                    style={{
+                                      background: "#fff",
+                                      position: "relative",
+                                      zIndex: 5,
+                                    }}
                                   >
                                     {doctorResults.map((doc, idx) => (
                                       <div
@@ -908,9 +1029,12 @@ const AddVisitLog = () => {
                                         className="doctor-result-item border-bottom"
                                         onClick={() => pickDoctor(doc)}
                                       >
-                                        <div className="fw-medium fs-14">{doc.name}</div>
+                                        <div className="fw-medium fs-14">
+                                          {doc.name}
+                                        </div>
                                         <div className="text-muted fs-13">
-                                          {doc.clinicName} &middot; {doc.specialisation}
+                                          {doc.clinicName} &middot;{" "}
+                                          {doc.specialisation}
                                         </div>
                                       </div>
                                     ))}
@@ -920,20 +1044,25 @@ const AddVisitLog = () => {
                                   !doctorSearching &&
                                   doctorResults.length === 0 && (
                                     <div className="text-muted fs-13 mt-2">
-                                      No matching doctor found — check spelling or add as First Visit
+                                      No matching doctor found — check spelling
+                                      or add as First Visit
                                     </div>
                                   )}
-                                {(validation.touched.doctorName && validation.errors.doctorName) && (
-                                  <div className="text-danger fs-13 mt-1">
-                                    Please search and select a doctor
-                                  </div>
-                                )}
+                                {validation.touched.doctorName &&
+                                  validation.errors.doctorName && (
+                                    <div className="text-danger fs-13 mt-1">
+                                      Please search and select a doctor
+                                    </div>
+                                  )}
                               </div>
                             ) : editingDoctor ? (
                               <div className="doctor-panel">
                                 <Row className="g-3">
                                   <Col xs={12} lg={6}>
-                                    <Label className="text-muted mb-1" style={{ fontSize: "13px" }}>
+                                    <Label
+                                      className="text-muted mb-1"
+                                      style={{ fontSize: "13px" }}
+                                    >
                                       Doctor Name
                                     </Label>
                                     <Input
@@ -943,7 +1072,10 @@ const AddVisitLog = () => {
                                     />
                                   </Col>
                                   <Col xs={12} lg={6}>
-                                    <Label className="text-muted mb-1" style={{ fontSize: "13px" }}>
+                                    <Label
+                                      className="text-muted mb-1"
+                                      style={{ fontSize: "13px" }}
+                                    >
                                       Clinic Name
                                     </Label>
                                     <Input
@@ -953,7 +1085,10 @@ const AddVisitLog = () => {
                                     />
                                   </Col>
                                   <Col xs={12} lg={6}>
-                                    <Label className="text-muted mb-1" style={{ fontSize: "13px" }}>
+                                    <Label
+                                      className="text-muted mb-1"
+                                      style={{ fontSize: "13px" }}
+                                    >
                                       Contact Number
                                     </Label>
                                     <Input
@@ -963,7 +1098,10 @@ const AddVisitLog = () => {
                                     />
                                   </Col>
                                   <Col xs={12} lg={6}>
-                                    <Label className="text-muted mb-1" style={{ fontSize: "13px" }}>
+                                    <Label
+                                      className="text-muted mb-1"
+                                      style={{ fontSize: "13px" }}
+                                    >
                                       Specialisation
                                     </Label>
                                     <Input
@@ -985,7 +1123,9 @@ const AddVisitLog = () => {
                             ) : (
                               <div className="doctor-panel is-selected d-flex align-items-center justify-content-between flex-wrap gap-2">
                                 <div>
-                                  <div className="fw-medium fs-14">{validation.values.doctorName}</div>
+                                  <div className="fw-medium fs-14">
+                                    {validation.values.doctorName}
+                                  </div>
                                   <div className="text-muted fs-13">
                                     {validation.values.clinicName} &middot;{" "}
                                     {validation.values.specialisation} &middot;{" "}
@@ -993,10 +1133,18 @@ const AddVisitLog = () => {
                                   </div>
                                 </div>
                                 <div className="d-flex gap-2">
-                                  <Button size="sm" color="light" onClick={() => setEditingDoctor(true)}>
+                                  <Button
+                                    size="sm"
+                                    color="light"
+                                    onClick={() => setEditingDoctor(true)}
+                                  >
                                     Edit
                                   </Button>
-                                  <Button size="sm" color="light" onClick={clearSelectedDoctor}>
+                                  <Button
+                                    size="sm"
+                                    color="light"
+                                    onClick={clearSelectedDoctor}
+                                  >
                                     Change
                                   </Button>
                                 </div>
@@ -1014,7 +1162,8 @@ const AddVisitLog = () => {
                       <Col xs={12} lg={6}>
                         <div className="field-group">
                           <Label className="field-label">
-                            Did You Give Any Collateral? <span className="field-required">*</span>
+                            Did You Give Any Collateral?{" "}
+                            <span className="field-required">*</span>
                           </Label>
                           <Input
                             type="select"
@@ -1022,13 +1171,20 @@ const AddVisitLog = () => {
                             value={validation.values.collateralGiven}
                             onChange={validation.handleChange}
                             onBlur={validation.handleBlur}
-                            invalid={validation.touched.collateralGiven && !!validation.errors.collateralGiven}
+                            invalid={
+                              validation.touched.collateralGiven &&
+                              !!validation.errors.collateralGiven
+                            }
                           >
-                            <option value="" disabled hidden>Choose here</option>
+                            <option value="" disabled hidden>
+                              Choose here
+                            </option>
                             <option value="true">Yes</option>
                             <option value="false">No</option>
                           </Input>
-                          <FormFeedback>{validation.errors.collateralGiven}</FormFeedback>
+                          <FormFeedback>
+                            {validation.errors.collateralGiven}
+                          </FormFeedback>
                         </div>
                       </Col>
 
@@ -1036,17 +1192,27 @@ const AddVisitLog = () => {
                         <>
                           <Col xs={12}>
                             <div className="field-group">
-                              <Label className="field-label">Collateral Type</Label>
+                              <Label className="field-label">
+                                Collateral Type
+                              </Label>
                               <div className="choice-row">
                                 {[
-                                  { name: "pricingBrochure", label: "Pricing Brochure" },
-                                  { name: "centreBrochure", label: "Centre Brochure" },
+                                  {
+                                    name: "pricingBrochure",
+                                    label: "Pricing Brochure",
+                                  },
+                                  {
+                                    name: "centreBrochure",
+                                    label: "Centre Brochure",
+                                  },
                                 ].map((item) => (
                                   <label
                                     key={item.name}
                                     className={
                                       "choice-btn d-flex align-items-center gap-2 " +
-                                      (validation.values[item.name] ? "is-active" : "")
+                                      (validation.values[item.name]
+                                        ? "is-active"
+                                        : "")
                                     }
                                   >
                                     <Input
@@ -1068,28 +1234,50 @@ const AddVisitLog = () => {
                             </div>
                           </Col>
 
-                          {(validation.values.pricingBrochure || validation.values.centreBrochure) && (
+                          {(validation.values.pricingBrochure ||
+                            validation.values.centreBrochure) && (
                             <Col xs={12}>
                               <div className="field-group">
-                                <Label className="field-label">Upload Proof (optional)</Label>
+                                <Label className="field-label">
+                                  Upload Proof (optional)
+                                </Label>
                                 <Row className="g-3">
                                   {validation.values.pricingBrochure && (
                                     <Col xs={12} lg={6}>
-                                      <div className="text-muted mb-1" style={{ fontSize: "13px" }}>
+                                      <div
+                                        className="text-muted mb-1"
+                                        style={{ fontSize: "13px" }}
+                                      >
                                         Pricing Brochure Proof
                                       </div>
                                       <div className="upload-zone d-flex align-items-center gap-3">
                                         {collateralProofPreviews.pricing ? (
                                           <>
                                             <img
-                                              src={collateralProofPreviews.pricing}
+                                              src={
+                                                collateralProofPreviews.pricing
+                                              }
                                               alt="Pricing proof"
-                                              style={{ width: 44, height: 44, borderRadius: 6, objectFit: "cover" }}
+                                              style={{
+                                                width: 44,
+                                                height: 44,
+                                                borderRadius: 6,
+                                                objectFit: "cover",
+                                              }}
                                             />
                                             <div className="flex-grow-1 fs-13 text-muted text-truncate">
-                                              {collateralProofFiles.pricing?.name}
+                                              {
+                                                collateralProofFiles.pricing
+                                                  ?.name
+                                              }
                                             </div>
-                                            <Button size="sm" color="light" onClick={() => removeCollateralProof("pricing")}>
+                                            <Button
+                                              size="sm"
+                                              color="light"
+                                              onClick={() =>
+                                                removeCollateralProof("pricing")
+                                              }
+                                            >
                                               <i className="bx bx-x" />
                                             </Button>
                                           </>
@@ -1098,7 +1286,9 @@ const AddVisitLog = () => {
                                             type="button"
                                             color="light"
                                             size="sm"
-                                            onClick={() => pricingProofInputRef.current?.click()}
+                                            onClick={() =>
+                                              pricingProofInputRef.current?.click()
+                                            }
                                           >
                                             Choose file
                                           </Button>
@@ -1107,7 +1297,12 @@ const AddVisitLog = () => {
                                           innerRef={pricingProofInputRef}
                                           type="file"
                                           accept="image/*,.pdf"
-                                          onChange={(e) => handleCollateralProofChange("pricing", e)}
+                                          onChange={(e) =>
+                                            handleCollateralProofChange(
+                                              "pricing",
+                                              e,
+                                            )
+                                          }
                                           className="d-none"
                                         />
                                       </div>
@@ -1116,21 +1311,40 @@ const AddVisitLog = () => {
 
                                   {validation.values.centreBrochure && (
                                     <Col xs={12} lg={6}>
-                                      <div className="text-muted mb-1" style={{ fontSize: "13px" }}>
+                                      <div
+                                        className="text-muted mb-1"
+                                        style={{ fontSize: "13px" }}
+                                      >
                                         Centre Brochure Proof
                                       </div>
                                       <div className="upload-zone d-flex align-items-center gap-3">
                                         {collateralProofPreviews.centre ? (
                                           <>
                                             <img
-                                              src={collateralProofPreviews.centre}
+                                              src={
+                                                collateralProofPreviews.centre
+                                              }
                                               alt="Centre proof"
-                                              style={{ width: 44, height: 44, borderRadius: 6, objectFit: "cover" }}
+                                              style={{
+                                                width: 44,
+                                                height: 44,
+                                                borderRadius: 6,
+                                                objectFit: "cover",
+                                              }}
                                             />
                                             <div className="flex-grow-1 fs-13 text-muted text-truncate">
-                                              {collateralProofFiles.centre?.name}
+                                              {
+                                                collateralProofFiles.centre
+                                                  ?.name
+                                              }
                                             </div>
-                                            <Button size="sm" color="light" onClick={() => removeCollateralProof("centre")}>
+                                            <Button
+                                              size="sm"
+                                              color="light"
+                                              onClick={() =>
+                                                removeCollateralProof("centre")
+                                              }
+                                            >
                                               <i className="bx bx-x" />
                                             </Button>
                                           </>
@@ -1139,7 +1353,9 @@ const AddVisitLog = () => {
                                             type="button"
                                             color="light"
                                             size="sm"
-                                            onClick={() => centreProofInputRef.current?.click()}
+                                            onClick={() =>
+                                              centreProofInputRef.current?.click()
+                                            }
                                           >
                                             Choose file
                                           </Button>
@@ -1148,14 +1364,22 @@ const AddVisitLog = () => {
                                           innerRef={centreProofInputRef}
                                           type="file"
                                           accept="image/*,.pdf"
-                                          onChange={(e) => handleCollateralProofChange("centre", e)}
+                                          onChange={(e) =>
+                                            handleCollateralProofChange(
+                                              "centre",
+                                              e,
+                                            )
+                                          }
                                           className="d-none"
                                         />
                                       </div>
                                     </Col>
                                   )}
                                 </Row>
-                                <div className="field-hint">Photo or PDF scan of the brochure/receipt handed over</div>
+                                <div className="field-hint">
+                                  Photo or PDF scan of the brochure/receipt
+                                  handed over
+                                </div>
                               </div>
                             </Col>
                           )}
@@ -1170,7 +1394,8 @@ const AddVisitLog = () => {
                       <Col xs={12}>
                         <div className="field-group">
                           <Label className="field-label">
-                            Visit Notes <span className="field-required">*</span>
+                            Visit Notes{" "}
+                            <span className="field-required">*</span>
                           </Label>
                           <Input
                             type="textarea"
@@ -1180,15 +1405,21 @@ const AddVisitLog = () => {
                             value={validation.values.visitNotes}
                             onChange={validation.handleChange}
                             onBlur={validation.handleBlur}
-                            invalid={validation.touched.visitNotes && !!validation.errors.visitNotes}
+                            invalid={
+                              validation.touched.visitNotes &&
+                              !!validation.errors.visitNotes
+                            }
                           />
-                          <FormFeedback>{validation.errors.visitNotes}</FormFeedback>
+                          <FormFeedback>
+                            {validation.errors.visitNotes}
+                          </FormFeedback>
                         </div>
                       </Col>
                       <Col xs={12} lg={7}>
                         <div className="field-group">
                           <Label className="field-label">
-                            How Interested Is the Doctor? <span className="field-required">*</span>
+                            How Interested Is the Doctor?{" "}
+                            <span className="field-required">*</span>
                           </Label>
                           <div className="choice-row">
                             {INTEREST_OPTIONS.map((opt) => (
@@ -1196,22 +1427,33 @@ const AddVisitLog = () => {
                                 key={opt.value}
                                 className={
                                   "choice-btn " +
-                                  (validation.values.interestLevel === opt.value ? "is-active" : "")
+                                  (validation.values.interestLevel === opt.value
+                                    ? "is-active"
+                                    : "")
                                 }
-                                onClick={() => validation.setFieldValue("interestLevel", opt.value)}
+                                onClick={() =>
+                                  validation.setFieldValue(
+                                    "interestLevel",
+                                    opt.value,
+                                  )
+                                }
                               >
                                 {opt.label}
                               </label>
                             ))}
                           </div>
                           {validation.errors.interestLevel && (
-                            <div className="text-danger mt-2 fs-13">{validation.errors.interestLevel}</div>
+                            <div className="text-danger mt-2 fs-13">
+                              {validation.errors.interestLevel}
+                            </div>
                           )}
                         </div>
                       </Col>
                       <Col xs={12} lg={5}>
                         <div className="field-group">
-                          <Label className="field-label">Next Follow-up Date (Optional)</Label>
+                          <Label className="field-label">
+                            Next Follow-up Date (Optional)
+                          </Label>
                           <Input
                             type="date"
                             name="nextFollowUpDate"
@@ -1229,20 +1471,28 @@ const AddVisitLog = () => {
                       <Col xs={12} lg={7}>
                         <div className="field-group">
                           <Label className="field-label">
-                            Take a Selfie at the Clinic <span className="field-required">*</span>
+                            Take a Selfie at the Clinic{" "}
+                            <span className="field-required">*</span>
                           </Label>
 
                           <div className="upload-zone text-center">
                             {!cameraOpen && !selfiePreview && (
                               <div className="py-4">
                                 <p className="text-muted fs-14 mb-3">
-                                  Live camera only — gallery selection is not allowed
+                                  Live camera only — gallery selection is not
+                                  allowed
                                 </p>
-                                <Button type="button" color="primary" onClick={openCamera}>
+                                <Button
+                                  type="button"
+                                  color="primary"
+                                  onClick={openCamera}
+                                >
                                   Open Camera
                                 </Button>
                                 {cameraError && (
-                                  <div className="text-danger fs-13 mt-2">{cameraError}</div>
+                                  <div className="text-danger fs-13 mt-2">
+                                    {cameraError}
+                                  </div>
                                 )}
                               </div>
                             )}
@@ -1254,14 +1504,29 @@ const AddVisitLog = () => {
                                   autoPlay
                                   playsInline
                                   muted
-                                  style={{ width: "100%", maxWidth: 360, borderRadius: 8 }}
+                                  style={{
+                                    width: "100%",
+                                    maxWidth: 360,
+                                    borderRadius: 8,
+                                  }}
                                 />
-                                <canvas ref={canvasRef} style={{ display: "none" }} />
+                                <canvas
+                                  ref={canvasRef}
+                                  style={{ display: "none" }}
+                                />
                                 <div className="d-flex justify-content-center gap-2 mt-3">
-                                  <Button type="button" color="success" onClick={capturePhoto}>
+                                  <Button
+                                    type="button"
+                                    color="success"
+                                    onClick={capturePhoto}
+                                  >
                                     Capture
                                   </Button>
-                                  <Button type="button" color="light" onClick={closeCamera}>
+                                  <Button
+                                    type="button"
+                                    color="light"
+                                    onClick={closeCamera}
+                                  >
                                     Cancel
                                   </Button>
                                 </div>
@@ -1307,14 +1572,17 @@ const AddVisitLog = () => {
                   {activeStep === 5 && (
                     <div>
                       <p className="text-muted fs-13 mb-4">
-                        Check everything below before submitting. Use "Edit" to make changes.
+                        Check everything below before submitting. Use "Edit" to
+                        make changes.
                       </p>
 
                       {[
                         {
                           step: 0,
                           title: "Visit Details",
-                          rows: [["Area / Locality", validation.values.areaLocality]],
+                          rows: [
+                            ["Area / Locality", validation.values.areaLocality],
+                          ],
                         },
                         {
                           step: 1,
@@ -1323,33 +1591,51 @@ const AddVisitLog = () => {
                             ["Doctor Name", validation.values.doctorName],
                             ["Clinic Name", validation.values.clinicName],
                             ["Contact Number", validation.values.contactNumber],
-                            ["Specialisation", validation.values.specialisation],
+                            [
+                              "Specialisation",
+                              validation.values.specialisation,
+                            ],
                             [
                               "Visit Type",
-                              validation.values.visitType === "FIRST_VISIT" ? "First Visit" : "Repeat Visit",
+                              validation.values.visitType === "FIRST_VISIT"
+                                ? "First Visit"
+                                : "Repeat Visit",
                             ],
-                            ["Who You Met", validation.values.metWith?.replaceAll("_", " ")],
+                            [
+                              "Who You Met",
+                              validation.values.metWith?.replaceAll("_", " "),
+                            ],
                           ],
                         },
                         {
                           step: 2,
                           title: "Collateral",
                           rows: [
-                            ["Collateral Given?", validation.values.collateralGiven === "true" ? "Yes" : "No"],
+                            [
+                              "Collateral Given?",
+                              validation.values.collateralGiven === "true"
+                                ? "Yes"
+                                : "No",
+                            ],
                             ...(validation.values.collateralGiven === "true"
                               ? [
                                   [
                                     "Type",
                                     [
-                                      validation.values.pricingBrochure && "Pricing Brochure",
-                                      validation.values.centreBrochure && "Centre Brochure",
+                                      validation.values.pricingBrochure &&
+                                        "Pricing Brochure",
+                                      validation.values.centreBrochure &&
+                                        "Centre Brochure",
                                     ]
                                       .filter(Boolean)
                                       .join(", ") || "—",
                                   ],
                                   [
                                     "Proof Uploaded",
-                                    [collateralProofFiles.pricing && "Pricing", collateralProofFiles.centre && "Centre"]
+                                    [
+                                      collateralProofFiles.pricing && "Pricing",
+                                      collateralProofFiles.centre && "Centre",
+                                    ]
                                       .filter(Boolean)
                                       .join(", ") || "No",
                                   ],
@@ -1363,13 +1649,18 @@ const AddVisitLog = () => {
                           rows: [
                             ["Visit Notes", validation.values.visitNotes],
                             ["Interest Level", validation.values.interestLevel],
-                            ["Next Follow-up", validation.values.nextFollowUpDate || "Not set"],
+                            [
+                              "Next Follow-up",
+                              validation.values.nextFollowUpDate || "Not set",
+                            ],
                           ],
                         },
                       ].map((section) => (
                         <div key={section.title} className="review-section">
                           <div className="review-section-head">
-                            <span className="review-section-title">{section.title}</span>
+                            <span className="review-section-title">
+                              {section.title}
+                            </span>
                             <Button
                               type="button"
                               size="sm"
@@ -1377,7 +1668,10 @@ const AddVisitLog = () => {
                               className="text-decoration-none p-0"
                               onClick={() => {
                                 goToStep(section.step);
-                                if (section.step === 1 && validation.values.visitType === "REPEAT_VISIT") {
+                                if (
+                                  section.step === 1 &&
+                                  validation.values.visitType === "REPEAT_VISIT"
+                                ) {
                                   setEditingDoctor(true);
                                 }
                               }}
@@ -1398,7 +1692,9 @@ const AddVisitLog = () => {
 
                       <div className="review-section mb-0">
                         <div className="review-section-head">
-                          <span className="review-section-title">Photo Proof</span>
+                          <span className="review-section-title">
+                            Photo Proof
+                          </span>
                           <Button
                             type="button"
                             size="sm"
@@ -1415,18 +1711,26 @@ const AddVisitLog = () => {
                               <img
                                 src={selfiePreview}
                                 alt="Selfie"
-                                style={{ width: 48, height: 48, borderRadius: 8, objectFit: "cover" }}
+                                style={{
+                                  width: 48,
+                                  height: 48,
+                                  borderRadius: 8,
+                                  objectFit: "cover",
+                                }}
                               />
-                              <span className="text-success fs-13">Selfie captured</span>
+                              <span className="text-success fs-13">
+                                Selfie captured
+                              </span>
                             </>
                           ) : (
-                            <span className="text-danger fs-13">No selfie captured yet</span>
+                            <span className="text-danger fs-13">
+                              No selfie captured yet
+                            </span>
                           )}
                         </div>
                       </div>
                     </div>
                   )}
-
                   {/*Navigation buttons*/}
                   <div className="wizard-nav">
                     <Button
@@ -1439,26 +1743,27 @@ const AddVisitLog = () => {
                       Back
                     </Button>
 
-                    {activeStep !== STEPS.length - 1 ? (
-                      <Button
-                        type="button"
-                        color="primary"
-                        className="px-4 flex-fill flex-md-grow-0"
-                        onClick={goNext}
-                      >
-                        Next
-                      </Button>
-                    ) : (
-                      <Button
-                        type="button"
-                        color="success"
-                        className="px-4 flex-fill flex-md-grow-0"
-                        disabled={submitting}
-                        onClick={handleFinalSubmit}
-                      >
-                        {submitting ? "Submitting…" : "Submit Visit"}
-                      </Button>
-                    )}
+                    {canWrite &&
+                      (activeStep !== STEPS.length - 1 ? (
+                        <Button
+                          type="button"
+                          color="primary"
+                          className="px-4 flex-fill flex-md-grow-0"
+                          onClick={goNext}
+                        >
+                          Next
+                        </Button>
+                      ) : (
+                        <Button
+                          type="button"
+                          color="success"
+                          className="px-4 flex-fill flex-md-grow-0"
+                          disabled={submitting}
+                          onClick={handleFinalSubmit}
+                        >
+                          {submitting ? "Submitting…" : "Submit Visit"}
+                        </Button>
+                      ))}
                   </div>
                 </form>
               </div>

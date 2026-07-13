@@ -3,14 +3,26 @@ import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
 import { Row, Col, Nav, NavItem, NavLink as RSNavLink } from "reactstrap";
 import AddVisitLog from "./AddVisitLog";
 import VisitLogList from "./VisitLogList";
-
-const MARKETING_SUBNAV = [
-  { label: "Add Visit Log", link: "/marketing/visit-log/add" },
-  { label: "All Visit Logs", link: "/marketing/visit-log/list" },
-];
+import Basic404 from "../AuthenticationInner/Errors/Basic404"; // 
+import { usePermissions } from "../../Components/Hooks/useRoles.js";
 
 const Marketing = () => {
   const location = useLocation();
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const { hasPermission } = usePermissions(token);
+
+  const canViewAdd = hasPermission("MARKETING", "ADD_VISIT_LOG", "READ");
+  const canViewList = hasPermission("MARKETING", "VIEW_VISIT_LOGS", "READ");
+
+ 
+  if (!canViewAdd && !canViewList) {
+    return <Basic404 />;
+  }
+
+  const MARKETING_SUBNAV = [
+    canViewAdd && { label: "Add Visit Log", link: "/marketing/visit-log/add" },
+    canViewList && { label: "All Visit Logs", link: "/marketing/visit-log/list" },
+  ].filter(Boolean);
 
   return (
     <div className="page-content marketing-shell">
@@ -54,29 +66,36 @@ const Marketing = () => {
         }
       `}</style>
 
-      <Row className="mb-4">
-        <Col xs={12}>
-          <Nav pills className="marketing-tabs">
-            {MARKETING_SUBNAV.map((item) => (
-              <NavItem key={item.link}>
-                <RSNavLink
-                  tag={Link}
-                  to={item.link}
-                  active={location.pathname === item.link}
-                  className={"marketing-tab" + (location.pathname === item.link ? " active" : "")}
-                >
-                  {item.label}
-                </RSNavLink>
-              </NavItem>
-            ))}
-          </Nav>
-        </Col>
-      </Row>
+      
+      {MARKETING_SUBNAV.length > 1 && (
+        <Row className="mb-1">
+          <Col xs={12}>
+            <Nav pills className="marketing-tabs">
+              {MARKETING_SUBNAV.map((item) => (
+                <NavItem key={item.link}>
+                  <RSNavLink
+                    tag={Link}
+                    to={item.link}
+                    active={location.pathname === item.link}
+                    className={"marketing-tab" + (location.pathname === item.link ? " active" : "")}
+                  >
+                    {item.label}
+                  </RSNavLink>
+                </NavItem>
+              ))}
+            </Nav>
+          </Col>
+        </Row>
+      )}
 
       <Routes>
-        <Route path="visit-log/add" element={<AddVisitLog />} />
-        <Route path="visit-log/list" element={<VisitLogList />} />
-        <Route index element={<Navigate to="visit-log/add" replace />} />
+        {canViewAdd && <Route path="visit-log/add" element={<AddVisitLog />} />}
+        {canViewList && <Route path="visit-log/list" element={<VisitLogList />} />}
+        <Route
+          index
+          element={<Navigate to={canViewAdd ? "visit-log/add" : "visit-log/list"} replace />}
+        />
+        <Route path="*" element={<Basic404 />} />
       </Routes>
     </div>
   );
