@@ -48,6 +48,7 @@ const AddVisitLog = () => {
   const [selfieFile, setSelfieFile] = useState(null);
   const [selfiePreview, setSelfiePreview] = useState(null);
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [facingMode, setFacingMode] = useState("user");
   const [cameraError, setCameraError] = useState(null);
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -232,7 +233,7 @@ const AddVisitLog = () => {
     setCameraError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: "environment" },
+        video: { facingMode },
         audio: false,
       });
       streamRef.current = stream;
@@ -256,6 +257,20 @@ const AddVisitLog = () => {
     }
     setCameraOpen(false);
   };
+
+  const switchCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((t) => t.stop());
+      streamRef.current = null;
+    }
+    setFacingMode((prev) => (prev === "user" ? "environment" : "user"));
+  };
+
+  useEffect(() => {
+    if (cameraOpen) {
+      openCamera();
+    }
+  }, [facingMode]);
 
   const capturePhoto = () => {
     const video = videoRef.current;
@@ -1525,6 +1540,13 @@ const AddVisitLog = () => {
                                   <Button
                                     type="button"
                                     color="light"
+                                    onClick={switchCamera}
+                                  >
+                                    Switch Camera
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    color="light"
                                     onClick={closeCamera}
                                   >
                                     Cancel
@@ -1532,7 +1554,6 @@ const AddVisitLog = () => {
                                 </div>
                               </div>
                             )}
-
                             {!cameraOpen && selfiePreview && (
                               <div>
                                 <img

@@ -1,20 +1,36 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Routes, Route, Navigate, Link, useLocation } from "react-router-dom";
-import { Row, Col, Nav, NavItem, NavLink as RSNavLink } from "reactstrap";
+import { Row, Col, Nav, NavItem, NavLink as RSNavLink, Spinner } from "reactstrap";
 import AddVisitLog from "./AddVisitLog";
 import VisitLogList from "./VisitLogList";
-import Basic404 from "../AuthenticationInner/Errors/Basic404"; // 
+import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 
 const Marketing = () => {
   const location = useLocation();
-  const token = JSON.parse(localStorage.getItem("user"))?.token;
-  const { hasPermission } = usePermissions(token);
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const { hasPermission, loading } = usePermissions(token);
+
+  useEffect(() => {
+    document.title = "Marketing | Jagruti Rehab";
+  }, []);
+
+  // Wait for permissions to finish loading before deciding access —
+  // otherwise the first render (before data arrives) wrongly shows 404
+  if (loading) {
+    return (
+      <div
+        className="page-content d-flex justify-content-center align-items-center"
+        style={{ minHeight: "60vh" }}
+      >
+        <Spinner color="primary" />
+      </div>
+    );
+  }
 
   const canViewAdd = hasPermission("MARKETING", "ADD_VISIT_LOG", "READ");
   const canViewList = hasPermission("MARKETING", "VIEW_VISIT_LOGS", "READ");
 
- 
   if (!canViewAdd && !canViewList) {
     return <Basic404 />;
   }
@@ -66,9 +82,8 @@ const Marketing = () => {
         }
       `}</style>
 
-      
       {MARKETING_SUBNAV.length > 1 && (
-        <Row className="mb-1">
+        <Row className="mb-4">
           <Col xs={12}>
             <Nav pills className="marketing-tabs">
               {MARKETING_SUBNAV.map((item) => (
