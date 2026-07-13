@@ -15,6 +15,7 @@ const GetBalanceLeaves = () => {
   const [weekOffPolicy, setWeekOffPolicy] = useState(null);
   const [weekOffModal, setWeekOffModal] = useState(false);
   const [isRotational, setIsRotational] = useState(false);
+  const [weekOffEligible, setWeekOffEligible] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -53,6 +54,7 @@ const GetBalanceLeaves = () => {
       setBalanceData(rows);
       setWeekOffPolicy(res?.weekOffs || null);
       setIsRotational(Boolean(res?.isRotational));
+      setWeekOffEligible(Boolean(res?.weekOffEligible));
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch data");
@@ -82,7 +84,7 @@ const GetBalanceLeaves = () => {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <h1 className="display-6 fw-bold text-primary mb-0">BALANCE LEAVES</h1>
 
-        {!isRotational && weekOffPolicy && (
+        {!isRotational && weekOffEligible && weekOffPolicy && (
           <button
             className="btn btn-outline-primary btn-sm"
             onClick={openWeekOffModal}
