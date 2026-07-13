@@ -3395,6 +3395,14 @@ export const getRotationalShifts = (id) => {
   });
 };
 
+export const getEmployeeWeekOffBalance = (employeeId) => {
+  return api.get(`/hrms/employee/${employeeId}/week-off-balance`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const getEmployeeLeaves = (employeeId, params = {}) => {
   return api.get(`/hrms/leaves/employee/${employeeId}`, {
     params,
