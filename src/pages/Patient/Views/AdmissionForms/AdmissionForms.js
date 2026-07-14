@@ -534,6 +534,19 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         `${patient?.id?.value}-${patient?.name}-admission-form.pdf`,
       );
 
+      // Add structured form data (filled in the Create New Form modal);
+      // conditional fields are gated on their admission type so a stale value
+      // from a previously selected type never gets stored.
+      if (admissiontype) formData.append("admissionType", admissiontype);
+      if (admissiontype === "INDEPENDENT_ADMISSION" && adultationype)
+        formData.append("adultationType", adultationype);
+      if (admissiontype === "SUPPORTIVE_ADMISSION" && supporttype)
+        formData.append("supportType", supporttype);
+      if (admissiontype === "EMERGENCY_ADMISSION" && emergencyType)
+        formData.append("emergencyType", emergencyType);
+      if (admissiontype === "EMERGENCY_ADMISSION" && emergencyRestraint)
+        formData.append("emergencyRestraint", emergencyRestraint);
+
       await axios.patch(`/patient/admission-submit/${addmissionId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -776,6 +789,11 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
           `${patient?.id?.value}-${patient?.name}-discharge-form.pdf`,
         );
       }
+
+      // Add structured form data (filled in the Create New Form modal)
+      if (admissiontype) formData.append("dischargeType", admissiontype);
+      if (admissiontype === "INDEPENDENT_ADMISSION" && adultationype)
+        formData.append("adultationType", adultationype);
 
       // ---------------------------
       // SELECT API BASED ON CONDITION

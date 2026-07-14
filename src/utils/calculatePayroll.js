@@ -200,7 +200,11 @@ export const calculatePayroll = (values) => {
     const ptState = currentLocation.title === "Head-Office"
         ? "Maharashtra"
         : (detectState(currentLocation.address) || "");
-    PT = calculatePT(gross, ptState);
+
+    const rawPT = calculatePT(gross, ptState);
+    const isTamilNaduPT = ptState.trim() === "Tamil Nadu";
+    PT = isTamilNaduPT ? Math.round(rawPT / 6) : rawPT;
+    const PTAnnual = isTamilNaduPT ? rawPT * 2 : PT * 12;
 
     // ----- TDS -----
     let TDSAmount = 0;
@@ -252,6 +256,7 @@ export const calculatePayroll = (values) => {
         PFAmount: PFEmployee + PFEmployer,
         PFSalary,
         PT,
+        PTAnnual,
         TDSAmount,
         ESICSalary,
         ESICEmployee,
