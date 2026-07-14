@@ -14,7 +14,7 @@ import {
 import PropTypes from "prop-types";
 import _ from "lodash";
 import Select from "react-select";
-import { format } from "date-fns";
+import { format, parse } from "date-fns";
 
 //flatpicker
 import Flatpicker from "react-flatpickr";
@@ -69,27 +69,49 @@ import { normalizeMedicineFrequency } from "../../../helpers/prescriptionFrequen
 
 // Dr Notes carry-forward
 //
-// When a new prescription is created (populate mode), the Dr Notes field is
-// pre-filled with the previous prescription's notes as dated entries:
+// When a new prescription is created, the Dr Notes field starts with today's
+// date header on top (the doctor writes under it), followed by the previous
+// prescription's entries, newest first:
 //
-//   05 Jul, 2026
-//   <that visit's note>
+//   14 Jul, 2026        ← today's note goes here
 //
 //   08 Jul, 2026
 //   <that visit's note>
 //
-// Only the latest DR_NOTES_HISTORY_LIMIT entries are kept — so the carried
-// history stays bounded instead of growing with every prescription — and
-// today's date header is appended for the doctor to write under. Because we
+//   05 Jul, 2026
+//   <that visit's note>
+//
+// Only the newest DR_NOTES_HISTORY_LIMIT entries are carried — so the history
+// stays bounded instead of growing with every prescription — and because we
 // always re-parse the single latest snapshot (never concatenate several
-// prescriptions), entries are never duplicated.
+// prescriptions), entries are never duplicated. Entries are ordered by their
+// header date (newest first) both in the field and in the saved value, so
+// older oldest-first data is re-ordered automatically on the next create;
+// text without a date header (legacy notes) sinks to the bottom.
 const DR_NOTES_HISTORY_LIMIT = 5;
 // A line that is ONLY a date, e.g. "05 Jul, 2026" / "5 Jul 2026" — our entry header.
 const DR_NOTES_DATE_LINE = /^\s*\d{1,2}\s+[A-Za-z]{3,9},?\s+\d{4}\s*$/;
+const DR_NOTES_DATE_FORMATS = [
+  "dd MMM, yyyy",
+  "d MMM, yyyy",
+  "dd MMM yyyy",
+  "d MMM yyyy",
+];
 
 const formatDrNotesDate = (value) => {
   const d = value ? new Date(value) : new Date();
   return format(Number.isNaN(d.getTime()) ? new Date() : d, "dd MMM, yyyy");
+};
+
+// Timestamp of an entry's date header, or null when it has none / can't parse.
+const drNotesEntryTime = (date) => {
+  if (!date) return null;
+  for (const f of DR_NOTES_DATE_FORMATS) {
+    const parsed = parse(date, f, new Date());
+    if (!Number.isNaN(parsed.getTime())) return parsed.getTime();
+  }
+  const fallback = new Date(date).getTime();
+  return Number.isNaN(fallback) ? null : fallback;
 };
 
 // Splits a Dr Notes value into { date, body } entries on date-header lines.
@@ -112,8 +134,20 @@ export const parseDrNotesEntries = (text) => {
   });
 
   return entries
-    .map((e) => ({ date: e.date, body: e.lines.join("\n").trim() }))
-    .filter((e) => e.body); // drop headers nobody wrote under
+    .map((e) => ({
+      date: e.date,
+      body: e.lines.join("\n").trim(),
+      time: drNotesEntryTime(e.date),
+    }))
+    .filter((e) => e.body) // drop headers nobody wrote under
+    .sort((a, b) => {
+      // Newest first; undated/legacy entries sink to the bottom. Equal dates
+      // keep their text order (Array#sort is stable).
+      if (a.time === b.time) return 0;
+      if (a.time === null) return 1;
+      if (b.time === null) return -1;
+      return b.time - a.time;
+    });
 };
 
 const composeDrNotesEntries = (entries) =>
@@ -122,9 +156,10 @@ const composeDrNotesEntries = (entries) =>
 export const buildDrNotesPrefill = (previousNotes, chartDate) => {
   const today = formatDrNotesDate(chartDate);
   const history = composeDrNotesEntries(
-    parseDrNotesEntries(previousNotes).slice(-DR_NOTES_HISTORY_LIMIT),
+    parseDrNotesEntries(previousNotes).slice(0, DR_NOTES_HISTORY_LIMIT),
   );
-  return history ? `${history}\n\n${today}\n` : `${today}\n`;
+  // Today's header on top with an empty line to write on; history below it.
+  return history ? `${today}\n\n\n${history}` : `${today}\n`;
 };
 
 // Run on save (create only): drops dangling date headers with nothing written
