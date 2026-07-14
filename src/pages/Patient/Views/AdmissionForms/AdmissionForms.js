@@ -534,6 +534,14 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         `${patient?.id?.value}-${patient?.name}-admission-form.pdf`,
       );
 
+      // Add structured form data (filled in the Create New Form modal)
+      if (admissiontype) formData.append("admissionType", admissiontype);
+      if (adultationype) formData.append("adultationType", adultationype);
+      if (supporttype) formData.append("supportType", supporttype);
+      if (emergencyType) formData.append("emergencyType", emergencyType);
+      if (emergencyRestraint)
+        formData.append("emergencyRestraint", emergencyRestraint);
+
       await axios.patch(`/patient/admission-submit/${addmissionId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
