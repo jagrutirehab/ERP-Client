@@ -36,7 +36,7 @@ const UserForm = ({
   const dummyImage =
     "https://skala.or.id/wp-content/uploads/2024/01/dummy-post-square-1-1.jpg";
   const author = useSelector((state) => state.User.user);
-  const userCenters = useSelector((state) => state.User.userCenters);
+  const userCenters = useSelector((state) => state.Center.data);
   const allCenters = useSelector((state) => state.Center.allCenters);
 
   const centers = isFromIT ? userCenters : allCenters;
