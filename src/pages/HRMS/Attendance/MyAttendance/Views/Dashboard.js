@@ -352,9 +352,10 @@ const Dashboard = () => {
                                                     ? "Check In"
                                                     : attendanceStatus?.canCheckOut
                                                         ? "Check Out"
-                                                        : attendanceStatus?.shift?.duration !== null
-                                                            ? "No Active Shift"
-                                                            : "Shift Ended"}
+                                                        : (attendanceStatus?.firstCheckIn != null &&
+                                                            attendanceStatus?.lastCheckOut == null)
+                                                            ? "Checkout Window Expired (15 hrs)"
+                                                            : "Attendance Closed"}
                                     </Button>
 
                                     <p
