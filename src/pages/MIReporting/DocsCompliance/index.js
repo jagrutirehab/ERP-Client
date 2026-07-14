@@ -3,6 +3,23 @@ import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { Card, CardBody, Table, Spinner, Alert, Row, Col } from "reactstrap";
 import { fetchDocsCompliance } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
+import {
+    LineChart,
+    Line,
+    XAxis,
+    YAxis,
+    CartesianGrid,
+    Tooltip,
+    Legend,
+    ResponsiveContainer,
+} from "recharts";
+
+const COLORS = [
+    "#0D47A1", "#1B5E20", "#B71C1C", "#4A148C", "#E65100",
+    "#006064", "#3E2723", "#263238", "#880E4F", "#1A237E",
+    "#33691E", "#5D4037", "#37474F", "#6A1B9A", "#BF360C",
+    "#827717", "#004D40",
+];
 
 const METRICS = [
     { label: "Admission Form",       key: "admission_form"       },
@@ -107,6 +124,34 @@ const DocsCompliance = () => {
         return actual;
     };
 
+    const getCellNumericValue = (metricKey, month) => {
+        const monthData = getMonthData(month);
+
+        const entry = monthData[metricKey] || {};
+        const actual = entry.result_count ?? null;
+        const shouldBe = entry.should_be_count ?? null;
+        if (actual == null) return 0;
+        if (compliance) {
+            if (!shouldBe) return 0;
+            return Math.round((actual / shouldBe) * 100);
+        }
+        return actual;
+    };
+
+    const chartData = useMemo(() => {
+        return months
+            .slice()
+            .reverse()
+            .map((month) => {
+                const row = { month: formatMonth(month) };
+                METRICS.forEach(({ label, key }) => {
+                    row[label] = getCellNumericValue(key,formatMonth(month));
+                });
+                return row;
+            });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [months, data, selectedCenter, compliance]);
+
     const metricOptions = METRICS.map((m) => ({ value: m.key, label: m.label }));
 
 const getCenterCellValue = (row, metricKey) => {
@@ -137,6 +182,39 @@ const getCenterCellValue = (row, metricKey) => {
         if (!row) return "";
         return getCenterCellValue(row, selectedMetric);
     };
+
+    const getCenterCellNumericValue = (row, metricKey) => {
+        const entry = row[metricKey] || {};
+        const actual = entry.result_count ?? null;
+        const shouldBe = entry.should_be_count ?? null;
+        if (actual == null) return 0;
+        if (compliance) {
+            if (!shouldBe) return 0;
+            return Math.round((actual / shouldBe) * 100);
+        }
+        return actual;
+    };
+
+    const getCenterMonthNumericValue = (centerName, month) => {
+        const rows = data.find((d) => d.month === month)?.rows || [];
+        const row = rows.find((r) => r.center_name === centerName);
+        if (!row) return 0;
+        return getCenterCellNumericValue(row, selectedMetric);
+    };
+
+    const centerChartData = useMemo(() => {
+        return months
+            .slice()
+            .reverse()
+            .map((month) => {
+                const row = { month: formatMonth(month) };
+                centerNames.forEach((name) => {
+                    row[name] = getCenterMonthNumericValue(name, formatMonth(month));
+                });
+                return row;
+            });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [months, centerNames, data, selectedMetric, compliance]);
 
     const headerStyle = {
         border: "1px solid #cfd8e3",
@@ -185,54 +263,96 @@ const getCenterCellValue = (row, metricKey) => {
                     </Col>
                 </Row>
 
-                <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
-                    <CardBody className="p-0">
-                        {loading && (
-                            <div className="text-center py-4">
-                                <Spinner color="primary" />
-                                <p className="mt-2 text-muted mb-0">Loading data...</p>
-                            </div>
-                        )}
+                <Row className="g-3 mx-n3">
+                    <Col lg={6}>
+                        <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
+                            <CardBody className="p-0">
+                                {loading && (
+                                    <div className="text-center py-4">
+                                        <Spinner color="primary" />
+                                        <p className="mt-2 text-muted mb-0">Loading data...</p>
+                                    </div>
+                                )}
 
-                        {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
+                                {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
 
-                        {!loading && !error && (
-                            <div style={{ overflowX: "auto" }}>
-                                <Table
-                                    className="mb-0"
-                                    style={{ borderCollapse: "collapse", fontSize: "0.78rem", width: "100%" }}
-                                >
-                                    <thead>
-                                        <tr>
-                                            <th className="text-center fw-bold px-2 py-1" style={headerStyle}>
-                                                Data
-                                            </th>
-                                            {months.map((month) => (
-                                                <th key={month} className="text-center fw-bold px-2 py-1" style={headerStyle}>
-                                                    {formatMonth(month)}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody> 
-                                        {METRICS.map(({ label, key }, idx) => (
-                                            <tr key={key}>
-                                                <td className="px-2 py-1 fw-semibold" style={cellStyle(idx)}>
-                                                    {label}
-                                                </td>
-                                                {months.map((month) => (
-                                                    <td key={month} className="text-center px-2 py-1" style={cellStyle(idx)}>
-                                                        {getCellValue(key, formatMonth(month))}
-                                                    </td>
+                                {!loading && !error && (
+                                    <div style={{ overflowX: "auto" }}>
+                                        <Table
+                                            className="mb-0"
+                                            style={{ borderCollapse: "collapse", fontSize: "0.62rem", width: "100%", tableLayout: "fixed" }}
+                                        >
+                                            <thead>
+                                                <tr>
+                                                    <th className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, width: "18%" }}>
+                                                        Data
+                                                    </th>
+                                                    {months.map((month) => (
+                                                        <th key={month} className="text-center fw-bold px-1 py-1" style={headerStyle}>
+                                                            {formatMonth(month)}
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {METRICS.map(({ label, key }, idx) => (
+                                                    <tr key={key}>
+                                                        <td className="px-1 py-1 fw-semibold" style={{ ...cellStyle(idx), whiteSpace: "normal", wordBreak: "break-word" }}>
+                                                            {label}
+                                                        </td>
+                                                        {months.map((month) => (
+                                                            <td key={month} className="text-center px-1 py-1" style={cellStyle(idx)}>
+                                                                {getCellValue(key, formatMonth(month))}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
                                                 ))}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-                            </div>
-                        )}
-                    </CardBody>
-                </Card>
+                                            </tbody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </CardBody>
+                        </Card>
+                    </Col>
+
+                    <Col lg={6}>
+                        <Card className="shadow-sm h-100" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
+                            <CardBody>
+                                <h6 className="mb-3">
+                                    {compliance ? "Compliance % Trend" : "Count Trend"}
+                                </h6>
+                                {!loading && !error && (
+                                    <div style={{ width: "100%", height: 420 }}>
+                                        <ResponsiveContainer>
+                                            <LineChart data={chartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                                                <YAxis tick={{ fontSize: 11 }} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: "#000", opacity: 1, color: "#fff" }}
+                                                    itemStyle={{ color: "#fff" }}
+                                                    labelStyle={{ color: "#fff" }}
+                                                    formatter={(value) => (compliance ? `${value}%` : value)}
+                                                />
+                                                <Legend wrapperStyle={{ fontSize: 11 }} />
+                                                {METRICS.map(({ label }, idx) => (
+                                                    <Line
+                                                        key={label}
+                                                        type="monotone"
+                                                        dataKey={label}
+                                                        stroke={COLORS[idx % COLORS.length]}
+                                                        strokeWidth={2}
+                                                        dot={{ r: 2 }}
+                                                    />
+                                                ))}
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                )}
+                            </CardBody>
+                        </Card>
+                    </Col>
+                </Row>
 
                 {/* Center breakdown table */}
                 <Row className="g-2 align-items-center mb-3 mt-4">
@@ -247,45 +367,87 @@ const getCenterCellValue = (row, metricKey) => {
                     </Col>
                 </Row>
 
-                <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
-                    <CardBody className="p-0">
-                        {!loading && !error && (
-                            <div style={{ overflowX: "auto" }}>
-                                <Table
-                                    className="mb-0"
-                                    style={{ borderCollapse: "collapse", fontSize: "0.78rem", width: "100%" }}
-                                >
-                                    <thead>
-                                        <tr>
-                                            <th className="text-center fw-bold px-2 py-1" style={headerStyle}>
-                                                Center Name
-                                            </th>
-                                            {months.map((month) => (
-                                                <th key={month} className="text-center fw-bold px-2 py-1" style={headerStyle}>
-                                                    {formatMonth(month)}
-                                                </th>
-                                            ))}
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {centerNames.map((name, idx) => (
-                                            <tr key={name}>
-                                                <td className="px-2 py-1 fw-semibold" style={cellStyle(idx)}>
-                                                    {name}
-                                                </td>
-                                                {months.map((month) => (
-                                                    <td key={month} className="text-center px-2 py-1" style={cellStyle(idx)}>
-                                                        {getCenterMonthValue(name, formatMonth(month))}
-                                                    </td>
+                <Row className="g-3 mx-n3">
+                    <Col lg={6}>
+                        <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
+                            <CardBody className="p-0">
+                                {!loading && !error && (
+                                    <div style={{ overflowX: "auto" }}>
+                                        <Table
+                                            className="mb-0"
+                                            style={{ borderCollapse: "collapse", fontSize: "0.62rem", width: "100%", tableLayout: "fixed" }}
+                                        >
+                                            <thead>
+                                                <tr>
+                                                    <th className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, width: "18%" }}>
+                                                        Center Name
+                                                    </th>
+                                                    {months.map((month) => (
+                                                        <th key={month} className="text-center fw-bold px-1 py-1" style={headerStyle}>
+                                                            {formatMonth(month)}
+                                                        </th>
+                                                    ))}
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                {centerNames.map((name, idx) => (
+                                                    <tr key={name}>
+                                                        <td className="px-1 py-1 fw-semibold" style={{ ...cellStyle(idx), whiteSpace: "normal", wordBreak: "break-word" }}>
+                                                            {name}
+                                                        </td>
+                                                        {months.map((month) => (
+                                                            <td key={month} className="text-center px-1 py-1" style={cellStyle(idx)}>
+                                                                {getCenterMonthValue(name, formatMonth(month))}
+                                                            </td>
+                                                        ))}
+                                                    </tr>
                                                 ))}
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-                            </div>
-                        )}
-                    </CardBody>
-                </Card>
+                                            </tbody>
+                                        </Table>
+                                    </div>
+                                )}
+                            </CardBody>
+                        </Card>
+                    </Col>
+
+                    <Col lg={6}>
+                        <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
+                            <CardBody>
+                                <h6 className="mb-3">
+                                    {metricOptions.find((o) => o.value === selectedMetric)?.label} - {compliance ? "Compliance % Trend" : "Count Trend"} by Center
+                                </h6>
+                                {!loading && !error && (
+                                    <div style={{ width: "100%", height: 420 }}>
+                                        <ResponsiveContainer>
+                                            <LineChart data={centerChartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
+                                                <CartesianGrid strokeDasharray="3 3" />
+                                                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
+                                                <YAxis tick={{ fontSize: 11 }} />
+                                                <Tooltip
+                                                    contentStyle={{ backgroundColor: "#000", opacity: 1, color: "#fff" }}
+                                                    itemStyle={{ color: "#fff" }}
+                                                    labelStyle={{ color: "#fff" }}
+                                                    formatter={(value) => (compliance ? `${value}%` : value)}
+                                                />
+                                                <Legend wrapperStyle={{ fontSize: 11 }} />
+                                                {centerNames.map((name, idx) => (
+                                                    <Line
+                                                        key={name}
+                                                        type="monotone"
+                                                        dataKey={name}
+                                                        stroke={COLORS[idx % COLORS.length]}
+                                                        strokeWidth={2}
+                                                        dot={{ r: 2 }}
+                                                    />
+                                                ))}
+                                            </LineChart>
+                                        </ResponsiveContainer>
+                                    </div>
+                                )}
+                            </CardBody>
+                        </Card>
+                    </Col>
+                </Row>
             </div>
         </div>
     );
