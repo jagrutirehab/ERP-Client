@@ -81,10 +81,13 @@ import { normalizeMedicineFrequency } from "../../../helpers/prescriptionFrequen
 //   05 Jul, 2026
 //   <that visit's note>
 //
-// Only the newest DR_NOTES_HISTORY_LIMIT entries are carried — so the history
-// stays bounded instead of growing with every prescription — and because we
-// always re-parse the single latest snapshot (never concatenate several
-// prescriptions), entries are never duplicated. Entries are ordered by their
+// The pre-fill carries the newest DR_NOTES_HISTORY_LIMIT entries below
+// today's header, and the save caps the total at the same limit: writing
+// today's note pushes the oldest carried entry out, while saving without a
+// note keeps all carried entries — so the history stays bounded instead of
+// growing with every prescription. Because we always re-parse the single
+// latest snapshot (never concatenate several prescriptions), entries are
+// never duplicated. Entries are ordered by their
 // header date (newest first) both in the field and in the saved value, so
 // older oldest-first data is re-ordered automatically on the next create;
 // text without a date header (legacy notes) sinks to the bottom.
@@ -162,11 +165,15 @@ export const buildDrNotesPrefill = (previousNotes, chartDate) => {
   return history ? `${today}\n\n\n${history}` : `${today}\n`;
 };
 
-// Run on save (create only): drops dangling date headers with nothing written
-// under them — e.g. the seeded "today" header when the doctor saved without
-// adding a note — so a lone date is never stored as the whole Dr Notes.
+// Run on save (create only). Drops dangling date headers with nothing written
+// under them (e.g. the seeded "today" header when the doctor saved without a
+// note), then keeps the newest DR_NOTES_HISTORY_LIMIT entries. Net effect:
+// writing today's note pushes the oldest carried entry out; saving without
+// one keeps the carried history as is.
 export const cleanDrNotesForSave = (value) =>
-  composeDrNotesEntries(parseDrNotesEntries(value));
+  composeDrNotesEntries(
+    parseDrNotesEntries(value).slice(0, DR_NOTES_HISTORY_LIMIT),
+  );
 
 const Prescription = ({
   drugs,
