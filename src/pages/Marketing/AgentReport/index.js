@@ -11,15 +11,26 @@ import {
   Alert,
   Collapse,
 } from "reactstrap";
-import {
-  getAgentVisitReport,
-} from "../../../helpers/backend_helper";
+import { getAgentVisitReport } from "../../../helpers/backend_helper";
 
 const getInitials = (name = "") =>
-  name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
-const AVATAR_COLORS = ["#3577f1", "#0ab39c", "#f7b84b", "#f06548", "#299cdb", "#7d5fff"];
-const getAvatarColor = (name = "") => AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length || 0];
+const AVATAR_COLORS = [
+  "#3577f1",
+  "#0ab39c",
+  "#f7b84b",
+  "#f06548",
+  "#299cdb",
+  "#7d5fff",
+];
+const getAvatarColor = (name = "") =>
+  AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length || 0];
 
 const getDefaultMonthRange = () => {
   const now = new Date();
@@ -93,7 +104,10 @@ const AgentReport = () => {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
+      if (
+        searchWrapperRef.current &&
+        !searchWrapperRef.current.contains(e.target)
+      ) {
         setShowSuggestions(false);
       }
     };
@@ -131,7 +145,9 @@ const AgentReport = () => {
   const filteredSuggestions = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return [];
-    return suggestionPool.filter((s) => s.label.toLowerCase().includes(q)).slice(0, 8);
+    return suggestionPool
+      .filter((s) => s.label.toLowerCase().includes(q))
+      .slice(0, 8);
   }, [search, suggestionPool]);
 
   const applyRange = () => {
@@ -150,7 +166,8 @@ const AgentReport = () => {
 
   // Search across agent name/email and any doctor/clinic they've visited
   const filteredData = data.filter((agentData) => {
-    if (mismatchFilter === "mismatch" && agentData.mismatchCount === 0) return false;
+    if (mismatchFilter === "mismatch" && agentData.mismatchCount === 0)
+      return false;
     if (mismatchFilter === "clean" && agentData.mismatchCount > 0) return false;
 
     if (search.trim()) {
@@ -168,9 +185,15 @@ const AgentReport = () => {
     return true;
   });
 
-  const totalVisitsAllAgents = filteredData.reduce((sum, a) => sum + a.totalVisits, 0);
+  const totalVisitsAllAgents = filteredData.reduce(
+    (sum, a) => sum + a.totalVisits,
+    0,
+  );
   const totalMatched = filteredData.reduce((sum, a) => sum + a.matchedCount, 0);
-  const totalMismatch = filteredData.reduce((sum, a) => sum + a.mismatchCount, 0);
+  const totalMismatch = filteredData.reduce(
+    (sum, a) => sum + a.mismatchCount,
+    0,
+  );
   const totalAgentsCount = data.length;
 
   const totalPages = Math.max(1, Math.ceil(filteredData.length / rowsPerPage));
@@ -188,11 +211,13 @@ const AgentReport = () => {
           <div className="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap gap-2">
             <div>
               <h4 className="mb-0 fw-semibold">Agent Visit Report</h4>
-             
             </div>
             <span className="text-muted fs-13">
               Today,{" "}
-              {new Date().toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
+              {new Date().toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+              })}
             </span>
           </div>
 
@@ -224,7 +249,10 @@ const AgentReport = () => {
               </div>
               <Row className="g-3 align-items-end mb-3">
                 <Col xs={6} md={3}>
-                  <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>
+                  <Label
+                    className="fw-semibold text-dark mb-1"
+                    style={{ fontSize: "13px" }}
+                  >
                     From
                   </Label>
                   <Input
@@ -238,7 +266,10 @@ const AgentReport = () => {
                   />
                 </Col>
                 <Col xs={6} md={3}>
-                  <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>
+                  <Label
+                    className="fw-semibold text-dark mb-1"
+                    style={{ fontSize: "13px" }}
+                  >
                     To
                   </Label>
                   <Input
@@ -252,14 +283,22 @@ const AgentReport = () => {
                   />
                 </Col>
                 <Col xs={12} md={3}>
-                  <Button color="primary" size="sm" className="w-100" onClick={applyRange}>
+                  <Button
+                    color="primary"
+                    size="sm"
+                    className="w-100"
+                    onClick={applyRange}
+                  >
                     <i className="bx bx-filter-alt me-1" /> Apply Date Range
                   </Button>
                 </Col>
               </Row>
               <Row className="g-3 align-items-end">
                 <Col xs={12} md={7}>
-                  <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>
+                  <Label
+                    className="fw-semibold text-dark mb-1"
+                    style={{ fontSize: "13px" }}
+                  >
                     Search agent or doctor
                   </Label>
                   <div className="position-relative" ref={searchWrapperRef}>
@@ -305,8 +344,10 @@ const AgentReport = () => {
                             <span
                               className="badge rounded-pill fw-medium fs-11"
                               style={{
-                                background: s.type === "Agent" ? "#eef2ff" : "#e6f7f4",
-                                color: s.type === "Agent" ? "#3577f1" : "#0ab39c",
+                                background:
+                                  s.type === "Agent" ? "#eef2ff" : "#e6f7f4",
+                                color:
+                                  s.type === "Agent" ? "#3577f1" : "#0ab39c",
                               }}
                             >
                               {s.type}
@@ -318,7 +359,10 @@ const AgentReport = () => {
                   </div>
                 </Col>
                 <Col xs={12} md={5}>
-                  <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>
+                  <Label
+                    className="fw-semibold text-dark mb-1"
+                    style={{ fontSize: "13px" }}
+                  >
                     Show only
                   </Label>
                   <Input
@@ -358,32 +402,53 @@ const AgentReport = () => {
               </div>
               <Row className="g-3 mb-1">
                 <Col xs={6} md={3}>
-                  <div className="rounded-3 p-3" style={{ background: "#eef2ff" }}>
+                  <div
+                    className="rounded-3 p-3"
+                    style={{ background: "#eef2ff" }}
+                  >
                     <div className="text-muted fs-13">Agents</div>
-                    <div className="fs-3 fw-semibold" style={{ color: "#3577f1" }}>
+                    <div
+                      className="fs-3 fw-semibold"
+                      style={{ color: "#3577f1" }}
+                    >
                       {filteredData.length}
                     </div>
                   </div>
                 </Col>
                 <Col xs={6} md={3}>
-                  <div className="rounded-3 p-3" style={{ background: "#f8f9fb" }}>
+                  <div
+                    className="rounded-3 p-3"
+                    style={{ background: "#f8f9fb" }}
+                  >
                     <div className="text-muted fs-13">Total Visits</div>
-                    <div className="fs-3 fw-semibold">{totalVisitsAllAgents}</div>
+                    <div className="fs-3 fw-semibold">
+                      {totalVisitsAllAgents}
+                    </div>
                   </div>
                 </Col>
                 <Col xs={6} md={3}>
-                  <div className="rounded-3 p-3" style={{ background: "#e6f7f4" }}>
+                  <div
+                    className="rounded-3 p-3"
+                    style={{ background: "#e6f7f4" }}
+                  >
                     <div className="text-muted fs-13">Verified</div>
-                    <div className="fs-3 fw-semibold text-success">{totalMatched}</div>
+                    <div className="fs-3 fw-semibold text-success">
+                      {totalMatched}
+                    </div>
                     <div className="text-muted" style={{ fontSize: "11px" }}>
                       GPS matched the clinic
                     </div>
                   </div>
                 </Col>
                 <Col xs={6} md={3}>
-                  <div className="rounded-3 p-3" style={{ background: "#fde8e4" }}>
+                  <div
+                    className="rounded-3 p-3"
+                    style={{ background: "#fde8e4" }}
+                  >
                     <div className="text-muted fs-13">Mismatches</div>
-                    <div className="fs-3 fw-semibold text-danger">{totalMismatch}</div>
+                    <div className="fs-3 fw-semibold text-danger">
+                      {totalMismatch}
+                    </div>
                     <div className="text-muted" style={{ fontSize: "11px" }}>
                       GPS did not match
                     </div>
@@ -392,9 +457,10 @@ const AgentReport = () => {
               </Row>
               <div className="mb-4" />
 
-             
               <div className="mb-2">
-                <span className="fw-semibold text-dark fs-14">Agent-wise visit summary</span>
+                <span className="fw-semibold text-dark fs-14">
+                  Agent-wise visit summary
+                </span>
               </div>
               {filteredData.length === 0 ? (
                 <Card className="border-0 shadow-sm">
@@ -420,7 +486,9 @@ const AgentReport = () => {
                           className="d-flex align-items-center justify-content-between flex-wrap gap-3"
                           style={{ cursor: "pointer" }}
                           onClick={() =>
-                            setExpandedAgent(isOpen ? null : agentData.agent._id)
+                            setExpandedAgent(
+                              isOpen ? null : agentData.agent._id,
+                            )
                           }
                         >
                           <div className="d-flex align-items-center gap-2">
@@ -430,21 +498,31 @@ const AgentReport = () => {
                                 width: 44,
                                 height: 44,
                                 fontSize: 15,
-                                background: getAvatarColor(agentData.agent.name),
+                                background: getAvatarColor(
+                                  agentData.agent.name,
+                                ),
                               }}
                             >
                               {getInitials(agentData.agent.name) || "?"}
                             </div>
                             <div>
-                              <div className="fw-semibold fs-15">{agentData.agent.name}</div>
-                              <div className="text-muted fs-13">{agentData.agent.email}</div>
+                              <div className="fw-semibold fs-15">
+                                {agentData.agent.name}
+                              </div>
+                              <div className="text-muted fs-13">
+                                {agentData.agent.email}
+                              </div>
                             </div>
                           </div>
 
                           <div className="d-flex align-items-center gap-4 flex-wrap">
                             <div className="text-center">
-                              <div className="text-muted fs-12">Total Visits</div>
-                              <div className="fw-semibold fs-16">{agentData.totalVisits}</div>
+                              <div className="text-muted fs-12">
+                                Total Visits
+                              </div>
+                              <div className="fw-semibold fs-16">
+                                {agentData.totalVisits}
+                              </div>
                             </div>
                             <div className="text-center">
                               <div className="text-muted fs-12">Avg / Day</div>
@@ -466,7 +544,10 @@ const AgentReport = () => {
                                 {agentData.mismatchCount}
                               </div>
                             </div>
-                            <div className="d-flex gap-1" title="Doctor interest level breakdown">
+                            <div
+                              className="d-flex gap-1"
+                              title="Doctor interest level breakdown"
+                            >
                               {["HOT", "WARM", "COLD"].map((level) =>
                                 agentData.interest[level] > 0 ? (
                                   <span
@@ -479,7 +560,8 @@ const AgentReport = () => {
                                     }}
                                     title={`${level.charAt(0) + level.slice(1).toLowerCase()}: ${agentData.interest[level]} doctor${agentData.interest[level] > 1 ? "s" : ""}`}
                                   >
-                                    {level.charAt(0) + level.slice(1).toLowerCase()}{" "}
+                                    {level.charAt(0) +
+                                      level.slice(1).toLowerCase()}{" "}
                                     {agentData.interest[level]}
                                   </span>
                                 ) : null,
@@ -509,18 +591,34 @@ const AgentReport = () => {
                               >
                                 <div>
                                   <div className="fw-medium fs-14">
-                                    <i className="bx bx-user-voice text-primary me-1" style={{ fontSize: "13px" }} />
+                                    <i
+                                      className="bx bx-user-voice text-primary me-1"
+                                      style={{ fontSize: "13px" }}
+                                    />
                                     Dr. {doc.doctorName}
                                   </div>
                                   <div className="text-muted fs-13">
-                                    <i className="bx bx-hospital me-1" style={{ fontSize: "12px" }} />
+                                    <i
+                                      className="bx bx-hospital me-1"
+                                      style={{ fontSize: "12px" }}
+                                    />
                                     {doc.clinicName}
                                     {doc.lastVisitDate && (
                                       <>
                                         {" · last visit "}
-                                        {new Date(doc.lastVisitDate).toLocaleDateString("en-IN", {
+                                        {new Date(
+                                          doc.lastVisitDate,
+                                        ).toLocaleDateString("en-IN", {
                                           day: "2-digit",
                                           month: "short",
+                                          year: "numeric",
+                                        })}
+                                        {" · "}
+                                        {new Date(
+                                          doc.lastVisitDate,
+                                        ).toLocaleTimeString("en-IN", {
+                                          hour: "2-digit",
+                                          minute: "2-digit",
                                         })}
                                       </>
                                     )}
@@ -530,17 +628,25 @@ const AgentReport = () => {
                                   {doc.mismatchCount > 0 && (
                                     <span
                                       className="badge rounded-pill fw-semibold"
-                                      style={{ background: "#fde8e4", color: "#f06548" }}
+                                      style={{
+                                        background: "#fde8e4",
+                                        color: "#f06548",
+                                      }}
                                     >
                                       <i className="bx bx-error-circle me-1" />
-                                      {doc.mismatchCount} mismatch{doc.mismatchCount > 1 ? "es" : ""}
+                                      {doc.mismatchCount} mismatch
+                                      {doc.mismatchCount > 1 ? "es" : ""}
                                     </span>
                                   )}
                                   <span
                                     className="badge rounded-pill fw-semibold px-3"
-                                    style={{ background: "#eef2ff", color: "#3577f1" }}
+                                    style={{
+                                      background: "#eef2ff",
+                                      color: "#3577f1",
+                                    }}
                                   >
-                                    {doc.visitCount} visit{doc.visitCount > 1 ? "s" : ""}
+                                    {doc.visitCount} visit
+                                    {doc.visitCount > 1 ? "s" : ""}
                                   </span>
                                 </div>
                               </div>
@@ -584,7 +690,9 @@ const AgentReport = () => {
                         size="sm"
                         color="light"
                         disabled={safePage === 1}
-                        onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.max(1, p - 1))
+                        }
                       >
                         <i className="bx bx-chevron-left" />
                       </Button>
@@ -592,7 +700,9 @@ const AgentReport = () => {
                         size="sm"
                         color="light"
                         disabled={safePage === totalPages}
-                        onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                        onClick={() =>
+                          setCurrentPage((p) => Math.min(totalPages, p + 1))
+                        }
                       >
                         <i className="bx bx-chevron-right" />
                       </Button>
