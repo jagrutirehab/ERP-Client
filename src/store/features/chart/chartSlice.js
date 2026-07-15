@@ -57,6 +57,9 @@ import {
   editInjuryMarks,
   deleteInjuryMarksFile,
   getFinalDiagnosis,
+  postEctSession,
+  postGeneralEctSession,
+  editEctSession,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 import { IPD, OPD } from "../../../Components/constants/patient";
@@ -336,6 +339,69 @@ export const updateVitalSign = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Vital Sign Updated Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addEctSession = createAsyncThunk(
+  "postEctSession",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postEctSession(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "ECT Session Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addGeneralEctSession = createAsyncThunk(
+  "postGeneralEctSession",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postGeneralEctSession(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "General ECT Session Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updateEctSession = createAsyncThunk(
+  "editEctSession",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editEctSession(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "ECT Session Updated Successfully",
         }),
       );
 
@@ -1707,6 +1773,66 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(updateVitalSign.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addEctSession.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addEctSession.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addEctSession.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addGeneralEctSession.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addGeneralEctSession.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.charts = [payload.payload, ...(state.charts || [])];
+      })
+      .addCase(addGeneralEctSession.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateEctSession.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateEctSession.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id,
+          );
+          state.charts[findIndex] = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission,
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id,
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+        }
+      })
+      .addCase(updateEctSession.rejected, (state) => {
         state.loading = false;
       });
 

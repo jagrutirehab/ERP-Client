@@ -24,6 +24,7 @@ const ROUND_NOTE = "ROUND_NOTE";
 const INPUT_OUTPUT = "INPUT_OUTPUT";
 const NURSE_SOS_PROCEDURE = "NURSE_SOS_PROCEDURE";
 const INJURY_MARKS = "INJURY_MARKS";
+const ECT_SESSION = "ECT_SESSION";
 //Chart Bill Types
 const OPD = "OPD";
 const IPD = "IPD";
@@ -122,6 +123,148 @@ const records = [
   {
     name: "Round Notes",
     category: ROUND_NOTE,
+  },
+  {
+    name: "ECT Session",
+    category: ECT_SESSION,
+  },
+];
+
+// Section/field descriptors for the ECT Session chart. Single source of truth
+// shared by the form (ChartForm/EctSession) and the read-only display
+// (Charts/EctSession). Field types: text | date | time | select | radio |
+// textarea | checkbox (multi-select array).
+const ectSessionSections = [
+  {
+    key: "sessionDetails",
+    title: "Patient Identification & Session Details",
+    fields: [
+      { name: "date", label: "Date", type: "date" },
+      { name: "timeOfProcedure", label: "Time of Procedure", type: "time" },
+      { name: "uhid", label: "UHID / IPD No.", type: "text" },
+      { name: "ward", label: "Ward / Unit", type: "text" },
+      { name: "patientName", label: "Patient Name", type: "text" },
+      { name: "age", label: "Age", type: "text", unit: "yrs" },
+      { name: "sex", label: "Gender", type: "select", options: ["Male", "Female", "Other"] },
+      { name: "diagnosis", label: "Diagnosis (ICD-10)", type: "text" },
+      { name: "consultantPsychiatrist", label: "Consultant Psychiatrist", type: "text" },
+      { name: "anaesthetist", label: "Anaesthetist", type: "text" },
+      { name: "sessionNo", label: "ECT Session No.", type: "text" },
+      { name: "totalSessions", label: "Total Sessions in Course", type: "text" },
+      { name: "courseStartedOn", label: "Course Started On", type: "date" },
+      { name: "indication", label: "Indication for ECT", type: "text" },
+    ],
+  },
+  {
+    key: "preProcedureChecklist",
+    title: "Pre-Procedure Checklist",
+    fields: [
+      { name: "consentVerified", label: "Informed Consent Verified", type: "radio", options: ["Yes", "No"] },
+      { name: "consentType", label: "Consent Type", type: "radio", options: ["Self", "Nominated Representative", "Legal Guardian"] },
+      { name: "npoStatus", label: "NPO Status Confirmed", type: "radio", options: ["Yes", "No"] },
+      { name: "npoDuration", label: "NPO Duration", type: "text", unit: "hours" },
+      { name: "checklistCompleted", label: "Pre-ECT Checklist Completed", type: "radio", options: ["Yes", "No"] },
+      { name: "ivAccess", label: "IV Access Secured", type: "radio", options: ["Yes", "No"] },
+    ],
+  },
+  {
+    key: "preEctVitals",
+    title: "Pre-ECT Vitals",
+    fields: [
+      { name: "bp", label: "Blood Pressure", type: "text", unit: "mmHg" },
+      { name: "pulseRate", label: "Pulse Rate", type: "text", unit: "bpm" },
+      { name: "spo2", label: "SpO2", type: "text", unit: "%" },
+      { name: "temperature", label: "Temperature", type: "text", unit: "°F" },
+      { name: "bloodSugar", label: "Blood Sugar", type: "text", unit: "mg/dL" },
+      { name: "weight", label: "Weight", type: "text", unit: "kg" },
+    ],
+  },
+  {
+    key: "anaesthesia",
+    title: "Anaesthesia & Premedication",
+    fields: [
+      { name: "glycopyrrolate", label: "Glycopyrrolate", type: "text", unit: "mg IV" },
+      { name: "midazolam", label: "Midazolam", type: "text", unit: "mg IV" },
+      { name: "inductionAgent", label: "Induction Agent", type: "radio", options: ["Propofol", "Thiopentone", "Etomidate", "Ketamine"] },
+      { name: "inductionDose", label: "Induction Dose", type: "text", unit: "mg IV" },
+      { name: "succinylcholine", label: "Succinylcholine", type: "text", unit: "mg IV" },
+      { name: "oxygen", label: "Oxygen", type: "radio", options: ["Pre-oxygenated", "Bag-mask ventilated"] },
+      { name: "otherDrugs", label: "Other Drugs / Adjuncts", type: "text" },
+    ],
+  },
+  {
+    key: "ectParameters",
+    title: "ECT Stimulus Parameters",
+    fields: [
+      { name: "electrodePlacement", label: "Electrode Placement", type: "radio", options: ["Bitemporal (BT)", "Bifrontal (BF)", "Right Unilateral (RUL)", "Left Unilateral (LUL)"] },
+      { name: "machine", label: "Machine / Device", type: "text" },
+      { name: "impedance", label: "Impedance", type: "text", unit: "Ω" },
+      { name: "pulseWidth", label: "Pulse Width", type: "text", unit: "ms" },
+      { name: "frequency", label: "Frequency", type: "text", unit: "Hz" },
+      { name: "current", label: "Current", type: "text", unit: "mA" },
+      { name: "trainDuration", label: "Train Duration", type: "text", unit: "sec" },
+      { name: "stimulusCharge", label: "Stimulus Charge", type: "text", unit: "mC" },
+      { name: "energy", label: "Energy", type: "text", unit: "%" },
+      { name: "numberOfStimulations", label: "Number of Stimulations", type: "text" },
+      { name: "restimulationDone", label: "Restimulation Done", type: "radio", options: ["Yes", "No"] },
+    ],
+  },
+  {
+    key: "seizureMonitoring",
+    title: "Seizure Monitoring",
+    fields: [
+      { name: "motorSeizureDuration", label: "Motor Seizure Duration", type: "text", unit: "sec" },
+      { name: "eegSeizureDuration", label: "EEG Seizure Duration", type: "text", unit: "sec" },
+      { name: "cuffMethodUsed", label: "Cuff Method Used", type: "radio", options: ["Yes", "No"] },
+      { name: "seizureQuality", label: "Seizure Quality", type: "radio", options: ["Adequate", "Poor", "Prolonged", "Missed"] },
+      { name: "eegPattern", label: "EEG Pattern", type: "radio", options: ["Generalized tonic-clonic", "Polyspike & wave", "Abrupt termination", "Not recorded"] },
+    ],
+  },
+  {
+    key: "recovery",
+    title: "Recovery",
+    fields: [
+      { name: "timeToEyeOpening", label: "Time to Eye Opening", type: "text", unit: "min" },
+      { name: "timeToFullOrientation", label: "Time to Full Orientation", type: "text", unit: "min" },
+      { name: "orientationRegained", label: "Orientation Regained", type: "radio", options: ["Yes", "Partial", "No"] },
+      { name: "transferredToWard", label: "Transferred to Ward", type: "time" },
+      { name: "postEctBp", label: "Post-ECT BP", type: "text", unit: "mmHg" },
+      { name: "postEctPulse", label: "Post-ECT Pulse", type: "text", unit: "bpm" },
+      { name: "postEctSpo2", label: "Post-ECT SpO2", type: "text", unit: "%" },
+      { name: "postEctGcs", label: "Post-ECT GCS", type: "text", unit: "/ 15" },
+    ],
+  },
+  {
+    key: "complications",
+    title: "Complications",
+    fields: [
+      { name: "complications", label: "Complications Observed", type: "checkbox", options: ["Prolonged seizure", "Missed seizure", "Bradycardia", "Tachycardia", "Hypertension", "Hypotension", "Arrhythmia", "Laryngospasm", "Aspiration", "Agitation / Confusion", "Headache", "Nausea / Vomiting", "Muscle pain", "Jaw pain", "Apnoea"] },
+      { name: "complicationsOther", label: "Other Complication", type: "text" },
+      { name: "management", label: "Management Given for Complications", type: "textarea" },
+    ],
+  },
+  {
+    key: "clinicalAssessment",
+    title: "Clinical Assessment & Plan",
+    fields: [
+      { name: "responseToPreviousEct", label: "Response to Previous ECT", type: "radio", options: ["Good response", "Partial response", "No response", "First session"] },
+      { name: "cgiS", label: "Current CGI-S Score", type: "select", options: ["1 - Normal", "2 - Borderline", "3 - Mildly ill", "4 - Moderately ill", "5 - Markedly ill", "6 - Severely ill", "7 - Extremely ill"] },
+      { name: "cognitiveSideEffects", label: "Cognitive Side-Effects Noted", type: "radio", options: ["None", "Mild amnesia", "Moderate amnesia", "Confusion"] },
+      { name: "procedureSummary", label: "Today's Procedure Summary", type: "textarea" },
+      { name: "planForNext", label: "Plan for Next ECT", type: "radio", options: ["Continue same parameters", "Increase energy", "Decrease energy", "Hold - Review", "Course complete"] },
+      { name: "nextEctDate", label: "Next ECT Date (if scheduled)", type: "text" },
+      { name: "interval", label: "Interval", type: "radio", options: ["Alternate day", "3x/week", "Weekly"] },
+      { name: "remarks", label: "Remarks / Additional Notes", type: "textarea" },
+    ],
+  },
+  {
+    key: "authentication",
+    title: "Authentication",
+    fields: [
+      { name: "psychiatristName", label: "Consultant Psychiatrist", type: "text" },
+      { name: "anaesthetistName", label: "Anaesthetist", type: "text" },
+      { name: "nurseName", label: "ECT Nurse / Technician", type: "text" },
+    ],
   },
 ];
 
@@ -1676,17 +1819,6 @@ let addPatientFields = [
     required: true,
   },
   {
-    label: "Aadhaar Card Number",
-    name: "aadhaarCardNumber",
-    type: "text",
-  },
-  {
-    label: "Aadhaar Card",
-    name: "aadhaarCard",
-    type: "file",
-    accept: "image/*",
-  },
-  {
     label: "Email",
     name: "email",
     type: "email",
@@ -2478,6 +2610,7 @@ export {
   INPUT_OUTPUT,
   NURSE_SOS_PROCEDURE,
   INJURY_MARKS,
+  ECT_SESSION,
   //PATIENT BILLS
   INVOICE,
   ADVANCE_PAYMENT,
@@ -2510,6 +2643,7 @@ export {
   outpassFields,
   dischargeSummaryFields,
   expirySummaryFields,
+  ectSessionSections,
   //PATIENT FIELDS
   addPatientFields,
   patientGuradianFields,

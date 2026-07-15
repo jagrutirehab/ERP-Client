@@ -486,6 +486,12 @@ export const postGeneralVitalSign = (data) =>
   api.create(url.POST_GENERAL_VITAL_SIGN, data);
 export const editGeneralVitalSign = (data) =>
   api.put(url.EDIT_GENERAL_VITAL_SIGN, data);
+export const postEctSession = (data) => api.create(url.POST_ECT_SESSION, data);
+export const editEctSession = (data) => api.put(url.EDIT_ECT_SESSION, data);
+export const postGeneralEctSession = (data) =>
+  api.create(url.POST_GENERAL_ECT_SESSION, data);
+export const editGeneralEctSession = (data) =>
+  api.put(url.EDIT_GENERAL_ECT_SESSION, data);
 export const postClinicalNote = (data, config = {}) =>
   api.create(url.POST_CLINICAL_NOTE, data, {
     ...config,

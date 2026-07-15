@@ -17,6 +17,7 @@ import {
   INPUT_OUTPUT,
   NURSE_SOS_PROCEDURE,
   INJURY_MARKS,
+  ECT_SESSION,
 } from "../../../constants/patient";
 import _ from "lodash";
 
@@ -37,6 +38,7 @@ import CounsellingNote from "./CounsellingNote";
 import InputOutput from "./InputOutput";
 import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
+import EctSession from "./EctSession";
 
 const styles = StyleSheet.create({
   page: {
@@ -138,6 +140,19 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                   }
                 >
                   <VitalSign
+                    chart={chart}
+                    center={chart.center}
+                    patient={patient}
+                  />
+                </RenderWhen>
+
+                <RenderWhen
+                  isTrue={
+                    chart?.chart === ECT_SESSION &&
+                    (chart.type === IPD || chart.type === GENERAL)
+                  }
+                >
+                  <EctSession
                     chart={chart}
                     center={chart.center}
                     patient={patient}
@@ -275,6 +290,19 @@ const Charts = ({ charts, patient, doctor, admission }) => {
 
                 <RenderWhen
                   isTrue={
+                    chart?.chart === ECT_SESSION &&
+                    (chart.type === IPD || chart.type === GENERAL)
+                  }
+                >
+                  <EctSession
+                    chart={chart}
+                    center={chart.center}
+                    patient={patient}
+                  />
+                </RenderWhen>
+
+                <RenderWhen
+                  isTrue={
                     chart?.chart === DISCHARGE_SUMMARY && chart.type === IPD
                   }
                 >
@@ -347,6 +375,19 @@ const Charts = ({ charts, patient, doctor, admission }) => {
 
                 <RenderWhen
                   isTrue={
+                    chart?.chart === ECT_SESSION &&
+                    (chart.type === IPD || chart.type === GENERAL)
+                  }
+                >
+                  <EctSession
+                    chart={chart}
+                    center={chart.center}
+                    patient={patient}
+                  />
+                </RenderWhen>
+
+                <RenderWhen
+                  isTrue={
                     chart?.chart === DISCHARGE_SUMMARY && chart.type === IPD
                   }
                 >
@@ -411,6 +452,19 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                   }
                 >
                   <VitalSign
+                    chart={chart}
+                    center={chart.center}
+                    patient={patient}
+                  />
+                </RenderWhen>
+
+                <RenderWhen
+                  isTrue={
+                    chart?.chart === ECT_SESSION &&
+                    (chart.type === IPD || chart.type === GENERAL)
+                  }
+                >
+                  <EctSession
                     chart={chart}
                     center={chart.center}
                     patient={patient}
