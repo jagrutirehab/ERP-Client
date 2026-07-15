@@ -1319,6 +1319,12 @@ export const MARKETING = [
     icon: "bx bx-list-ul",
     link: "/marketing/visit-log/list",
   },
+  {
+    id: "agent-report",
+    label: "Agent Report",
+    icon: "bx bx-bar-chart-alt-2",
+    link: "/marketing/reports/agent",
+  },
 ];
 
 export const RECORDINGS = [

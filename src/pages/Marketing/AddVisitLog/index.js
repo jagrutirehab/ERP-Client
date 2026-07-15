@@ -469,7 +469,7 @@ const AddVisitLog = () => {
   };
 
   return (
-    <div className="visit-log-wizard">
+    <div className="visit-log-wizard p-3 p-lg-4 bg-white">
       <style>{`
         .visit-log-wizard {
           --vlw-primary: #3577f1;
@@ -600,11 +600,12 @@ const AddVisitLog = () => {
         .visit-log-wizard .stepper-item.is-active .stepper-num { color: var(--vlw-primary); }
         .visit-log-wizard .stepper-item.is-done .stepper-num { color: var(--vlw-success); }
         .visit-log-wizard .stepper-label {
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 500;
           color: var(--vlw-muted);
           display: block;
           margin-top: 2px;
+          white-space: nowrap;
         }
         .visit-log-wizard .stepper-item.is-active .stepper-label { color: var(--vlw-ink); }
         .visit-log-wizard .stepper-item.is-done .stepper-label { color: var(--vlw-ink); }
@@ -700,7 +701,7 @@ const AddVisitLog = () => {
       `}</style>
 
       <Row className="justify-content-center">
-        <Col xs={12} xl={9}>
+        <Col xs={12} xl={10}>
           <Card className="wizard-card shadow-none mb-0">
             <CardBody className="wizard-card-body">
               {/* ---- Header ---- */}
@@ -786,7 +787,7 @@ const AddVisitLog = () => {
               </div>
 
               {/* Step indicator: DESKTOP */}
-              <div className="d-none d-md-flex mt-4 gap-4">
+              <div className="d-none d-md-flex mt-4 gap-2">
                 {STEPS.map((step, idx) => (
                   <button
                     key={step.key}

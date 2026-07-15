@@ -4111,7 +4111,6 @@ export const generatePsychoDiagnosticForm = (data) =>
 export const deletePsychoDiagnosticFormFile = (data) =>
   api.update(url.DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE, data);
 
-
 // Marketing - Visit Log
 export const createVisitLog = (formData) =>
   axios.post(url.POST_VISIT_LOG, formData, {
@@ -4120,7 +4119,6 @@ export const createVisitLog = (formData) =>
       "X-No-Cookie-Token": "true",
     },
   });
-
 
 export const getVisitLogs = (params = {}) =>
   axios.get(url.GET_VISIT_LOGS, {
@@ -4156,3 +4154,10 @@ export const searchDoctors = (q) =>
     params: { q },
     headers: { "X-No-Cookie-Token": "true" },
   });
+
+export const getAgentVisitReport = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/reports/agent-summary`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
