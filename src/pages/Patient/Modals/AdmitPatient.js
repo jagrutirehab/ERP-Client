@@ -32,7 +32,6 @@ import {
 import {
   ADMIT_PATIENT,
   EDIT_ADMISSION,
-  NATIONALITIES,
 } from "../../../Components/constants/patient";
 import FormField from "../../../Components/Common/FormField";
 import Divider from "../../../Components/Common/Divider";
@@ -56,7 +55,6 @@ const AdmitPatient = ({
   const [step, setStep] = useState(1);
   const [isOtherReferral, setIsOtherReferral] = useState(false);
   const [selectedReferral, setSelectedReferral] = useState(null);
-  const [selectedNationality, setSelectedNationality] = useState(null);
   const [icdOptions, setIcdOptions] = useState([]);
   const [submitting, setSubmitting] = useState(false);
 
@@ -78,8 +76,9 @@ const AdmitPatient = ({
       dateOfBirth,
       gender: patient ? patient.gender : "",
       aadhaarCardNumber: patient ? patient.aadhaarCardNumber : "",
+      passportNumber: patient ? patient.passportNumber || "" : "",
       address: patient ? patient.address : "",
-      nationality: patient ? patient.nationality || "" : "",
+      nationality: patient ? patient.nationality || "Indian" : "Indian",
       //guardian
       guardianName: patient ? patient.guardianName : "",
       guardianRelation: patient ? patient.guardianRelation : "",
@@ -125,11 +124,26 @@ const AdmitPatient = ({
       dateOfBirth: Yup.string().required("Please select Date of birth"),
       gender: Yup.string().required("Please select Gender"),
       aadhaarCardNumber: Yup.string()
-        .required("Aadhaar Card Number is required")
-        .matches(
-          /^[0-9]{12}$/,
-          "Aadhaar Card Number must be exactly 12 digits",
-        ),
+        .nullable()
+        .notRequired()
+        .when("nationality", {
+          is: "Indian",
+          then: (schema) =>
+            schema
+              .required("Aadhaar Card Number is required")
+              .matches(
+                /^[0-9]{12}$/,
+                "Aadhaar Card Number must be exactly 12 digits",
+              ),
+        }),
+      passportNumber: Yup.string()
+        .nullable()
+        .notRequired()
+        .when("nationality", {
+          is: "Foreigner",
+          then: (schema) =>
+            schema.required("Passport Number is required for foreign nationals"),
+        }),
       address: Yup.string().required("Please select Address"),
       nationality: Yup.string().required("Please select Nationality"),
       guardianName: Yup.string().required("Please select Guardian Name"),
@@ -194,22 +208,6 @@ const AdmitPatient = ({
   useEffect(() => {
     dispatch(fetchReferrals());
   }, [dispatch]);
-
-  useEffect(() => {
-    // Initialize selectedNationality from patient data
-    if (patient?.nationality) {
-      setSelectedNationality({
-        value: patient.nationality,
-        label: patient.nationality,
-      });
-    } else {
-      validation.setFieldValue("nationality", "Indian");
-      setSelectedNationality({
-        value: "Indian",
-        label: "Indian",
-      });
-    }
-  }, [patient, isOpen]);
 
   const referralInitialized = useRef(false);
   useEffect(() => {
@@ -358,12 +356,6 @@ const AdmitPatient = ({
       options: ["MALE", "FEMALE", "OTHERS"],
     },
     {
-      label: "Aadhaar Card Number",
-      name: "aadhaarCardNumber",
-      type: "text",
-      required: true,
-    },
-    {
       label: "Address",
       name: "address",
       type: "text",
@@ -447,64 +439,114 @@ const AdmitPatient = ({
           doctorLoading={doctorLoading}
           handleChange={handleChange}
         />
-        {/* Nationality React Select */}
+        {/* Nationality & Identity Section */}
         <Col xs={12} lg={4}>
           <div className="mb-3">
-            <Label htmlFor="nationality" className="form-label">
+            <Label className="form-label">
               Nationality <span className="text-danger">*</span>
             </Label>
-            <Select
-              inputId="nationality"
-              value={selectedNationality}
-              onChange={(option) => {
-                setSelectedNationality(option);
-                validation.setFieldValue("nationality", option?.value || "");
-              }}
-              onBlur={() => validation.setFieldTouched("nationality", true)}
-              options={NATIONALITIES}
-              placeholder="Search nationality..."
-              isClearable
-              styles={{
-                control: (provided, state) => ({
-                  ...provided,
-                  borderColor:
-                    validation.touched.nationality &&
-                    validation.errors.nationality
-                      ? "#dc3545"
-                      : "#ced4da",
-                  boxShadow: state.isFocused
-                    ? validation.touched.nationality &&
-                      validation.errors.nationality
-                      ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
-                      : "0 0 0 0.2rem rgba(13, 110, 253, 0.25)"
-                    : "none",
-                  "&:hover": {
-                    borderColor:
-                      validation.touched.nationality &&
-                      validation.errors.nationality
-                        ? "#dc3545"
-                        : "#86b7fe",
-                  },
-                }),
-                menu: (provided) => ({
-                  ...provided,
-                  zIndex: 9999,
-                }),
-              }}
-            />
-            {validation.touched.nationality &&
-              validation.errors.nationality && (
+            <div className="d-flex gap-2">
+              {["Indian", "Foreigner"].map((opt) => (
                 <div
+                  key={opt}
+                  onClick={() => {
+                    validation.setFieldValue("nationality", opt);
+                    if (opt === "Indian") {
+                      validation.setFieldValue("passportNumber", "");
+                    } else {
+                      validation.setFieldValue("aadhaarCardNumber", "");
+                    }
+                  }}
                   style={{
-                    color: "#dc3545",
+                    flex: 1,
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: "0.5rem",
+                    border: `2px solid ${validation.values.nationality === opt ? "#405189" : "#d1d5db"}`,
+                    backgroundColor: validation.values.nationality === opt ? "#f0f3ff" : "#fff",
+                    color: validation.values.nationality === opt ? "#405189" : "#6b7280",
+                    fontWeight: validation.values.nationality === opt ? "600" : "400",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    userSelect: "none",
                     fontSize: "0.875rem",
-                    marginTop: "0.25rem",
                   }}
                 >
-                  {validation.errors.nationality}
+                  {opt === "Indian" ? "🇮🇳 Indian" : "🌐 Foreigner"}
                 </div>
-              )}
+              ))}
+            </div>
+            {validation.touched.nationality && validation.errors.nationality && (
+              <div style={{ color: "#dc3545", fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                {validation.errors.nationality}
+              </div>
+            )}
           </div>
+        </Col>
+        <Col xs={12} lg={4}>
+          {validation.values.nationality === "Indian" ? (
+            <div className="mb-3">
+              <Label htmlFor="aadhaarCardNumber" className="form-label">
+                Aadhaar Card Number <span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="text"
+                name="aadhaarCardNumber"
+                id="aadhaarCardNumber"
+                placeholder="Enter 12-digit Aadhaar number"
+                maxLength={12}
+                onChange={validation.handleChange}
+                onBlur={validation.handleBlur}
+                value={validation.values.aadhaarCardNumber || ""}
+                invalid={validation.touched.aadhaarCardNumber && validation.errors.aadhaarCardNumber ? true : false}
+                className="form-control"
+              />
+              {validation.touched.aadhaarCardNumber && validation.errors.aadhaarCardNumber && (
+                <FormFeedback type="invalid">
+                  {validation.errors.aadhaarCardNumber}
+                </FormFeedback>
+              )}
+            </div>
+          ) : validation.values.nationality === "Foreigner" ? (
+            <div className="mb-3">
+              <Label htmlFor="passportNumber" className="form-label">
+                International Passport Number <span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="text"
+                name="passportNumber"
+                id="passportNumber"
+                placeholder="Enter passport number"
+                onChange={validation.handleChange}
+                onBlur={validation.handleBlur}
+                value={validation.values.passportNumber || ""}
+                invalid={validation.touched.passportNumber && validation.errors.passportNumber ? true : false}
+                className="form-control"
+              />
+              {validation.touched.passportNumber && validation.errors.passportNumber && (
+                <FormFeedback type="invalid">
+                  {validation.errors.passportNumber}
+                </FormFeedback>
+              )}
+              <div
+                style={{
+                  marginTop: "0.5rem",
+                  padding: "0.5rem 0.75rem",
+                  backgroundColor: "#fff3cd",
+                  border: "1px solid #ffc107",
+                  borderRadius: "0.375rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontSize: "0.8125rem",
+                  color: "#856404",
+                }}
+              >
+                <i className="ri-information-line" style={{ fontSize: "1rem", flexShrink: 0 }} />
+                <span>Inform FRR office</span>
+              </div>
+            </div>
+          ) : null}
         </Col>
         <Col xs={12}>
           <div className="d-flex gap-3 align-items-center">
