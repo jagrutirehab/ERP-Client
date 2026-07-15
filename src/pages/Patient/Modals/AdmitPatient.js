@@ -359,6 +359,7 @@ const AdmitPatient = ({
       label: "Address",
       name: "address",
       type: "text",
+      required: true
     },
   ];
 
@@ -576,11 +577,10 @@ const AdmitPatient = ({
                     width: "100%",
                     height: "42px",
                     padding: "0.5rem 0.75rem",
-                    border: `1px solid ${
-                      validation.touched[f.name] && validation.errors[f.name]
+                    border: `1px solid ${validation.touched[f.name] && validation.errors[f.name]
                         ? "#dc3545"
                         : "#ced4da"
-                    }`,
+                      }`,
                     borderRadius: "0.375rem",
                     fontSize: "1rem",
                   }}
@@ -657,7 +657,7 @@ const AdmitPatient = ({
                   ...provided,
                   borderColor:
                     validation.touched.referredBy &&
-                    validation.errors.referredBy
+                      validation.errors.referredBy
                       ? "#dc3545"
                       : "#ced4da",
                   boxShadow: state.isFocused
@@ -669,7 +669,7 @@ const AdmitPatient = ({
                   "&:hover": {
                     borderColor:
                       validation.touched.referredBy &&
-                      validation.errors.referredBy
+                        validation.errors.referredBy
                         ? "#dc3545"
                         : "#86b7fe",
                   },
@@ -716,12 +716,11 @@ const AdmitPatient = ({
                       width: "100%",
                       height: "42px",
                       padding: "0.5rem 0.75rem",
-                      border: `1px solid ${
-                        validation.touched.referralPhoneNumber &&
-                        validation.errors.referralPhoneNumber
+                      border: `1px solid ${validation.touched.referralPhoneNumber &&
+                          validation.errors.referralPhoneNumber
                           ? "#dc3545"
                           : "#ced4da"
-                      }`,
+                        }`,
                       borderRadius: "0.375rem",
                       fontSize: "1rem",
                     }}
@@ -888,7 +887,7 @@ const AdmitPatient = ({
               className="form-control shadow-none bg-light"
             />
             {validation.touched.addmissionDate &&
-            validation.errors.addmissionDate ? (
+              validation.errors.addmissionDate ? (
               <FormFeedback className="d-block" type="invalid">
                 {validation.errors.addmissionDate}
               </FormFeedback>
@@ -921,7 +920,7 @@ const AdmitPatient = ({
                 className="form-control shadow-none bg-light"
               />
               {validation.touched.dischargeDate &&
-              validation.errors.dischargeDate ? (
+                validation.errors.dischargeDate ? (
                 <FormFeedback className="d-block" type="invalid">
                   {validation.errors.dischargeDate}
                 </FormFeedback>
