@@ -348,6 +348,7 @@ const AdmitPatient = ({
       label: "Date of Birth",
       name: "dateOfBirth",
       type: "date",
+      required: true
     },
     {
       label: "Gender",
@@ -578,8 +579,8 @@ const AdmitPatient = ({
                     height: "42px",
                     padding: "0.5rem 0.75rem",
                     border: `1px solid ${validation.touched[f.name] && validation.errors[f.name]
-                        ? "#dc3545"
-                        : "#ced4da"
+                      ? "#dc3545"
+                      : "#ced4da"
                       }`,
                     borderRadius: "0.375rem",
                     fontSize: "1rem",
@@ -717,9 +718,9 @@ const AdmitPatient = ({
                       height: "42px",
                       padding: "0.5rem 0.75rem",
                       border: `1px solid ${validation.touched.referralPhoneNumber &&
-                          validation.errors.referralPhoneNumber
-                          ? "#dc3545"
-                          : "#ced4da"
+                        validation.errors.referralPhoneNumber
+                        ? "#dc3545"
+                        : "#ced4da"
                         }`,
                       borderRadius: "0.375rem",
                       fontSize: "1rem",
