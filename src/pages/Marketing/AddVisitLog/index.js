@@ -514,6 +514,10 @@ const AddVisitLog = () => {
       toast.error("Please take a live selfie before continuing");
       return false;
     }
+    if (activeStep === 4 && !clinicPhotoFile) {
+      toast.error("Please take a photo of the clinic before continuing");
+      return false;
+    }
 
     const errors = await validation.validateForm();
     const fieldsToCheck = STEP_FIELDS[activeStep];
