@@ -462,6 +462,7 @@ export const permissionList = [
     subModules: [
       { name: "ADD_VISIT_LOG", label: "Add Visit Log" },
       { name: "VIEW_VISIT_LOGS", label: "View All Visit Logs" },
+      { name: "VIEW_AGENT_REPORT", label: "Agent Visit Report" },
     ],
   },
 ];

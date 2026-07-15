@@ -1,10 +1,4 @@
-import React, {
-  useEffect,
-  useState,
-  useCallback,
-  useMemo,
-  useRef,
-} from "react";
+import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import {
   Card,
   CardBody,
@@ -28,29 +22,15 @@ const INTEREST_STYLE = {
   COLD: { bg: "#e3f2fc", color: "#299cdb" },
 };
 
-const AVATAR_COLORS = [
-  "#3577f1",
-  "#0ab39c",
-  "#f7b84b",
-  "#f06548",
-  "#299cdb",
-  "#7d5fff",
-];
+const AVATAR_COLORS = ["#3577f1", "#0ab39c", "#f7b84b", "#f06548", "#299cdb", "#7d5fff"];
 
 const getInitials = (name = "") =>
-  name
-    .split(" ")
-    .map((w) => w[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
+  name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
 
-const getAvatarColor = (name = "") =>
-  AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length || 0];
+const getAvatarColor = (name = "") => AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length || 0];
 
 const mapsLink = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
 
-// Haversine formula — same logic as backend, used here just for display
 function getDistanceInMeters(lat1, lng1, lat2, lng2) {
   const R = 6371000;
   const toRad = (deg) => (deg * Math.PI) / 180;
@@ -82,9 +62,11 @@ const VisitLogList = () => {
   const [error, setError] = useState(null);
   const [filters, setFilters] = useState(DEFAULT_FILTERS);
   const [search, setSearch] = useState("");
+  const [showSuggestions, setShowSuggestions] = useState(false);
   const [sortByDistanceDesc, setSortByDistanceDesc] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
-  const [showSuggestions, setShowSuggestions] = useState(false);
+  const [rowsPerPage, setRowsPerPage] = useState(25);
+  const [currentPage, setCurrentPage] = useState(1);
   const searchWrapperRef = useRef(null);
 
   const fetchLogs = useCallback(async (activeFilters) => {
@@ -93,8 +75,7 @@ const VisitLogList = () => {
     try {
       const params = {};
       if (activeFilters.visitType) params.visitType = activeFilters.visitType;
-      if (activeFilters.interestLevel)
-        params.interestLevel = activeFilters.interestLevel;
+      if (activeFilters.interestLevel) params.interestLevel = activeFilters.interestLevel;
       if (activeFilters.from) params.from = activeFilters.from;
       if (activeFilters.to) params.to = activeFilters.to;
 
@@ -112,12 +93,10 @@ const VisitLogList = () => {
     fetchLogs(DEFAULT_FILTERS);
   }, [fetchLogs]);
 
+  // Close suggestions dropdown when clicking outside of it
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (
-        searchWrapperRef.current &&
-        !searchWrapperRef.current.contains(e.target)
-      ) {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
         setShowSuggestions(false);
       }
     };
@@ -125,17 +104,26 @@ const VisitLogList = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  const handleFilterChange = (key, value) => setFilters((f) => ({ ...f, [key]: value }));
+  const applyFilters = () => {
+    setCurrentPage(1);
+    fetchLogs(filters);
+  };
+  const resetFilters = () => {
+    setFilters(DEFAULT_FILTERS);
+    setSearch("");
+    setCurrentPage(1);
+    fetchLogs(DEFAULT_FILTERS);
+  };
+
+  // ---- Build unique agent + doctor suggestion lists from currently loaded logs ----
   const suggestionPool = useMemo(() => {
     const agentMap = new Map();
     const doctorMap = new Map();
 
     logs.forEach((log) => {
       if (log.agent?.name && !agentMap.has(log.agent.name)) {
-        agentMap.set(log.agent.name, {
-          type: "Agent",
-          label: log.agent.name,
-          sub: log.agent.email,
-        });
+        agentMap.set(log.agent.name, { type: "Agent", label: log.agent.name, sub: log.agent.email });
       }
       if (log.doctor?.name) {
         const key = `${log.doctor.name}__${log.doctor.clinicName}`;
@@ -159,15 +147,6 @@ const VisitLogList = () => {
       .filter((s) => s.label.toLowerCase().includes(q))
       .slice(0, 8);
   }, [search, suggestionPool]);
-
-  const handleFilterChange = (key, value) =>
-    setFilters((f) => ({ ...f, [key]: value }));
-  const applyFilters = () => fetchLogs(filters);
-  const resetFilters = () => {
-    setFilters(DEFAULT_FILTERS);
-    setSearch("");
-    fetchLogs(DEFAULT_FILTERS);
-  };
 
   const logsWithDistance = useMemo(() => {
     return logs.map((log) => {
@@ -198,28 +177,32 @@ const VisitLogList = () => {
     return counts;
   }, [logs]);
 
+  // Live filter — recalculated on every render from current `search` state,
+  // so clearing the box (search === "") immediately shows everything again,
+  // no "Apply"/"Clear all" click needed for this specific filter.
   let visibleLogs = logsWithDistance.filter((log) => {
-    if (filters.gpsMatch === "verified" && log.gps?.matchedClinic !== true)
-      return false;
-    if (filters.gpsMatch === "mismatch" && log.gps?.matchedClinic !== false)
-      return false;
+    if (filters.gpsMatch === "verified" && log.gps?.matchedClinic !== true) return false;
+    if (filters.gpsMatch === "mismatch" && log.gps?.matchedClinic !== false) return false;
     if (search.trim()) {
       const q = search.trim().toLowerCase();
-      const haystack =
-        `${log.agent?.name || ""} ${log.doctor?.name || ""} ${log.doctor?.clinicName || ""}`.toLowerCase();
+      const haystack = `${log.agent?.name || ""} ${log.doctor?.name || ""} ${log.doctor?.clinicName || ""}`.toLowerCase();
       if (!haystack.includes(q)) return false;
     }
     return true;
   });
 
   if (sortByDistanceDesc) {
-    visibleLogs = [...visibleLogs].sort(
-      (a, b) => (b._distance || 0) - (a._distance || 0),
-    );
+    visibleLogs = [...visibleLogs].sort((a, b) => (b._distance || 0) - (a._distance || 0));
   }
 
-  const hasActiveFilters =
-    Object.values(filters).some((v) => v !== "") || search.trim();
+  const totalPages = Math.max(1, Math.ceil(visibleLogs.length / rowsPerPage));
+  const safePage = Math.min(currentPage, totalPages);
+  const paginatedLogs = visibleLogs.slice(
+    (safePage - 1) * rowsPerPage,
+    safePage * rowsPerPage,
+  );
+
+  const hasActiveFilters = Object.values(filters).some((v) => v !== "") || search.trim();
 
   const RepeatOffenderBadge = ({ count }) =>
     count >= 2 ? (
@@ -247,37 +230,28 @@ const VisitLogList = () => {
   const InterestBadge = ({ level }) => {
     const s = INTEREST_STYLE[level] || {};
     return (
-      <span
-        className="badge rounded-pill fw-semibold px-2"
-        style={{ background: s.bg, color: s.color }}
-      >
+      <span className="badge rounded-pill fw-semibold px-2" style={{ background: s.bg, color: s.color }}>
         {level}
       </span>
     );
   };
 
   return (
-    <div className="">
+    <div className="p-3 p-lg-4 bg-white" style={{ overflowX: "hidden" }}>
       <Row className="justify-content-center">
-        <Col xs={12} xl={11}>
+        <Col xs={12} xl={11} style={{ minWidth: 0 }}>
           {/*Header*/}
-          <div className="d-flex align-items-center justify-content-between mb-4 mt-3 flex-wrap gap-2">
+          <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-2">
             <div className="d-flex align-items-center">
               <div
                 className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                style={{
-                  width: 48,
-                  height: 48,
-                  background: "rgba(53,119,241,0.1)",
-                }}
+                style={{ width: 48, height: 48, background: "rgba(53,119,241,0.1)" }}
               >
                 <i className="bx bx-list-ul fs-3 text-primary" />
               </div>
               <div className="ms-3">
                 <h4 className="mb-0 fw-semibold">All Visit Logs</h4>
-                <p className="text-muted mb-0 fs-13">
-                  Field visits recorded by your marketing team
-                </p>
+                <p className="text-muted mb-0 fs-13">Field visits recorded by your marketing team</p>
               </div>
             </div>
           </div>
@@ -290,24 +264,14 @@ const VisitLogList = () => {
                   <i className="bx bx-filter-alt me-1 text-muted" /> Filters
                 </span>
                 {hasActiveFilters && (
-                  <Button
-                    size="sm"
-                    color="link"
-                    className="text-decoration-none p-0"
-                    onClick={resetFilters}
-                  >
+                  <Button size="sm" color="link" className="text-decoration-none p-0" onClick={resetFilters}>
                     Clear all
                   </Button>
                 )}
               </div>
               <Row className="g-3 align-items-end">
                 <Col xs={12} md={3}>
-                  <Label
-                    className="fw-semibold text-dark mb-1"
-                    style={{ fontSize: "13px" }}
-                  >
-                    Search
-                  </Label>
+                  <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>Search</Label>
                   <div className="position-relative" ref={searchWrapperRef}>
                     <Input
                       size="sm"
@@ -316,6 +280,7 @@ const VisitLogList = () => {
                       onChange={(e) => {
                         setSearch(e.target.value);
                         setShowSuggestions(true);
+                        setCurrentPage(1);
                       }}
                       onFocus={() => setShowSuggestions(true)}
                     />
@@ -348,10 +313,8 @@ const VisitLogList = () => {
                             <span
                               className="badge rounded-pill fw-medium fs-11"
                               style={{
-                                background:
-                                  s.type === "Agent" ? "#eef2ff" : "#e6f7f4",
-                                color:
-                                  s.type === "Agent" ? "#3577f1" : "#0ab39c",
+                                background: s.type === "Agent" ? "#eef2ff" : "#e6f7f4",
+                                color: s.type === "Agent" ? "#3577f1" : "#0ab39c",
                               }}
                             >
                               {s.type}
@@ -363,19 +326,12 @@ const VisitLogList = () => {
                   </div>
                 </Col>
                 <Col xs={6} md={2}>
-                  <Label
-                    className="fw-semibold text-dark mb-1"
-                    style={{ fontSize: "13px" }}
-                  >
-                    GPS Match
-                  </Label>
+                  <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>GPS Match</Label>
                   <Input
                     type="select"
                     size="sm"
                     value={filters.gpsMatch}
-                    onChange={(e) =>
-                      handleFilterChange("gpsMatch", e.target.value)
-                    }
+                    onChange={(e) => handleFilterChange("gpsMatch", e.target.value)}
                   >
                     <option value="">All</option>
                     <option value="verified">Verified only</option>
@@ -383,19 +339,12 @@ const VisitLogList = () => {
                   </Input>
                 </Col>
                 <Col xs={6} md={2}>
-                  <Label
-                    className="fw-semibold text-dark mb-1"
-                    style={{ fontSize: "13px" }}
-                  >
-                    Visit Type
-                  </Label>
+                  <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>Visit Type</Label>
                   <Input
                     type="select"
                     size="sm"
                     value={filters.visitType}
-                    onChange={(e) =>
-                      handleFilterChange("visitType", e.target.value)
-                    }
+                    onChange={(e) => handleFilterChange("visitType", e.target.value)}
                   >
                     <option value="">All</option>
                     <option value="FIRST_VISIT">First Visit</option>
@@ -403,19 +352,12 @@ const VisitLogList = () => {
                   </Input>
                 </Col>
                 <Col xs={6} md={2}>
-                  <Label
-                    className="fw-semibold text-dark mb-1"
-                    style={{ fontSize: "13px" }}
-                  >
-                    Interest
-                  </Label>
+                  <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>Interest</Label>
                   <Input
                     type="select"
                     size="sm"
                     value={filters.interestLevel}
-                    onChange={(e) =>
-                      handleFilterChange("interestLevel", e.target.value)
-                    }
+                    onChange={(e) => handleFilterChange("interestLevel", e.target.value)}
                   >
                     <option value="">All</option>
                     <option value="HOT">Hot</option>
@@ -424,12 +366,7 @@ const VisitLogList = () => {
                   </Input>
                 </Col>
                 <Col xs={6} md={3}>
-                  <Button
-                    color="primary"
-                    className="w-100"
-                    size="sm"
-                    onClick={applyFilters}
-                  >
+                  <Button color="primary" className="w-100" size="sm" onClick={applyFilters}>
                     Apply Filters
                   </Button>
                 </Col>
@@ -456,28 +393,20 @@ const VisitLogList = () => {
           {/*MOBILE: card list*/}
           {!loading && !error && visibleLogs.length > 0 && (
             <div className="d-md-none">
-              {visibleLogs.map((log) => {
+              {paginatedLogs.map((log) => {
                 const matched = log.gps?.matchedClinic;
-                const agentMismatches =
-                  mismatchCountByAgent[log.agent?._id] || 0;
+                const agentMismatches = mismatchCountByAgent[log.agent?._id] || 0;
                 return (
                   <Card
                     key={log._id}
                     className="border-0 shadow-sm mb-2"
-                    style={{
-                      borderLeft: `4px solid ${matched ? "#0ab39c" : "#f06548"}`,
-                    }}
+                    style={{ borderLeft: `4px solid ${matched ? "#0ab39c" : "#f06548"}` }}
                   >
                     <CardBody className="p-3">
                       <div className="d-flex align-items-center gap-2 mb-2">
                         <div
                           className="rounded-circle d-flex align-items-center justify-content-center fw-semibold text-white flex-shrink-0"
-                          style={{
-                            width: 36,
-                            height: 36,
-                            fontSize: 13,
-                            background: getAvatarColor(log.agent?.name),
-                          }}
+                          style={{ width: 36, height: 36, fontSize: 13, background: getAvatarColor(log.agent?.name) }}
                         >
                           {getInitials(log.agent?.name) || "?"}
                         </div>
@@ -486,56 +415,32 @@ const VisitLogList = () => {
                             {log.agent?.name || "Unknown"}
                             <RepeatOffenderBadge count={agentMismatches} />
                           </div>
-                          <div
-                            className="text-muted"
-                            style={{ fontSize: "12px" }}
-                          >
-                            {new Date(log.visitDate).toLocaleDateString(
-                              "en-IN",
-                              {
-                                day: "2-digit",
-                                month: "short",
-                                year: "numeric",
-                              },
-                            )}
+                          <div className="text-muted" style={{ fontSize: "12px" }}>
+                            {new Date(log.visitDate).toLocaleDateString("en-IN", {
+                              day: "2-digit", month: "short", year: "numeric",
+                            })}
                           </div>
                         </div>
                         <GpsStatus matched={matched} />
                       </div>
 
-                      <div className="fw-semibold fs-14">
-                        {log.doctor?.name}
-                      </div>
-                      <div className="text-muted fs-13 mb-2">
-                        {log.doctor?.clinicName}
-                      </div>
+                      <div className="fw-semibold fs-14">{log.doctor?.name}</div>
+                      <div className="text-muted fs-13 mb-2">{log.doctor?.clinicName}</div>
 
                       <div className="d-flex flex-wrap gap-2 mb-2">
                         <span
                           className="badge rounded-pill fw-medium"
                           style={{
-                            background:
-                              log.visitType === "FIRST_VISIT"
-                                ? "#eef2ff"
-                                : "#f3f0ff",
-                            color:
-                              log.visitType === "FIRST_VISIT"
-                                ? "#3577f1"
-                                : "#7d5fff",
+                            background: log.visitType === "FIRST_VISIT" ? "#eef2ff" : "#f3f0ff",
+                            color: log.visitType === "FIRST_VISIT" ? "#3577f1" : "#7d5fff",
                           }}
                         >
-                          {log.visitType === "FIRST_VISIT"
-                            ? "First Visit"
-                            : "Repeat Visit"}
+                          {log.visitType === "FIRST_VISIT" ? "First Visit" : "Repeat Visit"}
                         </span>
                         <InterestBadge level={log.interestLevel} />
                         {log._distance != null && (
-                          <span
-                            className={`badge rounded-pill fw-medium ${matched ? "text-success" : "text-danger"}`}
-                            style={{
-                              background: matched ? "#e6f7f4" : "#fde8e4",
-                            }}
-                          >
+                          <span className={`badge rounded-pill fw-medium ${matched ? "text-success" : "text-danger"}`}
+                            style={{ background: matched ? "#e6f7f4" : "#fde8e4" }}>
                             {formatDistance(log._distance)} away
                           </span>
                         )}
@@ -558,150 +463,85 @@ const VisitLogList = () => {
 
           {/*DESKTOP: table*/}
           {!loading && !error && visibleLogs.length > 0 && (
-            <Card className="border-0 shadow-sm d-none d-md-block">
-              <CardBody className="p-0">
-                <div className="table-responsive">
-                  <Table className="mb-0 align-middle">
+            <Card className="border-0 shadow-sm d-none d-md-block" style={{ minWidth: 0 }}>
+              <CardBody className="p-0" style={{ minWidth: 0, overflow: "hidden" }}>
+                <div className="table-responsive" style={{ overflowX: "auto" }}>
+                  <Table className="mb-0 align-middle" style={{ minWidth: "900px" }}>
                     <thead style={{ background: "#f8f9fb" }}>
                       <tr>
-                        <th className="text-muted fw-semibold fs-13 py-3 ps-4">
-                          Agent
-                        </th>
-                        <th className="text-muted fw-semibold fs-13 py-3">
-                          Doctor / Clinic
-                        </th>
-                        <th className="text-muted fw-semibold fs-13 py-3">
-                          Date
-                        </th>
-                        <th className="text-muted fw-semibold fs-13 py-3">
-                          Visit Type
-                        </th>
-                        <th className="text-muted fw-semibold fs-13 py-3">
-                          GPS
-                        </th>
+                        <th className="text-muted fw-semibold fs-13 py-3 ps-4">Agent</th>
+                        <th className="text-muted fw-semibold fs-13 py-3">Doctor / Clinic</th>
+                        <th className="text-muted fw-semibold fs-13 py-3">Date</th>
+                        <th className="text-muted fw-semibold fs-13 py-3">Visit Type</th>
+                        <th className="text-muted fw-semibold fs-13 py-3">GPS</th>
                         <th
                           className="text-muted fw-semibold fs-13 py-3"
                           style={{ cursor: "pointer" }}
                           onClick={() => setSortByDistanceDesc((s) => !s)}
                           title="Sort by distance from clinic"
                         >
-                          Distance{" "}
-                          <i
-                            className={`bx ${sortByDistanceDesc ? "bx-sort-down" : "bx-sort"}`}
-                          />
+                          Distance <i className={`bx ${sortByDistanceDesc ? "bx-sort-down" : "bx-sort"}`} />
                         </th>
-                        <th className="text-muted fw-semibold fs-13 py-3">
-                          Interest
-                        </th>
-                        <th className="text-muted fw-semibold fs-13 py-3 pe-4 text-end">
-                          Details
-                        </th>
+                        <th className="text-muted fw-semibold fs-13 py-3">Interest</th>
+                        <th className="text-muted fw-semibold fs-13 py-3 pe-4 text-end">Details</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {visibleLogs.map((log) => {
+                      {paginatedLogs.map((log) => {
                         const matched = log.gps?.matchedClinic;
-                        const agentMismatches =
-                          mismatchCountByAgent[log.agent?._id] || 0;
+                        const agentMismatches = mismatchCountByAgent[log.agent?._id] || 0;
                         return (
-                          <tr
-                            key={log._id}
-                            style={{
-                              borderLeft: `3px solid ${matched ? "#0ab39c" : "#f06548"}`,
-                            }}
-                          >
+                          <tr key={log._id} style={{ borderLeft: `3px solid ${matched ? "#0ab39c" : "#f06548"}` }}>
                             <td className="ps-4">
                               <div className="d-flex align-items-center gap-2">
                                 <div
                                   className="rounded-circle d-flex align-items-center justify-content-center fw-semibold text-white flex-shrink-0"
-                                  style={{
-                                    width: 36,
-                                    height: 36,
-                                    fontSize: 13,
-                                    background: getAvatarColor(log.agent?.name),
-                                  }}
+                                  style={{ width: 36, height: 36, fontSize: 13, background: getAvatarColor(log.agent?.name) }}
                                 >
                                   {getInitials(log.agent?.name) || "?"}
                                 </div>
                                 <div>
                                   <div className="fw-semibold fs-14 d-flex align-items-center gap-1">
                                     {log.agent?.name || "Unknown"}
-                                    <RepeatOffenderBadge
-                                      count={agentMismatches}
-                                    />
+                                    <RepeatOffenderBadge count={agentMismatches} />
                                   </div>
-                                  <div
-                                    className="text-muted"
-                                    style={{ fontSize: "12px" }}
-                                  >
-                                    {log.agent?.email}
-                                  </div>
+                                  <div className="text-muted" style={{ fontSize: "12px" }}>{log.agent?.email}</div>
                                 </div>
                               </div>
                             </td>
                             <td>
-                              <div className="fw-semibold fs-14">
-                                {log.doctor?.name}
-                              </div>
-                              <div
-                                className="text-muted"
-                                style={{ fontSize: "12px" }}
-                              >
-                                {log.doctor?.clinicName}
-                              </div>
+                              <div className="fw-semibold fs-14">{log.doctor?.name}</div>
+                              <div className="text-muted" style={{ fontSize: "12px" }}>{log.doctor?.clinicName}</div>
                             </td>
                             <td className="text-muted fs-14">
-                              {new Date(log.visitDate).toLocaleDateString(
-                                "en-IN",
-                                {
-                                  day: "2-digit",
-                                  month: "short",
-                                  year: "numeric",
-                                },
-                              )}
+                              {new Date(log.visitDate).toLocaleDateString("en-IN", {
+                                day: "2-digit", month: "short", year: "numeric",
+                              })}
                             </td>
                             <td>
                               <span
                                 className="badge rounded-pill fw-medium"
                                 style={{
-                                  background:
-                                    log.visitType === "FIRST_VISIT"
-                                      ? "#eef2ff"
-                                      : "#f3f0ff",
-                                  color:
-                                    log.visitType === "FIRST_VISIT"
-                                      ? "#3577f1"
-                                      : "#7d5fff",
+                                  background: log.visitType === "FIRST_VISIT" ? "#eef2ff" : "#f3f0ff",
+                                  color: log.visitType === "FIRST_VISIT" ? "#3577f1" : "#7d5fff",
                                 }}
                               >
-                                {log.visitType === "FIRST_VISIT"
-                                  ? "First"
-                                  : "Repeat"}
+                                {log.visitType === "FIRST_VISIT" ? "First" : "Repeat"}
                               </span>
                             </td>
-                            <td>
-                              <GpsStatus matched={matched} />
-                            </td>
+                            <td><GpsStatus matched={matched} /></td>
                             <td>
                               {log._distance != null ? (
-                                <span
-                                  className={`fw-semibold fs-13 ${matched ? "text-success" : "text-danger"}`}
-                                >
+                                <span className={`fw-semibold fs-13 ${matched ? "text-success" : "text-danger"}`}>
                                   {formatDistance(log._distance)}
                                 </span>
                               ) : (
                                 <span className="text-muted fs-13">—</span>
                               )}
                             </td>
-                            <td>
-                              <InterestBadge level={log.interestLevel} />
-                            </td>
+                            <td><InterestBadge level={log.interestLevel} /></td>
                             <td className="pe-4 text-end">
-                              <Button
-                                size="sm"
-                                color="light"
-                                onClick={() => setSelectedLog(log)}
-                              >
+                              <Button size="sm" color="light" onClick={() => setSelectedLog(log)}>
                                 <i className="bx bx-show" />
                               </Button>
                             </td>
@@ -716,110 +556,105 @@ const VisitLogList = () => {
           )}
 
           {!loading && !error && visibleLogs.length > 0 && (
-            <div className="text-muted mt-2 fs-13 text-end">
-              Showing {visibleLogs.length} of {logs.length} visits
+            <div className="d-flex align-items-center justify-content-between flex-wrap gap-2 mt-3">
+              <div className="d-flex align-items-center gap-2">
+                <span className="text-muted fs-13">Rows per page</span>
+                <Input
+                  type="select"
+                  size="sm"
+                  style={{ width: "80px" }}
+                  value={rowsPerPage}
+                  onChange={(e) => {
+                    setRowsPerPage(Number(e.target.value));
+                    setCurrentPage(1);
+                  }}
+                >
+                  <option value={10}>10</option>
+                  <option value={25}>25</option>
+                  <option value={50}>50</option>
+                </Input>
+              </div>
+
+              <div className="d-flex align-items-center gap-3">
+                <span className="text-muted fs-13">
+                  {(safePage - 1) * rowsPerPage + 1}–
+                  {Math.min(safePage * rowsPerPage, visibleLogs.length)} of {visibleLogs.length}
+                </span>
+                <div className="d-flex gap-1">
+                  <Button
+                    size="sm"
+                    color="light"
+                    disabled={safePage === 1}
+                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                  >
+                    <i className="bx bx-chevron-left" />
+                  </Button>
+                  <Button
+                    size="sm"
+                    color="light"
+                    disabled={safePage === totalPages}
+                    onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
+                  >
+                    <i className="bx bx-chevron-right" />
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </Col>
       </Row>
 
       {/*Detail Modal*/}
-      <Modal
-        isOpen={!!selectedLog}
-        toggle={() => setSelectedLog(null)}
-        centered
-        size="lg"
-      >
-        <ModalHeader toggle={() => setSelectedLog(null)}>
-          Visit Details
-        </ModalHeader>
+      <Modal isOpen={!!selectedLog} toggle={() => setSelectedLog(null)} centered size="lg">
+        <ModalHeader toggle={() => setSelectedLog(null)}>Visit Details</ModalHeader>
         <ModalBody>
           {selectedLog && (
             <div>
-              {/* Agent + status */}
               <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                 <div className="d-flex align-items-center gap-2">
                   <div
                     className="rounded-circle d-flex align-items-center justify-content-center fw-semibold text-white"
-                    style={{
-                      width: 44,
-                      height: 44,
-                      fontSize: 15,
-                      background: getAvatarColor(selectedLog.agent?.name),
-                    }}
+                    style={{ width: 44, height: 44, fontSize: 15, background: getAvatarColor(selectedLog.agent?.name) }}
                   >
                     {getInitials(selectedLog.agent?.name) || "?"}
                   </div>
                   <div>
-                    <div className="fw-semibold fs-15">
-                      {selectedLog.agent?.name}
-                    </div>
-                    <div className="text-muted fs-13">
-                      {selectedLog.agent?.email}
-                    </div>
+                    <div className="fw-semibold fs-15">{selectedLog.agent?.name}</div>
+                    <div className="text-muted fs-13">{selectedLog.agent?.email}</div>
                   </div>
                 </div>
                 <GpsStatus matched={selectedLog.gps?.matchedClinic} />
               </div>
 
-              {/* Doctor & Clinic */}
               <div className="rounded-3 border p-3 mb-3">
                 <div className="fw-semibold fs-14 mb-2">
-                  <i className="bx bx-user-voice text-primary me-1" /> Doctor &
-                  Clinic
+                  <i className="bx bx-user-voice text-primary me-1" /> Doctor & Clinic
                 </div>
                 <Row className="fs-13">
-                  <Col xs={6} className="text-muted mb-1">
-                    Doctor Name
-                  </Col>
-                  <Col xs={6} className="fw-medium mb-1">
-                    {selectedLog.doctor?.name}
-                  </Col>
-                  <Col xs={6} className="text-muted mb-1">
-                    Clinic
-                  </Col>
-                  <Col xs={6} className="fw-medium mb-1">
-                    {selectedLog.doctor?.clinicName}
-                  </Col>
-                  <Col xs={6} className="text-muted mb-1">
-                    Contact
-                  </Col>
-                  <Col xs={6} className="fw-medium mb-1">
-                    {selectedLog.doctor?.contactNumber}
-                  </Col>
-                  <Col xs={6} className="text-muted mb-1">
-                    Specialisation
-                  </Col>
-                  <Col xs={6} className="fw-medium mb-1">
-                    {selectedLog.doctor?.specialisation}
-                  </Col>
-                  <Col xs={6} className="text-muted">
-                    Visit Type
-                  </Col>
+                  <Col xs={6} className="text-muted mb-1">Doctor Name</Col>
+                  <Col xs={6} className="fw-medium mb-1">{selectedLog.doctor?.name}</Col>
+                  <Col xs={6} className="text-muted mb-1">Clinic</Col>
+                  <Col xs={6} className="fw-medium mb-1">{selectedLog.doctor?.clinicName}</Col>
+                  <Col xs={6} className="text-muted mb-1">Contact</Col>
+                  <Col xs={6} className="fw-medium mb-1">{selectedLog.doctor?.contactNumber}</Col>
+                  <Col xs={6} className="text-muted mb-1">Specialisation</Col>
+                  <Col xs={6} className="fw-medium mb-1">{selectedLog.doctor?.specialisation}</Col>
+                  <Col xs={6} className="text-muted">Visit Type</Col>
                   <Col xs={6} className="fw-medium">
-                    {selectedLog.visitType === "FIRST_VISIT"
-                      ? "First Visit"
-                      : "Repeat Visit"}
+                    {selectedLog.visitType === "FIRST_VISIT" ? "First Visit" : "Repeat Visit"}
                   </Col>
                 </Row>
               </div>
 
-              {/* GPS: First location vs New location */}
               <div className="rounded-3 border p-3 mb-3">
                 <div className="fw-semibold fs-14 mb-2">
-                  <i className="bx bx-map-pin text-primary me-1" /> Location
-                  Check
+                  <i className="bx bx-map-pin text-primary me-1" /> Location Check
                 </div>
 
                 <Row className="g-3">
                   <Col xs={12} md={6}>
-                    <div className="text-muted fs-12 mb-1">
-                      FIRST VISIT LOCATION (reference)
-                    </div>
-                    <div
-                      className="rounded-3 p-2"
-                      style={{ background: "#f8f9fb" }}
-                    >
+                    <div className="text-muted fs-12 mb-1">FIRST VISIT LOCATION (reference)</div>
+                    <div className="rounded-3 p-2" style={{ background: "#f8f9fb" }}>
                       <div className="fs-13 fw-medium">
                         {selectedLog.doctor?.clinicLocation?.lat?.toFixed(5)},{" "}
                         {selectedLog.doctor?.clinicLocation?.lng?.toFixed(5)}
@@ -841,27 +676,19 @@ const VisitLogList = () => {
                     </div>
                   </Col>
                   <Col xs={12} md={6}>
-                    <div className="text-muted fs-12 mb-1">
-                      THIS VISIT'S LOCATION
-                    </div>
+                    <div className="text-muted fs-12 mb-1">THIS VISIT'S LOCATION</div>
                     <div
                       className="rounded-3 p-2"
                       style={{
-                        background: selectedLog.gps?.matchedClinic
-                          ? "#e6f7f4"
-                          : "#fde8e4",
+                        background: selectedLog.gps?.matchedClinic ? "#e6f7f4" : "#fde8e4",
                       }}
                     >
                       <div className="fs-13 fw-medium">
-                        {selectedLog.gps?.lat?.toFixed(5)},{" "}
-                        {selectedLog.gps?.lng?.toFixed(5)}
+                        {selectedLog.gps?.lat?.toFixed(5)}, {selectedLog.gps?.lng?.toFixed(5)}
                       </div>
                       {selectedLog.gps?.lat && (
                         <a
-                          href={mapsLink(
-                            selectedLog.gps.lat,
-                            selectedLog.gps.lng,
-                          )}
+                          href={mapsLink(selectedLog.gps.lat, selectedLog.gps.lng)}
                           target="_blank"
                           rel="noreferrer"
                           className="fs-12"
@@ -878,15 +705,9 @@ const VisitLogList = () => {
                   <div className="text-center mt-3">
                     <span
                       className={`badge rounded-pill fw-semibold px-3 py-2 fs-13 ${
-                        selectedLog.gps?.matchedClinic
-                          ? "text-success"
-                          : "text-danger"
+                        selectedLog.gps?.matchedClinic ? "text-success" : "text-danger"
                       }`}
-                      style={{
-                        background: selectedLog.gps?.matchedClinic
-                          ? "#e6f7f4"
-                          : "#fde8e4",
-                      }}
+                      style={{ background: selectedLog.gps?.matchedClinic ? "#e6f7f4" : "#fde8e4" }}
                     >
                       {formatDistance(
                         getDistanceInMeters(
@@ -902,30 +723,21 @@ const VisitLogList = () => {
                 )}
               </div>
 
-              {/* Discussion */}
               <div className="rounded-3 border p-3 mb-3">
                 <div className="fw-semibold fs-14 mb-2">
-                  <i className="bx bx-message-detail text-primary me-1" />{" "}
-                  Discussion
+                  <i className="bx bx-message-detail text-primary me-1" /> Discussion
                 </div>
                 <div className="fs-13 mb-2">{selectedLog.visitNotes}</div>
                 <div className="d-flex gap-2 flex-wrap">
                   <InterestBadge level={selectedLog.interestLevel} />
                   {selectedLog.nextFollowUpDate && (
-                    <span
-                      className="badge rounded-pill fw-medium"
-                      style={{ background: "#eef2ff", color: "#3577f1" }}
-                    >
-                      Follow-up:{" "}
-                      {new Date(
-                        selectedLog.nextFollowUpDate,
-                      ).toLocaleDateString("en-IN")}
+                    <span className="badge rounded-pill fw-medium" style={{ background: "#eef2ff", color: "#3577f1" }}>
+                      Follow-up: {new Date(selectedLog.nextFollowUpDate).toLocaleDateString("en-IN")}
                     </span>
                   )}
                 </div>
               </div>
 
-              {/* Photos */}
               <div className="rounded-3 border p-3">
                 <div className="fw-semibold fs-14 mb-2">
                   <i className="bx bx-camera text-primary me-1" /> Photo Proof
@@ -934,66 +746,35 @@ const VisitLogList = () => {
                   {selectedLog.selfieProof?.url && (
                     <div>
                       <div className="text-muted fs-12 mb-1">Selfie</div>
-                      <a
-                        href={selectedLog.selfieProof.url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
+                      <a href={selectedLog.selfieProof.url} target="_blank" rel="noreferrer">
                         <img
                           src={selectedLog.selfieProof.url}
                           alt="Selfie"
-                          style={{
-                            width: 100,
-                            height: 100,
-                            borderRadius: 10,
-                            objectFit: "cover",
-                          }}
+                          style={{ width: 100, height: 100, borderRadius: 10, objectFit: "cover" }}
                         />
                       </a>
                     </div>
                   )}
                   {selectedLog.collateral?.proofPricing?.url && (
                     <div>
-                      <div className="text-muted fs-12 mb-1">
-                        Pricing Brochure Proof
-                      </div>
-                      <a
-                        href={selectedLog.collateral.proofPricing.url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
+                      <div className="text-muted fs-12 mb-1">Pricing Brochure Proof</div>
+                      <a href={selectedLog.collateral.proofPricing.url} target="_blank" rel="noreferrer">
                         <img
                           src={selectedLog.collateral.proofPricing.url}
                           alt="Pricing proof"
-                          style={{
-                            width: 100,
-                            height: 100,
-                            borderRadius: 10,
-                            objectFit: "cover",
-                          }}
+                          style={{ width: 100, height: 100, borderRadius: 10, objectFit: "cover" }}
                         />
                       </a>
                     </div>
                   )}
                   {selectedLog.collateral?.proofCentre?.url && (
                     <div>
-                      <div className="text-muted fs-12 mb-1">
-                        Centre Brochure Proof
-                      </div>
-                      <a
-                        href={selectedLog.collateral.proofCentre.url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
+                      <div className="text-muted fs-12 mb-1">Centre Brochure Proof</div>
+                      <a href={selectedLog.collateral.proofCentre.url} target="_blank" rel="noreferrer">
                         <img
                           src={selectedLog.collateral.proofCentre.url}
                           alt="Centre proof"
-                          style={{
-                            width: 100,
-                            height: 100,
-                            borderRadius: 10,
-                            objectFit: "cover",
-                          }}
+                          style={{ width: 100, height: 100, borderRadius: 10, objectFit: "cover" }}
                         />
                       </a>
                     </div>
