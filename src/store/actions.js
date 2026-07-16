@@ -151,6 +151,7 @@ export {
   updatePatient,
   updatePatientCenter,
   removeAadhaarCard,
+  removePassportCard,
   deletePatient,
   fetchPatients,
   fetchMorePatients,
