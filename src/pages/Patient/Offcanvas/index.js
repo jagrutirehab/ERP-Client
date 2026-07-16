@@ -62,8 +62,24 @@ const Offcanvas = ({ admissions, profile, user }) => {
         tabIndex="-1"
       >
         <OffcanvasBody className="profile-offcanvas p-0">
-          <div className="team-cover">
+          <div className="team-cover" style={{ position: "relative" }}>
             <img src={smallImage9} alt="" className="img-fluid" />
+            <Button
+              color="light"
+              size="sm"
+              className="btn-icon rounded-circle"
+              onClick={toggleOffCanvas}
+              style={{
+                position: "absolute",
+                top: "8px",
+                right: "8px",
+                zIndex: 1,
+                opacity: 0.85,
+              }}
+              aria-label="Close"
+            >
+              <i className="ri-close-line fs-18" />
+            </Button>
           </div>
           <div className="p-3">
             <div className="team-settings">
