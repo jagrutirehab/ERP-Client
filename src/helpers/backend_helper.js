@@ -439,6 +439,11 @@ export const editPatient = (data) =>
   });
 export const deletePatientAadhaarCard = (data) =>
   api.update(url.DELETE_PATIENT_AADHAAR_CARD, data);
+export const deletePatientPassportCard = (data) =>
+  api.update(url.DELETE_PATIENT_AADHAAR_CARD, {
+    ...data,
+    field: "passportCard",
+  });
 export const removePatient = (data) =>
   api.delete(`${url.DELETE_PATIENT}/${data}`);
 export const deletePatientPermanently = (data) =>
