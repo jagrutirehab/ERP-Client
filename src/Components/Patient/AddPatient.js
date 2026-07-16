@@ -78,13 +78,13 @@ const AddPatient = ({
     ? format(new Date(editData.dateOfBirth), "yyyy-MM-dd")
     : leadData?.patient?.age
       ? (() => {
-          const today = new Date();
-          const birthYear = today.getFullYear() - leadData.patient.age;
-          return format(
-            new Date(birthYear, today.getMonth(), today.getDate()),
-            "yyyy-MM-dd",
-          );
-        })()
+        const today = new Date();
+        const birthYear = today.getFullYear() - leadData.patient.age;
+        return format(
+          new Date(birthYear, today.getMonth(), today.getDate()),
+          "yyyy-MM-dd",
+        );
+      })()
       : "";
   const gender = editData
     ? editData.gender
@@ -139,6 +139,8 @@ const AddPatient = ({
       occupation: editData ? editData.occupation : "",
       occupationDetail: editData ? editData.occupationDetail : "",
       languagesKnown: editData ? editData.languagesKnown || [] : [],
+      nationality: editData ? editData.nationality || "Indian" : "Indian",
+      passportNumber: editData ? editData.passportNumber || "" : "",
     },
     validationSchema: Yup.object({
       id: Yup.string()
@@ -149,10 +151,22 @@ const AddPatient = ({
       aadhaarCardNumber: Yup.string()
         .nullable()
         .notRequired()
-        .matches(
-          /^$|^[0-9]{12}$/,
-          "Aadhaar Card Number must be exactly 12 digits",
-        ),
+        .when("nationality", {
+          is: "Indian",
+          then: (schema) =>
+            schema.matches(
+              /^$|^[0-9]{12}$/,
+              "Aadhaar Card Number must be exactly 12 digits",
+            ),
+        }),
+      passportNumber: Yup.string()
+        .nullable()
+        .notRequired()
+        .when("nationality", {
+          is: "Foreigner",
+          then: (schema) =>
+            schema.required("Passport Number is required for foreign nationals"),
+        }),
       phoneNumber: Yup.string()
         .required("Please Enter Phone Number")
         .test("is-valid-phone", "Invalid phone number", function (value) {
@@ -598,7 +612,7 @@ const AddPatient = ({
                       ...provided,
                       borderColor:
                         validation.touched.referredBy &&
-                        validation.errors.referredBy
+                          validation.errors.referredBy
                           ? "#dc3545"
                           : "#ced4da",
                       boxShadow: state.isFocused
@@ -610,7 +624,7 @@ const AddPatient = ({
                       "&:hover": {
                         borderColor:
                           validation.touched.referredBy &&
-                          validation.errors.referredBy
+                            validation.errors.referredBy
                             ? "#dc3545"
                             : "#86b7fe",
                       },
@@ -666,12 +680,11 @@ const AddPatient = ({
                           width: "100%",
                           height: "42px",
                           padding: "0.5rem 0.75rem",
-                          border: `1px solid ${
-                            validation.touched.referralPhoneNumber &&
-                            validation.errors.referralPhoneNumber
+                          border: `1px solid ${validation.touched.referralPhoneNumber &&
+                              validation.errors.referralPhoneNumber
                               ? "#dc3545"
                               : "#ced4da"
-                          }`,
+                            }`,
                           borderRadius: "0.375rem",
                           fontSize: "1rem",
                         }}
@@ -718,6 +731,119 @@ const AddPatient = ({
                 doctorLoading={doctorLoading}
                 handleChange={handleChange}
               />
+            </Row>
+          </Col>
+
+          {/* Nationality & Identity Section */}
+          <Col xs={12} style={{ marginBottom: "1.5rem" }}>
+            <Row
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: "1.5rem",
+              }}
+            >
+              {/* Nationality Toggle */}
+              <div className="mb-3">
+                <Label className="form-label" style={{ fontWeight: "500", color: "#374151", marginBottom: "0.5rem" }}>
+                  Nationality <span className="text-danger">*</span>
+                </Label>
+                <div className="d-flex gap-3">
+                  {["Indian", "Foreigner"].map((opt) => (
+                    <div
+                      key={opt}
+                      onClick={() => {
+                        validation.setFieldValue("nationality", opt);
+                        if (opt === "Indian") {
+                          validation.setFieldValue("passportNumber", "");
+                        } else {
+                          validation.setFieldValue("aadhaarCardNumber", "");
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: "0.625rem 1rem",
+                        borderRadius: "0.5rem",
+                        border: `2px solid ${validation.values.nationality === opt ? "#405189" : "#d1d5db"}`,
+                        backgroundColor: validation.values.nationality === opt ? "#f0f3ff" : "#fff",
+                        color: validation.values.nationality === opt ? "#405189" : "#6b7280",
+                        fontWeight: validation.values.nationality === opt ? "600" : "400",
+                        textAlign: "center",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        userSelect: "none",
+                      }}
+                    >
+                      {opt === "Indian" ? "🇮🇳 Indian" : "🌐 Foreigner"}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Conditional: Aadhaar or Passport */}
+              {validation.values.nationality === "Indian" ? (
+                <div className="mb-3">
+                  <Label htmlFor="aadhaarCardNumber" className="form-label" style={{ fontWeight: "500", color: "#374151" }}>
+                    Aadhaar Card Number
+                  </Label>
+                  <Input
+                    type="text"
+                    name="aadhaarCardNumber"
+                    id="aadhaarCardNumber"
+                    placeholder="Enter 12-digit Aadhaar number"
+                    maxLength={12}
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.aadhaarCardNumber || ""}
+                    invalid={validation.touched.aadhaarCardNumber && validation.errors.aadhaarCardNumber ? true : false}
+                    className="form-control"
+                  />
+                  {validation.touched.aadhaarCardNumber && validation.errors.aadhaarCardNumber && (
+                    <FormFeedback type="invalid">
+                      {validation.errors.aadhaarCardNumber}
+                    </FormFeedback>
+                  )}
+                </div>
+              ) : validation.values.nationality === "Foreigner" ? (
+                <div className="mb-3">
+                  <Label htmlFor="passportNumber" className="form-label" style={{ fontWeight: "500", color: "#374151" }}>
+                    International Passport Number <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    name="passportNumber"
+                    id="passportNumber"
+                    placeholder="Enter passport number"
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.passportNumber || ""}
+                    invalid={validation.touched.passportNumber && validation.errors.passportNumber ? true : false}
+                    className="form-control"
+                  />
+                  {validation.touched.passportNumber && validation.errors.passportNumber && (
+                    <FormFeedback type="invalid">
+                      {validation.errors.passportNumber}
+                    </FormFeedback>
+                  )}
+                  <div
+                    style={{
+                      marginTop: "0.5rem",
+                      padding: "0.625rem 0.875rem",
+                      backgroundColor: "#fff3cd",
+                      border: "1px solid #ffc107",
+                      borderRadius: "0.375rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      fontSize: "0.8125rem",
+                      color: "#856404",
+                    }}
+                  >
+                    <i className="ri-information-line" style={{ fontSize: "1rem", flexShrink: 0 }} />
+                    <span>Inform FRR office</span>
+                  </div>
+                </div>
+              ) : null}
             </Row>
           </Col>
 
@@ -785,12 +911,11 @@ const AddPatient = ({
                         width: "100%",
                         height: "42px",
                         padding: "0.5rem 0.75rem",
-                        border: `1px solid ${
-                          validation.touched[f.name] &&
-                          validation.errors[f.name]
+                        border: `1px solid ${validation.touched[f.name] &&
+                            validation.errors[f.name]
                             ? "#ef4444"
                             : "#d1d5db"
-                        }`,
+                          }`,
                         borderRadius: "0.375rem",
                         fontSize: "1rem",
                       }}
@@ -812,17 +937,16 @@ const AddPatient = ({
                         padding: "0.625rem 0.75rem",
                         fontSize: "1rem",
                         fontWeight: "400",
-                        border: `1px solid ${
-                          validation.touched[f.name] &&
-                          validation.errors[f.name]
+                        border: `1px solid ${validation.touched[f.name] &&
+                            validation.errors[f.name]
                             ? "#ef4444"
                             : "#d1d5db"
-                        }`,
+                          }`,
                         borderRadius: "0.375rem",
                         outline: "none",
                         boxShadow:
                           validation.touched[f.name] &&
-                          validation.errors[f.name]
+                            validation.errors[f.name]
                             ? "0 0 0 2px rgba(239, 68, 68, 0.3)"
                             : "0 0 0 2px rgba(96, 165, 250, 0.3)",
                         transition:

@@ -20,6 +20,7 @@ import {
   INPUT_OUTPUT,
   NURSE_SOS_PROCEDURE,
   INJURY_MARKS,
+  ECT_SESSION,
 } from "../../../Components/constants/patient";
 
 //forms
@@ -39,6 +40,7 @@ import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
 import InputOutput from "./InputOutput";
 import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
+import EctSession from "./EctSession";
 
 const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const dispatch = useDispatch();
@@ -63,6 +65,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const isInputOutput = chart.chart === INPUT_OUTPUT;
   const isNurseSosProcedure = chart.chart === NURSE_SOS_PROCEDURE;
   const isInjuryMarks = chart.chart === INJURY_MARKS;
+  const isEctSession = chart.chart === ECT_SESSION;
 
   const title = isPrescription
     ? "Prescription"
@@ -92,7 +95,9 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
                             ? "Nurse SOS Procedure"
                             : isInjuryMarks
                               ? "Patient Injury Marks"
-                              : "Detail Admission";
+                              : isEctSession
+                                ? "ECT Session"
+                                : "Detail Admission";
 
   // console.log({ type });
 
@@ -129,6 +134,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isInputOutput && <InputOutput {...rest} />}
         {isNurseSosProcedure && <NurseSosProcedure {...rest} />}
         {isInjuryMarks && <InjuryMarks {...rest} />}
+        {isEctSession && <EctSession {...rest} />}
       </CustomModal >
     </React.Fragment >
   );

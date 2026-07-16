@@ -47,6 +47,13 @@ const AddVisitLog = () => {
   //Selfie live camera only
   const [selfieFile, setSelfieFile] = useState(null);
   const [selfiePreview, setSelfiePreview] = useState(null);
+  const [clinicPhotoFile, setClinicPhotoFile] = useState(null);
+  const [clinicPhotoPreview, setClinicPhotoPreview] = useState(null);
+  const [clinicCameraOpen, setClinicCameraOpen] = useState(false);
+  const [clinicFacingMode, setClinicFacingMode] = useState("environment");
+  const clinicVideoRef = useRef(null);
+  const clinicCanvasRef = useRef(null);
+  const clinicStreamRef = useRef(null);
   const [cameraOpen, setCameraOpen] = useState(false);
   const [facingMode, setFacingMode] = useState("user");
   const [cameraError, setCameraError] = useState(null);
@@ -137,6 +144,8 @@ const AddVisitLog = () => {
       centreBrochure: false,
       visitNotes: "",
       interestLevel: "",
+      commissionDiscussed: "",
+      commissionPercentage: "",
       nextFollowUpDate: "",
     },
     validationSchema: Yup.object({
@@ -165,6 +174,14 @@ const AddVisitLog = () => {
         .min(20, "Visit notes must be at least 2 lines long")
         .required("Visit notes are required"),
       interestLevel: Yup.string().required("Interest level is required"),
+      commissionDiscussed: Yup.string().required("Please select Yes or No"),
+      commissionPercentage: Yup.number()
+        .min(0, "Must be between 0-100")
+        .max(100, "Must be between 0-100")
+        .when("commissionDiscussed", {
+          is: "true",
+          then: (schema) => schema.required("Enter commission percentage"),
+        }),
     }),
     onSubmit: async (values) => {
       if (!gps.lat || !gps.lng) {
@@ -173,6 +190,12 @@ const AddVisitLog = () => {
       }
       if (!selfieFile) {
         toast.error("Selfie photo proof is required");
+        setActiveStep(4);
+        return;
+      }
+
+      if (!clinicPhotoFile) {
+        toast.error("Clinic/hospital photo is required");
         setActiveStep(4);
         return;
       }
@@ -194,10 +217,18 @@ const AddVisitLog = () => {
         formData.append("collateral[centreBrochure]", values.centreBrochure);
         formData.append("visitNotes", values.visitNotes);
         formData.append("interestLevel", values.interestLevel);
+        formData.append("commissionDiscussed", values.commissionDiscussed);
+        if (
+          values.commissionDiscussed === "true" &&
+          values.commissionPercentage
+        ) {
+          formData.append("commissionPercentage", values.commissionPercentage);
+        }
         if (values.nextFollowUpDate) {
           formData.append("nextFollowUpDate", values.nextFollowUpDate);
         }
         formData.append("selfie", selfieFile, "selfie.jpg");
+        formData.append("clinicPhoto", clinicPhotoFile, "clinic.jpg");
         if (collateralProofFiles.pricing) {
           formData.append(
             "collateralProofPricing",
@@ -213,6 +244,8 @@ const AddVisitLog = () => {
         validation.resetForm();
         setSelfieFile(null);
         setSelfiePreview(null);
+        setClinicPhotoFile(null);
+        setClinicPhotoPreview(null);
         setCollateralProofFiles({ pricing: null, centre: null });
         setCollateralProofPreviews({ pricing: null, centre: null });
         setSelectedDoctor(null);
@@ -256,6 +289,73 @@ const AddVisitLog = () => {
       streamRef.current = null;
     }
     setCameraOpen(false);
+  };
+  const openClinicCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: clinicFacingMode },
+        audio: false,
+      });
+      clinicStreamRef.current = stream;
+      setClinicCameraOpen(true);
+      setTimeout(() => {
+        if (clinicVideoRef.current) {
+          clinicVideoRef.current.srcObject = stream;
+        }
+      }, 50);
+    } catch (err) {
+      toast.error("Camera access denied or unavailable.");
+    }
+  };
+
+  const closeClinicCamera = () => {
+    if (clinicStreamRef.current) {
+      clinicStreamRef.current.getTracks().forEach((t) => t.stop());
+      clinicStreamRef.current = null;
+    }
+    setClinicCameraOpen(false);
+  };
+  const switchClinicCamera = () => {
+    if (clinicStreamRef.current) {
+      clinicStreamRef.current.getTracks().forEach((t) => t.stop());
+      clinicStreamRef.current = null;
+    }
+    setClinicFacingMode((prev) => (prev === "user" ? "environment" : "user"));
+  };
+
+  useEffect(() => {
+    if (clinicCameraOpen) {
+      openClinicCamera();
+    }
+  }, [clinicFacingMode]);
+
+  const captureClinicPhoto = () => {
+    const video = clinicVideoRef.current;
+    const canvas = clinicCanvasRef.current;
+    if (!video || !canvas) return;
+
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+    canvas.toBlob(
+      (blob) => {
+        if (blob) {
+          setClinicPhotoFile(blob);
+          setClinicPhotoPreview(URL.createObjectURL(blob));
+        }
+      },
+      "image/jpeg",
+      0.9,
+    );
+    closeClinicCamera();
+  };
+
+  const retakeClinicPhoto = () => {
+    setClinicPhotoFile(null);
+    setClinicPhotoPreview(null);
+    openClinicCamera();
   };
 
   const switchCamera = () => {
@@ -399,7 +499,12 @@ const AddVisitLog = () => {
       "metWith",
     ],
     ["collateralGiven", "pricingBrochure"],
-    ["visitNotes", "interestLevel"],
+    [
+      "visitNotes",
+      "interestLevel",
+      "commissionDiscussed",
+      "commissionPercentage",
+    ],
     [],
     [],
   ];
@@ -407,6 +512,10 @@ const AddVisitLog = () => {
   const validateCurrentStep = async () => {
     if (activeStep === 4 && !selfieFile) {
       toast.error("Please take a live selfie before continuing");
+      return false;
+    }
+    if (activeStep === 4 && !clinicPhotoFile) {
+      toast.error("Please take a photo of the clinic before continuing");
       return false;
     }
 
@@ -449,6 +558,12 @@ const AddVisitLog = () => {
     }
     if (!selfieFile) {
       toast.error("Selfie photo proof is required");
+      setActiveStep(4);
+      return;
+    }
+    if (!clinicPhotoFile) {
+      toast.error("Clinic/hospital photo is required");
+      setActiveStep(4);
       return;
     }
 
@@ -469,7 +584,7 @@ const AddVisitLog = () => {
   };
 
   return (
-    <div className="visit-log-wizard">
+    <div className="visit-log-wizard p-3 p-lg-4 bg-white">
       <style>{`
         .visit-log-wizard {
           --vlw-primary: #3577f1;
@@ -600,11 +715,12 @@ const AddVisitLog = () => {
         .visit-log-wizard .stepper-item.is-active .stepper-num { color: var(--vlw-primary); }
         .visit-log-wizard .stepper-item.is-done .stepper-num { color: var(--vlw-success); }
         .visit-log-wizard .stepper-label {
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 500;
           color: var(--vlw-muted);
           display: block;
           margin-top: 2px;
+          white-space: nowrap;
         }
         .visit-log-wizard .stepper-item.is-active .stepper-label { color: var(--vlw-ink); }
         .visit-log-wizard .stepper-item.is-done .stepper-label { color: var(--vlw-ink); }
@@ -700,7 +816,7 @@ const AddVisitLog = () => {
       `}</style>
 
       <Row className="justify-content-center">
-        <Col xs={12} xl={9}>
+        <Col xs={12} xl={10}>
           <Card className="wizard-card shadow-none mb-0">
             <CardBody className="wizard-card-body">
               {/* ---- Header ---- */}
@@ -786,7 +902,7 @@ const AddVisitLog = () => {
               </div>
 
               {/* Step indicator: DESKTOP */}
-              <div className="d-none d-md-flex mt-4 gap-4">
+              <div className="d-none d-md-flex mt-4 gap-2">
                 {STEPS.map((step, idx) => (
                   <button
                     key={step.key}
@@ -1464,6 +1580,64 @@ const AddVisitLog = () => {
                           )}
                         </div>
                       </Col>
+
+                      <Col xs={12} lg={5}>
+                        <div className="field-group">
+                          <Label className="field-label">
+                            Commission Discussed{" "}
+                            <span className="field-required">*</span>
+                          </Label>
+                          <Input
+                            type="select"
+                            name="commissionDiscussed"
+                            value={validation.values.commissionDiscussed}
+                            onChange={validation.handleChange}
+                            onBlur={validation.handleBlur}
+                            invalid={
+                              validation.touched.commissionDiscussed &&
+                              !!validation.errors.commissionDiscussed
+                            }
+                          >
+                            <option value="" disabled hidden>
+                              Choose here
+                            </option>
+                            <option value="true">Yes</option>
+                            <option value="false">No</option>
+                          </Input>
+                          <FormFeedback>
+                            {validation.errors.commissionDiscussed}
+                          </FormFeedback>
+                        </div>
+                      </Col>
+
+                      {validation.values.commissionDiscussed === "true" && (
+                        <Col xs={12} lg={5}>
+                          <div className="field-group">
+                            <Label className="field-label">
+                              Commission Percentage{" "}
+                              <span className="field-required">*</span>
+                            </Label>
+                            <Input
+                              type="number"
+                              name="commissionPercentage"
+                              placeholder="e.g. 10"
+                              min={0}
+                              max={100}
+                              value={validation.values.commissionPercentage}
+                              onChange={validation.handleChange}
+                              onBlur={validation.handleBlur}
+                              invalid={
+                                validation.touched.commissionPercentage &&
+                                !!validation.errors.commissionPercentage
+                              }
+                            />
+                            <FormFeedback>
+                              {validation.errors.commissionPercentage}
+                            </FormFeedback>
+                          </div>
+                        </Col>
+                      )}
+
                       <Col xs={12} lg={5}>
                         <div className="field-group">
                           <Label className="field-label">
@@ -1486,10 +1660,9 @@ const AddVisitLog = () => {
                       <Col xs={12} lg={7}>
                         <div className="field-group">
                           <Label className="field-label">
-                            Take a Selfie at the Clinic{" "}
+                            Selfie with Clinic Nameplate / Building{" "}
                             <span className="field-required">*</span>
                           </Label>
-
                           <div className="upload-zone text-center">
                             {!cameraOpen && !selfiePreview && (
                               <div className="py-4">
@@ -1554,6 +1727,7 @@ const AddVisitLog = () => {
                                 </div>
                               </div>
                             )}
+
                             {!cameraOpen && selfiePreview && (
                               <div>
                                 <img
@@ -1580,10 +1754,101 @@ const AddVisitLog = () => {
                               </div>
                             )}
                           </div>
+                        </div>
+                      </Col>
 
-                          {/* <div className="field-hint">
-                            Photo is captured live in-app — there is no option to pick from gallery
-                          </div> */}
+                      <Col xs={12} lg={7}>
+                        <div className="field-group">
+                          <Label className="field-label">
+                            Photo Inside the Clinic / Hospital{" "}
+                            <span className="field-required">*</span>
+                          </Label>
+                          <div className="upload-zone text-center">
+                            {!clinicCameraOpen && !clinicPhotoPreview && (
+                              <div className="py-4">
+                                <p className="text-muted fs-14 mb-3">
+                                  Live camera only — gallery selection is not
+                                  allowed
+                                </p>
+                                <Button
+                                  type="button"
+                                  color="primary"
+                                  onClick={openClinicCamera}
+                                >
+                                  Open Camera
+                                </Button>
+                              </div>
+                            )}
+
+                            {clinicCameraOpen && (
+                              <div>
+                                <video
+                                  ref={clinicVideoRef}
+                                  autoPlay
+                                  playsInline
+                                  muted
+                                  style={{
+                                    width: "100%",
+                                    maxWidth: 360,
+                                    borderRadius: 8,
+                                  }}
+                                />
+                                <canvas
+                                  ref={clinicCanvasRef}
+                                  style={{ display: "none" }}
+                                />
+                                <div className="d-flex justify-content-center gap-2 mt-3">
+                                  <Button
+                                    type="button"
+                                    color="success"
+                                    onClick={captureClinicPhoto}
+                                  >
+                                    Capture
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    color="light"
+                                    onClick={switchClinicCamera}
+                                  >
+                                    Switch Camera
+                                  </Button>
+                                  <Button
+                                    type="button"
+                                    color="light"
+                                    onClick={closeClinicCamera}
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+
+                            {!clinicCameraOpen && clinicPhotoPreview && (
+                              <div>
+                                <img
+                                  src={clinicPhotoPreview}
+                                  alt="Clinic preview"
+                                  style={{
+                                    maxWidth: "200px",
+                                    maxHeight: "200px",
+                                    borderRadius: "8px",
+                                    objectFit: "cover",
+                                  }}
+                                />
+                                <div>
+                                  <Button
+                                    type="button"
+                                    color="light"
+                                    size="sm"
+                                    className="mt-3"
+                                    onClick={retakeClinicPhoto}
+                                  >
+                                    Retake
+                                  </Button>
+                                </div>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       </Col>
                     </Row>
@@ -1671,6 +1936,20 @@ const AddVisitLog = () => {
                             ["Visit Notes", validation.values.visitNotes],
                             ["Interest Level", validation.values.interestLevel],
                             [
+                              "Commission Discussed",
+                              validation.values.commissionDiscussed === "true"
+                                ? "Yes"
+                                : "No",
+                            ],
+                            ...(validation.values.commissionDiscussed === "true"
+                              ? [
+                                  [
+                                    "Commission %",
+                                    `${validation.values.commissionPercentage}%`,
+                                  ],
+                                ]
+                              : []),
+                            [
                               "Next Follow-up",
                               validation.values.nextFollowUpDate || "Not set",
                             ],
@@ -1726,28 +2005,53 @@ const AddVisitLog = () => {
                             Edit
                           </Button>
                         </div>
-                        <div className="d-flex align-items-center gap-3">
-                          {selfiePreview ? (
-                            <>
-                              <img
-                                src={selfiePreview}
-                                alt="Selfie"
-                                style={{
-                                  width: 48,
-                                  height: 48,
-                                  borderRadius: 8,
-                                  objectFit: "cover",
-                                }}
-                              />
-                              <span className="text-success fs-13">
-                                Selfie captured
+                        <div className="d-flex align-items-center gap-4 flex-wrap">
+                          <div className="d-flex align-items-center gap-2">
+                            {selfiePreview ? (
+                              <>
+                                <img
+                                  src={selfiePreview}
+                                  alt="Selfie"
+                                  style={{
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: 8,
+                                    objectFit: "cover",
+                                  }}
+                                />
+                                <span className="text-success fs-13">
+                                  Selfie captured
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-danger fs-13">
+                                No selfie captured yet
                               </span>
-                            </>
-                          ) : (
-                            <span className="text-danger fs-13">
-                              No selfie captured yet
-                            </span>
-                          )}
+                            )}
+                          </div>
+                          <div className="d-flex align-items-center gap-2">
+                            {clinicPhotoPreview ? (
+                              <>
+                                <img
+                                  src={clinicPhotoPreview}
+                                  alt="Clinic"
+                                  style={{
+                                    width: 48,
+                                    height: 48,
+                                    borderRadius: 8,
+                                    objectFit: "cover",
+                                  }}
+                                />
+                                <span className="text-success fs-13">
+                                  Clinic photo captured
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-danger fs-13">
+                                No clinic photo yet
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>

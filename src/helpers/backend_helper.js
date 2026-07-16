@@ -486,6 +486,12 @@ export const postGeneralVitalSign = (data) =>
   api.create(url.POST_GENERAL_VITAL_SIGN, data);
 export const editGeneralVitalSign = (data) =>
   api.put(url.EDIT_GENERAL_VITAL_SIGN, data);
+export const postEctSession = (data) => api.create(url.POST_ECT_SESSION, data);
+export const editEctSession = (data) => api.put(url.EDIT_ECT_SESSION, data);
+export const postGeneralEctSession = (data) =>
+  api.create(url.POST_GENERAL_ECT_SESSION, data);
+export const editGeneralEctSession = (data) =>
+  api.put(url.EDIT_GENERAL_ECT_SESSION, data);
 export const postClinicalNote = (data, config = {}) =>
   api.create(url.POST_CLINICAL_NOTE, data, {
     ...config,
@@ -4111,7 +4117,6 @@ export const generatePsychoDiagnosticForm = (data) =>
 export const deletePsychoDiagnosticFormFile = (data) =>
   api.update(url.DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE, data);
 
-
 // Marketing - Visit Log
 export const createVisitLog = (formData) =>
   axios.post(url.POST_VISIT_LOG, formData, {
@@ -4120,7 +4125,6 @@ export const createVisitLog = (formData) =>
       "X-No-Cookie-Token": "true",
     },
   });
-
 
 export const getVisitLogs = (params = {}) =>
   axios.get(url.GET_VISIT_LOGS, {
@@ -4156,3 +4160,10 @@ export const searchDoctors = (q) =>
     params: { q },
     headers: { "X-No-Cookie-Token": "true" },
   });
+
+export const getAgentVisitReport = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/reports/agent-summary`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
