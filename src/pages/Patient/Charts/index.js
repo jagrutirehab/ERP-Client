@@ -19,6 +19,7 @@ import {
   INPUT_OUTPUT,
   NURSE_SOS_PROCEDURE,
   INJURY_MARKS,
+  ECT_SESSION,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -48,6 +49,7 @@ import RoundNoteChart from "./RoundNoteChart";
 import InputOutput from "./InputOutput";
 import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
+import EctSession from "./EctSession";
 import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
 import { api } from "../../../config";
@@ -280,6 +282,9 @@ const Charts = ({ addmission, charts, toggleDateModal }) => {
                     data={chart.injuryMarks?.marks}
                     date={chart.injuryMarks?.updatedAt}
                   />
+                )}
+                {chart.chart === ECT_SESSION && (
+                  <EctSession data={chart.ectSession} />
                 )}
               </Wrapper>
             ))}
