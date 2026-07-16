@@ -62,41 +62,22 @@ const Offcanvas = ({ admissions, profile, user }) => {
         tabIndex="-1"
       >
         <OffcanvasBody className="profile-offcanvas p-0">
-          <div className="team-cover" style={{ position: "relative" }}>
+          <div className="team-cover">
             <img src={smallImage9} alt="" className="img-fluid" />
-            <Button
-              color="light"
-              size="sm"
-              className="btn-icon rounded-circle"
-              onClick={toggleOffCanvas}
-              style={{
-                position: "absolute",
-                top: "8px",
-                right: "8px",
-                zIndex: 1,
-                opacity: 0.85,
-              }}
-              aria-label="Close"
-            >
-              <i className="ri-close-line fs-18" />
-            </Button>
           </div>
           <div className="p-3">
             <div className="team-settings">
               <Row>
-                <Col>
-                  <div className="bookmark-icon flex-shrink-0 me-2">
-                    <Input
-                      type="checkbox"
-                      id="favourite13"
-                      className="bookmark-input bookmark-hide"
-                    />
-                    <Label htmlFor="favourite13" className="btn-star">
-                      <svg width="20" height="20">
-                        {/* <use xlink:href="#icon-star"/> */}
-                      </svg>
-                    </Label>
-                  </div>
+                <Col className="d-flex align-items-center">
+                  <Button
+                    color="soft-danger"
+                    size="sm"
+                    className="btn-icon rounded-circle"
+                    onClick={toggleOffCanvas}
+                    aria-label="Close"
+                  >
+                    <i className="ri-close-line fs-18" />
+                  </Button>
                 </Col>
                 <UncontrolledDropdown
                   direction="start"
