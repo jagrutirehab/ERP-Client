@@ -532,6 +532,8 @@ export const GET_DOCS_COMPLIANCE = "/mi-reporting/docs-compliance";
 export const GET_DUE_AMOUNT = "/mi-reporting/get-due-amount";
 export const GET_MI_ATTENDANCE = "/mi-reporting/get-attendance";
 export const GET_CASH_PER_CENTER = "/mi-reporting/cash-per-center";
+export const GET_WRITE_OFF_AMOUNT = "/mi-reporting/write-off-amount";
+export const GET_TRAINING_FORMS_WEEKLY = "/mi-reporting/training-forms-weekly";
 
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";

@@ -2332,6 +2332,22 @@ export const getCashPerCenter = (data) => {
   });
 };
 
+export const getWriteOffAmount = (data) => {
+  return api.get(url.GET_WRITE_OFF_AMOUNT, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getTrainingFormsWeekly = (data) => {
+  return api.get(url.GET_TRAINING_FORMS_WEEKLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getMIAttendance = (data) => {
   return api.get(url.GET_MI_ATTENDANCE, {
     params: {

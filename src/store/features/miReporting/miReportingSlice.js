@@ -31,6 +31,8 @@ import {
   getCampaignWiseMOM,
   getCenterWiseStatusMOM,
   getCashPerCenter,
+  getWriteOffAmount,
+  getTrainingFormsWeekly,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -71,6 +73,8 @@ const initialState = {
   campaignWiseMOM: [],
   centerWiseStatusMOM: [],
   cashPerCenter: [],
+  writeOffAmount: [],
+  trainingFormsWeekly: [],
   loading: false,
   error: null,
 };
@@ -345,6 +349,21 @@ export const fetchCashPerCenter = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.message || "Failed to fetch cash per center"
+      );
+    }
+  }
+);
+
+
+export const fetchWriteOffAmount = createAsyncThunk(
+  "miReporting/fetchWriteOffAmount",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getWriteOffAmount(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch write off amount"
       );
     }
   }
@@ -982,6 +1001,19 @@ const miReportingSlice = createSlice({
         state.cashPerCenter = action.payload.payload || [];
       })
       .addCase(fetchCashPerCenter.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Write Off Amount
+      .addCase(fetchWriteOffAmount.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchWriteOffAmount.fulfilled, (state, action) => {
+        state.loading = false;
+        state.writeOffAmount = action.payload.payload || [];
+      })
+      .addCase(fetchWriteOffAmount.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
