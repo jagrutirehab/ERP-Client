@@ -1,11 +1,13 @@
 import React from "react";
-import { Col, FormGroup, Input, Label } from "reactstrap";
+import { Col, FormFeedback, FormGroup, Input, Label } from "reactstrap";
 import Select from "react-select";
 import { getIn } from "formik";
 
-const FormField = ({ field, values, onChange }) => {
+
+const FormField = ({ field, values, onChange, error }) => {
   const { path, label, type = "text", options = [] } = field;
   const value = getIn(values, path);
+  const isInvalid = Boolean(error);
 
   const setValue = (v) => onChange(path, v);
 
@@ -16,6 +18,15 @@ const FormField = ({ field, values, onChange }) => {
   const commonProps = {
     id: path,
     name: path,
+    invalid: isInvalid,
+  };
+
+  const selectStyles = {
+    control: (base) => ({
+      ...base,
+      borderColor: isInvalid ? "#dc3545" : base.borderColor,
+      "&:hover": { borderColor: isInvalid ? "#dc3545" : base.borderColor },
+    }),
   };
 
   let control;
@@ -86,6 +97,7 @@ const FormField = ({ field, values, onChange }) => {
           classNamePrefix="select"
           placeholder="-- Select --"
           isClearable
+          styles={selectStyles}
           options={yesNoOptions}
           value={yesNoValue}
           onChange={(selected) => {
@@ -105,6 +117,7 @@ const FormField = ({ field, values, onChange }) => {
           classNamePrefix="select"
           placeholder="-- Select --"
           isClearable
+          styles={selectStyles}
           options={options.map((opt) => ({ value: opt, label: opt }))}
           value={value ? { value, label: value } : null}
           onChange={(selected) => setValue(selected ? selected.value : "")}
@@ -122,7 +135,14 @@ const FormField = ({ field, values, onChange }) => {
         );
       };
       control = (
-        <div className="d-flex flex-wrap gap-3">
+        <div
+          className="d-flex flex-wrap gap-3 p-2"
+          style={
+            isInvalid
+              ? { border: "1px solid #dc3545", borderRadius: 4 }
+              : undefined
+          }
+        >
           {options.map((opt) => (
             <FormGroup check key={opt} className="me-3">
               <Input
@@ -157,8 +177,16 @@ const FormField = ({ field, values, onChange }) => {
   return (
     <Col md={colWidth} className="mb-3">
       <FormGroup className="mb-0">
-        <Label htmlFor={path}>{label}</Label>
+        <Label htmlFor={path}>
+          {label} <span className="text-danger">*</span>
+        </Label>
         {control}
+        {isInvalid &&
+          (type === "select" || type === "yesno" || type === "multiselect" ? (
+            <div className="text-danger small mt-1">{error}</div>
+          ) : (
+            <FormFeedback>{error}</FormFeedback>
+          ))}
       </FormGroup>
     </Col>
   );

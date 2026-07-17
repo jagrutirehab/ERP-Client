@@ -25,7 +25,10 @@ import PreviewFile from "../../../../Components/Common/PreviewFile";
 import DeleteModal from "../../../../Components/Common/DeleteModal";
 import ChiefComplaintsForm from "./ChiefComplaintsForm";
 import MentalExaminationV2 from "./MentalExaminationV2";
-import PatientTypeFields from "./PatientTypeFields";
+// import PatientTypeFields from "./PatientTypeFields";
+import PatientTypeFields, {
+  validatePatientTypeFields,
+} from "./PatientTypeFields";
 // import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
 // const CONSET_FILES = "CONSENT_FILES";
@@ -128,7 +131,9 @@ const DetailAdmission = ({
   const dispatch = useDispatch();
   const [consentFiles, setConsentFiles] = useState();
   const [formStep, setFormStep] = useState(CHIEF_COMPLAINTS);
-  console.log("editChartData", editChartData);
+  const [patientTypeSubmitAttempted, setPatientTypeSubmitAttempted] =
+    useState(false);
+  // console.log("editChartData", editChartData);
 
   const detailAdmissionForm = editChartData?.detailAdmission;
   const isOldMentalExamination = Boolean(
@@ -690,6 +695,12 @@ const DetailAdmission = ({
     }),
     onSubmit: (values) => {
       /* appending */
+      const { isValid } = validatePatientTypeFields(values);
+      if (!isValid) {
+        setPatientTypeSubmitAttempted(true);
+        setFormStep(PATIENT_TYPE_FIELDS);
+        return;
+      }
       if (values.delusions === "none") {
         values.delusionNotes = "";
       }
@@ -860,6 +871,7 @@ const DetailAdmission = ({
                   validation={validation}
                   setFormStep={setFormStep}
                   step={DETAIL_HISTORY}
+                  forceShowErrors={patientTypeSubmitAttempted}
                 />
               )}
 
