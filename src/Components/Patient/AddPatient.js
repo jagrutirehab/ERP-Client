@@ -27,6 +27,7 @@ import {
   fetchDoctors,
   fetchPatientId,
   removeAadhaarCard,
+  removePassportCard,
   togglePatientForm,
   updatePatient,
   fetchReferrals,
@@ -106,6 +107,7 @@ const AddPatient = ({
       center,
       profilePicture: editData ? editData?.profilePicture : "",
       aadhaarCard: "",
+      passportCard: "",
       aadhaarCardNumber: editData ? editData.aadhaarCardNumber : "",
       name,
       phoneNumber,
@@ -204,6 +206,9 @@ const AddPatient = ({
       if (values.aadhaarCard?.file instanceof Blob) {
         formData.append("aadhaarCard", values.aadhaarCard.file);
       }
+      if (values.passportCard?.file instanceof Blob) {
+        formData.append("passportCard", values.passportCard.file);
+      }
       if (values.profilePicture instanceof Blob) {
         formData.append("profilePicture", values.profilePicture);
       }
@@ -216,6 +221,8 @@ const AddPatient = ({
             formData.delete("profilePicture");
           if (!(values.aadhaarCard?.file instanceof Blob))
             formData.delete("aadhaarCard");
+          if (!(values.passportCard?.file instanceof Blob))
+            formData.delete("passportCard");
           await dispatch(updatePatient(formData)).unwrap();
         } else if (leadData) {
           formData.append("lead", leadData._id);
@@ -494,10 +501,22 @@ const AddPatient = ({
           {editData?.aadhaarCard?.url && (
             <Col xs={12} style={{ marginBottom: "1.5rem" }}>
               <UploadedFiles
-                title="Patient Files"
+                title="Aadhaar Card"
                 files={[editData.aadhaarCard]}
                 deleteFilePermanently={() =>
                   dispatch(removeAadhaarCard({ id: editData._id }))
+                }
+              />
+            </Col>
+          )}
+          {/* Passport Files */}
+          {editData?.passportCard?.url && (
+            <Col xs={12} style={{ marginBottom: "1.5rem" }}>
+              <UploadedFiles
+                title="Passport"
+                files={[editData.passportCard]}
+                deleteFilePermanently={() =>
+                  dispatch(removePassportCard({ id: editData._id }))
                 }
               />
             </Col>
@@ -756,8 +775,10 @@ const AddPatient = ({
                         validation.setFieldValue("nationality", opt);
                         if (opt === "Indian") {
                           validation.setFieldValue("passportNumber", "");
+                          validation.setFieldValue("passportCard", "");
                         } else {
                           validation.setFieldValue("aadhaarCardNumber", "");
+                          validation.setFieldValue("aadhaarCard", "");
                         }
                       }}
                       style={{
@@ -803,6 +824,31 @@ const AddPatient = ({
                       {validation.errors.aadhaarCardNumber}
                     </FormFeedback>
                   )}
+                  <Label
+                    htmlFor="aadhaarCardFile"
+                    className="form-label"
+                    style={{
+                      fontWeight: "500",
+                      color: "#374151",
+                      marginTop: "0.75rem",
+                    }}
+                  >
+                    Upload Aadhaar Card
+                  </Label>
+                  <Input
+                    type="file"
+                    name="aadhaarCardFile"
+                    id="aadhaarCardFile"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      validation.setFieldValue(
+                        "aadhaarCard",
+                        file ? { file } : "",
+                      );
+                    }}
+                    className="form-control"
+                  />
                 </div>
               ) : validation.values.nationality === "Foreigner" ? (
                 <div className="mb-3">
@@ -825,6 +871,31 @@ const AddPatient = ({
                       {validation.errors.passportNumber}
                     </FormFeedback>
                   )}
+                  <Label
+                    htmlFor="passportCardFile"
+                    className="form-label"
+                    style={{
+                      fontWeight: "500",
+                      color: "#374151",
+                      marginTop: "0.75rem",
+                    }}
+                  >
+                    Upload Passport
+                  </Label>
+                  <Input
+                    type="file"
+                    name="passportCardFile"
+                    id="passportCardFile"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      validation.setFieldValue(
+                        "passportCard",
+                        file ? { file } : "",
+                      );
+                    }}
+                    className="form-control"
+                  />
                   <div
                     style={{
                       marginTop: "0.5rem",
@@ -878,7 +949,7 @@ const AddPatient = ({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+                gridTemplateColumns: "repeat(auto-fit, minmax(min(340px, 100%), 1fr))",
                 gap: "2rem",
                 marginBottom: "2.5rem",
               }}

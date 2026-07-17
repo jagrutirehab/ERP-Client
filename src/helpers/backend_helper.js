@@ -439,6 +439,11 @@ export const editPatient = (data) =>
   });
 export const deletePatientAadhaarCard = (data) =>
   api.update(url.DELETE_PATIENT_AADHAAR_CARD, data);
+export const deletePatientPassportCard = (data) =>
+  api.update(url.DELETE_PATIENT_AADHAAR_CARD, {
+    ...data,
+    field: "passportCard",
+  });
 export const removePatient = (data) =>
   api.delete(`${url.DELETE_PATIENT}/${data}`);
 export const deletePatientPermanently = (data) =>
@@ -2321,6 +2326,30 @@ export const getDueAmount = (data) => {
 
 export const getCashPerCenter = (data) => {
   return api.get(url.GET_CASH_PER_CENTER, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getWriteOffAmount = (data) => {
+  return api.get(url.GET_WRITE_OFF_AMOUNT, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getTrainingFormsWeekly = (data) => {
+  return api.get(url.GET_TRAINING_FORMS_WEEKLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getAuditDaily = (data) => {
+  return api.get(url.GET_AUDIT_DAILY, {
     params: {
       centerIds: data?.centerAccess,
     },

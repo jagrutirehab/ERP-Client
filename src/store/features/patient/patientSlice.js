@@ -4,6 +4,7 @@ import {
   assignNurseToPatient,
   assignPatientType,
   deletePatientAadhaarCard,
+  deletePatientPassportCard,
   editPatient,
   getAllPatients,
   getMorePatients,
@@ -151,6 +152,25 @@ export const removeAadhaarCard = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Aadhaar Card Deleted Successfully",
+        })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const removePassportCard = createAsyncThunk(
+  "deletePatientPassportCard",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await deletePatientPassportCard(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Passport Deleted Successfully",
         })
       );
       return response;
@@ -575,6 +595,23 @@ export const patientSlice = createSlice({
         state.data[findIndex] = payload.payload;
       })
       .addCase(removeAadhaarCard.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(removePassportCard.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removePassportCard.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload.payload._id
+        );
+        state.patient = payload.payload;
+        state.patientForm.data = payload.payload;
+        state.data[findIndex] = payload.payload;
+      })
+      .addCase(removePassportCard.rejected, (state) => {
         state.loading = false;
       });
 
