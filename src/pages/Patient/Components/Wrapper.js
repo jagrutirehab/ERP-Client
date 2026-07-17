@@ -163,16 +163,16 @@ const Wrapper = ({
 
   const chartName = chart
     ? chart
-      .toLowerCase()
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
-    : bill
-      ? bill
         .toLowerCase()
         .split("_")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ")
+    : bill
+      ? bill
+          .toLowerCase()
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ")
       : "";
 
   return (
@@ -182,11 +182,11 @@ const Wrapper = ({
       }}
       // onCli
       transition={{ duration: 0.5 }}
-    // transition={{
-    //   layout: {
-    //     duration: 1.5,
-    //   },
-    // }}
+      // transition={{
+      //   layout: {
+      //     duration: 1.5,
+      //   },
+      // }}
     >
       <Col xs={12}>
         <div className="px-3 bg-white timeline-date border border-dark py-2">
@@ -210,8 +210,9 @@ const Wrapper = ({
                 }}
               >
                 <i
-                  className={`ri-${copied ? "check" : "file-copy"}-line fs-6 ${copied ? "text-success" : "text-muted"
-                    }`}
+                  className={`ri-${copied ? "check" : "file-copy"}-line fs-6 ${
+                    copied ? "text-success" : "text-muted"
+                  }`}
                 />
               </button>
             )}
@@ -221,7 +222,9 @@ const Wrapper = ({
                 ? "Clinical Note"
                 : chartName === "Psycho Diagnostic Form"
                   ? "Psycho Diagnostic Report"
-                  : chartName}
+                  : chartName === "Nurse Sos Procedure"
+                    ? "Nurse Procedure"
+                    : chartName}
 
               {geminiResponseGeneratedBy && (
                 <span
@@ -337,7 +340,10 @@ const Wrapper = ({
                     Created at:{" "}
                     <span className="font-semi-bold">
                       {item?.createdAt &&
-                        format(new Date(item?.createdAt), "dd MMMM yyyy hh:mm a")}
+                        format(
+                          new Date(item?.createdAt),
+                          "dd MMMM yyyy hh:mm a",
+                        )}
                     </span>
                   </span>
                 </div>
