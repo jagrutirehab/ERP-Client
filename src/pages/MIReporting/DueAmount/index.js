@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
 import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
 import { CSVLink } from "react-csv";
@@ -279,7 +280,13 @@ const DueAmount = () => {
                                         fontWeight: isDue ? 600 : "normal",
                                       }}
                                     >
-                                      {getCellValue(item, label)}
+                                      {(label === "Patient UID" || label === "Name")
+                                        ? (
+                                          <Link to={`/patient/${item.patient_mongo_id}`} className="text-dark" target="_blank" rel="noopener noreferrer">
+                                            {getCellValue(item, label)}
+                                          </Link>
+                                        )
+                                        : getCellValue(item, label)}
                                     </td>
                                   );
                                 })}

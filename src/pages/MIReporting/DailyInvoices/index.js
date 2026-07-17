@@ -1,4 +1,5 @@
     import React, { useEffect, useMemo, useRef, useState } from "react";
+    import { Link } from "react-router-dom";
     import { useDispatch, useSelector, shallowEqual } from "react-redux";
     import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
     import { CSVLink } from "react-csv";
@@ -321,7 +322,13 @@ const DailyInvoices = () => {
                                                         wordBreak: "break-word",
                                                     }}
                                                 >
-                                                    {value}
+                                                    {(label === "Patient UID" || label === "Patient Name")
+                                                        ? (
+                                                            <Link to={`/patient/${patient.patient_mongo_id}`} className="text-dark" target="_blank" rel="noopener noreferrer">
+                                                                {value}
+                                                            </Link>
+                                                        )
+                                                        : value}
                                                 </td>
                                             );
                                         })}
