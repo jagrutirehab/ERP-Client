@@ -38,6 +38,7 @@ import NursesDOD from "./NursesDOD";
 import CenterWiseMOM from "./CenterWiseMOM";
 import CashPerCenter from "./CashPerCenter";
 import WriteOFFAmount from "./WriteOFFAmount";
+import AuditForms from "./AuditForms";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -273,6 +274,10 @@ const MiReporting = () => {
                     element={<WriteOFFAmount />}
                   />}
 
+                  {hasMISPermission&&<Route
+                    path="/forms-data"
+                    element={<AuditForms />}
+                  />}
 
 
 

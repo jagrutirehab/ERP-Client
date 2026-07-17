@@ -2348,6 +2348,14 @@ export const getTrainingFormsWeekly = (data) => {
   });
 };
 
+export const getAuditDaily = (data) => {
+  return api.get(url.GET_AUDIT_DAILY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getMIAttendance = (data) => {
   return api.get(url.GET_MI_ATTENDANCE, {
     params: {

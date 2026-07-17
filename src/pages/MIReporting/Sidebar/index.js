@@ -82,6 +82,7 @@ const Sidebar = () => {
     { id: "nurses-dod", label: "Nurses DOD", link: "/mi-reporting/nurses-dod", icon: "bx bx-capsule" },
     { id: "cash-per-center", label: "Cash Per Center", link: "/mi-reporting/cash-per-center", icon: "bx bx-wallet" },
     { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money" },
+    { id: "forms-data", label: "Forms Data", link: "/mi-reporting/forms-data", icon: "bx bx-clipboard" },
   ];
 
   const sidebarStyle = isMobile

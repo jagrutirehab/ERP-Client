@@ -33,6 +33,7 @@ import {
   getCashPerCenter,
   getWriteOffAmount,
   getTrainingFormsWeekly,
+  getAuditDaily,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -75,6 +76,7 @@ const initialState = {
   cashPerCenter: [],
   writeOffAmount: [],
   trainingFormsWeekly: [],
+  auditDaily: [],
   loading: false,
   error: null,
 };
@@ -364,6 +366,36 @@ export const fetchWriteOffAmount = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.message || "Failed to fetch write off amount"
+      );
+    }
+  }
+);
+
+
+export const fetchTrainingFormsWeekly = createAsyncThunk(
+  "miReporting/fetchTrainingFormsWeekly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getTrainingFormsWeekly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch training forms weekly"
+      );
+    }
+  }
+);
+
+
+export const fetchAuditDaily = createAsyncThunk(
+  "miReporting/fetchAuditDaily",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getAuditDaily(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch audit daily"
       );
     }
   }
@@ -1014,6 +1046,32 @@ const miReportingSlice = createSlice({
         state.writeOffAmount = action.payload.payload || [];
       })
       .addCase(fetchWriteOffAmount.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Training Forms Weekly
+      .addCase(fetchTrainingFormsWeekly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTrainingFormsWeekly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.trainingFormsWeekly = action.payload.payload || [];
+      })
+      .addCase(fetchTrainingFormsWeekly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Audit Daily
+      .addCase(fetchAuditDaily.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAuditDaily.fulfilled, (state, action) => {
+        state.loading = false;
+        state.auditDaily = action.payload.payload || [];
+      })
+      .addCase(fetchAuditDaily.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
