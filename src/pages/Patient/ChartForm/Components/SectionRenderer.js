@@ -1,35 +1,23 @@
 import React from "react";
 import { Row, Col } from "reactstrap";
-import Divider from "../../../../Components/Common/Divider"; // TODO: adjust relative path to match where this file lives in your project
+import Divider from "../../../../Components/Common/Divider"; 
 import FormField from "./FormField";
 import FixedGridField from "./FixedGridField";
 
-/**
- * sections: [
- *   {
- *     title: "C. Substance Use History",
- *     items: [
- *       { kind: "grid", ...fixedGridConfig },
- *       { kind: "field", ...formFieldConfig },
- *       ...
- *     ],
- *   },
- *   ...
- * ]
- */
-const SectionRenderer = ({ sections, values, onChange }) => {
+
+const SectionRenderer = ({ sections, values, onChange, errors }) => {
   return (
     <>
-      {sections?.map((section) => (
+      {sections.map((section) => (
         <div key={section.title} className="mb-4">
           <div className="d-flex align-items-center flex-wrap gap-2 gap-md-3 mb-3">
-            <h6 className="fs-xs-16 fs-md-14 display-6 mb-0">
-              {section?.title}
+            <h6 className="fs-xs-12 fs-md-14 display-6 mb-0">
+              {section.title}
             </h6>
             <Divider />
           </div>
 
-          {section?.items
+          {section.items
             .filter((item) => item.kind === "grid")
             .map((item) => (
               <FixedGridField
@@ -37,6 +25,7 @@ const SectionRenderer = ({ sections, values, onChange }) => {
                 field={item}
                 values={values}
                 onChange={onChange}
+                error={errors?.[item.path]}
               />
             ))}
 
@@ -49,6 +38,7 @@ const SectionRenderer = ({ sections, values, onChange }) => {
                   field={item}
                   values={values}
                   onChange={onChange}
+                  error={errors?.[item.path]}
                 />
               ))}
           </Row>

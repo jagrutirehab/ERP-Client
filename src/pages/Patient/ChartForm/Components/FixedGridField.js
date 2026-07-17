@@ -3,9 +3,11 @@ import { Table, Input } from "reactstrap";
 import Select from "react-select";
 import { getIn } from "formik";
 
-const FixedGridField = ({ field, values, onChange }) => {
+
+const FixedGridField = ({ field, values, onChange, error }) => {
   const { path, title, rowLabelKey, rowLabels, columns } = field;
   const currentValue = getIn(values, path);
+
   useEffect(() => {
     const needsSeed =
       !Array.isArray(currentValue) ||
@@ -22,7 +24,6 @@ const FixedGridField = ({ field, values, onChange }) => {
         rowLabels.map((label) => ({ [rowLabelKey]: label, ...emptyRowShape })),
       );
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [path]);
 
   const rows = Array.isArray(currentValue) ? currentValue : [];
@@ -36,7 +37,11 @@ const FixedGridField = ({ field, values, onChange }) => {
 
   return (
     <div className="mb-4">
-      {title && <h6 className="mb-2">{title}</h6>}
+      {title && (
+        <h6 className="mb-2">
+          {title} <span className="text-danger">*</span>
+        </h6>
+      )}
       <div className="table-responsive">
         <Table bordered size="sm" className="align-middle">
           <thead>
@@ -137,6 +142,7 @@ const FixedGridField = ({ field, values, onChange }) => {
           </tbody>
         </Table>
       </div>
+      {error && <div className="text-danger small mt-1">{error}</div>}
     </div>
   );
 };
