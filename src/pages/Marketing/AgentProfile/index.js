@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
 import {
   Card,
   CardBody,
@@ -55,6 +55,8 @@ const AgentProfile = () => {
   const [dateRange, setDateRange] = useState(DATE_PRESETS.thisMonth());
   const [activePreset, setActivePreset] = useState("thisMonth");
   const [selectedVisit, setSelectedVisit] = useState(null);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const searchWrapperRef = useRef(null);
 
   const microUser = localStorage.getItem("micrologin");
   const currentUserId = microUser ? JSON.parse(microUser)?.user?._id : null;
@@ -79,6 +81,33 @@ const AgentProfile = () => {
     fetchVisits(dateRange);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentUserId]);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
+        setShowSuggestions(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const suggestionPool = useMemo(() => {
+    const map = new Map();
+    visits.forEach((v) => {
+      const key = `${v.doctor?.name}__${v.doctor?.clinicName}`;
+      if (v.doctor?.name && !map.has(key)) {
+        map.set(key, { label: v.doctor.name, sub: v.doctor.clinicName });
+      }
+    });
+    return [...map.values()];
+  }, [visits]);
+
+  const filteredSuggestions = useMemo(() => {
+    const q = search.trim().toLowerCase();
+    if (!q) return [];
+    return suggestionPool.filter((s) => s.label.toLowerCase().includes(q)).slice(0, 8);
+  }, [search, suggestionPool]);
 
   const applyPreset = (key) => {
     const range = DATE_PRESETS[key]();
@@ -183,12 +212,47 @@ const AgentProfile = () => {
               <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>
                 Search Doctor / Clinic
               </Label>
-              <Input
-                size="sm"
-                placeholder="Type a name…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
+              <div className="position-relative" ref={searchWrapperRef}>
+                <Input
+                  size="sm"
+                  placeholder="Type a name…"
+                  value={search}
+                  onChange={(e) => {
+                    setSearch(e.target.value);
+                    setShowSuggestions(true);
+                  }}
+                  onFocus={() => setShowSuggestions(true)}
+                />
+                {showSuggestions && filteredSuggestions.length > 0 && (
+                  <div
+                    className="border rounded-3 mt-1 shadow-sm"
+                    style={{
+                      background: "#fff",
+                      position: "absolute",
+                      zIndex: 20,
+                      width: "100%",
+                      maxHeight: 220,
+                      overflowY: "auto",
+                    }}
+                  >
+                    {filteredSuggestions.map((s, idx) => (
+                      <div
+                        key={idx}
+                        className="px-3 py-2 border-bottom"
+                        style={{ cursor: "pointer" }}
+                        onMouseDown={(e) => {
+                          e.preventDefault();
+                          setSearch(s.label);
+                          setShowSuggestions(false);
+                        }}
+                      >
+                        <div className="fw-medium fs-14">{s.label}</div>
+                        <div className="text-muted fs-12">{s.sub}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             </CardBody>
           </Card>
 

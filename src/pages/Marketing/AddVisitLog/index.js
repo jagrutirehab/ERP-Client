@@ -195,6 +195,9 @@ const AddVisitLog = () => {
       interestLevel: Yup.string().required("Interest level is required"),
       commissionDiscussed: Yup.string().required("Please select Yes or No"),
       commissionPercentage: Yup.number()
+        .transform((value, originalValue) =>
+          originalValue === "" ? undefined : value,
+        )
         .min(0, "Must be between 0-100")
         .max(100, "Must be between 0-100")
         .when("commissionDiscussed", {
