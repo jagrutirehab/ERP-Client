@@ -11,7 +11,10 @@ import {
   Alert,
   Collapse,
 } from "reactstrap";
-import { getAgentVisitReport } from "../../../helpers/backend_helper";
+import {
+  getAgentVisitReport,
+  getAllCenters,
+} from "../../../helpers/backend_helper";
 
 const getInitials = (name = "") =>
   name
@@ -32,16 +35,21 @@ const AVATAR_COLORS = [
 const getAvatarColor = (name = "") =>
   AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length || 0];
 
+const toISO = (d) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
+
 const getDefaultMonthRange = () => {
   const now = new Date();
   const first = new Date(now.getFullYear(), now.getMonth(), 1);
   return {
-    from: first.toISOString().slice(0, 10),
-    to: now.toISOString().slice(0, 10),
+    from: toISO(first),
+    to: toISO(now),
   };
 };
-
-const toISO = (d) => d.toISOString().slice(0, 10);
 
 const DATE_PRESETS = {
   today: () => {
@@ -82,12 +90,30 @@ const AgentReport = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [activePreset, setActivePreset] = useState(null);
   const searchWrapperRef = useRef(null);
+  const [centers, setCenters] = useState([]);
+  const [centerFilter, setCenterFilter] = useState("");
 
-  const fetchReport = async (range) => {
+  useEffect(() => {
+    getAllCenters()
+      .then((res) => {
+        const list = res?.data?.payload || res?.payload || res?.data || [];
+        const sorted = [...list].sort((a, b) =>
+          (a.displayName || a.name || "").localeCompare(
+            b.displayName || b.name || "",
+          ),
+        );
+        setCenters(sorted);
+      })
+      .catch(() => {});
+  }, []);
+  const fetchReport = async (range, centerId = centerFilter) => {
     setLoading(true);
     setError(null);
     try {
-      const reportRes = await getAgentVisitReport(range);
+      const reportRes = await getAgentVisitReport({
+        ...range,
+        center: centerId || undefined,
+      });
       const payload = reportRes?.payload || reportRes?.data?.payload || [];
       setData(payload);
     } catch (err) {
@@ -294,6 +320,30 @@ const AgentReport = () => {
                 </Col>
               </Row>
               <Row className="g-3 align-items-end">
+                <Col xs={12} md={3}>
+                  <Label
+                    className="fw-semibold text-dark mb-1"
+                    style={{ fontSize: "13px" }}
+                  >
+                    Center
+                  </Label>
+                  <Input
+                    type="select"
+                    size="sm"
+                    value={centerFilter}
+                    onChange={(e) => {
+                      setCenterFilter(e.target.value);
+                      fetchReport(dateRange, e.target.value);
+                    }}
+                  >
+                    <option value="">All Centers</option>
+                    {centers.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.displayName || c.name}
+                      </option>
+                    ))}
+                  </Input>
+                </Col>
                 <Col xs={12} md={7}>
                   <Label
                     className="fw-semibold text-dark mb-1"

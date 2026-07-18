@@ -12,7 +12,11 @@ import {
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { createVisitLog, searchDoctors } from "../../../helpers/backend_helper";
+import {
+  createVisitLog,
+  searchDoctors,
+  getAllCenters,
+} from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const STEPS = [
@@ -43,7 +47,6 @@ const AddVisitLog = () => {
   });
   const [gpsRefreshing, setGpsRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-
   //Selfie live camera only
   const [selfieFile, setSelfieFile] = useState(null);
   const [selfiePreview, setSelfiePreview] = useState(null);
@@ -60,7 +63,21 @@ const AddVisitLog = () => {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
+  const [centers, setCenters] = useState([]);
 
+  useEffect(() => {
+    getAllCenters()
+      .then((res) => {
+        const list = res?.data?.payload || res?.payload || res?.data || [];
+        const sorted = [...list].sort((a, b) =>
+          (a.displayName || a.name || "").localeCompare(
+            b.displayName || b.name || "",
+          ),
+        );
+        setCenters(sorted);
+      })
+      .catch(() => {});
+  }, []);
   //Collateral proof
   const [collateralProofFiles, setCollateralProofFiles] = useState({
     pricing: null,
@@ -132,6 +149,7 @@ const AddVisitLog = () => {
   const validation = useFormik({
     enableReinitialize: true,
     initialValues: {
+      center: "",
       areaLocality: "",
       doctorName: "",
       clinicName: "",
@@ -149,6 +167,7 @@ const AddVisitLog = () => {
       nextFollowUpDate: "",
     },
     validationSchema: Yup.object({
+      center: Yup.string().required("Please select a center"),
       areaLocality: Yup.string().required("Area / locality is required"),
       doctorName: Yup.string().required("Doctor name is required"),
       clinicName: Yup.string().required("Clinic name is required"),
@@ -205,6 +224,7 @@ const AddVisitLog = () => {
         const formData = new FormData();
         formData.append("gps[lat]", gps.lat);
         formData.append("gps[lng]", gps.lng);
+        formData.append("center", values.center);
         formData.append("areaLocality", values.areaLocality);
         formData.append("doctor[name]", values.doctorName);
         formData.append("doctor[clinicName]", values.clinicName);
@@ -489,7 +509,7 @@ const AddVisitLog = () => {
   };
 
   const STEP_FIELDS = [
-    ["areaLocality"],
+    ["center", "areaLocality"],
     [
       "doctorName",
       "clinicName",
@@ -508,7 +528,6 @@ const AddVisitLog = () => {
     [],
     [],
   ];
-
   const validateCurrentStep = async () => {
     if (activeStep === 4 && !selfieFile) {
       toast.error("Please take a live selfie before continuing");
@@ -933,6 +952,36 @@ const AddVisitLog = () => {
                   {/* ---- STEP 0: VISIT DETAILS ---- */}
                   {activeStep === 0 && (
                     <Row>
+                      <Col xs={12} lg={7}>
+                        <div className="field-group">
+                          <Label className="field-label">
+                            Center <span className="field-required">*</span>
+                          </Label>
+                          <Input
+                            type="select"
+                            name="center"
+                            value={validation.values.center}
+                            onChange={validation.handleChange}
+                            onBlur={validation.handleBlur}
+                            invalid={
+                              validation.touched.center &&
+                              !!validation.errors.center
+                            }
+                          >
+                            <option value="" disabled hidden>
+                              Choose here
+                            </option>
+                            {centers.map((c) => (
+                              <option key={c._id} value={c._id}>
+                                {c.displayName || c.name}
+                              </option>
+                            ))}
+                          </Input>
+                          <FormFeedback>
+                            {validation.errors.center}
+                          </FormFeedback>
+                        </div>
+                      </Col>
                       <Col xs={12} lg={7}>
                         <div className="field-group">
                           <Label className="field-label">
