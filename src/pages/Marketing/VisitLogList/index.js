@@ -20,7 +20,7 @@ import {
   ModalHeader,
   ModalBody,
 } from "reactstrap";
-import { getVisitLogs } from "../../../helpers/backend_helper";
+import { getVisitLogs, getAllCenters } from "../../../helpers/backend_helper";
 
 const INTEREST_STYLE = {
   HOT: { bg: "#fde8e4", color: "#f06548" },
@@ -71,6 +71,7 @@ const DEFAULT_FILTERS = {
   visitType: "",
   interestLevel: "",
   gpsMatch: "",
+  center: "",
   from: "",
   to: "",
 };
@@ -84,16 +85,32 @@ const VisitLogList = () => {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [sortByDistanceDesc, setSortByDistanceDesc] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
+  const [routeModalKey, setRouteModalKey] = useState(null);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
   const searchWrapperRef = useRef(null);
+  const [centers, setCenters] = useState([]);
 
+  useEffect(() => {
+    getAllCenters()
+      .then((res) => {
+        const list = res?.data?.payload || res?.payload || res?.data || [];
+        const sorted = [...list].sort((a, b) =>
+          (a.displayName || a.name || "").localeCompare(
+            b.displayName || b.name || "",
+          ),
+        );
+        setCenters(sorted);
+      })
+      .catch(() => {});
+  }, []);
   const fetchLogs = useCallback(async (activeFilters) => {
     setLoading(true);
     setError(null);
     try {
       const params = {};
       if (activeFilters.visitType) params.visitType = activeFilters.visitType;
+      if (activeFilters.center) params.center = activeFilters.center;
       if (activeFilters.interestLevel)
         params.interestLevel = activeFilters.interestLevel;
       if (activeFilters.from) params.from = activeFilters.from;
@@ -194,6 +211,77 @@ const VisitLogList = () => {
       return { ...log, _distance: distance };
     });
   }, [logs]);
+
+  const logsWithRoute = useMemo(() => {
+    // Group by agent + date, sort by check-in time, number the stops
+    const grouped = {};
+    logs.forEach((log) => {
+      const dateKey = new Date(log.visitDate).toDateString();
+      const key = `${log.agent?._id}_${dateKey}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(log);
+    });
+
+    const routeMap = {};
+    Object.values(grouped).forEach((dayLogs) => {
+      const sorted = [...dayLogs].sort(
+        (a, b) => new Date(a.checkInTime) - new Date(b.checkInTime),
+      );
+      sorted.forEach((log, idx) => {
+        let distFromPrev = null;
+        if (idx > 0) {
+          const prev = sorted[idx - 1];
+          distFromPrev = getDistanceInMeters(
+            log.gps?.lat,
+            log.gps?.lng,
+            prev.gps?.lat,
+            prev.gps?.lng,
+          );
+        }
+        routeMap[log._id] = {
+          stopNumber: idx + 1,
+          totalStops: sorted.length,
+          distFromPrev,
+        };
+      });
+    });
+
+    return routeMap;
+  }, [logs]);
+
+  const routeGroups = useMemo(() => {
+    const grouped = {};
+    logs.forEach((log) => {
+      const dateKey = new Date(log.visitDate).toDateString();
+      const key = `${log.agent?._id}_${dateKey}`;
+      if (!grouped[key]) grouped[key] = [];
+      grouped[key].push(log);
+    });
+
+    const result = {};
+    Object.entries(grouped).forEach(([key, dayLogs]) => {
+      const sorted = [...dayLogs].sort(
+        (a, b) => new Date(a.checkInTime) - new Date(b.checkInTime),
+      );
+      result[key] = sorted.map((log, idx) => {
+        let distFromPrev = null;
+        if (idx > 0) {
+          const prev = sorted[idx - 1];
+          distFromPrev = getDistanceInMeters(
+            log.gps?.lat,
+            log.gps?.lng,
+            prev.gps?.lat,
+            prev.gps?.lng,
+          );
+        }
+        return { log, distFromPrev };
+      });
+    });
+    return result;
+  }, [logs]);
+
+  const getRouteKey = (log) =>
+    `${log.agent?._id}_${new Date(log.visitDate).toDateString()}`;
 
   const mismatchCountByAgent = useMemo(() => {
     const counts = {};
@@ -370,6 +458,31 @@ const VisitLogList = () => {
                     )}
                   </div>
                 </Col>
+
+                <Col xs={6} md={2}>
+                  <Label
+                    className="fw-semibold text-dark mb-1"
+                    style={{ fontSize: "13px" }}
+                  >
+                    Center
+                  </Label>
+                  <Input
+                    type="select"
+                    size="sm"
+                    value={filters.center}
+                    onChange={(e) =>
+                      handleFilterChange("center", e.target.value)
+                    }
+                  >
+                    <option value="">All Centers</option>
+                    {centers.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.displayName || c.name}
+                      </option>
+                    ))}
+                  </Input>
+                </Col>
+
                 <Col xs={6} md={2}>
                   <Label
                     className="fw-semibold text-dark mb-1"
@@ -506,6 +619,18 @@ const VisitLogList = () => {
                                 year: "numeric",
                               },
                             )}
+                            <div
+                              className="text-muted"
+                              style={{ fontSize: "12px" }}
+                            >
+                              {new Date(log.checkInTime).toLocaleTimeString(
+                                "en-IN",
+                                {
+                                  hour: "2-digit",
+                                  minute: "2-digit",
+                                },
+                              )}
+                            </div>
                           </div>
                         </div>
                         <GpsStatus matched={matched} />
@@ -548,7 +673,20 @@ const VisitLogList = () => {
                           </span>
                         )}
                       </div>
-
+                      {logsWithRoute[log._id] &&
+                        logsWithRoute[log._id].totalStops > 1 && (
+                          <Button
+                            size="sm"
+                            color="light"
+                            className="w-100 mb-2"
+                            onClick={() => setRouteModalKey(getRouteKey(log))}
+                          >
+                            <i className="bx bx-route me-1" />
+                            Stop {logsWithRoute[log._id].stopNumber}/
+                            {logsWithRoute[log._id].totalStops} — View Day's
+                            Route
+                          </Button>
+                        )}
                       <Button
                         size="sm"
                         color="light"
@@ -606,6 +744,9 @@ const VisitLogList = () => {
                           <i
                             className={`bx ${sortByDistanceDesc ? "bx-sort-down" : "bx-sort"}`}
                           />
+                        </th>
+                        <th className="text-muted fw-semibold fs-13 py-3">
+                          Route
                         </th>
                         <th className="text-muted fw-semibold fs-13 py-3">
                           Interest
@@ -676,6 +817,18 @@ const VisitLogList = () => {
                                   year: "numeric",
                                 },
                               )}
+                              <div
+                                className="text-muted"
+                                style={{ fontSize: "12px" }}
+                              >
+                                {new Date(log.checkInTime).toLocaleTimeString(
+                                  "en-IN",
+                                  {
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                  },
+                                )}
+                              </div>
                             </td>
                             <td>
                               <span
@@ -708,6 +861,27 @@ const VisitLogList = () => {
                                 </span>
                               ) : (
                                 <span className="text-muted fs-13">—</span>
+                              )}
+                            </td>
+                            <td>
+                              {logsWithRoute[log._id] &&
+                              logsWithRoute[log._id].totalStops > 1 ? (
+                                <Button
+                                  size="sm"
+                                  color="light"
+                                  onClick={() =>
+                                    setRouteModalKey(getRouteKey(log))
+                                  }
+                                  title="View full day route"
+                                >
+                                  <i className="bx bx-route me-1" />
+                                  Stop {logsWithRoute[log._id].stopNumber}/
+                                  {logsWithRoute[log._id].totalStops}
+                                </Button>
+                              ) : (
+                                <span className="text-muted fs-13">
+                                  Only visit
+                                </span>
                               )}
                             </td>
                             <td>
@@ -785,7 +959,12 @@ const VisitLogList = () => {
       </Row>
 
       {/*Detail Modal*/}
-     <Modal isOpen={!!selectedLog} toggle={() => setSelectedLog(null)} centered size="lg">
+      <Modal
+        isOpen={!!selectedLog}
+        toggle={() => setSelectedLog(null)}
+        centered
+        size="lg"
+      >
         <div
           style={{
             background: "linear-gradient(135deg, #3577f1 0%, #5a8bf5 100%)",
@@ -823,40 +1002,57 @@ const VisitLogList = () => {
                     {getInitials(selectedLog.agent?.name) || "?"}
                   </div>
                   <div>
-                    <div className="fw-semibold fs-16">{selectedLog.agent?.name}</div>
-                    <div className="text-muted fs-13">{selectedLog.agent?.email}</div>
+                    <div className="fw-semibold fs-16">
+                      {selectedLog.agent?.name}
+                    </div>
+                    <div className="text-muted fs-13">
+                      {selectedLog.agent?.email}
+                    </div>
                   </div>
                 </div>
                 <div className="text-end">
                   <GpsStatus matched={selectedLog.gps?.matchedClinic} />
                   <div className="text-muted fs-12 mt-1">
                     <i className="bx bx-calendar me-1" />
-                    {new Date(selectedLog.visitDate).toLocaleDateString("en-IN", {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    })}
+                    {new Date(selectedLog.visitDate).toLocaleDateString(
+                      "en-IN",
+                      {
+                        day: "2-digit",
+                        month: "short",
+                        year: "numeric",
+                      },
+                    )}
                     {" · "}
-                    {new Date(selectedLog.checkInTime).toLocaleTimeString("en-IN", {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                    {new Date(selectedLog.checkInTime).toLocaleTimeString(
+                      "en-IN",
+                      {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      },
+                    )}
                   </div>
                 </div>
               </div>
 
               {/* Area / Locality */}
-              <div className="bg-white rounded-3 shadow-sm p-3 mb-3">
-                <div className="d-flex align-items-center gap-2 mb-2">
-                  <div
-                    className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                    style={{ width: 32, height: 32, background: "rgba(53,119,241,0.1)" }}
-                  >
-                    <i className="bx bx-map text-primary" style={{ fontSize: 16 }} />
-                  </div>
-                  <span className="fw-semibold fs-14">Area / Locality</span>
-                </div>
-                <div className="fs-14 text-dark ps-1">{selectedLog.areaLocality || "—"}</div>
+              {/* Area / Locality + Center */}
+              <div className="rounded-3 border p-3 mb-3">
+                <Row className="fs-13">
+                  <Col xs={6} className="text-muted mb-1">
+                    <i className="bx bx-buildings me-1" /> Center
+                  </Col>
+                  <Col xs={6} className="fw-medium mb-1">
+                    {selectedLog.center?.displayName ||
+                      selectedLog.center?.name ||
+                      "—"}
+                  </Col>
+                  <Col xs={6} className="text-muted">
+                    <i className="bx bx-map me-1" /> Area / Locality
+                  </Col>
+                  <Col xs={6} className="fw-medium">
+                    {selectedLog.areaLocality || "—"}
+                  </Col>
+                </Row>
               </div>
 
               {/* Doctor & Clinic */}
@@ -864,34 +1060,69 @@ const VisitLogList = () => {
                 <div className="d-flex align-items-center gap-2 mb-3">
                   <div
                     className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                    style={{ width: 32, height: 32, background: "rgba(125,95,255,0.1)" }}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      background: "rgba(125,95,255,0.1)",
+                    }}
                   >
-                    <i className="bx bx-user-voice" style={{ fontSize: 16, color: "#7d5fff" }} />
+                    <i
+                      className="bx bx-user-voice"
+                      style={{ fontSize: 16, color: "#7d5fff" }}
+                    />
                   </div>
                   <span className="fw-semibold fs-14">Doctor & Clinic</span>
                 </div>
                 <Row className="fs-14 gy-2">
-                  <Col xs={5} className="text-muted">Doctor Name</Col>
-                  <Col xs={7} className="fw-medium text-dark">{selectedLog.doctor?.name}</Col>
-                  <Col xs={5} className="text-muted">Clinic</Col>
-                  <Col xs={7} className="fw-medium text-dark">{selectedLog.doctor?.clinicName}</Col>
-                  <Col xs={5} className="text-muted">Contact</Col>
-                  <Col xs={7} className="fw-medium text-dark">{selectedLog.doctor?.contactNumber}</Col>
-                  <Col xs={5} className="text-muted">Specialisation</Col>
-                  <Col xs={7} className="fw-medium text-dark">{selectedLog.doctor?.specialisation}</Col>
-                  <Col xs={5} className="text-muted">Visit Type</Col>
+                  <Col xs={5} className="text-muted">
+                    Doctor Name
+                  </Col>
+                  <Col xs={7} className="fw-medium text-dark">
+                    {selectedLog.doctor?.name}
+                  </Col>
+                  <Col xs={5} className="text-muted">
+                    Clinic
+                  </Col>
+                  <Col xs={7} className="fw-medium text-dark">
+                    {selectedLog.doctor?.clinicName}
+                  </Col>
+                  <Col xs={5} className="text-muted">
+                    Contact
+                  </Col>
+                  <Col xs={7} className="fw-medium text-dark">
+                    {selectedLog.doctor?.contactNumber}
+                  </Col>
+                  <Col xs={5} className="text-muted">
+                    Specialisation
+                  </Col>
+                  <Col xs={7} className="fw-medium text-dark">
+                    {selectedLog.doctor?.specialisation}
+                  </Col>
+                  <Col xs={5} className="text-muted">
+                    Visit Type
+                  </Col>
                   <Col xs={7}>
                     <span
                       className="badge rounded-pill fw-medium"
                       style={{
-                        background: selectedLog.visitType === "FIRST_VISIT" ? "#eef2ff" : "#f3f0ff",
-                        color: selectedLog.visitType === "FIRST_VISIT" ? "#3577f1" : "#7d5fff",
+                        background:
+                          selectedLog.visitType === "FIRST_VISIT"
+                            ? "#eef2ff"
+                            : "#f3f0ff",
+                        color:
+                          selectedLog.visitType === "FIRST_VISIT"
+                            ? "#3577f1"
+                            : "#7d5fff",
                       }}
                     >
-                      {selectedLog.visitType === "FIRST_VISIT" ? "First Visit" : "Repeat Visit"}
+                      {selectedLog.visitType === "FIRST_VISIT"
+                        ? "First Visit"
+                        : "Repeat Visit"}
                     </span>
                   </Col>
-                  <Col xs={5} className="text-muted">Met With</Col>
+                  <Col xs={5} className="text-muted">
+                    Met With
+                  </Col>
                   <Col xs={7} className="fw-medium text-dark text-capitalize">
                     {selectedLog.metWith?.replaceAll("_", " ").toLowerCase()}
                   </Col>
@@ -903,9 +1134,16 @@ const VisitLogList = () => {
                 <div className="d-flex align-items-center gap-2 mb-3">
                   <div
                     className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                    style={{ width: 32, height: 32, background: "rgba(10,179,156,0.1)" }}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      background: "rgba(10,179,156,0.1)",
+                    }}
                   >
-                    <i className="bx bx-map-pin" style={{ fontSize: 16, color: "#0ab39c" }} />
+                    <i
+                      className="bx bx-map-pin"
+                      style={{ fontSize: 16, color: "#0ab39c" }}
+                    />
                   </div>
                   <span className="fw-semibold fs-14">Location Check</span>
                 </div>
@@ -914,9 +1152,15 @@ const VisitLogList = () => {
                   <Col xs={12} md={6}>
                     <div
                       className="rounded-3 p-3 h-100"
-                      style={{ background: "#f8f9fb", border: "1px solid #eef0f2" }}
+                      style={{
+                        background: "#f8f9fb",
+                        border: "1px solid #eef0f2",
+                      }}
                     >
-                      <div className="text-muted fs-11 fw-semibold mb-1" style={{ letterSpacing: "0.5px" }}>
+                      <div
+                        className="text-muted fs-11 fw-semibold mb-1"
+                        style={{ letterSpacing: "0.5px" }}
+                      >
                         FIRST VISIT LOCATION
                       </div>
                       <div className="fs-14 fw-medium text-dark mb-1">
@@ -943,7 +1187,9 @@ const VisitLogList = () => {
                     <div
                       className="rounded-3 p-3 h-100"
                       style={{
-                        background: selectedLog.gps?.matchedClinic ? "#e6f7f4" : "#fde8e4",
+                        background: selectedLog.gps?.matchedClinic
+                          ? "#e6f7f4"
+                          : "#fde8e4",
                         border: `1px solid ${selectedLog.gps?.matchedClinic ? "#0ab39c40" : "#f0654840"}`,
                       }}
                     >
@@ -951,17 +1197,23 @@ const VisitLogList = () => {
                         className="fs-11 fw-semibold mb-1"
                         style={{
                           letterSpacing: "0.5px",
-                          color: selectedLog.gps?.matchedClinic ? "#0ab39c" : "#f06548",
+                          color: selectedLog.gps?.matchedClinic
+                            ? "#0ab39c"
+                            : "#f06548",
                         }}
                       >
                         THIS VISIT'S LOCATION
                       </div>
                       <div className="fs-14 fw-medium text-dark mb-1">
-                        {selectedLog.gps?.lat?.toFixed(5)}, {selectedLog.gps?.lng?.toFixed(5)}
+                        {selectedLog.gps?.lat?.toFixed(5)},{" "}
+                        {selectedLog.gps?.lng?.toFixed(5)}
                       </div>
                       {selectedLog.gps?.lat && (
                         <a
-                          href={mapsLink(selectedLog.gps.lat, selectedLog.gps.lng)}
+                          href={mapsLink(
+                            selectedLog.gps.lat,
+                            selectedLog.gps.lng,
+                          )}
                           target="_blank"
                           rel="noreferrer"
                           className="fs-12 text-decoration-none"
@@ -979,11 +1231,17 @@ const VisitLogList = () => {
                     <span
                       className="badge rounded-pill fw-semibold px-3 py-2 fs-13 d-inline-flex align-items-center gap-1"
                       style={{
-                        background: selectedLog.gps?.matchedClinic ? "#e6f7f4" : "#fde8e4",
-                        color: selectedLog.gps?.matchedClinic ? "#0ab39c" : "#f06548",
+                        background: selectedLog.gps?.matchedClinic
+                          ? "#e6f7f4"
+                          : "#fde8e4",
+                        color: selectedLog.gps?.matchedClinic
+                          ? "#0ab39c"
+                          : "#f06548",
                       }}
                     >
-                      <i className={`bx ${selectedLog.gps?.matchedClinic ? "bx-check-circle" : "bx-error-circle"}`} />
+                      <i
+                        className={`bx ${selectedLog.gps?.matchedClinic ? "bx-check-circle" : "bx-error-circle"}`}
+                      />
                       {formatDistance(
                         getDistanceInMeters(
                           selectedLog.gps?.lat,
@@ -1003,26 +1261,45 @@ const VisitLogList = () => {
                 <div className="d-flex align-items-center gap-2 mb-2">
                   <div
                     className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                    style={{ width: 32, height: 32, background: "rgba(247,184,75,0.15)" }}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      background: "rgba(247,184,75,0.15)",
+                    }}
                   >
-                    <i className="bx bx-gift" style={{ fontSize: 16, color: "#f7b84b" }} />
+                    <i
+                      className="bx bx-gift"
+                      style={{ fontSize: 16, color: "#f7b84b" }}
+                    />
                   </div>
                   <span className="fw-semibold fs-14">Collateral</span>
                 </div>
                 <div className="fs-14 ps-1">
                   Given:{" "}
-                  <strong className={selectedLog.collateral?.given ? "text-success" : "text-muted"}>
+                  <strong
+                    className={
+                      selectedLog.collateral?.given
+                        ? "text-success"
+                        : "text-muted"
+                    }
+                  >
                     {selectedLog.collateral?.given ? "Yes" : "No"}
                   </strong>
                   {selectedLog.collateral?.given && (
                     <div className="mt-2 d-flex gap-2 flex-wrap">
                       {selectedLog.collateral?.pricingBrochure && (
-                        <span className="badge rounded-pill" style={{ background: "#eef2ff", color: "#3577f1" }}>
+                        <span
+                          className="badge rounded-pill"
+                          style={{ background: "#eef2ff", color: "#3577f1" }}
+                        >
                           Pricing Brochure
                         </span>
                       )}
                       {selectedLog.collateral?.centreBrochure && (
-                        <span className="badge rounded-pill" style={{ background: "#e6f7f4", color: "#0ab39c" }}>
+                        <span
+                          className="badge rounded-pill"
+                          style={{ background: "#e6f7f4", color: "#0ab39c" }}
+                        >
                           Centre Brochure
                         </span>
                       )}
@@ -1036,9 +1313,16 @@ const VisitLogList = () => {
                 <div className="d-flex align-items-center gap-2 mb-2">
                   <div
                     className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                    style={{ width: 32, height: 32, background: "rgba(41,156,219,0.12)" }}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      background: "rgba(41,156,219,0.12)",
+                    }}
                   >
-                    <i className="bx bx-message-detail" style={{ fontSize: 16, color: "#299cdb" }} />
+                    <i
+                      className="bx bx-message-detail"
+                      style={{ fontSize: 16, color: "#299cdb" }}
+                    />
                   </div>
                   <span className="fw-semibold fs-14">Discussion</span>
                 </div>
@@ -1066,7 +1350,9 @@ const VisitLogList = () => {
                     >
                       <i className="bx bx-calendar-check me-1" />
                       Follow-up:{" "}
-                      {new Date(selectedLog.nextFollowUpDate).toLocaleDateString("en-IN")}
+                      {new Date(
+                        selectedLog.nextFollowUpDate,
+                      ).toLocaleDateString("en-IN")}
                     </span>
                   )}
                 </div>
@@ -1077,23 +1363,41 @@ const VisitLogList = () => {
                 <div className="d-flex align-items-center gap-2 mb-3">
                   <div
                     className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                    style={{ width: 32, height: 32, background: "rgba(240,101,72,0.12)" }}
+                    style={{
+                      width: 32,
+                      height: 32,
+                      background: "rgba(240,101,72,0.12)",
+                    }}
                   >
-                    <i className="bx bx-camera" style={{ fontSize: 16, color: "#f06548" }} />
+                    <i
+                      className="bx bx-camera"
+                      style={{ fontSize: 16, color: "#f06548" }}
+                    />
                   </div>
                   <span className="fw-semibold fs-14">Photo Proof</span>
                 </div>
                 <div className="d-flex gap-3 flex-wrap">
                   {[
                     { url: selectedLog.selfieProof?.url, label: "Selfie" },
-                    { url: selectedLog.clinicPhoto?.url, label: "Clinic Photo" },
-                    { url: selectedLog.collateral?.proofPricing?.url, label: "Pricing Proof" },
-                    { url: selectedLog.collateral?.proofCentre?.url, label: "Centre Proof" },
+                    {
+                      url: selectedLog.clinicPhoto?.url,
+                      label: "Clinic Photo",
+                    },
+                    {
+                      url: selectedLog.collateral?.proofPricing?.url,
+                      label: "Pricing Proof",
+                    },
+                    {
+                      url: selectedLog.collateral?.proofCentre?.url,
+                      label: "Centre Proof",
+                    },
                   ]
                     .filter((p) => p.url)
                     .map((photo, idx) => (
                       <div key={idx}>
-                        <div className="text-muted fs-12 mb-1">{photo.label}</div>
+                        <div className="text-muted fs-12 mb-1">
+                          {photo.label}
+                        </div>
                         <a href={photo.url} target="_blank" rel="noreferrer">
                           <img
                             src={photo.url}
@@ -1107,14 +1411,97 @@ const VisitLogList = () => {
                               boxShadow: "0 2px 8px rgba(0,0,0,0.15)",
                               transition: "transform 0.15s ease",
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.transform = "scale(1.05)")}
-                            onMouseLeave={(e) => (e.currentTarget.style.transform = "scale(1)")}
+                            onMouseEnter={(e) =>
+                              (e.currentTarget.style.transform = "scale(1.05)")
+                            }
+                            onMouseLeave={(e) =>
+                              (e.currentTarget.style.transform = "scale(1)")
+                            }
                           />
                         </a>
                       </div>
                     ))}
                 </div>
               </div>
+            </div>
+          )}
+        </ModalBody>
+      </Modal>
+
+      {/* Route Timeline Modal */}
+      <Modal
+        isOpen={!!routeModalKey}
+        toggle={() => setRouteModalKey(null)}
+        centered
+      >
+        <ModalHeader toggle={() => setRouteModalKey(null)}>
+          Day's Route
+        </ModalHeader>
+        <ModalBody>
+          {routeModalKey && routeGroups[routeModalKey] && (
+            <div>
+              <div className="text-muted fs-13 mb-3">
+                {routeGroups[routeModalKey][0]?.log.agent?.name} &middot;{" "}
+                {new Date(
+                  routeGroups[routeModalKey][0]?.log.visitDate,
+                ).toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                  year: "numeric",
+                })}
+              </div>
+              {routeGroups[routeModalKey].map((item, idx) => (
+                <div key={idx}>
+                  <div className="d-flex align-items-start gap-3">
+                    <div
+                      className="rounded-circle d-flex align-items-center justify-content-center fw-semibold text-white flex-shrink-0"
+                      style={{
+                        width: 32,
+                        height: 32,
+                        fontSize: 13,
+                        background: "#3577f1",
+                      }}
+                    >
+                      {idx + 1}
+                    </div>
+                    <div className="flex-grow-1 pb-2">
+                      <div className="fw-semibold fs-14">
+                        {item.log.doctor?.clinicName}
+                      </div>
+                      <div className="text-muted fs-13">
+                        {item.log.doctor?.name} &middot;{" "}
+                        {new Date(item.log.checkInTime).toLocaleTimeString(
+                          "en-IN",
+                          {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                          },
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  {idx < routeGroups[routeModalKey].length - 1 && (
+                    <div
+                      className="d-flex align-items-center gap-2 ms-4 ps-3 mb-2"
+                      style={{
+                        borderLeft: "2px dashed #c9cedb",
+                        minHeight: 24,
+                      }}
+                    >
+                      <span className="text-muted fs-12">
+                        <i className="bx bx-down-arrow-alt me-1" />
+                        {routeGroups[routeModalKey][idx + 1].distFromPrev !=
+                        null
+                          ? formatDistance(
+                              routeGroups[routeModalKey][idx + 1].distFromPrev,
+                            )
+                          : "—"}{" "}
+                        to next stop
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           )}
         </ModalBody>
