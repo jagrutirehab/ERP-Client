@@ -209,9 +209,24 @@ const ChartDate = ({
               toggle={toggle2}
               direction={"down"}
             >
-              <DropdownToggle caret={true} outline color="primary">
-                Add Records
-              </DropdownToggle>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
+                  border: "2px",
+                }}
+              >
+                <span className="text-danger">
+                  {isOnOutpass && !editChartData.data
+                    ? "Patient is on Outpass. Chart creation is disabled."
+                    : null}
+                </span>
+                <DropdownToggle caret={true} outline color="primary">
+                  Add Records
+                </DropdownToggle>
+              </div>
               <DropdownMenu
                 style={{ maxHeight: "350px" }}
                 className="overflow-auto"
