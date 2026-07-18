@@ -100,6 +100,8 @@
         }, 100);
     };
 
+    document.title = "Vital Signs";
+
     return (
         <div
         className="w-100 mt-4 mt-sm-0"

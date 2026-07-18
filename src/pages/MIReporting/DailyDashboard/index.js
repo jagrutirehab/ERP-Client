@@ -88,6 +88,8 @@ const DailyDashboard = () => {
         whiteSpace: "nowrap",
     });
 
+    document.title = "Daily Dashboard";
+
     return (
         <div className="mt-4 mt-sm-0" style={{ maxWidth: 700 }}>
             <div className="p-3 d-flex align-items-center">

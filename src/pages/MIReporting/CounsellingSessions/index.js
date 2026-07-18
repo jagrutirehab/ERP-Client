@@ -153,6 +153,8 @@ const CounsellingSessions = () => {
 
 
 
+    document.title = "Counselling Sessions";
+
     return (
         <div
         className="w-100 mt-4 mt-sm-0"

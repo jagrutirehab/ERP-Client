@@ -171,6 +171,8 @@ const NursesDOD = () => {
         }, 100);
     };
 
+    document.title = "Nurses DOD";
+
     return (
         <div className="w-100 mt-4 mt-sm-0" style={{ flex: 1, width: "100%", maxWidth: "100%", minWidth: 0 }}>
             <div className="row">

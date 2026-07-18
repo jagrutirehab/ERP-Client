@@ -190,6 +190,8 @@ const WriteOFFAmount = () => {
     }, 100);
   };
 
+  document.title = "Write Off Amount";
+
   return (
     <div className="mt-4 mt-sm-0">
       <div className="p-3 d-flex align-items-center justify-content-between">

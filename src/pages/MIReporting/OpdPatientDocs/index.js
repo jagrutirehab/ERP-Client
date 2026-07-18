@@ -129,6 +129,8 @@ const OpdPatientDocs = () => {
 
 
 
+    document.title = "OPD Patient Docs";
+
     return (
         <div
         className="w-100 mt-4 mt-sm-0"

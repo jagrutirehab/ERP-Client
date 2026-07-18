@@ -232,6 +232,8 @@ const getCenterCellValue = (row, metricKey) => {
         whiteSpace: "nowrap",
     });
 
+    document.title = "Docs Compliance";
+
     return (
         <div className="mt-4 mt-sm-0">
             <div className="p-3 d-flex align-items-center">

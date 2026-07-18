@@ -161,6 +161,8 @@
 
 
 
+    document.title = "Clinical Notes";
+
     return (
         <div
         className="w-100 mt-4 mt-sm-0"

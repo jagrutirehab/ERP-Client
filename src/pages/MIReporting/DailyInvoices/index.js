@@ -142,6 +142,8 @@ const DailyInvoices = () => {
 
 
 
+    document.title = "Daily Invoices";
+
     return (
         <div
         className="w-100 mt-4 mt-sm-0"

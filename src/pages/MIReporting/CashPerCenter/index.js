@@ -149,6 +149,8 @@ const CashPerCenter = () => {
 
   const activeBreakdownCenter = selectedBreakdownCenter || centers[0] || "";
 
+  document.title = "Cash Per Center";
+
   return (
     <div className="mt-4 mt-sm-0">
       <div className="p-3 d-flex align-items-center justify-content-between">

@@ -237,6 +237,8 @@ const AuditForms = () => {
     }, 100);
   };
 
+  document.title = "Forms Data";
+
   return (
     <div className="mt-4 mt-sm-0">
       <div className="p-3 d-flex align-items-center justify-content-between">
