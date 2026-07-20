@@ -8,7 +8,7 @@ import AgentReport from "./AgentReport";
 import AgentProfile from "./AgentProfile";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
-
+import Logout from "../Authentication/Logout.js";
 const Marketing = () => {
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission, loading } = usePermissions(token);
@@ -65,8 +65,7 @@ const Marketing = () => {
                   <Route path="my-profile" element={<AgentProfile />} />
                 )}
                 <Route index element={null} />
-                <Route index element={null} />
-                <Route path="*" element={<Basic404 />} />
+                <Route path="*" element={<Logout />} />
               </Routes>
             </div>
           </div>

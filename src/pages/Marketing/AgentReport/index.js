@@ -15,7 +15,7 @@ import {
   getAgentVisitReport,
   getAllCenters,
 } from "../../../helpers/backend_helper";
-
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 const getInitials = (name = "") =>
   name
     .split(" ")
@@ -78,6 +78,7 @@ const INTEREST_COLORS = {
 };
 
 const AgentReport = () => {
+  const handleAuthError = useAuthError();
   const [dateRange, setDateRange] = useState(getDefaultMonthRange());
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -117,7 +118,9 @@ const AgentReport = () => {
       const payload = reportRes?.payload || reportRes?.data?.payload || [];
       setData(payload);
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to load report");
+      if (!handleAuthError(err)) {
+        setError(err?.response?.data?.message || "Failed to load report");
+      }
     } finally {
       setLoading(false);
     }
@@ -771,6 +774,3 @@ const AgentReport = () => {
 };
 
 export default AgentReport;
-
-
-
