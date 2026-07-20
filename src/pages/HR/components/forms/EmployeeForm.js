@@ -44,6 +44,7 @@ import {
   presentUnitOptions,
   paymentTypeOptions,
   isSimplifiedFinanceType,
+  isConsultantFinanceType,
   categoryOptions,
 } from "../../../../Components/constants/HR";
 import {
@@ -240,7 +241,14 @@ const validationSchema = (mode, isEdit) =>
     insurance: Yup.number().min(0).notRequired(),
     variable: Yup.number().min(0).notRequired(),
     reimbursement: Yup.number().min(0).notRequired(),
-    TDSRate: Yup.number().min(0).max(100).notRequired(),
+    TDSRate: Yup.number()
+      .min(0)
+      .max(100)
+      .when("employmentType", {
+        is: (v) => isConsultantFinanceType(v),
+        then: (s) => s.required("TDS Rate is required"),
+        otherwise: (s) => s.notRequired(),
+      }),
     pfAmount: Yup.number().min(0).notRequired(),
     SPLAllowance: Yup.number().min(0).when("employmentType", {
       is: (v) => isSimplifiedFinanceType(v),
@@ -675,6 +683,11 @@ const EmployeeForm = ({
             "reimbursement",
             "debitStatementNarration",
           ].forEach((key) => formData.delete(key));
+          // Consultants carry a TDS rate — re-add it after the cleanup above so
+          // the server can deduct it from CTC to derive the stored In Hand Salary.
+          if (consultant) {
+            formData.set("TDSRate", values.TDSRate || 0);
+          }
         }
 
         if (initialData?._id) {
@@ -725,6 +738,25 @@ const EmployeeForm = ({
   // PER_SESSION amounts are flat per-session rates — not yearly — so we drop the
   // "(Yearly)" label and the monthly (÷12) preview for them.
   const perSession = simplified && values.paymentType === "PER_SESSION";
+  // Consultants enter a TDS rate; TDS is deducted from CTC and In Hand becomes
+  // CTC − TDS (auto-computed, read-only).
+  const consultant = isConsultantFinanceType(values.employmentType);
+  const consultantTdsAmount = Math.round(
+    ((Number(values.annualCTC) || 0) * (Number(values.TDSRate) || 0)) / 100,
+  );
+
+  // For consultants, In Hand is always CTC − TDS (read-only) — keep it in sync
+  // whenever CTC or the TDS rate changes.
+  useEffect(() => {
+    if (!consultant) return;
+    const inHand = Math.max(
+      0,
+      (Number(values.annualCTC) || 0) - consultantTdsAmount,
+    );
+    if (Number(values.annualInHandSalary) !== inHand) {
+      setFieldValue("annualInHandSalary", inHand, false);
+    }
+  }, [consultant, values.annualCTC, values.TDSRate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const touchFileFields = () => {
     setTouched(
@@ -2367,8 +2399,9 @@ const EmployeeForm = ({
                   value={values.annualCTC}
                   onChange={(e) => {
                     handleChange(e);
-                    // In Hand mirrors CTC until the user overrides it.
-                    if (!manual.annualInHandSalary) {
+                    // In Hand mirrors CTC until the user overrides it — except for
+                    // consultants, whose In Hand is driven by the TDS deduction.
+                    if (!manual.annualInHandSalary && !consultant) {
                       setFieldValue("annualInHandSalary", e.target.value);
                     }
                   }}
@@ -2386,6 +2419,40 @@ const EmployeeForm = ({
                 )}
               </Col>
 
+              {/* TDS RATE — consultants only */}
+              {consultant && (
+                <Col md={6}>
+                  <Label htmlFor="TDSRate">
+                    TDS Rate (%) <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    id="TDSRate"
+                    type="number"
+                    name="TDSRate"
+                    min={0}
+                    max={100}
+                    value={values.TDSRate}
+                    onChange={handleChange}
+                    onBlur={() => setFieldTouched("TDSRate", true)}
+                    invalid={touched.TDSRate && !!errors.TDSRate}
+                  />
+                  {errorText("TDSRate")}
+                  <div className="text-muted small mt-1">
+                    TDS {perSession ? "(Per Session)" : "(Yearly)"} ≈ ₹
+                    {consultantTdsAmount.toLocaleString("en-IN")}
+                    {!perSession && (
+                      <>
+                        {" "}
+                        · Monthly ≈ ₹
+                        {Math.round(consultantTdsAmount / 12).toLocaleString(
+                          "en-IN",
+                        )}
+                      </>
+                    )}
+                  </div>
+                </Col>
+              )}
+
               {/* IN HAND SALARY (Yearly entry, monthly preview) */}
               <Col md={6}>
                 <Label htmlFor="annualInHandSalary">
@@ -2398,6 +2465,7 @@ const EmployeeForm = ({
                   name="annualInHandSalary"
                   min={0}
                   value={values.annualInHandSalary}
+                  disabled={consultant}
                   onChange={(e) => {
                     setManual((prev) => ({ ...prev, annualInHandSalary: true }));
                     handleChange(e);
@@ -2414,10 +2482,16 @@ const EmployeeForm = ({
                     ).toLocaleString("en-IN")}
                   </div>
                 )}
-                {!manual.annualInHandSalary && (
+                {consultant ? (
                   <div className="text-muted small">
-                    Auto-filled from Annual CTC — edit to override.
+                    Auto-calculated as Annual CTC − TDS.
                   </div>
+                ) : (
+                  !manual.annualInHandSalary && (
+                    <div className="text-muted small">
+                      Auto-filled from Annual CTC — edit to override.
+                    </div>
+                  )
                 )}
               </Col>
 

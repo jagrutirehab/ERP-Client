@@ -18,6 +18,7 @@ import {
   employeeGroupOptions,
   paymentTypeOptions,
   isSimplifiedFinanceType,
+  isConsultantFinanceType,
 } from "../../../../Components/constants/HR";
 import {
   calculatePayroll,
@@ -151,7 +152,7 @@ const getFinanceInitialValues = (initialData) => ({
       : annualFieldValue(initialData?.financeDetails, "totalCostToCompany"),
 });
 
-const validationSchema = (isEdit, step, simplified) => {
+const validationSchema = (isEdit, step, simplified, consultant) => {
   if (step === 1 && !isEdit) {
     return Yup.object().shape({
       employeeId: Yup.string().required("Employee is required"),
@@ -165,6 +166,10 @@ const validationSchema = (isEdit, step, simplified) => {
       changeType: Yup.string().optional(),
       note: Yup.string().optional(),
       paymentType: Yup.string().required("Payment Type is required"),
+      // Consultants carry a TDS rate; In Hand is derived (CTC − TDS).
+      TDSRate: consultant
+        ? buildNumberSchema("TDS Rate", { max: 100 })
+        : Yup.number().notRequired(),
       annualInHandSalary: buildNumberSchema("In Hand Salary").test(
         "inhand-not-above-ctc",
         "In Hand Salary cannot be greater than Annual CTC",
@@ -230,12 +235,13 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
 
   const employeeForType = isEdit ? initialData?.employee : selectedEmployee?.raw;
   const simplified = isSimplifiedFinanceType(employeeForType?.employmentType);
+  const consultant = isConsultantFinanceType(employeeForType?.employmentType);
 
   const form = useFormik({
     enableReinitialize: true,
     validateOnMount: true,
     initialValues: getFinanceInitialValues(isEdit ? initialData : null),
-    validationSchema: validationSchema(isEdit, step, simplified),
+    validationSchema: validationSchema(isEdit, step, simplified, consultant),
     onSubmit: async (values) => {
       if (step === 1 && !isEdit) {
         setStep(2);
@@ -251,6 +257,12 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             totalCostToCompany: Number(values.annualCTC) || 0,
             salaryUnit: "ANNUAL",
           };
+
+          // Consultants carry a TDS rate — the server deducts it from CTC to
+          // derive the stored In Hand Salary.
+          if (consultant) {
+            simplifiedPayload.TDSRate = Number(values.TDSRate) || 0;
+          }
 
           if (isEdit) {
             if (values.changeType) simplifiedPayload.changeType = values.changeType;
@@ -322,6 +334,26 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
   // PER_SESSION amounts are flat per-session rates — not yearly — so we drop the
   // "(Yearly)" label and the monthly (÷12) preview for them.
   const perSession = simplified && form.values.paymentType === "PER_SESSION";
+
+  // Consultants: TDS is deducted from CTC and In Hand becomes CTC − TDS
+  // (auto-computed, read-only).
+  const consultantTdsAmount = Math.round(
+    ((Number(form.values.annualCTC) || 0) *
+      (Number(form.values.TDSRate) || 0)) /
+      100
+  );
+
+  useEffect(() => {
+    if (!consultant) return;
+    const inHand = Math.max(
+      0,
+      (Number(form.values.annualCTC) || 0) - consultantTdsAmount
+    );
+    if (Number(form.values.annualInHandSalary) !== inHand) {
+      form.setFieldValue("annualInHandSalary", inHand, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [consultant, form.values.annualCTC, form.values.TDSRate]);
 
   const payrollInitializedRef = useRef(false);
 
@@ -741,8 +773,9 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                 value={form.values.annualCTC}
                 onChange={(e) => {
                   handleNumericFieldChange(e);
-                  // In Hand mirrors CTC until the user overrides it.
-                  if (!inHandManual) {
+                  // In Hand mirrors CTC until the user overrides it — except for
+                  // consultants, whose In Hand is driven by the TDS deduction.
+                  if (!inHandManual && !consultant) {
                     form.setFieldValue("annualInHandSalary", e.target.value);
                   }
                 }}
@@ -760,6 +793,40 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
               )}
             </Col>
 
+            {/* TDS RATE — consultants only */}
+            {consultant && (
+              <Col md={6}>
+                <Label htmlFor="TDSRate">
+                  TDS Rate (%) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="TDSRate"
+                  name="TDSRate"
+                  type="number"
+                  min={0}
+                  max={100}
+                  value={form.values.TDSRate}
+                  onChange={handleNumericFieldChange}
+                  onBlur={form.handleBlur}
+                  invalid={form.touched.TDSRate && !!form.errors.TDSRate}
+                />
+                {errorText("TDSRate")}
+                <div className="text-muted small mt-1">
+                  TDS {perSession ? "(Per Session)" : "(Yearly)"} ≈ ₹
+                  {consultantTdsAmount.toLocaleString("en-IN")}
+                  {!perSession && (
+                    <>
+                      {" "}
+                      · Monthly ≈ ₹
+                      {Math.round(consultantTdsAmount / 12).toLocaleString(
+                        "en-IN"
+                      )}
+                    </>
+                  )}
+                </div>
+              </Col>
+            )}
+
             {/* IN HAND SALARY (Yearly entry, monthly preview) */}
             <Col md={6}>
               <Label htmlFor="annualInHandSalary">
@@ -772,6 +839,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                 type="number"
                 min={0}
                 value={form.values.annualInHandSalary}
+                disabled={consultant}
                 onChange={(e) => {
                   setInHandManual(true);
                   handleNumericFieldChange(e);
@@ -791,10 +859,16 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                   ).toLocaleString("en-IN")}
                 </div>
               )}
-              {!inHandManual && (
+              {consultant ? (
                 <div className="text-muted small">
-                  Auto-filled from Annual CTC — edit to override.
+                  Auto-calculated as Annual CTC − TDS.
                 </div>
+              ) : (
+                !inHandManual && (
+                  <div className="text-muted small">
+                    Auto-filled from Annual CTC — edit to override.
+                  </div>
+                )
               )}
             </Col>
 

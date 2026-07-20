@@ -96,7 +96,7 @@ export const lwfScheduleText = (state = "") => {
     return months.map((m) => MONTH_LABELS[m]).join(" & ");
 };
 
-function calculatePT(grossSalary, state) {
+function calculatePT(grossSalary, state, gender) {
     switch (state.trim()) {
         case "Gujarat":
             return grossSalary > 12000 ? 200 : 0;
@@ -108,6 +108,7 @@ function calculatePT(grossSalary, state) {
             return grossSalary >= 25000 ? 200 : 0;
 
         case "Maharashtra":
+            if (gender === "FEMALE" && grossSalary >= 25000) return 0;
             if (grossSalary <= 7500) return 0;
             if (grossSalary <= 10000) return 175;
             return 200;
@@ -201,7 +202,8 @@ export const calculatePayroll = (values) => {
         ? "Maharashtra"
         : (detectState(currentLocation.address) || "");
 
-    const rawPT = calculatePT(gross, ptState);
+    const gender = values.gender?.toUpperCase();
+    const rawPT = calculatePT(gross, ptState, gender);
     const isTamilNaduPT = ptState.trim() === "Tamil Nadu";
     PT = isTamilNaduPT ? Math.round(rawPT / 6) : rawPT;
     const PTAnnual = isTamilNaduPT ? rawPT * 2 : PT * 12;

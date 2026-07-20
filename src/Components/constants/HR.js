@@ -97,6 +97,11 @@ export const SIMPLIFIED_FINANCE_TYPES = [
 export const isSimplifiedFinanceType = (type) =>
     SIMPLIFIED_FINANCE_TYPES.includes((type || "").trim().toUpperCase());
 
+// Consultants additionally carry a TDS rate (%): TDS is deducted from the CTC
+// and their In Hand Salary is shown/stored as CTC − TDS.
+export const isConsultantFinanceType = (type) =>
+    (type || "").trim().toUpperCase() === "CONSULTANT";
+
 export const paymentTypeOptions = [
     { label: "Monthly", value: "MONTHLY" },
     { label: "Per Session", value: "PER_SESSION" },
