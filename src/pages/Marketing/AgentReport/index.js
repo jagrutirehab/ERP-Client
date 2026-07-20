@@ -645,7 +645,9 @@ const AgentReport = () => {
                                       className="bx bx-user-voice text-primary me-1"
                                       style={{ fontSize: "13px" }}
                                     />
-                                    Dr. {doc.doctorName}
+                                    {/^dr\.?\s/i.test(doc.doctorName)
+                                      ? doc.doctorName
+                                      : `Dr. ${doc.doctorName}`}
                                   </div>
                                   <div className="text-muted fs-13">
                                     <i
@@ -769,3 +771,6 @@ const AgentReport = () => {
 };
 
 export default AgentReport;
+
+
+
