@@ -18,7 +18,7 @@ import {
   getAllCenters,
 } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
-
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 const STEPS = [
   { key: "visit", label: "Visit Details" },
   { key: "doctor", label: "Doctor & Clinic" },
@@ -35,6 +35,7 @@ const INTEREST_OPTIONS = [
 ];
 
 const AddVisitLog = () => {
+  const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("user"))?.token;
   const { hasPermission } = usePermissions(token);
   const canWrite = hasPermission("MARKETING", "ADD_VISIT_LOG", "WRITE");
@@ -275,9 +276,11 @@ const AddVisitLog = () => {
         setDoctorQuery("");
         setActiveStep(0);
       } catch (err) {
-        toast.error(
-          err?.response?.data?.message || "Failed to submit visit log",
-        );
+        if (!handleAuthError(err)) {
+          toast.error(
+            err?.response?.data?.message || "Failed to submit visit log",
+          );
+        }
       } finally {
         setSubmitting(false);
       }

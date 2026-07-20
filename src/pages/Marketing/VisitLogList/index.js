@@ -21,7 +21,7 @@ import {
   ModalBody,
 } from "reactstrap";
 import { getVisitLogs, getAllCenters } from "../../../helpers/backend_helper";
-
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 const INTEREST_STYLE = {
   HOT: { bg: "#fde8e4", color: "#f06548" },
   WARM: { bg: "#fef4e4", color: "#f7b84b" },
@@ -77,6 +77,7 @@ const DEFAULT_FILTERS = {
 };
 
 const VisitLogList = () => {
+  const handleAuthError = useAuthError();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -120,7 +121,9 @@ const VisitLogList = () => {
       const data = res?.payload || res?.data?.payload || res?.data?.data || [];
       setLogs(data);
     } catch (err) {
-      setError(err?.response?.data?.message || "Failed to load visit logs");
+      if (!handleAuthError(err)) {
+        setError(err?.response?.data?.message || "Failed to load visit logs");
+      }
     } finally {
       setLoading(false);
     }

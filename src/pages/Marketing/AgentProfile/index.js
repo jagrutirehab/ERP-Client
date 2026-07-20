@@ -13,12 +13,25 @@ import {
   ModalBody,
 } from "reactstrap";
 import { getVisitLogs } from "../../../helpers/backend_helper";
-
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 const getInitials = (name = "") =>
-  name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
-const AVATAR_COLORS = ["#3577f1", "#0ab39c", "#f7b84b", "#f06548", "#299cdb", "#7d5fff"];
-const getAvatarColor = (name = "") => AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length || 0];
+const AVATAR_COLORS = [
+  "#3577f1",
+  "#0ab39c",
+  "#f7b84b",
+  "#f06548",
+  "#299cdb",
+  "#7d5fff",
+];
+const getAvatarColor = (name = "") =>
+  AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length || 0];
 
 const mapsLink = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
 
@@ -48,6 +61,7 @@ const DATE_PRESETS = {
 };
 
 const AgentProfile = () => {
+  const handleAuthError = useAuthError();
   const [visits, setVisits] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -68,12 +82,24 @@ const AgentProfile = () => {
       return;
     }
     setLoading(true);
-    getVisitLogs({ agent: currentUserId, from: range?.from, to: range?.to, limit: 100 })
+    getVisitLogs({
+      agent: currentUserId,
+      from: range?.from,
+      to: range?.to,
+      limit: 100,
+    })
       .then((res) => {
-        const data = res?.data?.payload || res?.payload || res?.data?.data || [];
+        const data =
+          res?.data?.payload || res?.payload || res?.data?.data || [];
         setVisits(data);
       })
-      .catch((err) => setError(err?.response?.data?.message || "Failed to load your visits"))
+      .catch((err) => {
+        if (!handleAuthError(err)) {
+          setError(
+            err?.response?.data?.message || "Failed to load your visits",
+          );
+        }
+      })
       .finally(() => setLoading(false));
   };
 
@@ -84,7 +110,10 @@ const AgentProfile = () => {
 
   useEffect(() => {
     const handleClickOutside = (e) => {
-      if (searchWrapperRef.current && !searchWrapperRef.current.contains(e.target)) {
+      if (
+        searchWrapperRef.current &&
+        !searchWrapperRef.current.contains(e.target)
+      ) {
         setShowSuggestions(false);
       }
     };
@@ -99,14 +128,16 @@ const AgentProfile = () => {
       if (v.doctor?.name && !map.has(key)) {
         map.set(key, { label: v.doctor.name, sub: v.doctor.clinicName });
       }
-    }); 
+    });
     return [...map.values()];
   }, [visits]);
 
   const filteredSuggestions = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return [];
-    return suggestionPool.filter((s) => s.label.toLowerCase().includes(q)).slice(0, 8);
+    return suggestionPool
+      .filter((s) => s.label.toLowerCase().includes(q))
+      .slice(0, 8);
   }, [search, suggestionPool]);
 
   const applyPreset = (key) => {
@@ -132,7 +163,8 @@ const AgentProfile = () => {
   const totalVisits = filteredVisits.length;
   const matched = filteredVisits.filter((v) => v.gps?.matchedClinic).length;
   const mismatch = totalVisits - matched;
-  const verifiedRate = totalVisits > 0 ? Math.round((matched / totalVisits) * 100) : 0;
+  const verifiedRate =
+    totalVisits > 0 ? Math.round((matched / totalVisits) * 100) : 0;
   const interest = { HOT: 0, WARM: 0, COLD: 0 };
   filteredVisits.forEach((v) => {
     if (v.interestLevel) interest[v.interestLevel]++;
@@ -145,13 +177,19 @@ const AgentProfile = () => {
           <div className="d-flex align-items-center mb-4">
             <div
               className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-              style={{ width: 48, height: 48, background: "rgba(53,119,241,0.1)" }}
+              style={{
+                width: 48,
+                height: 48,
+                background: "rgba(53,119,241,0.1)",
+              }}
             >
               <i className="bx bx-id-card fs-3 text-primary" />
             </div>
             <div className="ms-3">
               <h4 className="mb-0 fw-semibold">My Visit History</h4>
-              <p className="text-muted mb-0 fs-13">Your own visit records and performance</p>
+              <p className="text-muted mb-0 fs-13">
+                Your own visit records and performance
+              </p>
             </div>
           </div>
 
@@ -176,7 +214,10 @@ const AgentProfile = () => {
               </div>
               <Row className="g-3 align-items-end mb-3">
                 <Col xs={6} md={3}>
-                  <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>
+                  <Label
+                    className="fw-semibold text-dark mb-1"
+                    style={{ fontSize: "13px" }}
+                  >
                     From
                   </Label>
                   <Input
@@ -190,7 +231,10 @@ const AgentProfile = () => {
                   />
                 </Col>
                 <Col xs={6} md={3}>
-                  <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>
+                  <Label
+                    className="fw-semibold text-dark mb-1"
+                    style={{ fontSize: "13px" }}
+                  >
                     To
                   </Label>
                   <Input
@@ -204,12 +248,20 @@ const AgentProfile = () => {
                   />
                 </Col>
                 <Col xs={12} md={3}>
-                  <Button color="primary" size="sm" className="w-100" onClick={applyRange}>
+                  <Button
+                    color="primary"
+                    size="sm"
+                    className="w-100"
+                    onClick={applyRange}
+                  >
                     <i className="bx bx-filter-alt me-1" /> Apply
                   </Button>
                 </Col>
               </Row>
-              <Label className="fw-semibold text-dark mb-1" style={{ fontSize: "13px" }}>
+              <Label
+                className="fw-semibold text-dark mb-1"
+                style={{ fontSize: "13px" }}
+              >
                 Search Doctor / Clinic
               </Label>
               <div className="position-relative" ref={searchWrapperRef}>
@@ -270,12 +322,19 @@ const AgentProfile = () => {
                 <CardBody className="p-4 d-flex align-items-center gap-3 flex-wrap">
                   <div
                     className="rounded-circle d-flex align-items-center justify-content-center fw-semibold text-white flex-shrink-0"
-                    style={{ width: 64, height: 64, fontSize: 22, background: getAvatarColor(agentInfo?.name) }}
+                    style={{
+                      width: 64,
+                      height: 64,
+                      fontSize: 22,
+                      background: getAvatarColor(agentInfo?.name),
+                    }}
                   >
                     {getInitials(agentInfo?.name) || "?"}
                   </div>
                   <div>
-                    <h4 className="mb-0 fw-semibold">{agentInfo?.name || "You"}</h4>
+                    <h4 className="mb-0 fw-semibold">
+                      {agentInfo?.name || "You"}
+                    </h4>
                     <div className="text-muted fs-14">{agentInfo?.email}</div>
                   </div>
                 </CardBody>
@@ -284,27 +343,46 @@ const AgentProfile = () => {
               {/* Stats */}
               <Row className="g-3 mb-4">
                 <Col xs={6} md={3}>
-                  <div className="rounded-3 p-3" style={{ background: "#f8f9fb" }}>
+                  <div
+                    className="rounded-3 p-3"
+                    style={{ background: "#f8f9fb" }}
+                  >
                     <div className="text-muted fs-13">Total Visits</div>
                     <div className="fs-3 fw-semibold">{totalVisits}</div>
                   </div>
                 </Col>
                 <Col xs={6} md={3}>
-                  <div className="rounded-3 p-3" style={{ background: "#e6f7f4" }}>
+                  <div
+                    className="rounded-3 p-3"
+                    style={{ background: "#e6f7f4" }}
+                  >
                     <div className="text-muted fs-13">Verified</div>
-                    <div className="fs-3 fw-semibold text-success">{verifiedRate}%</div>
+                    <div className="fs-3 fw-semibold text-success">
+                      {verifiedRate}%
+                    </div>
                   </div>
                 </Col>
                 <Col xs={6} md={3}>
-                  <div className="rounded-3 p-3" style={{ background: "#fde8e4" }}>
+                  <div
+                    className="rounded-3 p-3"
+                    style={{ background: "#fde8e4" }}
+                  >
                     <div className="text-muted fs-13">Mismatches</div>
-                    <div className="fs-3 fw-semibold text-danger">{mismatch}</div>
+                    <div className="fs-3 fw-semibold text-danger">
+                      {mismatch}
+                    </div>
                   </div>
                 </Col>
                 <Col xs={6} md={3}>
-                  <div className="rounded-3 p-3" style={{ background: "#fef4e4" }}>
+                  <div
+                    className="rounded-3 p-3"
+                    style={{ background: "#fef4e4" }}
+                  >
                     <div className="text-muted fs-13">Hot Leads</div>
-                    <div className="fs-3 fw-semibold" style={{ color: "#f06548" }}>
+                    <div
+                      className="fs-3 fw-semibold"
+                      style={{ color: "#f06548" }}
+                    >
                       {interest.HOT}
                     </div>
                   </div>
@@ -328,8 +406,12 @@ const AgentProfile = () => {
                     <CardBody className="p-3">
                       <div className="d-flex justify-content-between align-items-start flex-wrap gap-2">
                         <div>
-                          <div className="fw-semibold fs-14">{v.doctor?.name}</div>
-                          <div className="text-muted fs-13">{v.doctor?.clinicName}</div>
+                          <div className="fw-semibold fs-14">
+                            {v.doctor?.name}
+                          </div>
+                          <div className="text-muted fs-13">
+                            {v.doctor?.clinicName}
+                          </div>
                           <div className="text-muted fs-12 mt-1">
                             {new Date(v.visitDate).toLocaleDateString("en-IN", {
                               day: "2-digit",
@@ -337,23 +419,34 @@ const AgentProfile = () => {
                               year: "numeric",
                             })}
                             {" · "}
-                            {new Date(v.checkInTime).toLocaleTimeString("en-IN", {
-                              hour: "2-digit",
-                              minute: "2-digit",
-                            })}
+                            {new Date(v.checkInTime).toLocaleTimeString(
+                              "en-IN",
+                              {
+                                hour: "2-digit",
+                                minute: "2-digit",
+                              },
+                            )}
                           </div>
                         </div>
                         <div className="d-flex align-items-center gap-2">
                           <span
                             className="badge rounded-pill fw-medium"
                             style={{
-                              background: v.gps?.matchedClinic ? "#e6f7f4" : "#fde8e4",
-                              color: v.gps?.matchedClinic ? "#0ab39c" : "#f06548",
+                              background: v.gps?.matchedClinic
+                                ? "#e6f7f4"
+                                : "#fde8e4",
+                              color: v.gps?.matchedClinic
+                                ? "#0ab39c"
+                                : "#f06548",
                             }}
                           >
                             {v.gps?.matchedClinic ? "Verified" : "Mismatch"}
                           </span>
-                          <Button size="sm" color="light" onClick={() => setSelectedVisit(v)}>
+                          <Button
+                            size="sm"
+                            color="light"
+                            onClick={() => setSelectedVisit(v)}
+                          >
                             <i className="bx bx-show" />
                           </Button>
                         </div>
@@ -364,8 +457,8 @@ const AgentProfile = () => {
                           style={{ background: "#fef4e4", color: "#c99a06" }}
                         >
                           <i className="bx bx-info-circle me-1" />
-                          Your GPS didn't match the clinic location on this visit — double-check
-                          location access next time.
+                          Your GPS didn't match the clinic location on this
+                          visit — double-check location access next time.
                         </div>
                       )}
                     </CardBody>
@@ -378,7 +471,12 @@ const AgentProfile = () => {
       </Row>
 
       {/* Detail Modal */}
-      <Modal isOpen={!!selectedVisit} toggle={() => setSelectedVisit(null)} centered size="lg">
+      <Modal
+        isOpen={!!selectedVisit}
+        toggle={() => setSelectedVisit(null)}
+        centered
+        size="lg"
+      >
         <div
           style={{
             background: "linear-gradient(135deg, #3577f1 0%, #5a8bf5 100%)",
@@ -399,30 +497,48 @@ const AgentProfile = () => {
             <div>
               <div className="bg-white rounded-3 shadow-sm p-3 mb-3">
                 <div className="text-muted fs-12 mb-1">
-                  {new Date(selectedVisit.visitDate).toLocaleDateString("en-IN", {
-                    day: "2-digit",
-                    month: "short",
-                    year: "numeric",
-                  })}
+                  {new Date(selectedVisit.visitDate).toLocaleDateString(
+                    "en-IN",
+                    {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    },
+                  )}
                   {" · "}
-                  {new Date(selectedVisit.checkInTime).toLocaleTimeString("en-IN", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })}
+                  {new Date(selectedVisit.checkInTime).toLocaleTimeString(
+                    "en-IN",
+                    {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    },
+                  )}
                 </div>
-                <div className="fw-semibold fs-15">{selectedVisit.doctor?.name}</div>
-                <div className="text-muted fs-13">{selectedVisit.doctor?.clinicName}</div>
-                <div className="text-muted fs-13">{selectedVisit.doctor?.specialisation}</div>
+                <div className="fw-semibold fs-15">
+                  {selectedVisit.doctor?.name}
+                </div>
+                <div className="text-muted fs-13">
+                  {selectedVisit.doctor?.clinicName}
+                </div>
+                <div className="text-muted fs-13">
+                  {selectedVisit.doctor?.specialisation}
+                </div>
               </div>
 
               <div className="bg-white rounded-3 shadow-sm p-3 mb-3">
                 <div className="fw-semibold fs-14 mb-2">
-                  <i className="bx bx-map-pin text-primary me-1" /> Location Check
+                  <i className="bx bx-map-pin text-primary me-1" /> Location
+                  Check
                 </div>
                 <Row className="g-3">
                   <Col xs={12} md={6}>
-                    <div className="rounded-3 p-2" style={{ background: "#f8f9fb" }}>
-                      <div className="text-muted fs-11 fw-semibold mb-1">FIRST VISIT LOCATION</div>
+                    <div
+                      className="rounded-3 p-2"
+                      style={{ background: "#f8f9fb" }}
+                    >
+                      <div className="text-muted fs-11 fw-semibold mb-1">
+                        FIRST VISIT LOCATION
+                      </div>
                       <div className="fs-13">
                         {selectedVisit.doctor?.clinicLocation?.lat?.toFixed(5)},{" "}
                         {selectedVisit.doctor?.clinicLocation?.lng?.toFixed(5)}
@@ -445,15 +561,25 @@ const AgentProfile = () => {
                   <Col xs={12} md={6}>
                     <div
                       className="rounded-3 p-2"
-                      style={{ background: selectedVisit.gps?.matchedClinic ? "#e6f7f4" : "#fde8e4" }}
+                      style={{
+                        background: selectedVisit.gps?.matchedClinic
+                          ? "#e6f7f4"
+                          : "#fde8e4",
+                      }}
                     >
-                      <div className="text-muted fs-11 fw-semibold mb-1">THIS VISIT'S LOCATION</div>
+                      <div className="text-muted fs-11 fw-semibold mb-1">
+                        THIS VISIT'S LOCATION
+                      </div>
                       <div className="fs-13">
-                        {selectedVisit.gps?.lat?.toFixed(5)}, {selectedVisit.gps?.lng?.toFixed(5)}
+                        {selectedVisit.gps?.lat?.toFixed(5)},{" "}
+                        {selectedVisit.gps?.lng?.toFixed(5)}
                       </div>
                       {selectedVisit.gps?.lat && (
                         <a
-                          href={mapsLink(selectedVisit.gps.lat, selectedVisit.gps.lng)}
+                          href={mapsLink(
+                            selectedVisit.gps.lat,
+                            selectedVisit.gps.lng,
+                          )}
                           target="_blank"
                           rel="noreferrer"
                           className="fs-12"
@@ -471,13 +597,17 @@ const AgentProfile = () => {
                   <i className="bx bx-gift text-primary me-1" /> Collateral
                 </div>
                 <div className="fs-13">
-                  Given: <strong>{selectedVisit.collateral?.given ? "Yes" : "No"}</strong>
+                  Given:{" "}
+                  <strong>
+                    {selectedVisit.collateral?.given ? "Yes" : "No"}
+                  </strong>
                 </div>
               </div>
 
               <div className="bg-white rounded-3 shadow-sm p-3 mb-3">
                 <div className="fw-semibold fs-14 mb-2">
-                  <i className="bx bx-message-detail text-primary me-1" /> Discussion
+                  <i className="bx bx-message-detail text-primary me-1" />{" "}
+                  Discussion
                 </div>
                 <div className="fs-13 mb-2" style={{ wordBreak: "break-word" }}>
                   {selectedVisit.visitNotes}
@@ -502,14 +632,24 @@ const AgentProfile = () => {
                     <img
                       src={selectedVisit.selfieProof.url}
                       alt="Selfie"
-                      style={{ width: 90, height: 90, borderRadius: 10, objectFit: "cover" }}
+                      style={{
+                        width: 90,
+                        height: 90,
+                        borderRadius: 10,
+                        objectFit: "cover",
+                      }}
                     />
                   )}
                   {selectedVisit.clinicPhoto?.url && (
                     <img
                       src={selectedVisit.clinicPhoto.url}
                       alt="Clinic"
-                      style={{ width: 90, height: 90, borderRadius: 10, objectFit: "cover" }}
+                      style={{
+                        width: 90,
+                        height: 90,
+                        borderRadius: 10,
+                        objectFit: "cover",
+                      }}
                     />
                   )}
                 </div>
