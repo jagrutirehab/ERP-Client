@@ -156,6 +156,7 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
             <Label>Check In</Label>
             <Input
               type="time"
+              lang="en-GB"
               value={checkIn}
               invalid={!!timeError}
               onChange={(e) => {
@@ -169,6 +170,7 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
             <Label>Check Out</Label>
             <Input
               type="time"
+              lang="en-GB"
               value={checkOut}
               invalid={!!timeError}
               onChange={(e) => {
