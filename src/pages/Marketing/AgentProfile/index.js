@@ -99,7 +99,7 @@ const AgentProfile = () => {
       if (v.doctor?.name && !map.has(key)) {
         map.set(key, { label: v.doctor.name, sub: v.doctor.clinicName });
       }
-    });
+    }); 
     return [...map.values()];
   }, [visits]);
 

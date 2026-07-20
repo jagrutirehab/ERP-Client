@@ -746,7 +746,12 @@ const VisitLogList = () => {
                           />
                         </th>
                         <th className="text-muted fw-semibold fs-13 py-3">
-                          Route
+                          Visit Order{" "}
+                          <i
+                            className="bx bx-info-circle"
+                            style={{ fontSize: "13px", cursor: "help" }}
+                            title="Shows the order clinics were visited that day, and distance from the previous stop"
+                          />
                         </th>
                         <th className="text-muted fw-semibold fs-13 py-3">
                           Interest
@@ -872,11 +877,12 @@ const VisitLogList = () => {
                                   onClick={() =>
                                     setRouteModalKey(getRouteKey(log))
                                   }
-                                  title="View full day route"
+                                  title="See all clinics visited this day"
                                 >
-                                  <i className="bx bx-route me-1" />
-                                  Stop {logsWithRoute[log._id].stopNumber}/
-                                  {logsWithRoute[log._id].totalStops}
+                                  <i className="bx bx-map-pin me-1" />
+                                  Visit {
+                                    logsWithRoute[log._id].stopNumber
+                                  } of {logsWithRoute[log._id].totalStops} today
                                 </Button>
                               ) : (
                                 <span className="text-muted fs-13">
@@ -1440,6 +1446,14 @@ const VisitLogList = () => {
         <ModalBody>
           {routeModalKey && routeGroups[routeModalKey] && (
             <div>
+              <div
+                className="rounded-3 p-2 mb-3 fs-13"
+                style={{ background: "#eef2ff", color: "#3577f1" }}
+              >
+                This shows every clinic{" "}
+                {routeGroups[routeModalKey][0]?.log.agent?.name} visited that
+                day, in order, and how far apart they were.
+              </div>
               <div className="text-muted fs-13 mb-3">
                 {routeGroups[routeModalKey][0]?.log.agent?.name} &middot;{" "}
                 {new Date(
