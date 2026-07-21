@@ -885,7 +885,16 @@ const VisitLogList = () => {
                                   <i className="bx bx-map-pin me-1" />
                                   Visit {
                                     logsWithRoute[log._id].stopNumber
-                                  } of {logsWithRoute[log._id].totalStops} today
+                                  } of {logsWithRoute[log._id].totalStops}{" "}
+                                  {new Date(log.visitDate).toDateString() ===
+                                  new Date().toDateString()
+                                    ? "today"
+                                    : new Date(
+                                        log.visitDate,
+                                      ).toLocaleDateString("en-IN", {
+                                        day: "2-digit",
+                                        month: "short",
+                                      })}
                                 </Button>
                               ) : (
                                 <span className="text-muted fs-13">
