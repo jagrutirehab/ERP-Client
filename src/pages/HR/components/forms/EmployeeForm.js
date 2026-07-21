@@ -51,6 +51,8 @@ import {
   calculatePayroll,
   resolveLWFState,
   lwfAnnual,
+  lwfPerMonth,
+  applyAnnualLWF,
   lwfScheduleText,
 } from "../../../../utils/calculatePayroll";
 import {
@@ -873,13 +875,17 @@ const EmployeeForm = ({
 
   // annual deductions swap the monthly PT × 12 for the exact
   // PT annual (matters for Tamil Nadu's half-yearly PT).
-  const deductionsYearly =
+  // These start as the naive rollups; the LWF correction below (once lwfState is
+  // resolved) swaps the monthly-LWF × 12 for the true yearly LWF.
+  let deductionsYearly =
     (Math.round(Number(values.deductions) || 0) - ptMonthly) * 12 + ptYearly;
 
-  const ctcYearly =
+  let ctcYearly =
     yearlyValue("totalCostToCompany") +
     Number(values.variable || 0) +
     Number(values.reimbursement || 0);
+
+  let inHandYearly = yearlyValue("inHandSalary");
 
   // const handleCreateDesignation = async (inputValue) => {
   //   if (mode === "NEW_JOINING" && !hasCreatePermission) {
@@ -1135,6 +1141,25 @@ const EmployeeForm = ({
         : null,
     );
   }, [centerOptions, values.currentLocation]);
+
+  // LWF is charged only in specific months, so its true yearly total is NOT the
+  // monthly charge × 12. Mirror the server's applyAnnualLWF so the yearly In-Hand
+  // / Deductions / CTC boxes match the persisted `annual` block (lumpy-LWF states
+  // like Tamil Nadu / Maharashtra / Gujarat / Karnataka).
+  {
+    const lwfMonthlyGross = annualToMonthly(values).grossSalary;
+    const lwfMonthly = lwfPerMonth(lwfState, lwfMonthlyGross);
+    const lwfYearly = lwfAnnual(lwfState, lwfMonthlyGross);
+    const annualRollup = {
+      deductions: deductionsYearly,
+      inHandSalary: inHandYearly,
+      totalCostToCompany: ctcYearly,
+    };
+    applyAnnualLWF(annualRollup, lwfMonthly, lwfYearly);
+    deductionsYearly = annualRollup.deductions;
+    ctcYearly = annualRollup.totalCostToCompany;
+    inHandYearly = annualRollup.inHandSalary;
+  }
 
   useEffect(() => {
     if (simplified) return;
@@ -3042,7 +3067,7 @@ const EmployeeForm = ({
               id="inHandSalary"
               type="number"
               name="inHandSalary"
-              value={yearlyValue("inHandSalary")}
+              value={inHandYearly}
             />
             {monthlyHintFrom("inHandSalary")}
           </Col>

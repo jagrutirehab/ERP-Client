@@ -24,6 +24,8 @@ import {
   calculatePayroll,
   resolveLWFState,
   lwfAnnual,
+  lwfPerMonth,
+  applyAnnualLWF,
   lwfScheduleText,
 } from "../../../../utils/calculatePayroll";
 import {
@@ -502,13 +504,30 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
 
   // Mirror the server: annual deductions swap the monthly PT × 12 for the exact
   // PT annual (matters for Tamil Nadu's half-yearly PT).
-  const deductionsYearly =
+  let deductionsYearly =
     (Math.round(Number(form.values.deductions) || 0) - ptMonthly) * 12 + ptYearly;
 
-  const ctcYearly =
+  let ctcYearly =
     yearlyValue("totalCostToCompany") +
     Number(form.values.variable || 0) +
     Number(form.values.reimbursement || 0);
+
+  // LWF is charged only in specific months, so its true yearly total is NOT the
+  // monthly charge × 12. Mirror the server's applyAnnualLWF so the yearly In-Hand
+  // / Deductions / CTC boxes match the persisted `annual` block (lumpy-LWF states
+  // like Tamil Nadu / Maharashtra / Gujarat / Karnataka).
+  const lwfMonthlyGross = annualToMonthly(form.values).grossSalary;
+  const lwfMonthly = lwfPerMonth(lwfState, lwfMonthlyGross);
+  const lwfYearly = lwfAnnual(lwfState, lwfMonthlyGross);
+  const annualRollup = {
+    deductions: deductionsYearly,
+    inHandSalary: yearlyValue("inHandSalary"),
+    totalCostToCompany: ctcYearly,
+  };
+  applyAnnualLWF(annualRollup, lwfMonthly, lwfYearly);
+  deductionsYearly = annualRollup.deductions;
+  ctcYearly = annualRollup.totalCostToCompany;
+  const inHandYearly = annualRollup.inHandSalary;
 
   const markGrossBreakupFieldsTouched = (changedFieldName) => {
     form.setFieldTouched("grossSalary", true, false);
@@ -1250,7 +1269,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             disabled
             id="inHandSalary"
             type="number"
-            value={yearlyValue("inHandSalary")}
+            value={inHandYearly}
           />
           {monthlyHintFrom("inHandSalary")}
         </Col>

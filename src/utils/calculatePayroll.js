@@ -84,6 +84,17 @@ export const lwfAnnual = (state = "", monthlyBase = 0) => {
     return { employee: per.employee * count, employer: per.employer * count };
 };
 
+export const applyAnnualLWF = (annual, lwfMonthly, lwfYearly) => {
+    if (!annual) return;
+    const adjEmployee = lwfYearly.employee - lwfMonthly.employee * 12;
+    const adjEmployer = lwfYearly.employer - lwfMonthly.employer * 12;
+    annual.LWFEmployee = lwfYearly.employee;
+    annual.LWFEmployer = lwfYearly.employer;
+    annual.deductions = Math.round((annual.deductions || 0) + adjEmployee);
+    annual.inHandSalary = Math.round((annual.inHandSalary || 0) - adjEmployee);
+    annual.totalCostToCompany = Math.round((annual.totalCostToCompany || 0) + adjEmployer);
+};
+
 
 export const lwfSalaryBase = (state = "", monthlyBase = 0) =>
     (state || "").trim() === "Haryana" ? Number(monthlyBase) || 0 : 0;
