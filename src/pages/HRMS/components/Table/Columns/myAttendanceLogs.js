@@ -5,26 +5,27 @@ import { leaveTypes } from "../../../../../Components/constants/HRMS";
 import { isToday, minutesToTime } from "../../../../../utils/time";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 
-const isFutureDate = (date) => {
-  if (!date) return false;
-  return new Date(date).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0);
-};
+// const isFutureDate = (date) => {
+//   if (!date) return false;
+//   return new Date(date).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0);
+// };
 
-const canShowRegularizeButton = (row) => {
-  const regularizationStatus = row?.regularizations?.regularization_id?.status;
-  const leaveStatus = row?.leave?.status;
-  const hasActiveLeave =
-    leaveStatus === "pending" || leaveStatus === "approved";
-  const hasCheckIn = row?.firstCheckIn != null;
-  const hasCheckOut = row?.lastCheckOut != null;
-  const hasAnyPunch = hasCheckIn || hasCheckOut;
-  return (
-    (!row?.regularizations?.regularization_id ||
-      regularizationStatus === "REJECTED") &&
-    !isFutureDate(row?.date) &&
-    !hasActiveLeave &&
-    !hasAnyPunch
-  );
+const canShowRegularizeButton = () => {
+  return false;
+  // const regularizationStatus = row?.regularizations?.regularization_id?.status;
+  // const leaveStatus = row?.leave?.status;
+  // const hasActiveLeave =
+  //   leaveStatus === "pending" || leaveStatus === "approved";
+  // const hasCheckIn = row?.firstCheckIn != null;
+  // const hasCheckOut = row?.lastCheckOut != null;
+  // const hasAnyPunch = hasCheckIn || hasCheckOut;
+  // return (
+  //   (!row?.regularizations?.regularization_id ||
+  //     regularizationStatus === "REJECTED") &&
+  //   !isFutureDate(row?.date) &&
+  //   !hasActiveLeave &&
+  //   !hasAnyPunch
+  // );
 };
 
 const canShowLeaveButton = (row) => {
