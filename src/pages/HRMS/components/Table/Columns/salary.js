@@ -39,9 +39,7 @@ const employerDeductionStyle = {
     backgroundColor: "#7B8FD1",
 };
 
-// Non-FULL_TIME employees have no salary breakup — their record is just an
-// inHandSalary + CTC. For them the "Gross Salary" columns are meaningless (0),
-// so we show the inHandSalary (fixed / earned) in their place.
+
 const isSimplifiedEmployee = (row) =>
     (row?.employee?.employmentType || "").trim().toUpperCase() !== "FULL_TIME";
 
@@ -209,7 +207,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         name: <div>Gross Salary</div>,
         selector: row => formatCurrency(
             isSimplifiedEmployee(row)
-                ? row?.salarySnapshot?.inHandSalary
+                ? row?.salarySnapshot?.totalCostToCompany
                 : row?.salarySnapshot?.grossSalary
         ),
         wrap: true,
@@ -270,7 +268,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         name: <div>Gross Salary</div>,
         selector: row => formatCurrency(
             isSimplifiedEmployee(row)
-                ? row?.earned?.inHandSalary
+                ? row?.earned?.totalCostToCompany
                 : row?.earned?.grossSalary
         ),
         wrap: true,
