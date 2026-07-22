@@ -24,11 +24,11 @@ const fields = [
     name: "negativeHistory",
     type: "textarea",
   },
-  {
-    label: "Past History",
-    name: "pastHistory",
-    type: "textarea",
-  },
+  // {
+  //   label: "Past History",
+  //   name: "pastHistory",
+  //   type: "textarea",
+  // },
   {
     label: "Development History & Childhood/Adolescence",
     name: "developmentHistory",

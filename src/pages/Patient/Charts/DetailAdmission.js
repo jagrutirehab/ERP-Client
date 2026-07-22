@@ -441,7 +441,7 @@ const DetailAdmission = ({ data }) => {
             );
           })()}
 
-        {data?.physicalExamination && (
+        {/* {data?.physicalExamination && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Physical Examination</h6>
         )}
         {data?.physicalExamination &&
@@ -457,7 +457,7 @@ const DetailAdmission = ({ data }) => {
               </div>
             </Col>
           ))}
-        {data?.physicalExamination && <Divider />}
+        {data?.physicalExamination && <Divider />} */}
 
         {data?.doctorSignature && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Daignosis Plan</h6>

@@ -85,6 +85,7 @@ const psychiatricConfig = [
           "Panic attacks",
           "Phobic avoidance",
           "OCD symptoms",
+          "None",
         ],
       },
       {
@@ -103,6 +104,7 @@ const psychiatricConfig = [
           "Thought withdrawal",
           "Thought broadcasting",
           "Passivity phenomena",
+          "None",
         ],
       },
       {
@@ -117,6 +119,7 @@ const psychiatricConfig = [
           "Confusion",
           "Perplexity",
           "Intellectual decline",
+          "None",
         ],
       },
       {
@@ -133,6 +136,7 @@ const psychiatricConfig = [
           "Disinhibition",
           "Stereotype / Mannerism",
           "Bizarre behaviour",
+          "None",
         ],
       },
       {
@@ -148,6 +152,7 @@ const psychiatricConfig = [
           "Psychomotor change",
           "Somatic complaints",
           "Pain",
+          "None",
         ],
       },
       {
@@ -176,6 +181,7 @@ const psychiatricConfig = [
           "Tobacco",
           "Benzodiazepines",
           "Other",
+          "None",
         ],
       },
 
