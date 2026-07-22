@@ -1639,7 +1639,7 @@ const AddVisitLog = () => {
                       <Col xs={12} lg={5}>
                         <div className="field-group">
                           <Label className="field-label">
-                            Commission Discussed{" "}
+                            Professional Fee{" "}
                             <span className="field-required">*</span>
                           </Label>
                           <Input
@@ -1669,7 +1669,7 @@ const AddVisitLog = () => {
                         <Col xs={12} lg={5}>
                           <div className="field-group">
                             <Label className="field-label">
-                              Commission Percentage{" "}
+                              Visit Charges{" "}
                               <span className="field-required">*</span>
                             </Label>
                             <Input
@@ -1991,7 +1991,7 @@ const AddVisitLog = () => {
                             ["Visit Notes", validation.values.visitNotes],
                             ["Interest Level", validation.values.interestLevel],
                             [
-                              "Commission Discussed",
+                              "Professional Fee Discussed",
                               validation.values.commissionDiscussed === "true"
                                 ? "Yes"
                                 : "No",
@@ -1999,7 +1999,7 @@ const AddVisitLog = () => {
                             ...(validation.values.commissionDiscussed === "true"
                               ? [
                                   [
-                                    "Commission %",
+                                    "Visit Charges",
                                     `${validation.values.commissionPercentage}%`,
                                   ],
                                 ]

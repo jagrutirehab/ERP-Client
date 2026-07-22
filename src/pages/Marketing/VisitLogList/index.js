@@ -1356,10 +1356,11 @@ const VisitLogList = () => {
                     className="badge rounded-pill fw-medium"
                     style={{ background: "#eef2ff", color: "#3577f1" }}
                   >
-                    Commission: {selectedLog.commissionDiscussed ? "Yes" : "No"}
+                    Professional Fee:{" "}
+                    {selectedLog.commissionDiscussed ? "Yes" : "No"}
                     {selectedLog.commissionDiscussed &&
                       selectedLog.commissionPercentage != null &&
-                      ` (${selectedLog.commissionPercentage}%)`}
+                      ` — Visit Charges: ${selectedLog.commissionPercentage}%`}
                   </span>
                   {selectedLog.nextFollowUpDate && (
                     <span
