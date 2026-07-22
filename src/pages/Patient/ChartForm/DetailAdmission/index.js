@@ -38,7 +38,7 @@ const SPECIAL_REQUIREMENTS = "SPECIAL_REQUIREMENTS";
 const CHIEF_COMPLAINTS = "CHIEF_COMPLAINTS";
 // const PROVISIONAL_DIAGNOSIS = "PROVISIONAL_DIAGNOSIS";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
-const PHYSICAL_EXAMINATION = "PHYSICAL_EXAMINATION";
+// const PHYSICAL_EXAMINATION = "PHYSICAL_EXAMINATION";
 const DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE";
 const PATIENT_TYPE_FIELDS = "PATIENT_TYPE_FIELDS";
 
@@ -798,12 +798,12 @@ const DetailAdmission = ({
             >
               Mental Status Examination
             </Button>
-            <Button
+            {/* <Button
               outline={formStep !== PHYSICAL_EXAMINATION}
               onClick={() => setFormStep(PHYSICAL_EXAMINATION)}
             >
               Physical Status Examination
-            </Button>
+            </Button> */}
             <Button
               outline={formStep !== DOCTOR_SIGNATURE}
               onClick={() => setFormStep(DOCTOR_SIGNATURE)}
@@ -888,25 +888,25 @@ const DetailAdmission = ({
                   <MentalExamination
                     validation={validation}
                     setFormStep={setFormStep}
-                    step={PHYSICAL_EXAMINATION}
+                    step={DOCTOR_SIGNATURE}
                     mode="old"
                   />
                 ) : (
                   <MentalExaminationV2
                     validation={validation}
                     setFormStep={setFormStep}
-                    step={PHYSICAL_EXAMINATION}
+                    step={DOCTOR_SIGNATURE}
                     mode="new"
                   />
                 ))}
 
-              {formStep === PHYSICAL_EXAMINATION && (
+              {/* {formStep === PHYSICAL_EXAMINATION && (
                 <PhysicalExamination
                   validation={validation}
                   setFormStep={setFormStep}
                   step={DOCTOR_SIGNATURE}
                 />
-              )}
+              )} */}
 
               {formStep === DOCTOR_SIGNATURE && (
                 <DoctorSignature

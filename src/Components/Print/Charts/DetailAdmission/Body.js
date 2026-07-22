@@ -146,7 +146,7 @@ const Body = ({ chart, patient, admission }) => {
           from={DETAIL_ADMISSION}
         />
       )}
-      <PhysicalExamination data={data.physicalExamination} styles={styles} />
+      {/* <PhysicalExamination data={data.physicalExamination} styles={styles} /> */}
       <Diagnosis data={data.doctorSignature} styles={styles} />
       <SpecialRequirements data={data.specialRequirements} styles={styles} />
       <DoctorSignature doctor={patient} />
