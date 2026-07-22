@@ -3,7 +3,6 @@ import { Col, FormFeedback, FormGroup, Input, Label } from "reactstrap";
 import Select from "react-select";
 import { getIn } from "formik";
 
-
 const FormField = ({ field, values, onChange, error }) => {
   const { path, label, type = "text", options = [] } = field;
   const value = getIn(values, path);
@@ -108,6 +107,23 @@ const FormField = ({ field, values, onChange, error }) => {
       );
       break;
     }
+    case "checkbox":
+      control = (
+        <FormGroup check className="mt-2">
+          <Input
+            type="checkbox"
+            id={path}
+            name={path}
+            invalid={isInvalid}
+            checked={value === true}
+            onChange={(e) => setValue(e.target.checked)}
+          />
+          <Label check htmlFor={path}>
+            {label}
+          </Label>
+        </FormGroup>
+      );
+      break;
 
     case "select":
       control = (
@@ -177,12 +193,17 @@ const FormField = ({ field, values, onChange, error }) => {
   return (
     <Col md={colWidth} className="mb-3">
       <FormGroup className="mb-0">
-        <Label htmlFor={path}>
-          {label} <span className="text-danger">*</span>
-        </Label>
+        {type !== "checkbox" && (
+          <Label htmlFor={path}>
+            {label} <span className="text-danger">*</span>
+          </Label>
+        )}
         {control}
         {isInvalid &&
-          (type === "select" || type === "yesno" || type === "multiselect" ? (
+          (type === "select" ||
+          type === "yesno" ||
+          type === "multiselect" ||
+          type === "checkbox" ? (
             <div className="text-danger small mt-1">{error}</div>
           ) : (
             <FormFeedback>{error}</FormFeedback>

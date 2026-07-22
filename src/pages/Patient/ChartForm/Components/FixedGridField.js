@@ -3,9 +3,12 @@ import { Table, Input } from "reactstrap";
 import Select from "react-select";
 import { getIn } from "formik";
 
-
 const FixedGridField = ({ field, values, onChange, error }) => {
-  const { path, title, rowLabelKey, rowLabels, columns } = field;
+  const { path, title, rowLabelKey, rowLabels, columns, skipValidationWhen } =
+    field;
+  const isSkipped =
+    skipValidationWhen &&
+    getIn(values, skipValidationWhen.path) === skipValidationWhen.equals;
   const currentValue = getIn(values, path);
 
   useEffect(() => {
@@ -39,7 +42,7 @@ const FixedGridField = ({ field, values, onChange, error }) => {
     <div className="mb-4">
       {title && (
         <h6 className="mb-2">
-          {title} <span className="text-danger">*</span>
+          {title} {!isSkipped && <span className="text-danger">*</span>}
         </h6>
       )}
       <div className="table-responsive">

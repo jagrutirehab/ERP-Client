@@ -1,9 +1,8 @@
 import React from "react";
 import { Row, Col } from "reactstrap";
-import Divider from "../../../../Components/Common/Divider"; 
+import Divider from "../../../../Components/Common/Divider";
 import FormField from "./FormField";
 import FixedGridField from "./FixedGridField";
-
 
 const SectionRenderer = ({ sections, values, onChange, errors }) => {
   return (
@@ -17,31 +16,47 @@ const SectionRenderer = ({ sections, values, onChange, errors }) => {
             <Divider />
           </div>
 
-          {section.items
-            .filter((item) => item.kind === "grid")
-            .map((item) => (
-              <FixedGridField
-                key={item.path}
-                field={item}
-                values={values}
-                onChange={onChange}
-                error={errors?.[item.path]}
-              />
-            ))}
+          {(() => {
+            const groups = [];
+            let currentFieldGroup = null;
 
-          <Row>
-            {section.items
-              .filter((item) => item.kind !== "grid")
-              .map((item) => (
-                <FormField
-                  key={item.path}
-                  field={item}
+            section.items.forEach((item) => {
+              if (item.kind === "grid") {
+                currentFieldGroup = null;
+                groups.push({ kind: "grid", item });
+              } else {
+                if (!currentFieldGroup) {
+                  currentFieldGroup = { kind: "fields", items: [] };
+                  groups.push(currentFieldGroup);
+                }
+                currentFieldGroup.items.push(item);
+              }
+            });
+
+            return groups.map((group, idx) =>
+              group.kind === "grid" ? (
+                <FixedGridField
+                  key={group.item.path}
+                  field={group.item}
                   values={values}
                   onChange={onChange}
-                  error={errors?.[item.path]}
+                  error={errors?.[group.item.path]}
                 />
-              ))}
-          </Row>
+              ) : (
+                <Row key={`fields-${idx}`}>
+                  {group.items.map((item) => (
+                    <FormField
+                      key={item.path}
+                      field={item}
+                      values={values}
+                      onChange={onChange}
+                      error={errors?.[item.path]}
+                    />
+                  ))}
+                </Row>
+              ),
+            );
+          })()}
         </div>
       ))}
     </>
