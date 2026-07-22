@@ -7,9 +7,19 @@ const addictionConfig = [
     title: "Substance Use History",
     items: [
       {
+        kind: "field",
+        path: `${P}.noSubstanceUseReported`,
+        label: "No substance use reported (None)",
+        type: "checkbox",
+      },
+      {
         kind: "grid",
         path: `${P}.substanceProfile`,
         title: "Substance Profile Grid",
+        skipValidationWhen: {
+          path: `${P}.noSubstanceUseReported`,
+          equals: true,
+        },
         rowLabelKey: "substance",
         rowLabels: SUBSTANCE_PROFILE_ROWS,
         columns: [

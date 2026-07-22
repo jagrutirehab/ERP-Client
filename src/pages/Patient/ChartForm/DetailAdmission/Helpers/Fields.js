@@ -5,7 +5,6 @@ export const PRESENT_ABSENT = ["Present", "Absent"];
 export const LOW_MOD_HIGH = ["Low", "Moderate", "High"];
 export const NONE_LOW_MOD_HIGH = ["None", "Low", "Moderate", "High"];
 
-
 export const SUBSTANCE_PROFILE_ROWS = [
   "Alcohol",
   "Opioids (specify)",
@@ -72,7 +71,6 @@ export const setInPath = (obj, path, value) => {
   return result;
 };
 
-
 const isLeafFilled = (item, values) => {
   const val = getIn(values, item.path);
   if (item.type === "multiselect") return Array.isArray(val) && val.length > 0;
@@ -96,6 +94,13 @@ export const validateSections = (sections, values) => {
   const errors = {};
   (sections || []).forEach((section) => {
     section.items.forEach((item) => {
+      if (item.skipValidationWhen) {
+        const { path, equals } = item.skipValidationWhen;
+        if (getIn(values, path) === equals) {
+          return;
+        }
+      }
+
       if (item.kind === "grid") {
         if (!isGridFilled(item, values)) {
           errors[item.path] =
