@@ -126,7 +126,7 @@ const TicketForm = ({
   const issueTypeOptions = [
     { value: "TECH", label: "TECH" },
     { value: "HR", label: "HR" },
-    { value: "FINANCE", label: "FINANCE" },
+    // { value: "FINANCE", label: "FINANCE" },
     { value: "MAINTENANCE", label: "MAINTENANCE" },
     { value: "COMPLAINT", label: "COMPLAINT" },
 
