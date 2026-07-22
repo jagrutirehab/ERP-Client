@@ -194,16 +194,20 @@ const AddVisitLog = () => {
         .min(20, "Visit notes must be at least 2 lines long")
         .required("Visit notes are required"),
       interestLevel: Yup.string().required("Interest level is required"),
-      commissionDiscussed: Yup.string().required("Please select Yes or No"),
+      commissionDiscussed: Yup.string().required(
+        "Please select if Professional Fee was discussed",
+      ),
       commissionPercentage: Yup.number()
         .transform((value, originalValue) =>
           originalValue === "" ? undefined : value,
         )
-        .min(0, "Must be between 0-100")
-        .max(100, "Must be between 0-100")
+        .max(100, "Visit Charges must be between 0-100")
         .when("commissionDiscussed", {
           is: "true",
-          then: (schema) => schema.required("Enter commission percentage"),
+          then: (schema) =>
+            schema
+              .required("Enter Visit Charges")
+              .moreThan(0, "Visit Charges must be greater than 0"),
         }),
     }),
     onSubmit: async (values) => {
@@ -1639,7 +1643,7 @@ const AddVisitLog = () => {
                       <Col xs={12} lg={5}>
                         <div className="field-group">
                           <Label className="field-label">
-                            Professional Fee{" "}
+                            Professional Fee Discussed{" "}
                             <span className="field-required">*</span>
                           </Label>
                           <Input
