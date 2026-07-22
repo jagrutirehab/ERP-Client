@@ -616,10 +616,11 @@ const AgentProfile = () => {
                   className="badge rounded-pill fw-medium"
                   style={{ background: "#eef2ff", color: "#3577f1" }}
                 >
-                  Commission: {selectedVisit.commissionDiscussed ? "Yes" : "No"}
+                  Professional Fee:{" "}
+                  {selectedVisit.commissionDiscussed ? "Yes" : "No"}
                   {selectedVisit.commissionDiscussed &&
                     selectedVisit.commissionPercentage != null &&
-                    ` (${selectedVisit.commissionPercentage}%)`}
+                    ` — Visit Charges: ${selectedVisit.commissionPercentage}%`}
                 </span>
               </div>
 
