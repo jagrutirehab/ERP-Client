@@ -15,11 +15,15 @@ import {
   viewPatient,
 } from "../../store/actions";
 import PatientPlaceholder from "./PatientPlaceholder";
+import { useDebounce } from "../Hooks/useDebounce";
 
 const SearchOption = ({ loading, patients, centerAccess }) => {
-  
+
   const dispatch = useDispatch();
   const [value, setValue] = useState("");
+  // Debounce the query so the search API fires once the user pauses typing
+  // instead of on every keystroke.
+  const debouncedValue = useDebounce(value.trim(), 300);
   const onChangeData = (value) => {
     setValue(value);
   };
@@ -66,8 +70,11 @@ const SearchOption = ({ loading, patients, centerAccess }) => {
   }, []);
 
   useEffect(() => {
-    if (value) dispatch(searchPatient({ name: value, centerAccess }));
-  }, [value, dispatch, centerAccess]);
+    // Require at least 2 characters: a single-letter query matches almost
+    // every patient and is never a useful search.
+    if (debouncedValue.length >= 2)
+      dispatch(searchPatient({ name: debouncedValue, centerAccess }));
+  }, [debouncedValue, dispatch, centerAccess]);
 
   return (
     <React.Fragment>
