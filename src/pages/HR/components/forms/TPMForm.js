@@ -4,13 +4,12 @@ import * as Yup from "yup";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
 import { useFormik } from "formik";
-import { TPMOptions } from "../../../../Components/constants/HR";
 import { fetchDesignations } from "../../../../store/features/HR/hrSlice";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Button, Form, FormGroup, Input, Label, Spinner } from "reactstrap";
 import Select from "react-select";
-import { editTPM, postTPM } from "../../../../helpers/backend_helper";
+import { editTPM, getPositions, postTPM } from "../../../../helpers/backend_helper";
 import { format } from "date-fns";
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/
@@ -25,6 +24,12 @@ const validationSchema = Yup.object().shape({
     designation: Yup.string()
         .required("Designation is required")
         .matches(objectIdRegex, "Invalid designation"),
+    position: Yup.string()
+        .required("Position is required")
+        .matches(objectIdRegex, "Invalid position"),
+    department: Yup.string()
+        .required("Department is required")
+        .matches(objectIdRegex, "Invalid department"),
     vendor: Yup.string()
         .trim()
         .required("Vendor is required"),
@@ -48,12 +53,15 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
 
     const centerOptions = useCenterOptions({ includeAll: false });
 
+    const [positionOptions, setPositionOptions] = useState([]);
+    const [departmentOptions, setDepartmentOptions] = useState([]);
+
     useEffect(() => {
         const loadDesignations = async () => {
             try {
                 dispatch(fetchDesignations({
-                    status: "APPROVED",
-                    only: TPMOptions
+                    status: ["PENDING", "APPROVED"],
+                    version: 2
                 })).unwrap();
             } catch (error) {
                 if (!handleAuthError(error)) {
@@ -65,6 +73,51 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
         loadDesignations();
     }, []);
 
+    useEffect(() => {
+        const loadPositions = async () => {
+            try {
+                const res = await getPositions();
+                const rawData = res?.data || [];
+
+                const mapped = rawData.flatMap((p) =>
+                    (p.positions || [])
+                        .filter((pos) => !pos.deleted && pos.version === 2)
+                        .map((pos) => ({
+                            label: pos.name,
+                            value: pos._id.toString(),
+                            department: p.department?.department,
+                            departmentId: p.department?._id,
+                        }))
+                );
+
+                mapped.sort((a, b) =>
+                    a.label.localeCompare(b.label, undefined, { sensitivity: "base" })
+                );
+
+                setPositionOptions(mapped);
+
+                const deptsMapped = rawData
+                    .filter((p) => p.department?._id)
+                    .map((p) => ({
+                        label: p.department?.department,
+                        value: p.department?._id,
+                    }));
+
+                setDepartmentOptions((prev) => {
+                    const existing = new Set(prev.map((o) => o.value));
+                    const newOnes = deptsMapped.filter((d) => !existing.has(d.value));
+                    return [...prev, ...newOnes];
+                });
+            } catch (error) {
+                if (!handleAuthError(error)) {
+                    toast.error("Failed to fetch positions");
+                }
+            }
+        };
+
+        loadPositions();
+    }, []);
+
     const form = useFormik({
         enableReinitialize: true,
         validateOnMount: true,
@@ -72,6 +125,8 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
             center: initialData?.center?._id || "",
             employeeName: initialData?.employeeName || "",
             designation: initialData?.designation?._id || "",
+            position: initialData?.position?._id || "",
+            department: initialData?.department?._id || "",
             vendor: initialData?.vendor || "",
             startDate: initialData?.startDate
                 ? format(new Date(initialData?.startDate), "yyyy-MM-dd")
@@ -187,6 +242,64 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
                 {form.touched.designation && form.errors.designation && (
                     <div className="text-danger small mt-1">
                         {form.errors.designation}
+                    </div>
+                )}
+            </FormGroup>
+
+            {/* POSITION */}
+            <FormGroup>
+                <Label htmlFor="position">Position <span className="text-danger">*</span></Label>
+                <Select
+                    inputId="position"
+                    placeholder="Select Position"
+                    isClearable
+                    options={positionOptions}
+                    value={
+                        positionOptions.find(
+                            opt => opt.value === form.values.position
+                        ) || null
+                    }
+                    onChange={(opt) => {
+                        form.setFieldValue("position", opt ? opt.value : "");
+                        if (opt?.departmentId) {
+                            form.setFieldValue("department", opt.departmentId);
+                            form.setFieldTouched("department", true, false);
+                        } else {
+                            form.setFieldValue("department", "");
+                        }
+                    }}
+                    onBlur={() => form.setFieldTouched("position", true)}
+                />
+
+                {form.touched.position && form.errors.position && (
+                    <div className="text-danger small mt-1">
+                        {form.errors.position}
+                    </div>
+                )}
+            </FormGroup>
+
+            {/* DEPARTMENT */}
+            <FormGroup>
+                <Label htmlFor="department">Department <span className="text-danger">*</span></Label>
+                <Select
+                    inputId="department"
+                    placeholder="Auto-filled from position"
+                    isDisabled={true}
+                    options={departmentOptions}
+                    value={
+                        departmentOptions.find(
+                            opt => opt.value === form.values.department
+                        ) || null
+                    }
+                    onChange={(option) =>
+                        form.setFieldValue("department", option ? option.value : "")
+                    }
+                    onBlur={() => form.setFieldTouched("department", true)}
+                />
+
+                {form.touched.department && form.errors.department && (
+                    <div className="text-danger small mt-1">
+                        {form.errors.department}
                     </div>
                 )}
             </FormGroup>
