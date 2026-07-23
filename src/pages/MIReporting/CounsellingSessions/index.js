@@ -1,6 +1,6 @@
     import React, { useEffect, useMemo, useRef, useState } from "react";
     import { useDispatch, useSelector, shallowEqual } from "react-redux";
-    import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
+    import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col, Input } from "reactstrap";
     import { CSVLink } from "react-csv";
     import {  fetchCounsellingSessions } from "../../../store/features/miReporting/miReportingSlice";
     import Select from "react-select";
@@ -17,30 +17,43 @@ const CounsellingSessions = () => {
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [searchInput, setSearchInput] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
     // console.log(counsellingSessions)
-    
+
     useEffect(() => {
         dispatch(fetchCounsellingSessions({ centerAccess  }));
     }, [dispatch, centerAccess]);
     // console.log(counsellingSessions)
     // Extract unique months and sort them descending
 
-   
+    useEffect(() => {
+        if (searchInput === searchTerm) return;
+        setIsSearching(true);
+        const timeout = setTimeout(() => {
+            setSearchTerm(searchInput);
+            setIsSearching(false);
+        }, 1500);
+        return () => clearTimeout(timeout);
+    }, [searchInput, searchTerm]);
+
+
     const data = useMemo(() => counsellingSessions?.data || [], [counsellingSessions]);
 
 
     const filteredData = useMemo(() => {
-       
+        const term = searchTerm.trim().toLowerCase();
         return data.filter(item => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
-            
+            if (term && !(item?.psychologist || "").toLowerCase().includes(term)) return false;
             return true;
         });
-    }, [data, selectedCenter]);
+    }, [data, selectedCenter, searchTerm]);
 
     
     const prepareCsvData = () => {
@@ -222,20 +235,27 @@ const CounsellingSessions = () => {
                             placeholder="Center..."
                         />
                     </Col>
-                    
+                    <Col md={2}>
+                        <Input
+                            type="text"
+                            placeholder="Search Psychologist..."
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                        />
+                    </Col>
                 </Row>
                 <Card>
                 <CardBody>
-                    {loading && (
+                    {(loading || isSearching) && (
                     <div className="text-center py-5">
                         <Spinner color="primary" />
-                        <p className="mt-2 text-muted">Loading data...</p>
+                        <p className="mt-2 text-muted">{isSearching ? "Searching..." : "Loading data..."}</p>
                     </div>
                     )}
 
-                    {error && !loading && <Alert color="danger">{error}</Alert>}
+                    {error && !loading && !isSearching && <Alert color="danger">{error}</Alert>}
 
-                    {!loading && !error && (
+                    {!loading && !isSearching && !error && (
                         <>
                     <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
                         <Table

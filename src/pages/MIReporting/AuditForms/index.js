@@ -240,7 +240,7 @@ const AuditForms = () => {
   document.title = "Forms Data";
 
   return (
-    <div className="mt-4 mt-sm-0">
+    <div className="mt-4 mt-sm-0" style={{ flex: 1, width: "100%", maxWidth: "100%", minWidth: 0 }}>
       <div className="p-3 d-flex align-items-center justify-content-between">
         <div className="d-flex align-items-center">
           <i className="bx bx-clipboard fs-1 me-3"></i>

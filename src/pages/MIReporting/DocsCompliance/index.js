@@ -39,6 +39,9 @@ const METRICS = [
     { label: "Counselling Recording",key: "counselling_recording"},
     { label: "Due Amount",           key: "due_amount"           },
     { label: "Prescription Status",  key: "prescription_status"  },
+    { label: "Discharge Summary",    key: "discharge_summary"    },
+    { label: "Discharge Form",       key: "dischargeform"        },
+    { label: "Undertaking Discharge Form", key: "undertakingdischargeform" },
 ];
 
 const DocsCompliance = () => {
@@ -235,7 +238,7 @@ const getCenterCellValue = (row, metricKey) => {
     document.title = "Docs Compliance";
 
     return (
-        <div className="mt-4 mt-sm-0">
+        <div className="mt-4 mt-sm-0" style={{ flex: 1, width: "100%", maxWidth: "100%", minWidth: 0 }}>
             <div className="p-3 d-flex align-items-center">
                 <i className="bx bx-bar-chart-alt-2 fs-1 me-3"></i>
                 <h6 className="text-truncate mb-0 fs-18">Docs Compliance</h6>
