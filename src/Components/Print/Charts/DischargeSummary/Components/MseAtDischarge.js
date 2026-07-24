@@ -204,54 +204,29 @@
 // };
 
 // export default MseAtDischarge;
-
 import React from "react";
 import { View, Text } from "@react-pdf/renderer";
-
-const MSE_FIELDS = [
-  { key: "appearance", label: "Appearance and Behavior" },
-  { key: "ecc", label: "ECC / RAPPORT" },
-  { key: "speech", label: "Speech" },
-  { key: "mood", label: "Mood" },
-  { key: "affect", label: "Affect" },
-  { key: "thoughts", label: "Thoughts" },
-  { key: "perception", label: "Perception" },
-  { key: "memory", label: "Memory" },
-  { key: "abstractThinking", label: "Abstract Thinking" },
-  { key: "socialJudgment", label: "Social Judgment" },
-  { key: "insight", label: "Insight" },
-];
+import { MSE_FIELDS } from "./MSE_FIELDS";
 
 const MseAtDischarge = ({ data, styles }) => {
   const mse = data?.mseDischarge ?? {};
-
   const hasAnyData = MSE_FIELDS.some((field) => mse[field.key]);
 
   if (!hasAnyData) return null;
 
   return (
-    <React.Fragment>
-      <View style={styles.marginBottom}>
-        <Text style={styles.fontSize13}>
-          Patient Condition on Discharge: (MSE at Discharge)
-        </Text>
-
-        {MSE_FIELDS.map(({ key, label }) =>
-          mse[key] ? (
-            <View
-              key={key}
-              style={{ ...styles.checkBlock, ...styles.paddingLeft5 }}
-            >
-              <View style={{ ...styles.w30, ...styles.row }}>
-                <View style={styles.blackCircle} />
-                <Text>{label}-</Text>
-              </View>
-              <Text style={styles.w70}>{mse[key]}</Text>
-            </View>
-          ) : null,
-        )}
-      </View>
-    </React.Fragment>
+    <View style={{ ...styles.marginBottom, marginTop: 20 }}>
+      <Text style={styles.fontSize13}>
+        Patient Condition on Discharge: (MSE at Discharge)
+      </Text>
+      {MSE_FIELDS.map(({ key, label }) =>
+        mse[key] ? (
+          <View key={key} style={{ marginBottom: 20, paddingLeft: 5 }}>
+            <Text style={styles.preText}>{`\u2022 ${label}- ${mse[key]}`}</Text>
+          </View>
+        ) : null,
+      )}
+    </View>
   );
 };
 
