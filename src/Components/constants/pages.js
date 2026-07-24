@@ -593,6 +593,12 @@ export const setting = [
     link: "/setting/hr/configs",
     icon: "bx bx-health",
   },
+  {
+    id: "documentinputconfig",
+    label: "Document Configuration",
+    link: "/setting/document/input/configs",
+    icon: "bx bx-health",
+  },
 ];
 
 export const recyclebin = [
@@ -694,6 +700,12 @@ export const HR = [
         label: "Transfer Manager Approvals",
         icon: "bx bx-line-chart",
         link: "/hr/transfer/manager/approvals",
+      },
+      {
+        id: "employee-documents",
+        label: "Employee Documents",
+        icon: "bx bx-file",
+        link: "/hr/employee/docs",
       },
     ],
   },

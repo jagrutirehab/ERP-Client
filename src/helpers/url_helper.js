@@ -794,3 +794,21 @@ export const GENERATE_PSYCHO_DIAGNOSTIC_SUMMARY =
 
 export const POST_VISIT_LOG = "/marketing/visit-log";
 export const GET_VISIT_LOGS = "/marketing/visit-log";
+
+export const CONFIGURATION_DOCS = "/hr/doc/configuration";
+
+export const DOC_INPUT_POST = "/hr/doc/post";
+export const DOC_INPUT_EDIT = "/hr/doc/edit";
+export const DOC_INPUT_DELETE = "/hr/doc/delete";
+export const DOC_INPUT_GET = "/hr/doc/get";
+
+export const EMPLOYEE_DOC_FIELDS = "/hr/doc/employee-documents/fields";
+export const EMPLOYEE_DOC_UPLOAD = "/hr/doc/employee-documents/upload";
+export const EMPLOYEE_DOC_DELETE = "/hr/doc/employee-documents";
+export const EMPLOYEE_DOC_BY_ID = "/hr/doc/employee-documents";
+
+export const EMPLOYEE_DOC_DELETE_BY_EMP_ID = "/hr/doc/employee-documents";
+
+export const EMPLOYEE_DOC_BY_EMPID = "/hr/doc/employee-documents/by-employee";
+export const EMPLOYEE_DOCS = "/hr/doc/employee-documents/all";
+export const REVIEW_DOC = "/hr/doc/employee-documents";

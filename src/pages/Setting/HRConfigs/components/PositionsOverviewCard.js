@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardBody,
@@ -8,6 +8,7 @@ import {
   Badge,
   Table,
 } from "reactstrap";
+import DocConfigurationModal from "./DocConfigurationModal";
 
 const PositionsOverviewCard = ({
   positionsLoading,
@@ -15,7 +16,18 @@ const PositionsOverviewCard = ({
   filteredPositions,
   positionSearch,
   setPositionSearch,
+  onConfigureClick,
 }) => {
+  const [modalOpen, setModalOpen] = useState(false);
+  const [selectedPosition, setSelectedPosition] = useState(null);
+
+  const openConfigModal = (item) => {
+    setSelectedPosition(item);
+    setModalOpen(true);
+  };
+
+  const toggleModal = () => setModalOpen((prev) => !prev);
+
   return (
     <Card className="shadow-sm">
       <CardHeader className="bg-white border-bottom py-3 px-4">
@@ -104,6 +116,9 @@ const PositionsOverviewCard = ({
                     <th className="px-4 py-3 fw-semibold text-muted border-0">
                       Department
                     </th>
+                    <th className="px-4 py-3 fw-semibold text-muted border-0">
+                      Document Configuration
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
@@ -132,6 +147,14 @@ const PositionsOverviewCard = ({
                             {item.department}
                           </Badge>
                         </td>
+                        <td className="px-4 py-2">
+                          <p
+                            className="btn btn-primary btn-sm"
+                            onClick={() => openConfigModal(item)}
+                          >
+                            Configure{" "}
+                          </p>
+                        </td>
                       </tr>
                     ))
                   )}
@@ -141,6 +164,15 @@ const PositionsOverviewCard = ({
           </>
         )}
       </CardBody>
+
+      <DocConfigurationModal
+        isOpen={modalOpen}
+        toggle={toggleModal}
+        position={selectedPosition}
+        onSuccess={(data) => {
+          console.log("Saved:", data);
+        }}
+      />
     </Card>
   );
 };

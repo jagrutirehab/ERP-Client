@@ -13,6 +13,7 @@ import Therapies from "./Therapies";
 import Conditions from "./Conditions";
 import Symptom from "./Symptom";
 import HrConfigurations from "./HRConfigs";
+import DocumentConfig from "./DocumentConfig";
 
 const index = (props) => {
   return (
@@ -33,6 +34,10 @@ const index = (props) => {
               <Route path={`/conditions`} element={<Conditions />} />
               <Route path={`/symptoms`} element={<Symptom />} />
               <Route path={`/hr/configs`} element={<HrConfigurations />} />
+              <Route
+                path={`/document/input/configs`}
+                element={<DocumentConfig />}
+              />
             </Routes>
           </div>
         </Container>

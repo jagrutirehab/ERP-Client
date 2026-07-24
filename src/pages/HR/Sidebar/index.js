@@ -290,6 +290,11 @@ const Sidebar = () => {
     "MY_SALARY_AND_FORMS",
     "READ",
   );
+  const hasEmployeeDocPermission = hasPermission(
+    "HR",
+    "EMPLOYEE_DOCUMENTS",
+    "READ",
+  );
 
   const location = useLocation();
   const currentUrl = location.pathname + location.search;
@@ -601,6 +606,8 @@ const Sidebar = () => {
             child.id === "transfer-manager-approval" &&
             !hasTransferApprovalsPermission
           )
+            return false;
+          if (child.id === "employee-documents" && !hasEmployeeDocPermission)
             return false;
           return true;
         });

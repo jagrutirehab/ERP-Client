@@ -66,6 +66,7 @@ import MySalaryData from "./PaySlips/Views/MySalaryData";
 import UploadForm from "./employeeForms/UploadForm";
 import Forms from "./employeeForms/Forms";
 import MyForms from "./employeeForms/MyForms";
+import EmployeeDocuments from "./Dashboard/EmployeeDocuments";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -289,6 +290,10 @@ const HR = () => {
                 />
                 <Route path={`/employee/forms`} element={<Forms />} />
                 <Route path={`/my/forms`} element={<MyForms />} />
+                <Route
+                  path={`/employee/docs`}
+                  element={<EmployeeDocuments />}
+                />
               </Routes>
             </div>
           </Container>
