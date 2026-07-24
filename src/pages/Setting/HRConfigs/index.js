@@ -208,6 +208,7 @@ const HrConfigurations = () => {
             deptSearch={deptSearch}
             setDeptSearch={setDeptSearch}
             filteredDepartments={filteredDepartments}
+            hasWrite={hasWrite}
           />
         </Col>
         <Col md={7}>
@@ -233,6 +234,7 @@ const HrConfigurations = () => {
             filteredPositions={filteredPositions}
             positionSearch={positionSearch}
             setPositionSearch={setPositionSearch}
+            hasWrite={hasWrite}
           />
         </Col>
       </Row>

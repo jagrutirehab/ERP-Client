@@ -17,6 +17,7 @@ const PositionsOverviewCard = ({
   positionSearch,
   setPositionSearch,
   onConfigureClick,
+  hasWrite,
 }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [selectedPosition, setSelectedPosition] = useState(null);
@@ -116,9 +117,11 @@ const PositionsOverviewCard = ({
                     <th className="px-4 py-3 fw-semibold text-muted border-0">
                       Department
                     </th>
-                    <th className="px-4 py-3 fw-semibold text-muted border-0">
-                      Document Configuration
-                    </th>
+                    {hasWrite && (
+                      <th className="px-4 py-3 fw-semibold text-muted border-0">
+                        Document Configuration
+                      </th>
+                    )}
                   </tr>
                 </thead>
                 <tbody>
@@ -147,14 +150,16 @@ const PositionsOverviewCard = ({
                             {item.department}
                           </Badge>
                         </td>
-                        <td className="px-4 py-2">
-                          <p
-                            className="btn btn-primary btn-sm"
-                            onClick={() => openConfigModal(item)}
-                          >
-                            Configure{" "}
-                          </p>
-                        </td>
+                        {hasWrite && (
+                          <td className="px-4 py-2">
+                            <p
+                              className="btn btn-primary btn-sm"
+                              onClick={() => openConfigModal(item)}
+                            >
+                              Configure{" "}
+                            </p>
+                          </td>
+                        )}
                       </tr>
                     ))
                   )}
