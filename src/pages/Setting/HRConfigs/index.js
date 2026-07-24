@@ -171,6 +171,7 @@ const HrConfigurations = () => {
     (p.positions || [])
       .filter((pos) => !pos.deleted && pos.version === 2)
       .map((pos) => ({
+        _id: pos._id,
         positionName: pos.name,
         department: p.department?.department || "—",
       })),

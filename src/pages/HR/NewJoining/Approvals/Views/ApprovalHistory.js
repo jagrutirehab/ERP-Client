@@ -14,11 +14,13 @@ import DataTable from "react-data-table-component";
 import Select from "react-select";
 import { getFilePreviewMeta } from "../../../../../utils/isPreviewable";
 import PreviewFile from "../../../../../Components/Common/PreviewFile";
-import { FILE_PREVIEW_CUTOFF, categoryOptions } from "../../../../../Components/constants/HR";
+import {
+  FILE_PREVIEW_CUTOFF,
+  categoryOptions,
+} from "../../../../../Components/constants/HR";
 import RefreshButton from "../../../../../Components/Common/RefreshButton";
 import { useSearchParams } from "react-router-dom";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
-
 
 const customStyles = {
   table: {
@@ -57,14 +59,15 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
   const [limit, setLimit] = useState(10);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
+  const [previewTitle, setPreviewTitle] = useState("Attachment Preview");
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
   const centerOptions = useCenterOptions();
 
-  const selectedCenterOption = centerOptions.find(
-    opt => opt.value === selectedCenter
-  ) || centerOptions[0];
+  const selectedCenterOption =
+    centerOptions.find((opt) => opt.value === selectedCenter) ||
+    centerOptions[0];
 
   useEffect(() => {
     if (
@@ -110,16 +113,20 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       const centers =
         selectedCenter === "ALL"
           ? user?.centerAccess
-          : !user?.centerAccess.length ? [] : [selectedCenter];
+          : !user?.centerAccess.length
+            ? []
+            : [selectedCenter];
 
-      await dispatch(getMasterEmployees({
-        page,
-        limit,
-        centers,
-        view: "NEW_JOINING_HISTORY",
-        ...search.trim() !== "" && { search: debouncedSearch },
-        ...(queryEmployeeId !== "" && { employeeId: queryEmployeeId })
-      })).unwrap();
+      await dispatch(
+        getMasterEmployees({
+          page,
+          limit,
+          centers,
+          view: "NEW_JOINING_HISTORY",
+          ...(search.trim() !== "" && { search: debouncedSearch }),
+          ...(queryEmployeeId !== "" && { employeeId: queryEmployeeId }),
+        }),
+      ).unwrap();
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch master employee list");
@@ -131,15 +138,24 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     if (activeTab === "HISTORY" && hasUserPermission) {
       fetchMasterEmployeeList();
     }
-  }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+  }, [
+    page,
+    limit,
+    selectedCenter,
+    debouncedSearch,
+    user?.centerAccess,
+    activeTab,
+    roles,
+  ]);
 
-  const handleFilePreview = (file, updatedAt) => {
+  const handleFilePreview = (file, updatedAt, title) => {
     if (!file?.url) return;
 
     const meta = getFilePreviewMeta(file, updatedAt, FILE_PREVIEW_CUTOFF);
 
     if (meta.action === "preview") {
       setPreviewFile(file);
+      setPreviewTitle(title || "Attachment Preview");
       setPreviewOpen(true);
     } else {
       downloadFile(file);
@@ -159,34 +175,35 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
   const columns = [
     {
       name: <div>ECode</div>,
-      selector: row => row?.eCode || "-",
+      selector: (row) => row?.eCode || "-",
       sortable: true,
     },
     {
       name: <div>Name</div>,
-      selector: row => row?.name?.toUpperCase() || "-",
+      selector: (row) => row?.name?.toUpperCase() || "-",
       wrap: true,
-      minWidth: "160px"
+      minWidth: "160px",
     },
     {
       name: <div>Biometric ID</div>,
-      selector: row => row?.biometricId || "-",
+      selector: (row) => row?.biometricId || "-",
     },
     {
       name: <div>Department</div>,
-      selector: row => capitalizeWords(row?.department || "-"),
+      selector: (row) => capitalizeWords(row?.department || "-"),
       wrap: true,
-      minWidth: "130px"
+      minWidth: "130px",
     },
     {
       name: <div>Designation</div>,
-      selector: row => capitalizeWords(row.designation?.name
-        ?.toLowerCase()
-        .replace(/_/g, " ") || "-"),
+      selector: (row) =>
+        capitalizeWords(
+          row.designation?.name?.toLowerCase().replace(/_/g, " ") || "-",
+        ),
       wrap: true,
-      minWidth: "100px"
+      minWidth: "100px",
     },
-     {
+    {
       name: <div>Position</div>,
       selector: (row) => row?.position?.name || "-",
       wrap: true,
@@ -203,9 +220,9 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>Employee Type</div>,
-      selector: row => capitalizeWords(row?.employmentType || "-"),
+      selector: (row) => capitalizeWords(row?.employmentType || "-"),
       wrap: true,
-      minWidth: "130px"
+      minWidth: "130px",
     },
     {
       name: <div>Employement Type</div>,
@@ -214,7 +231,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       },
       wrap: true,
       minWidth: "100px",
-    }, 
+    },
     {
       name: <div>Employement Status</div>,
       selector: (row) => renderStatusBadge(row?.employmentStatus) || "-",
@@ -224,95 +241,95 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>First Location</div>,
-      selector: row => capitalizeWords(row?.firstLocation?.title || "-"),
+      selector: (row) => capitalizeWords(row?.firstLocation?.title || "-"),
       wrap: true,
-      minWidth: "120px"
+      minWidth: "120px",
     },
 
     {
       name: <div>Current Location</div>,
-      selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
+      selector: (row) => capitalizeWords(row?.currentLocation?.title || "-"),
       wrap: true,
-      minWidth: "120px"
+      minWidth: "120px",
     },
     {
       name: <div>State</div>,
-      selector: row => capitalizeWords(row?.state || "-"),
+      selector: (row) => capitalizeWords(row?.state || "-"),
       wrap: true,
-      minWidth: "120px"
+      minWidth: "120px",
     },
     {
       name: <div>Payroll</div>,
-      selector: row => row?.payrollType === "ON_ROLL" ? "On Roll" : "Off Roll",
+      selector: (row) =>
+        row?.payrollType === "ON_ROLL" ? "On Roll" : "Off Roll",
       wrap: true,
     },
     {
       name: <div>Joining Date</div>,
-      selector: row => row?.joinningDate || "-",
+      selector: (row) => row?.joinningDate || "-",
       wrap: true,
     },
     {
       name: <div>Gender</div>,
-      selector: row => capitalizeWords(row?.gender || "-"),
+      selector: (row) => capitalizeWords(row?.gender || "-"),
       wrap: true,
     },
     {
       name: <div>Date of Birth</div>,
-      selector: row => row?.dateOfBirth || "-",
+      selector: (row) => row?.dateOfBirth || "-",
       wrap: true,
     },
     {
       name: <div>Bank Name</div>,
-      selector: row =>
-        capitalizeWords(row?.bankDetails?.bankName || "-"),
+      selector: (row) => capitalizeWords(row?.bankDetails?.bankName || "-"),
       wrap: true,
-      minWidth: "160px"
+      minWidth: "160px",
     },
     {
       name: <div>Bank Account No</div>,
-      selector: row => row?.bankDetails?.accountNo || "-",
+      selector: (row) => row?.bankDetails?.accountNo || "-",
       wrap: true,
-      minWidth: "180px"
+      minWidth: "180px",
     },
     {
       name: <div>IFSC Code</div>,
-      selector: row => row?.bankDetails?.IFSCCode || "-",
+      selector: (row) => row?.bankDetails?.IFSCCode || "-",
       wrap: true,
-      minWidth: "150px"
+      minWidth: "150px",
     },
     {
       name: <div>PF Applicable</div>,
-      selector: row =>
+      selector: (row) =>
         row?.pfApplicable === true
           ? "Yes"
           : row?.pfApplicable === false
             ? "No"
             : "-",
-      wrap: true
+      wrap: true,
     },
     {
       name: <div>UAN No</div>,
-      selector: row => row?.uanNo || "-",
+      selector: (row) => row?.uanNo || "-",
       wrap: true,
-      minWidth: "160px"
+      minWidth: "160px",
     },
     {
       name: <div>PF No</div>,
-      selector: row => row?.pfNo || "-",
+      selector: (row) => row?.pfNo || "-",
       wrap: true,
-      minWidth: "160px"
+      minWidth: "160px",
     },
     {
       name: <div>ESIC IP Code</div>,
-      selector: row => row?.esicIpCode || "-",
+      selector: (row) => row?.esicIpCode || "-",
       wrap: true,
-      minWidth: "160px"
+      minWidth: "160px",
     },
     {
       name: <div>Aadhaar No</div>,
-      selector: row => row?.adhar?.number || "-",
+      selector: (row) => row?.adhar?.number || "-",
       wrap: true,
-      minWidth: "180px"
+      minWidth: "180px",
     },
     {
       name: <div>Aadhaar File</div>,
@@ -322,7 +339,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         const meta = getFilePreviewMeta(
           { url: row?.adhar?.url },
           row?.updatedAt,
-          FILE_PREVIEW_CUTOFF
+          FILE_PREVIEW_CUTOFF,
         );
 
         return (
@@ -337,7 +354,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
               handleFilePreview(
                 { url: row?.adhar?.url },
                 row?.updatedAt,
-                FILE_PREVIEW_CUTOFF
+                FILE_PREVIEW_CUTOFF,
               )
             }
           >
@@ -348,9 +365,9 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>PAN No</div>,
-      selector: row => row?.pan?.number || "-",
+      selector: (row) => row?.pan?.number || "-",
       wrap: true,
-      minWidth: "140px"
+      minWidth: "140px",
     },
     {
       name: <div>PAN File</div>,
@@ -360,7 +377,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         const meta = getFilePreviewMeta(
           { url: row?.pan?.url },
           row?.updatedAt,
-          FILE_PREVIEW_CUTOFF
+          FILE_PREVIEW_CUTOFF,
         );
 
         return (
@@ -375,7 +392,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
               handleFilePreview(
                 { url: row?.pan?.url },
                 row?.updatedAt,
-                FILE_PREVIEW_CUTOFF
+                FILE_PREVIEW_CUTOFF,
               )
             }
           >
@@ -387,45 +404,45 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>Father's Name</div>,
-      selector: row => row?.father || "-",
+      selector: (row) => row?.father || "-",
       wrap: true,
-      minWidth: "180px"
+      minWidth: "180px",
     },
     {
       name: <div>Mobile No</div>,
-      selector: row => row?.mobile || "-",
+      selector: (row) => row?.mobile || "-",
       wrap: true,
-      minWidth: "140px"
+      minWidth: "140px",
     },
     {
       name: <div>Official Email ID</div>,
-      selector: row => row?.officialEmail || "-",
+      selector: (row) => row?.officialEmail || "-",
       wrap: true,
-      minWidth: "200px"
+      minWidth: "200px",
     },
 
     {
       name: <div>Email ID</div>,
-      selector: row => row?.email || "-",
+      selector: (row) => row?.email || "-",
       wrap: true,
-      minWidth: "200px"
+      minWidth: "200px",
     },
     {
       name: <div>Monthly CTC</div>,
-      selector: row => `₹${row?.monthlyCTC?.toLocaleString()}`,
+      selector: (row) => `₹${row?.monthlyCTC?.toLocaleString()}`,
       sortable: true,
       wrap: true,
-      minWidth: "100px"
+      minWidth: "100px",
     },
     {
       name: <div>Offer Letter</div>,
-      cell: row => {
+      cell: (row) => {
         if (!row?.offerLetter) return "-";
 
         const meta = getFilePreviewMeta(
           { url: row?.offerLetter },
           row?.updatedAt,
-          FILE_PREVIEW_CUTOFF
+          FILE_PREVIEW_CUTOFF,
         );
 
         return (
@@ -440,18 +457,80 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
               handleFilePreview(
                 { url: row?.offerLetter },
                 row?.updatedAt,
-                FILE_PREVIEW_CUTOFF
+                FILE_PREVIEW_CUTOFF,
               )
             }
           >
             {meta.action === "preview" ? "Preview" : "Download"}
           </span>
         );
-      }
+      },
+    },
+    {
+      name: <div>Other Docs</div>,
+      cell: (row) => {
+        const docs = (row?.positionDocuments || []).filter(
+          (d) => (d.files || []).length > 0,
+        );
+
+        if (docs.length === 0) return "-";
+
+        return (
+          <div className="d-flex flex-column gap-1">
+            {docs.map((doc) =>
+              doc.files.map((file, idx) => {
+                const meta = getFilePreviewMeta(
+                  { url: file.fileUrl },
+                  file.uploadedAt || row?.updatedAt,
+                  FILE_PREVIEW_CUTOFF,
+                );
+
+                return (
+                  <span
+                    key={file._id || `${doc.docName}-${idx}`}
+                    style={{
+                      color: meta.canPreview ? "#007bff" : "#28a745",
+                      textDecoration: "underline",
+                      cursor: "pointer",
+                      fontSize: "0.875rem",
+                      display: "inline-flex",
+                      alignItems: "center",
+                      maxWidth: "100%",
+                    }}
+                    title={doc.docName}
+                    onClick={() =>
+                      handleFilePreview(
+                        { url: file.fileUrl, originalName: file.fileName },
+                        file.uploadedAt || row?.updatedAt,
+                        doc.files.length > 1
+                          ? `${doc.docName} (${idx + 1})`
+                          : doc.docName,
+                      )
+                    }
+                  >
+                    <span
+                      style={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                        maxWidth: 100,
+                      }}
+                    >
+                      {doc.docName}
+                      {doc.files.length > 1 ? ` (${idx + 1})` : ""}
+                    </span>
+                    {/* :&nbsp;{meta.action === "preview" ? "Preview" : "Download"} */}
+                  </span>
+                );
+              }),
+            )}
+          </div>
+        );
+      },
     },
     {
       name: <div>Approval Status</div>,
-      selector: row => {
+      selector: (row) => {
         const status = row?.newJoiningWorkflow?.status;
 
         if (status === "APPROVED") {
@@ -468,20 +547,22 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>Filled By</div>,
-      selector: row => (
+      selector: (row) => (
         <div>
-          <div>{capitalizeWords(row?.newJoiningWorkflow?.filledBy?.name || "-")}</div>
+          <div>
+            {capitalizeWords(row?.newJoiningWorkflow?.filledBy?.name || "-")}
+          </div>
           <div style={{ fontSize: "12px", color: "#666" }}>
             {row?.newJoiningWorkflow?.filledBy?.email || "-"}
           </div>
         </div>
       ),
       wrap: true,
-      minWidth: "200px"
+      minWidth: "200px",
     },
     {
       name: <div>Filled At</div>,
-      selector: row => {
+      selector: (row) => {
         const filledAt = row?.newJoiningWorkflow?.filledAt;
 
         if (!filledAt || isNaN(new Date(filledAt))) {
@@ -491,24 +572,26 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         return format(new Date(filledAt), "dd MMM yyyy, hh:mm a");
       },
       wrap: true,
-      minWidth: "180px"
+      minWidth: "180px",
     },
     {
       name: <div>Acted By</div>,
-      selector: row => (
+      selector: (row) => (
         <div>
-          <div>{capitalizeWords(row?.newJoiningWorkflow?.actedBy?.name || "-")}</div>
+          <div>
+            {capitalizeWords(row?.newJoiningWorkflow?.actedBy?.name || "-")}
+          </div>
           <div style={{ fontSize: "12px", color: "#666" }}>
             {row?.newJoiningWorkflow?.actedBy?.email || "-"}
           </div>
         </div>
       ),
       wrap: true,
-      minWidth: "200px"
+      minWidth: "200px",
     },
     {
       name: <div>Acted At</div>,
-      selector: row => {
+      selector: (row) => {
         const actedAt = row?.newJoiningWorkflow?.actedAt;
 
         if (!actedAt || isNaN(new Date(actedAt))) {
@@ -518,14 +601,16 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         return format(new Date(actedAt), "dd MMM yyyy, hh:mm a");
       },
       wrap: true,
-      minWidth: "180px"
+      minWidth: "180px",
     },
     {
       name: <div>Note</div>,
-      selector: row => <ExpandableText text={row?.newJoiningWorkflow?.reason || "-"} />,
+      selector: (row) => (
+        <ExpandableText text={row?.newJoiningWorkflow?.reason || "-"} />
+      ),
       wrap: true,
-      minWidth: "200px"
-    }
+      minWidth: "200px",
+    },
   ];
 
   return (
@@ -533,9 +618,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       <div className="mb-3">
         {/*  DESKTOP VIEW */}
         <div className="d-none d-md-flex justify-content-between align-items-center">
-
           <div className="d-flex gap-3 align-items-center">
-
             <div style={{ width: "200px" }}>
               <Select
                 value={selectedCenterOption}
@@ -558,10 +641,12 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-
           </div>
 
-          <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
+          <RefreshButton
+            loading={loading}
+            onRefresh={fetchMasterEmployeeList}
+          />
         </div>
 
         {/*  MOBILE VIEW */}
@@ -588,10 +673,12 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
             />
           </div>
           <div className="d-flex justify-content-end">
-            <RefreshButton loading={loading} onRefresh={fetchMasterEmployeeList} />
+            <RefreshButton
+              loading={loading}
+              onRefresh={fetchMasterEmployeeList}
+            />
           </div>
         </div>
-
       </div>
 
       <DataTable
@@ -620,7 +707,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       />
 
       <PreviewFile
-        title="Attachment Preview"
+        title={previewTitle}
         file={previewFile}
         isOpen={previewOpen}
         toggle={() => {
@@ -628,9 +715,8 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
           setPreviewFile(null);
         }}
       />
-
     </>
-  )
-}
+  );
+};
 
 export default ApprovalHistory;
