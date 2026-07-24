@@ -10,6 +10,7 @@ import {
   Button,
   UncontrolledTooltip,
 } from "reactstrap";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const DocumentListCard = ({
   loading,
@@ -21,6 +22,23 @@ const DocumentListCard = ({
   onEditClick,
   onDeleteClick,
 }) => {
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
+  const hasReadPermission = hasPermission("SETTING", "DOCUMENTCONFIG", "READ");
+  const hasWritePermission = hasPermission(
+    "SETTING",
+    "DOCUMENTCONFIG",
+    "WRITE",
+  );
+  const hasDeletePermission = hasPermission(
+    "SETTING",
+    "DOCUMENTCONFIG",
+    "DELETE",
+  );
+  const canEdit = hasPermission("SETTING", "DOCUMENTCONFIG", "WRITE");
+  const canDelete = hasPermission("SETTING", "DOCUMENTCONFIG", "DELETE");
+
   return (
     <Card className="shadow-sm">
       <CardHeader className="bg-white border-bottom py-3 px-4">
@@ -55,10 +73,12 @@ const DocumentListCard = ({
                 documents
               </Badge>
             )}
-            <Button color="primary" size="sm" onClick={onAddClick}>
-              <i className="ri-add-line me-1" />
-              Add Document
-            </Button>
+            {hasWritePermission && (
+              <Button color="primary" size="sm" onClick={onAddClick}>
+                <i className="ri-add-line me-1" />
+                Add Document
+              </Button>
+            )}
           </div>
         </div>
       </CardHeader>
@@ -120,12 +140,14 @@ const DocumentListCard = ({
                     <th className="px-4 py-3 fw-semibold text-muted border-0">
                       Document Name
                     </th>
-                    <th
-                      className="px-4 py-3 fw-semibold text-muted border-0 text-end"
-                      style={{ width: 140 }}
-                    >
-                      Actions
-                    </th>
+                    {/* {!hasReadPermission && (
+                      <th
+                        className="px-4 py-3 fw-semibold text-muted border-0 text-end"
+                        style={{ width: 140 }}
+                      >
+                        Actions
+                      </th>
+                    )} */}
                   </tr>
                 </thead>
                 <tbody>
@@ -145,18 +167,20 @@ const DocumentListCard = ({
                         <td className="px-4 py-2 fw-medium">{doc.docName}</td>
                         <td className="px-4 py-2 text-end">
                           <span id={`edit-btn-${doc._id}`}>
-                            <Button
-                              color="link"
-                              className={
-                                doc.canEdit
-                                  ? "text-primary p-1"
-                                  : "text-muted p-1"
-                              }
-                              onClick={() => doc.canEdit && onEditClick(doc)}
-                              disabled={!doc.canEdit}
-                            >
-                              <i className="ri-pencil-line" />
-                            </Button>
+                            {canEdit && (
+                              <Button
+                                color="link"
+                                className={
+                                  doc.canEdit
+                                    ? "text-primary p-1"
+                                    : "text-muted p-1"
+                                }
+                                onClick={() => doc.canEdit && onEditClick(doc)}
+                                disabled={!doc.canEdit}
+                              >
+                                <i className="ri-pencil-line" />
+                              </Button>
+                            )}
                           </span>
                           {!doc.canEdit && (
                             <UncontrolledTooltip
@@ -168,14 +192,16 @@ const DocumentListCard = ({
                               already uploaded documents under this name
                             </UncontrolledTooltip>
                           )}
-                          <Button
-                            color="link"
-                            className="text-danger p-1"
-                            onClick={() => onDeleteClick(doc)}
-                            title="Delete"
-                          >
-                            <i className="ri-delete-bin-line" />
-                          </Button>
+                          {canDelete && (
+                            <Button
+                              color="link"
+                              className="text-danger p-1"
+                              onClick={() => onDeleteClick(doc)}
+                              title="Delete"
+                            >
+                              <i className="ri-delete-bin-line" />
+                            </Button>
+                          )}
                         </td>
                       </tr>
                     ))
