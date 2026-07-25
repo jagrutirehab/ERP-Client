@@ -5,6 +5,18 @@ import NextButton from "./NextButton";
 
 const DoctorSignature = ({ validation, setFormStep, step }) => {
   const [icdOptions, setIcdOptions] = useState([]);
+  const [attempted, setAttempted] = useState(false);
+
+  const validate = () => {
+    setAttempted(true);
+    const provisionalMissing =
+      !Array.isArray(validation.values.provisionaldiagnosis) ||
+      validation.values.provisionaldiagnosis.length === 0;
+    const diagnosisMissing =
+      !Array.isArray(validation.values.diagnosis) ||
+      validation.values.diagnosis.length === 0;
+    return !provisionalMissing && !diagnosisMissing;
+  };
 
   useEffect(() => {
     const loadICD = async () => {
@@ -69,7 +81,16 @@ const DoctorSignature = ({ validation, setFormStep, step }) => {
   return (
     <>
       <RenderFields fields={fields} validation={validation} />
-      <NextButton setFormStep={setFormStep} step={step} />
+      {attempted && (
+        <p className="text-danger small">
+          Please fill in all required fields before continuing.
+        </p>
+      )}
+      <NextButton
+        setFormStep={setFormStep}
+        step={step}
+        onBeforeNext={validate}
+      />
     </>
   );
 };
