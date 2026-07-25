@@ -31,6 +31,7 @@ const tabs = [
   { id: "pending", label: "Pending", statuses: ["PENDING"] },
   { id: "regularized", label: "Regularized", statuses: ["REGULARIZED"] },
   { id: "rejected", label: "Rejected", statuses: ["REJECTED"] },
+  { id: "cancelled", label: "Cancelled", statuses: ["CANCELLED"] },
 ];
 
 const EmployeeRegularizationDetails = () => {

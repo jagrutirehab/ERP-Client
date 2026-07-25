@@ -107,4 +107,15 @@ export const MyRegularizationsColumn = () => [
     ),
     width: "150px",
   },
+  {
+    name: <Center>Action By</Center>,
+    cell: (row) => (
+      <Center>
+        {row?.action_by?.name
+          ? `${row.action_by.name} (${row.action_by.eCode})`
+          : "-"}
+      </Center>
+    ),
+    width: "170px",
+  },
 ];
