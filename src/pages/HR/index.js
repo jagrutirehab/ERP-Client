@@ -54,6 +54,8 @@ import EmployeeLeaveBalanceDashboard from "./Dashboard/EmployeeLeaveBalance";
 import EmployeeRegularizationDetails from "./Dashboard/EmployeeRegularizationDetails";
 import EmployeeRegularizationSummaryDashboard from "./Dashboard/EmployeeRegularizationSummary";
 import AllLeaveHistory from "./Dashboard/AllLeaveHistory";
+import AllRegularizations from "./Dashboard/AllRegularizations";
+import CreateRegularization from "./Dashboard/CreateRegularization";
 import CompOffRequests from "../HRMS/Leaves/CompOffsRequests/CompOffRequests";
 import AllCompOffs from "./Dashboard/AllCompOffs";
 import RaisedCompOffsRequest from "../HRMS/Leaves/MyRaisedCompOffs/RaisedCompOffsRequest";
@@ -273,6 +275,14 @@ const HR = () => {
                 <Route
                   path={`/all/leave/history`}
                   element={<AllLeaveHistory />}
+                />
+                <Route
+                  path={`/all/regularizations`}
+                  element={<AllRegularizations />}
+                />
+                <Route
+                  path={`/create/regularization`}
+                  element={<CreateRegularization />}
                 />
                 <Route
                   path={`/all/cancellations/req`}

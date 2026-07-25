@@ -12,53 +12,38 @@ export const detectShift = (start, end) => {
         };
     }
 
-    const DAY_START = 660;   // 11:00 AM
-    const DAY_END = 1320;    // 10:00 PM
-    const NIGHT_START = 1320; // 10:00 PM
-    const NIGHT_END = 660;   // 11:00 AM (next day)
+    const DAY_END = 1320;      // 10:00 PM
+    const NIGHT_START = 1200;  // 8:00 PM
 
-    //  DAY SHIFT 
-    //  Before 10:00 PM
-    if (start >= 0 && start < DAY_END) {
-        if (end < start) {
-            return {
-                shift: null,
-                error: "Day shift cannot cross midnight",
-            };
-        }
-
-        if (end > DAY_END) {
-            return {
-                shift: null,
-                error: "Day shift must end by 10:00 PM",
-            };
-        }
-
-        return {
-            shift: SHIFT_CONFIG.DAY.value,
-            error: null,
-        };
-    }
-
-    //    NIGHT SHIFT 
-    //    10:00 PM to 11:00 AM next day
+    // NIGHT shift (starts at or after 8 PM)
     if (start >= NIGHT_START) {
-        // should end between 00:00 and 11:00 AM
-        if (end >= 0 && end <= NIGHT_END) {
+        if (end < start) {
             return {
                 shift: SHIFT_CONFIG.NIGHT.value,
                 error: null,
             };
         }
-
         return {
             shift: null,
-            error: "Night shift must end by 11:00 AM",
+            error: "Night shift end time must be after midnight (next day)",
         };
     }
 
+    // DAY shift (starts before 10 PM)
+    if (end < start) {
+        return {
+            shift: null,
+            error: "Day shift cannot cross midnight",
+        };
+    }
+    if (end > DAY_END) {
+        return {
+            shift: null,
+            error: "Day shift must end by 10:00 PM",
+        };
+    }
     return {
-        shift: null,
-        error: "Invalid shift timing",
+        shift: SHIFT_CONFIG.DAY.value,
+        error: null,
     };
 };

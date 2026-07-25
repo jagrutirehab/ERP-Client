@@ -667,6 +667,10 @@ export const GET_TEMPORARY_MANAGER = "/hrms/get/temporary/manager";
 // FOR HR
 export const GET_LEAVES = "/hrms/leave/get/leaves";
 export const APPROVE_LEAVE = "/hrms/leave/change/status/byhr";
+export const GET_ALL_REGULARIZATIONS = "/hrms/regularizations/get/all";
+export const APPROVE_REGULARIZATION_BYHR = "/hrms/regularize/change/status/byhr";
+export const CREATE_APPROVE_REGULARIZATION_BYHR =
+  "/hrms/regularize/create/approve/byhr";
 export const GET_ALL_COMP_OFFS = "/hrms/leave/get/all/comp-offs";
 export const GET_MY_COMP_OFFS = "/hrms/leaves/get/my/comp-offs";
 

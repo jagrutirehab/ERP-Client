@@ -3005,6 +3005,33 @@ export const getRegularizationsByEmployee = ({ employeeId, ...params }) => {
   });
 };
 
+// FOR HR — cross-employee "All Regularizations" page (act by anyone)
+export const getAllRegularizations = (params = {}) => {
+  return axios.get(url.GET_ALL_REGULARIZATIONS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const changeRegularizationStatusByHR = (data) => {
+  return axios.patch(url.APPROVE_REGULARIZATION_BYHR, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// Atomic create + approve in a single request (no orphaned pending on failure).
+export const createAndApproveRegularization = (data) => {
+  return axios.post(url.CREATE_APPROVE_REGULARIZATION_BYHR, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // HRMS/LEAVES
 export const postLeaveRequest = (data) => {
   return api.create(url.APPLY_LEAVE, data, {

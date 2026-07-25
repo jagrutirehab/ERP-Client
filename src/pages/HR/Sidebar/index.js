@@ -263,6 +263,16 @@ const Sidebar = () => {
     "REGULARIZATION_DASHBOARD",
     "READ",
   );
+  const hasAllRegularizationsPerm = hasPermission(
+    "HR",
+    "ALL_REGULARIZATIONS",
+    "READ",
+  );
+  const hasCreateRegularizationPerm = hasPermission(
+    "HR",
+    "CREATE_REGULARIZATION",
+    "READ",
+  );
   const hasTransferApprovalsPermission = hasPermission(
     "HR",
     "TRANSFER_MANAGER_APPROVALS",
@@ -592,6 +602,16 @@ const Sidebar = () => {
           )
             return false;
           if (child.id === "all-leave-history" && !hasAllLeaveHistoryPerm)
+            return false;
+          if (
+            child.id === "all-regularizations" &&
+            !hasAllRegularizationsPerm
+          )
+            return false;
+          if (
+            child.id === "create-regularization" &&
+            !hasCreateRegularizationPerm
+          )
             return false;
           if (
             child.id === "regularization-dashboard" &&

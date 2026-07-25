@@ -684,6 +684,18 @@ export const HR = [
         icon: "bx bx-list-ul",
       },
       {
+        id: "all-regularizations",
+        label: "All Regularizations",
+        link: "/hr/all/regularizations",
+        icon: "bx bx-reset",
+      },
+      {
+        id: "create-regularization",
+        label: "Create Regularization",
+        link: "/hr/create/regularization",
+        icon: "bx bx-plus-circle",
+      },
+      {
         id: "comp-off-history",
         label: "Comp Off History",
         link: "/hr/all/compOffs",
