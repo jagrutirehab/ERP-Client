@@ -584,6 +584,13 @@ const DetailAdmission = ({
       geriatricFields: JSON.stringify(
         detailAdmissionForm?.geriatricFields || {},
       ),
+      rapport:
+        detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+          ?.rapport || "",
+      congruence:
+        detailAdmissionForm?.mentalExaminationV2?.affectV2?.congruence || "",
+      formOfThought:
+        detailAdmissionForm?.mentalExaminationV2?.thought?.formOfThought || "",
       chart: DETAIL_ADMISSION,
       date: chartDate,
       type,
@@ -666,6 +673,7 @@ const DetailAdmission = ({
             return Array.isArray(value) && value.filter(Boolean).length > 0;
           },
         ),
+
       // .test(
       //   "no-overlap",
       //   "Final Diagnosis cannot be the same as Provisional Diagnosis",
@@ -701,6 +709,46 @@ const DetailAdmission = ({
         setFormStep(PATIENT_TYPE_FIELDS);
         return;
       }
+      if (!isOldMentalExamination) {
+        const mseFields = [
+          "grooming",
+          "psychomotorActivity",
+          "eyeContact",
+          "rapport",
+          "rate",
+          "volume",
+          "relevance",
+          "coherence",
+          "quality",
+          "reactivity",
+          "mobility",
+          "congruence",
+          "delusions",
+          "formOfThought",
+          "perception",
+          "memory",
+          "grade",
+          "judgment",
+        ];
+        const mseMissing =
+          mseFields.some((f) => !values[f]) ||
+          !Array.isArray(values.orientation) ||
+          values.orientation.length === 0;
+        if (mseMissing) {
+          setFormStep(MENTAL_EXAMINATION);
+          return;
+        }
+      }
+      const diagnosisMissing =
+        !Array.isArray(values.provisionaldiagnosis) ||
+        values.provisionaldiagnosis.length === 0 ||
+        !Array.isArray(values.diagnosis) ||
+        values.diagnosis.length === 0;
+      if (diagnosisMissing) {
+        setFormStep(DOCTOR_SIGNATURE);
+        return;
+      }
+
       if (values.delusions === "none") {
         values.delusionNotes = "";
       }

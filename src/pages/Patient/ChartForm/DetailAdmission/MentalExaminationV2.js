@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import RenderFields from "../../../../Components/Common/RenderFields";
 import NextButton from "./NextButton";
 
@@ -56,6 +56,7 @@ const fields = [
       },
       { label: "Not established", value: "not_established" },
     ],
+    required: true,
   },
 
   { label: "Speech", type: "header" },
@@ -206,6 +207,7 @@ const fields = [
       { label: "Congruent to mood", value: "congruent_to_mood" },
       { label: "Incongruent to mood", value: "incongruent_to_mood" },
     ],
+    required: true,
   },
   {
     label: "Affect Notes",
@@ -265,7 +267,7 @@ const fields = [
     name: "perception",
     type: "radio",
     options: ["normal", "hallucination", "illusion"],
-    labelHidden: true,
+    // labelHidden: true,
     required: true,
   },
   {
@@ -353,7 +355,7 @@ const fields = [
           "grade_6-_fully_aware_of_the_problem,_accepts_responsibility,_and_willing_to_help_and_make_changes",
       },
     ],
-    labelHidden: true,
+    // labelHidden: true,
     required: true,
   },
 
@@ -363,7 +365,7 @@ const fields = [
     name: "judgment",
     type: "radio",
     options: ["intact", "partial", "impaired"],
-    labelHidden: true,
+    // labelHidden: true,
     required: true,
   },
 
@@ -377,12 +379,56 @@ const fields = [
 ];
 
 const MentalExaminationV3 = ({ validation, setFormStep, step }) => {
+  const [attempted, setAttempted] = useState(false);
+
+  const requiredFields = [
+    "grooming",
+    "psychomotorActivity",
+    "eyeContact",
+    "rapport",
+    "rate",
+    "volume",
+    "relevance",
+    "coherence",
+    "quality",
+    "reactivity",
+    "mobility",
+    "congruence",
+    "delusions",
+    "formOfThought",
+    "perception",
+    "memory",
+    "grade",
+    "judgment",
+  ];
+
+  const validate = () => {
+    setAttempted(true);
+    const missingFields = requiredFields.filter((f) => !validation.values[f]);
+    const orientationMissing =
+      !Array.isArray(validation.values.orientation) ||
+      validation.values.orientation.length === 0;
+    console.log("Missing MSE fields:", missingFields);
+    console.log("Orientation missing:", orientationMissing);
+    console.log("Current values:", validation.values);
+    return missingFields.length === 0 && !orientationMissing;
+  };
+
   return (
     <React.Fragment>
       <div>
         <RenderFields fields={fields} validation={validation} />
+        {attempted && (
+          <p className="text-danger small">
+            Please fill in all required fields before continuing.
+          </p>
+        )}
       </div>
-      <NextButton setFormStep={setFormStep} step={step} />
+      <NextButton
+        setFormStep={setFormStep}
+        step={step}
+        onBeforeNext={validate}
+      />
     </React.Fragment>
   );
 };
