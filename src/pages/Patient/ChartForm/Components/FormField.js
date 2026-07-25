@@ -195,7 +195,8 @@ const FormField = ({ field, values, onChange, error }) => {
       <FormGroup className="mb-0">
         {type !== "checkbox" && (
           <Label htmlFor={path}>
-            {label} <span className="text-danger">*</span>
+            {label}{" "}
+            {field.required !== false && <span className="text-danger">*</span>}
           </Label>
         )}
         {control}

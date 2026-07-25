@@ -94,6 +94,7 @@ export const validateSections = (sections, values) => {
   const errors = {};
   (sections || []).forEach((section) => {
     section.items.forEach((item) => {
+      if (item.required === false) return;
       if (item.skipValidationWhen) {
         const { path, equals } = item.skipValidationWhen;
         if (getIn(values, path) === equals) {

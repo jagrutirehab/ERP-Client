@@ -39,6 +39,7 @@ const geriatricConfig = [
         path: `${P}.historyOfPresentIllness.precipitatingEvent`,
         label: "Precipitating event (if any)",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
@@ -46,7 +47,6 @@ const geriatricConfig = [
         label: "Chronological narrative of current illness",
         type: "textarea",
       },
-
       {
         kind: "field",
         path: `${P}.cognitiveSymptoms.memoryComplaints`,
@@ -107,8 +107,8 @@ const geriatricConfig = [
         path: `${P}.cognitiveSymptoms.timelineOfCognitiveDecline`,
         label: "Timeline of cognitive decline (milestones)",
         type: "textarea",
+        required: false,
       },
-
       {
         kind: "field",
         path: `${P}.bpsd.moodSymptoms`,
@@ -122,6 +122,7 @@ const geriatricConfig = [
           "Emotional lability",
           "None",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -136,6 +137,7 @@ const geriatricConfig = [
           "Other hallucinations",
           "None",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -184,8 +186,8 @@ const geriatricConfig = [
         path: `${P}.bpsd.bpsdDetailsImpact`,
         label: "BPSD details / impact on caregiving",
         type: "textarea",
+        required: false,
       },
-
       {
         kind: "field",
         path: `${P}.deliriumScreen.acuteChangeFromBaseline`,
@@ -222,8 +224,8 @@ const geriatricConfig = [
           "Unknown",
           "N/A",
         ],
+        required: false,
       },
-
       {
         kind: "field",
         path: `${P}.psychiatricSymptomDomains.depressiveSymptoms`,
@@ -238,6 +240,7 @@ const geriatricConfig = [
           "Psychomotor change",
           "None",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -252,6 +255,7 @@ const geriatricConfig = [
           "Separation anxiety from caregiver",
           "None",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -270,12 +274,14 @@ const geriatricConfig = [
           "Substance use",
           "Other",
         ],
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.pastPsychiatricHistory.pastTreatmentResponse`,
         label: "Previous psychiatric treatment & response",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
@@ -300,7 +306,15 @@ const geriatricConfig = [
           "Sibling",
           "Professional carer",
           "No identified carer",
+          "Other",
         ],
+      },
+      {
+        kind: "field",
+        path: `${P}.socialEnvironmental.primaryCarerTypeOther`,
+        label: "Primary carer — other (please specify)",
+        type: "text",
+        required: false,
       },
       {
         kind: "field",
@@ -313,12 +327,14 @@ const geriatricConfig = [
           "Poor — at risk of breakdown",
           "Carer has own health issues",
         ],
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.socialEnvironmental.supportNetwork`,
         label: "Support network (friends, community, religious)",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
@@ -331,6 +347,7 @@ const geriatricConfig = [
           "Financial stress",
           "Dependent on family",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -344,6 +361,7 @@ const geriatricConfig = [
           "None",
           "Unknown",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -358,6 +376,7 @@ const geriatricConfig = [
           "No heating / cooling",
           "Not suitable — recommend change",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -373,11 +392,12 @@ const geriatricConfig = [
           "Alarm / call system",
           "Other",
         ],
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.socialEnvironmental.communityServicesInPlace`,
-        label: "Community services in place",
+        label: "Service Requirements",
         type: "multiselect",
         options: [
           "None",
@@ -389,6 +409,7 @@ const geriatricConfig = [
           "Palliative home care",
           "Other",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -402,6 +423,7 @@ const geriatricConfig = [
           "Advised to stop — refused",
           "Licence revoked",
         ],
+        required: false,
       },
       {
         kind: "field",
