@@ -60,7 +60,13 @@ export const MyRegularizationsColumn = () => [
 
   {
     name: <Center>Manager</Center>,
-    cell: (row) => <Center>{`${row?.manager_id?.name} (${row?.manager_id?.eCode})`}</Center>,
+    cell: (row) => (
+      <Center>
+        {row?.manager_id?.name
+          ? `${row.manager_id.name} (${row.manager_id.eCode})`
+          : "-"}
+      </Center>
+    ),
     width: "150px",
   },
 

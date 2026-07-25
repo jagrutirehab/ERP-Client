@@ -32,7 +32,7 @@ const MyRegularizations = () => {
   const [loading, setLoading] = useState(false);
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
-  const tabs = ["pending", "regularized", "rejected"];
+  const tabs = ["pending", "regularized", "rejected", "cancelled"];
 
   const fetchData = async () => {
     setLoading(true);

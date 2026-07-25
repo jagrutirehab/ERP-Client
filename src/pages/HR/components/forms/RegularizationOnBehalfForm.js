@@ -13,7 +13,7 @@ import {
   createAndApproveRegularization,
 } from "../../../../helpers/backend_helper";
 
-const RegularizationOnBehalfForm = ({ onSuccess, hasApprovePermission }) => {
+const RegularizationOnBehalfForm = ({ onSuccess, canCreate }) => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
 
@@ -331,18 +331,20 @@ const RegularizationOnBehalfForm = ({ onSuccess, hasApprovePermission }) => {
         )}
       </FormGroup>
 
-      <div className="d-flex gap-2 justify-content-end">
-        <Button
-          color="primary"
-          className="text-white"
-          onClick={() => handleSubmit("submit")}
-          disabled={busy}
-        >
-          {submittingAs === "submit" && <Spinner size="sm" className="me-2" />}
-          Submit Request
-        </Button>
+      {canCreate && (
+        <div className="d-flex gap-2 justify-content-end">
+          <Button
+            color="primary"
+            className="text-white"
+            onClick={() => handleSubmit("submit")}
+            disabled={busy}
+          >
+            {submittingAs === "submit" && (
+              <Spinner size="sm" className="me-2" />
+            )}
+            Submit Request
+          </Button>
 
-        {hasApprovePermission && (
           <Button
             color="success"
             className="text-white"
@@ -354,15 +356,15 @@ const RegularizationOnBehalfForm = ({ onSuccess, hasApprovePermission }) => {
             )}
             Submit &amp; Approve
           </Button>
-        )}
-      </div>
+        </div>
+      )}
     </>
   );
 };
 
 RegularizationOnBehalfForm.propTypes = {
   onSuccess: PropTypes.func,
-  hasApprovePermission: PropTypes.bool,
+  canCreate: PropTypes.bool,
 };
 
 export default RegularizationOnBehalfForm;

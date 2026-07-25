@@ -10,11 +10,9 @@ const CreateRegularization = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
-  const hasApprovePermission = hasPermission(
-    "HR",
-    "CREATE_REGULARIZATION",
-    "WRITE",
-  );
+  const hasWrite = hasPermission("HR", "CREATE_REGULARIZATION", "WRITE");
+  const hasDelete = hasPermission("HR", "CREATE_REGULARIZATION", "DELETE");
+  const canCreate = hasWrite || hasDelete;
 
   return (
     <CardBody
@@ -40,9 +38,7 @@ const CreateRegularization = () => {
       <div>
         <div className="d-flex justify-content-center mb-5">
           <div style={{ width: "100%", maxWidth: "700px" }}>
-            <RegularizationOnBehalfForm
-              hasApprovePermission={hasApprovePermission}
-            />
+            <RegularizationOnBehalfForm canCreate={canCreate} />
           </div>
         </div>
       </div>
