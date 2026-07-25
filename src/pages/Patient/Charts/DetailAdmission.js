@@ -77,11 +77,16 @@ const DetailAdmission = ({ data }) => {
 
   // Renders one field group (addictionFields / psychiatricFields / geriatricFields)
   // recursively — handles plain leaf fields, nested sub-groups, and grid arrays.
+  const renameMap = {
+    communityServicesInPlace: "Service Requirements",
+  };
+
   const renderAssessmentGroup = (obj) =>
     Object.entries(obj || {}).map(([key, value], i) => {
       if (!hasContent(value)) return null;
 
-      // Grid data (array of row objects) — e.g. substanceProfile, painAssessment.parameters
+      const displayKey = renameMap[key] || convertCamelCaseToTitleCase(key);
+
       if (Array.isArray(value) && typeof value[0] === "object") {
         const labelKey = Object.keys(value[0])[0];
         const filledRows = value.filter((row) =>
@@ -95,9 +100,7 @@ const DetailAdmission = ({ data }) => {
         if (filledRows.length === 0) return null;
         return (
           <Col xs={12} key={key + i}>
-            <p className="mb-1 fw-semibold">
-              {convertCamelCaseToTitleCase(key)}:
-            </p>
+            <p className="mb-1 fw-semibold">{displayKey}:</p>
             {filledRows.map((row, ri) => (
               <p key={ri} className="mb-1 ms-3 fs-xs-9 fs-md-11">
                 {Object.entries(row)
@@ -119,25 +122,21 @@ const DetailAdmission = ({ data }) => {
         );
       }
 
-      // Nested sub-group (e.g. patternOfUse, dependenceFeatures)
       if (typeof value === "object" && !Array.isArray(value)) {
         return (
           <Col xs={12} key={key + i}>
-            <h6 className="mt-2 mb-1 fs-xs-11 fs-md-13">
-              {convertCamelCaseToTitleCase(key)}
-            </h6>
+            <h6 className="mt-2 mb-1 fs-xs-11 fs-md-13">{displayKey}</h6>
             <Row>{renderAssessmentGroup(value)}</Row>
           </Col>
         );
       }
 
-      // Plain leaf field
       return (
         <Col key={key + i} xs={12}>
           <div className="mt-1 mb-1">
             <p className="fs-xs-9 fs-md-11 mb-0">
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                {convertCamelCaseToTitleCase(key)}:-
+                {displayKey}:-
               </span>
               {formatLeafValue(value)}
             </p>
@@ -231,7 +230,18 @@ const DetailAdmission = ({ data }) => {
 
         {data?.detailHistory &&
           Object.entries(data.detailHistory)
-            .filter(([key]) => key !== "pastHistory")
+            .filter(
+              ([key]) =>
+                ![
+                  "pastHistory",
+                  "informant",
+                  "reliable",
+                  "adequate",
+                  "counsellor",
+                  "occupationHistory",
+                  "socialSupport",
+                ].includes(key),
+            )
             .map((d, i) => (
               <Col key={i} xs={12}>
                 <div className="mt-1 mb-1">

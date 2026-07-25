@@ -42,6 +42,7 @@ const psychiatricConfig = [
         path: `${P}.historyOfPresentIllness.precipitatingStressorDetails`,
         label: "Precipitating stressor (details)",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
@@ -69,6 +70,7 @@ const psychiatricConfig = [
         label:
           "Substance use — brief summary (if AHT-F-001 not separately filed)",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
@@ -106,6 +108,13 @@ const psychiatricConfig = [
           "Passivity phenomena",
           "None",
         ],
+      },
+      {
+        kind: "field",
+        path: `${P}.symptomDomains.psychoticNotes`,
+        label: "Psychotic symptoms — additional notes (optional)",
+        type: "textarea",
+        required: false,
       },
       {
         kind: "field",
@@ -283,6 +292,7 @@ const psychiatricConfig = [
         path: `${P}.pastIllness.bestPeriodOfFunctioning`,
         label: "Best period of functioning between episodes",
         type: "textarea",
+        required: false,
       },
 
       {
@@ -290,6 +300,7 @@ const psychiatricConfig = [
         path: `${P}.pastTreatment.medicationsTried`,
         label: "Medications tried (drug, dose, duration, response)",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
@@ -312,18 +323,21 @@ const psychiatricConfig = [
           "Family therapy",
           "Other",
         ],
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.pastTreatment.responseToTreatment`,
         label: "Response to previous treatments",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.pastTreatment.reasonsForDiscontinuation`,
         label: "Reasons for discontinuation / non-compliance",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
@@ -350,12 +364,14 @@ const psychiatricConfig = [
         path: `${P}.suicidalSelfHarmHistory.mostSeriousAttemptDetails`,
         label: "Most serious attempt — method, lethality, intent",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.suicidalSelfHarmHistory.selfHarmHistoryNonSuicidal`,
         label: "Self-harm history (non-suicidal)",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
@@ -388,6 +404,7 @@ const psychiatricConfig = [
         path: `${P}.psychosocialSupport.significantRelationships`,
         label: "Significant relationships / peer support",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
@@ -407,18 +424,21 @@ const psychiatricConfig = [
         path: `${P}.psychosocialSupport.financialSituationDebts`,
         label: "Financial situation / debts",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.psychosocialSupport.leisureHobbiesProtectiveFactors`,
         label: "Leisure / hobbies / protective factors",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.psychosocialSupport.spiritualCulturalBeliefs`,
         label: "Spiritual / cultural beliefs",
         type: "textarea",
+        required: false,
       },
     ],
   },

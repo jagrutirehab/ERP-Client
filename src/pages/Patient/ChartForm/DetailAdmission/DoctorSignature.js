@@ -12,13 +12,12 @@ const DoctorSignature = ({ validation, setFormStep, step }) => {
         const res = await getICDCodes();
         console.log("res", res);
 
-        const formatted = res?.map(icd => ({
+        const formatted = res?.map((icd) => ({
           value: icd._id,
           label: `${icd.code} - ${icd.text}`,
         }));
 
         setIcdOptions(formatted);
-
       } catch (err) {
         console.log(err);
       }
@@ -34,6 +33,7 @@ const DoctorSignature = ({ validation, setFormStep, step }) => {
       type: "select2",
       isMulti: true,
       options: icdOptions,
+      required: true,
     },
     {
       label: "Final Diagnosis",
@@ -41,6 +41,7 @@ const DoctorSignature = ({ validation, setFormStep, step }) => {
       type: "select2",
       isMulti: true,
       options: icdOptions,
+      required: true,
     },
     {
       label: "Managment Plan: (INDOOR / Out Patient)",
