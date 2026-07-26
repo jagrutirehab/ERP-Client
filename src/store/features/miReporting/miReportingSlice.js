@@ -33,7 +33,9 @@ import {
   getCashPerCenter,
   getWriteOffAmount,
   getTrainingFormsWeekly,
+  getTrainingFormsMonthly,
   getAuditDaily,
+  getMetricsReport,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -76,7 +78,9 @@ const initialState = {
   cashPerCenter: [],
   writeOffAmount: [],
   trainingFormsWeekly: [],
+  trainingFormsMonthly: [],
   auditDaily: [],
+  metricsReport: [],
   loading: false,
   error: null,
 };
@@ -381,6 +385,36 @@ export const fetchTrainingFormsWeekly = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.message || "Failed to fetch training forms weekly"
+      );
+    }
+  }
+);
+
+
+export const fetchMetricsReport = createAsyncThunk(
+  "miReporting/fetchMetricsReport",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getMetricsReport(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch metrics report"
+      );
+    }
+  }
+);
+
+
+export const fetchTrainingFormsMonthly = createAsyncThunk(
+  "miReporting/fetchTrainingFormsMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getTrainingFormsMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch training forms monthly"
       );
     }
   }
@@ -1062,6 +1096,19 @@ const miReportingSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      // Training Forms Monthly
+      .addCase(fetchTrainingFormsMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTrainingFormsMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.trainingFormsMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchTrainingFormsMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       // Audit Daily
       .addCase(fetchAuditDaily.pending, (state) => {
         state.loading = true;
@@ -1072,6 +1119,19 @@ const miReportingSlice = createSlice({
         state.auditDaily = action.payload.payload || [];
       })
       .addCase(fetchAuditDaily.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Metrics Report
+      .addCase(fetchMetricsReport.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMetricsReport.fulfilled, (state, action) => {
+        state.loading = false;
+        state.metricsReport = action.payload.payload || [];
+      })
+      .addCase(fetchMetricsReport.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

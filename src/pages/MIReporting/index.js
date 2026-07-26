@@ -39,6 +39,7 @@ import CenterWiseMOM from "./CenterWiseMOM";
 import CashPerCenter from "./CashPerCenter";
 import WriteOFFAmount from "./WriteOFFAmount";
 import AuditForms from "./AuditForms";
+import MetricsReport from "./MetricsReport";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -277,6 +278,11 @@ const MiReporting = () => {
                   {hasMISPermission&&<Route
                     path="/forms-data"
                     element={<AuditForms />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/metrics-report"
+                    element={<MetricsReport />}
                   />}
 
 

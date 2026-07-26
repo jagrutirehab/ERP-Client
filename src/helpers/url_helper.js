@@ -534,7 +534,9 @@ export const GET_MI_ATTENDANCE = "/mi-reporting/get-attendance";
 export const GET_CASH_PER_CENTER = "/mi-reporting/cash-per-center";
 export const GET_WRITE_OFF_AMOUNT = "/mi-reporting/write-off-amount";
 export const GET_TRAINING_FORMS_WEEKLY = "/mi-reporting/training-forms-weekly";
+export const GET_TRAINING_FORMS_MONTHLY = "/mi-reporting/training-forms-monthly";
 export const GET_AUDIT_DAILY = "/mi-reporting/audit-daily";
+export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
 
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";

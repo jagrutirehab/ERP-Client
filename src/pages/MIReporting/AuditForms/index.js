@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
 import { CSVLink } from "react-csv";
 import Select from "react-select";
-import { fetchTrainingFormsWeekly, fetchAuditDaily } from "../../../store/features/miReporting/miReportingSlice";
+import { fetchTrainingFormsWeekly, fetchTrainingFormsMonthly, fetchAuditDaily } from "../../../store/features/miReporting/miReportingSlice";
 
 const AUDIT_FIELD_OPTIONS = [
   { value: "audit_sod", label: "SOD" },
@@ -18,13 +18,12 @@ const formatChecklistDate = (dateStr) => {
 };
 
 const FORM_ROWS = [
-  { label: "Frisking", key: "frisking" },
-  { label: "Form-1 Nursing Staff Training", key: "form_1" },
-  { label: "Form-2 Patient Care Training", key: "form_2" },
-  { label: "Form-3 Psychologist Training Pointers", key: "form_3" },
-  { label: "Form-4 MSW/New Joinee Training", key: "form_4" },
-  { label: "Multidisciplinary Meeting", key: "multidisciplinary_meeting" },
-  
+  { label: "Frisking", key: "frisking", count: 2 },
+  { label: "Form-1 Nursing Staff Training", key: "form_1", count: 2 },
+  { label: "Form-2 Patient Care Training", key: "form_2", count: 2 },
+  { label: "Form-3 Psychologist Training Pointers", key: "form_3", count: 2 },
+  { label: "Form-4 MSW/New Joinee Training", key: "form_4", count: 4 },
+  { label: "Multidisciplinary Meeting", key: "multidisciplinary_meeting", count: 4 },
 ];
 
 const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -89,11 +88,12 @@ const totalCellStyle = {
 
 const AuditForms = () => {
   const dispatch = useDispatch();
-  const { trainingFormsWeekly, auditDaily, loading, error } = useSelector(
+  const { trainingFormsWeekly, trainingFormsMonthly, auditDaily, loading, error } = useSelector(
     (state) => state.MIReporting
   );
   const centerAccess = useSelector((state) => state.User?.centerAccess || []);
   const data = trainingFormsWeekly?.data;
+  const monthlyData = trainingFormsMonthly?.data;
   const checklistData = auditDaily?.data;
 
   const [selectedCenter, setSelectedCenter] = useState("");
@@ -105,6 +105,7 @@ const AuditForms = () => {
 
   useEffect(() => {
     dispatch(fetchTrainingFormsWeekly({ centerAccess }));
+    dispatch(fetchTrainingFormsMonthly({ centerAccess }));
     dispatch(fetchAuditDaily({ centerAccess }));
   }, [dispatch, centerAccess]);
 
@@ -135,6 +136,27 @@ const AuditForms = () => {
     return map;
   }, [data]);
 
+  const monthlyCenters = React.useMemo(() => {
+    if (!monthlyData || monthlyData.length === 0) return [];
+    return Array.from(new Set(monthlyData.map((item) => item.center_name))).sort();
+  }, [monthlyData]);
+
+  const months = React.useMemo(() => {
+    if (!monthlyData || monthlyData.length === 0) return [];
+    return Array.from(new Set(monthlyData.map((item) => item.month))).sort(
+      (a, b) => new Date(b) - new Date(a)
+    );
+  }, [monthlyData]);
+
+  const monthlyPivot = React.useMemo(() => {
+    const map = {};
+    (monthlyData || []).forEach((item) => {
+      if (!map[item.center_name]) map[item.center_name] = {};
+      map[item.center_name][item.month] = item;
+    });
+    return map;
+  }, [monthlyData]);
+
   const centerOptions = [
     { value: "ALL", label: "All Centers" },
     ...centers.map((center) => ({
@@ -155,6 +177,16 @@ const AuditForms = () => {
     return pivot[activeCenter]?.[week]?.[formKey] ?? 0;
   };
 
+  const getMonthlyValue = (formKey, month) => {
+    if (activeCenter === "ALL") {
+      return monthlyCenters.reduce(
+        (sum, center) => sum + (monthlyPivot[center]?.[month]?.[formKey] ?? 0),
+        0
+      );
+    }
+    return monthlyPivot[activeCenter]?.[month]?.[formKey] ?? 0;
+  };
+
   const formOptions = FORM_ROWS.map(({ label, key }) => ({
     value: key,
     label,
@@ -173,6 +205,20 @@ const AuditForms = () => {
     });
     return totals;
   }, [centers, weeks, pivot, selectedFormType]);
+
+  const getCenterMonthValue = (center, month) =>
+    monthlyPivot[center]?.[month]?.[selectedFormType] ?? 0;
+
+  const monthTotals = React.useMemo(() => {
+    const totals = {};
+    months.forEach((month) => {
+      totals[month] = monthlyCenters.reduce(
+        (sum, center) => sum + (monthlyPivot[center]?.[month]?.[selectedFormType] ?? 0),
+        0
+      );
+    });
+    return totals;
+  }, [monthlyCenters, months, monthlyPivot, selectedFormType]);
 
   const checklistDates = React.useMemo(() => {
     if (!checklistData || checklistData.length === 0) return [];
@@ -301,6 +347,7 @@ const AuditForms = () => {
                 >
                   <thead>
                     <tr>
+                      <th className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 50 }}></th>
                       <th className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 180 }}></th>
                       {weeks.map(({ week }) => (
                         <th key={week} className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 85 }}>
@@ -309,6 +356,9 @@ const AuditForms = () => {
                       ))}
                     </tr>
                     <tr>
+                      <th className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 50 }}>
+                        Count
+                      </th>
                       <th className="text-start fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 180 }}>
                         Form Type
                       </th>
@@ -321,14 +371,81 @@ const AuditForms = () => {
                   </thead>
                   <tbody>
                     {weeks.length > 0 ? (
-                      FORM_ROWS.map(({ label, key }, idx) => (
+                      FORM_ROWS.map(({ label, key, count }, idx) => (
                         <tr key={key}>
+                          <td className="text-center px-1 py-1 fw-semibold" style={cellStyle(idx)}>
+                            {count}
+                          </td>
                           <td className="px-1 py-1 fw-semibold" style={cellStyle(idx)}>
                             {label}
                           </td>
                           {weeks.map(({ week }) => (
                             <td key={week} className="text-center px-1 py-1" style={cellStyle(idx)}>
                               {getValue(key, week)}
+                            </td>
+                          ))}
+                        </tr>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={1} className="text-center text-muted py-4" style={{ border: "1px solid #d6dde8" }}>
+                          No data available
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+            )}
+          </CardBody>
+        </Card>
+
+        <h6 className="mt-4 mb-0">Training Forms - Monthly</h6>
+        <Card className="shadow-sm mt-2" style={{ border: "1px solid #cfd8e3", borderRadius: 10, display: "inline-block", width: "auto", maxWidth: "100%" }}>
+          <CardBody className="p-0">
+            {loading && (
+              <div className="text-center py-4">
+                <Spinner color="primary" />
+                <p className="mt-2 text-muted mb-0">Loading data...</p>
+              </div>
+            )}
+
+            {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
+
+            {!loading && !error && (
+              <div style={{ overflowX: "auto" }}>
+                <Table
+                  className="mb-0"
+                  style={{ borderCollapse: "collapse", fontSize: "0.7rem", width: "max-content" }}
+                >
+                  <thead>
+                    <tr>
+                      <th className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 50 }}>
+                        Count
+                      </th>
+                      <th className="text-start fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 180 }}>
+                        Form Type
+                      </th>
+                      {months.map((month) => (
+                        <th key={month} className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 85 }}>
+                          {month}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {months.length > 0 ? (
+                      FORM_ROWS.map(({ label, key, count }, idx) => (
+                        <tr key={key}>
+                          <td className="text-center px-1 py-1 fw-semibold" style={cellStyle(idx)}>
+                            {count}
+                          </td>
+                          <td className="px-1 py-1 fw-semibold" style={cellStyle(idx)}>
+                            {label}
+                          </td>
+                          {months.map((month) => (
+                            <td key={month} className="text-center px-1 py-1" style={cellStyle(idx)}>
+                              {getMonthlyValue(key, month)}
                             </td>
                           ))}
                         </tr>
@@ -440,6 +557,91 @@ const AuditForms = () => {
           </CardBody>
         </Card>
 
+        <h6 className="mt-4 mb-0">Training Data - Monthly</h6>
+        <Row className="g-2 align-items-center mb-3 mt-2">
+          <Col xs="auto" className="fw-semibold">
+            Select Data--&gt;
+          </Col>
+          <Col xs="auto">
+            <Select
+              value={formOptions.find((o) => o.value === selectedFormType) || formOptions[0]}
+              onChange={(opt) => setSelectedFormType(opt.value)}
+              options={formOptions}
+              placeholder="Select data..."
+              styles={{ container: (b) => ({ ...b, minWidth: 260 }) }}
+            />
+          </Col>
+        </Row>
+
+        <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10, display: "inline-block", width: "auto", maxWidth: "100%" }}>
+          <CardBody className="p-0">
+            {loading && (
+              <div className="text-center py-4">
+                <Spinner color="primary" />
+                <p className="mt-2 text-muted mb-0">Loading data...</p>
+              </div>
+            )}
+
+            {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
+
+            {!loading && !error && (
+              <div style={{ overflowX: "auto" }}>
+                <Table
+                  className="mb-0"
+                  style={{ borderCollapse: "collapse", fontSize: "0.7rem", width: "max-content" }}
+                >
+                  <thead>
+                    <tr>
+                      <th className="text-start fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 130 }}>
+                        Center name
+                      </th>
+                      {months.map((month) => (
+                        <th key={month} className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 85 }}>
+                          {month}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {monthlyCenters.length > 0 ? (
+                      <>
+                        {monthlyCenters.map((center, idx) => (
+                          <tr key={center}>
+                            <td className="px-1 py-1 fw-semibold" style={cellStyle(idx)}>
+                              {center}
+                            </td>
+                            {months.map((month) => (
+                              <td key={month} className="text-center px-1 py-1" style={cellStyle(idx)}>
+                                {getCenterMonthValue(center, month)}
+                              </td>
+                            ))}
+                          </tr>
+                        ))}
+                        <tr>
+                          <td className="px-1 py-1 fw-bold" style={{ ...totalCellStyle, color: "black" }}>
+                            Total
+                          </td>
+                          {months.map((month) => (
+                            <td key={month} className="text-center px-1 py-1 fw-bold" style={totalCellStyle}>
+                              {monthTotals[month] ?? 0}
+                            </td>
+                          ))}
+                        </tr>
+                      </>
+                    ) : (
+                      <tr>
+                        <td colSpan={1} className="text-center text-muted py-4" style={{ border: "1px solid #d6dde8" }}>
+                          No data available
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </Table>
+              </div>
+            )}
+          </CardBody>
+        </Card>
+
         <h6 className="mt-4 mb-0">Checklist Data</h6>
         <Row className="g-2 align-items-center mb-3 mt-2">
           <Col xs="auto" className="fw-semibold">
@@ -493,11 +695,21 @@ const AuditForms = () => {
                             <td className="px-1 py-1 fw-semibold" style={{ ...cellStyle(idx), position: "sticky", left: 0, zIndex: 1 }}>
                               {center}
                             </td>
-                            {checklistDates.map((date) => (
-                              <td key={date} className="text-center px-1 py-1" style={cellStyle(idx)}>
-                                {getChecklistValue(center, date)}
-                              </td>
-                            ))}
+                            {checklistDates.map((date) => {
+                              const value = getChecklistValue(center, date);
+                              return (
+                                <td
+                                  key={date}
+                                  className="text-center px-1 py-1 fw-semibold"
+                                  style={{
+                                    ...cellStyle(idx),
+                                    color: value === "Yes" ? "green" : value === "No" ? "red" : "inherit",
+                                  }}
+                                >
+                                  {value}
+                                </td>
+                              );
+                            })}
                           </tr>
                         ))}
                         <tr>

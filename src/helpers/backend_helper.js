@@ -2258,6 +2258,7 @@ export const getPatientDocs = (data) => {
       centerIds: data?.centerAccess,
       month: data?.selectedMonth,
       status: data?.selectedStatus,
+      docsType: data?.selectedDocsType,
     },
   });
 };
@@ -2348,8 +2349,24 @@ export const getTrainingFormsWeekly = (data) => {
   });
 };
 
+export const getTrainingFormsMonthly = (data) => {
+  return api.get(url.GET_TRAINING_FORMS_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getAuditDaily = (data) => {
   return api.get(url.GET_AUDIT_DAILY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getMetricsReport = (data) => {
+  return api.get(url.GET_METRICS_REPORT, {
     params: {
       centerIds: data?.centerAccess,
     },
