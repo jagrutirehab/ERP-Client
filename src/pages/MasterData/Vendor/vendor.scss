@@ -606,3 +606,22 @@
     padding-bottom: max(var(--v-sp-4), env(safe-area-inset-bottom));
   }
 }
+/* Guaranteed spacing between MSME / Accounting-ledger option cards on all screens */
+/* Explicit grid — never overlaps, regardless of Bootstrap's Row/Col behavior */
+.vendor-toggle-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--v-sp-4);
+  align-items: start;
+}
+
+.vendor-toggle-cell {
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  .vendor-toggle-grid {
+    grid-template-columns: 1fr;
+    gap: var(--v-sp-3);
+  }
+}

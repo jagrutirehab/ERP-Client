@@ -473,6 +473,19 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
     validationSchema,
     onSubmit: async (values) => {
       try {
+        const gstinValues = (values.gstRegistrations || [])
+          .map((g) => (g.gstin || "").trim().toUpperCase())
+          .filter(Boolean);
+        const hasDuplicateGstin = gstinValues.some(
+          (val, idx) => gstinValues.indexOf(val) !== idx,
+        );
+        if (hasDuplicateGstin) {
+          toast.error(
+            "Two GST registrations can't use the same GSTIN. Please fix before saving.",
+          );
+          return;
+        }
+
         const payload = { ...values };
         delete payload._id;
         delete payload.__v;
@@ -876,8 +889,8 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     <FormFeedback>{validation.errors.supplyType}</FormFeedback>
                   </Col>
                 </Row>
-                <Row className="mt-2">
-                  <Col md={6} className="mb-3">
+                <div className="vendor-toggle-grid mt-2">
+                  <div className="vendor-toggle-cell">
                     <Label className="d-block mb-2">MSME registration</Label>
                     <label
                       htmlFor="msmeRegistered"
@@ -920,8 +933,8 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                         </FormFeedback>
                       </div>
                     </label>
-                  </Col>
-                  <Col md={6} className="mb-3">
+                  </div>
+                  <div className="vendor-toggle-cell">
                     <Label className="d-block mb-2">Accounting ledger</Label>
                     <label
                       htmlFor="autoCreateLedger"
@@ -947,8 +960,8 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                         </p>
                       </div>
                     </label>
-                  </Col>
-                </Row>
+                  </div>
+                </div>
               </div>
             </div>
 
@@ -976,7 +989,12 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       name="pan"
                       className="text-uppercase"
                       value={v.pan}
-                      onChange={validation.handleChange}
+                      onChange={(e) =>
+                        validation.setFieldValue(
+                          "pan",
+                          e.target.value.toUpperCase(),
+                        )
+                      }
                       onBlur={validation.handleBlur}
                       invalid={
                         validation.touched.pan && !!validation.errors.pan
@@ -992,7 +1010,12 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                         name="cin"
                         className="text-uppercase"
                         value={v.cin}
-                        onChange={validation.handleChange}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "cin",
+                            e.target.value.toUpperCase(),
+                          )
+                        }
                         placeholder="U12345MH2020PTC123456"
                       />
                     </Col>
@@ -1025,139 +1048,160 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                   </div>
                 )}
 
-                {v.gstRegistrations.map((g, idx) => (
-                  <div key={idx} className="vendor-repeat-row">
-                    <div className="d-flex justify-content-between mb-3">
-                      <span className="vendor-repeat-row-title">
-                        Registration {idx + 1}
-                      </span>
-                      {g.isPrimary && (
-                        <span className="vendor-primary-badge">
-                          <i className="bx bxs-star"></i> Primary
+                {v.gstRegistrations.map((g, idx) => {
+                  const trimmedGstin = (g.gstin || "").trim().toUpperCase();
+                  const isDuplicateGstin =
+                    !!trimmedGstin &&
+                    v.gstRegistrations.filter(
+                      (other) =>
+                        (other.gstin || "").trim().toUpperCase() ===
+                        trimmedGstin,
+                    ).length > 1;
+
+                  return (
+                    <div key={idx} className="vendor-repeat-row">
+                      <div className="d-flex justify-content-between mb-3">
+                        <span className="vendor-repeat-row-title">
+                          Registration {idx + 1}
                         </span>
-                      )}
+                        {g.isPrimary && (
+                          <span className="vendor-primary-badge">
+                            <i className="bx bxs-star"></i> Primary
+                          </span>
+                        )}
+                      </div>
+                      <Row>
+                        <Col md={12} className="mb-2">
+                          <Label className="small mb-1">GSTIN / UIN *</Label>
+                          <Input
+                            className="text-uppercase"
+                            placeholder="22AAAAA0000A1Z5"
+                            value={g.gstin}
+                            invalid={isDuplicateGstin}
+                            onChange={(e) =>
+                              updateGst(
+                                idx,
+                                "gstin",
+                                e.target.value.toUpperCase(),
+                              )
+                            }
+                          />
+                          {isDuplicateGstin && (
+                            <FormFeedback>
+                        This GSTIN is already used in another registration.
+                            </FormFeedback>
+                          )}
+                        </Col>
+                        <Col md={6} className="mb-2">
+                          <Label className="small mb-1">
+                            GST registration type *
+                          </Label>
+                          <Input
+                            type="select"
+                            value={g.registrationType || ""}
+                            onChange={(e) =>
+                              updateGst(idx, "registrationType", e.target.value)
+                            }
+                          >
+                            <option value="">Select type</option>
+                            <option value="regular">Regular</option>
+                            <option value="composition">Composition</option>
+                            <option value="sez">SEZ</option>
+                            <option value="unregistered">Unregistered</option>
+                          </Input>
+                        </Col>
+                        <Col md={6} className="mb-2">
+                          <Label className="small mb-1">GST tax type *</Label>
+                          <Input
+                            type="select"
+                            value={g.taxType || ""}
+                            onChange={(e) =>
+                              updateGst(idx, "taxType", e.target.value)
+                            }
+                          >
+                            <option value="">Select tax type</option>
+                            <option value="igst">IGST</option>
+                            <option value="cgst_sgst">CGST + SGST</option>
+                            <option value="ugst">UGST</option>
+                            <option value="exempt">Exempt</option>
+                          </Input>
+                        </Col>
+                        <Col md={12} className="mb-2">
+                          <Label className="small mb-1">
+                            Place of business address
+                          </Label>
+                          <Input
+                            placeholder="Full address as per GST certificate"
+                            value={g.placeOfBusinessAddress || ""}
+                            onChange={(e) =>
+                              updateGst(
+                                idx,
+                                "placeOfBusinessAddress",
+                                e.target.value,
+                              )
+                            }
+                          />
+                        </Col>
+                        <Col
+                          md={7}
+                          className="form-check d-flex align-items-center mb-2"
+                        >
+                          <Input
+                            type="checkbox"
+                            checked={g.reverseChargeApplicable}
+                            onChange={(e) =>
+                              updateGst(
+                                idx,
+                                "reverseChargeApplicable",
+                                e.target.checked,
+                              )
+                            }
+                            className="form-check-input"
+                            id={`rc-${idx}`}
+                          />
+                          <Label
+                            check
+                            htmlFor={`rc-${idx}`}
+                            className="ms-1 small mb-0"
+                          >
+                            Reverse charge — recipient pays GST directly
+                          </Label>
+                        </Col>
+                        <Col
+                          md={2}
+                          className="form-check d-flex align-items-center mb-2"
+                        >
+                          <Input
+                            type="checkbox"
+                            checked={g.isPrimary}
+                            onChange={() => setPrimaryGst(idx)}
+                            className="form-check-input"
+                            id={`gst-primary-${idx}`}
+                          />
+                          <Label
+                            check
+                            htmlFor={`gst-primary-${idx}`}
+                            className="ms-1 small mb-0"
+                          >
+                            Primary
+                          </Label>
+                        </Col>
+                        <Col md={3} className="text-end mb-2">
+                          <Button
+                            size="sm"
+                            color="danger"
+                            outline
+                            type="button"
+                            aria-label={`Remove GST registration ${idx + 1}`}
+                            onClick={() => removeGst(idx)}
+                          >
+                            <i className="bx bx-trash me-1"></i> Remove
+                          </Button>
+                        </Col>
+                      </Row>
                     </div>
-                    <Row>
-                      <Col md={12} className="mb-2">
-                        <Label className="small mb-1">GSTIN / UIN *</Label>
-                        <Input
-                          className="text-uppercase"
-                          placeholder="22AAAAA0000A1Z5"
-                          value={g.gstin}
-                          onChange={(e) =>
-                            updateGst(idx, "gstin", e.target.value)
-                          }
-                        />
-                      </Col>
-                      <Col md={6} className="mb-2">
-                        <Label className="small mb-1">
-                          GST registration type *
-                        </Label>
-                        <Input
-                          type="select"
-                          value={g.registrationType || ""}
-                          onChange={(e) =>
-                            updateGst(idx, "registrationType", e.target.value)
-                          }
-                        >
-                          <option value="">Select type</option>
-                          <option value="regular">Regular</option>
-                          <option value="composition">Composition</option>
-                          <option value="sez">SEZ</option>
-                          <option value="unregistered">Unregistered</option>
-                        </Input>
-                      </Col>
-                      <Col md={6} className="mb-2">
-                        <Label className="small mb-1">GST tax type *</Label>
-                        <Input
-                          type="select"
-                          value={g.taxType || ""}
-                          onChange={(e) =>
-                            updateGst(idx, "taxType", e.target.value)
-                          }
-                        >
-                          <option value="">Select tax type</option>
-                          <option value="igst">IGST</option>
-                          <option value="cgst_sgst">CGST + SGST</option>
-                          <option value="ugst">UGST</option>
-                          <option value="exempt">Exempt</option>
-                        </Input>
-                      </Col>
-                      <Col md={12} className="mb-2">
-                        <Label className="small mb-1">
-                          Place of business address
-                        </Label>
-                        <Input
-                          placeholder="Full address as per GST certificate"
-                          value={g.placeOfBusinessAddress || ""}
-                          onChange={(e) =>
-                            updateGst(
-                              idx,
-                              "placeOfBusinessAddress",
-                              e.target.value,
-                            )
-                          }
-                        />
-                      </Col>
-                      <Col
-                        md={7}
-                        className="form-check d-flex align-items-center mb-2"
-                      >
-                        <Input
-                          type="checkbox"
-                          checked={g.reverseChargeApplicable}
-                          onChange={(e) =>
-                            updateGst(
-                              idx,
-                              "reverseChargeApplicable",
-                              e.target.checked,
-                            )
-                          }
-                          className="form-check-input"
-                          id={`rc-${idx}`}
-                        />
-                        <Label
-                          check
-                          htmlFor={`rc-${idx}`}
-                          className="ms-1 small mb-0"
-                        >
-                          Reverse charge — recipient pays GST directly
-                        </Label>
-                      </Col>
-                      <Col
-                        md={2}
-                        className="form-check d-flex align-items-center mb-2"
-                      >
-                        <Input
-                          type="checkbox"
-                          checked={g.isPrimary}
-                          onChange={() => setPrimaryGst(idx)}
-                          className="form-check-input"
-                          id={`gst-primary-${idx}`}
-                        />
-                        <Label
-                          check
-                          htmlFor={`gst-primary-${idx}`}
-                          className="ms-1 small mb-0"
-                        >
-                          Primary
-                        </Label>
-                      </Col>
-                      <Col md={3} className="text-end mb-2">
-                        <Button
-                          size="sm"
-                          color="danger"
-                          outline
-                          type="button"
-                          aria-label={`Remove GST registration ${idx + 1}`}
-                          onClick={() => removeGst(idx)}
-                        >
-                          <i className="bx bx-trash me-1"></i> Remove
-                        </Button>
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 
@@ -1572,7 +1616,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       onChange={(e) =>
                         validation.setFieldValue(
                           "bankDetails.ifsc",
-                          e.target.value,
+                          e.target.value.toUpperCase(),
                         )
                       }
                       placeholder="e.g. HDFC0001234"
