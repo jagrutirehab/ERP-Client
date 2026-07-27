@@ -473,19 +473,33 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
     validationSchema,
     onSubmit: async (values) => {
       try {
-        const gstinValues = (values.gstRegistrations || [])
-          .map((g) => (g.gstin || "").trim().toUpperCase())
-          .filter(Boolean);
-        const hasDuplicateGstin = gstinValues.some(
-          (val, idx) => gstinValues.indexOf(val) !== idx,
+        const gstEntries = (values.gstRegistrations || []).map((g, idx) => ({
+          index: idx + 1,
+          gstin: (g.gstin || "").trim().toUpperCase(),
+        }));
+
+        const invalidEntry = gstEntries.find(
+          (entry) => entry.gstin && !GSTIN_REGEX.test(entry.gstin),
         );
-        if (hasDuplicateGstin) {
+        if (invalidEntry) {
           toast.error(
-            "Two GST registrations can't use the same GSTIN. Please fix before saving.",
+            `GST Registration ${invalidEntry.index}: "${invalidEntry.gstin}" doesn't look like a valid GSTIN. It should be 15 characters, e.g. 22AAAAA0000A1Z5.`,
           );
           return;
         }
 
+        const filledGstins = gstEntries.filter((entry) => entry.gstin);
+        const duplicateEntry = filledGstins.find(
+          (entry, i) =>
+            filledGstins.findIndex((other) => other.gstin === entry.gstin) !==
+            i,
+        );
+        if (duplicateEntry) {
+          toast.error(
+            `GST Registration ${duplicateEntry.index} has the same GSTIN as another registration. Each GST registration needs its own unique GSTIN.`,
+          );
+          return;
+        }
         const payload = { ...values };
         delete payload._id;
         delete payload.__v;
@@ -587,11 +601,20 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
     );
 
   const toggleSameAsRegistered = (checked) => {
-    validation.setFieldValue("billingAddress.sameAsRegistered", checked);
     if (checked) {
       validation.setFieldValue("billingAddress", {
         ...v.registeredAddress,
         sameAsRegistered: true,
+      });
+    } else {
+      validation.setFieldValue("billingAddress", {
+        sameAsRegistered: false,
+        line1: "",
+        line2: "",
+        pincode: "",
+        city: "",
+        country: "India",
+        state: "",
       });
     }
   };
@@ -617,7 +640,12 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
         number: 3,
         title: "TDS Information",
         sub: "Optional — deduction at source",
-        checks: [],
+        checks: v.tdsApplicable
+          ? [
+              !!v.tdsSection,
+              v.tdsRate !== "" && v.tdsRate !== null && v.tdsRate !== undefined,
+            ]
+          : [],
       },
       {
         key: "contact",
@@ -652,12 +680,16 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
               number: 6,
               title: "Documents",
               sub: "Optional — KYB supporting files",
-              checks: [],
+              checks:
+                Object.keys(documentFiles).length > 0 ||
+                (v.documents || []).length > 0
+                  ? [true]
+                  : [],
             },
           ]
         : []),
     ],
-    [v, canUploadDocs],
+    [v, canUploadDocs, documentFiles],
   );
 
   const overall = useMemo(() => {
@@ -1057,6 +1089,8 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                         (other.gstin || "").trim().toUpperCase() ===
                         trimmedGstin,
                     ).length > 1;
+                  const isInvalidFormat =
+                    !!trimmedGstin && !GSTIN_REGEX.test(trimmedGstin);
 
                   return (
                     <div key={idx} className="vendor-repeat-row">
@@ -1077,7 +1111,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                             className="text-uppercase"
                             placeholder="22AAAAA0000A1Z5"
                             value={g.gstin}
-                            invalid={isDuplicateGstin}
+                            invalid={isDuplicateGstin || isInvalidFormat}
                             onChange={(e) =>
                               updateGst(
                                 idx,
@@ -1086,9 +1120,16 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                               )
                             }
                           />
-                          {isDuplicateGstin && (
+                          {isInvalidFormat && (
                             <FormFeedback>
-                        This GSTIN is already used in another registration.
+                              This doesn't look like a valid GSTIN. It should be
+                              15 characters, e.g. 22AAAAA0000A1Z5.
+                            </FormFeedback>
+                          )}
+                          {!isInvalidFormat && isDuplicateGstin && (
+                            <FormFeedback>
+                              Another registration already uses this GSTIN —
+                              each one needs to be unique.
                             </FormFeedback>
                           )}
                         </Col>
