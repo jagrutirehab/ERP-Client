@@ -669,7 +669,7 @@ const EmployeeReportingForm = ({
             <Label className="mb-1">
               Shift Timing{" "}
               <span className="text-muted">
-                (Day: 11:00–22:00 · Night: 22:00–11:00)
+                (Day: ends by 22:00 · Night: starts ≥ 20:00, ends after midnight)
               </span>
             </Label>
 

@@ -3,7 +3,7 @@ import { parseISO, isAfter, isEqual, startOfDay } from "date-fns";
 export const isPreviewable = (
   file,
   documentDate,
-  cutOffDate = "2025-12-30"
+  cutOffDate = "2025-12-30",
 ) => {
   if (!file?.url) return false;
 
@@ -14,19 +14,20 @@ export const isPreviewable = (
   const EXCEL_EXTS = ["xlsx", "xls"];
   if (EXCEL_EXTS.includes(ext)) return true;
 
-  if (ext === "pdf") {
+  const WORD_EXTS = ["docx", "doc"];
+  if (WORD_EXTS.includes(ext)) return true;
+
+  if (ext === "pdf" || WORD_EXTS.includes(ext)) {
     if (!documentDate) return false;
 
     const docDate = startOfDay(
       typeof documentDate === "string"
         ? parseISO(documentDate)
-        : new Date(documentDate)
+        : new Date(documentDate),
     );
 
     const cutoff = startOfDay(
-      typeof cutOffDate === "string"
-        ? parseISO(cutOffDate)
-        : cutOffDate
+      typeof cutOffDate === "string" ? parseISO(cutOffDate) : cutOffDate,
     );
 
     return isAfter(docDate, cutoff) || isEqual(docDate, cutoff);
@@ -34,12 +35,7 @@ export const isPreviewable = (
 
   return false;
 };
-
-export const getFilePreviewMeta = (
-  file,
-  documentDate,
-  cutOffDate
-) => {
+export const getFilePreviewMeta = (file, documentDate, cutOffDate) => {
   if (!file?.url) {
     return {
       show: false,

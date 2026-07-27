@@ -171,6 +171,7 @@ const HrConfigurations = () => {
     (p.positions || [])
       .filter((pos) => !pos.deleted && pos.version === 2)
       .map((pos) => ({
+        _id: pos._id,
         positionName: pos.name,
         department: p.department?.department || "—",
       })),
@@ -207,6 +208,7 @@ const HrConfigurations = () => {
             deptSearch={deptSearch}
             setDeptSearch={setDeptSearch}
             filteredDepartments={filteredDepartments}
+            hasWrite={hasWrite}
           />
         </Col>
         <Col md={7}>
@@ -232,6 +234,7 @@ const HrConfigurations = () => {
             filteredPositions={filteredPositions}
             positionSearch={positionSearch}
             setPositionSearch={setPositionSearch}
+            hasWrite={hasWrite}
           />
         </Col>
       </Row>

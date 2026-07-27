@@ -13,6 +13,11 @@ const STATUS_OPTIONS = [
     { value: "Incomplete", label: "Incomplete" },
 ];
 
+const DOCS_TYPE_OPTIONS = [
+    { value: "admitted", label: "Admitted" },
+    { value: "discharged", label: "Discharged" },
+];
+
 const PatientDocs = () => {
     const dispatch = useDispatch();
     const patientDocs = useSelector((state) => state.MIReporting.patientDocs);
@@ -24,16 +29,17 @@ const PatientDocs = () => {
     )
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [selectedStatus, setSelectedStatus] = useState("ALL");
+    const [selectedDocsType, setSelectedDocsType] = useState("admitted");
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
     // console.log(patientDocs)
-    
+
     useEffect(() => {
 
-        dispatch(fetchPatientDocs({ centerAccess,selectedMonth ,selectedStatus }));
-    }, [dispatch, centerAccess,selectedMonth,selectedStatus]);
+        dispatch(fetchPatientDocs({ centerAccess,selectedMonth ,selectedStatus,selectedDocsType }));
+    }, [dispatch, centerAccess,selectedCenter,selectedMonth,selectedStatus,selectedDocsType]);
     // console.log(patientDocs)
     // Extract unique months and sort them descending
 
@@ -41,13 +47,14 @@ const PatientDocs = () => {
     const data = useMemo(() => patientDocs?.data || [], [patientDocs]);
 
 
-    const filteredData = useMemo(
-        () => data.filter(item =>
-            (selectedCenter === "ALL" || item?.center_name === selectedCenter) &&
-            (selectedStatus === "ALL" || item?.info_complete === selectedStatus)
-        ),
-        [data, selectedCenter, selectedStatus]
-    );
+    const filteredData = useMemo(()=>{
+        return data.filter((item) =>{
+            if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
+            if (selectedStatus !== "ALL" && item?.info_complete !== selectedStatus) return false;
+              return true;
+});
+        
+ },[data, selectedCenter, selectedStatus] );
 
     
     const prepareCsvData = () => {
@@ -56,7 +63,7 @@ const PatientDocs = () => {
         const rows = filteredData.map((patient) =>
             labels.map((label) => {
                 const val = patient[labelsMapping[label]] ?? "";
-                if (label === "Admission Date" && val)
+                if ((label === "Admission Date" || label === "Discharge Date") && val)
                     return new Date(val).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
                 return val;
             })
@@ -94,13 +101,16 @@ const PatientDocs = () => {
 
 
 
-    const DOC_LABELS = new Set([
+    const ADMITTED_DOC_LABELS = new Set([
         "Admission Form", "Consent Form", "Bio Data", "Profile Photo",
         "Prescription", "History", "Belongings Form", "Lab Report",
     ]);
 
-    
-    const labels=[
+    const DISCHARGED_DOC_LABELS = new Set([
+        "Discharge Form", "Undertaking Discharge Form", "Discharge Summary",
+    ]);
+
+    const admittedLabels=[
             "Patient UID",
             "Patient Name",
             "Center Name",
@@ -119,7 +129,7 @@ const PatientDocs = () => {
             "Status"
             ]
 
-    const labelsMapping={
+    const admittedLabelsMapping={
 
             "Patient UID":"patient_uid",
             "Patient Name":"patient_name",
@@ -137,8 +147,45 @@ const PatientDocs = () => {
             "Psychologist Name":"psychologist_name",
             "Center Manager":"cm",
             "Status":"info_complete"
-        
+
     }
+
+    const dischargedLabels=[
+            "Patient UID",
+            "Patient Name",
+            "Center Name",
+            "Admission Date",
+            "Discharge Date",
+            "Discharge Form",
+            "Undertaking Discharge Form",
+            "Discharge Summary",
+            "Doctor Name",
+            "Psychologist Name",
+            "Center Manager",
+            "Status"
+            ]
+
+    const dischargedLabelsMapping={
+
+            "Patient UID":"patient_uid",
+            "Patient Name":"patient_name",
+            "Center Name":"center_name",
+            "Admission Date":"admission_date",
+            "Discharge Date":"discharge_date",
+            "Discharge Form":"dischargeform",
+            "Undertaking Discharge Form":"undertakingdischargeform",
+            "Discharge Summary":"discharge_summary",
+            "Doctor Name":"doctor_name",
+            "Psychologist Name":"psychologist_name",
+            "Center Manager":"cm",
+            "Status":"info_complete"
+
+    }
+
+    const isDischarged = selectedDocsType === "discharged";
+    const labels = isDischarged ? dischargedLabels : admittedLabels;
+    const labelsMapping = isDischarged ? dischargedLabelsMapping : admittedLabelsMapping;
+    const DOC_LABELS = isDischarged ? DISCHARGED_DOC_LABELS : ADMITTED_DOC_LABELS;
 
     const compliance = useMemo(() => {
         const total = filteredData.length;
@@ -242,6 +289,14 @@ const PatientDocs = () => {
                             placeholder="Status..."
                         />
                     </Col>
+                    <Col md={2}>
+                        <Select
+                            value={DOCS_TYPE_OPTIONS.find((o) => o.value === selectedDocsType) || DOCS_TYPE_OPTIONS[0]}
+                            onChange={(opt) => setSelectedDocsType(opt.value)}
+                            options={DOCS_TYPE_OPTIONS}
+                            placeholder="Docs Type..."
+                        />
+                    </Col>
                 </Row>
                 <Card>
                 <CardBody>
@@ -332,7 +387,7 @@ const PatientDocs = () => {
                                                         : "normal",
                                                 }}
                                             >
-                                                {label === "Admission Date" && patient[labelsMapping[label]]
+                                                {(label === "Admission Date" || label === "Discharge Date") && patient[labelsMapping[label]]
                                                     ? new Date(patient[labelsMapping[label]]).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")
                                                     : (label === "Patient Name" || label === "Patient UID")
                                                         ? (

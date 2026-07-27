@@ -98,9 +98,15 @@ const formatLeafValue = (value) => {
   return String(value);
 };
 
+const renameMap = {
+  communityServicesInPlace: "Service Requirements",
+};
+
 const renderGroup = (obj, depth = 0) =>
   Object.entries(obj || {}).map(([key, value], i) => {
     if (!hasContent(value)) return null;
+
+    const displayKey = renameMap[key] || toTitleCase(key);
 
     if (Array.isArray(value) && typeof value[0] === "object") {
       const labelKey = Object.keys(value[0])[0];
@@ -115,7 +121,7 @@ const renderGroup = (obj, depth = 0) =>
       if (filledRows.length === 0) return null;
       return (
         <View key={key + i} style={depth ? localStyles.indent : undefined}>
-          <Text style={localStyles.groupTitle}>{toTitleCase(key)}</Text>
+          <Text style={localStyles.groupTitle}>{displayKey}</Text>
           {filledRows.map((row, ri) => (
             <View key={ri} style={localStyles.gridRow}>
               <Text style={localStyles.gridRowLabel}>{row[labelKey]}</Text>
@@ -142,7 +148,7 @@ const renderGroup = (obj, depth = 0) =>
     if (typeof value === "object" && !Array.isArray(value)) {
       return (
         <View key={key + i} style={depth ? localStyles.indent : undefined}>
-          <Text style={localStyles.groupTitle}>{toTitleCase(key)}</Text>
+          <Text style={localStyles.groupTitle}>{displayKey}</Text>
           {renderGroup(value, depth + 1)}
         </View>
       );
@@ -153,7 +159,7 @@ const renderGroup = (obj, depth = 0) =>
         key={key + i}
         style={[localStyles.fieldRow, depth ? localStyles.indent : undefined]}
       >
-        <Text style={localStyles.label}>{toTitleCase(key)}:</Text>
+        <Text style={localStyles.label}>{displayKey}:</Text>
         <Text style={localStyles.value}>{formatLeafValue(value)}</Text>
       </View>
     );

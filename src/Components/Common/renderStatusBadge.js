@@ -83,6 +83,10 @@ export const renderStatusBadge = (stage) => {
       text: "Rejected",
       color: "danger",
     },
+    CANCELLED: {
+      text: "Cancelled",
+      color: "secondary",
+    },
     REQUESTING_REJECTED: {
       text: "Req. Center Rejected",
       color: "danger",

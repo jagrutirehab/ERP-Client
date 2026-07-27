@@ -534,7 +534,9 @@ export const GET_MI_ATTENDANCE = "/mi-reporting/get-attendance";
 export const GET_CASH_PER_CENTER = "/mi-reporting/cash-per-center";
 export const GET_WRITE_OFF_AMOUNT = "/mi-reporting/write-off-amount";
 export const GET_TRAINING_FORMS_WEEKLY = "/mi-reporting/training-forms-weekly";
+export const GET_TRAINING_FORMS_MONTHLY = "/mi-reporting/training-forms-monthly";
 export const GET_AUDIT_DAILY = "/mi-reporting/audit-daily";
+export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
 
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
@@ -667,6 +669,10 @@ export const GET_TEMPORARY_MANAGER = "/hrms/get/temporary/manager";
 // FOR HR
 export const GET_LEAVES = "/hrms/leave/get/leaves";
 export const APPROVE_LEAVE = "/hrms/leave/change/status/byhr";
+export const GET_ALL_REGULARIZATIONS = "/hrms/regularizations/get/all";
+export const APPROVE_REGULARIZATION_BYHR = "/hrms/regularize/change/status/byhr";
+export const CREATE_APPROVE_REGULARIZATION_BYHR =
+  "/hrms/regularize/create/approve/byhr";
 export const GET_ALL_COMP_OFFS = "/hrms/leave/get/all/comp-offs";
 export const GET_MY_COMP_OFFS = "/hrms/leaves/get/my/comp-offs";
 
@@ -797,3 +803,21 @@ export const GET_VISIT_LOGS = "/marketing/visit-log";
 
 export const GET_VENDORS = "/master/vendor";
 export const VENDOR_BASE = "/master/vendor";
+
+export const CONFIGURATION_DOCS = "/hr/doc/configuration";
+
+export const DOC_INPUT_POST = "/hr/doc/post";
+export const DOC_INPUT_EDIT = "/hr/doc/edit";
+export const DOC_INPUT_DELETE = "/hr/doc/delete";
+export const DOC_INPUT_GET = "/hr/doc/get";
+
+export const EMPLOYEE_DOC_FIELDS = "/hr/doc/employee-documents/fields";
+export const EMPLOYEE_DOC_UPLOAD = "/hr/doc/employee-documents/upload";
+export const EMPLOYEE_DOC_DELETE = "/hr/doc/employee-documents";
+export const EMPLOYEE_DOC_BY_ID = "/hr/doc/employee-documents";
+
+export const EMPLOYEE_DOC_DELETE_BY_EMP_ID = "/hr/doc/employee-documents";
+
+export const EMPLOYEE_DOC_BY_EMPID = "/hr/doc/employee-documents/by-employee";
+export const EMPLOYEE_DOCS = "/hr/doc/employee-documents/all";
+export const REVIEW_DOC = "/hr/doc/employee-documents";

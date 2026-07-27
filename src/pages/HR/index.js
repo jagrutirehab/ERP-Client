@@ -54,6 +54,8 @@ import EmployeeLeaveBalanceDashboard from "./Dashboard/EmployeeLeaveBalance";
 import EmployeeRegularizationDetails from "./Dashboard/EmployeeRegularizationDetails";
 import EmployeeRegularizationSummaryDashboard from "./Dashboard/EmployeeRegularizationSummary";
 import AllLeaveHistory from "./Dashboard/AllLeaveHistory";
+import AllRegularizations from "./Dashboard/AllRegularizations";
+import CreateRegularization from "./Dashboard/CreateRegularization";
 import CompOffRequests from "../HRMS/Leaves/CompOffsRequests/CompOffRequests";
 import AllCompOffs from "./Dashboard/AllCompOffs";
 import RaisedCompOffsRequest from "../HRMS/Leaves/MyRaisedCompOffs/RaisedCompOffsRequest";
@@ -66,6 +68,7 @@ import MySalaryData from "./PaySlips/Views/MySalaryData";
 import UploadForm from "./employeeForms/UploadForm";
 import Forms from "./employeeForms/Forms";
 import MyForms from "./employeeForms/MyForms";
+import EmployeeDocuments from "./Dashboard/EmployeeDocuments";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -274,6 +277,14 @@ const HR = () => {
                   element={<AllLeaveHistory />}
                 />
                 <Route
+                  path={`/all/regularizations`}
+                  element={<AllRegularizations />}
+                />
+                <Route
+                  path={`/create/regularization`}
+                  element={<CreateRegularization />}
+                />
+                <Route
                   path={`/all/cancellations/req`}
                   element={<CancellationRequestsHr />}
                 />
@@ -289,6 +300,10 @@ const HR = () => {
                 />
                 <Route path={`/employee/forms`} element={<Forms />} />
                 <Route path={`/my/forms`} element={<MyForms />} />
+                <Route
+                  path={`/employee/docs`}
+                  element={<EmployeeDocuments />}
+                />
               </Routes>
             </div>
           </Container>

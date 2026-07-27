@@ -24,7 +24,33 @@ const Sidebar = () => {
   }, []);
 
   const sidebarRef = useRef(null);
+  const spacerRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [offset, setOffset] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (isMobile) return undefined;
+
+    const measure = () => {
+      if (!spacerRef.current) return;
+      const rect = spacerRef.current.getBoundingClientRect();
+      setOffset({ top: rect.top, left: rect.left });
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+
+    const observer = new MutationObserver(measure);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-sidebar-size", "class"],
+    });
+
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer.disconnect();
+    };
+  }, [isMobile]);
 
   const showLabels = isMobile ? true : isHovered;
 
@@ -83,6 +109,7 @@ const Sidebar = () => {
     { id: "cash-per-center", label: "Cash Per Center", link: "/mi-reporting/cash-per-center", icon: "bx bx-wallet" },
     { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money" },
     { id: "forms-data", label: "Forms Data", link: "/mi-reporting/forms-data", icon: "bx bx-clipboard" },
+    { id: "metrics-report", label: "Metrics Report", link: "/mi-reporting/metrics-report", icon: "bx bx-line-chart" },
   ];
 
   const sidebarStyle = isMobile
@@ -102,18 +129,31 @@ const Sidebar = () => {
         flexDirection: "column",
       }
     : {
-        position: "sticky",
-        top: 0,
-        height: "100vh",
-        alignSelf: "flex-start",
-        flexShrink: 0,
+        position: "fixed",
+        top: offset.top,
+        left: offset.left,
+        bottom: 0,
+        // .chat-leftsidebar (src/assets/scss/pages/_chat.scss) sets an explicit
+        // height at >=992px, which wins over `bottom` once top/height/bottom are
+        // all non-auto — override it so top+bottom actually determine the height.
+        // height: "auto",
         width: isHovered ? "260px" : "70px",
         minWidth: isHovered ? "260px" : "70px",
+        zIndex: 100,
         transition: "width 0.25s ease, min-width 0.25s ease",
         overflow: "hidden",
+        background: "#fff",
         display: "flex",
         flexDirection: "column",
       };
+
+  const spacerStyle = {
+    width: isHovered ? "260px" : "70px",
+    minWidth: isHovered ? "260px" : "70px",
+    flexShrink: 0,
+    minHeight: "100vh",
+    transition: "width 0.25s ease, min-width 0.25s ease",
+  };
 
   return (
     <>
@@ -157,6 +197,10 @@ const Sidebar = () => {
         </button>
       )}
 
+      {/* Flex-flow spacer: reserves the sidebar's width/height in the layout while the
+          visible sidebar itself is position:fixed, and is what we measure to anchor it */}
+      {!isMobile && <div ref={spacerRef} aria-hidden="true" style={spacerStyle} />}
+
       <div
         ref={sidebarRef}
         className="chat-leftsidebar"
@@ -164,8 +208,8 @@ const Sidebar = () => {
         onMouseLeave={() => !isMobile && setIsHovered(false)}
         style={sidebarStyle}
       >
-        <PerfectScrollbar className="chat-room-list" style={{ flex: 1, minHeight: 0 }}>
-          <div className="chat-message-list">
+        <PerfectScrollbar className="chat-room-list" style={{ flex: 1, minHeight: 0, maxHeight: "none", paddingBottom: 100, overscrollBehavior: "contain" }}>
+          <div>
           {hasHubspotReportingPermission && (
             <>
               <div className="ps-4 pe-3 pt-4">

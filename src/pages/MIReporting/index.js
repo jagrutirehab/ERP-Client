@@ -39,6 +39,7 @@ import CenterWiseMOM from "./CenterWiseMOM";
 import CashPerCenter from "./CashPerCenter";
 import WriteOFFAmount from "./WriteOFFAmount";
 import AuditForms from "./AuditForms";
+import MetricsReport from "./MetricsReport";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -121,10 +122,10 @@ const MiReporting = () => {
 
   return (
     <React.Fragment>
-      <div className="page-content" style={{ overflowX: "clip" }}>
+      <div className="page-content" style={{ overflowX: "clip", overflowY: "visible" }}>
         <div className="">
           <Container fluid>
-            <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1" style={{ alignItems: "flex-start" }}>
+            <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1" style={{ alignItems: "flex-start", overflowY: "visible" }}>
               <Sidebar />
               <Routes>
                 {hasHubspotCenterLeadsPermission && (
@@ -277,6 +278,11 @@ const MiReporting = () => {
                   {hasMISPermission&&<Route
                     path="/forms-data"
                     element={<AuditForms />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/metrics-report"
+                    element={<MetricsReport />}
                   />}
 
 

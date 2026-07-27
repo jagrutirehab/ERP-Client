@@ -2258,6 +2258,7 @@ export const getPatientDocs = (data) => {
       centerIds: data?.centerAccess,
       month: data?.selectedMonth,
       status: data?.selectedStatus,
+      docsType: data?.selectedDocsType,
     },
   });
 };
@@ -2348,8 +2349,24 @@ export const getTrainingFormsWeekly = (data) => {
   });
 };
 
+export const getTrainingFormsMonthly = (data) => {
+  return api.get(url.GET_TRAINING_FORMS_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getAuditDaily = (data) => {
   return api.get(url.GET_AUDIT_DAILY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getMetricsReport = (data) => {
+  return api.get(url.GET_METRICS_REPORT, {
     params: {
       centerIds: data?.centerAccess,
     },
@@ -2999,6 +3016,33 @@ export const getAllEmployeeRegularizations = (params = {}) => {
 export const getRegularizationsByEmployee = ({ employeeId, ...params }) => {
   return axios.get(`${url.GET_REGULARIZATIONS_BY_EMPLOYEE}/${employeeId}`, {
     params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// FOR HR — cross-employee "All Regularizations" page (act by anyone)
+export const getAllRegularizations = (params = {}) => {
+  return axios.get(url.GET_ALL_REGULARIZATIONS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const changeRegularizationStatusByHR = (data) => {
+  return axios.patch(url.APPROVE_REGULARIZATION_BYHR, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// Atomic create + approve in a single request (no orphaned pending on failure).
+export const createAndApproveRegularization = (data) => {
+  return axios.post(url.CREATE_APPROVE_REGULARIZATION_BYHR, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -4209,8 +4253,20 @@ export const getVendorById = (id) => {
   });
 };
 
+export const postEmployeeDocsConfiguration = (data) => {
+  return axios.post(url.CONFIGURATION_DOCS, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 export const createVendor = (data) => {
   return axios.post(url.VENDOR_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getEmployeeDocsConfiguration = (positionId) => {
+  return axios.get(`${url.CONFIGURATION_DOCS}/${positionId}`, {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
@@ -4221,8 +4277,20 @@ export const updateVendor = (id, data) => {
   });
 };
 
+export const getDocuments = () => {
+  return axios.get(url.DOC_INPUT_GET, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 export const updateVendorStatus = (id, status) => {
   return axios.patch(`${url.VENDOR_BASE}/${id}/status`, { status }, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const addDocuments = (data) => {
+  return axios.post(url.DOC_INPUT_POST, data, {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
@@ -4236,8 +4304,82 @@ export const uploadVendorDocument = (id, formData) => {
   });
 };
 
+export const editDocument = (id, data) => {
+  return axios.patch(`${url.DOC_INPUT_EDIT}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const deleteDocument = (id) => {
+  return axios.patch(`${url.DOC_INPUT_DELETE}/${id}`, null, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getEmployeeDocumentFields = () => {
+  return axios.get(url.EMPLOYEE_DOC_FIELDS, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const uploadEmployeeDocument = (formData) => {
+  return axios.post(url.EMPLOYEE_DOC_UPLOAD, formData, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
 export const deleteVendorDocument = (id, docId) => {
   return axios.delete(`${url.VENDOR_BASE}/${id}/documents/${docId}`, {
     headers: { "X-No-Cookie-Token": "true" },
   });
+};
+
+export const deleteEmployeeDocumentFile = (documentId, fileId) => {
+  return axios.patch(
+    `${url.EMPLOYEE_DOC_DELETE}/${documentId}/${fileId}`,
+    null,
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const getEmployeeDocumentsByEmployeeId = (employeeId) => {
+  return axios.get(`${url.EMPLOYEE_DOC_BY_ID}/by-employee/${employeeId}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const deleteEmployeeDocumentFileByEmployeeId = (
+  employeeId,
+  documentId,
+  fileId,
+) => {
+  return axios.patch(
+    `${url.EMPLOYEE_DOC_DELETE_BY_EMP_ID}/by-employee/${employeeId}/${documentId}/${fileId}`,
+    null,
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const getEmployeeDocumentFieldsByEmployeeId = (employeeId) => {
+  return axios.get(`${url.EMPLOYEE_DOC_BY_EMPID}/${employeeId}/fields`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getAllEmployeeDocuments = (params) => {
+  return axios.get(`${url.EMPLOYEE_DOCS}`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const reviewEmployeeDocumentFile = (employeeDocId, fileId, payload) => {
+  return axios.patch(
+    `${url.REVIEW_DOC}/${employeeDocId}/${fileId}/review`,
+    payload,
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
 };

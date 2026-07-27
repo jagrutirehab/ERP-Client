@@ -263,6 +263,16 @@ const Sidebar = () => {
     "REGULARIZATION_DASHBOARD",
     "READ",
   );
+  const hasAllRegularizationsPerm = hasPermission(
+    "HR",
+    "ALL_REGULARIZATIONS",
+    "READ",
+  );
+  const hasCreateRegularizationPerm = hasPermission(
+    "HR",
+    "CREATE_REGULARIZATION",
+    "READ",
+  );
   const hasTransferApprovalsPermission = hasPermission(
     "HR",
     "TRANSFER_MANAGER_APPROVALS",
@@ -288,6 +298,11 @@ const Sidebar = () => {
   const hasMySalaryAndFormsPermission = hasPermission(
     "HR",
     "MY_SALARY_AND_FORMS",
+    "READ",
+  );
+  const hasEmployeeDocPermission = hasPermission(
+    "HR",
+    "EMPLOYEE_DOCUMENTS",
     "READ",
   );
 
@@ -589,6 +604,16 @@ const Sidebar = () => {
           if (child.id === "all-leave-history" && !hasAllLeaveHistoryPerm)
             return false;
           if (
+            child.id === "all-regularizations" &&
+            !hasAllRegularizationsPerm
+          )
+            return false;
+          if (
+            child.id === "create-regularization" &&
+            !hasCreateRegularizationPerm
+          )
+            return false;
+          if (
             child.id === "regularization-dashboard" &&
             !hasRegularizationDashboardPermission
           )
@@ -601,6 +626,8 @@ const Sidebar = () => {
             child.id === "transfer-manager-approval" &&
             !hasTransferApprovalsPermission
           )
+            return false;
+          if (child.id === "employee-documents" && !hasEmployeeDocPermission)
             return false;
           return true;
         });

@@ -120,6 +120,7 @@ export const permissionList = [
       { name: "THERAPIESSETTING", label: "Therapies" },
       { name: "CONDITIONSSETTING", label: "Conditions" },
       { name: "SYMPTOMSETTING", label: "Symptoms" },
+      { name: "DOCUMENTCONFIG", label: "Document Configuration" },
       { name: "HRCONFIGURATIONSSETTING", label: "HR Configurations" },
     ],
   },
@@ -370,8 +371,11 @@ export const permissionList = [
       { name: "EMPLOYEE_FORMS", label: "Employee Forms" },
       // HR DASHBOARD
       { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
+      { name: "EMPLOYEE_DOCUMENTS", label: "Employee Documents" },
       { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },
       { name: "ALL_LEAVE_HISTORY", label: "All Leave History" },
+      { name: "ALL_REGULARIZATIONS", label: "All Regularizations" },
+      { name: "CREATE_REGULARIZATION", label: "Create Regularization" },
       { name: "COMP_OFF_HISTORY", label: "Comp Off History" },
       { name: "CANCELLATIONS_HISTORY", label: "Cancellations History" },
       // FINANCE

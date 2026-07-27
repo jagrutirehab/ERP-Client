@@ -2,9 +2,6 @@ import React from "react";
 import { View, Text, Font } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 
-//table
-// import PrescriptionTable from "./Table";
-
 Font.register({
   family: "Roboto",
   fonts: [
@@ -25,54 +22,6 @@ const DetailHistory = ({ data, styles }) => {
           ...styles.mrgnBottom10,
         }}
       >
-        <View
-          style={{
-            ...styles.row,
-            ...styles.itemsCenter,
-            ...styles.justifyBetween,
-            ...styles.gap10,
-          }}
-        >
-          <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
-            Informant:
-          </Text>
-
-          <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
-            Self+
-          </Text>
-
-          <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
-            {data.informant || ""}
-          </Text>
-
-          <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
-            {data.adequate}
-          </Text>
-
-          <Text style={{ ...styles.fontMd, ...styles.textCapitalize }}>
-            {data.reliable || ""}
-          </Text>
-        </View>
-        {data?.counsellor && (
-          <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={styles.fontSize13}>
-              Counsellor:
-            </Text>
-            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
-              {data?.counsellor || ""}
-            </Text>
-          </View>
-        )}
-        {/* {data?.referredby && (
-          <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={styles.fontSize13}>
-              Referred By:
-            </Text>
-            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
-              {data?.referredby || ""}
-            </Text>
-          </View>
-        )} */}
         {data?.history && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>
@@ -109,14 +58,6 @@ const DetailHistory = ({ data, styles }) => {
             </Text>
           </View>
         )}
-        {data?.occupationHistory && (
-          <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={styles.fontSize13}>Occupation History:</Text>
-            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
-              {data?.occupationHistory || ""}
-            </Text>
-          </View>
-        )}
         {data?.familyHistory && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>Family History:</Text>
@@ -140,14 +81,6 @@ const DetailHistory = ({ data, styles }) => {
             <Text style={styles.fontSize13}>Personality:</Text>
             <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
               {data?.personality || ""}
-            </Text>
-          </View>
-        )}
-        {data?.socialSupport && (
-          <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={styles.fontSize13}>Social Support:</Text>
-            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
-              {data?.socialSupport || ""}
             </Text>
           </View>
         )}
