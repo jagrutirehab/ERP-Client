@@ -296,14 +296,141 @@ const validationSchema = Yup.object({
       schema.required("Udyam number is required when MSME registered"),
   }),
   pan: Yup.string()
-    .matches(PAN_REGEX, "Enter a valid PAN, e.g. ABCDE1234F")
-    .nullable(),
+    .required("PAN is required")
+    .matches(PAN_REGEX, "Enter a valid PAN, e.g. ABCDE1234F"),
+  gstRegistrations: Yup.array()
+    .min(1, "Add at least one GST registration")
+    .of(
+      Yup.object({
+        gstin: Yup.string()
+          .required("GSTIN is required")
+          .matches(GSTIN_REGEX, "Enter a valid GSTIN, e.g. 22AAAAA0000A1Z5"),
+        registrationType: Yup.string().required(
+          "GST registration type is required",
+        ),
+      }),
+    ),
   tdsRate: Yup.number()
     .transform((v, o) => (o === "" ? undefined : v))
     .min(0, "TDS rate can't be negative")
     .max(100, "TDS rate can't exceed 100%")
     .nullable(),
+  primaryContact: Yup.object({
+    name: Yup.string().required("Contact person is required"),
+    phone: Yup.string().required("Phone is required"),
+    email: Yup.string()
+      .email("Enter a valid email address")
+      .required("Email is required"),
+  }),
+  registeredAddress: Yup.object({
+    line1: Yup.string().required("Address line 1 is required"),
+    pincode: Yup.string().required("Pincode is required"),
+    city: Yup.string().required("City is required"),
+    state: Yup.string().required("State is required"),
+  }),
+  billingAddress: Yup.object({
+    line1: Yup.string().when("sameAsRegistered", {
+      is: false,
+      then: (schema) => schema.required("Address line 1 is required"),
+    }),
+    pincode: Yup.string().when("sameAsRegistered", {
+      is: false,
+      then: (schema) => schema.required("Pincode is required"),
+    }),
+    city: Yup.string().when("sameAsRegistered", {
+      is: false,
+      then: (schema) => schema.required("City is required"),
+    }),
+    state: Yup.string().when("sameAsRegistered", {
+      is: false,
+      then: (schema) => schema.required("State is required"),
+    }),
+  }),
+  bankDetails: Yup.object({
+    accountNo: Yup.string().required("Account number is required"),
+    ifsc: Yup.string().required("IFSC code is required"),
+    bankName: Yup.string().required("Bank name is required"),
+  }),
 });
+
+const buildTouchedFromErrors = (errors) => {
+  if (Array.isArray(errors))
+    return errors.map((e) => buildTouchedFromErrors(e));
+  if (errors && typeof errors === "object") {
+    const result = {};
+    Object.keys(errors).forEach((key) => {
+      result[key] = buildTouchedFromErrors(errors[key]);
+    });
+    return result;
+  }
+  return true;
+};
+const ADDRESS_FIELD_LABELS = {
+  line1: "Address line 1",
+  pincode: "Pincode",
+  city: "City",
+  state: "State",
+};
+
+// Turns Formik's nested error object into a plain list of human-readable field names
+const collectMissingFields = (errors) => {
+  const labels = [];
+
+  if (errors.entityType) labels.push("Entity type");
+  if (errors.tradeName) labels.push("Trade name");
+  if (errors.supplyType) labels.push("Supply type");
+  if (errors.udyamNumber) labels.push("Udyam number");
+  if (errors.pan) labels.push("PAN");
+
+  if (Array.isArray(errors.gstRegistrations)) {
+    errors.gstRegistrations.forEach((regErr, idx) => {
+      if (!regErr) return;
+      if (regErr.gstin) labels.push(`GSTIN (Registration ${idx + 1})`);
+      if (regErr.registrationType)
+        labels.push(`GST registration type (Registration ${idx + 1})`);
+    });
+  } else if (typeof errors.gstRegistrations === "string") {
+    labels.push("GST registration");
+  }
+
+  if (errors.primaryContact?.name) labels.push("Contact person");
+  if (errors.primaryContact?.phone) labels.push("Phone");
+  if (errors.primaryContact?.email) labels.push("Email");
+
+  Object.entries(errors.registeredAddress || {}).forEach(([key]) => {
+    if (ADDRESS_FIELD_LABELS[key])
+      labels.push(`Registered Address – ${ADDRESS_FIELD_LABELS[key]}`);
+  });
+
+  Object.entries(errors.billingAddress || {}).forEach(([key]) => {
+    if (ADDRESS_FIELD_LABELS[key])
+      labels.push(`Billing Address – ${ADDRESS_FIELD_LABELS[key]}`);
+  });
+
+  if (errors.bankDetails?.accountNo) labels.push("Account number");
+  if (errors.bankDetails?.ifsc) labels.push("IFSC code");
+  if (errors.bankDetails?.bankName) labels.push("Bank name");
+
+  return labels;
+};
+
+const SECTION_FIELD_MAP = {
+  entityType: "identity",
+  tradeName: "identity",
+  supplyType: "identity",
+  udyamNumber: "identity",
+  pan: "tax",
+  cin: "tax",
+  gstRegistrations: "tax",
+  tdsSection: "tds",
+  tdsRate: "tds",
+  primaryContact: "contact",
+  registeredAddress: "contact",
+  billingAddress: "contact",
+  bankDetails: "bank",
+  paymentTerms: "bank",
+  preferredPaymentMode: "bank",
+};
 
 const DocDropzone = ({
   docKey,
@@ -394,9 +521,14 @@ const DocDropzone = ({
 
   return (
     <div className="mb-3">
-      <Label className="small mb-1">
+     <Label className="small mb-1">
         {label}
-        {required ? " *" : ""}
+        {required ? (
+          <>
+            {" "}
+            <span className="text-danger">*</span>
+          </>
+        ) : null}
       </Label>
       <div
         {...getRootProps()}
@@ -500,6 +632,21 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
           );
           return;
         }
+
+        if (canUploadDocs) {
+          const hasCancelledCheque =
+            !!documentFiles["cancelled_cheque"] ||
+            (values.documents || []).some(
+              (d) => d.docType === "cancelled_cheque",
+            );
+          if (!hasCancelledCheque) {
+            toast.error(
+              "Cancelled Cheque is required — please upload it before saving.",
+            );
+            return;
+          }
+        }
+
         const payload = { ...values };
         delete payload._id;
         delete payload.__v;
@@ -517,7 +664,10 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
         if (!payload.bankDetails.accountType)
           delete payload.bankDetails.accountType;
         payload.gstRegistrations = (payload.gstRegistrations || []).map(
-          ({ _id, ...rest }) => rest,
+          ({ _id, taxType, ...rest }) => ({
+            ...rest,
+            ...(taxType ? { taxType } : {}),
+          }),
         );
         if (payload.billingAddress?.sameAsRegistered) {
           payload.billingAddress = {
@@ -633,7 +783,14 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
         number: 2,
         title: "Tax & Legal Identifiers",
         sub: "PAN, CIN, GSTIN and GST classification",
-        checks: [!!v.pan, v.gstRegistrations.some((g) => g.gstin)],
+        checks: [
+          !!v.pan && PAN_REGEX.test(v.pan),
+          v.gstRegistrations.length > 0 &&
+            v.gstRegistrations.every(
+              (g) =>
+                !!g.gstin && GSTIN_REGEX.test(g.gstin) && !!g.registrationType,
+            ),
+        ],
       },
       {
         key: "tds",
@@ -660,6 +817,14 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
           !!v.registeredAddress.pincode,
           !!v.registeredAddress.city,
           !!v.registeredAddress.state,
+          ...(v.billingAddress.sameAsRegistered
+            ? []
+            : [
+                !!v.billingAddress.line1,
+                !!v.billingAddress.pincode,
+                !!v.billingAddress.city,
+                !!v.billingAddress.state,
+              ]),
         ],
       },
       {
@@ -680,11 +845,12 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
               number: 6,
               title: "Documents",
               sub: "Optional — KYB supporting files",
-              checks:
-                Object.keys(documentFiles).length > 0 ||
-                (v.documents || []).length > 0
-                  ? [true]
-                  : [],
+              checks: [
+                !!documentFiles["cancelled_cheque"] ||
+                  (v.documents || []).some(
+                    (d) => d.docType === "cancelled_cheque",
+                  ),
+              ],
             },
           ]
         : []),
@@ -736,6 +902,31 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
     setActiveSection(key);
   };
 
+  const handleFormSubmit = async (e) => {
+    e.preventDefault();
+    const errors = await validation.validateForm();
+    const errorKeys = Object.keys(errors);
+
+    if (errorKeys.length > 0) {
+      validation.setTouched(buildTouchedFromErrors(errors), false);
+      const missingLabels = collectMissingFields(errors);
+      const shown = missingLabels.slice(0, 5);
+      const remaining = missingLabels.length - shown.length;
+      toast.error(
+        missingLabels.length > 0
+          ? `Please fill in: ${shown.join(", ")}${
+              remaining > 0 ? `, and ${remaining} more` : ""
+            }.`
+          : "Some required fields are missing. Please check the highlighted fields.",
+      );
+      const firstSectionKey = SECTION_FIELD_MAP[errorKeys[0]];
+      if (firstSectionKey) scrollToSection(firstSectionKey);
+      return;
+    }
+
+    validation.handleSubmit(e);
+  };
+
   if (loading) {
     return (
       <div className="text-center py-5 text-muted">
@@ -761,7 +952,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
         </Button>
       </div>
 
-      <form onSubmit={validation.handleSubmit}>
+      <form onSubmit={handleFormSubmit}>
         <div className="vendor-form-layout">
           {/* ---------- Left nav ---------- */}
           <div className="vendor-nav-col">
@@ -840,7 +1031,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
               <div className="vendor-section-body">
                 <Row>
                   <Col md={6} className="mb-3">
-                    <Label>Entity type *</Label>
+                    <Label>
+                      Entity type <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       type="select"
                       name="entityType"
@@ -862,7 +1055,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     <FormFeedback>{validation.errors.entityType}</FormFeedback>
                   </Col>
                   <Col md={6} className="mb-3">
-                    <Label>Trade name *</Label>
+                    <Label>
+                      Trade name <span className="text-danger">*</span>
+                    </Label>{" "}
                     <small className="vendor-hint-text">
                       Auto-fetched from GST verification, or enter manually
                     </small>
@@ -879,7 +1074,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     <FormFeedback>{validation.errors.tradeName}</FormFeedback>
                   </Col>
                   <Col md={6} className="mb-3">
-                    <Label>Legal name</Label>
+                    <Label>
+                      Legal name
+                    </Label>
                     <small className="vendor-hint-text">
                       Auto-fetched from GST verification, or enter manually
                     </small>
@@ -890,7 +1087,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     />
                   </Col>
                   <Col md={6} className="mb-3">
-                    <Label>Alias</Label>
+                    <Label>
+                      Alias
+                    </Label>
                     <small className="vendor-hint-text">
                       Optional short name shown on invoices
                     </small>
@@ -902,7 +1101,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     />
                   </Col>
                   <Col md={6} className="mb-3">
-                    <Label>Supply type *</Label>
+                    <Label>
+                      Supply type <span className="text-danger">*</span>
+                    </Label>{" "}
                     <Input
                       type="select"
                       name="supplyType"
@@ -1016,7 +1217,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
               <div className="vendor-section-body">
                 <Row>
                   <Col md={6} className="mb-3">
-                    <Label>PAN *</Label>
+                    <Label>PAN <span className="text-danger">*</span></Label>
                     <Input
                       name="pan"
                       className="text-uppercase"
@@ -1091,6 +1292,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     ).length > 1;
                   const isInvalidFormat =
                     !!trimmedGstin && !GSTIN_REGEX.test(trimmedGstin);
+                  const gstinRequiredError =
+                    validation.touched.gstRegistrations?.[idx]?.gstin &&
+                    validation.errors.gstRegistrations?.[idx]?.gstin;
 
                   return (
                     <div key={idx} className="vendor-repeat-row">
@@ -1106,12 +1310,16 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       </div>
                       <Row>
                         <Col md={12} className="mb-2">
-                          <Label className="small mb-1">GSTIN / UIN *</Label>
+                         <Label className="small mb-1">GSTIN / UIN <span className="text-danger">*</span></Label>
                           <Input
                             className="text-uppercase"
                             placeholder="22AAAAA0000A1Z5"
                             value={g.gstin}
-                            invalid={isDuplicateGstin || isInvalidFormat}
+                            invalid={
+                              isDuplicateGstin ||
+                              isInvalidFormat ||
+                              !!gstinRequiredError
+                            }
                             onChange={(e) =>
                               updateGst(
                                 idx,
@@ -1119,7 +1327,16 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                                 e.target.value.toUpperCase(),
                               )
                             }
+                            onBlur={() =>
+                              validation.setFieldTouched(
+                                `gstRegistrations[${idx}].gstin`,
+                                true,
+                              )
+                            }
                           />
+                          {gstinRequiredError && !trimmedGstin && (
+                            <FormFeedback>GSTIN is required.</FormFeedback>
+                          )}
                           {isInvalidFormat && (
                             <FormFeedback>
                               This doesn't look like a valid GSTIN. It should be
@@ -1135,13 +1352,27 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                         </Col>
                         <Col md={6} className="mb-2">
                           <Label className="small mb-1">
-                            GST registration type *
+                            GST registration type <span className="text-danger">*</span>
                           </Label>
                           <Input
                             type="select"
                             value={g.registrationType || ""}
-                            onChange={(e) =>
-                              updateGst(idx, "registrationType", e.target.value)
+                            onChange={(e) => {
+                              updateGst(
+                                idx,
+                                "registrationType",
+                                e.target.value,
+                              );
+                              validation.setFieldTouched(
+                                `gstRegistrations[${idx}].registrationType`,
+                                true,
+                              );
+                            }}
+                            invalid={
+                              !!validation.touched.gstRegistrations?.[idx]
+                                ?.registrationType &&
+                              !!validation.errors.gstRegistrations?.[idx]
+                                ?.registrationType
                             }
                           >
                             <option value="">Select type</option>
@@ -1150,9 +1381,15 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                             <option value="sez">SEZ</option>
                             <option value="unregistered">Unregistered</option>
                           </Input>
+                          <FormFeedback>
+                            {
+                              validation.errors.gstRegistrations?.[idx]
+                                ?.registrationType
+                            }
+                          </FormFeedback>
                         </Col>
                         <Col md={6} className="mb-2">
-                          <Label className="small mb-1">GST tax type *</Label>
+                          <Label className="small mb-1">GST tax type</Label>
                           <Input
                             type="select"
                             value={g.taxType || ""}
@@ -1336,8 +1573,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                 <p className="vendor-repeat-row-title mb-3">Primary contact</p>
                 <Row className="mb-4">
                   <Col md={3} className="mb-2">
-                    <Label className="small mb-1">Contact person *</Label>
-                    <Input
+<Label className="small mb-1">Contact person <span className="text-danger">*</span></Label>                    <Input
                       value={v.primaryContact.name}
                       onChange={(e) =>
                         validation.setFieldValue(
@@ -1345,11 +1581,19 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                           e.target.value,
                         )
                       }
+                      onBlur={validation.handleBlur}
+                      name="primaryContact.name"
+                      invalid={
+                        !!validation.touched.primaryContact?.name &&
+                        !!validation.errors.primaryContact?.name
+                      }
                     />
+                    <FormFeedback>
+                      {validation.errors.primaryContact?.name}
+                    </FormFeedback>
                   </Col>
                   <Col md={3} className="mb-2">
-                    <Label className="small mb-1">Phone *</Label>
-                    <Input
+<Label className="small mb-1">Phone <span className="text-danger">*</span></Label>                    <Input
                       value={v.primaryContact.phone}
                       onChange={(e) =>
                         validation.setFieldValue(
@@ -1357,11 +1601,19 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                           e.target.value,
                         )
                       }
+                      onBlur={validation.handleBlur}
+                      name="primaryContact.phone"
+                      invalid={
+                        !!validation.touched.primaryContact?.phone &&
+                        !!validation.errors.primaryContact?.phone
+                      }
                     />
+                    <FormFeedback>
+                      {validation.errors.primaryContact?.phone}
+                    </FormFeedback>
                   </Col>
                   <Col md={3} className="mb-2">
-                    <Label className="small mb-1">Email *</Label>
-                    <Input
+<Label className="small mb-1">Email <span className="text-danger">*</span></Label>                    <Input
                       type="email"
                       value={v.primaryContact.email}
                       onChange={(e) =>
@@ -1370,7 +1622,16 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                           e.target.value,
                         )
                       }
+                      onBlur={validation.handleBlur}
+                      name="primaryContact.email"
+                      invalid={
+                        !!validation.touched.primaryContact?.email &&
+                        !!validation.errors.primaryContact?.email
+                      }
                     />
+                    <FormFeedback>
+                      {validation.errors.primaryContact?.email}
+                    </FormFeedback>
                   </Col>
                   <Col md={3} className="mb-2">
                     <Label className="small mb-1">Website</Label>
@@ -1392,7 +1653,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                 </p>
                 <Row className="mb-4">
                   <Col md={8} className="mb-2">
-                    <Label className="small mb-1">Address line 1 *</Label>
+                    <Label className="small mb-1">Address line 1 <span className="text-danger">*</span></Label>
                     <Input
                       value={v.registeredAddress.line1}
                       onChange={(e) =>
@@ -1416,7 +1677,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     />
                   </Col>
                   <Col md={3} className="mb-2">
-                    <Label className="small mb-1">Pincode *</Label>
+                    <Label className="small mb-1">Pincode <span className="text-danger">*</span></Label>
                     <Input
                       value={v.registeredAddress.pincode}
                       onChange={(e) =>
@@ -1428,7 +1689,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     />
                   </Col>
                   <Col md={3} className="mb-2">
-                    <Label className="small mb-1">City *</Label>
+                    <Label className="small mb-1">City <span className="text-danger">*</span></Label>
                     <Input
                       value={v.registeredAddress.city}
                       onChange={(e) =>
@@ -1440,7 +1701,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     />
                   </Col>
                   <Col md={3} className="mb-2">
-                    <Label className="small mb-1">Country *</Label>
+                    <Label className="small mb-1">Country <span className="text-danger">*</span></Label>
                     <Input
                       type="select"
                       value={v.registeredAddress.country}
@@ -1459,7 +1720,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     </Input>
                   </Col>
                   <Col md={3} className="mb-2">
-                    <Label className="small mb-1">State *</Label>
+                    <Label className="small mb-1">State <span className="text-danger">*</span></Label>
                     {v.registeredAddress.country === "India" ? (
                       <Input
                         type="select"
@@ -1518,7 +1779,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                 {!v.billingAddress.sameAsRegistered && (
                   <Row>
                     <Col md={8} className="mb-2">
-                      <Label className="small mb-1">Address line 1 *</Label>
+                      <Label className="small mb-1">Address line 1 <span className="text-danger">*</span></Label>
                       <Input
                         value={v.billingAddress.line1}
                         onChange={(e) =>
@@ -1527,7 +1788,16 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                             e.target.value,
                           )
                         }
+                        onBlur={validation.handleBlur}
+                        name="billingAddress.line1"
+                        invalid={
+                          !!validation.touched.billingAddress?.line1 &&
+                          !!validation.errors.billingAddress?.line1
+                        }
                       />
+                      <FormFeedback>
+                        {validation.errors.billingAddress?.line1}
+                      </FormFeedback>
                     </Col>
                     <Col md={4} className="mb-2">
                       <Label className="small mb-1">Address line 2</Label>
@@ -1542,7 +1812,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       />
                     </Col>
                     <Col md={3} className="mb-2">
-                      <Label className="small mb-1">Pincode *</Label>
+                      <Label className="small mb-1">Pincode <span className="text-danger">*</span></Label>
                       <Input
                         value={v.billingAddress.pincode}
                         onChange={(e) =>
@@ -1551,10 +1821,19 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                             e.target.value,
                           )
                         }
+                        onBlur={validation.handleBlur}
+                        name="billingAddress.pincode"
+                        invalid={
+                          !!validation.touched.billingAddress?.pincode &&
+                          !!validation.errors.billingAddress?.pincode
+                        }
                       />
+                      <FormFeedback>
+                        {validation.errors.billingAddress?.pincode}
+                      </FormFeedback>
                     </Col>
                     <Col md={3} className="mb-2">
-                      <Label className="small mb-1">City *</Label>
+                      <Label className="small mb-1">City <span className="text-danger">*</span></Label>
                       <Input
                         value={v.billingAddress.city}
                         onChange={(e) =>
@@ -1563,10 +1842,19 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                             e.target.value,
                           )
                         }
+                        onBlur={validation.handleBlur}
+                        name="billingAddress.city"
+                        invalid={
+                          !!validation.touched.billingAddress?.city &&
+                          !!validation.errors.billingAddress?.city
+                        }
                       />
+                      <FormFeedback>
+                        {validation.errors.billingAddress?.city}
+                      </FormFeedback>
                     </Col>
                     <Col md={3} className="mb-2">
-                      <Label className="small mb-1">Country *</Label>
+                      <Label className="small mb-1">Country <span className="text-danger">*</span></Label>
                       <Input
                         type="select"
                         value={v.billingAddress.country}
@@ -1585,7 +1873,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       </Input>
                     </Col>
                     <Col md={3} className="mb-2">
-                      <Label className="small mb-1">State *</Label>
+                      <Label className="small mb-1">State <span className="text-danger">*</span></Label>
                       {v.billingAddress.country === "India" ? (
                         <Input
                           type="select"
@@ -1595,6 +1883,12 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                               "billingAddress.state",
                               e.target.value,
                             )
+                          }
+                          onBlur={validation.handleBlur}
+                          name="billingAddress.state"
+                          invalid={
+                            !!validation.touched.billingAddress?.state &&
+                            !!validation.errors.billingAddress?.state
                           }
                         >
                           <option value="">Select state</option>
@@ -1613,8 +1907,17 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                               e.target.value,
                             )
                           }
+                          onBlur={validation.handleBlur}
+                          name="billingAddress.state"
+                          invalid={
+                            !!validation.touched.billingAddress?.state &&
+                            !!validation.errors.billingAddress?.state
+                          }
                         />
                       )}
+                      <FormFeedback>
+                        {validation.errors.billingAddress?.state}
+                      </FormFeedback>
                     </Col>
                   </Row>
                 )}
@@ -1638,7 +1941,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
               <div className="vendor-section-body">
                 <Row>
                   <Col md={6} className="mb-3">
-                    <Label>Account number *</Label>
+                    <Label>Account number <span className="text-danger">*</span></Label>
                     <Input
                       value={v.bankDetails.accountNo}
                       onChange={(e) =>
@@ -1647,10 +1950,19 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                           e.target.value,
                         )
                       }
+                      onBlur={validation.handleBlur}
+                      name="bankDetails.accountNo"
+                      invalid={
+                        !!validation.touched.bankDetails?.accountNo &&
+                        !!validation.errors.bankDetails?.accountNo
+                      }
                     />
+                    <FormFeedback>
+                      {validation.errors.bankDetails?.accountNo}
+                    </FormFeedback>
                   </Col>
                   <Col md={6} className="mb-3">
-                    <Label>IFSC code *</Label>
+                    <Label>IFSC code <span className="text-danger">*</span></Label>
                     <Input
                       className="text-uppercase"
                       value={v.bankDetails.ifsc}
@@ -1660,11 +1972,20 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                           e.target.value.toUpperCase(),
                         )
                       }
+                      onBlur={validation.handleBlur}
+                      name="bankDetails.ifsc"
+                      invalid={
+                        !!validation.touched.bankDetails?.ifsc &&
+                        !!validation.errors.bankDetails?.ifsc
+                      }
                       placeholder="e.g. HDFC0001234"
                     />
+                    <FormFeedback>
+                      {validation.errors.bankDetails?.ifsc}
+                    </FormFeedback>
                   </Col>
                   <Col md={6} className="mb-3">
-                    <Label>Bank name *</Label>
+                    <Label>Bank name <span className="text-danger">*</span></Label>
                     <Input
                       value={v.bankDetails.bankName}
                       onChange={(e) =>
@@ -1673,7 +1994,16 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                           e.target.value,
                         )
                       }
+                      onBlur={validation.handleBlur}
+                      name="bankDetails.bankName"
+                      invalid={
+                        !!validation.touched.bankDetails?.bankName &&
+                        !!validation.errors.bankDetails?.bankName
+                      }
                     />
+                    <FormFeedback>
+                      {validation.errors.bankDetails?.bankName}
+                    </FormFeedback>
                   </Col>
                   <Col md={6} className="mb-3">
                     <Label>Account type</Label>
@@ -1740,7 +2070,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                         className={`${SECTION_ICONS.documents} text-muted`}
                       ></i>
                       <span className="text-muted fw-normal small ms-1">
-                        (Optional)
+                        (Cancelled Cheque required)
                       </span>
                     </div>
                     <p className="vendor-section-sub">KYB supporting files</p>
