@@ -36,6 +36,7 @@ const Navdata = () => {
       "setting",
       "recyclebin",
       "pharmacy",
+      "masterdata",
       "training",
       "guidelines",
       "hr",

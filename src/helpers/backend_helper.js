@@ -4195,4 +4195,49 @@ export const getAgentVisitReport = (params = {}) =>
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
+// master data 
+export const getVendors = (params = {}) => {
+  return axios.get(url.GET_VENDORS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
 
+export const getVendorById = (id) => {
+  return axios.get(`${url.VENDOR_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const createVendor = (data) => {
+  return axios.post(url.VENDOR_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const updateVendor = (id, data) => {
+  return axios.put(`${url.VENDOR_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const updateVendorStatus = (id, status) => {
+  return axios.patch(`${url.VENDOR_BASE}/${id}/status`, { status }, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const uploadVendorDocument = (id, formData) => {
+  return axios.post(`${url.VENDOR_BASE}/${id}/documents`, formData, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const deleteVendorDocument = (id, docId) => {
+  return axios.delete(`${url.VENDOR_BASE}/${id}/documents/${docId}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};

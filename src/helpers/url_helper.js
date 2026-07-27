@@ -794,3 +794,6 @@ export const GENERATE_PSYCHO_DIAGNOSTIC_SUMMARY =
 
 export const POST_VISIT_LOG = "/marketing/visit-log";
 export const GET_VISIT_LOGS = "/marketing/visit-log";
+
+export const GET_VENDORS = "/master/vendor";
+export const VENDOR_BASE = "/master/vendor";

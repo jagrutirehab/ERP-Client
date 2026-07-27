@@ -462,13 +462,24 @@ export const permissionList = [
     ],
   },
   {
-    key: "MARKETING", 
+    key: "MARKETING",
     label: "Marketing",
     subModules: [
       { name: "ADD_VISIT_LOG", label: "Add Visit Log" },
       { name: "VIEW_VISIT_LOGS", label: "View All Visit Logs" },
       { name: "VIEW_AGENT_REPORT", label: "Agent Visit Report" },
       { name: "VIEW_AGENT_PROFILE", label: "My Visit History" },
+    ],
+  },
+  {
+    key: "MASTERDATA",
+    label: "Master Data",
+    subModules: [
+      { name: "VENDOR_VIEW", label: "View Vendors" },
+      { name: "VENDOR_CREATE", label: "Create Vendor" },
+      { name: "VENDOR_EDIT", label: "Edit Vendor" },
+      { name: "VENDOR_STATUS_CHANGE", label: "Activate/Deactivate Vendor" },
+      { name: "VENDOR_DOCUMENT_UPLOAD", label: "Upload Vendor Documents" },
     ],
   },
 ];

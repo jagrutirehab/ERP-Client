@@ -294,6 +294,13 @@ const pages = [
     icon: "bx bx-book",
   },
   {
+    id: "masterdata",
+    label: "Master Data",
+    name: "Master Data",
+    link: "/master-data",
+    icon: "bx bx-purchase-tag-alt",
+  },
+  {
     id: "tranings",
     label: "Trainings",
     name: "Trainings",
@@ -1419,6 +1426,50 @@ export const TRAININGS = [
     link: "/trainings/get/record",
     icon: "bx bx-spreadsheet",
   },
+];
+export const MASTER_DATA = [
+  {
+    id: "masterdata-vendor",
+    label: "Vendors",
+    link: "/master-data/vendor",
+    icon: "bx bx-store",
+  },
+  // {
+  //   id: "masterdata-customer",
+  //   label: "Customers",
+  //   link: "/master-data/customer",
+  //   icon: "bx bx-user",
+  // },
+  // {
+  //   id: "masterdata-uom",
+  //   label: "Unit of Measurement",
+  //   link: "/master-data/uom",
+  //   icon: "bx bx-ruler",
+  // },
+  // {
+  //   id: "masterdata-payment-term",
+  //   label: "Payment Terms",
+  //   link: "/master-data/payment-term",
+  //   icon: "bx bx-credit-card",
+  // },
+  // {
+  //   id: "masterdata-delivery-partner",
+  //   label: "Delivery Partners",
+  //   link: "/master-data/delivery-partner",
+  //   icon: "bx bx-car",
+  // },
+  // {
+  //   id: "masterdata-asset-category",
+  //   label: "Asset Categories",
+  //   link: "/master-data/asset-category",
+  //   icon: "bx bx-category",
+  // },
+  // {
+  //   id: "masterdata-department",
+  //   label: "Departments",
+  //   link: "/master-data/department",
+  //   icon: "bx bx-building",
+  // },
 ];
 
 export default pages;
