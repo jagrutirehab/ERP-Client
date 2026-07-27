@@ -36,7 +36,13 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
   const [managerName, setManagerName] = useState("");
   const [loading, setLoading] = useState(false);
   const [regularizationDates, setRegularizationDates] = useState([]);
+  const [isHeadOffice, setIsHeadOffice] = useState(false);
   const handleAuthError = useAuthError();
+
+  const COMP_OFF_TYPES = ["COMP_OFF_REQUEST", "COMP_OFF"];
+  const availableLeaveTypeOptions = isHeadOffice
+    ? leaveTypeOptions
+    : leaveTypeOptions.filter((opt) => !COMP_OFF_TYPES.includes(opt.value));
 
   const loggedInUser = JSON.parse(localStorage.getItem("authUser"));
   const loggedInId = loggedInUser?.data?._id;
@@ -144,6 +150,7 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
       const response = await getLeavesAndRegs(employeeId);
       console.log("response", response);
       setRegularizationDates(response?.regularizations || []);
+      setIsHeadOffice(Boolean(response?.isHeadOffice));
     } catch (error) {
       console.log("Error", error);
     }
@@ -243,9 +250,11 @@ const LeaveModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
             Leave Type <span className="text-danger">*</span>
           </Label>
           <Select
-            value={leaveTypeOptions.find((opt) => opt.value === leaveType)}
+            value={availableLeaveTypeOptions.find(
+              (opt) => opt.value === leaveType,
+            )}
             onChange={(opt) => setLeaveType(opt.value)}
-            options={leaveTypeOptions}
+            options={availableLeaveTypeOptions}
             classNamePrefix="react-select"
           />
         </div>

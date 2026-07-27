@@ -1,4 +1,7 @@
-export const balanceLeavesColumn = ({ showWeekOffs = false } = {}) => [
+export const balanceLeavesColumn = ({
+  showWeekOffs = false,
+  showCompOff = false,
+} = {}) => [
   {
     name: "Category",
     cell: (row) => row.category,
@@ -24,10 +27,14 @@ export const balanceLeavesColumn = ({ showWeekOffs = false } = {}) => [
     name: "Unpaid",
     cell: (row) => row.unpaidLeaves ?? "-",
   },
-  {
-    name: "Comp-Off's",
-    cell: (row) => row.compOff ?? "-",
-  },
+  ...(showCompOff
+    ? [
+        {
+          name: "Comp-Off's",
+          cell: (row) => row.compOff ?? "-",
+        },
+      ]
+    : []),
   // {
   //   name: "Comp-Off Carry Forwards",
   //   cell: (row) => {

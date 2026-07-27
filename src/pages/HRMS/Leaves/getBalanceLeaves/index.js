@@ -16,6 +16,7 @@ const GetBalanceLeaves = () => {
   const [weekOffModal, setWeekOffModal] = useState(false);
   const [isRotational, setIsRotational] = useState(false);
   const [weekOffEligible, setWeekOffEligible] = useState(false);
+  const [isHeadOffice, setIsHeadOffice] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -55,6 +56,7 @@ const GetBalanceLeaves = () => {
       setWeekOffPolicy(res?.weekOffs || null);
       setIsRotational(Boolean(res?.isRotational));
       setWeekOffEligible(Boolean(res?.weekOffEligible));
+      setIsHeadOffice(Boolean(res?.isHeadOffice));
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch data");
@@ -95,7 +97,10 @@ const GetBalanceLeaves = () => {
       </div>
 
       <DataTableComponent
-        columns={balanceLeavesColumn({ showWeekOffs: isRotational })}
+        columns={balanceLeavesColumn({
+          showWeekOffs: isRotational,
+          showCompOff: isHeadOffice,
+        })}
         data={balanceData}
         loading={loading}
         pagination={false}
