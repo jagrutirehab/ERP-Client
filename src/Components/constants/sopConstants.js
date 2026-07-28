@@ -64,6 +64,9 @@ export const OPERATOR_OPTIONS = [
   // Relative-date operator (Date fields). Value is a number of days; passes
   // when the field is older than that many days from now.
   { value: "OLDER_THAN_DAYS", label: "Older than (days)" },
+  // Streak-based operator for discontinuation rules. Fires when the last N
+  // assessments all score below the threshold.
+  { value: "CONSECUTIVE_LOW", label: "Consecutive low (discontinue)" },
 ];
 
 // Operators whose value editor is a plain number of days against a Date field.
@@ -77,6 +80,7 @@ export const OPERATORS_BY_TYPE = {
     "LESS_THAN_OR_EQUAL",
     "EQUALS",
     "NOT_EQUALS",
+    "CONSECUTIVE_LOW",
   ],
   Date: [
     "GREATER_THAN",
@@ -177,6 +181,9 @@ export const emptyConditionItem = () => ({
   // Populated only when operator is ARRAY_ANY_MATCHES (today: LabReport
   // flagged-items conditions).
   arrayMatch: null,
+  // Populated only when operator is CONSECUTIVE_LOW (discontinuation rules).
+  // count = how many consecutive assessments must score below the threshold.
+  consecutiveMatch: null,
 });
 
 export const emptyRouting = () => ({
