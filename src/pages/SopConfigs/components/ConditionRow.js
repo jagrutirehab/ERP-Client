@@ -64,6 +64,7 @@ const ConditionRow = ({
   const isBloodGroup = condition.field === "detailAdmission.bloodGroup";
   const isBoolean = fieldType === "Boolean";
   const isFlaggedItems = fieldType === "FlaggedItemArray";
+  const isConsecutiveLow = condition.operator?.value === "CONSECUTIVE_LOW";
   const isDelayed = condition.triggerType?.value === "DELAYED";
   const isFrequency = condition.schedule?.period?.value === "FREQUENCY";
   const hasEnum =
@@ -454,6 +455,43 @@ const ConditionRow = ({
 
   const renderValue = () => {
     if (isFlaggedItems) return renderFlaggedItemsEditor();
+
+    // CONSECUTIVE_LOW: two inputs — threshold (value[0]) and consecutive count.
+    if (isConsecutiveLow) {
+      return (
+        <div>
+          <Input
+            type="number"
+            min="0"
+            step="1"
+            placeholder="Threshold (score below this)"
+            value={condition.value?.[0] ?? ""}
+            onChange={(e) => onChange(idx, "value", [e.target.value])}
+            disabled={isDisabled}
+          />
+          <div className="mt-1">
+            <Input
+              type="number"
+              min="1"
+              step="1"
+              placeholder="Consecutive count (e.g. 3)"
+              value={condition.consecutiveMatch?.count ?? ""}
+              onChange={(e) =>
+                onChange(idx, "consecutiveMatch", {
+                  ...(condition.consecutiveMatch || {}),
+                  count: e.target.value.replace(/[^\d]/g, ""),
+                })
+              }
+              disabled={isDisabled}
+            />
+          </div>
+          <small className="text-muted d-block mt-1">
+            Alert fires when the last {condition.consecutiveMatch?.count || "N"}{" "}
+            assessments all score below {condition.value?.[0] || "threshold"}
+          </small>
+        </div>
+      );
+    }
 
     // Relative-date operators (e.g. OLDER_THAN_DAYS) take a plain number of
     // days, not a date. Stored as a single-element array to match the other

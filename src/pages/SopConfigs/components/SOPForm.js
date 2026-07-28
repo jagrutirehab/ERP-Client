@@ -88,6 +88,9 @@ const hydrateCondition = (c) => ({
         comparator: c.arrayMatch.comparator || "SEVERITY",
       }
     : null,
+  consecutiveMatch: c.consecutiveMatch
+    ? { count: c.consecutiveMatch.count != null ? String(c.consecutiveMatch.count) : "" }
+    : null,
 });
 
 // Builds an AsyncSelect option from a stored medicine doc + snapshot.
@@ -467,6 +470,13 @@ const SOPForm = ({
       };
     }
 
+    // CONSECUTIVE_LOW carries the consecutive count in consecutiveMatch.
+    if (c.operator?.value === "CONSECUTIVE_LOW" && c.consecutiveMatch) {
+      out.consecutiveMatch = {
+        count: Number(c.consecutiveMatch.count),
+      };
+    }
+
     // Schedule is only meaningful for DELAYED conditions, and only when the
     // user picked a non-default pattern.
     if (c.triggerType?.value === "DELAYED") {
@@ -505,6 +515,17 @@ const SOPForm = ({
           const days = Number(c.value?.[0]);
           if (!Number.isFinite(days) || days <= 0) {
             bErr.conditions[cIdx] = "Enter a positive number of days";
+            hasTargetErrors = true;
+          }
+        } else if (c.operator?.value === "CONSECUTIVE_LOW") {
+          const threshold = Number(c.value?.[0]);
+          if (!Number.isFinite(threshold)) {
+            bErr.conditions[cIdx] = "Enter a numeric threshold";
+            hasTargetErrors = true;
+          }
+          const count = Number(c.consecutiveMatch?.count);
+          if (!Number.isFinite(count) || count < 1) {
+            bErr.conditions[cIdx] = "Consecutive count must be >= 1";
             hasTargetErrors = true;
           }
         } else if (
