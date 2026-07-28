@@ -10,6 +10,7 @@ const INFLOW_FIELDS = [
   "opd_cash",
   "intern_cash",
   "ipd_deposit_cash",
+  "inflow"
 ];
 
 const OUTFLOW_FIELDS = ["spending", "bank_deposit"];

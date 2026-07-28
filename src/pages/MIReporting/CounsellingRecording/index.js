@@ -100,7 +100,7 @@ const CounsellingRecording = () => {
             "Psychologist Name",
             "MTD",
             "Center Name",
-            "Current Patients Count",
+            "Current Pt. Count",
 
             ]
 
@@ -110,7 +110,7 @@ const CounsellingRecording = () => {
             "Psychologist Name":"psychologist",
             "MTD":"total",
             "Center Name":"center_name",
-            "Current Patients Count":"assigned_patients",
+            "Current Pt. Count":"assigned_patients",
 
 
     }
@@ -118,7 +118,7 @@ const CounsellingRecording = () => {
     const last30Days = useMemo(() => {
         const days = [];
         const today = new Date();
-        for (let i =1; i < 30; i++) {
+        for (let i =1; i < 60; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             const key =d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");

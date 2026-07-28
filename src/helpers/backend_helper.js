@@ -2236,6 +2236,14 @@ export const getClinicalNotesDOD = (data) => {
   });
 };
 
+export const getCounsellingSessionsPatientsDOD = (data) => {
+  return api.get(url.GET_COUNSELLING_SESSIONS_PATIENTS_DOD, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getVitalSignsDOD = (data) => {
   return api.get(url.GET_VITAL_SIGNS_DOD, {
     params: {
@@ -2369,6 +2377,24 @@ export const getMetricsReport = (data) => {
   return api.get(url.GET_METRICS_REPORT, {
     params: {
       centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getOccupancyMonthly = (data) => {
+  return api.get(url.GET_OCCUPANCY_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getAdmissionDischargeDaily = (data) => {
+  return api.get(url.GET_ADMISSION_DISCHARGE_DAILY, {
+    params: {
+      centerIds: data?.centerAccess,
+      from: data?.startDate,
+      to: data?.endDate,
     },
   });
 };

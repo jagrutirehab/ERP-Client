@@ -24,6 +24,7 @@ import OwnerLeadStatus from "./LeadStatus/OwnerLeadStatus";
 import RefundAmountMOM from "./RefundAmountMOM";
 import RoundNotesDOD from "./RoundNotesDOD";
 import ClinicalNotesDOD from "./ClinicalNotesDOD";
+import CounsellingSessionsPatients from "./CounsellingSessionsPatients";
 import VitalSignsDOD from "./VitalSignsDOD";
 import PatientDocs from "./PatientDocs";
 import OpdPatientDocs from "./OpdPatientDocs";
@@ -40,6 +41,7 @@ import CashPerCenter from "./CashPerCenter";
 import WriteOFFAmount from "./WriteOFFAmount";
 import AuditForms from "./AuditForms";
 import MetricsReport from "./MetricsReport";
+import Occupancy from "./Occupancy";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -208,6 +210,11 @@ const MiReporting = () => {
                   />}
 
                   {hasMISPermission&&<Route
+                    path="/counselling-sessions-patients"
+                    element={<CounsellingSessionsPatients />}
+                  />}
+
+                  {hasMISPermission&&<Route
                     path="/vital-signs"
                     element={<VitalSignsDOD />}
                   />}
@@ -283,6 +290,11 @@ const MiReporting = () => {
                   {hasMISPermission&&<Route
                     path="/metrics-report"
                     element={<MetricsReport />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/occupancy"
+                    element={<Occupancy />}
                   />}
 
 

@@ -519,6 +519,7 @@ export const GET_CENTER_WISE_STATUS_MOM =
 export const GET_REFUND_AMOUNT_MOM = "/mi-reporting/refund-amount-mom";
 export const GET_ROUND_NOTES_DOD = "/mi-reporting/round-notes-dod";
 export const GET_CLINICAL_NOTES_DOD = "/mi-reporting/clinical-notes-dod";
+export const GET_COUNSELLING_SESSIONS_PATIENTS_DOD = "/mi-reporting/counselling-sessions-patients-dod";
 export const GET_VITAL_SIGNS_DOD = "/mi-reporting/vital-signs-dod";
 export const GET_NURSES_DOD = "/mi-reporting/nurses-dod";
 export const GET_PATIENT_DOCS = "/mi-reporting/get-patient-docs";
@@ -537,6 +538,8 @@ export const GET_TRAINING_FORMS_WEEKLY = "/mi-reporting/training-forms-weekly";
 export const GET_TRAINING_FORMS_MONTHLY = "/mi-reporting/training-forms-monthly";
 export const GET_AUDIT_DAILY = "/mi-reporting/audit-daily";
 export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
+export const GET_OCCUPANCY_MONTHLY = "/mi-reporting/occupancy-monthly";
+export const GET_ADMISSION_DISCHARGE_DAILY = "/mi-reporting/admission-discharge-daily";
 
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";

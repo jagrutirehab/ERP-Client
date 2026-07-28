@@ -95,6 +95,7 @@ const Sidebar = () => {
     { id: "refund-amount", label: "Refund Amount", link: "/mi-reporting/refund-amount", icon: "bx bx-revision" },
     { id: "round-notes", label: "Round Notes", link: "/mi-reporting/round-notes", icon: "bx bx-notepad" },
     { id: "clinical-notes", label: "Clinical Notes", link: "/mi-reporting/clinical-notes", icon: "bx bx-clipboard" },
+    { id: "counselling-sessions-patients", label: "Counselling Patients", link: "/mi-reporting/counselling-sessions-patients", icon: "bx bx-conversation" },
     { id: "vital-signs", label: "Vital Signs", link: "/mi-reporting/vital-signs", icon: "bx bx-heart-circle" },
     { id: "patient-docs", label: "IPD Patient Docs", link: "/mi-reporting/patient-docs", icon: "bx bx-bed" },
     { id: "opd-patient-docs", label: "OPD Patient Docs", link: "/mi-reporting/opd-patient-docs", icon: "bx bx-walk" },
@@ -110,6 +111,7 @@ const Sidebar = () => {
     { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money" },
     { id: "forms-data", label: "Forms Data", link: "/mi-reporting/forms-data", icon: "bx bx-clipboard" },
     { id: "metrics-report", label: "Metrics Report", link: "/mi-reporting/metrics-report", icon: "bx bx-line-chart" },
+    { id: "occupancy", label: "Occupancy", link: "/mi-reporting/occupancy", icon: "bx bx-bed" },
   ];
 
   const sidebarStyle = isMobile

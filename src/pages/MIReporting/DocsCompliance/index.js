@@ -30,18 +30,21 @@ const METRICS = [
     { label: "History",              key: "history"              },
     { label: "Belongings Form",      key: "belongings_form"      },
     { label: "Lab Report",           key: "lab_report"           },
+    { label: "Discharge Summary",    key: "discharge_summary"    },
+    { label: "Discharge Form",       key: "dischargeform"        },
+    { label: "Undertaking Discharge Form", key: "undertakingdischargeform" },
     { label: "Nurses DOD",           key: "nurses_dod"           },
     { label: "Daily Invoice",        key: "daily_invoice"        },
     { label: "Vital Signs",          key: "vital_signs"          },
     { label: "Clinical Notes",       key: "clinical_notes"       },
     { label: "Counselling Sessions", key: "counselling_sessions" },
     { label: "Counselling Recording",key: "counselling_recording"},
+    { label: "Counselling Sessions Patients",  key: "counselling_sessions_patients"  },
     { label: "Round Notes",          key: "round_notes"          },
     { label: "Due Amount",           key: "due_amount"           },
     { label: "Prescription Status",  key: "prescription_status"  },
-    { label: "Discharge Summary",    key: "discharge_summary"    },
-    { label: "Discharge Form",       key: "dischargeform"        },
-    { label: "Undertaking Discharge Form", key: "undertakingdischargeform" },
+
+    
 ];
 
 const DocsCompliance = () => {

@@ -102,7 +102,7 @@
             "Center Name",
             "Ad. Date",
             "Psychologist Name",
-            "Assigned Patients",
+            "Assigned Pt.",
             "Last Outpass",
 
 
@@ -115,7 +115,7 @@
             "Center Name":"center_name",
              "Patient Name":"patient",
              "Patient UID":"patient_id",
-            "Assigned Patients":"assigned_patients",
+            "Assigned Pt.":"assigned_patients",
             "MTD":"total",
             "Ad. Date":"admission_date",
             "Last Outpass":"last_outpass",
@@ -129,7 +129,7 @@
     const last30Days = useMemo(() => {
         const days = [];
         const today = new Date();
-        for (let i =1; i < 30; i++) {
+        for (let i =1; i < 60; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             const key =d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");

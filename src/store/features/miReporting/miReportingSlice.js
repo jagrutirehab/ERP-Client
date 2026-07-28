@@ -16,6 +16,7 @@ import {
   getRefundAmountMOM,
   getRoundNotesDOD,
   getClinicalNotesDOD,
+  getCounsellingSessionsPatientsDOD,
   getVitalSignsDOD,
   getNursesDOD,
   getPatientDocs,
@@ -36,6 +37,8 @@ import {
   getTrainingFormsMonthly,
   getAuditDaily,
   getMetricsReport,
+  getOccupancyMonthly,
+  getAdmissionDischargeDaily,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -81,6 +84,9 @@ const initialState = {
   trainingFormsMonthly: [],
   auditDaily: [],
   metricsReport: [],
+  occupancyMonthly: [],
+  admissionDischargeDaily: [],
+  counsellingSessionsPatientsDOD: [],
   loading: false,
   error: null,
 };
@@ -406,6 +412,36 @@ export const fetchMetricsReport = createAsyncThunk(
 );
 
 
+export const fetchAdmissionDischargeDaily = createAsyncThunk(
+  "miReporting/fetchAdmissionDischargeDaily",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getAdmissionDischargeDaily(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch admission discharge daily"
+      );
+    }
+  }
+);
+
+
+export const fetchOccupancyMonthly = createAsyncThunk(
+  "miReporting/fetchOccupancyMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getOccupancyMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch occupancy monthly"
+      );
+    }
+  }
+);
+
+
 export const fetchTrainingFormsMonthly = createAsyncThunk(
   "miReporting/fetchTrainingFormsMonthly",
   async (data, { rejectWithValue }) => {
@@ -462,6 +498,21 @@ export const fetchClinicalNotesDOD = createAsyncThunk(
        console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Clinical notes dod"
+      );
+    }
+  }
+);
+
+
+export const fetchCounsellingSessionsPatientsDOD = createAsyncThunk(
+  "miReporting/fetchCounsellingSessionsPatientsDOD",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getCounsellingSessionsPatientsDOD(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch counselling sessions patients dod"
       );
     }
   }
@@ -863,6 +914,18 @@ const miReportingSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(fetchCounsellingSessionsPatientsDOD.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCounsellingSessionsPatientsDOD.fulfilled, (state, action) => {
+        state.loading = false;
+        state.counsellingSessionsPatientsDOD = action.payload.payload || [];
+      })
+      .addCase(fetchCounsellingSessionsPatientsDOD.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       .addCase(fetchVitalSignsDOD.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -1132,6 +1195,32 @@ const miReportingSlice = createSlice({
         state.metricsReport = action.payload.payload || [];
       })
       .addCase(fetchMetricsReport.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Occupancy Monthly
+      .addCase(fetchOccupancyMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchOccupancyMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.occupancyMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchOccupancyMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Admission Discharge Daily
+      .addCase(fetchAdmissionDischargeDaily.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAdmissionDischargeDaily.fulfilled, (state, action) => {
+        state.loading = false;
+        state.admissionDischargeDaily = action.payload.payload || [];
+      })
+      .addCase(fetchAdmissionDischargeDaily.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
