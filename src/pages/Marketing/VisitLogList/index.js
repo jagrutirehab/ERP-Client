@@ -109,7 +109,7 @@ const VisitLogList = () => {
     setLoading(true);
     setError(null);
     try {
-      const params = {};
+      const params = {limit: 500};
       if (activeFilters.visitType) params.visitType = activeFilters.visitType;
       if (activeFilters.center) params.center = activeFilters.center;
       if (activeFilters.interestLevel)
