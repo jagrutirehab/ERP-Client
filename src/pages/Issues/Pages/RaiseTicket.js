@@ -6,6 +6,7 @@ import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import {
   getEmployeesBySearch,
   postIssue,
+  getCentreManagersByCenter,
 } from "../../../helpers/backend_helper";
 import { getAllCenters } from "../../../helpers/backend_helper";
 import TicketForm from "../Components/TicketForm";
@@ -38,6 +39,11 @@ const initialFormState = {
   complaintAgainst: null,
   complaintSubject: "",
   complaintDescription: "",
+  operationalCentreManager: null,
+  operationalCategory: null,
+  operationalOtherCategory: "",
+  operationalDescription: "",
+  operationalPatientOrStaffId: "",
   files: [],
 };
 const RaiseTicket = () => {
@@ -51,6 +57,8 @@ const RaiseTicket = () => {
   const [selectedCenter, setSelectedCenter] = useState(null);
 
   const [loader, setLoader] = useState(false);
+  const [centreManagers, setCentreManagers] = useState([]);
+  const [loadingCentreManagers, setLoadingCentreManagers] = useState(false);
 
   const [form, setForm] = useState(initialFormState);
   const fileInputRef = useRef(null);
@@ -145,6 +153,36 @@ const RaiseTicket = () => {
 
     fetchCenters();
   }, []);
+  useEffect(() => {
+    const fetchCentreManagers = async () => {
+      if (!form.center || issueType !== "OPERATIONAL") {
+        setCentreManagers([]);
+        return;
+      }
+      try {
+        setLoadingCentreManagers(true);
+        setForm((prev) => ({ ...prev, operationalCentreManager: null }));
+
+        const response = await getCentreManagersByCenter({
+          center: form.center,
+        });
+
+        const options =
+          response?.data?.map((emp) => ({
+            value: emp._id,
+            label: `${emp.name} (${emp.eCode})`,
+          })) || [];
+
+        setCentreManagers(options);
+      } catch (error) {
+        console.log("Error fetching centre managers", error);
+      } finally {
+        setLoadingCentreManagers(false);
+      }
+    };
+
+    fetchCentreManagers();
+  }, [form.center, issueType]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -211,6 +249,21 @@ const RaiseTicket = () => {
         formData.append("subject", form.complaintSubject);
         formData.append("description", form.complaintDescription);
       }
+     if (issueType === "OPERATIONAL") {
+        formData.append(
+          "centreManager",
+          form.operationalCentreManager?.value,
+        );
+        formData.append("category", form.operationalCategory?.value);
+        if (form.operationalCategory?.value === "OTHER") {
+          formData.append("otherCategory", form.operationalOtherCategory);
+        }
+        formData.append("description", form.operationalDescription);
+        formData.append(
+          "patientOrStaffId",
+          form.operationalPatientOrStaffId,
+        );
+      }
 
       if (form.files && form.files.length) {
         for (const file of form.files) {
@@ -262,6 +315,8 @@ const RaiseTicket = () => {
         loader={loader}
         fileInputRef={fileInputRef}
         canSubmit={canSubmit}
+         centreManagers={centreManagers}
+        loadingCentreManagers={loadingCentreManagers}
       />
     </CardBody>
   );

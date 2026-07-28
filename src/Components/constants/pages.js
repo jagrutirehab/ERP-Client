@@ -1310,6 +1310,12 @@ export const ISSUES = [
     icon: "bx bx-flag",
     link: "/issues/complaint/issues",
   },
+  {
+    id: "operational-issues",
+    label: "Operational Issues",
+    icon: "bx bx-briefcase",
+    link: "/issues/operational/issues",
+  },
 
   {
     id: "my-issues",
