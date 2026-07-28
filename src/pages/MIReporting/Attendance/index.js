@@ -6,6 +6,11 @@ import { CSVLink } from "react-csv";
 import { fetchMIAttendance } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
 
+const MONTH_OPTIONS = [
+    { value: "CURRENT", label: "Current Month" },
+    { value: "LAST", label: "Last Month" },
+];
+
 const Attendance = () => {
     const dispatch = useDispatch();
     const miAttendance = useSelector((state) => state.MIReporting.miAttendance);
@@ -14,6 +19,7 @@ const Attendance = () => {
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [selectedMonth, setSelectedMonth] = useState("CURRENT");
     const [searchInput, setSearchInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [isSearching, setIsSearching] = useState(false);
@@ -41,6 +47,7 @@ const Attendance = () => {
         const term = searchTerm.trim().toLowerCase();
         return data.filter((item) => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
+            if (selectedMonth === "CURRENT" && item?.exited_last_month) return false;
             if (term) {
                 const ecode = (item?.ecode || "").toLowerCase();
                 const name = (item?.employee_name || "").toLowerCase();
@@ -48,7 +55,7 @@ const Attendance = () => {
             }
             return true;
         });
-    }, [data, selectedCenter, searchTerm]);
+    }, [data, selectedCenter, selectedMonth, searchTerm]);
 
     const last60Days = useMemo(() => {
         const days = [];
@@ -79,8 +86,8 @@ const Attendance = () => {
         "Center Name": "center_name",
         "Designation": "designation",
         "Joining Date": "joining_date",
-        "Actual Att.": "actual_attendance",
-        "MTD": "att_till_date",
+        "Actual Att.": selectedMonth === "LAST" ? "last_month_actual_attendance" : "actual_attendance",
+        "MTD": selectedMonth === "LAST" ? "last_month_att" : "att_till_date",
     };
 
     const dateTotals = useMemo(() => {
@@ -174,6 +181,14 @@ const Attendance = () => {
                                     onChange={(opt) => setSelectedCenter(opt.value)}
                                     options={centerOptions}
                                     placeholder="Center..."
+                                />
+                            </Col>
+                            <Col md={2}>
+                                <Select
+                                    value={MONTH_OPTIONS.find((o) => o.value === selectedMonth) || MONTH_OPTIONS[0]}
+                                    onChange={(opt) => setSelectedMonth(opt.value)}
+                                    options={MONTH_OPTIONS}
+                                    placeholder="Month..."
                                 />
                             </Col>
                             <Col md={2}>
