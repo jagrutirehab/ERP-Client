@@ -709,6 +709,7 @@ export const GET_FINANCE_ISSUES = "/issues/finance/issues/tax/compliance";
 export const GET_PAYSLIPS_ISSUES_REQUESTS =
   "/issues/get/finance/payslip/requests";
 export const ADD_ISSUE_NOTE = "/issues/note/add";
+export const GET_CENTRE_MANAGERS = "/issues/get/centre-managers";
 export const POST_EMPLOYEE_FORM = "/hr/create/employee/form";
 export const EMPLOYEE_FORMS = "/hr/get/employee/forms";
 export const DELETE_EMPLOYEE_FORM = "/hr/delete/employee/form";

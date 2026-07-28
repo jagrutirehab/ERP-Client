@@ -2779,6 +2779,8 @@ export const getEmployeesBySearch = (params = {}) => {
       qs.stringify(params, { arrayFormat: "repeat" }),
   });
 };
+export const getCentreManagersByCenter = (params = {}) =>
+  api.get(url.GET_CENTRE_MANAGERS, { params });
 
 export const getManagementHiringRequests = (params = {}) => {
   return axios.get(url.GET_MANAGEMENT_HIRING_REQUESTS, {

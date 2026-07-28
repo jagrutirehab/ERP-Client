@@ -427,6 +427,7 @@ export const permissionList = [
       { name: "MY_RAISED_TICKETS", label: "My Raised Tickets" },
       { name: "MAINTENANCE_ISSUES", label: "Maintenance Issues" },
       { name: "COMPLAINT_ISSUES", label: "Complaint Issues" },
+      { name: "OPERATIONAL_ISSUES", label: "Operational Issues" },
     ],
   },
   {
