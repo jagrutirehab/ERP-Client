@@ -590,8 +590,7 @@ export const Issues = (
   // canChangeStatus &&
   ...((type === "HR" ||
     (type === "COMPLAINT" && status !== "new") ||
-    (type === "MAINTENANCE" && status !== "new") ||
-    type === "OPERATIONAL") &&
+    (type === "MAINTENANCE" && status !== "new")) &&
   canEdit &&
   (status !== "resolved" || status === "")
     ? [

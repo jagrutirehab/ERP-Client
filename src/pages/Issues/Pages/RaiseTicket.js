@@ -12,7 +12,18 @@ import { getAllCenters } from "../../../helpers/backend_helper";
 import TicketForm from "../Components/TicketForm";
 import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
-
+const FIXED_ASSIGNEES = [
+  { value: "6a2692bf484a7e7fd29da3ae", label: "PUSHPENDRA SINGH (JRC0894)" },
+  { value: "697e145529c91d173986bdb8", label: "SHIVANI GUPTA (JRC0571)" },
+  ...(process.env.REACT_APP_ENV !== "production"
+    ? [
+        {
+          value: "696e176dea1a23b429717266",
+          label: "PRATIK MANE (JRC0280) - TEST",
+        },
+      ]
+    : []),
+];
 const initialFormState = {
   requestedFrom: null,
   center: "",
@@ -40,6 +51,7 @@ const initialFormState = {
   complaintSubject: "",
   complaintDescription: "",
   operationalCentreManager: null,
+  operationalAssignedTo: null,
   operationalCategory: null,
   operationalOtherCategory: "",
   operationalDescription: "",
@@ -249,20 +261,15 @@ const RaiseTicket = () => {
         formData.append("subject", form.complaintSubject);
         formData.append("description", form.complaintDescription);
       }
-     if (issueType === "OPERATIONAL") {
-        formData.append(
-          "centreManager",
-          form.operationalCentreManager?.value,
-        );
+      if (issueType === "OPERATIONAL") {
+        formData.append("centreManager", form.operationalCentreManager?.value);
+        formData.append("assignedTo", form.operationalAssignedTo?.value);
         formData.append("category", form.operationalCategory?.value);
         if (form.operationalCategory?.value === "OTHER") {
           formData.append("otherCategory", form.operationalOtherCategory);
         }
         formData.append("description", form.operationalDescription);
-        formData.append(
-          "patientOrStaffId",
-          form.operationalPatientOrStaffId,
-        );
+        formData.append("patientOrStaffId", form.operationalPatientOrStaffId);
       }
 
       if (form.files && form.files.length) {
@@ -315,8 +322,9 @@ const RaiseTicket = () => {
         loader={loader}
         fileInputRef={fileInputRef}
         canSubmit={canSubmit}
-         centreManagers={centreManagers}
+        centreManagers={centreManagers}
         loadingCentreManagers={loadingCentreManagers}
+        fixedAssignees={FIXED_ASSIGNEES}
       />
     </CardBody>
   );
