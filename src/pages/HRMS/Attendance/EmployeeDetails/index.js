@@ -20,8 +20,8 @@ const EmployeeAttendance = () => {
     const location = useLocation();
 
     const [selectedMonth, setSelectedMonth] = useState(new Date());
-    const passedStart = location.state?.startDate;
-    const passedEnd = location.state?.endDate;
+    const passedStart = location.state?.startDate || searchParams.get('startDate');
+    const passedEnd = location.state?.endDate || searchParams.get('endDate');
     console.log("passedStart : ", passedStart);
     console.log("passedEnd : ", passedEnd);
 

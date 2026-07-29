@@ -189,12 +189,14 @@ const AttendanceMetrics = () => {
     }
 
     const handleNavigate = (employeeId, centerId) => {
-        navigate(`/hr/attendance/employee?id=${employeeId}&centerId=${centerId}`, {
-            state: {
-                startDate: reportDate.start,
-                endDate: reportDate.end
-            }
-        })
+        const params = new URLSearchParams({
+            id: employeeId,
+            centerId: centerId,
+            startDate: new Date(reportDate.start).toISOString(),
+            endDate: new Date(reportDate.end).toISOString(),
+        });
+        const url = `${process.env.PUBLIC_URL || ""}/hr/attendance/employee?${params.toString()}`;
+        window.open(url, "_blank", "noopener,noreferrer");
     }
 
     const columns = attendanceMetricsColumns({
