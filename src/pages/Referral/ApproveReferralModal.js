@@ -34,7 +34,7 @@ const ApproveReferralModal = ({ isOpen, toggle, referral, onConfirm }) => {
       email: referral?.email || "",
     },
     validationSchema: Yup.object({
-      doctorName: Yup.string().required("Doctor Name is required"),
+      doctorName: Yup.string().required("Contact Name is required"),
       speciality: Yup.string().required("Speciality is required"),
       hospitalClinic: Yup.string().required("Hospital/Clinic is required"),
       mobileNumber: Yup.string()
@@ -57,7 +57,7 @@ const ApproveReferralModal = ({ isOpen, toggle, referral, onConfirm }) => {
 
   return (
     <Modal isOpen={isOpen} toggle={handleCancel} centered size="lg">
-      <ModalHeader toggle={handleCancel}>Approve Referral Doctor</ModalHeader>
+      <ModalHeader toggle={handleCancel}>Approve Contact</ModalHeader>
       <Form
         onSubmit={(e) => {
           e.preventDefault();
@@ -70,14 +70,14 @@ const ApproveReferralModal = ({ isOpen, toggle, referral, onConfirm }) => {
             <Col md={6}>
               <FormGroup>
                 <Label htmlFor="doctorName">
-                  Doctor Name <span className="text-danger">*</span>
+                  Contact Name <span className="text-danger">*</span>
                 </Label>
                 <Input
                   type="text"
                   id="doctorName"
                   name="doctorName"
                   className="form-control"
-                  placeholder="Enter Doctor Name"
+                  placeholder="Enter Contact Name"
                   value={validation.values.doctorName || ""}
                   onChange={validation.handleChange}
                   onBlur={validation.handleBlur}
@@ -220,7 +220,7 @@ const ApproveReferralModal = ({ isOpen, toggle, referral, onConfirm }) => {
             Cancel
           </Button>
           <Button color="success" type="submit">
-            Approve Referral
+            Approve Contact
           </Button>
         </ModalFooter>
       </Form>

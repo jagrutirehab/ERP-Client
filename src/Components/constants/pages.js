@@ -222,8 +222,9 @@ const pages = [
   {
     id: "referral",
     label: "Referral",
+    displayLabel: "Contacts",
     name: "Referral",
-    link: "/referral",
+    link: "/contacts",
     icon: "bx bx-share-alt",
     permissions: {
       create: true,
@@ -1309,6 +1310,12 @@ export const ISSUES = [
     label: "Complaint Tickets",
     icon: "bx bx-flag",
     link: "/issues/complaint/issues",
+  },
+  {
+    id: "operational-issues",
+    label: "Operational Issues",
+    icon: "bx bx-briefcase",
+    link: "/issues/operational/issues",
   },
 
   {

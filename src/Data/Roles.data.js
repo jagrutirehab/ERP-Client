@@ -57,10 +57,10 @@ export const permissionList = [
   },
   {
     key: "REFERRAL",
-    label: "Referral",
+    label: "Contacts",
     subModules: [
-      { name: "APPROVE_REFERRAL", label: "Approve Referral" },
-      { name: "REJECT_REFERRAL", label: "Reject Referral" },
+      { name: "APPROVE_REFERRAL", label: "Approve Contact" },
+      { name: "REJECT_REFERRAL", label: "Reject Contact" },
     ],
   },
   {
@@ -427,6 +427,7 @@ export const permissionList = [
       { name: "MY_RAISED_TICKETS", label: "My Raised Tickets" },
       { name: "MAINTENANCE_ISSUES", label: "Maintenance Issues" },
       { name: "COMPLAINT_ISSUES", label: "Complaint Issues" },
+      { name: "OPERATIONAL_ISSUES", label: "Operational Issues" },
     ],
   },
   {

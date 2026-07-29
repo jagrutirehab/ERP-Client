@@ -37,6 +37,9 @@ const TicketForm = ({
   loader,
   fileInputRef,
   canSubmit,
+  centreManagers,
+  loadingCentreManagers,
+  fixedAssignees
 }) => {
   const [loading, setLoading] = useState(false);
   const token = JSON.parse(localStorage.getItem("user"))?.token;
@@ -118,6 +121,19 @@ const TicketForm = ({
       if (!form.complaintDescription) return false;
     }
 
+   if (issueType === "OPERATIONAL") {
+      if (!form.operationalCentreManager) return false;
+      if (!form.operationalAssignedTo) return false;
+      if (!form.operationalCategory) return false;
+      if (
+        form.operationalCategory?.value === "OTHER" &&
+        !form.operationalOtherCategory
+      )
+        return false;
+      if (!form.operationalDescription) return false;
+      if (!form.operationalPatientOrStaffId) return false;
+    }
+
     // if (!form.files || form.files.length === 0) return false;
 
     return true;
@@ -129,7 +145,7 @@ const TicketForm = ({
     // { value: "FINANCE", label: "FINANCE" },
     { value: "MAINTENANCE", label: "MAINTENANCE" },
     { value: "COMPLAINT", label: "COMPLAINT" },
-
+    { value: "OPERATIONAL", label: "OPERATIONAL" },
     // { value: "PURCHASE", label: "PURCHASE" },
     // { value: "REVIEW_SUBMISSION", label: "REVIEW SUBMISSION" },
   ];
@@ -138,7 +154,7 @@ const TicketForm = ({
     <Form onSubmit={handleSubmit}>
       <Row className="g-4">
         {/* ISSUE TYPE */}
-        <Col md={6}>
+        <Col md={issueType === "OPERATIONAL" ? 4 : 6}>
           <Label className="fw-semibold">
             Ticket Type <span className="text-danger">*</span>
           </Label>
@@ -151,7 +167,7 @@ const TicketForm = ({
           />
         </Col>
         {/* CENTER */}
-        <Col md={6}>
+        <Col md={issueType === "OPERATIONAL" ? 4 : 6}>
           <Label className="fw-semibold">
             Center<span className="text-danger">*</span>
           </Label>
@@ -166,6 +182,26 @@ const TicketForm = ({
             }}
           />
         </Col>
+
+        {issueType === "OPERATIONAL" && (
+          <Col md={4}>
+            <Label className="fw-semibold">
+              Centre Manager<span className="text-danger">*</span>
+            </Label>
+            <Select
+              placeholder={
+                form.center ? "Select Centre Manager" : "Select a Center first"
+              }
+              options={centreManagers}
+              value={form.operationalCentreManager}
+              isDisabled={!form.center}
+              isLoading={loadingCentreManagers}
+              onChange={(option) =>
+                setForm({ ...form, operationalCentreManager: option })
+              }
+            />
+          </Col>
+        )}
 
         {/* REQUESTED FROM */}
         <Col md={6}>
@@ -624,6 +660,107 @@ const TicketForm = ({
                 rows="4"
                 name="complaintDescription"
                 value={form.complaintDescription || ""}
+                onChange={handleChange}
+              />
+            </Col>
+          </>
+        )}
+        {issueType === "OPERATIONAL" && (
+          <>
+           {/* <Col md={6}>
+              <Label className="fw-semibold">
+                Centre Manager<span className="text-danger">*</span>
+              </Label>
+              <Select
+                placeholder={
+                  form.center
+                    ? "Select Centre Manager"
+                    : "Select a Center first"
+                }
+                options={centreManagers}
+                value={form.operationalCentreManager}
+                isDisabled={!form.center}
+                isLoading={loadingCentreManagers}
+                onChange={(option) =>
+                  setForm({ ...form, operationalCentreManager: option })
+                }
+              />
+            </Col> */}
+
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Assign To<span className="text-danger">*</span>
+              </Label>
+              <Select
+                placeholder="Select Assignee"
+                options={fixedAssignees}
+                value={form.operationalAssignedTo}
+                onChange={(option) =>
+                  setForm({ ...form, operationalAssignedTo: option })
+                }
+              />
+            </Col>
+
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Issue Category<span className="text-danger">*</span>
+              </Label>
+              <Select
+                placeholder="Select Category"
+                options={[
+                  { value: "ATTENDANCE", label: "Attendance" },
+                  { value: "MI_REPORTING", label: "MI Reporting" },
+                  { value: "MIS", label: "MIS" },
+                  { value: "WIFI_ISSUE", label: "Wifi Issue" },
+                  { value: "OTHER", label: "Other" },
+                ]}
+                value={form.operationalCategory}
+                onChange={(option) =>
+                  setForm({
+                    ...form,
+                    operationalCategory: option,
+                    operationalOtherCategory: "",
+                  })
+                }
+              />
+            </Col>
+
+            {form.operationalCategory?.value === "OTHER" && (
+              <Col md={6}>
+                <Label className="fw-semibold">
+                  Please specify<span className="text-danger">*</span>
+                </Label>
+                <Input
+                  type="text"
+                  name="operationalOtherCategory"
+                  placeholder="Specify the category"
+                  value={form.operationalOtherCategory || ""}
+                  onChange={handleChange}
+                />
+              </Col>
+            )}
+
+            <Col md={12}>
+              <Label className="fw-semibold">
+                Description<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="textarea"
+                rows="3"
+                name="operationalDescription"
+                value={form.operationalDescription || ""}
+                onChange={handleChange}
+              />
+            </Col>
+
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Patient ID / Staff ID<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="text"
+                name="operationalPatientOrStaffId"
+                value={form.operationalPatientOrStaffId || ""}
                 onChange={handleChange}
               />
             </Col>

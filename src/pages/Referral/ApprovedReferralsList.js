@@ -132,7 +132,7 @@ const ApprovedReferralsList = ({
         <Table className="table-bordered table-nowrap align-middle mb-0">
           <thead className="table-light">
             <tr>
-              <th scope="col">Doctor Name</th>
+              <th scope="col">Contact Name</th>
               <th scope="col">Speciality</th>
               <th scope="col">Hospital/Clinic</th>
               <th scope="col">Mobile Number</th>
@@ -183,7 +183,7 @@ const ApprovedReferralsList = ({
             ) : (
               <tr>
                 <td colSpan="6" className="text-center py-4">
-                  No approved referrals found
+                  No approved contacts found
                 </td>
               </tr>
             )}

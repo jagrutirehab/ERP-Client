@@ -372,7 +372,7 @@ const BillDate = ({
               toggle();
             }}
           >
-            Inovice
+            Invoice
           </Button>
           <Button
             outline
@@ -398,7 +398,7 @@ const BillDate = ({
               toggle();
             }}
           >
-            Inovice Draft
+            Invoice Draft
           </Button>
           {shouldShowWriteOff && adjustedPayable > 0 && (
             <Button outline size="sm" onClick={() => setShowWriteOff(true)}>

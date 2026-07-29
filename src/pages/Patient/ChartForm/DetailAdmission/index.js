@@ -227,7 +227,7 @@ const DetailAdmission = ({
 
       //detail history
       informant: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.informant
+        ? detailAdmissionForm.ChiefComplaints?.informant
         : "",
       counsellor: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.counsellor
@@ -236,10 +236,10 @@ const DetailAdmission = ({
       //   ? detailAdmissionForm.detailHistory?.referredby
       //   : "",
       reliable: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.reliable
+        ? detailAdmissionForm.ChiefComplaints?.reliable
         : "Reliable",
       adequate: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.adequate
+        ? detailAdmissionForm.ChiefComplaints?.adequate
         : "Adequate",
       history: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.history
@@ -707,6 +707,12 @@ const DetailAdmission = ({
       if (!isValid) {
         setPatientTypeSubmitAttempted(true);
         setFormStep(PATIENT_TYPE_FIELDS);
+        return;
+      }
+      const chiefComplaintsMissing =
+        !values.informant || !values.reliable || !values.adequate;
+      if (chiefComplaintsMissing) {
+        setFormStep(CHIEF_COMPLAINTS);
         return;
       }
       if (!isOldMentalExamination) {

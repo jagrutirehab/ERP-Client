@@ -1,13 +1,13 @@
 import { useEffect, useState } from "react";
 import {
-    CardBody,
-    Label,
-    Modal,
-    ModalBody,
-    ModalHeader,
-    Nav,
-    NavItem,
-    NavLink,
+  CardBody,
+  Label,
+  Modal,
+  ModalBody,
+  ModalHeader,
+  Nav,
+  NavItem,
+  NavLink,
 } from "reactstrap";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { Issues } from "../Columns/Issues";
@@ -27,357 +27,364 @@ import Select from "react-select";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const IssuesPage = ({ type }) => {
-    const isMobile = useMediaQuery("(max-width: 1000px)");
-    const user = useSelector((state) => state.User);
-    const centers = useSelector((state) => state.Center.data)
+  const isMobile = useMediaQuery("(max-width: 1000px)");
+  const user = useSelector((state) => state.User);
+  const centers = useSelector((state) => state.Center.data);
 
-    const [issues, setIssues] = useState([]);
-    const [description, setDescription] = useState("");
-    const [loading, setLoading] = useState(false);
-    const [modalOpen, setModalOpen] = useState(false);
-    const [imageModal, setImageModal] = useState(false);
-    const [files, setFiles] = useState([]);
-    const [activeTab, setActiveTab] = useState("new");
-    const [actionLoadingId, setActionLoadingId] = useState(null);
-    const [page, setPage] = useState(1);
-    const [limit, setLimit] = useState(10);
-    const [pagination, setPagination] = useState(null);
-    const [assignModal, setAssignModal] = useState(false);
-    const [selectedIssue, setSelectedIssue] = useState(null);
+  const [issues, setIssues] = useState([]);
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [imageModal, setImageModal] = useState(false);
+  const [files, setFiles] = useState([]);
+  const [activeTab, setActiveTab] = useState("new");
+  const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [pagination, setPagination] = useState(null);
+  const [assignModal, setAssignModal] = useState(false);
+  const [selectedIssue, setSelectedIssue] = useState(null);
 
-    const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [selectedCenter, setSelectedCenter] = useState("ALL");
 
-    const [approvalModal, setApprovalModal] = useState(false);
-    const [approvalIssue, setApprovalIssue] = useState(null);
-    const [approvalStatus, setApprovalStatus] = useState("");
-    const [managerApproval, setManagerApproval] = useState("");
-    const [editRowId, setEditRowId] = useState(null);
-    const [editedApproval, setEditedApproval] = useState("");
-    const [editedApprovalBy, setEditedApprovalBy] = useState("");
-    const [notesModalOpen, setNotesModalOpen] = useState(false);
-    const [notesIssue, setNotesIssue] = useState(null);
-    const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const [approvalModal, setApprovalModal] = useState(false);
+  const [approvalIssue, setApprovalIssue] = useState(null);
+  const [approvalStatus, setApprovalStatus] = useState("");
+  const [managerApproval, setManagerApproval] = useState("");
+  const [editRowId, setEditRowId] = useState(null);
+  const [editedApproval, setEditedApproval] = useState("");
+  const [editedApprovalBy, setEditedApprovalBy] = useState("");
+  const [notesModalOpen, setNotesModalOpen] = useState(false);
+  const [notesIssue, setNotesIssue] = useState(null);
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
 
-    const { hasPermission } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
 
-    const hasWritePermission =
-        type === "TECH"
-            ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "WRITE")
-            : type === "PURCHASE"
-                ? hasPermission("ISSUES", "PURCHASE_ISSUES", "WRITE")
-                : type === "HR"
-                    ? hasPermission("ISSUES", "HR_ISSUES", "WRITE")
-                    : type === "MAINTENANCE"
-                        ? hasPermission("ISSUES", "MAINTENANCE_ISSUES", "WRITE")
-                        : type === "COMPLAINT"
-                            ? hasPermission("ISSUES", "COMPLAINT_ISSUES", "WRITE")
-                            : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "WRITE");
-    const hasDeletePermission =
-        type === "TECH"
-            ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "DELETE")
-            : type === "PURCHASE"
-                ? hasPermission("ISSUES", "PURCHASE_ISSUES", "DELETE")
-                : type === "HR"
-                    ? hasPermission("ISSUES", "HR_ISSUES", "WRITE")
-                    : type === "MAINTENANCE"
-                        ? hasPermission("ISSUES", "MAINTENANCE_ISSUES", "WRITE")
-                        : type === "COMPLAINT"
-                            ? hasPermission("ISSUES", "COMPLAINT_ISSUES", "WRITE")
-                            : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "DELETE");
-    const canEdit = hasWritePermission || hasDeletePermission;
+  const hasWritePermission =
+    type === "TECH"
+      ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "WRITE")
+      : type === "PURCHASE"
+        ? hasPermission("ISSUES", "PURCHASE_ISSUES", "WRITE")
+        : type === "HR"
+          ? hasPermission("ISSUES", "HR_ISSUES", "WRITE")
+          : type === "MAINTENANCE"
+            ? hasPermission("ISSUES", "MAINTENANCE_ISSUES", "WRITE")
+            : type === "COMPLAINT"
+              ? hasPermission("ISSUES", "COMPLAINT_ISSUES", "WRITE")
+              : type === "OPERATIONAL"
+                ? hasPermission("ISSUES", "OPERATIONAL_ISSUES", "WRITE")
+                : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "WRITE");
 
-    console.log("Can Edit", canEdit);
+  const hasDeletePermission =
+    type === "TECH"
+      ? hasPermission("ISSUES", "TECHNICAL_ISSUES", "DELETE")
+      : type === "PURCHASE"
+        ? hasPermission("ISSUES", "PURCHASE_ISSUES", "DELETE")
+        : type === "HR"
+          ? hasPermission("ISSUES", "HR_ISSUES", "WRITE")
+          : type === "MAINTENANCE"
+            ? hasPermission("ISSUES", "MAINTENANCE_ISSUES", "WRITE")
+            : type === "COMPLAINT"
+              ? hasPermission("ISSUES", "COMPLAINT_ISSUES", "WRITE")
+              : type === "OPERATIONAL"
+                ? hasPermission("ISSUES", "OPERATIONAL_ISSUES", "WRITE")
+                : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "DELETE");
+  const canEdit = hasWritePermission || hasDeletePermission;
 
-    const approvers = ["HEMANT", "SURJEET", "SHIVANI", "VIKAS"];
+  console.log("Can Edit", canEdit);
 
-    const loadIssues = async () => {
-        try {
-            setLoading(true);
+  const approvers = ["HEMANT", "SURJEET", "SHIVANI", "VIKAS"];
 
-            let cntrs = [];
+  const loadIssues = async () => {
+    try {
+      setLoading(true);
 
-            if (selectedCenter === "") {
-                cntrs = [];
-            } else if (selectedCenter === "ALL") {
-                cntrs = user?.centerAccess || [];
-            } else {
-                cntrs = [selectedCenter];
-            }
+      let cntrs = [];
 
-            const data = await fetchIssues(type, {
-                cntrs,
-                status: activeTab,
-                page,
-                limit,
-                ...(activeTab === "resolved" && approvalStatus
-                    ? { approvalStatus }
-                    : {}),
-                ...(type === "HR" && managerApproval ? { managerApproval } : {}),
-            });
+      if (selectedCenter === "") {
+        cntrs = [];
+      } else if (selectedCenter === "ALL") {
+        cntrs = user?.centerAccess || [];
+      } else {
+        cntrs = [selectedCenter];
+      }
 
-            setIssues(data?.data || []);
-            setPagination({
-                ...data?.pagination,
-                totalDocs: data?.pagination?.totalRecords,
-            });
-        } catch (error) {
-            console.log(error);
-        } finally {
-            setLoading(false);
-        }
-    };
-    useEffect(() => {
-        if (!user?.centerAccess) return;
-        loadIssues();
-    }, [
-        selectedCenter,
-        user?.centerAccess,
-        activeTab,
+      const data = await fetchIssues(type, {
+        cntrs,
+        status: activeTab,
         page,
         limit,
-        approvalStatus,
-        type,
-        managerApproval,
-    ]);
+        ...(activeTab === "resolved" && approvalStatus
+          ? { approvalStatus }
+          : {}),
+        ...(type === "HR" && managerApproval ? { managerApproval } : {}),
+      });
 
-    const handleViewDescription = (desc) => {
-        setDescription(desc);
-        setModalOpen(true);
-    };
-    const handleViewImages = (filesData) => {
-        setFiles(filesData || []);
-        setImageModal(true);
-    };
+      setIssues(data?.data || []);
+      setPagination({
+        ...data?.pagination,
+        totalDocs: data?.pagination?.totalRecords,
+      });
+    } catch (error) {
+      console.log(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    if (!user?.centerAccess) return;
+    loadIssues();
+  }, [
+    selectedCenter,
+    user?.centerAccess,
+    activeTab,
+    page,
+    limit,
+    approvalStatus,
+    type,
+    managerApproval,
+  ]);
 
-    const centerOptions = [
+  const handleViewDescription = (desc) => {
+    setDescription(desc);
+    setModalOpen(true);
+  };
+  const handleViewImages = (filesData) => {
+    setFiles(filesData || []);
+    setImageModal(true);
+  };
+
+  const centerOptions = [
+    ...(user?.centerAccess?.length > 1
+      ? [
+          {
+            value: "ALL",
+            label: "All Centers",
+          },
+        ]
+      : []),
+    ...(
+      user?.centerAccess?.map((id) => {
+        const center = user?.userCenters?.find((c) => c._id === id);
+        return {
+          value: id,
+          label: center?.title || "Unknown Center",
+        };
+      }) || []
+    ).sort((a, b) => a.label.localeCompare(b.label)),
+  ];
+
+  const handleAssign = (row) => {
+    setSelectedIssue(row);
+    setAssignModal(true);
+  };
+
+  const handleAssignSubmit = async (data) => {
+    try {
+      const { assignedTo, issueId, note, status } = data;
+      const response = await changeStatus({
+        assignedTo,
+        issueId,
+        note,
+        status,
+      });
+      console.log("Response", response);
+      toast.success(response?.message || "Assigned Successfully.");
+      loadIssues();
+    } catch (error) {
+      console.log(error);
+      toast.error(error?.message || "Error Assigning");
+    }
+  };
+
+  const handleApproveClick = (issue) => {
+    setApprovalIssue(issue);
+    setApprovalModal(true);
+  };
+
+  const handleApprovalSubmit = async (data) => {
+    try {
+      const payload = {
+        issueId: data.issueId,
+        approvedBy: data.approvedBy,
+      };
+
+      const response = await approveIssue(payload);
+      console.log("payload", payload);
+      const centerOptions = [
         ...(user?.centerAccess?.length > 1
-            ? [
-                {
-                    value: "ALL",
-                    label: "All Centers",
-                },
+          ? [
+              {
+                value: "ALL",
+                label: "All Centers",
+              },
             ]
-            : []),
+          : []),
         ...(user?.centerAccess?.map((id) => {
-            const center = user?.userCenters?.find((c) => c._id === id);
-            return {
-                value: id,
-                label: center?.title || "Unknown Center",
-            };
-        }) || []).sort((a, b) => a.label.localeCompare(b.label)),
-    ];
+          const center = centers?.find((c) => c._id === id);
+          return {
+            value: id,
+            label: center?.title || "Unknown Center",
+          };
+        }) || []),
+      ];
 
-    const handleAssign = (row) => {
-        setSelectedIssue(row);
-        setAssignModal(true);
-    };
+      toast.success(response?.message || "Issue Approved");
 
-    const handleAssignSubmit = async (data) => {
-        try {
-            const { assignedTo, issueId, note, status } = data;
-            const response = await changeStatus({
-                assignedTo,
-                issueId,
-                note,
-                status,
-            });
-            console.log("Response", response);
-            toast.success(response?.message || "Assigned Successfully.");
-            loadIssues();
-        } catch (error) {
-            console.log(error);
-            toast.error(error?.message || "Error Assigning");
-        }
-    };
+      setApprovalModal(false);
+      setActiveTab("resolved");
+      loadIssues();
+    } catch (error) {
+      toast.error(error?.message || "Approval Failed");
+    }
+  };
 
-    const handleApproveClick = (issue) => {
-        setApprovalIssue(issue);
-        setApprovalModal(true);
-    };
+  const approvalOptions = [
+    { value: "", label: "All" },
+    { value: "approved", label: "Approved" },
+    { value: "not_approved", label: "Not Approved" },
+  ];
+  const managerApprovalOpt = [
+    { value: "", label: "All" },
+    { value: "approved", label: "Approved" },
+    { value: "rejected", label: "Rejected" },
+  ];
 
-    const handleApprovalSubmit = async (data) => {
-        try {
-            const payload = {
-                issueId: data.issueId,
-                approvedBy: data.approvedBy,
-            };
+  // const handleEdit = (row) => {
+  //     setEditRowId(row._id);
 
-            const response = await approveIssue(payload);
-            console.log("payload", payload);
-            const centerOptions = [
-                ...(user?.centerAccess?.length > 1
-                    ? [
-                        {
-                            value: "ALL",
-                            label: "All Centers",
-                        },
-                    ]
-                    : []),
-                ...(user?.centerAccess?.map((id) => {
-                    const center = centers?.find((c) => c._id === id);
-                    return {
-                        value: id,
-                        label: center?.title || "Unknown Center",
-                    };
-                }) || []),
-            ];
+  //     // start with empty values
+  //     setEditedApproval("");
+  //     setEditedApprovalBy("");
+  // };
 
-            toast.success(response?.message || "Issue Approved");
+  const handleEdit = (row) => {
+    setEditRowId(row._id);
 
-            setApprovalModal(false);
-            setActiveTab("resolved");
-            loadIssues();
-        } catch (error) {
-            toast.error(error?.message || "Approval Failed");
-        }
-    };
+    // prefill approval dropdown
+    if (row?.approval?.isApproved === true) {
+      setEditedApproval("yes");
+    } else if (row?.approval?.isApproved === false) {
+      setEditedApproval("no");
+    } else {
+      setEditedApproval("");
+    }
 
-    const approvalOptions = [
-        { value: "", label: "All" },
-        { value: "approved", label: "Approved" },
-        { value: "not_approved", label: "Not Approved" },
-    ];
-    const managerApprovalOpt = [
-        { value: "", label: "All" },
-        { value: "approved", label: "Approved" },
-        { value: "rejected", label: "Rejected" },
-    ];
+    // prefill approvedBy dropdown
+    setEditedApprovalBy(row?.approval?.approvedBy || "");
+  };
+  const handleSave = async (row) => {
+    try {
+      const payload = {
+        issueId: row._id,
+      };
 
-    // const handleEdit = (row) => {
-    //     setEditRowId(row._id);
+      if (editedApprovalBy) {
+        payload.approvedBy = editedApprovalBy;
+      }
 
-    //     // start with empty values
-    //     setEditedApproval("");
-    //     setEditedApprovalBy("");
-    // };
+      if (editedApproval) {
+        payload.isApproved = editedApproval === "yes";
+      }
 
-    const handleEdit = (row) => {
-        setEditRowId(row._id);
+      const response = await approveIssue(payload);
 
-        // prefill approval dropdown
-        if (row?.approval?.isApproved === true) {
-            setEditedApproval("yes");
-        } else if (row?.approval?.isApproved === false) {
-            setEditedApproval("no");
-        } else {
-            setEditedApproval("");
-        }
+      toast.success(response?.message || "Approval Updated");
 
-        // prefill approvedBy dropdown
-        setEditedApprovalBy(row?.approval?.approvedBy || "");
-    };
-    const handleSave = async (row) => {
-        try {
-            const payload = {
-                issueId: row._id,
-            };
+      setEditRowId(null);
+      loadIssues();
+    } catch (error) {
+      toast.error(error?.message || "Update Failed");
+    }
+  };
 
-            if (editedApprovalBy) {
-                payload.approvedBy = editedApprovalBy;
-            }
+  const status = [
+    "new",
+    "assigned",
+    "in_progress",
+    "on_hold",
+    "pending_user",
+    "pending_release",
+    "resolved",
+  ];
 
-            if (editedApproval) {
-                payload.isApproved = editedApproval === "yes";
-            }
+  // if (type === "HR") {
+  //     status.push("rejected")
+  // }
 
-            const response = await approveIssue(payload);
+  const handleViewNotes = (row) => {
+    setNotesIssue(row);
+    setNotesModalOpen(true);
+  };
 
-            toast.success(response?.message || "Approval Updated");
+  const handleAction = ({ issue, nextStatus }) => {
+    setSelectedIssue({
+      ...issue,
+      nextStatus,
+    });
 
-            setEditRowId(null);
-            loadIssues();
-        } catch (error) {
-            toast.error(error?.message || "Update Failed");
-        }
-    };
+    setAssignModal(true);
+  };
 
-    const status = [
-        "new",
-        "assigned",
-        "in_progress",
-        "on_hold",
-        "pending_user",
-        "pending_release",
-        "resolved",
-    ];
+  return (
+    <>
+      <CardBody
+        className="p-3 bg-white"
+        style={isMobile ? { width: "100%" } : { width: "78%" }}
+      >
+        <div className="text-center text-md-left mb-4">
+          <h1 className="display-6 fw-bold text-primary">
+            {type?.replaceAll("_", " ")} ISSUES
+          </h1>
+        </div>
 
-    // if (type === "HR") {
-    //     status.push("rejected")
-    // }
+        <Nav tabs className="mb-3">
+          {status?.map((tab) => (
+            <NavItem key={tab}>
+              <NavLink
+                className={classnames({ active: activeTab === tab })}
+                onClick={() => setActiveTab(tab)}
+                style={{ cursor: "pointer", fontWeight: 500 }}
+              >
+                {normalizeStatus(tab)}
+              </NavLink>
+            </NavItem>
+          ))}
+        </Nav>
 
-    const handleViewNotes = (row) => {
-        setNotesIssue(row);
-        setNotesModalOpen(true);
-    };
-
-    const handleAction = ({ issue, nextStatus }) => {
-        setSelectedIssue({
-            ...issue,
-            nextStatus,
-        });
-
-        setAssignModal(true);
-    };
-
-    return (
-        <>
-            <CardBody
-                className="p-3 bg-white"
-                style={isMobile ? { width: "100%" } : { width: "78%" }}
-            >
-                <div className="text-center text-md-left mb-4">
-                    <h1 className="display-6 fw-bold text-primary">
-                        {type?.replaceAll("_", " ")} ISSUES
-                    </h1>
-                </div>
-
-                <Nav tabs className="mb-3">
-                    {status?.map((tab) => (
-                        <NavItem key={tab}>
-                            <NavLink
-                                className={classnames({ active: activeTab === tab })}
-                                onClick={() => setActiveTab(tab)}
-                                style={{ cursor: "pointer", fontWeight: 500 }}
-                            >
-                                {normalizeStatus(tab)}
-                            </NavLink>
-                        </NavItem>
-                    ))}
-                </Nav>
-
-                <div className="mb-3 d-flex gap-2">
-                    <div>
-                        {/* <Label>Center Select</Label> */}
-                        <Select
-                            options={centerOptions || []}
-                            value={
-                                centerOptions?.find((c) => c.value === selectedCenter) || null
-                            }
-                            onChange={(selected) => setSelectedCenter(selected?.value || "")}
-                            isDisabled={!centerOptions?.length}
-                            placeholder={
-                                centerOptions?.length ? "Select Center" : "No Center Selected"
-                            }
-                            styles={{ container: (base) => ({ ...base, width: 200 }) }}
-                        />
-                    </div>
-                    {activeTab === "resolved" && type !== "HR" && (
-                        <div>
-                            {/* <Label>Issue Approval</Label> */}
-                            <Select
-                                options={approvalOptions}
-                                value={
-                                    approvalOptions.find((o) => o.value === approvalStatus) ||
-                                    null
-                                }
-                                onChange={(selected) =>
-                                    setApprovalStatus(selected?.value || "")
-                                }
-                                styles={{ container: (base) => ({ ...base, width: 200 }) }}
-                            />
-                        </div>
-                    )}
-                    {/* {type === "HR" && activeTab !== "new" && (
+        <div className="mb-3 d-flex gap-2">
+          <div>
+            {/* <Label>Center Select</Label> */}
+            <Select
+              options={centerOptions || []}
+              value={
+                centerOptions?.find((c) => c.value === selectedCenter) || null
+              }
+              onChange={(selected) => setSelectedCenter(selected?.value || "")}
+              isDisabled={!centerOptions?.length}
+              placeholder={
+                centerOptions?.length ? "Select Center" : "No Center Selected"
+              }
+              styles={{ container: (base) => ({ ...base, width: 200 }) }}
+            />
+          </div>
+          {activeTab === "resolved" && type !== "HR" && (
+            <div>
+              {/* <Label>Issue Approval</Label> */}
+              <Select
+                options={approvalOptions}
+                value={
+                  approvalOptions.find((o) => o.value === approvalStatus) ||
+                  null
+                }
+                onChange={(selected) =>
+                  setApprovalStatus(selected?.value || "")
+                }
+                styles={{ container: (base) => ({ ...base, width: 200 }) }}
+              />
+            </div>
+          )}
+          {/* {type === "HR" && activeTab !== "new" && (
                         <div>
                             <Label>Manager's Approval</Label>
                             <Select
@@ -388,83 +395,83 @@ const IssuesPage = ({ type }) => {
                             />
                         </div>
                     )} */}
-                </div>
+        </div>
 
-                <DataTableComponent
-                    columns={Issues(
-                        handleViewDescription,
-                        handleViewImages,
-                        activeTab,
-                        handleAssign,
-                        handleApproveClick,
-                        type,
-                        editRowId,
-                        handleEdit,
-                        handleSave,
-                        editedApproval,
-                        setEditedApproval,
-                        editedApprovalBy,
-                        setEditedApprovalBy,
-                        approvers,
-                        setEditRowId,
-                        canEdit,
-                        handleAction,
-                        handleViewNotes,
-                    )}
-                    data={issues}
-                    loading={loading}
-                    pagination={pagination}
-                    page={page}
-                    setPage={setPage}
-                    limit={limit}
-                    setLimit={setLimit}
-                />
-            </CardBody>
+        <DataTableComponent
+          columns={Issues(
+            handleViewDescription,
+            handleViewImages,
+            activeTab,
+            handleAssign,
+            handleApproveClick,
+            type,
+            editRowId,
+            handleEdit,
+            handleSave,
+            editedApproval,
+            setEditedApproval,
+            editedApprovalBy,
+            setEditedApprovalBy,
+            approvers,
+            setEditRowId,
+            canEdit,
+            handleAction,
+            handleViewNotes,
+          )}
+          data={issues}
+          loading={loading}
+          pagination={pagination}
+          page={page}
+          setPage={setPage}
+          limit={limit}
+          setLimit={setLimit}
+        />
+      </CardBody>
 
-            <ImagesModal
-                isOpen={imageModal}
-                toggle={() => setImageModal(false)}
-                files={files}
-            />
+      <ImagesModal
+        isOpen={imageModal}
+        toggle={() => setImageModal(false)}
+        files={files}
+      />
 
-            <DescriptionModal
-                isOpen={modalOpen}
-                toggle={() => setModalOpen(false)}
-                description={description}
-            />
+      <DescriptionModal
+        isOpen={modalOpen}
+        toggle={() => setModalOpen(false)}
+        description={description}
+      />
 
-            <StatusModal
-                isOpen={assignModal}
-                toggle={() => setAssignModal(false)}
-                issue={selectedIssue}
-                onAssign={handleAssignSubmit}
-                activeTab={activeTab}
-                title={
-                    activeTab === "new" &&
-                        (selectedIssue?.issueType === "TECH" ||
-                            selectedIssue?.issueType === "MAINTENANCE" ||
-                            selectedIssue?.issueType === "COMPLAINT")
-                        ? "Assign Issue to Employee"
-                        : "Update Issue Status"
-                }
-            />
+      <StatusModal
+        isOpen={assignModal}
+        toggle={() => setAssignModal(false)}
+        issue={selectedIssue}
+        onAssign={handleAssignSubmit}
+        activeTab={activeTab}
+        title={
+          activeTab === "new" &&
+          (selectedIssue?.issueType === "TECH" ||
+            selectedIssue?.issueType === "MAINTENANCE" ||
+            selectedIssue?.issueType === "COMPLAINT")
+            ? "Assign Issue to Employee"
+            : "Update Issue Status"
+        }
+      />
 
-            <ApprovalModal
-                isOpen={approvalModal}
-                toggle={() => setApprovalModal(false)}
-                issue={approvalIssue}
-                onSubmit={handleApprovalSubmit}
-            />
+      <ApprovalModal
+        isOpen={approvalModal}
+        toggle={() => setApprovalModal(false)}
+        issue={approvalIssue}
+        onSubmit={handleApprovalSubmit}
+      />
 
-            <NotesTimelineModal
-                isOpen={notesModalOpen}
-                toggle={() => setNotesModalOpen(false)}
-                issue={notesIssue}
-                onSaved={loadIssues}
-                canEdit={canEdit}
-            />
+      <NotesTimelineModal
+        isOpen={notesModalOpen}
+        toggle={() => setNotesModalOpen(false)}
+        issue={notesIssue}
+        onSaved={loadIssues}
+        canEdit={canEdit}
+      />
 
-            {/* <StatusModal
+      {/* <StatusModal
                 isOpen={assignModal}
                 toggle={() => setAssignModal(false)}
                 issue={selectedIssue}
@@ -472,8 +479,8 @@ const IssuesPage = ({ type }) => {
                 activeTab={status}
                 title={`Update Issue Status`}
             /> */}
-        </>
-    );
+    </>
+  );
 };
 
 export default IssuesPage;

@@ -6,6 +6,18 @@ import { CSVLink } from "react-csv";
 import { fetchCounsellingSessionsPatientsDOD } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const parseWeekEndDate = (weekStr) => {
+    if (!weekStr) return new Date(0);
+    const parts = weekStr.split(" - ");
+    if (parts.length < 2) return new Date(0);
+    const [day, month, year] = parts[1].trim().split(" ");
+    const monthIdx = MONTHS.indexOf(month);
+    return new Date(parseInt(year, 10), monthIdx, parseInt(day, 10));
+};
+
+const formatWeekLabel = (weekStr) => (weekStr || "").replace(/\s+\d{4}$/, "");
 
 const CounsellingSessionsPatients = () => {
     const dispatch = useDispatch();
@@ -80,36 +92,31 @@ const CounsellingSessionsPatients = () => {
     const adDateColIdx = labels.indexOf("Ad. Date");
     const psychologistNameColIdx = labels.indexOf("Psychologist Name");
 
-    const last30Days = useMemo(() => {
-        const days = [];
-        const today = new Date();
-        for (let i = 1; i < 60; i++) {
-            const d = new Date(today);
-            d.setDate(today.getDate() - i);
-            const key = d.toISOString().slice(0, 10);
-            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).replace(/ /g, "-");
-            days.push({ key, label });
-        }
-        return days;
-    }, []);
+    const weeks = useMemo(() => {
+        const weekSet = new Set();
+        data.forEach((item) => {
+            Object.keys(item?.wow_data || {}).forEach((week) => weekSet.add(week));
+        });
+        return Array.from(weekSet).sort((a, b) => parseWeekEndDate(b) - parseWeekEndDate(a));
+    }, [data]);
 
-    const dateTotals = useMemo(() => {
+    const weekTotals = useMemo(() => {
         const totals = {};
-        last30Days.forEach(({ key }) => {
-            totals[key] = filteredData.reduce((sum, row) => sum + (Number(row?.dod_data?.[key]) || 0), 0);
+        weeks.forEach((week) => {
+            totals[week] = filteredData.reduce((sum, row) => sum + (Number(row?.wow_data?.[week]) || 0), 0);
         });
         return totals;
-    }, [filteredData, last30Days]);
+    }, [filteredData, weeks]);
 
     const prepareCsvData = () => {
         setCsvLoading(true);
 
-        const allHeaders = [...labels, ...last30Days.map(({ label }) => label)];
+        const allHeaders = [...labels, ...weeks.map(formatWeekLabel)];
 
         const totalsRow = [
             "Total",
             ...Array(labels.length - 1).fill(""),
-            ...last30Days.map(({ key }) => dateTotals[key] || ""),
+            ...weeks.map((week) => weekTotals[week] || ""),
         ];
 
         const rows = [
@@ -117,7 +124,7 @@ const CounsellingSessionsPatients = () => {
             allHeaders,
             ...filteredData.map((patient) => [
                 ...labels.map((label) => patient[labelsMapping[label]] ?? ""),
-                ...last30Days.map(({ key }) => patient?.dod_data?.[key] ?? ""),
+                ...weeks.map((week) => patient?.wow_data?.[week] ?? ""),
             ]),
         ];
 
@@ -244,12 +251,12 @@ const CounsellingSessionsPatients = () => {
                                                                     ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                                                 }}
                                                             >
-                                                                {i === labels.length - 1 ? "Total (Single Day)" : i === adDateColIdx ? "Pt. Count" : i === psychologistNameColIdx ? `${filteredData.length}` : ""}
+                                                                {i === labels.length - 1 ? "Total (Single Week)" : i === adDateColIdx ? "Pt. Count" : i === psychologistNameColIdx ? `${filteredData.length}` : ""}
                                                             </th>
                                                         ))}
-                                                        {last30Days.map(({ key }) => (
+                                                        {weeks.map((week) => (
                                                             <th
-                                                                key={key}
+                                                                key={week}
                                                                 className="text-center fw-bold px-1 py-1"
                                                                 style={{
                                                                     border: "1px solid #cfd8e3",
@@ -258,7 +265,7 @@ const CounsellingSessionsPatients = () => {
                                                                     whiteSpace: "nowrap",
                                                                 }}
                                                             >
-                                                                {dateTotals[key] || ""}
+                                                                {weekTotals[week] || ""}
                                                             </th>
                                                         ))}
                                                     </tr>
@@ -279,9 +286,9 @@ const CounsellingSessionsPatients = () => {
                                                                 {label}
                                                             </th>
                                                         ))}
-                                                        {last30Days.map(({ key, label }) => (
+                                                        {weeks.map((week) => (
                                                             <th
-                                                                key={key}
+                                                                key={week}
                                                                 className="text-center fw-bold px-1 py-1"
                                                                 style={{
                                                                     border: "1px solid #cfd8e3",
@@ -290,7 +297,7 @@ const CounsellingSessionsPatients = () => {
                                                                     whiteSpace: "nowrap",
                                                                 }}
                                                             >
-                                                                {label}
+                                                                {formatWeekLabel(week)}
                                                             </th>
                                                         ))}
                                                     </tr>
@@ -324,9 +331,9 @@ const CounsellingSessionsPatients = () => {
                                                                             : patient[labelsMapping[label]]}
                                                                 </td>
                                                             ))}
-                                                            {last30Days.map(({ key }) => (
+                                                            {weeks.map((week) => (
                                                                 <td
-                                                                    key={key}
+                                                                    key={week}
                                                                     className="text-center px-1 py-1"
                                                                     style={{
                                                                         border: "1px solid #d6dde8",
@@ -334,7 +341,7 @@ const CounsellingSessionsPatients = () => {
                                                                         whiteSpace: "nowrap",
                                                                     }}
                                                                 >
-                                                                    {patient?.dod_data?.[key] ?? 0}
+                                                                    {patient?.wow_data?.[week] ?? 0}
                                                                 </td>
                                                             ))}
                                                         </tr>

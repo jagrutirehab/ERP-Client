@@ -176,19 +176,38 @@ const DetailAdmission = ({ data }) => {
         {data?.ChiefComplaints && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Chief Complaints</h6>
         )}
-        {data?.ChiefComplaints &&
-          Object.entries(data.ChiefComplaints).map((d, i) => (
-            <Col key={i} xs={12}>
-              <div className="mt-1 mb-1">
-                <p className="fs-xs-9 fs-md-11 mb-0">
-                  <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                    Chief Complaint {i + 1}:-
-                  </span>
-                  {d[1]}
-                </p>
-              </div>
-            </Col>
-          ))}
+        {data?.ChiefComplaints && (
+          <>
+            {["informant", "reliable", "adequate"].map((key) =>
+              data.ChiefComplaints[key] ? (
+                <Col key={key} xs={12}>
+                  <div className="mt-1 mb-1">
+                    <p className="fs-xs-9 fs-md-11 mb-0">
+                      <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                        {convertCamelCaseToTitleCase(key)}:-
+                      </span>
+                      {data.ChiefComplaints[key]}
+                    </p>
+                  </div>
+                </Col>
+              ) : null,
+            )}
+            {["line1", "line2", "line3", "line4"].map((key, i) =>
+              data.ChiefComplaints[key] ? (
+                <Col key={key} xs={12}>
+                  <div className="mt-1 mb-1">
+                    <p className="fs-xs-9 fs-md-11 mb-0">
+                      <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                        Chief Complaint {i + 1}:-
+                      </span>
+                      {data.ChiefComplaints[key]}
+                    </p>
+                  </div>
+                </Col>
+              ) : null,
+            )}
+          </>
+        )}
         {data?.ChiefComplaints && <Divider />}
         {/* {data?.ProvisionalDiagnosis && (
           <h6 className="fs-xs-12 fs-md-14 display-6">Provisional Daignosis</h6>

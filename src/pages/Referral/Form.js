@@ -37,7 +37,7 @@ const ReferralForm = ({ user, isOpen, referral, centerAccess }) => {
       email: referral ? referral.email : "",
     },
     validationSchema: Yup.object({
-      doctorName: Yup.string().required("Referral Doctor's Name is required"),
+      doctorName: Yup.string().required("Contact Name is required"),
       speciality: Yup.string().required("Speciality is required"),
       hospitalClinic: Yup.string().required("Hospital/Clinic is required"),
       mobileNumber: Yup.string()
@@ -76,7 +76,7 @@ const ReferralForm = ({ user, isOpen, referral, centerAccess }) => {
   const referralFields = [
     {
       name: "doctorName",
-      label: "Referral Doctor's Name",
+      label: "Contact Name",
       type: "text",
       required: true,
     },
@@ -112,7 +112,7 @@ const ReferralForm = ({ user, isOpen, referral, centerAccess }) => {
         centered
         isOpen={isOpen}
         size={"lg"}
-        title={referral ? "Edit Referral" : "Add Referral"}
+        title={referral ? "Edit Contact" : "Add Contact"}
       >
         <div>
           <Form

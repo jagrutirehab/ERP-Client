@@ -10,7 +10,8 @@ const Navdata = () => {
   const dynamicPages = userPages?.map((pg) => {
     const pageIndex = pages?.findIndex((r) => r.label === pg.name);
     const page = pages[pageIndex];
-    return page;
+    if (!page) return page;
+    return page.displayLabel ? { ...page, label: page.displayLabel } : page;
   });
 
   const filteredDynamicPages = dynamicPages?.filter(

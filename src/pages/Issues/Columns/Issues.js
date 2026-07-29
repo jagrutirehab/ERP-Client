@@ -347,6 +347,57 @@ export const Issues = (
       ]
     : []),
 
+  ...(type === "OPERATIONAL"
+    ? [
+        // {
+        //   name: <div className="text-center">Centre Manager</div>,
+        //   selector: (row) => row?.operationalIssue?.centreManager?.name || "-",
+        //   width: "180px",
+        // },
+        {
+          name: <div className="text-center">Category</div>,
+          selector: (row) => row?.operationalIssue?.category || "-",
+          width: "160px",
+        },
+        {
+          name: <div className="text-center">Description</div>,
+          width: "220px",
+          cell: (row) => (
+            <div
+              style={{
+                maxHeight: "80px",
+                overflowY: "auto",
+                wordBreak: "break-word",
+              }}
+            >
+              {row?.operationalIssue?.description || "-"}
+            </div>
+          ),
+        },
+        {
+          name: <div className="text-center">Patient/Staff ID</div>,
+          selector: (row) => row?.operationalIssue?.patientOrStaffId || "-",
+          width: "160px",
+        },
+        {
+          name: <div className="text-center">Images</div>,
+          width: "140px",
+          cell: (row) => (
+            <span
+              style={{
+                color: "#0d6efd",
+                cursor: "pointer",
+                fontWeight: "500",
+              }}
+              onClick={() => handleViewImages(row?.operationalIssue?.files)}
+            >
+              View Images
+            </span>
+          ),
+        },
+      ]
+    : []),
+
   ...(status !== "new" &&
   status !== "rejected" &&
   type !== "HR" &&

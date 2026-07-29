@@ -16,7 +16,7 @@ import Select from "react-select";
 import { useSelector } from "react-redux";
 import { MyRaisedTicketsColumns } from "../Columns/MyRaisedTickets";
 
-const issueTypes = ["TECH", "HR", "FINANCE", "MAINTENANCE", "COMPLAINT"];
+const issueTypes = ["TECH", "HR", "FINANCE", "MAINTENANCE", "COMPLAINT","OPERATIONAL"];
 // "PURCHASE", "REVIEW_SUBMISSION"
 
 const statuses = [
