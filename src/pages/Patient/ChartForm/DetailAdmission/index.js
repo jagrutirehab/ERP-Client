@@ -709,6 +709,12 @@ const DetailAdmission = ({
         setFormStep(PATIENT_TYPE_FIELDS);
         return;
       }
+      const chiefComplaintsMissing =
+        !values.informant || !values.reliable || !values.adequate;
+      if (chiefComplaintsMissing) {
+        setFormStep(CHIEF_COMPLAINTS);
+        return;
+      }
       if (!isOldMentalExamination) {
         const mseFields = [
           "grooming",
