@@ -28,6 +28,9 @@ import MorseResultComponent from "./Components/Morsefallresult";
 import RamsayResultComponent from "./Components/Ramsayresult";
 import GCSResultComponent from "./Components/Gcsresult";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import CGISResultComponent from "./Components/CGISResultComponent";
+import COWSResultComponent from "./Components/COWSResultComponent";
+import AUDITResultComponent from "./Components/AUDITResultComponent";
 
 const ClinicalTest = ({
   open,
@@ -63,7 +66,7 @@ const ClinicalTest = ({
         clinicalTest: test,
         doctor: test.doctorId,
         patient: test.patientId,
-      })
+      }),
     );
   };
 
@@ -224,6 +227,21 @@ const ClinicalTest = ({
                                         )}
                                         {test?.testType === 18 && (
                                           <GCSResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 19 && (
+                                          <CGISResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 20 && (
+                                          <COWSResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 21 && (
+                                          <AUDITResultComponent
                                             resultData={test}
                                           />
                                         )}
