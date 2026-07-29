@@ -89,7 +89,7 @@ const testInfo = [
   },
   {
     type: 19,
-    name: "CGI-S: Clinical Global Impression — Severity of Illness",
+    name: "CGI-S: Clinical Global Impression — Severity Test",
     totalScore: 7,
   },
   { type: 20, name: "COWS: Clinical Opiate Withdrawal Scale", totalScore: 48 },
