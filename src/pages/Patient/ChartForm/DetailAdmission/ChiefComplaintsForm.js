@@ -4,6 +4,23 @@ import RenderFields from "../../../../Components/Common/RenderFields";
 
 const fields = [
   {
+    label: "Informant (Self +)",
+    name: "informant",
+    type: "text",
+  },
+  {
+    label: "Reliable",
+    name: "reliable",
+    type: "select",
+    options: ["Reliable", "Unreliable"],
+  },
+  {
+    label: "Adequate",
+    name: "adequate",
+    type: "select",
+    options: ["Adequate", "Inadequate"],
+  },
+  {
     label: "Complaint 1",
     name: "line1",
     type: "text",

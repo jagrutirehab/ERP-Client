@@ -25,6 +25,30 @@ const CheifComplaint = ({ data, styles }) => {
           ...styles.mrgnBottom10,
         }}
       >
+        {data?.informant && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>Informant (Self +):</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.informant || ""}
+            </Text>
+          </View>
+        )}
+        {data?.reliable && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>Reliable:</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.reliable || ""}
+            </Text>
+          </View>
+        )}
+        {data?.adequate && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>Adequate:</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.adequate || ""}
+            </Text>
+          </View>
+        )}
         {data?.line1 && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>Chief Complaint 1:</Text>
