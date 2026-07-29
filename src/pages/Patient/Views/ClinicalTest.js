@@ -6,6 +6,7 @@ import {
   Row,
   UncontrolledTooltip,
   Button,
+  Spinner,
 } from "reactstrap";
 import { toast } from "react-toastify";
 import GeneralCard from "./Components/GeneralCard";
@@ -35,7 +36,7 @@ import AUDITResultComponent from "./Components/AUDITResultComponent";
 const ClinicalTest = ({
   open,
   patient,
-  loading,
+  // loading,
   toggleModal,
   setChartType,
   toggleAccordian,
@@ -44,6 +45,7 @@ const ClinicalTest = ({
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
   const testResult = useSelector((state) => state.ClinicalTest.testResult);
+  const loading = useSelector((state) => state.ClinicalTest.isLoading);
 
   const loadClinialTests = async () => {
     try {
@@ -141,7 +143,12 @@ const ClinicalTest = ({
                     accordionId={idx.toString()}
                   >
                     {loading ? (
-                      <Placeholder />
+                      <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{ minHeight: "200px" }}
+                      >
+                        <Spinner color="primary" />
+                      </div>
                     ) : (
                       <div>
                         <div className="timeline-2">

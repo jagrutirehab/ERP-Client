@@ -1,440 +1,524 @@
-import { Text, View, StyleSheet, Font } from '@react-pdf/renderer';
-import PropTypes from 'prop-types';
-import React from 'react';
-import { capitalizeWords } from '../../../utils/toCapitalize';
+import { Text, View, StyleSheet, Font } from "@react-pdf/renderer";
+import PropTypes from "prop-types";
+import React from "react";
+import { capitalizeWords } from "../../../utils/toCapitalize";
 import Roboto from "../../../assets/fonts/Roboto-Bold.ttf";
 
 Font.register({
-    family: "Roboto",
-    fonts: [
-        {
-            src: Roboto,
-            fontWeight: "heavy",
-        },
-    ],
+  family: "Roboto",
+  fonts: [
+    {
+      src: Roboto,
+      fontWeight: "heavy",
+    },
+  ],
 });
 
 const testInfo = [
-    { type: 6, name: "CIWA-AR: Clinical Institute Withdrawal Assessment for Alcohol, Revised", totalScore: 67 },
-    { type: 7, name: "C-SSRS: Columbia–Suicide Severity Rating Scale", totalScore: 7 },
-    { type: 8, name: "YMRS: Young Mania Rating Scale" },
-    {
-        type: 9, name: "MPQ-9: Multidimensional Personality Questionnaire", totalScore: 24, subScores: [
-            { label: "Psychoticism", key: "Psychoticism" },
-            { label: "Neuroticism", key: "Neuroticism" },
-            { label: "Obsessive Compulsive", key: "ObsessiveCompulsive" },
-            { label: "Somatization Anxiety", key: "SomatizationAnxiety" },
-            { label: "Hysteria", key: "Hysteria" },
-            { label: "Depression", key: "Depression" },
-        ]
-    },
-    {
-        type: 10, name: "MMSE: Mini-Mental State Examination", totalScore: 30, subScores: [
-            { label: "Orientation", key: "orientation" },
-            { label: "Registration", key: "registration" },
-            { label: "Attention", key: "attention" },
-            { label: "Recall", key: "recall" },
-            { label: "Language", key: "language" },
-            { label: "Drawing", key: "drawing" },
-        ]
-    },
-    { type: 11, name: "Y-BOCS: Yale–Brown Obsessive–Compulsive Scale", totalScore: 40 },
-    { type: 12, name: "ACDS: Adult ADHD Clinical Diagnostic Scale", totalScore: 54 },
-    { type: 13, name: "HAM-A: Hamilton Anxiety Rating Scale", totalScore: 56 },
-    { type: 14, name: "HAM-D: Hamilton Depression Rating Scale", totalScore: 52 },
-    {
-        type: 15, name: "PANSS: Positive and Negative Syndrome Scale", totalScore: 210, subScores: [
-            { label: "Positive", key: "Positive" },
-            { label: "Negative", key: "Negative" },
-            { label: "General", key: "General" },
-            { label: "Composite", key: "Composite" },
-        ]
-    },
-    { type: 16, name: "Morse Fall Scale", totalScore: 125 },
-    { type: 17, name: "Ramsay Sedation Scale", totalScore: 6 },
-    {
-        type: 18, name: "Glasgow Coma Scale (GCS)", totalScore: 15, subScores: [
-            { label: "Eye Opening (E)", key: "eyeScore" },
-            { label: "Verbal Response (V)", key: "verbalScore" },
-            { label: "Motor Response (M)", key: "motorScore" },
-        ]
-    },
+  {
+    type: 6,
+    name: "CIWA-AR: Clinical Institute Withdrawal Assessment for Alcohol, Revised",
+    totalScore: 67,
+  },
+  {
+    type: 7,
+    name: "C-SSRS: Columbia–Suicide Severity Rating Scale",
+    totalScore: 7,
+  },
+  { type: 8, name: "YMRS: Young Mania Rating Scale" },
+  {
+    type: 9,
+    name: "MPQ-9: Multidimensional Personality Questionnaire",
+    totalScore: 24,
+    subScores: [
+      { label: "Psychoticism", key: "Psychoticism" },
+      { label: "Neuroticism", key: "Neuroticism" },
+      { label: "Obsessive Compulsive", key: "ObsessiveCompulsive" },
+      { label: "Somatization Anxiety", key: "SomatizationAnxiety" },
+      { label: "Hysteria", key: "Hysteria" },
+      { label: "Depression", key: "Depression" },
+    ],
+  },
+  {
+    type: 10,
+    name: "MMSE: Mini-Mental State Examination",
+    totalScore: 30,
+    subScores: [
+      { label: "Orientation", key: "orientation" },
+      { label: "Registration", key: "registration" },
+      { label: "Attention", key: "attention" },
+      { label: "Recall", key: "recall" },
+      { label: "Language", key: "language" },
+      { label: "Drawing", key: "drawing" },
+    ],
+  },
+  {
+    type: 11,
+    name: "Y-BOCS: Yale–Brown Obsessive–Compulsive Scale",
+    totalScore: 40,
+  },
+  {
+    type: 12,
+    name: "ACDS: Adult ADHD Clinical Diagnostic Scale",
+    totalScore: 54,
+  },
+  { type: 13, name: "HAM-A: Hamilton Anxiety Rating Scale", totalScore: 56 },
+  { type: 14, name: "HAM-D: Hamilton Depression Rating Scale", totalScore: 52 },
+  {
+    type: 15,
+    name: "PANSS: Positive and Negative Syndrome Scale",
+    totalScore: 210,
+    subScores: [
+      { label: "Positive", key: "Positive" },
+      { label: "Negative", key: "Negative" },
+      { label: "General", key: "General" },
+      { label: "Composite", key: "Composite" },
+    ],
+  },
+  { type: 16, name: "Morse Fall Scale", totalScore: 125 },
+  { type: 17, name: "Ramsay Sedation Scale", totalScore: 6 },
+  {
+    type: 18,
+    name: "Glasgow Coma Scale (GCS)",
+    totalScore: 15,
+    subScores: [
+      { label: "Eye Opening (E)", key: "eyeScore" },
+      { label: "Verbal Response (V)", key: "verbalScore" },
+      { label: "Motor Response (M)", key: "motorScore" },
+    ],
+  },
+  {
+    type: 19,
+    name: "CGI-S: Clinical Global Impression — Severity of Illness",
+    totalScore: 7,
+  },
+  { type: 20, name: "COWS: Clinical Opiate Withdrawal Scale", totalScore: 48 },
+  {
+    type: 21,
+    name: "AUDIT: Alcohol Use Disorders Identification Test",
+    totalScore: 40,
+  },
 ];
 
 const panssScoreToAnswer = {
-    1: "Absent",
-    2: "Minimal",
-    3: "Mild",
-    4: "Moderate",
-    5: "Moderate Severe",
-    6: "Severe",
-    7: "Extreme",
+  1: "Absent",
+  2: "Minimal",
+  3: "Mild",
+  4: "Moderate",
+  5: "Moderate Severe",
+  6: "Severe",
+  7: "Extreme",
 };
 
 const styles = StyleSheet.create({
-    pageTitle: {
-        textAlign: 'center',
-        fontSize: 16,
-        fontWeight: 'bold',
-        marginTop: 10,
-        marginBottom: 10,
-        textDecoration: 'underline',
-    },
-    section: {
-        marginBottom: 20,
-        padding: 15,
-    },
-    sectionTitle: {
-        fontSize: 14,
-        fontWeight: 'bold',
-        marginBottom: 12,
-    },
-    label: {
-        fontSize: 11,
-        fontWeight: 'bold',
-        marginBottom: 6,
-    },
-    value: {
-        marginBottom: 8,
-        lineHeight: 1.4,
-    },
-    score: {
-        fontWeight: 'bold',
-        marginBottom: 10,
-    },
-    paragraph: {
-        marginBottom: 6,
-        lineHeight: 1.6,
-        textAlign: 'justify',
-    },
-    divider: {
-        height: 1,
-        marginVertical: 8,
-        backgroundColor: '#000',
-    },
-    recommendationContainer: {
-        marginLeft: 10,
-    },
-    recommendationText: {
-        flex: 1,
-        textAlign: 'justify',
-    },
-    bulletItem: {
-        flexDirection: 'row',
-        marginBottom: 5,
-    },
-    bullet: {
-        marginRight: 8,
-        fontSize: 16,
-    },
-    qaSection: {
-        marginTop: 12,
-    },
-    qaSectionTitle: {
-        fontSize: 12,
-        fontWeight: 'bold',
-        marginTop: 8,
-        marginBottom: 8,
-        textAlign: 'center',
-        textDecoration: 'underline',
-    },
-    qaTableHeader: {
-        flexDirection: 'row',
-        borderBottomWidth: 1,
-        borderColor: '#000',
-        paddingVertical: 3,
-        paddingHorizontal: 4,
-        backgroundColor: '#e8e8e8',
-    },
-    qaTableHeaderId: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        width: 30,
-    },
-    qaTableHeaderQ: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        flex: 1,
-    },
-    qaTableHeaderA: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        width: 110,
-        textAlign: 'center',
-    },
-    qaRow: {
-        flexDirection: 'row',
-        borderBottomWidth: 0.5,
-        borderColor: '#aaa',
-        paddingVertical: 5,
-        paddingHorizontal: 4,
-    },
-    qaRowAlt: {
-        flexDirection: 'row',
-        borderBottomWidth: 0.5,
-        borderColor: '#aaa',
-        paddingVertical: 5,
-        paddingHorizontal: 4,
-        backgroundColor: '#f2f2f2',
-    },
-    qaQuestionId: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        width: 30,
-    },
-    qaQuestionText: {
-        fontSize: 10,
-        flex: 1,
-        lineHeight: 1.4,
-    },
-    qaAnswerCol: {
-        width: 110,
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
-    qaAnswerLabel: {
-        fontSize: 10,
-        fontWeight: 'bold',
-        textAlign: 'center',
-        borderWidth: 0.5,
-        borderColor: '#000',
-        paddingVertical: 2,
-        paddingHorizontal: 4,
-        width: 100,
-    },
-    qaAnswerScore: {
-        fontSize: 8,
-        textAlign: 'center',
-        color: '#444',
-        marginTop: 2,
-    },
+  pageTitle: {
+    textAlign: "center",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginTop: 10,
+    marginBottom: 10,
+    textDecoration: "underline",
+  },
+  section: {
+    marginBottom: 20,
+    padding: 15,
+  },
+  sectionTitle: {
+    fontSize: 14,
+    fontWeight: "bold",
+    marginBottom: 12,
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: "bold",
+    marginBottom: 6,
+  },
+  value: {
+    marginBottom: 8,
+    lineHeight: 1.4,
+  },
+  score: {
+    fontWeight: "bold",
+    marginBottom: 10,
+  },
+  paragraph: {
+    marginBottom: 6,
+    lineHeight: 1.6,
+    textAlign: "justify",
+  },
+  divider: {
+    height: 1,
+    marginVertical: 8,
+    backgroundColor: "#000",
+  },
+  recommendationContainer: {
+    marginLeft: 10,
+  },
+  recommendationText: {
+    flex: 1,
+    textAlign: "justify",
+  },
+  bulletItem: {
+    flexDirection: "row",
+    marginBottom: 5,
+  },
+  bullet: {
+    marginRight: 8,
+    fontSize: 16,
+  },
+  qaSection: {
+    marginTop: 12,
+  },
+  qaSectionTitle: {
+    fontSize: 12,
+    fontWeight: "bold",
+    marginTop: 8,
+    marginBottom: 8,
+    textAlign: "center",
+    textDecoration: "underline",
+  },
+  qaTableHeader: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderColor: "#000",
+    paddingVertical: 3,
+    paddingHorizontal: 4,
+    backgroundColor: "#e8e8e8",
+  },
+  qaTableHeaderId: {
+    fontSize: 10,
+    fontWeight: "bold",
+    width: 30,
+  },
+  qaTableHeaderQ: {
+    fontSize: 10,
+    fontWeight: "bold",
+    flex: 1,
+  },
+  qaTableHeaderA: {
+    fontSize: 10,
+    fontWeight: "bold",
+    width: 110,
+    textAlign: "center",
+  },
+  qaRow: {
+    flexDirection: "row",
+    borderBottomWidth: 0.5,
+    borderColor: "#aaa",
+    paddingVertical: 5,
+    paddingHorizontal: 4,
+  },
+  qaRowAlt: {
+    flexDirection: "row",
+    borderBottomWidth: 0.5,
+    borderColor: "#aaa",
+    paddingVertical: 5,
+    paddingHorizontal: 4,
+    backgroundColor: "#f2f2f2",
+  },
+  qaQuestionId: {
+    fontSize: 10,
+    fontWeight: "bold",
+    width: 30,
+  },
+  qaQuestionText: {
+    fontSize: 10,
+    flex: 1,
+    lineHeight: 1.4,
+  },
+  qaAnswerCol: {
+    width: 110,
+    flexDirection: "column",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  qaAnswerLabel: {
+    fontSize: 10,
+    fontWeight: "bold",
+    textAlign: "center",
+    borderWidth: 0.5,
+    borderColor: "#000",
+    paddingVertical: 2,
+    paddingHorizontal: 4,
+    width: 100,
+  },
+  qaAnswerScore: {
+    fontSize: 8,
+    textAlign: "center",
+    color: "#444",
+    marginTop: 2,
+  },
 });
 
 const formatRecommendationsPDF = (text, testType) => {
-    if (!text) return [<Text key="none">No Recommendation</Text>];
+  if (!text) return [<Text key="none">No Recommendation</Text>];
 
-    const placeholderMap = {
-        "e.g.": "___eg___",
-        "i.e.": "___ie___",
-        "etc.": "___etc___",
-        "vs.": "___vs___",
-    };
+  const placeholderMap = {
+    "e.g.": "___eg___",
+    "i.e.": "___ie___",
+    "etc.": "___etc___",
+    "vs.": "___vs___",
+  };
 
-    let safeText = text;
+  let safeText = text;
+  for (const [abbr, placeholder] of Object.entries(placeholderMap)) {
+    safeText = safeText.replaceAll(abbr, placeholder);
+  }
+
+  let parts = safeText.split(/(?=\d+\.\s)/);
+
+  if (parts.length === 1) {
+    parts = safeText.match(/[^.!?]+[.!?]+(\s|$)/g) || [safeText];
+  }
+
+  return parts.map((line, idx) => {
+    let restored = line.trim();
     for (const [abbr, placeholder] of Object.entries(placeholderMap)) {
-        safeText = safeText.replaceAll(abbr, placeholder);
+      restored = restored.replaceAll(placeholder, abbr);
     }
 
-    let parts = safeText.split(/(?=\d+\.\s)/);
+    const lineText = restored.replace(/^\d+\.\s*/, "").trim();
 
-    if (parts.length === 1) {
-        parts = safeText.match(/[^.!?]+[.!?]+(\s|$)/g) || [safeText];
-    }
-
-    return parts.map((line, idx) => {
-        let restored = line.trim();
-        for (const [abbr, placeholder] of Object.entries(placeholderMap)) {
-            restored = restored.replaceAll(placeholder, abbr);
-        }
-
-        const lineText = restored.replace(/^\d+\.\s*/, "").trim();
-
-        let content;
-        if (testType === 10) {
-            content = lineText.split(/(impairment|moderate)/gi).map((part, i) => {
-                const cap = capitalizeWords(part);
-                return part.toLowerCase() === "impairment" || part.toLowerCase() === "moderate"
-                    ? <Text key={i} style={{ fontWeight: 'bold', fontFamily: "Roboto" }}>{cap}</Text>
-                    : cap;
-            });
-        } else {
-            content = capitalizeWords(lineText);
-        }
-
-        return (
-            <View style={styles.bulletItem} key={idx}>
-                <Text style={styles.bullet}>•</Text>
-                <Text style={styles.recommendationText}>{content}</Text>
-            </View>
+    let content;
+    if (testType === 10) {
+      content = lineText.split(/(impairment|moderate)/gi).map((part, i) => {
+        const cap = capitalizeWords(part);
+        return part.toLowerCase() === "impairment" ||
+          part.toLowerCase() === "moderate" ? (
+          <Text key={i} style={{ fontWeight: "bold", fontFamily: "Roboto" }}>
+            {cap}
+          </Text>
+        ) : (
+          cap
         );
-    });
+      });
+    } else {
+      content = capitalizeWords(lineText);
+    }
+
+    return (
+      <View style={styles.bulletItem} key={idx}>
+        <Text style={styles.bullet}>•</Text>
+        <Text style={styles.recommendationText}>{content}</Text>
+      </View>
+    );
+  });
 };
 
 const Body = ({ clinicalTest, charts }) => {
-    const getTestInfo = (testType) => testInfo.find(t => t.type === Number(testType));
+  const getTestInfo = (testType) =>
+    testInfo.find((t) => t.type === Number(testType));
 
-    const chiefComplaints = charts?.find((chart) => chart.chart === "DETAIL_ADMISSION")?.detailAdmission?.ChiefComplaints;
-    const filteredChiefComplaints = chiefComplaints
-        ? Object.values(chiefComplaints).filter(line => line && line.trim() !== "")
-        : [];
+  const chiefComplaints = charts?.find(
+    (chart) => chart.chart === "DETAIL_ADMISSION",
+  )?.detailAdmission?.ChiefComplaints;
+  const filteredChiefComplaints = chiefComplaints
+    ? Object.values(chiefComplaints).filter(
+        (line) => line && line.trim() !== "",
+      )
+    : [];
 
-    const resolvedTotalScore = (test) => {
-        if (Number(test?.testType) === 10) return test?.scores?.total;
-        return test?.systemTotalScore;
-    };
+  const resolvedTotalScore = (test) => {
+    if (Number(test?.testType) === 10) return test?.scores?.total;
+    return test?.systemTotalScore;
+  };
 
-    return (
-        <React.Fragment>
-            <View>
-                <Text style={styles.pageTitle}>CLINICAL TEST REPORT</Text>
+  return (
+    <React.Fragment>
+      <View>
+        <Text style={styles.pageTitle}>CLINICAL TEST REPORT</Text>
 
-                {clinicalTest && (
-                    <View style={styles.section}>
-                        <Text style={styles.sectionTitle}>
-                            {getTestInfo(clinicalTest.testType)?.name || 'Clinical Test'} Results
-                        </Text>
+        {clinicalTest && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>
+              {getTestInfo(clinicalTest.testType)?.name || "Clinical Test"}{" "}
+              Results
+            </Text>
 
-                        <Text style={styles.container}>
-                            <Text style={styles.label}>TOTAL SCORE: </Text>
-                            <Text style={{ ...styles.score, fontFamily: "Roboto", fontSize: "15px" }}>
-                                {`${resolvedTotalScore(clinicalTest)}${getTestInfo(clinicalTest?.testType)?.totalScore ? ` / ${getTestInfo(clinicalTest.testType)?.totalScore}` : ''}`}
-                            </Text>
-                        </Text>
+            <Text style={styles.container}>
+              <Text style={styles.label}>TOTAL SCORE: </Text>
+              <Text
+                style={{
+                  ...styles.score,
+                  fontFamily: "Roboto",
+                  fontSize: "15px",
+                }}
+              >
+                {`${resolvedTotalScore(clinicalTest)}${getTestInfo(clinicalTest?.testType)?.totalScore ? ` / ${getTestInfo(clinicalTest.testType)?.totalScore}` : ""}`}
+              </Text>
+            </Text>
 
-                        {getTestInfo(clinicalTest?.testType)?.subScores && (
-                            <View>
-                                <Text style={styles.label}>SUB SCORES:</Text>
-                                {getTestInfo(clinicalTest?.testType).subScores.map((sub, index) => (
-                                    <View key={index} style={styles.bulletItem}>
-                                        <Text style={styles.bullet}>•</Text>
-                                        <Text style={styles.value}>
-                                            {Number(clinicalTest?.testType) === 10
-                                                ? `${sub.label}: ${clinicalTest?.scores?.[sub.key] ?? 'N/A'}`
-                                                : `${sub.label}: ${clinicalTest?.[sub.key] ?? 'N/A'}`
-                                            }
-                                        </Text>
-                                    </View>
-                                ))}
-                            </View>
-                        )}
-
-                        <View style={styles.divider} />
-
-                        {(clinicalTest?.severity || clinicalTest?.systemSeverity) && (
-                            <>
-                                <Text style={styles.label}>SEVERITY:</Text>
-                                <Text style={styles.value}>
-                                    {clinicalTest?.severity || clinicalTest?.systemSeverity}
-                                </Text>
-                                <View style={styles.divider} />
-                            </>
-                        )}
-
-                        {filteredChiefComplaints.length > 0 && (
-                            <>
-                                <Text style={styles.label}>CHIEF COMPLAINTS:</Text>
-                                <View style={{ marginBottom: 8 }}>
-                                    {filteredChiefComplaints.map((line, idx) => (
-                                        <View style={styles.bulletItem} key={idx}>
-                                            <Text style={styles.bullet}>•</Text>
-                                            <Text style={styles.value}>{capitalizeWords(line)}</Text>
-                                        </View>
-                                    ))}
-                                </View>
-                                <View style={styles.divider} />
-                            </>
-                        )}
-
-                        {clinicalTest?.observation && (
-                            <>
-                                <View>
-                                    <Text style={styles.label}>OBSERVATIONS:</Text>
-                                    <Text style={styles.paragraph}>
-                                        {capitalizeWords(clinicalTest.observation)}
-                                    </Text>
-                                </View>
-                                <View style={styles.divider} />
-                            </>
-                        )}
-
-                        {(clinicalTest?.systemInterpretation || clinicalTest?.interpretation) && (
-                            <>
-                                <View wrap={false}>
-                                    <Text style={styles.label}>INTERPRETATION:</Text>
-                                    <Text style={styles.paragraph}>
-                                        {Number(clinicalTest?.testType) === 10 ? (
-                                            clinicalTest.interpretation
-                                                .split(/(impairment|moderate)/gi)
-                                                .map((part, index) => {
-                                                    const text = capitalizeWords(part);
-                                                    const isHighlight =
-                                                        part.toLowerCase() === 'impairment' || part.toLowerCase() === 'moderate';
-                                                    return (
-                                                        <Text
-                                                            key={index}
-                                                            style={isHighlight ? { fontWeight: 'bold', fontFamily: "Roboto" } : {}}
-                                                        >
-                                                            {text}
-                                                        </Text>
-                                                    );
-                                                })
-                                        ) : (
-                                            <Text>{capitalizeWords(clinicalTest.systemInterpretation || clinicalTest?.interpretation)}</Text>
-                                        )}
-                                    </Text>
-                                </View>
-                                <View style={styles.divider} />
-                            </>
-                        )}
-
-                        {(clinicalTest?.systemRecommendation || clinicalTest?.recommendation) && (
-                            <View wrap={false}>
-                                <Text style={styles.label}>RECOMMENDATION:</Text>
-                                <View style={styles.recommendationContainer}>
-                                    {formatRecommendationsPDF(clinicalTest.systemRecommendation || clinicalTest?.recommendation, clinicalTest?.testType)}
-                                </View>
-                            </View>
-                        )}
-
-                        {Number(clinicalTest?.testType) === 15 && clinicalTest?.questions?.length > 0 && (
-                            <View style={styles.qaSection}>
-                                <View style={styles.divider} />
-                                <Text style={styles.qaSectionTitle}>QUESTIONS & ANSWERS</Text>
-                                <View style={styles.qaTableHeader}>
-                                    <Text style={styles.qaTableHeaderId}>No.</Text>
-                                    <Text style={styles.qaTableHeaderQ}>QUESTION</Text>
-                                    <Text style={styles.qaTableHeaderA}>ANSWER</Text>
-                                </View>
-                                {clinicalTest.questions.map((q, idx) => (
-                                    <View key={idx} style={idx % 2 === 0 ? styles.qaRow : styles.qaRowAlt} wrap={false}>
-                                        <Text style={styles.qaQuestionId}>{idx + 1}.</Text>
-                                        <Text style={styles.qaQuestionText}>{q.question}</Text>
-                                        <View style={styles.qaAnswerCol}>
-                                            <Text style={styles.qaAnswerLabel}>{panssScoreToAnswer[q.score] || q.score}</Text>
-                                            <Text style={styles.qaAnswerScore}>Score: {q.score} / 7</Text>
-                                        </View>
-                                    </View>
-                                ))}
-                            </View>
-                        )}
-
-                        <View style={{ marginTop: 16 }}>
-                            <View style={styles.divider} />
-                            <Text
-                                style={{
-                                    fontSize: 10,
-                                    color: "#555",
-                                    textAlign: "justify",
-                                    marginTop: 4,
-                                    fontStyle: "italic",
-                                }}
-                            >
-                                Note: This Report Is To Be Used For Professional And Clinical Use Only. It Is Not To Be Used For Legal Purposes.
-                                The Results Shall Be Discussed And Interpreted By Professionals Only. Results Are Subject To The Individual's
-                                Performance On The Given Day. Kindly Correlate Clinically.
-                            </Text>
-                        </View>
+            {getTestInfo(clinicalTest?.testType)?.subScores && (
+              <View>
+                <Text style={styles.label}>SUB SCORES:</Text>
+                {getTestInfo(clinicalTest?.testType).subScores.map(
+                  (sub, index) => (
+                    <View key={index} style={styles.bulletItem}>
+                      <Text style={styles.bullet}>•</Text>
+                      <Text style={styles.value}>
+                        {Number(clinicalTest?.testType) === 10
+                          ? `${sub.label}: ${clinicalTest?.scores?.[sub.key] ?? "N/A"}`
+                          : `${sub.label}: ${clinicalTest?.[sub.key] ?? "N/A"}`}
+                      </Text>
                     </View>
+                  ),
                 )}
+              </View>
+            )}
+
+            <View style={styles.divider} />
+
+            {(clinicalTest?.severity || clinicalTest?.systemSeverity) && (
+              <>
+                <Text style={styles.label}>SEVERITY:</Text>
+                <Text style={styles.value}>
+                  {clinicalTest?.severity || clinicalTest?.systemSeverity}
+                </Text>
+                <View style={styles.divider} />
+              </>
+            )}
+
+            {filteredChiefComplaints.length > 0 && (
+              <>
+                <Text style={styles.label}>CHIEF COMPLAINTS:</Text>
+                <View style={{ marginBottom: 8 }}>
+                  {filteredChiefComplaints.map((line, idx) => (
+                    <View style={styles.bulletItem} key={idx}>
+                      <Text style={styles.bullet}>•</Text>
+                      <Text style={styles.value}>{capitalizeWords(line)}</Text>
+                    </View>
+                  ))}
+                </View>
+                <View style={styles.divider} />
+              </>
+            )}
+
+            {clinicalTest?.observation && (
+              <>
+                <View>
+                  <Text style={styles.label}>OBSERVATIONS:</Text>
+                  <Text style={styles.paragraph}>
+                    {capitalizeWords(clinicalTest.observation)}
+                  </Text>
+                </View>
+                <View style={styles.divider} />
+              </>
+            )}
+
+            {(clinicalTest?.systemInterpretation ||
+              clinicalTest?.interpretation) && (
+              <>
+                <View wrap={false}>
+                  <Text style={styles.label}>INTERPRETATION:</Text>
+                  <Text style={styles.paragraph}>
+                    {Number(clinicalTest?.testType) === 10 ? (
+                      clinicalTest.interpretation
+                        .split(/(impairment|moderate)/gi)
+                        .map((part, index) => {
+                          const text = capitalizeWords(part);
+                          const isHighlight =
+                            part.toLowerCase() === "impairment" ||
+                            part.toLowerCase() === "moderate";
+                          return (
+                            <Text
+                              key={index}
+                              style={
+                                isHighlight
+                                  ? { fontWeight: "bold", fontFamily: "Roboto" }
+                                  : {}
+                              }
+                            >
+                              {text}
+                            </Text>
+                          );
+                        })
+                    ) : (
+                      <Text>
+                        {capitalizeWords(
+                          clinicalTest.systemInterpretation ||
+                            clinicalTest?.interpretation,
+                        )}
+                      </Text>
+                    )}
+                  </Text>
+                </View>
+                <View style={styles.divider} />
+              </>
+            )}
+
+            {(clinicalTest?.systemRecommendation ||
+              clinicalTest?.recommendation) && (
+              <View wrap={false}>
+                <Text style={styles.label}>RECOMMENDATION:</Text>
+                <View style={styles.recommendationContainer}>
+                  {formatRecommendationsPDF(
+                    clinicalTest.systemRecommendation ||
+                      clinicalTest?.recommendation,
+                    clinicalTest?.testType,
+                  )}
+                </View>
+              </View>
+            )}
+
+            {Number(clinicalTest?.testType) === 15 &&
+              clinicalTest?.questions?.length > 0 && (
+                <View style={styles.qaSection}>
+                  <View style={styles.divider} />
+                  <Text style={styles.qaSectionTitle}>QUESTIONS & ANSWERS</Text>
+                  <View style={styles.qaTableHeader}>
+                    <Text style={styles.qaTableHeaderId}>No.</Text>
+                    <Text style={styles.qaTableHeaderQ}>QUESTION</Text>
+                    <Text style={styles.qaTableHeaderA}>ANSWER</Text>
+                  </View>
+                  {clinicalTest.questions.map((q, idx) => (
+                    <View
+                      key={idx}
+                      style={idx % 2 === 0 ? styles.qaRow : styles.qaRowAlt}
+                      wrap={false}
+                    >
+                      <Text style={styles.qaQuestionId}>{idx + 1}.</Text>
+                      <Text style={styles.qaQuestionText}>{q.question}</Text>
+                      <View style={styles.qaAnswerCol}>
+                        <Text style={styles.qaAnswerLabel}>
+                          {panssScoreToAnswer[q.score] || q.score}
+                        </Text>
+                        <Text style={styles.qaAnswerScore}>
+                          Score: {q.score} / 7
+                        </Text>
+                      </View>
+                    </View>
+                  ))}
+                </View>
+              )}
+
+            <View style={{ marginTop: 16 }}>
+              <View style={styles.divider} />
+              <Text
+                style={{
+                  fontSize: 10,
+                  color: "#555",
+                  textAlign: "justify",
+                  marginTop: 4,
+                  fontStyle: "italic",
+                }}
+              >
+                Note: This Report Is To Be Used For Professional And Clinical
+                Use Only. It Is Not To Be Used For Legal Purposes. The Results
+                Shall Be Discussed And Interpreted By Professionals Only.
+                Results Are Subject To The Individual's Performance On The Given
+                Day. Kindly Correlate Clinically.
+              </Text>
             </View>
-        </React.Fragment>
-    );
+          </View>
+        )}
+      </View>
+    </React.Fragment>
+  );
 };
 
 Body.prototype = {
-    clinicalTest: PropTypes.object,
-    charts: PropTypes.array,
+  clinicalTest: PropTypes.object,
+  charts: PropTypes.array,
 };
 
 export default Body;
