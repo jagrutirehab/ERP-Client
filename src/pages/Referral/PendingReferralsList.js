@@ -144,7 +144,7 @@ const PendingReferralsList = ({
         <Table className="table-bordered table-nowrap align-middle mb-0">
           <thead className="table-light">
             <tr>
-              <th scope="col">Doctor Name</th>
+              <th scope="col">Contact Name</th>
               <th scope="col">Patient Name</th>
               <th scope="col">Phone Number</th>
               <th scope="col">Created Date</th>
@@ -188,7 +188,7 @@ const PendingReferralsList = ({
             ) : (
               <tr>
                 <td colSpan="5" className="text-center py-4">
-                  No pending referrals
+                  No pending contacts
                 </td>
               </tr>
             )}

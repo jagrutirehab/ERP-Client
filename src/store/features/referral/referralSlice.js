@@ -41,7 +41,7 @@ export const addReferral = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message: "Referral Saved Successfully",
+          message: "Contact Saved Successfully",
         })
       );
       return response;
@@ -60,7 +60,7 @@ export const updateReferral = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message: "Referral Updated Successfully",
+          message: "Contact Updated Successfully",
         })
       );
       return response;
@@ -92,7 +92,7 @@ export const removeReferral = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message: "Referral Deleted Successfully",
+          message: "Contact Deleted Successfully",
         })
       );
       return response;
@@ -124,7 +124,7 @@ export const approveReferralAction = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message: "Referral approved successfully",
+          message: "Contact approved successfully",
         })
       );
       return response;
@@ -143,7 +143,7 @@ export const rejectReferralAction = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message: "Referral rejected successfully",
+          message: "Contact rejected successfully",
         })
       );
       return response;

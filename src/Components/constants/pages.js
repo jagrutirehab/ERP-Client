@@ -222,8 +222,9 @@ const pages = [
   {
     id: "referral",
     label: "Referral",
+    displayLabel: "Contacts",
     name: "Referral",
-    link: "/referral",
+    link: "/contacts",
     icon: "bx bx-share-alt",
     permissions: {
       create: true,

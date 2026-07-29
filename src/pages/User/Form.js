@@ -1391,7 +1391,7 @@ const UserForm = ({
                                 cursor: "pointer",
                               }}
                             >
-                              {item.title || item.label}
+                              {item.title || item.displayLabel || item.label}
                             </label>
                           </div>
 
