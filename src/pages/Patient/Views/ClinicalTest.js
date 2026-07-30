@@ -6,6 +6,7 @@ import {
   Row,
   UncontrolledTooltip,
   Button,
+  Spinner,
 } from "reactstrap";
 import { toast } from "react-toastify";
 import GeneralCard from "./Components/GeneralCard";
@@ -28,11 +29,14 @@ import MorseResultComponent from "./Components/Morsefallresult";
 import RamsayResultComponent from "./Components/Ramsayresult";
 import GCSResultComponent from "./Components/Gcsresult";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import CGISResultComponent from "./Components/CGISResultComponent";
+import COWSResultComponent from "./Components/COWSResultComponent";
+import AUDITResultComponent from "./Components/AUDITResultComponent";
 
 const ClinicalTest = ({
   open,
   patient,
-  loading,
+  // loading,
   toggleModal,
   setChartType,
   toggleAccordian,
@@ -41,6 +45,7 @@ const ClinicalTest = ({
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
   const testResult = useSelector((state) => state.ClinicalTest.testResult);
+  const loading = useSelector((state) => state.ClinicalTest.isLoading);
 
   const loadClinialTests = async () => {
     try {
@@ -63,7 +68,7 @@ const ClinicalTest = ({
         clinicalTest: test,
         doctor: test.doctorId,
         patient: test.patientId,
-      })
+      }),
     );
   };
 
@@ -138,7 +143,12 @@ const ClinicalTest = ({
                     accordionId={idx.toString()}
                   >
                     {loading ? (
-                      <Placeholder />
+                      <div
+                        className="d-flex justify-content-center align-items-center"
+                        style={{ minHeight: "200px" }}
+                      >
+                        <Spinner color="primary" />
+                      </div>
                     ) : (
                       <div>
                         <div className="timeline-2">
@@ -224,6 +234,21 @@ const ClinicalTest = ({
                                         )}
                                         {test?.testType === 18 && (
                                           <GCSResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 19 && (
+                                          <CGISResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 20 && (
+                                          <COWSResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 21 && (
+                                          <AUDITResultComponent
                                             resultData={test}
                                           />
                                         )}

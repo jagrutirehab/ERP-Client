@@ -29,6 +29,9 @@ import RamsayQuestion from "./Components/Ramsayquestion";
 import GCSQuestion from "./Components/Gcsquestion";
 import Morsefallquestion from "./Components/Morsefallquestion";
 import Belongings from "./Belongings";
+import CGISQuestion from "./Components/CGISQuestion";
+import COWSQuestion from "./Components/COWSQuestion";
+import AUDITQuestion from "./Components/AUDITQuestion";
 
 const Views = (props) => {
   const ref = useRef();
@@ -139,6 +142,9 @@ const Views = (props) => {
             {data === "Morse Fall Scale" && <Morsefallquestion />}
             {data === "Ramsay Sedation Scale" && <RamsayQuestion />}
             {data === "GCS" && <GCSQuestion />}
+            {data === "CGI-S" && <CGISQuestion />}
+            {data === "COWS" && <COWSQuestion />}
+            {data === "AUDIT" && <AUDITQuestion />}
           </div>
         )}
       </div>

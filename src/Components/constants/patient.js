@@ -533,6 +533,9 @@ const testRecord = [
   { name: "Morse Fall Scale" },
   { name: "Ramsay Sedation Scale" },
   { name: "GCS" },
+  { name: "CGI-S" },
+  { name: "COWS" },
+  { name: "AUDIT" },
 ];
 
 const prescriptionFormFields = [

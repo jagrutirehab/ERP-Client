@@ -47,6 +47,9 @@ const Charting = ({
   const isClinincalTab = useSelector(
     (state) => state.ClinicalTest.isClinincalTab,
   );
+  const clinicalTestLoading = useSelector(
+    (state) => state.ClinicalTest.isLoading,
+  );
   const [tab, setTab] = useState(isClinincalTab ? CLINIC_TEST : IPD);
   const [dateModal, setDateModal] = useState(false);
   const [chartType, setChartType] = useState("");
@@ -221,7 +224,7 @@ const Charting = ({
           addmissionsCharts={addmissionsCharts}
           open={open}
           patient={patient}
-          loading={loading}
+          loading={clinicalTestLoading}
           toggleModal={toggleModal}
           setChartType={setChartType}
           toggleAccordian={toggleAccordian}
@@ -230,7 +233,7 @@ const Charting = ({
       )
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addmissionsCharts, tab, loading, open, patient]);
+  }, [addmissionsCharts, tab, clinicalTestLoading, open, patient]);
 
   const generalComponent = useMemo(() => {
     return (
