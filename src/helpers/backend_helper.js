@@ -4411,3 +4411,27 @@ export const reviewEmployeeDocumentFile = (employeeDocId, fileId, payload) => {
     { headers: { "X-No-Cookie-Token": "true" } },
   );
 };
+
+export const postCGISTest = (data) =>
+  api.create(url.CGIS_TEST, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const postCOWSTest = (data) =>
+  api.create(url.COWS_TEST, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const postAUDITTest = (data) =>
+  api.create(url.AUDIT_TEST, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
