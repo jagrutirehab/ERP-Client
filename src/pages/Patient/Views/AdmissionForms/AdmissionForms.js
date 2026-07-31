@@ -1000,8 +1000,13 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                           <div
                             style={{
                               display: "grid",
-                              gridTemplateColumns: "repeat(5, 1fr)",
-                              gap: "30px",
+                              // Responsive: fits as many ~220px columns as the
+                              // width allows (up to 5 on desktop) and collapses
+                              // to fewer — down to 1 on mobile — instead of
+                              // cramming 5 fixed columns into every screen.
+                              gridTemplateColumns:
+                                "repeat(auto-fit, minmax(220px, 1fr))",
+                              gap: "clamp(16px, 2vw, 30px)",
                               width: "100%",
                             }}
                           >
