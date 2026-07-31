@@ -187,6 +187,11 @@ export const emptyConditionItem = () => ({
   // Populated only when operator is CONSECUTIVE_LOW (discontinuation rules).
   // count = how many consecutive assessments must score below the threshold.
   consecutiveMatch: null,
+  // Optional discontinue-gate for DELAYED cadence ("missing assessment")
+  // conditions — { count, criteria: [{ field, threshold }] }. Null = off.
+  // When the last `count` assessments all score below the thresholds, the
+  // missing-assessment reminder is suppressed.
+  discontinueGate: null,
 });
 
 export const emptyRouting = () => ({
