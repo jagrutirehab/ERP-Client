@@ -34,6 +34,16 @@ const AdmissionChart = ({
     dispatch(setChartDate(d.toISOString()));
   }, [dispatch]);
 
+  // The Capacity Assessment must be completed before the Admission / Consent
+  // forms can be added. `patient.addmission` is the populated current
+  // admission; a saved assessment lands in `capacityAssessmentFormRaw` (in-app
+  // form) or `capacityAssessmentFormURL` (signed upload). This refreshes
+  // automatically — CapacityAssessmentModal dispatches fetchPatientById on save.
+  const hasCapacityAssessment = Boolean(
+    patient?.addmission?.capacityAssessmentFormRaw?.length ||
+    patient?.addmission?.capacityAssessmentFormURL?.length,
+  );
+
   // console.log("patient", patient);
   return (
     <React.Fragment>
@@ -117,10 +127,23 @@ const AdmissionChart = ({
             </DropdownToggle>
             <DropdownMenu flip={false} color="warning">
               {(Forms || []).map((item, idx) => {
+                // Admission & Consent forms are locked until a Capacity
+                // Assessment exists for this admission.
+                const gated =
+                  !hasCapacityAssessment &&
+                  (item.name === "Admission Form" ||
+                    item.name === "Consent Form");
                 return (
                   <DropdownItem
                     key={idx + item.category}
+                    disabled={gated}
+                    title={
+                      gated
+                        ? "Complete the Capacity Assessment Form first"
+                        : undefined
+                    }
                     onClick={() => {
+                      if (gated) return;
                       if (item.name === "Capacity Assessment Form") {
                         setCapacityModal(true);
                       } else {
@@ -143,6 +166,12 @@ const AdmissionChart = ({
               })}
             </DropdownMenu>
           </Dropdown>
+          {/* {!hasCapacityAssessment && (
+            <small className="text-muted d-block text-end mt-1">
+              Add the Capacity Assessment Form first to enable the Admission &amp;
+              Consent forms.
+            </small>
+          )} */}
         </div>
       </CustomModal>
       <CapacityAssessmentModal

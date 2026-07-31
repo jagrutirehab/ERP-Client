@@ -834,6 +834,174 @@ const ConditionRow = ({
         </Row>
       )}
 
+      {/* DELAYED-only: optional discontinue gate — suppress this "missing
+          assessment" reminder once the patient's recent scores are stable
+          (monitoring legitimately discontinued). */}
+      {isDelayed && (
+        <div className="mb-3 p-2 border rounded bg-light mx-0">
+          <div className="form-check mb-2">
+            <input
+              type="checkbox"
+              className="form-check-input"
+              id={`discoGate-${idx}`}
+              checked={!!condition.discontinueGate}
+              disabled={isDisabled}
+              onChange={(e) =>
+                onChange(
+                  idx,
+                  "discontinueGate",
+                  e.target.checked
+                    ? { count: "", criteria: [{ field: "", threshold: "" }] }
+                    : null,
+                )
+              }
+            />
+            <label
+              className="form-check-label small fw-bold"
+              htmlFor={`discoGate-${idx}`}
+            >
+              Suppress this reminder when monitoring is discontinued (patient
+              stable)
+            </label>
+          </div>
+
+          {condition.discontinueGate && (
+            <>
+              <Row className="align-items-end g-2 mb-2 mx-0">
+                <Col md={3}>
+                  <Label className="small text-muted mb-1">
+                    Last N assessments
+                  </Label>
+                  <Input
+                    type="number"
+                    min="1"
+                    step="1"
+                    placeholder="e.g. 2"
+                    value={condition.discontinueGate.count ?? ""}
+                    onChange={(e) =>
+                      onChange(idx, "discontinueGate", {
+                        ...condition.discontinueGate,
+                        count: e.target.value.replace(/[^\d]/g, ""),
+                      })
+                    }
+                    disabled={isDisabled}
+                  />
+                </Col>
+              </Row>
+
+              {(condition.discontinueGate.criteria || []).map((cr, cIdx) => (
+                <Row className="align-items-end g-2 mb-1 mx-0" key={cIdx}>
+                  <Col md={5}>
+                    <Label className="small text-muted mb-1">
+                      Field (score)
+                    </Label>
+                    <Select
+                      options={fieldOptions}
+                      value={
+                        fieldOptions.find((f) => f.value === cr.field) || null
+                      }
+                      onChange={(v) => {
+                        const criteria = [
+                          ...condition.discontinueGate.criteria,
+                        ];
+                        criteria[cIdx] = {
+                          ...criteria[cIdx],
+                          field: v?.value || "",
+                        };
+                        onChange(idx, "discontinueGate", {
+                          ...condition.discontinueGate,
+                          criteria,
+                        });
+                      }}
+                      isDisabled={isDisabled || !condition.model}
+                      placeholder={
+                        condition.model ? "Select field" : "Select model first"
+                      }
+                    />
+                  </Col>
+                  <Col md={4}>
+                    <Label className="small text-muted mb-1">
+                      Below (threshold)
+                    </Label>
+                    <Input
+                      type="number"
+                      step="any"
+                      placeholder="e.g. 8"
+                      value={cr.threshold ?? ""}
+                      onChange={(e) => {
+                        const criteria = [
+                          ...condition.discontinueGate.criteria,
+                        ];
+                        criteria[cIdx] = {
+                          ...criteria[cIdx],
+                          threshold: e.target.value,
+                        };
+                        onChange(idx, "discontinueGate", {
+                          ...condition.discontinueGate,
+                          criteria,
+                        });
+                      }}
+                      disabled={isDisabled}
+                    />
+                  </Col>
+                  <Col md={3}>
+                    <Button
+                      type="button"
+                      color="danger"
+                      outline
+                      size="sm"
+                      disabled={
+                        isDisabled ||
+                        (condition.discontinueGate.criteria || []).length <= 1
+                      }
+                      onClick={() => {
+                        const criteria =
+                          condition.discontinueGate.criteria.filter(
+                            (_, i) => i !== cIdx,
+                          );
+                        onChange(idx, "discontinueGate", {
+                          ...condition.discontinueGate,
+                          criteria,
+                        });
+                      }}
+                    >
+                      ×
+                    </Button>
+                  </Col>
+                </Row>
+              ))}
+
+              <Button
+                type="button"
+                color="secondary"
+                outline
+                size="sm"
+                className="mt-1"
+                disabled={isDisabled}
+                onClick={() =>
+                  onChange(idx, "discontinueGate", {
+                    ...condition.discontinueGate,
+                    criteria: [
+                      ...(condition.discontinueGate.criteria || []),
+                      { field: "", threshold: "" },
+                    ],
+                  })
+                }
+              >
+                + Add criterion
+              </Button>
+
+              <small className="text-muted d-block mt-2">
+                Reminder is skipped when the last{" "}
+                {condition.discontinueGate.count || "N"} assessments of{" "}
+                {condition.model?.label || "this model"} all score below the
+                threshold on every criterion (a higher score auto-resumes it).
+              </small>
+            </>
+          )}
+        </div>
+      )}
+
       {error && <small className="text-danger d-block mb-2">{error}</small>}
     </>
   );

@@ -2,14 +2,26 @@ import React from "react";
 import Placeholder from "./Components/Placeholder";
 import Charts from "../Charts";
 
-const General = ({ generalLoading, toggleModal, charts }) => {
+const General = ({
+  generalLoading,
+  toggleModal,
+  charts,
+  currentAddmissionId,
+  isPatientDischarged,
+}) => {
+  console.log("GENERAL TAB charts:", charts);
   return (
     <React.Fragment>
       <div className="">
         {generalLoading ? (
           <Placeholder />
         ) : (
-          <Charts toggleDateModal={toggleModal} charts={charts ?? []} />
+          <Charts
+            toggleDateModal={toggleModal}
+            charts={charts ?? []}
+            currentAddmissionId={currentAddmissionId}
+            isPatientDischarged={isPatientDischarged}
+          />
         )}
       </div>
     </React.Fragment>
@@ -19,7 +31,7 @@ const General = ({ generalLoading, toggleModal, charts }) => {
 export default General;
 
 // {
-  /* <div className="">
+/* <div className="">
 <GeneralCard>
   <div className="d-flex align-items-center ">
     <div className="d-fle">

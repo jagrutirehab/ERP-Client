@@ -1,4 +1,5 @@
 import Highlighter from "react-highlight-words";
+import { Badge } from "reactstrap";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 
 export const leaveBalanceColumns = ({ searchText }) => [
@@ -32,8 +33,52 @@ export const leaveBalanceColumns = ({ searchText }) => [
   {
     name: <div>Center</div>,
     selector: (row) => capitalizeWords(row?.currentLocation?.title || "-"),
+    cell: (row) => {
+      const regime = row?.weekOffRegime;
+      const inGrace = regime?.source === "TRANSFER_GRACE";
+      const governingTitle = capitalizeWords(
+        regime?.governingCenter?.title || "-",
+      );
+      const until = regime?.graceEndsOn
+        ? new Date(regime.graceEndsOn).toLocaleDateString("en-IN", {
+            day: "2-digit",
+            month: "short",
+            year: "numeric",
+          })
+        : null;
+
+      return (
+        <div className="py-1">
+          <div>{capitalizeWords(row?.currentLocation?.title || "-")}</div>
+          {inGrace && (
+            <Badge
+              pill
+              color="info"
+              className="mt-1 px-2 py-1 fw-normal"
+              style={{
+                display: "inline-block",
+                maxWidth: "100%",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                fontSize: "0.68rem",
+                lineHeight: 1.3,
+                verticalAlign: "middle",
+              }}
+              title={
+                until
+                  ? `Week-off rules from ${governingTitle} apply until ${until}`
+                  : `Week-off rules from ${governingTitle} still apply`
+              }
+            >
+              WO: {governingTitle}
+            </Badge>
+          )}
+        </div>
+      );
+    },
     wrap: true,
-    minWidth: "120px",
+    minWidth: "160px",
   },
   {
     name: <div>Current Status</div>,
