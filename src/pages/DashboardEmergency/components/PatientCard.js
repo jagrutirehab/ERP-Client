@@ -168,6 +168,30 @@ const PatientCard = ({ patient }) => {
           </span>
         </CardTitle>
 
+        <div className="mb-2">
+          <div className="d-flex align-items-center mb-1 text-body-secondary small">
+            <span className="me-2">🏥</span>
+            <strong className="me-1">Center:</strong>
+            <span>{patient.center?.title || "N/A"}</span>
+          </div>
+          <div className="d-flex align-items-center mb-1 text-body-secondary small">
+            <span className="me-2">🩺</span>
+            <strong className="me-1">Doctor:</strong>
+            <span>
+              {patient.doctor?.name ? toTitleCase(patient.doctor.name) : "N/A"}
+            </span>
+          </div>
+          <div className="d-flex align-items-center mb-2 text-body-secondary small">
+            <span className="me-2">🧠</span>
+            <strong className="me-1">Psychologist:</strong>
+            <span>
+              {patient.psychologist?.name
+                ? toTitleCase(patient.psychologist.name)
+                : "N/A"}
+            </span>
+          </div>
+        </div>
+
         {patient?.vitals ? (
           <>
             <div className="d-flex align-items-center mb-2 text-body-secondary">
