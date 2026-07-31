@@ -165,15 +165,32 @@ const RaiseTicket = () => {
 
     fetchCenters();
   }, []);
+  const HEAD_OFFICE_ID =
+    process.env.REACT_APP_ENV === "production"
+      ? "6941217427ea1c92eed41017" // Head-Office (Production)
+      : "6940f64772e13a2b4c418c7e"; // Head-Office (Local/Staging)
+
+  const HEAD_OFFICE_MANAGER = {
+    value: "697e145529c91d173986bdb8",
+    label: "SHIVANI GUPTA (JRC0571)",
+  };
   useEffect(() => {
     const fetchCentreManagers = async () => {
       if (!form.center || issueType !== "OPERATIONAL") {
         setCentreManagers([]);
         return;
       }
+
+      setForm((prev) => ({ ...prev, operationalCentreManager: null }));
+
+      // Special case: Head Office → hardcoded manager, no API call
+      if (form.center === HEAD_OFFICE_ID) {
+        setCentreManagers([HEAD_OFFICE_MANAGER]);
+        return;
+      }
+
       try {
         setLoadingCentreManagers(true);
-        setForm((prev) => ({ ...prev, operationalCentreManager: null }));
 
         const response = await getCentreManagersByCenter({
           center: form.center,
