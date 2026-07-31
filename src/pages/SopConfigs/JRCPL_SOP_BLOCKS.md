@@ -486,12 +486,59 @@ Fields (numeric): `bloodPressure.systolic`, `bloodPressure.diastolic`, `pulse`, 
 
 ---
 
-# 13. Not buildable today (no test model) — §7.1, §7.2, §7.4, §7.5
+# 13. Not buildable today (no test model) — §7.2, §7.4
 
-**COWS, AIMS, PCL-5, AUDIT** have no model/watcher, so there is nothing to write a condition against. Skip until models + capture flow exist (setup doc §8.3). AIMS also needs count-based item logic the engine lacks.
+**AIMS** (§7.2) and **PCL-5** (§7.4) have no model/watcher, so there is nothing to write a condition against. Skip until models + capture flow exist (setup doc §8.3). AIMS also needs count-based item logic the engine lacks.
+
+> ✅ **COWS** (`cowsTest`), **AUDIT** (`auditTest`), and **CGI-S** (`cgisTest`) models were added and registered this cycle — they're now authorable like the other scales (e.g. COWS bands per §7.1: Alert 5–24 / Urgent ≥25; AUDIT per §7.5).
 
 ---
 
 # 14. Escalation (Section 8)
 
 Primary recipients are set per block (routing above). ❌ **Time-based escalation** ("escalate to X after N hours if unacknowledged") is **not implemented** — only initial routing exists today (setup doc §8.4).
+
+---
+
+# 15. Cadence enforcement + discontinue gate (missing-assessment reminders)
+
+For scheduled scales you can add a **DELAYED** block that fires when the assessment **wasn't recorded** on cadence — a reminder to complete it. Add these blocks to the **same rule** as the instrument's score bands (§1, §2, §7.1…).
+
+Each such block can carry an optional **discontinue gate**: before firing "missing assessment", the cron re-checks the patient's last **N** scores; if they're all below the threshold(s) on **every** criterion (patient stable / monitoring legitimately discontinued), the reminder is **suppressed**. A later score ≥ threshold breaks the streak and the reminder **auto-resumes** — no manual reset. This stops the cadence reminder from nagging after the "Suggest Discontinue" step. It only ever silences the low-priority reminder, never a score-band alert.
+
+**How to author the gate in the UI:** on the DELAYED condition, tick *"Suppress this reminder when monitoring is discontinued (patient stable)"*, set **Last N assessments**, and add one or more **Field / below-threshold** criteria.
+
+### Block 15.1 — CIWA-Ar not recorded (daily)
+- **Name:** CIWA-Ar not recorded (daily)
+- **Severity:** LOW
+- **Trigger type:** DELAYED
+- **Alert message:** `Daily CIWA-Ar not recorded for {patient.name} — please complete today's assessment.`
+- **Condition:** Model `ciwaTest` · Field **Record Exists?** (`FIELD_EXISTS`) · Schedule **CONTINUOUS, intervalHours 24, grace 6**
+- **Discontinue gate:** ✅ Last **2** assessments · criterion: `systemTotalScore` below **8**
+- **Routing:** Nursing
+- **Action guidance:** Ensure daily CIWA-Ar is documented during the taper. Auto-suppressed once the patient is stable (2 consecutive scores 0–7).
+- **Reference section:** JRCPL-EMR-CAS-001 §3.1 / §3.3
+
+### Block 15.2 — C-SSRS not recorded (weekly)
+- **Name:** C-SSRS not recorded (weekly)
+- **Severity:** LOW
+- **Trigger type:** DELAYED
+- **Alert message:** `Weekly C-SSRS not recorded for {patient.name} — please complete this week's screening.`
+- **Condition:** Model `SSRSTest` · Field **Record Exists?** · Schedule **CONTINUOUS, intervalHours 168, grace 24**
+- **Discontinue gate:** ✅ Last **2** assessments · criteria: `systemIdeationScore` below **2** **AND** `systemBehaviorScore` below **1**
+- **Routing:** Admission doctor (toggle)
+- **Action guidance:** Ensure weekly C-SSRS is documented. Auto-suppressed once stable (ideation 0–1 and no behavior item for 2 consecutive weeks).
+- **Reference section:** §4.1 / §4.3
+
+### Block 15.3 — COWS not recorded (daily)
+- **Name:** COWS not recorded (daily)
+- **Severity:** LOW
+- **Trigger type:** DELAYED
+- **Alert message:** `Daily COWS not recorded for {patient.name} — please complete today's assessment.`
+- **Condition:** Model `cowsTest` · Field **Record Exists?** · Schedule **CONTINUOUS, intervalHours 24, grace 6**
+- **Discontinue gate:** ✅ Last **2** assessments · criterion: `systemTotalScore` below **5**
+- **Routing:** Nursing
+- **Action guidance:** Ensure daily COWS during the opioid taper. Auto-suppressed once stable (2 consecutive scores 0–4).
+- **Reference section:** §7.1
+
+> Notes: the gate re-checks the **last N documents** (scoped to the current admission), not calendar days — the cadence reminder itself is what keeps the daily/weekly rhythm honest. Blank/non-numeric scores never count as "low" (fail-open → reminder fires). LabReport has no discontinue concept (labs are ad-hoc, §5.1), so don't add a gate there.

@@ -91,6 +91,18 @@ const hydrateCondition = (c) => ({
   consecutiveMatch: c.consecutiveMatch
     ? { count: c.consecutiveMatch.count != null ? String(c.consecutiveMatch.count) : "" }
     : null,
+  discontinueGate: c.discontinueGate
+    ? {
+        count:
+          c.discontinueGate.count != null
+            ? String(c.discontinueGate.count)
+            : "",
+        criteria: (c.discontinueGate.criteria || []).map((cr) => ({
+          field: cr.field || "",
+          threshold: cr.threshold != null ? String(cr.threshold) : "",
+        })),
+      }
+    : null,
 });
 
 // Builds an AsyncSelect option from a stored medicine doc + snapshot.
@@ -477,6 +489,18 @@ const SOPForm = ({
       };
     }
 
+    // Optional discontinue-gate on a DELAYED cadence condition — suppresses the
+    // missing-assessment alert once the patient's recent scores are stable.
+    if (c.discontinueGate?.criteria?.length) {
+      out.discontinueGate = {
+        count: Number(c.discontinueGate.count),
+        criteria: c.discontinueGate.criteria.map((cr) => ({
+          field: cr.field,
+          threshold: Number(cr.threshold),
+        })),
+      };
+    }
+
     // Schedule is only meaningful for DELAYED conditions, and only when the
     // user picked a non-default pattern.
     if (c.triggerType?.value === "DELAYED") {
@@ -548,6 +572,26 @@ const SOPForm = ({
           } else if (bad) {
             bErr.conditions[cIdx] =
               "Each band needs From day, Times ≥ 1, and To ≥ From (or onwards)";
+            hasTargetErrors = true;
+          }
+        }
+
+        // Optional discontinue-gate — validate independently of the operator
+        // chain above (it's an add-on to a DELAYED cadence condition).
+        if (c.discontinueGate && !bErr.conditions[cIdx]) {
+          const gcount = Number(c.discontinueGate.count);
+          const criteria = c.discontinueGate.criteria || [];
+          if (!Number.isFinite(gcount) || gcount < 1) {
+            bErr.conditions[cIdx] = "Discontinue gate: count must be ≥ 1";
+            hasTargetErrors = true;
+          } else if (
+            criteria.length === 0 ||
+            criteria.some(
+              (cr) => !cr.field || !Number.isFinite(Number(cr.threshold)),
+            )
+          ) {
+            bErr.conditions[cIdx] =
+              "Discontinue gate: each criterion needs a field and numeric threshold";
             hasTargetErrors = true;
           }
         }
