@@ -41,7 +41,7 @@ const AdmissionChart = ({
   // automatically — CapacityAssessmentModal dispatches fetchPatientById on save.
   const hasCapacityAssessment = Boolean(
     patient?.addmission?.capacityAssessmentFormRaw?.length ||
-      patient?.addmission?.capacityAssessmentFormURL?.length,
+    patient?.addmission?.capacityAssessmentFormURL?.length,
   );
 
   // console.log("patient", patient);
@@ -166,12 +166,12 @@ const AdmissionChart = ({
               })}
             </DropdownMenu>
           </Dropdown>
-          {!hasCapacityAssessment && (
+          {/* {!hasCapacityAssessment && (
             <small className="text-muted d-block text-end mt-1">
               Add the Capacity Assessment Form first to enable the Admission &amp;
               Consent forms.
             </small>
-          )}
+          )} */}
         </div>
       </CustomModal>
       <CapacityAssessmentModal
