@@ -48,6 +48,9 @@ export const TARGET_OPTIONS = [
   { value: "panssTest", label: "PANSS Test" },
   { value: "clinicalTest", label: "Clinical Test" },
   { value: "rorTest", label: "Rorschach Test" },
+  { value: "cowsTest", label: "COWS Test" },
+  { value: "auditTest", label: "AUDIT Test" },
+  { value: "cgisTest", label: "CGI-S Test" },
 ];
 export const OPERATOR_OPTIONS = [
   ...[
