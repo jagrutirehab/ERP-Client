@@ -7,8 +7,10 @@ const SIDEBAR_WIDTH = 260;
 
 const Sidebar = () => {
   const location = useLocation();
-  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(
+    typeof window !== "undefined" && window.innerWidth < 992,
+  );
+  const [isMobileOpen, setIsMobileOpen] = useState(
     typeof window !== "undefined" && window.innerWidth < 992,
   );
   const [topOffset, setTopOffset] = useState(0);
@@ -51,20 +53,44 @@ const Sidebar = () => {
   const canViewAdd = hasPermission("MARKETING", "ADD_VISIT_LOG", "READ");
   const canViewList = hasPermission("MARKETING", "VIEW_VISIT_LOGS", "READ");
   const canViewReport = hasPermission("MARKETING", "VIEW_AGENT_REPORT", "READ");
-  const canViewProfile = hasPermission("MARKETING", "VIEW_AGENT_PROFILE", "READ");
+  const canViewProfile = hasPermission(
+    "MARKETING",
+    "VIEW_AGENT_PROFILE",
+    "READ",
+  );
 
   const MarketingPages = [
     canViewAdd
-      ? { id: "visit-log-add", label: "Add Visit Log", link: "/marketing/visit-log/add", icon: "bx bx-plus-circle" }
+      ? {
+          id: "visit-log-add",
+          label: "Add Visit Log",
+          link: "/marketing/visit-log/add",
+          icon: "bx bx-plus-circle",
+        }
       : null,
     canViewList
-      ? { id: "visit-log-list", label: "All Visit Logs", link: "/marketing/visit-log/list", icon: "bx bx-list-ul" }
+      ? {
+          id: "visit-log-list",
+          label: "All Visit Logs",
+          link: "/marketing/visit-log/list",
+          icon: "bx bx-list-ul",
+        }
       : null,
     canViewReport
-      ? { id: "agent-report", label: "Agent Report", link: "/marketing/reports/agent", icon: "bx bx-bar-chart-alt-2" }
+      ? {
+          id: "agent-report",
+          label: "Agent Report",
+          link: "/marketing/reports/agent",
+          icon: "bx bx-bar-chart-alt-2",
+        }
       : null,
     canViewProfile
-      ? { id: "my-profile", label: "My Visit History", link: "/marketing/my-profile", icon: "bx bx-id-card" }
+      ? {
+          id: "my-profile",
+          label: "My Visit History",
+          link: "/marketing/my-profile",
+          icon: "bx bx-id-card",
+        }
       : null,
   ].filter(Boolean);
 
@@ -91,7 +117,10 @@ const Sidebar = () => {
                 color: active ? "#3577f1" : "#495057",
               }}
             >
-              <i className={page.icon} style={{ fontSize: 20, flexShrink: 0 }}></i>
+              <i
+                className={page.icon}
+                style={{ fontSize: 20, flexShrink: 0 }}
+              ></i>
               {showLabels && (
                 <span
                   style={{
@@ -119,7 +148,12 @@ const Sidebar = () => {
         {isMobileOpen && (
           <div
             onClick={() => setIsMobileOpen(false)}
-            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.4)", zIndex: 1040 }}
+            style={{
+              position: "fixed",
+              inset: 0,
+              background: "rgba(0,0,0,0.4)",
+              zIndex: 1040,
+            }}
           />
         )}
         {!isMobileOpen && (
@@ -163,7 +197,10 @@ const Sidebar = () => {
         >
           <div className="px-3 pt-4 pb-3 d-flex align-items-center justify-content-between">
             <h4 className="fw-bold mb-0 text-dark">Marketing</h4>
-            <button onClick={() => setIsMobileOpen(false)} className="btn btn-sm px-2">
+            <button
+              onClick={() => setIsMobileOpen(false)}
+              className="btn btn-sm px-2"
+            >
               <i className="bx bx-x fs-4"></i>
             </button>
           </div>
@@ -178,7 +215,9 @@ const Sidebar = () => {
   //      ancestor's overflow/position styling can ever break it again.
   return (
     <>
-      <div style={{ width: SIDEBAR_WIDTH, minWidth: SIDEBAR_WIDTH, flexShrink: 0 }} />
+      <div
+        style={{ width: SIDEBAR_WIDTH, minWidth: SIDEBAR_WIDTH, flexShrink: 0 }}
+      />
       {createPortal(
         <div
           style={{
