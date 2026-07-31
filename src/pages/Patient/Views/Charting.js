@@ -235,12 +235,15 @@ const Charting = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addmissionsCharts, tab, clinicalTestLoading, open, patient]);
 
+  console.log("addmissionsCharts", addmissionsCharts);
+
   const generalComponent = useMemo(() => {
     return (
       <General
         generalLoading={generalLoading}
         toggleModal={toggleModal}
         charts={charts}
+        currentAddmissionId={addmissionsCharts?.[0]?._id}
       />
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
