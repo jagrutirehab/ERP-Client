@@ -16,6 +16,7 @@ import {
   getRefundAmountMOM,
   getRoundNotesDOD,
   getClinicalNotesDOD,
+  getCounsellingSessionsPatientsDOD,
   getVitalSignsDOD,
   getNursesDOD,
   getPatientDocs,
@@ -30,6 +31,14 @@ import {
   getCenterWiseMOM,
   getCampaignWiseMOM,
   getCenterWiseStatusMOM,
+  getCashPerCenter,
+  getWriteOffAmount,
+  getTrainingFormsWeekly,
+  getTrainingFormsMonthly,
+  getAuditDaily,
+  getMetricsReport,
+  getOccupancyMonthly,
+  getAdmissionDischargeDaily,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -69,6 +78,15 @@ const initialState = {
   centerWiseMOM: [],
   campaignWiseMOM: [],
   centerWiseStatusMOM: [],
+  cashPerCenter: [],
+  writeOffAmount: [],
+  trainingFormsWeekly: [],
+  trainingFormsMonthly: [],
+  auditDaily: [],
+  metricsReport: [],
+  occupancyMonthly: [],
+  admissionDischargeDaily: [],
+  counsellingSessionsPatientsDOD: [],
   loading: false,
   error: null,
 };
@@ -334,6 +352,126 @@ export const fetchRefundAmountMOM = createAsyncThunk(
 );
 
 
+export const fetchCashPerCenter = createAsyncThunk(
+  "miReporting/fetchCashPerCenter",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getCashPerCenter(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch cash per center"
+      );
+    }
+  }
+);
+
+
+export const fetchWriteOffAmount = createAsyncThunk(
+  "miReporting/fetchWriteOffAmount",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getWriteOffAmount(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch write off amount"
+      );
+    }
+  }
+);
+
+
+export const fetchTrainingFormsWeekly = createAsyncThunk(
+  "miReporting/fetchTrainingFormsWeekly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getTrainingFormsWeekly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch training forms weekly"
+      );
+    }
+  }
+);
+
+
+export const fetchMetricsReport = createAsyncThunk(
+  "miReporting/fetchMetricsReport",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getMetricsReport(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch metrics report"
+      );
+    }
+  }
+);
+
+
+export const fetchAdmissionDischargeDaily = createAsyncThunk(
+  "miReporting/fetchAdmissionDischargeDaily",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getAdmissionDischargeDaily(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch admission discharge daily"
+      );
+    }
+  }
+);
+
+
+export const fetchOccupancyMonthly = createAsyncThunk(
+  "miReporting/fetchOccupancyMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getOccupancyMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch occupancy monthly"
+      );
+    }
+  }
+);
+
+
+export const fetchTrainingFormsMonthly = createAsyncThunk(
+  "miReporting/fetchTrainingFormsMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getTrainingFormsMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch training forms monthly"
+      );
+    }
+  }
+);
+
+
+export const fetchAuditDaily = createAsyncThunk(
+  "miReporting/fetchAuditDaily",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getAuditDaily(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch audit daily"
+      );
+    }
+  }
+);
+
+
 export const fetchRoundNotesDOD = createAsyncThunk(
   "miReporting/fetchRoundNotesDOD",
   async (data , { rejectWithValue }) => {
@@ -360,6 +498,21 @@ export const fetchClinicalNotesDOD = createAsyncThunk(
        console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Clinical notes dod"
+      );
+    }
+  }
+);
+
+
+export const fetchCounsellingSessionsPatientsDOD = createAsyncThunk(
+  "miReporting/fetchCounsellingSessionsPatientsDOD",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getCounsellingSessionsPatientsDOD(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch counselling sessions patients dod"
       );
     }
   }
@@ -761,6 +914,18 @@ const miReportingSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      .addCase(fetchCounsellingSessionsPatientsDOD.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCounsellingSessionsPatientsDOD.fulfilled, (state, action) => {
+        state.loading = false;
+        state.counsellingSessionsPatientsDOD = action.payload.payload || [];
+      })
+      .addCase(fetchCounsellingSessionsPatientsDOD.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       .addCase(fetchVitalSignsDOD.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -952,6 +1117,110 @@ const miReportingSlice = createSlice({
         state.centerWiseStatusMOM = action.payload.payload || [];
       })
       .addCase(fetchCenterWiseStatusMOM.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Cash Per Center
+      .addCase(fetchCashPerCenter.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCashPerCenter.fulfilled, (state, action) => {
+        state.loading = false;
+        state.cashPerCenter = action.payload.payload || [];
+      })
+      .addCase(fetchCashPerCenter.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Write Off Amount
+      .addCase(fetchWriteOffAmount.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchWriteOffAmount.fulfilled, (state, action) => {
+        state.loading = false;
+        state.writeOffAmount = action.payload.payload || [];
+      })
+      .addCase(fetchWriteOffAmount.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Training Forms Weekly
+      .addCase(fetchTrainingFormsWeekly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTrainingFormsWeekly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.trainingFormsWeekly = action.payload.payload || [];
+      })
+      .addCase(fetchTrainingFormsWeekly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Training Forms Monthly
+      .addCase(fetchTrainingFormsMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTrainingFormsMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.trainingFormsMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchTrainingFormsMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Audit Daily
+      .addCase(fetchAuditDaily.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAuditDaily.fulfilled, (state, action) => {
+        state.loading = false;
+        state.auditDaily = action.payload.payload || [];
+      })
+      .addCase(fetchAuditDaily.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Metrics Report
+      .addCase(fetchMetricsReport.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMetricsReport.fulfilled, (state, action) => {
+        state.loading = false;
+        state.metricsReport = action.payload.payload || [];
+      })
+      .addCase(fetchMetricsReport.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Occupancy Monthly
+      .addCase(fetchOccupancyMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchOccupancyMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.occupancyMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchOccupancyMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Admission Discharge Daily
+      .addCase(fetchAdmissionDischargeDaily.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAdmissionDischargeDaily.fulfilled, (state, action) => {
+        state.loading = false;
+        state.admissionDischargeDaily = action.payload.payload || [];
+      })
+      .addCase(fetchAdmissionDischargeDaily.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

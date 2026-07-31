@@ -1,6 +1,7 @@
     import React, { useEffect, useMemo, useRef, useState } from "react";
+    import { Link } from "react-router-dom";
     import { useDispatch, useSelector, shallowEqual } from "react-redux";
-    import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
+    import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col, Input } from "reactstrap";
     import { CSVLink } from "react-csv";
     import { fetchClinicalNotesDOD } from "../../../store/features/miReporting/miReportingSlice";
     import Select from "react-select";
@@ -14,29 +15,42 @@
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [searchInput, setSearchInput] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
     // console.log(clinicalNotesDOD)
-    
+
     useEffect(() => {
         dispatch(fetchClinicalNotesDOD({ centerAccess  }));
     }, [dispatch, centerAccess]);
     // console.log(clinicalNotesDOD)
 
-   
+    useEffect(() => {
+        if (searchInput === searchTerm) return;
+        setIsSearching(true);
+        const timeout = setTimeout(() => {
+            setSearchTerm(searchInput);
+            setIsSearching(false);
+        }, 1500);
+        return () => clearTimeout(timeout);
+    }, [searchInput, searchTerm]);
+
+
     const data = useMemo(() => clinicalNotesDOD?.data || [], [clinicalNotesDOD]);
 
 
     const filteredData = useMemo(() => {
-       
+        const term = searchTerm.trim().toLowerCase();
         return data.filter(item => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
-           
+            if (term && !(item?.patient || "").toLowerCase().includes(term) && !(item?.patient_id || "").toLowerCase().includes(term)) return false;
             return true;
         });
-    }, [data, selectedCenter]);
+    }, [data, selectedCenter, searchTerm]);
 
     
     const prepareCsvData = () => {
@@ -82,33 +96,40 @@
 
 
     const labels=[
+            "Patient UID",
             "Patient Name",
              "MTD",
             "Center Name",
-            "Patient UID",
+            "Ad. Date",
             "Psychologist Name",
-            "Assigned Patients",
-           
+            "Assigned Pt.",
+            "Last Outpass",
+
 
             ]
 
-    const fixedColWidths = [240, 55, 90, 100];
+    const fixedColWidths = [80, 130, 55, 90, 90, 60];
 
     const labelsMapping={
             "Psychologist Name":"psychologist_name",
             "Center Name":"center_name",
              "Patient Name":"patient",
              "Patient UID":"patient_id",
-            "Assigned Patients":"assigned_patients",
+            "Assigned Pt.":"assigned_patients",
             "MTD":"total",
+            "Ad. Date":"admission_date",
+            "Last Outpass":"last_outpass",
 
 
     }
 
+    const adDateColIdx = labels.indexOf("Ad. Date");
+    const psychologistNameColIdx = labels.indexOf("Psychologist Name");
+
     const last30Days = useMemo(() => {
         const days = [];
         const today = new Date();
-        for (let i =1; i < 30; i++) {
+        for (let i =1; i < 60; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
             const key =d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
@@ -152,6 +173,8 @@
 
 
 
+
+    document.title = "Clinical Notes";
 
     return (
         <div
@@ -220,20 +243,27 @@
                             placeholder="Center..."
                         />
                     </Col>
-                    
+                    <Col md={2}>
+                        <Input
+                            type="text"
+                            placeholder="Search Patient Name or UID..."
+                            value={searchInput}
+                            onChange={(e) => setSearchInput(e.target.value)}
+                        />
+                    </Col>
                 </Row>
                 <Card>
                 <CardBody>
-                    {loading && (
+                    {(loading || isSearching) && (
                     <div className="text-center py-5">
                         <Spinner color="primary" />
-                        <p className="mt-2 text-muted">Loading data...</p>
+                        <p className="mt-2 text-muted">{isSearching ? "Searching..." : "Loading data..."}</p>
                     </div>
                     )}
 
-                    {error && !loading && <Alert color="danger">{error}</Alert>}
+                    {error && !loading && !isSearching && <Alert color="danger">{error}</Alert>}
 
-                    {!loading && !error && (
+                    {!loading && !isSearching && !error && (
                         <>
                     <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
                         <Table
@@ -256,10 +286,10 @@
                                                 color: "white",
                                                 whiteSpace: "nowrap",
                                                 minWidth: fixedColWidths[i],
-                                                ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
+                                                ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                             }}
                                         >
-                                            {i === 5 ? "Total (Single Day)" : ""}
+                                            {i === labels.length - 1 ? "Total (Single Day)" : i === adDateColIdx ? "Pt. Count" : i === psychologistNameColIdx ? `${filteredData.length}` : ""}
                                         </th>
                                     ))}
                                     {last30Days.map(({ key }) => (
@@ -286,9 +316,9 @@
                                                 border: "1px solid #cfd8e3",
                                                 background: "green",
                                                 color: "white",
-                                                whiteSpace: i===2?"wrap":"nowrap",
+                                                whiteSpace: label==="Center Name"?"wrap":"nowrap",
                                                 minWidth: fixedColWidths[i],
-                                                ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
+                                                ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                             }}
                                         >
                                             {label}
@@ -322,13 +352,23 @@
                                                     border: "1px solid #d6dde8",
                                                     background: idx % 2 === 0 ? "#f8fafc" : "#fff",
                                                     whiteSpace: "nowrap",
-                                                    ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
+                                                    ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
                                                     minWidth: fixedColWidths[i],
                                                 }}
                                             >
                                                 {label === "MTD"
                                                     ? patientMonthTotals[patient.patient_id] ?? 0
-                                                    : patient[labelsMapping[label]]}
+                                                    : (label === "Patient Name" || label === "Patient UID")
+                                                        ? (
+                                                            <Link to={`/patient/${patient.patient_mongo_id}`} className="text-dark" target="_blank" rel="noopener noreferrer">
+                                                                {label === "Patient Name"
+                                                                    ? (patient[labelsMapping[label]] ?? "").slice(0, 20)
+                                                                    : patient[labelsMapping[label]]}
+                                                            </Link>
+                                                        )
+                                                        : label === "Psychologist Name"
+                                                            ? (patient[labelsMapping[label]] ?? "").slice(0, 20)
+                                                            : patient[labelsMapping[label]]}
                                             </td>
                                         ))}
                                         {last30Days.map(({ key,label }) => (

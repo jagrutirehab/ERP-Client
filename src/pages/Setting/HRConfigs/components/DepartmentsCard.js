@@ -21,6 +21,7 @@ const DepartmentsCard = ({
   deptSearch,
   setDeptSearch,
   filteredDepartments,
+  hasWrite,
 }) => {
   return (
     <Card className="shadow-sm">
@@ -61,15 +62,17 @@ const DepartmentsCard = ({
               }}
               disabled={addingDept}
             />
-            <Button
-              color="primary"
-              className="text-white px-3"
-              style={{ whiteSpace: "nowrap" }}
-              onClick={handleAddDepartment}
-              disabled={addingDept || !newDeptName.trim()}
-            >
-              {addingDept ? <Spinner size="sm" /> : "Add"}
-            </Button>
+            {hasWrite && (
+              <Button
+                color="primary"
+                className="text-white px-3"
+                style={{ whiteSpace: "nowrap" }}
+                onClick={handleAddDepartment}
+                disabled={addingDept || !newDeptName.trim()}
+              >
+                {addingDept ? <Spinner size="sm" /> : "Add"}
+              </Button>
+            )}
           </div>
           <p className="text-muted mt-1 mb-0" style={{ fontSize: 11 }}>
             Press Enter or click Add to save

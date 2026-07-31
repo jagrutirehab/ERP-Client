@@ -21,6 +21,7 @@ import {
   getEmployeeDetailsById,
 } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { downloadFile } from "../../../Components/Common/downloadFile";
@@ -89,24 +90,7 @@ const Employee = () => {
   } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "MASTER_EMPLOYEE", "READ");
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [
-          {
-            value: "ALL",
-            label: "All Centers",
-            isDisabled: false,
-          },
-        ]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
   // const selectedCenterOption =
   //   centerOptions.find((opt) => opt.value === selectedCenter) ||
@@ -269,6 +253,7 @@ const Employee = () => {
         ...row,
         financeDetails: res?.data?.financeDetails,
         users: res?.data?.users,
+        offerLetter: res?.data?.offerLetter,
       });
 
       setModalOpen(true);
@@ -701,38 +686,42 @@ const Employee = () => {
     //     wrap: true,
     //     minWidth: "100px"
     // },
-    {
-      name: <div>Offer Letter</div>,
-      selector: (row) => {
-        if (!row?.offerLetter) return "-";
+    ...(hasPermission("HR", "PREVIEW_OFFER_LETTER", "READ")
+      ? [
+          {
+            name: <div>Offer Letter</div>,
+            selector: (row) => {
+              if (!row?.offerLetter) return "-";
 
-        const meta = getFilePreviewMeta(
-          { url: row?.offerLetter },
-          row?.updatedAt,
-          FILE_PREVIEW_CUTOFF,
-        );
-
-        return (
-          <span
-            style={{
-              color: meta.canPreview ? "#007bff" : "#28a745",
-              textDecoration: "underline",
-              cursor: "pointer",
-              fontSize: "0.875rem",
-            }}
-            onClick={() =>
-              handleFilePreview(
+              const meta = getFilePreviewMeta(
                 { url: row?.offerLetter },
                 row?.updatedAt,
                 FILE_PREVIEW_CUTOFF,
-              )
-            }
-          >
-            {meta.action === "preview" ? "Preview" : "Download"}
-          </span>
-        );
-      },
-    },
+              );
+
+              return (
+                <span
+                  style={{
+                    color: meta.canPreview ? "#007bff" : "#28a745",
+                    textDecoration: "underline",
+                    cursor: "pointer",
+                    fontSize: "0.875rem",
+                  }}
+                  onClick={() =>
+                    handleFilePreview(
+                      { url: row?.offerLetter },
+                      row?.updatedAt,
+                      FILE_PREVIEW_CUTOFF,
+                    )
+                  }
+                >
+                  {meta.action === "preview" ? "Preview" : "Download"}
+                </span>
+              );
+            },
+          },
+        ]
+      : []),
     {
       name: <div>Created By</div>,
       selector: (row) => (

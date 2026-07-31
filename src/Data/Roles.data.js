@@ -57,10 +57,10 @@ export const permissionList = [
   },
   {
     key: "REFERRAL",
-    label: "Referral",
+    label: "Contacts",
     subModules: [
-      { name: "APPROVE_REFERRAL", label: "Approve Referral" },
-      { name: "REJECT_REFERRAL", label: "Reject Referral" },
+      { name: "APPROVE_REFERRAL", label: "Approve Contact" },
+      { name: "REJECT_REFERRAL", label: "Reject Contact" },
     ],
   },
   {
@@ -120,6 +120,7 @@ export const permissionList = [
       { name: "THERAPIESSETTING", label: "Therapies" },
       { name: "CONDITIONSSETTING", label: "Conditions" },
       { name: "SYMPTOMSETTING", label: "Symptoms" },
+      { name: "DOCUMENTCONFIG", label: "Document Configuration" },
       { name: "HRCONFIGURATIONSSETTING", label: "HR Configurations" },
     ],
   },
@@ -246,6 +247,11 @@ export const permissionList = [
     subModules: [
       // master employee
       { name: "MASTER_EMPLOYEE", label: "Master Employee" },
+      // Offer Letter column in Master Employee
+      {
+        name: "PREVIEW_OFFER_LETTER",
+        label: "Preview Offer Letter (Master Employee)",
+      },
       // new joining
       { name: "NEW_JOINING_ADD_REQUEST", label: "New Joinings Add Request" },
       { name: "NEW_JOINING_APPROVAL", label: "New Joinings Approval" },
@@ -365,8 +371,11 @@ export const permissionList = [
       { name: "EMPLOYEE_FORMS", label: "Employee Forms" },
       // HR DASHBOARD
       { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
+      { name: "EMPLOYEE_DOCUMENTS", label: "Employee Documents" },
       { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },
       { name: "ALL_LEAVE_HISTORY", label: "All Leave History" },
+      { name: "ALL_REGULARIZATIONS", label: "All Regularizations" },
+      { name: "CREATE_REGULARIZATION", label: "Create Regularization" },
       { name: "COMP_OFF_HISTORY", label: "Comp Off History" },
       { name: "CANCELLATIONS_HISTORY", label: "Cancellations History" },
       // FINANCE
@@ -416,6 +425,9 @@ export const permissionList = [
       // { name: "REVIEW_SUBMISSIONS", label: "Review Submissions" },
       { name: "MY_ISSUES", label: "My Assigned Issues" },
       { name: "MY_RAISED_TICKETS", label: "My Raised Tickets" },
+      { name: "MAINTENANCE_ISSUES", label: "Maintenance Issues" },
+      { name: "COMPLAINT_ISSUES", label: "Complaint Issues" },
+      { name: "OPERATIONAL_ISSUES", label: "Operational Issues" },
     ],
   },
   {
@@ -452,6 +464,27 @@ export const permissionList = [
       { name: "TRAINING_HISTORY", label: "Training History" },
       { name: "CREATE_TRAINING_RECORD", label: "Create Trainer Record" },
       { name: "TRAINING_RECORDS", label: "Trainer Records" },
+    ],
+  },
+  {
+    key: "MARKETING",
+    label: "Marketing",
+    subModules: [
+      { name: "ADD_VISIT_LOG", label: "Add Visit Log" },
+      { name: "VIEW_VISIT_LOGS", label: "View All Visit Logs" },
+      { name: "VIEW_AGENT_REPORT", label: "Agent Visit Report" },
+      { name: "VIEW_AGENT_PROFILE", label: "My Visit History" },
+    ],
+  },
+  {
+    key: "MASTERDATA",
+    label: "Master Data",
+    subModules: [
+      { name: "VENDOR_VIEW", label: "View Vendors" },
+      { name: "VENDOR_CREATE", label: "Create Vendor" },
+      { name: "VENDOR_EDIT", label: "Edit Vendor" },
+      { name: "VENDOR_STATUS_CHANGE", label: "Activate/Deactivate Vendor" },
+      { name: "VENDOR_DOCUMENT_UPLOAD", label: "Upload Vendor Documents" },
     ],
   },
 ];

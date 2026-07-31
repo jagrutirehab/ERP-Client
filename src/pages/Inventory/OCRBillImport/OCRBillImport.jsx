@@ -37,6 +37,7 @@ const OCRBillImport = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
+  const centerList = useSelector((state) => state.Center.data);
   const location = useLocation();
   const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
@@ -108,25 +109,14 @@ const OCRBillImport = () => {
   // Track debounce timers for refetching matching medicines
   const debounceTimersRef = useRef({});
 
-  // Center dropdown — only centers the user has access to.
-  // centerAccess is the authoritative list of IDs the user is allowed on;
-  // userCenters carries the full objects (title etc.) keyed by _id.
+  // Center dropdown — only centers the user has access to, sourced
+  // directly from state.Center.data (already scoped to the user's centerAccess).
   const centerOptions = useMemo(() => {
-    const accessIds = user?.centerAccess || [];
-    if (accessIds.length === 0) return [];
-    return accessIds
-      .map((id) => {
-        const center = (user?.userCenters || []).find(
-          (c) => String(c._id || c.id) === String(id)
-        );
-        if (!center) return null;
-        return {
-          value: center._id || center.id,
-          label: center.title || "Unknown Center",
-        };
-      })
-      .filter(Boolean);
-  }, [user?.centerAccess, user?.userCenters]);
+    return (centerList || []).map((center) => ({
+      value: center._id,
+      label: center.title || "Unknown Center",
+    }));
+  }, [centerList]);
 
   // Keep selectedCenter in sync with the user's centerAccess.
   //   - First render with options available → pick the first one.

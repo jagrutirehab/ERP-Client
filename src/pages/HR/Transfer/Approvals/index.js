@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
+import { useCenterOptions } from '../../../../Components/Hooks/useCenterOptions';
 import { Button, CardBody, Input, Spinner, } from 'reactstrap';
 import { Pencil, Trash2, } from "lucide-react";
 import AddTransferEmployeeModal from '../../components/EditTransferEmployeeModal';
@@ -46,25 +47,7 @@ const TransferApprovals = () => {
     const hasUserPermission = hasPermission("HR", "TRANSFER_EMPLOYEE_APPROVAL", "READ");
 
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter

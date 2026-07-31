@@ -42,7 +42,7 @@ const NurseSosProcedureBody = ({ chart }) => {
   return (
     <React.Fragment>
       <View style={styles.container}>
-        <Text style={styles.title}>Nurse SOS Procedure</Text>
+        <Text style={styles.title}>Nurse Procedure</Text>
         <View
           style={{ ...styles.row, ...styles.borderBottom, paddingBottom: 5 }}
         >

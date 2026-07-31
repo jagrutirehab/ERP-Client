@@ -83,6 +83,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
     } = useSelector((state) => state.Pharmacy);
     const { submitLoading } = useSelector((state) => state.Pharmacy);
     const user = useSelector((state) => state.User);
+    const centerList = useSelector((state) => state.Center.data);
 
     const [searchQuery, setSearchQuery] = useState("");
 
@@ -142,21 +143,18 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
     );
 
     const SPECIAL_ORDER_CENTER_IDS = ["6673daaeccb7e3e7f6eab071"];
-    const filteredCenterAccess = (user?.centerAccess || []).filter((id) => {
+    const filteredCenters = (centerList || []).filter((c) => {
         if (isSareyaanPage) return true;
-        return !SPECIAL_ORDER_CENTER_IDS.includes(id);
+        return !SPECIAL_ORDER_CENTER_IDS.includes(c._id);
     });
 
-    const allUserCenterIds = filteredCenterAccess.join(",");
+    const allUserCenterIds = filteredCenters.map((c) => c._id).join(",");
 
     const centerOptions = [
-        ...(filteredCenterAccess.length > 1
+        ...(filteredCenters.length > 1
             ? [{ value: "ALL", label: "All Centers" }]
             : []),
-        ...(filteredCenterAccess.map((id) => {
-            const center = user?.userCenters?.find((c) => c._id === id);
-            return { value: id, label: center?.title || "Unknown Center" };
-        }) || []),
+        ...(filteredCenters.map((c) => ({ value: c._id, label: c.title })) || []),
     ];
 
     const selectedCenterOption =

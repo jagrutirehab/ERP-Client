@@ -9,6 +9,7 @@ import {
   BELONGINGS_VIEW,
 } from "../../../Components/constants/patient";
 import SopPanel from "./Components/SopPanel";
+import SpecialRequirementsSummary from "./Components/SpecialRequirementsSummary";
 import Charting from "./Charting";
 import Billing from "./Billing";
 import Timeline from "./Timeline";
@@ -28,6 +29,9 @@ import RamsayQuestion from "./Components/Ramsayquestion";
 import GCSQuestion from "./Components/Gcsquestion";
 import Morsefallquestion from "./Components/Morsefallquestion";
 import Belongings from "./Belongings";
+import CGISQuestion from "./Components/CGISQuestion";
+import COWSQuestion from "./Components/COWSQuestion";
+import AUDITQuestion from "./Components/AUDITQuestion";
 
 const Views = (props) => {
   const ref = useRef();
@@ -107,6 +111,7 @@ const Views = (props) => {
                       );
                     })}
                 </ButtonGroup>
+                <SpecialRequirementsSummary />
               </Col>
               <Col xs={12} xl={7} xxl={8}>
                 <SopPanel />
@@ -137,6 +142,9 @@ const Views = (props) => {
             {data === "Morse Fall Scale" && <Morsefallquestion />}
             {data === "Ramsay Sedation Scale" && <RamsayQuestion />}
             {data === "GCS" && <GCSQuestion />}
+            {data === "CGI-S" && <CGISQuestion />}
+            {data === "COWS" && <COWSQuestion />}
+            {data === "AUDIT" && <AUDITQuestion />}
           </div>
         )}
       </div>

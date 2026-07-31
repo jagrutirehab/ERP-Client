@@ -38,7 +38,6 @@ import { checkIsExcel } from "../../../utils/checkIsExcel";
 
 const DetailedReport = ({
   centers,
-  centerAccess,
   detailedReport,
   loading,
   activeTab,
@@ -50,8 +49,7 @@ const DetailedReport = ({
   const handleAuthError = useAuthError();
 
   const centerOptions = centers
-    ?.filter((c) => centerAccess.includes(c._id))
-    .map((c) => ({
+    ?.map((c) => ({
       _id: c._id,
       title: c.title,
     }));
@@ -111,7 +109,7 @@ const DetailedReport = ({
         );
       }
     }
-  }, [centerAccess, centers]);
+  }, [centers]);
 
   const handleCopy = async (text, id) => {
     try {
@@ -1025,7 +1023,6 @@ const DetailedReport = ({
 
 DetailedReport.prototype = {
   centers: PropTypes.array,
-  centerAccess: PropTypes.array,
   detailedReport: PropTypes.array,
   loading: PropTypes.bool,
   activeTab: PropTypes.string,
@@ -1036,7 +1033,6 @@ DetailedReport.prototype = {
 
 const mapStateToProps = (state) => ({
   centers: state.Center.data,
-  centerAccess: state.User?.centerAccess,
   detailedReport: state.CentralPayment.detailedReport,
   loading: state.CentralPayment.loading,
 });

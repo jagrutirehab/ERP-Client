@@ -68,7 +68,7 @@ import ItemCard from "../Components/ItemCard";
 import Select from "react-select";
 import { formatCurrency } from "../../../utils/formatCurrency";
 
-const ApprovalDashboard = ({ centerAccess, userCenters, loading, approvals }) => {
+const ApprovalDashboard = ({ centerAccess, centers, loading, approvals }) => {
 
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
@@ -94,13 +94,10 @@ const ApprovalDashboard = ({ centerAccess, userCenters, loading, approvals }) =>
       : []
     ),
     ...(
-      centerAccess?.map(id => {
-        const center = userCenters?.find(c => c._id === id);
-        return {
-          value: id,
-          label: center?.title || "Unknown Center"
-        };
-      }) || []
+      centers?.map(c => ({
+        value: c._id,
+        label: c.title,
+      })) || []
     )
   ];
 
@@ -259,13 +256,13 @@ ApprovalDashboard.prototype = {
   loading: PropTypes.bool,
   approvals: PropTypes.object,
   centerAccess: PropTypes.array,
-  userCenters: PropTypes.array,
+  centers: PropTypes.array,
 }
 
 
 const mapStateToProps = (state) => ({
   centerAccess: state.User?.centerAccess,
-  userCenters: state.User?.userCenters,
+  centers: state.Center.data,
   loading: state.CentralPayment?.loading,
   approvals: state.CentralPayment?.approvals
 });

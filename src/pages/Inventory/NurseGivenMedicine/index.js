@@ -28,6 +28,7 @@ const NurseGivenMedicine = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
+    const centerList = useSelector((state) => state.Center.data);
     const { data: givenMedicines, loading: medicineLoading } = useSelector((state) => state.Pharmacy);
     const handleAuthError = useAuthError();
     const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -65,13 +66,10 @@ const NurseGivenMedicine = () => {
             : []
         ),
         ...(
-            user?.centerAccess?.map((id) => {
-                const center = user?.userCenters?.find((item) => item._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center",
-                };
-            }) || []
+            centerList?.map((c) => ({
+                value: c._id,
+                label: c.title,
+            })) || []
         ),
     ];
 

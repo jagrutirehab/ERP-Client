@@ -1,301 +1,385 @@
 import React, { useEffect, useRef, useState } from "react";
-import { Form, Input, Label, Row, Col, Spinner, UncontrolledTooltip } from "reactstrap";
+import {
+  Form,
+  Input,
+  Label,
+  Row,
+  Col,
+  Spinner,
+  UncontrolledTooltip,
+} from "reactstrap";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { getMyManager } from "../../../helpers/backend_helper";
 
 const selectStyles = {
-    control: (base) => ({
-        ...base,
-        minHeight: "38px",
-        height: "38px",
-    }),
+  control: (base) => ({
+    ...base,
+    minHeight: "38px",
+    height: "38px",
+  }),
 };
 
 const TicketForm = ({
-    issueType,
-    setIssueType,
-    centers,
-    selectedCenter,
-    setSelectedCenter,
-    employees,
-    loadingEmployees,
-    debouncedFetchEmployees,
-    form,
-    setForm,
-    handleChange,
-    handleFileChange,
-    handleSubmit,
-    loader,
-    fileInputRef,
-    canSubmit,
-
+  issueType,
+  setIssueType,
+  centers,
+  selectedCenter,
+  setSelectedCenter,
+  employees,
+  loadingEmployees,
+  debouncedFetchEmployees,
+  form,
+  setForm,
+  handleChange,
+  handleFileChange,
+  handleSubmit,
+  loader,
+  fileInputRef,
+  canSubmit,
+  centreManagers,
+  loadingCentreManagers,
+  fixedAssignees
 }) => {
-    const [loading, setLoading] = useState(false);
-    const token = JSON.parse(localStorage.getItem("user"))?.token;
+  const [loading, setLoading] = useState(false);
+  const token = JSON.parse(localStorage.getItem("user"))?.token;
 
+  // const [manager, setManager] = useState();
+  // const [managerId, setManagerId] = useState();
 
-    // const [manager, setManager] = useState();
-    // const [managerId, setManagerId] = useState();
+  // const loadManager = async () => {
+  //     setLoading(true);
+  //     try {
+  //         const res = await getMyManager(token);
+  //         console.log("Manager", res);
+  //         setManager(res?.data?.manager?.name)
+  //         const managerId = res?.data?.manager?._id;
+  //         setForm((prev) => ({
+  //             ...prev,
+  //             manager: managerId,
+  //         }));
 
-    // const loadManager = async () => {
-    //     setLoading(true);
-    //     try {
-    //         const res = await getMyManager(token);
-    //         console.log("Manager", res);
-    //         setManager(res?.data?.manager?.name)
-    //         const managerId = res?.data?.manager?._id;
-    //         setForm((prev) => ({
-    //             ...prev,
-    //             manager: managerId,
-    //         }));
+  //     } catch (error) {
+  //         console.log(error);
+  //         toast.error("Error fetching manager");
+  //     } finally {
+  //         setLoading(false);
+  //     }
+  // }
 
-    //     } catch (error) {
-    //         console.log(error);
-    //         toast.error("Error fetching manager");
-    //     } finally {
-    //         setLoading(false);
-    //     }
-    // }
+  // useEffect(() => {
+  //     if (issueType === "HR") {
+  //         loadManager();
+  //     }
+  // }, [issueType]);
 
-    // useEffect(() => {
-    //     if (issueType === "HR") {
-    //         loadManager();
-    //     }
-    // }, [issueType]);
+  const isFormValid = () => {
+    if (!selectedCenter) return false;
+    if (issueType !== "COMPLAINT" && !form.requestedFrom) return false;
+    if (!form.contact) return false;
 
-    const isFormValid = () => {
+    if (issueType === "TECH" && !form.description) return false;
 
-        if (!selectedCenter) return false;
+    if (issueType === "PURCHASE") {
+      if (!form.itemName) return false;
+      if (!form.itemQty) return false;
+    }
 
-        if (!form.requestedFrom) return false;
-        if (!form.contact) return false;
+    if (issueType === "REVIEW_SUBMISSION") {
+      if (!form.responsibleReviewer) return false;
+      if (!form.reviewTakenFrom) return false;
+    }
 
-        if (issueType === "TECH" && !form.description) return false;
+    if (issueType === "HR") {
+      if (!form.requestType) return false;
+      if (!form.hrDescription) return false;
+    }
+    if (issueType === "FINANCE") {
+      if (!form.financeDescription) return false;
+      if (!form.financeIssueType) return false;
+    }
 
-        if (issueType === "PURCHASE") {
-            if (!form.itemName) return false;
-            if (!form.itemQty) return false;
-        }
+    if (issueType === "MAINTENANCE") {
+      if (!form.maintenanceCategory) return false;
+      if (
+        form.maintenanceCategory?.value === "OTHERS" &&
+        !form.maintenanceOtherCategory
+      )
+        return false;
+      if (!form.maintenanceTitle) return false;
+      if (!form.maintenanceDescription) return false;
+    }
 
-        if (issueType === "REVIEW_SUBMISSION") {
-            if (!form.responsibleReviewer) return false;
-            if (!form.reviewTakenFrom) return false;
-        }
+    if (issueType === "COMPLAINT") {
+      if (!form.complaintCategory) return false;
+      if (
+        form.complaintCategory?.value === "OTHERS" &&
+        !form.complaintOtherCategory
+      )
+        return false;
+      if (!form.complaintSubject) return false;
+      if (!form.complaintDescription) return false;
+    }
 
-        if (issueType === "HR") {
-            if (!form.requestType) return false;
-            if (!form.hrDescription) return false;
-        }
+   if (issueType === "OPERATIONAL") {
+      if (!form.operationalCentreManager) return false;
+      if (!form.operationalAssignedTo) return false;
+      if (!form.operationalCategory) return false;
+      if (
+        form.operationalCategory?.value === "OTHER" &&
+        !form.operationalOtherCategory
+      )
+        return false;
+      if (!form.operationalDescription) return false;
+      if (!form.operationalPatientOrStaffId) return false;
+    }
 
-        if (issueType === "FINANCE") {
-            if (!form.financeDescription) return false;
-            if (!form.financeIssueType) return false;
-        }
-        // if (!form.files || form.files.length === 0) return false;
+    // if (!form.files || form.files.length === 0) return false;
 
-        return true;
-    };
+    return true;
+  };
 
+  const issueTypeOptions = [
+    { value: "TECH", label: "TECH" },
+    { value: "HR", label: "HR" },
+    // { value: "FINANCE", label: "FINANCE" },
+    { value: "MAINTENANCE", label: "MAINTENANCE" },
+    { value: "COMPLAINT", label: "COMPLAINT" },
+    { value: "OPERATIONAL", label: "OPERATIONAL" },
+    // { value: "PURCHASE", label: "PURCHASE" },
+    // { value: "REVIEW_SUBMISSION", label: "REVIEW SUBMISSION" },
+  ];
 
+  return (
+    <Form onSubmit={handleSubmit}>
+      <Row className="g-4">
+        {/* ISSUE TYPE */}
+        <Col md={issueType === "OPERATIONAL" ? 4 : 6}>
+          <Label className="fw-semibold">
+            Ticket Type <span className="text-danger">*</span>
+          </Label>
 
-    const issueTypeOptions = [
-        { value: "TECH", label: "TECH" },
-        { value: "HR", label: "HR" },
-        { value: "FINANCE", label: "FINANCE" }
-        // { value: "PURCHASE", label: "PURCHASE" },
-        // { value: "REVIEW_SUBMISSION", label: "REVIEW SUBMISSION" },
-    ];
+          <Select
+            options={issueTypeOptions}
+            value={issueTypeOptions.find((opt) => opt.value === issueType)}
+            onChange={(selected) => setIssueType(selected.value)}
+            // isDisabled={true}
+          />
+        </Col>
+        {/* CENTER */}
+        <Col md={issueType === "OPERATIONAL" ? 4 : 6}>
+          <Label className="fw-semibold">
+            Center<span className="text-danger">*</span>
+          </Label>
+          <Select
+            placeholder="Select Center"
+            options={centers}
+            value={selectedCenter}
+            styles={selectStyles}
+            onChange={(option) => {
+              setSelectedCenter(option);
+              setForm({ ...form, center: option?.value });
+            }}
+          />
+        </Col>
 
-    return (
-        <Form onSubmit={handleSubmit}>
-            <Row className="g-4">
+        {issueType === "OPERATIONAL" && (
+          <Col md={4}>
+            <Label className="fw-semibold">
+              Centre Manager<span className="text-danger">*</span>
+            </Label>
+            <Select
+              placeholder={
+                form.center ? "Select Centre Manager" : "Select a Center first"
+              }
+              options={centreManagers}
+              value={form.operationalCentreManager}
+              isDisabled={!form.center}
+              isLoading={loadingCentreManagers}
+              onChange={(option) =>
+                setForm({ ...form, operationalCentreManager: option })
+              }
+            />
+          </Col>
+        )}
 
-                {/* ISSUE TYPE */}
-                <Col md={6}>
-                    <Label className="fw-semibold">
-                        Ticket Type <span className="text-danger">*</span>
-                    </Label>
+        {/* REQUESTED FROM */}
+        <Col md={6}>
+          <Label className="fw-semibold">
+            Requested For<span className="text-danger">*</span>
+          </Label>
+          <Select
+            placeholder="Search employee..."
+            options={employees}
+            value={form.requestedFrom}
+            isLoading={loadingEmployees}
+            styles={selectStyles}
+            onInputChange={(value, { action }) => {
+              if (action === "input-change") {
+                debouncedFetchEmployees(value);
+              }
+            }}
+            onChange={(option) => setForm({ ...form, requestedFrom: option })}
+          />
+        </Col>
 
-                    <Select
-                        options={issueTypeOptions}
-                        value={issueTypeOptions.find(opt => opt.value === issueType)}
-                        onChange={(selected) => setIssueType(selected.value)}
-                    // isDisabled={true}
-                    />
-                </Col>
-                {/* CENTER */}
-                <Col md={6}>
-                    <Label className="fw-semibold">Center<span className="text-danger">*</span></Label>
-                    <Select
-                        placeholder="Select Center"
-                        options={centers}
-                        value={selectedCenter}
-                        styles={selectStyles}
-                        onChange={(option) => {
-                            setSelectedCenter(option);
-                            setForm({ ...form, center: option?.value });
-                        }}
-                    />
-                </Col>
+        <Col md={6}>
+          <Label className="fw-semibold">
+            Contact<span className="text-danger">*</span>
+          </Label>
+          <Input
+            type="tel"
+            name="contact"
+            rows="1"
+            maxLength={10}
+            value={form.contact || ""}
+            onChange={(e) => {
+              const value = e.target.value.replace(/\D/g, "");
+              setForm({ ...form, contact: value });
+            }}
+          />
+        </Col>
 
-                {/* REQUESTED FROM */}
-                <Col md={6}>
-                    <Label className="fw-semibold">
-                        Requested For<span className="text-danger">*</span>
-                    </Label>
-                    <Select
-                        placeholder="Search employee..."
-                        options={employees}
-                        value={form.requestedFrom}
-                        isLoading={loadingEmployees}
-                        styles={selectStyles}
-                        onInputChange={(value, { action }) => {
-                            if (action === "input-change") {
-                                debouncedFetchEmployees(value);
-                            }
-                        }}
-                        onChange={(option) =>
-                            setForm({ ...form, requestedFrom: option })
-                        }
-                    />
-                </Col>
+        {/* TECH */}
+        {issueType === "TECH" && (
+          <Col md={12}>
+            <Label className="fw-semibold">
+              Description<span className="text-danger">*</span>
+            </Label>
+            <Input
+              type="textarea"
+              rows="4"
+              name="description"
+              value={form.description}
+              onChange={handleChange}
+            />
+          </Col>
+        )}
 
-                <Col md={6}>
-                    <Label className="fw-semibold">
-                        Contact<span className="text-danger">*</span>
-                    </Label>
-                    <Input
-                        type="tel"
-                        name="contact"
-                        rows="1"
-                        maxLength={10}
-                        value={form.contact || ""}
-                        onChange={(e) => {
-                            const value = e.target.value.replace(/\D/g, "");
-                            setForm({ ...form, contact: value });
-                        }}
-                    />
-                </Col>
+        {/* PURCHASE */}
+        {issueType === "PURCHASE" && (
+          <>
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Item Name<span className="text-danger">*</span>
+              </Label>
+              <Input
+                name="itemName"
+                value={form.itemName}
+                onChange={handleChange}
+              />
+            </Col>
 
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Item Quantity<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="number"
+                name="itemQty"
+                value={form.itemQty}
+                onChange={handleChange}
+              />
+            </Col>
 
+            <Col md={12}>
+              <Label className="fw-semibold">
+                Comment<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="textarea"
+                rows="3"
+                name="comment"
+                value={form.comment}
+                onChange={handleChange}
+              />
+            </Col>
+          </>
+        )}
 
+        {/* REVIEW */}
+        {issueType === "REVIEW_SUBMISSION" && (
+          <>
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Responsible Reviewer<span className="text-danger">*</span>
+              </Label>
+              <Select
+                options={employees}
+                isLoading={loadingEmployees}
+                styles={selectStyles}
+                onInputChange={(value, { action }) => {
+                  if (action === "input-change") {
+                    debouncedFetchEmployees(value);
+                  }
+                }}
+                onChange={(option) =>
+                  setForm({ ...form, responsibleReviewer: option })
+                }
+              />
+            </Col>
 
-                {/* TECH */}
-                {issueType === "TECH" && (
-                    <Col md={12}>
-                        <Label className="fw-semibold">Description<span className="text-danger">*</span></Label>
-                        <Input
-                            type="textarea"
-                            rows="4"
-                            name="description"
-                            value={form.description}
-                            onChange={handleChange}
-                        />
-                    </Col>
-                )}
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Review Taken From<span className="text-danger">*</span>
+              </Label>
+              <Select
+                options={employees}
+                isLoading={loadingEmployees}
+                styles={selectStyles}
+                onInputChange={(value, { action }) => {
+                  if (action === "input-change") {
+                    debouncedFetchEmployees(value);
+                  }
+                }}
+                onChange={(option) =>
+                  setForm({ ...form, reviewTakenFrom: option })
+                }
+              />
+            </Col>
+          </>
+        )}
 
-                {/* PURCHASE */}
-                {issueType === "PURCHASE" && (
-                    <>
-                        <Col md={6}>
-                            <Label className="fw-semibold">Item Name<span className="text-danger">*</span></Label>
-                            <Input
-                                name="itemName"
-                                value={form.itemName}
-                                onChange={handleChange}
-                            />
-                        </Col>
+        {issueType === "HR" && (
+          <>
+            {/* REQUEST TYPE */}
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Request Type<span className="text-danger">*</span>
+              </Label>
+              <Select
+                placeholder="Select Request Type"
+                options={[
+                  { value: "EMPLOYEE_LETTERS", label: "Employee letters" },
+                  { value: "PAYROLL_QUERIES", label: "Payroll queries" },
+                  {
+                    value: "ATTENDANCE_AND_LEAVE_MANAGEMENT",
+                    label: "Attendance and leave management",
+                  },
+                  {
+                    value: "POLICY_RELATED_QUERIES",
+                    label: "Policy-related queries",
+                  },
+                  {
+                    value: "EMPLOYEE_DATA_UPDATES",
+                    label: "Employee data updates",
+                  },
+                  {
+                    value: "ANNUAL_PERFORMANCE_REVIEW_REQUEST",
+                    label: "Annual Performance Review request",
+                  },
+                  {
+                    value: "GRIEVANCES_AND_DISCIPLINARY_CONCERNS",
+                    label: "Grievances and disciplinary concerns",
+                  },
+                ]}
+                value={form.requestType}
+                onChange={(option) => setForm({ ...form, requestType: option })}
+              />
+            </Col>
 
-                        <Col md={6}>
-                            <Label className="fw-semibold">Item Quantity<span className="text-danger">*</span></Label>
-                            <Input
-                                type="number"
-                                name="itemQty"
-                                value={form.itemQty}
-                                onChange={handleChange}
-                            />
-                        </Col>
-
-                        <Col md={12}>
-                            <Label className="fw-semibold">Comment<span className="text-danger">*</span></Label>
-                            <Input
-                                type="textarea"
-                                rows="3"
-                                name="comment"
-                                value={form.comment}
-                                onChange={handleChange}
-                            />
-                        </Col>
-                    </>
-                )}
-
-                {/* REVIEW */}
-                {issueType === "REVIEW_SUBMISSION" && (
-                    <>
-                        <Col md={6}>
-                            <Label className="fw-semibold">Responsible Reviewer<span className="text-danger">*</span></Label>
-                            <Select
-                                options={employees}
-                                isLoading={loadingEmployees}
-                                styles={selectStyles}
-                                onInputChange={(value, { action }) => {
-                                    if (action === "input-change") {
-                                        debouncedFetchEmployees(value);
-                                    }
-                                }}
-                                onChange={(option) =>
-                                    setForm({ ...form, responsibleReviewer: option })
-                                }
-                            />
-                        </Col>
-
-                        <Col md={6}>
-                            <Label className="fw-semibold">Review Taken From<span className="text-danger">*</span></Label>
-                            <Select
-                                options={employees}
-                                isLoading={loadingEmployees}
-                                styles={selectStyles}
-                                onInputChange={(value, { action }) => {
-                                    if (action === "input-change") {
-                                        debouncedFetchEmployees(value);
-                                    }
-                                }}
-                                onChange={(option) =>
-                                    setForm({ ...form, reviewTakenFrom: option })
-                                }
-                            />
-                        </Col>
-                    </>
-                )}
-
-                {issueType === "HR" && (
-                    <>
-                        {/* REQUEST TYPE */}
-                        <Col md={6}>
-                            <Label className="fw-semibold">
-                                Request Type<span className="text-danger">*</span>
-                            </Label>
-                            <Select
-                                placeholder="Select Request Type"
-                                options={[
-                                    { value: "EMPLOYEE_LETTERS", label: "Employee letters" },
-                                    { value: "PAYROLL_QUERIES", label: "Payroll queries" },
-                                    { value: "ATTENDANCE_AND_LEAVE_MANAGEMENT", label: "Attendance and leave management" },
-                                    { value: "POLICY_RELATED_QUERIES", label: "Policy-related queries" },
-                                    { value: "EMPLOYEE_DATA_UPDATES", label: "Employee data updates" },
-                                    { value: "ANNUAL_PERFORMANCE_REVIEW_REQUEST", label: "Annual Performance Review request" },
-                                    { value: "GRIEVANCES_AND_DISCIPLINARY_CONCERNS", label: "Grievances and disciplinary concerns" },
-                                ]}
-                                value={form.requestType}
-                                onChange={(option) =>
-                                    setForm({ ...form, requestType: option })
-                                }
-                            />
-                        </Col>
-
-                        {/* Manager */}
-                        {/* <Col md={6}>
+            {/* Manager */}
+            {/* <Col md={6}>
                             <Label className="fw-semibold">
                                 Manager<span className="text-danger">*</span>
                             </Label>
@@ -323,143 +407,440 @@ const TicketForm = ({
                             </div>
                         </Col> */}
 
-                        {/* DESCRIPTION FULL WIDTH */}
-                        <Col md={12}>
-                            <Label className="fw-semibold">
-                                Description<span className="text-danger">*</span>
-                            </Label>
-                            <Input
-                                type="textarea"
-                                name="hrDescription"
-                                rows="3"
-                                value={form.hrDescription || ""}
-                                onChange={handleChange}
-                            />
-                        </Col>
-                    </>
-                )}
+            {/* DESCRIPTION FULL WIDTH */}
+            <Col md={12}>
+              <Label className="fw-semibold">
+                Description<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="textarea"
+                name="hrDescription"
+                rows="3"
+                value={form.hrDescription || ""}
+                onChange={handleChange}
+              />
+            </Col>
+          </>
+        )}
 
-
-                {issueType === "FINANCE" && (
-                    <>
-                        {/* REQUEST TYPE */}
-                        <Col md={6}>
-                            <Label className="fw-semibold">
-                                Request Type<span className="text-danger">*</span>
-                            </Label>
-                            <Select
-                                placeholder="Select Request Type"
-                                options={[
-                                    { value: "SALARY_SLIPS", label: "Salary Slips" },
-                                    { value: "SALARY/COMPLIANCE", label: "Salary/Compliance" },
-                                    { value: "TAX", label: "Tax" },
-                                ]}
-                                value={form.financeIssueType}
-                                onChange={(option) =>
-                                    setForm({ ...form, financeIssueType: option })
-                                }
-                            />
-                        </Col>
-
-
-                        {/* DESCRIPTION FULL WIDTH */}
-                        <Col md={12}>
-                            <Label className="fw-semibold">
-                                Description<span className="text-danger">*</span>
-                            </Label>
-                            <Input
-                                type="textarea"
-                                name="financeDescription"
-                                rows="3"
-                                value={form.financeDescription || ""}
-                                onChange={handleChange}
-                            />
-                        </Col>
-                    </>
-                )}
-                {/* FILE UPLOAD */}
-                <Col md={12}>
-                    <Label className="fw-semibold">Upload Files</Label>
-                    <Input
-                        type="file"
-                        innerRef={fileInputRef}
-                        multiple
-                        onChange={handleFileChange}
-                    />
-                    {form.files?.length > 0 && (
-                        <div className="mt-2">
-                            {form.files.map((file, index) => (
-                                <div
-                                    key={index}
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: "10px",
-                                        marginBottom: "5px"
-                                    }}
-                                >
-                                    <span>{file.name}</span>
-
-                                    <button
-                                        type="button"
-                                        className="btn btn-sm btn-danger"
-                                        onClick={() => {
-                                            const updatedFiles = form.files.filter((_, i) => i !== index);
-                                            setForm({ ...form, files: updatedFiles });
-
-                                            if (fileInputRef.current) {
-                                                if (updatedFiles.length === 0) {
-                                                    fileInputRef.current.value = "";
-                                                } else {
-                                                    const dataTransfer = new DataTransfer();
-                                                    updatedFiles.forEach((file) => dataTransfer.items.add(file));
-                                                    fileInputRef.current.files = dataTransfer.files;
-                                                }
-                                            }
-                                        }}
-                                    >
-                                        ✕
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </Col>
-
-
-                {
-                    canSubmit && (
-                        <Col md={12} className="text-start">
-
-                            <div id="submitTicketWrapper" style={{ display: "inline-block" }}>
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary px-4"
-                                    disabled={loader || !isFormValid()}
-                                >
-                                    {loader ? (
-                                        <Spinner size="sm" color="light" />
-                                    ) : (
-                                        "Submit Ticket"
-                                    )}
-                                </button>
-                            </div>
-
-                            {!isFormValid() && (
-                                <UncontrolledTooltip placement="top" target="submitTicketWrapper">
-                                    Please fill required fields
-                                </UncontrolledTooltip>
-                            )}
-
-                        </Col>)
+        {issueType === "FINANCE" && (
+          <>
+            {/* REQUEST TYPE */}
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Request Type<span className="text-danger">*</span>
+              </Label>
+              <Select
+                placeholder="Select Request Type"
+                options={[
+                  { value: "SALARY_SLIPS", label: "Salary Slips" },
+                  { value: "SALARY/COMPLIANCE", label: "Salary/Compliance" },
+                  { value: "TAX", label: "Tax" },
+                ]}
+                value={form.financeIssueType}
+                onChange={(option) =>
+                  setForm({ ...form, financeIssueType: option })
                 }
-            </Row>
+              />
+            </Col>
 
+            {/* DESCRIPTION FULL WIDTH */}
+            <Col md={12}>
+              <Label className="fw-semibold">
+                Description<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="textarea"
+                name="financeDescription"
+                rows="3"
+                value={form.financeDescription || ""}
+                onChange={handleChange}
+              />
+            </Col>
+          </>
+        )}
 
-        </Form>
-    );
+        {issueType === "MAINTENANCE" && (
+          <>
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Category<span className="text-danger">*</span>
+              </Label>
+              <Select
+                placeholder="Select Category"
+                options={[
+                  { value: "RECHARGE", label: "Recharge" },
+                  { value: "REPLACE", label: "Replace" },
+                  { value: "MAINTENANCE", label: "Maintenance" },
+                  { value: "OTHERS", label: "Others" },
+                ]}
+                value={form.maintenanceCategory}
+                onChange={(option) =>
+                  setForm({
+                    ...form,
+                    maintenanceCategory: option,
+                    maintenanceOtherCategory: "",
+                  })
+                }
+              />
+            </Col>
+
+            {form.maintenanceCategory?.value === "OTHERS" && (
+              <Col md={6}>
+                <Label className="fw-semibold">
+                  Please specify<span className="text-danger">*</span>
+                </Label>
+                <Input
+                  type="text"
+                  name="maintenanceOtherCategory"
+                  placeholder="Specify the category"
+                  value={form.maintenanceOtherCategory || ""}
+                  onChange={handleChange}
+                />
+              </Col>
+            )}
+
+            <Col md={6}>
+              <Label className="fw-semibold">Priority</Label>
+              <Select
+                placeholder="Medium (default)"
+                options={[
+                  { value: "LOW", label: "Low" },
+                  { value: "MEDIUM", label: "Medium" },
+                  { value: "HIGH", label: "High" },
+                  { value: "URGENT", label: "Urgent" },
+                ]}
+                value={form.maintenancePriority}
+                onChange={(option) =>
+                  setForm({ ...form, maintenancePriority: option })
+                }
+              />
+            </Col>
+
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Title<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="text"
+                name="maintenanceTitle"
+                placeholder="e.g. Flush not working"
+                value={form.maintenanceTitle || ""}
+                onChange={handleChange}
+              />
+            </Col>
+
+            <Col md={6}>
+              <Label className="fw-semibold">Location</Label>
+              <Input
+                type="text"
+                name="maintenanceLocation"
+                placeholder="e.g. 2nd floor washroom"
+                value={form.maintenanceLocation || ""}
+                onChange={handleChange}
+              />
+            </Col>
+
+            <Col md={12}>
+              <Label className="fw-semibold">
+                Description<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="textarea"
+                rows="3"
+                name="maintenanceDescription"
+                value={form.maintenanceDescription || ""}
+                onChange={handleChange}
+              />
+            </Col>
+          </>
+        )}
+
+        {issueType === "COMPLAINT" && (
+          <>
+            <Col md={12}>
+              <div className="form-check">
+                <input
+                  type="checkbox"
+                  className="form-check-input"
+                  id="anonymousCheck"
+                  checked={form.anonymous || false}
+                  onChange={(e) =>
+                    setForm({ ...form, anonymous: e.target.checked })
+                  }
+                />
+                <label
+                  className="form-check-label fw-semibold"
+                  htmlFor="anonymousCheck"
+                >
+                  Submit anonymously (your name will not be shown)
+                </label>
+              </div>
+            </Col>
+
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Category<span className="text-danger">*</span>
+              </Label>
+              <Select
+                placeholder="Select Category"
+                options={[
+                  { value: "STAFF", label: "Staff" },
+                  { value: "CENTER", label: "Center" },
+                  { value: "MANAGER", label: "Manager" },
+                  { value: "FACILITY", label: "Facility" },
+                  { value: "OTHERS", label: "Others" },
+                ]}
+                value={form.complaintCategory}
+                onChange={(option) =>
+                  setForm({
+                    ...form,
+                    complaintCategory: option,
+                    complaintOtherCategory: "",
+                  })
+                }
+              />
+            </Col>
+
+            {form.complaintCategory?.value === "OTHERS" && (
+              <Col md={6}>
+                <Label className="fw-semibold">
+                  Please specify<span className="text-danger">*</span>
+                </Label>
+                <Input
+                  type="text"
+                  name="complaintOtherCategory"
+                  value={form.complaintOtherCategory || ""}
+                  onChange={handleChange}
+                />
+              </Col>
+            )}
+
+            <Col md={6}>
+              <Label className="fw-semibold">Complaint Against</Label>
+              <Select
+                placeholder="Search employee..."
+                options={employees.filter(
+                  (emp) => emp.value !== form.requestedFrom?.value,
+                )}
+                value={form.complaintAgainst}
+                isLoading={loadingEmployees}
+                styles={selectStyles}
+                isClearable
+                onInputChange={(value, { action }) => {
+                  if (action === "input-change") {
+                    debouncedFetchEmployees(value);
+                  }
+                }}
+                onChange={(option) =>
+                  setForm({ ...form, complaintAgainst: option })
+                }
+              />
+            </Col>
+
+            <Col md={12}>
+              <Label className="fw-semibold">
+                Subject<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="text"
+                name="complaintSubject"
+                placeholder="Brief subject of the complaint"
+                value={form.complaintSubject || ""}
+                onChange={handleChange}
+              />
+            </Col>
+
+            <Col md={12}>
+              <Label className="fw-semibold">
+                Description<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="textarea"
+                rows="4"
+                name="complaintDescription"
+                value={form.complaintDescription || ""}
+                onChange={handleChange}
+              />
+            </Col>
+          </>
+        )}
+        {issueType === "OPERATIONAL" && (
+          <>
+           {/* <Col md={6}>
+              <Label className="fw-semibold">
+                Centre Manager<span className="text-danger">*</span>
+              </Label>
+              <Select
+                placeholder={
+                  form.center
+                    ? "Select Centre Manager"
+                    : "Select a Center first"
+                }
+                options={centreManagers}
+                value={form.operationalCentreManager}
+                isDisabled={!form.center}
+                isLoading={loadingCentreManagers}
+                onChange={(option) =>
+                  setForm({ ...form, operationalCentreManager: option })
+                }
+              />
+            </Col> */}
+
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Assign To<span className="text-danger">*</span>
+              </Label>
+              <Select
+                placeholder="Select Assignee"
+                options={fixedAssignees}
+                value={form.operationalAssignedTo}
+                onChange={(option) =>
+                  setForm({ ...form, operationalAssignedTo: option })
+                }
+              />
+            </Col>
+
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Issue Category<span className="text-danger">*</span>
+              </Label>
+              <Select
+                placeholder="Select Category"
+                options={[
+                  { value: "ATTENDANCE", label: "Attendance" },
+                  { value: "MI_REPORTING", label: "MI Reporting" },
+                  { value: "MIS", label: "MIS" },
+                  { value: "WIFI_ISSUE", label: "Wifi Issue" },
+                  { value: "OTHER", label: "Other" },
+                ]}
+                value={form.operationalCategory}
+                onChange={(option) =>
+                  setForm({
+                    ...form,
+                    operationalCategory: option,
+                    operationalOtherCategory: "",
+                  })
+                }
+              />
+            </Col>
+
+            {form.operationalCategory?.value === "OTHER" && (
+              <Col md={6}>
+                <Label className="fw-semibold">
+                  Please specify<span className="text-danger">*</span>
+                </Label>
+                <Input
+                  type="text"
+                  name="operationalOtherCategory"
+                  placeholder="Specify the category"
+                  value={form.operationalOtherCategory || ""}
+                  onChange={handleChange}
+                />
+              </Col>
+            )}
+
+            <Col md={12}>
+              <Label className="fw-semibold">
+                Description<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="textarea"
+                rows="3"
+                name="operationalDescription"
+                value={form.operationalDescription || ""}
+                onChange={handleChange}
+              />
+            </Col>
+
+            <Col md={6}>
+              <Label className="fw-semibold">
+                Patient ID / Staff ID<span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="text"
+                name="operationalPatientOrStaffId"
+                value={form.operationalPatientOrStaffId || ""}
+                onChange={handleChange}
+              />
+            </Col>
+          </>
+        )}
+        {/* FILE UPLOAD */}
+        <Col md={12}>
+          <Label className="fw-semibold">Upload Files</Label>
+          <Input
+            type="file"
+            innerRef={fileInputRef}
+            multiple
+            onChange={handleFileChange}
+          />
+          {form.files?.length > 0 && (
+            <div className="mt-2">
+              {form.files.map((file, index) => (
+                <div
+                  key={index}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "10px",
+                    marginBottom: "5px",
+                  }}
+                >
+                  <span>{file.name}</span>
+
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-danger"
+                    onClick={() => {
+                      const updatedFiles = form.files.filter(
+                        (_, i) => i !== index,
+                      );
+                      setForm({ ...form, files: updatedFiles });
+
+                      if (fileInputRef.current) {
+                        if (updatedFiles.length === 0) {
+                          fileInputRef.current.value = "";
+                        } else {
+                          const dataTransfer = new DataTransfer();
+                          updatedFiles.forEach((file) =>
+                            dataTransfer.items.add(file),
+                          );
+                          fileInputRef.current.files = dataTransfer.files;
+                        }
+                      }
+                    }}
+                  >
+                    ✕
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </Col>
+
+        {canSubmit && (
+          <Col md={12} className="text-start">
+            <div id="submitTicketWrapper" style={{ display: "inline-block" }}>
+              <button
+                type="submit"
+                className="btn btn-primary px-4"
+                disabled={loader || !isFormValid()}
+              >
+                {loader ? <Spinner size="sm" color="light" /> : "Submit Ticket"}
+              </button>
+            </div>
+
+            {!isFormValid() && (
+              <UncontrolledTooltip placement="top" target="submitTicketWrapper">
+                Please fill required fields
+              </UncontrolledTooltip>
+            )}
+          </Col>
+        )}
+      </Row>
+    </Form>
+  );
 };
 
 export default TicketForm;
-
-

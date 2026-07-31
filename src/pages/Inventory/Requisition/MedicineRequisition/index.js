@@ -53,6 +53,7 @@ const MedicineRequisition = () => {
     totalCount,
   } = useSelector((state) => state.Medicine);
   const user = useSelector((state) => state.User);
+  const centerList = useSelector((state) => state.Center.data);
 
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("PENDING");
@@ -78,13 +79,10 @@ const MedicineRequisition = () => {
         },
       ]
       : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
+    ...(centerList?.map((c) => ({
+      value: c._id,
+      label: c.title,
+    })) || []),
   ];
 
   const selectedCenterOption =

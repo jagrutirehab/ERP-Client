@@ -17,9 +17,13 @@ import "flatpickr/dist/themes/material_blue.css";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import {
   createDepartment,
+  deleteEmployeeDocumentFile,
   editEmployee,
   getAllUsers,
   getDepartments,
+  getEmployeeDocsConfiguration,
+  getEmployeeDocumentFieldsByEmployeeId,
+  getEmployeeDocumentsByEmployeeId,
   getEmployeeId,
   getPositions,
   postEmployee,
@@ -40,11 +44,20 @@ import {
   statusOptions,
   employmentStatus,
   newEmploymentOptions,
+  presentUnitOptions,
   paymentTypeOptions,
   isSimplifiedFinanceType,
+  isConsultantFinanceType,
   categoryOptions,
 } from "../../../../Components/constants/HR";
-import { calculatePayroll } from "../../../../utils/calculatePayroll";
+import {
+  calculatePayroll,
+  resolveLWFState,
+  lwfAnnual,
+  lwfPerMonth,
+  applyAnnualLWF,
+  lwfScheduleText,
+} from "../../../../utils/calculatePayroll";
 import {
   annualToMonthly,
   annualFieldValue,
@@ -55,6 +68,17 @@ import { downloadFile } from "../../../../Components/Common/downloadFile";
 import { format } from "date-fns";
 import { getFilePreviewMeta } from "../../../../utils/isPreviewable";
 import { FILE_PREVIEW_CUTOFF } from "../../../../Components/constants/HR";
+import DeleteFileConfirmModal from "../../../Authentication/Components/DeleteFileConfirmModal";
+
+// Minimum work hours are stored in the DB as total minutes (e.g. 115).
+// In the form we keep the value as total minutes too, but present it to the
+// user as separate Hours / Minutes inputs and an "HH:MM" preview (e.g. 01:55).
+const minutesToHHMM = (mins) => {
+  const total = Math.max(0, Math.round(Number(mins) || 0));
+  const h = Math.floor(total / 60);
+  const m = total % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+};
 
 const validationSchema = (mode, isEdit) =>
   Yup.object({
@@ -109,13 +133,13 @@ const validationSchema = (mode, isEdit) =>
       .test("is-valid-phone", "Invalid phone number", function (value) {
         return isValidPhoneNumber(value || "");
       }),
-    email: Yup.string().email("Invalid email").notRequired(),
+    email: Yup.string().trim().email("Invalid email").notRequired(),
     status:
       mode === "NEW_JOINING"
         ? Yup.string().oneOf(["NEW_JOINING"])
         : Yup.string()
-          .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
-          .required("Status is required"),
+            .oneOf(["ACTIVE", "FNF_CLOSED", "RESIGNED"])
+            .required("Status is required"),
     state: Yup.string().required("State is required"),
     bankName: Yup.string().required("Bank name is required"),
     accountNo: Yup.string().required("Bank account number is required"),
@@ -178,66 +202,84 @@ const validationSchema = (mode, isEdit) =>
         is: (v) => isSimplifiedFinanceType(v),
         then: (s) => s.notRequired(),
         otherwise: (s) =>
-          s.required("Gross Salary is required").test(
-            "gross-breakup-exact-match",
-            "Basic + HRA + SPL + Conveyance + Statutory Bonus must be equal to Gross Salary",
-            function (gross) {
-              const {
-                basicAmount = 0,
-                HRAAmount = 0,
-                SPLAllowance = 0,
-                conveyanceAllowance = 0,
-                statutoryBonus = 0,
-              } = this.parent;
+          s
+            .required("Gross Salary is required")
+            .test(
+              "gross-breakup-exact-match",
+              "Basic + HRA + SPL + Conveyance + Statutory Bonus must be equal to Gross Salary",
+              function (gross) {
+                const {
+                  basicAmount = 0,
+                  HRAAmount = 0,
+                  SPLAllowance = 0,
+                  conveyanceAllowance = 0,
+                  statutoryBonus = 0,
+                } = this.parent;
 
-              const breakupTotal =
-                Number(basicAmount) +
-                Number(HRAAmount) +
-                Number(SPLAllowance) +
-                Number(conveyanceAllowance) +
-                Number(statutoryBonus);
+                const breakupTotal =
+                  Number(basicAmount) +
+                  Number(HRAAmount) +
+                  Number(SPLAllowance) +
+                  Number(conveyanceAllowance) +
+                  Number(statutoryBonus);
 
-              if (gross === undefined || gross === null) return true;
+                if (gross === undefined || gross === null) return true;
 
-              return Number(gross) === breakupTotal;
-            },
-          ),
+                return Number(gross) === breakupTotal;
+              },
+            ),
       }),
-    basicAmount: Yup.number().min(0).when("employmentType", {
-      is: (v) => isSimplifiedFinanceType(v),
-      then: (s) => s.notRequired(),
-      otherwise: (s) => s.required("Basic Amount is required"),
-    }),
+    basicAmount: Yup.number()
+      .min(0)
+      .when("employmentType", {
+        is: (v) => isSimplifiedFinanceType(v),
+        then: (s) => s.notRequired(),
+        otherwise: (s) => s.required("Basic Amount is required"),
+      }),
     basicPercentage: Yup.number().min(0).max(100).notRequired(),
-    HRAAmount: Yup.number().min(0).when("employmentType", {
-      is: (v) => isSimplifiedFinanceType(v),
-      then: (s) => s.notRequired(),
-      otherwise: (s) => s.required("HRA is required"),
-    }),
+    HRAAmount: Yup.number()
+      .min(0)
+      .when("employmentType", {
+        is: (v) => isSimplifiedFinanceType(v),
+        then: (s) => s.notRequired(),
+        otherwise: (s) => s.required("HRA is required"),
+      }),
     HRAPercentage: Yup.number().min(0).max(100).notRequired(),
-    statutoryBonus: Yup.number().min(0).when("employmentType", {
-      is: (v) => isSimplifiedFinanceType(v),
-      then: (s) => s.notRequired(),
-      otherwise: (s) => s.required("Statutory Bonus is required"),
-    }),
+    statutoryBonus: Yup.number()
+      .min(0)
+      .when("employmentType", {
+        is: (v) => isSimplifiedFinanceType(v),
+        then: (s) => s.notRequired(),
+        otherwise: (s) => s.required("Statutory Bonus is required"),
+      }),
     insurance: Yup.number().min(0).notRequired(),
     variable: Yup.number().min(0).notRequired(),
     reimbursement: Yup.number().min(0).notRequired(),
-    TDSRate: Yup.number().min(0).max(100).notRequired(),
+    TDSRate: Yup.number()
+      .min(0)
+      .max(100)
+      .when("employmentType", {
+        is: (v) => isConsultantFinanceType(v),
+        then: (s) => s.required("TDS Rate is required"),
+        otherwise: (s) => s.notRequired(),
+      }),
     pfAmount: Yup.number().min(0).notRequired(),
-    SPLAllowance: Yup.number().min(0).when("employmentType", {
-      is: (v) => isSimplifiedFinanceType(v),
-      then: (s) => s.notRequired(),
-      otherwise: (s) => s.required("SPL Allowance is required"),
-    }),
-    conveyanceAllowance: Yup.number().min(0).when("employmentType", {
-      is: (v) => isSimplifiedFinanceType(v),
-      then: (s) => s.notRequired(),
-      otherwise: (s) => s.required("Conveyance Allowance is required"),
-    }),
+    SPLAllowance: Yup.number()
+      .min(0)
+      .when("employmentType", {
+        is: (v) => isSimplifiedFinanceType(v),
+        then: (s) => s.notRequired(),
+        otherwise: (s) => s.required("SPL Allowance is required"),
+      }),
+    conveyanceAllowance: Yup.number()
+      .min(0)
+      .when("employmentType", {
+        is: (v) => isSimplifiedFinanceType(v),
+        then: (s) => s.notRequired(),
+        otherwise: (s) => s.required("Conveyance Allowance is required"),
+      }),
     debitStatementNarration: Yup.string().notRequired(),
     ESICSalary: Yup.number().min(0).notRequired(),
-    LWFSalary: Yup.number().min(0).notRequired(),
     LWFEmployee: Yup.number().min(0).notRequired(),
     LWFEmployer: Yup.number().min(0).notRequired(),
     uanNo: Yup.string().when("pfApplicable", {
@@ -254,11 +296,34 @@ const validationSchema = (mode, isEdit) =>
     // employmentStatus: Yup.string().required("Employment status is required"),
     minimumWorkHours: Yup.number()
       .min(0, "Must be at least 0")
-      .max(24, "Cannot exceed 24 hours")
+      .max(24 * 60, "Cannot exceed 24 hours")
       .when("newEmploymentType", {
         is: "PART_TIME",
         then: (schema) =>
           schema.required("Minimum work hours is required for part-time"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+    minimumPresentDays: Yup.number()
+      .min(0, "Must be at least 0")
+      .when("minimumPresentUnit", {
+        is: "WEEK",
+        then: (schema) => schema.max(7, "Cannot exceed 7 days per week"),
+        otherwise: (schema) =>
+          schema.max(31, "Cannot exceed 31 days per month"),
+      })
+      .when(["newEmploymentType", "minimumPresentUnit"], {
+        // Days aren't captured for "Per Session" — hours per session are used instead.
+        is: (type, unit) => type === "PART_TIME" && unit !== "SESSION",
+        then: (schema) =>
+          schema.required("Minimum present days is required for part-time"),
+        otherwise: (schema) => schema.notRequired(),
+      }),
+    minimumPresentUnit: Yup.string()
+      .oneOf(["WEEK", "MONTH", "SESSION"], "Select a valid unit")
+      .when("newEmploymentType", {
+        is: "PART_TIME",
+        then: (schema) =>
+          schema.required("Please select week, month or session"),
         otherwise: (schema) => schema.notRequired(),
       }),
     position: Yup.string()
@@ -267,6 +332,16 @@ const validationSchema = (mode, isEdit) =>
         return value;
       })
       .required("Position is required"),
+    incrementIssued: Yup.string().when("isIncrement", {
+      is: "YES",
+      then: (s) => s.required("Increment issued date is required"),
+      otherwise: (s) => s.notRequired(),
+    }),
+    incrementApplicable: Yup.string().when("isIncrement", {
+      is: "YES",
+      then: (s) => s.required("Increment applicable date is required"),
+      otherwise: (s) => s.notRequired(),
+    }),
   });
 
 const getInitialValues = (initialData, mode) => ({
@@ -312,9 +387,9 @@ const getInitialValues = (initialData, mode) => ({
   father: initialData?.father || "",
   mobile: initialData?.mobile || "",
   officialEmail: initialData?.officialEmail || "",
-  email: initialData?.email || "",
+  email: initialData?.email?.trim() || "",
 
-  monthlyCTC: initialData?.monthlyCTC || 0,
+  // monthlyCTC: initialData?.monthlyCTC || 0,
   biometricId: initialData?.biometricId || "",
   category: initialData?.category || "",
 
@@ -336,17 +411,25 @@ const getInitialValues = (initialData, mode) => ({
   SPLAllowance: annualFieldValue(initialData?.financeDetails, "SPLAllowance"),
   conveyanceAllowance: annualFieldValue(
     initialData?.financeDetails,
-    "conveyanceAllowance"
+    "conveyanceAllowance",
   ),
-  statutoryBonus: annualFieldValue(initialData?.financeDetails, "statutoryBonus"),
+  statutoryBonus: annualFieldValue(
+    initialData?.financeDetails,
+    "statutoryBonus",
+  ),
 
   insurance: annualFieldValue(initialData?.financeDetails, "insurance"),
-  variable: initialData?.financeDetails?.annual?.variable ?? initialData?.financeDetails?.variable ?? 0,
-  reimbursement: initialData?.financeDetails?.annual?.reimbursement ?? initialData?.financeDetails?.reimbursement ?? 0,
+  variable:
+    initialData?.financeDetails?.annual?.variable ??
+    initialData?.financeDetails?.variable ??
+    0,
+  reimbursement:
+    initialData?.financeDetails?.annual?.reimbursement ??
+    initialData?.financeDetails?.reimbursement ??
+    0,
   ESICSalary: initialData?.financeDetails?.ESICSalary || 0,
   ESICEmployee: initialData?.financeDetails?.ESICEmployee || 0,
   ESICEmployer: initialData?.financeDetails?.ESICEmployer || 0,
-  LWFSalary: annualFieldValue(initialData?.financeDetails, "LWFSalary"),
   LWFEmployee: annualFieldValue(initialData?.financeDetails, "LWFEmployee"),
   LWFEmployer: annualFieldValue(initialData?.financeDetails, "LWFEmployer"),
 
@@ -379,15 +462,19 @@ const getInitialValues = (initialData, mode) => ({
 
   users: initialData?.users
     ? initialData.users.map((u) => ({
-      value: u._id,
-      label: `${u.name} (${u.email})`,
-    }))
+        value: u._id,
+        label: `${u.name} (${u.email})`,
+      }))
     : [],
   employmentStatus: initialData?.employmentStatus || "",
   newEmploymentType: initialData?.newEmploymentType || "",
-  minimumWorkHours: initialData?.minimumWorkHours
-    ? initialData.minimumWorkHours / 60
-    : "",
+  minimumWorkHours:
+    initialData?.minimumWorkHours != null ? initialData.minimumWorkHours : "",
+  minimumPresentDays:
+    initialData?.minimumPresentDays != null
+      ? initialData.minimumPresentDays
+      : "",
+  minimumPresentUnit: initialData?.minimumPresentUnit || "",
   position:
     initialData?.position?._id?.toString() ||
     initialData?.position?.toString() ||
@@ -397,6 +484,18 @@ const getInitialValues = (initialData, mode) => ({
   incrementIssued: initialData?.financeDetails?.incrementIssued
     ? format(new Date(initialData.financeDetails.incrementIssued), "yyyy-MM-dd")
     : "",
+  isIncrement:
+    initialData?.financeDetails?.incrementIssued &&
+    initialData?.financeDetails?.incrementApplicable
+      ? "YES"
+      : "NO",
+  incrementApplicable: initialData?.financeDetails?.incrementApplicable
+    ? format(
+        new Date(initialData.financeDetails.incrementApplicable),
+        "yyyy-MM-dd",
+      )
+    : "",
+  positionDocuments: initialData?.positionDocuments || {},
 });
 
 const EmployeeForm = ({
@@ -445,11 +544,44 @@ const EmployeeForm = ({
     offerLetterOld: null,
     incrementLetterOld: null,
   });
+  const [docConfigForPosition, setDocConfigForPosition] = useState([]);
+  const [employeeUploads, setEmployeeUploads] = useState([]);
+  const [positionDocsLoading, setPositionDocsLoading] = useState(false);
+  const [positionDocFiles, setPositionDocFiles] = useState({});
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [selectedDeleteFile, setSelectedDeleteFile] = useState(null);
+
+  const positionDocFileRefs = useRef({});
   const panFileRef = useRef(null);
   const adharFileRef = useRef(null);
   const offerLetterRef = useRef(null);
   const incrementLetterRef = useRef(null);
   const positionCorrectedRef = useRef(false);
+
+  const positionDocFields = useMemo(() => {
+    const uploadsByDocId = new Map(employeeUploads.map((u) => [u.document, u]));
+    const configDocIds = new Set(docConfigForPosition.map((d) => d.document));
+
+    const currentFields = docConfigForPosition.map((doc) => ({
+      document: doc.document,
+      docName: doc.docName,
+      markMandatory: doc.markMandatory,
+      legacy: false,
+      files: uploadsByDocId.get(doc.document)?.files || [],
+    }));
+
+    const legacyFields = employeeUploads
+      .filter((u) => !configDocIds.has(u.document))
+      .map((u) => ({
+        document: u.document,
+        docName: u.docName,
+        markMandatory: false,
+        legacy: true,
+        files: u.files || [],
+      }));
+
+    return [...currentFields, ...legacyFields];
+  }, [docConfigForPosition, employeeUploads]);
 
   const centerOptions = userCenters
     ?.filter((c) => centerAccess.includes(c._id))
@@ -458,7 +590,8 @@ const EmployeeForm = ({
       label: c.title,
       title: c.title,
       address: c.address,
-    }));
+    }))
+    .sort((a, b) => (a.label || "").localeCompare(b.label || ""));
 
   useEffect(() => {
     const loadDesignations = async () => {
@@ -489,6 +622,13 @@ const EmployeeForm = ({
         toast.error("Please upload all required documents");
         return;
       }
+      const missingMandatoryDocs = validatePositionDocuments();
+      if (missingMandatoryDocs.length > 0) {
+        toast.error(
+          `Please upload required document(s): ${missingMandatoryDocs.join(", ")}`,
+        );
+        return;
+      }
 
       try {
         if (mode === "NEW_JOINING") {
@@ -502,24 +642,55 @@ const EmployeeForm = ({
         Object.entries(values).forEach(([key, value]) => {
           if (key === "eCode" && mode === "NEW_JOINING") return;
           if (key === "users") return;
+          if (key === "positionDocuments") return;
           if (value === undefined || value === null) return;
           formData.append(key, value);
         });
 
-        if (values.newEmploymentType === "PART_TIME" && values.minimumWorkHours) {
-          formData.set("minimumWorkHours", Math.round(Number(values.minimumWorkHours) * 60));
+        if (
+          values.newEmploymentType === "PART_TIME" &&
+          values.minimumWorkHours
+        ) {
+          formData.set(
+            "minimumWorkHours",
+            Math.round(Number(values.minimumWorkHours)),
+          );
         } else {
           formData.delete("minimumWorkHours");
         }
 
+        if (
+          values.newEmploymentType === "PART_TIME" &&
+          values.minimumPresentUnit
+        ) {
+          formData.set("minimumPresentUnit", values.minimumPresentUnit);
+          // "Per Session" captures only hours (minimumWorkHours), never a day count.
+          if (
+            values.minimumPresentUnit !== "SESSION" &&
+            values.minimumPresentDays !== ""
+          ) {
+            formData.set(
+              "minimumPresentDays",
+              Number(values.minimumPresentDays),
+            );
+          } else {
+            formData.delete("minimumPresentDays");
+          }
+        } else {
+          formData.delete("minimumPresentDays");
+          formData.delete("minimumPresentUnit");
+        }
+        Object.entries(positionDocFiles).forEach(([documentId, files]) => {
+          files.forEach((file) => {
+            formData.append("positionDocFiles", file);
+            formData.append("positionDocumentIds", documentId);
+          });
+        });
         // Amount fields above are yearly; the server splits them into monthly.
         formData.append("salaryUnit", "ANNUAL");
         let panUrl = values.panOld;
         let adharUrl = values.adharOld;
         let offerLetterUrl = values.offerLetterOld;
-        let incrementLetterUrl = values.incrementLetterOld;
-        if (incrementLetterUrl)
-          formData.append("incrementLetter", incrementLetterUrl);
 
         if (panUrl) formData.append("panUrl", panUrl);
         if (adharUrl) formData.append("adharUrl", adharUrl);
@@ -529,6 +700,7 @@ const EmployeeForm = ({
         formData.delete("PFEmployer");
         formData.delete("PFAmount");
         formData.delete("PT");
+        formData.delete("PTAnnual");
         formData.delete("shortWages");
         formData.delete("PFSalary");
         formData.delete("PFAmount");
@@ -546,6 +718,24 @@ const EmployeeForm = ({
         formData.delete("HRAPercentage");
         formData.delete("incrementLetterOld");
         formData.delete("incrementLetterFile");
+        formData.delete("isIncrement");
+        formData.delete("incrementIssued");
+        formData.delete("incrementApplicable");
+        if (values.isIncrement === "YES") {
+          if (values.incrementLetterOld)
+            formData.set("incrementLetter", values.incrementLetterOld);
+          if (values.incrementIssued)
+            formData.set("incrementIssued", values.incrementIssued);
+          if (values.incrementApplicable)
+            formData.set("incrementApplicable", values.incrementApplicable);
+        } else if (
+          initialData?.financeDetails?.incrementIssued ||
+          initialData?.financeDetails?.incrementApplicable
+        ) {
+          formData.set("incrementIssued", "");
+          formData.set("incrementApplicable", "");
+          formData.set("incrementLetter", "");
+        }
 
         // Client-only mirror fields — never sent to the server as-is.
         formData.delete("annualInHandSalary");
@@ -572,7 +762,6 @@ const EmployeeForm = ({
             "statutoryBonus",
             "minimumWages",
             "ESICSalary",
-            "LWFSalary",
             "LWFEmployee",
             "LWFEmployer",
             "insurance",
@@ -581,6 +770,11 @@ const EmployeeForm = ({
             "reimbursement",
             "debitStatementNarration",
           ].forEach((key) => formData.delete(key));
+          // Consultants carry a TDS rate — re-add it after the cleanup above so
+          // the server can deduct it from CTC to derive the stored In Hand Salary.
+          if (consultant) {
+            formData.set("TDSRate", values.TDSRate || 0);
+          }
         }
 
         if (initialData?._id) {
@@ -631,6 +825,25 @@ const EmployeeForm = ({
   // PER_SESSION amounts are flat per-session rates — not yearly — so we drop the
   // "(Yearly)" label and the monthly (÷12) preview for them.
   const perSession = simplified && values.paymentType === "PER_SESSION";
+  // Consultants enter a TDS rate; TDS is deducted from CTC and In Hand becomes
+  // CTC − TDS (auto-computed, read-only).
+  const consultant = isConsultantFinanceType(values.employmentType);
+  const consultantTdsAmount = Math.round(
+    ((Number(values.annualCTC) || 0) * (Number(values.TDSRate) || 0)) / 100,
+  );
+
+  // For consultants, In Hand is always CTC − TDS (read-only) — keep it in sync
+  // whenever CTC or the TDS rate changes.
+  useEffect(() => {
+    if (!consultant) return;
+    const inHand = Math.max(
+      0,
+      (Number(values.annualCTC) || 0) - consultantTdsAmount,
+    );
+    if (Number(values.annualInHandSalary) !== inHand) {
+      setFieldValue("annualInHandSalary", inHand, false);
+    }
+  }, [consultant, values.annualCTC, values.TDSRate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const touchFileFields = () => {
     setTouched(
@@ -678,6 +891,31 @@ const EmployeeForm = ({
     } finally {
       setUploading((prev) => ({ ...prev, [fileField]: false }));
     }
+  };
+
+  const handlePositionDocSelect = (documentId, file) => {
+    if (!file) return;
+    setPositionDocFiles((prev) => ({
+      ...prev,
+      [documentId]: [...(prev[documentId] || []), file],
+    }));
+  };
+
+  const handlePositionDocRemove = (documentId, index) => {
+    setPositionDocFiles((prev) => ({
+      ...prev,
+      [documentId]: (prev[documentId] || []).filter((_, i) => i !== index),
+    }));
+  };
+
+  const validatePositionDocuments = () => {
+    const missing = positionDocFields.filter((doc) => {
+      if (!doc.markMandatory) return false;
+      const hasNewFile = (positionDocFiles[doc.document] || []).length > 0;
+      const hasExistingFile = (doc.files || []).length > 0;
+      return !hasNewFile && !hasExistingFile;
+    });
+    return missing.map((d) => d.docName);
   };
 
   const getDocumentDate = (urlField) =>
@@ -734,20 +972,34 @@ const EmployeeForm = ({
   const yearlyValue = (field) => Math.round(Number(values[field]) || 0) * 12;
   const monthlyHintFrom = (field) => (
     <div className="text-muted small mt-1">
-      Monthly ≈ ₹{(Math.round(Number(values[field]) || 0)).toLocaleString("en-IN")}
+      Monthly ≈ ₹
+      {Math.round(Number(values[field]) || 0).toLocaleString("en-IN")}
     </div>
   );
 
+  // Tamil Nadu PT is half-yearly, so calculatePayroll supplies the exact annual
+  // (slab × 2) via PTAnnual; other states are simply monthly PT × 12.
   const ptMonthly = Math.round(Number(values.PT) || 0);
-  const ptYearly = ptMonthly * 12;
+  const ptYearly =
+    values.PTAnnual !== undefined
+      ? Math.round(Number(values.PTAnnual) || 0)
+      : ptMonthly * 12;
 
-  const deductionsYearly = yearlyValue("deductions");
+  // annual deductions swap the monthly PT × 12 for the exact
+  // PT annual (matters for Tamil Nadu's half-yearly PT).
+  // These start as the naive rollups; the LWF correction below (once lwfState is
+  // resolved) swaps the monthly-LWF × 12 for the true yearly LWF.
+  let deductionsYearly =
+    (Math.round(Number(values.deductions) || 0) - ptMonthly) * 12 + ptYearly;
 
-  const ctcYearly =
+  let ctcYearly =
     yearlyValue("totalCostToCompany") +
     Number(values.variable || 0) +
     Number(values.reimbursement || 0);
 
+  let inHandYearly = yearlyValue("inHandSalary");
+
+  const missingMandatoryDocs = validatePositionDocuments();
   // const handleCreateDesignation = async (inputValue) => {
   //   if (mode === "NEW_JOINING" && !hasCreatePermission) {
   //     toast.error("You don't have permission to create designation");
@@ -965,7 +1217,6 @@ const EmployeeForm = ({
     simplified,
   ]);
 
-
   useEffect(() => {
     if (simplified) return;
     const total =
@@ -988,15 +1239,69 @@ const EmployeeForm = ({
     simplified,
   ]);
 
+  // LWF is derived from the work-location's state + monthly wage base, never
+  // entered by hand. The stored yearly figure is the TRUE annual (sum of the
+  // applicable months), not a monthly amount × 12 — most states only charge LWF
+  // in one or two months.
+  const lwfState = useMemo(() => {
+    const selectedCenter = centerOptions?.find(
+      (o) => o.value === values.currentLocation,
+    );
+    return resolveLWFState(
+      selectedCenter
+        ? { title: selectedCenter.title, address: selectedCenter.address }
+        : null,
+    );
+  }, [centerOptions, values.currentLocation]);
+
+  // LWF is charged only in specific months, so its true yearly total is NOT the
+  // monthly charge × 12. Mirror the server's applyAnnualLWF so the yearly In-Hand
+  // / Deductions / CTC boxes match the persisted `annual` block (lumpy-LWF states
+  // like Tamil Nadu / Maharashtra / Gujarat / Karnataka).
+  {
+    const lwfMonthlyGross = annualToMonthly(values).grossSalary;
+    const lwfMonthly = lwfPerMonth(lwfState, lwfMonthlyGross);
+    const lwfYearly = lwfAnnual(lwfState, lwfMonthlyGross);
+    const annualRollup = {
+      deductions: deductionsYearly,
+      inHandSalary: inHandYearly,
+      totalCostToCompany: ctcYearly,
+    };
+    applyAnnualLWF(annualRollup, lwfMonthly, lwfYearly);
+    deductionsYearly = annualRollup.deductions;
+    ctcYearly = annualRollup.totalCostToCompany;
+    inHandYearly = annualRollup.inHandSalary;
+  }
+
+  useEffect(() => {
+    if (simplified) return;
+    const monthlyGross = annualToMonthly(values).grossSalary;
+    const annual = lwfAnnual(lwfState, monthlyGross);
+
+    if (Number(values.LWFEmployee) !== annual.employee)
+      setFieldValue("LWFEmployee", annual.employee, false);
+    if (Number(values.LWFEmployer) !== annual.employer)
+      setFieldValue("LWFEmployer", annual.employer, false);
+  }, [
+    lwfState,
+    values.basicAmount,
+    values.HRAAmount,
+    values.SPLAllowance,
+    values.conveyanceAllowance,
+    values.statutoryBonus,
+    simplified,
+    setFieldValue,
+  ]);
+
   const selectedEmploymentOption =
     employmentOptions.find(
       (opt) => opt.value === values.employmentType?.trim().toUpperCase(),
     ) ||
     (values.employmentType
       ? {
-        label: values.employmentType,
-        value: values.employmentType?.trim().toUpperCase(),
-      }
+          label: values.employmentType,
+          value: values.employmentType?.trim().toUpperCase(),
+        }
       : null);
 
   useEffect(() => {
@@ -1004,7 +1309,6 @@ const EmployeeForm = ({
       try {
         const res = await getPositions();
         const rawData = res?.data || [];
-
 
         const mapped = rawData.flatMap((p) =>
           (p.positions || [])
@@ -1065,6 +1369,59 @@ const EmployeeForm = ({
     fetchPositions();
   }, []);
 
+  useEffect(() => {
+    const fetchDocConfigForPosition = async () => {
+      if (!values.position) {
+        setDocConfigForPosition([]);
+        return;
+      }
+      setPositionDocsLoading(true);
+      try {
+        const res = await getEmployeeDocsConfiguration(values.position);
+        setDocConfigForPosition(res?.data || []);
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error("Failed to fetch required documents for this position");
+        }
+      } finally {
+        setPositionDocsLoading(false);
+      }
+    };
+
+    fetchDocConfigForPosition();
+  }, [values.position]);
+
+  const fetchEmployeeUploads = async () => {
+    if (!isEdit || !initialData?._id) {
+      setEmployeeUploads([]);
+      return;
+    }
+    try {
+      const res = await getEmployeeDocumentsByEmployeeId(initialData._id);
+      setEmployeeUploads(res?.data || []);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error("Failed to fetch existing documents");
+      }
+    }
+  };
+
+  useEffect(() => {
+    fetchEmployeeUploads();
+  }, [isEdit, initialData?._id]);
+
+  const openDeleteExistingFile = (documentId, file) => {
+    setSelectedDeleteFile({
+      documentId,
+      fileId: file._id,
+      fileName: file.fileName,
+    });
+    setDeleteModalOpen(true);
+  };
+
+  const handleExistingFileDeleteSuccess = () => {
+    fetchEmployeeUploads();
+  };
   return (
     <>
       <div>
@@ -1158,7 +1515,8 @@ const EmployeeForm = ({
                 // ||
                 // (mode === "NEW_JOINING" && !hasCreatePermission)
               }
-              isLoading={designationLoading
+              isLoading={
+                designationLoading
                 // || creatingDesignation
               }
               options={designationOptions}
@@ -1171,7 +1529,7 @@ const EmployeeForm = ({
                 form.setFieldValue("designation", option ? option.value : "")
               }
               onBlur={() => setFieldTouched("designation", true)}
-            // onCreateOption={handleCreateDesignation}
+              // onCreateOption={handleCreateDesignation}
             />
 
             {errorText("designation")}
@@ -1226,26 +1584,158 @@ const EmployeeForm = ({
           {values.newEmploymentType === "PART_TIME" && (
             <Col md={6}>
               <Label htmlFor="minimumWorkHours">
-                Minimum Work Hours <span className="text-danger">*</span>
+                Minimum Work Hours
+                {values.minimumPresentUnit === "SESSION" &&
+                  " (per session)"}{" "}
+                <span className="text-danger">*</span>
               </Label>
-              <Input
-                id="minimumWorkHours"
-                type="number"
-                name="minimumWorkHours"
-                min={0}
-                max={24}
-                value={values.minimumWorkHours}
-                onChange={handleChange}
-                onBlur={() => setFieldTouched("minimumWorkHours", true)}
-                placeholder="Enter hours per day"
-                invalid={touched.minimumWorkHours && !!errors.minimumWorkHours}
-              />
-              {values.minimumWorkHours !== "" && (
-                <div className="text-muted small mt-1">
-                  = {Math.round(Number(values.minimumWorkHours) * 60)} minutes
-                </div>
-              )}
+              {(() => {
+                const isEmpty =
+                  values.minimumWorkHours === "" ||
+                  values.minimumWorkHours == null;
+                const totalMinutes = isEmpty
+                  ? 0
+                  : Number(values.minimumWorkHours);
+                const hoursPart = Math.floor(totalMinutes / 60);
+                const minutesPart = totalMinutes % 60;
+                const invalid =
+                  touched.minimumWorkHours && !!errors.minimumWorkHours;
+                return (
+                  <div
+                    className="d-flex align-items-center"
+                    style={{ gap: "8px" }}
+                  >
+                    <Input
+                      id="minimumWorkHours"
+                      type="number"
+                      min={0}
+                      max={24}
+                      step={1}
+                      value={isEmpty ? "" : hoursPart}
+                      onChange={(e) => {
+                        const h =
+                          e.target.value === ""
+                            ? 0
+                            : parseInt(e.target.value, 10) || 0;
+                        setFieldValue("minimumWorkHours", h * 60 + minutesPart);
+                      }}
+                      onBlur={() => setFieldTouched("minimumWorkHours", true)}
+                      placeholder="HH"
+                      invalid={invalid}
+                      style={{ width: "80px" }}
+                    />
+                    <span className="fw-bold">:</span>
+                    <Input
+                      id="minimumWorkMinutes"
+                      type="number"
+                      min={0}
+                      max={59}
+                      step={1}
+                      value={isEmpty ? "" : minutesPart}
+                      onChange={(e) => {
+                        let m =
+                          e.target.value === ""
+                            ? 0
+                            : parseInt(e.target.value, 10) || 0;
+                        if (m > 59) m = 59;
+                        if (m < 0) m = 0;
+                        setFieldValue("minimumWorkHours", hoursPart * 60 + m);
+                      }}
+                      onBlur={() => setFieldTouched("minimumWorkHours", true)}
+                      placeholder="MM"
+                      invalid={invalid}
+                      style={{ width: "80px" }}
+                    />
+                    <span className="text-muted small">hours : minutes</span>
+                  </div>
+                );
+              })()}
+              {values.minimumWorkHours !== "" &&
+                values.minimumWorkHours != null && (
+                  <div className="text-muted small mt-1">
+                    = {minutesToHHMM(values.minimumWorkHours)} hours (
+                    {Math.round(Number(values.minimumWorkHours))} minutes)
+                  </div>
+                )}
               {errorText("minimumWorkHours")}
+            </Col>
+          )}
+          {/* MINIMUM PRESENT DAYS — visible only for Part Time */}
+          {values.newEmploymentType === "PART_TIME" && (
+            <Col md={6}>
+              <Label htmlFor="minimumPresentDays">
+                Minimum Presence
+                {values.minimumPresentUnit !== "SESSION" && (
+                  <span className="text-danger"> *</span>
+                )}
+              </Label>
+              <div className="d-flex" style={{ gap: "8px" }}>
+                {values.minimumPresentUnit !== "SESSION" && (
+                  <div style={{ flex: 1 }}>
+                    <Input
+                      id="minimumPresentDays"
+                      type="number"
+                      name="minimumPresentDays"
+                      min={0}
+                      max={values.minimumPresentUnit === "WEEK" ? 7 : 31}
+                      value={values.minimumPresentDays}
+                      onChange={handleChange}
+                      onBlur={() => setFieldTouched("minimumPresentDays", true)}
+                      placeholder="Enter number of days"
+                      invalid={
+                        touched.minimumPresentDays &&
+                        !!errors.minimumPresentDays
+                      }
+                    />
+                  </div>
+                )}
+                <div
+                  style={{
+                    width:
+                      values.minimumPresentUnit === "SESSION"
+                        ? "100%"
+                        : "160px",
+                  }}
+                >
+                  <Select
+                    inputId="minimumPresentUnit"
+                    placeholder="Select unit"
+                    options={presentUnitOptions}
+                    value={
+                      presentUnitOptions.find(
+                        (opt) => opt.value === values.minimumPresentUnit,
+                      ) || null
+                    }
+                    onChange={(opt) =>
+                      form.setFieldValue(
+                        "minimumPresentUnit",
+                        opt ? opt.value : "",
+                      )
+                    }
+                    onBlur={() => setFieldTouched("minimumPresentUnit", true)}
+                    isClearable
+                  />
+                </div>
+              </div>
+              {values.minimumPresentUnit === "SESSION" ? (
+                <div className="text-muted small mt-1">
+                  Requirement is measured per session — set the hours in Minimum
+                  Work Hours above.
+                </div>
+              ) : (
+                values.minimumPresentDays !== "" &&
+                values.minimumPresentUnit && (
+                  <div className="text-muted small mt-1">
+                    = {values.minimumPresentDays} day
+                    {Number(values.minimumPresentDays) === 1
+                      ? ""
+                      : "s"} per{" "}
+                    {values.minimumPresentUnit === "WEEK" ? "week" : "month"}
+                  </div>
+                )
+              )}
+              {errorText("minimumPresentDays")}
+              {errorText("minimumPresentUnit")}
             </Col>
           )}
           {/* EMPLOYMENT STATUS */}
@@ -1279,9 +1769,8 @@ const EmployeeForm = ({
               placeholder="Select Category"
               options={categoryOptions}
               value={
-                categoryOptions.find(
-                  (opt) => opt.value === values.category,
-                ) || null
+                categoryOptions.find((opt) => opt.value === values.category) ||
+                null
               }
               onChange={(opt) =>
                 form.setFieldValue("category", opt ? opt.value : "")
@@ -1307,8 +1796,8 @@ const EmployeeForm = ({
                 ) ||
                 (!positionCorrectedRef.current
                   ? positionOptions.find(
-                    (opt) => opt.label === initialData?.position?.name,
-                  )
+                      (opt) => opt.label === initialData?.position?.name,
+                    )
                   : null) ||
                 null
               }
@@ -1381,8 +1870,8 @@ const EmployeeForm = ({
                 value={
                   values.transferredFrom
                     ? centerOptions.find(
-                      (o) => o.value === values.transferredFrom,
-                    )
+                        (o) => o.value === values.transferredFrom,
+                      )
                     : null
                 }
                 onChange={(opt) => setFieldValue("transferredFrom", opt.value)}
@@ -1400,8 +1889,8 @@ const EmployeeForm = ({
               value={
                 values.currentLocation
                   ? centerOptions.find(
-                    (o) => o.value === values.currentLocation,
-                  )
+                      (o) => o.value === values.currentLocation,
+                    )
                   : null
               }
               onChange={(opt) => setFieldValue("currentLocation", opt.value)}
@@ -2027,7 +2516,7 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
-          {/* MONTHLY CTC */}
+          {/* MONTHLY CTC — input removed; kept for reference
           <Col md={6}>
             <Label htmlFor="monthlyCTC">Monthly CTC</Label>
             <Input
@@ -2038,6 +2527,7 @@ const EmployeeForm = ({
               onChange={handleChange}
             />
           </Col>
+          */}
           {/* BIOMETRIC ID */}
           <Col md={6}>
             <Label htmlFor="biometricId">Biometric ID</Label>
@@ -2083,6 +2573,172 @@ const EmployeeForm = ({
         </Row>
 
         <Col xs={12} className="mt-4">
+          <h5 className="fw-semibold mb-1">Other Documents</h5>
+          <hr className="mt-0" />
+          {missingMandatoryDocs.length > 0 && (
+            <p className="text-danger small mb-2">
+              Please upload: {missingMandatoryDocs.join(", ")}
+            </p>
+          )}
+        </Col>
+
+        <Row className="g-3 mx-2">
+          {positionDocFields.length > 0 ? (
+            positionDocsLoading ? (
+              <Col xs={12}>
+                <Spinner size="sm" className="me-2" /> Loading required
+                documents...
+              </Col>
+            ) : (
+              positionDocFields.map((doc) => {
+                const files = positionDocFiles[doc.document] || [];
+                const existingFiles = doc.files || [];
+                const isSatisfied = existingFiles.length > 0;
+
+                return (
+                  <Col md={6} key={doc.document}>
+                    <Label
+                      className="d-block text-truncate"
+                      style={{ maxWidth: "100%" }}
+                      title={doc.docName}
+                    >
+                      {doc.docName}
+                      {doc.markMandatory && !isSatisfied && (
+                        <span className="text-danger ms-1">*</span>
+                      )}
+                    </Label>
+
+                    {doc.legacy && (
+                      <p className="text-muted small mb-2">
+                        <i className="ri-information-line me-1" />
+                        Retained from a previous position assignment.
+                      </p>
+                    )}
+
+                    {existingFiles.length > 0 && (
+                      <div className="d-flex flex-column gap-2 mb-2">
+                        {existingFiles.map((file, index) => (
+                          <div
+                            key={file._id || index}
+                            className="d-flex align-items-center justify-content-between border rounded px-2 py-1"
+                          >
+                            <span
+                              className="text-truncate small"
+                              style={{ maxWidth: 180 }}
+                            >
+                              {file.fileName}
+                            </span>
+                            <div className="d-flex gap-1">
+                              <Button
+                                size="sm"
+                                color="info"
+                                onClick={() =>
+                                  handleFilePreview(
+                                    {
+                                      url: file.fileUrl,
+                                      originalName: file.fileName,
+                                    },
+                                    `positionDoc.${doc.document}.${file._id || index}`,
+                                  )
+                                }
+                              >
+                                {getFileActionLabel(
+                                  {
+                                    url: file.fileUrl,
+                                    originalName: file.fileName,
+                                  },
+                                  `positionDoc.${doc.document}.${file._id || index}`,
+                                )}
+                              </Button>
+                              {!doc.legacy && (
+                                <Button
+                                  size="sm"
+                                  color="outline-danger"
+                                  onClick={() =>
+                                    openDeleteExistingFile(doc.document, file)
+                                  }
+                                >
+                                  <i className="ri-close-line" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {!doc.legacy && (
+                      <>
+                        <input
+                          type="file"
+                          hidden
+                          ref={(el) =>
+                            (positionDocFileRefs.current[doc.document] = el)
+                          }
+                          accept="image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            e.target.value = "";
+                            if (!file) return;
+                            handlePositionDocSelect(doc.document, file);
+                          }}
+                        />
+
+                        {files.length > 0 && (
+                          <div className="d-flex flex-column gap-2 mb-2">
+                            {files.map((file, index) => (
+                              <div
+                                key={index}
+                                className="d-flex align-items-center justify-content-between border rounded px-2 py-1"
+                              >
+                                <span
+                                  className="text-truncate small"
+                                  style={{ maxWidth: 220 }}
+                                >
+                                  {file.name}
+                                </span>
+                                <Button
+                                  size="sm"
+                                  color="outline-danger"
+                                  onClick={() =>
+                                    handlePositionDocRemove(doc.document, index)
+                                  }
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            positionDocFileRefs.current[doc.document]?.click()
+                          }
+                        >
+                          {files.length > 0 || existingFiles.length > 0
+                            ? "Upload Another File"
+                            : "Upload File"}
+                        </Button>
+                      </>
+                    )}
+                  </Col>
+                );
+              })
+            )
+          ) : (
+            <Col xs={12}>
+              <p className="text-muted small mb-0">
+                {isEdit
+                  ? "No additional documents configured for this position."
+                  : "Save the employee first, then required documents can be uploaded."}
+              </p>
+            </Col>
+          )}
+        </Row>
+
+        <Col xs={12} className="mt-4">
           <h5 className="fw-semibold mb-1">Finance Details</h5>
           <hr className="mt-0" />
         </Col>
@@ -2104,8 +2760,9 @@ const EmployeeForm = ({
                   value={values.annualCTC}
                   onChange={(e) => {
                     handleChange(e);
-                    // In Hand mirrors CTC until the user overrides it.
-                    if (!manual.annualInHandSalary) {
+                    // In Hand mirrors CTC until the user overrides it — except for
+                    // consultants, whose In Hand is driven by the TDS deduction.
+                    if (!manual.annualInHandSalary && !consultant) {
                       setFieldValue("annualInHandSalary", e.target.value);
                     }
                   }}
@@ -2123,6 +2780,40 @@ const EmployeeForm = ({
                 )}
               </Col>
 
+              {/* TDS RATE — consultants only */}
+              {consultant && (
+                <Col md={6}>
+                  <Label htmlFor="TDSRate">
+                    TDS Rate (%) <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    id="TDSRate"
+                    type="number"
+                    name="TDSRate"
+                    min={0}
+                    max={100}
+                    value={values.TDSRate}
+                    onChange={handleChange}
+                    onBlur={() => setFieldTouched("TDSRate", true)}
+                    invalid={touched.TDSRate && !!errors.TDSRate}
+                  />
+                  {errorText("TDSRate")}
+                  <div className="text-muted small mt-1">
+                    TDS {perSession ? "(Per Session)" : "(Yearly)"} ≈ ₹
+                    {consultantTdsAmount.toLocaleString("en-IN")}
+                    {!perSession && (
+                      <>
+                        {" "}
+                        · Monthly ≈ ₹
+                        {Math.round(consultantTdsAmount / 12).toLocaleString(
+                          "en-IN",
+                        )}
+                      </>
+                    )}
+                  </div>
+                </Col>
+              )}
+
               {/* IN HAND SALARY (Yearly entry, monthly preview) */}
               <Col md={6}>
                 <Label htmlFor="annualInHandSalary">
@@ -2135,12 +2826,18 @@ const EmployeeForm = ({
                   name="annualInHandSalary"
                   min={0}
                   value={values.annualInHandSalary}
+                  disabled={consultant}
                   onChange={(e) => {
-                    setManual((prev) => ({ ...prev, annualInHandSalary: true }));
+                    setManual((prev) => ({
+                      ...prev,
+                      annualInHandSalary: true,
+                    }));
                     handleChange(e);
                   }}
                   onBlur={() => setFieldTouched("annualInHandSalary", true)}
-                  invalid={touched.annualInHandSalary && !!errors.annualInHandSalary}
+                  invalid={
+                    touched.annualInHandSalary && !!errors.annualInHandSalary
+                  }
                 />
                 {errorText("annualInHandSalary")}
                 {!perSession && (
@@ -2151,10 +2848,16 @@ const EmployeeForm = ({
                     ).toLocaleString("en-IN")}
                   </div>
                 )}
-                {!manual.annualInHandSalary && (
+                {consultant ? (
                   <div className="text-muted small">
-                    Auto-filled from Annual CTC — edit to override.
+                    Auto-calculated as Annual CTC − TDS.
                   </div>
+                ) : (
+                  !manual.annualInHandSalary && (
+                    <div className="text-muted small">
+                      Auto-filled from Annual CTC — edit to override.
+                    </div>
+                  )
                 )}
               </Col>
 
@@ -2183,534 +2886,617 @@ const EmployeeForm = ({
 
           {!simplified && (
             <>
-          {/* EMPLOYEE GROUPS */}
-          <Col md={6}>
-            <Label htmlFor="employeeGroups">Employee Group <span className="text-danger">*</span></Label>
-            <Select
-              inputId="employeeGroups"
-              options={employeeGroupOptions}
-              value={
-                employeeGroupOptions.find(
-                  (opt) => opt.value === values.employeeGroups,
-                ) || null
-              }
-              onChange={(opt) => setFieldValue("employeeGroups", opt ? opt.value : "")}
-              onBlur={() => setFieldTouched("employeeGroups", true)}
-            />
-            {errorText("employeeGroups")}
-          </Col>
+              {/* EMPLOYEE GROUPS */}
+              <Col md={6}>
+                <Label htmlFor="employeeGroups">
+                  Employee Group <span className="text-danger">*</span>
+                </Label>
+                <Select
+                  inputId="employeeGroups"
+                  options={employeeGroupOptions}
+                  value={
+                    employeeGroupOptions.find(
+                      (opt) => opt.value === values.employeeGroups,
+                    ) || null
+                  }
+                  onChange={(opt) =>
+                    setFieldValue("employeeGroups", opt ? opt.value : "")
+                  }
+                  onBlur={() => setFieldTouched("employeeGroups", true)}
+                />
+                {errorText("employeeGroups")}
+              </Col>
 
-          {/* ACCOUNT */}
-          <Col md={6}>
-            <Label htmlFor="account">Account</Label>
-            <Select
-              inputId="account"
-              options={accountOptions}
-              value={
-                accountOptions.find((opt) => opt.value === values.account) ||
-                null
-              }
-              onChange={(opt) => setFieldValue("account", opt ? opt.value : "")}
-              onBlur={() => setFieldTouched("account", true)}
-            />
-            {errorText("account")}
-          </Col>
+              {/* ACCOUNT */}
+              <Col md={6}>
+                <Label htmlFor="account">Account</Label>
+                <Select
+                  inputId="account"
+                  options={accountOptions}
+                  value={
+                    accountOptions.find(
+                      (opt) => opt.value === values.account,
+                    ) || null
+                  }
+                  onChange={(opt) =>
+                    setFieldValue("account", opt ? opt.value : "")
+                  }
+                  onBlur={() => setFieldTouched("account", true)}
+                />
+                {errorText("account")}
+              </Col>
 
-          {/* MINIMUM WAGES */}
-          <Col md={6}>
-            <Label htmlFor="minimumWages">Minimum Wages (Monthly)</Label>
-            <Input
-              id="minimumWages"
-              type="number"
-              name="minimumWages"
-              value={values.minimumWages}
-              onChange={handleChange}
-            />
-          </Col>
+              {/* MINIMUM WAGES */}
+              <Col md={6}>
+                <Label htmlFor="minimumWages">Minimum Wages (Monthly)</Label>
+                <Input
+                  id="minimumWages"
+                  type="number"
+                  name="minimumWages"
+                  value={values.minimumWages}
+                  onChange={handleChange}
+                />
+              </Col>
 
-          {mode === "MASTER" && (
-            <Col md={6}>
-              <Label htmlFor="incrementIssued">Increment Issued Date</Label>
-              <Flatpickr
-                className="form-control"
-                id="incrementIssued"
-                name="incrementIssued"
-                value={values.incrementIssued}
-                onChange={([date]) => {
-                  setFieldValue(
-                    "incrementIssued",
-                    date ? format(date, "yyyy-MM-dd") : "",
-                  );
-                }}
-                options={{ dateFormat: "Y-m-d" }}
-              />
-            </Col>
-          )}
-
-          {/* INCREMENT LETTER FILE */}
-          {mode === "MASTER" && (
-            <Col md={6}>
-              <Label>Increment Letter</Label>
-
-              <input
-                type="file"
-                hidden
-                ref={incrementLetterRef}
-                accept="image/*,application/pdf"
-                onChange={async (e) => {
-                  const file = e.target.files?.[0];
-                  e.target.value = "";
-                  if (!file) return;
-                  await handleFileUpload({
-                    file,
-                    path: "EMPLOYEE_INCREMENT_LETTER",
-                    urlField: "incrementLetterOld",
-                    fileField: "incrementLetterFile",
-                  });
-                }}
-              />
-
-              {values.incrementLetterOld ? (
-                <div className="d-flex gap-2 mt-2">
-                  <Button
-                    size="sm"
-                    color="info"
-                    onClick={() =>
-                      handleFilePreview(
-                        {
-                          url: values.incrementLetterOld,
-                          originalName: "IncrementLetter",
-                        },
-                        "incrementLetterOld",
-                      )
+              {/* IS IT AN INCREMENT? — only when editing an existing employee */}
+              {mode === "MASTER" && isEdit && (
+                <Col md={6}>
+                  <Label htmlFor="isIncrement">Is it an increment?</Label>
+                  <Select
+                    inputId="isIncrement"
+                    options={[
+                      { label: "No", value: "NO" },
+                      { label: "Yes", value: "YES" },
+                    ]}
+                    value={{
+                      label: values.isIncrement === "YES" ? "Yes" : "No",
+                      value: values.isIncrement,
+                    }}
+                    onChange={(opt) =>
+                      setFieldValue("isIncrement", opt ? opt.value : "NO")
                     }
-                    disabled={uploading.incrementLetterFile}
-                  >
-                    {getFileActionLabel(
-                      {
-                        url: values.incrementLetterOld,
-                        originalName: "IncrementLetter",
-                      },
-                      "incrementLetterOld",
-                    )}
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={() => incrementLetterRef.current.click()}
-                    disabled={uploading.incrementLetterFile}
-                  >
-                    {uploading.incrementLetterFile ? (
-                      <>
-                        <Spinner size="sm" className="me-1" /> Uploading
-                      </>
-                    ) : (
-                      "Upload New File"
-                    )}
-                  </Button>
-                </div>
-              ) : (
-                <div className="d-block">
-                  <Button
-                    size="sm"
-                    onClick={() => incrementLetterRef.current.click()}
-                    disabled={uploading.incrementLetterFile}
-                  >
-                    {uploading.incrementLetterFile ? (
-                      <>
-                        <Spinner size="sm" className="me-1" /> Uploading
-                      </>
-                    ) : (
-                      "Upload File"
-                    )}
-                  </Button>
-                </div>
+                  />
+                </Col>
               )}
-            </Col>
-          )}
 
-          {/* Short WAGES */}
-          <Col md={6}>
-            <Label htmlFor="shortWages">Short Wages (Monthly)</Label>
-            <Input
-              disabled
-              id="shortWages"
-              type="number"
-              name="shortWages"
-              value={values.shortWages}
-            />
-          </Col>
+              {mode === "MASTER" && isEdit && values.isIncrement === "YES" && (
+                <Col md={6}>
+                  <Label htmlFor="incrementIssued">
+                    Increment Issued Date <span className="text-danger">*</span>
+                  </Label>
+                  <Flatpickr
+                    className={`form-control ${errors.incrementIssued ? "is-invalid" : ""}`}
+                    id="incrementIssued"
+                    name="incrementIssued"
+                    value={values.incrementIssued}
+                    onChange={([date]) => {
+                      setFieldValue(
+                        "incrementIssued",
+                        date ? format(date, "yyyy-MM-dd") : "",
+                      );
+                    }}
+                    options={{ dateFormat: "Y-m-d" }}
+                  />
+                  {errorText("incrementIssued")}
+                </Col>
+              )}
 
-          {/* GROSS SALARY */}
-          <Col md={6}>
-            <Label htmlFor="grossSalary">Gross Salary (Yearly) <span className="text-danger">*</span></Label>
-            <Input
-              disabled
-              id="grossSalary"
-              type="number"
-              name="grossSalary"
-              value={values.grossSalary}
-            />
-            {errorText("grossSalary")}
-            {monthlyHint("grossSalary")}
-          </Col>
+              {/* INCREMENT APPLICABLE DATE */}
+              {mode === "MASTER" && isEdit && values.isIncrement === "YES" && (
+                <Col md={6}>
+                  <Label htmlFor="incrementApplicable">
+                    Increment Applicable Date{" "}
+                    <span className="text-danger">*</span>
+                  </Label>
+                  <Flatpickr
+                    className={`form-control ${errors.incrementApplicable ? "is-invalid" : ""}`}
+                    id="incrementApplicable"
+                    name="incrementApplicable"
+                    value={values.incrementApplicable}
+                    onChange={([date]) => {
+                      setFieldValue(
+                        "incrementApplicable",
+                        date ? format(date, "yyyy-MM-dd") : "",
+                      );
+                    }}
+                    options={{ dateFormat: "Y-m-d" }}
+                  />
+                  {errorText("incrementApplicable")}
+                </Col>
+              )}
 
-          {/* BASIC AMOUNT */}
-          <Col md={6}>
-            <Label htmlFor="basicAmount">Basic Amount (Yearly) <span className="text-danger">*</span></Label>
-            <Input
-              id="basicAmount"
-              type="number"
-              name="basicAmount"
-              value={values.basicAmount}
-              onChange={handleChange}
-            />
-            {errorText("basicAmount")}
-            {monthlyHint("basicAmount")}
-          </Col>
+              {/* INCREMENT LETTER FILE */}
+              {mode === "MASTER" && isEdit && values.isIncrement === "YES" && (
+                <Col md={6}>
+                  <Label>Increment Letter</Label>
 
-          {/* BASIC PERCENTAGE */}
-          <Col md={6}>
-            <Label htmlFor="basicPercentage">Basic Percentage</Label>
-            <Input
-              disabled
-              id="basicPercentage"
-              type="number"
-              name="basicPercentage"
-              value={values.basicPercentage}
-              onChange={handleChange}
-            />
-            {errorText("basicPercentage")}
-          </Col>
+                  <input
+                    type="file"
+                    hidden
+                    ref={incrementLetterRef}
+                    accept="image/*,application/pdf"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      if (!file) return;
+                      await handleFileUpload({
+                        file,
+                        path: "EMPLOYEE_INCREMENT_LETTER",
+                        urlField: "incrementLetterOld",
+                        fileField: "incrementLetterFile",
+                      });
+                    }}
+                  />
 
-          {/* HRA */}
-          <Col md={6}>
-            <Label htmlFor="HRA">HRA (Yearly) <span className="text-danger">*</span></Label>
-            <Input
-              id="HRA"
-              type="number"
-              name="HRAAmount"
-              value={values.HRAAmount}
-              onChange={handleChange}
-            />
-            {monthlyHint("HRAAmount")}
-          </Col>
+                  {values.incrementLetterOld ? (
+                    <div className="d-flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        color="info"
+                        onClick={() =>
+                          handleFilePreview(
+                            {
+                              url: values.incrementLetterOld,
+                              originalName: "IncrementLetter",
+                            },
+                            "incrementLetterOld",
+                          )
+                        }
+                        disabled={uploading.incrementLetterFile}
+                      >
+                        {getFileActionLabel(
+                          {
+                            url: values.incrementLetterOld,
+                            originalName: "IncrementLetter",
+                          },
+                          "incrementLetterOld",
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => incrementLetterRef.current.click()}
+                        disabled={uploading.incrementLetterFile}
+                      >
+                        {uploading.incrementLetterFile ? (
+                          <>
+                            <Spinner size="sm" className="me-1" /> Uploading
+                          </>
+                        ) : (
+                          "Upload New File"
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="d-block">
+                      <Button
+                        size="sm"
+                        onClick={() => incrementLetterRef.current.click()}
+                        disabled={uploading.incrementLetterFile}
+                      >
+                        {uploading.incrementLetterFile ? (
+                          <>
+                            <Spinner size="sm" className="me-1" /> Uploading
+                          </>
+                        ) : (
+                          "Upload File"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </Col>
+              )}
 
-          {/* HRA PERCENTAGE */}
-          <Col md={6}>
-            <Label htmlFor="HRAPercentage">HRA Percentage</Label>
-            <Input
-              disabled
-              id="HRAPercentage"
-              type="number"
-              name="HRAPercentage"
-              value={values.HRAPercentage}
-              onChange={handleChange}
-            />
-            {errorText("HRAPercentage")}
-          </Col>
+              {/* Short WAGES */}
+              <Col md={6}>
+                <Label htmlFor="shortWages">Short Wages (Monthly)</Label>
+                <Input
+                  disabled
+                  id="shortWages"
+                  type="number"
+                  name="shortWages"
+                  value={values.shortWages}
+                />
+              </Col>
 
-          {/* SPECIAL ALLOWANCE */}
-          <Col md={6}>
-            <Label htmlFor="SPLAllowance">SPL Allowance (Yearly) <span className="text-danger">*</span></Label>
-            <Input
-              name="SPLAllowance"
-              type="number"
-              value={values.SPLAllowance}
-              onChange={(e) => {
-                setManual((prev) => ({
-                  ...prev,
-                  SPLAllowance: true,
-                }));
-                handleChange(e);
-              }}
-            />
-            {monthlyHint("SPLAllowance")}
-          </Col>
+              {/* GROSS SALARY */}
+              <Col md={6}>
+                <Label htmlFor="grossSalary">
+                  Gross Salary (Yearly) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  disabled
+                  id="grossSalary"
+                  type="number"
+                  name="grossSalary"
+                  value={values.grossSalary}
+                />
+                {errorText("grossSalary")}
+                {monthlyHint("grossSalary")}
+              </Col>
 
-          {/* CONVEYANCE ALLOWANCE */}
-          <Col md={6}>
-            <Label htmlFor="conveyanceAllowance">Conveyance Allowance (Yearly) <span className="text-danger">*</span></Label>
-            <Input
-              id="conveyanceAllowance"
-              type="number"
-              name="conveyanceAllowance"
-              value={values.conveyanceAllowance}
-              onChange={handleChange}
-            />
-            {monthlyHint("conveyanceAllowance")}
-          </Col>
+              {/* BASIC AMOUNT */}
+              <Col md={6}>
+                <Label htmlFor="basicAmount">
+                  Basic Amount (Yearly) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="basicAmount"
+                  type="number"
+                  name="basicAmount"
+                  value={values.basicAmount}
+                  onChange={handleChange}
+                />
+                {errorText("basicAmount")}
+                {monthlyHint("basicAmount")}
+              </Col>
 
-          {/* STATUTORY BONUS */}
-          <Col md={6}>
-            <Label htmlFor="statutoryBonus">Statutory Bonus (Yearly) <span className="text-danger">*</span></Label>
-            <Input
-              id="statutoryBonus"
-              type="number"
-              name="statutoryBonus"
-              value={values.statutoryBonus}
-              onChange={handleChange}
-            />
-            {monthlyHint("statutoryBonus")}
-          </Col>
+              {/* BASIC PERCENTAGE */}
+              <Col md={6}>
+                <Label htmlFor="basicPercentage">Basic Percentage</Label>
+                <Input
+                  disabled
+                  id="basicPercentage"
+                  type="number"
+                  name="basicPercentage"
+                  value={values.basicPercentage}
+                  onChange={handleChange}
+                />
+                {errorText("basicPercentage")}
+              </Col>
 
-          {/* INSURANCE */}
-          <Col md={6}>
-            <Label htmlFor="insurance">Insurance (Yearly)</Label>
-            <Input
-              id="insurance"
-              type="number"
-              name="insurance"
-              value={values.insurance}
-              onChange={handleChange}
-            />
-            {monthlyHint("insurance")}
-          </Col>
+              {/* HRA */}
+              <Col md={6}>
+                <Label htmlFor="HRA">
+                  HRA (Yearly) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="HRA"
+                  type="number"
+                  name="HRAAmount"
+                  value={values.HRAAmount}
+                  onChange={handleChange}
+                />
+                {monthlyHint("HRAAmount")}
+              </Col>
 
-          {/* VARIABLE */}
-          <Col md={6}>
-            <Label htmlFor="variable">Variable (Yearly)</Label>
-            <Input
-              id="variable"
-              type="number"
-              name="variable"
-              value={values.variable}
-              onChange={handleChange}
-            />
-            <div className="text-muted small mt-1">Added to yearly CTC</div>
-          </Col>
+              {/* HRA PERCENTAGE */}
+              <Col md={6}>
+                <Label htmlFor="HRAPercentage">HRA Percentage</Label>
+                <Input
+                  disabled
+                  id="HRAPercentage"
+                  type="number"
+                  name="HRAPercentage"
+                  value={values.HRAPercentage}
+                  onChange={handleChange}
+                />
+                {errorText("HRAPercentage")}
+              </Col>
 
-          {/* REIMBURSEMENT */}
-          <Col md={6}>
-            <Label htmlFor="reimbursement">Reimbursement (Yearly)</Label>
-            <Input
-              id="reimbursement"
-              type="number"
-              name="reimbursement"
-              value={values.reimbursement}
-              onChange={handleChange}
-            />
-            <div className="text-muted small mt-1">Added to yearly CTC</div>
-          </Col>
+              {/* SPECIAL ALLOWANCE */}
+              <Col md={6}>
+                <Label htmlFor="SPLAllowance">
+                  SPL Allowance (Yearly) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  name="SPLAllowance"
+                  type="number"
+                  value={values.SPLAllowance}
+                  onChange={(e) => {
+                    setManual((prev) => ({
+                      ...prev,
+                      SPLAllowance: true,
+                    }));
+                    handleChange(e);
+                  }}
+                />
+                {monthlyHint("SPLAllowance")}
+              </Col>
 
-          {/* LWF SALARY */}
-          <Col md={6}>
-            <Label htmlFor="LWFSalary">LWF Salary (Yearly)</Label>
-            <Input
-              id="LWFSalary"
-              type="number"
-              name="LWFSalary"
-              value={values.LWFSalary}
-              onChange={handleChange}
-            />
-            {monthlyHint("LWFSalary")}
-          </Col>
+              {/* CONVEYANCE ALLOWANCE */}
+              <Col md={6}>
+                <Label htmlFor="conveyanceAllowance">
+                  Conveyance Allowance (Yearly){" "}
+                  <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="conveyanceAllowance"
+                  type="number"
+                  name="conveyanceAllowance"
+                  value={values.conveyanceAllowance}
+                  onChange={handleChange}
+                />
+                {monthlyHint("conveyanceAllowance")}
+              </Col>
 
-          {/* LWF EMPLOYEE */}
-          <Col md={6}>
-            <Label htmlFor="LWFEmployee">LWF Employee (Yearly)</Label>
-            <Input
-              id="LWFEmployee"
-              type="number"
-              name="LWFEmployee"
-              value={values.LWFEmployee}
-              onChange={handleChange}
-            />
-            {monthlyHint("LWFEmployee")}
-          </Col>
+              {/* STATUTORY BONUS */}
+              <Col md={6}>
+                <Label htmlFor="statutoryBonus">
+                  Statutory Bonus (Yearly){" "}
+                  <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="statutoryBonus"
+                  type="number"
+                  name="statutoryBonus"
+                  value={values.statutoryBonus}
+                  onChange={handleChange}
+                />
+                {monthlyHint("statutoryBonus")}
+              </Col>
 
-          {/* LWF EMPLOYER */}
-          <Col md={6}>
-            <Label htmlFor="LWFEmployer">LWF Employer (Yearly)</Label>
-            <Input
-              id="LWFEmployer"
-              type="number"
-              name="LWFEmployer"
-              value={values.LWFEmployer}
-              onChange={handleChange}
-            />
-            {monthlyHint("LWFEmployer")}
-          </Col>
+              {/* INSURANCE */}
+              <Col md={6}>
+                <Label htmlFor="insurance">Insurance (Yearly)</Label>
+                <Input
+                  id="insurance"
+                  type="number"
+                  name="insurance"
+                  value={values.insurance}
+                  onChange={handleChange}
+                />
+                {monthlyHint("insurance")}
+              </Col>
 
-          {/* ESIC SALARY */}
-          <Col md={6}>
-            <Label htmlFor="ESICSalary">ESIC Salary (Yearly)</Label>
-            <Input
-              disabled
-              id="ESICSalary"
-              type="number"
-              name="ESICSalary"
-              value={yearlyValue("ESICSalary")}
-            />
-            {monthlyHintFrom("ESICSalary")}
-          </Col>
+              {/* VARIABLE */}
+              <Col md={6}>
+                <Label htmlFor="variable">Variable (Yearly)</Label>
+                <Input
+                  id="variable"
+                  type="number"
+                  name="variable"
+                  value={values.variable}
+                  onChange={handleChange}
+                />
+                <div className="text-muted small mt-1">Added to yearly CTC</div>
+              </Col>
 
-          {/* ESIC EMPLOYEE */}
-          <Col md={6}>
-            <Label htmlFor="ESICEmployee">ESIC Employee (Yearly)</Label>
-            <Input
-              disabled
-              id="ESICEmployee"
-              type="number"
-              name="ESICEmployee"
-              value={yearlyValue("ESICEmployee")}
-            />
-            {monthlyHintFrom("ESICEmployee")}
-          </Col>
+              {/* REIMBURSEMENT */}
+              <Col md={6}>
+                <Label htmlFor="reimbursement">Reimbursement (Yearly)</Label>
+                <Input
+                  id="reimbursement"
+                  type="number"
+                  name="reimbursement"
+                  value={values.reimbursement}
+                  onChange={handleChange}
+                />
+                <div className="text-muted small mt-1">Added to yearly CTC</div>
+              </Col>
 
-          {/* ESIC EMPLOYER */}
-          <Col md={6}>
-            <Label htmlFor="ESICEmployer">ESIC Employer (Yearly)</Label>
-            <Input
-              disabled
-              id="ESICEmployer"
-              type="number"
-              name="ESICEmployer"
-              value={yearlyValue("ESICEmployer")}
-            />
-            {monthlyHintFrom("ESICEmployer")}
-          </Col>
+              {/* LWF EMPLOYEE — auto-calculated from state */}
+              <Col md={6}>
+                <Label htmlFor="LWFEmployee">LWF Employee (Yearly)</Label>
+                <Input
+                  id="LWFEmployee"
+                  type="number"
+                  name="LWFEmployee"
+                  value={values.LWFEmployee}
+                  readOnly
+                  disabled
+                />
+                {lwfScheduleText(lwfState) ? (
+                  <div className="text-muted small mt-1">
+                    Charged {lwfScheduleText(lwfState)}
+                  </div>
+                ) : (
+                  <div className="text-muted small mt-1">
+                    No LWF for this state
+                  </div>
+                )}
+              </Col>
 
-          {/* TDS RATE */}
-          <Col md={6}>
-            <Label htmlFor="TDSRate">TDS Rate</Label>
-            <Input
-              id="TDSRate"
-              type="number"
-              name="TDSRate"
-              value={values.TDSRate}
-              onChange={handleChange}
-            />
-          </Col>
+              {/* LWF EMPLOYER — auto-calculated from state */}
+              <Col md={6}>
+                <Label htmlFor="LWFEmployer">LWF Employer (Yearly)</Label>
+                <Input
+                  id="LWFEmployer"
+                  type="number"
+                  name="LWFEmployer"
+                  value={values.LWFEmployer}
+                  readOnly
+                  disabled
+                />
+                {lwfScheduleText(lwfState) ? (
+                  <div className="text-muted small mt-1">
+                    Charged {lwfScheduleText(lwfState)}
+                  </div>
+                ) : (
+                  <div className="text-muted small mt-1">
+                    No LWF for this state
+                  </div>
+                )}
+              </Col>
 
-          {/* PT */}
-          <Col md={6}>
-            <Label htmlFor="PT">PT (Yearly)</Label>
-            <Input
-              disabled
-              id="PT"
-              type="number"
-              name="PT"
-              value={ptYearly}
-            />
-            <div className="text-muted small mt-1">
-              Monthly ≈ ₹{ptMonthly.toLocaleString("en-IN")}
-            </div>
-          </Col>
+              {/* ESIC SALARY */}
+              <Col md={6}>
+                <Label htmlFor="ESICSalary">ESIC Salary (Yearly)</Label>
+                <Input
+                  disabled
+                  id="ESICSalary"
+                  type="number"
+                  name="ESICSalary"
+                  value={yearlyValue("ESICSalary")}
+                />
+                {monthlyHintFrom("ESICSalary")}
+              </Col>
 
-          {/* PF AMOUNT */}
-          <Col md={6}>
-            <Label htmlFor="PFAmount">PF Amount (Yearly)</Label>
-            <Input
-              disabled
-              id="PFAmount"
-              type="number"
-              name="PFAmount"
-              value={yearlyValue("PFAmount")}
-            />
-            {monthlyHintFrom("PFAmount")}
-          </Col>
+              {/* ESIC EMPLOYEE */}
+              <Col md={6}>
+                <Label htmlFor="ESICEmployee">ESIC Employee (Yearly)</Label>
+                <Input
+                  disabled
+                  id="ESICEmployee"
+                  type="number"
+                  name="ESICEmployee"
+                  value={yearlyValue("ESICEmployee")}
+                />
+                {monthlyHintFrom("ESICEmployee")}
+              </Col>
 
-          {/* PF EMPLOYEE */}
-          <Col md={6}>
-            <Label htmlFor="PFEmployee">PF Employee Contribution (Yearly)</Label>
-            <Input
-              disabled
-              id="PFEmployee"
-              type="number"
-              name="PFEmployee"
-              value={yearlyValue("PFEmployee")}
-            />
-            {monthlyHintFrom("PFEmployee")}
-          </Col>
+              {/* ESIC EMPLOYER */}
+              <Col md={6}>
+                <Label htmlFor="ESICEmployer">ESIC Employer (Yearly)</Label>
+                <Input
+                  disabled
+                  id="ESICEmployer"
+                  type="number"
+                  name="ESICEmployer"
+                  value={yearlyValue("ESICEmployer")}
+                />
+                {monthlyHintFrom("ESICEmployer")}
+              </Col>
 
-          {/* PF EMPLOYER */}
-          <Col md={6}>
-            <Label htmlFor="PFEmployer">PF Employer Contribution (Yearly)</Label>
-            <Input
-              disabled
-              id="PFEmployer"
-              type="number"
-              name="PFEmployer"
-              value={yearlyValue("PFEmployer")}
-            />
-            {monthlyHintFrom("PFEmployer")}
-          </Col>
+              {/* TDS RATE */}
+              <Col md={6}>
+                <Label htmlFor="TDSRate">TDS Rate</Label>
+                <Input
+                  id="TDSRate"
+                  type="number"
+                  name="TDSRate"
+                  value={values.TDSRate}
+                  onChange={handleChange}
+                />
+              </Col>
 
-          {/* TOTAL DEDUCTIONS */}
-          <Col md={6}>
-            <Label htmlFor="deductions">Total Deductions (Yearly)</Label>
-            <Input
-              disabled
-              id="deductions"
-              type="number"
-              name="deductions"
-              value={deductionsYearly}
-            />
-            {monthlyHintFrom("deductions")}
-          </Col>
+              {/* IN HAND SALARY */}
+              <Col md={6}>
+                <Label htmlFor="inHandSalary">In Hand Salary (Yearly)</Label>
+                <Input
+                  disabled
+                  id="inHandSalary"
+                  type="number"
+                  name="inHandSalary"
+                  value={inHandYearly}
+                />
+                {monthlyHintFrom("inHandSalary")}
+              </Col>
 
-          {/* IN HAND SALARY */}
-          <Col md={6}>
-            <Label htmlFor="inHandSalary">In Hand Salary (Yearly)</Label>
-            <Input
-              disabled
-              id="inHandSalary"
-              type="number"
-              name="inHandSalary"
-              value={yearlyValue("inHandSalary")}
-            />
-            {monthlyHintFrom("inHandSalary")}
-          </Col>
+              {/* PF AMOUNT */}
+              <Col md={6}>
+                <Label htmlFor="PFAmount">PF Amount (Yearly)</Label>
+                <Input
+                  disabled
+                  id="PFAmount"
+                  type="number"
+                  name="PFAmount"
+                  value={yearlyValue("PFAmount")}
+                />
+                {monthlyHintFrom("PFAmount")}
+              </Col>
 
-          {/* GRATUITY */}
-          <Col md={6}>
-            <Label htmlFor="gratuity">Gratuity (Yearly)</Label>
-            <Input
-              disabled
-              id="gratuity"
-              type="number"
-              name="gratuity"
-              value={yearlyValue("gratuity")}
-            />
-            {monthlyHintFrom("gratuity")}
-          </Col>
+              {/* PF EMPLOYEE */}
+              <Col md={6}>
+                <Label htmlFor="PFEmployee">
+                  PF Employee Contribution (Yearly)
+                </Label>
+                <Input
+                  disabled
+                  id="PFEmployee"
+                  type="number"
+                  name="PFEmployee"
+                  value={yearlyValue("PFEmployee")}
+                />
+                {monthlyHintFrom("PFEmployee")}
+              </Col>
 
-          {/* TOTAL COST TO COMPANY */}
-          <Col md={6}>
-            <Label htmlFor="totalCostToCompany">Total Cost To Company (Yearly)</Label>
-            <Input
-              disabled
-              id="totalCostToCompany"
-              type="number"
-              name="totalCostToCompany"
-              value={ctcYearly}
-            />
-            {monthlyHintFrom("totalCostToCompany")}
-          </Col>
+              {/* PF EMPLOYER */}
+              <Col md={6}>
+                <Label htmlFor="PFEmployer">
+                  PF Employer Contribution (Yearly)
+                </Label>
+                <Input
+                  disabled
+                  id="PFEmployer"
+                  type="number"
+                  name="PFEmployer"
+                  value={yearlyValue("PFEmployer")}
+                />
+                {monthlyHintFrom("PFEmployer")}
+              </Col>
 
-          {/* DEBIT STATEMENT NARRATION */}
-          <Col md={6}>
-            <Label htmlFor="debitStatementNarration">
-              Debit Statement Narration
-            </Label>
+              {/* TOTAL DEDUCTIONS */}
+              <Col md={6}>
+                <Label htmlFor="deductions">Total Deductions (Yearly)</Label>
+                <Input
+                  disabled
+                  id="deductions"
+                  type="number"
+                  name="deductions"
+                  value={deductionsYearly}
+                />
+                {monthlyHintFrom("deductions")}
+              </Col>
 
-            <Input
-              id="debitStatementNarration"
-              name="debitStatementNarration"
-              value={values.debitStatementNarration}
-              onChange={(e) =>
-                handleChange({
-                  target: {
-                    name: "debitStatementNarration",
-                    value: e.target.value.toUpperCase(),
-                  },
-                })
-              }
-              onBlur={() => setFieldTouched("debitStatementNarration", true)}
-              invalid={touched.debitStatementNarration && !!errors.debitStatementNarration}
-            />
-            {errorText("debitStatementNarration")}
-          </Col>
+              {/* IN HAND SALARY */}
+              <Col md={6}>
+                <Label htmlFor="inHandSalary">In Hand Salary (Yearly)</Label>
+                <Input
+                  disabled
+                  id="inHandSalary"
+                  type="number"
+                  name="inHandSalary"
+                  value={yearlyValue("inHandSalary")}
+                />
+                {monthlyHintFrom("inHandSalary")}
+              </Col>
+
+              {/* GRATUITY */}
+              <Col md={6}>
+                <Label htmlFor="gratuity">Gratuity (Yearly)</Label>
+                <Input
+                  disabled
+                  id="gratuity"
+                  type="number"
+                  name="gratuity"
+                  value={yearlyValue("gratuity")}
+                />
+                {monthlyHintFrom("gratuity")}
+              </Col>
+
+              {/* TOTAL COST TO COMPANY */}
+              <Col md={6}>
+                <Label htmlFor="totalCostToCompany">
+                  Total Cost To Company (Yearly)
+                </Label>
+                <Input
+                  disabled
+                  id="totalCostToCompany"
+                  type="number"
+                  name="totalCostToCompany"
+                  value={ctcYearly}
+                />
+                {monthlyHintFrom("totalCostToCompany")}
+              </Col>
+
+              {/* DEBIT STATEMENT NARRATION */}
+              <Col md={6}>
+                <Label htmlFor="debitStatementNarration">
+                  Debit Statement Narration
+                </Label>
+
+                <Input
+                  id="debitStatementNarration"
+                  name="debitStatementNarration"
+                  value={values.debitStatementNarration}
+                  onChange={(e) =>
+                    handleChange({
+                      target: {
+                        name: "debitStatementNarration",
+                        value: e.target.value.toUpperCase(),
+                      },
+                    })
+                  }
+                  onBlur={() =>
+                    setFieldTouched("debitStatementNarration", true)
+                  }
+                  invalid={
+                    touched.debitStatementNarration &&
+                    !!errors.debitStatementNarration
+                  }
+                />
+                {errorText("debitStatementNarration")}
+              </Col>
             </>
           )}
         </Row>
@@ -2729,23 +3515,26 @@ const EmployeeForm = ({
           {(mode !== "NEW_JOINING" ||
             view !== "PAGE" ||
             hasCreatePermission) && (
-              <Button
-                color="primary"
-                className="text-white"
-                onClick={form.handleSubmit}
-                disabled={
-                  isSubmitting || !isValid || (isEdit && !initialData?._id)
-                }
-              >
-                {isSubmitting ? (
-                  <Spinner size="sm" />
-                ) : initialData ? (
-                  "Update Employee"
-                ) : (
-                  "Save Employee"
-                )}
-              </Button>
-            )}
+            <Button
+              color="primary"
+              className="text-white"
+              onClick={form.handleSubmit}
+              disabled={
+                isSubmitting ||
+                !isValid ||
+                (isEdit && !initialData?._id) ||
+                missingMandatoryDocs.length > 0
+              }
+            >
+              {isSubmitting ? (
+                <Spinner size="sm" />
+              ) : initialData ? (
+                "Update Employee"
+              ) : (
+                "Save Employee"
+              )}
+            </Button>
+          )}
 
           {/* <Button onClick={() => console.log(errors)}>
             test
@@ -2756,6 +3545,15 @@ const EmployeeForm = ({
         file={previewFile}
         isOpen={previewOpen}
         toggle={() => setPreviewOpen(false)}
+      />
+      <DeleteFileConfirmModal
+        isOpen={deleteModalOpen}
+        toggle={() => setDeleteModalOpen((prev) => !prev)}
+        documentId={selectedDeleteFile?.documentId}
+        fileId={selectedDeleteFile?.fileId}
+        fileName={selectedDeleteFile?.fileName}
+        onSuccess={handleExistingFileDeleteSuccess}
+        employeeId={initialData?._id}
       />
     </>
   );

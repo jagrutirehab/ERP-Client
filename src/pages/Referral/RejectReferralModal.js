@@ -4,11 +4,11 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button } from "reactstrap";
 const RejectReferralModal = ({ isOpen, toggle, onConfirm }) => {
   return (
     <Modal isOpen={isOpen} toggle={toggle} centered>
-      <ModalHeader toggle={toggle}>Reject Referral</ModalHeader>
+      <ModalHeader toggle={toggle}>Reject Contact</ModalHeader>
       <ModalBody>
-        <p>Are you sure you want to reject this referral?</p>
+        <p>Are you sure you want to reject this contact?</p>
         <p className="text-muted">
-          This referral will not be available for use.
+          This contact will not be available for use.
         </p>
       </ModalBody>
       <ModalFooter>

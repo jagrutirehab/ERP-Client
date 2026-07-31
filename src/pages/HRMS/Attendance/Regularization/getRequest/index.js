@@ -3,9 +3,11 @@ import { CardBody, Nav, NavItem, NavLink } from "reactstrap";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
 import { regularizeRequestColumn } from "../../../components/Table/Columns/regularizeRequestColumn";
+import CancellationConfirmationModal from "../../../../HR/components/CancellationConfirmationModal";
 import {
   getRegularizationsRequests,
   updateRegularizationStatus,
+  changeRegularizationStatusByHR,
 } from "../../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
@@ -14,6 +16,7 @@ import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useSelector } from "react-redux";
 import Select from "react-select";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 
 const GetRegularizationsRequest = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -32,6 +35,9 @@ const GetRegularizationsRequest = () => {
   const [selectedYear, setSelectedYear] = useState("all");
 const [selectedMonth, setSelectedMonth] = useState("all");
   const [actionLoadingId, setActionLoadingId] = useState(null);
+  const [cancelLoaderId, setCancelLoaderId] = useState(null);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [selectedReg, setSelectedReg] = useState(null);
   const user = useSelector((state) => state.User);
   const [selectedCenter, setSelectedCenter] = useState(queryCenter);
   const navigate = useNavigate();
@@ -56,24 +62,7 @@ const [selectedMonth, setSelectedMonth] = useState("all");
   const loggedInUser = JSON.parse(localStorage.getItem("authUser"));
   const managerId = loggedInUser?.data?._id;
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [
-        {
-          value: "ALL",
-          label: "All Centers",
-          isDisabled: false,
-        },
-      ]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === selectedCenter) ||
@@ -89,7 +78,7 @@ const [selectedMonth, setSelectedMonth] = useState("all");
     }
   }, [selectedCenter, user?.centerAccess]);
 
-  const tabs = ["pending", "regularized", "rejected"];
+  const tabs = ["pending", "regularized", "rejected", "cancelled"];
 
   const fetchData = async () => {
     setLoading(true);
@@ -179,7 +168,6 @@ const [selectedMonth, setSelectedMonth] = useState("all");
 
 
   const handleAction = async (id, status) => {
-    console.log("Id in function", id);
     try {
       setActionLoadingId(id);
       await updateRegularizationStatus(id, status);
@@ -189,6 +177,30 @@ const [selectedMonth, setSelectedMonth] = useState("all");
       toast.error(error.message || "Action failed");
     } finally {
       setActionLoadingId(null);
+    }
+  };
+
+  const openCancelModal = (row) => {
+    setSelectedReg(row);
+    setShowCancelModal(true);
+  };
+
+  const handleCancel = async (row, reason = "") => {
+    setCancelLoaderId(row?._id);
+    try {
+      const res = await changeRegularizationStatusByHR({
+        reg_id: row?._id,
+        status: "cancelled",
+        reason,
+      });
+      toast.success(res?.message || "Regularization Cancelled");
+      fetchData();
+    } catch (err) {
+      if (!handleAuthError(err)) {
+        toast.error(err?.message || "Failed to cancel");
+      }
+    } finally {
+      setCancelLoaderId(null);
     }
   };
 
@@ -300,6 +312,8 @@ const [selectedMonth, setSelectedMonth] = useState("all");
           hasWrite,
           hasDelete,
           actionLoadingId,
+          openCancelModal,
+          cancelLoaderId,
         )}
         data={requestsData}
         pagination={pagination}
@@ -308,6 +322,17 @@ const [selectedMonth, setSelectedMonth] = useState("all");
         limit={limit}
         setLimit={setLimit}
         loading={loading}
+      />
+
+      <CancellationConfirmationModal
+        show={showCancelModal}
+        onClose={() => setShowCancelModal(false)}
+        leave={selectedReg}
+        onConfirm={(reason) => {
+          handleCancel(selectedReg, reason);
+          setShowCancelModal(false);
+        }}
+        loading={cancelLoaderId}
       />
     </CardBody>
   );

@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { fetchIncentives } from "../../../../../store/features/HR/hrSlice";
@@ -39,25 +40,7 @@ const ApprovalHistory = ({ activeTab }) => {
     const { hasPermission, roles } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "INCENTIVES_APPROVAL", "READ");
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter
@@ -156,12 +139,12 @@ const ApprovalHistory = ({ activeTab }) => {
             minWidth: "140px"
         },
         {
-            name: <div>Date</div>,
+            name: <div>Month</div>,
             selector: row => {
                 if (!row?.date) return "-";
                 const date = new Date(row.date);
                 if (isNaN(date)) return "-";
-                return format(new Date(row.date), "dd-MM-yyyy")
+                return format(date, "MMMM yyyy")
             },
             wrap: true,
         },

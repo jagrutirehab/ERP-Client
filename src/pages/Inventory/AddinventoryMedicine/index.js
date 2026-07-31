@@ -1,6 +1,7 @@
 import axios from "axios";
 import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
+import { useSelector } from "react-redux";
 import { Spinner } from "reactstrap";
 import Select from "react-select";
 
@@ -104,6 +105,7 @@ const AddinventoryMedicine = ({
   onSubmit,
   uploading = false,
 }) => {
+  const centerList = useSelector((state) => state.Center.data);
   const {
     register,
     handleSubmit,
@@ -338,9 +340,7 @@ const AddinventoryMedicine = ({
 
 
 
-  const allowedCenters = (user?.userCenters || []).filter((c) =>
-    user?.centerAccess?.includes(String(c._id))
-  );
+  const allowedCenters = centerList || [];
 
   const handleCenterChange = (selectedOptions) => {
     const newSelectedIds = (selectedOptions || []).map((opt) => opt.value);

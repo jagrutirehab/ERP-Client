@@ -24,6 +24,7 @@ import OwnerLeadStatus from "./LeadStatus/OwnerLeadStatus";
 import RefundAmountMOM from "./RefundAmountMOM";
 import RoundNotesDOD from "./RoundNotesDOD";
 import ClinicalNotesDOD from "./ClinicalNotesDOD";
+import CounsellingSessionsPatients from "./CounsellingSessionsPatients";
 import VitalSignsDOD from "./VitalSignsDOD";
 import PatientDocs from "./PatientDocs";
 import OpdPatientDocs from "./OpdPatientDocs";
@@ -36,6 +37,11 @@ import DueAmount from "./DueAmount";
 import Attendance from "./Attendance";
 import NursesDOD from "./NursesDOD";
 import CenterWiseMOM from "./CenterWiseMOM";
+import CashPerCenter from "./CashPerCenter";
+import WriteOFFAmount from "./WriteOFFAmount";
+import AuditForms from "./AuditForms";
+import MetricsReport from "./MetricsReport";
+import Occupancy from "./Occupancy";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -118,10 +124,10 @@ const MiReporting = () => {
 
   return (
     <React.Fragment>
-      <div className="page-content" style={{ overflowX: "clip" }}>
+      <div className="page-content" style={{ overflowX: "clip", overflowY: "visible" }}>
         <div className="">
           <Container fluid>
-            <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1" style={{ alignItems: "flex-start" }}>
+            <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1" style={{ alignItems: "flex-start", overflowY: "visible" }}>
               <Sidebar />
               <Routes>
                 {hasHubspotCenterLeadsPermission && (
@@ -204,6 +210,11 @@ const MiReporting = () => {
                   />}
 
                   {hasMISPermission&&<Route
+                    path="/counselling-sessions-patients"
+                    element={<CounsellingSessionsPatients />}
+                  />}
+
+                  {hasMISPermission&&<Route
                     path="/vital-signs"
                     element={<VitalSignsDOD />}
                   />}
@@ -260,8 +271,32 @@ const MiReporting = () => {
                     path="/nurses-dod"
                     element={<NursesDOD />}
                   />}
-                  
-                  
+
+                  {hasMISPermission&&<Route
+                    path="/cash-per-center"
+                    element={<CashPerCenter />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/write-off-amount"
+                    element={<WriteOFFAmount />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/forms-data"
+                    element={<AuditForms />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/metrics-report"
+                    element={<MetricsReport />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/occupancy"
+                    element={<Occupancy />}
+                  />}
+
 
 
 

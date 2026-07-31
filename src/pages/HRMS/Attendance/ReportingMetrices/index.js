@@ -15,6 +15,7 @@ import { attendanceMetricsColumns } from '../../components/Table/Columns/attenda
 import { exportReportingMetrics } from '../../../../helpers/backend_helper';
 import { RotateCw } from 'lucide-react';
 import RefreshButton from '../../../../Components/Common/RefreshButton';
+import { useCenterOptions } from '../../../../Components/Hooks/useCenterOptions';
 
 const sortByOptions = [
     { value: "avgDuration", label: "Sort By Average Duration" },
@@ -46,7 +47,7 @@ const ReportingMetrices = () => {
 
     const { hasPermission, loading: permissionLoader } =
         usePermissions(token);
-    const { centerAccess, userCenters } = useSelector((state) => state.User);
+    const { centerAccess } = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HRMS.reportingMetrics);
 
     const hasUserPermission = hasPermission(
@@ -65,18 +66,7 @@ const ReportingMetrices = () => {
         }
     }, [selectedCenter, centerAccess]);
 
-    const centerOptions = [
-        ...(centerAccess?.length > 1
-            ? [{ value: "ALL", label: "All Centers" }]
-            : []),
-        ...(centerAccess?.map((id) => {
-            const center = userCenters?.find((c) => c._id === id);
-            return {
-                value: id,
-                label: center?.title || "Unknown Center",
-            };
-        }) || []),
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption =
         centerOptions.find((opt) => opt.value === selectedCenter) ||

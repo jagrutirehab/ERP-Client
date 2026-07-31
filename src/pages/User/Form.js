@@ -1391,7 +1391,7 @@ const UserForm = ({
                                 cursor: "pointer",
                               }}
                             >
-                              {item.title || item.label}
+                              {item.title || item.displayLabel || item.label}
                             </label>
                           </div>
 
@@ -1673,7 +1673,7 @@ const UserForm = ({
           </div>
 
           {(validation.values.role === "DOCTOR" ||
-            validation.values.role === "COUNSELLOR") && (
+            validation.values.role === "COUNSELLOR" || validation.values.role === "PSYCHOLOGIST") && (
               <div
                 style={{ display: "flex", flexDirection: "column", gap: "24px" }}
               >

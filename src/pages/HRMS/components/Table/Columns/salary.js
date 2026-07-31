@@ -39,6 +39,10 @@ const employerDeductionStyle = {
     backgroundColor: "#7B8FD1",
 };
 
+
+const isSimplifiedEmployee = (row) =>
+    (row?.employee?.employmentType || "").trim().toUpperCase() !== "FULL_TIME";
+
 export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, onReject, hasEditPermission, approvalStatusFilter }) => [
     {
         name: <div>ECode</div>,
@@ -120,6 +124,13 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         minWidth: "110px"
     },
     {
+        name: <div>Auto Deducted Leaves</div>,
+        selector: row => row?.attendance?.autoDeductedLeaves || 0,
+        wrap: true,
+        center: true,
+        minWidth: "110px"
+    },
+    {
         name: <div>Working Days Attended</div>,
         selector: row => row?.attendance?.workingDaysAttended || 0,
         wrap: true,
@@ -194,12 +205,23 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
     {
         name: <div>Gross Salary</div>,
-        selector: row => formatCurrency(row?.salarySnapshot?.grossSalary),
+        selector: row => formatCurrency(
+            isSimplifiedEmployee(row)
+                ? row?.salarySnapshot?.totalCostToCompany
+                : row?.salarySnapshot?.grossSalary
+        ),
         wrap: true,
         center: true,
         style: fixedCellStyle,
     },
 
+    {
+        name: <div>Total Cost To Company</div>,
+        selector: row => formatCurrency(row?.earned?.totalCostToCompany),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
     {
         name: <div>Basic Salary</div>,
         selector: row => formatCurrency(row?.earned?.basicAmount),
@@ -244,7 +266,11 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
     {
         name: <div>Gross Salary</div>,
-        selector: row => formatCurrency(row?.earned?.grossSalary),
+        selector: row => formatCurrency(
+            isSimplifiedEmployee(row)
+                ? row?.earned?.totalCostToCompany
+                : row?.earned?.grossSalary
+        ),
         wrap: true,
         center: true,
         style: employerDeductionStyle,

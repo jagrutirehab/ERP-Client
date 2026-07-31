@@ -9,7 +9,105 @@ const PTeligibleStates = [
     "Karnataka"
 ];
 
-function calculatePT(grossSalary, state) {
+// ---- LWF (Labour Welfare Fund) — state-wise statutory rules ----
+//
+// LWF is NOT a uniform monthly deduction. Most states charge a fixed rupee
+// amount only in one or two specific months; Haryana charges a percentage of
+// monthly wages (capped) every month. So the ANNUAL figure is the sum of the
+// amounts actually charged in the applicable months — never a monthly amount × 12.
+
+// Fixed-amount states: a flat rupee amount charged in each applicable month.
+// `months` are 1-based calendar months (6 = June, 12 = December).
+const FIXED_LWF = {
+    // old rule till 08.07.2026
+    // Maharashtra: { employee: 12, employer: 36, months: [6, 12] },
+    Maharashtra: { employee: 25, employer: 75, months: [6, 12] },
+    Karnataka: { employee: 20, employer: 40, months: [12] },
+    Gujarat: { employee: 6, employer: 12, months: [6, 12] },
+    "Tamil Nadu": { employee: 10, employer: 20, months: [6, 12] },
+};
+
+// Haryana: a percentage of monthly wages (Basic + HRA + Conveyance + SPL +
+// Statutory Bonus, i.e. gross), capped, charged every month.
+const HARYANA_LWF = {
+    employeeRate: 0.002,
+    employeeCap: 35,
+    employerRate: 0.004,
+    employerCap: 70,
+    months: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
+};
+
+const MONTH_LABELS = {
+    1: "Jan", 2: "Feb", 3: "Mar", 4: "Apr", 5: "May", 6: "Jun",
+    7: "Jul", 8: "Aug", 9: "Sep", 10: "Oct", 11: "Nov", 12: "Dec",
+};
+
+
+export const resolveLWFState = (currentLocation) => {
+    if (!currentLocation || typeof currentLocation !== "object") return "";
+    if (currentLocation.title === "Head-Office") return "Maharashtra";
+    return detectState(currentLocation.address) || "";
+};
+
+
+export const lwfMonths = (state = "") => {
+    const s = (state || "").trim();
+    if (s === "Haryana") return HARYANA_LWF.months;
+    return FIXED_LWF[s]?.months || [];
+};
+
+
+export const lwfPerMonth = (state = "", monthlyBase = 0) => {
+    const s = (state || "").trim();
+    if (s === "Haryana") {
+        const base = Number(monthlyBase) || 0;
+        return {
+            employee: Math.min(Math.round(base * HARYANA_LWF.employeeRate), HARYANA_LWF.employeeCap),
+            employer: Math.min(Math.round(base * HARYANA_LWF.employerRate), HARYANA_LWF.employerCap),
+        };
+    }
+    const fixed = FIXED_LWF[s];
+    if (fixed) return { employee: fixed.employee, employer: fixed.employer };
+    return { employee: 0, employer: 0 };
+};
+
+
+export const lwfForMonth = (state = "", monthlyBase = 0, month) => {
+    if (!lwfMonths(state).includes(Number(month))) return { employee: 0, employer: 0 };
+    return lwfPerMonth(state, monthlyBase);
+};
+
+
+export const lwfAnnual = (state = "", monthlyBase = 0) => {
+    const per = lwfPerMonth(state, monthlyBase);
+    const count = lwfMonths(state).length;
+    return { employee: per.employee * count, employer: per.employer * count };
+};
+
+export const applyAnnualLWF = (annual, lwfMonthly, lwfYearly) => {
+    if (!annual) return;
+    const adjEmployee = lwfYearly.employee - lwfMonthly.employee * 12;
+    const adjEmployer = lwfYearly.employer - lwfMonthly.employer * 12;
+    annual.LWFEmployee = lwfYearly.employee;
+    annual.LWFEmployer = lwfYearly.employer;
+    annual.deductions = Math.round((annual.deductions || 0) + adjEmployee);
+    annual.inHandSalary = Math.round((annual.inHandSalary || 0) - adjEmployee);
+    annual.totalCostToCompany = Math.round((annual.totalCostToCompany || 0) + adjEmployer);
+};
+
+
+export const lwfSalaryBase = (state = "", monthlyBase = 0) =>
+    (state || "").trim() === "Haryana" ? Number(monthlyBase) || 0 : 0;
+
+
+export const lwfScheduleText = (state = "") => {
+    const months = lwfMonths(state);
+    if (months.length === 0) return "";
+    if (months.length === 12) return "every month";
+    return months.map((m) => MONTH_LABELS[m]).join(" & ");
+};
+
+function calculatePT(grossSalary, state, gender) {
     switch (state.trim()) {
         case "Gujarat":
             return grossSalary > 12000 ? 200 : 0;
@@ -21,6 +119,7 @@ function calculatePT(grossSalary, state) {
             return grossSalary >= 25000 ? 200 : 0;
 
         case "Maharashtra":
+            if (gender === "FEMALE" && grossSalary >= 25000) return 0;
             if (grossSalary <= 7500) return 0;
             if (grossSalary <= 10000) return 175;
             return 200;
@@ -113,7 +212,12 @@ export const calculatePayroll = (values) => {
     const ptState = currentLocation.title === "Head-Office"
         ? "Maharashtra"
         : (detectState(currentLocation.address) || "");
-    PT = calculatePT(gross, ptState);
+
+    const gender = values.gender?.toUpperCase();
+    const rawPT = calculatePT(gross, ptState, gender);
+    const isTamilNaduPT = ptState.trim() === "Tamil Nadu";
+    PT = isTamilNaduPT ? Math.round(rawPT / 6) : rawPT;
+    const PTAnnual = isTamilNaduPT ? rawPT * 2 : PT * 12;
 
     // ----- TDS -----
     let TDSAmount = 0;
@@ -128,8 +232,15 @@ export const calculatePayroll = (values) => {
     const ESICEmployer = ESICSalary <= 21000 ? Math.round((ESICSalary * 3.25) / 100) : 0;
 
     // ----- Other deductions -----
-    const LWFEmployee = Number(values.LWFEmployee || 0);
-    const LWFEmployer = Number(values.LWFEmployer || 0);
+    // LWF is derived from the work-location's state + monthly wage base (gross),
+    // never taken as input. The monthly figure is the amount charged in an
+    // applicable month (flat for lumpy states, monthly % for Haryana) — so the
+    // preview reflects a charge-month; the true annual (sum of charge-months) is
+    // shown on the yearly LWF fields, not this monthly × 12.
+    const lwfState = resolveLWFState(currentLocation);
+    const lwfMonth = lwfPerMonth(lwfState, gross);
+    const LWFEmployee = lwfMonth.employee;
+    const LWFEmployer = lwfMonth.employer;
     const insurance = Number(values.insurance || 0);
     // variable & reimbursement are pure YEARLY CTC-only add-ons handled at the
     // yearly level (added straight to yearly CTC), so they are NOT part of the
@@ -146,7 +257,10 @@ export const calculatePayroll = (values) => {
     const inHandSalary = Math.max(gross - deductions, 0);
 
     // const gratuity = Math.round(((basic + spl + conveyance) * 4.81) / 100);
-    const gratuity = Math.round(basic * 15 / 26 / 12);
+    // old rule
+    // const gratuity = Math.round(basic * 15 / 26 / 12);
+    // new rule from 10.07.2026 (basic + spl)
+    const gratuity = Math.round((basic + spl) * 15 / 26 / 12);
     const totalCostToCompany = gross + PFEmployer + ESICEmployer + LWFEmployer + gratuity;
 
     return {
@@ -155,6 +269,7 @@ export const calculatePayroll = (values) => {
         PFAmount: PFEmployee + PFEmployer,
         PFSalary,
         PT,
+        PTAnnual,
         TDSAmount,
         ESICSalary,
         ESICEmployee,

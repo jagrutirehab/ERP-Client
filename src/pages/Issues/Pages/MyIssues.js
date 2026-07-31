@@ -17,7 +17,7 @@ import Select from "react-select";
 import { useSelector } from "react-redux";
 
 // const issueTypes = ["TECH", "PURCHASE", "REVIEW_SUBMISSION"];
-const issueTypes = ["TECH", "FINANCE"];
+const issueTypes = ["TECH", "FINANCE", "MAINTENANCE", "COMPLAINT","OPERATIONAL"];
 // "HR",
 
 const statuses = [
@@ -168,7 +168,7 @@ const MyIssues = () => {
     try {
       const response = await changeStatus(payload)
       toast.success(response?.message || "STATUS CHANGED SUCCESSFULLY.")
-      setStatus(data?.status)
+      // setStatus(data?.status)
       loadIssues();
 
     } catch (error) {

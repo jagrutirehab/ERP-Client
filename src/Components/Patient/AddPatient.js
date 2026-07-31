@@ -79,13 +79,13 @@ const AddPatient = ({
     ? format(new Date(editData.dateOfBirth), "yyyy-MM-dd")
     : leadData?.patient?.age
       ? (() => {
-          const today = new Date();
-          const birthYear = today.getFullYear() - leadData.patient.age;
-          return format(
-            new Date(birthYear, today.getMonth(), today.getDate()),
-            "yyyy-MM-dd",
-          );
-        })()
+        const today = new Date();
+        const birthYear = today.getFullYear() - leadData.patient.age;
+        return format(
+          new Date(birthYear, today.getMonth(), today.getDate()),
+          "yyyy-MM-dd",
+        );
+      })()
       : "";
   const gender = editData
     ? editData.gender
@@ -135,6 +135,12 @@ const AddPatient = ({
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
       socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
       areatype: editData ? editData.areatype : "",
+      socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
+      areatype: editData ? editData.areatype : "",
+      education: editData ? editData.education : "",
+      occupation: editData ? editData.occupation : "",
+      occupationDetail: editData ? editData.occupationDetail : "",
+      languagesKnown: editData ? editData.languagesKnown || [] : [],
       nationality: editData ? editData.nationality || "Indian" : "Indian",
       passportNumber: editData ? editData.passportNumber || "" : "",
     },
@@ -175,9 +181,13 @@ const AddPatient = ({
       guardianRelation: Yup.string().required("Please Enter Guardian Relation"),
       guardianPhoneNumber: Yup.string()
         .required("Please Enter Guardian Phone Number")
-        .test("is-valid-guardian-phone", "Invalid phone number", function (value) {
-          return isValidPhoneNumber(value || "");
-        }),
+        .test(
+          "is-valid-guardian-phone",
+          "Invalid phone number",
+          function (value) {
+            return isValidPhoneNumber(value || "");
+          },
+        ),
       referralPhoneNumber: Yup.string()
         .nullable()
         .notRequired()
@@ -621,7 +631,7 @@ const AddPatient = ({
                       ...provided,
                       borderColor:
                         validation.touched.referredBy &&
-                        validation.errors.referredBy
+                          validation.errors.referredBy
                           ? "#dc3545"
                           : "#ced4da",
                       boxShadow: state.isFocused
@@ -633,7 +643,7 @@ const AddPatient = ({
                       "&:hover": {
                         borderColor:
                           validation.touched.referredBy &&
-                          validation.errors.referredBy
+                            validation.errors.referredBy
                             ? "#dc3545"
                             : "#86b7fe",
                       },
@@ -689,12 +699,11 @@ const AddPatient = ({
                           width: "100%",
                           height: "42px",
                           padding: "0.5rem 0.75rem",
-                          border: `1px solid ${
-                            validation.touched.referralPhoneNumber &&
-                            validation.errors.referralPhoneNumber
+                          border: `1px solid ${validation.touched.referralPhoneNumber &&
+                              validation.errors.referralPhoneNumber
                               ? "#dc3545"
                               : "#ced4da"
-                          }`,
+                            }`,
                           borderRadius: "0.375rem",
                           fontSize: "1rem",
                         }}
@@ -973,11 +982,11 @@ const AddPatient = ({
                         width: "100%",
                         height: "42px",
                         padding: "0.5rem 0.75rem",
-                        border: `1px solid ${
-                          validation.touched[f.name] && validation.errors[f.name]
+                        border: `1px solid ${validation.touched[f.name] &&
+                            validation.errors[f.name]
                             ? "#ef4444"
                             : "#d1d5db"
-                        }`,
+                          }`,
                         borderRadius: "0.375rem",
                         fontSize: "1rem",
                       }}
@@ -999,15 +1008,16 @@ const AddPatient = ({
                         padding: "0.625rem 0.75rem",
                         fontSize: "1rem",
                         fontWeight: "400",
-                        border: `1px solid ${
-                          validation.touched[f.name] && validation.errors[f.name]
+                        border: `1px solid ${validation.touched[f.name] &&
+                            validation.errors[f.name]
                             ? "#ef4444"
                             : "#d1d5db"
-                        }`,
+                          }`,
                         borderRadius: "0.375rem",
                         outline: "none",
                         boxShadow:
-                          validation.touched[f.name] && validation.errors[f.name]
+                          validation.touched[f.name] &&
+                            validation.errors[f.name]
                             ? "0 0 0 2px rgba(239, 68, 68, 0.3)"
                             : "0 0 0 2px rgba(96, 165, 250, 0.3)",
                         transition:

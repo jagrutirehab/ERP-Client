@@ -29,6 +29,8 @@ export const regularizeRequestColumn = (
   hasWrite,
   hasDelete,
   actionLoadingId,
+  openCancelModal,
+  cancelLoaderId,
 ) => {
   const columns = [
     {
@@ -156,6 +158,15 @@ export const regularizeRequestColumn = (
             </Center>
           );
 
+        if (status === "cancelled")
+          return (
+            <Center>
+              <Badge pill color="secondary">
+                Cancelled
+              </Badge>
+            </Center>
+          );
+
         return (
           <Center>
             <Badge pill color="secondary">
@@ -189,46 +200,77 @@ export const regularizeRequestColumn = (
     {
       name: <Center>Action</Center>,
       cell: (row) => {
-        if (row?.status?.toLowerCase() !== "pending") {
+        const status = row?.status?.toLowerCase();
+        const canAct = hasWrite || hasDelete;
+
+        // PENDING → Approve / Reject
+        if (status === "pending") {
+          if (!canAct) {
+            return (
+              <Center>
+                <span className="text-muted">--</span>
+              </Center>
+            );
+          }
+
           return (
             <Center>
-              <span className="text-muted">—</span>
+              {actionLoadingId === row._id ? (
+                <button className="btn btn-sm btn-secondary" disabled>
+                  <Spinner size="sm" />
+                </button>
+              ) : (
+                <div className="d-flex gap-1 justify-content-center align-items-center gap-2">
+                  <button
+                    className="btn btn-sm btn-success"
+                    style={{ minWidth: "70px" }}
+                    onClick={() => handleAction(row._id, "regularized")}
+                    disabled={actionLoadingId !== null}
+                  >
+                    Approve
+                  </button>
+
+                  <button
+                    className="btn btn-sm btn-danger"
+                    style={{ minWidth: "70px" }}
+                    onClick={() => handleAction(row._id, "rejected")}
+                    disabled={actionLoadingId !== null}
+                  >
+                    Reject
+                  </button>
+                </div>
+              )}
+            </Center>
+          );
+        }
+
+        // REGULARIZED → Cancel (reverts attendance + re-credits leave)
+        if (status === "regularized") {
+          if (!canAct) {
+            return (
+              <Center>
+                <span className="text-muted">--</span>
+              </Center>
+            );
+          }
+
+          return (
+            <Center>
+              <button
+                className="btn btn-sm btn-danger"
+                style={{ minWidth: "70px" }}
+                onClick={() => openCancelModal(row)}
+                disabled={cancelLoaderId === row._id}
+              >
+                {cancelLoaderId === row._id ? <Spinner size="sm" /> : "Cancel"}
+              </button>
             </Center>
           );
         }
 
         return (
           <Center>
-            {actionLoadingId === row._id ? (
-              (console.log("row", row._id),
-                (
-                  <button className="btn btn-sm btn-secondary" disabled>
-                    <Spinner size="sm" />
-                  </button>
-                ))
-            ) : hasWrite || hasDelete ? (
-              <div className="d-flex gap-1 justify-content-center align-items-center gap-2">
-                <button
-                  className="btn btn-sm btn-success"
-                  style={{ minWidth: "70px" }}
-                  onClick={() => handleAction(row._id, "regularized")}
-                  disabled={actionLoadingId !== null}
-                >
-                  Approve
-                </button>
-
-                <button
-                  className="btn btn-sm btn-danger"
-                  style={{ minWidth: "70px" }}
-                  onClick={() => handleAction(row._id, "rejected")}
-                  disabled={actionLoadingId !== null}
-                >
-                  Reject
-                </button>
-              </div>
-            ) : (
-              <span className="text-muted">--</span>
-            )}
+            <span className="text-muted">—</span>
           </Center>
         );
       },
@@ -236,7 +278,7 @@ export const regularizeRequestColumn = (
     },
   ];
 
-  return activeTab === "pending"
+  return activeTab === "pending" || activeTab === "regularized"
     ? columns
     : columns.filter((c) => c.name?.props?.children !== "Action");
 };

@@ -46,7 +46,8 @@ const Recordings = React.lazy(() => import("../pages/Recordings"));
 const SOP = React.lazy(() => import("../pages/SopConfigs"));
 const Trainings = React.lazy(() => import("../pages/Trainings"));
 const AlertPage = React.lazy(() => import("../pages/Alerts"));
-
+const Marketing = React.lazy(() => import("../pages/Marketing"));
+const MasterData = React.lazy(() => import("../pages/MasterData"));
 const allElements = [
   { element: Register, label: "User" },
   { element: Center, label: "Center" },
@@ -75,8 +76,9 @@ const allElements = [
   { element: Recordings, label: "Recordings" },
   { element: SOP, label: "SOP-configs" },
   { element: Trainings, label: "Trainings" },
-  { element: AlertPage, label: "Alert" }
-
+  { element: AlertPage, label: "Alert" },
+  { element: Marketing, label: "Marketing" },
+{ element: MasterData, label: "Master Data" }
 ];
 
 console.log("SOP:", SOP);
@@ -111,10 +113,13 @@ const authProtectedRoutes = [
   { path: "/mi-reporting/*", component: MiReporting },
   { path: "/hrms/*", component: HRMS },
   { path: "/webcamstats/*", component: WebCamStats },
-  { path: "/referral", component: Referral },
+  { path: "/contacts", component: Referral },
+  { path: "/referral", component: () => <Navigate to="/contacts" replace /> },
   { path: "/tally", component: Tally },
-  { path: '/sop-configs/*', component: SOP },
-  { path: '/trainings/*', component: Trainings },
+  { path: "/sop-configs/*", component: SOP },
+  { path: "/trainings/*", component: Trainings },
+  { path: "/marketing/*", component: Marketing },
+{ path: "/master-data/*", component: MasterData },
   {
     path: "/",
     exact: true,
@@ -128,6 +133,5 @@ const publicRoutes = [
   { path: "/forgot-password", component: ForgetPasswordPage },
   { path: "/meeting", component: MyMeetingUI },
 ];
-
 
 export { authProtectedRoutes, publicRoutes, allElements };

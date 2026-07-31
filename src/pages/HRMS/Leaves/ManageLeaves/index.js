@@ -14,6 +14,7 @@ import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { useSelector } from "react-redux";
+import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
 import CancelLeaveModal from "./Modal/CancelLeaveModal";
 
 const ManageLeaves = () => {
@@ -53,24 +54,7 @@ const ManageLeaves = () => {
   const loggedInUser = JSON.parse(localStorage.getItem("authUser"));
   const managerId = loggedInUser?.data?._id;
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [
-        {
-          value: "ALL",
-          label: "All Centers",
-          isDisabled: false,
-        },
-      ]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === selectedCenter) ||

@@ -15,7 +15,37 @@ export const normalizeMedicineFrequency = (frequency) => {
   return Math.floor(parsedFrequency);
 };
 
-export const getMedicineFrequencyPreset = (frequency) => {
+export const normalizeMonthlyDate = (monthlyDate) => {
+  const parsedDate = Number(monthlyDate);
+
+  if (!Number.isFinite(parsedDate) || parsedDate < 1) {
+    return 1;
+  }
+
+  return Math.min(31, Math.floor(parsedDate));
+};
+
+// Accepts either a raw frequency number (legacy callers) or a
+// medicine-like object ({ frequency, frequencyType, monthlyDate }).
+const readFrequencyFields = (medicineOrFrequency) => {
+  if (medicineOrFrequency !== null && typeof medicineOrFrequency === "object") {
+    return {
+      frequency: medicineOrFrequency.frequency,
+      frequencyType: medicineOrFrequency.frequencyType,
+      monthlyDate: medicineOrFrequency.monthlyDate,
+    };
+  }
+
+  return { frequency: medicineOrFrequency, frequencyType: undefined, monthlyDate: undefined };
+};
+
+export const getMedicineFrequencyPreset = (medicineOrFrequency) => {
+  const { frequency, frequencyType } = readFrequencyFields(medicineOrFrequency);
+
+  if (frequencyType === "monthly") {
+    return "monthly";
+  }
+
   // Treat blank/empty as "custom" so the input stays visible while typing
   if (frequency === "" || frequency === null || frequency === undefined) {
     return "custom";
@@ -30,7 +60,13 @@ export const getMedicineFrequencyPreset = (frequency) => {
     : "custom";
 };
 
-export const getMedicineFrequencyLabel = (frequency) => {
+export const getMedicineFrequencyLabel = (medicineOrFrequency) => {
+  const { frequency, frequencyType, monthlyDate } = readFrequencyFields(medicineOrFrequency);
+
+  if (frequencyType === "monthly") {
+    return `Day ${normalizeMonthlyDate(monthlyDate)} of every month`;
+  }
+
   const normalizedFrequency = normalizeMedicineFrequency(frequency);
 
   if (normalizedFrequency === 1) {

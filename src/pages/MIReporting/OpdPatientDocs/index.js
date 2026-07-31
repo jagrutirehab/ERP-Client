@@ -1,4 +1,5 @@
     import React, { useEffect, useMemo, useRef, useState } from "react";
+    import { Link } from "react-router-dom";
     import { useDispatch, useSelector, shallowEqual } from "react-redux";
     import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
     import { CSVLink } from "react-csv";
@@ -32,7 +33,7 @@ const OpdPatientDocs = () => {
     useEffect(() => {
 
         dispatch(fetchOpdPatientDocs({ centerAccess,selectedMonth ,selectedStatus }));
-    }, [dispatch, centerAccess,selectedMonth,selectedStatus]);
+    }, [dispatch, centerAccess,selectedCenter,selectedMonth,selectedStatus]);
     // console.log(opdPatientDocs)
     // Extract unique months and sort them descending
 
@@ -127,6 +128,8 @@ const OpdPatientDocs = () => {
 
 
 
+
+    document.title = "OPD Patient Docs";
 
     return (
         <div
@@ -283,7 +286,13 @@ const OpdPatientDocs = () => {
                                             >
                                                 {label === "Patient Created At" && patient[labelsMapping[label]]
                                                     ? new Date(patient[labelsMapping[label]]).toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")
-                                                    : patient[labelsMapping[label]]}
+                                                    : (label === "Patient Name" || label === "Patient UID")
+                                                        ? (
+                                                            <Link to={`/patient/${patient.patient_mongo_id}`} className="text-dark" target="_blank" rel="noopener noreferrer">
+                                                                {patient[labelsMapping[label]]}
+                                                            </Link>
+                                                        )
+                                                        : patient[labelsMapping[label]]}
                                             </td>
                                         ))}
                                     </tr>

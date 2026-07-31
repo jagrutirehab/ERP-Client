@@ -9,6 +9,7 @@ import { useEffect } from 'react';
 import classnames from "classnames";
 import Select from "react-select";
 import { useSelector } from 'react-redux';
+import { useCenterOptions } from '../../../../Components/Hooks/useCenterOptions';
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
 
 const CancellationRequestsPage = () => {
@@ -96,24 +97,7 @@ const CancellationRequestsPage = () => {
         value: currentYear - i,
     }));
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [
-                {
-                    value: "ALL",
-                    label: "All Centers",
-                    isDisabled: false,
-                },
-            ]
-            : []),
-        ...(user?.centerAccess?.map((id) => {
-            const center = user?.userCenters?.find((c) => c._id === id);
-            return {
-                value: id,
-                label: center?.title || "Unknown Center",
-            };
-        }) || []),
-    ];
+    const centerOptions = useCenterOptions();
 
 
     useEffect(() => {

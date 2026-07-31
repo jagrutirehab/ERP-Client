@@ -23,7 +23,10 @@ const formatDate = (date) => {
 export const IndividualLeavesColumn = () => [
   {
     name: <div className="text-center">Leave Type</div>,
-    selector: (row) => row?.leaveType || "-",
+    selector: (row) =>
+      row?.leaveType === "LEAVE_WTIHOUT_PAYS"
+        ? "LEAVE_WITHOUT_PAYS"
+        : row?.leaveType || "-",
     sortable: true,
     center: true,
     minWidth: "200px",
@@ -32,6 +35,7 @@ export const IndividualLeavesColumn = () => [
     name: <div className="text-center">From</div>,
     selector: (row) => formatDate(row.fromDate),
     center: true,
+    minWidth: "140px",
   },
   {
     name: <div className="text-center">To</div>,

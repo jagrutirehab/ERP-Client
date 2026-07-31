@@ -22,6 +22,7 @@ import {
   CLINIC_TEST,
   NOTES,
   ADMISSION_SUMMARY,
+  BIO_DATA,
 } from "../../../Components/constants/patient";
 import OPDView from "./OPD";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
@@ -31,6 +32,7 @@ import ClinicalTest from "./ClinicalTest";
 import Notes from "../../Nurse/Views/Notes";
 import AdmissionSummary from "./AdmissionSummary";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import BioData from "./BioData";
 
 const Charting = ({
   patient,
@@ -44,6 +46,9 @@ const Charting = ({
   const dispatch = useDispatch();
   const isClinincalTab = useSelector(
     (state) => state.ClinicalTest.isClinincalTab,
+  );
+  const clinicalTestLoading = useSelector(
+    (state) => state.ClinicalTest.isLoading,
   );
   const [tab, setTab] = useState(isClinincalTab ? CLINIC_TEST : IPD);
   const [dateModal, setDateModal] = useState(false);
@@ -219,7 +224,7 @@ const Charting = ({
           addmissionsCharts={addmissionsCharts}
           open={open}
           patient={patient}
-          loading={loading}
+          loading={clinicalTestLoading}
           toggleModal={toggleModal}
           setChartType={setChartType}
           toggleAccordian={toggleAccordian}
@@ -228,7 +233,7 @@ const Charting = ({
       )
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addmissionsCharts, tab, loading, open, patient]);
+  }, [addmissionsCharts, tab, clinicalTestLoading, open, patient]);
 
   const generalComponent = useMemo(() => {
     return (
@@ -313,6 +318,7 @@ const Charting = ({
               Notes
             </button>
           </li>
+
           {canAccessAdmissionSummary && (
             <li className="nav-item rounded-0">
               <button
@@ -327,6 +333,18 @@ const Charting = ({
               </button>
             </li>
           )}
+          <li className="nav-item rounded-0">
+            <button
+              onClick={() => setTab(BIO_DATA)}
+              className={`nav-link rounded-0 ${
+                tab === BIO_DATA
+                  ? "border-0 border-2 border-top border-primary"
+                  : "active"
+              }`}
+            >
+              Bio-data
+            </button>
+          </li>
         </ul>
       </div>
       {uploadProgress > 0 && (
@@ -387,8 +405,11 @@ const Charting = ({
       ) : tab === ADMISSION_SUMMARY ? (
         <AdmissionSummary
           patient={patient._id}
+          patientProfile={patient}
           addmission={addmissionsCharts?.[0]?._id || patient?.addmission?._id}
         />
+      ) : tab === BIO_DATA ? (
+        <BioData patient={patient} addmission={addmissionsCharts} />
       ) : (
         ""
       )}

@@ -17,122 +17,128 @@ export const leaveRequestsColumns = (
   hasDelete,
   activeTab,
   handleCancellation,
-  cancellationLoading
+  cancellationLoading,
 ) => [
-    {
-      name: <Center>ECode</Center>,
-      cell: (row) => <Center>{row?.eCode || "-"}</Center>,
-      width: "140px",
-    },
-    {
-      name: <Center>Employee Name</Center>,
-      cell: (row) => <Center>{row?.employeeId?.name || "-"}</Center>,
-      width: "180px",
-    },
-    {
-      name: <Center>Center</Center>,
-      cell: (row) => <Center>{row?.center?.title || "-"}</Center>,
-      width: "180px",
-    },
-    {
-      name: <Center>Leave Type</Center>,
-      cell: (row) => <Center>{row?.leaveType || "-"}</Center>,
-      width: "200px",
-    },
-    {
-      name: <Center>From</Center>,
-      cell: (row) => (
-        <Center>
-          {row?.fromDate ? moment(row.fromDate).format("DD-MM-YYYY") : "-"}
-        </Center>
-      ),
-      width: "130px",
-    },
-    {
-      name: <Center>To</Center>,
-      cell: (row) => (
-        <Center>
-          {row?.toDate ? moment(row.toDate).format("DD-MM-YYYY") : "-"}
-        </Center>
-      ),
-      width: "130px",
-    },
-    {
-      name: <Center>Days</Center>,
-      cell: (row) => <Center>{row?.days ?? "-"}</Center>,
-      width: "90px",
-    },
-    {
-      name: <Center>Shift</Center>,
-      cell: (row) => <Center>{row?.shiftTime || "-"}</Center>,
-      width: "120px",
-    },
-    {
-      name: <Center>Reason</Center>,
-      cell: (row) => <Center>{row?.leaveReason || "-"}</Center>,
-      width: "220px",
-    },
-    {
-      name: <Center>Status</Center>,
-      cell: (row) => {
-        const status = row?.status?.toLowerCase();
+  {
+    name: <Center>ECode</Center>,
+    cell: (row) => <Center>{row?.eCode || "-"}</Center>,
+    width: "140px",
+  },
+  {
+    name: <Center>Employee Name</Center>,
+    cell: (row) => <Center>{row?.employeeId?.name || "-"}</Center>,
+    width: "180px",
+  },
+  {
+    name: <Center>Center</Center>,
+    cell: (row) => <Center>{row?.center?.title || "-"}</Center>,
+    width: "180px",
+  },
+  {
+    name: <Center>Leave Type</Center>,
+    cell: (row) => (
+      <Center>
+        {row?.leaveType === "LEAVE_WTIHOUT_PAYS"
+          ? "LEAVE_WITHOUT_PAYS"
+          : row?.leaveType || "-"}
+      </Center>
+    ),
+    width: "200px",
+  },
+  {
+    name: <Center>From</Center>,
+    cell: (row) => (
+      <Center>
+        {row?.fromDate ? moment(row.fromDate).format("DD-MM-YYYY") : "-"}
+      </Center>
+    ),
+    width: "130px",
+  },
+  {
+    name: <Center>To</Center>,
+    cell: (row) => (
+      <Center>
+        {row?.toDate ? moment(row.toDate).format("DD-MM-YYYY") : "-"}
+      </Center>
+    ),
+    width: "130px",
+  },
+  {
+    name: <Center>Days</Center>,
+    cell: (row) => <Center>{row?.days ?? "-"}</Center>,
+    width: "90px",
+  },
+  {
+    name: <Center>Shift</Center>,
+    cell: (row) => <Center>{row?.shiftTime || "-"}</Center>,
+    width: "120px",
+  },
+  {
+    name: <Center>Reason</Center>,
+    cell: (row) => <Center>{row?.leaveReason || "-"}</Center>,
+    width: "220px",
+  },
+  {
+    name: <Center>Status</Center>,
+    cell: (row) => {
+      const status = row?.status?.toLowerCase();
 
-        if (status === "approved")
-          return (
-            <Center>
-              <Badge pill color="success">
-                Approved
-              </Badge>
-            </Center>
-          );
-
-        if (status === "pending")
-          return (
-            <Center>
-              <Badge pill color="warning">
-                Pending
-              </Badge>
-            </Center>
-          );
-
-        if (status === "rejected")
-          return (
-            <Center>
-              <Badge pill color="danger">
-                Rejected
-              </Badge>
-            </Center>
-          );
-        if (status === "retrieved")
-          return (
-            <Center>
-              <Badge pill color="danger">
-                Retrieved
-              </Badge>
-            </Center>
-          );
-        if (status === "cancelled")
-          return (
-            <Center>
-              <Badge pill color="success">
-                Cancelled
-              </Badge>
-            </Center>
-          );
-
+      if (status === "approved")
         return (
           <Center>
-            <Badge pill color="secondary">
-              Unknown
+            <Badge pill color="success">
+              Approved
             </Badge>
           </Center>
         );
-      },
-      width: "120px",
-    },
 
-    ...(activeTab === "pending"
-      ? [
+      if (status === "pending")
+        return (
+          <Center>
+            <Badge pill color="warning">
+              Pending
+            </Badge>
+          </Center>
+        );
+
+      if (status === "rejected")
+        return (
+          <Center>
+            <Badge pill color="danger">
+              Rejected
+            </Badge>
+          </Center>
+        );
+      if (status === "retrieved")
+        return (
+          <Center>
+            <Badge pill color="danger">
+              Retrieved
+            </Badge>
+          </Center>
+        );
+      if (status === "cancelled")
+        return (
+          <Center>
+            <Badge pill color="success">
+              Cancelled
+            </Badge>
+          </Center>
+        );
+
+      return (
+        <Center>
+          <Badge pill color="secondary">
+            Unknown
+          </Badge>
+        </Center>
+      );
+    },
+    width: "120px",
+  },
+
+  ...(activeTab === "pending"
+    ? [
         {
           name: "Action",
           cell: (row) =>
@@ -168,27 +174,21 @@ export const leaveRequestsColumns = (
           width: "200px",
         },
       ]
-      : []),
+    : []),
 
-
-    ...(activeTab === "approved"
-      ? [
+  ...(activeTab === "approved"
+    ? [
         {
           name: "Action",
           cell: (row) =>
             !isLoading && (hasWrite || hasDelete) ? (
-
               row.cancellationRequested ? (
-                <span className="badge bg-info">
-                  Requested
-                </span>
+                <span className="badge bg-info">Requested</span>
               ) : cancellationLoading === row._id ? (
-
                 <button className="btn btn-sm btn-secondary" disabled>
                   <Spinner size="sm" />
                 </button>
               ) : (
-
                 <div className="d-flex gap-1 justify-content-center">
                   <button
                     className="btn btn-sm btn-danger"
@@ -197,7 +197,7 @@ export const leaveRequestsColumns = (
                         row.parentDocId,
                         row._id,
                         row.approvalAuthority,
-                        row.employeeId._id
+                        row.employeeId._id,
                       )
                     }
                   >
@@ -248,11 +248,10 @@ export const leaveRequestsColumns = (
           width: "220px",
         },
       ]
-      : []),
+    : []),
 
-
-    ...(activeTab === "cancelled"
-      ? [
+  ...(activeTab === "cancelled"
+    ? [
         {
           name: <Center>Cancellation Status</Center>,
           cell: (row) => {
@@ -297,23 +296,25 @@ export const leaveRequestsColumns = (
           width: "220px",
         },
       ]
-      : []),
+    : []),
 
-    {
-      name: <Center>Action On</Center>,
-      cell: (row) => (
-        <Center>
-          {row?.actionOn ? moment(row?.actionOn).format("DD-MM-YYYY") : "-"}
-        </Center>
-      ),
-      width: "120px",
-    },
+  {
+    name: <Center>Action On</Center>,
+    cell: (row) => (
+      <Center>
+        {row?.actionOn ? moment(row?.actionOn).format("DD-MM-YYYY") : "-"}
+      </Center>
+    ),
+    width: "120px",
+  },
 
-    ...(activeTab !== "pending" ? [
-      {
-        name: <Center>Leave Action By</Center>,
-        cell: (row) => <Center>{row?.leaveActionBy || "-"}</Center>,
-        width: "220px",
-      },
-    ] : [])
-  ];
+  ...(activeTab !== "pending"
+    ? [
+        {
+          name: <Center>Leave Action By</Center>,
+          cell: (row) => <Center>{row?.leaveActionBy || "-"}</Center>,
+          width: "220px",
+        },
+      ]
+    : []),
+];

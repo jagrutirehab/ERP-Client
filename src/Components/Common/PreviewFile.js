@@ -7,7 +7,13 @@ import { downloadFile } from "./downloadFile";
 import * as XLSX from "xlsx";
 import axios from "axios";
 
-const PreviewFile = ({ title = "Preview File", file, isOpen, toggle, allowDownload = false }) => {
+const PreviewFile = ({
+  title = "Preview File",
+  file,
+  isOpen,
+  toggle,
+  allowDownload = false,
+}) => {
   const [loading, setLoading] = useState(true);
   const [excelData, setExcelData] = useState([]);
   const url = file?.url;
@@ -15,16 +21,22 @@ const PreviewFile = ({ title = "Preview File", file, isOpen, toggle, allowDownlo
   const hasExt = (regex) =>
     regex.test(url || "") || regex.test(file?.name || "");
 
-  const isPdf =
-    file?.type === "application/pdf" || hasExt(/\.pdf$/i);
+  const isPdf = file?.type === "application/pdf" || hasExt(/\.pdf$/i);
 
   const isImage =
     file?.type?.startsWith("image/") || hasExt(/\.(png|jpg|jpeg|webp)$/i);
 
   const isExcel =
-    file?.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+    file?.type ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
     file?.type === "application/vnd.ms-excel" ||
     hasExt(/\.(xlsx|xls)$/i);
+
+  const isWord =
+    file?.type ===
+      "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
+    file?.type === "application/msword" ||
+    hasExt(/\.(docx|doc)$/i);
 
   const isLocalExcel = isExcel && file?.fileObj;
 
@@ -79,7 +91,12 @@ const PreviewFile = ({ title = "Preview File", file, isOpen, toggle, allowDownlo
           color="primary"
           size="sm"
           onClick={handleDownload}
-          style={{ position: "absolute", right: "50px", top: "12px", zIndex: 10 }}
+          style={{
+            position: "absolute",
+            right: "50px",
+            top: "12px",
+            zIndex: 10,
+          }}
         >
           <i className="ri-download-2-line align-bottom me-1"></i> Download
         </Button>
@@ -112,7 +129,7 @@ const PreviewFile = ({ title = "Preview File", file, isOpen, toggle, allowDownlo
           height="600"
           style={{
             display: loading ? "none" : "block",
-            border: "none"
+            border: "none",
           }}
           onLoad={() => setLoading(false)}
         />
@@ -139,7 +156,6 @@ const PreviewFile = ({ title = "Preview File", file, isOpen, toggle, allowDownlo
 
       {isExcel && isLocalExcel && (
         <div style={{ maxHeight: "70vh" }}>
-
           <div className="mb-2 text-muted small fw-semibold">
             Showing first 10 rows
           </div>
@@ -172,7 +188,19 @@ const PreviewFile = ({ title = "Preview File", file, isOpen, toggle, allowDownlo
         </div>
       )}
 
-      {!isPdf && !isImage && !isExcel && (
+      {isWord && (
+        <div style={{ height: "80vh", width: "100%" }}>
+          <iframe
+            title="Word Document Preview"
+            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
+            width="100%"
+            height="100%"
+            style={{ border: "none" }}
+          />
+        </div>
+      )}
+
+      {!isPdf && !isImage && !isExcel && !isWord && (
         <p className="text-center text-muted py-5">
           Preview not supported for this file type
         </p>

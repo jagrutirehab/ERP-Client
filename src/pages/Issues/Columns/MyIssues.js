@@ -10,8 +10,7 @@ export const MyIssuesCol = (
   handleAction,
   type,
   canChangeStatus,
-  handleViewNotes
-
+  handleViewNotes,
 ) => {
   return [
     {
@@ -46,226 +45,351 @@ export const MyIssuesCol = (
       width: "180px",
     },
 
-    ...(type !== "TECH" ? [
+    ...(type !== "TECH" && type !== "MAINTENANCE"
+      ? [
+          {
+            name: <div className="text-center">Request Type</div>,
+            selector: (row) =>
+              row?.issueType === "HR"
+                ? row?.hrIssue?.requestType
+                : row?.issueType === "FINANCE"
+                  ? row?.financeIssue?.financeIssueType
+                  : "-",
+            // width: "180px",
+          },
+        ]
+      : []),
 
-      {
-        name: <div className="text-center">Request Type</div>,
-        selector: (row) => row?.issueType === "HR" ? row?.hrIssue?.requestType : row?.issueType === "FINANCE" ? row?.financeIssue?.financeIssueType : "-",
-        // width: "180px",
-      },
-    ] : []),
+    ...(type === "TECH"
+      ? [
+          {
+            name: <div className="text-center">Description</div>,
+            width: "300px",
+            cell: (row) => (
+              <div
+                style={{
+                  maxHeight: "80px",
+                  overflowY: "auto",
+                  paddingRight: "6px",
+                  lineHeight: "1.4",
+                  wordBreak: "break-word",
+                }}
+              >
+                {row?.techIssue?.description || "-"}
+              </div>
+            ),
+          },
+          {
+            name: <div className="text-center">Images</div>,
+            width: "140px",
+            cell: (row) => (
+              <span
+                style={{
+                  color: "#0d6efd",
+                  cursor: "pointer",
+                  fontWeight: "500",
+                }}
+                onClick={() => handleViewImages(row?.techIssue?.files)}
+              >
+                View Images
+              </span>
+            ),
+          },
+        ]
+      : []),
+    ...(type === "PURCHASE"
+      ? [
+          {
+            name: <div className="text-center">Item Name</div>,
+            selector: (row) => row?.purchaseIssue?.itemName || "-",
+            // center: true,
+            width: "140px",
+          },
+          {
+            name: <div className="text-center">Item Quantity</div>,
+            selector: (row) => row?.purchaseIssue?.itemQty || "-",
+            // center: true,
+            width: "140px",
+          },
+          {
+            name: <div className="text-center">Comments</div>,
+            width: "200px",
+            cell: (row) => (
+              <div
+                style={{
+                  maxHeight: "80px",
+                  overflowY: "auto",
+                  paddingRight: "6px",
+                  lineHeight: "1.4",
+                  wordBreak: "break-word",
+                }}
+              >
+                {row?.purchaseIssue?.comment || "-"}
+              </div>
+            ),
+          },
+          {
+            name: <div className="text-center">Images</div>,
+            width: "140px",
+            cell: (row) => (
+              <span
+                style={{
+                  color: "#0d6efd",
+                  cursor: "pointer",
+                  fontWeight: "500",
+                }}
+                onClick={() => handleViewImages(row?.purchaseIssue?.files)}
+              >
+                View Images
+              </span>
+            ),
+          },
+        ]
+      : []),
+    ...(type === "REVIEW_SUBMISSION"
+      ? [
+          {
+            name: <div className="text-center">Responsible Reviewer</div>,
+            selector: (row) =>
+              row?.reviewSubmissionIssue?.responsibleReviewer?.name || "-",
+            // center: true,
+            width: "210px",
+          },
+          {
+            name: <div className="text-center">Review Taken From</div>,
+            selector: (row) =>
+              row?.reviewSubmissionIssue?.reviewTakenFrom?.name || "-",
+            // center: true,
+            width: "210px",
+          },
+          {
+            name: <div className="text-center">Images</div>,
+            width: "140px",
+            cell: (row) => (
+              <span
+                style={{
+                  color: "#0d6efd",
+                  cursor: "pointer",
+                  fontWeight: "500",
+                }}
+                onClick={() =>
+                  handleViewImages(row?.reviewSubmissionIssue?.files)
+                }
+              >
+                View Images
+              </span>
+            ),
+          },
+        ]
+      : []),
+    ...(type === "HR"
+      ? [
+          {
+            name: <div className="text-center">Description</div>,
+            width: "300px",
+            cell: (row) => (
+              <div
+                style={{
+                  maxHeight: "80px",
+                  overflowY: "auto",
+                  paddingRight: "6px",
+                  lineHeight: "1.4",
+                  wordBreak: "break-word",
+                }}
+              >
+                {row?.hrIssue?.description || "-"}
+              </div>
+            ),
+          },
+          {
+            name: <div className="text-center">Images</div>,
+            width: "140px",
+            cell: (row) => (
+              <span
+                style={{
+                  color: "#0d6efd",
+                  cursor: "pointer",
+                  fontWeight: "500",
+                }}
+                onClick={() => handleViewImages(row?.hrIssue?.files)}
+              >
+                View Images
+              </span>
+            ),
+          },
+        ]
+      : []),
+    ...(type === "FINANCE"
+      ? [
+          {
+            name: <div className="text-center">Description</div>,
+            width: "300px",
+            cell: (row) => (
+              <div
+                style={{
+                  maxHeight: "80px",
+                  overflowY: "auto",
+                  paddingRight: "6px",
+                  lineHeight: "1.4",
+                  wordBreak: "break-word",
+                }}
+              >
+                {row?.financeIssue?.description || "-"}
+              </div>
+            ),
+          },
+          {
+            name: <div className="text-center">Images</div>,
+            width: "140px",
+            cell: (row) => (
+              <span
+                style={{
+                  color: "#0d6efd",
+                  cursor: "pointer",
+                  fontWeight: "500",
+                }}
+                onClick={() => handleViewImages(row?.financeIssue?.files)}
+              >
+                View Images
+              </span>
+            ),
+          },
+        ]
+      : []),
 
-    ...(type === "TECH" ?
-      [{
-        name: <div className="text-center">Description</div>,
-        width: "300px",
-        cell: (row) => (
-          <div
-            style={{
-              maxHeight: "80px",
-              overflowY: "auto",
-              paddingRight: "6px",
-              lineHeight: "1.4",
-              wordBreak: "break-word",
-            }}
-          >
-            {row?.techIssue?.description || "-"}
-          </div>
-        ),
-      },
-      {
-        name: <div className="text-center">Images</div>,
-        width: "140px",
-        cell: (row) => (
-          <span
-            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-            onClick={() => handleViewImages(row?.techIssue?.files)}
-          >
-            View Images
-          </span>
-        ),
-      }
-      ] : []
-    ),
-    ...(type === "PURCHASE" ?
-      [
-        {
-          name: <div className="text-center">Item Name</div>,
-          selector: (row) => row?.purchaseIssue?.itemName || "-",
-          // center: true,
-          width: "140px",
-        },
-        {
-          name: <div className="text-center">Item Quantity</div>,
-          selector: (row) => row?.purchaseIssue?.itemQty || "-",
-          // center: true,
-          width: "140px",
-        },
-        {
-          name: <div className="text-center">Comments</div>,
-          width: "200px",
-          cell: (row) => (
-            <div
-              style={{
-                maxHeight: "80px",
-                overflowY: "auto",
-                paddingRight: "6px",
-                lineHeight: "1.4",
-                wordBreak: "break-word",
-              }}
-            >
-              {row?.purchaseIssue?.comment || "-"}
-            </div>
-          ),
-        }, {
-          name: <div className="text-center">Images</div>,
-          width: "140px",
-          cell: (row) => (
-            <span
-              style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-              onClick={() => handleViewImages(row?.purchaseIssue?.files)}
-            >
-              View Images
-            </span>
-          ),
-        },
+    ...(type === "MAINTENANCE"
+      ? [
+          {
+            name: <div className="text-center">Category</div>,
+            selector: (row) =>
+              row?.maintenanceIssue?.category === "OTHERS"
+                ? row?.maintenanceIssue?.otherCategory || "Others"
+                : row?.maintenanceIssue?.category || "-",
+            width: "160px",
+          },
+          {
+            name: <div className="text-center">Title</div>,
+            selector: (row) => row?.maintenanceIssue?.title || "-",
+            width: "180px",
+          },
+          {
+            name: <div className="text-center">Description</div>,
+            width: "220px",
+            cell: (row) => (
+              <div
+                style={{
+                  maxHeight: "80px",
+                  overflowY: "auto",
+                  paddingRight: "6px",
+                  lineHeight: "1.4",
+                  wordBreak: "break-word",
+                }}
+              >
+                {row?.maintenanceIssue?.description || "-"}
+              </div>
+            ),
+          },
 
-      ] : []
-
-    ),
-    ...(type === "REVIEW_SUBMISSION" ?
-      [
-        {
-          name: <div className="text-center">Responsible Reviewer</div>,
-          selector: (row) => row?.reviewSubmissionIssue?.responsibleReviewer?.name || "-",
-          // center: true,
-          width: "210px",
-        },
-        {
-          name: <div className="text-center">Review Taken From</div>,
-          selector: (row) => row?.reviewSubmissionIssue?.reviewTakenFrom?.name || "-",
-          // center: true,
-          width: "210px",
-        },
-        {
-          name: <div className="text-center">Images</div>,
-          width: "140px",
-          cell: (row) => (
-            <span
-              style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-              onClick={() => handleViewImages(row?.reviewSubmissionIssue?.files)}
-            >
-              View Images
-            </span>
-          ),
-        },
-
-      ] : []
-
-    ),
-    ...(type === "HR" ?
-      [{
-        name: <div className="text-center">Description</div>,
-        width: "300px",
-        cell: (row) => (
-          <div
-            style={{
-              maxHeight: "80px",
-              overflowY: "auto",
-              paddingRight: "6px",
-              lineHeight: "1.4",
-              wordBreak: "break-word",
-            }}
-          >
-            {row?.hrIssue?.description || "-"}
-          </div>
-        ),
-      },
-      {
-        name: <div className="text-center">Images</div>,
-        width: "140px",
-        cell: (row) => (
-          <span
-            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-            onClick={() => handleViewImages(row?.hrIssue?.files)}
-          >
-            View Images
-          </span>
-        ),
-      }
-      ] : []
-    ),
-    ...(type === "FINANCE" ?
-      [{
-        name: <div className="text-center">Description</div>,
-        width: "300px",
-        cell: (row) => (
-          <div
-            style={{
-              maxHeight: "80px",
-              overflowY: "auto",
-              paddingRight: "6px",
-              lineHeight: "1.4",
-              wordBreak: "break-word",
-            }}
-          >
-            {row?.financeIssue?.description || "-"}
-          </div>
-        ),
-      },
-      {
-        name: <div className="text-center">Images</div>,
-        width: "140px",
-        cell: (row) => (
-          <span
-            style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-            onClick={() => handleViewImages(row?.financeIssue?.files)}
-          >
-            View Images
-          </span>
-        ),
-      }
-      ] : []
-    ),
-
+          {
+            name: <div className="text-center">Priority</div>,
+            width: "120px",
+            cell: (row) => {
+              const priorityColors = {
+                LOW: "success",
+                MEDIUM: "info",
+                HIGH: "warning",
+                URGENT: "danger",
+              };
+              return (
+                <Badge
+                  color={
+                    priorityColors[row?.maintenanceIssue?.priority] ||
+                    "secondary"
+                  }
+                  pill
+                >
+                  {row?.maintenanceIssue?.priority || "-"}
+                </Badge>
+              );
+            },
+          },
+          {
+            name: <div className="text-center">Location</div>,
+            selector: (row) => row?.maintenanceIssue?.location || "-",
+            width: "160px",
+          },
+          {
+            name: <div className="text-center">Images</div>,
+            width: "140px",
+            cell: (row) => (
+              <span
+                style={{
+                  color: "#0d6efd",
+                  cursor: "pointer",
+                  fontWeight: "500",
+                }}
+                onClick={() => handleViewImages(row?.maintenanceIssue?.files)}
+              >
+                View Images
+              </span>
+            ),
+          },
+        ]
+      : []),
 
     ...(activeTab !== "new"
       ? [
-        {
-          name: <div className="text-center">Assigned To</div>,
-          selector: (row) =>
-            row?.assignedTo?.name
-              ? row.assignedTo.name.charAt(0).toUpperCase() +
-              row.assignedTo.name.slice(1).toLowerCase()
-              : "-",
-          width: "160px",
-        },
-      ]
+          {
+            name: <div className="text-center">Assigned To</div>,
+            width: "200px",
+            cell: (row) => {
+              if (type === "MAINTENANCE") {
+                const managers = row?.maintenanceIssue?.assignedManagers || [];
+                if (!managers.length) return "-";
+                return (
+                  managers
+                    .map((m) => m?.name)
+                    .filter(Boolean)
+                    .join(", ") || "-"
+                );
+              }
+              return row?.assignedTo?.name
+                ? row.assignedTo.name.charAt(0).toUpperCase() +
+                    row.assignedTo.name.slice(1).toLowerCase()
+                : "-";
+            },
+          },
+        ]
       : []),
 
     ...(activeTab
       ? [
-        {
-          name: <div className="text-center">Notes</div>,
-          width: "140px",
-          cell: (row) => (
-            <span
-              style={{ color: "#0d6efd", cursor: "pointer", fontWeight: "500" }}
-              onClick={() => handleViewNotes?.(row)}
-            >
-              View Notes
-            </span>
-          ),
-        },
-        {
-          name: <div className="text-center">Action on</div>,
-          selector: (row) =>
-            normalizeDates(
-              row?.notes?.filter((d) => d?.status === activeTab)?.[0]?.changedOn
-            ) || "-",
-          width: "180px",
-        },
-      ]
+          {
+            name: <div className="text-center">Notes</div>,
+            width: "140px",
+            cell: (row) => (
+              <span
+                style={{
+                  color: "#0d6efd",
+                  cursor: "pointer",
+                  fontWeight: "500",
+                }}
+                onClick={() => handleViewNotes?.(row)}
+              >
+                View Notes
+              </span>
+            ),
+          },
+          {
+            name: <div className="text-center">Action on</div>,
+            selector: (row) =>
+              normalizeDates(
+                row?.notes?.filter((d) => d?.status === activeTab)?.[0]
+                  ?.changedOn,
+              ) || "-",
+            width: "180px",
+          },
+        ]
       : []),
 
     {
@@ -288,71 +412,71 @@ export const MyIssuesCol = (
       width: "180px",
     },
 
-
-
-    ...((activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved") && !["HR", "FINANCE"].includes(type)
+    ...((activeTab === undefined ||
+      activeTab === "" ||
+      activeTab === null ||
+      activeTab === "resolved") &&
+    !["HR", "FINANCE"].includes(type)
       ? [
-        ...((activeTab === undefined || activeTab === "" || activeTab === null || activeTab === "resolved") && !["HR", "FINANCE"].includes(type)
-          ? [
-            {
-              name: <div className="text-center">Approval</div>,
-              width: "120px",
-              cell: (row) => {
-                if (!row?.approval) return "-";
+          ...((activeTab === undefined ||
+            activeTab === "" ||
+            activeTab === null ||
+            activeTab === "resolved") &&
+          !["HR", "FINANCE"].includes(type)
+            ? [
+                {
+                  name: <div className="text-center">Approval</div>,
+                  width: "120px",
+                  cell: (row) => {
+                    if (!row?.approval) return "-";
 
-                return row.approval.isApproved ? (
-                  <Badge color="success">Yes</Badge>
-                ) : (
-                  <Badge color="danger">No</Badge>
-                );
-              },
-            },
-            {
-              name: <div className="text-center">Approved By</div>,
-              selector: (row) =>
-                row?.approval?.approvedBy
-                  ? row.approval.approvedBy.charAt(0).toUpperCase() +
-                  row.approval.approvedBy.slice(1).toLowerCase()
-                  : "-",
-              width: "160px",
-            },
-
-          ]
-          : [])
-      ]
-      : []
-    ),
-
-
+                    return row.approval.isApproved ? (
+                      <Badge color="success">Yes</Badge>
+                    ) : (
+                      <Badge color="danger">No</Badge>
+                    );
+                  },
+                },
+                {
+                  name: <div className="text-center">Approved By</div>,
+                  selector: (row) =>
+                    row?.approval?.approvedBy
+                      ? row.approval.approvedBy.charAt(0).toUpperCase() +
+                        row.approval.approvedBy.slice(1).toLowerCase()
+                      : "-",
+                  width: "160px",
+                },
+              ]
+            : []),
+        ]
+      : []),
 
     ...(canChangeStatus && (activeTab !== "resolved" || activeTab === "")
       ? [
-        {
-          name: <div className="text-center">Action</div>,
-          width: "200px",
-          cell: (row) => {
+          {
+            name: <div className="text-center">Action</div>,
+            width: "200px",
+            cell: (row) => {
+              // prevent button only for resolved rows
+              if (row?.status === "resolved") return "-";
 
-            // prevent button only for resolved rows
-            if (row?.status === "resolved") return "-";
-
-            return (
-              <Button
-                size="sm"
-                color="primary"
-                onClick={() =>
-                  handleAction({
-                    issue: row,
-                    nextStatus: row?.status
-                  })
-                }
-              >
-                Change Status
-              </Button>
-            );
+              return (
+                <Button
+                  size="sm"
+                  color="primary"
+                  onClick={() =>
+                    handleAction({
+                      issue: row,
+                      nextStatus: row?.status,
+                    })
+                  }
+                >
+                  Change Status
+                </Button>
+              );
+            },
           },
-        },
-      ]
-      : [])
-  ]
-
-}
+        ]
+      : []),
+  ];
+};

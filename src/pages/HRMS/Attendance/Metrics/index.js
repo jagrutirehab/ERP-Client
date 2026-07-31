@@ -14,6 +14,7 @@ import { toast } from 'react-toastify';
 import { attendanceMetricsColumns } from '../../components/Table/Columns/attendanceMetrics';
 import { exportAttendanceMetrics } from '../../../../helpers/backend_helper';
 import RefreshButton from '../../../../Components/Common/RefreshButton';
+import { useCenterOptions } from '../../../../Components/Hooks/useCenterOptions';
 
 const sortByOptions = [
     { value: "avgDuration", label: "Sort By Average Duration" },
@@ -54,7 +55,7 @@ const AttendanceMetrics = () => {
 
     const { hasPermission, loading: permissionLoader } =
         usePermissions(token);
-    const { centerAccess, userCenters } = useSelector((state) => state.User);
+    const { centerAccess } = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HRMS);
 
     const hasUserPermission = hasPermission(
@@ -73,18 +74,7 @@ const AttendanceMetrics = () => {
         }
     }, [selectedCenter, centerAccess]);
 
-    const centerOptions = [
-        ...(centerAccess?.length > 1
-            ? [{ value: "ALL", label: "All Centers" }]
-            : []),
-        ...(centerAccess?.map((id) => {
-            const center = userCenters?.find((c) => c._id === id);
-            return {
-                value: id,
-                label: center?.title || "Unknown Center",
-            };
-        }) || []),
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption =
         centerOptions.find((opt) => opt.value === selectedCenter) ||

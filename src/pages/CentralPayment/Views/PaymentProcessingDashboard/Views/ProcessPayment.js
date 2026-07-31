@@ -14,7 +14,7 @@ import ConfirmationModal from "../../../../../Components/Common/ConfirmationModa
 import Select from "react-select";
 import { formatCurrency } from "../../../../../utils/formatCurrency";
 
-const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeTab }) => {
+const ProcessPayment = ({ loading, approvals, centerAccess, centers: userAccessibleCenters, activeTab }) => {
 
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
@@ -52,13 +52,10 @@ const ProcessPayment = ({ loading, approvals, centerAccess, userCenters, activeT
             : []
         ),
         ...(
-            centerAccess?.map(id => {
-                const center = userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
+            userAccessibleCenters?.map(c => ({
+                value: c._id,
+                label: c.title,
+            })) || []
         )
     ];
 
@@ -432,12 +429,12 @@ ProcessPayment.prototype = {
     approvals: PropTypes.object,
     centerAccess: PropTypes.array,
     activeTab: PropTypes.string,
-    userCenters: PropTypes.array,
+    centers: PropTypes.array,
 }
 
 const mapStateToProps = (state) => ({
     centerAccess: state.User?.centerAccess,
-    userCenters: state.User?.userCenters,
+    centers: state.Center.data,
     loading: state.CentralPayment?.loading,
     approvals: state.CentralPayment?.approvals
 });

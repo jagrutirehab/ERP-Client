@@ -24,6 +24,7 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 const GivenMedicine = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
+  const centerList = useSelector((state) => state.Center.data);
   const handleAuthError = useAuthError();
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const microUser = localStorage.getItem("micrologin");
@@ -53,13 +54,10 @@ const GivenMedicine = () => {
       : []
     ),
     ...(
-      user?.centerAccess?.map(id => {
-        const center = user?.userCenters?.find(c => c._id === id);
-        return {
-          value: id,
-          label: center?.title || "Unknown Center"
-        };
-      }) || []
+      centerList?.map(c => ({
+        value: c._id,
+        label: c.title,
+      })) || []
     )
   ];
 

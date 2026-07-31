@@ -9,6 +9,7 @@ import { adminGetAllLeavesInfo } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
+import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
 
 const LeaveHistory = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -29,24 +30,7 @@ const LeaveHistory = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [
-          {
-            value: "ALL",
-            label: "All Centers",
-            isDisabled: false,
-          },
-        ]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === selectedCenter) ||

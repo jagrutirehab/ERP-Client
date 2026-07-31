@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react'
-import { getCallRecordingOverview } from '../../../../helpers/backend_helper';
-import { CardBody, Label, Spinner } from 'reactstrap';
-import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
-import DataTableComponent from '../../../../Components/Common/DataTable';
-import { CallRecordingsOverviewColumns } from '../../Columns/CallOverview';
+import React, { useEffect, useState } from "react";
+import { getCallRecordingOverview } from "../../../../helpers/backend_helper";
+import { CardBody, Label, Spinner } from "reactstrap";
+import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
+import DataTableComponent from "../../../../Components/Common/DataTable";
+import { CallRecordingsOverviewColumns } from "../../Columns/CallOverview";
 import Select from "react-select";
 import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
-import { FaFilter } from 'react-icons/fa';
+import { FaFilter } from "react-icons/fa";
 
 const Call = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -17,7 +17,7 @@ const Call = () => {
   const [pagination, setPagination] = useState({
     page: 1,
     limit: 10,
-    totalDocs: 0
+    totalDocs: 0,
   });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -29,7 +29,7 @@ const Call = () => {
   const [talkTimeFilter, setTalkTimeFilter] = useState("");
 
   const loadCallRecordingOverviews = async () => {
-    setCallLoading(true)
+    setCallLoading(true);
     try {
       const response = await getCallRecordingOverview({
         fromDate,
@@ -37,23 +37,23 @@ const Call = () => {
         page,
         limit,
         search: debouncedSearch,
-        talkTime: talkTimeFilter
+        talkTime: talkTimeFilter,
       });
       console.log("Response", response);
       setOverviews(response?.data);
       setPagination({
         ...response?.pagination,
-        totalDocs: response?.pagination?.totalRecords
+        totalDocs: response?.pagination?.totalRecords,
       });
-
     } catch (error) {
       console.log(error);
-
     } finally {
-      setCallLoading(false)
+      setCallLoading(false);
     }
-  }
-  useEffect(() => { loadCallRecordingOverviews() }, [page, limit, debouncedSearch, talkTimeFilter])
+  };
+  useEffect(() => {
+    loadCallRecordingOverviews();
+  }, [page, limit, debouncedSearch, talkTimeFilter]);
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(agentOrUcid);
@@ -68,7 +68,7 @@ const Call = () => {
     { value: "2_5", label: "2 - 5 min" },
     { value: "5_10", label: "5 - 10 min" },
     { value: "10_15", label: "10 - 15 min" },
-    { value: "over_15", label: "Over 15 min" }
+    { value: "over_15", label: "Over 15 min" },
   ];
 
   console.log("pagination", pagination);
@@ -111,9 +111,31 @@ const Call = () => {
     }
   };
 
+  const parseGeminiResponse = (raw) => {
+    try {
+      if (!raw) return null;
+
+      // If already an object, return directly
+      if (typeof raw === "object") return raw;
+
+      // Strip markdown fences ```json ... ```
+      const cleaned = raw
+        .replace(/^```json\s*/i, "")
+        .replace(/^```\s*/i, "")
+        .replace(/```\s*$/i, "")
+        .trim();
+
+      return JSON.parse(cleaned);
+    } catch {
+      return null;
+    }
+  };
+
   const formatExportData = (data) => {
     return data.map((row, index) => {
       const parsed = getSafeParsedData(row?.Files?.geminiResponse);
+      const lead = parseGeminiResponse(row?.Files?.geminiResponse);
+      console.log("lead", lead);
 
       return {
         Index: index + 1,
@@ -123,7 +145,8 @@ const Call = () => {
         "Call Date": row?.Call_Date || "-",
         "Caller Type": row?.Call_Type?.split("_")?.[0] || "-",
         "Talk Time": row?.Talk_Time || "-",
-        "Recording URL": row?.Files?.recording_url || row?.Files?.Recording_URL || "-",
+        "Recording URL":
+          row?.Files?.recording_url || row?.Files?.Recording_URL || "-",
 
         Strengths: Array.isArray(parsed?.strengths)
           ? parsed.strengths.join(" | ")
@@ -134,13 +157,13 @@ const Call = () => {
           : parsed?.weaknesses || "-",
 
         Coaching: parsed?.coaching || "-",
+        "Lead Quality": lead?.lead_type || "-",
 
-        // 🔥 Custom labeled columns
         ...Object.fromEntries(
           Object.keys(scoreLabels).map((key) => [
-            `${key} - ${scoreLabels[key]}`, // 👈 THIS IS MAGIC
-            parsed?.scores?.[key] ?? "-"
-          ])
+            `${key} - ${scoreLabels[key]}`,
+            parsed?.scores?.[key] ?? "-",
+          ]),
         ),
       };
     });
@@ -149,7 +172,6 @@ const Call = () => {
   const handleExportExcel = async () => {
     setExportLoading(true);
     try {
-
       let allData = [];
       let currentPage = 1;
       let hasMore = true;
@@ -161,7 +183,7 @@ const Call = () => {
           page: currentPage,
           limit: 500, // backend safe limit
           search: debouncedSearch,
-          talkTime: talkTimeFilter
+          talkTime: talkTimeFilter,
         });
 
         const data = response?.data || [];
@@ -188,12 +210,10 @@ const Call = () => {
       });
 
       const blob = new Blob([excelBuffer], {
-        type:
-          "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
 
       saveAs(blob, "call-overview.xlsx");
-
     } catch (err) {
       console.error(err);
     } finally {
@@ -208,9 +228,10 @@ const Call = () => {
         style={isMobile ? { width: "100%" } : { width: "78%" }}
       >
         <div className="text-center text-md-left mb-4">
-          <h1 className="display-6 fw-bold text-primary">CALL RECORDINGS AI - OVERVIEW</h1>
+          <h1 className="display-6 fw-bold text-primary">
+            CALL RECORDINGS AI - OVERVIEW
+          </h1>
         </div>
-
 
         <div className={`d-flex gap-3 mb-3 ${isMobile ? "flex-wrap" : ""}`}>
           <div style={{ width: isMobile ? "35%" : "auto" }}>
@@ -236,7 +257,7 @@ const Call = () => {
                     background: "transparent",
                     fontSize: "16px",
                     cursor: "pointer",
-                    lineHeight: 1
+                    lineHeight: 1,
                   }}
                 >
                   ✕
@@ -268,7 +289,7 @@ const Call = () => {
                     background: "transparent",
                     fontSize: "16px",
                     cursor: "pointer",
-                    lineHeight: 1
+                    lineHeight: 1,
                   }}
                 >
                   ✕
@@ -277,8 +298,10 @@ const Call = () => {
             </div>
           </div>
 
-
-          <div className="d-flex align-items-end" style={{ width: isMobile ? "20%" : "auto" }}>
+          <div
+            className="d-flex align-items-end"
+            style={{ width: isMobile ? "20%" : "auto" }}
+          >
             <button
               className="btn btn-primary px-4"
               style={{ height: "38px" }}
@@ -297,10 +320,8 @@ const Call = () => {
         </div>
 
         <div className="d-flex justify-content-between align-items-center mb-3">
-
           {/* LEFT SIDE FILTERS */}
           <div className="d-flex gap-3">
-
             <div>
               <input
                 type="text"
@@ -311,25 +332,23 @@ const Call = () => {
               />
             </div>
 
-
-
             <div style={{ width: "150px" }}>
               <Select
                 options={talkTimeOptions}
-                value={talkTimeOptions.find(opt => opt.value === talkTimeFilter)}
-                onChange={(selected) => setTalkTimeFilter(selected?.value || "")}
+                value={talkTimeOptions.find(
+                  (opt) => opt.value === talkTimeFilter,
+                )}
+                onChange={(selected) =>
+                  setTalkTimeFilter(selected?.value || "")
+                }
                 placeholder="Talk Time"
                 isSearchable={false}
               />
             </div>
-
           </div>
-
-
         </div>
 
         <div className="d-flex justify-content-between align-items-center p-2">
-
           {/* LEFT SIDE */}
           <Label className="mb-0 text-dark fw-semibold">
             Total Recordings: {pagination?.totalRecords}
@@ -344,7 +363,6 @@ const Call = () => {
             {exportLoading && <Spinner size="sm" />}
             {exportLoading ? "Exporting..." : "Export Excel"}
           </button>
-
         </div>
 
         <DataTableComponent
@@ -359,7 +377,7 @@ const Call = () => {
         />
       </CardBody>
     </>
-  )
-}
+  );
+};
 
-export default Call
+export default Call;

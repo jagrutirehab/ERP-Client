@@ -84,12 +84,19 @@ const styles = StyleSheet.create({
 const clean = (value) => {
   if (value == null) return "";
 
-  return String(value)
+  let str = String(value)
     .replace(/[\u2010-\u2015\u2212]/g, "-")
     .replace(/[\u2018\u2019]/g, "'")
     .replace(/[\u201C\u201D]/g, '"')
     .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/[\u00A0\u2000-\u200A\u202F\u205F\u3000]/g, " ")
+    .replace(/[\u200E\u200F\u202A-\u202E\u2066-\u2069]/g, "")
+    .replace(/\u00AD/g, "")
     .trim();
+
+  str = str.replace(/\S{40,}/g, (word) => word.replace(/(.{40})/g, "$1\u200B"));
+
+  return str;
 };
 
 const SummaryBody = ({ chart, patient }) => {

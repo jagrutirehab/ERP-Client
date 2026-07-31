@@ -1,5 +1,5 @@
 import { useFormik } from "formik";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import debounce from "lodash.debounce";
 import {
     Button,
@@ -12,11 +12,15 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 import PropTypes from "prop-types";
+import Flatpickr from "react-flatpickr";
+import monthSelectPlugin from "flatpickr/dist/plugins/monthSelect";
+import "flatpickr/dist/themes/material_blue.css";
+import "flatpickr/dist/plugins/monthSelect/style.css";
 import FileUpload from "../../../CashManagement/Components/FileUpload";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getExitEmployeesBySearch } from "../../../../store/features/HR/hrSlice";
 import { editIncentives, postIncentives } from "../../../../helpers/backend_helper";
-import { format, parse, set } from "date-fns";
+import { startOfMonth } from "date-fns";
 
 const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
     const dispatch = useDispatch();
@@ -109,7 +113,7 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
             currentLocation: initialData?.center?.title || "",
             amount: initialData?.amount || "",
             details: initialData?.details || "",
-            date: initialData?.date ? format(new Date(initialData.date), "yyyy-MM-dd") : "",
+            date: initialData?.date ? startOfMonth(new Date(initialData.date)) : "",
             attachment: null,
         },
         validationSchema,
@@ -123,16 +127,9 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
                 let incentiveDate;
 
                 if (values.date) {
-                    const now = new Date();
-                    incentiveDate = set(
-                        parse(values.date, "yyyy-MM-dd", new Date()),
-                        {
-                            hours: now.getHours(),
-                            minutes: now.getMinutes(),
-                            seconds: now.getSeconds(),
-                            milliseconds: 0,
-                        }
-                    );
+                    // values.date is a Date from the month picker; store it as
+                    // the first day of the selected month.
+                    incentiveDate = startOfMonth(new Date(values.date));
                 }
 
                 const formData = new FormData();
@@ -165,6 +162,21 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
             }
         },
     });
+
+    const monthPickerOptions = useMemo(
+        () => ({
+            plugins: [
+                monthSelectPlugin({
+                    shorthand: false,
+                    dateFormat: "Y-m",
+                    altFormat: "F Y",
+                }),
+            ],
+            altInput: true,
+            disableMobile: true,
+        }),
+        []
+    );
 
     const handleAttachmentChange = (file) => {
         form.setFieldValue("attachment", file, true);
@@ -264,16 +276,19 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
             {/* DATE */}
             <FormGroup className="mb-3">
                 <Label for="date">
-                    Date <span className="text-danger">*</span>
+                    Incentive for the month of <span className="text-danger">*</span>
                 </Label>
-                <Input
+                <Flatpickr
                     id="date"
-                    type="date"
                     name="date"
                     value={form.values.date}
-                    onChange={form.handleChange}
-                    onBlur={form.handleBlur}
-                    invalid={form.touched.date && !!form.errors.date}
+                    options={monthPickerOptions}
+                    onChange={([date]) => {
+                        form.setFieldValue("date", date ? startOfMonth(date) : "");
+                        form.setFieldTouched("date", true, false);
+                    }}
+                    className={`form-control${form.touched.date && form.errors.date ? " is-invalid" : ""}`}
+                    placeholder="Select month"
                 />
                 {form.touched.date && form.errors.date && (
                     <div className="text-danger small">{form.errors.date}</div>

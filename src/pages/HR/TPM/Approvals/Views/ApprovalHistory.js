@@ -3,16 +3,17 @@ import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { fetchDesignations, fetchTPMs } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { normalizeUnderscores } from "../../../../../utils/normalizeUnderscore";
 import { format } from "date-fns";
 import { Spinner, Input } from "reactstrap";
 import DataTable from "react-data-table-component";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
-import { TPMOptions } from "../../../../../Components/constants/HR";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 import RefreshButton from "../../../../../Components/Common/RefreshButton";
 import { useSearchParams } from "react-router-dom";
@@ -43,25 +44,7 @@ const ApprovalHistory = ({ activeTab }) => {
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === filters.center
@@ -114,8 +97,7 @@ const ApprovalHistory = ({ activeTab }) => {
         const loadDesignations = async () => {
             try {
                 dispatch(fetchDesignations({
-                    status: "APPROVED",
-                    only: TPMOptions
+                    status: ["PENDING", "APPROVED"]
                 })).unwrap();
             } catch (error) {
                 if (!handleAuthError(error)) {
@@ -172,6 +154,18 @@ const ApprovalHistory = ({ activeTab }) => {
             selector: (row) => capitalizeWords(row?.designation?.name
                 ?.toLowerCase()
                 .replace(/_/g, " ")),
+            wrap: true,
+            minWidth: "120px"
+        },
+        {
+            name: "Position",
+            selector: (row) => capitalizeWords(normalizeUnderscores(row?.position?.name) || "-"),
+            wrap: true,
+            minWidth: "120px"
+        },
+        {
+            name: "Department",
+            selector: (row) => capitalizeWords(normalizeUnderscores(row?.department?.name) || "-"),
             wrap: true,
             minWidth: "120px"
         },

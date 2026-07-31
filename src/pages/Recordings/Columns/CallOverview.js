@@ -1,14 +1,11 @@
-import React from 'react';
+import React from "react";
 
 export const CallRecordingsOverviewColumns = ({ page, limit }) => {
-
-
   const getSafeParsedData = (rawData) => {
     if (!rawData) return null;
 
     try {
       if (typeof rawData === "object") return rawData;
-
 
       const cleaned = rawData
         .replace(/```json/g, "")
@@ -22,6 +19,25 @@ export const CallRecordingsOverviewColumns = ({ page, limit }) => {
     }
   };
 
+  const parseGeminiResponse = (raw) => {
+    try {
+      if (!raw) return null;
+
+      // If already an object, return directly
+      if (typeof raw === "object") return raw;
+
+      // Strip markdown fences ```json ... ```
+      const cleaned = raw
+        .replace(/^```json\s*/i, "")
+        .replace(/^```\s*/i, "")
+        .replace(/```\s*$/i, "")
+        .trim();
+
+      return JSON.parse(cleaned);
+    } catch {
+      return null;
+    }
+  };
 
   const getParsed = (row) => {
     if (!row._parsedGemini) {
@@ -53,8 +69,7 @@ export const CallRecordingsOverviewColumns = ({ page, limit }) => {
 
         if (!url) return "-";
 
-        const truncated =
-          url.length > 25 ? url.slice(0, 25) + "..." : url;
+        const truncated = url.length > 25 ? url.slice(0, 25) + "..." : url;
 
         return (
           <a
@@ -97,6 +112,20 @@ export const CallRecordingsOverviewColumns = ({ page, limit }) => {
       selector: (row) => row?.Talk_Time || "-",
       width: "100px",
     },
+    {
+      name: <div className="text-center">Lead Quality</div>,
+      selector: (row) => {
+        const gemini = parseGeminiResponse(row?.Files?.geminiResponse);
+        const raw = gemini?.lead_type || "";
+        const normalized = raw.trim().toLowerCase();
+
+        if (normalized.includes("hot")) return "Hot";
+        if (normalized.includes("normal")) return "Normal";
+        if (normalized.includes("cold")) return "Cold";
+        return "-";
+      },
+      width: "160px",
+    },
 
     // Strengths
     {
@@ -110,7 +139,7 @@ export const CallRecordingsOverviewColumns = ({ page, limit }) => {
         return (
           <div
             style={{
-              padding: "12px 0px"
+              padding: "12px 0px",
             }}
           >
             {content}
@@ -131,7 +160,7 @@ export const CallRecordingsOverviewColumns = ({ page, limit }) => {
         return (
           <div
             style={{
-              padding: "12px 0px"
+              padding: "12px 0px",
             }}
           >
             {content}
@@ -150,7 +179,7 @@ export const CallRecordingsOverviewColumns = ({ page, limit }) => {
         return (
           <div
             style={{
-              padding: "12px 0px"
+              padding: "12px 0px",
             }}
           >
             {data?.coaching || "-"}
@@ -194,9 +223,7 @@ export const CallRecordingsOverviewColumns = ({ page, limit }) => {
             lineHeight: "1.2",
           }}
         >
-          <div style={{ fontWeight: "600", fontSize: "12px" }}>
-            {scoreId}
-          </div>
+          <div style={{ fontWeight: "600", fontSize: "12px" }}>{scoreId}</div>
           <div
             style={{
               fontSize: "11px",

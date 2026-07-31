@@ -5,8 +5,27 @@ export const callRecordingsColumns = (
   recordings,
   setSelectedRecording,
   setShowGenerateModal,
-  canAction
+  canAction,
 ) => {
+  const parseGeminiResponse = (raw) => {
+    try {
+      if (!raw) return null;
+
+      // If already an object, return directly
+      if (typeof raw === "object") return raw;
+
+      // Strip markdown fences ```json ... ```
+      const cleaned = raw
+        .replace(/^```json\s*/i, "")
+        .replace(/^```\s*/i, "")
+        .replace(/```\s*$/i, "")
+        .trim();
+
+      return JSON.parse(cleaned);
+    } catch {
+      return null;
+    }
+  };
 
   const columns = [
     {
@@ -26,9 +45,7 @@ export const callRecordingsColumns = (
 
         if (!response) {
           return (
-            <span style={{ color: "red", fontWeight: 600 }}>
-              Not Generated
-            </span>
+            <span style={{ color: "red", fontWeight: 600 }}>Not Generated</span>
           );
         }
 
@@ -41,9 +58,7 @@ export const callRecordingsColumns = (
         }
 
         return (
-          <span style={{ color: "green", fontWeight: 600 }}>
-            Generated
-          </span>
+          <span style={{ color: "green", fontWeight: 600 }}>Generated</span>
         );
       },
       width: "180px",
@@ -61,7 +76,7 @@ export const callRecordingsColumns = (
                 recordings,
                 index,
                 limit,
-                page
+                page,
               },
             })
           }
@@ -104,6 +119,20 @@ export const callRecordingsColumns = (
     {
       name: <div className="text-center">Talk Time</div>,
       selector: (row) => row?.Talk_Time || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Lead Quality</div>,
+      selector: (row) => {
+        const gemini = parseGeminiResponse(row?.Files?.geminiResponse);
+        const raw = gemini?.lead_type || "";
+        const normalized = raw.trim().toLowerCase();
+
+        if (normalized.includes("hot")) return "Hot";
+        if (normalized.includes("normal")) return "Normal";
+        if (normalized.includes("cold")) return "Cold";
+        return "-";
+      },
       width: "160px",
     },
   ];

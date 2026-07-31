@@ -3,6 +3,7 @@ import { StyleSheet, Font } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 import DetailInfo from "./DetailInfo";
 import DetailHistory from "./DetailHistory";
+import SpecialRequirements from "./SpecialRequirements";
 import MentalExamination from "./MentalExamination";
 import PhysicalExamination from "./PhysicalExamination";
 import Diagnosis from "./Diagnosis";
@@ -11,6 +12,7 @@ import CheifComplaint from "./ChiefComplaint";
 import ProvisionalDiagnosis from "./ProvisionalDaignosis";
 import MentalExaminationBody from "../MentalExaminationBody";
 import { DETAIL_ADMISSION } from "../../../constants/patient";
+import PatientTypeAssessment from "./PatientTypeAssessment";
 
 //table
 // import PrescriptionTable from "./Table";
@@ -130,10 +132,23 @@ const Body = ({ chart, patient, admission }) => {
       />
       <CheifComplaint data={data.ChiefComplaints} styles={styles} />
       {/* <ProvisionalDiagnosis data={data.ProvisionalDiagnosis} styles={styles} /> */}
+      <PatientTypeAssessment
+        patientType={data.patientType}
+        data={data.patientType ? data[`${data.patientType}Fields`] : null}
+        styles={styles}
+      />
       <DetailHistory data={data.detailHistory} styles={styles} />
-      {isOldMentalExamination ? <MentalExamination data={data.mentalExamination} styles={styles} /> : <MentalExaminationBody data={data.mentalExaminationV2} from={DETAIL_ADMISSION} />}
-      <PhysicalExamination data={data.physicalExamination} styles={styles} />
+      {isOldMentalExamination ? (
+        <MentalExamination data={data.mentalExamination} styles={styles} />
+      ) : (
+        <MentalExaminationBody
+          data={data.mentalExaminationV2}
+          from={DETAIL_ADMISSION}
+        />
+      )}
+      {/* <PhysicalExamination data={data.physicalExamination} styles={styles} /> */}
       <Diagnosis data={data.doctorSignature} styles={styles} />
+      <SpecialRequirements data={data.specialRequirements} styles={styles} />
       <DoctorSignature doctor={patient} />
       {/* <View style={{ ...styles.mrgnTop10, ...styles.mrgnBottom10 }}>
         {chart.drNotes && (

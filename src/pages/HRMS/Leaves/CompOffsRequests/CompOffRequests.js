@@ -8,6 +8,7 @@ import { toast } from 'react-toastify';
 import classnames from "classnames";
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
 import { useSelector } from 'react-redux';
+import { useCenterOptions } from '../../../../Components/Hooks/useCenterOptions';
 import Select from "react-select";
 
 const CompOffRequests = () => {
@@ -116,24 +117,7 @@ const CompOffRequests = () => {
         value: currentYear - i,
     }));
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [
-                {
-                    value: "ALL",
-                    label: "All Centers",
-                    isDisabled: false,
-                },
-            ]
-            : []),
-        ...(user?.centerAccess?.map((id) => {
-            const center = user?.userCenters?.find((c) => c._id === id);
-            return {
-                value: id,
-                label: center?.title || "Unknown Center",
-            };
-        }) || []),
-    ];
+    const centerOptions = useCenterOptions();
 
 
     useEffect(() => {

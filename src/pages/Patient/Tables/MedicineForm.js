@@ -68,10 +68,19 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
       };
     } else if (prop === "frequency") {
       drugsTable[index].frequencyPreset = "custom";
+      drugsTable[index].frequencyType = "interval";
       drugsTable[index][prop] = value;
+    } else if (prop === "monthlyDate") {
+      drugsTable[index].monthlyDate = value;
     } else if (prop === "frequencyPreset") {
       drugsTable[index].frequencyPreset = value;
-      if (value === "custom") {
+      if (value === "monthly") {
+        drugsTable[index].frequencyType = "monthly";
+        if (!drugsTable[index].monthlyDate) {
+          drugsTable[index].monthlyDate = 1;
+        }
+      } else if (value === "custom") {
+        drugsTable[index].frequencyType = "interval";
         const currentFrequency = normalizeMedicineFrequency(
           drugsTable[index].frequency
         );
@@ -80,6 +89,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
             ? ""
             : currentFrequency;
       } else {
+        drugsTable[index].frequencyType = "interval";
         drugsTable[index].frequency = normalizeMedicineFrequency(value);
       }
     } else {
@@ -478,16 +488,32 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         bsSize={"sm"}
                         id={idx}
                         onChange={handleChange}
-                        value={medicine.frequencyPreset ?? getMedicineFrequencyPreset(medicine.frequency)}
+                        value={medicine.frequencyPreset ?? getMedicineFrequencyPreset(medicine)}
                         type="select"
                       >
                         <option value="1">Daily</option>
                         <option value="2">Alternate days</option>
                         <option value="15">Every 15 days</option>
                         <option value="30">Every 30 days</option>
+                        <option value="monthly">Specific date every month</option>
                         <option value="custom">Custom days</option>
                       </Input>
-                      {(medicine.frequencyPreset === "custom" || (!medicine.frequencyPreset && getMedicineFrequencyPreset(medicine.frequency) === "custom")) && (
+                      {(medicine.frequencyPreset === "monthly" || (!medicine.frequencyPreset && getMedicineFrequencyPreset(medicine) === "monthly")) && (
+                        <div className="position-relative mt-2">
+                          <Input
+                            name="monthlyDate"
+                            type="number"
+                            min="1"
+                            max="31"
+                            placeholder="Day of month (1-31)"
+                            onChange={handleChange}
+                            value={medicine.monthlyDate ?? ""}
+                            bsSize={"sm"}
+                            id={idx}
+                          />
+                        </div>
+                      )}
+                      {(medicine.frequencyPreset === "custom" || (!medicine.frequencyPreset && getMedicineFrequencyPreset(medicine) === "custom")) && (
                         <div className="position-relative mt-2">
                           <Input
                             name="frequency"
@@ -520,7 +546,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         </div>
                       )}
                       <div className="text-muted mt-1" style={{ fontSize: "12px" }}>
-                        {getMedicineFrequencyLabel(medicine.frequency)}
+                        {getMedicineFrequencyLabel(medicine)}
                       </div>
                     </div>
                   </Col>

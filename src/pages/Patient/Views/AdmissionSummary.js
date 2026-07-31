@@ -7,7 +7,7 @@ import {
 import { normalizeSummary } from "./Components/normalizeSummary";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
-const AdmissionSummary = ({ patient, addmission }) => {
+const AdmissionSummary = ({ patient, patientProfile, addmission }) => {
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
   const [generating, setGenerating] = useState(false);
@@ -24,7 +24,11 @@ const AdmissionSummary = ({ patient, addmission }) => {
   const load = async () => {
     setLoading(true);
     try {
-      const response = await getAddmissionSummary(addmission);
+      console.log("patient", patientProfile);
+
+      const response = await getAddmissionSummary(
+        patientProfile?.addmission?._id,
+      );
       const raw = response?.data?.summary;
       const normalized = normalizeSummary(raw);
       setSummary(normalized);
@@ -137,7 +141,27 @@ const AdmissionSummary = ({ patient, addmission }) => {
         if (s >= 13) return "Mild Impairment";
         if (s >= 9) return "Moderate Impairment";
         return "Severe Impairment";
+      case "CGI-S":
+        if (s === 1) return "Normal";
+        if (s === 2) return "Borderline";
+        if (s === 3) return "Mildly Ill";
+        if (s === 4) return "Moderately Ill";
+        if (s === 5) return "Markedly Ill";
+        if (s === 6) return "Severely Ill";
+        return "Extremely Ill";
 
+      case "COWS":
+        if (s <= 4) return "No Withdrawal";
+        if (s <= 12) return "Mild Withdrawal";
+        if (s <= 24) return "Moderate Withdrawal";
+        if (s <= 36) return "Moderately Severe";
+        return "Severe Withdrawal";
+
+      case "AUDIT":
+        if (s <= 7) return "Low Risk";
+        if (s <= 15) return "Hazardous Use";
+        if (s <= 19) return "Harmful Use";
+        return "Possible Dependence";
       default:
         return null;
     }

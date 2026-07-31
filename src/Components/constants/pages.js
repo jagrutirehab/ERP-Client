@@ -222,8 +222,9 @@ const pages = [
   {
     id: "referral",
     label: "Referral",
+    displayLabel: "Contacts",
     name: "Referral",
-    link: "/referral",
+    link: "/contacts",
     icon: "bx bx-share-alt",
     permissions: {
       create: true,
@@ -294,6 +295,13 @@ const pages = [
     icon: "bx bx-book",
   },
   {
+    id: "masterdata",
+    label: "Master Data",
+    name: "Master Data",
+    link: "/master-data",
+    icon: "bx bx-purchase-tag-alt",
+  },
+  {
     id: "tranings",
     label: "Trainings",
     name: "Trainings",
@@ -320,6 +328,13 @@ const pages = [
     name: "Issues",
     link: "/issues",
     icon: "bx bx-error-circle",
+  },
+  {
+    id: "marketing",
+    label: "Marketing",
+    name: "Marketing",
+    link: "/marketing",
+    icon: "bx bx-map-pin",
   },
   {
     id: "recordings",
@@ -586,6 +601,12 @@ export const setting = [
     link: "/setting/hr/configs",
     icon: "bx bx-health",
   },
+  {
+    id: "documentinputconfig",
+    label: "Document Configuration",
+    link: "/setting/document/input/configs",
+    icon: "bx bx-health",
+  },
 ];
 
 export const recyclebin = [
@@ -671,6 +692,18 @@ export const HR = [
         icon: "bx bx-list-ul",
       },
       {
+        id: "all-regularizations",
+        label: "All Regularizations",
+        link: "/hr/all/regularizations",
+        icon: "bx bx-reset",
+      },
+      {
+        id: "create-regularization",
+        label: "Create Regularization",
+        link: "/hr/create/regularization",
+        icon: "bx bx-plus-circle",
+      },
+      {
         id: "comp-off-history",
         label: "Comp Off History",
         link: "/hr/all/compOffs",
@@ -687,6 +720,12 @@ export const HR = [
         label: "Transfer Manager Approvals",
         icon: "bx bx-line-chart",
         link: "/hr/transfer/manager/approvals",
+      },
+      {
+        id: "employee-documents",
+        label: "Employee Documents",
+        icon: "bx bx-file",
+        link: "/hr/employee/docs",
       },
     ],
   },
@@ -1260,12 +1299,25 @@ export const ISSUES = [
     link: "/issues/hr/issues",
   },
 
-  // {
-  //   id: "hr-issues-requests",
-  //   label: "HR Tickets Requests",
-  //   icon: "bx bx-envelope-open",
-  //   link: "/issues/hr/issues/requests",
-  // },
+  {
+    id: "maintenance-issues",
+    label: "Maintenance Tickets",
+    icon: "bx bx-wrench",
+    link: "/issues/maintenance/issues",
+  },
+  {
+    id: "complaint-issues",
+    label: "Complaint Tickets",
+    icon: "bx bx-flag",
+    link: "/issues/complaint/issues",
+  },
+  {
+    id: "operational-issues",
+    label: "Operational Issues",
+    icon: "bx bx-briefcase",
+    link: "/issues/operational/issues",
+  },
+
   {
     id: "my-issues",
     label: "My Assigned Tickets",
@@ -1289,6 +1341,27 @@ export const ISSUES = [
     label: "Finance Tickets Approval",
     icon: "bx bx-receipt",
     link: "/issues/finance/payslips/tickets",
+  },
+];
+
+export const MARKETING = [
+  {
+    id: "visit-log-add",
+    label: "Add Visit Log",
+    icon: "bx bx-plus-circle",
+    link: "/marketing/visit-log/add",
+  },
+  {
+    id: "visit-log-list",
+    label: "All Visit Logs",
+    icon: "bx bx-list-ul",
+    link: "/marketing/visit-log/list",
+  },
+  {
+    id: "agent-report",
+    label: "Agent Report",
+    icon: "bx bx-bar-chart-alt-2",
+    link: "/marketing/reports/agent",
   },
 ];
 
@@ -1384,6 +1457,50 @@ export const TRAININGS = [
     link: "/trainings/get/record",
     icon: "bx bx-spreadsheet",
   },
+];
+export const MASTER_DATA = [
+  {
+    id: "masterdata-vendor",
+    label: "Vendors",
+    link: "/master-data/vendor",
+    icon: "bx bx-store",
+  },
+  // {
+  //   id: "masterdata-customer",
+  //   label: "Customers",
+  //   link: "/master-data/customer",
+  //   icon: "bx bx-user",
+  // },
+  // {
+  //   id: "masterdata-uom",
+  //   label: "Unit of Measurement",
+  //   link: "/master-data/uom",
+  //   icon: "bx bx-ruler",
+  // },
+  // {
+  //   id: "masterdata-payment-term",
+  //   label: "Payment Terms",
+  //   link: "/master-data/payment-term",
+  //   icon: "bx bx-credit-card",
+  // },
+  // {
+  //   id: "masterdata-delivery-partner",
+  //   label: "Delivery Partners",
+  //   link: "/master-data/delivery-partner",
+  //   icon: "bx bx-car",
+  // },
+  // {
+  //   id: "masterdata-asset-category",
+  //   label: "Asset Categories",
+  //   link: "/master-data/asset-category",
+  //   icon: "bx bx-category",
+  // },
+  // {
+  //   id: "masterdata-department",
+  //   label: "Departments",
+  //   link: "/master-data/department",
+  //   icon: "bx bx-building",
+  // },
 ];
 
 export default pages;

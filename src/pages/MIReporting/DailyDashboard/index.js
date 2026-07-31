@@ -28,7 +28,7 @@ const METRICS = [
     { label: "Form-3 Psychologist Training Pointers (Monthly)", key: "form_3",             compliance: true },
     { label: "Form-4 MSW/New Joinee Training (Monthly)",        key: "form_4",             compliance: true },
     { label: "Frisiking (Monthly)",                             key: "frisking",           compliance: true },
-    { label: "Cash Per Center Remaining(Monthly)",              key: "cash_remaining",     compliance: false },
+    { label: "Cash Per Center Remaining",                       key: "cash_remaining",     compliance: false },
     { label: "Due Amount",                                      key: "due_amount",         compliance: false },
 ];
 
@@ -87,6 +87,8 @@ const DailyDashboard = () => {
         background: idx % 2 === 0 ? "#f8fafc" : "#fff",
         whiteSpace: "nowrap",
     });
+
+    document.title = "Daily Dashboard";
 
     return (
         <div className="mt-4 mt-sm-0" style={{ maxWidth: 700 }}>

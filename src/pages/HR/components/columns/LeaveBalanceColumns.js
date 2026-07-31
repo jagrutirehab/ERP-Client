@@ -129,44 +129,6 @@ export const leaveBalanceColumns = ({ searchText }) => [
     minWidth: "200px",
   },
   {
-    name: <div>Comp Offs</div>,
-    selector: (row) => row?.leaveData?.compOff?.balance || 0,
-    cell: (row) => {
-      const fl = row?.leaveData?.compOff;
-      return (
-        <div className="py-2" style={{ width: "100%" }}>
-          <div
-            style={{
-              display: "flex",
-              borderBottom: "1px solid #f0f0f0",
-              paddingBottom: "2px",
-              marginBottom: "2px",
-            }}
-          >
-            <b style={{ width: "80px" }}>Spent:</b>{" "}
-            <span>{fl?.spent || 0}</span>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              borderBottom: "1px solid #f0f0f0",
-              paddingBottom: "2px",
-              marginBottom: "2px",
-            }}
-          >
-            <b style={{ width: "80px" }}>Balance:</b>{" "}
-            <span>{fl?.balance || 0}</span>
-          </div>
-          <div style={{ display: "flex" }}>
-            <b style={{ width: "80px" }}>Total:</b>{" "}
-            <span>{fl?.total || 0}</span>
-          </div>
-        </div>
-      );
-    },
-    minWidth: "200px",
-  },
-  {
     name: <div>Week Offs</div>,
     selector: (row) => row?.leaveData?.weekOffs?.spent || 0,
     cell: (row) => {
@@ -184,10 +146,27 @@ export const leaveBalanceColumns = ({ searchText }) => [
             <b style={{ width: "80px" }}>Applied:</b>{" "}
             <span>{wo?.taken || 0}</span>
           </div>
-          <div style={{ display: "flex" }}>
+          <div
+            style={{
+              display: "flex",
+              ...(wo?.hasBalance
+                ? {
+                    borderBottom: "1px solid #f0f0f0",
+                    paddingBottom: "2px",
+                    marginBottom: "2px",
+                  }
+                : {}),
+            }}
+          >
             <b style={{ width: "80px" }}>Approved:</b>{" "}
             <span>{wo?.spent || 0}</span>
           </div>
+          {wo?.hasBalance && (
+            <div style={{ display: "flex" }}>
+              <b style={{ width: "80px" }}>Balance:</b>{" "}
+              <span>{wo?.balance || 0}</span>
+            </div>
+          )}
         </div>
       );
     },

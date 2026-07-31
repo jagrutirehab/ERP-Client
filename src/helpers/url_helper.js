@@ -512,12 +512,15 @@ export const GET_CITY_LEAD_STATUS = "/mi-reporting/city-lead-status";
 export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
 export const GET_CENTER_WISE_MOM = "/mi-reporting/center-wise-mom";
 export const GET_CAMPAIGN_WISE_MOM = "/mi-reporting/campaign-wise-mom";
-export const GET_CENTER_WISE_STATUS_MOM = "/mi-reporting/center-lead-status-mom";
+export const GET_CENTER_WISE_STATUS_MOM =
+  "/mi-reporting/center-lead-status-mom";
 
 //MIS Reports
 export const GET_REFUND_AMOUNT_MOM = "/mi-reporting/refund-amount-mom";
 export const GET_ROUND_NOTES_DOD = "/mi-reporting/round-notes-dod";
 export const GET_CLINICAL_NOTES_DOD = "/mi-reporting/clinical-notes-dod";
+export const GET_COUNSELLING_SESSIONS_PATIENTS_DOD =
+  "/mi-reporting/counselling-sessions-patients-dod";
 export const GET_VITAL_SIGNS_DOD = "/mi-reporting/vital-signs-dod";
 export const GET_NURSES_DOD = "/mi-reporting/nurses-dod";
 export const GET_PATIENT_DOCS = "/mi-reporting/get-patient-docs";
@@ -530,6 +533,16 @@ export const GET_DAILY_DASHBOARD = "/mi-reporting/daily-dashboard";
 export const GET_DOCS_COMPLIANCE = "/mi-reporting/docs-compliance";
 export const GET_DUE_AMOUNT = "/mi-reporting/get-due-amount";
 export const GET_MI_ATTENDANCE = "/mi-reporting/get-attendance";
+export const GET_CASH_PER_CENTER = "/mi-reporting/cash-per-center";
+export const GET_WRITE_OFF_AMOUNT = "/mi-reporting/write-off-amount";
+export const GET_TRAINING_FORMS_WEEKLY = "/mi-reporting/training-forms-weekly";
+export const GET_TRAINING_FORMS_MONTHLY =
+  "/mi-reporting/training-forms-monthly";
+export const GET_AUDIT_DAILY = "/mi-reporting/audit-daily";
+export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
+export const GET_OCCUPANCY_MONTHLY = "/mi-reporting/occupancy-monthly";
+export const GET_ADMISSION_DISCHARGE_DAILY =
+  "/mi-reporting/admission-discharge-daily";
 
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
@@ -662,6 +675,11 @@ export const GET_TEMPORARY_MANAGER = "/hrms/get/temporary/manager";
 // FOR HR
 export const GET_LEAVES = "/hrms/leave/get/leaves";
 export const APPROVE_LEAVE = "/hrms/leave/change/status/byhr";
+export const GET_ALL_REGULARIZATIONS = "/hrms/regularizations/get/all";
+export const APPROVE_REGULARIZATION_BYHR =
+  "/hrms/regularize/change/status/byhr";
+export const CREATE_APPROVE_REGULARIZATION_BYHR =
+  "/hrms/regularize/create/approve/byhr";
 export const GET_ALL_COMP_OFFS = "/hrms/leave/get/all/comp-offs";
 export const GET_MY_COMP_OFFS = "/hrms/leaves/get/my/comp-offs";
 
@@ -695,6 +713,7 @@ export const GET_FINANCE_ISSUES = "/issues/finance/issues/tax/compliance";
 export const GET_PAYSLIPS_ISSUES_REQUESTS =
   "/issues/get/finance/payslip/requests";
 export const ADD_ISSUE_NOTE = "/issues/note/add";
+export const GET_CENTRE_MANAGERS = "/issues/get/centre-managers";
 export const POST_EMPLOYEE_FORM = "/hr/create/employee/form";
 export const EMPLOYEE_FORMS = "/hr/get/employee/forms";
 export const DELETE_EMPLOYEE_FORM = "/hr/delete/employee/form";
@@ -774,6 +793,7 @@ export const GENERATE_ADDMISSION_SUMMARY =
   "/patient/generate/addmission/summary";
 
 export const GET_ADDMISSION_SUMMARY = "/patient/get/addmission/summary";
+export const GET_PATIENT_BIODATA = "/patient/get/patient/bio/data/:id";
 
 export const POST_PSYCHO_DIAGNOSTIC_FORM = "/chart/psycho-diagnostic-form";
 export const EDIT_PSYCHO_DIAGNOSTIC_FORM = "/chart/psycho-diagnostic-form";
@@ -785,3 +805,31 @@ export const DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE =
   "/chart/psycho-diagnostic-form";
 export const GENERATE_PSYCHO_DIAGNOSTIC_SUMMARY =
   "/chart/generate/summary/psycho-diagnostic-form";
+
+export const POST_VISIT_LOG = "/marketing/visit-log";
+export const GET_VISIT_LOGS = "/marketing/visit-log";
+
+export const GET_VENDORS = "/master/vendor";
+export const VENDOR_BASE = "/master/vendor";
+
+export const CONFIGURATION_DOCS = "/hr/doc/configuration";
+
+export const DOC_INPUT_POST = "/hr/doc/post";
+export const DOC_INPUT_EDIT = "/hr/doc/edit";
+export const DOC_INPUT_DELETE = "/hr/doc/delete";
+export const DOC_INPUT_GET = "/hr/doc/get";
+
+export const EMPLOYEE_DOC_FIELDS = "/hr/doc/employee-documents/fields";
+export const EMPLOYEE_DOC_UPLOAD = "/hr/doc/employee-documents/upload";
+export const EMPLOYEE_DOC_DELETE = "/hr/doc/employee-documents";
+export const EMPLOYEE_DOC_BY_ID = "/hr/doc/employee-documents";
+
+export const EMPLOYEE_DOC_DELETE_BY_EMP_ID = "/hr/doc/employee-documents";
+
+export const EMPLOYEE_DOC_BY_EMPID = "/hr/doc/employee-documents/by-employee";
+export const EMPLOYEE_DOCS = "/hr/doc/employee-documents/all";
+export const REVIEW_DOC = "/hr/doc/employee-documents";
+
+export const CGIS_TEST = "/clinical-test/cgis-test";
+export const COWS_TEST = "/clinical-test/cows-test";
+export const AUDIT_TEST = "/clinical-test/audit-test";

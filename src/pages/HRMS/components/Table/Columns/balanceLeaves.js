@@ -1,4 +1,7 @@
-export const balanceLeavesColumn = () => [
+export const balanceLeavesColumn = ({
+  showWeekOffs = false,
+  showCompOff = false,
+} = {}) => [
   {
     name: "Category",
     cell: (row) => row.category,
@@ -11,18 +14,27 @@ export const balanceLeavesColumn = () => [
     name: "Festive",
     cell: (row) => row.festiveLeaves ?? "-",
   },
-  // {
-  //   name: "Week Offs",
-  //   cell: (row) => row.weekOffs ?? "-",
-  // },
+  // Week-off balance is only relevant for rotational-shift employees.
+  ...(showWeekOffs
+    ? [
+        {
+          name: "Week Offs",
+          cell: (row) => row.weekOffs ?? "-",
+        },
+      ]
+    : []),
   {
     name: "Unpaid",
     cell: (row) => row.unpaidLeaves ?? "-",
   },
-  {
-    name: "Comp-Off's",
-    cell: (row) => row.compOff ?? "-",
-  },
+  ...(showCompOff
+    ? [
+        {
+          name: "Comp-Off's",
+          cell: (row) => row.compOff ?? "-",
+        },
+      ]
+    : []),
   // {
   //   name: "Comp-Off Carry Forwards",
   //   cell: (row) => {

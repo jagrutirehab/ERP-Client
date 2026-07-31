@@ -33,6 +33,7 @@ const LeaveApplications = () => {
   const [managerName, setManagerName] = useState("");
   const [manager, setManager] = useState();
   const [regularizationDates, setRegularizationDates] = useState([]);
+  const [isHeadOffice, setIsHeadOffice] = useState(false);
   const handleAuthError = useAuthError();
 
   const navigate = useNavigate();
@@ -125,6 +126,7 @@ const LeaveApplications = () => {
       const response = await getLeavesAndRegs();
 
       setRegularizationDates(response?.regularizations || []);
+      setIsHeadOffice(Boolean(response?.isHeadOffice));
     } catch (error) {
       console.log("Error", error);
     }
@@ -237,10 +239,15 @@ const LeaveApplications = () => {
                   <option value="WEEK_OFFS">Week Off</option>
                   <option value="FESTIVE_LEAVE">Festive Leave</option>
                   <option value="LEAVE_WTIHOUT_PAYS">Unpaid Leave</option>
-                  <option value="COMP_OFF_REQUEST">
-                    Comp-Off Addition Request
-                  </option>
-                  <option value="COMP_OFF">Comp-Off Apply</option>
+                  {/* Comp-off is Head-Office-only; hidden for others. */}
+                  {isHeadOffice && (
+                    <>
+                      <option value="COMP_OFF_REQUEST">
+                        Comp-Off Addition Request
+                      </option>
+                      <option value="COMP_OFF">Comp-Off Apply</option>
+                    </>
+                  )}
                 </select>
               </div>
 

@@ -17,6 +17,7 @@ const Givemedicine = ({
 }) => {
   const dispatch = useDispatch();
   const centerAccess = useSelector((state) => state.User.centerAccess);
+  const centerList = useSelector((state) => state.Center.data);
   const [selectedCenter, setSelectedCenter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -33,12 +34,10 @@ const Givemedicine = ({
   const onChangeData = (value) => setValue(value);
 
 
-  const centerOptions = user?.userCenters
-    ?.filter(center => user?.centerAccess?.includes(center._id))
-    ?.map((center) => ({
-      value: center?._id ?? "",
-      label: center?.title ?? center?.name ?? "Unknown Center",
-    })) || [];
+  const centerOptions = centerList?.map((center) => ({
+    value: center?._id ?? "",
+    label: center?.title ?? "Unknown Center",
+  })) || [];
 
   const getCenters = () => {
     if (selectedCenter && selectedCenter !== "") {

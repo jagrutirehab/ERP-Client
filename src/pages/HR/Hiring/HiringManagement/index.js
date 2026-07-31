@@ -14,6 +14,7 @@ import { fetchDesignations } from "../../../../store/features/HR/hrSlice";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { HiringPreferredGenderOptions } from "../../../../Components/constants/HR";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
+import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
 import { useNavigate } from "react-router-dom";
 
 const HiringManagement = () => {
@@ -51,24 +52,7 @@ const HiringManagement = () => {
   const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "MY_HIRING_STATUS", "READ");
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [
-          {
-            value: "ALL",
-            label: "All Centers",
-            isDisabled: false,
-          },
-        ]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === filters.center) ||

@@ -1,9 +1,15 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
+import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col, Input } from "reactstrap";
 import { CSVLink } from "react-csv";
 import { fetchMIAttendance } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
+
+const MONTH_OPTIONS = [
+    { value: "CURRENT", label: "Current Month" },
+    { value: "LAST", label: "Last Month" },
+];
 
 const Attendance = () => {
     const dispatch = useDispatch();
@@ -13,6 +19,10 @@ const Attendance = () => {
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [selectedMonth, setSelectedMonth] = useState("CURRENT");
+    const [searchInput, setSearchInput] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
+    const [isSearching, setIsSearching] = useState(false);
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
@@ -21,15 +31,31 @@ const Attendance = () => {
         dispatch(fetchMIAttendance({ centerAccess }));
     }, [dispatch, centerAccess]);
 
+    useEffect(() => {
+        if (searchInput === searchTerm) return;
+        setIsSearching(true);
+        const timeout = setTimeout(() => {
+            setSearchTerm(searchInput);
+            setIsSearching(false);
+        }, 1500);
+        return () => clearTimeout(timeout);
+    }, [searchInput, searchTerm]);
+
     const data = useMemo(() => miAttendance?.data || miAttendance || [], [miAttendance]);
 
     const filteredData = useMemo(() => {
+        const term = searchTerm.trim().toLowerCase();
         return data.filter((item) => {
-            // console.log(item)
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
+            if (selectedMonth === "CURRENT" && item?.exited_last_month) return false;
+            if (term) {
+                const ecode = (item?.ecode || "").toLowerCase();
+                const name = (item?.employee_name || "").toLowerCase();
+                if (!ecode.includes(term) && !name.includes(term)) return false;
+            }
             return true;
         });
-    }, [data, selectedCenter]);
+    }, [data, selectedCenter, selectedMonth, searchTerm]);
 
     const last60Days = useMemo(() => {
         const days = [];
@@ -52,15 +78,16 @@ const Attendance = () => {
         })),
     ], [data]);
 
-    const labels = ["Ecode", "Employee Name", "Center Name", "Designation","MTD", "Actual Attendance",];
-    const fixedColWidths = [90, 180, 120, 220, 55, 120];
+    const labels = ["Ecode", "Employee Name", "Center Name", "Designation", "Joining Date", "MTD", "Actual Att.",];
+    const fixedColWidths = [90, 130, 100, 130, 100, 55, 100];
     const labelsMapping = {
         "Ecode": "ecode",
         "Employee Name": "employee_name",
         "Center Name": "center_name",
         "Designation": "designation",
-        "Actual Attendance": "actual_attendance",
-        "MTD": "att_till_date",
+        "Joining Date": "joining_date",
+        "Actual Att.": selectedMonth === "LAST" ? "last_month_actual_attendance" : "actual_attendance",
+        "MTD": selectedMonth === "LAST" ? "last_month_att" : "att_till_date",
     };
 
     const dateTotals = useMemo(() => {
@@ -98,6 +125,8 @@ const Attendance = () => {
             setCsvLoading(false);
         }, 100);
     };
+
+    document.title = "Attendance";
 
     return (
         <div
@@ -154,19 +183,35 @@ const Attendance = () => {
                                     placeholder="Center..."
                                 />
                             </Col>
+                            <Col md={2}>
+                                <Select
+                                    value={MONTH_OPTIONS.find((o) => o.value === selectedMonth) || MONTH_OPTIONS[0]}
+                                    onChange={(opt) => setSelectedMonth(opt.value)}
+                                    options={MONTH_OPTIONS}
+                                    placeholder="Month..."
+                                />
+                            </Col>
+                            <Col md={2}>
+                                <Input
+                                    type="text"
+                                    placeholder="Search Ecode or Name..."
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                />
+                            </Col>
                         </Row>
                         <Card>
                             <CardBody>
-                                {loading && (
+                                {(loading || isSearching) && (
                                     <div className="text-center py-5">
                                         <Spinner color="primary" />
-                                        <p className="mt-2 text-muted">Loading data...</p>
+                                        <p className="mt-2 text-muted">{isSearching ? "Searching..." : "Loading data..."}</p>
                                     </div>
                                 )}
 
-                                {error && !loading && <Alert color="danger">{error}</Alert>}
+                                {error && !loading && !isSearching && <Alert color="danger">{error}</Alert>}
 
-                                {!loading && !error && (
+                                {!loading && !isSearching && !error && (
                                     <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
                                         <Table
                                             className="mb-0 w-100"
@@ -187,7 +232,7 @@ const Attendance = () => {
                                                                 ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 11 }),
                                                             }}
                                                         >
-                                                            {i === labels.length - 1 ? "Total Employees" : ""}
+                                                            {i === labels.length - 1 ? "Total Empl." : ""}
                                                         </th>
                                                     ))}
                                                     {last60Days.map(({ key }) => (
@@ -287,7 +332,15 @@ const Attendance = () => {
                                                                 }}
                                                             >
                                                                 {label === "Designation"
-                                                                    ? (emp[labelsMapping[label]] ?? "").slice(0, 25)
+                                                                    ? (emp[labelsMapping[label]] ?? "").slice(0, 20)
+                                                                    : (label === "Employee Name" || label === "Ecode")
+                                                                    ? (
+                                                                        <Link to={`/hr/attendance/employee?id=${emp.employee_mongo_id}`} className="text-dark" target="_blank" rel="noopener noreferrer">
+                                                                            {label === "Employee Name"
+                                                                                ? (emp[labelsMapping[label]] ?? "").slice(0, 20)
+                                                                                : emp[labelsMapping[label]] ?? ""}
+                                                                        </Link>
+                                                                    )
                                                                     : emp[labelsMapping[label]] ?? ""}
                                                             </td>
                                                         ))}

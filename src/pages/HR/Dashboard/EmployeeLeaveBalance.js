@@ -8,6 +8,7 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { fetchAllEmployeeLeaveBalance } from "../../../store/features/HR/hrSlice";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import { leaveBalanceColumns } from "../components/columns/LeaveBalanceColumns";
 import DataTableComponent from "../../../Components/Common/DataTable";
 import RefreshButton from "../../../Components/Common/RefreshButton";
@@ -39,24 +40,7 @@ const EmployeeLeaveBalanceDashboard = () => {
     const hasUserPermission = hasPermission("HR", "LEAVE_BALANCE_DASHBOARD", "READ");
     const columns = leaveBalanceColumns({ searchText: debouncedSearch });
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [
-                {
-                    value: "ALL",
-                    label: "All Centers",
-                    isDisabled: false,
-                },
-            ]
-            : []),
-        ...(user?.centerAccess?.map((id) => {
-            const center = user?.userCenters?.find((c) => c._id === id);
-            return {
-                value: id,
-                label: center?.title || "Unknown Center",
-            };
-        }) || []),
-    ];
+    const centerOptions = useCenterOptions();
 
     const yearOptions = Array.from({ length: 6 }, (_, i) => {
         const y = 2025 + i;

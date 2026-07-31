@@ -14,6 +14,7 @@ import Header from "../../Report/Components/Header";
 import { DAY_LABELS, SHIFT_STYLES } from "../../../Components/constants/HRMS";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import RotationalShiftBulkModal from "../components/RotationalShiftBulkModal";
 import { toTimeZoneDateKey } from "../../../utils/date";
 
@@ -85,15 +86,7 @@ const ShiftRoaster = () => {
   const hasUserPermission = hasPermission("HR", "SHIFT_ROSTER", "READ");
   const hasWritePermission = hasPermission("HR", "SHIFT_ROSTER", "WRITE") || hasPermission("HR", "SHIFT_ROSTER", "DELETE");
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [{ value: "ALL", label: "All Centers" }]
-      : []),
-    ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
-      return { value: id, label: center?.title || "Unknown Center" };
-    }) || []),
-  ];
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption = centerOptions.find(
     (opt) => opt.value === selectedCenter

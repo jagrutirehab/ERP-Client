@@ -92,7 +92,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
                         : isInputOutput
                           ? "Input - Output"
                           : isNurseSosProcedure
-                            ? "Nurse SOS Procedure"
+                            ? "Nurse Procedure"
                             : isInjuryMarks
                               ? "Patient Injury Marks"
                               : isEctSession
@@ -135,8 +135,8 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isNurseSosProcedure && <NurseSosProcedure {...rest} />}
         {isInjuryMarks && <InjuryMarks {...rest} />}
         {isEctSession && <EctSession {...rest} />}
-      </CustomModal >
-    </React.Fragment >
+      </CustomModal>
+    </React.Fragment>
   );
 };
 

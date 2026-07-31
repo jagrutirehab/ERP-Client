@@ -92,6 +92,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const user = useSelector((state) => state.User);
+    const centerList = useSelector((state) => state.Center.data);
     const { submitLoading } = useSelector((state) => state.Pharmacy);
 
     const microUser = localStorage.getItem("micrologin");
@@ -124,14 +125,11 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const searchTimerRef = useRef(null);
     const [medicineKey, setMedicineKey] = useState(0);
 
-    const requisingCenterOptions = (user?.centerAccess || [])
-        .filter((cid) => !SPECIAL_ORDER_CENTERS.some((special) => special.id === cid))
-        .map((cid) => {
-            const center = (user?.userCenters || []).find((c) => c._id === cid);
-            return { value: cid, label: center?.title || "Unknown Center" };
-        });
+    const requisingCenterOptions = (centerList || [])
+        .filter((c) => !SPECIAL_ORDER_CENTERS.some((special) => special.id === c._id))
+        .map((c) => ({ value: c._id, label: c.title || "Unknown Center" }));
 
-    const fulfillingCenterOptions = (user?.userCenters || [])
+    const fulfillingCenterOptions = (centerList || [])
         .filter((c) => {
             if (isSareyaanOrder) return SPECIAL_ORDER_CENTERS.some((special) => special.id === c._id);
             return !SPECIAL_ORDER_CENTERS.some((special) => special.id === c._id);

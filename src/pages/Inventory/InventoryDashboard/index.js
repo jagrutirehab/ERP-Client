@@ -144,6 +144,7 @@ const TableCell = ({ children, style = {}, colSpan }) => (
 
 const App = () => {
   const user = useSelector((state) => state.User);
+  const centerList = useSelector((state) => state.Center.data);
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -170,13 +171,10 @@ const App = () => {
       : []
     ),
     ...(
-      user?.centerAccess?.map(id => {
-        const center = user?.userCenters?.find(c => c._id === id);
-        return {
-          value: id,
-          label: center?.title || "Unknown Center"
-        };
-      }) || []
+      centerList?.map(c => ({
+        value: c._id,
+        label: c.title,
+      })) || []
     )
   ];
 

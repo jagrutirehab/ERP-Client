@@ -30,6 +30,7 @@ import {
     employeeTransferTransferLocationAction,
 } from '../../../../helpers/backend_helper';
 import CheckPermission from '../../../../Components/HOC/CheckPermission';
+import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
 
 // Maps inbox type → ApproveModal mode
 const TYPE_TO_MODE = {
@@ -49,7 +50,7 @@ const TYPE_TO_MODE = {
 const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
-    const { centerAccess, userCenters } = useSelector((state) => state.User);
+    const { centerAccess } = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
     const [selectedCenter, setSelectedCenter] = useState("ALL");
@@ -73,25 +74,7 @@ const PendingApprovals = ({ activeTab }) => {
     const { hasPermission, roles } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "MY_PENDING_APPROVALS", "READ");
 
-    const centerOptions = [
-        ...(centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            centerAccess?.map(id => {
-                const center = userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter

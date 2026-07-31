@@ -12,7 +12,7 @@ import Select from "react-select";
 import { formatCurrency } from "../../../../../utils/formatCurrency";
 
 
-const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTab }) => {
+const UTRCofrmation = ({ loading, approvals, centerAccess, centers: userAccessibleCenters, activeTab }) => {
 
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
@@ -37,13 +37,10 @@ const UTRCofrmation = ({ loading, approvals, centerAccess, userCenters, activeTa
             : []
         ),
         ...(
-            centerAccess?.map(id => {
-                const center = userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
+            userAccessibleCenters?.map(c => ({
+                value: c._id,
+                label: c.title,
+            })) || []
         )
     ];
 
@@ -219,13 +216,13 @@ UTRCofrmation.prototype = {
     loading: PropTypes.bool,
     approvals: PropTypes.object,
     centerAccess: PropTypes.array,
-    userCenters: PropTypes.array,
+    centers: PropTypes.array,
     activeTab: PropTypes.string,
 }
 
 const mapStateToProps = (state) => ({
     centerAccess: state.User?.centerAccess,
-    userCenters: state.User?.userCenters,
+    centers: state.Center.data,
     loading: state.CentralPayment?.loading,
     approvals: state.CentralPayment?.approvals
 });

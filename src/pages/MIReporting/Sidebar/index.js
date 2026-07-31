@@ -24,7 +24,33 @@ const Sidebar = () => {
   }, []);
 
   const sidebarRef = useRef(null);
+  const spacerRef = useRef(null);
   const [isHovered, setIsHovered] = useState(false);
+  const [offset, setOffset] = useState({ top: 0, left: 0 });
+
+  useEffect(() => {
+    if (isMobile) return undefined;
+
+    const measure = () => {
+      if (!spacerRef.current) return;
+      const rect = spacerRef.current.getBoundingClientRect();
+      setOffset({ top: rect.top, left: rect.left });
+    };
+
+    measure();
+    window.addEventListener("resize", measure);
+
+    const observer = new MutationObserver(measure);
+    observer.observe(document.documentElement, {
+      attributes: true,
+      attributeFilter: ["data-sidebar-size", "class"],
+    });
+
+    return () => {
+      window.removeEventListener("resize", measure);
+      observer.disconnect();
+    };
+  }, [isMobile]);
 
   const showLabels = isMobile ? true : isHovered;
 
@@ -69,6 +95,7 @@ const Sidebar = () => {
     { id: "refund-amount", label: "Refund Amount", link: "/mi-reporting/refund-amount", icon: "bx bx-revision" },
     { id: "round-notes", label: "Round Notes", link: "/mi-reporting/round-notes", icon: "bx bx-notepad" },
     { id: "clinical-notes", label: "Clinical Notes", link: "/mi-reporting/clinical-notes", icon: "bx bx-clipboard" },
+    { id: "counselling-sessions-patients", label: "Counselling Patients", link: "/mi-reporting/counselling-sessions-patients", icon: "bx bx-conversation" },
     { id: "vital-signs", label: "Vital Signs", link: "/mi-reporting/vital-signs", icon: "bx bx-heart-circle" },
     { id: "patient-docs", label: "IPD Patient Docs", link: "/mi-reporting/patient-docs", icon: "bx bx-bed" },
     { id: "opd-patient-docs", label: "OPD Patient Docs", link: "/mi-reporting/opd-patient-docs", icon: "bx bx-walk" },
@@ -80,6 +107,11 @@ const Sidebar = () => {
     { id: "due-amount", label: "Due Amount", link: "/mi-reporting/due-amount", icon: "bx bx-wallet-alt" },
     { id: "attendance", label: "Attendance", link: "/mi-reporting/attendance", icon: "bx bx-calendar-check" },
     { id: "nurses-dod", label: "Nurses DOD", link: "/mi-reporting/nurses-dod", icon: "bx bx-capsule" },
+    { id: "cash-per-center", label: "Cash Per Center", link: "/mi-reporting/cash-per-center", icon: "bx bx-wallet" },
+    { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money" },
+    { id: "forms-data", label: "Forms Data", link: "/mi-reporting/forms-data", icon: "bx bx-clipboard" },
+    { id: "metrics-report", label: "Metrics Report", link: "/mi-reporting/metrics-report", icon: "bx bx-line-chart" },
+    { id: "occupancy", label: "Occupancy", link: "/mi-reporting/occupancy", icon: "bx bx-bed" },
   ];
 
   const sidebarStyle = isMobile
@@ -99,18 +131,31 @@ const Sidebar = () => {
         flexDirection: "column",
       }
     : {
-        position: "sticky",
-        top: 0,
-        height: "100vh",
-        alignSelf: "flex-start",
-        flexShrink: 0,
+        position: "fixed",
+        top: offset.top,
+        left: offset.left,
+        bottom: 0,
+        // .chat-leftsidebar (src/assets/scss/pages/_chat.scss) sets an explicit
+        // height at >=992px, which wins over `bottom` once top/height/bottom are
+        // all non-auto — override it so top+bottom actually determine the height.
+        // height: "auto",
         width: isHovered ? "260px" : "70px",
         minWidth: isHovered ? "260px" : "70px",
+        zIndex: 100,
         transition: "width 0.25s ease, min-width 0.25s ease",
         overflow: "hidden",
+        background: "#fff",
         display: "flex",
         flexDirection: "column",
       };
+
+  const spacerStyle = {
+    width: isHovered ? "260px" : "70px",
+    minWidth: isHovered ? "260px" : "70px",
+    flexShrink: 0,
+    minHeight: "100vh",
+    transition: "width 0.25s ease, min-width 0.25s ease",
+  };
 
   return (
     <>
@@ -154,6 +199,10 @@ const Sidebar = () => {
         </button>
       )}
 
+      {/* Flex-flow spacer: reserves the sidebar's width/height in the layout while the
+          visible sidebar itself is position:fixed, and is what we measure to anchor it */}
+      {!isMobile && <div ref={spacerRef} aria-hidden="true" style={spacerStyle} />}
+
       <div
         ref={sidebarRef}
         className="chat-leftsidebar"
@@ -161,8 +210,8 @@ const Sidebar = () => {
         onMouseLeave={() => !isMobile && setIsHovered(false)}
         style={sidebarStyle}
       >
-        <PerfectScrollbar className="chat-room-list" style={{ flex: 1, minHeight: 0 }}>
-          <div className="chat-message-list">
+        <PerfectScrollbar className="chat-room-list" style={{ flex: 1, minHeight: 0, maxHeight: "none", paddingBottom: 100, overscrollBehavior: "contain" }}>
+          <div>
           {hasHubspotReportingPermission && (
             <>
               <div className="ps-4 pe-3 pt-4">

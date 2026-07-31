@@ -7,6 +7,7 @@ import { Pencil } from "lucide-react";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import {
   fetchDesignations,
   fetchFinance,
@@ -19,6 +20,7 @@ import {
 } from "../../../Components/constants/HR";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import DataTableComponent from "../../../Components/Common/DataTable";
+import PreviewFile from "../../../Components/Common/PreviewFile";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import FinanceModal from "../components/FinanceModal";
@@ -33,7 +35,8 @@ const AMOUNT_VIEWS = [
 
 const FinanceDashboard = () => {
   const dispatch = useDispatch();
-  const { centerAccess, userCenters } = useSelector((state) => state.User);
+  const { centerAccess } = useSelector((state) => state.User);
+  const centerOptions = useCenterOptions();
   const { data, pagination, loading, designations, designationLoading } =
     useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
@@ -58,6 +61,8 @@ const FinanceDashboard = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("CHANGE"); // "EDIT" or "CHANGE"
   const [selectedRecord, setSelectedRecord] = useState(null);
+  const [previewFile, setPreviewFile] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -67,25 +72,6 @@ const FinanceDashboard = () => {
     hasPermission("HR", "FINANCE", "WRITE") ||
     hasPermission("HR", "FINANCE", "DELETE");
   const hasDeletePermission = hasPermission("HR", "FINANCE", "DELETE");
-
-  const centerOptions = [
-    ...(centerAccess?.length > 1
-      ? [
-        {
-          value: "ALL",
-          label: "All Centers",
-          isDisabled: false,
-        },
-      ]
-      : []),
-    ...(centerAccess?.map((id) => {
-      const center = userCenters?.find((c) => c._id === id);
-      return {
-        value: id,
-        label: center?.title || "Unknown Center",
-      };
-    }) || []),
-  ];
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === selectedCenter) ||
@@ -408,23 +394,26 @@ const FinanceDashboard = () => {
       minWidth: colWidth,
     },
     {
-      name: amountHeader("Variable"),
-      selector: (row) => row?.financeDetails?.variable,
+      // Variable is a pure yearly CTC add-on — never split into monthly, so show
+      // only the yearly value regardless of the Monthly/Yearly toggle.
+      name: "Variable (Yearly)",
+      selector: (row) =>
+        row?.financeDetails?.annual?.variable ?? row?.financeDetails?.variable ?? 0,
       cell: (row) =>
-        renderAmount(
-          row?.financeDetails?.variable,
-          row?.financeDetails?.annual?.variable,
+        formatCurrency(
+          row?.financeDetails?.annual?.variable ?? row?.financeDetails?.variable ?? 0,
         ),
       sortable: true,
       minWidth: colWidth,
     },
     {
-      name: amountHeader("Reimbursement"),
-      selector: (row) => row?.financeDetails?.reimbursement,
+      // Reimbursement is a pure yearly CTC add-on — never split into monthly.
+      name: "Reimbursement (Yearly)",
+      selector: (row) =>
+        row?.financeDetails?.annual?.reimbursement ?? row?.financeDetails?.reimbursement ?? 0,
       cell: (row) =>
-        renderAmount(
-          row?.financeDetails?.reimbursement,
-          row?.financeDetails?.annual?.reimbursement,
+        formatCurrency(
+          row?.financeDetails?.annual?.reimbursement ?? row?.financeDetails?.reimbursement ?? 0,
         ),
       sortable: true,
       minWidth: colWidth,
@@ -605,22 +594,37 @@ const FinanceDashboard = () => {
       minWidth: "150px",
     },
     {
+      name: <div>Increment Applicable</div>,
+      selector: (row) => {
+        const date = row?.financeDetails?.incrementApplicable;
+        if (!date || isNaN(new Date(date))) return "-";
+        return format(new Date(date), "dd MMM yyyy");
+      },
+      wrap: true,
+      minWidth: "150px",
+    },
+    {
       name: <div>Increment Letter</div>,
       selector: (row) => {
-        if (!row?.financeDetails?.incrementLetter) return "-";
+        const url = row?.financeDetails?.incrementLetter;
+        if (!url) return "-";
         return (
-          <a
-            href={row.financeDetails.incrementLetter}
-            target="_blank"
-            rel="noreferrer"
+          <span
+            role="button"
+            tabIndex={0}
+            onClick={() => {
+              setPreviewFile({ url, originalName: "IncrementLetter" });
+              setPreviewOpen(true);
+            }}
             style={{
               color: "#007bff",
               textDecoration: "underline",
               fontSize: "0.875rem",
+              cursor: "pointer",
             }}
           >
             View
-          </a>
+          </span>
         );
       },
       wrap: true,
@@ -841,6 +845,17 @@ const FinanceDashboard = () => {
           fetchEmployeeFinanceList();
         }}
         mode={modalMode}
+      />
+
+      <PreviewFile
+        title="Increment Letter"
+        file={previewFile}
+        isOpen={previewOpen}
+        toggle={() => {
+          setPreviewOpen(false);
+          setPreviewFile(null);
+        }}
+        allowDownload
       />
     </CardBody>
   );

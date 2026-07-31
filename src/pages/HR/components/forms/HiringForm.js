@@ -6,6 +6,7 @@ import * as Yup from "yup";
 import Select from "react-select";
 import { Button, Form, FormGroup, Label, Input, Spinner } from "reactstrap";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
 import { toast } from "react-toastify";
 import { fetchDesignations } from "../../../../store/features/HR/hrSlice";
 import { HiringPreferredGenderOptions } from "../../../../Components/constants/HR";
@@ -74,9 +75,7 @@ const HiringForm = ({
   const { designations: designationOptions, designationLoading } = useSelector(
     (state) => state.HR,
   );
-  const { user, centerAccess, userCenters } = useSelector(
-    (state) => state.User,
-  );
+  const { user } = useSelector((state) => state.User);
   const isEdit = !!initialData?._id;
 
   const [positionOptions, setPositionOptions] = useState([]);
@@ -85,13 +84,7 @@ const HiringForm = ({
   const [loadingEmployees, setLoadingEmployees] = useState(false);
   const [searchText, setSearchText] = useState("");
 
-  const centerOptions =
-    userCenters
-      ?.filter((center) => centerAccess?.includes(center._id))
-      .map((center) => ({
-        value: center._id,
-        label: center.title,
-      })) || [];
+  const centerOptions = useCenterOptions({ includeAll: false });
 
   useEffect(() => {
     const loadDesignations = async () => {

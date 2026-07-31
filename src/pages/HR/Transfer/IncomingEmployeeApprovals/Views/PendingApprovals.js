@@ -15,6 +15,7 @@ import { employeeTransferTransferLocationAction } from "../../../../../helpers/b
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import DataTableComponent from "../../../../../Components/Common/DataTable";
 import { useSearchParams } from "react-router-dom";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 
 const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
@@ -41,25 +42,7 @@ const PendingApprovals = ({ activeTab }) => {
     const { hasPermission, roles } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "TRANSFER_EMPLOYEE_TRANSFER_LOCATION_APPROVAL", "READ");
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter

@@ -46,6 +46,9 @@ const RenderFields = ({ fields, validation }) => {
                 {!field.labelHidden && (
                   <Label htmlFor={field.name} className="form-label">
                     {field.label}
+                    {field.required && (
+                      <span className="text-danger ms-1">*</span>
+                    )}
                   </Label>
                 )}
                 {field.type === "select" ? (
