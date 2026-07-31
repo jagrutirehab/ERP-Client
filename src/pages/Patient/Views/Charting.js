@@ -244,10 +244,11 @@ const Charting = ({
         toggleModal={toggleModal}
         charts={charts}
         currentAddmissionId={addmissionsCharts?.[0]?._id}
+        isPatientDischarged={!!addmissionsCharts?.[0]?.dischargeDate}
       />
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [charts, generalLoading]);
+  }, [charts, generalLoading, addmissionsCharts]);
 
   console.log("patient", patient);
 

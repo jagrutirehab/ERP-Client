@@ -7,6 +7,7 @@ const General = ({
   toggleModal,
   charts,
   currentAddmissionId,
+  isPatientDischarged,
 }) => {
   console.log("GENERAL TAB charts:", charts);
   return (
@@ -19,6 +20,7 @@ const General = ({
             toggleDateModal={toggleModal}
             charts={charts ?? []}
             currentAddmissionId={currentAddmissionId}
+            isPatientDischarged={isPatientDischarged}
           />
         )}
       </div>
