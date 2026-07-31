@@ -171,11 +171,11 @@ const AgentProfile = () => {
   });
 
   return (
-    <div className="p-3 p-lg-4" style={{ overflowX: "hidden" }}>
+    <div className="p-3 p-lg-4 bg-white" style={{ overflowX: "hidden" }}>
       <Row className="justify-content-center">
         <Col xs={12} xl={10} style={{ minWidth: 0 }}>
           <div className="d-flex align-items-center mb-4">
-            <div
+            {/* <div
               className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
               style={{
                 width: 48,
@@ -184,7 +184,7 @@ const AgentProfile = () => {
               }}
             >
               <i className="bx bx-id-card fs-3 text-primary" />
-            </div>
+            </div> */}
             <div className="ms-3">
               <h4 className="mb-0 fw-semibold">My Visit History</h4>
               <p className="text-muted mb-0 fs-13">

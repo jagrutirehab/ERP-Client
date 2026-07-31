@@ -10,9 +10,7 @@ const Sidebar = () => {
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" && window.innerWidth < 992,
   );
-  const [isMobileOpen, setIsMobileOpen] = useState(
-    typeof window !== "undefined" && window.innerWidth < 992,
-  );
+  const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [topOffset, setTopOffset] = useState(0);
   const [leftOffset, setLeftOffset] = useState(0);
 
@@ -141,78 +139,35 @@ const Sidebar = () => {
     </div>
   );
 
-  // ---- MOBILE: fixed drawer (position:fixed is fine here since it's a full overlay) ----
+  
   if (isMobile) {
     return (
-      <>
-        {isMobileOpen && (
-          <div
-            onClick={() => setIsMobileOpen(false)}
-            style={{
-              position: "fixed",
-              inset: 0,
-              background: "rgba(0,0,0,0.4)",
-              zIndex: 1040,
-            }}
-          />
-        )}
-        {!isMobileOpen && (
+      <div style={{ background: "#fff", borderBottom: "1px solid #eef0f2" }}>
+        <div className="px-3 pt-4 pb-3 d-flex align-items-center justify-content-between">
+          <h4 className="fw-bold mb-0 ">Marketing</h4>
           <button
-            onClick={() => setIsMobileOpen(true)}
-            style={{
-              position: "fixed",
-              bottom: 24,
-              left: 16,
-              zIndex: 1050,
-              borderRadius: "50%",
-              width: 48,
-              height: 48,
-              border: "none",
-              background: "#3577f1",
-              color: "white",
-              fontSize: 22,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              boxShadow: "0 3px 10px rgba(0,0,0,0.25)",
-            }}
+            onClick={() => setIsMobileOpen((prev) => !prev)}
+            className="btn btn-sm px-2"
+            style={{ background: "transparent", border: "none" }}
           >
-            <i className="bx bx-menu"></i>
+            <i
+              className={`bx ${isMobileOpen ? "bx-x" : "bx-menu"} fs-4`}
+            ></i>{" "}
           </button>
-        )}
+        </div>
         <div
           style={{
-            position: "fixed",
-            top: 0,
-            left: isMobileOpen ? 0 : "-280px",
-            height: "100vh",
-            width: "260px",
-            zIndex: 1045,
-            transition: "left 0.3s ease",
-            overflowY: "auto",
-            background: "#fff",
-            boxShadow: isMobileOpen ? "4px 0 16px rgba(0,0,0,0.18)" : "none",
+            maxHeight: isMobileOpen ? "1000px" : "0px",
+            overflow: "hidden",
+            transition: "max-height 0.3s ease",
           }}
         >
-          <div className="px-3 pt-4 pb-3 d-flex align-items-center justify-content-between">
-            <h4 className="fw-bold mb-0 text-dark">Marketing</h4>
-            <button
-              onClick={() => setIsMobileOpen(false)}
-              className="btn btn-sm px-2"
-            >
-              <i className="bx bx-x fs-4"></i>
-            </button>
-          </div>
           {renderList(true)}
-        </div>
-      </>
+        </div>{" "}
+      </div>
     );
   }
 
-  // ---- DESKTOP: placeholder reserves horizontal space in the flex row ----
-  //      the actual visible sidebar is portaled straight into <body>, so no
-  //      ancestor's overflow/position styling can ever break it again.
   return (
     <>
       <div
