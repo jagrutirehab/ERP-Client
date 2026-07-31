@@ -60,6 +60,7 @@ const Charts = ({
   charts,
   toggleDateModal,
   currentAddmissionId,
+  isPatientDischarged,
 }) => {
   const dispatch = useDispatch();
   const [, forceUpdate] = useState(0);
@@ -227,6 +228,7 @@ const Charts = ({
                   disableEdit={
                     chart.chart === ROUND_NOTE ||
                     (addmission?.dischargeDate ? true : false) ||
+                    isPatientDischarged ||
                     (currentAddmissionId
                       ? chart.addmission !== currentAddmissionId
                       : false)
