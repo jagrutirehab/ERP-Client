@@ -1,6 +1,7 @@
 import Highlighter from "react-highlight-words";
 import { Badge } from "reactstrap";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
+import { formatLeaveDaysZero } from "../../../../utils/leaveDays";
 
 export const leaveBalanceColumns = ({ searchText }) => [
   {
@@ -112,8 +113,8 @@ export const leaveBalanceColumns = ({ searchText }) => [
               marginBottom: "2px",
             }}
           >
-            <b style={{ width: "80px" }}>Spent:</b>{" "}
-            <span>{el?.spent || 0}</span>
+            <b style={{ width: "80px" }}>Total:</b>{" "}
+            <span>{formatLeaveDaysZero(el?.total)}</span>
           </div>
           <div
             style={{
@@ -123,12 +124,12 @@ export const leaveBalanceColumns = ({ searchText }) => [
               marginBottom: "2px",
             }}
           >
-            <b style={{ width: "80px" }}>Balance:</b>{" "}
-            <span>{el?.balance || 0}</span>
+            <b style={{ width: "80px" }}>Spent:</b>{" "}
+            <span>{formatLeaveDaysZero(el?.spent)}</span>
           </div>
           <div style={{ display: "flex" }}>
-            <b style={{ width: "80px" }}>Total:</b>{" "}
-            <span>{el?.total || 0}</span>
+            <b style={{ width: "80px" }}>Balance:</b>{" "}
+            <span>{formatLeaveDaysZero(el?.balance)}</span>
           </div>
         </div>
       );
@@ -150,8 +151,8 @@ export const leaveBalanceColumns = ({ searchText }) => [
               marginBottom: "2px",
             }}
           >
-            <b style={{ width: "80px" }}>Spent:</b>{" "}
-            <span>{fl?.spent || 0}</span>
+            <b style={{ width: "80px" }}>Total:</b>{" "}
+            <span>{formatLeaveDaysZero(fl?.total)}</span>
           </div>
           <div
             style={{
@@ -161,12 +162,12 @@ export const leaveBalanceColumns = ({ searchText }) => [
               marginBottom: "2px",
             }}
           >
-            <b style={{ width: "80px" }}>Balance:</b>{" "}
-            <span>{fl?.balance || 0}</span>
+            <b style={{ width: "80px" }}>Spent:</b>{" "}
+            <span>{formatLeaveDaysZero(fl?.spent)}</span>
           </div>
           <div style={{ display: "flex" }}>
-            <b style={{ width: "80px" }}>Total:</b>{" "}
-            <span>{fl?.total || 0}</span>
+            <b style={{ width: "80px" }}>Balance:</b>{" "}
+            <span>{formatLeaveDaysZero(fl?.balance)}</span>
           </div>
         </div>
       );
@@ -189,7 +190,7 @@ export const leaveBalanceColumns = ({ searchText }) => [
             }}
           >
             <b style={{ width: "80px" }}>Applied:</b>{" "}
-            <span>{wo?.taken || 0}</span>
+            <span>{formatLeaveDaysZero(wo?.taken)}</span>
           </div>
           <div
             style={{
@@ -204,12 +205,12 @@ export const leaveBalanceColumns = ({ searchText }) => [
             }}
           >
             <b style={{ width: "80px" }}>Approved:</b>{" "}
-            <span>{wo?.spent || 0}</span>
+            <span>{formatLeaveDaysZero(wo?.spent)}</span>
           </div>
           {wo?.hasBalance && (
             <div style={{ display: "flex" }}>
               <b style={{ width: "80px" }}>Balance:</b>{" "}
-              <span>{wo?.balance || 0}</span>
+              <span>{formatLeaveDaysZero(wo?.balance)}</span>
             </div>
           )}
         </div>
@@ -220,7 +221,7 @@ export const leaveBalanceColumns = ({ searchText }) => [
 
   {
     name: <div>Unpaid Leave(Spent)</div>,
-    selector: (row) => row?.leaveData?.unpaidLeaves?.spent || 0,
+    selector: (row) => formatLeaveDaysZero(row?.leaveData?.unpaidLeaves?.spent),
     center: true,
     minWidth: "200px",
   },
