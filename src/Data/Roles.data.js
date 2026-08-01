@@ -478,7 +478,7 @@ export const permissionList = [
   },
   {
     key: "MASTERDATA",
-    label: "Master Data",
+    label: "Vendor Management",
     subModules: [
       { name: "VENDOR_VIEW", label: "View Vendors" },
       { name: "VENDOR_CREATE", label: "Create Vendor" },
