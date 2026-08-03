@@ -136,14 +136,14 @@ const AdmissionChart = ({
                 return (
                   <DropdownItem
                     key={idx + item.category}
-                    disabled={gated}
-                    title={
-                      gated
-                        ? "Complete the Capacity Assessment Form first"
-                        : undefined
-                    }
+                    // disabled={gated}
+                    // title={
+                    //   gated
+                    //     ? "Complete the Capacity Assessment Form first"
+                    //     : undefined
+                    // }
                     onClick={() => {
-                      if (gated) return;
+                      // if (gated) return;
                       if (item.name === "Capacity Assessment Form") {
                         setCapacityModal(true);
                       } else {
