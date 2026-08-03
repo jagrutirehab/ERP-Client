@@ -4267,6 +4267,18 @@ export const getAgentVisitReport = (params = {}) =>
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
+
+export const getDoctorDirectory = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors-directory`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getDoctorVisitHistory = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/history`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
 // master data
 export const getVendors = (params = {}) => {
   return axios.get(url.GET_VENDORS, {
@@ -4421,7 +4433,9 @@ export const updateItemCategoryStatus = (id, status) => {
   );
 };
 export const createItemType = (data) => {
-  return axios.post(url.ITEM_TYPE_BASE, data, { headers: { "X-No-Cookie-Token": "true" } });
+  return axios.post(url.ITEM_TYPE_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
 };
 
 export const getItemMasters = (params = {}) => {
