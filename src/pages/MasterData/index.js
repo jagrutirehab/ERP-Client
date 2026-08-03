@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 import { Container, Spinner } from "reactstrap";
 import Sidebar from "./Sidebar";
 import Vendor from "./Vendor";
+import Items from "./Items";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import "./masterData.scss";
@@ -12,7 +13,7 @@ const MasterData = () => {
   const { hasPermission, loading } = usePermissions(token);
 
   useEffect(() => {
-    document.title = "Master Data | Jagruti Rehab";
+    document.title = "Vendor Management | Jagruti Rehab";
   }, []);
 
   if (loading) {
@@ -43,6 +44,7 @@ const MasterData = () => {
             <Routes>
               <Route path="/" element={null} />
               <Route path="vendor/*" element={<Vendor />} />
+              <Route path="item/*" element={<Items />} />
             </Routes>
           </div>
         </div>

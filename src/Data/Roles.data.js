@@ -474,11 +474,12 @@ export const permissionList = [
       { name: "VIEW_VISIT_LOGS", label: "View All Visit Logs" },
       { name: "VIEW_AGENT_REPORT", label: "Agent Visit Report" },
       { name: "VIEW_AGENT_PROFILE", label: "My Visit History" },
+      { name: "VIEW_DOCTOR_VISITS", label: "Doctor Visits" },
     ],
   },
   {
     key: "MASTERDATA",
-    label: "Master Data",
+    label: "Vendor Management",
     subModules: [
       { name: "VENDOR_VIEW", label: "View Vendors" },
       { name: "VENDOR_CREATE", label: "Create Vendor" },

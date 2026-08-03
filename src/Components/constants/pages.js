@@ -296,9 +296,9 @@ const pages = [
   },
   {
     id: "masterdata",
-    label: "Master Data",
-    name: "Master Data",
-    link: "/master-data",
+    label: "Vendor Management",
+    name: "Vendor Management",
+    link: "/vendor-management",
     icon: "bx bx-purchase-tag-alt",
   },
   {
@@ -1462,8 +1462,14 @@ export const MASTER_DATA = [
   {
     id: "masterdata-vendor",
     label: "Vendors",
-    link: "/master-data/vendor",
+    link: "/vendor-management/vendor",
     icon: "bx bx-store",
+  },
+  {
+    id: "masterdata-item",
+    label: "Items",
+    link: "/vendor-management/item",
+    icon: "bx bx-package",
   },
   // {
   //   id: "masterdata-customer",

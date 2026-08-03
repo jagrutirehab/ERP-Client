@@ -78,7 +78,7 @@ const allElements = [
   { element: Trainings, label: "Trainings" },
   { element: AlertPage, label: "Alert" },
   { element: Marketing, label: "Marketing" },
-{ element: MasterData, label: "Master Data" }
+  { element: MasterData, label: "Vendor Management" },
 ];
 
 console.log("SOP:", SOP);
@@ -119,7 +119,7 @@ const authProtectedRoutes = [
   { path: "/sop-configs/*", component: SOP },
   { path: "/trainings/*", component: Trainings },
   { path: "/marketing/*", component: Marketing },
-{ path: "/master-data/*", component: MasterData },
+  { path: "/vendor-management/*", component: MasterData },
   {
     path: "/",
     exact: true,
