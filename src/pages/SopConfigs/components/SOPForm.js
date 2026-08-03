@@ -91,7 +91,11 @@ const hydrateCondition = (c) => ({
   consecutiveMatch: c.consecutiveMatch
     ? { count: c.consecutiveMatch.count != null ? String(c.consecutiveMatch.count) : "" }
     : null,
-  discontinueGate: c.discontinueGate
+  // Treat the gate as "on" only when it carries at least one criterion. Mongoose
+  // initializes `discontinueGate` to `{ criteria: [] }` on every saved condition
+  // (the criteria array path defaults to []), so a present-but-empty gate must
+  // hydrate to null — otherwise the checkbox looks ticked and validation errors.
+  discontinueGate: c.discontinueGate?.criteria?.length
     ? {
         count:
           c.discontinueGate.count != null
@@ -282,7 +286,13 @@ const SOPForm = ({
       b.conditions.forEach((c) => c.model?.value && models.add(c.model.value)),
     );
     models.forEach((m) => fetchModelFields(m));
-  }, [initialValues, fetchModelFields]);
+    // Re-hydrate ONLY when a new rule is loaded (initialValues changes).
+    // Do NOT add fetchModelFields here: it's recreated whenever
+    // modelFieldsCache updates, so including it re-runs this effect every time
+    // a model's fields load — which would reset targetBlocks to the saved rule
+    // and wipe any newly added (unsaved) blocks.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [initialValues]);
 
   const handleTargetConditionChange = (blockIdx, condIdx, key, value) => {
     setTargetBlocks((prev) => {
@@ -578,14 +588,16 @@ const SOPForm = ({
 
         // Optional discontinue-gate — validate independently of the operator
         // chain above (it's an add-on to a DELAYED cadence condition).
-        if (c.discontinueGate && !bErr.conditions[cIdx]) {
+        // Only validate the gate when it's actually enabled (has ≥1 criterion);
+        // an empty {criteria: []} (Mongoose default on every saved condition)
+        // means the gate is off and must not raise a false "count" error.
+        if (c.discontinueGate?.criteria?.length && !bErr.conditions[cIdx]) {
           const gcount = Number(c.discontinueGate.count);
-          const criteria = c.discontinueGate.criteria || [];
+          const criteria = c.discontinueGate.criteria;
           if (!Number.isFinite(gcount) || gcount < 1) {
             bErr.conditions[cIdx] = "Discontinue gate: count must be ≥ 1";
             hasTargetErrors = true;
           } else if (
-            criteria.length === 0 ||
             criteria.some(
               (cr) => !cr.field || !Number.isFinite(Number(cr.threshold)),
             )
