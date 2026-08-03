@@ -811,6 +811,13 @@ export const GET_VISIT_LOGS = "/marketing/visit-log";
 
 export const GET_VENDORS = "/master/vendor";
 export const VENDOR_BASE = "/master/vendor";
+export const GET_ITEM_TYPES = "/master/item-type";
+export const ITEM_TYPE_BASE = "/master/item-type";
+
+export const GET_ITEM_CATEGORIES = "/master/item-category";
+export const ITEM_CATEGORY_BASE = "/master/item-category";
+export const ITEM_MASTER_BASE = "/master/item";; 
+export const GET_ITEM_MASTERS = ITEM_MASTER_BASE;
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
 

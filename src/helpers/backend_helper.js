@@ -4267,7 +4267,19 @@ export const getAgentVisitReport = (params = {}) =>
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
-// master data 
+
+export const getDoctorDirectory = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors-directory`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getDoctorVisitHistory = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/history`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+// master data
 export const getVendors = (params = {}) => {
   return axios.get(url.GET_VENDORS, {
     params,
@@ -4312,9 +4324,13 @@ export const getDocuments = () => {
 };
 
 export const updateVendorStatus = (id, status) => {
-  return axios.patch(`${url.VENDOR_BASE}/${id}/status`, { status }, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
+  return axios.patch(
+    `${url.VENDOR_BASE}/${id}/status`,
+    { status },
+    {
+      headers: { "X-No-Cookie-Token": "true" },
+    },
+  );
 };
 
 export const addDocuments = (data) => {
@@ -4363,6 +4379,92 @@ export const deleteVendorDocument = (id, docId) => {
   return axios.delete(`${url.VENDOR_BASE}/${id}/documents/${docId}`, {
     headers: { "X-No-Cookie-Token": "true" },
   });
+};
+export const getItemTypes = (params = {}) => {
+  return axios.get(url.GET_ITEM_TYPES, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getItemTypeById = (id) => {
+  return axios.get(`${url.ITEM_TYPE_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateItemType = (id, data) => {
+  return axios.put(`${url.ITEM_TYPE_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateItemTypeStatus = (id, status) => {
+  return axios.patch(
+    `${url.ITEM_TYPE_BASE}/${id}/status`,
+    { status },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const getItemCategories = (params = {}) => {
+  return axios.get(url.GET_ITEM_CATEGORIES, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getItemCategoryById = (id) => {
+  return axios.get(`${url.ITEM_CATEGORY_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createItemCategory = (data) => {
+  return axios.post(url.ITEM_CATEGORY_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateItemCategory = (id, data) => {
+  return axios.put(`${url.ITEM_CATEGORY_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateItemCategoryStatus = (id, status) => {
+  return axios.patch(
+    `${url.ITEM_CATEGORY_BASE}/${id}/status`,
+    { status },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const createItemType = (data) => {
+  return axios.post(url.ITEM_TYPE_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getItemMasters = (params = {}) => {
+  return axios.get(url.GET_ITEM_MASTERS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getItemMasterById = (id) => {
+  return axios.get(`${url.ITEM_MASTER_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createItemMaster = (data) => {
+  return axios.post(url.ITEM_MASTER_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateItemMaster = (id, data) => {
+  return axios.put(`${url.ITEM_MASTER_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateItemMasterStatus = (id, status) => {
+  return axios.patch(
+    `${url.ITEM_MASTER_BASE}/${id}/status`,
+    { status },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
 };
 
 export const deleteEmployeeDocumentFile = (documentId, fileId) => {
