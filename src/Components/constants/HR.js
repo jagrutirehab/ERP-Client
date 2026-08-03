@@ -142,6 +142,40 @@ export const categoryOptions = [
     { label: "PF", value: "PF" },
 ];
 
+// "Non Aadhaar" employees have no PAN/Aadhaar on record, so neither the numbers
+// nor their uploads are demanded for that category (mirrors the server-side
+// add/edit employee validators).
+export const isNonAadhaarCategory = (category) =>
+    (category || "").trim().toUpperCase() === "NON_AADHAAR";
+
+// ---------------------------------------------------------------------------
+// Relaxed employee form
+//
+// Mirror of RELAXED_EMPLOYEE_FORM_USERS in the server's
+// src/validators/HR/employee/add.validator.js — these user._id values may save
+// the employee form without the usual mandatory fields (back-dated / partial
+// data entry). Keep both lists in sync.
+//
+// name, currentLocation, joinningDate and status stay mandatory even for them —
+// attendance, payroll and the leave-deduction cron cannot run without those.
+// ---------------------------------------------------------------------------
+export const RELAXED_EMPLOYEE_FORM_USERS = new Set([
+    "67a4983f102397b0c939f937",
+    "68f8f38cbfb5c1f785102465",
+    "696e176dea1a23b429717267",
+    "6874c5a2788d8c2bb3c8e724",
+]);
+
+export const isRelaxedEmployeeFormUser = (userId) =>
+    !!userId && RELAXED_EMPLOYEE_FORM_USERS.has(String(userId));
+
+export const RELAXED_EMPLOYEE_REQUIRED_FIELDS = [
+    "name",
+    "currentLocation",
+    "joinningDate",
+    "status",
+];
+
 export const employeeGroupOptions = [
     { label: "PF Included", value: "PF_INCLUDED" },
     { label: "PF Excluded", value: "PF_EXCLUDED" }

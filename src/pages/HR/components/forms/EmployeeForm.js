@@ -49,6 +49,9 @@ import {
   isSimplifiedFinanceType,
   isConsultantFinanceType,
   categoryOptions,
+  isNonAadhaarCategory,
+  isRelaxedEmployeeFormUser,
+  RELAXED_EMPLOYEE_REQUIRED_FIELDS,
 } from "../../../../Components/constants/HR";
 import {
   calculatePayroll,
@@ -70,9 +73,6 @@ import { getFilePreviewMeta } from "../../../../utils/isPreviewable";
 import { FILE_PREVIEW_CUTOFF } from "../../../../Components/constants/HR";
 import DeleteFileConfirmModal from "../../../Authentication/Components/DeleteFileConfirmModal";
 
-// Minimum work hours are stored in the DB as total minutes (e.g. 115).
-// In the form we keep the value as total minutes too, but present it to the
-// user as separate Hours / Minutes inputs and an "HH:MM" preview (e.g. 01:55).
 const minutesToHHMM = (mins) => {
   const total = Math.max(0, Math.round(Number(mins) || 0));
   const h = Math.floor(total / 60);
@@ -145,13 +145,32 @@ const validationSchema = (mode, isEdit) =>
     accountNo: Yup.string().required("Bank account number is required"),
     IFSCCode: Yup.string().required("IFSC code is required"),
     accountName: Yup.string().required("Account holder's name is required"),
-    adharNo: Yup.string().required("Aadhaar number is required"),
-    pan: Yup.string().required("PAN number is required"),
+    // Aadhaar/PAN (numbers and uploads) are not on record for the "Non Aadhaar"
+    // category — the server relaxes them the same way.
+    adharNo: Yup.string().when("category", {
+      is: (v) => isNonAadhaarCategory(v),
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("Aadhaar number is required"),
+    }),
+    pan: Yup.string().when("category", {
+      is: (v) => isNonAadhaarCategory(v),
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("PAN number is required"),
+    }),
     biometricId: Yup.string().trim(),
     panOld: Yup.string()
       .nullable()
-      .test("pan-uploaded", "PAN file is required", (value) => !!value),
-    adharOld: Yup.string().required("Aadhaar file is required"),
+      .when("category", {
+        is: (v) => isNonAadhaarCategory(v),
+        then: (s) => s.notRequired(),
+        otherwise: (s) =>
+          s.test("pan-uploaded", "PAN file is required", (value) => !!value),
+      }),
+    adharOld: Yup.string().when("category", {
+      is: (v) => isNonAadhaarCategory(v),
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("Aadhaar file is required"),
+    }),
     offerLetterOld: Yup.string().required("Offer letter is required"),
     employeeGroups: Yup.string().when("employmentType", {
       is: (v) => isSimplifiedFinanceType(v),
@@ -344,6 +363,14 @@ const validationSchema = (mode, isEdit) =>
     }),
   });
 
+// Allowlisted users may save a partially filled form. Keeping only the fields
+// the server still demands (RELAXED_EMPLOYEE_REQUIRED_FIELDS) drops every other
+// rule here; the server's relaxed validator remains the authority on formats.
+const resolveValidationSchema = (mode, isEdit, isRelaxed) => {
+  const schema = validationSchema(mode, isEdit);
+  return isRelaxed ? schema.pick(RELAXED_EMPLOYEE_REQUIRED_FIELDS) : schema;
+};
+
 const getInitialValues = (initialData, mode) => ({
   name: initialData?.name || "",
   eCode: mode === "NEW_JOINING" ? "" : initialData?.eCode || "",
@@ -507,7 +534,11 @@ const EmployeeForm = ({
   hasCreatePermission,
 }) => {
   const dispatch = useDispatch();
-  const { centerAccess, userCenters } = useSelector((state) => state.User);
+  const { centerAccess, userCenters, user } = useSelector(
+    (state) => state.User,
+  );
+  // Allowlisted users may save a partially filled form (mirrors the server).
+  const isRelaxed = isRelaxedEmployeeFormUser(user?._id);
   const { designations: designationOptions, designationLoading } = useSelector(
     (state) => state.HR,
   );
@@ -613,21 +644,25 @@ const EmployeeForm = ({
     enableReinitialize: true,
     validateOnMount: true,
     initialValues: getInitialValues(initialData, mode),
-    validationSchema: validationSchema(mode, isEdit),
+    validationSchema: resolveValidationSchema(mode, isEdit, isRelaxed),
     onSubmit: async (values) => {
       touchFileFields();
       const errors = await form.validateForm();
 
-      if (errors.panOld || errors.adharOld || errors.offerLetterOld) {
-        toast.error("Please upload all required documents");
-        return;
-      }
-      const missingMandatoryDocs = validatePositionDocuments();
-      if (missingMandatoryDocs.length > 0) {
-        toast.error(
-          `Please upload required document(s): ${missingMandatoryDocs.join(", ")}`,
-        );
-        return;
+      // Both gates are client-only; relaxed users are allowed to save without
+      // the documents, same as the server's relaxed validator.
+      if (!isRelaxed) {
+        if (errors.panOld || errors.adharOld || errors.offerLetterOld) {
+          toast.error("Please upload all required documents");
+          return;
+        }
+        const missingMandatoryDocs = validatePositionDocuments();
+        if (missingMandatoryDocs.length > 0) {
+          toast.error(
+            `Please upload required document(s): ${missingMandatoryDocs.join(", ")}`,
+          );
+          return;
+        }
       }
 
       try {
@@ -2163,7 +2198,10 @@ const EmployeeForm = ({
           {/* AADHAAR NO*/}
           <Col md={6}>
             <Label htmlFor="adharNo">
-              Aadhaar No <span className="text-danger">*</span>
+              Aadhaar No{" "}
+              {!isNonAadhaarCategory(values.category) && (
+                <span className="text-danger">*</span>
+              )}
             </Label>
             <Input
               id="adharNo"
@@ -2178,7 +2216,10 @@ const EmployeeForm = ({
           {/* ADHAAR FILE */}
           <Col md={6}>
             <Label>
-              Aadhaar File <span className="text-danger">*</span>
+              Aadhaar File{" "}
+              {!isNonAadhaarCategory(values.category) && (
+                <span className="text-danger">*</span>
+              )}
             </Label>
 
             <input
@@ -2262,7 +2303,10 @@ const EmployeeForm = ({
           {/* PAN NO*/}
           <Col md={6}>
             <Label htmlFor="pan">
-              PAN No<span className="text-danger">*</span>
+              PAN No
+              {!isNonAadhaarCategory(values.category) && (
+                <span className="text-danger">*</span>
+              )}
             </Label>
 
             <Input
@@ -2280,7 +2324,10 @@ const EmployeeForm = ({
           {/* PAN FILE */}
           <Col md={6}>
             <Label>
-              PAN File <span className="text-danger">*</span>
+              PAN File{" "}
+              {!isNonAadhaarCategory(values.category) && (
+                <span className="text-danger">*</span>
+              )}
             </Label>
 
             <input
