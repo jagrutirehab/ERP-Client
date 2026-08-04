@@ -70,9 +70,6 @@ import { getFilePreviewMeta } from "../../../../utils/isPreviewable";
 import { FILE_PREVIEW_CUTOFF } from "../../../../Components/constants/HR";
 import DeleteFileConfirmModal from "../../../Authentication/Components/DeleteFileConfirmModal";
 
-// Minimum work hours are stored in the DB as total minutes (e.g. 115).
-// In the form we keep the value as total minutes too, but present it to the
-// user as separate Hours / Minutes inputs and an "HH:MM" preview (e.g. 01:55).
 const minutesToHHMM = (mins) => {
   const total = Math.max(0, Math.round(Number(mins) || 0));
   const h = Math.floor(total / 60);
@@ -80,7 +77,91 @@ const minutesToHHMM = (mins) => {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 };
 
-const validationSchema = (mode, isEdit) =>
+// Categories that are never on PF: picking one sets PF Available to NO and
+// stops the form asking for a UAN.
+const NON_PF_CATEGORIES = ["CONSULTANT", "FORM11"];
+
+const CONSULTANT_DEFAULT_TDS_RATE = 10;
+
+const RELAXED_EMPLOYEE_FORM_USERS = [
+  "67a4983f102397b0c939f937",
+  "68f8f38cbfb5c1f785102465",
+  "696e176dea1a23b429717267",
+  "6874c5a2788d8c2bb3c8e724"
+];
+
+const isRelaxedEmployeeFormUser = () => {
+  try {
+    const userId = JSON.parse(localStorage.getItem("micrologin"))?.user?._id;
+    return !!userId && RELAXED_EMPLOYEE_FORM_USERS.includes(String(userId));
+  } catch {
+    return false;
+  }
+};
+
+const relaxedOverrides = {
+  eCode: Yup.string().notRequired(),
+  department: Yup.string().notRequired(),
+  employmentType: Yup.string().notRequired(),
+  firstLocation: Yup.string().notRequired(),
+  designation: Yup.string().notRequired(),
+  payrollType: Yup.string().notRequired(),
+  gender: Yup.string().notRequired(),
+  pfApplicable: Yup.boolean().notRequired(),
+  father: Yup.string().notRequired(),
+  state: Yup.string().notRequired(),
+  bankName: Yup.string().notRequired(),
+  accountNo: Yup.string().notRequired(),
+  IFSCCode: Yup.string().notRequired(),
+  accountName: Yup.string().notRequired(),
+  adharNo: Yup.string().notRequired(),
+  pan: Yup.string().notRequired(),
+  uanNo: Yup.string().notRequired(),
+  panOld: Yup.string().nullable().notRequired(),
+  adharOld: Yup.string().nullable().notRequired(),
+  offerLetterOld: Yup.string().nullable().notRequired(),
+  position: Yup.string()
+    .transform((value) => {
+      if (typeof value === "object" && value?._id) return value._id;
+      return value;
+    })
+    .notRequired(),
+  // Format still checked when a value is entered, presence is not.
+  dateOfBirth: Yup.string()
+    .notRequired()
+    .matches(/^\d{4}-\d{2}-\d{2}$/, {
+      message: "Invalid date format (YYYY-MM-DD)",
+      excludeEmptyString: true,
+    })
+    .test(
+      "dob-in-past",
+      "Date of birth must be in the past",
+      (value) => !value || new Date(value) < new Date(),
+    ),
+  mobile: Yup.string()
+    .notRequired()
+    .test("is-valid-phone", "Invalid phone number", (value) =>
+      value ? isValidPhoneNumber(value) : true,
+    ),
+  // The finance block (employee group, payment type, CTC / in-hand, gross and
+  // the salary breakup) is NOT listed here — payroll depends on it, so those
+  // fields stay mandatory for everyone.
+  minimumWorkHours: Yup.number()
+    .min(0, "Must be at least 0")
+    .max(24 * 60, "Cannot exceed 24 hours")
+    .notRequired(),
+  minimumPresentDays: Yup.number().min(0, "Must be at least 0").notRequired(),
+  minimumPresentUnit: Yup.string()
+    .oneOf(["WEEK", "MONTH", "SESSION"], "Select a valid unit")
+    .notRequired(),
+};
+
+const validationSchema = (mode, isEdit, relaxed = false) => {
+  const schema = baseValidationSchema(mode, isEdit);
+  return relaxed ? schema.shape(relaxedOverrides) : schema;
+};
+
+const baseValidationSchema = (mode, isEdit) =>
   Yup.object({
     name: Yup.string().required("Employee name is required"),
     eCode: isEdit
@@ -145,13 +226,32 @@ const validationSchema = (mode, isEdit) =>
     accountNo: Yup.string().required("Bank account number is required"),
     IFSCCode: Yup.string().required("IFSC code is required"),
     accountName: Yup.string().required("Account holder's name is required"),
-    adharNo: Yup.string().required("Aadhaar number is required"),
-    pan: Yup.string().required("PAN number is required"),
+    // "Non Aadhaar" employees have no PAN/Aadhaar on record, so neither the
+    // numbers nor their uploads are demanded.
+    adharNo: Yup.string().when("category", {
+      is: "NON_AADHAAR",
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("Aadhaar number is required"),
+    }),
+    pan: Yup.string().when("category", {
+      is: "NON_AADHAAR",
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("PAN number is required"),
+    }),
     biometricId: Yup.string().trim(),
     panOld: Yup.string()
       .nullable()
-      .test("pan-uploaded", "PAN file is required", (value) => !!value),
-    adharOld: Yup.string().required("Aadhaar file is required"),
+      .when("category", {
+        is: "NON_AADHAAR",
+        then: (s) => s.notRequired(),
+        otherwise: (s) =>
+          s.test("pan-uploaded", "PAN file is required", (value) => !!value),
+      }),
+    adharOld: Yup.string().when("category", {
+      is: "NON_AADHAAR",
+      then: (s) => s.notRequired(),
+      otherwise: (s) => s.required("Aadhaar file is required"),
+    }),
     offerLetterOld: Yup.string().required("Offer letter is required"),
     employeeGroups: Yup.string().when("employmentType", {
       is: (v) => isSimplifiedFinanceType(v),
@@ -282,8 +382,9 @@ const validationSchema = (mode, isEdit) =>
     ESICSalary: Yup.number().min(0).notRequired(),
     LWFEmployee: Yup.number().min(0).notRequired(),
     LWFEmployer: Yup.number().min(0).notRequired(),
-    uanNo: Yup.string().when("pfApplicable", {
-      is: true,
+    uanNo: Yup.string().when(["pfApplicable", "category"], {
+      is: (pfApplicable, category) =>
+        pfApplicable === true && !NON_PF_CATEGORIES.includes(category),
       then: (schema) => schema.required("UAN No is required"),
       otherwise: (schema) => schema.notRequired(),
     }),
@@ -515,6 +616,7 @@ const EmployeeForm = ({
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const isEdit = !!initialData?._id;
+  const relaxedValidation = useMemo(() => isRelaxedEmployeeFormUser(), []);
   const [eCodeLoader, setECodeLoader] = useState(false);
   const [linking, setLinking] = useState(false);
   // const [creatingDesignation, setCreatingDesignation] = useState(false);
@@ -613,21 +715,25 @@ const EmployeeForm = ({
     enableReinitialize: true,
     validateOnMount: true,
     initialValues: getInitialValues(initialData, mode),
-    validationSchema: validationSchema(mode, isEdit),
+    validationSchema: validationSchema(mode, isEdit, relaxedValidation),
     onSubmit: async (values) => {
       touchFileFields();
       const errors = await form.validateForm();
 
-      if (errors.panOld || errors.adharOld || errors.offerLetterOld) {
-        toast.error("Please upload all required documents");
-        return;
-      }
-      const missingMandatoryDocs = validatePositionDocuments();
-      if (missingMandatoryDocs.length > 0) {
-        toast.error(
-          `Please upload required document(s): ${missingMandatoryDocs.join(", ")}`,
-        );
-        return;
+      // Document uploads are mandatory-field checks of their own, so the
+      // relaxed users skip them the same way they skip the Yup requirements.
+      if (!relaxedValidation) {
+        if (errors.panOld || errors.adharOld || errors.offerLetterOld) {
+          toast.error("Please upload all required documents");
+          return;
+        }
+        const missingMandatoryDocs = validatePositionDocuments();
+        if (missingMandatoryDocs.length > 0) {
+          toast.error(
+            `Please upload required document(s): ${missingMandatoryDocs.join(", ")}`,
+          );
+          return;
+        }
       }
 
       try {
@@ -828,9 +934,17 @@ const EmployeeForm = ({
   // Consultants enter a TDS rate; TDS is deducted from CTC and In Hand becomes
   // CTC − TDS (auto-computed, read-only).
   const consultant = isConsultantFinanceType(values.employmentType);
+
+  const isNonAadhaar = values.category === "NON_AADHAAR";
   const consultantTdsAmount = Math.round(
     ((Number(values.annualCTC) || 0) * (Number(values.TDSRate) || 0)) / 100,
   );
+
+  useEffect(() => {
+    if (consultant && !Number(values.TDSRate)) {
+      setFieldValue("TDSRate", CONSULTANT_DEFAULT_TDS_RATE, false);
+    }
+  }, [consultant, values.TDSRate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // For consultants, In Hand is always CTC − TDS (read-only) — keep it in sync
   // whenever CTC or the TDS rate changes.
@@ -1772,9 +1886,14 @@ const EmployeeForm = ({
                 categoryOptions.find((opt) => opt.value === values.category) ||
                 null
               }
-              onChange={(opt) =>
-                form.setFieldValue("category", opt ? opt.value : "")
-              }
+              onChange={(opt) => {
+                const category = opt ? opt.value : "";
+                form.setFieldValue("category", category);
+                // Consultant / Form 11 are never on PF — pick "NO" for the user.
+                if (NON_PF_CATEGORIES.includes(category)) {
+                  form.setFieldValue("pfApplicable", false);
+                }
+              }}
               onBlur={() => setFieldTouched("category", true)}
               isClearable
             />
@@ -2116,6 +2235,7 @@ const EmployeeForm = ({
               }
               onChange={(opt) => setFieldValue("pfApplicable", opt.value)}
               onBlur={() => setFieldTouched("pfApplicable", true)}
+              isDisabled={NON_PF_CATEGORIES.includes(values.category)}
             />
             {errorText("pfApplicable")}
           </Col>
@@ -2163,7 +2283,8 @@ const EmployeeForm = ({
           {/* AADHAAR NO*/}
           <Col md={6}>
             <Label htmlFor="adharNo">
-              Aadhaar No <span className="text-danger">*</span>
+              Aadhaar No{" "}
+              {!isNonAadhaar && <span className="text-danger">*</span>}
             </Label>
             <Input
               id="adharNo"
@@ -2178,7 +2299,8 @@ const EmployeeForm = ({
           {/* ADHAAR FILE */}
           <Col md={6}>
             <Label>
-              Aadhaar File <span className="text-danger">*</span>
+              Aadhaar File{" "}
+              {!isNonAadhaar && <span className="text-danger">*</span>}
             </Label>
 
             <input
@@ -2262,7 +2384,7 @@ const EmployeeForm = ({
           {/* PAN NO*/}
           <Col md={6}>
             <Label htmlFor="pan">
-              PAN No<span className="text-danger">*</span>
+              PAN No{!isNonAadhaar && <span className="text-danger">*</span>}
             </Label>
 
             <Input
@@ -2280,7 +2402,8 @@ const EmployeeForm = ({
           {/* PAN FILE */}
           <Col md={6}>
             <Label>
-              PAN File <span className="text-danger">*</span>
+              PAN File{" "}
+              {!isNonAadhaar && <span className="text-danger">*</span>}
             </Label>
 
             <input
@@ -2793,6 +2916,7 @@ const EmployeeForm = ({
                     min={0}
                     max={100}
                     value={values.TDSRate}
+                    disabled
                     onChange={handleChange}
                     onBlur={() => setFieldTouched("TDSRate", true)}
                     invalid={touched.TDSRate && !!errors.TDSRate}
