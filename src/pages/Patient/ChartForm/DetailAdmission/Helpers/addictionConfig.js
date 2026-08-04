@@ -11,6 +11,7 @@ const addictionConfig = [
         path: `${P}.noSubstanceUseReported`,
         label: "No substance use reported (None)",
         type: "checkbox",
+        required: false,
       },
       {
         kind: "grid",
