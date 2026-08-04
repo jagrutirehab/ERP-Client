@@ -75,6 +75,7 @@ const isLeafFilled = (item, values) => {
   const val = getIn(values, item.path);
   if (item.type === "multiselect") return Array.isArray(val) && val.length > 0;
   if (item.type === "yesno") return val === true || val === false;
+  if (item.type === "checkbox") return true;
   if (val === null || val === undefined) return false;
   return String(val).trim() !== "";
 };
