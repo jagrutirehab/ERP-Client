@@ -95,7 +95,9 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
   const [tab, setTab] = useState(hasCreatePermission ? FORM_TAB : RECORDS_TAB);
 
   const [center, setCenter] = useState("");
-  const [rows, setRows] = useState([emptyDenominationRow()]);
+  const [rows, setRows] = useState(() =>
+    Array.from({ length: 5 }, emptyDenominationRow)
+  );
   const [comments, setComments] = useState("");
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -149,7 +151,7 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
   const filledDenominations = rows.filter((row) => row.denomination !== "").length;
 
   const resetForm = () => {
-    setRows([emptyDenominationRow()]);
+    setRows(Array.from({ length: 5 }, emptyDenominationRow));
     setComments("");
     setErrors({});
   };
