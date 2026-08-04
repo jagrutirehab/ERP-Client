@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Button, Input, Table } from "reactstrap";
+import { Button, Col, Input, Row } from "reactstrap";
+import Select from "react-select";
 import { Plus, Trash2 } from "lucide-react";
 import { denominationOptions } from "../../../Components/constants/cash";
 import { formatCurrency } from "../../../utils/formatCurrency";
@@ -75,88 +76,94 @@ const DenominationEditor = ({ rows, setRows, errors = {}, disabled }) => {
         : prev.filter((_, i) => i !== index)
     );
 
+  const denominationSelectOptions = denominationOptions.map((d) => ({
+    value: d.value,
+    label: d.label,
+  }));
+
   return (
     <>
-      <div className="table-responsive">
-        <Table className="align-middle mb-2">
-          <thead className="table-light">
-            <tr>
-              <th style={{ width: "40%" }}>Denomination</th>
-              <th style={{ width: "25%" }}>Count</th>
-              <th className="text-end" style={{ width: "25%" }}>
-                Amount
-              </th>
-              <th style={{ width: "10%" }}></th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row, index) => (
-              <tr key={index}>
-                <td>
-                  <Input
-                    type="select"
-                    disabled={disabled}
-                    value={row.denomination}
-                    onChange={(e) =>
-                      handleRowChange(index, "denomination", e.target.value)
-                    }
-                    className="form-select"
-                  >
-                    <option value="">Select denomination</option>
-                    {denominationOptions
-                      .filter(
-                        (d) =>
-                          String(d.value) === String(row.denomination) ||
-                          !usedDenominations.includes(String(d.value))
-                      )
-                      .map((d) => (
-                        <option key={d.value} value={d.value}>
-                          {d.label}
-                        </option>
-                      ))}
-                  </Input>
-                </td>
-                <td>
-                  <Input
-                    type="number"
-                    min="0"
-                    step="1"
-                    placeholder="0"
-                    disabled={disabled}
-                    value={row.count}
-                    onChange={(e) =>
-                      handleRowChange(index, "count", e.target.value)
-                    }
-                  />
-                </td>
-                <td className="text-end fw-semibold">
-                  {formatCurrency(rowAmount(row))}
-                </td>
-                <td className="text-end">
-                  <Button
-                    color="link"
-                    className="text-danger p-0"
-                    type="button"
-                    disabled={disabled}
-                    onClick={() => removeRow(index)}
-                    title="Remove row"
-                  >
-                    <Trash2 size={16} />
-                  </Button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
+      <div className="d-none d-sm-flex text-muted small fw-semibold mb-1">
+        <div className="flex-grow-1" style={{ flexBasis: "45%" }}>
+          Denomination
+        </div>
+        <div style={{ flexBasis: "22%" }}>Count</div>
+        <div className="text-end" style={{ flexBasis: "23%" }}>
+          Amount
+        </div>
+        <div style={{ flexBasis: "10%" }} />
       </div>
 
-      {errors.rowErrors &&
-        Object.entries(errors.rowErrors).map(([index, msg]) => (
-          <div key={index} className="invalid-feedback d-block">
-            <i className="fas fa-exclamation-circle me-1"></i>
-            Row {Number(index) + 1}: {msg}
+      {rows.map((row, index) => {
+        const rowError = errors.rowErrors?.[index];
+        return (
+          <div key={index} className="border-bottom pb-2 mb-2">
+            <Row className="g-2 align-items-center">
+              <Col xs={12} sm={5}>
+                <Select
+                  classNamePrefix="react-select"
+                  isDisabled={disabled}
+                  placeholder="Select denomination"
+                  menuPortalTarget={document.body}
+                  menuPosition="fixed"
+                  styles={{
+                    menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                  }}
+                  options={denominationSelectOptions.filter(
+                    (o) =>
+                      String(o.value) === String(row.denomination) ||
+                      !usedDenominations.includes(String(o.value))
+                  )}
+                  value={
+                    denominationSelectOptions.find(
+                      (o) => String(o.value) === String(row.denomination)
+                    ) || null
+                  }
+                  onChange={(option) =>
+                    handleRowChange(index, "denomination", option?.value ?? "")
+                  }
+                  isClearable
+                />
+              </Col>
+              <Col xs={6} sm={3}>
+                <Input
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="Count"
+                  disabled={disabled}
+                  value={row.count}
+                  onChange={(e) =>
+                    handleRowChange(index, "count", e.target.value)
+                  }
+                />
+              </Col>
+              <Col xs={4} sm={3} className="text-end fw-semibold">
+                {formatCurrency(rowAmount(row))}
+              </Col>
+              <Col xs={2} sm={1} className="text-end">
+                <Button
+                  color="link"
+                  className="text-danger p-0"
+                  type="button"
+                  disabled={disabled}
+                  onClick={() => removeRow(index)}
+                  title="Remove row"
+                >
+                  <Trash2 size={16} />
+                </Button>
+              </Col>
+            </Row>
+            {rowError && (
+              <div className="invalid-feedback d-block small mt-1 mb-0">
+                <i className="fas fa-exclamation-circle me-1"></i>
+                {rowError}
+              </div>
+            )}
           </div>
-        ))}
+        );
+      })}
+
       {errors.rows && (
         <div className="invalid-feedback d-block">
           <i className="fas fa-exclamation-circle me-1"></i>
