@@ -804,6 +804,7 @@ const DetailAdmission = ({
           return;
         }
       }
+      // 
       const diagnosisMissing =
         !Array.isArray(values.provisionaldiagnosis) ||
         values.provisionaldiagnosis.length === 0 ||
