@@ -62,7 +62,14 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
 
   // Fetch admissions directly
   const fetchAdmissions = async () => {
+    console.log(
+      "[IPD] fetchAdmissions called. patient._id:",
+      patient?._id,
+      "addmissions:",
+      patient?.addmissions,
+    );
     if (!patient?.addmissions?.length) {
+      console.log("[IPD] no admissions on patient — clearing local state");
       setAdmissions([]);
       return;
     }
@@ -70,6 +77,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
     setOpen(null);
     try {
       const res = await getChartsAddmissions(patient.addmissions);
+      console.log("[IPD] getChartsAddmissions response:", res);
       setAdmissions(res.payload || []);
       setOpen("0");
     } catch (error) {
@@ -81,7 +89,10 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
 
   useEffect(() => {
     fetchAdmissions();
-  }, [patient?._id]);
+    // patient?.addmissions?.length is included because `patient` first loads
+    // without admissions populated (before fetchPatientById resolves); relying
+    // on patient?._id alone misses the follow-up render where admissions appear.
+  }, [patient?._id, patient?.addmissions?.length]);
 
   useEffect(() => {
     const handleChartUpdate = () => fetchAdmissions();
@@ -116,7 +127,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
       }
     };
     fetchChartsForAdmission();
-  }, [open]);
+}, [open, admissions.length]);
 
   // Refetch charts when filter changes
   useEffect(() => {
