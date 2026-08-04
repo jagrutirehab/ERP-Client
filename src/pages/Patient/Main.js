@@ -16,6 +16,7 @@ import {
   fetchPatientById,
 } from "../../store/actions";
 import RenderWhen from "../../Components/Common/RenderWhen";
+import { getChartsAddmissions } from "../../helpers/backend_helper";
 
 const Main = ({ patient, deletePatient, setDeletePatient }) => {
   const dispatch = useDispatch();
@@ -50,15 +51,27 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
     if (!patient) return;
 
     if (patient.addmissions?.length) {
-      dispatch(fetchChartsAddmissions(patient.addmissions));
-      dispatch(fetchBillsAddmissions(patient.addmissions));
+      const fetchFresh = async () => {
+        try {
+          console.log("fetching admissions for patient:", patient._id);
+          const response = await getChartsAddmissions(patient.addmissions);
+          console.log("admissions response:", response);
+          dispatch({
+            type: "getChartsAddmissions/fulfilled",
+            payload: response,
+          });
+          dispatch(fetchBillsAddmissions(patient.addmissions));
+        } catch (error) {
+          console.log("fetchChartsAddmissions error:", error);
+        }
+      };
+      fetchFresh();
     } else {
       dispatch(resetOpdPatientCharts());
       dispatch(resetOpdPatientBills());
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, patient?._id, addmissionsKey]);
-  // Claude changes starts
 
   return (
     <React.Fragment>
