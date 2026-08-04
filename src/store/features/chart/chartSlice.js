@@ -1505,6 +1505,10 @@ export const chartSlice = createSlice({
   name: "Chart",
   initialState,
   reducers: {
+    clearCharts: (state) => {
+      state.data = [];
+      state.chartLoading = false;
+    },
     updateChartAdmission: (state, { payload }) => {
       const index = state.data?.findIndex((d) => d._id === payload._id);
 
@@ -1596,6 +1600,7 @@ export const chartSlice = createSlice({
         const findIndex = state.data.findIndex(
           (el) => el._id === payload.addmission,
         );
+        if (findIndex === -1) return;
         state.data[findIndex] = {
           ...state.data[findIndex],
           charts: payload.payload,
@@ -2893,6 +2898,7 @@ export const {
   setChartAdmission,
   resetOpdPatientCharts,
   setPtLatestOPDPrescription,
+  clearCharts,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;
