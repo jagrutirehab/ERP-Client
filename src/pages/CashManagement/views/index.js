@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   BASE_BALANCE_VIEW,
   DEPOSITS_VIEW,
@@ -6,8 +6,10 @@ import {
   REPORTS_VIEW,
   SPENDING_VIEW,
   LEDGER_REPORT_VIEW,
+  CASH_MANAGEMENT_GROUP,
+  CASH_DAILY_RECO_GROUP,
 } from "../../../Components/constants/cash";
-import { Button, ButtonGroup, Spinner } from "reactstrap";
+import { Button, ButtonGroup, Nav, NavItem, NavLink, Spinner } from "reactstrap";
 import Reports from "./Reports";
 import LedgerReport from "./LedgerReport";
 import Balance from "./Balance";
@@ -17,6 +19,7 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate } from "react-router-dom";
 import Inflows from "./Inflows";
+import CashReco from "./CashReco";
 
 const Views = () => {
   const navigate = useNavigate();
@@ -34,6 +37,7 @@ const Views = () => {
     "LEDGERREPORT",
     "READ",
   );
+  const hasCashRecoPermission = hasPermission("CASH", "CASHRECO", "READ");
 
   const availableViews = [
     {
@@ -76,6 +80,19 @@ const Views = () => {
     .filter((view) => view.hasAccess)
     .sort((a, b) => a.order - b.order);
 
+  const availableGroups = [
+    {
+      name: "Cash Management",
+      group: CASH_MANAGEMENT_GROUP,
+      hasAccess: availableViews.length > 0,
+    },
+    {
+      name: "Cash Daily Reco",
+      group: CASH_DAILY_RECO_GROUP,
+      hasAccess: hasCashRecoPermission,
+    },
+  ].filter((g) => g.hasAccess);
+
   const getDefaultView = () => {
     if (availableViews.length === 0) return null;
 
@@ -98,9 +115,29 @@ const Views = () => {
     return availableViews[0]?.view || null;
   };
 
+  const [group, setGroup] = useState(availableGroups[0]?.group || null);
   const [view, setView] = useState(getDefaultView());
+  const tabStripRef = useRef(null);
 
   const handleView = (v) => setView(v);
+
+  useEffect(() => {
+    const strip = tabStripRef.current;
+    const activeTab = strip?.querySelector(`[data-view="${view}"]`);
+    if (!strip || !activeTab) return;
+    if (strip.scrollWidth <= strip.clientWidth) return;
+
+    const target =
+      activeTab.offsetLeft - (strip.clientWidth - activeTab.clientWidth) / 2;
+    strip.scrollTo({ left: Math.max(target, 0), behavior: "smooth" });
+  }, [view, group]);
+
+  useEffect(() => {
+    if (!group || !availableGroups.some((g) => g.group === group)) {
+      const defaultGroup = availableGroups[0]?.group;
+      if (defaultGroup) setGroup(defaultGroup);
+    }
+  }, [availableGroups, group]);
 
   useEffect(() => {
     if (!view || !availableViews.some((v) => v.view === view)) {
@@ -109,13 +146,14 @@ const Views = () => {
         setView(defaultView);
       }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableViews, view]);
 
-  if (availableViews.length === 0) {
+  if (availableGroups.length === 0) {
     navigate("/unauthorized");
   }
 
-  if (!view) {
+  if (!group) {
     return (
       <div className="d-flex justify-content-center align-items-center vh-100">
         <Spinner
@@ -127,78 +165,118 @@ const Views = () => {
     );
   }
 
+  const showManagement = group === CASH_MANAGEMENT_GROUP;
+
   return (
     <React.Fragment>
       <div className="h-auto" style={{ overflow: "auto !important" }}>
         <div className="position-relative overflow-auto mt-1 py-3">
-          <div className="d-flex justify-content-between flex-wrap mb-3">
-            <ButtonGroup size="sm">
-              {availableViews.map((sub) => (
-                <Button
-                  key={sub.view}
-                  outline={view !== sub.view}
-                  onClick={() => handleView(sub.view)}
+          {availableGroups.length > 1 && (
+            <div className="tab-scroll-strip mb-3">
+              <Nav tabs className="flex-nowrap border-bottom-0">
+                {availableGroups.map((g) => (
+                  <NavItem key={g.group}>
+                    <NavLink
+                      href="#"
+                      active={group === g.group}
+                      className="fw-semibold"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setGroup(g.group);
+                      }}
+                    >
+                      {g.name}
+                    </NavLink>
+                  </NavItem>
+                ))}
+              </Nav>
+            </div>
+          )}
+
+          {showManagement && (
+            <div className="tab-scroll-strip mb-3" ref={tabStripRef}>
+              <ButtonGroup size="sm">
+                {availableViews.map((sub) => (
+                  <Button
+                    key={sub.view}
+                    data-view={sub.view}
+                    outline={view !== sub.view}
+                    onClick={() => handleView(sub.view)}
+                  >
+                    {sub.name === "Balance"
+                      ? "Set Base Balance"
+                      : sub.name === "Deposits"
+                        ? "Bank Deposits"
+                        : sub.name}
+                  </Button>
+                ))}
+              </ButtonGroup>
+            </div>
+          )}
+
+          <div className="bg-white px-2 px-md-3 py-3 vh-90">
+            {showManagement ? (
+              <>
+                <CheckPermission
+                  accessRolePermission={roles?.permissions}
+                  permission={"read"}
+                  subAccess={"CASHREPORTS"}
                 >
-                  {sub.name === "Balance"
-                    ? "Set Base Balance"
-                    : sub.name === "Deposits"
-                      ? "Bank Deposits"
-                      : sub.name}
-                </Button>
-              ))}
-            </ButtonGroup>
-          </div>
-          <div className="bg-white px-3 py-3 vh-90">
-            <CheckPermission
-              accessRolePermission={roles?.permissions}
-              permission={"read"}
-              subAccess={"CASHREPORTS"}
-            >
-              {view === REPORTS_VIEW && <Reports />}
-            </CheckPermission>
+                  {view === REPORTS_VIEW && <Reports />}
+                </CheckPermission>
 
-            <CheckPermission
-              accessRolePermission={roles?.permissions}
-              permission={"read"}
-              subAccess={"CASHBALANCE"}
-            >
-              {view === BASE_BALANCE_VIEW && <Balance />}
-            </CheckPermission>
+                <CheckPermission
+                  accessRolePermission={roles?.permissions}
+                  permission={"read"}
+                  subAccess={"CASHBALANCE"}
+                >
+                  {view === BASE_BALANCE_VIEW && <Balance />}
+                </CheckPermission>
 
-            <CheckPermission
-              accessRolePermission={roles?.permissions}
-              permission={"read"}
-              subAccess={"CASHDEPOSITS"}
-            >
-              {view === DEPOSITS_VIEW && <Deposits />}
-            </CheckPermission>
+                <CheckPermission
+                  accessRolePermission={roles?.permissions}
+                  permission={"read"}
+                  subAccess={"CASHDEPOSITS"}
+                >
+                  {view === DEPOSITS_VIEW && <Deposits />}
+                </CheckPermission>
 
-            <CheckPermission
-              accessRolePermission={roles?.permissions}
-              permission={"read"}
-              subAccess={"CASHSPENDING"}
-            >
-              {view === SPENDING_VIEW && <Spending />}
-            </CheckPermission>
+                <CheckPermission
+                  accessRolePermission={roles?.permissions}
+                  permission={"read"}
+                  subAccess={"CASHSPENDING"}
+                >
+                  {view === SPENDING_VIEW && <Spending />}
+                </CheckPermission>
 
-            <CheckPermission
-              accessRolePermission={roles?.permissions}
-              permission={"read"}
-              subAccess={"CASHINFLOW"}
-            >
-              {view === INFLOW_VIEW && <Inflows />}
-            </CheckPermission>
+                <CheckPermission
+                  accessRolePermission={roles?.permissions}
+                  permission={"read"}
+                  subAccess={"CASHINFLOW"}
+                >
+                  {view === INFLOW_VIEW && <Inflows />}
+                </CheckPermission>
 
-            {view === LEDGER_REPORT_VIEW && (
+                {view === LEDGER_REPORT_VIEW && (
+                  <CheckPermission
+                    accessRolePermission={roles?.permissions}
+                    permission={"read"}
+                    subAccess={"LEDGERREPORT"}
+                  >
+                    <LedgerReport
+                      activeTab="dateRange"
+                      hasUserPermission={hasLedgerReportPermission}
+                    />
+                  </CheckPermission>
+                )}
+              </>
+            ) : (
               <CheckPermission
                 accessRolePermission={roles?.permissions}
                 permission={"read"}
-                subAccess={"LEDGERREPORT"}
+                subAccess={"CASHRECO"}
               >
-                <LedgerReport
-                  activeTab="dateRange" // ← add this
-                  hasUserPermission={hasLedgerReportPermission} // ← add this
-                />
+                <CashReco />
               </CheckPermission>
             )}
           </div>

@@ -26,7 +26,7 @@ const Main = () => {
     return null;
   }
 
-  document.title="Cash Management Dashboard";
+  document.title="Cash Dashboard";
 
   return <Views />;
 };

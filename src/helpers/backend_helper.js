@@ -1366,6 +1366,75 @@ export const getLatestInflows = (params = {}) => {
   });
 };
 
+export const postCashReco = (data) => {
+  return api.create(url.ADD_CASH_RECO, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const getCashRecoList = (params = {}) => {
+  return api.get(url.GET_CASH_RECOS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const putCashReco = (id, data) => {
+  return api.put(`${url.ADD_CASH_RECO}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const removeCashReco = (id) => {
+  return api.delete(`${url.ADD_CASH_RECO}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getCashRecoDayStatus = (params = {}) => {
+  return api.create(url.CASH_RECO_DAY_STATUS, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const getCashRecoComparison = (id) => {
+  return api.create(
+    `${url.ADD_CASH_RECO}/${id}/comparison`,
+    {},
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+        "Content-Type": "application/json",
+      },
+    }
+  );
+};
+
+export const confirmCashRecoEntry = (id, data) => {
+  return api.create(`${url.ADD_CASH_RECO}/${id}/confirm`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
 export const getDetailedCashReport = (params = {}) => {
   return api.create(url.GET_DETAILED_CASH_REPORT, params, {
     headers: {

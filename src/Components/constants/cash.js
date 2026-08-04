@@ -4,6 +4,22 @@ export const DEPOSITS_VIEW = "DEPOSITS";
 export const SPENDING_VIEW = "SPENDING";
 export const INFLOW_VIEW = "INFLOW";
 export const LEDGER_REPORT_VIEW = "LEDGER_REPORT";
+export const CASH_MANAGEMENT_GROUP = "CASH_MANAGEMENT";
+export const CASH_DAILY_RECO_GROUP = "CASH_DAILY_RECO";
+
+
+export const denominationOptions = [
+  { value: 2000, label: "₹2000 Note" },
+  { value: 500, label: "₹500 Note" },
+  { value: 200, label: "₹200 Note" },
+  { value: 100, label: "₹100 Note" },
+  { value: 50, label: "₹50 Note" },
+  { value: 20, label: "₹20 Note" },
+  { value: 10, label: "₹10 Note / Coin" },
+  { value: 5, label: "₹5 Coin" },
+  { value: 2, label: "₹2 Coin" },
+  { value: 1, label: "₹1 Coin" },
+];
 
 export const summaryOptions = [
   { value: "AA_SESSION", label: "AA SESSION" },
