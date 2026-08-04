@@ -33,6 +33,14 @@ const CheifComplaint = ({ data, styles }) => {
             </Text>
           </View>
         )}
+        {data?.informantName && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>Informant Name:</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.informantName || ""}
+            </Text>
+          </View>
+        )}
         {data?.reliable && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>Reliable:</Text>

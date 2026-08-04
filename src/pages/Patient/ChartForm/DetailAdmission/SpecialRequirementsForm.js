@@ -14,21 +14,51 @@ const yesNo = [
 ];
 
 const fields = [
-  { label: "Physiotherapy", name: "physiotherapy", type: "radio", options: yesNo },
+  {
+    label: "Physiotherapy",
+    name: "physiotherapy",
+    type: "radio",
+    options: yesNo,
+  },
   { label: "Walking", name: "walking", type: "radio", options: yesNo },
-  { label: "Home Medicines", name: "homeMedicines", type: "radio", options: yesNo },
+  {
+    label: "Home Medicines",
+    name: "homeMedicines",
+    type: "radio",
+    options: yesNo,
+  },
   { label: "Exercise", name: "exercise", type: "radio", options: yesNo },
-  { label: "Food Requirement", name: "foodRequirement", type: "radio", options: yesNo },
+  {
+    label: "Food Requirement",
+    name: "foodRequirement",
+    type: "radio",
+    options: yesNo,
+  },
   {
     label: "External Doctor Visits",
     name: "externalDoctorVisits",
     type: "radio",
     options: yesNo,
   },
-  { label: "Extra Care Taker", name: "extraCareTaker", type: "radio", options: yesNo },
+  {
+    label: "Extra Care Taker",
+    name: "extraCareTaker",
+    type: "radio",
+    options: yesNo,
+  },
+  {
+    label: "Details",
+    name: "specialRequirementsDetails",
+    type: "textarea",
+  },
 ];
 
-const SpecialRequirementsForm = ({ validation, closeForm, editChartData, author }) => {
+const SpecialRequirementsForm = ({
+  validation,
+  closeForm,
+  editChartData,
+  author,
+}) => {
   const dispatch = useDispatch();
 
   const [loading, setLoading] = useState(false);
@@ -54,7 +84,7 @@ const SpecialRequirementsForm = ({ validation, closeForm, editChartData, author 
             chart: response.payload,
             appointment: response.payload.appointment,
             patient: response.payload.patient,
-          })
+          }),
         );
       }
       closeForm();

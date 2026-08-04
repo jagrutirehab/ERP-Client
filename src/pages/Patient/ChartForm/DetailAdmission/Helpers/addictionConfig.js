@@ -139,12 +139,14 @@ const addictionConfig = [
         path: `${P}.dependenceFeatures.continuedUseDespiteHarm`,
         label: "Continued use despite harm",
         type: "yesno",
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.dependenceFeatures.severity`,
         label: "Severity (clinician rating)",
         type: "text",
+        required: false,
       },
       {
         kind: "field",
@@ -159,6 +161,7 @@ const addictionConfig = [
           "Sublingual",
           "Other",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -172,12 +175,14 @@ const addictionConfig = [
         path: `${P}.routeOfAdministration.hivHepScreeningDone`,
         label: "HIV / Hepatitis screening done?",
         type: "yesno",
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.routeOfAdministration.hivHepResult`,
         label: "HIV / Hepatitis screening result",
         type: "text",
+        required: false,
       },
     ],
   },
@@ -269,6 +274,7 @@ const addictionConfig = [
         label:
           "Medications used in past (e.g. Naltrexone, Buprenorphine, Disulfiram)",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",
