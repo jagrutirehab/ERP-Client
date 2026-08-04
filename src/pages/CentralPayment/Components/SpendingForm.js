@@ -128,7 +128,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             .typeError("TDS Rate must be a number")
             .nullable()
             .min(0, "TDS Rate cannot be negative")
-            .max(30, "TDS Rate cannot be greater than 30%"),
+            .max(35, "TDS Rate cannot be greater than 35%"),
         initialPaymentStatus: Yup.string()
             .oneOf(["PENDING", "COMPLETED"], "Invalid payment status")
             .required("Payment status is required"),

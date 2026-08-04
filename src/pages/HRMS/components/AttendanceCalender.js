@@ -47,12 +47,29 @@ const getStatusLabel = (status) => {
     return statusTitleMap[status] || status;
 };
 
+const SHIFT_LABEL = {
+    FIRST_HALF: "1st Half",
+    SECOND_HALF: "2nd Half",
+};
+
+// A single date can hold two half-day leaves — e.g. the auto-deduction cron
+// splits a day when the balance runs out mid-way, giving FIRST_HALF unpaid and
+// SECOND_HALF paid. `leaves` carries every approved leave for the date; the
+// single `status` field can only describe one of them.
+const getApprovedHalves = (item) => {
+    const all = (item?.dayLeaves || []).filter(
+        (l) => l?.status === "approved" && l?.shiftTime && l.shiftTime !== "FULL_DAY",
+    );
+    return all.length > 1 ? all : [];
+};
+
 const AttendanceEvent = ({ event }) => {
     const item = event.resource;
     if (!item || item.status === "FUTURE") return null;
 
     const { status, firstCheckIn, lastCheckOut, workDuration, date } = item;
     const baseStatus = getBaseStatus(status);
+    const halves = getApprovedHalves(item);
 
     return (
         <div style={styles.cardWrapper}>
@@ -84,14 +101,38 @@ const AttendanceEvent = ({ event }) => {
                     </div>
                 )}
 
-                <div
-                    style={{
-                        ...styles.status,
-                        ...styles.statusColor[baseStatus],
-                    }}
-                >
-                    {getStatusLabel(status)}
-                </div>
+                {halves.length ? (
+                    // Two half-day leaves on one date — show each half rather
+                    // than a single status that can only describe one of them.
+                    // Kept tight so both rows still fit the calendar cell.
+                    <div style={styles.halfList}>
+                        {halves.map((h, i) => (
+                            <div
+                                key={h._id || i}
+                                style={{
+                                    ...styles.halfRow,
+                                    ...styles.statusColor[h.leaveType],
+                                }}
+                            >
+                                <span style={styles.halfTag}>
+                                    {SHIFT_LABEL[h.shiftTime] || h.shiftTime}
+                                </span>
+                                <span style={styles.halfText}>
+                                    {statusTitleMap[h.leaveType] || h.leaveType}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div
+                        style={{
+                            ...styles.status,
+                            ...styles.statusColor[baseStatus],
+                        }}
+                    >
+                        {getStatusLabel(status)}
+                    </div>
+                )}
             </div>
         </div>
     );
@@ -215,6 +256,43 @@ const styles = {
         marginTop: "4px",
         fontWeight: 600,
         fontSize: "11px",
+    },
+
+    // Compact two-row block used when a date carries two half-day leaves.
+    // Deliberately tighter than `status` so both rows fit the calendar cell.
+    halfList: {
+        marginTop: "3px",
+        display: "flex",
+        flexDirection: "column",
+        gap: "1px",
+    },
+
+    halfRow: {
+        display: "flex",
+        alignItems: "center",
+        gap: "3px",
+        fontWeight: 600,
+        fontSize: "10px",
+        lineHeight: 1.25,
+        minWidth: 0,
+    },
+
+    halfTag: {
+        background: "#f3f4f6",
+        color: "#4b5563",
+        borderRadius: "3px",
+        padding: "0 3px",
+        fontSize: "9px",
+        fontWeight: 700,
+        flexShrink: 0,
+        whiteSpace: "nowrap",
+    },
+
+    halfText: {
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        minWidth: 0,
     },
 
     statusColor: {

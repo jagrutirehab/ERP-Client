@@ -28,6 +28,11 @@ const canShowRegularizeButton = () => {
   // );
 };
 
+const SHIFT_LABEL = {
+  FIRST_HALF: "1st Half",
+  SECOND_HALF: "2nd Half",
+};
+
 const canShowLeaveButton = (row) => {
   const regStatus = row?.regularizations?.regularization_id?.status;
   const hasActiveReg = regStatus && regStatus !== "REJECTED";
@@ -50,12 +55,40 @@ export const myAttendanceLogsColumns = ({
 }) => [
   {
     name: <div>Date</div>,
-    selector: (row) => (
-      <div className="d-flex flex-column gap-1">
-        <span className="fw-semibold">{row?.date}</span>
-        {renderStatusBadge(row?.status)}
-      </div>
-    ),
+    selector: (row) => {
+      // A date can carry two half-day leaves (e.g. the auto-deduction cron
+      // splits a day when the balance runs out mid-way). `row.status` can only
+      // name one of them, so render a badge per half when that happens.
+      const halves = (row?.dayLeaves || []).filter(
+        (l) =>
+          l?.status === "approved" &&
+          l?.shiftTime &&
+          l.shiftTime !== "FULL_DAY",
+      );
+
+      return (
+        <div className="d-flex flex-column gap-1">
+          <span className="fw-semibold">{row?.date}</span>
+          {halves.length > 1
+            ? halves.map((h, i) => (
+                <div
+                  key={h._id || i}
+                  className="d-flex align-items-center gap-1"
+                  style={{ lineHeight: 1.2 }}
+                >
+                  <small
+                    className="text-muted fw-semibold"
+                    style={{ fontSize: "10px", whiteSpace: "nowrap" }}
+                  >
+                    {SHIFT_LABEL[h.shiftTime] || h.shiftTime}
+                  </small>
+                  {renderStatusBadge(h.leaveType)}
+                </div>
+              ))
+            : renderStatusBadge(row?.status)}
+        </div>
+      );
+    },
     wrap: true,
   },
   {

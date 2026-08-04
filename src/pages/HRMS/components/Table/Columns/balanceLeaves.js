@@ -1,3 +1,5 @@
+import { formatLeaveDays } from "../../../../../utils/leaveDays";
+
 export const balanceLeavesColumn = ({
   showWeekOffs = false,
   showCompOff = false,
@@ -8,30 +10,30 @@ export const balanceLeavesColumn = ({
   },
   {
     name: "Earned",
-    cell: (row) => row.earnedLeaves ?? "-",
+    cell: (row) => formatLeaveDays(row.earnedLeaves),
   },
   {
     name: "Festive",
-    cell: (row) => row.festiveLeaves ?? "-",
+    cell: (row) => formatLeaveDays(row.festiveLeaves),
   },
   // Week-off balance is only relevant for rotational-shift employees.
   ...(showWeekOffs
     ? [
         {
           name: "Week Offs",
-          cell: (row) => row.weekOffs ?? "-",
+          cell: (row) => formatLeaveDays(row.weekOffs),
         },
       ]
     : []),
   {
     name: "Unpaid",
-    cell: (row) => row.unpaidLeaves ?? "-",
+    cell: (row) => formatLeaveDays(row.unpaidLeaves),
   },
   ...(showCompOff
     ? [
         {
           name: "Comp-Off's",
-          cell: (row) => row.compOff ?? "-",
+          cell: (row) => formatLeaveDays(row.compOff),
         },
       ]
     : []),
