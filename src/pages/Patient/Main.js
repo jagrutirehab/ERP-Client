@@ -39,15 +39,26 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
     fetchPatientData();
   }, [dispatch, id]);
 
+  // Claude changes starts
+
+  // Keyed on the admission ids themselves (not the whole `patient` object)
+  // so unrelated patient field updates don't re-trigger this fetch and race
+  // with an in-flight one.
+  const addmissionsKey = patient?.addmissions?.join(",") ?? "";
+
   useEffect(() => {
-    if (patient?.addmissions?.length) {
+    if (!patient) return;
+
+    if (patient.addmissions?.length) {
       dispatch(fetchChartsAddmissions(patient.addmissions));
       dispatch(fetchBillsAddmissions(patient.addmissions));
     } else {
       dispatch(resetOpdPatientCharts());
       dispatch(resetOpdPatientBills());
     }
-  }, [dispatch, patient]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, patient?._id, addmissionsKey]);
+  // Claude changes starts
 
   return (
     <React.Fragment>
