@@ -465,6 +465,7 @@ export const getChartsAddmissions = (data) =>
   api.get(url.GET_CHARTS_ADDMISSIONS, {
     params: {
       addmissions: [...data],
+      _t: Date.now(),
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
@@ -1422,7 +1423,7 @@ export const getCashRecoComparison = (id) => {
         "X-No-Cookie-Token": "true",
         "Content-Type": "application/json",
       },
-    }
+    },
   );
 };
 

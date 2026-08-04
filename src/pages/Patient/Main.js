@@ -10,9 +10,9 @@ import Views from "./Views";
 import { connect, useDispatch } from "react-redux";
 import {
   fetchBillsAddmissions,
-  fetchChartsAddmissions,
+  // fetchChartsAddmissions,
   resetOpdPatientBills,
-  resetOpdPatientCharts,
+  // resetOpdPatientCharts,
   fetchPatientById,
 } from "../../store/actions";
 import RenderWhen from "../../Components/Common/RenderWhen";
@@ -47,31 +47,16 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
   // with an in-flight one.
   const addmissionsKey = patient?.addmissions?.join(",") ?? "";
 
+  console.log("addmissionsKey:", addmissionsKey);
+  console.log("patient.addmissions:", patient?.addmissions);
   useEffect(() => {
     if (!patient) return;
-
     if (patient.addmissions?.length) {
-      const fetchFresh = async () => {
-        try {
-          console.log("fetching admissions for patient:", patient._id);
-          const response = await getChartsAddmissions(patient.addmissions);
-          console.log("admissions response:", response);
-          dispatch({
-            type: "getChartsAddmissions/fulfilled",
-            payload: response,
-          });
-          dispatch(fetchBillsAddmissions(patient.addmissions));
-        } catch (error) {
-          console.log("fetchChartsAddmissions error:", error);
-        }
-      };
-      fetchFresh();
+      dispatch(fetchBillsAddmissions(patient.addmissions));
     } else {
-      dispatch(resetOpdPatientCharts());
       dispatch(resetOpdPatientBills());
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, patient?._id, addmissionsKey]);
+  }, [patient?._id]);
 
   return (
     <React.Fragment>
