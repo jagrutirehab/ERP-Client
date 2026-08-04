@@ -81,6 +81,8 @@ const minutesToHHMM = (mins) => {
 // stops the form asking for a UAN.
 const NON_PF_CATEGORIES = ["CONSULTANT", "FORM11"];
 
+const CONSULTANT_DEFAULT_TDS_RATE = 10;
+
 const RELAXED_EMPLOYEE_FORM_USERS = [
   "67a4983f102397b0c939f937",
   "68f8f38cbfb5c1f785102465",
@@ -932,12 +934,17 @@ const EmployeeForm = ({
   // Consultants enter a TDS rate; TDS is deducted from CTC and In Hand becomes
   // CTC − TDS (auto-computed, read-only).
   const consultant = isConsultantFinanceType(values.employmentType);
-  // "Non Aadhaar" category employees have no PAN/Aadhaar to record, so those
-  // four fields (both numbers and both uploads) stop being mandatory.
+
   const isNonAadhaar = values.category === "NON_AADHAAR";
   const consultantTdsAmount = Math.round(
     ((Number(values.annualCTC) || 0) * (Number(values.TDSRate) || 0)) / 100,
   );
+
+  useEffect(() => {
+    if (consultant && !Number(values.TDSRate)) {
+      setFieldValue("TDSRate", CONSULTANT_DEFAULT_TDS_RATE, false);
+    }
+  }, [consultant, values.TDSRate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // For consultants, In Hand is always CTC − TDS (read-only) — keep it in sync
   // whenever CTC or the TDS rate changes.
@@ -2228,6 +2235,7 @@ const EmployeeForm = ({
               }
               onChange={(opt) => setFieldValue("pfApplicable", opt.value)}
               onBlur={() => setFieldTouched("pfApplicable", true)}
+              isDisabled={NON_PF_CATEGORIES.includes(values.category)}
             />
             {errorText("pfApplicable")}
           </Col>
@@ -2908,6 +2916,7 @@ const EmployeeForm = ({
                     min={0}
                     max={100}
                     value={values.TDSRate}
+                    disabled
                     onChange={handleChange}
                     onBlur={() => setFieldTouched("TDSRate", true)}
                     invalid={touched.TDSRate && !!errors.TDSRate}
