@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { Alert, Button, Progress } from "reactstrap";
 import { connect, useDispatch, useSelector } from "react-redux";
@@ -41,6 +41,7 @@ const Charting = ({
   addmissionsCharts,
   charts,
   loading,
+  chartSaving,
   generalLoading,
   pageAccess,
   view,
@@ -58,6 +59,14 @@ const Charting = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [filterChartType, setFilterChartType] = useState({});
   const [isFetchingCharts, setIsFetchingCharts] = useState(false);
+  const prevLoading = useRef(false);
+
+  useEffect(() => {
+    if (prevLoading.current === true && chartSaving === false) {
+      window.dispatchEvent(new Event("chartUpdated"));
+    }
+    prevLoading.current = chartSaving;
+  }, [chartSaving]);
   const toggleModal = () => setDateModal(!dateModal);
 
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
@@ -139,6 +148,7 @@ const Charting = ({
   useEffect(() => {
     if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
       const typeForAdmission = filterChartType[addmissionId] || "All";
+      let cancelled = false;
       const fetchFresh = async () => {
         try {
           setIsFetchingCharts(true);
@@ -148,18 +158,25 @@ const Charting = ({
             chartType: typeForAdmission,
             _t: Date.now(),
           });
-          dispatch({
-            type: "getCharts/fulfilled",
-            payload: { payload: response.payload, addmission: addmissionId },
-          });
+          if (!cancelled) {
+            dispatch({
+              type: "getCharts/fulfilled",
+              payload: { payload: response.payload, addmission: addmissionId },
+            });
+          }
         } catch (error) {
-          console.log("getCharts error:", error);
-          dispatch({ type: "getCharts/rejected" });
+          if (!cancelled) {
+            console.log("getCharts error:", error);
+            dispatch({ type: "getCharts/rejected" });
+          }
         } finally {
-          setIsFetchingCharts(false);
+          if (!cancelled) setIsFetchingCharts(false);
         }
       };
       fetchFresh();
+      return () => {
+        cancelled = true;
+      };
     }
   }, [dispatch, patient, addmissionId, filterChartType]);
 
@@ -501,6 +518,7 @@ const mapStateToProps = (state) => ({
   patient: state.Patient.patient,
   addmissionsCharts: state.Chart.data,
   loading: state.Chart.chartLoading,
+  chartSaving: state.Chart.loading,
   generalLoading: state.Chart.generalChartLoading,
   charts: state.Chart.charts,
 });
