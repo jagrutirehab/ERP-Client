@@ -26,11 +26,9 @@ const SpecialRequirements = ({ data, styles }) => {
   if (!data) return null;
 
   const order = Object.keys(labelMap);
-  const answered = order.filter(
-    (k) => data[k] === true || data[k] === false
-  );
+  const answered = order.filter((k) => data[k] === true || data[k] === false);
 
-  if (answered.length === 0) return null;
+  if (answered.length === 0 && !data?.specialRequirementsDetails) return null;
 
   return (
     <React.Fragment>
@@ -55,11 +53,17 @@ const SpecialRequirements = ({ data, styles }) => {
             <Text style={{ ...styles.fontMd, ...styles.w50 }}>
               {labelMap[k]}:
             </Text>
-            <Text style={styles.fontMd}>
-              {data[k] === true ? "Yes" : "No"}
-            </Text>
+            <Text style={styles.fontMd}>{data[k] === true ? "Yes" : "No"}</Text>
           </View>
         ))}
+        {data?.specialRequirementsDetails && (
+          <View
+            style={{ ...styles.row, ...styles.itemsCenter, ...styles.gap10 }}
+          >
+            <Text style={{ ...styles.fontMd, ...styles.w50 }}>Details:</Text>
+            <Text style={styles.fontMd}>{data.specialRequirementsDetails}</Text>
+          </View>
+        )}
       </View>
     </React.Fragment>
   );
