@@ -34,6 +34,7 @@ import Notes from "../../Nurse/Views/Notes";
 import AdmissionSummary from "./AdmissionSummary";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import BioData from "./BioData";
+import { getCharts } from "../../../helpers/backend_helper";
 
 const Charting = ({
   patient,
@@ -56,6 +57,7 @@ const Charting = ({
   const [chartType, setChartType] = useState("");
   const [uploadProgress, setUploadProgress] = useState(0);
   const [filterChartType, setFilterChartType] = useState({});
+  const [isFetchingCharts, setIsFetchingCharts] = useState(false);
   const toggleModal = () => setDateModal(!dateModal);
 
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
@@ -102,23 +104,27 @@ const Charting = ({
   // }, [view, patient, addmissionsCharts]);
 
   useEffect(() => {
-    dispatch(clearCharts());
     setOpen(null);
     setAddmissionId(null);
   }, [patient?._id]);
 
   useEffect(() => {
+    console.log(
+      "addmissionsCharts changed:",
+      addmissionsCharts.length,
+      "addmissionId:",
+      addmissionId,
+    );
     if (
-      addmissionsCharts.length &&
+      addmissionsCharts.length > 0 &&
       !addmissionsCharts.find((ch) => ch._id === addmissionId)
     ) {
+      console.log("setting addmissionId to:", addmissionsCharts[0]?._id);
       setOpen("0");
       setAddmissionId(addmissionsCharts[0]?._id);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [addmissionsCharts]);
-
-  // Claude changes
 
   useEffect(() => {
     if (!patient?._id) return;
@@ -130,15 +136,32 @@ const Charting = ({
       dispatch(fetchGeneralCharts({ patient: patient._id, type: CLINIC_TEST }));
   }, [dispatch, tab, patient?._id]);
 
-  // Claude changes
-
   useEffect(() => {
     if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
       const typeForAdmission = filterChartType[addmissionId] || "All";
-      dispatch(fetchCharts({ addmissionId, chartType: typeForAdmission }));
+      const fetchFresh = async () => {
+        try {
+          setIsFetchingCharts(true);
+          dispatch({ type: "getCharts/pending" });
+          const response = await getCharts({
+            addmissionId,
+            chartType: typeForAdmission,
+            _t: Date.now(),
+          });
+          dispatch({
+            type: "getCharts/fulfilled",
+            payload: { payload: response.payload, addmission: addmissionId },
+          });
+        } catch (error) {
+          console.log("getCharts error:", error);
+          dispatch({ type: "getCharts/rejected" });
+        } finally {
+          setIsFetchingCharts(false);
+        }
+      };
+      fetchFresh();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, patient?._id, addmissionId, filterChartType]);
+  }, [dispatch, patient, addmissionId, filterChartType]);
 
   useEffect(() => {
     if (tab === CLINIC_TEST) {
@@ -228,7 +251,7 @@ const Charting = ({
           addmissionsCharts={addmissionsCharts}
           open={open}
           patient={patient}
-          loading={loading}
+          loading={isFetchingCharts}
           toggleModal={toggleModal}
           setChartType={setChartType}
           toggleAccordian={toggleAccordian}
@@ -239,7 +262,15 @@ const Charting = ({
       )
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addmissionsCharts, tab, loading, open, patient, filterChartType]);
+  }, [
+    addmissionsCharts,
+    tab,
+    loading,
+    isFetchingCharts,
+    open,
+    patient,
+    filterChartType,
+  ]);
 
   const clinicalTestComponent = useMemo(() => {
     return (
@@ -260,6 +291,17 @@ const Charting = ({
   }, [addmissionsCharts, tab, clinicalTestLoading, open, patient]);
 
   console.log("addmissionsCharts", addmissionsCharts);
+  console.log("loading from Redux:", loading);
+  console.log("isFetchingCharts:", isFetchingCharts);
+  console.table(
+    "Table",
+    addmissionsCharts.map((a) => ({
+      admissionDate: a.addmissionDate,
+      dischargeDate: a.dischargeDate || "Active",
+      totalCharts: a.charts?.length ?? 0,
+      admissionId: a._id,
+    })),
+  );
 
   const generalComponent = useMemo(() => {
     return (
