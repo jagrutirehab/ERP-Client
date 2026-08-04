@@ -245,7 +245,7 @@ const DetailAdmission = ({ data }) => {
           );
         })()}
         {data?.detailHistory && (
-          <h6 className="fs-xs-12 fs-md-14 display-6">Detail History</h6>
+          <h6 className="fs-xs-12 fs-md-14 display-6">Other History</h6>
         )}
 
         {data?.detailHistory &&

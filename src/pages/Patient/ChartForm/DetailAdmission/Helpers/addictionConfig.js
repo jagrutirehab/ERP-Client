@@ -118,14 +118,21 @@ const addictionConfig = [
         path: `${P}.dependenceFeatures.withdrawal`,
         label: "Withdrawal symptoms",
         type: "yesno",
-        required: false,
+        // required: true,
       },
       {
         kind: "field",
         path: `${P}.dependenceFeatures.withdrawalSymptoms`,
         label: "Withdrawal symptoms (describe)",
         type: "textarea",
-        required: false,
+        showIf: {
+          path: `${P}.dependenceFeatures.withdrawal`,
+          equals: true,
+        },
+        skipValidationWhen: {
+          path: `${P}.dependenceFeatures.withdrawal`,
+          equals: false,
+        },
       },
       {
         kind: "field",

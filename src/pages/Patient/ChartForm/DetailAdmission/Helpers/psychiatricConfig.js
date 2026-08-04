@@ -37,55 +37,13 @@ const psychiatricConfig = [
           "Other",
         ],
       },
-      {
-        kind: "field",
-        path: `${P}.pastIllness.substanceUseHistory`,
-        label: "Substance Use History",
-        type: "select",
-        options: ["Yes", "No"],
-      },
-      {
-        kind: "grid",
-        path: `${P}.pastIllness.substanceUseTable`,
-        title: "Substance Use Profile",
-        showIf: {
-          path: `${P}.pastIllness.substanceUseHistory`,
-          equals: "Yes",
-        },
-        skipValidationWhen: {
-          path: `${P}.pastIllness.substanceUseHistory`,
-          equals: "No",
-        },
-        rowLabelKey: "substance",
-        rowLabels: SUBSTANCE_PROFILE_ROWS,
-        columns: [
-          { key: "ageOfFirstUse", label: "Age of First Use", type: "text" },
-          { key: "currentUse", label: "Current Use", type: "text" },
-          { key: "frequency", label: "Frequency", type: "text" },
-          { key: "quantityDose", label: "Quantity / Dose", type: "text" },
-          {
-            key: "route",
-            label: "Route",
-            type: "select",
-            options: [
-              "Oral",
-              "Smoking / Inhalation",
-              "Intravenous",
-              "Intranasal",
-              "Sublingual",
-              "Other",
-            ],
-          },
-          { key: "lastUse", label: "Last Use", type: "text" },
-        ],
-      },
+
       {
         kind: "field",
         path: `${P}.historyOfPresentIllness.onsetDurationProgress`,
         label: "Onset Duration & Progress",
         type: "textarea",
       },
-   
 
       {
         kind: "field",
@@ -203,19 +161,62 @@ const psychiatricConfig = [
         type: "textarea",
         required: false,
       },
+      // {
+      //   kind: "field",
+      //   path: `${P}.symptomDomains.substanceUseCurrentEpisode`,
+      //   label: "Substance use (current episode)",
+      //   type: "multiselect",
+      //   options: [
+      //     "Alcohol",
+      //     "Opioids",
+      //     "Cannabis",
+      //     "Tobacco",
+      //     "Benzodiazepines",
+      //     "Other",
+      //     "None",
+      //   ],
+      // },
+
       {
         kind: "field",
-        path: `${P}.symptomDomains.substanceUseCurrentEpisode`,
-        label: "Substance use (current episode)",
-        type: "multiselect",
-        options: [
-          "Alcohol",
-          "Opioids",
-          "Cannabis",
-          "Tobacco",
-          "Benzodiazepines",
-          "Other",
-          "None",
+        path: `${P}.pastIllness.substanceUseHistory`,
+        label: "Substance Use History",
+        type: "select",
+        options: ["Yes", "No"],
+      },
+      {
+        kind: "grid",
+        path: `${P}.pastIllness.substanceUseTable`,
+        title: "Substance Use Profile",
+        showIf: {
+          path: `${P}.pastIllness.substanceUseHistory`,
+          equals: "Yes",
+        },
+        skipValidationWhen: {
+          path: `${P}.pastIllness.substanceUseHistory`,
+          equals: "No",
+        },
+        rowLabelKey: "substance",
+        rowLabels: SUBSTANCE_PROFILE_ROWS,
+        columns: [
+          { key: "ageOfFirstUse", label: "Age of First Use", type: "text" },
+          { key: "currentUse", label: "Current Use", type: "text" },
+          { key: "frequency", label: "Frequency", type: "text" },
+          { key: "quantityDose", label: "Quantity / Dose", type: "text" },
+          {
+            key: "route",
+            label: "Route",
+            type: "select",
+            options: [
+              "Oral",
+              "Smoking / Inhalation",
+              "Intravenous",
+              "Intranasal",
+              "Sublingual",
+              "Other",
+            ],
+          },
+          { key: "lastUse", label: "Last Use", type: "text" },
         ],
       },
 
