@@ -12,6 +12,7 @@ import {
 } from "../../../store/actions";
 import ChartDate from "../Modals/ChartDate";
 import ChartForm from "../ChartForm";
+import { clearCharts } from "../../../store/features/chart/chartSlice";
 
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import {
@@ -88,6 +89,24 @@ const Charting = ({
     }
   };
 
+  // useEffect(() => {
+  //   if (
+  //     addmissionsCharts.length &&
+  //     !addmissionsCharts.find((ch) => ch._id === addmissionId)
+  //   ) {
+  //     setOpen("0");
+  //     setAddmissionId(addmissionsCharts[0]?._id);
+  //   }
+
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [view, patient, addmissionsCharts]);
+
+  useEffect(() => {
+    dispatch(clearCharts());
+    setOpen(null);
+    setAddmissionId(null);
+  }, [patient?._id]);
+
   useEffect(() => {
     if (
       addmissionsCharts.length &&
@@ -96,25 +115,30 @@ const Charting = ({
       setOpen("0");
       setAddmissionId(addmissionsCharts[0]?._id);
     }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, patient, addmissionsCharts]);
+  }, [addmissionsCharts]);
+
+  // Claude changes
 
   useEffect(() => {
+    if (!patient?._id) return;
     if (tab === GENERAL)
       dispatch(fetchGeneralCharts({ patient: patient._id, type: GENERAL }));
     if (tab === OPD)
       dispatch(fetchGeneralCharts({ patient: patient._id, type: OPD }));
     if (tab === CLINIC_TEST)
       dispatch(fetchGeneralCharts({ patient: patient._id, type: CLINIC_TEST }));
-  }, [dispatch, tab, patient]);
+  }, [dispatch, tab, patient?._id]);
+
+  // Claude changes
 
   useEffect(() => {
     if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
       const typeForAdmission = filterChartType[addmissionId] || "All";
       dispatch(fetchCharts({ addmissionId, chartType: typeForAdmission }));
     }
-  }, [dispatch, patient, addmissionId, filterChartType]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, patient?._id, addmissionId, filterChartType]);
 
   useEffect(() => {
     if (tab === CLINIC_TEST) {
