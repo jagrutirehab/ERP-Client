@@ -20,7 +20,7 @@ import FileUpload from "../../../CashManagement/Components/FileUpload";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getExitEmployeesBySearch } from "../../../../store/features/HR/hrSlice";
 import { editIncentives, postIncentives } from "../../../../helpers/backend_helper";
-import { startOfMonth } from "date-fns";
+import { endOfMonth } from "date-fns";
 
 const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
     const dispatch = useDispatch();
@@ -113,7 +113,7 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
             currentLocation: initialData?.center?.title || "",
             amount: initialData?.amount || "",
             details: initialData?.details || "",
-            date: initialData?.date ? startOfMonth(new Date(initialData.date)) : "",
+            date: initialData?.date ? endOfMonth(new Date(initialData.date)) : "",
             attachment: null,
         },
         validationSchema,
@@ -128,8 +128,8 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
 
                 if (values.date) {
                     // values.date is a Date from the month picker; store it as
-                    // the first day of the selected month.
-                    incentiveDate = startOfMonth(new Date(values.date));
+                    // the last day of the selected month.
+                    incentiveDate = endOfMonth(new Date(values.date));
                 }
 
                 const formData = new FormData();
@@ -284,7 +284,7 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
                     value={form.values.date}
                     options={monthPickerOptions}
                     onChange={([date]) => {
-                        form.setFieldValue("date", date ? startOfMonth(date) : "");
+                        form.setFieldValue("date", date ? endOfMonth(date) : "");
                         form.setFieldTouched("date", true, false);
                     }}
                     className={`form-control${form.touched.date && form.errors.date ? " is-invalid" : ""}`}

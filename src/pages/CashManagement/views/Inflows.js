@@ -15,6 +15,7 @@ import CheckPermission from "../../../Components/HOC/CheckPermission";
 import FileUpload from "../Components/FileUpload";
 import { summaryOptions } from "../../../Components/constants/cash";
 import { getSearchPatients } from "../../../helpers/backend_helper";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 
 const validationSchema = Yup.object({
     center: Yup.string().required("Center is required"),
@@ -163,18 +164,20 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
         formik.handleSubmit(e);
     };
 
-    useEffect(() => {
+    const fetchInflows = async (refetch = false) => {
         if (!hasReadPermission) return;
-        const fetchInflows = async () => {
-            try {
-                await dispatch(getLastInflows({ page: 1, limit: 10, centers: centerAccess })).unwrap();
-            } catch (error) {
-                if (!handleAuthError(error)) {
-                    toast.error(error.message || "Failed to fetch cash inflows.");
-                }
+        try {
+            await dispatch(getLastInflows({ page: 1, limit: 10, centers: centerAccess, refetch })).unwrap();
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to fetch cash inflows.");
             }
         }
+    }
+
+    useEffect(() => {
         fetchInflows();
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [centerAccess, dispatch, roles]);
 
 
@@ -397,6 +400,10 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
                                     <History size={18} className="me-2 text-primary" />
                                     Last 10 Cash Inflows
                                 </h5>
+                                <RefreshButton
+                                    loading={!!loading}
+                                    onRefresh={() => fetchInflows(true)}
+                                />
                             </CardHeader>
                             <CardBody className="p-0">
                                 <div

@@ -22,6 +22,7 @@ const DetailHistory = ({ data, styles }) => {
           ...styles.mrgnBottom10,
         }}
       >
+        {/* old field — show if present */}
         {data?.history && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>
@@ -32,22 +33,57 @@ const DetailHistory = ({ data, styles }) => {
             </Text>
           </View>
         )}
-        {data?.negativeHistory && (
+
+        {/* new — array format */}
+        {Array.isArray(data?.negativeHistory) &&
+          data.negativeHistory.length > 0 && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Negative History:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.negativeHistory.filter(Boolean).join(", ")}
+              </Text>
+            </View>
+          )}
+
+        {/* old — string format */}
+        {typeof data?.negativeHistory === "string" && data.negativeHistory && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>Negative History:</Text>
             <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
-              {data?.negativeHistory || ""}
+              {data.negativeHistory}
             </Text>
           </View>
         )}
-        {data?.pastHistory && (
+
+        {data?.negativeHistoryOther && (
           <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={styles.fontSize13}>Past History:</Text>
+            <Text style={styles.fontSize13}>Negative History — Other:</Text>
             <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
-              {data?.pastHistory || ""}
+              {data?.negativeHistoryOther || ""}
             </Text>
           </View>
         )}
+
+        {data?.developmentDelay && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>Development Delay:</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.developmentDelay || ""}
+            </Text>
+          </View>
+        )}
+
+        {Array.isArray(data?.developmentDelayDetails) &&
+          data.developmentDelayDetails.length > 0 && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Development Delay Details:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.developmentDelayDetails.filter(Boolean).join(", ")}
+              </Text>
+            </View>
+          )}
+
+        {/* old field — show if present */}
         {data?.developmentHistory && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>
@@ -58,6 +94,16 @@ const DetailHistory = ({ data, styles }) => {
             </Text>
           </View>
         )}
+
+        {data?.pastHistory && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>Past History:</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.pastHistory || ""}
+            </Text>
+          </View>
+        )}
+
         {data?.familyHistory && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>Family History:</Text>
@@ -66,6 +112,7 @@ const DetailHistory = ({ data, styles }) => {
             </Text>
           </View>
         )}
+
         {data?.personalHistory && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>
@@ -76,6 +123,7 @@ const DetailHistory = ({ data, styles }) => {
             </Text>
           </View>
         )}
+
         {data?.personality && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>Personality:</Text>

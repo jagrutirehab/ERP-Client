@@ -178,19 +178,20 @@ const DetailAdmission = ({ data }) => {
         )}
         {data?.ChiefComplaints && (
           <>
-            {["informant", "reliable", "adequate"].map((key) =>
-              data.ChiefComplaints[key] ? (
-                <Col key={key} xs={12}>
-                  <div className="mt-1 mb-1">
-                    <p className="fs-xs-9 fs-md-11 mb-0">
-                      <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                        {convertCamelCaseToTitleCase(key)}:-
-                      </span>
-                      {data.ChiefComplaints[key]}
-                    </p>
-                  </div>
-                </Col>
-              ) : null,
+            {["informant", "informantName", "reliable", "adequate"].map(
+              (key) =>
+                data.ChiefComplaints[key] ? (
+                  <Col key={key} xs={12}>
+                    <div className="mt-1 mb-1">
+                      <p className="fs-xs-9 fs-md-11 mb-0">
+                        <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                          {convertCamelCaseToTitleCase(key)}:-
+                        </span>
+                        {data.ChiefComplaints[key]}
+                      </p>
+                    </div>
+                  </Col>
+                ) : null,
             )}
             {["line1", "line2", "line3", "line4"].map((key, i) =>
               data.ChiefComplaints[key] ? (
@@ -244,7 +245,7 @@ const DetailAdmission = ({ data }) => {
           );
         })()}
         {data?.detailHistory && (
-          <h6 className="fs-xs-12 fs-md-14 display-6">Detail History</h6>
+          <h6 className="fs-xs-12 fs-md-14 display-6">Other History</h6>
         )}
 
         {data?.detailHistory &&
@@ -261,18 +262,24 @@ const DetailAdmission = ({ data }) => {
                   "socialSupport",
                 ].includes(key),
             )
-            .map((d, i) => (
-              <Col key={i} xs={12}>
-                <div className="mt-1 mb-1">
-                  <p className="fs-xs-9 fs-md-11 mb-0">
-                    <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                      {convertCamelCaseToTitleCase(d[0])}:-
-                    </span>
-                    {d[1]}
-                  </p>
-                </div>
-              </Col>
-            ))}
+            .map(([key, value], i) => {
+              if (!value || (Array.isArray(value) && value.length === 0))
+                return null;
+              return (
+                <Col key={i} xs={12}>
+                  <div className="mt-1 mb-1">
+                    <p className="fs-xs-9 fs-md-11 mb-0">
+                      <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                        {convertCamelCaseToTitleCase(key)}:-
+                      </span>
+                      {Array.isArray(value)
+                        ? value.filter(Boolean).join(", ")
+                        : value}
+                    </p>
+                  </div>
+                </Col>
+              );
+            })}
         {data?.detailHistory && <Divider />}
         {(data?.mentalExamination || data?.mentalExaminationV2) && (
           <h6 className="fs-xs-12 fs-md-14 display-6">
@@ -574,7 +581,8 @@ const DetailAdmission = ({ data }) => {
           const answered = sr
             ? order.filter((k) => sr[k] === true || sr[k] === false)
             : [];
-          if (answered.length === 0) return null;
+          if (answered.length === 0 && !sr?.specialRequirementsDetails)
+            return null;
           return (
             <>
               <h6 className="fs-xs-12 fs-md-14 display-6">
@@ -592,6 +600,18 @@ const DetailAdmission = ({ data }) => {
                   </div>
                 </Col>
               ))}
+              {sr?.specialRequirementsDetails && (
+                <Col xs={12}>
+                  <div className="mt-1 mb-1">
+                    <p className="fs-xs-9 fs-md-11 mb-0">
+                      <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                        Details:-
+                      </span>
+                      {sr.specialRequirementsDetails}
+                    </p>
+                  </div>
+                </Col>
+              )}
             </>
           );
         })()}

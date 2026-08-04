@@ -31,6 +31,7 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { getSearchPatients } from "../../../helpers/backend_helper";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 
 const Spending = ({ centers, centerAccess, spendings, loading }) => {
   const dispatch = useDispatch();
@@ -179,18 +180,20 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
     formik.handleSubmit(e);
   };
 
-  useEffect(() => {
+  const fetchSpendings = async (refetch = false) => {
     if (!hasReadPermission) return;
-    const fetchSpendings = async () => {
-      try {
-        await dispatch(getLastSpendings({ page: 1, limit: 10, centers: centerAccess })).unwrap();
-      } catch (error) {
-        if (!handleAuthError(error)) {
-          toast.error(error.message || "Failed to fetch spendings.");
-        }
+    try {
+      await dispatch(getLastSpendings({ page: 1, limit: 10, centers: centerAccess, refetch })).unwrap();
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to fetch spendings.");
       }
     }
+  }
+
+  useEffect(() => {
     fetchSpendings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerAccess, dispatch, roles]);
 
   if (!hasCreatePermission && !hasReadPermission) {
@@ -413,6 +416,10 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                   <History size={18} className="me-2 text-primary" />
                   Last 10 Spendings
                 </h5>
+                <RefreshButton
+                  loading={!!loading}
+                  onRefresh={() => fetchSpendings(true)}
+                />
               </CardHeader>
               <CardBody className="p-0">
                 <div

@@ -11,6 +11,7 @@ const addictionConfig = [
         path: `${P}.noSubstanceUseReported`,
         label: "No substance use reported (None)",
         type: "checkbox",
+        required: false,
       },
       {
         kind: "grid",
@@ -118,14 +119,21 @@ const addictionConfig = [
         path: `${P}.dependenceFeatures.withdrawal`,
         label: "Withdrawal symptoms",
         type: "yesno",
-        required: false,
+        // required: true,
       },
       {
         kind: "field",
         path: `${P}.dependenceFeatures.withdrawalSymptoms`,
         label: "Withdrawal symptoms (describe)",
         type: "textarea",
-        required: false,
+        showIf: {
+          path: `${P}.dependenceFeatures.withdrawal`,
+          equals: true,
+        },
+        skipValidationWhen: {
+          path: `${P}.dependenceFeatures.withdrawal`,
+          equals: false,
+        },
       },
       {
         kind: "field",
@@ -139,12 +147,14 @@ const addictionConfig = [
         path: `${P}.dependenceFeatures.continuedUseDespiteHarm`,
         label: "Continued use despite harm",
         type: "yesno",
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.dependenceFeatures.severity`,
         label: "Severity (clinician rating)",
         type: "text",
+        required: false,
       },
       {
         kind: "field",
@@ -159,6 +169,7 @@ const addictionConfig = [
           "Sublingual",
           "Other",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -172,12 +183,14 @@ const addictionConfig = [
         path: `${P}.routeOfAdministration.hivHepScreeningDone`,
         label: "HIV / Hepatitis screening done?",
         type: "yesno",
+        required: false,
       },
       {
         kind: "field",
         path: `${P}.routeOfAdministration.hivHepResult`,
         label: "HIV / Hepatitis screening result",
         type: "text",
+        required: false,
       },
     ],
   },
@@ -269,6 +282,7 @@ const addictionConfig = [
         label:
           "Medications used in past (e.g. Naltrexone, Buprenorphine, Disulfiram)",
         type: "textarea",
+        required: false,
       },
       {
         kind: "field",

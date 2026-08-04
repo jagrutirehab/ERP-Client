@@ -12,10 +12,8 @@ const DoctorSignature = ({ validation, setFormStep, step }) => {
     const provisionalMissing =
       !Array.isArray(validation.values.provisionaldiagnosis) ||
       validation.values.provisionaldiagnosis.length === 0;
-    const diagnosisMissing =
-      !Array.isArray(validation.values.diagnosis) ||
-      validation.values.diagnosis.length === 0;
-    return !provisionalMissing && !diagnosisMissing;
+    const managmentPlanMissing = !validation.values.managmentPlan;
+    return !provisionalMissing && !managmentPlanMissing;
   };
 
   useEffect(() => {
@@ -53,12 +51,14 @@ const DoctorSignature = ({ validation, setFormStep, step }) => {
       type: "select2",
       isMulti: true,
       options: icdOptions,
-      required: true,
+      required: false,
     },
     {
       label: "Managment Plan: (INDOOR / Out Patient)",
       name: "managmentPlan",
-      type: "text",
+      type: "select",
+      options: ["INDOOR", "Out Patient"],
+      required: true,
     },
     {
       label: "Investigations",

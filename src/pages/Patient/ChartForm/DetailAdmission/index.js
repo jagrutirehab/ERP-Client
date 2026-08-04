@@ -144,6 +144,14 @@ const DetailAdmission = ({
   const triToYesNo = (v) => (v === true ? "yes" : v === false ? "no" : "");
 
   console.log("detailAdmissionForm", detailAdmissionForm);
+  console.log(
+    "negativeHistory from DB:",
+    detailAdmissionForm?.detailHistory?.negativeHistory,
+  );
+  console.log(
+    "developmentDelayDetails from DB:",
+    detailAdmissionForm?.detailHistory?.developmentDelayDetails,
+  );
 
   const isEdit = Boolean(editChartData?._id);
   const draftKey = `detailAdmissionDraft_${patient?._id || "new"}`;
@@ -229,6 +237,9 @@ const DetailAdmission = ({
       informant: detailAdmissionForm
         ? detailAdmissionForm.ChiefComplaints?.informant
         : "",
+      informantName: detailAdmissionForm
+        ? detailAdmissionForm.ChiefComplaints?.informantName
+        : "",
       counsellor: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.counsellor
         : patientData?.psychologistData?.name,
@@ -241,17 +252,37 @@ const DetailAdmission = ({
       adequate: detailAdmissionForm
         ? detailAdmissionForm.ChiefComplaints?.adequate
         : "Adequate",
-      history: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.history
-        : "",
       negativeHistory: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.negativeHistory
+        ? (() => {
+            const val = detailAdmissionForm.detailHistory?.negativeHistory;
+            if (!val) return [];
+            if (Array.isArray(val)) {
+              return val
+                .flatMap((item) =>
+                  typeof item === "string"
+                    ? item.split(",").map((s) => s.trim())
+                    : item,
+                )
+                .filter(Boolean);
+            }
+            return [];
+          })()
+        : [],
+      negativeHistoryOther: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.negativeHistoryOther
         : "",
+      developmentDelay: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelay
+        : "",
+      developmentDelayDetails: detailAdmissionForm
+        ? Array.isArray(
+            detailAdmissionForm.detailHistory?.developmentDelayDetails,
+          )
+          ? detailAdmissionForm.detailHistory?.developmentDelayDetails
+          : []
+        : [],
       pastHistory: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.pastHistory
-        : "",
-      developmentHistory: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.developmentHistory
         : "",
       occupationHistory: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.occupationHistory
@@ -287,6 +318,10 @@ const DetailAdmission = ({
       extraCareTaker: triToYesNo(
         detailAdmissionForm?.specialRequirements?.extraCareTaker,
       ),
+      specialRequirementsDetails: detailAdmissionForm
+        ? detailAdmissionForm.specialRequirements?.specialRequirementsDetails ||
+          ""
+        : "",
 
       // ChiefComplaints
 
@@ -480,17 +515,30 @@ const DetailAdmission = ({
             perceptionNotes:
               detailAdmissionForm?.mentalExaminationV2?.perceptionNotes || "",
 
-            orientation:
+            orientationTime:
               detailAdmissionForm?.mentalExaminationV2?.cognition
-                ?.orientation || "",
+                ?.orientationTime || "",
+            orientationPlace:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.orientationPlace || "",
+            orientationPerson:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.orientationPerson || "",
+            immediateMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.immediateMemory || "",
+            recentMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.recentMemory || "",
+            remoteMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.remoteMemory || "",
             attention:
               detailAdmissionForm?.mentalExaminationV2?.cognition?.attention ||
               "",
             concentration:
               detailAdmissionForm?.mentalExaminationV2?.cognition
                 ?.concentration || "",
-            memory:
-              detailAdmissionForm?.mentalExaminationV2?.cognition?.memory || "",
 
             grade:
               detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
@@ -709,8 +757,17 @@ const DetailAdmission = ({
         setFormStep(PATIENT_TYPE_FIELDS);
         return;
       }
+      const informantNameRequired =
+        values.informant && values.informant !== "Self";
+
       const chiefComplaintsMissing =
-        !values.informant || !values.reliable || !values.adequate;
+        !values.informant ||
+        !values.reliable ||
+        !values.adequate ||
+        !values.line1 ||
+        !values.line2 ||
+        (informantNameRequired && !values.informantName);
+
       if (chiefComplaintsMissing) {
         setFormStep(CHIEF_COMPLAINTS);
         return;
@@ -732,24 +789,27 @@ const DetailAdmission = ({
           "delusions",
           "formOfThought",
           "perception",
-          "memory",
+          "orientationTime",
+          "orientationPlace",
+          "orientationPerson",
+          "immediateMemory",
+          "recentMemory",
+          "remoteMemory",
           "grade",
           "judgment",
         ];
-        const mseMissing =
-          mseFields.some((f) => !values[f]) ||
-          !Array.isArray(values.orientation) ||
-          values.orientation.length === 0;
+        const mseMissing = mseFields.some((f) => !values[f]);
         if (mseMissing) {
           setFormStep(MENTAL_EXAMINATION);
           return;
         }
       }
+      // 
       const diagnosisMissing =
         !Array.isArray(values.provisionaldiagnosis) ||
         values.provisionaldiagnosis.length === 0 ||
-        !Array.isArray(values.diagnosis) ||
-        values.diagnosis.length === 0;
+        !values.managmentPlan;
+
       if (diagnosisMissing) {
         setFormStep(DOCTOR_SIGNATURE);
         return;
@@ -844,7 +904,7 @@ const DetailAdmission = ({
               outline={formStep !== DETAIL_HISTORY}
               onClick={() => setFormStep(DETAIL_HISTORY)}
             >
-              Detail History
+              Other History
             </Button>
             <Button
               outline={formStep !== MENTAL_EXAMINATION}
