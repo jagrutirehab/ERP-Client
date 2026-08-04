@@ -112,28 +112,28 @@ const Charting = ({
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [view, patient, addmissionsCharts]);
 
-  useEffect(() => {
-    setOpen(null);
-    setAddmissionId(null);
-  }, [patient?._id]);
+  // useEffect(() => {
+  //   setOpen(null);
+  //   setAddmissionId(null);
+  // }, [patient?._id]);
 
-  useEffect(() => {
-    console.log(
-      "addmissionsCharts changed:",
-      addmissionsCharts.length,
-      "addmissionId:",
-      addmissionId,
-    );
-    if (
-      addmissionsCharts.length > 0 &&
-      !addmissionsCharts.find((ch) => ch._id === addmissionId)
-    ) {
-      console.log("setting addmissionId to:", addmissionsCharts[0]?._id);
-      setOpen("0");
-      setAddmissionId(addmissionsCharts[0]?._id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addmissionsCharts]);
+  // useEffect(() => {
+  //   console.log(
+  //     "addmissionsCharts changed:",
+  //     addmissionsCharts.length,
+  //     "addmissionId:",
+  //     addmissionId,
+  //   );
+  //   if (
+  //     addmissionsCharts.length > 0 &&
+  //     !addmissionsCharts.find((ch) => ch._id === addmissionId)
+  //   ) {
+  //     console.log("setting addmissionId to:", addmissionsCharts[0]?._id);
+  //     setOpen("0");
+  //     setAddmissionId(addmissionsCharts[0]?._id);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [addmissionsCharts]);
 
   useEffect(() => {
     if (!patient?._id) return;
@@ -145,51 +145,42 @@ const Charting = ({
       dispatch(fetchGeneralCharts({ patient: patient._id, type: CLINIC_TEST }));
   }, [dispatch, tab, patient?._id]);
 
-  useEffect(() => {
-    if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
-      const typeForAdmission = filterChartType[addmissionId] || "All";
-      let cancelled = false;
-      const fetchFresh = async () => {
-        try {
-          setIsFetchingCharts(true);
-          dispatch({ type: "getCharts/pending" });
-          const response = await getCharts({
-            addmissionId,
-            chartType: typeForAdmission,
-            _t: Date.now(),
-          });
-          if (!cancelled) {
-            dispatch({
-              type: "getCharts/fulfilled",
-              payload: { payload: response.payload, addmission: addmissionId },
-            });
-          }
-        } catch (error) {
-          if (!cancelled) {
-            console.log("getCharts error:", error);
-            dispatch({ type: "getCharts/rejected" });
-          }
-        } finally {
-          if (!cancelled) setIsFetchingCharts(false);
-        }
-      };
-      fetchFresh();
-      return () => {
-        cancelled = true;
-      };
-    }
-  }, [dispatch, patient, addmissionId, filterChartType]);
+  // useEffect(() => {
+  //   if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
+  //     const typeForAdmission = filterChartType[addmissionId] || "All";
+  //     let cancelled = false;
+  //     const fetchFresh = async () => {
+  //       try {
+  //         setIsFetchingCharts(true);
+  //         dispatch({ type: "getCharts/pending" });
+  //         const response = await getCharts({
+  //           addmissionId,
+  //           chartType: typeForAdmission,
+  //           _t: Date.now(),
+  //         });
+  //         if (!cancelled) {
+  //           dispatch({
+  //             type: "getCharts/fulfilled",
+  //             payload: { payload: response.payload, addmission: addmissionId },
+  //           });
+  //         }
+  //       } catch (error) {
+  //         if (!cancelled) {
+  //           console.log("getCharts error:", error);
+  //           dispatch({ type: "getCharts/rejected" });
+  //         }
+  //       } finally {
+  //         if (!cancelled) setIsFetchingCharts(false);
+  //       }
+  //     };
+  //     fetchFresh();
+  //     return () => {
+  //       cancelled = true;
+  //     };
+  //   }
+  // }, [dispatch, patient, addmissionId, filterChartType]);
 
-  useEffect(() => {
-    if (tab === CLINIC_TEST) {
-      // always open the first accordion item
-      setOpen("0");
-
-      // if (addmissionsCharts?.length > 0) {
-      //   setAddmissionId(addmissionsCharts[0]?._id);
-      // }
-    }
-  }, [tab, addmissionsCharts]);
+  useEffect(() => {}, [tab, addmissionsCharts]);
 
   const onSubmitClinicalForm = (
     values,
@@ -265,29 +256,13 @@ const Charting = ({
     return (
       tab === IPD && (
         <IPDComponent
-          addmissionsCharts={addmissionsCharts}
-          open={open}
           patient={patient}
-          loading={isFetchingCharts}
           toggleModal={toggleModal}
           setChartType={setChartType}
-          toggleAccordian={toggleAccordian}
-          setAddmissionId={setAddmissionId}
-          filterChartType={filterChartType}
-          setFilterChartType={setFilterChartType}
         />
       )
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    addmissionsCharts,
-    tab,
-    loading,
-    isFetchingCharts,
-    open,
-    patient,
-    filterChartType,
-  ]);
+  }, [tab, patient]);
 
   const clinicalTestComponent = useMemo(() => {
     return (
