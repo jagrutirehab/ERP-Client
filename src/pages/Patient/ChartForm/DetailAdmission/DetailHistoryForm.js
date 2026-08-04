@@ -1,23 +1,51 @@
 import React from "react";
 import RenderFields from "../../../../Components/Common/RenderFields";
-import { Col, Input, Label, Row } from "reactstrap";
 import NextButton from "./NextButton";
 
 const fields = [
   {
-    label: "History / Onset Duration & Progress",
-    name: "history",
-    type: "textarea",
-  },
-  {
     label: "Negative History",
     name: "negativeHistory",
-    type: "textarea",
+    type: "checkbox",
+    options: [
+      "Head Injury",
+      "Seizures",
+      "Loss of Consciousness",
+      "CNS Infection",
+      "Significant Medical Illness",
+      "Medico-Legal Issues",
+      "Abuse/Trauma",
+      "Overdose",
+      "Withdrawal delirium",
+      "Substance induced Psychosis",
+      "Epilepsy",
+      "Other",
+    ],
   },
   {
-    label: "Development History & Childhood/Adolescence",
-    name: "developmentHistory",
-    type: "textarea",
+    label: "Negative History — Other (specify)",
+    name: "negativeHistoryOther",
+    type: "text",
+    showIf: {
+      field: "negativeHistory",
+      includes: "Other",
+    },
+  },
+  {
+    label: "Development Delay",
+    name: "developmentDelay",
+    type: "select",
+    options: ["Yes", "No"],
+  },
+  {
+    label: "Development Delay Details",
+    name: "developmentDelayDetails",
+    type: "checkbox",
+    options: ["Sitting", "Standing", "Speech", "Toilet Training"],
+    showIf: {
+      field: "developmentDelay",
+      value: "Yes",
+    },
   },
   {
     label: "Family History",

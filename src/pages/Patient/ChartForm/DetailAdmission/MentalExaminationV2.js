@@ -90,6 +90,13 @@ const fields = [
     ],
   },
   {
+    label: "Relevance",
+    name: "relevance",
+    type: "radio",
+    options: ["relevant", "irrelevant"],
+    required: true,
+  },
+  {
     label: "Productivity",
     name: "productivity",
     type: "radio",
@@ -97,6 +104,13 @@ const fields = [
       { label: "Increased Productivity", value: "increased" },
       { label: "Decreased Productivity", value: "decreased" },
     ],
+  },
+  {
+    label: "Coherence",
+    name: "coherence",
+    type: "radio",
+    options: ["coherent", "incoherent"],
+    required: true,
   },
   {
     label: "Speed",
@@ -107,20 +121,6 @@ const fields = [
       { label: "Rapid", value: "rapid" },
       { label: "Pressure Of Speech", value: "pressure_of_speech" },
     ],
-  },
-  {
-    label: "Relevance",
-    name: "relevance",
-    type: "radio",
-    options: ["relevant", "irrelevant"],
-    required: true,
-  },
-  {
-    label: "Coherence",
-    name: "coherence",
-    type: "radio",
-    options: ["coherent", "incoherent"],
-    required: true,
   },
   {
     label: "Goal Direction",
@@ -217,13 +217,6 @@ const fields = [
 
   { label: "Thought", type: "header" },
   {
-    label: "Delusions",
-    name: "delusions",
-    type: "radio",
-    options: ["none", "present"],
-    required: true,
-  },
-  {
     label: "Form of Thought",
     name: "formOfThought",
     type: "radio",
@@ -242,13 +235,20 @@ const fields = [
     required: true,
   },
   {
-    label: "Thought Content",
-    name: "content",
+    label: "Thought Process",
+    name: "process",
     type: "textarea",
   },
   {
-    label: "Thought Process",
-    name: "process",
+    label: "Delusions",
+    name: "delusions",
+    type: "radio",
+    options: ["none", "present"],
+    required: true,
+  },
+  {
+    label: "Thought Content",
+    name: "content",
     type: "textarea",
   },
   {
@@ -275,48 +275,84 @@ const fields = [
     name: "perceptionNotes",
     type: "textarea",
   },
-
   { label: "Cognition", type: "header" },
   {
-    label: "Orientation",
-    name: "orientation",
-    type: "checkbox",
-    options: ["time", "place", "person"],
-    required: true,
-  },
-  {
-    label: "Attention",
-    name: "attention",
-    type: "radio",
-    options: [
-      { label: "Easily Distractible", value: "easily_distractible" },
-      { label: "Attention Maintained", value: "attention_maintained" },
-      { label: "Disturbance in Attention", value: "disturbance_in_attention" },
-    ],
-  },
-  {
-    label: "Concentration",
-    name: "concentration",
-    type: "radio",
-    options: [
+    type: "group",
+    left: [
       {
-        label: "Able to Concentrate and Focus",
-        value: "able_to_concentrate_and_focus",
+        label: "Time",
+        name: "orientationTime",
+        type: "radio",
+        options: ["Intact", "Impaired"],
+        required: true,
       },
       {
-        label: "Unable to Concentrate and Focus",
-        value: "unable_to_concentrate_and_focus",
+        label: "Place",
+        name: "orientationPlace",
+        type: "radio",
+        options: ["Intact", "Impaired"],
+        required: true,
+      },
+      {
+        label: "Person",
+        name: "orientationPerson",
+        type: "radio",
+        options: ["Intact", "Impaired"],
+        required: true,
+      },
+      {
+        label: "Immediate Memory",
+        name: "immediateMemory",
+        type: "radio",
+        options: ["Intact", "Impaired"],
+        required: true,
+      },
+      {
+        label: "Recent Memory",
+        name: "recentMemory",
+        type: "radio",
+        options: ["Intact", "Impaired"],
+        required: true,
+      },
+      {
+        label: "Remote Memory",
+        name: "remoteMemory",
+        type: "radio",
+        options: ["Intact", "Impaired"],
+        required: true,
+      },
+    ],
+    right: [
+      {
+        label: "Attention",
+        name: "attention",
+        type: "radio",
+        options: [
+          { label: "Easily Distractible", value: "easily_distractible" },
+          { label: "Attention Maintained", value: "attention_maintained" },
+          {
+            label: "Disturbance in Attention",
+            value: "disturbance_in_attention",
+          },
+        ],
+      },
+      {
+        label: "Concentration",
+        name: "concentration",
+        type: "radio",
+        options: [
+          {
+            label: "Able to Concentrate and Focus",
+            value: "able_to_concentrate_and_focus",
+          },
+          {
+            label: "Unable to Concentrate and Focus",
+            value: "unable_to_concentrate_and_focus",
+          },
+        ],
       },
     ],
   },
-  {
-    label: "Memory",
-    name: "memory",
-    type: "radio",
-    options: ["intact", "partial", "impaired"],
-    required: true,
-  },
-
   { label: "Insight", type: "header" },
   {
     label: "Grade",
@@ -397,7 +433,12 @@ const MentalExaminationV3 = ({ validation, setFormStep, step }) => {
     "delusions",
     "formOfThought",
     "perception",
-    "memory",
+    "orientationTime",
+    "orientationPlace",
+    "orientationPerson",
+    "immediateMemory",
+    "recentMemory",
+    "remoteMemory",
     "grade",
     "judgment",
   ];
@@ -405,13 +446,9 @@ const MentalExaminationV3 = ({ validation, setFormStep, step }) => {
   const validate = () => {
     setAttempted(true);
     const missingFields = requiredFields.filter((f) => !validation.values[f]);
-    const orientationMissing =
-      !Array.isArray(validation.values.orientation) ||
-      validation.values.orientation.length === 0;
     console.log("Missing MSE fields:", missingFields);
-    console.log("Orientation missing:", orientationMissing);
     console.log("Current values:", validation.values);
-    return missingFields.length === 0 && !orientationMissing;
+    return missingFields.length === 0;
   };
 
   return (

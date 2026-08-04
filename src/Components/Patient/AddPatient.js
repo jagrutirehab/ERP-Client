@@ -79,13 +79,13 @@ const AddPatient = ({
     ? format(new Date(editData.dateOfBirth), "yyyy-MM-dd")
     : leadData?.patient?.age
       ? (() => {
-        const today = new Date();
-        const birthYear = today.getFullYear() - leadData.patient.age;
-        return format(
-          new Date(birthYear, today.getMonth(), today.getDate()),
-          "yyyy-MM-dd",
-        );
-      })()
+          const today = new Date();
+          const birthYear = today.getFullYear() - leadData.patient.age;
+          return format(
+            new Date(birthYear, today.getMonth(), today.getDate()),
+            "yyyy-MM-dd",
+          );
+        })()
       : "";
   const gender = editData
     ? editData.gender
@@ -167,14 +167,27 @@ const AddPatient = ({
         .when("nationality", {
           is: "Foreigner",
           then: (schema) =>
-            schema.required("Passport Number is required for foreign nationals"),
+            schema.required(
+              "Passport Number is required for foreign nationals",
+            ),
         }),
       phoneNumber: Yup.string()
         .required("Please Enter Phone Number")
         .test("is-valid-phone", "Invalid phone number", function (value) {
           return isValidPhoneNumber(value || "");
         }),
-      dateOfBirth: Yup.string().required("Please Select Date of Birth"),
+      dateOfBirth: Yup.string()
+        .required("Please Select Date of Birth")
+        .test("no-future", "Future dates are not allowed", (value) => {
+          if (!value) return true;
+          return new Date(value) <= new Date();
+        })
+        .test("min-age", "Patient must be at least 2 years old", (value) => {
+          if (!value) return true;
+          const minAgeDate = new Date();
+          minAgeDate.setFullYear(minAgeDate.getFullYear() - 2);
+          return new Date(value) <= minAgeDate;
+        }),
       address: Yup.string().required("Please Enter Patient Address"),
       gender: Yup.string().required("Please Select Gender"),
       guardianName: Yup.string().required("Please Enter Guardian Name"),
@@ -631,7 +644,7 @@ const AddPatient = ({
                       ...provided,
                       borderColor:
                         validation.touched.referredBy &&
-                          validation.errors.referredBy
+                        validation.errors.referredBy
                           ? "#dc3545"
                           : "#ced4da",
                       boxShadow: state.isFocused
@@ -643,7 +656,7 @@ const AddPatient = ({
                       "&:hover": {
                         borderColor:
                           validation.touched.referredBy &&
-                            validation.errors.referredBy
+                          validation.errors.referredBy
                             ? "#dc3545"
                             : "#86b7fe",
                       },
@@ -699,11 +712,12 @@ const AddPatient = ({
                           width: "100%",
                           height: "42px",
                           padding: "0.5rem 0.75rem",
-                          border: `1px solid ${validation.touched.referralPhoneNumber &&
-                              validation.errors.referralPhoneNumber
+                          border: `1px solid ${
+                            validation.touched.referralPhoneNumber &&
+                            validation.errors.referralPhoneNumber
                               ? "#dc3545"
                               : "#ced4da"
-                            }`,
+                          }`,
                           borderRadius: "0.375rem",
                           fontSize: "1rem",
                         }}
@@ -764,7 +778,14 @@ const AddPatient = ({
             >
               {/* Nationality Toggle */}
               <div className="mb-3">
-                <Label className="form-label" style={{ fontWeight: "500", color: "#374151", marginBottom: "0.5rem" }}>
+                <Label
+                  className="form-label"
+                  style={{
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "0.5rem",
+                  }}
+                >
                   Nationality <span className="text-danger">*</span>
                 </Label>
                 <div className="d-flex gap-3">
@@ -786,9 +807,16 @@ const AddPatient = ({
                         padding: "0.625rem 1rem",
                         borderRadius: "0.5rem",
                         border: `2px solid ${validation.values.nationality === opt ? "#405189" : "#d1d5db"}`,
-                        backgroundColor: validation.values.nationality === opt ? "#f0f3ff" : "#fff",
-                        color: validation.values.nationality === opt ? "#405189" : "#6b7280",
-                        fontWeight: validation.values.nationality === opt ? "600" : "400",
+                        backgroundColor:
+                          validation.values.nationality === opt
+                            ? "#f0f3ff"
+                            : "#fff",
+                        color:
+                          validation.values.nationality === opt
+                            ? "#405189"
+                            : "#6b7280",
+                        fontWeight:
+                          validation.values.nationality === opt ? "600" : "400",
                         textAlign: "center",
                         cursor: "pointer",
                         transition: "all 0.2s ease",
@@ -804,7 +832,11 @@ const AddPatient = ({
               {/* Conditional: Aadhaar or Passport */}
               {validation.values.nationality === "Indian" ? (
                 <div className="mb-3">
-                  <Label htmlFor="aadhaarCardNumber" className="form-label" style={{ fontWeight: "500", color: "#374151" }}>
+                  <Label
+                    htmlFor="aadhaarCardNumber"
+                    className="form-label"
+                    style={{ fontWeight: "500", color: "#374151" }}
+                  >
                     Aadhaar Card Number
                   </Label>
                   <Input
@@ -816,14 +848,20 @@ const AddPatient = ({
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
                     value={validation.values.aadhaarCardNumber || ""}
-                    invalid={validation.touched.aadhaarCardNumber && validation.errors.aadhaarCardNumber ? true : false}
+                    invalid={
+                      validation.touched.aadhaarCardNumber &&
+                      validation.errors.aadhaarCardNumber
+                        ? true
+                        : false
+                    }
                     className="form-control"
                   />
-                  {validation.touched.aadhaarCardNumber && validation.errors.aadhaarCardNumber && (
-                    <FormFeedback type="invalid">
-                      {validation.errors.aadhaarCardNumber}
-                    </FormFeedback>
-                  )}
+                  {validation.touched.aadhaarCardNumber &&
+                    validation.errors.aadhaarCardNumber && (
+                      <FormFeedback type="invalid">
+                        {validation.errors.aadhaarCardNumber}
+                      </FormFeedback>
+                    )}
                   <Label
                     htmlFor="aadhaarCardFile"
                     className="form-label"
@@ -852,8 +890,13 @@ const AddPatient = ({
                 </div>
               ) : validation.values.nationality === "Foreigner" ? (
                 <div className="mb-3">
-                  <Label htmlFor="passportNumber" className="form-label" style={{ fontWeight: "500", color: "#374151" }}>
-                    International Passport Number <span className="text-danger">*</span>
+                  <Label
+                    htmlFor="passportNumber"
+                    className="form-label"
+                    style={{ fontWeight: "500", color: "#374151" }}
+                  >
+                    International Passport Number{" "}
+                    <span className="text-danger">*</span>
                   </Label>
                   <Input
                     type="text"
@@ -863,14 +906,20 @@ const AddPatient = ({
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
                     value={validation.values.passportNumber || ""}
-                    invalid={validation.touched.passportNumber && validation.errors.passportNumber ? true : false}
+                    invalid={
+                      validation.touched.passportNumber &&
+                      validation.errors.passportNumber
+                        ? true
+                        : false
+                    }
                     className="form-control"
                   />
-                  {validation.touched.passportNumber && validation.errors.passportNumber && (
-                    <FormFeedback type="invalid">
-                      {validation.errors.passportNumber}
-                    </FormFeedback>
-                  )}
+                  {validation.touched.passportNumber &&
+                    validation.errors.passportNumber && (
+                      <FormFeedback type="invalid">
+                        {validation.errors.passportNumber}
+                      </FormFeedback>
+                    )}
                   <Label
                     htmlFor="passportCardFile"
                     className="form-label"
@@ -910,7 +959,10 @@ const AddPatient = ({
                       color: "#856404",
                     }}
                   >
-                    <i className="ri-information-line" style={{ fontSize: "1rem", flexShrink: 0 }} />
+                    <i
+                      className="ri-information-line"
+                      style={{ fontSize: "1rem", flexShrink: 0 }}
+                    />
                     <span>Inform FRR office</span>
                   </div>
                 </div>
@@ -949,7 +1001,8 @@ const AddPatient = ({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(min(340px, 100%), 1fr))",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(min(340px, 100%), 1fr))",
                 gap: "2rem",
                 marginBottom: "2.5rem",
               }}
@@ -982,11 +1035,12 @@ const AddPatient = ({
                         width: "100%",
                         height: "42px",
                         padding: "0.5rem 0.75rem",
-                        border: `1px solid ${validation.touched[f.name] &&
-                            validation.errors[f.name]
+                        border: `1px solid ${
+                          validation.touched[f.name] &&
+                          validation.errors[f.name]
                             ? "#ef4444"
                             : "#d1d5db"
-                          }`,
+                        }`,
                         borderRadius: "0.375rem",
                         fontSize: "1rem",
                       }}
@@ -1008,16 +1062,17 @@ const AddPatient = ({
                         padding: "0.625rem 0.75rem",
                         fontSize: "1rem",
                         fontWeight: "400",
-                        border: `1px solid ${validation.touched[f.name] &&
-                            validation.errors[f.name]
+                        border: `1px solid ${
+                          validation.touched[f.name] &&
+                          validation.errors[f.name]
                             ? "#ef4444"
                             : "#d1d5db"
-                          }`,
+                        }`,
                         borderRadius: "0.375rem",
                         outline: "none",
                         boxShadow:
                           validation.touched[f.name] &&
-                            validation.errors[f.name]
+                          validation.errors[f.name]
                             ? "0 0 0 2px rgba(239, 68, 68, 0.3)"
                             : "0 0 0 2px rgba(96, 165, 250, 0.3)",
                         transition:

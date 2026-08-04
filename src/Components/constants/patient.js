@@ -2005,6 +2005,11 @@ let addPatientFields = [
     name: "dateOfBirth",
     type: "date",
     required: true,
+    max: (() => {
+      const d = new Date();
+      d.setFullYear(d.getFullYear() - 2);
+      return d.toISOString().split("T")[0];
+    })(),
   },
   {
     label: "Marital Status",

@@ -1,4 +1,4 @@
-import { EPISODE_PHASES } from "./Fields";
+import { EPISODE_PHASES, SUBSTANCE_PROFILE_ROWS } from "./Fields";
 
 const P = "psychiatricFields";
 
@@ -39,39 +39,54 @@ const psychiatricConfig = [
       },
       {
         kind: "field",
-        path: `${P}.historyOfPresentIllness.precipitatingStressorDetails`,
-        label: "Precipitating stressor (details)",
-        type: "textarea",
-        required: false,
+        path: `${P}.pastIllness.substanceUseHistory`,
+        label: "Substance Use History",
+        type: "select",
+        options: ["Yes", "No"],
+      },
+      {
+        kind: "grid",
+        path: `${P}.pastIllness.substanceUseTable`,
+        title: "Substance Use Profile",
+        showIf: {
+          path: `${P}.pastIllness.substanceUseHistory`,
+          equals: "Yes",
+        },
+        skipValidationWhen: {
+          path: `${P}.pastIllness.substanceUseHistory`,
+          equals: "No",
+        },
+        rowLabelKey: "substance",
+        rowLabels: SUBSTANCE_PROFILE_ROWS,
+        columns: [
+          { key: "ageOfFirstUse", label: "Age of First Use", type: "text" },
+          { key: "currentUse", label: "Current Use", type: "text" },
+          { key: "frequency", label: "Frequency", type: "text" },
+          { key: "quantityDose", label: "Quantity / Dose", type: "text" },
+          {
+            key: "route",
+            label: "Route",
+            type: "select",
+            options: [
+              "Oral",
+              "Smoking / Inhalation",
+              "Intravenous",
+              "Intranasal",
+              "Sublingual",
+              "Other",
+            ],
+          },
+          { key: "lastUse", label: "Last Use", type: "text" },
+        ],
       },
       {
         kind: "field",
-        path: `${P}.historyOfPresentIllness.firstSymptomNoted`,
-        label: "First symptom noted (describe)",
+        path: `${P}.historyOfPresentIllness.onsetDurationProgress`,
+        label: "Onset Duration & Progress",
         type: "textarea",
       },
-      {
-        kind: "field",
-        path: `${P}.historyOfPresentIllness.symptomProgression`,
-        label: "Subsequent symptom progression",
-        type: "textarea",
-      },
-      {
-        kind: "field",
-        path: `${P}.historyOfPresentIllness.currentSymptomProfile`,
-        label: "Current symptom profile (detailed narrative)",
-        type: "textarea",
-      },
+   
 
-      // --- Topic: Substance/Symptom Profile (matches Addiction Section C) ---
-      {
-        kind: "field",
-        path: `${P}.substanceUseBriefSummary`,
-        label:
-          "Substance use — brief summary (if AHT-F-001 not separately filed)",
-        type: "textarea",
-        required: false,
-      },
       {
         kind: "field",
         path: `${P}.symptomDomains.affective`,
@@ -89,6 +104,7 @@ const psychiatricConfig = [
           "OCD symptoms",
           "None",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -130,6 +146,7 @@ const psychiatricConfig = [
           "Intellectual decline",
           "None",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -163,6 +180,7 @@ const psychiatricConfig = [
           "Pain",
           "None",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -177,6 +195,13 @@ const psychiatricConfig = [
           "Self-harm behaviour",
           "None",
         ],
+      },
+      {
+        kind: "field",
+        path: `${P}.suicidalSelfHarmHistory.mostSeriousAttemptDetails`,
+        label: "Most serious attempt — method, lethality, intent",
+        type: "textarea",
+        required: false,
       },
       {
         kind: "field",
@@ -218,6 +243,7 @@ const psychiatricConfig = [
           "Moderately impaired",
           "Severely impaired",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -234,8 +260,23 @@ const psychiatricConfig = [
       {
         kind: "field",
         path: `${P}.functionalImpact.gafScore`,
-        label: "GAF score (current estimate)",
+        label: "GAF Score ( _ / 100)",
         type: "number",
+        required: false,
+      },
+      {
+        kind: "field",
+        path: `${P}.functionalImpact.gafSeverity`,
+        label: "GAF Severity",
+        type: "select",
+        options: [
+          "Mild (61-100)",
+          "Moderate (51-60)",
+          "Serious (41-50)",
+          "Severe (21-40)",
+          "Very Severe (1-20)",
+        ],
+        required: false,
       },
     ],
   },
@@ -339,40 +380,7 @@ const psychiatricConfig = [
         type: "textarea",
         required: false,
       },
-      {
-        kind: "field",
-        path: `${P}.pastTreatment.previousInvoluntaryAdmissions`,
-        label: "Previous involuntary admissions (MHCA 2017)",
-        type: "select",
-        options: [
-          "None",
-          "Section 89 (Supported)",
-          "Section 90 (High Dependency)",
-          "Other",
-        ],
-      },
 
-      {
-        kind: "field",
-        path: `${P}.suicidalSelfHarmHistory.lifetimeAttempts`,
-        label: "Lifetime suicidal attempts",
-        type: "select",
-        options: ["None", "One", "Multiple"],
-      },
-      {
-        kind: "field",
-        path: `${P}.suicidalSelfHarmHistory.mostSeriousAttemptDetails`,
-        label: "Most serious attempt — method, lethality, intent",
-        type: "textarea",
-        required: false,
-      },
-      {
-        kind: "field",
-        path: `${P}.suicidalSelfHarmHistory.selfHarmHistoryNonSuicidal`,
-        label: "Self-harm history (non-suicidal)",
-        type: "textarea",
-        required: false,
-      },
       {
         kind: "field",
         path: `${P}.suicidalSelfHarmHistory.homicidalIdeationViolence`,
@@ -405,19 +413,6 @@ const psychiatricConfig = [
         label: "Significant relationships / peer support",
         type: "textarea",
         required: false,
-      },
-      {
-        kind: "field",
-        path: `${P}.psychosocialSupport.employmentFunctioning`,
-        label: "Employment functioning",
-        type: "select",
-        options: [
-          "Stable",
-          "Frequent job changes",
-          "Dismissed",
-          "Unemployed",
-          "Never employed",
-        ],
       },
       {
         kind: "field",

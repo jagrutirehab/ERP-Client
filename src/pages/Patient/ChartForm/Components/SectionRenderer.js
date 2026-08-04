@@ -21,6 +21,14 @@ const SectionRenderer = ({ sections, values, onChange, errors }) => {
             let currentFieldGroup = null;
 
             section.items.forEach((item) => {
+              if (item.showIf) {
+                const { path, equals } = item.showIf;
+                const actualValue = path
+                  .split(".")
+                  .reduce((obj, key) => obj?.[key], values);
+                if (actualValue !== equals) return;
+              }
+
               if (item.kind === "grid") {
                 currentFieldGroup = null;
                 groups.push({ kind: "grid", item });

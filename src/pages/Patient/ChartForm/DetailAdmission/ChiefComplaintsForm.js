@@ -6,8 +6,28 @@ const fields = [
   {
     label: "Informant (Self +)",
     name: "informant",
-    type: "text",
+    type: "select",
+    options: [
+      "Self",
+      "Parents",
+      "Mother",
+      "Father",
+      "Spouse",
+      "Son",
+      "Daughter",
+      "Siblings",
+      "Others",
+    ],
     required: true,
+  },
+  {
+    label: "Informant Name",
+    name: "informantName",
+    type: "text",
+    showIf: {
+      field: "informant",
+      notEquals: "Self",
+    },
   },
   {
     label: "Reliable",
@@ -27,11 +47,13 @@ const fields = [
     label: "Complaint 1",
     name: "line1",
     type: "text",
+    required: true,
   },
   {
     label: "Complaint 2",
     name: "line2",
     type: "text",
+    required: true,
   },
   {
     label: "Complaint 3",
@@ -48,12 +70,84 @@ const fields = [
 const ChiefComplaintsForm = ({ validation, setFormStep, step }) => {
   const [attempted, setAttempted] = useState(false);
 
+  const informantIsNotSelf =
+    validation.values.informant && validation.values.informant !== "Self";
+
+  const fields = [
+    {
+      label: "Informant (Self +)",
+      name: "informant",
+      type: "select",
+      options: [
+        "Self",
+        "Parents",
+        "Mother",
+        "Father",
+        "Spouse",
+        "Son",
+        "Daughter",
+        "Siblings",
+        "Others",
+      ],
+      required: true,
+    },
+    {
+      label: "Informant Name",
+      name: "informantName",
+      type: "text",
+      required: informantIsNotSelf,
+      showIf: {
+        field: "informant",
+        notEquals: "Self",
+      },
+    },
+    {
+      label: "Reliable",
+      name: "reliable",
+      type: "select",
+      options: ["Reliable", "Unreliable"],
+      required: true,
+    },
+    {
+      label: "Adequate",
+      name: "adequate",
+      type: "select",
+      options: ["Adequate", "Inadequate"],
+      required: true,
+    },
+    {
+      label: "Complaint 1",
+      name: "line1",
+      type: "text",
+      required: true,
+    },
+    {
+      label: "Complaint 2",
+      name: "line2",
+      type: "text",
+      required: true,
+    },
+    {
+      label: "Complaint 3",
+      name: "line3",
+      type: "text",
+    },
+    {
+      label: "Complaint 4",
+      name: "line4",
+      type: "text",
+    },
+  ];
+
   const validate = () => {
     setAttempted(true);
     return (
       !!validation.values.informant &&
       !!validation.values.reliable &&
-      !!validation.values.adequate
+      !!validation.values.adequate &&
+      !!validation.values.line1 &&
+      !!validation.values.line2 &&
+      (!informantIsNotSelf || !!validation.values.informantName)
     );
   };
 
