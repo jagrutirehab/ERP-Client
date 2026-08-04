@@ -474,7 +474,8 @@ export const getChartsAddmissions = (data) =>
 export const getCharts = (data) => {
   const addmission = typeof data === "string" ? data : data.addmissionId;
   const chartType = typeof data === "string" ? "All" : data.chartType;
-  return api.get(url.GET_CHARTS, { addmission, chartType });
+  const _t = typeof data === "string" ? Date.now() : (data._t ?? Date.now());
+  return api.get(url.GET_CHARTS, { addmission, chartType, _t });
 };
 export const getLatestCharts = ({ patient, limit }) =>
   api.get(`${url.GET_LATEST_CHARTS}?patient=${patient}&limit=${limit}`);
