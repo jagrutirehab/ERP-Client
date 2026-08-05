@@ -57,8 +57,8 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
   // with an in-flight one.
   const addmissionsKey = patient?.addmissions?.join(",") ?? "";
 
-  console.log("addmissionsKey:", addmissionsKey);
-  console.log("patient.addmissions:", patient?.addmissions);
+  // console.log("addmissionsKey:", addmissionsKey);
+  // console.log("patient.addmissions:", patient?.addmissions);
   useEffect(() => {
     if (!patient) return;
     if (patient.addmissions?.length) {
@@ -66,7 +66,7 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
     } else {
       dispatch(resetOpdPatientBills());
     }
-  }, [patient?._id]);
+  }, [dispatch, patient?._id, addmissionsKey]);
 
   return (
     <React.Fragment>
