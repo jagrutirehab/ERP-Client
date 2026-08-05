@@ -30,6 +30,7 @@ const initialState = {
     data: [],
     pagination: {},
     loading: false,
+    latestRequestId: null,
   },
   baseBalance: [],
   lastBaseBalance: null,
@@ -554,15 +555,18 @@ export const CashSlice = createSlice({
 
     // opening balances
     builder
-      .addCase(getCashRecos.pending, (state) => {
+      .addCase(getCashRecos.pending, (state, { meta }) => {
         state.cashRecos.loading = true;
+        state.cashRecos.latestRequestId = meta.requestId;
       })
-      .addCase(getCashRecos.fulfilled, (state, { payload }) => {
+      .addCase(getCashRecos.fulfilled, (state, { payload, meta }) => {
+        if (meta.requestId !== state.cashRecos.latestRequestId) return;
         state.cashRecos.loading = false;
         state.cashRecos.data = payload?.data || [];
         state.cashRecos.pagination = payload?.pagination || {};
       })
-      .addCase(getCashRecos.rejected, (state) => {
+      .addCase(getCashRecos.rejected, (state, { meta }) => {
+        if (meta.requestId !== state.cashRecos.latestRequestId) return;
         state.cashRecos.loading = false;
       });
 

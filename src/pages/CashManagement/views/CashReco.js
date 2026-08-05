@@ -130,6 +130,7 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
   const comparisonIsStale = comparisonAgeMs > STALE_AFTER_MS;
 
   const [selectedCenterIds, setSelectedCenterIds] = useState([]);
+  const [centersInitialized, setCentersInitialized] = useState(false);
   const [page, setPage] = useState(1);
   const [reportDate, setReportDate] = useState({
     start: startOfDay(subDays(new Date(), 29)),
@@ -148,9 +149,22 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
   }, [search]);
 
   useEffect(() => {
+    if (centerOptions.length > 0 && !centersInitialized) {
+      setSelectedCenterIds(centerOptions.map((c) => c._id));
+      setCentersInitialized(true);
+    }
+  }, [centerOptions, centersInitialized]);
+
+  useEffect(() => {
+    if (!centersInitialized) return;
+    const availableCenterIds = centerOptions.map((c) => c._id);
+    setSelectedCenterIds((prev) => {
+      const filtered = prev.filter((id) => availableCenterIds.includes(id));
+      return filtered.length === prev.length ? prev : filtered;
+    });
     setPage(1);
-    setSelectedCenterIds(centerOptions.map((c) => c._id));
-  }, [centerOptions]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centerAccess, centers]);
 
   const grandTotal = denominationTotal(rows);
   const totalPieces = rows.reduce((sum, row) => sum + Number(row.count || 0), 0);
@@ -351,6 +365,7 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
       // The counted total changed, so the difference did too.
       if (pendingEntry?._id === editTarget._id) {
         setComparison(updated);
+        setPendingEntry(updated.entry);
       }
       closeEdit();
       fetchRecords();
@@ -382,7 +397,7 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
   };
 
   const fetchRecords = useCallback(async () => {
-    if (!hasReadPermission || !centerAccess?.length) return;
+    if (!hasReadPermission || !centerAccess) return;
     try {
       await dispatch(
         getCashRecos({
