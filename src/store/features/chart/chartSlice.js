@@ -1546,7 +1546,20 @@ export const chartSlice = createSlice({
       })
       .addCase(fetchChartsAddmissions.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.data = payload.payload;
+        // Upsert by _id instead of replacing state.data wholesale — this slice
+        // is shared across screens (IPD view, ChartDate modal, AI socket
+        // refreshes) that each fetch different subsets of admissions. A full
+        // replace here would let a single-admission fetch (e.g. from the
+        // create-chart modal) wipe out other admissions currently on screen.
+        const incoming = payload.payload || [];
+        incoming.forEach((item) => {
+          const index = state.data.findIndex((d) => d._id === item._id);
+          if (index >= 0) {
+            state.data[index] = { ...state.data[index], ...item };
+          } else {
+            state.data.push(item);
+          }
+        });
       })
       .addCase(fetchChartsAddmissions.rejected, (state) => {
         state.loading = false;

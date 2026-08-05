@@ -22,6 +22,7 @@ import {
 } from "reactstrap";
 import PropTypes from "prop-types";
 import moment from "moment";
+import Select from "react-select";
 import { toast } from "react-toastify";
 import {
   Check,
@@ -90,6 +91,11 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
         .filter((c) => c.title?.toLowerCase() !== "online")
         .map((c) => ({ _id: c._id, title: c.title })) || [],
     [centers, centerAccess]
+  );
+
+  const centerSelectOptions = useMemo(
+    () => centerOptions.map((c) => ({ value: c._id, label: c.title })),
+    [centerOptions]
   );
 
   const [tab, setTab] = useState(hasCreatePermission ? FORM_TAB : RECORDS_TAB);
@@ -197,6 +203,20 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
     setErrors(nextErrors);
     return Object.keys(nextErrors).length === 0;
   };
+
+  useEffect(() => {
+    setErrors((prev) => {
+      if (!Object.keys(prev).length) return prev;
+      const stillInvalid = validateDenominationRows(rows);
+      const next = { ...prev };
+      if (center) delete next.center;
+      if (stillInvalid.rows) next.rows = stillInvalid.rows;
+      else delete next.rows;
+      if (stillInvalid.rowErrors) next.rowErrors = stillInvalid.rowErrors;
+      else delete next.rowErrors;
+      return next;
+    });
+  }, [center, rows]);
 
   const loadComparison = async (entryId) => {
     setComparisonLoading(true);
@@ -731,20 +751,19 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
                       <Label for="ob-center" className="fw-medium">
                         Center <span className="text-danger">*</span>
                       </Label>
-                      <Input
-                        type="select"
-                        id="ob-center"
-                        value={center}
-                        onChange={(e) => setCenter(e.target.value)}
-                        className={`form-select ${errors.center ? "is-invalid" : ""}`}
-                      >
-                        <option value="">Select a Center</option>
-                        {centerOptions.map((c) => (
-                          <option key={c._id} value={c._id}>
-                            {c.title}
-                          </option>
-                        ))}
-                      </Input>
+                      <Select
+                        inputId="ob-center"
+                        classNamePrefix="react-select"
+                        options={centerSelectOptions}
+                        value={
+                          centerSelectOptions.find(
+                            (o) => o.value === center
+                          ) || null
+                        }
+                        onChange={(option) => setCenter(option?.value || "")}
+                        placeholder="Select a Center"
+                        isClearable
+                      />
                       {errors.center && (
                         <div className="invalid-feedback d-block">
                           <i className="fas fa-exclamation-circle me-1"></i>
@@ -1111,9 +1130,9 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
                             <Badge color="primary">
                               {capitalizeWords(record?.center?.title)}
                             </Badge>
-                            <span className="text-muted small fw-semibold">
+                            <Badge color="light" className="text-dark border">
                               {record.id}
-                            </span>
+                            </Badge>
                             {record.status === "CONFIRMED" ? (
                               <Badge color="dark">
                                 <Lock size={11} className="me-1" />
@@ -1282,15 +1301,7 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
               )}
 
               {!recordsLoading && pagination?.totalPages > 1 && (
-                <div className="d-flex justify-content-between align-items-center gap-2 mt-3">
-                  <Button
-                    outline
-                    size="sm"
-                    disabled={page <= 1}
-                    onClick={() => setPage((p) => Math.max(p - 1, 1))}
-                  >
-                    Previous
-                  </Button>
+                <div className="d-flex flex-column align-items-center gap-2 mt-3">
                   <span className="text-muted small text-center">
                     <span className="d-none d-sm-inline">
                       Page {pagination.page} of {pagination.totalPages} (
@@ -1300,14 +1311,22 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
                       {pagination.page} / {pagination.totalPages}
                     </span>
                   </span>
-                  <Button
-                    outline
-                    size="sm"
-                    disabled={page >= pagination.totalPages}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
-                    Next
-                  </Button>
+                  <div className="d-flex align-items-center gap-2">
+                    <Button
+                      color="secondary"
+                      disabled={page <= 1}
+                      onClick={() => setPage((p) => Math.max(p - 1, 1))}
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      color="secondary"
+                      disabled={page >= pagination.totalPages}
+                      onClick={() => setPage((p) => p + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
                 </div>
               )}
             </CardBody>

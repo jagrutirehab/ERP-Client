@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { Alert, Button, Progress } from "reactstrap";
 import { connect, useDispatch, useSelector } from "react-redux";
@@ -41,6 +41,7 @@ const Charting = ({
   addmissionsCharts,
   charts,
   loading,
+  chartSaving,
   generalLoading,
   pageAccess,
   view,
@@ -58,6 +59,14 @@ const Charting = ({
   const [uploadProgress, setUploadProgress] = useState(0);
   const [filterChartType, setFilterChartType] = useState({});
   const [isFetchingCharts, setIsFetchingCharts] = useState(false);
+  const prevLoading = useRef(false);
+
+  useEffect(() => {
+    if (prevLoading.current === true && chartSaving === false) {
+      window.dispatchEvent(new Event("chartUpdated"));
+    }
+    prevLoading.current = chartSaving;
+  }, [chartSaving]);
   const toggleModal = () => setDateModal(!dateModal);
 
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
@@ -103,28 +112,28 @@ const Charting = ({
   //   // eslint-disable-next-line react-hooks/exhaustive-deps
   // }, [view, patient, addmissionsCharts]);
 
-  useEffect(() => {
-    setOpen(null);
-    setAddmissionId(null);
-  }, [patient?._id]);
+  // useEffect(() => {
+  //   setOpen(null);
+  //   setAddmissionId(null);
+  // }, [patient?._id]);
 
-  useEffect(() => {
-    console.log(
-      "addmissionsCharts changed:",
-      addmissionsCharts.length,
-      "addmissionId:",
-      addmissionId,
-    );
-    if (
-      addmissionsCharts.length > 0 &&
-      !addmissionsCharts.find((ch) => ch._id === addmissionId)
-    ) {
-      console.log("setting addmissionId to:", addmissionsCharts[0]?._id);
-      setOpen("0");
-      setAddmissionId(addmissionsCharts[0]?._id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addmissionsCharts]);
+  // useEffect(() => {
+  //   console.log(
+  //     "addmissionsCharts changed:",
+  //     addmissionsCharts.length,
+  //     "addmissionId:",
+  //     addmissionId,
+  //   );
+  //   if (
+  //     addmissionsCharts.length > 0 &&
+  //     !addmissionsCharts.find((ch) => ch._id === addmissionId)
+  //   ) {
+  //     console.log("setting addmissionId to:", addmissionsCharts[0]?._id);
+  //     setOpen("0");
+  //     setAddmissionId(addmissionsCharts[0]?._id);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [addmissionsCharts]);
 
   useEffect(() => {
     if (!patient?._id) return;
@@ -136,43 +145,42 @@ const Charting = ({
       dispatch(fetchGeneralCharts({ patient: patient._id, type: CLINIC_TEST }));
   }, [dispatch, tab, patient?._id]);
 
-  useEffect(() => {
-    if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
-      const typeForAdmission = filterChartType[addmissionId] || "All";
-      const fetchFresh = async () => {
-        try {
-          setIsFetchingCharts(true);
-          dispatch({ type: "getCharts/pending" });
-          const response = await getCharts({
-            addmissionId,
-            chartType: typeForAdmission,
-            _t: Date.now(),
-          });
-          dispatch({
-            type: "getCharts/fulfilled",
-            payload: { payload: response.payload, addmission: addmissionId },
-          });
-        } catch (error) {
-          console.log("getCharts error:", error);
-          dispatch({ type: "getCharts/rejected" });
-        } finally {
-          setIsFetchingCharts(false);
-        }
-      };
-      fetchFresh();
-    }
-  }, [dispatch, patient, addmissionId, filterChartType]);
+  // useEffect(() => {
+  //   if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
+  //     const typeForAdmission = filterChartType[addmissionId] || "All";
+  //     let cancelled = false;
+  //     const fetchFresh = async () => {
+  //       try {
+  //         setIsFetchingCharts(true);
+  //         dispatch({ type: "getCharts/pending" });
+  //         const response = await getCharts({
+  //           addmissionId,
+  //           chartType: typeForAdmission,
+  //           _t: Date.now(),
+  //         });
+  //         if (!cancelled) {
+  //           dispatch({
+  //             type: "getCharts/fulfilled",
+  //             payload: { payload: response.payload, addmission: addmissionId },
+  //           });
+  //         }
+  //       } catch (error) {
+  //         if (!cancelled) {
+  //           console.log("getCharts error:", error);
+  //           dispatch({ type: "getCharts/rejected" });
+  //         }
+  //       } finally {
+  //         if (!cancelled) setIsFetchingCharts(false);
+  //       }
+  //     };
+  //     fetchFresh();
+  //     return () => {
+  //       cancelled = true;
+  //     };
+  //   }
+  // }, [dispatch, patient, addmissionId, filterChartType]);
 
-  useEffect(() => {
-    if (tab === CLINIC_TEST) {
-      // always open the first accordion item
-      setOpen("0");
-
-      // if (addmissionsCharts?.length > 0) {
-      //   setAddmissionId(addmissionsCharts[0]?._id);
-      // }
-    }
-  }, [tab, addmissionsCharts]);
+  useEffect(() => {}, [tab, addmissionsCharts]);
 
   const onSubmitClinicalForm = (
     values,
@@ -248,29 +256,31 @@ const Charting = ({
     return (
       tab === IPD && (
         <IPDComponent
-          addmissionsCharts={addmissionsCharts}
-          open={open}
           patient={patient}
-          loading={isFetchingCharts}
           toggleModal={toggleModal}
           setChartType={setChartType}
-          toggleAccordian={toggleAccordian}
-          setAddmissionId={setAddmissionId}
-          filterChartType={filterChartType}
-          setFilterChartType={setFilterChartType}
         />
       )
     );
+  }, [tab, patient]);
+
+  // addmissionsCharts (state.Chart.data) is a shared, upsert-merged slice that
+  // now accumulates admissions across every patient visited this session —
+  // nothing ever clears it on patient switch. Consumers that pick addmissionsCharts[0]
+  // directly (General/AdmissionSummary/BioData below) would silently pick up a
+  // stale admission belonging to a previously-viewed patient once more than one
+  // patient has been viewed. Scoping + sorting here (newest first, matching the
+  // backend's own addmissionDate: -1 order) keeps those consumers correct
+  // without needing to change each of them individually.
+  const addmissionsKey = patient?.addmissions?.join(",") ?? "";
+  const currentPatientAddmissionsCharts = useMemo(() => {
+    if (!patient?.addmissions?.length) return [];
+    const idSet = new Set(patient.addmissions);
+    return addmissionsCharts
+      .filter((a) => idSet.has(a._id))
+      .sort((a, b) => new Date(b.addmissionDate) - new Date(a.addmissionDate));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    addmissionsCharts,
-    tab,
-    loading,
-    isFetchingCharts,
-    open,
-    patient,
-    filterChartType,
-  ]);
+  }, [addmissionsCharts, addmissionsKey]);
 
   const clinicalTestComponent = useMemo(() => {
     return (
@@ -309,12 +319,14 @@ const Charting = ({
         generalLoading={generalLoading}
         toggleModal={toggleModal}
         charts={charts}
-        currentAddmissionId={addmissionsCharts?.[0]?._id}
-        isPatientDischarged={!!addmissionsCharts?.[0]?.dischargeDate}
+        currentAddmissionId={currentPatientAddmissionsCharts?.[0]?._id}
+        isPatientDischarged={
+          !!currentPatientAddmissionsCharts?.[0]?.dischargeDate
+        }
       />
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [charts, generalLoading, addmissionsCharts]);
+  }, [charts, generalLoading, currentPatientAddmissionsCharts]);
 
   console.log("patient", patient);
 
@@ -476,10 +488,16 @@ const Charting = ({
         <AdmissionSummary
           patient={patient._id}
           patientProfile={patient}
-          addmission={addmissionsCharts?.[0]?._id || patient?.addmission?._id}
+          addmission={
+            currentPatientAddmissionsCharts?.[0]?._id ||
+            patient?.addmission?._id
+          }
         />
       ) : tab === BIO_DATA ? (
-        <BioData patient={patient} addmission={addmissionsCharts} />
+        <BioData
+          patient={patient}
+          addmission={currentPatientAddmissionsCharts}
+        />
       ) : (
         ""
       )}
@@ -501,6 +519,7 @@ const mapStateToProps = (state) => ({
   patient: state.Patient.patient,
   addmissionsCharts: state.Chart.data,
   loading: state.Chart.chartLoading,
+  chartSaving: state.Chart.loading,
   generalLoading: state.Chart.generalChartLoading,
   charts: state.Chart.charts,
 });

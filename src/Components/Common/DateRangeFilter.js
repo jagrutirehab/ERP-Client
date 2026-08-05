@@ -119,7 +119,7 @@ const DateRangeFilter = ({ reportDate, setReportDate, disabled = false }) => {
       >
         <UncontrolledDropdown>
           <DropdownToggle caret color="light" className="pe-3 border-0" />
-          <DropdownMenu end>
+          <DropdownMenu end strategy="fixed">
             <DropdownItem onClick={() => changeDate()}>Today</DropdownItem>
             <DropdownItem onClick={() => changeDate(7)}>Last 7 days</DropdownItem>
             <DropdownItem onClick={() => changeDate(30)}>Last 30 days</DropdownItem>
