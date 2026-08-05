@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 const FIXED_ASSIGNEES = [
   { value: "6a2692bf484a7e7fd29da3ae", label: "PUSHPENDRA SINGH (JRC0894)" },
-  { value: "697e145529c91d173986bdb8", label: "SHIVANI GUPTA (JRC0571)" },
+  // { value: "697e145529c91d173986bdb8", label: "SHIVANI GUPTA (JRC0571)" },
   ...(process.env.REACT_APP_ENV !== "production"
     ? [
         {
