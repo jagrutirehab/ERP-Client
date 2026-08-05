@@ -12,7 +12,9 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import "../shared/itemMasterForms.scss";
 
 const StatusPill = ({ status }) => (
-  <span className={`im-status-pill ${status === "active" ? "active" : "inactive"}`}>
+  <span
+    className={`im-status-pill ${status === "active" ? "active" : "inactive"}`}
+  >
     <span className="dot"></span> {status}
   </span>
 );
@@ -22,6 +24,54 @@ const FILTERS = [
   { key: "active", label: "Active" },
   { key: "discontinued", label: "Discontinued" },
 ];
+
+
+const tableCustomStyles = {
+  table: {
+    style: {
+      backgroundColor: "#fff",
+    },
+  },
+  headRow: {
+    style: {
+      backgroundColor: "#f8f9fb",
+      borderBottomWidth: "1px",
+      borderBottomColor: "#edeff3",
+      minHeight: "46px",
+    },
+  },
+  headCells: {
+    style: {
+      fontSize: "11.5px",
+      fontWeight: 700,
+      textTransform: "uppercase",
+      letterSpacing: "0.04em",
+      color: "#667085",
+    },
+  },
+  rows: {
+    style: {
+      minHeight: "58px",
+      fontSize: "13.5px",
+      color: "#101828",
+      "&:not(:last-of-type)": {
+        borderBottomColor: "#edeff3",
+      },
+    },
+    highlightOnHoverStyle: {
+      backgroundColor: "#f8f9fb",
+      borderBottomColor: "#edeff3",
+      outline: "none",
+    },
+  },
+  pagination: {
+    style: {
+      borderTopColor: "#edeff3",
+      fontSize: "13px",
+      color: "#667085",
+    },
+  },
+};
 
 const ItemMasterList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
@@ -68,7 +118,11 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
         setTotal(res?.pagination?.total || 0);
       } catch (error) {
         if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Failed to load items");
+          toast.error(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Failed to load items",
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -87,30 +141,64 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Failed to update status");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Failed to update status",
+        );
       }
     }
   };
 
   const columns = [
-    { name: "Item Code", selector: (row) => row.itemCode || "—", width: "120px" },
+    {
+      name: "Item Code",
+      width: "130px",
+      cell: (row) =>
+        row.itemCode ? (
+          <span className="im-table-code">{row.itemCode}</span>
+        ) : (
+          <span className="im-table-sub">—</span>
+        ),
+    },
     {
       name: "Status",
       width: "130px",
       cell: (row) => <StatusPill status={row.status} />,
     },
-    { name: "Short Description", selector: (row) => row.itemName, sortable: true },
-    { name: "L1", selector: (row) => categoryMap[row.l1Category] || "—", width: "120px" },
+    {
+      name: "Short Description",
+      selector: (row) => row.itemName,
+      sortable: true,
+      cell: (row) => (
+        <span className="im-table-primary-cell">{row.itemName}</span>
+      ),
+    },
+    {
+      name: "L1",
+      selector: (row) => categoryMap[row.l1Category] || "—",
+      width: "120px",
+    },
     { name: "Brand", selector: (row) => row.brand || "—", width: "120px" },
-    { name: "Item Type", selector: (row) => typeMap[row.itemTypeId] || "—", width: "140px" },
+    {
+      name: "Item Type",
+      selector: (row) => typeMap[row.itemTypeId] || "—",
+      width: "140px",
+    },
     {
       name: "Created At",
-      selector: (row) => (row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "—"),
+      selector: (row) =>
+        row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "—",
       width: "120px",
+      cell: (row) => (
+        <span className="im-table-sub">
+          {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "—"}
+        </span>
+      ),
     },
     {
       name: "Actions",
-      width: "180px",
+      width: "190px",
       right: true,
       cell: (row) => (
         <div className="d-flex gap-2">
@@ -118,11 +206,21 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
             <i className="bx bx-edit-alt"></i>
           </Button>
           {row.status !== "active" ? (
-            <Button size="sm" color="success" outline onClick={() => handleStatusChange(row._id, "active")}>
+            <Button
+              size="sm"
+              color="success"
+              outline
+              onClick={() => handleStatusChange(row._id, "active")}
+            >
               Activate
             </Button>
           ) : (
-            <Button size="sm" color="warning" outline onClick={() => handleStatusChange(row._id, "discontinued")}>
+            <Button
+              size="sm"
+              color="warning"
+              outline
+              onClick={() => handleStatusChange(row._id, "discontinued")}
+            >
               Discontinue
             </Button>
           )}
@@ -132,40 +230,44 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
   ];
 
   return (
-    <div>
+    <div className="im-surface">
       <div className="im-toolbar-row">
-        <div className="text-muted small">{total} item{total === 1 ? "" : "s"}</div>
+        <div className="im-toolbar-title">
+          {total} item{total === 1 ? "" : "s"}
+        </div>
         <Button color="primary" onClick={onAdd}>
           <i className="bx bx-plus me-1"></i> Create Item
         </Button>
       </div>
 
-      <div className="im-filter-pills-row">
-        {FILTERS.map((f) => (
-          <button
-            key={f.key}
-            type="button"
-            className={`im-filter-pill ${filter === f.key ? "active" : ""}`}
-            onClick={() => {
-              setFilter(f.key);
-              setPage(1);
-            }}
-          >
-            {f.label}
-          </button>
-        ))}
-      </div>
+      <div className="im-toolbar-row" style={{ marginTop: -6 }}>
+        <div className="im-filter-pills-row mb-0">
+          {FILTERS.map((f) => (
+            <button
+              key={f.key}
+              type="button"
+              className={`im-filter-pill ${filter === f.key ? "active" : ""}`}
+              onClick={() => {
+                setFilter(f.key);
+                setPage(1);
+              }}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
 
-      <div className="im-search-wrap mb-3">
-        <i className="bx bx-search"></i>
-        <Input
-          placeholder="Search items..."
-          value={search}
-          onChange={(e) => {
-            setPage(1);
-            setSearch(e.target.value);
-          }}
-        />
+        <div className="im-search-wrap mb-0">
+          <i className="bx bx-search"></i>
+          <Input
+            placeholder="Search items..."
+            value={search}
+            onChange={(e) => {
+              setPage(1);
+              setSearch(e.target.value);
+            }}
+          />
+        </div>
       </div>
 
       <div className="im-table-card">
@@ -174,6 +276,8 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
           data={items}
           progressPending={loading}
           highlightOnHover
+          pointerOnHover
+          customStyles={tableCustomStyles}
           pagination
           paginationServer
           paginationTotalRows={total}
@@ -189,7 +293,9 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
                 <i className="bx bx-package"></i>
               </div>
               <h6>No items found</h6>
-              <p>Try adjusting your search or filters, or create your first item.</p>
+              <p>
+                Try adjusting your search or filters, or create your first item.
+              </p>
               <Button color="primary" onClick={onAdd}>
                 <i className="bx bx-plus me-1"></i> Create Item
               </Button>
