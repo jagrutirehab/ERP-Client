@@ -264,6 +264,24 @@ const Charting = ({
     );
   }, [tab, patient]);
 
+  // addmissionsCharts (state.Chart.data) is a shared, upsert-merged slice that
+  // now accumulates admissions across every patient visited this session —
+  // nothing ever clears it on patient switch. Consumers that pick addmissionsCharts[0]
+  // directly (General/AdmissionSummary/BioData below) would silently pick up a
+  // stale admission belonging to a previously-viewed patient once more than one
+  // patient has been viewed. Scoping + sorting here (newest first, matching the
+  // backend's own addmissionDate: -1 order) keeps those consumers correct
+  // without needing to change each of them individually.
+  const addmissionsKey = patient?.addmissions?.join(",") ?? "";
+  const currentPatientAddmissionsCharts = useMemo(() => {
+    if (!patient?.addmissions?.length) return [];
+    const idSet = new Set(patient.addmissions);
+    return addmissionsCharts
+      .filter((a) => idSet.has(a._id))
+      .sort((a, b) => new Date(b.addmissionDate) - new Date(a.addmissionDate));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addmissionsCharts, addmissionsKey]);
+
   const clinicalTestComponent = useMemo(() => {
     return (
       tab === CLINIC_TEST && (
@@ -301,12 +319,12 @@ const Charting = ({
         generalLoading={generalLoading}
         toggleModal={toggleModal}
         charts={charts}
-        currentAddmissionId={addmissionsCharts?.[0]?._id}
-        isPatientDischarged={!!addmissionsCharts?.[0]?.dischargeDate}
+        currentAddmissionId={currentPatientAddmissionsCharts?.[0]?._id}
+        isPatientDischarged={!!currentPatientAddmissionsCharts?.[0]?.dischargeDate}
       />
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [charts, generalLoading, addmissionsCharts]);
+  }, [charts, generalLoading, currentPatientAddmissionsCharts]);
 
   console.log("patient", patient);
 
@@ -468,10 +486,13 @@ const Charting = ({
         <AdmissionSummary
           patient={patient._id}
           patientProfile={patient}
-          addmission={addmissionsCharts?.[0]?._id || patient?.addmission?._id}
+          addmission={
+            currentPatientAddmissionsCharts?.[0]?._id ||
+            patient?.addmission?._id
+          }
         />
       ) : tab === BIO_DATA ? (
-        <BioData patient={patient} addmission={addmissionsCharts} />
+        <BioData patient={patient} addmission={currentPatientAddmissionsCharts} />
       ) : (
         ""
       )}

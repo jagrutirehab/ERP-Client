@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import {
   Accordion,
   AccordionBody,
@@ -12,10 +12,15 @@ import AddmissionCard from "./Components/AddmissionCard";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import { Button } from "reactstrap";
-import { connect, useDispatch } from "react-redux";
+import { connect, useDispatch, useSelector } from "react-redux";
 import Placeholder from "./Components/Placeholder";
 import Charts from "../Charts";
-import { admitDischargePatient, togglePrint } from "../../../store/actions";
+import {
+  admitDischargePatient,
+  togglePrint,
+  fetchChartsAddmissions,
+  fetchCharts,
+} from "../../../store/actions";
 import {
   EDIT_ADMISSION,
   IPD,
@@ -28,18 +33,41 @@ import {
 import { toast } from "react-toastify";
 import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
 import { capitalizeWords } from "../../../utils/toCapitalize";
-import {
-  getChartsAddmissions,
-  getCharts,
-} from "../../../helpers/backend_helper";
 
 const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   const dispatch = useDispatch();
-  const [admissions, setAdmissions] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const chartData = useSelector((state) => state.Chart.data);
+  const chartLoading = useSelector((state) => state.Chart.chartLoading);
   const [open, setOpen] = useState(null);
   const [filterChartType, setFilterChartType] = useState({});
-  const [chartsLoading, setChartsLoading] = useState({});
+  const [admissionsSettled, setAdmissionsSettled] = useState(false);
+  const latestPatientIdRef = useRef();
+
+  // `state.Chart.data` is a shared slice — other screens (ChartDate modal,
+  // AI socket refreshes, Wrapper validation) also read/write it for
+  // admissions unrelated to this patient. Deriving the displayed list from
+  // patient.addmissions (rather than trusting whatever fetch resolved last)
+  // keeps this view correct even if those other flows race with ours.
+  const addmissionsKey = patient?.addmissions?.join(",") ?? "";
+  const admissions = useMemo(() => {
+    if (!patient?.addmissions?.length) return [];
+    const idSet = new Set(patient.addmissions);
+    // Sorted newest-first to match the backend's own order (patientChartAddmission.js
+    // sorts by addmissionDate: -1) — patient.addmissions itself is oldest-first insertion
+    // order, so mapping display order off it directly showed the latest admission last.
+    return chartData
+      .filter((a) => idSet.has(a._id))
+      .sort((a, b) => new Date(b.addmissionDate) - new Date(a.addmissionDate));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartData, addmissionsKey]);
+
+  // Not admissions.length < patient.addmissions.length — that comparison
+  // never resolves if patient.addmissions contains a stale/orphaned id with
+  // no matching Addmission document (a real data issue, seen on at least one
+  // patient), leaving the placeholder stuck forever. Loading instead tracks
+  // whether the fetch for the current patient has settled at all, regardless
+  // of whether every requested id actually came back.
+  const loading = !!patient?.addmissions?.length && !admissionsSettled;
 
   const toggleAccordian = (id) => {
     if (open === id) {
@@ -60,101 +88,79 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
     }
   };
 
-  // Fetch admissions directly
-  const fetchAdmissions = async () => {
+  // Fetch admissions via Redux (state.Chart.data) instead of a direct API call.
+  useEffect(() => {
     console.log(
-      "[IPD] fetchAdmissions called. patient._id:",
+      "[IPD] admissions effect fired. patient._id:",
       patient?._id,
       "addmissions:",
       patient?.addmissions,
     );
+    latestPatientIdRef.current = patient?._id;
+    setOpen(null);
+    setAdmissionsSettled(false);
     if (!patient?.addmissions?.length) {
-      console.log("[IPD] no admissions on patient — clearing local state");
-      setAdmissions([]);
+      console.log("[IPD] no admissions on patient — skipping fetch");
+      setAdmissionsSettled(true);
       return;
     }
-    setLoading(true);
-    setOpen(null);
-    try {
-      const res = await getChartsAddmissions(patient.addmissions);
-      console.log("[IPD] getChartsAddmissions response:", res);
-      setAdmissions(res.payload || []);
-      setOpen("0");
-    } catch (error) {
-      console.log("fetchAdmissions error:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchAdmissions();
+    const requestedPatientId = patient._id;
+    dispatch(fetchChartsAddmissions(patient.addmissions))
+      .unwrap()
+      .then((res) => {
+        console.log("[IPD] fetchChartsAddmissions resolved:", res);
+        // Ignore if the patient has since changed — avoids re-opening the
+        // wrong patient's first accordion off a late-resolving stale request.
+        if (latestPatientIdRef.current === requestedPatientId) setOpen("0");
+      })
+      .catch((error) => {
+        console.log("[IPD] fetchChartsAddmissions error:", error);
+      })
+      .finally(() => {
+        // Settled regardless of outcome — some ids in patient.addmissions can
+        // be stale/orphaned references with no matching document (seen in
+        // production data), so an exact-count match can never be guaranteed.
+        if (latestPatientIdRef.current === requestedPatientId)
+          setAdmissionsSettled(true);
+      });
     // patient?.addmissions?.length is included because `patient` first loads
     // without admissions populated (before fetchPatientById resolves); relying
     // on patient?._id alone misses the follow-up render where admissions appear.
-  }, [patient?._id, patient?.addmissions?.length]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, patient?._id, patient?.addmissions?.length]);
 
-  useEffect(() => {
-    const handleChartUpdate = () => fetchAdmissions();
-    window.addEventListener("chartUpdated", handleChartUpdate);
-    return () => window.removeEventListener("chartUpdated", handleChartUpdate);
-  }, [patient?._id]);
+  // No "chartUpdated" event bridge needed here (unlike the old local-state
+  // version): every save/edit thunk in chartSlice.js already writes the new
+  // chart straight into state.data[...].charts in its own fulfilled reducer,
+  // so this Redux-connected view re-renders on its own the moment a save
+  // completes. Re-dispatching fetchChartsAddmissions off that same window
+  // event caused an infinite loop, because fetchChartsAddmissions toggles
+  // state.Chart.loading — the exact flag Charting.js watches to decide a
+  // save just finished and fire the event again.
 
   // Fetch charts when accordion opens
   useEffect(() => {
     if (open === null) return;
-    const idx = parseInt(open);
-    const admission = admissions[idx];
+    const admission = admissions[parseInt(open)];
     if (!admission) return;
     if (admission.charts) return; // already loaded
-
-    const fetchChartsForAdmission = async () => {
-      setChartsLoading((prev) => ({ ...prev, [idx]: true }));
-      try {
-        const chartType = filterChartType[admission._id] || "All";
-        const res = await getCharts({
-          addmissionId: admission._id,
-          chartType,
-          _t: Date.now(),
-        });
-        setAdmissions((prev) =>
-          prev.map((a, i) => (i === idx ? { ...a, charts: res.payload } : a)),
-        );
-      } catch (error) {
-        console.log("fetchCharts error:", error);
-      } finally {
-        setChartsLoading((prev) => ({ ...prev, [idx]: false }));
-      }
-    };
-    fetchChartsForAdmission();
-}, [open, admissions.length]);
+    const chartType = filterChartType[admission._id] || "All";
+    dispatch(
+      fetchCharts({ addmissionId: admission._id, chartType, _t: Date.now() }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, open, admissions]);
 
   // Refetch charts when filter changes
   useEffect(() => {
     if (open === null) return;
-    const idx = parseInt(open);
-    const admission = admissions[idx];
+    const admission = admissions[parseInt(open)];
     if (!admission) return;
-
-    const fetchChartsForAdmission = async () => {
-      setChartsLoading((prev) => ({ ...prev, [idx]: true }));
-      try {
-        const chartType = filterChartType[admission._id] || "All";
-        const res = await getCharts({
-          addmissionId: admission._id,
-          chartType,
-          _t: Date.now(),
-        });
-        setAdmissions((prev) =>
-          prev.map((a, i) => (i === idx ? { ...a, charts: res.payload } : a)),
-        );
-      } catch (error) {
-        console.log("fetchCharts error:", error);
-      } finally {
-        setChartsLoading((prev) => ({ ...prev, [idx]: false }));
-      }
-    };
-    fetchChartsForAdmission();
+    const chartType = filterChartType[admission._id] || "All";
+    dispatch(
+      fetchCharts({ addmissionId: admission._id, chartType, _t: Date.now() }),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filterChartType]);
 
   if (loading) return <Placeholder />;
@@ -347,7 +353,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     className="patient-accordion border-0"
                     accordionId={idx.toString()}
                   >
-                    {chartsLoading[idx] ? (
+                    {open === idx.toString() && chartLoading ? (
                       <Placeholder />
                     ) : (
                       <Charts

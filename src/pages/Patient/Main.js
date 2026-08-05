@@ -15,6 +15,7 @@ import {
   // resetOpdPatientCharts,
   fetchPatientById,
 } from "../../store/actions";
+import { clearCharts } from "../../store/features/chart/chartSlice";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import { getChartsAddmissions } from "../../helpers/backend_helper";
 
@@ -29,6 +30,15 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
       if (!id || id === "*") return;
 
       try {
+        // state.Chart.data is a shared slice that many screens (IPD, BioData,
+        // AdmissionSummary, Print, AdmissionForms, and others) read admissions
+        // from, several by index (e.g. addmissionsCharts[0]). It's populated
+        // by upserting, never by removing, so without this it would keep
+        // every admission from every patient viewed this session, and those
+        // index-based reads would silently pick up a stale, wrong patient's
+        // admission. Clearing here, before any fetch for the new patient
+        // starts, keeps it scoped to whichever patient is currently open.
+        dispatch(clearCharts());
         // Fetch fresh patient data
         dispatch(fetchPatientById(id));
       } catch (err) {
