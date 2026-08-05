@@ -97,11 +97,23 @@
 
     const psychologistOptions = useMemo(() => [
         { value: "ALL", label: "All Psychologists" },
-        ...[...new Set(data.map((item) => item.psychologist_name))].filter(Boolean).map((psychologist) => ({
+        ...[...new Set(
+            data
+                .filter((item) => selectedCenter === "ALL" || item?.center_name === selectedCenter)
+                .map((item) => item.psychologist_name)
+        )].filter(Boolean).map((psychologist) => ({
             value: psychologist,
             label: psychologist,
         })),
-    ], [data]);
+    ], [data, selectedCenter]);
+
+    useEffect(() => {
+        if (selectedPsychologist === "ALL") return;
+        if (!psychologistOptions.some((o) => o.value === selectedPsychologist)) {
+            setSelectedPsychologist("ALL");
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [psychologistOptions]);
 
 
 
