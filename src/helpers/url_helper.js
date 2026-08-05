@@ -543,6 +543,8 @@ export const GET_TRAINING_FORMS_MONTHLY =
   "/mi-reporting/training-forms-monthly";
 export const GET_AUDIT_DAILY = "/mi-reporting/audit-daily";
 export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
+export const GET_OPD_CHARGES_MONTHLY = "/mi-reporting/opd-charges-monthly";
+export const GET_DOCTOR_OPD_CHARGES_MONTHLY = "/mi-reporting/doctor-opd-charges-monthly";
 export const GET_OCCUPANCY_MONTHLY = "/mi-reporting/occupancy-monthly";
 export const GET_ADMISSION_DISCHARGE_DAILY =
   "/mi-reporting/admission-discharge-daily";

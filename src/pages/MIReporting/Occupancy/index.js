@@ -12,6 +12,21 @@ const TABLES = [
   { key: "unoccupied_percentage", label: "Unoccupied %", isPercentage: true },
 ];
 
+const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+const getDaysInMonth = (monthStr) => {
+  const [mon, year] = (monthStr || "").split(" ");
+  const monthIdx = MONTHS.indexOf(mon);
+  if (monthIdx === -1 || !year) return 30;
+
+  const today = new Date();
+  if (monthIdx === today.getMonth() && parseInt(year, 10) === today.getFullYear()) {
+    return today.getDate() - 1;
+  }
+
+  return new Date(parseInt(year, 10), monthIdx + 1, 0).getDate();
+};
+
 const headerStyle = {
   border: "1px solid #cfd8e3",
   background: "#004d00",
@@ -34,12 +49,19 @@ const totalCellStyle = {
   color: "#1d4ed8",
 };
 
-const OccupancyTable = ({ title, fieldKey, isPercentage, centers, months, pivot }) => {
+const OccupancyTable = ({ title, fieldKey, isPercentage, centers, months, pivot, getValue: getValueProp, getSummaryValue }) => {
+  const getValue = getValueProp || ((center, month) => pivot[center]?.[month]?.[fieldKey]);
+
   const summary = React.useMemo(() => {
     const result = {};
     months.forEach((month) => {
+      if (getSummaryValue) {
+        result[month] = getSummaryValue(month);
+        return;
+      }
+
       const values = centers
-        .map((center) => pivot[center]?.[month]?.[fieldKey])
+        .map((center) => getValue(center, month))
         .filter((v) => v !== undefined && v !== null);
 
       if (values.length === 0) {
@@ -51,7 +73,8 @@ const OccupancyTable = ({ title, fieldKey, isPercentage, centers, months, pivot 
       result[month] = isPercentage ? sum / values.length : sum;
     });
     return result;
-  }, [centers, months, pivot, fieldKey, isPercentage]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centers, months, pivot, fieldKey, isPercentage, getValueProp, getSummaryValue]);
 
   const formatValue = (value) =>
     isPercentage ? `${Number(value ?? 0).toFixed(2)}%` : value ?? 0;
@@ -99,7 +122,7 @@ const OccupancyTable = ({ title, fieldKey, isPercentage, centers, months, pivot 
                         </td>
                         {months.map((month) => (
                           <td key={month} className="text-center px-1 py-1" style={cellStyle(idx)}>
-                            {formatValue(pivot[center]?.[month]?.[fieldKey])}
+                            {formatValue(getValue(center, month))}
                           </td>
                         ))}
                       </tr>
@@ -349,7 +372,7 @@ const Occupancy = () => {
     dispatch(fetchOccupancyMonthly({ centerAccess }));
   }, [dispatch, centerAccess]);
 
-  const centers = React.useMemo(() => {
+  const centers = React.useMemo(() => {   
     if (!data || data.length === 0) return [];
     return Array.from(new Set(data.map((item) => item.center_name))).sort();
   }, [data]);
@@ -372,6 +395,28 @@ const Occupancy = () => {
     });
     return map;
   }, [data]);
+
+  const getOccupiedPercentage = (center, month) => {
+    const occupancy = pivot[center]?.[month]?.occupancy ?? 0;
+    const beds = Number(pivot[center]?.beds) || 0;
+    const days = getDaysInMonth(month);
+    if (!beds || !days) return 0;
+    return (occupancy / (beds * days)) * 100;
+  };
+
+  const getOccupiedPercentageSummary = (month) => {
+    const days = getDaysInMonth(month);
+    const totalOccupancy = centers.reduce(
+      (sum, center) => sum + (pivot[center]?.[month]?.occupancy ?? 0),
+      0
+    );
+    const totalBedDays = centers.reduce(
+      (sum, center) => sum + (Number(pivot[center]?.beds) || 0) * days,
+      0
+    );
+    if (!totalBedDays) return 0;
+    return (totalOccupancy / totalBedDays) * 100;
+  };
 
   document.title = "Occupancy";
 
@@ -405,6 +450,20 @@ const Occupancy = () => {
                 centers={centers}
                 months={months}
                 pivot={pivot}
+                getValue={
+                  key === "occupied_percentage"
+                    ? getOccupiedPercentage
+                    : key === "unoccupied_percentage"
+                    ? (center, month) => 100 - getOccupiedPercentage(center, month)
+                    : undefined
+                }
+                getSummaryValue={
+                  key === "occupied_percentage"
+                    ? getOccupiedPercentageSummary
+                    : key === "unoccupied_percentage"
+                    ? (month) => 100 - getOccupiedPercentageSummary(month)
+                    : undefined
+                }
               />
             ))}
           </>

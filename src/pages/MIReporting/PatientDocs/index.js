@@ -104,6 +104,7 @@ const PatientDocs = () => {
     const ADMITTED_DOC_LABELS = new Set([
         "Admission Form", "Consent Form", "Bio Data", "Profile Photo",
         "Prescription", "History", "Belongings Form", "Lab Report",
+        "Capacity Assessment Form",
     ]);
 
     const DISCHARGED_DOC_LABELS = new Set([
@@ -123,6 +124,7 @@ const PatientDocs = () => {
             "History",
             "Belongings Form",
             "Lab Report",
+            "Capacity Assessment Form",
             "Doctor Name",
             "Psychologist Name",
             "Center Manager",
@@ -143,6 +145,7 @@ const PatientDocs = () => {
             "History":"history",
             "Belongings Form":"belongings_form",
             "Lab Report":"lab_report",
+            "Capacity Assessment Form":"capacity_assessment_form",
             "Doctor Name":"doctor_name",
             "Psychologist Name":"psychologist_name",
             "Center Manager":"cm",

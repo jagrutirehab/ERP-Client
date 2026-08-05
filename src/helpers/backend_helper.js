@@ -2452,6 +2452,22 @@ export const getMetricsReport = (data) => {
   });
 };
 
+export const getOpdChargesMonthly = (data) => {
+  return api.get(url.GET_OPD_CHARGES_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getDoctorOpdChargesMonthly = (data) => {
+  return api.get(url.GET_DOCTOR_OPD_CHARGES_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getOccupancyMonthly = (data) => {
   return api.get(url.GET_OCCUPANCY_MONTHLY, {
     params: {
