@@ -4,6 +4,24 @@ import { minutesToTime } from "../../../../../utils/time";
 import Highlighter from "react-highlight-words";
 
 export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission, searchText, type }) => [
+     {
+        name: <div>Actions</div>,
+        cell: (row) => {
+            console.log("Type", type);
+
+
+            return (
+                <Button
+                    color="primary"
+                    size="sm"
+                    className="text-white"
+                    onClick={() => onNavigate(row.employee?._id, row.center?._id, type)}>
+                    Attendance
+                </Button>
+            )
+        },
+        minWidth: "150px"
+    },
     {
         name: <div>ECode</div>,
         selector: row => row?.employee?.eCode || "-",
@@ -121,22 +139,5 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
         wrap: true,
         center: true
     },
-    {
-        name: <div>Actions</div>,
-        cell: (row) => {
-            console.log("Type", type);
-
-
-            return (
-                <Button
-                    color="primary"
-                    size="sm"
-                    className="text-white"
-                    onClick={() => onNavigate(row.employee?._id, row.center?._id, type)}>
-                    Attendance
-                </Button>
-            )
-        },
-        minWidth: "150px"
-    }
+   
 ];
