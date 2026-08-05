@@ -66,7 +66,7 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
     } else {
       dispatch(resetOpdPatientBills());
     }
-  }, [patient?._id]);
+  }, [dispatch, patient?._id, addmissionsKey]);
 
   return (
     <React.Fragment>
