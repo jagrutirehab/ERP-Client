@@ -33,13 +33,34 @@ const SHIFT_LABEL = {
   SECOND_HALF: "2nd Half",
 };
 
-const canShowLeaveButton = (row) => {
+const isOutsideEmploymentWindow = (date, joinningDate, exitDate) => {
+  if (!date) return false;
+  const rowDate = new Date(date).setHours(0, 0, 0, 0);
+
+  if (joinningDate) {
+    const joiningDate = new Date(joinningDate).setHours(0, 0, 0, 0);
+    if (rowDate < joiningDate) return true;
+  }
+
+  if (exitDate) {
+    const exit = new Date(exitDate).setHours(0, 0, 0, 0);
+    if (rowDate > exit) return true;
+  }
+
+  return false;
+};
+
+const canShowLeaveButton = (row, joinningDate, exitDate) => {
   const regStatus = row?.regularizations?.regularization_id?.status;
   const hasActiveReg = regStatus && regStatus !== "REJECTED";
   const leaveStatus = row?.leave?.status;
   const hasActiveLeave =
     leaveStatus === "pending" || leaveStatus === "approved";
-  return !hasActiveReg && !hasActiveLeave;
+  return (
+    !hasActiveReg &&
+    !hasActiveLeave &&
+    !isOutsideEmploymentWindow(row?.date, joinningDate, exitDate)
+  );
 };
 
 export const myAttendanceLogsColumns = ({
@@ -52,13 +73,12 @@ export const myAttendanceLogsColumns = ({
   hasMyRegularizationPermission,
   isSelf,
   type,
+  joinningDate,
+  exitDate,
 }) => [
   {
     name: <div>Date</div>,
     selector: (row) => {
-      // A date can carry two half-day leaves (e.g. the auto-deduction cron
-      // splits a day when the balance runs out mid-way). `row.status` can only
-      // name one of them, so render a badge per half when that happens.
       const halves = (row?.dayLeaves || []).filter(
         (l) =>
           l?.status === "approved" &&
@@ -193,7 +213,7 @@ export const myAttendanceLogsColumns = ({
                 )}
                 {
                   // row?.leave?.status !== "approved" &&
-                  !isSelf && canShowLeaveButton(row) && (
+                  !isSelf && canShowLeaveButton(row, joinningDate, exitDate) && (
                     <Button
                       size="sm"
                       color="primary"

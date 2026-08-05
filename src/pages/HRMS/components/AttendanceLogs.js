@@ -32,7 +32,7 @@ const AttendanceLogs = ({ employeeId, centerId, type, passedStart, passedEnd }) 
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
 
-  const { data, loading, pagination } = useSelector((state) => state.HRMS);
+  const { data, loading, pagination, attendanceLogsEmployee } = useSelector((state) => state.HRMS);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
@@ -119,7 +119,9 @@ const AttendanceLogs = ({ employeeId, centerId, type, passedStart, passedEnd }) 
     // canShowActionButton,
     hasMyRegularizationPermission,
     isSelf: !employeeId,
-    type: type
+    type: type,
+    joinningDate: attendanceLogsEmployee?.joinningDate,
+    exitDate: attendanceLogsEmployee?.exitDate,
   });
 
   const reloadAttendance = () => {

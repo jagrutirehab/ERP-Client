@@ -7,6 +7,7 @@ const initialState = {
     lastImportTime: null,
     loading: false,
     pagination: {},
+    attendanceLogsEmployee: {},
     attendanceSummary: {
         data: null,
         loading: false
@@ -126,6 +127,7 @@ export const hrmsSlice = createSlice({
                 state.loading = false;
                 state.data = payload.data;
                 state.pagination = payload.pagination;
+                state.attendanceLogsEmployee = payload.employee || {};
             })
             .addCase(fetchAttendanceLogs.rejected, (state) => {
                 state.loading = false
