@@ -47,6 +47,7 @@ const SOP = React.lazy(() => import("../pages/SopConfigs"));
 const Trainings = React.lazy(() => import("../pages/Trainings"));
 const AlertPage = React.lazy(() => import("../pages/Alerts"));
 const Marketing = React.lazy(() => import("../pages/Marketing"));
+const DoctorVisits = React.lazy(() => import("../pages/DoctorVisits/DoctorVisits"));
 const MasterData = React.lazy(() => import("../pages/MasterData"));
 const allElements = [
   { element: Register, label: "User" },
@@ -120,6 +121,7 @@ const authProtectedRoutes = [
   { path: "/trainings/*", component: Trainings },
   { path: "/marketing/*", component: Marketing },
   { path: "/vendor-management/*", component: MasterData },
+  { path: "/doctor-visits", component: DoctorVisits },
   {
     path: "/",
     exact: true,
