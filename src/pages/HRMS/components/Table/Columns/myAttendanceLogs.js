@@ -5,29 +5,6 @@ import { leaveTypes } from "../../../../../Components/constants/HRMS";
 import { isToday, minutesToTime } from "../../../../../utils/time";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 
-// const isFutureDate = (date) => {
-//   if (!date) return false;
-//   return new Date(date).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0);
-// };
-
-const canShowRegularizeButton = () => {
-  return false;
-  // const regularizationStatus = row?.regularizations?.regularization_id?.status;
-  // const leaveStatus = row?.leave?.status;
-  // const hasActiveLeave =
-  //   leaveStatus === "pending" || leaveStatus === "approved";
-  // const hasCheckIn = row?.firstCheckIn != null;
-  // const hasCheckOut = row?.lastCheckOut != null;
-  // const hasAnyPunch = hasCheckIn || hasCheckOut;
-  // return (
-  //   (!row?.regularizations?.regularization_id ||
-  //     regularizationStatus === "REJECTED") &&
-  //   !isFutureDate(row?.date) &&
-  //   !hasActiveLeave &&
-  //   !hasAnyPunch
-  // );
-};
-
 const SHIFT_LABEL = {
   FIRST_HALF: "1st Half",
   SECOND_HALF: "2nd Half",
@@ -49,6 +26,8 @@ const isOutsideEmploymentWindow = (date, joinningDate, exitDate) => {
 
   return false;
 };
+
+const canShowRegularizeButton = (row) => Boolean(row?.canRegularize);
 
 const canShowLeaveButton = (row, joinningDate, exitDate) => {
   const regStatus = row?.regularizations?.regularization_id?.status;
@@ -191,7 +170,7 @@ export const myAttendanceLogsColumns = ({
     },
     wrap: true,
   },
-  ...(hasMyRegularizationPermission && type !== "directreporting"
+  ...(type !== "directreporting"
     ? [
         {
           name: <div className="text-center">Action</div>,
@@ -213,7 +192,9 @@ export const myAttendanceLogsColumns = ({
                 )}
                 {
                   // row?.leave?.status !== "approved" &&
-                  !isSelf && canShowLeaveButton(row, joinningDate, exitDate) && (
+                  hasMyRegularizationPermission &&
+                  !isSelf &&
+                  canShowLeaveButton(row, joinningDate, exitDate) && (
                     <Button
                       size="sm"
                       color="primary"

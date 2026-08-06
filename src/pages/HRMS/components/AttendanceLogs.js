@@ -51,7 +51,7 @@ const AttendanceLogs = ({ employeeId, centerId, type, passedStart, passedEnd }) 
 
   const hasMyRegularizationPermission = hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "WRITE") || hasPermission("HR", "MY_ATTENDANCE_REGULARIZATION", "DELETE");
 
-  console.log("typeinlogs", type);
+  // console.log("typeinlogs", type);
 
 
   const loadMyAttendanceLogs = async () => {
