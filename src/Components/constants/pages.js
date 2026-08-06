@@ -21,6 +21,19 @@ const pages = [
     icon: "bx bxs-error",
   },
   {
+    id: "doctorvisits",
+    label: "Doctor Visits",
+    name: "Doctor Visits",
+    link: "/doctor-visits",
+    icon: "bx bx-user-voice",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+
+  {
     id: "centralpayment",
     label: "Central Payment",
     name: "Central Payment",
