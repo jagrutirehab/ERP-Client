@@ -846,3 +846,22 @@ export const REVIEW_DOC = "/hr/doc/employee-documents";
 export const CGIS_TEST = "/clinical-test/cgis-test";
 export const COWS_TEST = "/clinical-test/cows-test";
 export const AUDIT_TEST = "/clinical-test/audit-test";
+
+// center floors + floor photos
+export const FLOOR_INPUT_POST = "/center-floor/post";
+export const FLOOR_INPUT_GET = "/center-floor/get";
+export const FLOOR_INPUT_EDIT = "/center-floor/edit";
+export const FLOOR_INPUT_DELETE = "/center-floor/delete";
+
+export const AREA_INPUT_POST = "/center-floor/areas/post";
+export const AREA_INPUT_GET = "/center-floor/areas/get";
+export const AREA_INPUT_EDIT = "/center-floor/areas/edit";
+export const AREA_INPUT_DELETE = "/center-floor/areas/delete";
+
+export const CONFIGURATION_FLOORS = "/center-floor/configuration";
+export const CONFIGURATION_FLOORS_SUMMARY =
+  "/center-floor/configuration/summary";
+
+export const CENTER_FLOOR_PHOTOS = "/center-floor/photos";
+export const CENTER_FLOOR_PHOTO_UPLOAD = "/center-floor/photos/upload";
+export const CENTER_FLOOR_PHOTOS_ALL = "/center-floor/photos/all";

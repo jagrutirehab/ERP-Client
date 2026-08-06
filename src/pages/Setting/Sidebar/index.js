@@ -40,6 +40,11 @@ const Sidebar = () => {
   );
   const hasSymptomsPerm = hasPermission("SETTING", "SYMPTOMSETTING", "READ");
   const hasDocumentPerm = hasPermission("SETTING", "DOCUMENTCONFIG", "READ");
+  const hasCenterFloorPerm = hasPermission(
+    "SETTING",
+    "CENTERFLOORCONFIG",
+    "READ",
+  );
 
   const filteredSettings = (setting || []).filter((page) => {
     if (page.id === "roles" && !hasUserPermission) return false;
@@ -53,6 +58,7 @@ const Sidebar = () => {
     if (page.id === "conditions" && !hasConditionsPerm) return false;
     if (page.id === "symptoms" && !hasSymptomsPerm) return false;
     if (page.id === "documentinputconfig" && !hasDocumentPerm) return false;
+    if (page.id === "centerfloorconfig" && !hasCenterFloorPerm) return false;
     return true;
   });
 
