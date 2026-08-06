@@ -323,6 +323,13 @@ const pages = [
     icon: "bx bx-body",
   },
   {
+    id: "audit",
+    label: "Audit",
+    name: "Audit",
+    link: "/audit",
+    icon: "bx bx-clipboard",
+  },
+  {
     id: "issues",
     label: "Issues",
     name: "Issues",
@@ -606,6 +613,12 @@ export const setting = [
     label: "Document Configuration",
     link: "/setting/document/input/configs",
     icon: "bx bx-health",
+  },
+  {
+    id: "centerfloorconfig",
+    label: "Center Floor Configuration",
+    link: "/setting/center/floor/configs",
+    icon: "bx bx-building-house",
   },
 ];
 

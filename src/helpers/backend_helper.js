@@ -4435,3 +4435,111 @@ export const postAUDITTest = (data) =>
       "X-No-Cookie-Token": "true",
     },
   });
+
+// ── Center floors master ────────────────────────────────────────────────────
+export const getFloors = () => {
+  return axios.get(url.FLOOR_INPUT_GET, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const addFloors = (data) => {
+  return axios.post(url.FLOOR_INPUT_POST, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editFloor = (id, data) => {
+  return axios.patch(`${url.FLOOR_INPUT_EDIT}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const deleteFloor = (id) => {
+  return axios.patch(`${url.FLOOR_INPUT_DELETE}/${id}`, null, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// ── Center areas master (rooms / kitchen / bathroom …) ──────────────────────
+export const getAreas = () => {
+  return axios.get(url.AREA_INPUT_GET, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const addAreas = (data) => {
+  return axios.post(url.AREA_INPUT_POST, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editArea = (id, data) => {
+  return axios.patch(`${url.AREA_INPUT_EDIT}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const deleteArea = (id) => {
+  return axios.patch(`${url.AREA_INPUT_DELETE}/${id}`, null, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// ── Per-center floor configuration ──────────────────────────────────────────
+export const postCenterFloorsConfiguration = (data) => {
+  return axios.post(url.CONFIGURATION_FLOORS, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getCenterFloorsConfiguration = (centerId) => {
+  return axios.get(`${url.CONFIGURATION_FLOORS}/${centerId}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getCenterFloorsConfigurationSummary = () => {
+  return axios.get(url.CONFIGURATION_FLOORS_SUMMARY, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// ── Center floor photos ─────────────────────────────────────────────────────
+export const getCenterFloorFields = (centerId) => {
+  return axios.get(`${url.CENTER_FLOOR_PHOTOS}/${centerId}/fields`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const uploadCenterFloorPhoto = (formData) => {
+  return axios.post(url.CENTER_FLOOR_PHOTO_UPLOAD, formData, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const deleteCenterFloorPhotoFile = (recordId, fileId) => {
+  return axios.patch(
+    `${url.CENTER_FLOOR_PHOTOS}/${recordId}/${fileId}`,
+    null,
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const getAllCenterFloorPhotos = (params) => {
+  return axios.get(url.CENTER_FLOOR_PHOTOS_ALL, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const reviewCenterFloorPhotoFile = (recordId, fileId, data) => {
+  return axios.patch(
+    `${url.CENTER_FLOOR_PHOTOS}/${recordId}/${fileId}/review`,
+    data,
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};

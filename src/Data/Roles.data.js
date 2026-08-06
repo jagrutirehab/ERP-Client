@@ -121,6 +121,7 @@ export const permissionList = [
       { name: "CONDITIONSSETTING", label: "Conditions" },
       { name: "SYMPTOMSETTING", label: "Symptoms" },
       { name: "DOCUMENTCONFIG", label: "Document Configuration" },
+      { name: "CENTERFLOORCONFIG", label: "Center Floor Configuration" },
       { name: "HRCONFIGURATIONSSETTING", label: "HR Configurations" },
     ],
   },
@@ -192,6 +193,11 @@ export const permissionList = [
     subModules: [
       { name: "GUIDELINESMANAGEMENT", label: "Guidelines Management" },
     ],
+  },
+  {
+    key: "AUDIT",
+    label: "Audit",
+    subModules: [{ name: "FLOOR_PHOTOS", label: "Floor Photos" }],
   },
   {
     key: "INCIDENT_REPORTING",

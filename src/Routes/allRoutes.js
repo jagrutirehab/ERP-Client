@@ -37,6 +37,7 @@ const IncidentReporting = React.lazy(
 );
 const RoundNotes = React.lazy(() => import("../pages/RoundNotes"));
 const HR = React.lazy(() => import("../pages/HR"));
+const Audit = React.lazy(() => import("../pages/Audit"));
 const MiReporting = React.lazy(() => import("../pages/MIReporting/index.js"));
 const HRMS = React.lazy(() => import("../pages/HRMS"));
 const Referral = React.lazy(() => import("../pages/Referral"));
@@ -107,6 +108,7 @@ const authProtectedRoutes = [
   { path: "/incident-reporting/*", component: IncidentReporting },
   { path: "/round-notes", component: RoundNotes },
   { path: "/hr/*", component: HR },
+  { path: "/audit", component: Audit },
   { path: "/issues/*", component: Issues },
   { path: "/recordings/*", component: Recordings },
   { path: "/mi-reporting", component: MiReporting },
