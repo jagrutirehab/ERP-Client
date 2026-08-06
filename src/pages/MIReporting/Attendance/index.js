@@ -78,14 +78,19 @@ const Attendance = () => {
         })),
     ], [data]);
 
-    const labels = ["Ecode", "Employee Name", "Center Name", "Designation", "Joining Date", "MTD", "Actual Att.",];
-    const fixedColWidths = [90, 130, 100, 130, 100, 55, 100];
+    const labels = [
+        "Ecode", "Employee Name", "Center Name", "Designation", "Joining Date",
+        ...(selectedMonth === "LAST" ? ["Exit Date"] : []),
+        "MTD", "Actual Att.",
+    ];
+    const fixedColWidths = [90, 130, 100, 130, 100, ...(selectedMonth === "LAST" ? [100] : []), 55, 100];
     const labelsMapping = {
         "Ecode": "ecode",
         "Employee Name": "employee_name",
         "Center Name": "center_name",
         "Designation": "designation",
         "Joining Date": "joining_date",
+        "Exit Date": "exit_date",
         "Actual Att.": selectedMonth === "LAST" ? "last_month_actual_attendance" : "actual_attendance",
         "MTD": selectedMonth === "LAST" ? "last_month_att" : "att_till_date",
     };
