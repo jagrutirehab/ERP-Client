@@ -22,7 +22,7 @@ const Items = () => {
           </div>
           <div className="im-page-title">
             <h4>Item Master</h4>
-            <p>Manage items, item types, and categories used across the catalog</p>
+            {/* <p>Manage items, item types, and categories used across the catalog</p> */}
           </div>
         </div>
       </div>

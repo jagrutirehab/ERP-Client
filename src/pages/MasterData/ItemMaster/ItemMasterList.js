@@ -24,7 +24,22 @@ const FILTERS = [
   { key: "active", label: "Active" },
   { key: "discontinued", label: "Discontinued" },
 ];
-
+const SkeletonRows = () => (
+  <div className="im-skeleton-wrap">
+    {[1, 2, 3, 4, 5].map((i) => (
+      <div className="im-skeleton-row" key={i}>
+        <div className="im-skeleton-bar" style={{ width: 90 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 100 }}></div>
+        <div className="im-skeleton-bar" style={{ flex: 1 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 100 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 90 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 110 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 90 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 130 }}></div>
+      </div>
+    ))}
+  </div>
+);
 
 const tableCustomStyles = {
   table: {
@@ -275,6 +290,7 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
           columns={columns}
           data={items}
           progressPending={loading}
+          progressComponent={<SkeletonRows />}
           highlightOnHover
           pointerOnHover
           customStyles={tableCustomStyles}

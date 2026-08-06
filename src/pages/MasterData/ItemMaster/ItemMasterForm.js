@@ -22,6 +22,8 @@ import {
   getItemMasters,
   createItemMaster,
   updateItemMaster,
+  uploadItemImage,
+  deleteItemImage,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import FormSectionLabel from "../shared/FormSectionLabel";
@@ -58,6 +60,8 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
 
   const [codeStatus, setCodeStatus] = useState("idle");
   const [generatingCode, setGeneratingCode] = useState(false);
+  const [images, setImages] = useState(editingItem?.productImages || []);
+  const [uploadingImage, setUploadingImage] = useState(false);
   const [isAutoCode, setIsAutoCode] = useState(!editingItem);
 
   const validation = useFormik({
@@ -312,7 +316,45 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
     obj[keys[keys.length - 1]] = value;
     validation.setValues(updated);
   };
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (!editingItem) {
+      toast.error("Please save the item first, then upload images.");
+      return;
+    }
+    setUploadingImage(true);
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const res = await uploadItemImage(editingItem._id, formData);
+      setImages(res?.data?.productImages || []);
+      toast.success("Image uploaded successfully");
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(
+          error?.response?.data?.message || error?.message || "Upload failed",
+        );
+      }
+    } finally {
+      setUploadingImage(false);
+      e.target.value = "";
+    }
+  };
 
+  const handleImageDelete = async (imageId) => {
+    try {
+      const res = await deleteItemImage(editingItem._id, imageId);
+      setImages(res?.data?.productImages || []);
+      toast.success("Image deleted");
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(
+          error?.response?.data?.message || error?.message || "Delete failed",
+        );
+      }
+    }
+  };
   const addCustomAttribute = () => {
     validation.setFieldValue("customAttributes", [
       ...v.customAttributes,
@@ -665,7 +707,7 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
                         <Label>Unit of Measure (UOM)</Label>
                         <Input
                           name="uomId"
-                          placeholder="UOM identifier (not saved yet — picker coming soon)"
+                          // placeholder="UOM identifier (not saved yet — picker coming soon)"
                           value={v.uomId}
                           onChange={validation.handleChange}
                         />
@@ -939,10 +981,7 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
                   </Col>
                 </Row>
 
-                <FormSectionLabel
-                  icon="bx-shield-quarter"
-                  text="Controls"
-                />
+                <FormSectionLabel icon="bx-shield-quarter" text="Controls" />
                 <div className="im-checkbox-grid mb-4">
                   {[
                     ["taggableAsset", "Taggable Asset"],
@@ -1122,19 +1161,70 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
                 </Button>
 
                 <FormSectionLabel icon="bx-image" text="Product Images" />
-                {v.productImages.length === 0 ? (
+
+                {!editingItem && (
+                  <div
+                    className="text-muted small border rounded-3 p-3 mb-3"
+                    style={{ background: "#fbfbfd" }}
+                  >
+                    Save the item first, then come back here to upload images.
+                  </div>
+                )}
+
+                {editingItem && (
+                  <div className="mb-3">
+                    <label
+                      htmlFor="item-image-upload"
+                      className="im-add-dashed btn btn-sm btn-outline-primary"
+                      style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <i
+                        className={`bx ${uploadingImage ? "bx-loader-alt bx-spin" : "bx-upload"} me-1`}
+                      ></i>
+                      {uploadingImage ? "Uploading..." : "Upload Image"}
+                    </label>
+                    <input
+                      id="item-image-upload"
+                      type="file"
+                      accept="image/*"
+                      style={{ display: "none" }}
+                      onChange={handleImageUpload}
+                      disabled={uploadingImage}
+                    />
+                  </div>
+                )}
+
+                {images.length === 0 ? (
                   <div className="text-muted small">
                     No images uploaded yet.
                   </div>
                 ) : (
                   <div className="d-flex flex-wrap gap-2">
-                    {v.productImages.map((img) => (
-                      <img
-                        key={img._id || img.url}
-                        src={img.url}
-                        alt=""
-                        className="im-image-thumb"
-                      />
+                    {images.map((img) => (
+                      <div key={img._id} style={{ position: "relative" }}>
+                        <img src={img.url} alt="" className="im-image-thumb" />
+                        <button
+                          type="button"
+                          className="im-close-btn"
+                          style={{
+                            position: "absolute",
+                            top: -8,
+                            right: -8,
+                            width: 24,
+                            height: 24,
+                            color: "#e04f4f",
+                            borderColor: "#fbdada",
+                            background: "#fff",
+                          }}
+                          onClick={() => handleImageDelete(img._id)}
+                        >
+                          <i className="bx bx-x" style={{ fontSize: 13 }}></i>
+                        </button>
+                      </div>
                     ))}
                   </div>
                 )}

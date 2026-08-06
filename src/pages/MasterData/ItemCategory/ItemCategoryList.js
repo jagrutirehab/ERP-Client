@@ -11,12 +11,29 @@ import "../shared/itemMasterForms.scss";
 
 const LEVEL_LABEL = { 1: "L1", 2: "L2", 3: "L3", 4: "L4" };
 
+
 const StatusPill = ({ status }) => (
   <span
     className={`im-status-pill ${status === "active" ? "active" : "inactive"}`}
   >
     <span className="dot"></span> {status}
   </span>
+);
+const SkeletonRows = () => (
+  <div className="im-skeleton-wrap">
+    {[1, 2, 3, 4, 5].map((i) => (
+      <div className="im-skeleton-row" key={i}>
+        <div className="im-skeleton-bar" style={{ width: 90 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 100 }}></div>
+        <div className="im-skeleton-bar" style={{ flex: 1 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 100 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 90 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 110 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 90 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 130 }}></div>
+      </div>
+    ))}
+  </div>
 );
 
 const ItemCategoryList = ({ onAdd, onEdit }) => {
@@ -152,6 +169,7 @@ const ItemCategoryList = ({ onAdd, onEdit }) => {
           columns={columns}
           data={categories}
           progressPending={loading}
+          progressComponent={<SkeletonRows />}
           pagination
           highlightOnHover
           noDataComponent={
