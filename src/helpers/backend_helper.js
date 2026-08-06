@@ -2468,6 +2468,14 @@ export const getDoctorOpdChargesMonthly = (data) => {
   });
 };
 
+export const getCentralExpensesMonthly = (data) => {
+  return api.get(url.GET_CENTRAL_EXPENSES_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getOccupancyMonthly = (data) => {
   return api.get(url.GET_OCCUPANCY_MONTHLY, {
     params: {

@@ -41,6 +41,7 @@ import {
   getAdmissionDischargeDaily,
   getOpdChargesMonthly,
   getDoctorOpdChargesMonthly,
+  getCentralExpensesMonthly,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -91,6 +92,7 @@ const initialState = {
   counsellingSessionsPatientsDOD: [],
   opdChargesMonthly: [],
   doctorOpdChargesMonthly: [],
+  centralExpensesMonthly: [],
   loading: false,
   error: null,
 };
@@ -410,6 +412,21 @@ export const fetchOpdChargesMonthly = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.message || "Failed to fetch opd charges monthly"
+      );
+    }
+  }
+);
+
+
+export const fetchCentralExpensesMonthly = createAsyncThunk(
+  "miReporting/fetchCentralExpensesMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getCentralExpensesMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch central expenses monthly"
       );
     }
   }
@@ -1281,6 +1298,19 @@ const miReportingSlice = createSlice({
         state.doctorOpdChargesMonthly = action.payload.payload || [];
       })
       .addCase(fetchDoctorOpdChargesMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Central Expenses Monthly
+      .addCase(fetchCentralExpensesMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCentralExpensesMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.centralExpensesMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchCentralExpensesMonthly.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

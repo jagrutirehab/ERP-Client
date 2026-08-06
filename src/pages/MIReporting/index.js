@@ -42,6 +42,7 @@ import WriteOFFAmount from "./WriteOFFAmount";
 import AuditForms from "./AuditForms";
 import MetricsReport from "./MetricsReport";
 import OPDCharges from "./OPDCharges";
+import CentralExpenses from "./CentralExpenses";
 import Occupancy from "./Occupancy";
 
 const MiReporting = () => {
@@ -296,6 +297,11 @@ const MiReporting = () => {
                   {hasMISPermission&&<Route
                     path="/opd-charges"
                     element={<OPDCharges />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/central-expenses"
+                    element={<CentralExpenses />}
                   />}
 
                   {hasMISPermission&&<Route
