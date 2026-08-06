@@ -1,4 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import { useAuthError } from "../../Components/Hooks/useAuthError";
+import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { useSearchParams } from "react-router-dom";
 import {
   Card,
@@ -17,7 +20,12 @@ import {
 } from "../../helpers/backend_helper";
 
 const getInitials = (name = "") =>
-  name.split(" ").map((w) => w[0]).join("").slice(0, 2).toUpperCase();
+  name
+    .split(" ")
+    .map((w) => w[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
 
 const mapsLink = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
 
@@ -39,6 +47,9 @@ const formatTime = (d) =>
     : "—";
 
 const DoctorVisits = () => {
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const { hasPermission, loading: permissionLoading } = usePermissions(token);
+  const handleAuthError = useAuthError();
   const [searchParams, setSearchParams] = useSearchParams();
 
   // Left panel — doctor directory
@@ -66,9 +77,13 @@ const DoctorVisits = () => {
         const data = res?.data?.payload || res?.payload || res?.data || [];
         setDoctors(data);
       })
-      .catch((err) =>
-        setListError(err?.response?.data?.message || "Failed to load doctors")
-      )
+      .catch((err) => {
+        if (!handleAuthError(err)) {
+          setListError(
+            err?.response?.data?.message || "Failed to load doctors",
+          );
+        }
+      })
       .finally(() => setListLoading(false));
   }, []);
 
@@ -81,7 +96,7 @@ const DoctorVisits = () => {
     if (!urlName || !urlClinic) return;
 
     const match = doctors.find(
-      (d) => d.name === urlName && d.clinicName === urlClinic
+      (d) => d.name === urlName && d.clinicName === urlClinic,
     );
     if (match) {
       setSelectedDoctor(match);
@@ -103,11 +118,13 @@ const DoctorVisits = () => {
         const data = res?.data?.payload || res?.payload || res?.data || [];
         setVisits(data);
       })
-      .catch((err) =>
-        setDetailError(
-          err?.response?.data?.message || "Failed to load visit history"
-        )
-      )
+      .catch((err) => {
+        if (!handleAuthError(err)) {
+          setDetailError(
+            err?.response?.data?.message || "Failed to load visit history",
+          );
+        }
+      })
       .finally(() => setDetailLoading(false));
   }, [selectedDoctor]);
 
@@ -127,17 +144,15 @@ const DoctorVisits = () => {
         (d) =>
           !search.trim() ||
           d.name?.toLowerCase().includes(search.trim().toLowerCase()) ||
-          d.clinicName?.toLowerCase().includes(search.trim().toLowerCase())
+          d.clinicName?.toLowerCase().includes(search.trim().toLowerCase()),
       ),
-    [doctors, search]
+    [doctors, search],
   );
 
   const sortedVisits = useMemo(
     () =>
-      [...visits].sort(
-        (a, b) => new Date(b.visitDate) - new Date(a.visitDate)
-      ),
-    [visits]
+      [...visits].sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate)),
+    [visits],
   );
 
   const doctorInfo = visits[0]?.doctor;
@@ -156,8 +171,31 @@ const DoctorVisits = () => {
       : `Dr. ${selectedDoctor.name}`
     : "";
 
+  if (permissionLoading) {
+    return (
+      <div
+        className="page-content d-flex justify-content-center align-items-center"
+        style={{ minHeight: "60vh" }}
+      >
+        <Spinner color="primary" />
+      </div>
+    );
+  }
+
+  const canView = hasPermission("MARKETING", "VIEW_DOCTOR_VISITS", "READ");
+  if (!canView) {
+    return <Basic404 />;
+  }
+
   return (
-    <div className="page-content" style={{ backgroundColor: "#f8fafc", minHeight: "100vh", paddingTop: "70px" }}>
+    <div
+      className="page-content"
+      style={{
+        backgroundColor: "#f8fafc",
+        minHeight: "100vh",
+        paddingTop: "70px",
+      }}
+    >
       <style>
         {`
           .dv-layout-grid {
@@ -280,7 +318,10 @@ const DoctorVisits = () => {
         {/* Header */}
         <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
           <div>
-            <h4 className="fw-bold mb-1" style={{ color: "#0f172a", letterSpacing: "-0.02em" }}>
+            <h4
+              className="fw-bold mb-1"
+              style={{ color: "#0f172a", letterSpacing: "-0.02em" }}
+            >
               Doctor Field Visits
             </h4>
             {/* <p className="text-muted mb-0 fs-13">
@@ -304,7 +345,10 @@ const DoctorVisits = () => {
         <div className="dv-layout-grid">
           {/* LEFT: Directory */}
           <div className="dv-sidebar-card">
-            <div className="p-3 border-bottom" style={{ backgroundColor: "#f8fafc" }}>
+            <div
+              className="p-3 border-bottom"
+              style={{ backgroundColor: "#f8fafc" }}
+            >
               <div className="d-flex align-items-center justify-content-between mb-2">
                 <span
                   className="text-uppercase fw-bold text-muted"
@@ -338,7 +382,7 @@ const DoctorVisits = () => {
                     borderColor: "#cbd5e1",
                     borderLeft: "none",
                     boxShadow: "none",
-                    fontSize: "13px"
+                    fontSize: "13px",
                   }}
                 />
               </InputGroup>
@@ -391,7 +435,9 @@ const DoctorVisits = () => {
                             className="fw-semibold fs-14 text-truncate"
                             style={{ color: isActive ? "#2563eb" : "#0f172a" }}
                           >
-                            {/^dr\.?\s/i.test(d.name) ? d.name : `Dr. ${d.name}`}
+                            {/^dr\.?\s/i.test(d.name)
+                              ? d.name
+                              : `Dr. ${d.name}`}
                           </div>
                           <div className="text-muted fs-12 text-truncate mt-1">
                             {d.clinicName}
@@ -406,11 +452,14 @@ const DoctorVisits = () => {
                             >
                               {d.totalVisits} visits
                             </span>
-                            <span className="text-muted" style={{ fontSize: 11 }}>
+                            <span
+                              className="text-muted"
+                              style={{ fontSize: 11 }}
+                            >
                               {d.lastVisitDate
                                 ? new Date(d.lastVisitDate).toLocaleDateString(
                                     "en-IN",
-                                    { day: "2-digit", month: "short" }
+                                    { day: "2-digit", month: "short" },
                                   )
                                 : "—"}
                             </span>
@@ -485,7 +534,10 @@ const DoctorVisits = () => {
                 )}
 
                 {detailError && (
-                  <Alert color="danger" className="border-0 shadow-sm rounded-3">
+                  <Alert
+                    color="danger"
+                    className="border-0 shadow-sm rounded-3"
+                  >
                     {detailError}
                   </Alert>
                 )}
@@ -685,7 +737,10 @@ const DoctorVisits = () => {
                                   <div className="mt-3">
                                     <span
                                       className="text-uppercase fw-bold text-muted d-block mb-2"
-                                      style={{ letterSpacing: "0.05em", fontSize: "11px" }}
+                                      style={{
+                                        letterSpacing: "0.05em",
+                                        fontSize: "11px",
+                                      }}
                                     >
                                       Location Comparison
                                     </span>
@@ -697,24 +752,27 @@ const DoctorVisits = () => {
                                         >
                                           <div
                                             className="text-muted fw-bold text-uppercase mb-1"
-                                            style={{ fontSize: "11px", letterSpacing: "0.02em" }}
+                                            style={{
+                                              fontSize: "11px",
+                                              letterSpacing: "0.02em",
+                                            }}
                                           >
                                             Registered Clinic
                                           </div>
                                           <div className="fw-medium text-dark fs-13 mb-2">
                                             {v.doctor?.clinicLocation?.lat?.toFixed(
-                                              5
+                                              5,
                                             ) || "N/A"}
                                             ,{" "}
                                             {v.doctor?.clinicLocation?.lng?.toFixed(
-                                              5
+                                              5,
                                             ) || "N/A"}
                                           </div>
                                           {v.doctor?.clinicLocation?.lat && (
                                             <a
                                               href={mapsLink(
                                                 v.doctor.clinicLocation.lat,
-                                                v.doctor.clinicLocation.lng
+                                                v.doctor.clinicLocation.lng,
                                               )}
                                               target="_blank"
                                               rel="noreferrer"
@@ -740,7 +798,10 @@ const DoctorVisits = () => {
                                         >
                                           <div
                                             className="text-muted fw-bold text-uppercase mb-1"
-                                            style={{ fontSize: "11px", letterSpacing: "0.02em" }}
+                                            style={{
+                                              fontSize: "11px",
+                                              letterSpacing: "0.02em",
+                                            }}
                                           >
                                             Recorded Check-in
                                           </div>
@@ -752,7 +813,7 @@ const DoctorVisits = () => {
                                             <a
                                               href={mapsLink(
                                                 v.gps.lat,
-                                                v.gps.lng
+                                                v.gps.lng,
                                               )}
                                               target="_blank"
                                               rel="noreferrer"
@@ -773,13 +834,19 @@ const DoctorVisits = () => {
                                   <div className="mt-3">
                                     <span
                                       className="text-uppercase fw-bold text-muted d-block mb-2"
-                                      style={{ letterSpacing: "0.05em", fontSize: "11px" }}
+                                      style={{
+                                        letterSpacing: "0.05em",
+                                        fontSize: "11px",
+                                      }}
                                     >
                                       Discussion Notes
                                     </span>
                                     <div
                                       className="dv-notes-box p-3 rounded-3 border fs-13 text-dark mb-2"
-                                      style={{ background: "#f8fafc", borderColor: "#e2e8f0" }}
+                                      style={{
+                                        background: "#f8fafc",
+                                        borderColor: "#e2e8f0",
+                                      }}
                                     >
                                       {v.visitNotes || (
                                         <span className="text-muted fst-italic">
@@ -793,7 +860,7 @@ const DoctorVisits = () => {
                                         style={{
                                           background: "#f1f5f9",
                                           color: "#334155",
-                                          borderColor: "#cbd5e1"
+                                          borderColor: "#cbd5e1",
                                         }}
                                       >
                                         Fee Discussed:{" "}
@@ -802,8 +869,8 @@ const DoctorVisits = () => {
                                       {v.commissionDiscussed &&
                                         v.commissionPercentage != null && (
                                           <span className="px-2 py-1 fs-12 rounded text-white bg-primary">
-                                            Commission:{" "}
-                                            {v.commissionPercentage}%
+                                            Commission: {v.commissionPercentage}
+                                            %
                                           </span>
                                         )}
                                       <span
@@ -824,7 +891,10 @@ const DoctorVisits = () => {
                                   <div className="mt-3">
                                     <span
                                       className="text-uppercase fw-bold text-muted d-block mb-2"
-                                      style={{ letterSpacing: "0.05em", fontSize: "11px" }}
+                                      style={{
+                                        letterSpacing: "0.05em",
+                                        fontSize: "11px",
+                                      }}
                                     >
                                       Photo Verification
                                     </span>
@@ -869,10 +939,12 @@ const DoctorVisits = () => {
                                     ) : (
                                       <div
                                         className="p-3 text-center rounded-3 border text-muted fs-13 fst-italic"
-                                        style={{ background: "#f8fafc", borderColor: "#e2e8f0" }}
+                                        style={{
+                                          background: "#f8fafc",
+                                          borderColor: "#e2e8f0",
+                                        }}
                                       >
-                                        No photo proof submitted for this
-                                        visit.
+                                        No photo proof submitted for this visit.
                                       </div>
                                     )}
                                   </div>
