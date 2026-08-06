@@ -479,22 +479,25 @@ const DetailAdmission = ({ data }) => {
 
                   // NORMAL OBJECT GROUPS
                   if (isObject) {
+                    const excludedMSEKeys = ["grooming", "surroundingTouch"];
                     return (
                       <Col xs={12} key={index}>
                         <h6 className="mt-3 mb-2">
                           {convertCamelCaseToTitleCase(groupKey)}
                         </h6>
 
-                        {Object.entries(groupValue).map(([k, v], j) => (
-                          <p key={j} className="mb-1">
-                            <span className="fw-semibold me-2">
-                              {mentalExaminationV2FieldsMap[k] ??
-                                convertCamelCaseToTitleCase(k)}
-                              :
-                            </span>
-                            {convertSnakeToTitle(v)}
-                          </p>
-                        ))}
+                        {Object.entries(groupValue)
+                          .filter(([k]) => !excludedMSEKeys.includes(k))
+                          .map(([k, v], j) => (
+                            <p key={j} className="mb-1">
+                              <span className="fw-semibold me-2">
+                                {mentalExaminationV2FieldsMap[k] ??
+                                  convertCamelCaseToTitleCase(k)}
+                                :
+                              </span>
+                              {convertSnakeToTitle(v)}
+                            </p>
+                          ))}
                       </Col>
                     );
                   }

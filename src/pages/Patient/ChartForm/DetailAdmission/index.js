@@ -601,9 +601,15 @@ const DetailAdmission = ({
         ? detailAdmissionForm.doctorSignature.diagnosis.map((d) => d.code_id)
         : [],
 
-      managmentPlan: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.managmentPlan
-        : "",
+      managmentPlan: (() => {
+        const val = detailAdmissionForm?.doctorSignature?.managmentPlan;
+        if (!val) return "";
+        if (val === "INDOOR" || val.toLowerCase().includes("indoor"))
+          return "INDOOR";
+        if (val === "Out Patient" || val.toLowerCase().includes("out"))
+          return "Out Patient";
+        return val;
+      })(),
       // investigation: detailAdmissionForm
       //   ? detailAdmissionForm.doctorSignature?.investigation
       //   : [],

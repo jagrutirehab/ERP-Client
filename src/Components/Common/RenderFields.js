@@ -318,6 +318,7 @@ const RenderFields = ({ fields, validation }) => {
                               onChange={validation.handleChange}
                               onBlur={validation.handleBlur}
                               value={validation.values[textName] || ""}
+                              style={{ width: "80%" }}
                             />
                           )}
                         </div>
