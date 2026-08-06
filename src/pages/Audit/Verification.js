@@ -105,12 +105,19 @@ const Verification = ({ hasWrite }) => {
   };
 
   const openReviewModal = (fileId, recordId, fileName, actionType) => {
+    if (!hasWrite) return;
     setReviewTarget({ fileId, recordId, fileName, actionType });
     setReviewModalOpen(true);
   };
 
   const handleReviewConfirm = async ({ remarks, assessment }) => {
     if (!reviewTarget) return;
+    // Re-checked here so the request can't be issued without AUDIT/VERIFICATION
+    // WRITE even if the modal is reached some other way.
+    if (!hasWrite) {
+      toast.error("You do not have permission to verify photos");
+      return;
+    }
     const { fileId, recordId, actionType } = reviewTarget;
 
     setReviewLoading(true);
