@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Container,
   Card,
@@ -20,11 +20,41 @@ const Audit = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { loading: permissionLoader, hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("AUDIT", "FLOOR_PHOTOS", "READ");
-  const hasWrite = hasPermission("AUDIT", "FLOOR_PHOTOS", "WRITE");
-  const hasDelete = hasPermission("AUDIT", "FLOOR_PHOTOS", "DELETE");
 
-  const [tab, setTab] = useState("photos");
+  // Floor Photos tab — uploading and deleting photos.
+  const hasPhotosRead = hasPermission("AUDIT", "FLOOR_PHOTOS", "READ");
+  const hasPhotosWrite = hasPermission("AUDIT", "FLOOR_PHOTOS", "WRITE");
+  const hasPhotosDelete = hasPermission("AUDIT", "FLOOR_PHOTOS", "DELETE");
+
+  // Verification tab — approving and rejecting photos.
+  const hasVerificationRead = hasPermission("AUDIT", "VERIFICATION", "READ");
+  const hasVerificationWrite = hasPermission("AUDIT", "VERIFICATION", "WRITE");
+  // const hasVerificationDelete = hasPermission("AUDIT", "VERIFICATION", "DELETE");
+
+  console.log({ hasVerificationRead });
+
+  // The page is reachable if either tab is readable.
+  const hasUserPermission = hasPhotosRead || hasVerificationRead;
+
+  const tabs = useMemo(
+    () =>
+      [
+        hasPhotosRead && { key: "photos", label: "Floor Photos" },
+        hasVerificationRead && { key: "verification", label: "Verification" },
+      ].filter(Boolean),
+    [hasPhotosRead, hasVerificationRead],
+  );
+
+  const [tab, setTab] = useState(null);
+
+  // Land on the first tab the user may read, and never sit on a tab they lose
+  // access to.
+  useEffect(() => {
+    if (!tabs.length) return;
+    if (!tabs.some((item) => item.key === tab)) {
+      setTab(tabs[0].key);
+    }
+  }, [tabs, tab]);
 
   useEffect(() => {
     if (!permissionLoader && !hasUserPermission) {
@@ -59,10 +89,7 @@ const Audit = () => {
           <Card>
             <CardBody>
               <Nav tabs className="mb-3">
-                {[
-                  { key: "photos", label: "Floor Photos" },
-                  { key: "verification", label: "Verification" },
-                ].map((item) => (
+                {tabs.map((item) => (
                   <NavItem key={item.key}>
                     <NavLink
                       className={classnames({ active: tab === item.key })}
@@ -75,10 +102,15 @@ const Audit = () => {
                 ))}
               </Nav>
 
-              {tab === "photos" ? (
-                <FloorPhotos hasWrite={hasWrite} hasDelete={hasDelete} />
-              ) : (
-                <Verification hasWrite={hasWrite} />
+              {tab === "photos" && hasPhotosRead && (
+                <FloorPhotos
+                  hasWrite={hasPhotosWrite}
+                  hasDelete={hasPhotosDelete}
+                />
+              )}
+
+              {tab === "verification" && hasVerificationRead && (
+                <Verification hasWrite={hasVerificationWrite} />
               )}
             </CardBody>
           </Card>
