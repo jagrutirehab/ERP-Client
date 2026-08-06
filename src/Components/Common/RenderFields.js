@@ -285,6 +285,54 @@ const RenderFields = ({ fields, validation }) => {
                         </div>
                       )}
                   </>
+                ) : field.type === "checkboxWithText" ? (
+                  <div className="d-flex flex-column gap-2">
+                    {(field.options || []).map((opt, idx) => {
+                      const value = typeof opt === "string" ? opt : opt.value;
+                      const textName =
+                        typeof opt === "string" ? null : opt.textName;
+                      const isChecked =
+                        Array.isArray(validation.values[field.name]) &&
+                        validation.values[field.name].includes(value);
+                      return (
+                        <div key={idx}>
+                          <div className="d-flex align-items-center mb-1">
+                            <Input
+                              className="me-2 mt-0"
+                              type="checkbox"
+                              name={field.name}
+                              value={value}
+                              onChange={validation.handleChange}
+                              checked={isChecked}
+                            />
+                            <Label className="form-label fs-6 mb-0">
+                              {value.charAt(0).toUpperCase() + value.slice(1)}
+                            </Label>
+                          </div>
+                          {isChecked && textName && (
+                            <Input
+                              name={textName}
+                              className="form-control ms-4"
+                              placeholder={`Enter ${value} details`}
+                              type="text"
+                              onChange={validation.handleChange}
+                              onBlur={validation.handleBlur}
+                              value={validation.values[textName] || ""}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                    {validation.touched[field.name] &&
+                      validation.errors[field.name] && (
+                        <div
+                          className="text-danger mt-1"
+                          style={{ fontSize: "0.875em" }}
+                        >
+                          {validation.errors[field.name]}
+                        </div>
+                      )}
+                  </div>
                 ) : field.type === "checkbox" ? (
                   <>
                     <div className="d-flex flex-wrap">

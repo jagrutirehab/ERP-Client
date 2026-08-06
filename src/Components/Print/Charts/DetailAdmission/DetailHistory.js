@@ -22,7 +22,6 @@ const DetailHistory = ({ data, styles }) => {
           ...styles.mrgnBottom10,
         }}
       >
-        {/* old field — show if present */}
         {data?.history && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>
@@ -34,7 +33,6 @@ const DetailHistory = ({ data, styles }) => {
           </View>
         )}
 
-        {/* new — array format */}
         {Array.isArray(data?.negativeHistory) &&
           data.negativeHistory.length > 0 && (
             <View style={styles.mrgnBottom10} wrap={false}>
@@ -45,7 +43,6 @@ const DetailHistory = ({ data, styles }) => {
             </View>
           )}
 
-        {/* old — string format */}
         {typeof data?.negativeHistory === "string" && data.negativeHistory && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>Negative History:</Text>
@@ -73,7 +70,8 @@ const DetailHistory = ({ data, styles }) => {
           </View>
         )}
 
-        {Array.isArray(data?.developmentDelayDetails) &&
+        {data?.developmentDelay === "Yes" &&
+          Array.isArray(data?.developmentDelayDetails) &&
           data.developmentDelayDetails.length > 0 && (
             <View style={styles.mrgnBottom10} wrap={false}>
               <Text style={styles.fontSize13}>Development Delay Details:</Text>
@@ -83,7 +81,46 @@ const DetailHistory = ({ data, styles }) => {
             </View>
           )}
 
-        {/* old field — show if present */}
+        {data?.developmentDelay === "Yes" &&
+          data?.developmentDelaySittingDetails && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Sitting Details:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.developmentDelaySittingDetails}
+              </Text>
+            </View>
+          )}
+
+        {data?.developmentDelay === "Yes" &&
+          data?.developmentDelayStandingDetails && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Standing Details:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.developmentDelayStandingDetails}
+              </Text>
+            </View>
+          )}
+
+        {data?.developmentDelay === "Yes" &&
+          data?.developmentDelaySpeechDetails && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Speech Details:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.developmentDelaySpeechDetails}
+              </Text>
+            </View>
+          )}
+
+        {data?.developmentDelay === "Yes" &&
+          data?.developmentDelayToiletTrainingDetails && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Toilet Training Details:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.developmentDelayToiletTrainingDetails}
+              </Text>
+            </View>
+          )}
+
         {data?.developmentHistory && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>
@@ -126,7 +163,9 @@ const DetailHistory = ({ data, styles }) => {
 
         {data?.personality && (
           <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={styles.fontSize13}>Personality:</Text>
+            <Text style={styles.fontSize13}>
+              Pre-morbid personality break-up:
+            </Text>
             <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
               {data?.personality || ""}
             </Text>
