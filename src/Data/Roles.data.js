@@ -197,7 +197,10 @@ export const permissionList = [
   {
     key: "AUDIT",
     label: "Audit",
-    subModules: [{ name: "FLOOR_PHOTOS", label: "Floor Photos" }],
+    subModules: [
+      { name: "FLOOR_PHOTOS", label: "Floor Photos" },
+      { name: "VERIFICATION", label: "Verification" },
+    ],
   },
   {
     key: "INCIDENT_REPORTING",
