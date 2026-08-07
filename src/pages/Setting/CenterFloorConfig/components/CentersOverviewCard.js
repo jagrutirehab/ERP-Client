@@ -8,7 +8,7 @@ import {
   Badge,
   Table,
 } from "reactstrap";
-import FloorConfigurationModal from "./FloorConfigurationModal";
+import LocationConfigurationModal from "./LocationConfigurationModal";
 
 const CentersOverviewCard = ({
   loading,
@@ -118,14 +118,14 @@ const CentersOverviewCard = ({
                       City
                     </th>
                     <th className="px-4 py-3 fw-semibold text-muted border-0">
-                      Configured Floors
+                      Floors
                     </th>
                     <th className="px-4 py-3 fw-semibold text-muted border-0">
-                      Rooms &amp; Areas
+                      Photo Locations
                     </th>
                     {hasWrite && (
                       <th className="px-4 py-3 fw-semibold text-muted border-0">
-                        Floor Configuration
+                        Configuration
                       </th>
                     )}
                   </tr>
@@ -163,26 +163,26 @@ const CentersOverviewCard = ({
                             <span>
                               {item.totalFloors} floor
                               {item.totalFloors > 1 ? "s" : ""}
-                              {item.mandatoryFloors > 0 && (
-                                <span className="text-muted">
-                                  {" "}
-                                  ({item.mandatoryFloors} mandatory)
-                                </span>
-                              )}
                             </span>
                           )}
                         </td>
                         <td className="px-4 py-2">
-                          {item.totalAreas === 0 ? (
+                          {item.totalSlots === 0 ? (
                             <span className="text-muted">—</span>
                           ) : (
                             <span>
-                              {item.totalAreas} area
-                              {item.totalAreas > 1 ? "s" : ""}
-                              {item.mandatoryAreas > 0 && (
+                              {item.totalSlots} location
+                              {item.totalSlots > 1 ? "s" : ""}
+                              {item.mandatorySlots > 0 && (
                                 <span className="text-muted">
                                   {" "}
-                                  ({item.mandatoryAreas} mandatory)
+                                  ({item.mandatorySlots} required)
+                                </span>
+                              )}
+                              {item.maxDepth > 0 && (
+                                <span className="text-muted">
+                                  {" "}
+                                  · up to {item.maxDepth + 1} levels
                                 </span>
                               )}
                             </span>
@@ -209,7 +209,7 @@ const CentersOverviewCard = ({
         )}
       </CardBody>
 
-      <FloorConfigurationModal
+      <LocationConfigurationModal
         isOpen={modalOpen}
         toggle={toggleModal}
         center={selectedCenter}
