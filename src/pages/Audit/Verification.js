@@ -4,16 +4,23 @@ import Select from "react-select";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import classnames from "classnames";
+import { startOfDay, endOfDay, subDays } from "date-fns";
 import {
   getAllCenterFloorPhotos,
-  reviewCenterFloorPhotoFile,
+  reviewCenterFloorPhotoRecord,
 } from "../../helpers/backend_helper";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
 import useCenterOptions from "../../Components/Hooks/useCenterOptions";
 import DataTableComponent from "../../Components/Common/DataTable";
 import PreviewFile from "../../Components/Common/PreviewFile";
+import DateRangeFilter from "../../Components/Common/DateRangeFilter";
 import { CenterFloorPhotosColumn } from "./components/columns";
-import ReviewPhotoModal from "./components/ReviewPhotoModal";
+import RejectPhotoModal from "./components/RejectPhotoModal";
+
+const emptyDraft = {
+  cleanliness: { rating: 0, comment: "" },
+  safety: { rating: 0, comment: "" },
+};
 
 const Verification = ({ hasWrite }) => {
   const handleAuthError = useAuthError();
@@ -30,13 +37,23 @@ const Verification = ({ hasWrite }) => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCenter, setSelectedCenter] = useState("ALL");
 
+  // A verifier routinely clears the last few days, not just today.
+  const [reportDate, setReportDate] = useState({
+    start: startOfDay(subDays(new Date(), 6)),
+    end: endOfDay(new Date()),
+  });
+
+  // Inline rating drafts, keyed by record id. Cleared on every fetch so a
+  // half-filled row can never be submitted against refreshed data.
+  const [drafts, setDrafts] = useState({});
+  const [savingRowId, setSavingRowId] = useState(null);
+
   const [previewFile, setPreviewFile] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewTitle, setPreviewTitle] = useState("Photo Preview");
 
-  const [reviewModalOpen, setReviewModalOpen] = useState(false);
-  const [reviewTarget, setReviewTarget] = useState(null);
-  const [reviewLoading, setReviewLoading] = useState(false);
+  const [rejectModalOpen, setRejectModalOpen] = useState(false);
+  const [rejectTarget, setRejectTarget] = useState(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -71,18 +88,22 @@ const Verification = ({ hasWrite }) => {
         page,
         limit,
         centers,
+        // Boundaries are already snapped to local start/end of day.
+        startDate: reportDate.start.toISOString(),
+        endDate: reportDate.end.toISOString(),
         ...(debouncedSearch && { search: debouncedSearch }),
         ...(statusTab !== "all" && { status: statusTab }),
       });
 
       setData(res?.data || []);
+      setDrafts({});
       setPagination({
         ...res?.pagination,
         totalDocs: res?.pagination?.totalRecords,
       });
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.message || "Failed to fetch floor photos");
+        toast.error(error?.message || "Failed to fetch audit records");
       }
     } finally {
       setLoading(false);
@@ -91,11 +112,22 @@ const Verification = ({ hasWrite }) => {
 
   useEffect(() => {
     fetchPhotos();
-  }, [page, limit, debouncedSearch, selectedCenter, statusTab, user?.centerAccess]);
+  }, [
+    page,
+    limit,
+    debouncedSearch,
+    selectedCenter,
+    statusTab,
+    reportDate,
+    user?.centerAccess,
+  ]);
 
   useEffect(() => {
     setPage(1);
   }, [statusTab]);
+
+  const setDraft = (rowId, next) =>
+    setDrafts((prev) => ({ ...prev, [rowId]: { ...emptyDraft, ...next } }));
 
   const handleFilePreview = (file, title) => {
     if (!file?.fileUrl) return;
@@ -104,46 +136,81 @@ const Verification = ({ hasWrite }) => {
     setPreviewOpen(true);
   };
 
-  const openReviewModal = (fileId, recordId, fileName, actionType) => {
-    if (!hasWrite) return;
-    setReviewTarget({ fileId, recordId, fileName, actionType });
-    setReviewModalOpen(true);
-  };
-
-  const handleReviewConfirm = async ({ remarks, assessment }) => {
-    if (!reviewTarget) return;
-    // Re-checked here so the request can't be issued without AUDIT/VERIFICATION
-    // WRITE even if the modal is reached some other way.
-    if (!hasWrite) {
-      toast.error("You do not have permission to verify photos");
-      return;
-    }
-    const { fileId, recordId, actionType } = reviewTarget;
-
-    setReviewLoading(true);
+  const submitReview = async (row, payload, actionKey) => {
+    setSavingRowId(`${actionKey}-${row._id}`);
     try {
-      const res = await reviewCenterFloorPhotoFile(recordId, fileId, {
-        status: actionType,
-        ...(remarks ? { remarks } : {}),
-        ...(assessment ? { assessment } : {}),
-      });
+      const res = await reviewCenterFloorPhotoRecord(row._id, payload);
       toast.success(
         res?.data?.message ||
-          `Photo ${actionType === "verified" ? "approved" : "rejected"} successfully`,
+          `Location ${actionKey === "verified" ? "approved" : "rejected"} successfully`,
       );
-      setReviewModalOpen(false);
-      setReviewTarget(null);
-      fetchPhotos();
+      return true;
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error(
           error.response?.data?.message ||
             error.message ||
-            "Failed to review photo",
+            "Failed to review location",
         );
       }
+      return false;
     } finally {
-      setReviewLoading(false);
+      setSavingRowId(null);
+    }
+  };
+
+  const handleInlineApprove = async (row) => {
+    if (!hasWrite) {
+      toast.error("You do not have permission to verify locations");
+      return;
+    }
+
+    const draft = drafts[row._id] || {};
+    if (!draft.cleanliness?.rating || !draft.safety?.rating) {
+      toast.error("Rate both cleanliness and safety before approving");
+      return;
+    }
+
+    const ok = await submitReview(
+      row,
+      {
+        status: "verified",
+        assessment: {
+          cleanliness: {
+            rating: draft.cleanliness.rating,
+            comment: (draft.cleanliness.comment || "").trim(),
+          },
+          safety: {
+            rating: draft.safety.rating,
+            comment: (draft.safety.comment || "").trim(),
+          },
+        },
+      },
+      "verified",
+    );
+
+    if (ok) fetchPhotos();
+  };
+
+  const openRejectModal = (row) => {
+    if (!hasWrite) return;
+    setRejectTarget(row);
+    setRejectModalOpen(true);
+  };
+
+  const handleRejectConfirm = async (remarks) => {
+    if (!rejectTarget || !hasWrite) return;
+
+    const ok = await submitReview(
+      rejectTarget,
+      { status: "rejected", remarks },
+      "rejected",
+    );
+
+    if (ok) {
+      setRejectModalOpen(false);
+      setRejectTarget(null);
+      fetchPhotos();
     }
   };
 
@@ -172,7 +239,7 @@ const Verification = ({ hasWrite }) => {
           <div style={{ minWidth: 220 }}>
             <Input
               type="text"
-              placeholder="Search by center or floor..."
+              placeholder="Search by center or location..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -191,6 +258,14 @@ const Verification = ({ hasWrite }) => {
               isDisabled={!centerOptions.length}
             />
           </div>
+
+          <DateRangeFilter
+            reportDate={reportDate}
+            setReportDate={(next) => {
+              setReportDate(next);
+              setPage(1);
+            }}
+          />
         </div>
 
         <div className="text-nowrap">
@@ -201,12 +276,16 @@ const Verification = ({ hasWrite }) => {
       </div>
 
       <DataTableComponent
-        columns={CenterFloorPhotosColumn(
-          openReviewModal,
-          handleFilePreview,
+        columns={CenterFloorPhotosColumn({
           statusTab,
-          hasWrite,
-        )}
+          hasPermissionToEdit: hasWrite,
+          onPreview: handleFilePreview,
+          onApprove: handleInlineApprove,
+          onReject: openRejectModal,
+          drafts,
+          setDraft,
+          savingRowId,
+        })}
         data={data}
         loading={loading}
         pagination={pagination}
@@ -214,6 +293,12 @@ const Verification = ({ hasWrite }) => {
         setPage={setPage}
         limit={limit}
         setLimit={setLimit}
+        conditionalRowStyles={[
+          {
+            when: (row) => savingRowId?.endsWith(row._id),
+            style: { backgroundColor: "#fff9db", opacity: 0.7 },
+          },
+        ]}
       />
 
       <PreviewFile
@@ -227,13 +312,12 @@ const Verification = ({ hasWrite }) => {
         }}
       />
 
-      <ReviewPhotoModal
-        isOpen={reviewModalOpen}
-        toggle={() => setReviewModalOpen((prev) => !prev)}
-        actionType={reviewTarget?.actionType}
-        fileName={reviewTarget?.fileName}
-        onConfirm={handleReviewConfirm}
-        loading={reviewLoading}
+      <RejectPhotoModal
+        isOpen={rejectModalOpen}
+        toggle={() => setRejectModalOpen((prev) => !prev)}
+        locationLabel={rejectTarget?.locationLabel}
+        onConfirm={handleRejectConfirm}
+        loading={savingRowId === `rejected-${rejectTarget?._id}`}
       />
     </>
   );
