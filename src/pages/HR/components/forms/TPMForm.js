@@ -34,7 +34,7 @@ const validationSchema = Yup.object().shape({
     vendor: Yup.string()
         .trim()
         .required("Vendor is required"),
-    newEmploymentType: Yup.string().nullable(),
+    newEmploymentType: Yup.string().required("Employment type is required"),
     startDate: Yup.date()
         .required("Start date is required"),
     contractSignedWithVendor: Yup.object({
@@ -328,7 +328,7 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
 
             {/* EMPLOYMENT TYPE */}
             <FormGroup>
-                <Label htmlFor="newEmploymentType">Employment Type</Label>
+                <Label htmlFor="newEmploymentType">Employment Type <span className="text-danger">*</span></Label>
                 <Select
                     inputId="newEmploymentType"
                     placeholder="Select Employment Type"
