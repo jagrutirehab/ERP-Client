@@ -11,13 +11,14 @@ import {
 } from "reactstrap";
 import { toast } from "react-toastify";
 import { uploadCenterFloorPhoto } from "../../../helpers/backend_helper";
+import { toAuditDateParam } from "../../../utils/auditDate";
 
 const UploadPhotoModal = ({
   isOpen,
   toggle,
   center,
-  floorId,
-  areaId,
+  auditDate,
+  slotKey,
   label,
   onSuccess,
 }) => {
@@ -51,8 +52,9 @@ const UploadPhotoModal = ({
 
     const formData = new FormData();
     formData.append("center", center);
-    formData.append("floor", floorId);
-    if (areaId) formData.append("area", areaId);
+    formData.append("slotKey", slotKey);
+    // The client supplies the audit date; the server never derives one.
+    formData.append("auditDate", toAuditDateParam(auditDate));
     selectedFiles.forEach((file) => formData.append("files", file));
 
     setSubmitting(true);

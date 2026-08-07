@@ -31,8 +31,6 @@ const Audit = () => {
   const hasVerificationWrite = hasPermission("AUDIT", "VERIFICATION", "WRITE");
   // const hasVerificationDelete = hasPermission("AUDIT", "VERIFICATION", "DELETE");
 
-  console.log({ hasVerificationRead });
-
   // The page is reachable if either tab is readable.
   const hasUserPermission = hasPhotosRead || hasVerificationRead;
 

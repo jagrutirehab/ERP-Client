@@ -138,9 +138,9 @@ const CenterFloorConfig = () => {
       centerName: center.title || center.name || "Unknown Center",
       city: center.city?.city || "—",
       totalFloors: summaryByCenter[center._id]?.totalFloors || 0,
-      mandatoryFloors: summaryByCenter[center._id]?.mandatoryFloors || 0,
-      totalAreas: summaryByCenter[center._id]?.totalAreas || 0,
-      mandatoryAreas: summaryByCenter[center._id]?.mandatoryAreas || 0,
+      totalSlots: summaryByCenter[center._id]?.totalSlots || 0,
+      mandatorySlots: summaryByCenter[center._id]?.mandatorySlots || 0,
+      maxDepth: summaryByCenter[center._id]?.maxDepth || 0,
     }));
 
   const filteredCenters = centerRows.filter(
@@ -174,8 +174,8 @@ const CenterFloorConfig = () => {
       <div className="mb-4">
         <h4 className="fw-semibold mb-1">Center Floor Configuration</h4>
         <p className="text-muted small mb-0">
-          Manage the floors available across centers, then choose which floors
-          apply to each center
+          Manage the floors and sub-locations available across centers, then
+          build each center's location tree
         </p>
       </div>
 

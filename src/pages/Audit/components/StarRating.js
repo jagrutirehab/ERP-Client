@@ -1,7 +1,14 @@
 import React from "react";
 
 // 5-star picker. Renders buttons so it stays keyboard-reachable.
-const StarRating = ({ value = 0, onChange, disabled }) => {
+// `size` keeps the same component usable in a modal (22) and in a table cell (16).
+const StarRating = ({
+  value = 0,
+  onChange,
+  disabled,
+  size = 22,
+  showLabel = true,
+}) => {
   return (
     <div className="d-flex align-items-center gap-1">
       {[1, 2, 3, 4, 5].map((star) => {
@@ -23,16 +30,21 @@ const StarRating = ({ value = 0, onChange, disabled }) => {
             <i
               className={filled ? "ri-star-fill" : "ri-star-line"}
               style={{
-                fontSize: 22,
+                fontSize: size,
                 color: filled ? "#f59f00" : "#ced4da",
               }}
             />
           </button>
         );
       })}
-      <span className="text-muted small ms-2">
-        {value ? `${value}/5` : "Not rated"}
-      </span>
+      {showLabel && (
+        <span
+          className="text-muted ms-1"
+          style={{ fontSize: size <= 16 ? 11 : 13, whiteSpace: "nowrap" }}
+        >
+          {value ? `${value}/5` : "Not rated"}
+        </span>
+      )}
     </div>
   );
 };
