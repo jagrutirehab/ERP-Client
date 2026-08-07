@@ -56,7 +56,7 @@ import CenterDropdown from "../../Report/Components/Doctor/components/CenterDrop
 import DateRangeFilter from "../../../Components/Common/DateRangeFilter";
 import { endOfDay, startOfDay, subDays } from "date-fns";
 import DenominationEditor, {
-  emptyDenominationRow,
+  emptyDenominationRows,
   denominationTotal,
   validateDenominationRows,
   toDenominationPayload,
@@ -101,9 +101,7 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
   const [tab, setTab] = useState(hasCreatePermission ? FORM_TAB : RECORDS_TAB);
 
   const [center, setCenter] = useState("");
-  const [rows, setRows] = useState(() =>
-    Array.from({ length: 5 }, emptyDenominationRow)
-  );
+  const [rows, setRows] = useState(() => emptyDenominationRows());
   const [comments, setComments] = useState("");
   const [errors, setErrors] = useState({});
   const [submitting, setSubmitting] = useState(false);
@@ -168,10 +166,10 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
 
   const grandTotal = denominationTotal(rows);
   const totalPieces = rows.reduce((sum, row) => sum + Number(row.count || 0), 0);
-  const filledDenominations = rows.filter((row) => row.denomination !== "").length;
+  const filledDenominations = rows.filter((row) => Number(row.count) > 0).length;
 
   const resetForm = () => {
-    setRows(Array.from({ length: 5 }, emptyDenominationRow));
+    setRows(emptyDenominationRows());
     setComments("");
     setErrors({});
   };
@@ -1350,7 +1348,7 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
       )}
 
       {/* Edit entry */}
-      <Modal isOpen={!!editTarget} toggle={closeEdit} size="lg" centered>
+      <Modal isOpen={!!editTarget} toggle={closeEdit} size="xl" centered>
         <ModalHeader toggle={closeEdit}>
           Edit {editTarget ? typeLabel(editTarget.type) : "Entry"}
           {editTarget ? ` — ${editTarget.id}` : ""}
