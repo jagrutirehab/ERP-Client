@@ -281,6 +281,21 @@ const DetailAdmission = ({
           ? detailAdmissionForm.detailHistory?.developmentDelayDetails
           : []
         : [],
+      developmentDelaySittingDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelaySittingDetails ||
+          ""
+        : "",
+      developmentDelayStandingDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelayStandingDetails ||
+          ""
+        : "",
+      developmentDelaySpeechDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelaySpeechDetails || ""
+        : "",
+      developmentDelayToiletTrainingDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory
+            ?.developmentDelayToiletTrainingDetails || ""
+        : "",
       pastHistory: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.pastHistory
         : "",
@@ -586,9 +601,15 @@ const DetailAdmission = ({
         ? detailAdmissionForm.doctorSignature.diagnosis.map((d) => d.code_id)
         : [],
 
-      managmentPlan: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.managmentPlan
-        : "",
+      managmentPlan: (() => {
+        const val = detailAdmissionForm?.doctorSignature?.managmentPlan;
+        if (!val) return "";
+        if (val === "INDOOR" || val.toLowerCase().includes("indoor"))
+          return "INDOOR";
+        if (val === "Out Patient" || val.toLowerCase().includes("out"))
+          return "Out Patient";
+        return val;
+      })(),
       // investigation: detailAdmissionForm
       //   ? detailAdmissionForm.doctorSignature?.investigation
       //   : [],
@@ -772,9 +793,19 @@ const DetailAdmission = ({
         setFormStep(CHIEF_COMPLAINTS);
         return;
       }
+      const detailHistoryMissing =
+        !Array.isArray(values.negativeHistory) ||
+        values.negativeHistory.length === 0 ||
+        !values.developmentDelay ||
+        !values.personality;
+
+      if (detailHistoryMissing) {
+        setFormStep(DETAIL_HISTORY);
+        return;
+      }
       if (!isOldMentalExamination) {
         const mseFields = [
-          "grooming",
+          "generalAppearance",
           "psychomotorActivity",
           "eyeContact",
           "rapport",
@@ -804,7 +835,7 @@ const DetailAdmission = ({
           return;
         }
       }
-      // 
+      //
       const diagnosisMissing =
         !Array.isArray(values.provisionaldiagnosis) ||
         values.provisionaldiagnosis.length === 0 ||

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import RenderFields from "../../../../Components/Common/RenderFields";
 import NextButton from "./NextButton";
 
@@ -7,6 +7,7 @@ const fields = [
     label: "Negative History",
     name: "negativeHistory",
     type: "checkbox",
+    required: true,
     options: [
       "Head Injury",
       "Seizures",
@@ -35,13 +36,22 @@ const fields = [
     label: "Development Delay",
     name: "developmentDelay",
     type: "select",
-    options: ["Yes", "No"],
+    options: ["Yes", "No", "Not Available"],
+    required: true,
   },
   {
     label: "Development Delay Details",
     name: "developmentDelayDetails",
-    type: "checkbox",
-    options: ["Sitting", "Standing", "Speech", "Toilet Training"],
+    type: "checkboxWithText",
+    options: [
+      { value: "Sitting", textName: "developmentDelaySittingDetails" },
+      { value: "Standing", textName: "developmentDelayStandingDetails" },
+      { value: "Speech", textName: "developmentDelaySpeechDetails" },
+      {
+        value: "Toilet Training",
+        textName: "developmentDelayToiletTrainingDetails",
+      },
+    ],
     showIf: {
       field: "developmentDelay",
       value: "Yes",
@@ -58,19 +68,43 @@ const fields = [
     type: "textarea",
   },
   {
-    label: "Personality",
+    label: "Pre-morbid personality break-up",
     name: "personality",
     type: "textarea",
+    required: true,
   },
 ];
 
 const DetailHistoryForm = ({ validation, setFormStep, step }) => {
+  const [attempted, setAttempted] = useState(false);
+
+  const validate = () => {
+    setAttempted(true);
+    const negativeHistoryMissing =
+      !Array.isArray(validation.values.negativeHistory) ||
+      validation.values.negativeHistory.length === 0;
+    const developmentDelayMissing = !validation.values.developmentDelay;
+    const personalityMissing = !validation.values.personality;
+    return (
+      !negativeHistoryMissing && !developmentDelayMissing && !personalityMissing
+    );
+  };
+
   return (
     <React.Fragment>
       <div>
         <RenderFields fields={fields} validation={validation} />
-        <NextButton setFormStep={setFormStep} step={step} />
+        {attempted && (
+          <p className="text-danger small">
+            Please fill in all required fields before continuing.
+          </p>
+        )}
       </div>
+      <NextButton
+        setFormStep={setFormStep}
+        step={step}
+        onBeforeNext={validate}
+      />
     </React.Fragment>
   );
 };

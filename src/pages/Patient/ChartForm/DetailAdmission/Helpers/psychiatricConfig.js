@@ -257,6 +257,7 @@ const psychiatricConfig = [
           "Moderately impaired",
           "Severely impaired",
         ],
+        required: false,
       },
       {
         kind: "field",
@@ -285,9 +286,24 @@ const psychiatricConfig = [
     title: "History of Past Illness",
     items: [
       {
+        kind: "field",
+        path: `${P}.pastIllness.hasPastPsychiatricEpisode`,
+        label: "Past Psychiatric Episode",
+        type: "select",
+        options: ["Yes", "No"],
+      },
+      {
         kind: "grid",
         path: `${P}.pastIllness.episodeTimeline`,
         title: "Psychiatric Episode Timeline",
+        showIf: {
+          path: `${P}.pastIllness.hasPastPsychiatricEpisode`,
+          equals: "Yes",
+        },
+        skipValidationWhen: {
+          path: `${P}.pastIllness.hasPastPsychiatricEpisode`,
+          equals: "No",
+        },
         rowLabelKey: "episodePhase",
         rowLabels: EPISODE_PHASES,
         columns: [
@@ -308,7 +324,8 @@ const psychiatricConfig = [
         kind: "field",
         path: `${P}.pastIllness.totalHospitalisations`,
         label: "Total number of psychiatric hospitalisations",
-        type: "number",
+        type: "select",
+        options: ["0", "1-3", "More than 3"],
       },
       {
         kind: "field",

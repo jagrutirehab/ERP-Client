@@ -4,13 +4,13 @@ import NextButton from "./NextButton";
 
 const fields = [
   { label: "Appearance & Behavior", type: "header" },
-  {
-    label: "Grooming",
-    name: "grooming",
-    type: "radio",
-    options: ["good", "fair", "poor"],
-    required: true,
-  },
+  // {
+  //   label: "Grooming",
+  //   name: "grooming",
+  //   type: "radio",
+  //   options: ["good", "fair", "poor"],
+  //   required: true,
+  // },
   {
     label: "General Appearance",
     name: "generalAppearance",
@@ -22,6 +22,7 @@ const fields = [
       { label: "Fair", value: "fair" },
       { label: "Poor", value: "poor" },
     ],
+    required: true,
   },
   {
     label: "Psychomotor Activity",
@@ -418,7 +419,7 @@ const MentalExaminationV3 = ({ validation, setFormStep, step }) => {
   const [attempted, setAttempted] = useState(false);
 
   const requiredFields = [
-    "grooming",
+    "generalAppearance",
     "psychomotorActivity",
     "eyeContact",
     "rapport",

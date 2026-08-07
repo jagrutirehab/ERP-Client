@@ -249,37 +249,65 @@ const DetailAdmission = ({ data }) => {
         )}
 
         {data?.detailHistory &&
-          Object.entries(data.detailHistory)
-            .filter(
-              ([key]) =>
-                ![
-                  "pastHistory",
-                  "informant",
-                  "reliable",
-                  "adequate",
-                  "counsellor",
-                  "occupationHistory",
-                  "socialSupport",
-                ].includes(key),
-            )
-            .map(([key, value], i) => {
-              if (!value || (Array.isArray(value) && value.length === 0))
-                return null;
-              return (
-                <Col key={i} xs={12}>
-                  <div className="mt-1 mb-1">
-                    <p className="fs-xs-9 fs-md-11 mb-0">
-                      <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
-                        {convertCamelCaseToTitleCase(key)}:-
-                      </span>
-                      {Array.isArray(value)
-                        ? value.filter(Boolean).join(", ")
-                        : value}
-                    </p>
-                  </div>
-                </Col>
-              );
-            })}
+          (() => {
+            const detailHistoryRenameMap = {
+              personality: "Pre-morbid personality break-up",
+              developmentDelaySittingDetails: "Sitting Details",
+              developmentDelayStandingDetails: "Standing Details",
+              developmentDelaySpeechDetails: "Speech Details",
+              developmentDelayToiletTrainingDetails: "Toilet Training Details",
+            };
+
+            return Object.entries(data.detailHistory)
+              .filter(([key]) => {
+                if (
+                  [
+                    "pastHistory",
+                    "informant",
+                    "reliable",
+                    "adequate",
+                    "counsellor",
+                    "occupationHistory",
+                    "socialSupport",
+                  ].includes(key)
+                )
+                  return false;
+
+                if (
+                  [
+                    "developmentDelayDetails",
+                    "developmentDelaySittingDetails",
+                    "developmentDelayStandingDetails",
+                    "developmentDelaySpeechDetails",
+                    "developmentDelayToiletTrainingDetails",
+                  ].includes(key) &&
+                  data.detailHistory?.developmentDelay !== "Yes"
+                )
+                  return false;
+
+                return true;
+              })
+              .map(([key, value], i) => {
+                if (!value || (Array.isArray(value) && value.length === 0))
+                  return null;
+                return (
+                  <Col key={i} xs={12}>
+                    <div className="mt-1 mb-1">
+                      <p className="fs-xs-9 fs-md-11 mb-0">
+                        <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 me-3">
+                          {detailHistoryRenameMap[key] ||
+                            convertCamelCaseToTitleCase(key)}
+                          :-
+                        </span>
+                        {Array.isArray(value)
+                          ? value.filter(Boolean).join(", ")
+                          : value}
+                      </p>
+                    </div>
+                  </Col>
+                );
+              });
+          })()}
         {data?.detailHistory && <Divider />}
         {(data?.mentalExamination || data?.mentalExaminationV2) && (
           <h6 className="fs-xs-12 fs-md-14 display-6">
@@ -451,22 +479,25 @@ const DetailAdmission = ({ data }) => {
 
                   // NORMAL OBJECT GROUPS
                   if (isObject) {
+                    const excludedMSEKeys = ["grooming", "surroundingTouch"];
                     return (
                       <Col xs={12} key={index}>
                         <h6 className="mt-3 mb-2">
                           {convertCamelCaseToTitleCase(groupKey)}
                         </h6>
 
-                        {Object.entries(groupValue).map(([k, v], j) => (
-                          <p key={j} className="mb-1">
-                            <span className="fw-semibold me-2">
-                              {mentalExaminationV2FieldsMap[k] ??
-                                convertCamelCaseToTitleCase(k)}
-                              :
-                            </span>
-                            {convertSnakeToTitle(v)}
-                          </p>
-                        ))}
+                        {Object.entries(groupValue)
+                          .filter(([k]) => !excludedMSEKeys.includes(k))
+                          .map(([k, v], j) => (
+                            <p key={j} className="mb-1">
+                              <span className="fw-semibold me-2">
+                                {mentalExaminationV2FieldsMap[k] ??
+                                  convertCamelCaseToTitleCase(k)}
+                                :
+                              </span>
+                              {convertSnakeToTitle(v)}
+                            </p>
+                          ))}
                       </Col>
                     );
                   }

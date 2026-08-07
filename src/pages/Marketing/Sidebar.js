@@ -56,11 +56,6 @@ const Sidebar = () => {
     "VIEW_AGENT_PROFILE",
     "READ",
   );
-  const canViewDoctors = hasPermission(
-    "MARKETING",
-    "VIEW_DOCTOR_VISITS",
-    "READ",
-  );
 
   const MarketingPages = [
     canViewAdd
@@ -93,14 +88,6 @@ const Sidebar = () => {
           label: "My Visit History",
           link: "/marketing/my-profile",
           icon: "bx bx-id-card",
-        }
-      : null,
-    canViewDoctors
-      ? {
-          id: "doctor-visits",
-          label: "Doctor Visits",
-          link: "/marketing/doctors",
-          icon: "bx bx-user-voice",
         }
       : null,
   ].filter(Boolean);
