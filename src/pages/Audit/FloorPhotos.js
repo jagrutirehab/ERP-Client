@@ -1,10 +1,24 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardBody, CardHeader, Row, Spinner, Button } from "reactstrap";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Spinner,
+  Badge,
+  Alert,
+  Progress,
+} from "reactstrap";
 import Select from "react-select";
+import Flatpickr from "react-flatpickr";
 import { toast } from "react-toastify";
 import useCenterOptions from "../../Components/Hooks/useCenterOptions";
 import { getCenterFloorFields } from "../../helpers/backend_helper";
-import DocPreview from "../Authentication/Components/DocPreview";
+import {
+  toAuditDateParam,
+  isTodayLocal,
+  formatAuditDate,
+} from "../../utils/auditDate";
+import LocationTreeSlots from "./components/LocationTreeSlots";
 import UploadPhotoModal from "./components/UploadPhotoModal";
 import DeletePhotoConfirmModal from "./components/DeletePhotoConfirmModal";
 
@@ -13,14 +27,26 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
   const centerOptions = useCenterOptions({ includeAll: false });
 
   const [selectedCenter, setSelectedCenter] = useState("");
-  const [fields, setFields] = useState([]);
+  // The client owns the audit date. Today, local time.
+  const [auditDate, setAuditDate] = useState(() => new Date());
+  const [tree, setTree] = useState([]);
+  const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Narrow the tree to one floor, and optionally one area within it, so a big
+  // building doesn't have to be scrolled to reach the location being shot.
+  // Empty string means "all" — the default.
+  const [floorFilter, setFloorFilter] = useState("");
+  const [areaFilter, setAreaFilter] = useState("");
 
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [activeSlot, setActiveSlot] = useState(null);
 
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
+
+  // Past audits are read-only history — photos can only be added for today.
+  const editable = isTodayLocal(auditDate);
 
   // Default to the first accessible center once the options resolve.
   useEffect(() => {
@@ -33,15 +59,19 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
     if (!selectedCenter) return;
     setLoading(true);
     try {
-      const res = await getCenterFloorFields(selectedCenter);
-      setFields(res?.data || []);
+      const res = await getCenterFloorFields(selectedCenter, {
+        auditDate: toAuditDateParam(auditDate),
+      });
+      setTree(res?.data?.tree || []);
+      setSummary(res?.data?.summary || null);
     } catch (err) {
       const message =
         err.response?.data?.message ||
         err.message ||
-        "Failed to fetch floor photos";
+        "Failed to fetch audit locations";
       toast.error(message);
-      setFields([]);
+      setTree([]);
+      setSummary(null);
     } finally {
       setLoading(false);
     }
@@ -49,11 +79,58 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
 
   useEffect(() => {
     fetchFields();
-  }, [selectedCenter]);
+  }, [selectedCenter, auditDate]);
 
-  // areaId is null for floors that collect photos at floor level.
-  const openUploadModal = (floorId, areaId, label) => {
-    setActiveSlot({ floorId, areaId, label });
+  const floorOptions = useMemo(
+    () => [
+      { value: "", label: "All floors" },
+      ...tree.map((node) => ({ value: node.key, label: node.name })),
+    ],
+    [tree],
+  );
+
+  const selectedFloorNode = useMemo(
+    () => tree.find((node) => node.key === floorFilter) || null,
+    [tree, floorFilter],
+  );
+
+  // Second level only — areas nested deeper stay grouped under their parent.
+  const areaOptions = useMemo(() => {
+    if (!selectedFloorNode) return [];
+    return [
+      { value: "", label: "All areas" },
+      ...selectedFloorNode.children.map((child) => ({
+        value: child.key,
+        label: child.name,
+      })),
+    ];
+  }, [selectedFloorNode]);
+
+  // An area choice only means something within a floor, so drop it whenever the
+  // floor changes or the chosen area is no longer present.
+  useEffect(() => {
+    if (!areaFilter) return;
+    const stillValid = selectedFloorNode?.children.some(
+      (child) => child.key === areaFilter,
+    );
+    if (!stillValid) setAreaFilter("");
+  }, [selectedFloorNode, areaFilter]);
+
+  const visibleTree = useMemo(() => {
+    if (!floorFilter || !selectedFloorNode) return tree;
+    if (!areaFilter) return [selectedFloorNode];
+
+    const child = selectedFloorNode.children.find((c) => c.key === areaFilter);
+    if (!child) return [selectedFloorNode];
+
+    // Keep the floor as the heading so the breadcrumb still reads in full.
+    return [{ ...selectedFloorNode, children: [child] }];
+  }, [tree, floorFilter, areaFilter, selectedFloorNode]);
+
+  const isFiltered = !!floorFilter;
+
+  const openUploadModal = (slot) => {
+    setActiveSlot(slot);
     setUploadModalOpen(true);
   };
 
@@ -62,61 +139,10 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
     setDeleteModalOpen(true);
   };
 
-  // One upload slot — used for a floor with no areas, and for each area.
-  const renderSlot = ({ label, mandatory, legacy, floorId, areaId, files, recordId }) => (
-    <>
-      <div className="d-flex align-items-center justify-content-between mb-2">
-        <div>
-          <p className="fw-semibold mb-0">
-            {label}
-            {mandatory && <span className="text-danger ms-1">*</span>}
-          </p>
-          {legacy && (
-            <p className="text-muted small mb-0">
-              <i className="ri-information-line me-1" />
-              No longer configured for this center.
-            </p>
-          )}
-        </div>
-        {!legacy && hasWrite && (
-          <Button
-            color="primary"
-            size="sm"
-            onClick={() => openUploadModal(floorId, areaId, label)}
-          >
-            <i className="ri-upload-2-line me-1" />
-            {files.length > 0 ? "Upload More" : "Upload"}
-          </Button>
-        )}
-      </div>
-
-      {files.length === 0 ? (
-        <div className="border rounded p-3 text-center text-muted bg-light small">
-          No photos uploaded
-        </div>
-      ) : (
-        <Row>
-          {files.map((file, index) => (
-            <DocPreview
-              key={file._id || index}
-              label={label}
-              url={file.fileUrl}
-              detail={file.fileName}
-              status={file.status}
-              remarks={file.remarks}
-              uploadedAt={file.uploadedAt}
-              actionedAt={file.actionedAt}
-              onDelete={
-                hasDelete && file.status !== "verified"
-                  ? () => openDeleteModal(recordId, file)
-                  : undefined
-              }
-            />
-          ))}
-        </Row>
-      )}
-    </>
-  );
+  const progressPct =
+    summary?.totalSlots > 0
+      ? Math.round((summary.filledSlots / summary.totalSlots) * 100)
+      : 0;
 
   return (
     <>
@@ -132,80 +158,146 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
             isDisabled={!centerOptions.length}
           />
         </div>
+
+        <div style={{ minWidth: 180 }}>
+          <Flatpickr
+            className="form-control"
+            value={auditDate}
+            options={{
+              dateFormat: "d M, Y",
+              maxDate: new Date(),
+              disableMobile: true,
+            }}
+            onChange={([picked]) => picked && setAuditDate(picked)}
+          />
+        </div>
+
+        <div style={{ minWidth: 170 }}>
+          <Select
+            options={floorOptions}
+            value={floorOptions.find((o) => o.value === floorFilter) || floorOptions[0]}
+            onChange={(selected) => {
+              setFloorFilter(selected ? selected.value : "");
+              setAreaFilter("");
+            }}
+            placeholder="All floors"
+            isDisabled={tree.length === 0}
+          />
+        </div>
+
+        <div style={{ minWidth: 170 }}>
+          <Select
+            options={areaOptions}
+            value={areaOptions.find((o) => o.value === areaFilter) || areaOptions[0] || null}
+            onChange={(selected) => setAreaFilter(selected ? selected.value : "")}
+            placeholder="All areas"
+            isDisabled={areaOptions.length <= 1}
+          />
+        </div>
+
+        {summary?.totalSlots > 0 && (
+          <div className="ms-auto d-flex align-items-center gap-3">
+            <div style={{ minWidth: 160 }}>
+              <div className="d-flex justify-content-between">
+                <span className="text-muted" style={{ fontSize: 11 }}>
+                  {summary.filledSlots} of {summary.totalSlots} locations
+                </span>
+                <span className="text-muted" style={{ fontSize: 11 }}>
+                  {progressPct}%
+                </span>
+              </div>
+              <Progress value={progressPct} style={{ height: 6 }} />
+            </div>
+            {summary.pending > 0 && (
+              <Badge color="warning" pill>
+                {summary.pending} pending
+              </Badge>
+            )}
+            {summary.verified > 0 && (
+              <Badge color="success" pill>
+                {summary.verified} verified
+              </Badge>
+            )}
+            {summary.rejected > 0 && (
+              <Badge color="danger" pill>
+                {summary.rejected} rejected
+              </Badge>
+            )}
+          </div>
+        )}
       </div>
 
+      {!editable && (
+        <Alert color="info" className="py-2 small">
+          <i className="ri-history-line me-1" />
+          Viewing the audit for {formatAuditDate(auditDate)}. Past audits are
+          read-only — switch to today to upload photos.
+        </Alert>
+      )}
+
+      {summary?.missingMandatory?.length > 0 && editable && (
+        <Alert color="warning" className="py-2 small">
+          <i className="ri-error-warning-line me-1" />
+          {summary.missingMandatory.length} required location
+          {summary.missingMandatory.length > 1 ? "s" : ""} still
+          {summary.missingMandatory.length > 1 ? " have" : " has"} no photos.
+        </Alert>
+      )}
+
       <Card>
-        <CardHeader>
-          <h5 className="mb-0">Floor Photos</h5>
+        <CardHeader className="d-flex align-items-center justify-content-between gap-2">
+          <h5 className="mb-0">
+            Floor Photos
+            <span className="text-muted fw-normal ms-2" style={{ fontSize: 13 }}>
+              {formatAuditDate(auditDate)}
+            </span>
+          </h5>
+
+          {isFiltered && (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+              style={{ fontSize: 11 }}
+              onClick={() => {
+                setFloorFilter("");
+                setAreaFilter("");
+              }}
+            >
+              <i className="ri-filter-off-line" />
+              Showing {selectedFloorNode?.name}
+              {areaFilter &&
+                ` / ${selectedFloorNode?.children.find((c) => c.key === areaFilter)?.name}`}
+              {" "}· Clear
+            </button>
+          )}
         </CardHeader>
         <CardBody>
           {!selectedCenter ? (
             <p className="text-muted small mb-0">
-              Select a center to view its floors.
+              Select a center to view its locations.
             </p>
           ) : loading ? (
             <div className="text-center py-4">
               <Spinner />
             </div>
-          ) : fields.length === 0 ? (
+          ) : tree.length === 0 ? (
             <p className="text-muted small mb-0">
-              No floors are configured for this center yet. Configure them under
+              No locations are configured for this center. Configure them under
               Setting → Center Floor Configuration.
             </p>
+          ) : visibleTree.length === 0 ? (
+            <p className="text-muted small mb-0">
+              No locations match the selected floor and area.
+            </p>
           ) : (
-            fields.map((field) => {
-              const areas = field.areas || [];
-
-              // A floor split into areas is just a heading for its areas.
-              if (areas.length > 0) {
-                return (
-                  <div key={field.floor} className="mb-4 pb-2 border-bottom">
-                    <div className="d-flex align-items-center gap-2 mb-3">
-                      <i className="ri-building-4-line text-muted" />
-                      <h6 className="fw-semibold mb-0">
-                        {field.floorName}
-                        {field.markMandatory && (
-                          <span className="text-danger ms-1">*</span>
-                        )}
-                      </h6>
-                      <span className="text-muted small">
-                        ({areas.length} area{areas.length > 1 ? "s" : ""})
-                      </span>
-                    </div>
-
-                    <div className="ps-3 border-start">
-                      {areas.map((area) => (
-                        <div key={area.area} className="mb-4">
-                          {renderSlot({
-                            label: area.areaName,
-                            mandatory: area.markMandatory,
-                            legacy: area.legacy,
-                            floorId: field.floor,
-                            areaId: area.area,
-                            files: area.files || [],
-                            recordId: area.recordId,
-                          })}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                );
-              }
-
-              return (
-                <div key={field.floor} className="mb-4 pb-3 border-bottom">
-                  {renderSlot({
-                    label: field.floorName,
-                    mandatory: field.markMandatory,
-                    legacy: field.legacy,
-                    floorId: field.floor,
-                    areaId: null,
-                    files: field.files || [],
-                    recordId: field.recordId,
-                  })}
-                </div>
-              );
-            })
+            <LocationTreeSlots
+              tree={visibleTree}
+              editable={editable}
+              hasWrite={hasWrite}
+              hasDelete={hasDelete}
+              onUpload={openUploadModal}
+              onDelete={openDeleteModal}
+            />
           )}
         </CardBody>
       </Card>
@@ -214,9 +306,9 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
         isOpen={uploadModalOpen}
         toggle={() => setUploadModalOpen((prev) => !prev)}
         center={selectedCenter}
-        floorId={activeSlot?.floorId}
-        areaId={activeSlot?.areaId}
-        label={activeSlot?.label}
+        auditDate={auditDate}
+        slotKey={activeSlot?.slotKey}
+        label={activeSlot?.locationLabel}
         onSuccess={fetchFields}
       />
 

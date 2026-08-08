@@ -4374,6 +4374,13 @@ export const getDoctorVisitHistory = (params = {}) =>
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
+
+  export const exportDoctorDirectory = () =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/export`, {
+    responseType: "blob",
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 // master data
 export const getVendors = (params = {}) => {
   return axios.get(url.GET_VENDORS, {
@@ -4703,8 +4710,9 @@ export const getCenterFloorsConfigurationSummary = () => {
 };
 
 // ── Center floor photos ─────────────────────────────────────────────────────
-export const getCenterFloorFields = (centerId) => {
+export const getCenterFloorFields = (centerId, params) => {
   return axios.get(`${url.CENTER_FLOOR_PHOTOS}/${centerId}/fields`, {
+    params,
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
@@ -4720,7 +4728,7 @@ export const uploadCenterFloorPhoto = (formData) => {
 
 export const deleteCenterFloorPhotoFile = (recordId, fileId) => {
   return axios.patch(
-    `${url.CENTER_FLOOR_PHOTOS}/${recordId}/${fileId}`,
+    `${url.CENTER_FLOOR_PHOTOS}/${recordId}/files/${fileId}/delete`,
     null,
     { headers: { "X-No-Cookie-Token": "true" } },
   );
@@ -4733,10 +4741,18 @@ export const getAllCenterFloorPhotos = (params) => {
   });
 };
 
-export const reviewCenterFloorPhotoFile = (recordId, fileId, data) => {
-  return axios.patch(
-    `${url.CENTER_FLOOR_PHOTOS}/${recordId}/${fileId}/review`,
-    data,
-    { headers: { "X-No-Cookie-Token": "true" } },
-  );
+// Reviews the whole location record — cleanliness and safety describe the
+// location, not an individual photo.
+export const reviewCenterFloorPhotoRecord = (recordId, data) => {
+  return axios.patch(`${url.CENTER_FLOOR_PHOTOS}/${recordId}/review`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// Audit days recorded for one center, newest first — drives the timeline.
+export const getCenterAuditTimeline = (params) => {
+  return axios.get(url.CENTER_FLOOR_AUDITS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
 };

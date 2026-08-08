@@ -13,7 +13,11 @@ const DataTableComponent = ({
     loading,
     paginationRowsPerPageOptions = [10, 15, 20, 25, 30],
     noDataComponent = "No records found",
-    
+    // Forwarded to react-data-table-component so callers can opt into features
+    // this wrapper doesn't name (conditionalRowStyles, expandableRows, …).
+    // Spread last, so a caller passing customStyles replaces rather than merges
+    // the shared styling below.
+    ...rest
 }) => {
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -85,6 +89,7 @@ const DataTableComponent = ({
                     display: allowLimitChange ? "block" : "none",
                 },
             }}
+            {...rest}
         />
     );
 };

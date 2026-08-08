@@ -1,18 +1,13 @@
-import { Badge, Button } from "reactstrap";
-import { Eye, Check, X } from "lucide-react";
+import { Badge } from "reactstrap";
+import { Eye } from "lucide-react";
+import { formatAuditDate } from "../../../utils/auditDate";
+
+// Columns for the reviewed-history tabs (Verified / Rejected). Pending
+// locations are rendered as cards instead — see PendingReviewCard.js — because
+// they need room for the rating comments.
 
 const Center = ({ children }) => (
   <div className="text-center w-100">{children}</div>
-);
-
-const Truncate = ({ children, maxWidth = 140 }) => (
-  <div
-    className="text-truncate mx-auto"
-    style={{ maxWidth }}
-    title={typeof children === "string" ? children : undefined}
-  >
-    {children || "-"}
-  </div>
 );
 
 const statusColorMap = {
@@ -21,7 +16,7 @@ const statusColorMap = {
   rejected: "danger",
 };
 
-const formatDate = (date) => {
+const formatDateTime = (date) => {
   if (!date) return "-";
   return new Date(date).toLocaleString("en-GB", {
     day: "2-digit",
@@ -66,41 +61,58 @@ const RatedDimension = ({ label, entry }) => {
   );
 };
 
-export const CenterFloorPhotosColumn = (
-  openReviewModal,
-  handleFilePreview,
-  statusTab,
-  hasPermissionToEdit,
-) => [
+// The full location path: "Floor 1 / Room 1 / Bathroom 1", innermost emphasised.
+const LocationBreadcrumb = ({ row }) => {
+  const segments =
+    row?.locationSegments?.length > 0
+      ? row.locationSegments
+      : [row?.locationLabel].filter(Boolean);
+
+  if (segments.length === 0) return <Center>-</Center>;
+
+  return (
+    <div className="w-100 text-center" title={segments.join(" / ")}>
+      <span style={{ fontSize: 12, lineHeight: 1.4 }}>
+        {segments.map((segment, idx) => {
+          const isLast = idx === segments.length - 1;
+          return (
+            <span key={idx}>
+              {idx > 0 && <span className="text-muted mx-1">/</span>}
+              <span className={isLast ? "fw-semibold" : "text-muted"}>
+                {segment}
+              </span>
+            </span>
+          );
+        })}
+      </span>
+    </div>
+  );
+};
+
+export const CenterFloorPhotosColumn = ({ statusTab, onPreview }) => [
+  {
+    name: <Center>Audit Date</Center>,
+    cell: (row) => <Center>{formatAuditDate(row?.auditDate)}</Center>,
+    width: "130px",
+  },
   {
     name: <Center>Center</Center>,
-    cell: (row) => <Truncate maxWidth={200}>{row?.centerName}</Truncate>,
-    width: "220px",
-  },
-  {
-    name: <Center>Floor</Center>,
     cell: (row) => (
-      <div className="d-flex flex-column align-items-center text-center w-100">
-        <Truncate maxWidth={180}>{row?.floorName}</Truncate>
-        {row?.legacy && (
-          <div
-            className="text-muted mt-1"
-            style={{ fontSize: 11, lineHeight: 1.3 }}
-          >
-            <i className="ri-information-line me-1" />
-            No longer configured for this center.
-          </div>
-        )}
+      <div
+        className="text-truncate mx-auto"
+        style={{ maxWidth: 170 }}
+        title={row?.centerName}
+      >
+        {row?.centerName || "-"}
       </div>
     ),
-    width: "200px",
+    width: "180px",
   },
   {
-    name: <Center>Room / Area</Center>,
-    cell: (row) => (
-      <Truncate maxWidth={160}>{row?.areaName || "—"}</Truncate>
-    ),
-    width: "180px",
+    name: <Center>Location</Center>,
+    cell: (row) => <LocationBreadcrumb row={row} />,
+    minWidth: "230px",
+    wrap: true,
   },
   {
     name: <Center>Photos</Center>,
@@ -108,179 +120,60 @@ export const CenterFloorPhotosColumn = (
       const files = row?.files || [];
 
       if (files.length === 0) {
-        return <div className="text-muted small py-2">No photos uploaded</div>;
+        return <div className="text-muted small py-2">No photos</div>;
       }
 
       return (
-        <div className="d-flex flex-column gap-2 py-2 w-100">
+        <div className="d-flex flex-wrap gap-1 py-2 justify-content-center w-100">
           {files.map((file, idx) => (
-            <div
+            <button
               key={file._id}
-              className="d-flex align-items-center justify-content-center gap-2 border rounded px-2 py-1"
-              style={{ minHeight: 32 }}
+              type="button"
+              className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 px-2 py-0"
+              title={file.fileName}
+              style={{ fontSize: 11 }}
+              onClick={() =>
+                onPreview(
+                  file,
+                  files.length > 1
+                    ? `${row.locationLabel} (${idx + 1})`
+                    : row.locationLabel,
+                )
+              }
             >
-              <button
-                type="button"
-                className="btn btn-link p-0 d-flex align-items-center gap-1 text-decoration-none flex-shrink-0"
-                title={file.fileName}
-                onClick={() => {
-                  const slotLabel = row.areaName
-                    ? `${row.floorName} — ${row.areaName}`
-                    : row.floorName;
-                  handleFilePreview(
-                    file,
-                    files.length > 1 ? `${slotLabel} (${idx + 1})` : slotLabel,
-                  );
-                }}
-              >
-                <Eye size={14} />
-                <span className="small">Photo {idx + 1}</span>
-              </button>
-
-              <Badge
-                pill
-                color={statusColorMap[file.status] || "secondary"}
-                className="text-capitalize"
-                style={{ fontSize: 11 }}
-              >
-                {file.status}
-              </Badge>
-
-              {hasPermissionToEdit && file.status === "uploaded" && (
-                <div className="d-flex gap-1 flex-shrink-0">
-                  {!row.legacy && (
-                    <Button
-                      size="sm"
-                      color="success"
-                      className="d-flex align-items-center justify-content-center p-1"
-                      style={{ width: 28, height: 28 }}
-                      title="Approve"
-                      onClick={() =>
-                        openReviewModal(
-                          file._id,
-                          row._id,
-                          file.fileName,
-                          "verified",
-                        )
-                      }
-                    >
-                      <Check size={14} />
-                    </Button>
-                  )}
-                  <Button
-                    size="sm"
-                    color="danger"
-                    className="d-flex align-items-center justify-content-center p-1"
-                    style={{ width: 28, height: 28 }}
-                    title="Reject"
-                    onClick={() =>
-                      openReviewModal(
-                        file._id,
-                        row._id,
-                        file.fileName,
-                        "rejected",
-                      )
-                    }
-                  >
-                    <X size={14} />
-                  </Button>
-                </div>
-              )}
-            </div>
+              <Eye size={12} />
+              {idx + 1}
+            </button>
           ))}
         </div>
       );
     },
-    minWidth: "240px",
+    minWidth: "150px",
     wrap: true,
-  },
-  {
-    name: <Center>Uploaded By</Center>,
-    cell: (row) => {
-      const files = row?.files || [];
-      if (files.length === 0) return <Center>-</Center>;
-
-      return (
-        <div className="d-flex flex-column gap-2 py-2 w-100">
-          {files.map((file) => (
-            <div
-              key={file._id}
-              className="text-center small"
-              style={{ minHeight: 32 }}
-              title={file.uploadedBy?.email}
-            >
-              {file.uploadedBy?.name || "-"}
-            </div>
-          ))}
-        </div>
-      );
-    },
-    width: "180px",
-  },
-  {
-    name: <Center>Uploaded At</Center>,
-    cell: (row) => {
-      const files = row?.files || [];
-      if (files.length === 0) return <Center>-</Center>;
-
-      return (
-        <div className="d-flex flex-column gap-2 py-2 w-100">
-          {files.map((file) => (
-            <div
-              key={file._id}
-              className="text-center small text-muted"
-              style={{ minHeight: 32 }}
-            >
-              {formatDate(file.uploadedAt)}
-            </div>
-          ))}
-        </div>
-      );
-    },
-    width: "200px",
   },
   ...(statusTab === "verified"
     ? [
         {
           name: <Center>Assessment</Center>,
           cell: (row) => {
-            const files = row?.files || [];
-            if (files.length === 0) return <Center>-</Center>;
-
+            const assessment = row?.assessment || {};
+            if (
+              !assessment.cleanliness?.rating &&
+              !assessment.safety?.rating
+            ) {
+              return <Center>-</Center>;
+            }
             return (
-              <div className="d-flex flex-column gap-2 py-2 w-100">
-                {files.map((file) => {
-                  const assessment = file.assessment || {};
-                  const hasAny =
-                    assessment.cleanliness?.rating || assessment.safety?.rating;
-
-                  return (
-                    <div
-                      key={file._id}
-                      className="text-center"
-                      style={{ minHeight: 32 }}
-                    >
-                      {hasAny ? (
-                        <>
-                          <RatedDimension
-                            label="Cleanliness"
-                            entry={assessment.cleanliness}
-                          />
-                          <RatedDimension
-                            label="Safety"
-                            entry={assessment.safety}
-                          />
-                        </>
-                      ) : (
-                        <span className="small text-muted">-</span>
-                      )}
-                    </div>
-                  );
-                })}
+              <div className="py-2 w-100">
+                <RatedDimension
+                  label="Cleanliness"
+                  entry={assessment.cleanliness}
+                />
+                <RatedDimension label="Safety" entry={assessment.safety} />
               </div>
             );
           },
-          minWidth: "260px",
+          minWidth: "240px",
           wrap: true,
         },
       ]
@@ -288,82 +181,72 @@ export const CenterFloorPhotosColumn = (
   ...(statusTab === "rejected"
     ? [
         {
-          name: <Center>Remarks</Center>,
-          cell: (row) => {
-            const files = row?.files || [];
-            if (files.length === 0) return <Center>-</Center>;
-
-            return (
-              <div className="d-flex flex-column gap-2 py-2 w-100">
-                {files.map((file) => (
-                  <div
-                    key={file._id}
-                    className="text-center small text-danger"
-                    style={{ minHeight: 32 }}
-                    title={file.remarks}
-                  >
-                    {file.remarks || "-"}
-                  </div>
-                ))}
-              </div>
-            );
-          },
+          name: <Center>Reason</Center>,
+          cell: (row) => (
+            <div
+              className="text-danger small py-2 w-100 text-center"
+              title={row?.remarks}
+            >
+              {row?.remarks || "-"}
+            </div>
+          ),
           minWidth: "220px",
           wrap: true,
         },
       ]
     : []),
-  ...(statusTab !== "uploaded"
-    ? [
-        {
-          name: <Center>Reviewed By</Center>,
-          cell: (row) => {
-            const files = row?.files || [];
-            if (files.length === 0) return <Center>-</Center>;
-
-            return (
-              <div className="d-flex flex-column gap-2 py-2 w-100">
-                {files.map((file) => (
-                  <div
-                    key={file._id}
-                    className="text-center small"
-                    style={{ minHeight: 32 }}
-                    title={file.verifiedBy?.email}
-                  >
-                    {file.status !== "uploaded" && file.verifiedBy?.name
-                      ? file.verifiedBy.name
-                      : "-"}
-                  </div>
-                ))}
-              </div>
-            );
-          },
-          width: "180px",
-        },
-        {
-          name: <Center>Action At</Center>,
-          cell: (row) => {
-            const files = row?.files || [];
-            if (files.length === 0) return <Center>-</Center>;
-
-            return (
-              <div className="d-flex flex-column gap-2 py-2 w-100">
-                {files.map((file) => (
-                  <div
-                    key={file._id}
-                    className="text-center small text-muted"
-                    style={{ minHeight: 32 }}
-                  >
-                    {file.status !== "uploaded"
-                      ? formatDate(file.actionedAt || row.updatedAt)
-                      : "-"}
-                  </div>
-                ))}
-              </div>
-            );
-          },
-          width: "200px",
-        },
-      ]
-    : []),
+  {
+    name: <Center>Uploaded By</Center>,
+    cell: (row) => {
+      const names = [
+        ...new Set(
+          (row?.files || []).map((f) => f.uploadedBy?.name).filter(Boolean),
+        ),
+      ];
+      return (
+        <div
+          className="text-truncate mx-auto small"
+          style={{ maxWidth: 150 }}
+          title={names.join(", ")}
+        >
+          {names.length ? names.join(", ") : "-"}
+        </div>
+      );
+    },
+    width: "160px",
+  },
+  {
+    name: <Center>Reviewed By</Center>,
+    cell: (row) => (
+      <div className="text-center small" title={row?.verifiedBy?.email}>
+        {row?.verifiedBy?.name || "-"}
+      </div>
+    ),
+    width: "160px",
+  },
+  {
+    name: <Center>Action At</Center>,
+    cell: (row) => (
+      <Center>
+        <span className="small text-muted">
+          {formatDateTime(row?.actionedAt)}
+        </span>
+      </Center>
+    ),
+    width: "180px",
+  },
+  {
+    name: <Center>Status</Center>,
+    cell: (row) => (
+      <Badge
+        pill
+        color={statusColorMap[row?.status] || "secondary"}
+        className="text-capitalize"
+        style={{ fontSize: 11 }}
+      >
+        {row?.status}
+      </Badge>
+    ),
+    width: "110px",
+  },
 ];
