@@ -245,7 +245,7 @@ const ChartDate = ({
                         DETAIL_ADMISSION,
                       ].includes(item.category);
                     }
-                    if (["MSW", "PSW"].includes(user?.role)) {
+                    if (["PSYCHOLOGIST", "MSW", "PSW"].includes(user?.role)) {
                       return ![PRESCRIPTION, VITAL_SIGN].includes(
                         item.category,
                       );
