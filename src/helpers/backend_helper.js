@@ -4374,6 +4374,13 @@ export const getDoctorVisitHistory = (params = {}) =>
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
+
+  export const exportDoctorDirectory = () =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/export`, {
+    responseType: "blob",
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 // master data
 export const getVendors = (params = {}) => {
   return axios.get(url.GET_VENDORS, {

@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
+import { toast } from "react-toastify";
 import { useSearchParams } from "react-router-dom";
 import {
   Card,
@@ -13,19 +14,26 @@ import {
   Row,
   Col,
   Badge,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  UncontrolledTooltip,
 } from "reactstrap";
 import {
   getDoctorDirectory,
   getDoctorVisitHistory,
+  exportDoctorDirectory,
 } from "../../helpers/backend_helper";
 
 const getInitials = (name = "") =>
   name
+    .replace(/^dr\.?\s+/i, "")
     .split(" ")
     .map((w) => w[0])
+    .filter(Boolean)
     .join("")
     .slice(0, 2)
-    .toUpperCase();
+    .toUpperCase() || "DR";
 
 const mapsLink = (lat, lng) => `https://www.google.com/maps?q=${lat},${lng}`;
 
@@ -43,6 +51,7 @@ const formatTime = (d) =>
     ? new Date(d).toLocaleTimeString("en-IN", {
         hour: "2-digit",
         minute: "2-digit",
+        hour12: true,
       })
     : "—";
 
@@ -52,24 +61,23 @@ const DoctorVisits = () => {
   const handleAuthError = useAuthError();
   const [searchParams, setSearchParams] = useSearchParams();
 
-  // Left panel — doctor directory
   const [doctors, setDoctors] = useState([]);
   const [listLoading, setListLoading] = useState(true);
   const [listError, setListError] = useState(null);
   const [search, setSearch] = useState("");
   const [selectedDoctor, setSelectedDoctor] = useState(null);
 
-  // Right panel — visit history for selected doctor
   const [visits, setVisits] = useState([]);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState(null);
-  const [expandedVisitId, setExpandedVisitId] = useState(null);
+  const [isExporting, setIsExporting] = useState(false);
+
+  const [activeImage, setActiveImage] = useState(null);
 
   useEffect(() => {
     document.title = "Doctor Visits | Jagruti Rehab";
   }, []);
 
-  // Load the full doctor directory once on mount
   useEffect(() => {
     setListLoading(true);
     getDoctorDirectory({})
@@ -79,37 +87,25 @@ const DoctorVisits = () => {
       })
       .catch((err) => {
         if (!handleAuthError(err)) {
-          setListError(
-            err?.response?.data?.message || "Failed to load doctors",
-          );
+          setListError(err?.response?.data?.message || "Failed to load doctor directory");
         }
       })
       .finally(() => setListLoading(false));
   }, []);
 
-  // If the URL already has ?doctor=&clinic= (e.g. shared link or refresh),
-  // auto-select that doctor once the directory has loaded — mirrors /patient/:id behaviour
   useEffect(() => {
     if (doctors.length === 0) return;
     const urlName = searchParams.get("doctor");
     const urlClinic = searchParams.get("clinic");
     if (!urlName || !urlClinic) return;
+    const match = doctors.find((d) => d.name === urlName && d.clinicName === urlClinic);
+    if (match) setSelectedDoctor(match);
+  }, [doctors, searchParams]);
 
-    const match = doctors.find(
-      (d) => d.name === urlName && d.clinicName === urlClinic,
-    );
-    if (match) {
-      setSelectedDoctor(match);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doctors]);
-
-  // Fetch visit history whenever the selected doctor changes
   useEffect(() => {
     if (!selectedDoctor) return;
     setDetailLoading(true);
     setDetailError(null);
-    setExpandedVisitId(null); // collapse any open entry when switching doctors
     getDoctorVisitHistory({
       name: selectedDoctor.name,
       clinicName: selectedDoctor.clinicName,
@@ -120,22 +116,39 @@ const DoctorVisits = () => {
       })
       .catch((err) => {
         if (!handleAuthError(err)) {
-          setDetailError(
-            err?.response?.data?.message || "Failed to load visit history",
-          );
+          setDetailError(err?.response?.data?.message || "Failed to load visit history");
         }
       })
       .finally(() => setDetailLoading(false));
   }, [selectedDoctor]);
 
-  // Clicking a doctor in the directory — select it and push name/clinic into the URL
   const handleSelectDoctor = (d) => {
     setSelectedDoctor(d);
     setSearchParams({ doctor: d.name, clinic: d.clinicName });
   };
 
-  const toggleExpand = (id) => {
-    setExpandedVisitId((prev) => (prev === id ? null : id));
+  const handleExportDirectory = async () => {
+    setIsExporting(true);
+    try {
+      const res = await exportDoctorDirectory();
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = `Doctor-Directory-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      if (!handleAuthError(err)) {
+        toast.error(err?.response?.data?.message || "Failed to export report");
+      }
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const filteredDoctors = useMemo(
@@ -144,26 +157,22 @@ const DoctorVisits = () => {
         (d) =>
           !search.trim() ||
           d.name?.toLowerCase().includes(search.trim().toLowerCase()) ||
-          d.clinicName?.toLowerCase().includes(search.trim().toLowerCase()),
+          d.clinicName?.toLowerCase().includes(search.trim().toLowerCase())
       ),
-    [doctors, search],
+    [doctors, search]
   );
 
   const sortedVisits = useMemo(
-    () =>
-      [...visits].sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate)),
-    [visits],
+    () => [...visits].sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate)),
+    [visits]
   );
 
   const doctorInfo = visits[0]?.doctor;
   const totalVisits = visits.length;
   const matched = visits.filter((v) => v.gps?.matchedClinic).length;
   const mismatch = totalVisits - matched;
-  const verifiedRate =
-    totalVisits > 0 ? Math.round((matched / totalVisits) * 100) : 0;
-  const uniqueAgents = [
-    ...new Set(visits.map((v) => v.agent?.name).filter(Boolean)),
-  ];
+  const verifiedRate = totalVisits > 0 ? Math.round((matched / totalVisits) * 100) : 0;
+  const uniqueAgents = [...new Set(visits.map((v) => v.agent?.name).filter(Boolean))];
 
   const displayName = selectedDoctor
     ? /^dr\.?\s/i.test(selectedDoctor.name)
@@ -173,11 +182,8 @@ const DoctorVisits = () => {
 
   if (permissionLoading) {
     return (
-      <div
-        className="page-content d-flex justify-content-center align-items-center"
-        style={{ minHeight: "60vh" }}
-      >
-        <Spinner color="primary" />
+      <div className="page-content d-flex justify-content-center align-items-center min-vh-100">
+        <Spinner color="primary" style={{ width: "2.5rem", height: "2.5rem" }} />
       </div>
     );
   }
@@ -188,202 +194,260 @@ const DoctorVisits = () => {
   }
 
   return (
-    <div
-      className="page-content"
-      style={{
-        backgroundColor: "#f8fafc",
-        minHeight: "100vh",
-        paddingTop: "70px",
-      }}
-    >
+    <div className="page-content bg-light-subtle">
       <style>
         {`
+          .dv-container {
+            max-width: 1440px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            height: calc(100vh - 130px);
+            min-height: 620px;
+          }
+
+          .dv-card {
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.02), 0 1px 2px -1px rgba(0, 0, 0, 0.02);
+            background: #ffffff;
+            overflow: hidden;
+          }
+
           .dv-layout-grid {
             display: grid;
-            grid-template-columns: 340px 1fr;
-            gap: 1.5rem;
-            align-items: start;
+            grid-template-columns: 340px minmax(0, 1fr);
+            gap: 1.25rem;
+            align-items: stretch;
+            flex: 1;
+            min-height: 0;
           }
 
-          @media (max-width: 991px) {
-            .dv-layout-grid {
-              grid-template-columns: 1fr;
-            }
+          @media (max-width: 1024px) {
+            .dv-layout-grid { grid-template-columns: 1fr; height: auto; }
+            .dv-container { height: auto; min-height: 0; }
+            .dv-detail-col { height: auto; }
+            .dv-log-card { flex: none; }
+            .dv-timeline-scroll { flex: none; min-height: 320px; max-height: 480px; }
           }
 
-          .dv-sidebar-card {
-            background: #ffffff;
-            border-radius: 12px;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
+          /* LEFT column */
+          .dv-directory-col {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
             overflow: hidden;
           }
 
           .dv-list-panel {
-            max-height: calc(100vh - 210px);
+            flex: 1;
+            min-height: 0;
             overflow-y: auto;
           }
 
           .dv-item-card {
-            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
             border-left: 3px solid transparent;
-            background-color: #ffffff;
+            transition: background-color 0.15s ease, border-color 0.15s ease;
           }
-          .dv-item-card:hover { 
-            background-color: #f8fafc !important; 
-          }
+          .dv-item-card:hover { background-color: #f8fafc; }
           .dv-item-card.active {
-            background-color: #eff6ff !important;
-            border-left-color: #2563eb !important;
+            background-color: #f0f7ff;
+            border-left-color: #0284c7;
           }
 
           .dv-avatar {
             background: #f1f5f9;
             color: #475569;
             font-weight: 600;
-            flex-shrink: 0;
+            letter-spacing: 0.5px;
             border: 1px solid #e2e8f0;
-          }
-          .dv-avatar.lg { 
-            background: #dbeafe; 
-            color: #1e40af; 
-            border-color: #bfdbfe;
-          }
-
-          .dv-history-card {
-            transition: all 0.2s ease-in-out;
-            border: 1px solid #e2e8f0;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-            overflow: hidden;
-          }
-          .dv-history-card:hover { 
-            border-color: #cbd5e1;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
-          }
-          .dv-history-card.expanded { 
-            border-color: #3b82f6;
-            box-shadow: 0 4px 12px -2px rgba(37, 99, 235, 0.08);
-          }
-
-          .dv-history-header { 
-            cursor: pointer; 
-            user-select: none;
-          }
-
-          .dv-expand-arrow {
-            transition: transform 0.2s ease-in-out;
-            font-size: 20px;
-            color: #94a3b8;
             flex-shrink: 0;
           }
-          .dv-expand-arrow.open { 
-            transform: rotate(90deg); 
-            color: #2563eb; 
+          .dv-avatar.active-avatar {
+            background: #e0f2fe;
+            color: #0369a1;
+            border-color: #bae6fd;
           }
 
-          .dv-stat-card {
-            border: 1px solid #e2e8f0;
+          .dv-kpi-card {
+            border: 1px solid #f1f5f9;
+            border-radius: 8px;
             background: #ffffff;
-            box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
-          }
-          .dv-stat-card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            padding: 0.65rem 0.85rem;
           }
 
           .dv-notes-box {
             word-break: break-word;
             overflow-wrap: break-word;
             white-space: pre-wrap;
-            line-height: 1.5;
+            line-height: 1.6;
+            color: #334155;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
           }
 
-          .img-zoom { 
-            transition: transform 0.2s ease, box-shadow 0.2s ease; 
+          /* RIGHT column */
+          .dv-detail-col {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            min-height: 0;
+            gap: 0.85rem;
+          }
+
+          .dv-profile-card {
+            flex-shrink: 0;
+            padding: 1rem 1.25rem !important;
+          }
+
+          .dv-log-card {
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            padding: 1.25rem !important;
+          }
+
+          .dv-log-header {
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.85rem;
+            flex-shrink: 0;
+          }
+
+          .dv-timeline-scroll {
+            flex: 1;
+            min-height: 0;
+            overflow-y: auto;
+            overflow-x: hidden;
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #f8fafc;
+            padding: 1.25rem 1.25rem 1.25rem 2.5rem;
+          }
+
+          .dv-list-panel::-webkit-scrollbar,
+          .dv-timeline-scroll::-webkit-scrollbar { width: 7px; }
+          .dv-list-panel::-webkit-scrollbar-thumb,
+          .dv-timeline-scroll::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+          }
+          .dv-list-panel::-webkit-scrollbar-track { background: transparent; }
+          .dv-timeline-scroll::-webkit-scrollbar-track {
+            background: #eef2f6;
+            border-radius: 4px;
+          }
+
+          .dv-timeline { position: relative; }
+          .dv-timeline::before {
+            content: "";
+            position: absolute;
+            left: -21px;
+            top: 16px;
+            bottom: 16px;
+            width: 2px;
+            background: #dbe2ea;
+          }
+
+          .dv-timeline-item { position: relative; margin-bottom: 1.5rem; }
+          .dv-timeline-item:last-child { margin-bottom: 0; }
+
+          .dv-timeline-dot {
+            position: absolute;
+            left: -26px;
+            top: 22px;
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+            border: 2px solid #f8fafc;
+            box-shadow: 0 0 0 2px #cbd5e1;
+            z-index: 2;
+          }
+          .dv-timeline-dot.verified { background: #10b981; box-shadow: 0 0 0 2px #a7f3d0; }
+          .dv-timeline-dot.mismatch { background: #ef4444; box-shadow: 0 0 0 2px #fecaca; }
+
+          .dv-visit-entry {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            background: #ffffff;
+            box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+            padding: 1.25rem;
+            overflow-wrap: break-word;
+            word-break: break-word;
+            min-width: 0;
+          }
+
+          .dv-section-label {
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #64748b;
+            letter-spacing: 0.05em;
+            font-size: 11px;
+            display: block;
+            margin-bottom: 0.6rem;
+          }
+
+          .dv-subbox {
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            background: #f8fafc;
+            min-width: 0;
+          }
+
+          .dv-img-thumbnail {
+            width: 92px;
+            height: 92px;
+            object-fit: cover;
+            border-radius: 8px;
+            border: 1px solid #e2e8f0;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
             cursor: pointer;
           }
-          .img-zoom:hover { 
-            transform: scale(1.06); 
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+          .dv-img-thumbnail:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
           }
-
-          .dv-list-panel::-webkit-scrollbar { width: 5px; }
-          .dv-list-panel::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
-          .dv-list-panel::-webkit-scrollbar-track { background: #f8fafc; }
         `}
       </style>
 
-      <div className="px-4 py-3">
-        {/* Header */}
-        <div className="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
-          <div>
-            <h4
-              className="fw-bold mb-1"
-              style={{ color: "#0f172a", letterSpacing: "-0.02em" }}
-            >
-              Doctor Field Visits
-            </h4>
-            {/* <p className="text-muted mb-0 fs-13">
-              Field representative visit records and doctor engagement history
-            </p> */}
-          </div>
-          {/* <span
-            className="d-inline-flex align-items-center gap-2 px-3 py-2 fs-13 fw-semibold shadow-sm"
-            style={{
-              background: "#fff",
-              border: "1px solid #e2e8f0",
-              borderRadius: 8,
-              color: "#334155",
-            }}
+      <div className="dv-container">
+        {/* Header Bar */}
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 flex-shrink-0">
+          <h4 className="fw-bold mb-0 text-dark" style={{ letterSpacing: "-0.02em" }}>
+            Doctor Field Visits
+          </h4>
+          <button
+            className="btn btn-dark btn-sm px-3 py-2 d-flex align-items-center gap-2 fw-medium shadow-sm"
+            onClick={handleExportDirectory}
+            disabled={isExporting}
           >
-            <i className="bx bx-clinic text-primary fs-16" />
-            {doctors.length} Doctors Registered
-          </span> */}
+            {isExporting ? <Spinner size="sm" /> : <i className="bx bx-export fs-15" />}
+            <span>Export Directory</span>
+          </button>
         </div>
 
+        {/* Main Workspace Layout — both columns share exactly the same height */}
         <div className="dv-layout-grid">
-          {/* LEFT: Directory */}
-          <div className="dv-sidebar-card">
-            <div
-              className="p-3 border-bottom"
-              style={{ backgroundColor: "#f8fafc" }}
-            >
+          {/* LEFT: Directory Sidebar */}
+          <div className="dv-card dv-directory-col">
+            <div className="p-3 border-bottom bg-white flex-shrink-0">
               <div className="d-flex align-items-center justify-content-between mb-2">
-                <span
-                  className="text-uppercase fw-bold text-muted"
-                  style={{ letterSpacing: "0.05em", fontSize: "11px" }}
-                >
-                  Directory
-                </span>
-                <Badge
-                  color="light"
-                  className="px-2 py-1 border text-secondary"
-                  style={{ fontSize: 11, fontWeight: 600 }}
-                >
+                <span className="dv-section-label mb-0">Directory</span>
+                <Badge color="light" className="text-dark border font-mono">
                   {filteredDoctors.length}
                 </Badge>
               </div>
-              <InputGroup size="sm" className="shadow-sm rounded-2">
-                <InputGroupText
-                  style={{
-                    background: "#fff",
-                    borderColor: "#cbd5e1",
-                    borderRight: "none",
-                  }}
-                >
-                  <i className="bx bx-search text-muted fs-15" />
+              <InputGroup size="sm" className="border-0">
+                <InputGroupText className="bg-light border-end-0 text-muted pe-1">
+                  <i className="bx bx-search fs-16" />
                 </InputGroupText>
                 <Input
+                  className="bg-light border-start-0 ps-1 fs-13 shadow-none"
                   placeholder="Search doctor or clinic..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  style={{
-                    borderColor: "#cbd5e1",
-                    borderLeft: "none",
-                    boxShadow: "none",
-                    fontSize: "13px",
-                  }}
                 />
               </InputGroup>
             </div>
@@ -391,94 +455,85 @@ const DoctorVisits = () => {
             <div className="dv-list-panel">
               {listLoading && (
                 <div className="text-center py-5">
-                  <Spinner size="sm" color="primary" />
-                  <span className="d-block text-muted fs-12 mt-2">
-                    Loading directory…
-                  </span>
+                  <Spinner size="sm" color="secondary" />
+                  <span className="d-block text-muted fs-12 mt-2">Loading doctors...</span>
                 </div>
               )}
+
               {listError && (
-                <Alert color="danger" className="m-3 fs-12 border-0 shadow-sm">
+                <Alert color="danger" className="m-3 fs-12 py-2">
                   {listError}
                 </Alert>
               )}
+
               {!listLoading && !listError && filteredDoctors.length === 0 && (
-                <div className="text-center text-muted py-5 px-3 fs-13">
-                  No doctors match your search
+                <div className="text-center py-5 px-3">
+                  <i className="bx bx-user-x fs-32 text-muted mb-2 d-block" />
+                  <span className="text-muted fs-13">No matching records found</span>
                 </div>
               )}
+
               {!listLoading &&
                 !listError &&
                 filteredDoctors.map((d, idx) => {
                   const isActive =
-                    selectedDoctor?.name === d.name &&
-                    selectedDoctor?.clinicName === d.clinicName;
+                    selectedDoctor?.name === d.name && selectedDoctor?.clinicName === d.clinicName;
+
                   return (
                     <div
                       key={idx}
-                      className={`dv-item-card p-3 ${isActive ? "active" : ""}`}
-                      style={{
-                        borderBottom: "1px solid #f1f5f9",
-                        cursor: "pointer",
-                      }}
+                      className={`dv-item-card p-3 border-bottom cursor-pointer ${isActive ? "active" : ""}`}
                       onClick={() => handleSelectDoctor(d)}
                     >
-                      <div className="d-flex align-items-start gap-3">
+                      <div className="d-flex align-items-center gap-3">
                         <div
-                          className="dv-avatar rounded-circle d-flex align-items-center justify-content-center"
-                          style={{ width: 40, height: 40, fontSize: 13 }}
+                          className={`dv-avatar rounded-circle d-flex align-items-center justify-content-center fs-12 ${
+                            isActive ? "active-avatar" : ""
+                          }`}
+                          style={{ width: 40, height: 40 }}
                         >
-                          {getInitials(d.name) || "?"}
+                          {getInitials(d.name)}
                         </div>
+
                         <div className="flex-grow-1" style={{ minWidth: 0 }}>
-                          <div
-                            className="fw-semibold fs-14 text-truncate"
-                            style={{ color: isActive ? "#2563eb" : "#0f172a" }}
-                          >
-                            {/^dr\.?\s/i.test(d.name)
-                              ? d.name
-                              : `Dr. ${d.name}`}
-                          </div>
-                          <div className="text-muted fs-12 text-truncate mt-1">
-                            {d.clinicName}
-                          </div>
-                          <div className="d-flex align-items-center justify-content-between mt-2">
-                            <span
-                              style={{
-                                fontSize: 11,
-                                fontWeight: 600,
-                                color: "#64748b",
-                              }}
+                          <div className="d-flex align-items-center justify-content-between gap-1">
+                            <h6
+                              className={`mb-0 fs-14 text-truncate ${
+                                isActive ? "fw-bold text-primary" : "fw-semibold text-dark"
+                              }`}
                             >
-                              {d.totalVisits} visits
+                              {/^dr\.?\s/i.test(d.name) ? d.name : `Dr. ${d.name}`}
+                            </h6>
+                            <span
+                              className={`rounded-circle flex-shrink-0 ${
+                                d.mismatchCount > 0 ? "bg-danger" : "bg-success"
+                              }`}
+                              style={{ width: 6, height: 6 }}
+                              id={`status-dot-${idx}`}
+                            />
+                            <UncontrolledTooltip target={`status-dot-${idx}`}>
+                              {d.mismatchCount > 0
+                                ? `${d.mismatchCount} Location Mismatch(es)`
+                                : "All visits GPS verified"}
+                            </UncontrolledTooltip>
+                          </div>
+
+                          <div className="text-muted fs-12 text-truncate mt-1">{d.clinicName}</div>
+
+                          <div className="d-flex align-items-center justify-content-between mt-2 pt-1">
+                            <span className="badge bg-light text-secondary border font-mono fw-normal fs-11">
+                              {d.totalVisits} {d.totalVisits === 1 ? "visit" : "visits"}
                             </span>
-                            <span
-                              className="text-muted"
-                              style={{ fontSize: 11 }}
-                            >
+                            <span className="text-muted fs-11">
                               {d.lastVisitDate
-                                ? new Date(d.lastVisitDate).toLocaleDateString(
-                                    "en-IN",
-                                    { day: "2-digit", month: "short" },
-                                  )
+                                ? new Date(d.lastVisitDate).toLocaleDateString("en-IN", {
+                                    day: "2-digit",
+                                    month: "short",
+                                  })
                                 : "—"}
                             </span>
                           </div>
                         </div>
-                        <div
-                          className="rounded-circle flex-shrink-0 mt-1 shadow-sm"
-                          style={{
-                            width: 8,
-                            height: 8,
-                            backgroundColor:
-                              d.mismatchCount > 0 ? "#ef4444" : "#22c55e",
-                          }}
-                          title={
-                            d.mismatchCount > 0
-                              ? "Location mismatch present"
-                              : "All visits verified"
-                          }
-                        />
                       </div>
                     </div>
                   );
@@ -486,344 +541,180 @@ const DoctorVisits = () => {
             </div>
           </div>
 
-          {/* RIGHT: Detail panel */}
-          <div>
-            {/* {!selectedDoctor && (
-              <Card
-                className="border-0 shadow-sm d-flex align-items-center justify-content-center p-5 bg-white"
-                style={{ borderRadius: 12, minHeight: 320 }}
-              >
-                <div className="text-center">
+          {/* RIGHT: Detail View Workspace */}
+          <div className="dv-detail-col">
+            {!selectedDoctor ? (
+              <div className="dv-card p-5 text-center d-flex align-items-center justify-content-center flex-grow-1">
+                <div>
                   <div
-                    className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                    style={{
-                      width: 72,
-                      height: 72,
-                      background: "#eff6ff",
-                      color: "#2563eb",
-                    }}
+                    className="mx-auto rounded-circle bg-light d-flex align-items-center justify-content-center mb-3"
+                    style={{ width: 64, height: 64 }}
                   >
-                    <i className="bx bx-user-pin" style={{ fontSize: 36 }} />
+                    <i className="bx bx-pointer fs-24 text-muted" />
                   </div>
-                  <h5 className="fw-bold text-dark mb-1">No Doctor Selected</h5>
-                  <p
-                    className="fs-13 text-muted"
-                    style={{ maxWidth: 340, margin: "0 auto" }}
-                  >
-                    Select a doctor from the directory to view visit history,
-                    location verifications, and agent records.
+                  <h6 className="fw-bold text-dark">No Doctor Selected</h6>
+                  <p className="text-muted fs-13 mb-0">
+                    Select a record from the directory to inspect field visits and verification logs.
                   </p>
                 </div>
-              </Card>
-            )} */}
-
-            {selectedDoctor && (
+              </div>
+            ) : (
               <>
                 {detailLoading && (
-                  <Card
-                    className="border-0 shadow-sm d-flex align-items-center justify-content-center bg-white"
-                    style={{ borderRadius: 12, minHeight: 320 }}
-                  >
-                    <div className="text-center py-5">
+                  <div className="dv-card p-5 text-center flex-grow-1 d-flex align-items-center justify-content-center">
+                    <div>
                       <Spinner color="primary" />
-                      <span className="d-block text-muted fs-13 mt-2">
-                        Loading doctor visit history…
-                      </span>
+                      <span className="d-block text-muted fs-13 mt-3">Fetching history records...</span>
                     </div>
-                  </Card>
+                  </div>
                 )}
 
-                {detailError && (
-                  <Alert
-                    color="danger"
-                    className="border-0 shadow-sm rounded-3"
-                  >
-                    {detailError}
-                  </Alert>
-                )}
+                {detailError && <Alert color="danger">{detailError}</Alert>}
 
                 {!detailLoading && !detailError && (
                   <>
-                    {/* Doctor Profile */}
-                    <Card
-                      className="border-0 shadow-sm p-3 mb-3 bg-white"
-                      style={{ borderRadius: 12 }}
-                    >
-                      <div className="d-flex align-items-start gap-3 flex-wrap">
-                        <div
-                          className="dv-avatar lg rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                          style={{ width: 56, height: 56, fontSize: 20 }}
-                        >
-                          {getInitials(selectedDoctor.name) || "?"}
-                        </div>
-                        <div className="flex-grow-1">
+                    {/* Header Details & Key Metrics — compact, doesn't scroll */}
+                    <div className="dv-card dv-profile-card">
+                      <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 pb-2 mb-2 border-bottom">
+                        <div>
                           <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                            <h5 className="mb-0 fw-bold text-dark">
-                              {displayName}
-                            </h5>
+                            <h5 className="mb-0 fw-bold text-dark">{displayName}</h5>
                             {doctorInfo?.specialisation && (
-                              <Badge
-                                color="light"
-                                className="text-primary border fs-12 px-2 py-1 rounded-2"
-                              >
+                              <Badge color="primary-subtle" className="text-primary border fs-11">
                                 {doctorInfo.specialisation}
                               </Badge>
                             )}
                           </div>
-                          <div className="d-flex align-items-center gap-4 mt-2 flex-wrap fs-13 text-muted">
+                          <div className="d-flex align-items-center gap-3 flex-wrap fs-13 text-muted mt-1">
                             <span>
-                              <i className="bx bx-building-house me-1 text-primary" />
+                              <i className="bx bx-building me-1 text-secondary" />
                               {selectedDoctor.clinicName}
                             </span>
                             {doctorInfo?.contactNumber && (
                               <span>
-                                <i className="bx bx-phone me-1 text-success" />
+                                <i className="bx bx-phone me-1 text-secondary" />
                                 {doctorInfo.contactNumber}
                               </span>
                             )}
                           </div>
                         </div>
                       </div>
-                    </Card>
 
-                    {/* Stats */}
-                    <Row className="g-3 mb-4">
-                      <Col xs={6} md={3}>
-                        <div className="dv-stat-card p-3 rounded-3">
-                          <div className="text-muted fs-12 mb-1 fw-medium">
-                            Total Visits
+                      <Row className="g-2">
+                        <Col xs={6} md={3}>
+                          <div className="dv-kpi-card">
+                            <span className="dv-section-label mb-1">Total Visits</span>
+                            <div className="fw-bold fs-18 text-dark font-mono">{totalVisits}</div>
                           </div>
-                          <div className="fw-bold fs-20 text-dark">
-                            {totalVisits}
+                        </Col>
+                        <Col xs={6} md={3}>
+                          <div className="dv-kpi-card">
+                            <span className="dv-section-label mb-1">GPS Verified</span>
+                            <div className="fw-bold fs-18 text-success font-mono">{verifiedRate}%</div>
                           </div>
-                        </div>
-                      </Col>
-                      <Col xs={6} md={3}>
-                        <div className="dv-stat-card p-3 rounded-3">
-                          <div className="text-muted fs-12 mb-1 fw-medium">
-                            GPS Verified
+                        </Col>
+                        <Col xs={6} md={3}>
+                          <div className="dv-kpi-card">
+                            <span className="dv-section-label mb-1">Mismatches</span>
+                            <div className="fw-bold fs-18 text-danger font-mono">{mismatch}</div>
                           </div>
-                          <div className="fw-bold fs-20 text-success">
-                            {verifiedRate}%
+                        </Col>
+                        <Col xs={6} md={3}>
+                          <div className="dv-kpi-card">
+                            <span className="dv-section-label mb-1">Field Agents</span>
+                            <div className="fw-bold fs-18 text-primary font-mono">{uniqueAgents.length}</div>
                           </div>
-                        </div>
-                      </Col>
-                      <Col xs={6} md={3}>
-                        <div className="dv-stat-card p-3 rounded-3">
-                          <div className="text-muted fs-12 mb-1 fw-medium">
-                            Mismatches
-                          </div>
-                          <div className="fw-bold fs-20 text-danger">
-                            {mismatch}
-                          </div>
-                        </div>
-                      </Col>
-                      <Col xs={6} md={3}>
-                        <div className="dv-stat-card p-3 rounded-3">
-                          <div className="text-muted fs-12 mb-1 fw-medium">
-                            Field Agents
-                          </div>
-                          <div className="fw-bold fs-20 text-primary">
-                            {uniqueAgents.length}
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-
-                    {/* Visit list — click a row to expand inline, accordion style */}
-                    <div className="d-flex align-items-center justify-content-between mb-2 px-1">
-                      <span
-                        className="text-uppercase fw-bold text-muted"
-                        style={{ letterSpacing: "0.05em", fontSize: "11px" }}
-                      >
-                        Visit History ({sortedVisits.length})
-                      </span>
-                      <span className="text-muted fs-12">
-                        Most recent first
-                      </span>
+                        </Col>
+                      </Row>
                     </div>
 
-                    {sortedVisits.length === 0 ? (
-                      <Card
-                        className="border-0 shadow-sm text-center text-muted py-5 bg-white"
-                        style={{ borderRadius: 12 }}
-                      >
-                        No visit history recorded yet
-                      </Card>
-                    ) : (
-                      <div className="d-flex flex-column gap-2">
-                        {sortedVisits.map((v, idx) => {
-                          const isExpanded = expandedVisitId === v._id;
-                          return (
-                            <div
-                              key={v._id}
-                              className={`dv-history-card bg-white rounded-3 ${
-                                isExpanded ? "expanded" : ""
-                              }`}
-                            >
-                              {/* Header row — always visible, click to expand/collapse */}
-                              <div
-                                className="dv-history-header p-3"
-                                onClick={() => toggleExpand(v._id)}
-                              >
-                                <div className="d-flex justify-content-between align-items-start gap-2 flex-wrap">
-                                  <div className="d-flex align-items-center gap-3">
-                                    <i
-                                      className={`bx bx-chevron-right dv-expand-arrow ${
-                                        isExpanded ? "open" : ""
-                                      }`}
-                                    />
-                                    <div
-                                      className="dv-avatar rounded-circle d-flex align-items-center justify-content-center shadow-sm"
-                                      style={{
-                                        width: 36,
-                                        height: 36,
-                                        fontSize: 12,
-                                      }}
-                                    >
-                                      {getInitials(v.agent?.name) || "?"}
-                                    </div>
+                    {/* Timeline Log Section — gets nearly all remaining height */}
+                    <div className="dv-card dv-log-card">
+                      <div className="d-flex align-items-center justify-content-between dv-log-header">
+                        <span className="dv-section-label mb-0">Visit History Log</span>
+                        <span className="text-muted fs-12 font-mono">{sortedVisits.length} Recorded</span>
+                      </div>
+
+                      {sortedVisits.length === 0 ? (
+                        <div className="text-center py-5 text-muted fs-13">
+                          No visit history found for this doctor.
+                        </div>
+                      ) : (
+                        <div className="dv-timeline-scroll">
+                          <div className="dv-timeline">
+                            {sortedVisits.map((v, idx) => (
+                              <div className="dv-timeline-item" key={v._id || idx}>
+                                <span
+                                  className={`dv-timeline-dot ${v.gps?.matchedClinic ? "verified" : "mismatch"}`}
+                                />
+                                <div className="dv-visit-entry">
+                                  <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 pb-3 mb-3 border-bottom">
                                     <div>
-                                      <div className="d-flex align-items-center gap-2 flex-wrap">
-                                        <span className="fw-semibold text-dark fs-14">
+                                      <div className="d-flex align-items-center gap-2">
+                                        <span className="fw-bold text-dark fs-15">
                                           {v.agent?.name || "Unknown Agent"}
                                         </span>
                                         {idx === 0 && (
-                                          <Badge
-                                            color="primary"
-                                            className="fs-11 px-2 py-1"
-                                            style={{ fontWeight: 600 }}
-                                          >
+                                          <Badge color="dark" className="fs-11">
                                             Latest
                                           </Badge>
                                         )}
                                       </div>
-                                      <div className="text-muted fs-12">
-                                        {formatDate(v.visitDate)} ·{" "}
-                                        {formatTime(v.checkInTime)}
+                                      <div className="text-muted fs-13 mt-1">
+                                        {formatDate(v.visitDate)} &bull; {formatTime(v.checkInTime)}
                                       </div>
                                     </div>
+                                    <Badge
+                                      color={v.gps?.matchedClinic ? "success-subtle" : "danger-subtle"}
+                                      className={`text-${
+                                        v.gps?.matchedClinic ? "success" : "danger"
+                                      } border fs-12 px-2 py-1`}
+                                    >
+                                      {v.gps?.matchedClinic ? "Location Match" : "Location Mismatch"}
+                                    </Badge>
                                   </div>
 
-                                  <span
-                                    className="px-2.5 py-1 rounded-2 fw-semibold fs-11 flex-shrink-0"
-                                    style={{
-                                      backgroundColor: v.gps?.matchedClinic
-                                        ? "#f0fdf4"
-                                        : "#fef2f2",
-                                      color: v.gps?.matchedClinic
-                                        ? "#166534"
-                                        : "#991b1b",
-                                      border: `1px solid ${
-                                        v.gps?.matchedClinic
-                                          ? "#bbf7d0"
-                                          : "#fecaca"
-                                      }`,
-                                    }}
-                                  >
-                                    {v.gps?.matchedClinic
-                                      ? "Verified"
-                                      : "Mismatch"}
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Expanded inline detail */}
-                              {isExpanded && (
-                                <div
-                                  className="px-3 pb-3"
-                                  style={{ borderTop: "1px solid #f1f5f9" }}
-                                >
-                                  <div className="mt-3">
-                                    <span
-                                      className="text-uppercase fw-bold text-muted d-block mb-2"
-                                      style={{
-                                        letterSpacing: "0.05em",
-                                        fontSize: "11px",
-                                      }}
-                                    >
-                                      Location Comparison
-                                    </span>
+                                  <div className="mb-3">
+                                    <span className="dv-section-label">Location Verification</span>
                                     <Row className="g-2">
                                       <Col xs={12} md={6}>
-                                        <div
-                                          className="p-3 border rounded-3 h-100 bg-light-subtle"
-                                          style={{ borderColor: "#e2e8f0" }}
-                                        >
-                                          <div
-                                            className="text-muted fw-bold text-uppercase mb-1"
-                                            style={{
-                                              fontSize: "11px",
-                                              letterSpacing: "0.02em",
-                                            }}
-                                          >
-                                            Registered Clinic
-                                          </div>
-                                          <div className="fw-medium text-dark fs-13 mb-2">
-                                            {v.doctor?.clinicLocation?.lat?.toFixed(
-                                              5,
-                                            ) || "N/A"}
-                                            ,{" "}
-                                            {v.doctor?.clinicLocation?.lng?.toFixed(
-                                              5,
-                                            ) || "N/A"}
+                                        <div className="dv-subbox p-3 h-100">
+                                          <div className="text-muted fs-12 fw-medium mb-1">REGISTERED CLINIC</div>
+                                          <div className="fw-semibold text-dark fs-13 font-mono mb-2">
+                                            {v.doctor?.clinicLocation?.lat?.toFixed(5) || "N/A"},{" "}
+                                            {v.doctor?.clinicLocation?.lng?.toFixed(5) || "N/A"}
                                           </div>
                                           {v.doctor?.clinicLocation?.lat && (
                                             <a
                                               href={mapsLink(
                                                 v.doctor.clinicLocation.lat,
-                                                v.doctor.clinicLocation.lng,
+                                                v.doctor.clinicLocation.lng
                                               )}
                                               target="_blank"
                                               rel="noreferrer"
-                                              className="btn btn-sm btn-outline-secondary fs-12 shadow-sm"
+                                              className="text-primary text-decoration-none fs-13 d-inline-flex align-items-center gap-1"
                                             >
-                                              View on Maps
+                                              <span>View Map</span>
+                                              <i className="bx bx-external-link fs-13" />
                                             </a>
                                           )}
                                         </div>
                                       </Col>
                                       <Col xs={12} md={6}>
-                                        <div
-                                          className="p-3 border rounded-3 h-100"
-                                          style={{
-                                            backgroundColor: v.gps
-                                              ?.matchedClinic
-                                              ? "#f0fdf4"
-                                              : "#fef2f2",
-                                            borderColor: v.gps?.matchedClinic
-                                              ? "#bbf7d0"
-                                              : "#fecaca",
-                                          }}
-                                        >
-                                          <div
-                                            className="text-muted fw-bold text-uppercase mb-1"
-                                            style={{
-                                              fontSize: "11px",
-                                              letterSpacing: "0.02em",
-                                            }}
-                                          >
-                                            Recorded Check-in
-                                          </div>
-                                          <div className="fw-medium text-dark fs-13 mb-2">
-                                            {v.gps?.lat?.toFixed(5) || "N/A"},{" "}
-                                            {v.gps?.lng?.toFixed(5) || "N/A"}
+                                        <div className="dv-subbox p-3 h-100">
+                                          <div className="text-muted fs-12 fw-medium mb-1">CHECK-IN LOCATION</div>
+                                          <div className="fw-semibold text-dark fs-13 font-mono mb-2">
+                                            {v.gps?.lat?.toFixed(5) || "N/A"}, {v.gps?.lng?.toFixed(5) || "N/A"}
                                           </div>
                                           {v.gps?.lat && (
                                             <a
-                                              href={mapsLink(
-                                                v.gps.lat,
-                                                v.gps.lng,
-                                              )}
+                                              href={mapsLink(v.gps.lat, v.gps.lng)}
                                               target="_blank"
                                               rel="noreferrer"
-                                              className={`btn btn-sm fs-12 shadow-sm ${
-                                                v.gps?.matchedClinic
-                                                  ? "btn-outline-success"
-                                                  : "btn-outline-danger"
-                                              }`}
+                                              className="text-primary text-decoration-none fs-13 d-inline-flex align-items-center gap-1"
                                             >
-                                              Open Location
+                                              <span>View Map</span>
+                                              <i className="bx bx-external-link fs-13" />
                                             </a>
                                           )}
                                         </div>
@@ -831,135 +722,74 @@ const DoctorVisits = () => {
                                     </Row>
                                   </div>
 
-                                  <div className="mt-3">
-                                    <span
-                                      className="text-uppercase fw-bold text-muted d-block mb-2"
-                                      style={{
-                                        letterSpacing: "0.05em",
-                                        fontSize: "11px",
-                                      }}
-                                    >
-                                      Discussion Notes
-                                    </span>
-                                    <div
-                                      className="dv-notes-box p-3 rounded-3 border fs-13 text-dark mb-2"
-                                      style={{
-                                        background: "#f8fafc",
-                                        borderColor: "#e2e8f0",
-                                      }}
-                                    >
+                                  <div className="mb-3">
+                                    <span className="dv-section-label">Discussion Notes</span>
+                                    <div className="dv-notes-box p-3 rounded fs-14 mb-2">
                                       {v.visitNotes || (
                                         <span className="text-muted fst-italic">
-                                          No notes added.
+                                          No notes entered for this visit.
                                         </span>
                                       )}
                                     </div>
                                     <div className="d-flex align-items-center gap-2 flex-wrap">
-                                      <span
-                                        className="px-2 py-1 fs-12 rounded border"
-                                        style={{
-                                          background: "#f1f5f9",
-                                          color: "#334155",
-                                          borderColor: "#cbd5e1",
-                                        }}
-                                      >
-                                        Fee Discussed:{" "}
-                                        {v.commissionDiscussed ? "Yes" : "No"}
+                                      <span className="badge bg-white text-dark border font-mono fs-12">
+                                        Fee Discussed: {v.commissionDiscussed ? "Yes" : "No"}
                                       </span>
-                                      {v.commissionDiscussed &&
-                                        v.commissionPercentage != null && (
-                                          <span className="px-2 py-1 fs-12 rounded text-white bg-primary">
-                                            Commission: {v.commissionPercentage}
-                                            %
-                                          </span>
-                                        )}
-                                      <span
-                                        className="px-2 py-1 rounded fs-11"
-                                        style={{
-                                          background: "#f8fafc",
-                                          border: "1px solid #e2e8f0",
-                                          color: "#475569",
-                                        }}
-                                      >
-                                        {v.visitType === "FIRST_VISIT"
-                                          ? "First Visit"
-                                          : "Repeat Visit"}
+                                      {v.commissionDiscussed && v.commissionPercentage != null && (
+                                        <span className="badge bg-primary-subtle text-primary border border-primary-subtle fs-12">
+                                          Commission: {v.commissionPercentage}%
+                                        </span>
+                                      )}
+                                      <span className="badge bg-light text-secondary border fs-12">
+                                        {v.visitType === "FIRST_VISIT" ? "First Visit" : "Repeat Visit"}
                                       </span>
                                     </div>
                                   </div>
 
-                                  <div className="mt-3">
-                                    <span
-                                      className="text-uppercase fw-bold text-muted d-block mb-2"
-                                      style={{
-                                        letterSpacing: "0.05em",
-                                        fontSize: "11px",
-                                      }}
-                                    >
-                                      Photo Verification
-                                    </span>
-                                    {v.selfieProof?.url ||
-                                    v.clinicPhoto?.url ? (
+                                  <div>
+                                    <span className="dv-section-label">Proof Images</span>
+                                    {v.selfieProof?.url || v.clinicPhoto?.url ? (
                                       <div className="d-flex gap-3 flex-wrap">
                                         {v.selfieProof?.url && (
-                                          <div className="text-center">
+                                          <div>
                                             <img
                                               src={v.selfieProof.url}
                                               alt="Selfie Proof"
-                                              className="rounded-3 border img-zoom shadow-sm"
-                                              style={{
-                                                width: 100,
-                                                height: 100,
-                                                objectFit: "cover",
-                                              }}
+                                              className="dv-img-thumbnail"
+                                              onClick={() => setActiveImage(v.selfieProof.url)}
                                             />
-                                            <span className="d-block text-muted fs-11 mt-1">
-                                              Selfie
+                                            <span className="d-block text-muted fs-12 text-center mt-1">
+                                              Selfie Proof
                                             </span>
                                           </div>
                                         )}
                                         {v.clinicPhoto?.url && (
-                                          <div className="text-center">
+                                          <div>
                                             <img
                                               src={v.clinicPhoto.url}
                                               alt="Clinic Photo"
-                                              className="rounded-3 border img-zoom shadow-sm"
-                                              style={{
-                                                width: 100,
-                                                height: 100,
-                                                objectFit: "cover",
-                                              }}
+                                              className="dv-img-thumbnail"
+                                              onClick={() => setActiveImage(v.clinicPhoto.url)}
                                             />
-                                            <span className="d-block text-muted fs-11 mt-1">
+                                            <span className="d-block text-muted fs-12 text-center mt-1">
                                               Clinic Photo
                                             </span>
                                           </div>
                                         )}
                                       </div>
                                     ) : (
-                                      <div
-                                        className="p-3 text-center rounded-3 border text-muted fs-13 fst-italic"
-                                        style={{
-                                          background: "#f8fafc",
-                                          borderColor: "#e2e8f0",
-                                        }}
-                                      >
-                                        No photo proof submitted for this visit.
+                                      <div className="text-muted fs-13 fst-italic">
+                                        No image proof uploaded for this visit.
                                       </div>
                                     )}
                                   </div>
                                 </div>
-                              )}
-                            </div>
-                          );
-                        })}
-
-                        <div className="text-center text-muted fs-12 py-3">
-                          <i className="bx bx-check-circle me-1" />
-                          End of visit history
+                              </div>
+                            ))}
+                          </div>
                         </div>
-                      </div>
-                    )}
+                      )}
+                    </div>
                   </>
                 )}
               </>
@@ -967,6 +797,23 @@ const DoctorVisits = () => {
           </div>
         </div>
       </div>
+
+      {/* Lightbox Modal for Photo Verification */}
+      <Modal isOpen={!!activeImage} toggle={() => setActiveImage(null)} centered size="md">
+        <ModalHeader toggle={() => setActiveImage(null)} className="border-0 pb-0">
+          Photo Proof Preview
+        </ModalHeader>
+        <ModalBody className="text-center p-4">
+          {activeImage && (
+            <img
+              src={activeImage}
+              alt="Verification Proof Preview"
+              className="img-fluid rounded border shadow-sm"
+              style={{ maxHeight: "70vh", objectFit: "contain" }}
+            />
+          )}
+        </ModalBody>
+      </Modal>
     </div>
   );
 };
