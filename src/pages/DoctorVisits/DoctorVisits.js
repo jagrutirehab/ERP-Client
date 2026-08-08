@@ -87,7 +87,9 @@ const DoctorVisits = () => {
       })
       .catch((err) => {
         if (!handleAuthError(err)) {
-          setListError(err?.response?.data?.message || "Failed to load doctor directory");
+          setListError(
+            err?.response?.data?.message || "Failed to load doctor directory",
+          );
         }
       })
       .finally(() => setListLoading(false));
@@ -98,7 +100,9 @@ const DoctorVisits = () => {
     const urlName = searchParams.get("doctor");
     const urlClinic = searchParams.get("clinic");
     if (!urlName || !urlClinic) return;
-    const match = doctors.find((d) => d.name === urlName && d.clinicName === urlClinic);
+    const match = doctors.find(
+      (d) => d.name === urlName && d.clinicName === urlClinic,
+    );
     if (match) setSelectedDoctor(match);
   }, [doctors, searchParams]);
 
@@ -116,7 +120,9 @@ const DoctorVisits = () => {
       })
       .catch((err) => {
         if (!handleAuthError(err)) {
-          setDetailError(err?.response?.data?.message || "Failed to load visit history");
+          setDetailError(
+            err?.response?.data?.message || "Failed to load visit history",
+          );
         }
       })
       .finally(() => setDetailLoading(false));
@@ -157,22 +163,26 @@ const DoctorVisits = () => {
         (d) =>
           !search.trim() ||
           d.name?.toLowerCase().includes(search.trim().toLowerCase()) ||
-          d.clinicName?.toLowerCase().includes(search.trim().toLowerCase())
+          d.clinicName?.toLowerCase().includes(search.trim().toLowerCase()),
       ),
-    [doctors, search]
+    [doctors, search],
   );
 
   const sortedVisits = useMemo(
-    () => [...visits].sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate)),
-    [visits]
+    () =>
+      [...visits].sort((a, b) => new Date(b.visitDate) - new Date(a.visitDate)),
+    [visits],
   );
 
   const doctorInfo = visits[0]?.doctor;
   const totalVisits = visits.length;
   const matched = visits.filter((v) => v.gps?.matchedClinic).length;
   const mismatch = totalVisits - matched;
-  const verifiedRate = totalVisits > 0 ? Math.round((matched / totalVisits) * 100) : 0;
-  const uniqueAgents = [...new Set(visits.map((v) => v.agent?.name).filter(Boolean))];
+  const verifiedRate =
+    totalVisits > 0 ? Math.round((matched / totalVisits) * 100) : 0;
+  const uniqueAgents = [
+    ...new Set(visits.map((v) => v.agent?.name).filter(Boolean)),
+  ];
 
   const displayName = selectedDoctor
     ? /^dr\.?\s/i.test(selectedDoctor.name)
@@ -183,7 +193,10 @@ const DoctorVisits = () => {
   if (permissionLoading) {
     return (
       <div className="page-content d-flex justify-content-center align-items-center min-vh-100">
-        <Spinner color="primary" style={{ width: "2.5rem", height: "2.5rem" }} />
+        <Spinner
+          color="primary"
+          style={{ width: "2.5rem", height: "2.5rem" }}
+        />
       </div>
     );
   }
@@ -415,16 +428,32 @@ const DoctorVisits = () => {
       <div className="dv-container">
         {/* Header Bar */}
         <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2 flex-shrink-0">
-          <h4 className="fw-bold mb-0 text-dark" style={{ letterSpacing: "-0.02em" }}>
+          <h4
+            className="fw-bold mb-0 text-dark"
+            style={{ letterSpacing: "-0.02em" }}
+          >
             Doctor Field Visits
           </h4>
           <button
-            className="btn btn-dark btn-sm px-3 py-2 d-flex align-items-center gap-2 fw-medium shadow-sm"
+            className="btn d-flex align-items-center gap-2"
             onClick={handleExportDirectory}
             disabled={isExporting}
+            style={{
+              backgroundColor: "#1e90ff",
+              color: "#fff",
+              border: "none",
+              borderRadius: 4,
+              padding: "8px 16px",
+              fontSize: 14,
+              fontWeight: 500,
+            }}
           >
-            {isExporting ? <Spinner size="sm" /> : <i className="bx bx-export fs-15" />}
-            <span>Export Directory</span>
+            {isExporting ? (
+              <Spinner size="sm" style={{ color: "#fff" }} />
+            ) : (
+              <i className="ri-file-excel-2-line" style={{ fontSize: 16 }} />
+            )}
+            Export Excel
           </button>
         </div>
 
@@ -456,7 +485,9 @@ const DoctorVisits = () => {
               {listLoading && (
                 <div className="text-center py-5">
                   <Spinner size="sm" color="secondary" />
-                  <span className="d-block text-muted fs-12 mt-2">Loading doctors...</span>
+                  <span className="d-block text-muted fs-12 mt-2">
+                    Loading doctors...
+                  </span>
                 </div>
               )}
 
@@ -469,7 +500,9 @@ const DoctorVisits = () => {
               {!listLoading && !listError && filteredDoctors.length === 0 && (
                 <div className="text-center py-5 px-3">
                   <i className="bx bx-user-x fs-32 text-muted mb-2 d-block" />
-                  <span className="text-muted fs-13">No matching records found</span>
+                  <span className="text-muted fs-13">
+                    No matching records found
+                  </span>
                 </div>
               )}
 
@@ -477,7 +510,8 @@ const DoctorVisits = () => {
                 !listError &&
                 filteredDoctors.map((d, idx) => {
                   const isActive =
-                    selectedDoctor?.name === d.name && selectedDoctor?.clinicName === d.clinicName;
+                    selectedDoctor?.name === d.name &&
+                    selectedDoctor?.clinicName === d.clinicName;
 
                   return (
                     <div
@@ -499,10 +533,14 @@ const DoctorVisits = () => {
                           <div className="d-flex align-items-center justify-content-between gap-1">
                             <h6
                               className={`mb-0 fs-14 text-truncate ${
-                                isActive ? "fw-bold text-primary" : "fw-semibold text-dark"
+                                isActive
+                                  ? "fw-bold text-primary"
+                                  : "fw-semibold text-dark"
                               }`}
                             >
-                              {/^dr\.?\s/i.test(d.name) ? d.name : `Dr. ${d.name}`}
+                              {/^dr\.?\s/i.test(d.name)
+                                ? d.name
+                                : `Dr. ${d.name}`}
                             </h6>
                             <span
                               className={`rounded-circle flex-shrink-0 ${
@@ -518,18 +556,24 @@ const DoctorVisits = () => {
                             </UncontrolledTooltip>
                           </div>
 
-                          <div className="text-muted fs-12 text-truncate mt-1">{d.clinicName}</div>
+                          <div className="text-muted fs-12 text-truncate mt-1">
+                            {d.clinicName}
+                          </div>
 
                           <div className="d-flex align-items-center justify-content-between mt-2 pt-1">
                             <span className="badge bg-light text-secondary border font-mono fw-normal fs-11">
-                              {d.totalVisits} {d.totalVisits === 1 ? "visit" : "visits"}
+                              {d.totalVisits}{" "}
+                              {d.totalVisits === 1 ? "visit" : "visits"}
                             </span>
                             <span className="text-muted fs-11">
                               {d.lastVisitDate
-                                ? new Date(d.lastVisitDate).toLocaleDateString("en-IN", {
-                                    day: "2-digit",
-                                    month: "short",
-                                  })
+                                ? new Date(d.lastVisitDate).toLocaleDateString(
+                                    "en-IN",
+                                    {
+                                      day: "2-digit",
+                                      month: "short",
+                                    },
+                                  )
                                 : "—"}
                             </span>
                           </div>
@@ -544,27 +588,16 @@ const DoctorVisits = () => {
           {/* RIGHT: Detail View Workspace */}
           <div className="dv-detail-col">
             {!selectedDoctor ? (
-              <div className="dv-card p-5 text-center d-flex align-items-center justify-content-center flex-grow-1">
-                <div>
-                  <div
-                    className="mx-auto rounded-circle bg-light d-flex align-items-center justify-content-center mb-3"
-                    style={{ width: 64, height: 64 }}
-                  >
-                    <i className="bx bx-pointer fs-24 text-muted" />
-                  </div>
-                  <h6 className="fw-bold text-dark">No Doctor Selected</h6>
-                  <p className="text-muted fs-13 mb-0">
-                    Select a record from the directory to inspect field visits and verification logs.
-                  </p>
-                </div>
-              </div>
+              <div className="flex-grow-1" />
             ) : (
               <>
                 {detailLoading && (
                   <div className="dv-card p-5 text-center flex-grow-1 d-flex align-items-center justify-content-center">
                     <div>
                       <Spinner color="primary" />
-                      <span className="d-block text-muted fs-13 mt-3">Fetching history records...</span>
+                      <span className="d-block text-muted fs-13 mt-3">
+                        Fetching history records...
+                      </span>
                     </div>
                   </div>
                 )}
@@ -578,9 +611,14 @@ const DoctorVisits = () => {
                       <div className="d-flex justify-content-between align-items-start flex-wrap gap-2 pb-2 mb-2 border-bottom">
                         <div>
                           <div className="d-flex align-items-center gap-2 flex-wrap mb-1">
-                            <h5 className="mb-0 fw-bold text-dark">{displayName}</h5>
+                            <h5 className="mb-0 fw-bold text-dark">
+                              {displayName}
+                            </h5>
                             {doctorInfo?.specialisation && (
-                              <Badge color="primary-subtle" className="text-primary border fs-11">
+                              <Badge
+                                color="primary-subtle"
+                                className="text-primary border fs-11"
+                              >
                                 {doctorInfo.specialisation}
                               </Badge>
                             )}
@@ -603,26 +641,42 @@ const DoctorVisits = () => {
                       <Row className="g-2">
                         <Col xs={6} md={3}>
                           <div className="dv-kpi-card">
-                            <span className="dv-section-label mb-1">Total Visits</span>
-                            <div className="fw-bold fs-18 text-dark font-mono">{totalVisits}</div>
+                            <span className="dv-section-label mb-1">
+                              Total Visits
+                            </span>
+                            <div className="fw-bold fs-18 text-dark font-mono">
+                              {totalVisits}
+                            </div>
                           </div>
                         </Col>
                         <Col xs={6} md={3}>
                           <div className="dv-kpi-card">
-                            <span className="dv-section-label mb-1">GPS Verified</span>
-                            <div className="fw-bold fs-18 text-success font-mono">{verifiedRate}%</div>
+                            <span className="dv-section-label mb-1">
+                              GPS Verified
+                            </span>
+                            <div className="fw-bold fs-18 text-success font-mono">
+                              {verifiedRate}%
+                            </div>
                           </div>
                         </Col>
                         <Col xs={6} md={3}>
                           <div className="dv-kpi-card">
-                            <span className="dv-section-label mb-1">Mismatches</span>
-                            <div className="fw-bold fs-18 text-danger font-mono">{mismatch}</div>
+                            <span className="dv-section-label mb-1">
+                              Mismatches
+                            </span>
+                            <div className="fw-bold fs-18 text-danger font-mono">
+                              {mismatch}
+                            </div>
                           </div>
                         </Col>
                         <Col xs={6} md={3}>
                           <div className="dv-kpi-card">
-                            <span className="dv-section-label mb-1">Field Agents</span>
-                            <div className="fw-bold fs-18 text-primary font-mono">{uniqueAgents.length}</div>
+                            <span className="dv-section-label mb-1">
+                              Field Agents
+                            </span>
+                            <div className="fw-bold fs-18 text-primary font-mono">
+                              {uniqueAgents.length}
+                            </div>
                           </div>
                         </Col>
                       </Row>
@@ -631,8 +685,12 @@ const DoctorVisits = () => {
                     {/* Timeline Log Section — gets nearly all remaining height */}
                     <div className="dv-card dv-log-card">
                       <div className="d-flex align-items-center justify-content-between dv-log-header">
-                        <span className="dv-section-label mb-0">Visit History Log</span>
-                        <span className="text-muted fs-12 font-mono">{sortedVisits.length} Recorded</span>
+                        <span className="dv-section-label mb-0">
+                          Visit History Log
+                        </span>
+                        <span className="text-muted fs-12 font-mono">
+                          {sortedVisits.length} Recorded
+                        </span>
                       </div>
 
                       {sortedVisits.length === 0 ? (
@@ -643,7 +701,10 @@ const DoctorVisits = () => {
                         <div className="dv-timeline-scroll">
                           <div className="dv-timeline">
                             {sortedVisits.map((v, idx) => (
-                              <div className="dv-timeline-item" key={v._id || idx}>
+                              <div
+                                className="dv-timeline-item"
+                                key={v._id || idx}
+                              >
                                 <span
                                   className={`dv-timeline-dot ${v.gps?.matchedClinic ? "verified" : "mismatch"}`}
                                 />
@@ -661,34 +722,52 @@ const DoctorVisits = () => {
                                         )}
                                       </div>
                                       <div className="text-muted fs-13 mt-1">
-                                        {formatDate(v.visitDate)} &bull; {formatTime(v.checkInTime)}
+                                        {formatDate(v.visitDate)} &bull;{" "}
+                                        {formatTime(v.checkInTime)}
                                       </div>
                                     </div>
                                     <Badge
-                                      color={v.gps?.matchedClinic ? "success-subtle" : "danger-subtle"}
+                                      color={
+                                        v.gps?.matchedClinic
+                                          ? "success-subtle"
+                                          : "danger-subtle"
+                                      }
                                       className={`text-${
-                                        v.gps?.matchedClinic ? "success" : "danger"
+                                        v.gps?.matchedClinic
+                                          ? "success"
+                                          : "danger"
                                       } border fs-12 px-2 py-1`}
                                     >
-                                      {v.gps?.matchedClinic ? "Location Match" : "Location Mismatch"}
+                                      {v.gps?.matchedClinic
+                                        ? "Location Match"
+                                        : "Location Mismatch"}
                                     </Badge>
                                   </div>
 
                                   <div className="mb-3">
-                                    <span className="dv-section-label">Location Verification</span>
+                                    <span className="dv-section-label">
+                                      Location Verification
+                                    </span>
                                     <Row className="g-2">
                                       <Col xs={12} md={6}>
                                         <div className="dv-subbox p-3 h-100">
-                                          <div className="text-muted fs-12 fw-medium mb-1">REGISTERED CLINIC</div>
+                                          <div className="text-muted fs-12 fw-medium mb-1">
+                                            REGISTERED CLINIC
+                                          </div>
                                           <div className="fw-semibold text-dark fs-13 font-mono mb-2">
-                                            {v.doctor?.clinicLocation?.lat?.toFixed(5) || "N/A"},{" "}
-                                            {v.doctor?.clinicLocation?.lng?.toFixed(5) || "N/A"}
+                                            {v.doctor?.clinicLocation?.lat?.toFixed(
+                                              5,
+                                            ) || "N/A"}
+                                            ,{" "}
+                                            {v.doctor?.clinicLocation?.lng?.toFixed(
+                                              5,
+                                            ) || "N/A"}
                                           </div>
                                           {v.doctor?.clinicLocation?.lat && (
                                             <a
                                               href={mapsLink(
                                                 v.doctor.clinicLocation.lat,
-                                                v.doctor.clinicLocation.lng
+                                                v.doctor.clinicLocation.lng,
                                               )}
                                               target="_blank"
                                               rel="noreferrer"
@@ -702,13 +781,19 @@ const DoctorVisits = () => {
                                       </Col>
                                       <Col xs={12} md={6}>
                                         <div className="dv-subbox p-3 h-100">
-                                          <div className="text-muted fs-12 fw-medium mb-1">CHECK-IN LOCATION</div>
+                                          <div className="text-muted fs-12 fw-medium mb-1">
+                                            CHECK-IN LOCATION
+                                          </div>
                                           <div className="fw-semibold text-dark fs-13 font-mono mb-2">
-                                            {v.gps?.lat?.toFixed(5) || "N/A"}, {v.gps?.lng?.toFixed(5) || "N/A"}
+                                            {v.gps?.lat?.toFixed(5) || "N/A"},{" "}
+                                            {v.gps?.lng?.toFixed(5) || "N/A"}
                                           </div>
                                           {v.gps?.lat && (
                                             <a
-                                              href={mapsLink(v.gps.lat, v.gps.lng)}
+                                              href={mapsLink(
+                                                v.gps.lat,
+                                                v.gps.lng,
+                                              )}
                                               target="_blank"
                                               rel="noreferrer"
                                               className="text-primary text-decoration-none fs-13 d-inline-flex align-items-center gap-1"
@@ -723,7 +808,9 @@ const DoctorVisits = () => {
                                   </div>
 
                                   <div className="mb-3">
-                                    <span className="dv-section-label">Discussion Notes</span>
+                                    <span className="dv-section-label">
+                                      Discussion Notes
+                                    </span>
                                     <div className="dv-notes-box p-3 rounded fs-14 mb-2">
                                       {v.visitNotes || (
                                         <span className="text-muted fst-italic">
@@ -733,22 +820,30 @@ const DoctorVisits = () => {
                                     </div>
                                     <div className="d-flex align-items-center gap-2 flex-wrap">
                                       <span className="badge bg-white text-dark border font-mono fs-12">
-                                        Fee Discussed: {v.commissionDiscussed ? "Yes" : "No"}
+                                        Fee Discussed:{" "}
+                                        {v.commissionDiscussed ? "Yes" : "No"}
                                       </span>
-                                      {v.commissionDiscussed && v.commissionPercentage != null && (
-                                        <span className="badge bg-primary-subtle text-primary border border-primary-subtle fs-12">
-                                          Commission: {v.commissionPercentage}%
-                                        </span>
-                                      )}
+                                      {v.commissionDiscussed &&
+                                        v.commissionPercentage != null && (
+                                          <span className="badge bg-primary-subtle text-primary border border-primary-subtle fs-12">
+                                            Commission: {v.commissionPercentage}
+                                            %
+                                          </span>
+                                        )}
                                       <span className="badge bg-light text-secondary border fs-12">
-                                        {v.visitType === "FIRST_VISIT" ? "First Visit" : "Repeat Visit"}
+                                        {v.visitType === "FIRST_VISIT"
+                                          ? "First Visit"
+                                          : "Repeat Visit"}
                                       </span>
                                     </div>
                                   </div>
 
                                   <div>
-                                    <span className="dv-section-label">Proof Images</span>
-                                    {v.selfieProof?.url || v.clinicPhoto?.url ? (
+                                    <span className="dv-section-label">
+                                      Proof Images
+                                    </span>
+                                    {v.selfieProof?.url ||
+                                    v.clinicPhoto?.url ? (
                                       <div className="d-flex gap-3 flex-wrap">
                                         {v.selfieProof?.url && (
                                           <div>
@@ -756,7 +851,11 @@ const DoctorVisits = () => {
                                               src={v.selfieProof.url}
                                               alt="Selfie Proof"
                                               className="dv-img-thumbnail"
-                                              onClick={() => setActiveImage(v.selfieProof.url)}
+                                              onClick={() =>
+                                                setActiveImage(
+                                                  v.selfieProof.url,
+                                                )
+                                              }
                                             />
                                             <span className="d-block text-muted fs-12 text-center mt-1">
                                               Selfie Proof
@@ -769,7 +868,11 @@ const DoctorVisits = () => {
                                               src={v.clinicPhoto.url}
                                               alt="Clinic Photo"
                                               className="dv-img-thumbnail"
-                                              onClick={() => setActiveImage(v.clinicPhoto.url)}
+                                              onClick={() =>
+                                                setActiveImage(
+                                                  v.clinicPhoto.url,
+                                                )
+                                              }
                                             />
                                             <span className="d-block text-muted fs-12 text-center mt-1">
                                               Clinic Photo
@@ -799,8 +902,16 @@ const DoctorVisits = () => {
       </div>
 
       {/* Lightbox Modal for Photo Verification */}
-      <Modal isOpen={!!activeImage} toggle={() => setActiveImage(null)} centered size="md">
-        <ModalHeader toggle={() => setActiveImage(null)} className="border-0 pb-0">
+      <Modal
+        isOpen={!!activeImage}
+        toggle={() => setActiveImage(null)}
+        centered
+        size="md"
+      >
+        <ModalHeader
+          toggle={() => setActiveImage(null)}
+          className="border-0 pb-0"
+        >
           Photo Proof Preview
         </ModalHeader>
         <ModalBody className="text-center p-4">
