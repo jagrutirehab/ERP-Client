@@ -4544,3 +4544,11 @@ export const reviewCenterFloorPhotoRecord = (recordId, data) => {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
+
+// Audit days recorded for one center, newest first — drives the timeline.
+export const getCenterAuditTimeline = (params) => {
+  return axios.get(url.CENTER_FLOOR_AUDITS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   Card,
   CardBody,
@@ -32,6 +32,12 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
   const [tree, setTree] = useState([]);
   const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  // Narrow the tree to one floor, and optionally one area within it, so a big
+  // building doesn't have to be scrolled to reach the location being shot.
+  // Empty string means "all" — the default.
+  const [floorFilter, setFloorFilter] = useState("");
+  const [areaFilter, setAreaFilter] = useState("");
 
   const [uploadModalOpen, setUploadModalOpen] = useState(false);
   const [activeSlot, setActiveSlot] = useState(null);
@@ -75,6 +81,54 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
     fetchFields();
   }, [selectedCenter, auditDate]);
 
+  const floorOptions = useMemo(
+    () => [
+      { value: "", label: "All floors" },
+      ...tree.map((node) => ({ value: node.key, label: node.name })),
+    ],
+    [tree],
+  );
+
+  const selectedFloorNode = useMemo(
+    () => tree.find((node) => node.key === floorFilter) || null,
+    [tree, floorFilter],
+  );
+
+  // Second level only — areas nested deeper stay grouped under their parent.
+  const areaOptions = useMemo(() => {
+    if (!selectedFloorNode) return [];
+    return [
+      { value: "", label: "All areas" },
+      ...selectedFloorNode.children.map((child) => ({
+        value: child.key,
+        label: child.name,
+      })),
+    ];
+  }, [selectedFloorNode]);
+
+  // An area choice only means something within a floor, so drop it whenever the
+  // floor changes or the chosen area is no longer present.
+  useEffect(() => {
+    if (!areaFilter) return;
+    const stillValid = selectedFloorNode?.children.some(
+      (child) => child.key === areaFilter,
+    );
+    if (!stillValid) setAreaFilter("");
+  }, [selectedFloorNode, areaFilter]);
+
+  const visibleTree = useMemo(() => {
+    if (!floorFilter || !selectedFloorNode) return tree;
+    if (!areaFilter) return [selectedFloorNode];
+
+    const child = selectedFloorNode.children.find((c) => c.key === areaFilter);
+    if (!child) return [selectedFloorNode];
+
+    // Keep the floor as the heading so the breadcrumb still reads in full.
+    return [{ ...selectedFloorNode, children: [child] }];
+  }, [tree, floorFilter, areaFilter, selectedFloorNode]);
+
+  const isFiltered = !!floorFilter;
+
   const openUploadModal = (slot) => {
     setActiveSlot(slot);
     setUploadModalOpen(true);
@@ -115,6 +169,29 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
               disableMobile: true,
             }}
             onChange={([picked]) => picked && setAuditDate(picked)}
+          />
+        </div>
+
+        <div style={{ minWidth: 170 }}>
+          <Select
+            options={floorOptions}
+            value={floorOptions.find((o) => o.value === floorFilter) || floorOptions[0]}
+            onChange={(selected) => {
+              setFloorFilter(selected ? selected.value : "");
+              setAreaFilter("");
+            }}
+            placeholder="All floors"
+            isDisabled={tree.length === 0}
+          />
+        </div>
+
+        <div style={{ minWidth: 170 }}>
+          <Select
+            options={areaOptions}
+            value={areaOptions.find((o) => o.value === areaFilter) || areaOptions[0] || null}
+            onChange={(selected) => setAreaFilter(selected ? selected.value : "")}
+            placeholder="All areas"
+            isDisabled={areaOptions.length <= 1}
           />
         </div>
 
@@ -168,13 +245,31 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
       )}
 
       <Card>
-        <CardHeader>
+        <CardHeader className="d-flex align-items-center justify-content-between gap-2">
           <h5 className="mb-0">
             Floor Photos
             <span className="text-muted fw-normal ms-2" style={{ fontSize: 13 }}>
               {formatAuditDate(auditDate)}
             </span>
           </h5>
+
+          {isFiltered && (
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+              style={{ fontSize: 11 }}
+              onClick={() => {
+                setFloorFilter("");
+                setAreaFilter("");
+              }}
+            >
+              <i className="ri-filter-off-line" />
+              Showing {selectedFloorNode?.name}
+              {areaFilter &&
+                ` / ${selectedFloorNode?.children.find((c) => c.key === areaFilter)?.name}`}
+              {" "}· Clear
+            </button>
+          )}
         </CardHeader>
         <CardBody>
           {!selectedCenter ? (
@@ -190,9 +285,13 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
               No locations are configured for this center. Configure them under
               Setting → Center Floor Configuration.
             </p>
+          ) : visibleTree.length === 0 ? (
+            <p className="text-muted small mb-0">
+              No locations match the selected floor and area.
+            </p>
           ) : (
             <LocationTreeSlots
-              tree={tree}
+              tree={visibleTree}
               editable={editable}
               hasWrite={hasWrite}
               hasDelete={hasDelete}

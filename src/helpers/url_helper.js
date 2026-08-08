@@ -852,3 +852,4 @@ export const CONFIGURATION_FLOORS_SUMMARY =
 export const CENTER_FLOOR_PHOTOS = "/center-floor/photos";
 export const CENTER_FLOOR_PHOTO_UPLOAD = "/center-floor/photos/upload";
 export const CENTER_FLOOR_PHOTOS_ALL = "/center-floor/photos/all";
+export const CENTER_FLOOR_AUDITS = "/center-floor/audits";
