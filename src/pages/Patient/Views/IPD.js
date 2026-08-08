@@ -239,7 +239,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                           ].includes(r.category);
                         }
                         if (
-                          ["PSYCHOLOGIST", "MSW", "PSW"].includes(user?.role)
+                          ["MSW", "PSW"].includes(user?.role)
                         ) {
                           return ![PRESCRIPTION, VITAL_SIGN].includes(
                             r.category,
@@ -295,30 +295,30 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                   user?.email === "owais@gmail.com" ||
                   user?.email === "bishal@gmail.com" ||
                   user?.email === "hemanthshinde@gmail.com") && (
-                  <div className="d-flex align-items-center">
-                    <UncontrolledTooltip
-                      placement="bottom"
-                      target="edit-admission"
-                    >
-                      Edit Admission
-                    </UncontrolledTooltip>
-                    <Button
-                      onClick={() => {
-                        dispatch(
-                          admitDischargePatient({
-                            data: addmission,
-                            isOpen: EDIT_ADMISSION,
-                          }),
-                        );
-                      }}
-                      id="edit-admission"
-                      size="sm"
-                      outline
-                    >
-                      <i className="ri-quill-pen-line text-muted fs-6"></i>
-                    </Button>
-                  </div>
-                )}
+                    <div className="d-flex align-items-center">
+                      <UncontrolledTooltip
+                        placement="bottom"
+                        target="edit-admission"
+                      >
+                        Edit Admission
+                      </UncontrolledTooltip>
+                      <Button
+                        onClick={() => {
+                          dispatch(
+                            admitDischargePatient({
+                              data: addmission,
+                              isOpen: EDIT_ADMISSION,
+                            }),
+                          );
+                        }}
+                        id="edit-admission"
+                        size="sm"
+                        outline
+                      >
+                        <i className="ri-quill-pen-line text-muted fs-6"></i>
+                      </Button>
+                    </div>
+                  )}
 
                 <div className="d-flex align-items-center">
                   <UncontrolledTooltip
@@ -334,11 +334,10 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     outline
                   >
                     <i
-                      className={`${
-                        open === idx.toString()
+                      className={`${open === idx.toString()
                           ? " ri-arrow-up-s-line"
                           : "ri-arrow-down-s-line"
-                      } fs-6`}
+                        } fs-6`}
                     ></i>
                   </Button>
                 </div>
