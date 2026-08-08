@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
@@ -74,6 +74,11 @@ const DoctorVisits = () => {
 
   const [activeImage, setActiveImage] = useState(null);
 
+  // Ref to the detail column — used to auto-scroll into view on mobile
+  // when a doctor is picked, so users don't have to manually scroll past
+  // a long (1000+) directory list every time.
+  const detailRef = useRef(null);
+
   useEffect(() => {
     document.title = "Doctor Visits | Jagruti Rehab";
   }, []);
@@ -126,6 +131,18 @@ const DoctorVisits = () => {
         }
       })
       .finally(() => setDetailLoading(false));
+  }, [selectedDoctor]);
+
+  // Auto-scroll to the detail column on mobile/tablet stacked layouts,
+  // so picking a doctor from a very long list doesn't leave the user
+  // stuck having to manually scroll past the rest of the directory.
+  useEffect(() => {
+    if (!selectedDoctor) return;
+    if (window.innerWidth > 1024) return; // desktop side-by-side layout — no need
+    const timer = setTimeout(() => {
+      detailRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => clearTimeout(timer);
   }, [selectedDoctor]);
 
   const handleSelectDoctor = (d) => {
@@ -309,6 +326,10 @@ const DoctorVisits = () => {
             gap: 0.85rem;
           }
 
+          .dv-empty-spacer {
+            flex-grow: 1;
+          }
+
           .dv-profile-card {
             flex-shrink: 0;
             padding: 1rem 1.25rem !important;
@@ -422,6 +443,74 @@ const DoctorVisits = () => {
             transform: translateY(-2px);
             box-shadow: 0 4px 12px rgba(0,0,0,0.08);
           }
+
+          /* ===== MOBILE-ONLY FIXES (desktop above is untouched) ===== */
+          @media (max-width: 767px) {
+            .dv-container {
+              height: auto;
+              min-height: 0;
+              overflow-x: hidden;
+            }
+
+            .dv-layout-grid {
+              height: auto;
+            }
+
+            .dv-directory-col {
+              height: auto;
+              max-height: 55vh;
+              overflow-y: auto;
+              scroll-margin-top: 12px;
+            }
+
+            .dv-list-panel {
+              overflow: visible;
+              flex: none;
+            }
+
+            .dv-empty-spacer {
+              flex-grow: 0;
+              height: 0;
+              min-height: 0;
+            }
+
+            .dv-detail-col {
+              height: auto;
+              scroll-margin-top: 12px;
+            }
+
+            .dv-log-card {
+              flex: none;
+            }
+
+            .dv-timeline-scroll {
+              flex: none;
+              max-height: 65vh;
+              padding: 1rem 0.75rem 1rem 1.5rem;
+            }
+
+            .dv-timeline::before {
+              left: -13px;
+            }
+
+            .dv-timeline-dot {
+              left: -18px;
+              width: 11px;
+              height: 11px;
+            }
+
+            .dv-visit-entry {
+              padding: 1rem;
+            }
+
+            .dv-profile-card {
+              padding: 0.85rem 1rem !important;
+            }
+
+            .dv-log-card {
+              padding: 1rem !important;
+            }
+          }
         `}
       </style>
 
@@ -445,7 +534,7 @@ const DoctorVisits = () => {
               borderRadius: 4,
               padding: "8px 16px",
               fontSize: 14,
-              fontWeight: 500,
+              fontWeight: 450,
             }}
           >
             {isExporting ? (
@@ -586,9 +675,9 @@ const DoctorVisits = () => {
           </div>
 
           {/* RIGHT: Detail View Workspace */}
-          <div className="dv-detail-col">
+          <div className="dv-detail-col" ref={detailRef}>
             {!selectedDoctor ? (
-              <div className="flex-grow-1" />
+              <div className="dv-empty-spacer" />
             ) : (
               <>
                 {detailLoading && (
