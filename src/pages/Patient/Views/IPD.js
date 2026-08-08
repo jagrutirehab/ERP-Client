@@ -110,8 +110,12 @@ const IPDComponent = ({
                         if (user?.role === "NURSE") {
                           return ![PRESCRIPTION, COUNSELLING_NOTE, DETAIL_ADMISSION].includes(r.category);
                         }
-                        if (["PSYCHOLOGIST", "MSW", "PSW"].includes(user?.role)) {
-                          return ![PRESCRIPTION, VITAL_SIGN].includes(r.category);
+                        if (
+                          ["MSW", "PSW"].includes(user?.role)
+                        ) {
+                          return ![PRESCRIPTION, VITAL_SIGN].includes(
+                            r.category,
+                          );
                         }
                         return true;
                       })
