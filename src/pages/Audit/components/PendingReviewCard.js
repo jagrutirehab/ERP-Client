@@ -133,7 +133,7 @@ const PendingReviewCard = ({
           {DIMENSIONS.map((dimension) => {
             const value = draft?.[dimension.key] || { rating: 0, comment: "" };
             return (
-              <Col md={6} lg={12} xxl={6} key={dimension.key}>
+              <Col md={6} lg={6} key={dimension.key}>
                 <div className="border rounded p-2 h-100 bg-light bg-opacity-50">
                   <div className="d-flex align-items-center justify-content-between mb-2">
                     <Label className="mb-0 fw-semibold" style={{ fontSize: 12 }}>
