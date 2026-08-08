@@ -1,21 +1,34 @@
 import React, { useEffect, useState } from "react";
-import { Input, Nav, NavItem, NavLink } from "reactstrap";
+import {
+  Input,
+  Nav,
+  NavItem,
+  NavLink,
+  Card,
+  CardBody,
+  Button,
+  Spinner,
+  Row,
+  Col,
+} from "reactstrap";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import classnames from "classnames";
-import { startOfDay, endOfDay, subDays } from "date-fns";
+import { startOfDay, endOfDay } from "date-fns";
 import {
   getAllCenterFloorPhotos,
   reviewCenterFloorPhotoRecord,
+  getCenterAuditTimeline,
 } from "../../helpers/backend_helper";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
 import useCenterOptions from "../../Components/Hooks/useCenterOptions";
 import DataTableComponent from "../../Components/Common/DataTable";
 import PreviewFile from "../../Components/Common/PreviewFile";
-import DateRangeFilter from "../../Components/Common/DateRangeFilter";
 import { CenterFloorPhotosColumn } from "./components/columns";
 import RejectPhotoModal from "./components/RejectPhotoModal";
+import PendingReviewCard from "./components/PendingReviewCard";
+import AuditDateStrip from "./components/AuditDateStrip";
 
 const emptyDraft = {
   cleanliness: { rating: 0, comment: "" },
@@ -37,14 +50,12 @@ const Verification = ({ hasWrite }) => {
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [selectedCenter, setSelectedCenter] = useState("ALL");
 
-  // A verifier routinely clears the last few days, not just today.
-  const [reportDate, setReportDate] = useState({
-    start: startOfDay(subDays(new Date(), 6)),
-    end: endOfDay(new Date()),
-  });
+  // The audit-day strip is the only date control. null means "All dates" —
+  // no date restriction at all, so nothing outstanding can hide outside a window.
+  const [selectedDay, setSelectedDay] = useState(null);
+  const [auditDays, setAuditDays] = useState([]);
+  const [auditDaysLoading, setAuditDaysLoading] = useState(false);
 
-  // Inline rating drafts, keyed by record id. Cleared on every fetch so a
-  // half-filled row can never be submitted against refreshed data.
   const [drafts, setDrafts] = useState({});
   const [savingRowId, setSavingRowId] = useState(null);
 
@@ -54,6 +65,9 @@ const Verification = ({ hasWrite }) => {
 
   const [rejectModalOpen, setRejectModalOpen] = useState(false);
   const [rejectTarget, setRejectTarget] = useState(null);
+
+  const isPending = statusTab === "uploaded";
+  const singleCenter = selectedCenter && selectedCenter !== "ALL";
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -84,13 +98,18 @@ const Verification = ({ hasWrite }) => {
         centers = [selectedCenter];
       }
 
+      const day = selectedDay ? new Date(selectedDay) : null;
+
       const res = await getAllCenterFloorPhotos({
         page,
         limit,
         centers,
-        // Boundaries are already snapped to local start/end of day.
-        startDate: reportDate.start.toISOString(),
-        endDate: reportDate.end.toISOString(),
+        // Oldest first while clearing the queue; newest first for history.
+        sort: isPending ? "oldest" : "newest",
+        ...(day && {
+          startDate: startOfDay(day).toISOString(),
+          endDate: endOfDay(day).toISOString(),
+        }),
         ...(debouncedSearch && { search: debouncedSearch }),
         ...(statusTab !== "all" && { status: statusTab }),
       });
@@ -118,13 +137,42 @@ const Verification = ({ hasWrite }) => {
     debouncedSearch,
     selectedCenter,
     statusTab,
-    reportDate,
+    selectedDay,
     user?.centerAccess,
   ]);
 
   useEffect(() => {
     setPage(1);
   }, [statusTab]);
+
+  // ── Audit day strip ──────────────────────────────────────────────────────
+  const fetchAuditDays = async (center) => {
+    setAuditDaysLoading(true);
+    try {
+      const res = await getCenterAuditTimeline({ center });
+      setAuditDays(res?.data || []);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to fetch audit dates");
+      }
+      setAuditDays([]);
+    } finally {
+      setAuditDaysLoading(false);
+    }
+  };
+
+  // A day only means something within one center, so switching centers drops
+  // both the pinned day and the list.
+  useEffect(() => {
+    setSelectedDay(null);
+    setPage(1);
+
+    if (!singleCenter) {
+      setAuditDays([]);
+      return;
+    }
+    fetchAuditDays(selectedCenter);
+  }, [selectedCenter]);
 
   const setDraft = (rowId, next) =>
     setDrafts((prev) => ({ ...prev, [rowId]: { ...emptyDraft, ...next } }));
@@ -159,6 +207,12 @@ const Verification = ({ hasWrite }) => {
     }
   };
 
+  const afterReview = () => {
+    fetchPhotos();
+    // Pending counts on the chips move as records are reviewed.
+    if (singleCenter) fetchAuditDays(selectedCenter);
+  };
+
   const handleInlineApprove = async (row) => {
     if (!hasWrite) {
       toast.error("You do not have permission to verify locations");
@@ -189,7 +243,7 @@ const Verification = ({ hasWrite }) => {
       "verified",
     );
 
-    if (ok) fetchPhotos();
+    if (ok) afterReview();
   };
 
   const openRejectModal = (row) => {
@@ -210,9 +264,12 @@ const Verification = ({ hasWrite }) => {
     if (ok) {
       setRejectModalOpen(false);
       setRejectTarget(null);
-      fetchPhotos();
+      afterReview();
     }
   };
+
+  const totalPages = pagination?.totalPages || 0;
+  const totalRecords = pagination?.totalRecords || 0;
 
   return (
     <>
@@ -234,8 +291,8 @@ const Verification = ({ hasWrite }) => {
         ))}
       </Nav>
 
-      <div className="d-flex flex-wrap align-items-end justify-content-between gap-3 mb-3">
-        <div className="d-flex flex-wrap align-items-end gap-2">
+      <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-3">
+        <div className="d-flex flex-wrap align-items-center gap-2">
           <div style={{ minWidth: 220 }}>
             <Input
               type="text"
@@ -245,7 +302,7 @@ const Verification = ({ hasWrite }) => {
             />
           </div>
 
-          <div style={{ minWidth: 180 }}>
+          <div style={{ minWidth: 200 }}>
             <Select
               options={centerOptions}
               value={
@@ -258,48 +315,133 @@ const Verification = ({ hasWrite }) => {
               isDisabled={!centerOptions.length}
             />
           </div>
-
-          <DateRangeFilter
-            reportDate={reportDate}
-            setReportDate={(next) => {
-              setReportDate(next);
-              setPage(1);
-            }}
-          />
         </div>
 
-        <div className="text-nowrap">
+        <div className="text-nowrap d-flex align-items-center gap-2">
+          {isPending && totalRecords > 0 && (
+            <span className="text-muted" style={{ fontSize: 11 }}>
+              Oldest first
+            </span>
+          )}
           <span className="fw-semibold text-muted">
-            Total Records: {pagination?.totalRecords || 0}
+            {isPending ? "Awaiting review" : "Records"}: {totalRecords}
           </span>
         </div>
       </div>
 
-      <DataTableComponent
-        columns={CenterFloorPhotosColumn({
-          statusTab,
-          hasPermissionToEdit: hasWrite,
-          onPreview: handleFilePreview,
-          onApprove: handleInlineApprove,
-          onReject: openRejectModal,
-          drafts,
-          setDraft,
-          savingRowId,
-        })}
-        data={data}
-        loading={loading}
-        pagination={pagination}
-        page={page}
-        setPage={setPage}
-        limit={limit}
-        setLimit={setLimit}
-        conditionalRowStyles={[
-          {
-            when: (row) => savingRowId?.endsWith(row._id),
-            style: { backgroundColor: "#fff9db", opacity: 0.7 },
-          },
-        ]}
-      />
+      {/* Dates belong to one center, so the strip only appears for one. With
+          All Centers the queue is simply unrestricted by date. */}
+      {singleCenter && (
+        <AuditDateStrip
+          entries={auditDays}
+          loading={auditDaysLoading}
+          activeDate={selectedDay}
+          onSelectDate={(entry) => {
+            setSelectedDay(entry.auditDate);
+            setPage(1);
+          }}
+          onSelectAll={() => {
+            setSelectedDay(null);
+            setPage(1);
+          }}
+        />
+      )}
+
+      {/* Pending locations are cards, so the rating comments get real room.
+          Reviewed history stays tabular for scanning. */}
+      {isPending ? (
+        <>
+          {loading ? (
+            <div className="text-center py-5">
+              <Spinner color="primary" />
+            </div>
+          ) : data.length === 0 ? (
+            <Card>
+              <CardBody className="text-center py-5 text-muted">
+                <i
+                  className="ri-checkbox-circle-line d-block mb-2 text-success"
+                  style={{ fontSize: 30 }}
+                />
+                Nothing awaiting review
+                {selectedDay ? " on this date" : ""}.
+              </CardBody>
+            </Card>
+          ) : (
+            <Row className="g-3">
+              {data.map((row) => (
+                <Col lg={6} key={row._id}>
+                  <PendingReviewCard
+                    row={row}
+                    draft={drafts[row._id] || emptyDraft}
+                    setDraft={setDraft}
+                    canReview={hasWrite}
+                    savingRowId={savingRowId}
+                    onPreview={handleFilePreview}
+                    onApprove={handleInlineApprove}
+                    onReject={openRejectModal}
+                  />
+                </Col>
+              ))}
+            </Row>
+          )}
+
+          {totalPages > 1 && (
+            <div className="d-flex align-items-center justify-content-between mt-3">
+              <span className="text-muted small">
+                Page {pagination.currentPage} of {totalPages}
+              </span>
+              <div className="d-flex align-items-center gap-2">
+                <Input
+                  type="select"
+                  bsSize="sm"
+                  value={limit}
+                  style={{ width: 80 }}
+                  onChange={(e) => {
+                    setLimit(Number(e.target.value));
+                    setPage(1);
+                  }}
+                >
+                  {[10, 15, 20, 25, 30].map((n) => (
+                    <option key={n} value={n}>
+                      {n}
+                    </option>
+                  ))}
+                </Input>
+                <Button
+                  size="sm"
+                  outline
+                  disabled={page <= 1 || loading}
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                >
+                  Previous
+                </Button>
+                <Button
+                  size="sm"
+                  outline
+                  disabled={page >= totalPages || loading}
+                  onClick={() => setPage((p) => p + 1)}
+                >
+                  Next
+                </Button>
+              </div>
+            </div>
+          )}
+        </>
+      ) : (
+        <DataTableComponent
+          columns={CenterFloorPhotosColumn({
+            statusTab,
+            onPreview: handleFilePreview,
+          })}
+          data={data}
+          loading={loading}
+          pagination={pagination}
+          page={page}
+          setPage={setPage}
+          limit={limit}
+          setLimit={setLimit}
+        />
+      )}
 
       <PreviewFile
         title={previewTitle}
