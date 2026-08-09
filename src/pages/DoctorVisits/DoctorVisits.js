@@ -23,6 +23,7 @@ import {
   getDoctorDirectory,
   getDoctorVisitHistory,
   exportDoctorDirectory,
+  exportDoctorVisitHistory,
 } from "../../helpers/backend_helper";
 
 const getInitials = (name = "") =>
@@ -71,6 +72,7 @@ const DoctorVisits = () => {
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
+  const [isExportingHistory, setIsExportingHistory] = useState(false);
 
   const [activeImage, setActiveImage] = useState(null);
 
@@ -171,6 +173,37 @@ const DoctorVisits = () => {
       }
     } finally {
       setIsExporting(false);
+    }
+  };
+  const handleExportHistory = async () => {
+    if (!selectedDoctor) return;
+    setIsExportingHistory(true);
+    try {
+      const res = await exportDoctorVisitHistory({
+        name: selectedDoctor.name,
+        clinicName: selectedDoctor.clinicName,
+      });
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      const safeName = (selectedDoctor.name || "doctor").replace(
+        /[^a-z0-9]/gi,
+        "_",
+      );
+      link.download = `Visit-History-${safeName}-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      if (!handleAuthError(err)) {
+        toast.error(err?.response?.data?.message || "Failed to export report");
+      }
+    } finally {
+      setIsExportingHistory(false);
     }
   };
 
@@ -523,7 +556,7 @@ const DoctorVisits = () => {
           >
             Doctor Field Visits
           </h4>
-          <button
+          {/* <button
             className="btn d-flex align-items-center gap-2"
             onClick={handleExportDirectory}
             disabled={isExporting}
@@ -543,7 +576,7 @@ const DoctorVisits = () => {
               <i className="ri-file-excel-2-line" style={{ fontSize: 16 }} />
             )}
             Export Excel
-          </button>
+          </button> */}
         </div>
 
         {/* Main Workspace Layout — both columns share exactly the same height */}
@@ -725,6 +758,30 @@ const DoctorVisits = () => {
                             )}
                           </div>
                         </div>
+                        <button
+                          className="btn d-flex align-items-center gap-2 flex-shrink-0"
+                          onClick={handleExportHistory}
+                          disabled={isExportingHistory}
+                          style={{
+                            backgroundColor: "#1e90ff",
+                            color: "#fff",
+                            border: "none",
+                            borderRadius: 4,
+                            padding: "6px 14px",
+                            fontSize: 13,
+                            fontWeight: 450,
+                          }}
+                        >
+                          {isExportingHistory ? (
+                            <Spinner size="sm" style={{ color: "#fff" }} />
+                          ) : (
+                            <i
+                              className="ri-file-excel-2-line"
+                              style={{ fontSize: 15 }}
+                            />
+                          )}
+                          Export History
+                        </button>
                       </div>
 
                       <Row className="g-2">
