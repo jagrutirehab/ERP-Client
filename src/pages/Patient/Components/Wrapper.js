@@ -13,7 +13,7 @@ import { APIClient } from "../../../helpers/api_helper";
 import { toast } from "react-toastify";
 
 //framer motion
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { format } from "date-fns";
 import RenderWhen from "../../../Components/Common/RenderWhen";
@@ -22,6 +22,7 @@ import {
   INVOICE,
   IPD,
   WRITE_OFF,
+  DETAIL_ADMISSION,
 } from "../../../Components/constants/patient";
 import { connect, useDispatch } from "react-redux";
 import {
@@ -52,6 +53,7 @@ const Wrapper = ({
   showPrint = true,
   disableEdit = false,
   disableDelete = false,
+  addAdditionalDetails,
   patient,
   itemId,
   extraOptions,
@@ -61,12 +63,15 @@ const Wrapper = ({
   validatorId,
   doctorValidatorId,
   user,
+  additionalDiagnosis,
+  additionalDiagnosisLoading,
 }) => {
   const dispatch = useDispatch();
   const [showRelatives, setShowRelatives] = React.useState(
     item?.showToRelatives || false,
   );
   const [copied, setCopied] = useReactState(false);
+  const [additionalOpen, setAdditionalOpen] = useReactState(true);
   const chart = item?.chart;
   const bill = item?.bill;
 
@@ -161,6 +166,8 @@ const Wrapper = ({
     }
   };
 
+  console.log("additionalDiagnosis", additionalDiagnosis);
+
   const chartName = chart
     ? chart
         .toLowerCase()
@@ -174,6 +181,16 @@ const Wrapper = ({
           .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
           .join(" ")
       : "";
+
+  const chartDiagnosis = Array.isArray(additionalDiagnosis)
+    ? additionalDiagnosis.find(
+        (d) => String(d.chart_id) === String(item._id) && d.isActive === true,
+      ) ||
+      additionalDiagnosis.find((d) => String(d.chart_id) === String(item._id))
+    : null;
+
+  const isDetailAdmissionValidated =
+    chart === DETAIL_ADMISSION && !!item.doctorValidatorId;
 
   return (
     <motion.div
@@ -314,6 +331,92 @@ const Wrapper = ({
                   {item?.author?.role}
                 </h6>
               </div>
+              {chart === DETAIL_ADMISSION &&
+                (additionalDiagnosisLoading ? (
+                  <div className="mt-2 placeholder-glow">
+                    <span className="placeholder rounded col-6"></span>
+                  </div>
+                ) : chartDiagnosis?.code && chartDiagnosis?.summary ? (
+                  <div
+                    className="mt-2 rounded border"
+                    style={{
+                      borderColor: "#dee2e6",
+                      backgroundColor: "#fff",
+                      maxWidth: "500px",
+                    }}
+                  >
+                    {/* Accordion Header */}
+                    <div
+                      className="d-flex align-items-center justify-content-between px-2 py-1"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => setAdditionalOpen((prev) => !prev)}
+                    >
+                      <div className="d-flex align-items-center gap-1">
+                        <i className="ri-stethoscope-line text-muted fs-xs-9"></i>
+                        <span className="fw-semibold text-muted fs-xs-9 fs-md-11">
+                          Additional Details
+                        </span>
+                      </div>
+                      <motion.i
+                        className="ri-arrow-down-s-line text-muted"
+                        animate={{ rotate: additionalOpen ? 180 : 0 }} // ← arrow rotates
+                        transition={{ duration: 0.3 }}
+                      />
+                    </div>
+
+                    {/* Animated Accordion Body */}
+                    <AnimatePresence initial={false}>
+                      {additionalOpen && (
+                        <motion.div
+                          key="additional-body"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          style={{ overflow: "hidden" }}
+                        >
+                          <div
+                            className="px-2 pb-2 d-flex flex-column gap-1"
+                            style={{ maxHeight: "150px", overflowY: "auto" }}
+                          >
+                            <div>
+                              <span className="fs-xs-9 fw-semibold me-1">
+                                Final Diagnosis:
+                              </span>
+                              <span className="badge bg-soft-primary text-primary fs-xs-9">
+                                {chartDiagnosis.code}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="fs-xs-9 fw-semibold me-1">
+                                Summary:
+                              </span>
+                              <span
+                                className="fs-xs-9 text-muted"
+                                style={{ wordBreak: "break-word" }}
+                              >
+                                {chartDiagnosis.summary}
+                              </span>
+                            </div>
+                            {chartDiagnosis?.createdAt && (
+                              <div>
+                                <span className="fs-xs-9 fw-semibold me-1">
+                                  Posted At:
+                                </span>
+                                <span className="fs-xs-9 text-muted">
+                                  {format(
+                                    new Date(chartDiagnosis.createdAt),
+                                    "dd MMM yyyy hh:mm a",
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ) : null)}
             </div>
 
             {/* <div>
@@ -406,7 +509,9 @@ const Wrapper = ({
                         Print
                       </DropdownItem>
                     </RenderWhen>
-                    {disableEdit || item?.bill === WRITE_OFF ? (
+                    {disableEdit ||
+                    item?.bill === WRITE_OFF ||
+                    isDetailAdmissionValidated ? (
                       ""
                     ) : (
                       <CheckPermission permission={"edit"} subAccess={name}>
@@ -422,7 +527,6 @@ const Wrapper = ({
                         </DropdownItem>
                       </CheckPermission>
                     )}
-
                     {disableEdit ? (
                       ""
                     ) : (
@@ -439,6 +543,17 @@ const Wrapper = ({
                       </CheckPermission>
                     )}
 
+                    {chart === DETAIL_ADMISSION &&
+                      addAdditionalDetails &&
+                      isDetailAdmissionValidated && (
+                        <DropdownItem
+                          onClick={() => addAdditionalDetails(item)}
+                          href="#"
+                        >
+                          <i className="ri-add-line align-bottom text-primary me-2"></i>
+                          Add Additional Details
+                        </DropdownItem>
+                      )}
                     <RenderWhen
                       isTrue={item?.bill === INVOICE && item.type === IPD}
                     >
@@ -502,6 +617,8 @@ Wrapper.propTypes = {
 const mapStateToProps = (state) => ({
   patient: state.Patient.patient,
   user: state.User.user,
+  additionalDiagnosis: state.Chart.additionalDiagnosis, // ← add
+  additionalDiagnosisLoading: state.Chart.additionalDiagnosisLoading,
 });
 
 export default connect(mapStateToProps)(Wrapper);

@@ -14,6 +14,7 @@ import {
 import {
   getAgentVisitReport,
   getAllCenters,
+  exportAgentReport,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 const getInitials = (name = "") =>
@@ -93,6 +94,7 @@ const AgentReport = () => {
   const searchWrapperRef = useRef(null);
   const [centers, setCenters] = useState([]);
   const [centerFilter, setCenterFilter] = useState("");
+  const [isExporting, setIsExporting] = useState(false);
 
   useEffect(() => {
     getAllCenters()
@@ -123,6 +125,32 @@ const AgentReport = () => {
       }
     } finally {
       setLoading(false);
+    }
+  };
+  const handleExportReport = async () => {
+    setIsExporting(true);
+    try {
+      const res = await exportAgentReport({
+        ...dateRange,
+        center: centerFilter || undefined,
+      });
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = downloadUrl;
+      link.download = `Agent-Wise-Report-${dateRange.from}-to-${dateRange.to}.xlsx`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(downloadUrl);
+    } catch (err) {
+      if (!handleAuthError(err)) {
+        setError(err?.response?.data?.message || "Failed to export report");
+      }
+    } finally {
+      setIsExporting(false);
     }
   };
 
@@ -241,13 +269,39 @@ const AgentReport = () => {
             <div>
               <h4 className="mb-0 fw-semibold">Agent Visit Report</h4>
             </div>
-            <span className="text-muted fs-13">
-              Today,{" "}
-              {new Date().toLocaleDateString("en-IN", {
-                day: "2-digit",
-                month: "short",
-              })}
-            </span>
+            <div className="d-flex align-items-center gap-3">
+              <span className="text-muted fs-13">
+                Today,{" "}
+                {new Date().toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                })}
+              </span>
+              <button
+                className="btn d-flex align-items-center gap-2"
+                onClick={handleExportReport}
+                disabled={isExporting}
+                style={{
+                  backgroundColor: "#1e90ff",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 4,
+                  padding: "8px 16px",
+                  fontSize: 14,
+                  fontWeight: 450,
+                }}
+              >
+                {isExporting ? (
+                  <Spinner size="sm" style={{ color: "#fff" }} />
+                ) : (
+                  <i
+                    className="ri-file-excel-2-line"
+                    style={{ fontSize: 16 }}
+                  />
+                )}
+                Export Excel
+              </button>
+            </div>
           </div>
 
           {/* ---- Filters (date range + search + mismatch) ---- */}
