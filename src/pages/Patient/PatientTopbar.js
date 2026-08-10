@@ -123,7 +123,7 @@ const PatientTopbar = ({
   }, [dispatch, currentAdmissionId]);
 
   const latestActiveDiagnosis = Array.isArray(additionalDiagnosis)
-    ? additionalDiagnosis.find((d) => d.isActive === true)
+    ? additionalDiagnosis.find((d) => d.isActive === true && !d.newDAadded)
     : null;
 
   const finalDiagnosisText =
