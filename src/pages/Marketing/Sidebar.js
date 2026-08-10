@@ -56,6 +56,11 @@ const Sidebar = () => {
     "VIEW_AGENT_PROFILE",
     "READ",
   );
+  const canViewDoctorExport = hasPermission(
+    "MARKETING",
+    "EXPORT_DOCTOR_DIRECTORY",
+    "READ",
+  );
 
   const MarketingPages = [
     canViewAdd
@@ -88,6 +93,14 @@ const Sidebar = () => {
           label: "My Visit History",
           link: "/marketing/my-profile",
           icon: "bx bx-id-card",
+        }
+      : null,
+    canViewDoctorExport
+      ? {
+          id: "doctor-directory-export",
+          label: "Doctor Directory Export",
+          link: "/marketing/doctors/export",
+          icon: "ri-file-excel-2-line",
         }
       : null,
   ].filter(Boolean);
