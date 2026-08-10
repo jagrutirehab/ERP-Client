@@ -4749,9 +4749,11 @@ export const uploadCenterFloorPhoto = (formData) => {
 };
 
 export const deleteCenterFloorPhotoFile = (recordId, fileId) => {
-  return axios.patch(`${url.CENTER_FLOOR_PHOTOS}/${recordId}/${fileId}`, null, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
+  return axios.patch(
+    `${url.CENTER_FLOOR_PHOTOS}/${recordId}/files/${fileId}/delete`,
+    null,
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
 };
 
 export const getAllCenterFloorPhotos = (params) => {
