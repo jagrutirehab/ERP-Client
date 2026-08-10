@@ -4369,13 +4369,26 @@ export const getDoctorDirectory = (params = {}) =>
     headers: { "X-No-Cookie-Token": "true" },
   });
 
+export const exportAgentReport = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/reports/agent-summary/export`, {
+    params,
+    responseType: "blob",
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const exportDoctorVisitHistory = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/history/export`, {
+    params,
+    responseType: "blob",
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 export const getDoctorVisitHistory = (params = {}) =>
   axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/history`, {
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
 
-  export const exportDoctorDirectory = () =>
+export const exportDoctorDirectory = () =>
   axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/export`, {
     responseType: "blob",
     headers: { "X-No-Cookie-Token": "true" },
