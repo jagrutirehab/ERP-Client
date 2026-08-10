@@ -641,6 +641,11 @@ export const getLastMentalExamination = (params = {}) => {
   return api.get(url.LAST_MENTAL_EXAMINATION, params);
 };
 
+// Latest ECT session for a patient, used to prefill a new one.
+export const getLastEctSession = (params = {}) => {
+  return api.get(url.LAST_ECT_SESSION, params);
+};
+
 export const deleteChart = (data) => api.delete(`${url.DELETE_CHART}/${data}`);
 export const deleteChartPermanently = (param) =>
   api.delete(`${url.DELETE_CHART_PERMANENTLY}/${param}`);

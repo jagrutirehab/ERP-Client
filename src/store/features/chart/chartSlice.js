@@ -21,6 +21,7 @@ import {
   getCounsellingNote,
   getGeneralCharts,
   getLastMentalExamination,
+  getLastEctSession,
   getLatestCharts,
   getOPDPrescription,
   postClinicalNote,
@@ -87,6 +88,7 @@ const initialState = {
   },
   patientLatestOPDPrescription: null,
   patientLatestMentalExamination: null,
+  patientLatestEctSession: null,
   finalDiagnosis: null,
   finalDiagnosisLoading: false,
   chartDate: null,
@@ -1242,6 +1244,19 @@ export const fetchLastMentalExamination = createAsyncThunk(
   },
 );
 
+export const fetchLastEctSession = createAsyncThunk(
+  "getLastEctSession",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getLastEctSession(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
 export const removeChart = createAsyncThunk(
   "deleteChart",
   async (data, { rejectWithValue, dispatch }) => {
@@ -1533,6 +1548,11 @@ export const chartSlice = createSlice({
     },
     setPtLatestOPDPrescription: (state, { payload }) => {
       state.patientLatestOPDPrescription = payload;
+    },
+    // Cleared when the ECT form closes or submits, so the snapshot can't leak
+    // into the next patient's form.
+    setPtLatestEctSession: (state, { payload }) => {
+      state.patientLatestEctSession = payload;
     },
   },
   extraReducers: (builder) => {
@@ -2514,6 +2534,18 @@ export const chartSlice = createSlice({
       });
 
     builder
+      .addCase(fetchLastEctSession.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchLastEctSession.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.patientLatestEctSession = payload.payload;
+      })
+      .addCase(fetchLastEctSession.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
       .addCase(removeChart.pending, (state) => {
         state.loading = true;
       })
@@ -2893,6 +2925,7 @@ export const {
   setChartAdmission,
   resetOpdPatientCharts,
   setPtLatestOPDPrescription,
+  setPtLatestEctSession,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;

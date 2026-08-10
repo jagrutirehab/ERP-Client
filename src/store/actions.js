@@ -219,6 +219,8 @@ export {
   resetOpdPatientCharts,
   fetchOPDPrescription,
   setPtLatestOPDPrescription,
+  fetchLastEctSession,
+  setPtLatestEctSession,
   addPsychoDiagnosticForm,
   addGeneralPsychoDiagnosticForm,
   updatePsychoDiagnosticForm,

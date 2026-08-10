@@ -172,6 +172,7 @@ export const POST_GENERAL_MENTAL_EXAMINATION =
   "/chart/mental-examination/general";
 export const EDIT_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const LAST_MENTAL_EXAMINATION = "/chart/mental-examination";
+export const LAST_ECT_SESSION = "/chart/ect-session";
 export const POST_INPUT_OUTPUT = "/chart/input-output";
 export const EDIT_INPUT_OUTPUT = "/chart/input-output";
 export const POST_GENERAL_INPUT_OUTPUT = "/chart/input-output/general";
