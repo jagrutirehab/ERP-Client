@@ -728,6 +728,15 @@ export const getDeletedCharts = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+
+export const addAdditionDetails = (data) => {
+  return axios.post(url.ADDITIONAL_DETAILS, data);
+};
+
+export const getAdditionalDetails = (params) => {
+  return axios.get(url.GET_ADDITIONAL_DETAILS, { params });
+};
+
 export const getDeletedBills = (data) =>
   api.get(url.GET_DELETED_BILLS, {
     params: {

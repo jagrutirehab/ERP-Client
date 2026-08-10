@@ -57,6 +57,7 @@ import {
   editInjuryMarks,
   deleteInjuryMarksFile,
   getFinalDiagnosis,
+  getAdditionalDetails,
   postEctSession,
   postGeneralEctSession,
   editEctSession,
@@ -89,6 +90,8 @@ const initialState = {
   patientLatestMentalExamination: null,
   finalDiagnosis: null,
   finalDiagnosisLoading: false,
+  additionalDiagnosis: [],
+  additionalDiagnosisLoading: false,
   chartDate: null,
   chartLoading: false,
   generalChartLoading: false,
@@ -180,6 +183,18 @@ export const fetchFinalDiagnosis = createAsyncThunk(
   async (addmissionId, { rejectWithValue }) => {
     try {
       const response = await getFinalDiagnosis(addmissionId);
+      return response;
+    } catch (error) {
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const fetchAdditionalDiagnosis = createAsyncThunk(
+  "getAdditionalDiagnosis",
+  async ({ patient, admission }, { rejectWithValue }) => {
+    try {
+      const response = await getAdditionalDetails({ patient, admission });
       return response;
     } catch (error) {
       return rejectWithValue("something went wrong");
@@ -1604,6 +1619,18 @@ export const chartSlice = createSlice({
         state.finalDiagnosis = null;
       });
 
+    builder
+      .addCase(fetchAdditionalDiagnosis.pending, (state) => {
+        state.additionalDiagnosisLoading = true;
+      })
+      .addCase(fetchAdditionalDiagnosis.fulfilled, (state, { payload }) => {
+        state.additionalDiagnosisLoading = false;
+        state.additionalDiagnosis = payload.data || [];
+      })
+      .addCase(fetchAdditionalDiagnosis.rejected, (state) => {
+        state.additionalDiagnosisLoading = false;
+        state.additionalDiagnosis = null;
+      });
     builder
       .addCase(fetchCharts.pending, (state) => {
         state.chartLoading = true;
