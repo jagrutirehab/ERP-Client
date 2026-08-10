@@ -238,18 +238,36 @@ const EctSession = ({
 
   const isPrefilled = !!previousSession;
 
+  const admissionId = patient?.addmission?._id || patient?.addmission || "";
+
+  // Drop any snapshot held for a different admission before deciding whether to
+  // fetch. This runs synchronously, so it always lands before the fetch below
+  // resolves — and it also covers the case where the fetch declines to run.
+  useEffect(() => {
+    dispatch(setPtLatestEctSession(null));
+  }, [admissionId, patient?._id, dispatch]);
+
   // ECT is a course, so a new session almost always continues a previous one.
   // Prefill unconditionally on create, the way Mental Examination does.
   useEffect(() => {
-    if (!editEct && patient?._id) {
-      dispatch(
-        fetchLastEctSession({
-          id: patient._id,
-          type: type === "IPD" ? "IPD" : "GENERAL",
-        }),
-      );
-    }
-  }, [editEct, patient?._id, type, dispatch]);
+    if (editEct || !patient?._id) return;
+
+    const isGeneral = type === "GENERAL";
+
+    // An ECT course belongs to one admission, so a session from a previous
+    // (discharged) admission must never seed the current one. Until the
+    // admission id is known there is nothing to scope by, so don't fetch at all
+    // rather than risk pulling another admission's session.
+    if (!isGeneral && !admissionId) return;
+
+    dispatch(
+      fetchLastEctSession({
+        id: patient._id,
+        type: isGeneral ? "GENERAL" : "IPD",
+        ...(!isGeneral && { addmission: admissionId }),
+      }),
+    );
+  }, [editEct, patient?._id, admissionId, type, dispatch]);
 
   // A new form should always start willing to prefill again.
   useEffect(() => {
