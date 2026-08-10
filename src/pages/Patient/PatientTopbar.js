@@ -46,22 +46,6 @@ import { unAssignNurse } from "../../store/features/patient/patientSlice";
 // import { getAdditionalDetails } from "../../helpers/backend_helper";
 // import RenderWhen from "../../Components/Common/RenderWhen";
 
-// Turns the doctorSignature.diagnosis array (ICD code objects) into a readable
-// string. Mirrors how Charts/DetailAdmission.js renders "Final Diagnosis".
-const formatFinalDiagnosis = (finalDiagnosis) => {
-  const diagnosis = finalDiagnosis?.diagnosis;
-  if (!Array.isArray(diagnosis) || diagnosis.length === 0) return "";
-  return diagnosis
-    .map((item) => {
-      if (!item) return "";
-      if (typeof item === "object" && item.code) return item.code;
-      if (typeof item === "string") return item;
-      return "";
-    })
-    .filter(Boolean)
-    .join(", ");
-};
-
 const PatientTopbar = ({
   patient,
   user,
@@ -75,8 +59,6 @@ const PatientTopbar = ({
   assignedNurse,
   finalDiagnosis,
   finalDiagnosisLoading,
-  additionalDiagnosis,
-  additionalDiagnosisLoading,
 }) => {
   const dispatch = useDispatch();
 
@@ -122,17 +104,12 @@ const PatientTopbar = ({
     }
   }, [dispatch, currentAdmissionId]);
 
-  const latestActiveDiagnosis = Array.isArray(additionalDiagnosis)
-    ? additionalDiagnosis.find((d) => d.isActive === true && !d.newDAadded)
-    : null;
+  // getFinalDiagnosis already walks the chart timeline (most recent first)
+  // and resolves to whichever chart's additional-details entry or raw
+  // diagnosis should currently be shown — nothing left to derive here.
+  const finalDiagnosisText = finalDiagnosis?.code || "N/A";
 
-  const finalDiagnosisText =
-    latestActiveDiagnosis?.code ||
-    formatFinalDiagnosis(finalDiagnosis) ||
-    "N/A";
-
-  const isFinalDiagnosisReady =
-    !finalDiagnosisLoading && !additionalDiagnosisLoading;
+  const isFinalDiagnosisReady = !finalDiagnosisLoading;
 
   const handleEditClick = () => {
     if (admission?.doctor) {
@@ -774,8 +751,6 @@ const mapStateToProps = (state) => ({
   assignedNurse: state.Patient.patient.assignedNurse,
   finalDiagnosis: state.Chart.finalDiagnosis,
   finalDiagnosisLoading: state.Chart.finalDiagnosisLoading,
-  additionalDiagnosis: state.Chart.additionalDiagnosis,
-  additionalDiagnosisLoading: state.Chart.additionalDiagnosisLoading,
 });
 
 export default connect(mapStateToProps)(PatientTopbar);

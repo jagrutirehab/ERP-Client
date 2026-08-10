@@ -1077,6 +1077,13 @@ export const addDetailAdmission = createAsyncThunk(
         }),
       );
 
+      // A new Detail Admission chart carries its own final diagnosis, so the
+      // topbar needs a fresh read right away instead of waiting for the next
+      // admission-change/page-refresh to happen to trigger one.
+      if (response?.addmission) {
+        dispatch(fetchFinalDiagnosis(response.addmission));
+      }
+
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
     } catch (error) {
@@ -2619,16 +2626,26 @@ export const chartSlice = createSlice({
           const findIndex = state.data.findIndex(
             (el) => el._id === payload.payload.addmission,
           );
-          if (state?.data[findIndex]?.charts.length === 1) {
-            state.data = state.data.filter(
-              (item) => item._id !== payload.payload.addmission,
-            );
-          } else {
+          // Deleting the last chart empties this admission's charts — it
+          // must stay in state.data (not be removed), since every "add
+          // chart" reducer indexes into state.data[findIndex] and assumes
+          // the admission entry is still there.
+          if (findIndex !== -1) {
             state.data[findIndex].charts = state.data[findIndex].charts.filter(
               (item) => item._id !== payload.payload._id,
             );
-            state.data[findIndex].totalCharts -= 1;
+            state.data[findIndex].totalCharts = Math.max(
+              0,
+              (state.data[findIndex].totalCharts || 0) - 1,
+            );
           }
+        }
+
+        // ← Add this
+        if (payload?.payload?.chart === "DETAIL_ADMISSION") {
+          state.additionalDiagnosis = state.additionalDiagnosis.filter(
+            (d) => String(d.chart_id) !== String(payload?.payload?._id),
+          );
         }
       })
       .addCase(removeChart.rejected, (state) => {

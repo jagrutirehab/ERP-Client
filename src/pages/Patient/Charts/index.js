@@ -28,6 +28,7 @@ import {
   fetchAdditionalDiagnosis,
   fetchCharts,
   fetchChartsAddmissions,
+  fetchFinalDiagnosis,
   fetchGeneralCharts,
   removeChart,
   togglePrint,
@@ -188,20 +189,19 @@ const Charts = ({
     });
   };
 
-  const deleteChart = () => {
+  const deleteChart = async () => {
     const deletedChart = chart.chart;
 
-    dispatch(removeChart(deletedChart._id));
+    await dispatch(removeChart(deletedChart._id));
 
     if (deletedChart?.chart === DETAIL_ADMISSION && deletedChart?.addmission) {
-      setTimeout(() => {
-        dispatch(
-          fetchAdditionalDiagnosis({
-            patient: deletedChart?.patient,
-            admission: deletedChart?.addmission,
-          }),
-        );
-      }, 500);
+      dispatch(
+        fetchAdditionalDiagnosis({
+          patient: deletedChart?.patient,
+          admission: deletedChart?.addmission,
+        }),
+      );
+      dispatch(fetchFinalDiagnosis(deletedChart?.addmission));
     }
 
     setChart({ chart: null, isOpen: false });
