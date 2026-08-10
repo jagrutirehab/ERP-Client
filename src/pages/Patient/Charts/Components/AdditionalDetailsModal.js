@@ -19,12 +19,12 @@ import { useDispatch } from "react-redux";
 import { fetchAdditionalDiagnosis } from "../../../../store/actions";
 
 const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
-  const [selectedCode, setSelectedCode] = useState(null);
+  const dispatch = useDispatch();
+  const [selectedCodes, setSelectedCodes] = useState([]); // ← array
   const [summary, setSummary] = useState("");
   const [icdOptions, setIcdOptions] = useState([]);
   const [loadingCodes, setLoadingCodes] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const dispatch = useDispatch();
 
   useEffect(() => {
     if (isOpen) {
@@ -36,7 +36,6 @@ const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
     setLoadingCodes(true);
     try {
       const codes = await getICDCodes();
-      // Shape data for react-select: { value, label }
       const options = (codes || []).map((code) => ({
         value: code._id,
         label: `${code.code} - ${code.text}`,
@@ -52,7 +51,7 @@ const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
   const handleSubmit = async () => {
     const payload = {
       chart_id: chart?._id,
-      code_id: selectedCode?.value,
+      code_id: selectedCodes.map((c) => c.value), // ← array of IDs
       patient: chart?.patient,
       admission: chart?.addmission,
       summary,
@@ -66,7 +65,8 @@ const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
       dispatch(
         fetchAdditionalDiagnosis({
           patient: chart?.patient,
-          admission: chart?.addmission,
+          admission: chart?.addmission || undefined,
+          chart_id: !chart?.addmission ? chart?._id : undefined,
         }),
       );
       resetForm();
@@ -78,58 +78,41 @@ const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
       setSubmitting(false);
     }
   };
+
   const handleClose = () => {
     resetForm();
     toggle();
   };
 
   const resetForm = () => {
-    setSelectedCode(null);
+    setSelectedCodes([]);
     setSummary("");
     setIcdOptions([]);
   };
 
-  const isFormValid = selectedCode && summary.trim();
+  const isFormValid = selectedCodes.length > 0 && summary.trim();
 
   return (
     <Modal isOpen={isOpen} toggle={handleClose} centered>
       <ModalHeader toggle={handleClose}>Add Additional Details</ModalHeader>
-
       <ModalBody>
-        {/* Auto-populated — read only */}
-        <FormGroup>
-          <Label>Patient ID</Label>
-          <Input type="text" value={chart?.patient || ""} readOnly disabled />
-        </FormGroup>
-
-        <FormGroup>
-          <Label>Admission ID</Label>
-          <Input
-            type="text"
-            value={chart?.addmission || ""}
-            readOnly
-            disabled
-          />
-        </FormGroup>
-
-        {/* ICD Code — React Select */}
         <FormGroup>
           <Label>
-            ICD Code <span className="text-danger">*</span>
+            ICD Codes <span className="text-danger">*</span>
           </Label>
           <Select
             options={icdOptions}
-            value={selectedCode}
-            onChange={(option) => setSelectedCode(option)}
+            value={selectedCodes}
+            onChange={(options) => setSelectedCodes(options || [])}
             isLoading={loadingCodes}
+            isMulti
             isSearchable
-            placeholder="Search or select ICD code..."
+            placeholder="Search or select ICD codes..."
             loadingMessage={() => "Loading codes..."}
             noOptionsMessage={() => "No codes found"}
           />
         </FormGroup>
 
-        {/* Summary */}
         <FormGroup>
           <Label>
             Summary <span className="text-danger">*</span>
@@ -143,7 +126,6 @@ const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
           />
         </FormGroup>
       </ModalBody>
-
       <ModalFooter>
         <Button color="secondary" onClick={handleClose}>
           Cancel
@@ -151,9 +133,9 @@ const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
         <Button
           color="primary"
           onClick={handleSubmit}
-          disabled={!isFormValid || submitting} // ← add submitting
+          disabled={!isFormValid || submitting}
         >
-          {submitting ? "Submitting..." : "Submit"} // ← loading text
+          {submitting ? "Submitting..." : "Submit"}
         </Button>
       </ModalFooter>
     </Modal>

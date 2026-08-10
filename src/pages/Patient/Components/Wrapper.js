@@ -65,6 +65,7 @@ const Wrapper = ({
   user,
   additionalDiagnosis,
   additionalDiagnosisLoading,
+  currentAddmissionId,
 }) => {
   const dispatch = useDispatch();
   const [showRelatives, setShowRelatives] = React.useState(
@@ -192,6 +193,10 @@ const Wrapper = ({
   const isDetailAdmissionValidated =
     chart === DETAIL_ADMISSION && !!item.doctorValidatorId;
 
+  console.log("chartDiagnosis:", chartDiagnosis);
+  console.log("item._id:", item._id);
+  console.log("additionalDiagnosis array:", additionalDiagnosis);
+
   return (
     <motion.div
       whileHover={{
@@ -293,7 +298,7 @@ const Wrapper = ({
               </div>
             </RenderWhen>
           </div>
-          <div className="d-flex justify-content-between ">
+          <div className="d-flex justify-content-between flex-wrap gap-2">
             <div>
               {validatorId && (
                 <div className="d-flex align-items-center">
@@ -332,18 +337,14 @@ const Wrapper = ({
                 </h6>
               </div>
               {chart === DETAIL_ADMISSION &&
-                (additionalDiagnosisLoading ? (
+                (additionalDiagnosisLoading && !!currentAddmissionId ? (
                   <div className="mt-2 placeholder-glow">
                     <span className="placeholder rounded col-6"></span>
                   </div>
                 ) : chartDiagnosis?.code && chartDiagnosis?.summary ? (
                   <div
-                    className="mt-2 rounded border"
-                    style={{
-                      borderColor: "#dee2e6",
-                      backgroundColor: "#fff",
-                      maxWidth: "500px",
-                    }}
+                    className="mt-2 rounded border w-100"
+                    style={{ borderColor: "#dee2e6", backgroundColor: "#fff" }}
                   >
                     {/* Accordion Header */}
                     <div
@@ -359,7 +360,7 @@ const Wrapper = ({
                       </div>
                       <motion.i
                         className="ri-arrow-down-s-line text-muted"
-                        animate={{ rotate: additionalOpen ? 180 : 0 }} // ← arrow rotates
+                        animate={{ rotate: additionalOpen ? 180 : 0 }}
                         transition={{ duration: 0.3 }}
                       />
                     </div>
@@ -375,15 +376,18 @@ const Wrapper = ({
                           transition={{ duration: 0.3, ease: "easeInOut" }}
                           style={{ overflow: "hidden" }}
                         >
-                          <div
-                            className="px-2 pb-2 d-flex flex-column gap-1"
-                            style={{ maxHeight: "150px", overflowY: "auto" }}
-                          >
+                          <div className="px-2 pb-2 d-flex flex-column gap-1">
                             <div>
                               <span className="fs-xs-9 fw-semibold me-1">
                                 Final Diagnosis:
                               </span>
-                              <span className="badge bg-soft-primary text-primary fs-xs-9">
+                              <span
+                                className="badge bg-soft-primary text-primary fs-xs-9"
+                                style={{
+                                  whiteSpace: "normal",
+                                  textAlign: "left",
+                                }}
+                              >
                                 {chartDiagnosis.code}
                               </span>
                             </div>
@@ -436,7 +440,7 @@ const Wrapper = ({
               </div>
             </div> */}
 
-            <div className="d-flex ">
+            <div className="d-flex ms-auto">
               <div>
                 <div className="d-flex align-items-start">
                   <span className="fs-xs-9">

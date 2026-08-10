@@ -194,9 +194,13 @@ export const fetchFinalDiagnosis = createAsyncThunk(
 
 export const fetchAdditionalDiagnosis = createAsyncThunk(
   "getAdditionalDiagnosis",
-  async ({ patient, admission }, { rejectWithValue }) => {
+  async ({ patient, admission, chart_id }, { rejectWithValue }) => {
     try {
-      const response = await getAdditionalDetails({ patient, admission });
+      const response = await getAdditionalDetails({
+        patient,
+        admission,
+        chart_id,
+      });
       return response;
     } catch (error) {
       return rejectWithValue("something went wrong");
@@ -1538,6 +1542,7 @@ export const chartSlice = createSlice({
     clearCharts: (state) => {
       state.data = [];
       state.chartLoading = false;
+      state.additionalDiagnosis = []; // ← add this
     },
     updateChartAdmission: (state, { payload }) => {
       const index = state.data?.findIndex((d) => d._id === payload._id);
@@ -1645,11 +1650,21 @@ export const chartSlice = createSlice({
       })
       .addCase(fetchAdditionalDiagnosis.fulfilled, (state, { payload }) => {
         state.additionalDiagnosisLoading = false;
-        state.additionalDiagnosis = payload.data || [];
+        const incoming = payload.data || [];
+        incoming.forEach((item) => {
+          const idx = state.additionalDiagnosis.findIndex(
+            (d) => String(d.chart_id) === String(item.chart_id),
+          );
+          if (idx >= 0) {
+            state.additionalDiagnosis[idx] = item; // ← update existing
+          } else {
+            state.additionalDiagnosis.push(item); // ← add new
+          }
+        });
       })
       .addCase(fetchAdditionalDiagnosis.rejected, (state) => {
         state.additionalDiagnosisLoading = false;
-        state.additionalDiagnosis = null;
+        // ← don't clear, keep existing data
       });
     builder
       .addCase(fetchCharts.pending, (state) => {

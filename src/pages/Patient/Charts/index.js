@@ -25,6 +25,7 @@ import {
 //redux
 import {
   createEditChart,
+  fetchAdditionalDiagnosis,
   fetchCharts,
   fetchChartsAddmissions,
   fetchGeneralCharts,
@@ -71,6 +72,7 @@ const Charts = ({
     isOpen: false,
   });
   const [socketReady, setSocketReady] = useState(false);
+  // const fetchedChartsRef = useRef(new Set());
   const [additionalDetailsModal, setAdditionalDetailsModal] = useState({
     isOpen: false,
     chart: null,
@@ -218,6 +220,12 @@ const Charts = ({
         <div className="timeline-continue">
           <Row className="timeline-right">
             {(charts || []).map((chart) => {
+              console.log("chart.addmission:", String(chart.addmission));
+              console.log("currentAddmissionId:", String(currentAddmissionId));
+              console.log(
+                "match:",
+                String(chart.addmission) === String(currentAddmissionId),
+              );
               // console.log("HISTORY CHART ITEM:", {
               //   chartId: chart._id,
               //   chartType: chart.chart,
@@ -232,7 +240,14 @@ const Charts = ({
                   editItem={editChart}
                   deleteItem={getChart}
                   printItem={printChart}
-                  addAdditionalDetails={handleAddAdditionalDetails}
+                  addAdditionalDetails={
+                    String(chart.addmission) === String(currentAddmissionId) &&
+                    !!chart.addmission && // ← add this — hides for OPD (no admission)
+                    !addmission?.dischargeDate &&
+                    !isPatientDischarged
+                      ? handleAddAdditionalDetails
+                      : undefined
+                  }
                   // Round-note charts are auto-generated read-only snapshots —
                   // they are edited/removed only from the Round Notes screen.
                   disableEdit={
@@ -252,6 +267,7 @@ const Charts = ({
                   geminiResponseIsVerified={chart?.geminiResponseIsVerified}
                   validatorId={chart?.validatorId}
                   doctorValidatorId={chart?.doctorValidatorId}
+                  currentAddmissionId={currentAddmissionId}
                 >
                   {chart.chart === PRESCRIPTION && (
                     <Prescription data={chart?.prescription} />
