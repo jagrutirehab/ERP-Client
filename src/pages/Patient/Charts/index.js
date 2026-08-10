@@ -189,11 +189,22 @@ const Charts = ({
   };
 
   const deleteChart = () => {
-    dispatch(removeChart(chart.chart._id));
-    setChart({
-      chart: null,
-      isOpen: false,
-    });
+    const deletedChart = chart.chart;
+
+    dispatch(removeChart(deletedChart._id));
+
+    if (deletedChart?.chart === DETAIL_ADMISSION && deletedChart?.addmission) {
+      setTimeout(() => {
+        dispatch(
+          fetchAdditionalDiagnosis({
+            patient: deletedChart?.patient,
+            admission: deletedChart?.addmission,
+          }),
+        );
+      }, 500);
+    }
+
+    setChart({ chart: null, isOpen: false });
   };
 
   const printChart = (chart, patient) => {
