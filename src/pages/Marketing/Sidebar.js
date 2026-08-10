@@ -98,7 +98,7 @@ const Sidebar = () => {
     canViewDoctorExport
       ? {
           id: "doctor-directory-export",
-          label: "Doctor Directory Export",
+          label: "Doctor Report",
           link: "/marketing/doctors/export",
           icon: "ri-file-excel-2-line",
         }

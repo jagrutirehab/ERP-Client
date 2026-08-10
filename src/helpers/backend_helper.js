@@ -4402,8 +4402,9 @@ export const getDoctorVisitHistory = (params = {}) =>
     headers: { "X-No-Cookie-Token": "true" },
   });
 
-export const exportDoctorDirectory = () =>
+export const exportDoctorDirectory = (params = {}) =>
   axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/export`, {
+    params,
     responseType: "blob",
     headers: { "X-No-Cookie-Token": "true" },
   });

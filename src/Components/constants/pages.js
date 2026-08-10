@@ -1391,7 +1391,7 @@ export const MARKETING = [
   },
   {
     id: "doctor-directory-export",
-    label: "Doctor Directory Export",
+    label: "Doctor Report",
     icon: "ri-file-excel-2-line",
     link: "/marketing/doctors/export",
   },
