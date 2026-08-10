@@ -8,6 +8,7 @@ import {
   FormGroup,
   Label,
   Input,
+  Spinner,
 } from "reactstrap";
 import Select from "react-select";
 import {
@@ -16,7 +17,10 @@ import {
 } from "../../../../helpers/backend_helper";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
-import { fetchAdditionalDiagnosis } from "../../../../store/actions";
+import {
+  fetchAdditionalDiagnosis,
+  fetchFinalDiagnosis,
+} from "../../../../store/actions";
 
 const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
   const dispatch = useDispatch();
@@ -65,10 +69,10 @@ const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
       dispatch(
         fetchAdditionalDiagnosis({
           patient: chart?.patient,
-          admission: chart?.addmission || undefined,
-          chart_id: !chart?.addmission ? chart?._id : undefined,
+          admission: chart?.addmission,
         }),
       );
+      dispatch(fetchFinalDiagnosis(chart?.addmission));
       resetForm();
       toggle();
     } catch (error) {
@@ -135,7 +139,14 @@ const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
           onClick={handleSubmit}
           disabled={!isFormValid || submitting}
         >
-          {submitting ? "Submitting..." : "Submit"}
+          {submitting ? (
+            <>
+              <Spinner size="sm" className="me-2" />
+              Adding...
+            </>
+          ) : (
+            "Add"
+          )}
         </Button>
       </ModalFooter>
     </Modal>

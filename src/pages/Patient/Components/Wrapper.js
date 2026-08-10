@@ -184,10 +184,7 @@ const Wrapper = ({
       : "";
 
   const chartDiagnosis = Array.isArray(additionalDiagnosis)
-    ? additionalDiagnosis.find(
-        (d) => String(d.chart_id) === String(item._id) && d.isActive === true,
-      ) ||
-      additionalDiagnosis.find((d) => String(d.chart_id) === String(item._id))
+    ? additionalDiagnosis.find((d) => String(d.chart_id) === String(item._id))
     : null;
 
   const isDetailAdmissionValidated =

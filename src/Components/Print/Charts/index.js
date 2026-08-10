@@ -231,14 +231,8 @@ const Charts = ({
 
                     return (
                       additionalDiagnosis.find(
-                        (d) =>
-                          String(d.chart_id) === String(chart._id) &&
-                          d.isActive === true,
-                      ) ||
-                      additionalDiagnosis.find(
                         (d) => String(d.chart_id) === String(chart._id),
-                      ) ||
-                      null
+                      ) || null
                     );
                   })()}
                 />
