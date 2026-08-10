@@ -15,20 +15,37 @@ const styles = StyleSheet.create({
     borderBottom: "1px solid #999",
   },
   grid: { flexDirection: "row", flexWrap: "wrap" },
+  // alignItems flex-start keeps a one-line label top-aligned against a value
+  // that wraps to several lines.
   field: {
     width: "50%",
     flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 3,
     paddingRight: 8,
   },
   fieldFull: {
     width: "100%",
     flexDirection: "row",
+    alignItems: "flex-start",
     marginBottom: 3,
     paddingRight: 8,
   },
-  label: { fontFamily: "Helvetica-Bold", fontSize: 10, marginRight: 4 },
-  value: { fontSize: 10, flexShrink: 1 },
+  label: {
+    fontFamily: "Helvetica-Bold",
+    fontSize: 10,
+    marginRight: 4,
+    // Keep the label at its natural width, but never let an unusually long one
+    // starve the value of space.
+    flexShrink: 0,
+    maxWidth: "70%",
+  },
+  // flexBasis 0 + flexGrow 1 is what constrains the text to the leftover width
+  // so it wraps inside its own column. With flexShrink alone the text keeps its
+  // intrinsic width, spills into the next column, and the row's height is
+  // computed as a single line — which is what let the following section render
+  // on top of it.
+  value: { fontSize: 10, flexGrow: 1, flexBasis: 0, flexShrink: 1 },
 });
 
 const isEmpty = (v) =>
@@ -49,7 +66,10 @@ const EctSession = ({ chart, center, patient, admission }) => {
           label: f.label,
           unit: f.unit,
           value: data?.[section.key]?.[f.name],
-          full: f.type === "textarea",
+          // Multi-select answers join into a long comma list, so they need the
+          // full width the same way a textarea does — this matches how the form
+          // itself lays out textarea/checkbox/radio fields.
+          full: f.type === "textarea" || f.type === "checkbox",
         }))
         .filter((r) => !isEmpty(r.value)),
     }))
