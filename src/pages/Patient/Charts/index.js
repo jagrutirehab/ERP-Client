@@ -214,6 +214,31 @@ const Charts = ({
     setAdditionalDetailsModal({ isOpen: true, chart });
   };
 
+  // Add this after all existing useEffects
+  useEffect(() => {
+    if (!charts?.length) return;
+
+    const detailAdmissionCharts = charts.filter(
+      (c) => c.chart === DETAIL_ADMISSION && c.addmission,
+    );
+
+    const uniqueAdmissions = [
+      ...new Set(detailAdmissionCharts.map((c) => String(c.addmission))),
+    ];
+
+    uniqueAdmissions.forEach((admissionId) => {
+      const chart = detailAdmissionCharts.find(
+        (c) => String(c.addmission) === admissionId,
+      );
+      dispatch(
+        fetchAdditionalDiagnosis({
+          patient: chart.patient,
+          admission: admissionId,
+        }),
+      );
+    });
+  }, [charts]);
+
   return (
     <React.Fragment>
       <div className="timeline-2">

@@ -229,25 +229,16 @@ const Charts = ({
                   additionalDiagnosis={(() => {
                     if (!Array.isArray(additionalDiagnosis)) return null;
 
-                    // 1. Exact chart match — active
-                    const exactActive = additionalDiagnosis.find(
-                      (d) =>
-                        String(d.chart_id) === String(chart._id) &&
-                        d.isActive === true,
-                    );
-                    if (exactActive) return exactActive;
-
-                    // 2. Exact chart match — any entry
-                    const exactAny = additionalDiagnosis.find(
-                      (d) => String(d.chart_id) === String(chart._id),
-                    );
-                    if (exactAny) return exactAny;
-
-                    // 3. Fallback — latest active entry (no newDAadded check here)
                     return (
                       additionalDiagnosis.find(
-                        (d) => d.isActive === true, // ← removed !d.newDAadded
-                      ) || null
+                        (d) =>
+                          String(d.chart_id) === String(chart._id) &&
+                          d.isActive === true,
+                      ) ||
+                      additionalDiagnosis.find(
+                        (d) => String(d.chart_id) === String(chart._id),
+                      ) ||
+                      null
                     );
                   })()}
                 />
