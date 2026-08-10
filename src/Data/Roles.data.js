@@ -476,7 +476,7 @@ export const permissionList = [
       { name: "VIEW_AGENT_REPORT", label: "Agent Visit Report" },
       { name: "VIEW_AGENT_PROFILE", label: "My Visit History" },
       { name: "VIEW_DOCTOR_VISITS", label: "Doctor Visits" },
-      { name: "EXPORT_DOCTOR_DIRECTORY", label: "Doctor Directory Export" },
+      { name: "EXPORT_DOCTOR_DIRECTORY", label: "Doctor Report" },
     ],
   },
   {

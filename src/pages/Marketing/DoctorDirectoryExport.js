@@ -1,5 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardBody, Row, Col, Spinner } from "reactstrap";
+import {
+  Card,
+  CardBody,
+  Row,
+  Col,
+  Input,
+  Label,
+  Button,
+  Spinner,
+  Alert,
+  Badge,
+} from "reactstrap";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../Components/Hooks/useAuthError";
 import {
@@ -7,76 +18,123 @@ import {
   getDoctorDirectory,
 } from "../../helpers/backend_helper";
 
-const COLUMNS = [
-  { icon: "bx bx-user-voice", label: "Doctor Name" },
-  { icon: "bx bx-building-house", label: "Clinic Name" },
-  { icon: "bx bx-plus-medical", label: "Specialisation" },
-  { icon: "bx bx-phone", label: "Contact Number" },
-  { icon: "bx bx-calendar-check", label: "Total Visits" },
-  { icon: "bx bx-check-shield", label: "Verified Visits" },
-  { icon: "bx bx-error-circle", label: "Mismatch Visits" },
-  { icon: "bx bx-time-five", label: "Last Visit Date" },
+const getInitials = (name = "") =>
+  name
+    .replace(/^dr\.?\s+/i, "")
+    .split(" ")
+    .map((w) => w[0])
+    .filter(Boolean)
+    .join("")
+    .slice(0, 2)
+    .toUpperCase() || "DR";
+
+const AVATAR_COLORS = [
+  "#3577f1",
+  "#0ab39c",
+  "#f7b84b",
+  "#f06548",
+  "#299cdb",
+  "#7d5fff",
 ];
+const getAvatarColor = (name = "") =>
+  AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length || 0];
 
-const LAST_EXPORT_KEY = "doctorDirectoryLastExport";
+const toISO = (d) => {
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+};
 
-const formatRelativeTime = (isoString) => {
-  if (!isoString) return null;
-  const diffMs = Date.now() - new Date(isoString).getTime();
-  const diffMin = Math.floor(diffMs / 60000);
-  if (diffMin < 1) return "just now";
-  if (diffMin < 60) return `${diffMin} minute${diffMin > 1 ? "s" : ""} ago`;
-  const diffHr = Math.floor(diffMin / 60);
-  if (diffHr < 24) return `${diffHr} hour${diffHr > 1 ? "s" : ""} ago`;
-  const diffDay = Math.floor(diffHr / 24);
-  return `${diffDay} day${diffDay > 1 ? "s" : ""} ago`;
+const getDefaultMonthRange = () => {
+  const now = new Date();
+  const first = new Date(now.getFullYear(), now.getMonth(), 1);
+  return { from: toISO(first), to: toISO(now) };
+};
+
+const DATE_PRESETS = {
+  today: () => {
+    const now = new Date();
+    return { from: toISO(now), to: toISO(now) };
+  },
+  last7: () => {
+    const now = new Date();
+    const past = new Date(now);
+    past.setDate(now.getDate() - 6);
+    return { from: toISO(past), to: toISO(now) };
+  },
+  thisMonth: () => getDefaultMonthRange(),
+  lastMonth: () => {
+    const now = new Date();
+    const firstOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    const lastOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+    return { from: toISO(firstOfLastMonth), to: toISO(lastOfLastMonth) };
+  },
 };
 
 const DoctorDirectoryExport = () => {
   const handleAuthError = useAuthError();
+  const [dateRange, setDateRange] = useState(getDefaultMonthRange());
+  const [activePreset, setActivePreset] = useState("thisMonth");
+  const [doctors, setDoctors] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [isExporting, setIsExporting] = useState(false);
-  const [doctorCount, setDoctorCount] = useState(null);
-  const [countLoading, setCountLoading] = useState(true);
-  const [lastExportedAt, setLastExportedAt] = useState(
-    localStorage.getItem(LAST_EXPORT_KEY),
-  );
+  const [search, setSearch] = useState("");
 
-//   useEffect(() => {
-//     document.title = "Doctor Directory Export | Jagruti Rehab";
-//   }, []);
+  //   useEffect(() => {
+  //     document.title = "Doctor Directory Export | Jagruti Rehab";
+  //   }, []);
+
+  const fetchDoctors = async (range) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await getDoctorDirectory({ ...range });
+      const data = res?.data?.payload || res?.payload || res?.data || [];
+      setDoctors(data);
+    } catch (err) {
+      if (!handleAuthError(err)) {
+        setError(err?.response?.data?.message || "Failed to load doctors");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setCountLoading(true);
-    getDoctorDirectory({})
-      .then((res) => {
-        const data = res?.data?.payload || res?.payload || res?.data || [];
-        setDoctorCount(data.length);
-      })
-      .catch(() => setDoctorCount(null))
-      .finally(() => setCountLoading(false));
+    fetchDoctors(dateRange);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const applyRange = () => {
+    setActivePreset(null);
+    fetchDoctors(dateRange);
+  };
+
+  const applyPreset = (presetKey) => {
+    const range = DATE_PRESETS[presetKey]();
+    setDateRange(range);
+    setActivePreset(presetKey);
+    fetchDoctors(range);
+  };
 
   const handleExportDirectory = async () => {
     setIsExporting(true);
     try {
-      const res = await exportDoctorDirectory();
+      const res = await exportDoctorDirectory({ ...dateRange });
       const blob = new Blob([res.data], {
         type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
       });
       const downloadUrl = window.URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = downloadUrl;
-      link.download = `Doctor-Directory-${new Date().toISOString().slice(0, 10)}.xlsx`;
+      link.download = `Doctor-Directory-${dateRange.from}-to-${dateRange.to}.xlsx`;
       document.body.appendChild(link);
       link.click();
       link.remove();
       window.URL.revokeObjectURL(downloadUrl);
-
-      const now = new Date().toISOString();
-      localStorage.setItem(LAST_EXPORT_KEY, now);
-      setLastExportedAt(now);
-
-      toast.success("Doctor directory exported successfully");
+      toast.success("Doctor report exported successfully");
     } catch (err) {
       if (!handleAuthError(err)) {
         toast.error(err?.response?.data?.message || "Failed to export report");
@@ -86,169 +144,344 @@ const DoctorDirectoryExport = () => {
     }
   };
 
+  const filteredDoctors = doctors.filter((d) => {
+    if (!search.trim()) return true;
+    const q = search.trim().toLowerCase();
+    return (
+      d.name?.toLowerCase().includes(q) ||
+      d.clinicName?.toLowerCase().includes(q) ||
+      d.specialisation?.toLowerCase().includes(q)
+    );
+  });
+
+  const totalVisits = doctors.reduce((sum, d) => sum + (d.totalVisits || 0), 0);
+  const totalMismatch = doctors.reduce(
+    (sum, d) => sum + (d.mismatchCount || 0),
+    0,
+  );
+
   return (
     <div className="p-3 p-lg-4 bg-white" style={{ overflowX: "hidden" }}>
-      <style>
-        {`
-          .dde-col-chip {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 12px;
-            border: 1px solid #e2e8f0;
-            border-radius: 8px;
-            background: #f8fafc;
-            font-size: 13px;
-            color: #334155;
-          }
-          .dde-col-chip i {
-            font-size: 15px;
-            color: #1e90ff;
-          }
-        `}
-      </style>
-
       <Row className="justify-content-center">
         <Col xs={12} xl={10} style={{ minWidth: 0 }}>
-          {/* Header */}
+          {/* ---- Header ---- */}
           <div className="d-flex align-items-center justify-content-between mb-4 pb-3 border-bottom flex-wrap gap-2">
-            <div className="d-flex align-items-center gap-3">
-              {/* <div
-                className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                style={{ width: 44, height: 44, background: "#eff6ff", color: "#1e90ff" }}
-              >
-                <i className="ri-file-excel-2-line" style={{ fontSize: 22 }} />
-              </div> */}
-              <div>
-                <h4 className="mb-0 fw-semibold">Doctor Directory Export</h4>
-                {/* <p className="text-muted fs-13 mb-0 mt-1">
-                  Download the full list of doctors visited, along with their
-                  engagement stats and GPS verification summary.
-                </p> */}
-              </div>
+            <div>
+              <h4 className="mb-0 fw-semibold">Doctor Report</h4>
             </div>
-
-            {lastExportedAt && (
-              <span className="text-muted fs-12 d-flex align-items-center gap-1">
-                <i className="bx bx-history" />
-                Last exported {formatRelativeTime(lastExportedAt)}
+            <div className="d-flex align-items-center gap-3">
+              <span className="text-muted fs-13">
+                Today,{" "}
+                {new Date().toLocaleDateString("en-IN", {
+                  day: "2-digit",
+                  month: "short",
+                })}
               </span>
-            )}
+              <button
+                className="btn d-flex align-items-center gap-2"
+                onClick={handleExportDirectory}
+                disabled={isExporting}
+                style={{
+                  backgroundColor: "#1e90ff",
+                  color: "#fff",
+                  border: "none",
+                  borderRadius: 4,
+                  padding: "8px 16px",
+                  fontSize: 14,
+                  fontWeight: 450,
+                }}
+              >
+                {isExporting ? (
+                  <Spinner size="sm" style={{ color: "#fff" }} />
+                ) : (
+                  <i
+                    className="ri-file-excel-2-line"
+                    style={{ fontSize: 16 }}
+                  />
+                )}
+                Export Excel
+              </button>
+            </div>
           </div>
 
-          <Row className="g-3">
-            {/* Left: Export action card */}
-            <Col xs={12} md={5}>
-              <Card className="border-0 shadow-sm h-100">
-                <CardBody className="p-4 p-lg-5 text-center d-flex flex-column align-items-center justify-content-center h-100">
-                  <div
-                    className="rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
-                    style={{ width: 64, height: 64, background: "#eff6ff", color: "#1e90ff" }}
+          {/* ---- Filters (date range + search) ---- */}
+          <Card className="border-0 shadow-sm mb-3">
+            <CardBody className="p-3 p-lg-4">
+              <div className="mb-3">
+                <span className="fw-semibold text-dark fs-14">
+                  <i className="bx bx-filter-alt me-1 text-muted" /> Filters
+                </span>
+              </div>
+              <div className="d-flex flex-wrap gap-2 mb-3">
+                {[
+                  { key: "today", label: "Today" },
+                  { key: "last7", label: "Last 7 Days" },
+                  { key: "thisMonth", label: "This Month" },
+                  { key: "lastMonth", label: "Last Month" },
+                ].map((p) => (
+                  <Button
+                    key={p.key}
+                    size="sm"
+                    color={activePreset === p.key ? "primary" : "light"}
+                    className="fw-medium"
+                    onClick={() => applyPreset(p.key)}
                   >
-                    <i className="ri-file-excel-2-line" style={{ fontSize: 30 }} />
-                  </div>
-                  <h6 className="fw-bold text-dark mb-1">
-                    Full Doctor Directory Report
-                  </h6>
-
-                  <div className="mb-3">
-                    {countLoading ? (
-                      <span className="text-muted fs-13">
-                        <Spinner size="sm" className="me-1" /> Counting doctors…
-                      </span>
-                    ) : doctorCount != null ? (
-                      <span
-                        className="badge rounded-pill fw-semibold px-3 py-2"
-                        style={{ background: "#eef2ff", color: "#3577f1", fontSize: 13 }}
-                      >
-                        {doctorCount} doctor{doctorCount === 1 ? "" : "s"} will be exported
-                      </span>
-                    ) : null}
-                  </div>
-
-                  {/* <p
-                    className="text-muted fs-13 mb-4"
-                    style={{ maxWidth: 320, margin: "0 auto" }}
+                    {p.label}
+                  </Button>
+                ))}
+              </div>
+              <Row className="g-3 align-items-end mb-3">
+                <Col xs={6} md={3}>
+                  <Label
+                    className="fw-semibold text-dark mb-1"
+                    style={{ fontSize: "13px" }}
                   >
-                    One click generates and downloads an Excel file with every
-                    doctor currently on record.
-                  </p> */}
-
-                  <button
-                    className="btn d-flex align-items-center gap-2 mx-auto"
-                    onClick={handleExportDirectory}
-                    disabled={isExporting}
-                    style={{
-                      backgroundColor: "#1e90ff",
-                      color: "#fff",
-                      border: "none",
-                      borderRadius: 4,
-                      padding: "8px 20px",
-                      fontSize: 14,
-                      fontWeight: 450,
+                    From
+                  </Label>
+                  <Input
+                    type="date"
+                    size="sm"
+                    value={dateRange.from}
+                    onChange={(e) => {
+                      setDateRange((r) => ({ ...r, from: e.target.value }));
+                      setActivePreset(null);
                     }}
+                  />
+                </Col>
+                <Col xs={6} md={3}>
+                  <Label
+                    className="fw-semibold text-dark mb-1"
+                    style={{ fontSize: "13px" }}
                   >
-                    {isExporting ? (
-                      <Spinner size="sm" style={{ color: "#fff" }} />
-                    ) : (
-                      <i className="ri-file-excel-2-line" style={{ fontSize: 16 }} />
-                    )}
-                    {isExporting ? "Preparing file…" : "Export Excel"}
-                  </button>
+                    To
+                  </Label>
+                  <Input
+                    type="date"
+                    size="sm"
+                    value={dateRange.to}
+                    onChange={(e) => {
+                      setDateRange((r) => ({ ...r, to: e.target.value }));
+                      setActivePreset(null);
+                    }}
+                  />
+                </Col>
+                <Col xs={12} md={3}>
+                  <Button
+                    color="primary"
+                    size="sm"
+                    className="w-100"
+                    onClick={applyRange}
+                  >
+                    <i className="bx bx-filter-alt me-1" /> Apply Date Range
+                  </Button>
+                </Col>
+              </Row>
+              <Row className="g-3">
+                <Col xs={12} md={6}>
+                  <Label
+                    className="fw-semibold text-dark mb-1"
+                    style={{ fontSize: "13px" }}
+                  >
+                    Search doctor / clinic / specialisation
+                  </Label>
+                  <Input
+                    size="sm"
+                    placeholder="Type to filter the list below…"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                  />
+                </Col>
+              </Row>
+            </CardBody>
+          </Card>
 
-                  {/* <div className="text-muted fs-12 mt-3 d-flex align-items-center gap-1">
-                    <i className="bx bx-file" />
-                    Format: .xlsx
-                  </div> */}
-                </CardBody>
-              </Card>
-            </Col>
+          {loading && (
+            <div className="text-center py-5">
+              <Spinner color="primary" />
+            </div>
+          )}
+          {error && <Alert color="danger">{error}</Alert>}
 
-            {/* Right: What's included */}
-            <Col xs={12} md={7}>
-              <Card className="border-0 shadow-sm h-100">
-                <CardBody className="p-4">
-                  <div className="d-flex align-items-center justify-content-between mb-3">
-                    <span
-                      className="text-uppercase fw-bold text-muted"
-                      style={{ fontSize: 11, letterSpacing: "0.05em" }}
-                    >
-                      Columns included in this report
-                    </span>
-                    <span className="badge bg-light text-secondary border fs-11">
-                      {COLUMNS.length} fields
-                    </span>
-                  </div>
-
-                  <Row className="g-2">
-                    {COLUMNS.map((col, idx) => (
-                      <Col xs={12} sm={6} key={idx}>
-                        <div className="dde-col-chip">
-                          <i className={col.icon} />
-                          {col.label}
-                        </div>
-                      </Col>
-                    ))}
-                  </Row>
-
+          {!loading && !error && (
+            <>
+              {/* ---- Summary stat cards ---- */}
+              <div className="mb-2">
+                <span className="fw-semibold text-dark fs-14">
+                  {search.trim()
+                    ? `Showing ${filteredDoctors.length} of ${doctors.length} doctors`
+                    : `Summary — ${doctors.length} doctor${doctors.length === 1 ? "" : "s"} in this date range`}
+                </span>
+              </div>
+              <Row className="g-3 mb-1">
+                <Col xs={6} md={4}>
                   <div
-                    className="d-flex align-items-start gap-2 mt-4 p-3 rounded-3"
-                    style={{ background: "#fffbeb", border: "1px solid #fde68a" }}
+                    className="rounded-3 p-3"
+                    style={{ background: "#eef2ff" }}
                   >
-                    <i
-                      className="bx bx-info-circle flex-shrink-0"
-                      style={{ color: "#b45309", fontSize: 16, marginTop: 2 }}
-                    />
-                    <div className="text-muted fs-12">
-                      One row per unique doctor. Visit counts and mismatch
-                      counts reflect all recorded visits to date, across all
-                      field agents.
+                    <div className="text-muted fs-13">Doctors</div>
+                    <div
+                      className="fs-3 fw-semibold"
+                      style={{ color: "#3577f1" }}
+                    >
+                      {doctors.length}
                     </div>
                   </div>
-                </CardBody>
-              </Card>
-            </Col>
-          </Row>
+                </Col>
+                <Col xs={6} md={4}>
+                  <div
+                    className="rounded-3 p-3"
+                    style={{ background: "#f8f9fb" }}
+                  >
+                    <div className="text-muted fs-13">Total Visits</div>
+                    <div className="fs-3 fw-semibold">{totalVisits}</div>
+                  </div>
+                </Col>
+                <Col xs={6} md={4}>
+                  <div
+                    className="rounded-3 p-3"
+                    style={{ background: "#fde8e4" }}
+                  >
+                    <div className="text-muted fs-13">Mismatches</div>
+                    <div className="fs-3 fw-semibold text-danger">
+                      {totalMismatch}
+                    </div>
+                    <div className="text-muted" style={{ fontSize: "11px" }}>
+                      GPS did not match
+                    </div>
+                  </div>
+                </Col>
+              </Row>
+              <div className="mb-4" />
+
+              {/* ---- Doctor list ---- */}
+              <div className="mb-2">
+                <span className="fw-semibold text-dark fs-14">
+                  Doctor directory
+                </span>
+              </div>
+
+              {filteredDoctors.length === 0 ? (
+                <Card className="border-0 shadow-sm">
+                  <CardBody className="text-center text-muted py-5">
+                    <i className="bx bx-search-alt fs-1 d-block mb-2 opacity-50" />
+                    {search.trim()
+                      ? "No doctors match this search"
+                      : "No doctor visits recorded in this date range"}
+                  </CardBody>
+                </Card>
+              ) : (
+                filteredDoctors.map((d, idx) => {
+                  const hasMismatch = d.mismatchCount > 0;
+                  const displayName = /^dr\.?\s/i.test(d.name || "")
+                    ? d.name
+                    : `Dr. ${d.name || "-"}`;
+                  return (
+                    <Card
+                      key={idx}
+                      className="border-0 shadow-sm mb-3"
+                      style={{
+                        borderLeft: `3px solid ${hasMismatch ? "#f06548" : "#0ab39c"}`,
+                      }}
+                    >
+                      <CardBody className="p-3 p-lg-4">
+                        <div className="d-flex align-items-center justify-content-between flex-wrap gap-3">
+                          <div className="d-flex align-items-center gap-2">
+                            <div
+                              className="rounded-circle d-flex align-items-center justify-content-center fw-semibold text-white flex-shrink-0"
+                              style={{
+                                width: 44,
+                                height: 44,
+                                fontSize: 15,
+                                background: getAvatarColor(d.name),
+                              }}
+                            >
+                              {getInitials(d.name)}
+                            </div>
+                            <div>
+                              <div className="fw-semibold fs-15">
+                                {displayName}
+                              </div>
+                              <div className="text-muted fs-13">
+                                <i
+                                  className="bx bx-hospital me-1"
+                                  style={{ fontSize: 12 }}
+                                />
+                                {d.clinicName}
+                                {d.specialisation && (
+                                  <>
+                                    {" · "}
+                                    {d.specialisation}
+                                  </>
+                                )}
+                              </div>
+                              {d.contactNumber && (
+                                <div className="text-muted fs-12">
+                                  <i
+                                    className="bx bx-phone me-1"
+                                    style={{ fontSize: 11 }}
+                                  />
+                                  {d.contactNumber}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+
+                          <div className="d-flex align-items-center gap-4 flex-wrap">
+                            <div className="text-center">
+                              <div className="text-muted fs-12">
+                                Total Visits
+                              </div>
+                              <div className="fw-semibold fs-16">
+                                {d.totalVisits}
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-muted fs-12">Verified</div>
+                              <div className="fw-semibold fs-16 text-success">
+                                {d.matchedCount || 0}
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-muted fs-12">Mismatches</div>
+                              <div
+                                className={`fw-semibold fs-16 ${hasMismatch ? "text-danger" : "text-muted"}`}
+                              >
+                                {d.mismatchCount || 0}
+                              </div>
+                            </div>
+                            <div className="text-center">
+                              <div className="text-muted fs-12">Last Visit</div>
+                              <div className="fw-semibold fs-14">
+                                {d.lastVisitDate
+                                  ? new Date(
+                                      d.lastVisitDate,
+                                    ).toLocaleDateString("en-IN", {
+                                      day: "2-digit",
+                                      month: "short",
+                                      year: "numeric",
+                                    })
+                                  : "—"}
+                              </div>
+                            </div>
+                            {hasMismatch && (
+                              <Badge
+                                pill
+                                className="fw-semibold px-3 py-2"
+                                style={{ background: "#f06548", color: "#fff" }}
+                              >
+                                <i className="bx bx-error-circle me-1" />
+                                Mismatch
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
+                      </CardBody>
+                    </Card>
+                  );
+                })
+              )}
+            </>
+          )}
         </Col>
       </Row>
     </div>
