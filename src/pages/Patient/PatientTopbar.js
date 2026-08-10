@@ -32,6 +32,7 @@ import {
   fetchDoctors,
   editAdmissionAssignment,
   fetchFinalDiagnosis,
+  fetchAdditionalDiagnosis,
 } from "../../store/actions";
 
 //assets
@@ -42,6 +43,7 @@ import CheckPermission from "../../Components/HOC/CheckPermission";
 import AddNoteModal from "../Nurse/Views/Components/AddNoteModal";
 import AssignNurseModal from "./Views/Components/AssignNurseModal";
 import { unAssignNurse } from "../../store/features/patient/patientSlice";
+// import { getAdditionalDetails } from "../../helpers/backend_helper";
 // import RenderWhen from "../../Components/Common/RenderWhen";
 
 // Turns the doctorSignature.diagnosis array (ICD code objects) into a readable
@@ -73,6 +75,8 @@ const PatientTopbar = ({
   assignedNurse,
   finalDiagnosis,
   finalDiagnosisLoading,
+  additionalDiagnosis,
+  additionalDiagnosisLoading,
 }) => {
   const dispatch = useDispatch();
 
@@ -85,6 +89,10 @@ const PatientTopbar = ({
   const [selectedPsychologist, setSelectedPsychologist] = useState(null);
   const [notesModal, setNotesModal] = useState(false);
   const [nurseModal, setNurseModal] = useState(false);
+  // const [additionalDiagnosis, setAdditionalDiagnosis] = useState(null);
+  // const [additionalDiagnosisLoading, setAdditionalDiagnosisLoading] =
+  //   useState(false);
+  // const [finalDiagnosisText, setFinalDiagnosisText] = useState("");
 
   const admission = admissions.find(
     (admission) => admission._id === patient.addmission._id,
@@ -103,17 +111,28 @@ const PatientTopbar = ({
   const currentAdmissionId = patient?.addmission?._id;
 
   useEffect(() => {
-    if (currentAdmissionId) {
+    if (currentAdmissionId && patient?._id) {
       dispatch(fetchFinalDiagnosis(currentAdmissionId));
+      dispatch(
+        fetchAdditionalDiagnosis({
+          patient: patient?._id,
+          admission: currentAdmissionId,
+        }),
+      );
     }
   }, [dispatch, currentAdmissionId]);
 
-  const finalDiagnosisText = formatFinalDiagnosis(finalDiagnosis);
-  // Only trust the store value once it belongs to the admission on screen —
-  // otherwise (initial load, or switching patients) keep showing the skeleton
-  // instead of flashing stale data from the previously viewed patient.
+  const latestActiveDiagnosis = Array.isArray(additionalDiagnosis)
+    ? additionalDiagnosis.find((d) => d.isActive === true)
+    : null;
+
+  const finalDiagnosisText =
+    latestActiveDiagnosis?.code ||
+    formatFinalDiagnosis(finalDiagnosis) ||
+    "N/A";
+
   const isFinalDiagnosisReady =
-    !finalDiagnosisLoading && finalDiagnosis?.addmission === currentAdmissionId;
+    !finalDiagnosisLoading && !additionalDiagnosisLoading;
 
   const handleEditClick = () => {
     if (admission?.doctor) {
@@ -228,10 +247,10 @@ const PatientTopbar = ({
                       </h5>
                       {currentAdmissionId && (
                         <p
-                          className="text-truncate text-muted fs-13 mb-0 mt-1"
+                          className="text-muted fs-13 mb-0 mt-1"
                           title={
                             isFinalDiagnosisReady
-                              ? finalDiagnosisText || "N/A"
+                              ? finalDiagnosisText
                               : undefined
                           }
                         >
@@ -262,7 +281,9 @@ const PatientTopbar = ({
                             "DD MMM, YYYY",
                           )}{" "}
                           -{" "}
-                          {moment(patient.outpass.toDate).format("DD MMM, YYYY")}
+                          {moment(patient.outpass.toDate).format(
+                            "DD MMM, YYYY",
+                          )}
                         </span>
                       )}
                     </div>
@@ -625,7 +646,7 @@ const PatientTopbar = ({
                             }),
                           )
                         }
-                      // href="#"
+                        // href="#"
                       >
                         <i className="ri-inbox-archive-line align-bottom text-muted me-2"></i>{" "}
                         Discharge Patient
@@ -753,6 +774,8 @@ const mapStateToProps = (state) => ({
   assignedNurse: state.Patient.patient.assignedNurse,
   finalDiagnosis: state.Chart.finalDiagnosis,
   finalDiagnosisLoading: state.Chart.finalDiagnosisLoading,
+  additionalDiagnosis: state.Chart.additionalDiagnosis,
+  additionalDiagnosisLoading: state.Chart.additionalDiagnosisLoading,
 });
 
 export default connect(mapStateToProps)(PatientTopbar);

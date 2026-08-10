@@ -54,6 +54,7 @@ import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
 import { api } from "../../../config";
 import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
+import AdditionalDetailsModal from "./Components/AdditionalDetailsModal";
 
 const Charts = ({
   addmission,
@@ -70,6 +71,10 @@ const Charts = ({
     isOpen: false,
   });
   const [socketReady, setSocketReady] = useState(false);
+  const [additionalDetailsModal, setAdditionalDetailsModal] = useState({
+    isOpen: false,
+    chart: null,
+  });
 
   const socketRef = useRef(null);
 
@@ -203,18 +208,22 @@ const Charts = ({
 
   console.log("CHARTING", charts);
 
+  const handleAddAdditionalDetails = (chart) => {
+    setAdditionalDetailsModal({ isOpen: true, chart });
+  };
+
   return (
     <React.Fragment>
       <div className="timeline-2">
         <div className="timeline-continue">
           <Row className="timeline-right">
             {(charts || []).map((chart) => {
-              console.log("HISTORY CHART ITEM:", {
-                chartId: chart._id,
-                chartType: chart.chart,
-                addmission: chart.addmission,
-                patient: chart.patient,
-              });
+              // console.log("HISTORY CHART ITEM:", {
+              //   chartId: chart._id,
+              //   chartType: chart.chart,
+              //   addmission: chart.addmission,
+              //   patient: chart.patient,
+              // });
               return (
                 <Wrapper
                   key={chart._id}
@@ -223,6 +232,7 @@ const Charts = ({
                   editItem={editChart}
                   deleteItem={getChart}
                   printItem={printChart}
+                  addAdditionalDetails={handleAddAdditionalDetails}
                   // Round-note charts are auto-generated read-only snapshots —
                   // they are edited/removed only from the Round Notes screen.
                   disableEdit={
@@ -311,6 +321,11 @@ const Charts = ({
         onCloseClick={cancelDelete}
         onDeleteClick={deleteChart}
         show={chart.isOpen}
+      />
+      <AdditionalDetailsModal
+        isOpen={additionalDetailsModal.isOpen}
+        chart={additionalDetailsModal.chart}
+        toggle={() => setAdditionalDetailsModal({ isOpen: false, chart: null })}
       />
     </React.Fragment>
   );

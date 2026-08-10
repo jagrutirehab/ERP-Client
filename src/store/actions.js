@@ -180,6 +180,7 @@ export {
   fetchChartsAddmissions,
   fetchCharts,
   fetchFinalDiagnosis,
+  fetchAdditionalDiagnosis,
   fetchGeneralCharts,
   addPrescription,
   addGeneralPrescription,
