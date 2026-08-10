@@ -1376,6 +1376,12 @@ export const MARKETING = [
     icon: "bx bx-bar-chart-alt-2",
     link: "/marketing/reports/agent",
   },
+  {
+    id: "doctor-directory-export",
+    label: "Doctor Directory Export",
+    icon: "ri-file-excel-2-line",
+    link: "/marketing/doctors/export",
+  },
 ];
 
 export const RECORDINGS = [
