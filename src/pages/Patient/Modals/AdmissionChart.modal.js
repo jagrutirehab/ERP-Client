@@ -15,6 +15,7 @@ import { Forms } from "../../../Components/constants/patient";
 import { connect, useDispatch } from "react-redux";
 import { createEditChart, setChartDate } from "../../../store/actions";
 import CapacityAssessmentModal from "./CapacityAssessmentModal";
+import ECTConsentFormModal from "./ECTConsentFormModal";
 
 const AdmissionChart = ({
   isOpen,
@@ -28,6 +29,7 @@ const AdmissionChart = ({
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const toggle2 = () => setDropdownOpen((prevState) => !prevState);
   const [capacityModal, setCapacityModal] = useState(false);
+  const [ectConsentModal, setEctConsentModal] = useState(false);
 
   useEffect(() => {
     const d = new Date();
@@ -146,6 +148,8 @@ const AdmissionChart = ({
                       // if (gated) return;
                       if (item.name === "Capacity Assessment Form") {
                         setCapacityModal(true);
+                      } else if (item.name === "ECT Consent Form") {
+                        setEctConsentModal(true);
                       } else {
                         dispatch(
                           createEditChart({
@@ -174,6 +178,14 @@ const AdmissionChart = ({
           )} */}
         </div>
       </CustomModal>
+      <ECTConsentFormModal
+        isOpen={ectConsentModal}
+        toggle={() => setEctConsentModal(false)}
+        patient={patient}
+        // ECTConsentForm reads admissions[0].doctor for its prefill.
+        admissions={patient?.addmission ? [patient.addmission] : []}
+        addmissionId={patient?.addmission?._id}
+      />
       <CapacityAssessmentModal
         isOpen={capacityModal}
         toggle={() => setCapacityModal(false)}
