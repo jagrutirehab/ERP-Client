@@ -32,6 +32,7 @@ import {
   fetchDoctors,
   editAdmissionAssignment,
   fetchFinalDiagnosis,
+  fetchAdditionalDiagnosis,
 } from "../../store/actions";
 
 //assets
@@ -42,23 +43,8 @@ import CheckPermission from "../../Components/HOC/CheckPermission";
 import AddNoteModal from "../Nurse/Views/Components/AddNoteModal";
 import AssignNurseModal from "./Views/Components/AssignNurseModal";
 import { unAssignNurse } from "../../store/features/patient/patientSlice";
+// import { getAdditionalDetails } from "../../helpers/backend_helper";
 // import RenderWhen from "../../Components/Common/RenderWhen";
-
-// Turns the doctorSignature.diagnosis array (ICD code objects) into a readable
-// string. Mirrors how Charts/DetailAdmission.js renders "Final Diagnosis".
-const formatFinalDiagnosis = (finalDiagnosis) => {
-  const diagnosis = finalDiagnosis?.diagnosis;
-  if (!Array.isArray(diagnosis) || diagnosis.length === 0) return "";
-  return diagnosis
-    .map((item) => {
-      if (!item) return "";
-      if (typeof item === "object" && item.code) return item.code;
-      if (typeof item === "string") return item;
-      return "";
-    })
-    .filter(Boolean)
-    .join(", ");
-};
 
 const PatientTopbar = ({
   patient,
@@ -85,6 +71,10 @@ const PatientTopbar = ({
   const [selectedPsychologist, setSelectedPsychologist] = useState(null);
   const [notesModal, setNotesModal] = useState(false);
   const [nurseModal, setNurseModal] = useState(false);
+  // const [additionalDiagnosis, setAdditionalDiagnosis] = useState(null);
+  // const [additionalDiagnosisLoading, setAdditionalDiagnosisLoading] =
+  //   useState(false);
+  // const [finalDiagnosisText, setFinalDiagnosisText] = useState("");
 
   const admission = admissions.find(
     (admission) => admission._id === patient.addmission._id,
@@ -103,17 +93,23 @@ const PatientTopbar = ({
   const currentAdmissionId = patient?.addmission?._id;
 
   useEffect(() => {
-    if (currentAdmissionId) {
+    if (currentAdmissionId && patient?._id) {
       dispatch(fetchFinalDiagnosis(currentAdmissionId));
+      dispatch(
+        fetchAdditionalDiagnosis({
+          patient: patient?._id,
+          admission: currentAdmissionId,
+        }),
+      );
     }
   }, [dispatch, currentAdmissionId]);
 
-  const finalDiagnosisText = formatFinalDiagnosis(finalDiagnosis);
-  // Only trust the store value once it belongs to the admission on screen —
-  // otherwise (initial load, or switching patients) keep showing the skeleton
-  // instead of flashing stale data from the previously viewed patient.
-  const isFinalDiagnosisReady =
-    !finalDiagnosisLoading && finalDiagnosis?.addmission === currentAdmissionId;
+  // getFinalDiagnosis already walks the chart timeline (most recent first)
+  // and resolves to whichever chart's additional-details entry or raw
+  // diagnosis should currently be shown — nothing left to derive here.
+  const finalDiagnosisText = finalDiagnosis?.code || "N/A";
+
+  const isFinalDiagnosisReady = !finalDiagnosisLoading;
 
   const handleEditClick = () => {
     if (admission?.doctor) {
@@ -228,10 +224,10 @@ const PatientTopbar = ({
                       </h5>
                       {currentAdmissionId && (
                         <p
-                          className="text-truncate text-muted fs-13 mb-0 mt-1"
+                          className="text-muted fs-13 mb-0 mt-1"
                           title={
                             isFinalDiagnosisReady
-                              ? finalDiagnosisText || "N/A"
+                              ? finalDiagnosisText
                               : undefined
                           }
                         >
@@ -262,7 +258,9 @@ const PatientTopbar = ({
                             "DD MMM, YYYY",
                           )}{" "}
                           -{" "}
-                          {moment(patient.outpass.toDate).format("DD MMM, YYYY")}
+                          {moment(patient.outpass.toDate).format(
+                            "DD MMM, YYYY",
+                          )}
                         </span>
                       )}
                     </div>
@@ -625,7 +623,7 @@ const PatientTopbar = ({
                             }),
                           )
                         }
-                      // href="#"
+                        // href="#"
                       >
                         <i className="ri-inbox-archive-line align-bottom text-muted me-2"></i>{" "}
                         Discharge Patient

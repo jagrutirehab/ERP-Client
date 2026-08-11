@@ -643,6 +643,11 @@ export const getLastMentalExamination = (params = {}) => {
   return api.get(url.LAST_MENTAL_EXAMINATION, params);
 };
 
+// Latest ECT session for a patient, used to prefill a new one.
+export const getLastEctSession = (params = {}) => {
+  return api.get(url.LAST_ECT_SESSION, params);
+};
+
 export const deleteChart = (data) => api.delete(`${url.DELETE_CHART}/${data}`);
 export const deleteChartPermanently = (param) =>
   api.delete(`${url.DELETE_CHART_PERMANENTLY}/${param}`);
@@ -728,6 +733,15 @@ export const getDeletedCharts = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+
+export const addAdditionDetails = (data) => {
+  return axios.post(url.ADDITIONAL_DETAILS, data);
+};
+
+export const getAdditionalDetails = (params) => {
+  return axios.get(url.GET_ADDITIONAL_DETAILS, { params });
+};
+
 export const getDeletedBills = (data) =>
   api.get(url.GET_DELETED_BILLS, {
     params: {
@@ -4369,14 +4383,28 @@ export const getDoctorDirectory = (params = {}) =>
     headers: { "X-No-Cookie-Token": "true" },
   });
 
+export const exportAgentReport = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/reports/agent-summary/export`, {
+    params,
+    responseType: "blob",
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const exportDoctorVisitHistory = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/history/export`, {
+    params,
+    responseType: "blob",
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 export const getDoctorVisitHistory = (params = {}) =>
   axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/history`, {
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
 
-  export const exportDoctorDirectory = () =>
+export const exportDoctorDirectory = (params = {}) =>
   axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/export`, {
+    params,
     responseType: "blob",
     headers: { "X-No-Cookie-Token": "true" },
   });

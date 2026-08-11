@@ -12,7 +12,8 @@ Font.register({
   ],
 });
 
-const DetailHistory = ({ data, styles }) => {
+const DetailHistory = ({ data, styles, additionalDiagnosis }) => {
+  console.log("DetailHistory additionalDiagnosis:", additionalDiagnosis);
   return (
     <React.Fragment>
       <View
@@ -169,6 +170,39 @@ const DetailHistory = ({ data, styles }) => {
             <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
               {data?.personality || ""}
             </Text>
+          </View>
+        )}
+
+        {additionalDiagnosis?.code && additionalDiagnosis?.summary && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>Additional Details:</Text>
+            <View style={{ ...styles.mrgnTop10 }}>
+              <Text style={{ ...styles.fontSize13, ...styles.mrgnBottom10 }}>
+                Final Diagnosis:{" "}
+                <Text style={styles.preText}>{additionalDiagnosis.code}</Text>
+              </Text>
+              <Text style={styles.fontSize13}>
+                Summary:{" "}
+                <Text style={styles.preText}>
+                  {additionalDiagnosis.summary}
+                </Text>
+              </Text>
+              {additionalDiagnosis?.createdAt && (
+                <Text style={{ ...styles.preText, ...styles.mrgnTop10 }}>
+                  Posted At:{" "}
+                  {new Date(additionalDiagnosis.createdAt).toLocaleDateString(
+                    "en-IN",
+                    {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    },
+                  )}
+                </Text>
+              )}
+            </View>
           </View>
         )}
       </View>

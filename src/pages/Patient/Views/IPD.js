@@ -360,6 +360,8 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                         charts={addmission.charts ?? []}
                         addmission={addmission}
                         doctor={addmission?.doctor}
+                        currentAddmissionId={patient?.addmission?._id}
+                        isPatientDischarged={!!addmission.dischargeDate}
                       />
                     )}
                   </AccordionBody>

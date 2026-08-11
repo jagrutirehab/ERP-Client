@@ -56,24 +56,37 @@ const styles = StyleSheet.create({
   },
 });
 
-const Charts = ({ charts, patient, doctor, admission }) => {
+const Charts = ({
+  charts,
+  patient,
+  doctor,
+  admission,
+  additionalDiagnosis,
+}) => {
+  console.log("Print additionalDiagnosis:", additionalDiagnosis);
   return (
     <React.Fragment>
       <Document>
-        {(charts || []).map((chart) => (
-          <Page size="A4" style={styles.page} wrap={true}>
-            <RenderWhen isTrue={chart?.chart === PRESCRIPTION}>
-              {/* && chart.type === OPD */}
-              <OPDPrescription
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                doctor={doctor}
-                admission={admission}
-              />
-            </RenderWhen>
+        {(charts || []).map((chart) => {
+          console.log("Print chart._id:", chart._id);
+          console.log(
+            "additionalDiagnosis chart_ids:",
+            additionalDiagnosis?.map((d) => d.chart_id),
+          );
+          return (
+            <Page size="A4" style={styles.page} wrap={true}>
+              <RenderWhen isTrue={chart?.chart === PRESCRIPTION}>
+                {/* && chart.type === OPD */}
+                <OPDPrescription
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  doctor={doctor}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            {/* <RenderWhen
+              {/* <RenderWhen
               isTrue={
                 chart?.chart === PRESCRIPTION &&
                 (chart.type === IPD || chart.type === GENERAL)
@@ -86,207 +99,221 @@ const Charts = ({ charts, patient, doctor, admission }) => {
               />
             </RenderWhen> */}
 
-            <RenderWhen isTrue={chart?.chart === CLINICAL_NOTE}>
-              <ClinicalNote
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen isTrue={chart?.chart === CLINICAL_NOTE}>
+                <ClinicalNote
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen
-              isTrue={
-                chart?.chart === LAB_REPORT &&
-                (chart.type === IPD || chart.type === GENERAL)
-              }
-            >
-              <LabReport
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
-            <RenderWhen
-              isTrue={
-                chart?.chart === PSYCHO_DIAGNOSTIC_FORM &&
-                (chart.type === IPD ||
-                  chart.type === GENERAL ||
-                  chart.type === OPD)
-              }
-            >
-              <PsychoDiagnosis
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === LAB_REPORT &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <LabReport
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === PSYCHO_DIAGNOSTIC_FORM &&
+                  (chart.type === IPD ||
+                    chart.type === GENERAL ||
+                    chart.type === OPD)
+                }
+              >
+                <PsychoDiagnosis
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen
-              isTrue={
-                chart?.chart === RELATIVE_VISIT &&
-                (chart.type === IPD || chart.type === GENERAL)
-              }
-            >
-              <RelativeVisit
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === RELATIVE_VISIT &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <RelativeVisit
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen isTrue={chart?.chart === OUTPASS && chart.type === IPD}>
-              <Outpass
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen
+                isTrue={chart?.chart === OUTPASS && chart.type === IPD}
+              >
+                <Outpass
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen
-              isTrue={
-                chart?.chart === VITAL_SIGN &&
-                (chart.type === IPD || chart.type === GENERAL)
-              }
-            >
-              <VitalSign
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === VITAL_SIGN &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <VitalSign
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen
-              isTrue={
-                chart?.chart === COUNSELLING_NOTE &&
-                (chart.type === IPD || chart.type === GENERAL)
-              }
-            >
-              <CounsellingNote
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === COUNSELLING_NOTE &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <CounsellingNote
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen
-              isTrue={chart?.chart === DISCHARGE_SUMMARY && chart.type === IPD}
-            >
-              {/* Discharge Summary is rendered through pdfmake in Print/index.js */}
-              <DischargeSummary
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === DISCHARGE_SUMMARY && chart.type === IPD
+                }
+              >
+                {/* Discharge Summary is rendered through pdfmake in Print/index.js */}
+                <DischargeSummary
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen
-              isTrue={chart?.chart === EXPIRY_SUMMARY && chart.type === IPD}
-            >
-              <ExpirySummary
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen
+                isTrue={chart?.chart === EXPIRY_SUMMARY && chart.type === IPD}
+              >
+                <ExpirySummary
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen
-              isTrue={
-                chart?.chart === DETAIL_ADMISSION &&
-                (chart.type === IPD || chart.type === GENERAL)
-              }
-            >
-              <DetailAdmission
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === DETAIL_ADMISSION &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <DetailAdmission
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                  additionalDiagnosis={(() => {
+                    if (!Array.isArray(additionalDiagnosis)) return null;
 
-            <RenderWhen isTrue={chart?.chart === MENTAL_EXAMINATION}>
-              <MentalExamination
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+                    return (
+                      additionalDiagnosis.find(
+                        (d) => String(d.chart_id) === String(chart._id),
+                      ) || null
+                    );
+                  })()}
+                />
+              </RenderWhen>
 
-            <RenderWhen isTrue={chart?.chart === ROUND_NOTE}>
-              <RoundNote
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen isTrue={chart?.chart === MENTAL_EXAMINATION}>
+                <MentalExamination
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen
-              isTrue={
-                chart?.chart === INPUT_OUTPUT &&
-                (chart.type === IPD || chart.type === GENERAL)
-              }
-            >
-              <InputOutput
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen isTrue={chart?.chart === ROUND_NOTE}>
+                <RoundNote
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen
-              isTrue={
-                chart?.chart === NURSE_SOS_PROCEDURE &&
-                (chart.type === IPD || chart.type === GENERAL)
-              }
-            >
-              <NurseSosProcedure
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === INPUT_OUTPUT &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <InputOutput
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen
-              isTrue={
-                chart?.chart === INJURY_MARKS &&
-                (chart.type === IPD || chart.type === GENERAL)
-              }
-            >
-              <InjuryMarks
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
+              <RenderWhen
+                isTrue={
+                  chart?.chart === NURSE_SOS_PROCEDURE &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <NurseSosProcedure
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
 
-            <RenderWhen
-              isTrue={
-                chart?.chart === ECT_SESSION &&
-                (chart.type === IPD || chart.type === GENERAL)
-              }
-            >
-              <EctSession
-                chart={chart}
-                center={chart.center}
-                patient={patient}
-                admission={admission}
-              />
-            </RenderWhen>
-          </Page>
-        ))}
+              <RenderWhen
+                isTrue={
+                  chart?.chart === INJURY_MARKS &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <InjuryMarks
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
+
+              <RenderWhen
+                isTrue={
+                  chart?.chart === ECT_SESSION &&
+                  (chart.type === IPD || chart.type === GENERAL)
+                }
+              >
+                <EctSession
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
+            </Page>
+          );
+        })}
       </Document>
     </React.Fragment>
   );
