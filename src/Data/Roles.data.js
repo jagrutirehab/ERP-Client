@@ -84,6 +84,7 @@ export const permissionList = [
       { name: "CASHSPENDING", label: "Cash Spending" },
       { name: "CASHINFLOW", label: "Cash Inflow" },
       { name: "LEDGERREPORT", label: "Ledger Report" },
+      { name: "CASHRECO", label: "Cash Daily Reco" },
     ],
   },
   {
@@ -121,6 +122,7 @@ export const permissionList = [
       { name: "CONDITIONSSETTING", label: "Conditions" },
       { name: "SYMPTOMSETTING", label: "Symptoms" },
       { name: "DOCUMENTCONFIG", label: "Document Configuration" },
+      { name: "CENTERFLOORCONFIG", label: "Center Floor Configuration" },
       { name: "HRCONFIGURATIONSSETTING", label: "HR Configurations" },
     ],
   },
@@ -191,6 +193,14 @@ export const permissionList = [
     label: "Guidelines",
     subModules: [
       { name: "GUIDELINESMANAGEMENT", label: "Guidelines Management" },
+    ],
+  },
+  {
+    key: "AUDIT",
+    label: "Audit",
+    subModules: [
+      { name: "FLOOR_PHOTOS", label: "Floor Photos" },
+      { name: "VERIFICATION", label: "Verification" },
     ],
   },
   {
@@ -475,6 +485,7 @@ export const permissionList = [
       { name: "VIEW_AGENT_REPORT", label: "Agent Visit Report" },
       { name: "VIEW_AGENT_PROFILE", label: "My Visit History" },
       { name: "VIEW_DOCTOR_VISITS", label: "Doctor Visits" },
+      { name: "EXPORT_DOCTOR_DIRECTORY", label: "Doctor Report" },
     ],
   },
   {

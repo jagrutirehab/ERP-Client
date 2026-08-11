@@ -465,6 +465,7 @@ export const getChartsAddmissions = (data) =>
   api.get(url.GET_CHARTS_ADDMISSIONS, {
     params: {
       addmissions: [...data],
+      _t: Date.now(),
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
@@ -473,7 +474,8 @@ export const getChartsAddmissions = (data) =>
 export const getCharts = (data) => {
   const addmission = typeof data === "string" ? data : data.addmissionId;
   const chartType = typeof data === "string" ? "All" : data.chartType;
-  return api.get(url.GET_CHARTS, { addmission, chartType });
+  const _t = typeof data === "string" ? Date.now() : (data._t ?? Date.now());
+  return api.get(url.GET_CHARTS, { addmission, chartType, _t });
 };
 export const getLatestCharts = ({ patient, limit }) =>
   api.get(`${url.GET_LATEST_CHARTS}?patient=${patient}&limit=${limit}`);
@@ -491,6 +493,10 @@ export const postGeneralVitalSign = (data) =>
   api.create(url.POST_GENERAL_VITAL_SIGN, data);
 export const editGeneralVitalSign = (data) =>
   api.put(url.EDIT_GENERAL_VITAL_SIGN, data);
+export const postAdmissionType = (data) =>
+  api.create(url.POST_ADMISSION_TYPE, data);
+export const editAdmissionType = (data) =>
+  api.put(url.EDIT_ADMISSION_TYPE, data);
 export const postEctSession = (data) => api.create(url.POST_ECT_SESSION, data);
 export const editEctSession = (data) => api.put(url.EDIT_ECT_SESSION, data);
 export const postGeneralEctSession = (data) =>
@@ -641,6 +647,11 @@ export const getLastMentalExamination = (params = {}) => {
   return api.get(url.LAST_MENTAL_EXAMINATION, params);
 };
 
+// Latest ECT session for a patient, used to prefill a new one.
+export const getLastEctSession = (params = {}) => {
+  return api.get(url.LAST_ECT_SESSION, params);
+};
+
 export const deleteChart = (data) => api.delete(`${url.DELETE_CHART}/${data}`);
 export const deleteChartPermanently = (param) =>
   api.delete(`${url.DELETE_CHART_PERMANENTLY}/${param}`);
@@ -726,6 +737,15 @@ export const getDeletedCharts = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+
+export const addAdditionDetails = (data) => {
+  return axios.post(url.ADDITIONAL_DETAILS, data);
+};
+
+export const getAdditionalDetails = (params) => {
+  return axios.get(url.GET_ADDITIONAL_DETAILS, { params });
+};
+
 export const getDeletedBills = (data) =>
   api.get(url.GET_DELETED_BILLS, {
     params: {
@@ -1362,6 +1382,75 @@ export const getLatestInflows = (params = {}) => {
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const postCashReco = (data) => {
+  return api.create(url.ADD_CASH_RECO, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const getCashRecoList = (params = {}) => {
+  return api.get(url.GET_CASH_RECOS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const putCashReco = (id, data) => {
+  return api.put(`${url.ADD_CASH_RECO}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const removeCashReco = (id) => {
+  return api.delete(`${url.ADD_CASH_RECO}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getCashRecoDayStatus = (params = {}) => {
+  return api.create(url.CASH_RECO_DAY_STATUS, params, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const getCashRecoComparison = (id) => {
+  return api.create(
+    `${url.ADD_CASH_RECO}/${id}/comparison`,
+    {},
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+        "Content-Type": "application/json",
+      },
+    },
+  );
+};
+
+export const confirmCashRecoEntry = (id, data) => {
+  return api.create(`${url.ADD_CASH_RECO}/${id}/confirm`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "application/json",
     },
   });
 };
@@ -2375,6 +2464,30 @@ export const getAuditDaily = (data) => {
 
 export const getMetricsReport = (data) => {
   return api.get(url.GET_METRICS_REPORT, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getOpdChargesMonthly = (data) => {
+  return api.get(url.GET_OPD_CHARGES_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getDoctorOpdChargesMonthly = (data) => {
+  return api.get(url.GET_DOCTOR_OPD_CHARGES_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getCentralExpensesMonthly = (data) => {
+  return api.get(url.GET_CENTRAL_EXPENSES_MONTHLY, {
     params: {
       centerIds: data?.centerAccess,
     },
@@ -3740,6 +3853,23 @@ export const submitAssessment = (id, payload) => {
     },
   });
 };
+
+// ECT consent form — payload is FormData carrying the rendered PDF.
+export const submitECTConsent = (id, payload) => {
+  return axios.patch(`${url.SUBMIT_ECT_CONSENT_FORM}/${id}`, payload, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const uploadECTConsentSignedCopy = (payload) => {
+  return axios.patch(url.UPLOAD_ECT_CONSENT_FORM, payload, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
 // TALLY
 export const sendToTally = (data) => api.create(url.POST_TALLY_SEND, data);
 export const getActiveTallySession = () =>
@@ -4274,11 +4404,32 @@ export const getDoctorDirectory = (params = {}) =>
     headers: { "X-No-Cookie-Token": "true" },
   });
 
+export const exportAgentReport = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/reports/agent-summary/export`, {
+    params,
+    responseType: "blob",
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const exportDoctorVisitHistory = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/history/export`, {
+    params,
+    responseType: "blob",
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 export const getDoctorVisitHistory = (params = {}) =>
   axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/history`, {
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
+
+export const exportDoctorDirectory = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/doctors-directory/export`, {
+    params,
+    responseType: "blob",
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 // master data
 export const getVendors = (params = {}) => {
   return axios.get(url.GET_VENDORS, {
@@ -4549,3 +4700,120 @@ export const postAUDITTest = (data) =>
       "X-No-Cookie-Token": "true",
     },
   });
+
+// ── Center floors master ────────────────────────────────────────────────────
+export const getFloors = () => {
+  return axios.get(url.FLOOR_INPUT_GET, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const addFloors = (data) => {
+  return axios.post(url.FLOOR_INPUT_POST, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editFloor = (id, data) => {
+  return axios.patch(`${url.FLOOR_INPUT_EDIT}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const deleteFloor = (id) => {
+  return axios.patch(`${url.FLOOR_INPUT_DELETE}/${id}`, null, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// ── Center areas master (rooms / kitchen / bathroom …) ──────────────────────
+export const getAreas = () => {
+  return axios.get(url.AREA_INPUT_GET, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const addAreas = (data) => {
+  return axios.post(url.AREA_INPUT_POST, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editArea = (id, data) => {
+  return axios.patch(`${url.AREA_INPUT_EDIT}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const deleteArea = (id) => {
+  return axios.patch(`${url.AREA_INPUT_DELETE}/${id}`, null, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// ── Per-center floor configuration ──────────────────────────────────────────
+export const postCenterFloorsConfiguration = (data) => {
+  return axios.post(url.CONFIGURATION_FLOORS, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getCenterFloorsConfiguration = (centerId) => {
+  return axios.get(`${url.CONFIGURATION_FLOORS}/${centerId}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getCenterFloorsConfigurationSummary = () => {
+  return axios.get(url.CONFIGURATION_FLOORS_SUMMARY, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// ── Center floor photos ─────────────────────────────────────────────────────
+export const getCenterFloorFields = (centerId, params) => {
+  return axios.get(`${url.CENTER_FLOOR_PHOTOS}/${centerId}/fields`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const uploadCenterFloorPhoto = (formData) => {
+  return axios.post(url.CENTER_FLOOR_PHOTO_UPLOAD, formData, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const deleteCenterFloorPhotoFile = (recordId, fileId) => {
+  return axios.patch(
+    `${url.CENTER_FLOOR_PHOTOS}/${recordId}/files/${fileId}/delete`,
+    null,
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const getAllCenterFloorPhotos = (params) => {
+  return axios.get(url.CENTER_FLOOR_PHOTOS_ALL, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// Reviews the whole location record — cleanliness and safety describe the
+// location, not an individual photo.
+export const reviewCenterFloorPhotoRecord = (recordId, data) => {
+  return axios.patch(`${url.CENTER_FLOOR_PHOTOS}/${recordId}/review`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// Audit days recorded for one center, newest first — drives the timeline.
+export const getCenterAuditTimeline = (params) => {
+  return axios.get(url.CENTER_FLOOR_AUDITS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};

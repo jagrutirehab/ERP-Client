@@ -135,6 +135,30 @@ code {
 }
 
 
+.tab-scroll-strip {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tab-scroll-strip::-webkit-scrollbar {
+  height: 0;
+  display: none;
+}
+
+.tab-scroll-strip .btn-group {
+  display: inline-flex;
+  vertical-align: top;
+}
+
+.tab-scroll-strip .btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
 .flatpickr-current-month .numInputWrapper span {
     opacity: 1 !important;
     visibility: visible !important;

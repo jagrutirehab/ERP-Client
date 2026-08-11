@@ -6,12 +6,10 @@ import AddVisitLog from "./AddVisitLog";
 import VisitLogList from "./VisitLogList";
 import AgentReport from "./AgentReport";
 import AgentProfile from "./AgentProfile";
-import DoctorDirectory from "./DoctorDirectory";
-import DoctorProfile from "./DoctorProfile";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import Logout from "../Authentication/Logout.js";
-
+import DoctorDirectoryExport from "./DoctorDirectoryExport";
 const Marketing = () => {
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission, loading } = usePermissions(token);
@@ -39,14 +37,18 @@ const Marketing = () => {
     "VIEW_AGENT_PROFILE",
     "READ",
   );
-  const canViewDoctors = hasPermission("MARKETING", "VIEW_DOCTOR_VISITS", "READ");
+  const canViewDoctorExport = hasPermission(
+    "MARKETING",
+    "EXPORT_DOCTOR_DIRECTORY",
+    "READ",
+  );
 
   if (
     !canViewAdd &&
     !canViewList &&
     !canViewReport &&
     !canViewProfile &&
-    !canViewDoctors
+    !canViewDoctorExport
   ) {
     return <Basic404 />;
   }
@@ -74,11 +76,11 @@ const Marketing = () => {
                 {canViewProfile && (
                   <Route path="my-profile" element={<AgentProfile />} />
                 )}
-                {canViewDoctors && (
-                  <Route path="doctors" element={<DoctorDirectory />} />
-                )}
-                {canViewDoctors && (
-                  <Route path="doctors/profile" element={<DoctorProfile />} />
+                {canViewDoctorExport && (
+                  <Route
+                    path="doctors/export"
+                    element={<DoctorDirectoryExport />}
+                  />
                 )}
                 <Route index element={null} />
                 <Route path="*" element={<Logout />} />

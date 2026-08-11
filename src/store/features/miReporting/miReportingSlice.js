@@ -39,6 +39,9 @@ import {
   getMetricsReport,
   getOccupancyMonthly,
   getAdmissionDischargeDaily,
+  getOpdChargesMonthly,
+  getDoctorOpdChargesMonthly,
+  getCentralExpensesMonthly,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -87,6 +90,9 @@ const initialState = {
   occupancyMonthly: [],
   admissionDischargeDaily: [],
   counsellingSessionsPatientsDOD: [],
+  opdChargesMonthly: [],
+  doctorOpdChargesMonthly: [],
+  centralExpensesMonthly: [],
   loading: false,
   error: null,
 };
@@ -391,6 +397,51 @@ export const fetchTrainingFormsWeekly = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.message || "Failed to fetch training forms weekly"
+      );
+    }
+  }
+);
+
+
+export const fetchOpdChargesMonthly = createAsyncThunk(
+  "miReporting/fetchOpdChargesMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getOpdChargesMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch opd charges monthly"
+      );
+    }
+  }
+);
+
+
+export const fetchCentralExpensesMonthly = createAsyncThunk(
+  "miReporting/fetchCentralExpensesMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getCentralExpensesMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch central expenses monthly"
+      );
+    }
+  }
+);
+
+
+export const fetchDoctorOpdChargesMonthly = createAsyncThunk(
+  "miReporting/fetchDoctorOpdChargesMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getDoctorOpdChargesMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch doctor opd charges monthly"
       );
     }
   }
@@ -1221,6 +1272,45 @@ const miReportingSlice = createSlice({
         state.admissionDischargeDaily = action.payload.payload || [];
       })
       .addCase(fetchAdmissionDischargeDaily.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // OPD Charges Monthly
+      .addCase(fetchOpdChargesMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchOpdChargesMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.opdChargesMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchOpdChargesMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Doctor OPD Charges Monthly
+      .addCase(fetchDoctorOpdChargesMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDoctorOpdChargesMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.doctorOpdChargesMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchDoctorOpdChargesMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Central Expenses Monthly
+      .addCase(fetchCentralExpensesMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCentralExpensesMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.centralExpensesMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchCentralExpensesMonthly.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

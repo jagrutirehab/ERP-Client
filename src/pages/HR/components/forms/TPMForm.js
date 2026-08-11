@@ -11,6 +11,7 @@ import { Button, Form, FormGroup, Input, Label, Spinner } from "reactstrap";
 import Select from "react-select";
 import { editTPM, getPositions, postTPM } from "../../../../helpers/backend_helper";
 import { format } from "date-fns";
+import { newEmploymentOptions } from "../../../../Components/constants/HR";
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/
 
@@ -33,6 +34,7 @@ const validationSchema = Yup.object().shape({
     vendor: Yup.string()
         .trim()
         .required("Vendor is required"),
+    newEmploymentType: Yup.string().required("Employment type is required"),
     startDate: Yup.date()
         .required("Start date is required"),
     contractSignedWithVendor: Yup.object({
@@ -128,6 +130,7 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
             position: initialData?.position?._id || "",
             department: initialData?.department?._id || "",
             vendor: initialData?.vendor || "",
+            newEmploymentType: initialData?.newEmploymentType || "",
             startDate: initialData?.startDate
                 ? format(new Date(initialData?.startDate), "yyyy-MM-dd")
                 : "",
@@ -321,6 +324,32 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
                             {form.errors.vendor}
                         </div>
                     )}
+            </FormGroup>
+
+            {/* EMPLOYMENT TYPE */}
+            <FormGroup>
+                <Label htmlFor="newEmploymentType">Employment Type <span className="text-danger">*</span></Label>
+                <Select
+                    inputId="newEmploymentType"
+                    placeholder="Select Employment Type"
+                    isClearable
+                    options={newEmploymentOptions}
+                    value={
+                        newEmploymentOptions.find(
+                            opt => opt.value === form.values.newEmploymentType
+                        ) || null
+                    }
+                    onChange={(option) =>
+                        form.setFieldValue("newEmploymentType", option ? option.value : "")
+                    }
+                    onBlur={() => form.setFieldTouched("newEmploymentType", true)}
+                />
+
+                {form.touched.newEmploymentType && form.errors.newEmploymentType && (
+                    <div className="text-danger small mt-1">
+                        {form.errors.newEmploymentType}
+                    </div>
+                )}
             </FormGroup>
 
             {/* START DATE */}

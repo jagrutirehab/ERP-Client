@@ -111,6 +111,8 @@ const Sidebar = () => {
     { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money" },
     { id: "forms-data", label: "Forms Data", link: "/mi-reporting/forms-data", icon: "bx bx-clipboard" },
     { id: "metrics-report", label: "Metrics Report", link: "/mi-reporting/metrics-report", icon: "bx bx-line-chart" },
+    { id: "opd-charges", label: "OPD Charges", link: "/mi-reporting/opd-charges", icon: "bx bx-money" },
+    { id: "central-expenses", label: "Central Expenses", link: "/mi-reporting/central-expenses", icon: "bx bx-receipt" },
     { id: "occupancy", label: "Occupancy", link: "/mi-reporting/occupancy", icon: "bx bx-bed" },
   ];
 

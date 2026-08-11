@@ -21,6 +21,19 @@ const pages = [
     icon: "bx bxs-error",
   },
   {
+    id: "doctorvisits",
+    label: "Doctor Visits",
+    name: "Doctor Visits",
+    link: "/doctor-visits",
+    icon: "bx bx-user-voice",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+
+  {
     id: "centralpayment",
     label: "Central Payment",
     name: "Central Payment",
@@ -323,6 +336,13 @@ const pages = [
     icon: "bx bx-body",
   },
   {
+    id: "audit",
+    label: "Audit",
+    name: "Audit",
+    link: "/audit",
+    icon: "bx bx-clipboard",
+  },
+  {
     id: "issues",
     label: "Issues",
     name: "Issues",
@@ -607,6 +627,12 @@ export const setting = [
     link: "/setting/document/input/configs",
     icon: "bx bx-health",
   },
+  {
+    id: "centerfloorconfig",
+    label: "Center Floor Configuration",
+    link: "/setting/center/floor/configs",
+    icon: "bx bx-building-house",
+  },
 ];
 
 export const recyclebin = [
@@ -726,6 +752,63 @@ export const HR = [
         label: "Employee Documents",
         icon: "bx bx-file",
         link: "/hr/employee/docs",
+      },
+    ],
+  },
+  {
+    id: "attendance",
+    label: "Attendance",
+    link: "/hr/attendance",
+    icon: "bx bx-time-five",
+    isAccordion: true,
+    children: [
+      // {
+      //   id: "main-attendance-dashboard",
+      //   label: "Dashboard",
+      //   link: "/hr/main/dashboard",
+      //   icon: "bx bx-grid-alt",
+      // },
+      {
+        id: "attendance-log",
+        label: "Attendance Log",
+        link: "/hr/attendance/logs",
+        icon: "bx bx-list-ul",
+      },
+      {
+        id: "monthly-attendance",
+        label: "Monthly Attendance",
+        link: "/hr/attendance/monthly",
+        icon: "bx bx-calendar",
+      },
+      {
+        id: "attendance-metrics",
+        label: "Attendance Metrics",
+        link: "/hr/attendance/metrics",
+        icon: "bx bx-stats",
+      },
+      {
+        id: "reporting-metrics",
+        label: "Attendance Metrics - Direct Reportings",
+        link: "/hr/reporting/metrics",
+        icon: "bx bx-stats",
+      },
+      {
+        id: "my-attendance",
+        label: "My Attendance",
+        link: "/hr/attendance/self",
+        icon: "bx bx-calendar-check",
+      },
+      {
+        id: "my-regularizations",
+        label: "My Regularizations",
+        link: "/hr/attendance/my/regularizations",
+        icon: "bx bx-time",
+      },
+      {
+        id: "regularizations-requests",
+        label: "Regularizations Requests",
+        link: "/hr/attendance/regularizations/requests",
+        icon: "bx bx-reset",
       },
     ],
   },
@@ -900,63 +983,6 @@ export const HR = [
         label: "Approvals",
         icon: "bx bx-check-shield",
         link: "/hr/tpm/approval",
-      },
-    ],
-  },
-  {
-    id: "attendance",
-    label: "Attendance",
-    link: "/hr/attendance",
-    icon: "bx bx-time-five",
-    isAccordion: true,
-    children: [
-      // {
-      //   id: "main-attendance-dashboard",
-      //   label: "Dashboard",
-      //   link: "/hr/main/dashboard",
-      //   icon: "bx bx-grid-alt",
-      // },
-      {
-        id: "attendance-log",
-        label: "Attendance Log",
-        link: "/hr/attendance/logs",
-        icon: "bx bx-list-ul",
-      },
-      {
-        id: "monthly-attendance",
-        label: "Monthly Attendance",
-        link: "/hr/attendance/monthly",
-        icon: "bx bx-calendar",
-      },
-      {
-        id: "attendance-metrics",
-        label: "Attendance Metrics",
-        link: "/hr/attendance/metrics",
-        icon: "bx bx-stats",
-      },
-      {
-        id: "reporting-metrics",
-        label: "Attendance Metrics - Direct Reportings",
-        link: "/hr/reporting/metrics",
-        icon: "bx bx-stats",
-      },
-      {
-        id: "my-attendance",
-        label: "My Attendance",
-        link: "/hr/attendance/self",
-        icon: "bx bx-calendar-check",
-      },
-      {
-        id: "my-regularizations",
-        label: "My Regularizations",
-        link: "/hr/attendance/my/regularizations",
-        icon: "bx bx-time",
-      },
-      {
-        id: "regularizations-requests",
-        label: "Regularizations Requests",
-        link: "/hr/attendance/regularizations/requests",
-        icon: "bx bx-reset",
       },
     ],
   },
@@ -1362,6 +1388,12 @@ export const MARKETING = [
     label: "Agent Report",
     icon: "bx bx-bar-chart-alt-2",
     link: "/marketing/reports/agent",
+  },
+  {
+    id: "doctor-directory-export",
+    label: "Doctor Report",
+    icon: "ri-file-excel-2-line",
+    link: "/marketing/doctors/export",
   },
 ];
 

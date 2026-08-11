@@ -298,6 +298,7 @@ const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
                   }
                   accept={field.accept}
                   disabled={field.disabled}
+                  max={field.max}
                   style={{
                     width: "100%",
                     padding: "0.5rem 0.75rem",

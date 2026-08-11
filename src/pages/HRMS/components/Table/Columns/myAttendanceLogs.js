@@ -5,36 +5,41 @@ import { leaveTypes } from "../../../../../Components/constants/HRMS";
 import { isToday, minutesToTime } from "../../../../../utils/time";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 
-// const isFutureDate = (date) => {
-//   if (!date) return false;
-//   return new Date(date).setHours(0, 0, 0, 0) > new Date().setHours(0, 0, 0, 0);
-// };
-
-const canShowRegularizeButton = () => {
-  return false;
-  // const regularizationStatus = row?.regularizations?.regularization_id?.status;
-  // const leaveStatus = row?.leave?.status;
-  // const hasActiveLeave =
-  //   leaveStatus === "pending" || leaveStatus === "approved";
-  // const hasCheckIn = row?.firstCheckIn != null;
-  // const hasCheckOut = row?.lastCheckOut != null;
-  // const hasAnyPunch = hasCheckIn || hasCheckOut;
-  // return (
-  //   (!row?.regularizations?.regularization_id ||
-  //     regularizationStatus === "REJECTED") &&
-  //   !isFutureDate(row?.date) &&
-  //   !hasActiveLeave &&
-  //   !hasAnyPunch
-  // );
+const SHIFT_LABEL = {
+  FIRST_HALF: "1st Half",
+  SECOND_HALF: "2nd Half",
 };
 
-const canShowLeaveButton = (row) => {
+const isOutsideEmploymentWindow = (date, joinningDate, exitDate) => {
+  if (!date) return false;
+  const rowDate = new Date(date).setHours(0, 0, 0, 0);
+
+  if (joinningDate) {
+    const joiningDate = new Date(joinningDate).setHours(0, 0, 0, 0);
+    if (rowDate < joiningDate) return true;
+  }
+
+  if (exitDate) {
+    const exit = new Date(exitDate).setHours(0, 0, 0, 0);
+    if (rowDate > exit) return true;
+  }
+
+  return false;
+};
+
+const canShowRegularizeButton = (row) => Boolean(row?.canRegularize);
+
+const canShowLeaveButton = (row, joinningDate, exitDate) => {
   const regStatus = row?.regularizations?.regularization_id?.status;
   const hasActiveReg = regStatus && regStatus !== "REJECTED";
   const leaveStatus = row?.leave?.status;
   const hasActiveLeave =
     leaveStatus === "pending" || leaveStatus === "approved";
-  return !hasActiveReg && !hasActiveLeave;
+  return (
+    !hasActiveReg &&
+    !hasActiveLeave &&
+    !isOutsideEmploymentWindow(row?.date, joinningDate, exitDate)
+  );
 };
 
 export const myAttendanceLogsColumns = ({
@@ -47,15 +52,42 @@ export const myAttendanceLogsColumns = ({
   hasMyRegularizationPermission,
   isSelf,
   type,
+  joinningDate,
+  exitDate,
 }) => [
   {
     name: <div>Date</div>,
-    selector: (row) => (
-      <div className="d-flex flex-column gap-1">
-        <span className="fw-semibold">{row?.date}</span>
-        {renderStatusBadge(row?.status)}
-      </div>
-    ),
+    selector: (row) => {
+      const halves = (row?.dayLeaves || []).filter(
+        (l) =>
+          l?.status === "approved" &&
+          l?.shiftTime &&
+          l.shiftTime !== "FULL_DAY",
+      );
+
+      return (
+        <div className="d-flex flex-column gap-1">
+          <span className="fw-semibold">{row?.date}</span>
+          {halves.length > 1
+            ? halves.map((h, i) => (
+                <div
+                  key={h._id || i}
+                  className="d-flex align-items-center gap-1"
+                  style={{ lineHeight: 1.2 }}
+                >
+                  <small
+                    className="text-muted fw-semibold"
+                    style={{ fontSize: "10px", whiteSpace: "nowrap" }}
+                  >
+                    {SHIFT_LABEL[h.shiftTime] || h.shiftTime}
+                  </small>
+                  {renderStatusBadge(h.leaveType)}
+                </div>
+              ))
+            : renderStatusBadge(row?.status)}
+        </div>
+      );
+    },
     wrap: true,
   },
   {
@@ -138,7 +170,7 @@ export const myAttendanceLogsColumns = ({
     },
     wrap: true,
   },
-  ...(hasMyRegularizationPermission && type !== "directreporting"
+  ...(type !== "directreporting"
     ? [
         {
           name: <div className="text-center">Action</div>,
@@ -160,7 +192,9 @@ export const myAttendanceLogsColumns = ({
                 )}
                 {
                   // row?.leave?.status !== "approved" &&
-                  !isSelf && canShowLeaveButton(row) && (
+                  hasMyRegularizationPermission &&
+                  !isSelf &&
+                  canShowLeaveButton(row, joinningDate, exitDate) && (
                     <Button
                       size="sm"
                       color="primary"

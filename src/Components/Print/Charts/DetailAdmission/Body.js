@@ -117,9 +117,15 @@ const styles = StyleSheet.create({
   },
 });
 
-const Body = ({ chart, patient, admission }) => {
+const Body = ({ chart, patient, admission, additionalDiagnosis }) => {
   const data = chart.detailAdmission;
   const isOldMentalExamination = Boolean(data?.mentalExamination);
+
+  const chartDiagnosis = additionalDiagnosis || null;
+
+  console.log("Body chartDiagnosis:", chartDiagnosis);
+  console.log("Body chart._id:", chart._id);
+  console.log("Body additionalDiagnosis prop:", additionalDiagnosis);
 
   return (
     <React.Fragment>
@@ -137,7 +143,11 @@ const Body = ({ chart, patient, admission }) => {
         data={data.patientType ? data[`${data.patientType}Fields`] : null}
         styles={styles}
       />
-      <DetailHistory data={data.detailHistory} styles={styles} />
+      <DetailHistory
+        data={data.detailHistory}
+        styles={styles}
+        additionalDiagnosis={chartDiagnosis}
+      />
       {isOldMentalExamination ? (
         <MentalExamination data={data.mentalExamination} styles={styles} />
       ) : (

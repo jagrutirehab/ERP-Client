@@ -14,7 +14,7 @@ import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 const FIXED_ASSIGNEES = [
   { value: "6a2692bf484a7e7fd29da3ae", label: "PUSHPENDRA SINGH (JRC0894)" },
-  { value: "697e145529c91d173986bdb8", label: "SHIVANI GUPTA (JRC0571)" },
+  // { value: "697e145529c91d173986bdb8", label: "SHIVANI GUPTA (JRC0571)" },
   ...(process.env.REACT_APP_ENV !== "production"
     ? [
         {
@@ -61,7 +61,7 @@ const initialFormState = {
 const RaiseTicket = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
-  const [issueType, setIssueType] = useState("TECH");
+  const [issueType, setIssueType] = useState(null);
 
   const [employees, setEmployees] = useState([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
@@ -301,7 +301,7 @@ const RaiseTicket = () => {
 
       setForm(initialFormState);
       setSelectedCenter(null);
-      setIssueType("TECH");
+      setIssueType(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }

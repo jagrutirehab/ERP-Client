@@ -127,6 +127,7 @@ const DetailAdmission = ({
   editChartData,
   type,
   closeForm,
+  // data,
 }) => {
   const dispatch = useDispatch();
   const [consentFiles, setConsentFiles] = useState();
@@ -144,6 +145,14 @@ const DetailAdmission = ({
   const triToYesNo = (v) => (v === true ? "yes" : v === false ? "no" : "");
 
   console.log("detailAdmissionForm", detailAdmissionForm);
+  console.log(
+    "negativeHistory from DB:",
+    detailAdmissionForm?.detailHistory?.negativeHistory,
+  );
+  console.log(
+    "developmentDelayDetails from DB:",
+    detailAdmissionForm?.detailHistory?.developmentDelayDetails,
+  );
 
   const isEdit = Boolean(editChartData?._id);
   const draftKey = `detailAdmissionDraft_${patient?._id || "new"}`;
@@ -229,6 +238,9 @@ const DetailAdmission = ({
       informant: detailAdmissionForm
         ? detailAdmissionForm.ChiefComplaints?.informant
         : "",
+      informantName: detailAdmissionForm
+        ? detailAdmissionForm.ChiefComplaints?.informantName
+        : "",
       counsellor: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.counsellor
         : patientData?.psychologistData?.name,
@@ -241,17 +253,52 @@ const DetailAdmission = ({
       adequate: detailAdmissionForm
         ? detailAdmissionForm.ChiefComplaints?.adequate
         : "Adequate",
-      history: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.history
-        : "",
       negativeHistory: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.negativeHistory
+        ? (() => {
+            const val = detailAdmissionForm.detailHistory?.negativeHistory;
+            if (!val) return [];
+            if (Array.isArray(val)) {
+              return val
+                .flatMap((item) =>
+                  typeof item === "string"
+                    ? item.split(",").map((s) => s.trim())
+                    : item,
+                )
+                .filter(Boolean);
+            }
+            return [];
+          })()
+        : [],
+      negativeHistoryOther: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.negativeHistoryOther
+        : "",
+      developmentDelay: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelay
+        : "",
+      developmentDelayDetails: detailAdmissionForm
+        ? Array.isArray(
+            detailAdmissionForm.detailHistory?.developmentDelayDetails,
+          )
+          ? detailAdmissionForm.detailHistory?.developmentDelayDetails
+          : []
+        : [],
+      developmentDelaySittingDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelaySittingDetails ||
+          ""
+        : "",
+      developmentDelayStandingDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelayStandingDetails ||
+          ""
+        : "",
+      developmentDelaySpeechDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelaySpeechDetails || ""
+        : "",
+      developmentDelayToiletTrainingDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory
+            ?.developmentDelayToiletTrainingDetails || ""
         : "",
       pastHistory: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.pastHistory
-        : "",
-      developmentHistory: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.developmentHistory
         : "",
       occupationHistory: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.occupationHistory
@@ -287,6 +334,10 @@ const DetailAdmission = ({
       extraCareTaker: triToYesNo(
         detailAdmissionForm?.specialRequirements?.extraCareTaker,
       ),
+      specialRequirementsDetails: detailAdmissionForm
+        ? detailAdmissionForm.specialRequirements?.specialRequirementsDetails ||
+          ""
+        : "",
 
       // ChiefComplaints
 
@@ -480,17 +531,30 @@ const DetailAdmission = ({
             perceptionNotes:
               detailAdmissionForm?.mentalExaminationV2?.perceptionNotes || "",
 
-            orientation:
+            orientationTime:
               detailAdmissionForm?.mentalExaminationV2?.cognition
-                ?.orientation || "",
+                ?.orientationTime || "",
+            orientationPlace:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.orientationPlace || "",
+            orientationPerson:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.orientationPerson || "",
+            immediateMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.immediateMemory || "",
+            recentMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.recentMemory || "",
+            remoteMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.remoteMemory || "",
             attention:
               detailAdmissionForm?.mentalExaminationV2?.cognition?.attention ||
               "",
             concentration:
               detailAdmissionForm?.mentalExaminationV2?.cognition
                 ?.concentration || "",
-            memory:
-              detailAdmissionForm?.mentalExaminationV2?.cognition?.memory || "",
 
             grade:
               detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
@@ -538,9 +602,15 @@ const DetailAdmission = ({
         ? detailAdmissionForm.doctorSignature.diagnosis.map((d) => d.code_id)
         : [],
 
-      managmentPlan: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.managmentPlan
-        : "",
+      managmentPlan: (() => {
+        const val = detailAdmissionForm?.doctorSignature?.managmentPlan;
+        if (!val) return "";
+        if (val === "INDOOR" || val.toLowerCase().includes("indoor"))
+          return "INDOOR";
+        if (val === "Out Patient" || val.toLowerCase().includes("out"))
+          return "Out Patient";
+        return val;
+      })(),
       // investigation: detailAdmissionForm
       //   ? detailAdmissionForm.doctorSignature?.investigation
       //   : [],
@@ -709,15 +779,34 @@ const DetailAdmission = ({
         setFormStep(PATIENT_TYPE_FIELDS);
         return;
       }
+      const informantNameRequired =
+        values.informant && values.informant !== "Self";
+
       const chiefComplaintsMissing =
-        !values.informant || !values.reliable || !values.adequate;
+        !values.informant ||
+        !values.reliable ||
+        !values.adequate ||
+        !values.line1 ||
+        !values.line2 ||
+        (informantNameRequired && !values.informantName);
+
       if (chiefComplaintsMissing) {
         setFormStep(CHIEF_COMPLAINTS);
         return;
       }
+      const detailHistoryMissing =
+        !Array.isArray(values.negativeHistory) ||
+        values.negativeHistory.length === 0 ||
+        !values.developmentDelay ||
+        !values.personality;
+
+      if (detailHistoryMissing) {
+        setFormStep(DETAIL_HISTORY);
+        return;
+      }
       if (!isOldMentalExamination) {
         const mseFields = [
-          "grooming",
+          "generalAppearance",
           "psychomotorActivity",
           "eyeContact",
           "rapport",
@@ -732,24 +821,27 @@ const DetailAdmission = ({
           "delusions",
           "formOfThought",
           "perception",
-          "memory",
+          "orientationTime",
+          "orientationPlace",
+          "orientationPerson",
+          "immediateMemory",
+          "recentMemory",
+          "remoteMemory",
           "grade",
           "judgment",
         ];
-        const mseMissing =
-          mseFields.some((f) => !values[f]) ||
-          !Array.isArray(values.orientation) ||
-          values.orientation.length === 0;
+        const mseMissing = mseFields.some((f) => !values[f]);
         if (mseMissing) {
           setFormStep(MENTAL_EXAMINATION);
           return;
         }
       }
+      //
       const diagnosisMissing =
         !Array.isArray(values.provisionaldiagnosis) ||
         values.provisionaldiagnosis.length === 0 ||
-        !Array.isArray(values.diagnosis) ||
-        values.diagnosis.length === 0;
+        !values.managmentPlan;
+
       if (diagnosisMissing) {
         setFormStep(DOCTOR_SIGNATURE);
         return;
@@ -785,6 +877,99 @@ const DetailAdmission = ({
       setConsentFiles([]);
     }
   }, [dispatch, detailAdmissionForm]);
+
+  // AUTOFILL
+  // useEffect(() => {
+  //   if (!detailAdmissionForm) {
+  //     const psychiatricData = {
+  //       historyOfPresentIllness: {
+  //         onsetAge: "25",
+  //         modeOfOnset: "Acute (< 2 weeks)",
+  //         precipitatingFactors: ["Psychosocial stressor"],
+  //         onsetDurationProgress: "Test onset description",
+  //       },
+  //       symptomDomains: {
+  //         affective: ["Depressed mood"],
+  //         psychotic: ["None"],
+  //         cognitive: ["None"],
+  //         behavioural: ["None"],
+  //         somaticNeurovegetative: ["None"],
+  //         suicidalitySelfHarm: ["None"],
+  //       },
+  //       functionalImpact: {
+  //         workOccupationalFunctioning: "Intact",
+  //         socialInterpersonalFunctioning: "Intact",
+  //         gafScore: 70,
+  //         gafSeverity: "Mild (61-100)",
+  //       },
+  //       pastIllness: {
+  //         hasPastPsychiatricEpisode: "No",
+  //         totalHospitalisations: "0",
+  //         previousDiagnoses: ["None"],
+  //         substanceUseHistory: "No",
+  //       },
+  //       pastTreatment: {
+  //         ect: "Never",
+  //         psychotherapyType: ["Never"],
+  //       },
+  //       suicidalSelfHarmHistory: {
+  //         homicidalIdeationViolence: "None",
+  //       },
+  //       psychosocialSupport: {
+  //         familySupport: "Supportive / cohesive",
+  //       },
+  //     };
+
+  //     validation.setValues({
+  //       ...validation.values,
+  //       // Chief Complaints
+  //       informant: "Self",
+  //       reliable: "Reliable",
+  //       adequate: "Adequate",
+  //       line1: "Test Complaint 1",
+  //       line2: "Test Complaint 2",
+  //       // Patient Type
+  //       patientType: "psychiatric",
+  //       psychiatricFields: JSON.stringify(psychiatricData),
+  //       addictionFields: JSON.stringify({}),
+  //       geriatricFields: JSON.stringify({}),
+  //       // Other History
+  //       negativeHistory: ["Head Injury"],
+  //       developmentDelay: "No",
+  //       personality: "Test pre-morbid personality",
+  //       // MSE
+  //       generalAppearance: "kempt",
+  //       eyeContact: "normal",
+  //       psychomotorActivity: "normal",
+  //       rapport: "established_with_ease",
+  //       rate: "normal",
+  //       tone: "normal",
+  //       volume: "normal/audible",
+  //       relevance: "relevant",
+  //       coherence: "coherent",
+  //       goalDirection: "goal_directed",
+  //       subjective: "Normal mood",
+  //       quality: "euthymic",
+  //       reactivity: "present",
+  //       mobility: "intact",
+  //       congruence: "congruent_to_mood",
+  //       delusions: "none",
+  //       formOfThought: "normal",
+  //       perception: "normal",
+  //       orientationTime: "Intact",
+  //       orientationPlace: "Intact",
+  //       orientationPerson: "Intact",
+  //       immediateMemory: "Intact",
+  //       recentMemory: "Intact",
+  //       remoteMemory: "Intact",
+  //       grade: "grade_1-_complete_denial_of_illness",
+  //       judgment: "intact",
+  //       // Diagnosis
+  //       managmentPlan: "INDOOR",
+  //     });
+  //   }
+  // }, []);
+  // AUTOFILL
 
   const consentUploadedFiles = useMemo(() => {
     return (
@@ -844,7 +1029,7 @@ const DetailAdmission = ({
               outline={formStep !== DETAIL_HISTORY}
               onClick={() => setFormStep(DETAIL_HISTORY)}
             >
-              Detail History
+              Other History
             </Button>
             <Button
               outline={formStep !== MENTAL_EXAMINATION}
@@ -993,6 +1178,7 @@ const mapStateToProps = (state) => ({
   center: state.Chart.chartForm?.center,
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm?.data,
+  // data: state.Chart.data,
 });
 
 export default connect(mapStateToProps)(DetailAdmission);

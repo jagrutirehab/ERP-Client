@@ -14,6 +14,7 @@ import Conditions from "./Conditions";
 import Symptom from "./Symptom";
 import HrConfigurations from "./HRConfigs";
 import DocumentConfig from "./DocumentConfig";
+import CenterFloorConfig from "./CenterFloorConfig";
 
 const index = (props) => {
   return (
@@ -37,6 +38,10 @@ const index = (props) => {
               <Route
                 path={`/document/input/configs`}
                 element={<DocumentConfig />}
+              />
+              <Route
+                path={`/center/floor/configs`}
+                element={<CenterFloorConfig />}
               />
             </Routes>
           </div>

@@ -56,9 +56,9 @@ const Sidebar = () => {
     "VIEW_AGENT_PROFILE",
     "READ",
   );
-  const canViewDoctors = hasPermission(
+  const canViewDoctorExport = hasPermission(
     "MARKETING",
-    "VIEW_DOCTOR_VISITS",
+    "EXPORT_DOCTOR_DIRECTORY",
     "READ",
   );
 
@@ -95,12 +95,12 @@ const Sidebar = () => {
           icon: "bx bx-id-card",
         }
       : null,
-    canViewDoctors
+    canViewDoctorExport
       ? {
-          id: "doctor-visits",
-          label: "Doctor Visits",
-          link: "/marketing/doctors",
-          icon: "bx bx-user-voice",
+          id: "doctor-directory-export",
+          label: "Doctor Report",
+          link: "/marketing/doctors/export",
+          icon: "ri-file-excel-2-line",
         }
       : null,
   ].filter(Boolean);

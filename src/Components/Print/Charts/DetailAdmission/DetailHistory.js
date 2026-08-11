@@ -12,7 +12,8 @@ Font.register({
   ],
 });
 
-const DetailHistory = ({ data, styles }) => {
+const DetailHistory = ({ data, styles, additionalDiagnosis }) => {
+  console.log("DetailHistory additionalDiagnosis:", additionalDiagnosis);
   return (
     <React.Fragment>
       <View
@@ -32,22 +33,95 @@ const DetailHistory = ({ data, styles }) => {
             </Text>
           </View>
         )}
-        {data?.negativeHistory && (
+
+        {Array.isArray(data?.negativeHistory) &&
+          data.negativeHistory.length > 0 && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Negative History:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.negativeHistory.filter(Boolean).join(", ")}
+              </Text>
+            </View>
+          )}
+
+        {typeof data?.negativeHistory === "string" && data.negativeHistory && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>Negative History:</Text>
             <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
-              {data?.negativeHistory || ""}
+              {data.negativeHistory}
             </Text>
           </View>
         )}
-        {data?.pastHistory && (
+
+        {data?.negativeHistoryOther && (
           <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={styles.fontSize13}>Past History:</Text>
+            <Text style={styles.fontSize13}>Negative History — Other:</Text>
             <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
-              {data?.pastHistory || ""}
+              {data?.negativeHistoryOther || ""}
             </Text>
           </View>
         )}
+
+        {data?.developmentDelay && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>Development Delay:</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.developmentDelay || ""}
+            </Text>
+          </View>
+        )}
+
+        {data?.developmentDelay === "Yes" &&
+          Array.isArray(data?.developmentDelayDetails) &&
+          data.developmentDelayDetails.length > 0 && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Development Delay Details:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.developmentDelayDetails.filter(Boolean).join(", ")}
+              </Text>
+            </View>
+          )}
+
+        {data?.developmentDelay === "Yes" &&
+          data?.developmentDelaySittingDetails && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Sitting Details:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.developmentDelaySittingDetails}
+              </Text>
+            </View>
+          )}
+
+        {data?.developmentDelay === "Yes" &&
+          data?.developmentDelayStandingDetails && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Standing Details:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.developmentDelayStandingDetails}
+              </Text>
+            </View>
+          )}
+
+        {data?.developmentDelay === "Yes" &&
+          data?.developmentDelaySpeechDetails && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Speech Details:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.developmentDelaySpeechDetails}
+              </Text>
+            </View>
+          )}
+
+        {data?.developmentDelay === "Yes" &&
+          data?.developmentDelayToiletTrainingDetails && (
+            <View style={styles.mrgnBottom10} wrap={false}>
+              <Text style={styles.fontSize13}>Toilet Training Details:</Text>
+              <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+                {data.developmentDelayToiletTrainingDetails}
+              </Text>
+            </View>
+          )}
+
         {data?.developmentHistory && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>
@@ -58,6 +132,16 @@ const DetailHistory = ({ data, styles }) => {
             </Text>
           </View>
         )}
+
+        {data?.pastHistory && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>Past History:</Text>
+            <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
+              {data?.pastHistory || ""}
+            </Text>
+          </View>
+        )}
+
         {data?.familyHistory && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>Family History:</Text>
@@ -66,6 +150,7 @@ const DetailHistory = ({ data, styles }) => {
             </Text>
           </View>
         )}
+
         {data?.personalHistory && (
           <View style={styles.mrgnBottom10} wrap={false}>
             <Text style={styles.fontSize13}>
@@ -76,12 +161,48 @@ const DetailHistory = ({ data, styles }) => {
             </Text>
           </View>
         )}
+
         {data?.personality && (
           <View style={styles.mrgnBottom10} wrap={false}>
-            <Text style={styles.fontSize13}>Personality:</Text>
+            <Text style={styles.fontSize13}>
+              Pre-morbid personality break-up:
+            </Text>
             <Text style={{ ...styles.preText, ...styles.textCapitalize }}>
               {data?.personality || ""}
             </Text>
+          </View>
+        )}
+
+        {additionalDiagnosis?.code && additionalDiagnosis?.summary && (
+          <View style={styles.mrgnBottom10} wrap={false}>
+            <Text style={styles.fontSize13}>Additional Details:</Text>
+            <View style={{ ...styles.mrgnTop10 }}>
+              <Text style={{ ...styles.fontSize13, ...styles.mrgnBottom10 }}>
+                Final Diagnosis:{" "}
+                <Text style={styles.preText}>{additionalDiagnosis.code}</Text>
+              </Text>
+              <Text style={styles.fontSize13}>
+                Summary:{" "}
+                <Text style={styles.preText}>
+                  {additionalDiagnosis.summary}
+                </Text>
+              </Text>
+              {additionalDiagnosis?.createdAt && (
+                <Text style={{ ...styles.preText, ...styles.mrgnTop10 }}>
+                  Posted At:{" "}
+                  {new Date(additionalDiagnosis.createdAt).toLocaleDateString(
+                    "en-IN",
+                    {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    },
+                  )}
+                </Text>
+              )}
+            </View>
           </View>
         )}
       </View>

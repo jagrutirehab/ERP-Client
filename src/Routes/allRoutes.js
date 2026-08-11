@@ -37,6 +37,7 @@ const IncidentReporting = React.lazy(
 );
 const RoundNotes = React.lazy(() => import("../pages/RoundNotes"));
 const HR = React.lazy(() => import("../pages/HR"));
+const Audit = React.lazy(() => import("../pages/Audit"));
 const MiReporting = React.lazy(() => import("../pages/MIReporting/index.js"));
 const HRMS = React.lazy(() => import("../pages/HRMS"));
 const Referral = React.lazy(() => import("../pages/Referral"));
@@ -47,6 +48,7 @@ const SOP = React.lazy(() => import("../pages/SopConfigs"));
 const Trainings = React.lazy(() => import("../pages/Trainings"));
 const AlertPage = React.lazy(() => import("../pages/Alerts"));
 const Marketing = React.lazy(() => import("../pages/Marketing"));
+const DoctorVisits = React.lazy(() => import("../pages/DoctorVisits/DoctorVisits"));
 const MasterData = React.lazy(() => import("../pages/MasterData"));
 const allElements = [
   { element: Register, label: "User" },
@@ -107,6 +109,7 @@ const authProtectedRoutes = [
   { path: "/incident-reporting/*", component: IncidentReporting },
   { path: "/round-notes", component: RoundNotes },
   { path: "/hr/*", component: HR },
+  { path: "/audit", component: Audit },
   { path: "/issues/*", component: Issues },
   { path: "/recordings/*", component: Recordings },
   { path: "/mi-reporting", component: MiReporting },
@@ -120,6 +123,7 @@ const authProtectedRoutes = [
   { path: "/trainings/*", component: Trainings },
   { path: "/marketing/*", component: Marketing },
   { path: "/vendor-management/*", component: MasterData },
+  { path: "/doctor-visits", component: DoctorVisits },
   {
     path: "/",
     exact: true,

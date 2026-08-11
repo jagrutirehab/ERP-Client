@@ -133,6 +133,8 @@ export const POST_ECT_SESSION = "/chart/ect-session";
 export const EDIT_ECT_SESSION = "/chart/ect-session";
 export const POST_GENERAL_ECT_SESSION = "/chart/ect-session/general";
 export const EDIT_GENERAL_ECT_SESSION = "/chart/ect-session/general";
+export const POST_ADMISSION_TYPE = "/chart/admission-type";
+export const EDIT_ADMISSION_TYPE = "/chart/admission-type";
 export const POST_LAB_REPORT = "/chart/lab-report";
 export const EDIT_LAB_REPORT = "/chart/lab-report";
 export const POST_GENERAL_LAB_REPORT = "/chart/lab-report/general";
@@ -141,6 +143,8 @@ export const DELETE_LAB_REPORT_FILE = "/chart/lab-report";
 export const GENERATE_LAB_SUMMARY = "/chart/generate/summary/lab-report";
 export const GET_AI_EXPIRY_SUMMARY = "/chart/expiry-summary/generate";
 export const VALIDATE_AI_EXPIRY_SUMMARY = "/chart/expiry-summary/validate";
+export const ADDITIONAL_DETAILS = "/chart/additional/history";
+export const GET_ADDITIONAL_DETAILS = "/chart/additional/history/get";
 
 export const POST_CLINICAL_NOTE = "/chart/clinical-note";
 export const EDIT_CLINICAL_NOTE = "/chart/clinical-note";
@@ -172,6 +176,7 @@ export const POST_GENERAL_MENTAL_EXAMINATION =
   "/chart/mental-examination/general";
 export const EDIT_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const LAST_MENTAL_EXAMINATION = "/chart/mental-examination";
+export const LAST_ECT_SESSION = "/chart/ect-session";
 export const POST_INPUT_OUTPUT = "/chart/input-output";
 export const EDIT_INPUT_OUTPUT = "/chart/input-output";
 export const POST_GENERAL_INPUT_OUTPUT = "/chart/input-output/general";
@@ -389,6 +394,9 @@ export const ADD_BANK_DEPOSIT = "/cash/bank-deposit";
 export const ADD_SPENDING = "/cash/spending";
 export const ADD_BASE_BALANCE = "/cash/base-balance";
 export const ADD_INFLOW = "/cash/inflow";
+export const ADD_CASH_RECO = "/cash/reco";
+export const GET_CASH_RECOS = "/cash/reco/list";
+export const CASH_RECO_DAY_STATUS = "/cash/reco/day-status";
 export const GET_LATEST_BANK_DEPOSITS = "/cash/bank-deposit/list";
 export const GET_LATEST_SPENDING = "/cash/spending/list";
 export const GET_LASTEST_INFLOWS = "/cash/inflow/list";
@@ -540,6 +548,11 @@ export const GET_TRAINING_FORMS_MONTHLY =
   "/mi-reporting/training-forms-monthly";
 export const GET_AUDIT_DAILY = "/mi-reporting/audit-daily";
 export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
+export const GET_OPD_CHARGES_MONTHLY = "/mi-reporting/opd-charges-monthly";
+export const GET_DOCTOR_OPD_CHARGES_MONTHLY =
+  "/mi-reporting/doctor-opd-charges-monthly";
+export const GET_CENTRAL_EXPENSES_MONTHLY =
+  "/mi-reporting/central-expenses-monthly";
 export const GET_OCCUPANCY_MONTHLY = "/mi-reporting/occupancy-monthly";
 export const GET_ADMISSION_DISCHARGE_DAILY =
   "/mi-reporting/admission-discharge-daily";
@@ -687,6 +700,10 @@ export const GET_MY_COMP_OFFS = "/hrms/leaves/get/my/comp-offs";
 export const SUBMIT_ASSESSMENT_FROM =
   "/patient/capacity-assessment-submit-file";
 
+// ECT CONSENT FORM
+export const SUBMIT_ECT_CONSENT_FORM = "/patient/ect-consent-submit-file";
+export const UPLOAD_ECT_CONSENT_FORM = "/patient/ect-consent-upload-file";
+
 // upload file
 export const UPLOAD_FILE = "/upload";
 
@@ -816,7 +833,7 @@ export const ITEM_TYPE_BASE = "/master/item-type";
 
 export const GET_ITEM_CATEGORIES = "/master/item-category";
 export const ITEM_CATEGORY_BASE = "/master/item-category";
-export const ITEM_MASTER_BASE = "/master/item";; 
+export const ITEM_MASTER_BASE = "/master/item";
 export const GET_ITEM_MASTERS = ITEM_MASTER_BASE;
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
@@ -840,3 +857,23 @@ export const REVIEW_DOC = "/hr/doc/employee-documents";
 export const CGIS_TEST = "/clinical-test/cgis-test";
 export const COWS_TEST = "/clinical-test/cows-test";
 export const AUDIT_TEST = "/clinical-test/audit-test";
+
+// center floors + floor photos
+export const FLOOR_INPUT_POST = "/center-floor/post";
+export const FLOOR_INPUT_GET = "/center-floor/get";
+export const FLOOR_INPUT_EDIT = "/center-floor/edit";
+export const FLOOR_INPUT_DELETE = "/center-floor/delete";
+
+export const AREA_INPUT_POST = "/center-floor/areas/post";
+export const AREA_INPUT_GET = "/center-floor/areas/get";
+export const AREA_INPUT_EDIT = "/center-floor/areas/edit";
+export const AREA_INPUT_DELETE = "/center-floor/areas/delete";
+
+export const CONFIGURATION_FLOORS = "/center-floor/configuration";
+export const CONFIGURATION_FLOORS_SUMMARY =
+  "/center-floor/configuration/summary";
+
+export const CENTER_FLOOR_PHOTOS = "/center-floor/photos";
+export const CENTER_FLOOR_PHOTO_UPLOAD = "/center-floor/photos/upload";
+export const CENTER_FLOOR_PHOTOS_ALL = "/center-floor/photos/all";
+export const CENTER_FLOOR_AUDITS = "/center-floor/audits";

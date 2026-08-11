@@ -1,6 +1,15 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Form, Row, Col, Input, Button, Label, FormGroup } from "reactstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Input,
+  Button,
+  Label,
+  FormGroup,
+  Alert,
+} from "reactstrap";
 import { useFormik } from "formik";
 import { connect, useDispatch } from "react-redux";
 import Flatpickr from "react-flatpickr";
@@ -14,17 +23,45 @@ import {
   addGeneralEctSession,
   updateEctSession,
   createEditChart,
+  fetchLastEctSession,
+  setPtLatestEctSession,
 } from "../../../store/actions";
 
 // Fields that should be prefilled from patient data and made non-editable
 const READONLY_FIELDS = new Set(["patientName", "sex"]);
-// Fields that are prefilled from admission/chartDate but remain editable
-const PREFILL_FIELDS = new Set(["date", "timeOfProcedure", "uhid", "diagnosis"]);
 
-// Build Formik initial values for the grouped sections, seeding from a saved
-// ECT session when editing. Checkbox groups default to arrays, everything else
-// to empty strings.
-const buildInitialSections = (source, patient, chartDate) => {
+// Always derived from the current chartDate — never carried over from the
+// previous session, which would silently backdate the new record.
+const SESSION_LOCAL_FIELDS = new Set(["date", "timeOfProcedure"]);
+
+// The patient/admission record is the authoritative source for these, so it
+// takes precedence over the previous session (which holds the same data, only
+// staler). The previous session is still used as a fallback.
+const PATIENT_DERIVED_FIELDS = new Set([
+  "patientName",
+  "sex",
+  "uhid",
+  "age",
+  "diagnosis",
+]);
+
+const formatSourceDate = (date) => {
+  if (!date) return "";
+  const d = new Date(date);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("en-GB", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  });
+};
+
+// Build Formik initial values for the grouped sections.
+//
+// `source` is the record being edited; `previous` is the patient's last ECT
+// session, used to prefill a brand-new record. Checkbox groups default to
+// arrays, everything else to empty strings.
+const buildInitialSections = (source, patient, chartDate, previous) => {
   const out = {};
   const admission = patient?.addmission;
 
@@ -32,6 +69,23 @@ const buildInitialSections = (source, patient, chartDate) => {
     out[section.key] = {};
     section.fields.forEach((field) => {
       const existing = source?.[section.key]?.[field.name];
+
+      const carried =
+        previous && !SESSION_LOCAL_FIELDS.has(field.name)
+          ? previous?.[section.key]?.[field.name]
+          : undefined;
+
+      const hasCarried =
+        carried !== undefined && carried !== null && carried !== "";
+
+      const applyCarried = () => {
+        out[section.key][field.name] =
+          field.type === "checkbox"
+            ? Array.isArray(carried)
+              ? carried
+              : []
+            : carried;
+      };
 
       // When editing, always honour the saved value
       if (existing !== undefined && existing !== null && existing !== "") {
@@ -75,26 +129,56 @@ const buildInitialSections = (source, patient, chartDate) => {
             break;
           }
           case "patientName": {
-            out[section.key][field.name] = patient?.name || "";
-            return;
+            if (patient?.name) {
+              out[section.key][field.name] = patient.name;
+              return;
+            }
+            break;
           }
           case "sex": {
             // Patient model uses "gender" field
             const gender = patient?.gender || "";
-            // Capitalize first letter to match select options (Male/Female/Other)
-            out[section.key][field.name] =
-              gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
-            return;
+            if (gender) {
+              // Capitalize first letter to match select options (Male/Female/Other)
+              out[section.key][field.name] =
+                gender.charAt(0).toUpperCase() + gender.slice(1).toLowerCase();
+              return;
+            }
+            break;
           }
           case "uhid": {
             // Prefill with IPD number from current admission
-            out[section.key][field.name] = admission?.Ipdnum || "";
-            return;
+            if (admission?.Ipdnum) {
+              out[section.key][field.name] = admission.Ipdnum;
+              return;
+            }
+            break;
           }
           case "age": {
             // Prefill age from patient document
+            if (patient?.age != null) {
+              out[section.key][field.name] = String(patient.age);
+              return;
+            }
+            break;
+          }
+          case "sessionNo": {
+            // Advance the course counter rather than repeating it, but only when
+            // the previous value is a clean integer. Anything else — blank, or
+            // free text like "4 of 8" — is left for the doctor rather than
+            // carried over verbatim or guessed at. Always returns, so this can
+            // never fall through to the generic carry-forward below.
+            const raw = previous?.sessionDetails?.sessionNo;
+            const trimmed = typeof raw === "string" ? raw.trim() : raw;
+            const previousNo = Number(trimmed);
+
             out[section.key][field.name] =
-              patient?.age != null ? String(patient.age) : "";
+              trimmed !== "" &&
+              trimmed != null &&
+              Number.isInteger(previousNo) &&
+              previousNo >= 0
+                ? String(previousNo + 1)
+                : "";
             return;
           }
           case "diagnosis": {
@@ -113,6 +197,12 @@ const buildInitialSections = (source, patient, chartDate) => {
         }
       }
 
+      // Carry the previous session's value for anything not resolved above.
+      if (hasCarried) {
+        applyCarried();
+        return;
+      }
+
       // Default fallback
       out[section.key][field.name] =
         field.type === "checkbox" ? [] : "";
@@ -128,9 +218,61 @@ const sectionsHaveValue = (values) =>
     ),
   );
 
-const EctSession = ({ author, patient, chartDate, editChartData, type }) => {
+const EctSession = ({
+  author,
+  patient,
+  chartDate,
+  editChartData,
+  type,
+  patientLatestEctSession,
+}) => {
   const dispatch = useDispatch();
   const editEct = editChartData?.ectSession;
+
+  // Set by Undo — suppresses the carry-forward without discarding the fetched
+  // snapshot, so nothing needs refetching if the form is reopened.
+  const [prefillDismissed, setPrefillDismissed] = useState(false);
+
+  const previousSession =
+    !editEct && !prefillDismissed ? patientLatestEctSession?.ectSession : null;
+
+  const isPrefilled = !!previousSession;
+
+  const admissionId = patient?.addmission?._id || patient?.addmission || "";
+
+  // Drop any snapshot held for a different admission before deciding whether to
+  // fetch. This runs synchronously, so it always lands before the fetch below
+  // resolves — and it also covers the case where the fetch declines to run.
+  useEffect(() => {
+    dispatch(setPtLatestEctSession(null));
+  }, [admissionId, patient?._id, dispatch]);
+
+  // ECT is a course, so a new session almost always continues a previous one.
+  // Prefill unconditionally on create, the way Mental Examination does.
+  useEffect(() => {
+    if (editEct || !patient?._id) return;
+
+    const isGeneral = type === "GENERAL";
+
+    // An ECT course belongs to one admission, so a session from a previous
+    // (discharged) admission must never seed the current one. Until the
+    // admission id is known there is nothing to scope by, so don't fetch at all
+    // rather than risk pulling another admission's session.
+    if (!isGeneral && !admissionId) return;
+
+    dispatch(
+      fetchLastEctSession({
+        id: patient._id,
+        type: isGeneral ? "GENERAL" : "IPD",
+        ...(!isGeneral && { addmission: admissionId }),
+      }),
+    );
+  }, [editEct, patient?._id, admissionId, type, dispatch]);
+
+  // A new form should always start willing to prefill again.
+  useEffect(() => {
+    setPrefillDismissed(false);
+  }, [editChartData, patient?._id]);
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -142,7 +284,7 @@ const EctSession = ({ author, patient, chartDate, editChartData, type }) => {
       chart: ECT_SESSION,
       type,
       date: chartDate,
-      ...buildInitialSections(editEct, patient, chartDate),
+      ...buildInitialSections(editEct, patient, chartDate, previousSession),
     },
     onSubmit: (values) => {
       if (!sectionsHaveValue(values)) return; // don't save an empty record
@@ -160,6 +302,9 @@ const EctSession = ({ author, patient, chartDate, editChartData, type }) => {
       } else {
         dispatch(addEctSession(values));
       }
+
+      // Drop the snapshot so it can't seed the next patient's form.
+      dispatch(setPtLatestEctSession(null));
     },
   });
 
@@ -170,6 +315,7 @@ const EctSession = ({ author, patient, chartDate, editChartData, type }) => {
 
   const closeForm = () => {
     dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+    dispatch(setPtLatestEctSession(null));
     validation.resetForm();
   };
 
@@ -355,6 +501,31 @@ const EctSession = ({ author, patient, chartDate, editChartData, type }) => {
       }}
       className="needs-validation"
     >
+      {isPrefilled && (
+        <Alert color="info" className="py-2 small d-flex align-items-center gap-2">
+          <i className="ri-file-copy-line" />
+          <span className="flex-grow-1">
+            Prefilled from the session on{" "}
+            <strong>
+              {formatSourceDate(
+                patientLatestEctSession?.date ||
+                  patientLatestEctSession?.createdAt,
+              ) || "the previous record"}
+            </strong>{" "}
+            — review each value before saving.
+          </span>
+          <Button
+            type="button"
+            color="info"
+            outline
+            size="sm"
+            onClick={() => setPrefillDismissed(true)}
+          >
+            Undo
+          </Button>
+        </Alert>
+      )}
+
       {ectSessionSections.map((section) => (
         <div key={section.key} className="mb-4">
           <h6 className="fs-14 fw-semibold text-primary border-bottom pb-2 mb-3">
@@ -399,6 +570,7 @@ EctSession.propTypes = {
   chartDate: PropTypes.any,
   editChartData: PropTypes.object,
   type: PropTypes.string,
+  patientLatestEctSession: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
@@ -406,6 +578,7 @@ const mapStateToProps = (state) => ({
   author: state.User.user,
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm?.data,
+  patientLatestEctSession: state.Chart.patientLatestEctSession,
 });
 
 export default connect(mapStateToProps)(EctSession);

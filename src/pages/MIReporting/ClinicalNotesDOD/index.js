@@ -15,6 +15,7 @@
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [selectedPsychologist, setSelectedPsychologist] = useState("ALL");
     const [searchInput, setSearchInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [isSearching, setIsSearching] = useState(false);
@@ -47,10 +48,11 @@
         const term = searchTerm.trim().toLowerCase();
         return data.filter(item => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
+            if (selectedPsychologist !== "ALL" && item?.psychologist_name !== selectedPsychologist) return false;
             if (term && !(item?.patient || "").toLowerCase().includes(term) && !(item?.patient_id || "").toLowerCase().includes(term)) return false;
             return true;
         });
-    }, [data, selectedCenter, searchTerm]);
+    }, [data, selectedCenter, selectedPsychologist, searchTerm]);
 
     
     const prepareCsvData = () => {
@@ -92,6 +94,26 @@
             label: center,
         })),
     ], [data]);
+
+    const psychologistOptions = useMemo(() => [
+        { value: "ALL", label: "All Psychologists" },
+        ...[...new Set(
+            data
+                .filter((item) => selectedCenter === "ALL" || item?.center_name === selectedCenter)
+                .map((item) => item.psychologist_name)
+        )].filter(Boolean).map((psychologist) => ({
+            value: psychologist,
+            label: psychologist,
+        })),
+    ], [data, selectedCenter]);
+
+    useEffect(() => {
+        if (selectedPsychologist === "ALL") return;
+        if (!psychologistOptions.some((o) => o.value === selectedPsychologist)) {
+            setSelectedPsychologist("ALL");
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [psychologistOptions]);
 
 
 
@@ -241,6 +263,14 @@
                             onChange={(opt) => setSelectedCenter(opt.value)}
                             options={centerOptions}
                             placeholder="Center..."
+                        />
+                    </Col>
+                    <Col md={2}>
+                        <Select
+                            value={psychologistOptions.find((o) => o.value === selectedPsychologist) || psychologistOptions[0]}
+                            onChange={(opt) => setSelectedPsychologist(opt.value)}
+                            options={psychologistOptions}
+                            placeholder="Psychologist..."
                         />
                     </Col>
                     <Col md={2}>

@@ -43,8 +43,11 @@ const METRICS = [
     { label: "Round Notes",          key: "round_notes"          },
     { label: "Due Amount",           key: "due_amount"           },
     { label: "Prescription Status",  key: "prescription_status"  },
-
-    
+    { label: "Frisking",             key: "frisking"             },
+    { label: "Form-1 Nursing Staff Training", key: "form_1"      },
+    { label: "Form-2 Patient Care Training",  key: "form_2"      },
+    { label: "Form-3 Psychologist Training Pointers", key: "form_3" },
+    { label: "Form-4 MSW/New Joinee Training", key: "form_4"     },
 ];
 
 const DocsCompliance = () => {

@@ -182,6 +182,12 @@ const ApprovalHistory = ({ activeTab }) => {
             minWidth: "150px"
         },
         {
+            name: <div>Employment Type</div>,
+            selector: (row) => capitalizeWords(normalizeUnderscores(row?.newEmploymentType) || "-"),
+            wrap: true,
+            minWidth: "150px"
+        },
+        {
             name: <div>Start Date</div>,
             selector: row => {
                 if (!row?.startDate) return "-";

@@ -26,6 +26,7 @@ const INPUT_OUTPUT = "INPUT_OUTPUT";
 const NURSE_SOS_PROCEDURE = "NURSE_SOS_PROCEDURE";
 const INJURY_MARKS = "INJURY_MARKS";
 const ECT_SESSION = "ECT_SESSION";
+const ADMISSION_TYPE = "ADMISSION_TYPE";
 //Chart Bill Types
 const OPD = "OPD";
 const IPD = "IPD";
@@ -129,7 +130,95 @@ const records = [
     name: "ECT Session",
     category: ECT_SESSION,
   },
+  {
+    name: "Admission Type",
+    category: ADMISSION_TYPE,
+  },
 ];
+
+// ── Admission Type chart ───────────────────────────────────────────────────
+// Option values match the ones the Admission Form flow already persists onto
+// addmission.addmissionfromRaw, so the two records stay comparable. They were
+// hardcoded in Admissionform.modal.js before this; these are now the source.
+const INDEPENDENT_ADMISSION = "INDEPENDENT_ADMISSION";
+const SUPPORTIVE_ADMISSION = "SUPPORTIVE_ADMISSION";
+const EMERGENCY_ADMISSION = "EMERGENCY_ADMISSION";
+
+// Field descriptor for the Admission Type chart, shared by the form
+// (ChartForm/AdmissionType) and the read-only display (Charts/AdmissionType).
+// `showIf` is honoured by Components/Common/RenderFields — it hides a field when
+// the referenced value doesn't match, which is what drives the cascade.
+const admissionTypeFields = [
+  {
+    name: "admissionType",
+    label: "Admission Type",
+    type: "select",
+    required: true,
+    options: [
+      { label: "Independent Admission", value: INDEPENDENT_ADMISSION },
+      { label: "Supportive Admission", value: SUPPORTIVE_ADMISSION },
+      { label: "Emergency Admission", value: EMERGENCY_ADMISSION },
+    ],
+  },
+  {
+    name: "adultationType",
+    label: "Adultation Type",
+    type: "select",
+    required: true,
+    showIf: { field: "admissionType", value: INDEPENDENT_ADMISSION },
+    options: [
+      { label: "Adult (18+)", value: "ADULT" },
+      { label: "Minor (below 18)", value: "MINOR" },
+    ],
+  },
+  {
+    name: "supportType",
+    label: "Support Type",
+    type: "select",
+    required: true,
+    showIf: { field: "admissionType", value: SUPPORTIVE_ADMISSION },
+    options: [
+      { label: "Upto 30 days", value: "UPTO30DAYS" },
+      { label: "Beyond 30 days Upto 90 days", value: "BEYOND30DAYS" },
+    ],
+  },
+  {
+    name: "emergencyType",
+    label: "Emergency Type",
+    type: "select",
+    required: true,
+    showIf: { field: "admissionType", value: EMERGENCY_ADMISSION },
+    // Value === label here, matching what the admission form already stores.
+    options: [
+      "Risk to self",
+      "Risk to others",
+      "Agitation",
+      "Psychosis",
+      "Substance",
+      "Inability to care",
+    ].map((v) => ({ label: v, value: v })),
+  },
+  {
+    name: "emergencyRestraint",
+    label: "Restraint Used",
+    type: "select",
+    required: true,
+    showIf: { field: "admissionType", value: EMERGENCY_ADMISSION },
+    options: [
+      { label: "Yes", value: "Yes" },
+      { label: "No", value: "No" },
+    ],
+  },
+];
+
+// Which fields belong to which branch — used by the form to clear the fields
+// that no longer apply when the admission type changes, and by the display to
+// show only the relevant ones.
+const admissionTypeBranchFields = {
+  [INDEPENDENT_ADMISSION]: ["adultationType"],
+  [SUPPORTIVE_ADMISSION]: ["supportType"],
+  [EMERGENCY_ADMISSION]: ["emergencyType", "emergencyRestraint"],
+};
 
 // Section/field descriptors for the ECT Session chart. Single source of truth
 // shared by the form (ChartForm/EctSession) and the read-only display
@@ -517,6 +606,10 @@ const Forms = [
   {
     name: "Capacity Assessment Form",
     category: "CAPACITY ASSESSMENT FORM",
+  },
+  {
+    name: "ECT Consent Form",
+    category: "ECT CONSENT FORM",
   },
 ];
 const testRecord = [
@@ -2005,6 +2098,11 @@ let addPatientFields = [
     name: "dateOfBirth",
     type: "date",
     required: true,
+    max: (() => {
+      const d = new Date();
+      d.setFullYear(d.getFullYear() - 2);
+      return d.toISOString().split("T")[0];
+    })(),
   },
   {
     label: "Marital Status",
@@ -2922,6 +3020,7 @@ export {
   NURSE_SOS_PROCEDURE,
   INJURY_MARKS,
   ECT_SESSION,
+  ADMISSION_TYPE,
   //PATIENT BILLS
   INVOICE,
   ADVANCE_PAYMENT,
@@ -2955,6 +3054,11 @@ export {
   dischargeSummaryFields,
   expirySummaryFields,
   ectSessionSections,
+  admissionTypeFields,
+  admissionTypeBranchFields,
+  INDEPENDENT_ADMISSION,
+  SUPPORTIVE_ADMISSION,
+  EMERGENCY_ADMISSION,
   //PATIENT FIELDS
   addPatientFields,
   patientGuradianFields,

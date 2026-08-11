@@ -21,6 +21,7 @@ import {
   getCounsellingNote,
   getGeneralCharts,
   getLastMentalExamination,
+  getLastEctSession,
   getLatestCharts,
   getOPDPrescription,
   postClinicalNote,
@@ -42,6 +43,7 @@ import {
   postRealtiveVisit,
   postVitalSign,
   submitAssessment,
+  submitECTConsent,
   postPsychoDiagnosticForm,
   postGeneralPsychoDiagnosticForm,
   editPsychoDiagnosticForm,
@@ -57,7 +59,10 @@ import {
   editInjuryMarks,
   deleteInjuryMarksFile,
   getFinalDiagnosis,
+  getAdditionalDetails,
   postEctSession,
+  postAdmissionType,
+  editAdmissionType,
   postGeneralEctSession,
   editEctSession,
 } from "../../../helpers/backend_helper";
@@ -87,8 +92,11 @@ const initialState = {
   },
   patientLatestOPDPrescription: null,
   patientLatestMentalExamination: null,
+  patientLatestEctSession: null,
   finalDiagnosis: null,
   finalDiagnosisLoading: false,
+  additionalDiagnosis: [],
+  additionalDiagnosisLoading: false,
   chartDate: null,
   chartLoading: false,
   generalChartLoading: false,
@@ -180,6 +188,22 @@ export const fetchFinalDiagnosis = createAsyncThunk(
   async (addmissionId, { rejectWithValue }) => {
     try {
       const response = await getFinalDiagnosis(addmissionId);
+      return response;
+    } catch (error) {
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const fetchAdditionalDiagnosis = createAsyncThunk(
+  "getAdditionalDiagnosis",
+  async ({ patient, admission, chart_id }, { rejectWithValue }) => {
+    try {
+      const response = await getAdditionalDetails({
+        patient,
+        admission,
+        chart_id,
+      });
       return response;
     } catch (error) {
       return rejectWithValue("something went wrong");
@@ -339,6 +363,49 @@ export const updateVitalSign = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Vital Sign Updated Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+// Admission Type — IPD only, so there is no addGeneral counterpart.
+export const addAdmissionType = createAsyncThunk(
+  "postAdmissionType",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postAdmissionType(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Admission Type Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updateAdmissionType = createAsyncThunk(
+  "editAdmissionType",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editAdmissionType(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Admission Type Updated Successfully",
         }),
       );
 
@@ -1056,6 +1123,13 @@ export const addDetailAdmission = createAsyncThunk(
         }),
       );
 
+      // A new Detail Admission chart carries its own final diagnosis, so the
+      // topbar needs a fresh read right away instead of waiting for the next
+      // admission-change/page-refresh to happen to trigger one.
+      if (response?.addmission) {
+        dispatch(fetchFinalDiagnosis(response.addmission));
+      }
+
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
     } catch (error) {
@@ -1242,6 +1316,19 @@ export const fetchLastMentalExamination = createAsyncThunk(
   },
 );
 
+export const fetchLastEctSession = createAsyncThunk(
+  "getLastEctSession",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getLastEctSession(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
 export const removeChart = createAsyncThunk(
   "deleteChart",
   async (data, { rejectWithValue, dispatch }) => {
@@ -1282,6 +1369,27 @@ export const addCapacityAssessment = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Capacity Assessment Saved Successfully",
+        }),
+      );
+
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error.message);
+    }
+  },
+);
+
+export const addECTConsent = createAsyncThunk(
+  "postECTConsent",
+  async ({ addmissionId, formData }, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await submitECTConsent(addmissionId, formData);
+
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "ECT Consent Form Saved Successfully",
         }),
       );
 
@@ -1505,6 +1613,11 @@ export const chartSlice = createSlice({
   name: "Chart",
   initialState,
   reducers: {
+    clearCharts: (state) => {
+      state.data = [];
+      state.chartLoading = false;
+      state.additionalDiagnosis = []; // ← add this
+    },
     updateChartAdmission: (state, { payload }) => {
       const index = state.data?.findIndex((d) => d._id === payload._id);
 
@@ -1534,6 +1647,11 @@ export const chartSlice = createSlice({
     setPtLatestOPDPrescription: (state, { payload }) => {
       state.patientLatestOPDPrescription = payload;
     },
+    // Cleared when the ECT form closes or submits, so the snapshot can't leak
+    // into the next patient's form.
+    setPtLatestEctSession: (state, { payload }) => {
+      state.patientLatestEctSession = payload;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -1542,7 +1660,20 @@ export const chartSlice = createSlice({
       })
       .addCase(fetchChartsAddmissions.fulfilled, (state, { payload }) => {
         state.loading = false;
-        state.data = payload.payload;
+        // Upsert by _id instead of replacing state.data wholesale — this slice
+        // is shared across screens (IPD view, ChartDate modal, AI socket
+        // refreshes) that each fetch different subsets of admissions. A full
+        // replace here would let a single-admission fetch (e.g. from the
+        // create-chart modal) wipe out other admissions currently on screen.
+        const incoming = payload.payload || [];
+        incoming.forEach((item) => {
+          const index = state.data.findIndex((d) => d._id === item._id);
+          if (index >= 0) {
+            state.data[index] = { ...state.data[index], ...item };
+          } else {
+            state.data.push(item);
+          }
+        });
       })
       .addCase(fetchChartsAddmissions.rejected, (state) => {
         state.loading = false;
@@ -1588,6 +1719,28 @@ export const chartSlice = createSlice({
       });
 
     builder
+      .addCase(fetchAdditionalDiagnosis.pending, (state) => {
+        state.additionalDiagnosisLoading = true;
+      })
+      .addCase(fetchAdditionalDiagnosis.fulfilled, (state, { payload }) => {
+        state.additionalDiagnosisLoading = false;
+        const incoming = payload.data || [];
+        incoming.forEach((item) => {
+          const idx = state.additionalDiagnosis.findIndex(
+            (d) => String(d.chart_id) === String(item.chart_id),
+          );
+          if (idx >= 0) {
+            state.additionalDiagnosis[idx] = item; // ← update existing
+          } else {
+            state.additionalDiagnosis.push(item); // ← add new
+          }
+        });
+      })
+      .addCase(fetchAdditionalDiagnosis.rejected, (state) => {
+        state.additionalDiagnosisLoading = false;
+        // ← don't clear, keep existing data
+      });
+    builder
       .addCase(fetchCharts.pending, (state) => {
         state.chartLoading = true;
       })
@@ -1596,6 +1749,7 @@ export const chartSlice = createSlice({
         const findIndex = state.data.findIndex(
           (el) => el._id === payload.addmission,
         );
+        if (findIndex === -1) return;
         state.data[findIndex] = {
           ...state.data[findIndex],
           charts: payload.payload,
@@ -1773,6 +1927,51 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(updateVitalSign.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addAdmissionType.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addAdmissionType.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        // IPD only, so the admission always exists — guard the lookup anyway
+        // rather than writing to state.data[-1].
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload?.addmission,
+        );
+        if (findIndex === -1) return;
+
+        state.data[findIndex].totalCharts += 1;
+        state.data[findIndex].charts = [
+          payload.payload,
+          ...(state.data[findIndex].charts || []),
+        ];
+      })
+      .addCase(addAdmissionType.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateAdmissionType.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateAdmissionType.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload?.payload?.addmission,
+        );
+        if (findIndex === -1) return;
+
+        const findChartIndex = state.data[findIndex].charts.findIndex(
+          (chart) => chart._id === payload.payload._id,
+        );
+        if (findChartIndex === -1) return;
+
+        state.data[findIndex].charts[findChartIndex] = payload.payload;
+      })
+      .addCase(updateAdmissionType.rejected, (state) => {
         state.loading = false;
       });
 
@@ -2514,6 +2713,18 @@ export const chartSlice = createSlice({
       });
 
     builder
+      .addCase(fetchLastEctSession.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchLastEctSession.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.patientLatestEctSession = payload.payload;
+      })
+      .addCase(fetchLastEctSession.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
       .addCase(removeChart.pending, (state) => {
         state.loading = true;
       })
@@ -2527,16 +2738,26 @@ export const chartSlice = createSlice({
           const findIndex = state.data.findIndex(
             (el) => el._id === payload.payload.addmission,
           );
-          if (state?.data[findIndex]?.charts.length === 1) {
-            state.data = state.data.filter(
-              (item) => item._id !== payload.payload.addmission,
-            );
-          } else {
+          // Deleting the last chart empties this admission's charts — it
+          // must stay in state.data (not be removed), since every "add
+          // chart" reducer indexes into state.data[findIndex] and assumes
+          // the admission entry is still there.
+          if (findIndex !== -1) {
             state.data[findIndex].charts = state.data[findIndex].charts.filter(
               (item) => item._id !== payload.payload._id,
             );
-            state.data[findIndex].totalCharts -= 1;
+            state.data[findIndex].totalCharts = Math.max(
+              0,
+              (state.data[findIndex].totalCharts || 0) - 1,
+            );
           }
+        }
+
+        // ← Add this
+        if (payload?.payload?.chart === "DETAIL_ADMISSION") {
+          state.additionalDiagnosis = state.additionalDiagnosis.filter(
+            (d) => String(d.chart_id) !== String(payload?.payload?._id),
+          );
         }
       })
       .addCase(removeChart.rejected, (state) => {
@@ -2565,6 +2786,31 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(addCapacityAssessment.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addECTConsent.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addECTConsent.fulfilled, (state, { payload }) => {
+        state.loading = false;
+
+        // This is a form on the admission, not a chart, so append the new file
+        // record to its own array — that's what the download list reads.
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload?.addmission,
+        );
+        if (findIndex === -1 || !payload?.payload) return;
+
+        const admission = state.data[findIndex];
+        admission.ectConsentFormRaw = [
+          ...(admission.ectConsentFormRaw || []),
+          payload.payload,
+        ];
+        admission.ectConsentForm = true;
+      })
+      .addCase(addECTConsent.rejected, (state) => {
         state.loading = false;
       });
     builder
@@ -2893,6 +3139,8 @@ export const {
   setChartAdmission,
   resetOpdPatientCharts,
   setPtLatestOPDPrescription,
+  clearCharts,
+  setPtLatestEctSession,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;

@@ -14,10 +14,154 @@ const RenderFields = ({ fields, validation }) => {
           if (field.showIf) {
             const conditionField = field.showIf.field;
             const conditionValue = field.showIf.value;
-
-            if (validation.values[conditionField] !== conditionValue) {
+            const notEquals = field.showIf.notEquals;
+            const includes = field.showIf.includes;
+            if (
+              conditionValue !== undefined &&
+              validation.values[conditionField] !== conditionValue
+            )
               return null;
-            }
+            if (
+              notEquals !== undefined &&
+              validation.values[conditionField] === notEquals
+            )
+              return null;
+            if (
+              includes !== undefined &&
+              (!Array.isArray(validation.values[conditionField]) ||
+                !validation.values[conditionField].includes(includes))
+            )
+              return null;
+          }
+
+          if (field.type === "empty") {
+            return <Col key={i + "empty"} xs={12} lg={6} />;
+          }
+          if (field.type === "group") {
+            return (
+              <Col key={i + "group"} xs={12}>
+                <Row>
+                  <Col xs={12} lg={6}>
+                    {field.left.map((f, li) => (
+                      <div key={li} className="mb-3">
+                        {!f.labelHidden && (
+                          <Label className="form-label">
+                            {f.label}
+                            {f.required && (
+                              <span className="text-danger ms-1">*</span>
+                            )}
+                          </Label>
+                        )}
+                        <div className="d-flex flex-wrap gap-2">
+                          {(f.options || []).map((opt, idx) => {
+                            const value =
+                              typeof opt === "string" ? opt : opt.value;
+                            const label =
+                              typeof opt === "string"
+                                ? capitalizeWords(opt)
+                                : opt.label;
+                            return (
+                              <div
+                                key={idx}
+                                className="d-flex align-items-center px-2 py-1"
+                                style={{ cursor: "pointer", minWidth: "120px" }}
+                              >
+                                <Input
+                                  type="radio"
+                                  name={f.name}
+                                  value={value}
+                                  onChange={validation.handleChange}
+                                  checked={validation.values[f.name] === value}
+                                  onClick={() => {
+                                    if (validation.values[f.name] === value)
+                                      validation.setFieldValue(f.name, "");
+                                  }}
+                                  style={{
+                                    width: "14px",
+                                    height: "14px",
+                                    cursor: "pointer",
+                                  }}
+                                />
+                                <Label
+                                  className="mb-0 ms-1"
+                                  style={{
+                                    fontSize: "0.85rem",
+                                    fontWeight: 500,
+                                    cursor: "pointer",
+                                    marginTop: "1.5px",
+                                  }}
+                                >
+                                  {label}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </Col>
+                  <Col xs={12} lg={6}>
+                    {field.right.map((f, ri) => (
+                      <div key={ri} className="mb-3">
+                        {!f.labelHidden && (
+                          <Label className="form-label">
+                            {f.label}
+                            {f.required && (
+                              <span className="text-danger ms-1">*</span>
+                            )}
+                          </Label>
+                        )}
+                        <div className="d-flex flex-wrap gap-2">
+                          {(f.options || []).map((opt, idx) => {
+                            const value =
+                              typeof opt === "string" ? opt : opt.value;
+                            const label =
+                              typeof opt === "string"
+                                ? capitalizeWords(opt)
+                                : opt.label;
+                            return (
+                              <div
+                                key={idx}
+                                className="d-flex align-items-center px-2 py-1"
+                                style={{ cursor: "pointer", minWidth: "120px" }}
+                              >
+                                <Input
+                                  type="radio"
+                                  name={f.name}
+                                  value={value}
+                                  onChange={validation.handleChange}
+                                  checked={validation.values[f.name] === value}
+                                  onClick={() => {
+                                    if (validation.values[f.name] === value)
+                                      validation.setFieldValue(f.name, "");
+                                  }}
+                                  style={{
+                                    width: "14px",
+                                    height: "14px",
+                                    cursor: "pointer",
+                                  }}
+                                />
+                                <Label
+                                  className="mb-0 ms-1"
+                                  style={{
+                                    fontSize: "0.85rem",
+                                    fontWeight: 500,
+                                    cursor: "pointer",
+                                    marginTop: "1.5px",
+                                  }}
+                                >
+                                  {label}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </Col>
+                </Row>
+              </Col>
+            );
           }
 
           if (field.type === "header") {
@@ -41,7 +185,7 @@ const RenderFields = ({ fields, validation }) => {
             );
           }
           return (
-            <Col key={i + field} xs={12} lg={6}>
+            <Col key={i + field} xs={12} lg={field.fullWidth ? 12 : 6}>
               <div className="mb-3">
                 {!field.labelHidden && (
                   <Label htmlFor={field.name} className="form-label">
@@ -141,6 +285,55 @@ const RenderFields = ({ fields, validation }) => {
                         </div>
                       )}
                   </>
+                ) : field.type === "checkboxWithText" ? (
+                  <div className="d-flex flex-column gap-2">
+                    {(field.options || []).map((opt, idx) => {
+                      const value = typeof opt === "string" ? opt : opt.value;
+                      const textName =
+                        typeof opt === "string" ? null : opt.textName;
+                      const isChecked =
+                        Array.isArray(validation.values[field.name]) &&
+                        validation.values[field.name].includes(value);
+                      return (
+                        <div key={idx}>
+                          <div className="d-flex align-items-center mb-1">
+                            <Input
+                              className="me-2 mt-0"
+                              type="checkbox"
+                              name={field.name}
+                              value={value}
+                              onChange={validation.handleChange}
+                              checked={isChecked}
+                            />
+                            <Label className="form-label fs-6 mb-0">
+                              {value.charAt(0).toUpperCase() + value.slice(1)}
+                            </Label>
+                          </div>
+                          {isChecked && textName && (
+                            <Input
+                              name={textName}
+                              className="form-control ms-4"
+                              placeholder={`Enter ${value} details`}
+                              type="text"
+                              onChange={validation.handleChange}
+                              onBlur={validation.handleBlur}
+                              value={validation.values[textName] || ""}
+                              style={{ width: "80%" }}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                    {validation.touched[field.name] &&
+                      validation.errors[field.name] && (
+                        <div
+                          className="text-danger mt-1"
+                          style={{ fontSize: "0.875em" }}
+                        >
+                          {validation.errors[field.name]}
+                        </div>
+                      )}
+                  </div>
                 ) : field.type === "checkbox" ? (
                   <>
                     <div className="d-flex flex-wrap">
