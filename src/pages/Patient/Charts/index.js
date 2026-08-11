@@ -25,8 +25,10 @@ import {
 //redux
 import {
   createEditChart,
+  fetchAdditionalDiagnosis,
   fetchCharts,
   fetchChartsAddmissions,
+  fetchFinalDiagnosis,
   fetchGeneralCharts,
   removeChart,
   togglePrint,
@@ -54,6 +56,7 @@ import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
 import { api } from "../../../config";
 import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
+import AdditionalDetailsModal from "./Components/AdditionalDetailsModal";
 
 const Charts = ({
   addmission,
@@ -70,6 +73,11 @@ const Charts = ({
     isOpen: false,
   });
   const [socketReady, setSocketReady] = useState(false);
+  // const fetchedChartsRef = useRef(new Set());
+  const [additionalDetailsModal, setAdditionalDetailsModal] = useState({
+    isOpen: false,
+    chart: null,
+  });
 
   const socketRef = useRef(null);
 
@@ -181,12 +189,22 @@ const Charts = ({
     });
   };
 
-  const deleteChart = () => {
-    dispatch(removeChart(chart.chart._id));
-    setChart({
-      chart: null,
-      isOpen: false,
-    });
+  const deleteChart = async () => {
+    const deletedChart = chart.chart;
+
+    await dispatch(removeChart(deletedChart._id));
+
+    if (deletedChart?.chart === DETAIL_ADMISSION && deletedChart?.addmission) {
+      dispatch(
+        fetchAdditionalDiagnosis({
+          patient: deletedChart?.patient,
+          admission: deletedChart?.addmission,
+        }),
+      );
+      dispatch(fetchFinalDiagnosis(deletedChart?.addmission));
+    }
+
+    setChart({ chart: null, isOpen: false });
   };
 
   const printChart = (chart, patient) => {
@@ -203,18 +221,53 @@ const Charts = ({
 
   console.log("CHARTING", charts);
 
+  const handleAddAdditionalDetails = (chart) => {
+    setAdditionalDetailsModal({ isOpen: true, chart });
+  };
+
+  // Add this after all existing useEffects
+  useEffect(() => {
+    if (!charts?.length) return;
+
+    const detailAdmissionCharts = charts.filter(
+      (c) => c.chart === DETAIL_ADMISSION && c.addmission,
+    );
+
+    const uniqueAdmissions = [
+      ...new Set(detailAdmissionCharts.map((c) => String(c.addmission))),
+    ];
+
+    uniqueAdmissions.forEach((admissionId) => {
+      const chart = detailAdmissionCharts.find(
+        (c) => String(c.addmission) === admissionId,
+      );
+      dispatch(
+        fetchAdditionalDiagnosis({
+          patient: chart.patient,
+          admission: admissionId,
+        }),
+      );
+    });
+  }, [charts]);
+
   return (
     <React.Fragment>
       <div className="timeline-2">
         <div className="timeline-continue">
           <Row className="timeline-right">
             {(charts || []).map((chart) => {
-              console.log("HISTORY CHART ITEM:", {
-                chartId: chart._id,
-                chartType: chart.chart,
-                addmission: chart.addmission,
-                patient: chart.patient,
-              });
+              console.log("chart.addmission:", String(chart.addmission));
+              console.log("currentAddmissionId:", String(currentAddmissionId));
+              console.log(
+                "match:",
+                String(chart.addmission) === String(currentAddmissionId),
+              );
+              // console.log("HISTORY CHART ITEM:", {
+              //   chartId: chart._id,
+              //   chartType: chart.chart,
+              //   addmission: chart.addmission,
+              //   patient: chart.patient,
+              // });
               return (
                 <Wrapper
                   key={chart._id}
@@ -223,6 +276,14 @@ const Charts = ({
                   editItem={editChart}
                   deleteItem={getChart}
                   printItem={printChart}
+                  addAdditionalDetails={
+                    String(chart.addmission) === String(currentAddmissionId) &&
+                    !!chart.addmission && // ← add this — hides for OPD (no admission)
+                    !addmission?.dischargeDate &&
+                    !isPatientDischarged
+                      ? handleAddAdditionalDetails
+                      : undefined
+                  }
                   // Round-note charts are auto-generated read-only snapshots —
                   // they are edited/removed only from the Round Notes screen.
                   disableEdit={
@@ -242,6 +303,7 @@ const Charts = ({
                   geminiResponseIsVerified={chart?.geminiResponseIsVerified}
                   validatorId={chart?.validatorId}
                   doctorValidatorId={chart?.doctorValidatorId}
+                  currentAddmissionId={currentAddmissionId}
                 >
                   {chart.chart === PRESCRIPTION && (
                     <Prescription data={chart?.prescription} />
@@ -311,6 +373,11 @@ const Charts = ({
         onCloseClick={cancelDelete}
         onDeleteClick={deleteChart}
         show={chart.isOpen}
+      />
+      <AdditionalDetailsModal
+        isOpen={additionalDetailsModal.isOpen}
+        chart={additionalDetailsModal.chart}
+        toggle={() => setAdditionalDetailsModal({ isOpen: false, chart: null })}
       />
     </React.Fragment>
   );

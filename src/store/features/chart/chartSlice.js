@@ -21,6 +21,7 @@ import {
   getCounsellingNote,
   getGeneralCharts,
   getLastMentalExamination,
+  getLastEctSession,
   getLatestCharts,
   getOPDPrescription,
   postClinicalNote,
@@ -57,6 +58,7 @@ import {
   editInjuryMarks,
   deleteInjuryMarksFile,
   getFinalDiagnosis,
+  getAdditionalDetails,
   postEctSession,
   postGeneralEctSession,
   editEctSession,
@@ -87,8 +89,11 @@ const initialState = {
   },
   patientLatestOPDPrescription: null,
   patientLatestMentalExamination: null,
+  patientLatestEctSession: null,
   finalDiagnosis: null,
   finalDiagnosisLoading: false,
+  additionalDiagnosis: [],
+  additionalDiagnosisLoading: false,
   chartDate: null,
   chartLoading: false,
   generalChartLoading: false,
@@ -180,6 +185,22 @@ export const fetchFinalDiagnosis = createAsyncThunk(
   async (addmissionId, { rejectWithValue }) => {
     try {
       const response = await getFinalDiagnosis(addmissionId);
+      return response;
+    } catch (error) {
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const fetchAdditionalDiagnosis = createAsyncThunk(
+  "getAdditionalDiagnosis",
+  async ({ patient, admission, chart_id }, { rejectWithValue }) => {
+    try {
+      const response = await getAdditionalDetails({
+        patient,
+        admission,
+        chart_id,
+      });
       return response;
     } catch (error) {
       return rejectWithValue("something went wrong");
@@ -1056,6 +1077,13 @@ export const addDetailAdmission = createAsyncThunk(
         }),
       );
 
+      // A new Detail Admission chart carries its own final diagnosis, so the
+      // topbar needs a fresh read right away instead of waiting for the next
+      // admission-change/page-refresh to happen to trigger one.
+      if (response?.addmission) {
+        dispatch(fetchFinalDiagnosis(response.addmission));
+      }
+
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
     } catch (error) {
@@ -1234,6 +1262,19 @@ export const fetchLastMentalExamination = createAsyncThunk(
   async (data, { rejectWithValue, dispatch }) => {
     try {
       const response = await getLastMentalExamination(data);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const fetchLastEctSession = createAsyncThunk(
+  "getLastEctSession",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getLastEctSession(data);
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -1508,6 +1549,7 @@ export const chartSlice = createSlice({
     clearCharts: (state) => {
       state.data = [];
       state.chartLoading = false;
+      state.additionalDiagnosis = []; // ← add this
     },
     updateChartAdmission: (state, { payload }) => {
       const index = state.data?.findIndex((d) => d._id === payload._id);
@@ -1537,6 +1579,11 @@ export const chartSlice = createSlice({
     },
     setPtLatestOPDPrescription: (state, { payload }) => {
       state.patientLatestOPDPrescription = payload;
+    },
+    // Cleared when the ECT form closes or submits, so the snapshot can't leak
+    // into the next patient's form.
+    setPtLatestEctSession: (state, { payload }) => {
+      state.patientLatestEctSession = payload;
     },
   },
   extraReducers: (builder) => {
@@ -1604,6 +1651,28 @@ export const chartSlice = createSlice({
         state.finalDiagnosis = null;
       });
 
+    builder
+      .addCase(fetchAdditionalDiagnosis.pending, (state) => {
+        state.additionalDiagnosisLoading = true;
+      })
+      .addCase(fetchAdditionalDiagnosis.fulfilled, (state, { payload }) => {
+        state.additionalDiagnosisLoading = false;
+        const incoming = payload.data || [];
+        incoming.forEach((item) => {
+          const idx = state.additionalDiagnosis.findIndex(
+            (d) => String(d.chart_id) === String(item.chart_id),
+          );
+          if (idx >= 0) {
+            state.additionalDiagnosis[idx] = item; // ← update existing
+          } else {
+            state.additionalDiagnosis.push(item); // ← add new
+          }
+        });
+      })
+      .addCase(fetchAdditionalDiagnosis.rejected, (state) => {
+        state.additionalDiagnosisLoading = false;
+        // ← don't clear, keep existing data
+      });
     builder
       .addCase(fetchCharts.pending, (state) => {
         state.chartLoading = true;
@@ -2532,6 +2601,18 @@ export const chartSlice = createSlice({
       });
 
     builder
+      .addCase(fetchLastEctSession.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchLastEctSession.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.patientLatestEctSession = payload.payload;
+      })
+      .addCase(fetchLastEctSession.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
       .addCase(removeChart.pending, (state) => {
         state.loading = true;
       })
@@ -2545,16 +2626,26 @@ export const chartSlice = createSlice({
           const findIndex = state.data.findIndex(
             (el) => el._id === payload.payload.addmission,
           );
-          if (state?.data[findIndex]?.charts.length === 1) {
-            state.data = state.data.filter(
-              (item) => item._id !== payload.payload.addmission,
-            );
-          } else {
+          // Deleting the last chart empties this admission's charts — it
+          // must stay in state.data (not be removed), since every "add
+          // chart" reducer indexes into state.data[findIndex] and assumes
+          // the admission entry is still there.
+          if (findIndex !== -1) {
             state.data[findIndex].charts = state.data[findIndex].charts.filter(
               (item) => item._id !== payload.payload._id,
             );
-            state.data[findIndex].totalCharts -= 1;
+            state.data[findIndex].totalCharts = Math.max(
+              0,
+              (state.data[findIndex].totalCharts || 0) - 1,
+            );
           }
+        }
+
+        // ← Add this
+        if (payload?.payload?.chart === "DETAIL_ADMISSION") {
+          state.additionalDiagnosis = state.additionalDiagnosis.filter(
+            (d) => String(d.chart_id) !== String(payload?.payload?._id),
+          );
         }
       })
       .addCase(removeChart.rejected, (state) => {
@@ -2912,6 +3003,7 @@ export const {
   resetOpdPatientCharts,
   setPtLatestOPDPrescription,
   clearCharts,
+  setPtLatestEctSession,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;

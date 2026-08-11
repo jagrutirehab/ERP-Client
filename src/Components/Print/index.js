@@ -30,7 +30,8 @@ const Print = ({
   clinicalTest,
   center,
   patientAdmissionsCharts,
-  charts
+  charts,
+  additionalDiagnosis
 }) => {
   const dispatch = useDispatch();
 
@@ -167,6 +168,7 @@ const Print = ({
                         patient={patient}
                         admission={admission}
                         doctor={doctor}
+                        additionalDiagnosis={additionalDiagnosis}
                       />
                     }
                     fileName={`${patient?.id?.value}-${(patient?.name || 'patient').replace(/\s+/g, '_')}-chart.pdf`}
@@ -354,6 +356,7 @@ const Print = ({
                       patient={patient}
                       admission={admission}
                       doctor={doctor}
+                      additionalDiagnosis={additionalDiagnosis}
                     />
                   </RenderWhen>
                   <RenderWhen isTrue={printData?.bill && patient ? true : false}>
@@ -422,6 +425,7 @@ const mapStateToProps = (state) => ({
   patientAdmissionsCharts: state.Chart.data,
   clinicalTest: state.Print.clinicalTest,
   charts: state.Chart.data[0]?.charts,
+  additionalDiagnosis: state.Chart.additionalDiagnosis,
 });
 
 export default connect(mapStateToProps)(Print);

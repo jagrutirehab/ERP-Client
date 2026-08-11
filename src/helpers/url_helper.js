@@ -141,6 +141,8 @@ export const DELETE_LAB_REPORT_FILE = "/chart/lab-report";
 export const GENERATE_LAB_SUMMARY = "/chart/generate/summary/lab-report";
 export const GET_AI_EXPIRY_SUMMARY = "/chart/expiry-summary/generate";
 export const VALIDATE_AI_EXPIRY_SUMMARY = "/chart/expiry-summary/validate";
+export const ADDITIONAL_DETAILS = "/chart/additional/history";
+export const GET_ADDITIONAL_DETAILS = "/chart/additional/history/get";
 
 export const POST_CLINICAL_NOTE = "/chart/clinical-note";
 export const EDIT_CLINICAL_NOTE = "/chart/clinical-note";
@@ -172,6 +174,7 @@ export const POST_GENERAL_MENTAL_EXAMINATION =
   "/chart/mental-examination/general";
 export const EDIT_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const LAST_MENTAL_EXAMINATION = "/chart/mental-examination";
+export const LAST_ECT_SESSION = "/chart/ect-session";
 export const POST_INPUT_OUTPUT = "/chart/input-output";
 export const EDIT_INPUT_OUTPUT = "/chart/input-output";
 export const POST_GENERAL_INPUT_OUTPUT = "/chart/input-output/general";
@@ -544,8 +547,10 @@ export const GET_TRAINING_FORMS_MONTHLY =
 export const GET_AUDIT_DAILY = "/mi-reporting/audit-daily";
 export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
 export const GET_OPD_CHARGES_MONTHLY = "/mi-reporting/opd-charges-monthly";
-export const GET_DOCTOR_OPD_CHARGES_MONTHLY = "/mi-reporting/doctor-opd-charges-monthly";
-export const GET_CENTRAL_EXPENSES_MONTHLY = "/mi-reporting/central-expenses-monthly";
+export const GET_DOCTOR_OPD_CHARGES_MONTHLY =
+  "/mi-reporting/doctor-opd-charges-monthly";
+export const GET_CENTRAL_EXPENSES_MONTHLY =
+  "/mi-reporting/central-expenses-monthly";
 export const GET_OCCUPANCY_MONTHLY = "/mi-reporting/occupancy-monthly";
 export const GET_ADMISSION_DISCHARGE_DAILY =
   "/mi-reporting/admission-discharge-daily";
@@ -822,7 +827,7 @@ export const ITEM_TYPE_BASE = "/master/item-type";
 
 export const GET_ITEM_CATEGORIES = "/master/item-category";
 export const ITEM_CATEGORY_BASE = "/master/item-category";
-export const ITEM_MASTER_BASE = "/master/item";; 
+export const ITEM_MASTER_BASE = "/master/item";
 export const GET_ITEM_MASTERS = ITEM_MASTER_BASE;
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
