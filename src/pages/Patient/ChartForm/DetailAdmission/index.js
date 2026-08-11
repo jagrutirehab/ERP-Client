@@ -879,96 +879,96 @@ const DetailAdmission = ({
   }, [dispatch, detailAdmissionForm]);
 
   // AUTOFILL
-  useEffect(() => {
-    if (!detailAdmissionForm) {
-      const psychiatricData = {
-        historyOfPresentIllness: {
-          onsetAge: "25",
-          modeOfOnset: "Acute (< 2 weeks)",
-          precipitatingFactors: ["Psychosocial stressor"],
-          onsetDurationProgress: "Test onset description",
-        },
-        symptomDomains: {
-          affective: ["Depressed mood"],
-          psychotic: ["None"],
-          cognitive: ["None"],
-          behavioural: ["None"],
-          somaticNeurovegetative: ["None"],
-          suicidalitySelfHarm: ["None"],
-        },
-        functionalImpact: {
-          workOccupationalFunctioning: "Intact",
-          socialInterpersonalFunctioning: "Intact",
-          gafScore: 70,
-          gafSeverity: "Mild (61-100)",
-        },
-        pastIllness: {
-          hasPastPsychiatricEpisode: "No",
-          totalHospitalisations: "0",
-          previousDiagnoses: ["None"],
-          substanceUseHistory: "No",
-        },
-        pastTreatment: {
-          ect: "Never",
-          psychotherapyType: ["Never"],
-        },
-        suicidalSelfHarmHistory: {
-          homicidalIdeationViolence: "None",
-        },
-        psychosocialSupport: {
-          familySupport: "Supportive / cohesive",
-        },
-      };
+  // useEffect(() => {
+  //   if (!detailAdmissionForm) {
+  //     const psychiatricData = {
+  //       historyOfPresentIllness: {
+  //         onsetAge: "25",
+  //         modeOfOnset: "Acute (< 2 weeks)",
+  //         precipitatingFactors: ["Psychosocial stressor"],
+  //         onsetDurationProgress: "Test onset description",
+  //       },
+  //       symptomDomains: {
+  //         affective: ["Depressed mood"],
+  //         psychotic: ["None"],
+  //         cognitive: ["None"],
+  //         behavioural: ["None"],
+  //         somaticNeurovegetative: ["None"],
+  //         suicidalitySelfHarm: ["None"],
+  //       },
+  //       functionalImpact: {
+  //         workOccupationalFunctioning: "Intact",
+  //         socialInterpersonalFunctioning: "Intact",
+  //         gafScore: 70,
+  //         gafSeverity: "Mild (61-100)",
+  //       },
+  //       pastIllness: {
+  //         hasPastPsychiatricEpisode: "No",
+  //         totalHospitalisations: "0",
+  //         previousDiagnoses: ["None"],
+  //         substanceUseHistory: "No",
+  //       },
+  //       pastTreatment: {
+  //         ect: "Never",
+  //         psychotherapyType: ["Never"],
+  //       },
+  //       suicidalSelfHarmHistory: {
+  //         homicidalIdeationViolence: "None",
+  //       },
+  //       psychosocialSupport: {
+  //         familySupport: "Supportive / cohesive",
+  //       },
+  //     };
 
-      validation.setValues({
-        ...validation.values,
-        // Chief Complaints
-        informant: "Self",
-        reliable: "Reliable",
-        adequate: "Adequate",
-        line1: "Test Complaint 1",
-        line2: "Test Complaint 2",
-        // Patient Type
-        patientType: "psychiatric",
-        psychiatricFields: JSON.stringify(psychiatricData),
-        addictionFields: JSON.stringify({}),
-        geriatricFields: JSON.stringify({}),
-        // Other History
-        negativeHistory: ["Head Injury"],
-        developmentDelay: "No",
-        personality: "Test pre-morbid personality",
-        // MSE
-        generalAppearance: "kempt",
-        eyeContact: "normal",
-        psychomotorActivity: "normal",
-        rapport: "established_with_ease",
-        rate: "normal",
-        tone: "normal",
-        volume: "normal/audible",
-        relevance: "relevant",
-        coherence: "coherent",
-        goalDirection: "goal_directed",
-        subjective: "Normal mood",
-        quality: "euthymic",
-        reactivity: "present",
-        mobility: "intact",
-        congruence: "congruent_to_mood",
-        delusions: "none",
-        formOfThought: "normal",
-        perception: "normal",
-        orientationTime: "Intact",
-        orientationPlace: "Intact",
-        orientationPerson: "Intact",
-        immediateMemory: "Intact",
-        recentMemory: "Intact",
-        remoteMemory: "Intact",
-        grade: "grade_1-_complete_denial_of_illness",
-        judgment: "intact",
-        // Diagnosis
-        managmentPlan: "INDOOR",
-      });
-    }
-  }, []);
+  //     validation.setValues({
+  //       ...validation.values,
+  //       // Chief Complaints
+  //       informant: "Self",
+  //       reliable: "Reliable",
+  //       adequate: "Adequate",
+  //       line1: "Test Complaint 1",
+  //       line2: "Test Complaint 2",
+  //       // Patient Type
+  //       patientType: "psychiatric",
+  //       psychiatricFields: JSON.stringify(psychiatricData),
+  //       addictionFields: JSON.stringify({}),
+  //       geriatricFields: JSON.stringify({}),
+  //       // Other History
+  //       negativeHistory: ["Head Injury"],
+  //       developmentDelay: "No",
+  //       personality: "Test pre-morbid personality",
+  //       // MSE
+  //       generalAppearance: "kempt",
+  //       eyeContact: "normal",
+  //       psychomotorActivity: "normal",
+  //       rapport: "established_with_ease",
+  //       rate: "normal",
+  //       tone: "normal",
+  //       volume: "normal/audible",
+  //       relevance: "relevant",
+  //       coherence: "coherent",
+  //       goalDirection: "goal_directed",
+  //       subjective: "Normal mood",
+  //       quality: "euthymic",
+  //       reactivity: "present",
+  //       mobility: "intact",
+  //       congruence: "congruent_to_mood",
+  //       delusions: "none",
+  //       formOfThought: "normal",
+  //       perception: "normal",
+  //       orientationTime: "Intact",
+  //       orientationPlace: "Intact",
+  //       orientationPerson: "Intact",
+  //       immediateMemory: "Intact",
+  //       recentMemory: "Intact",
+  //       remoteMemory: "Intact",
+  //       grade: "grade_1-_complete_denial_of_illness",
+  //       judgment: "intact",
+  //       // Diagnosis
+  //       managmentPlan: "INDOOR",
+  //     });
+  //   }
+  // }, []);
   // AUTOFILL
 
   const consentUploadedFiles = useMemo(() => {
