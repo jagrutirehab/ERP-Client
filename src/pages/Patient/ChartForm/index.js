@@ -21,6 +21,7 @@ import {
   NURSE_SOS_PROCEDURE,
   INJURY_MARKS,
   ECT_SESSION,
+  ADMISSION_TYPE,
 } from "../../../Components/constants/patient";
 
 //forms
@@ -41,6 +42,7 @@ import InputOutput from "./InputOutput";
 import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
+import AdmissionType from "./AdmissionType";
 
 const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const dispatch = useDispatch();
@@ -66,6 +68,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const isNurseSosProcedure = chart.chart === NURSE_SOS_PROCEDURE;
   const isInjuryMarks = chart.chart === INJURY_MARKS;
   const isEctSession = chart.chart === ECT_SESSION;
+  const isAdmissionType = chart.chart === ADMISSION_TYPE;
 
   const title = isPrescription
     ? "Prescription"
@@ -97,7 +100,9 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
                               ? "Patient Injury Marks"
                               : isEctSession
                                 ? "ECT Session"
-                                : "Detail Admission";
+                                : isAdmissionType
+                                  ? "Admission Type"
+                                  : "Detail Admission";
 
   // console.log({ type });
 
@@ -135,6 +140,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isNurseSosProcedure && <NurseSosProcedure {...rest} />}
         {isInjuryMarks && <InjuryMarks {...rest} />}
         {isEctSession && <EctSession {...rest} />}
+        {isAdmissionType && <AdmissionType {...rest} />}
       </CustomModal>
     </React.Fragment>
   );

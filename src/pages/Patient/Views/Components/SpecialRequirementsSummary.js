@@ -8,8 +8,9 @@ import {
 } from "../../../../utils/specialRequirements";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 
-// SOP-overview style card
-const SummaryCard = ({ title, children, compact }) => (
+// SOP-overview style card. Exported so sibling summary cards in this column
+// share one definition of the style rather than copying the tokens.
+export const SummaryCard = ({ title, children, compact }) => (
   <div
     className={`border rounded mt-2 ${compact ? "py-1 px-2" : "py-2 px-3"}`}
     style={{ backgroundColor: "#fafbfc" }}

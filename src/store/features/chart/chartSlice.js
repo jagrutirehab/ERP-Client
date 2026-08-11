@@ -43,6 +43,7 @@ import {
   postRealtiveVisit,
   postVitalSign,
   submitAssessment,
+  submitECTConsent,
   postPsychoDiagnosticForm,
   postGeneralPsychoDiagnosticForm,
   editPsychoDiagnosticForm,
@@ -59,6 +60,8 @@ import {
   deleteInjuryMarksFile,
   getFinalDiagnosis,
   postEctSession,
+  postAdmissionType,
+  editAdmissionType,
   postGeneralEctSession,
   editEctSession,
 } from "../../../helpers/backend_helper";
@@ -341,6 +344,49 @@ export const updateVitalSign = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Vital Sign Updated Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+// Admission Type — IPD only, so there is no addGeneral counterpart.
+export const addAdmissionType = createAsyncThunk(
+  "postAdmissionType",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postAdmissionType(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Admission Type Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updateAdmissionType = createAsyncThunk(
+  "editAdmissionType",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editAdmissionType(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Admission Type Updated Successfully",
         }),
       );
 
@@ -1308,6 +1354,27 @@ export const addCapacityAssessment = createAsyncThunk(
   },
 );
 
+export const addECTConsent = createAsyncThunk(
+  "postECTConsent",
+  async ({ addmissionId, formData }, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await submitECTConsent(addmissionId, formData);
+
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "ECT Consent Form Saved Successfully",
+        }),
+      );
+
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error.message);
+    }
+  },
+);
+
 export const addInputOutput = createAsyncThunk(
   "postInputOutput",
   async (data, { rejectWithValue, dispatch }) => {
@@ -1793,6 +1860,51 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(updateVitalSign.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addAdmissionType.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addAdmissionType.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        // IPD only, so the admission always exists — guard the lookup anyway
+        // rather than writing to state.data[-1].
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload?.addmission,
+        );
+        if (findIndex === -1) return;
+
+        state.data[findIndex].totalCharts += 1;
+        state.data[findIndex].charts = [
+          payload.payload,
+          ...(state.data[findIndex].charts || []),
+        ];
+      })
+      .addCase(addAdmissionType.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateAdmissionType.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateAdmissionType.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload?.payload?.addmission,
+        );
+        if (findIndex === -1) return;
+
+        const findChartIndex = state.data[findIndex].charts.findIndex(
+          (chart) => chart._id === payload.payload._id,
+        );
+        if (findChartIndex === -1) return;
+
+        state.data[findIndex].charts[findChartIndex] = payload.payload;
+      })
+      .addCase(updateAdmissionType.rejected, (state) => {
         state.loading = false;
       });
 
@@ -2597,6 +2709,31 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(addCapacityAssessment.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addECTConsent.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addECTConsent.fulfilled, (state, { payload }) => {
+        state.loading = false;
+
+        // This is a form on the admission, not a chart, so append the new file
+        // record to its own array — that's what the download list reads.
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload?.addmission,
+        );
+        if (findIndex === -1 || !payload?.payload) return;
+
+        const admission = state.data[findIndex];
+        admission.ectConsentFormRaw = [
+          ...(admission.ectConsentFormRaw || []),
+          payload.payload,
+        ];
+        admission.ectConsentForm = true;
+      })
+      .addCase(addECTConsent.rejected, (state) => {
         state.loading = false;
       });
     builder

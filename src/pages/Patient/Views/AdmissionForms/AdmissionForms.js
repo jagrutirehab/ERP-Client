@@ -10,7 +10,6 @@ import AdmWithHighSupport from "./AdmWithHighSupport";
 import EmergencyAdmissionForm from "./EmergencyAdmissionForm";
 import SeriousnessConsent from "./SeriousnessConsent";
 import MediactionConcent from "./MediactionConcent";
-import ECTConsentForm from "./ECTConsentForm";
 import DischargeIndependentAdult from "./DischargeIndependentAdult";
 import DischargeIndependentMinor from "./DischargeIndependentMinor";
 // import IndipendentOpinion1 from "./IndipendentOpinion1";
@@ -33,7 +32,7 @@ import AdmissionformModal from "../../Modals/Admissionform.modal";
 import { connect, useDispatch, useSelector } from "react-redux";
 import PropTypes from "prop-types";
 import jsPDF from "jspdf";
-import html2canvas from "html2canvas";
+import { captureSection } from "./captureSection";
 import axios from "axios";
 import { toast } from "react-toastify";
 import {
@@ -47,9 +46,9 @@ import AdmissionChartModal from "../../Modals/AdmissionChart.modal";
 import AdmWithHighSupport2 from "./AdmWithHighSupport2";
 import DishchargeformModal from "../../Modals/Dishchargeform.modal";
 import ConsentformModal from "../../Modals/Consentform.modal";
-import ECTConsentForm2 from "./ECTConsentForm2";
 import UndertakingDischargeForm from "./UndertakingDischargeForm";
 import AudioVideoConsentForm from "./AudioVideoConsentForm";
+import { uploadECTConsentSignedCopy } from "../../../../helpers/backend_helper";
 // import { Document, Page, pdfjs } from "react-pdf";
 // import pdfWorker from "pdfjs-dist/build/pdf.worker.min.js";
 // pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
@@ -91,12 +90,11 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   const dischargeFileInputRef = useRef(null);
   const undertakingDischargeFileInputRef = useRef(null);
   const capacityAssessmentFileInputRef = useRef(null);
+  const ectConsentFileInputRef = useRef(null);
   // const page1Ref = useRef(null);
   // const page2Ref = useRef(null);
   const seriousnessRef = useRef(null);
   const medicationRef = useRef(null);
-  const ectRef = useRef(null);
-  const ectRef2 = useRef(null);
   const audioVideoRef = useRef(null);
   const admission1Ref = useRef(null);
   const admission2Ref = useRef(null);
@@ -160,228 +158,6 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
   const { register, handleSubmit, setValue, reset, watch } = useForm();
 
-  const captureSection = async (ref, pdf, isFirstPage = false) => {
-    if (!ref?.current) return pdf;
-    const el = ref.current;
-
-    // wait for fonts
-    if (document.fonts && document.fonts.ready) {
-      try {
-        await document.fonts.ready;
-      } catch (e) {}
-    }
-
-    // === CLONE + replace inputs with spans ===
-    const clone = el.cloneNode(true);
-
-    // Sync radio/checkbox checked state from original to clone
-    const originalRadios = el.querySelectorAll(
-      "input[type='radio'], input[type='checkbox']",
-    );
-    const cloneRadios = clone.querySelectorAll(
-      "input[type='radio'], input[type='checkbox']",
-    );
-    originalRadios.forEach((orig, i) => {
-      if (cloneRadios[i]) cloneRadios[i].checked = orig.checked;
-    });
-
-    // Handle radio groups: replace each group with "Selected" or "A / B"
-    const handledRadioNames = new Set();
-    const allRadios = clone.querySelectorAll("input[type='radio']");
-    allRadios.forEach((radio) => {
-      const name = radio.getAttribute("name");
-      if (!name || handledRadioNames.has(name)) return;
-      handledRadioNames.add(name);
-
-      const group = clone.querySelectorAll(
-        `input[type='radio'][name='${name}']`,
-      );
-      const labels = [];
-      let selectedValue = null;
-
-      group.forEach((r) => {
-        const label = r.closest("label");
-        const text = r.value || (label ? label.textContent.trim() : "");
-        if (r.checked) selectedValue = text;
-        labels.push({ radio: r, label, text });
-      });
-
-      // Build replacement span
-      const resultSpan = document.createElement("span");
-      resultSpan.style.fontWeight = "bold";
-      resultSpan.style.textTransform = "uppercase";
-      resultSpan.style.marginLeft = "10px";
-
-      if (selectedValue) {
-        resultSpan.innerText = selectedValue.toUpperCase();
-        // resultSpan.style.textDecoration = "underline";
-      } else {
-        resultSpan.innerText = labels
-          .map((l) => l.text)
-          .join(" / ")
-          .toUpperCase();
-      }
-
-      // Insert result span before first label, then remove all labels
-      const firstLabel = labels[0].label || labels[0].radio.parentNode;
-      firstLabel.parentNode.insertBefore(resultSpan, firstLabel);
-      labels.forEach(({ radio, label }) => {
-        if (label) label.remove();
-        else radio.remove();
-      });
-    });
-
-    const inputsInClone = clone.querySelectorAll("input, textarea, select");
-    inputsInClone.forEach((input) => {
-      const span = document.createElement("span");
-      let value = "";
-      if (input.tagName.toLowerCase() === "select") value = input.value || "";
-      else if (input.type === "date" && input.value)
-        value = new Date(input.value).toLocaleDateString("en-GB");
-      else value = input.value || input.innerText || "";
-
-      span.innerText = value ? String(value).toUpperCase() : "\u00A0";
-      span.style.fontWeight = "bold";
-      span.style.textTransform = "uppercase";
-      if (!input.hasAttribute("data-no-underline")) {
-        span.style.borderBottom = "1px solid #000";
-      }
-      span.style.display = "inline-block";
-      span.style.minWidth = "100px";
-      span.style.maxWidth = "100%";
-      span.style.wordBreak = "break-word";
-      span.style.margin = "0 4px";
-      input.parentNode.replaceChild(span, input);
-    });
-
-    // === Fix known styled elements ===
-    const defaults = {
-      orgName: { fontSize: "26px" },
-      address: { fontSize: "18px" },
-      phone: { fontSize: "18px" },
-      website: { fontSize: "18px" },
-    };
-    Object.keys(defaults).forEach((cls) => {
-      const elems = clone.querySelectorAll(`.${cls}`);
-      elems.forEach((elx) => {
-        Object.assign(elx.style, defaults[cls]);
-      });
-    });
-
-    // wrapper
-    const wrapper = document.createElement("div");
-    while (clone.firstChild) wrapper.appendChild(clone.firstChild);
-    clone.appendChild(wrapper);
-
-    // Map PDF width → CSS px
-    const pdfW_pts = pdf.internal.pageSize.getWidth();
-    const pdfH_pts = pdf.internal.pageSize.getHeight();
-    const PT_TO_PX = 96 / 72;
-    const marginPts = 10;
-    const marginPx = Math.round(marginPts * PT_TO_PX);
-    const pdfWidthPx = Math.floor(pdfW_pts * PT_TO_PX);
-
-    clone.style.position = "absolute";
-    clone.style.left = "0";
-    clone.style.top = "0";
-    clone.style.zIndex = "2147483647";
-    clone.style.boxSizing = "border-box";
-    clone.style.background = "#fff";
-    clone.style.margin = "0";
-    clone.style.overflow = "visible";
-    clone.style.width = pdfWidthPx - marginPx * 2 + "px";
-
-    wrapper.style.display = "block";
-    wrapper.style.width = "100%";
-    wrapper.style.boxSizing = "border-box";
-
-    // improve borders & font scaling
-    const BORDER_MULT = 1.3;
-    const TEXT_MULT = 1.05;
-    const allElems = clone.querySelectorAll("*");
-    allElems.forEach((elx) => {
-      const cs = window.getComputedStyle(elx);
-      if (cs.fontSize) {
-        const fs = parseFloat(cs.fontSize);
-        if (!Number.isNaN(fs) && fs > 0) {
-          elx.style.fontSize = `${Math.round(fs * TEXT_MULT)}px`;
-        }
-      }
-      ["Top", "Right", "Bottom", "Left"].forEach((s) => {
-        const val = cs[`border${s}Width`];
-        if (val && val !== "0px") {
-          const num = parseFloat(val) || 0;
-          if (num > 0)
-            elx.style[`border${s}Width`] = `${Math.max(
-              1,
-              num * BORDER_MULT,
-            )}px`;
-        }
-      });
-
-      if (cs.display === "flex") {
-        elx.style.flexWrap = "wrap";
-        elx.style.justifyContent = "flex-start";
-      }
-    });
-
-    document.body.appendChild(clone);
-    await new Promise((r) => setTimeout(r, 100));
-
-    const cloneFullHeight = Math.ceil(wrapper.scrollHeight);
-    const DPR = window.devicePixelRatio || 1;
-    const PREFERRED_SCALE = 2;
-    let captureScale = Math.min(Math.max(1.5, DPR), PREFERRED_SCALE);
-
-    // === Always fit whole content into one single PDF page ===
-    const addCanvasAsSinglePage = (canvas, firstPageFlag) => {
-      const usableWpts = pdfW_pts - marginPts * 2;
-      const usableHpts = pdfH_pts - marginPts * 2;
-
-      const cW_px = canvas.width;
-      const cH_px = canvas.height;
-
-      const fitScale = Math.min(usableWpts / cW_px, usableHpts / cH_px);
-
-      const targetW_pts = cW_px * fitScale;
-      const targetH_pts = cH_px * fitScale;
-
-      const imgData = canvas.toDataURL("image/jpeg", 1.0);
-      if (!firstPageFlag) pdf.addPage();
-      pdf.addImage(
-        imgData,
-        "JPEG",
-        marginPts,
-        marginPts,
-        targetW_pts,
-        targetH_pts,
-        undefined,
-        "FAST",
-      );
-    };
-
-    try {
-      wrapper.style.transform = "translateY(0px)";
-      clone.style.height = cloneFullHeight + "px";
-      const c = await html2canvas(clone, {
-        scale: captureScale,
-        useCORS: true,
-        backgroundColor: "#fff",
-        imageTimeout: 20000,
-        allowTaint: false,
-        windowWidth: document.documentElement.scrollWidth,
-      });
-      addCanvasAsSinglePage(c, isFirstPage);
-    } catch (err) {
-      console.error("captureSection error:", err);
-    } finally {
-      try {
-        document.body.removeChild(clone);
-      } catch (e) {}
-    }
-
-    return pdf;
-  };
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGenerating2, setIsGenerating2] = useState(false);
@@ -411,9 +187,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
       await captureSection(seriousnessRef, pdf);
       await captureSection(medicationRef, pdf);
-      await captureSection(ectRef, pdf);
       await captureSection(audioVideoRef, pdf);
-      await captureSection(ectRef2, pdf);
 
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
@@ -657,9 +431,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
       await captureSection(seriousnessRef, pdf);
       await captureSection(medicationRef, pdf);
-      await captureSection(ectRef, pdf);
       await captureSection(audioVideoRef, pdf);
-      await captureSection(ectRef2, pdf);
 
       const pdfBlob = pdf.output("blob");
       const formData = new FormData();
@@ -900,6 +672,43 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       toast.error("Upload failed");
     } finally {
       setIsGenerating2(false);
+    }
+  };
+
+  const handleECTConsentUploadClick = () => {
+    ectConsentFileInputRef.current.click();
+  };
+
+  const handleFileChangeECTConsent = async (e) => {
+    const file = e.target.files[0];
+    setIsGenerating2(true);
+
+    if (!file) {
+      setIsGenerating2(false);
+      return;
+    }
+
+    if (file.type !== "application/pdf") {
+      toast.warning("Please upload a PDF file.");
+      setIsGenerating2(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("ectConsentFormURL", file);
+      formData.append("id", addmissionId);
+
+      await uploadECTConsentSignedCopy(formData);
+
+      toast.success("ECT Consent PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+    } catch (err) {
+      toast.error("Upload failed");
+    } finally {
+      setIsGenerating2(false);
+      // Allow re-selecting the same file after a failure.
+      e.target.value = "";
     }
   };
 
@@ -1479,6 +1288,97 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
                                 )}
                               </div>
                             </div>
+
+                            {/* ECT consent form — filled from the Add Records
+                                dropdown, downloaded and signed here. */}
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                }}
+                              >
+                                <Button
+                                  onClick={handleECTConsentUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Upload Signed Copy Of ECT Consent"
+                                  )}
+                                </Button>
+
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={ectConsentFileInputRef}
+                                  style={{ display: "none" }}
+                                  onChange={handleFileChangeECTConsent}
+                                />
+
+                                {test?.ectConsentFormRaw?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.ectConsentFormRaw.map(
+                                      (form, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={form?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Draft ECT Consent{" "}
+                                            {index + 1}{" "}
+                                            {form?.uploadedAt
+                                              ? `(${new Date(form.uploadedAt).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                                {test?.ectConsentFormURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.ectConsentFormURL.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-success btn-sm"
+                                          >
+                                            Download Signed ECT Consent{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1709,22 +1609,10 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
               <div ref={medicationRef}>
                 <MediactionConcent register={register} patient={patient} />
               </div>
-              <div ref={ectRef}>
-                <ECTConsentForm
-                  register={register}
-                  patient={patient}
-                  admissions={admissions}
-                />
-              </div>
+              {/* The two ECT consent pages now live in their own form —
+                  see Modals/ECTConsentFormModal.js */}
               <div ref={audioVideoRef}>
                 <AudioVideoConsentForm register={register} patient={patient} />
-              </div>
-              <div ref={ectRef2}>
-                <ECTConsentForm2
-                  register={register}
-                  patient={patient}
-                  admissions={admissions}
-                />
               </div>
 
               <div style={{ textAlign: "center", margin: "20px" }}>

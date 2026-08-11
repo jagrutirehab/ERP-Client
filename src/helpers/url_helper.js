@@ -133,6 +133,8 @@ export const POST_ECT_SESSION = "/chart/ect-session";
 export const EDIT_ECT_SESSION = "/chart/ect-session";
 export const POST_GENERAL_ECT_SESSION = "/chart/ect-session/general";
 export const EDIT_GENERAL_ECT_SESSION = "/chart/ect-session/general";
+export const POST_ADMISSION_TYPE = "/chart/admission-type";
+export const EDIT_ADMISSION_TYPE = "/chart/admission-type";
 export const POST_LAB_REPORT = "/chart/lab-report";
 export const EDIT_LAB_REPORT = "/chart/lab-report";
 export const POST_GENERAL_LAB_REPORT = "/chart/lab-report/general";
@@ -687,6 +689,10 @@ export const GET_MY_COMP_OFFS = "/hrms/leaves/get/my/comp-offs";
 // CAPACITY ASSESSMENT FORM
 export const SUBMIT_ASSESSMENT_FROM =
   "/patient/capacity-assessment-submit-file";
+
+// ECT CONSENT FORM
+export const SUBMIT_ECT_CONSENT_FORM = "/patient/ect-consent-submit-file";
+export const UPLOAD_ECT_CONSENT_FORM = "/patient/ect-consent-upload-file";
 
 // upload file
 export const UPLOAD_FILE = "/upload";
