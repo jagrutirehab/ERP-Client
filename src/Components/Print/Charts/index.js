@@ -22,6 +22,7 @@ import {
   NURSE_SOS_PROCEDURE,
   INJURY_MARKS,
   ECT_SESSION,
+  ADMISSION_TYPE,
 } from "../../constants/patient";
 
 //charts
@@ -43,6 +44,7 @@ import InputOutput from "./InputOutput";
 import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
+import AdmissionType from "./AdmissionType";
 
 const styles = StyleSheet.create({
   page: {

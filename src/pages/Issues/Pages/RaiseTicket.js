@@ -61,7 +61,7 @@ const initialFormState = {
 const RaiseTicket = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
-  const [issueType, setIssueType] = useState("TECH");
+  const [issueType, setIssueType] = useState(null);
 
   const [employees, setEmployees] = useState([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
@@ -301,7 +301,7 @@ const RaiseTicket = () => {
 
       setForm(initialFormState);
       setSelectedCenter(null);
-      setIssueType("TECH");
+      setIssueType(null);
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }

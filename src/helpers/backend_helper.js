@@ -493,6 +493,10 @@ export const postGeneralVitalSign = (data) =>
   api.create(url.POST_GENERAL_VITAL_SIGN, data);
 export const editGeneralVitalSign = (data) =>
   api.put(url.EDIT_GENERAL_VITAL_SIGN, data);
+export const postAdmissionType = (data) =>
+  api.create(url.POST_ADMISSION_TYPE, data);
+export const editAdmissionType = (data) =>
+  api.put(url.EDIT_ADMISSION_TYPE, data);
 export const postEctSession = (data) => api.create(url.POST_ECT_SESSION, data);
 export const editEctSession = (data) => api.put(url.EDIT_ECT_SESSION, data);
 export const postGeneralEctSession = (data) =>
@@ -2490,6 +2494,22 @@ export const getCentralExpensesMonthly = (data) => {
   });
 };
 
+export const getDoctorPsychologistStayRange = (data) => {
+  return api.get(url.GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getNursesDailyActivity = (data) => {
+  return api.get(url.GET_NURSES_DAILY_ACTIVITY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getOccupancyMonthly = (data) => {
   return api.get(url.GET_OCCUPANCY_MONTHLY, {
     params: {
@@ -3844,6 +3864,23 @@ export const uploadFile = (data) => {
 
 export const submitAssessment = (id, payload) => {
   return axios.patch(`${url.SUBMIT_ASSESSMENT_FROM}/${id}`, payload, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+// ECT consent form — payload is FormData carrying the rendered PDF.
+export const submitECTConsent = (id, payload) => {
+  return axios.patch(`${url.SUBMIT_ECT_CONSENT_FORM}/${id}`, payload, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const uploadECTConsentSignedCopy = (payload) => {
+  return axios.patch(url.UPLOAD_ECT_CONSENT_FORM, payload, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
