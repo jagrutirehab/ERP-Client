@@ -18,7 +18,6 @@ import {
   NURSE_SOS_PROCEDURE,
   INJURY_MARKS,
   ECT_SESSION,
-  ADMISSION_TYPE,
 } from "../../../constants/patient";
 import _ from "lodash";
 
@@ -40,7 +39,6 @@ import InputOutput from "./InputOutput";
 import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
-import AdmissionType from "./AdmissionType";
 
 const styles = StyleSheet.create({
   page: {
@@ -159,13 +157,6 @@ const Charts = ({ charts, patient, doctor, admission }) => {
                     center={chart.center}
                     patient={patient}
                   />
-                </RenderWhen>
-
-                {/* IPD only — admission type has no GENERAL variant. */}
-                <RenderWhen
-                  isTrue={chart?.chart === ADMISSION_TYPE && chart.type === IPD}
-                >
-                  <AdmissionType chart={chart} />
                 </RenderWhen>
 
                 <RenderWhen

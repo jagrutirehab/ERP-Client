@@ -39,7 +39,7 @@ const TicketForm = ({
   canSubmit,
   centreManagers,
   loadingCentreManagers,
-  fixedAssignees,
+  fixedAssignees
 }) => {
   const [loading, setLoading] = useState(false);
   const token = JSON.parse(localStorage.getItem("user"))?.token;
@@ -74,7 +74,6 @@ const TicketForm = ({
   // }, [issueType]);
 
   const isFormValid = () => {
-    if (!issueType) return false;
     if (!selectedCenter) return false;
     if (issueType !== "COMPLAINT" && !form.requestedFrom) return false;
     if (!form.contact) return false;
@@ -122,7 +121,7 @@ const TicketForm = ({
       if (!form.complaintDescription) return false;
     }
 
-    if (issueType === "OPERATIONAL") {
+   if (issueType === "OPERATIONAL") {
       if (!form.operationalCentreManager) return false;
       if (!form.operationalAssignedTo) return false;
       if (!form.operationalCategory) return false;
@@ -161,12 +160,10 @@ const TicketForm = ({
           </Label>
 
           <Select
-            placeholder="Select Ticket Type"
             options={issueTypeOptions}
-            value={
-              issueTypeOptions.find((opt) => opt.value === issueType) || null
-            }
+            value={issueTypeOptions.find((opt) => opt.value === issueType)}
             onChange={(selected) => setIssueType(selected.value)}
+            // isDisabled={true}
           />
         </Col>
         {/* CENTER */}
@@ -670,7 +667,7 @@ const TicketForm = ({
         )}
         {issueType === "OPERATIONAL" && (
           <>
-            {/* <Col md={6}>
+           {/* <Col md={6}>
               <Label className="fw-semibold">
                 Centre Manager<span className="text-danger">*</span>
               </Label>

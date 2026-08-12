@@ -133,8 +133,6 @@ export const POST_ECT_SESSION = "/chart/ect-session";
 export const EDIT_ECT_SESSION = "/chart/ect-session";
 export const POST_GENERAL_ECT_SESSION = "/chart/ect-session/general";
 export const EDIT_GENERAL_ECT_SESSION = "/chart/ect-session/general";
-export const POST_ADMISSION_TYPE = "/chart/admission-type";
-export const EDIT_ADMISSION_TYPE = "/chart/admission-type";
 export const POST_LAB_REPORT = "/chart/lab-report";
 export const EDIT_LAB_REPORT = "/chart/lab-report";
 export const POST_GENERAL_LAB_REPORT = "/chart/lab-report/general";
@@ -549,10 +547,10 @@ export const GET_TRAINING_FORMS_MONTHLY =
 export const GET_AUDIT_DAILY = "/mi-reporting/audit-daily";
 export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
 export const GET_OPD_CHARGES_MONTHLY = "/mi-reporting/opd-charges-monthly";
-export const GET_DOCTOR_OPD_CHARGES_MONTHLY = "/mi-reporting/doctor-opd-charges-monthly";
-export const GET_CENTRAL_EXPENSES_MONTHLY = "/mi-reporting/central-expenses-monthly";
-export const GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE = "/mi-reporting/doctor-psychologist-stay-range";
-export const GET_NURSES_DAILY_ACTIVITY = "/mi-reporting/nurses-daily-activity";
+export const GET_DOCTOR_OPD_CHARGES_MONTHLY =
+  "/mi-reporting/doctor-opd-charges-monthly";
+export const GET_CENTRAL_EXPENSES_MONTHLY =
+  "/mi-reporting/central-expenses-monthly";
 export const GET_OCCUPANCY_MONTHLY = "/mi-reporting/occupancy-monthly";
 export const GET_ADMISSION_DISCHARGE_DAILY =
   "/mi-reporting/admission-discharge-daily";
@@ -699,10 +697,6 @@ export const GET_MY_COMP_OFFS = "/hrms/leaves/get/my/comp-offs";
 // CAPACITY ASSESSMENT FORM
 export const SUBMIT_ASSESSMENT_FROM =
   "/patient/capacity-assessment-submit-file";
-
-// ECT CONSENT FORM
-export const SUBMIT_ECT_CONSENT_FORM = "/patient/ect-consent-submit-file";
-export const UPLOAD_ECT_CONSENT_FORM = "/patient/ect-consent-upload-file";
 
 // upload file
 export const UPLOAD_FILE = "/upload";

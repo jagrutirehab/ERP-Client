@@ -113,8 +113,6 @@ const Sidebar = () => {
     { id: "metrics-report", label: "Metrics Report", link: "/mi-reporting/metrics-report", icon: "bx bx-line-chart" },
     { id: "opd-charges", label: "OPD Charges", link: "/mi-reporting/opd-charges", icon: "bx bx-money" },
     { id: "central-expenses", label: "Central Expenses", link: "/mi-reporting/central-expenses", icon: "bx bx-receipt" },
-    { id: "doctor-psychologist-stay-range", label: "Doctor/Psychologist Stay Range", link: "/mi-reporting/doctor-psychologist-stay-range", icon: "bx bx-time-five" },
-    { id: "nurses-dashboard-dod", label: "Nurses Dashboard DOD", link: "/mi-reporting/nurses-dashboard-dod", icon: "bx bx-capsule" },
     { id: "occupancy", label: "Occupancy", link: "/mi-reporting/occupancy", icon: "bx bx-bed" },
   ];
 

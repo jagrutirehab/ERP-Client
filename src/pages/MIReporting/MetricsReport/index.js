@@ -83,22 +83,6 @@ const METRIC_GROUPS = [
       { key: "count_mtd" },
     ],
   },
-  {
-    label: "Total Amount (IPD+OPD)",
-    category: "total_amount",
-    fields: [
-      { key: "net_amount", label: "Net Amount" },
-      { key: "net_amount_mtd", label: "Net Amount" },
-    ],
-  },
-  {
-    label: "Expenses",
-    category: "expenses_amount",
-    fields: [
-      { key: "total_amount", label: "Total Amount" },
-      { key: "total_amount_mtd", label: "Total Amount" },
-    ],
-  },
 ];
 
 const BASE_OPTIONS = METRIC_GROUPS.flatMap((group) =>
@@ -142,7 +126,7 @@ const readValue = (record, path) => {
   return record?.[category]?.[field] ?? 0;
 };
 
-const ROUNDED_CATEGORIES = ["payble_amount", "advance_payment", "opd_payment", "total_amount", "expenses_amount"];
+const ROUNDED_CATEGORIES = ["payble_amount", "advance_payment", "opd_payment"];
 
 const MetricSection = ({ title, path, centers, months, pivot, loading, error }) => {
   const [csvData, setCsvData] = useState([]);

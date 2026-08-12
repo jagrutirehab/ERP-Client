@@ -1,12 +1,7 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
 const ECTConsentForm = ({ register, patient, admissions }) => {
-  // The prefill below writes straight into the DOM. Scoping the lookups to this
-  // component's own subtree keeps it from reaching into another form that
-  // happens to use the same field name, and the null guards keep it from
-  // throwing when a field it expects isn't mounted.
-  const rootRef = useRef(null);
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -38,36 +33,29 @@ const ECTConsentForm = ({ register, patient, admissions }) => {
   };
 
   useEffect(() => {
-    // Look inside this form first; fall back to the document only for
-    // relativeDoctor, which lives on the second ECT page.
-    const setField = (name, value, searchDocument = false) => {
-      const scope = rootRef.current;
-      const el =
-        scope?.querySelector(`[name="${name}"]`) ||
-        (searchDocument ? document.querySelector(`[name="${name}"]`) : null);
-      if (el) el.value = value || "";
-    };
-
     if (patient) {
-      setField("patientName", patient?.name);
-      setField("relation", patient?.guardianRelation);
-      setField("patientRelativeName", patient?.guardianName);
+      document.querySelector('[name="patientName"]').value =
+        patient?.name || "";
+      document.querySelector('[name="relation"]').value =
+        patient?.guardianRelation || "";
+      document.querySelector('[name="patientRelativeName"]').value =
+        patient?.guardianName || "";
     }
 
     if (admissions) {
       const doctorName =
         admissions?.length > 0 ? admissions[0].doctor?.name : "";
-      setField("doctorName", doctorName);
-      setField("doctorExplain", doctorName);
-      // Owned by ECTConsentForm2, hence the document-wide fallback.
-      setField("relativeDoctor", doctorName, true);
+      document.querySelector('[name="doctorName"]').value = doctorName;
+      document.querySelector('[name="doctorExplain"]').value = doctorName;
+      document.querySelector('[name="relativeDoctor"]').value = doctorName;
     }
 
-    setField("witnessDate", new Date().toLocaleDateString("en-GB"));
+    const today = new Date().toLocaleDateString("en-GB").split("/").join("/");
+    document.querySelector('[name="witnessDate"]').value = today;
   }, [patient, admissions]);
 
   return (
-    <div style={pageContainer} ref={rootRef}>
+    <div style={pageContainer}>
       <style>
         {`
           /* Responsive adjustments */

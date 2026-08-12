@@ -42,8 +42,6 @@ import {
   getOpdChargesMonthly,
   getDoctorOpdChargesMonthly,
   getCentralExpensesMonthly,
-  getDoctorPsychologistStayRange,
-  getNursesDailyActivity,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -95,8 +93,6 @@ const initialState = {
   opdChargesMonthly: [],
   doctorOpdChargesMonthly: [],
   centralExpensesMonthly: [],
-  doctorPsychologistStayRange: [],
-  nursesDailyActivity: [],
   loading: false,
   error: null,
 };
@@ -416,36 +412,6 @@ export const fetchOpdChargesMonthly = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.message || "Failed to fetch opd charges monthly"
-      );
-    }
-  }
-);
-
-
-export const fetchNursesDailyActivity = createAsyncThunk(
-  "miReporting/fetchNursesDailyActivity",
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await getNursesDailyActivity(data);
-      return response;
-    } catch (error) {
-      return rejectWithValue(
-        error.message || "Failed to fetch nurses daily activity"
-      );
-    }
-  }
-);
-
-
-export const fetchDoctorPsychologistStayRange = createAsyncThunk(
-  "miReporting/fetchDoctorPsychologistStayRange",
-  async (data, { rejectWithValue }) => {
-    try {
-      const response = await getDoctorPsychologistStayRange(data);
-      return response;
-    } catch (error) {
-      return rejectWithValue(
-        error.message || "Failed to fetch doctor psychologist stay range"
       );
     }
   }
@@ -1345,32 +1311,6 @@ const miReportingSlice = createSlice({
         state.centralExpensesMonthly = action.payload.payload || [];
       })
       .addCase(fetchCentralExpensesMonthly.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Doctor Psychologist Stay Range
-      .addCase(fetchDoctorPsychologistStayRange.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchDoctorPsychologistStayRange.fulfilled, (state, action) => {
-        state.loading = false;
-        state.doctorPsychologistStayRange = action.payload.payload || [];
-      })
-      .addCase(fetchDoctorPsychologistStayRange.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload;
-      })
-      // Nurses Daily Activity
-      .addCase(fetchNursesDailyActivity.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(fetchNursesDailyActivity.fulfilled, (state, action) => {
-        state.loading = false;
-        state.nursesDailyActivity = action.payload.payload || [];
-      })
-      .addCase(fetchNursesDailyActivity.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
