@@ -2494,6 +2494,22 @@ export const getCentralExpensesMonthly = (data) => {
   });
 };
 
+export const getDoctorPsychologistStayRange = (data) => {
+  return api.get(url.GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getNursesDailyActivity = (data) => {
+  return api.get(url.GET_NURSES_DAILY_ACTIVITY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getOccupancyMonthly = (data) => {
   return api.get(url.GET_OCCUPANCY_MONTHLY, {
     params: {
