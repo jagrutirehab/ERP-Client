@@ -20,7 +20,6 @@ import {
   NURSE_SOS_PROCEDURE,
   INJURY_MARKS,
   ECT_SESSION,
-  ADMISSION_TYPE,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -53,7 +52,6 @@ import InputOutput from "./InputOutput";
 import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
-import AdmissionType from "./AdmissionType";
 import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
 import { api } from "../../../config";
@@ -257,93 +255,117 @@ const Charts = ({
       <div className="timeline-2">
         <div className="timeline-continue">
           <Row className="timeline-right">
-            {(charts || []).map((chart) => (
-              <Wrapper
-                key={chart._id}
-                item={chart}
-                name="Charting"
-                editItem={editChart}
-                deleteItem={getChart}
-                printItem={printChart}
-                // Round-note charts are auto-generated read-only snapshots —
-                // they are edited/removed only from the Round Notes screen.
-                disableEdit={
-                  chart.chart === ROUND_NOTE ||
-                  (addmission?.dischargeDate ? true : false)
-                }
-                disableDelete={
-                  chart.chart === ROUND_NOTE ||
-                  (addmission?.dischargeDate ? true : false)
-                }
-                itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
-                geminiResponseGeneratedBy={chart?.geminiResponseGeneratedBy}
-                geminiResponseIsVerified={chart?.geminiResponseIsVerified}
-                validatorId={chart?.validatorId}
-                doctorValidatorId={chart?.doctorValidatorId}
-              >
-                {chart.chart === PRESCRIPTION && (
-                  <Prescription data={chart?.prescription} />
-                )}
-                {chart.chart === RELATIVE_VISIT && (
-                  <RelativeVisit data={chart?.relativeVisit} />
-                )}
-                {chart.chart === OUTPASS && <Outpass data={chart?.outpass} />}
-                {chart.chart === DISCHARGE_SUMMARY && (
-                  <DischargeSummary data={chart?.dischargeSummary} />
-                )}
-                {chart.chart === EXPIRY_SUMMARY && (
-                  <ExpirySummary data={chart?.expirySummary} />
-                )}
-                {chart.chart === VITAL_SIGN && (
-                  <VitalSign data={chart.vitalSign} />
-                )}
-                {chart.chart === CLINICAL_NOTE && (
-                  <ClinicalNote data={chart.clinicalNote} />
-                )}
-                {chart.chart === COUNSELLING_NOTE && (
-                  <CounsellingNote data={chart.counsellingNote} />
-                )}
-                {chart.chart === LAB_REPORT && (
-                  <LabReport
-                    data={chart.labReport?.reports}
-                    date={chart.labReport?.updatedAt}
-                  />
-                )}
-                {chart.chart === PSYCHO_DIAGNOSTIC_FORM && (
-                  <PsychoDiagnosticForm
-                    data={chart.psychoDiagnosticForm?.reports}
-                    date={chart.psychoDiagnosticForm?.updatedAt}
-                  />
-                )}
-                {chart.chart === DETAIL_ADMISSION && (
-                  <DetailAdmission data={chart.detailAdmission} />
-                )}
-                {chart.chart === MENTAL_EXAMINATION && (
-                  <MentalExamination data={chart.mentalExamination} />
-                )}
-                {chart.chart === ROUND_NOTE && (
-                  <RoundNoteChart data={chart.roundNoteChart} />
-                )}
-                {chart.chart === INPUT_OUTPUT && (
-                  <InputOutput data={chart.inputOutput} />
-                )}
-                {chart.chart === NURSE_SOS_PROCEDURE && (
-                  <NurseSosProcedure data={chart.nurseSosProcedure} />
-                )}
-                {chart.chart === INJURY_MARKS && (
-                  <InjuryMarks
-                    data={chart.injuryMarks?.marks}
-                    date={chart.injuryMarks?.updatedAt}
-                  />
-                )}
-                {chart.chart === ADMISSION_TYPE && (
-                  <AdmissionType data={chart.admissionType} />
-                )}
-                {chart.chart === ECT_SESSION && (
-                  <EctSession data={chart.ectSession} />
-                )}
-              </Wrapper>
-            ))}
+            {(charts || []).map((chart) => {
+              console.log("chart.addmission:", String(chart.addmission));
+              console.log("currentAddmissionId:", String(currentAddmissionId));
+              console.log(
+                "match:",
+                String(chart.addmission) === String(currentAddmissionId),
+              );
+              // console.log("HISTORY CHART ITEM:", {
+              //   chartId: chart._id,
+              //   chartType: chart.chart,
+              //   addmission: chart.addmission,
+              //   patient: chart.patient,
+              // });
+              return (
+                <Wrapper
+                  key={chart._id}
+                  item={chart}
+                  name="Charting"
+                  editItem={editChart}
+                  deleteItem={getChart}
+                  printItem={printChart}
+                  addAdditionalDetails={
+                    String(chart.addmission) === String(currentAddmissionId) &&
+                      !!chart.addmission && // ← add this — hides for OPD (no admission)
+                      !addmission?.dischargeDate &&
+                      !isPatientDischarged
+                      ? handleAddAdditionalDetails
+                      : undefined
+                  }
+                  // Round-note charts are auto-generated read-only snapshots —
+                  // they are edited/removed only from the Round Notes screen.
+                  disableEdit={
+                    chart.chart === ROUND_NOTE ||
+                    (addmission?.dischargeDate ? true : false) ||
+                    isPatientDischarged ||
+                    (currentAddmissionId
+                      ? chart.addmission !== currentAddmissionId
+                      : false)
+                  }
+                  disableDelete={
+                    chart.chart === ROUND_NOTE ||
+                    (addmission?.dischargeDate ? true : false)
+                  }
+                  itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
+                  geminiResponseGeneratedBy={chart?.geminiResponseGeneratedBy}
+                  geminiResponseIsVerified={chart?.geminiResponseIsVerified}
+                  validatorId={chart?.validatorId}
+                  doctorValidatorId={chart?.doctorValidatorId}
+                  currentAddmissionId={currentAddmissionId}
+                >
+                  {chart.chart === PRESCRIPTION && (
+                    <Prescription data={chart?.prescription} />
+                  )}
+                  {chart.chart === RELATIVE_VISIT && (
+                    <RelativeVisit data={chart?.relativeVisit} />
+                  )}
+                  {chart.chart === OUTPASS && <Outpass data={chart?.outpass} />}
+                  {chart.chart === DISCHARGE_SUMMARY && (
+                    <DischargeSummary data={chart?.dischargeSummary} />
+                  )}
+                  {chart.chart === EXPIRY_SUMMARY && (
+                    <ExpirySummary data={chart?.expirySummary} />
+                  )}
+                  {chart.chart === VITAL_SIGN && (
+                    <VitalSign data={chart.vitalSign} />
+                  )}
+                  {chart.chart === CLINICAL_NOTE && (
+                    <ClinicalNote data={chart.clinicalNote} />
+                  )}
+                  {chart.chart === COUNSELLING_NOTE && (
+                    <CounsellingNote data={chart.counsellingNote} />
+                  )}
+                  {chart.chart === LAB_REPORT && (
+                    <LabReport
+                      data={chart.labReport?.reports}
+                      date={chart.labReport?.updatedAt}
+                    />
+                  )}
+                  {chart.chart === PSYCHO_DIAGNOSTIC_FORM && (
+                    <PsychoDiagnosticForm
+                      data={chart.psychoDiagnosticForm?.reports}
+                      date={chart.psychoDiagnosticForm?.updatedAt}
+                    />
+                  )}
+                  {chart.chart === DETAIL_ADMISSION && (
+                    <DetailAdmission data={chart.detailAdmission} />
+                  )}
+                  {chart.chart === MENTAL_EXAMINATION && (
+                    <MentalExamination data={chart.mentalExamination} />
+                  )}
+                  {chart.chart === ROUND_NOTE && (
+                    <RoundNoteChart data={chart.roundNoteChart} />
+                  )}
+                  {chart.chart === INPUT_OUTPUT && (
+                    <InputOutput data={chart.inputOutput} />
+                  )}
+                  {chart.chart === NURSE_SOS_PROCEDURE && (
+                    <NurseSosProcedure data={chart.nurseSosProcedure} />
+                  )}
+                  {chart.chart === INJURY_MARKS && (
+                    <InjuryMarks
+                      data={chart.injuryMarks?.marks}
+                      date={chart.injuryMarks?.updatedAt}
+                    />
+                  )}
+                  {chart.chart === ECT_SESSION && (
+                    <EctSession data={chart.ectSession} />
+                  )}
+                </Wrapper>
+              );
+            })}
           </Row>
         </div>
       </div>
