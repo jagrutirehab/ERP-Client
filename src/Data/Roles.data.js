@@ -497,6 +497,21 @@ export const permissionList = [
       { name: "VENDOR_EDIT", label: "Edit Vendor" },
       { name: "VENDOR_STATUS_CHANGE", label: "Activate/Deactivate Vendor" },
       { name: "VENDOR_DOCUMENT_UPLOAD", label: "Upload Vendor Documents" },
+
+      { name: "ITEM_VIEW", label: "View Items" },
+      { name: "ITEM_CREATE", label: "Create Item" },
+      { name: "ITEM_EDIT", label: "Edit Item" },
+      { name: "ITEM_STATUS_CHANGE", label: "Activate/Discontinue Item" },
+
+      { name: "ITEM_TYPE_VIEW", label: "View Item Types" },
+      { name: "ITEM_TYPE_CREATE", label: "Create Item Type" },
+      { name: "ITEM_TYPE_EDIT", label: "Edit Item Type" },
+      { name: "ITEM_TYPE_STATUS_CHANGE", label: "Activate/Deactivate Item Type" },
+
+      { name: "ITEM_CATEGORY_VIEW", label: "View Item Categories" },
+      { name: "ITEM_CATEGORY_CREATE", label: "Create Item Category" },
+      { name: "ITEM_CATEGORY_EDIT", label: "Edit Item Category" },
+      { name: "ITEM_CATEGORY_STATUS_CHANGE", label: "Activate/Deactivate Item Category" },
     ],
   },
 ];

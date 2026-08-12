@@ -823,18 +823,21 @@ export const DELETE_PSYCHO_DIAGNOSTIC_FORM_FILE =
 export const GENERATE_PSYCHO_DIAGNOSTIC_SUMMARY =
   "/chart/generate/summary/psycho-diagnostic-form";
 
+//marketing
 export const POST_VISIT_LOG = "/marketing/visit-log";
 export const GET_VISIT_LOGS = "/marketing/visit-log";
 
+//masterdata - vendor management
 export const GET_VENDORS = "/master/vendor";
 export const VENDOR_BASE = "/master/vendor";
 export const GET_ITEM_TYPES = "/master/item-type";
 export const ITEM_TYPE_BASE = "/master/item-type";
-
 export const GET_ITEM_CATEGORIES = "/master/item-category";
 export const ITEM_CATEGORY_BASE = "/master/item-category";
 export const ITEM_MASTER_BASE = "/master/item";
 export const GET_ITEM_MASTERS = ITEM_MASTER_BASE;
+export const GET_UOMS = "/master/uom";
+export const UOM_BASE = "/master/uom";
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
 
