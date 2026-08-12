@@ -351,7 +351,7 @@ const Wrapper = ({
                     >
                       <div className="d-flex align-items-center gap-1">
                         <i className="ri-stethoscope-line text-muted fs-xs-9"></i>
-                        <span className="fw-semibold text-muted fs-xs-9 fs-md-11">
+                        <span className="fw-semibold text-muted fs-xs-12 fs-md-11">
                           Additional Details
                         </span>
                       </div>
@@ -375,11 +375,11 @@ const Wrapper = ({
                         >
                           <div className="px-2 pb-2 d-flex flex-column gap-1">
                             <div>
-                              <span className="fs-xs-9 fw-semibold me-1">
+                              <span className="fs-xs-12 fw-semibold me-1">
                                 Final Diagnosis:
                               </span>
                               <span
-                                className="badge bg-soft-primary text-primary fs-xs-9"
+                                className="badge bg-soft-primary text-primary fs-xs-11"
                                 style={{
                                   whiteSpace: "normal",
                                   textAlign: "left",
@@ -389,11 +389,11 @@ const Wrapper = ({
                               </span>
                             </div>
                             <div>
-                              <span className="fs-xs-9 fw-semibold me-1">
+                              <span className="fs-xs-12 fw-semibold me-1">
                                 Summary:
                               </span>
                               <span
-                                className="fs-xs-9 text-muted"
+                                className="fs-xs-12 text-muted"
                                 style={{ wordBreak: "break-word" }}
                               >
                                 {chartDiagnosis.summary}
@@ -401,10 +401,10 @@ const Wrapper = ({
                             </div>
                             {chartDiagnosis?.createdAt && (
                               <div>
-                                <span className="fs-xs-9 fw-semibold me-1">
+                                <span className="fs-xs-12 fw-semibold me-1">
                                   Posted At:
                                 </span>
-                                <span className="fs-xs-9 text-muted">
+                                <span className="fs-xs-12 text-muted">
                                   {format(
                                     new Date(chartDiagnosis.createdAt),
                                     "dd MMM yyyy hh:mm a",
