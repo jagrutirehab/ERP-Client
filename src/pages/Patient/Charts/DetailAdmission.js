@@ -80,7 +80,7 @@ const DetailAdmission = ({ data }) => {
   const renameMap = {
     communityServicesInPlace: "Service Requirements",
   };
-
+// 
   const renderAssessmentGroup = (obj) =>
     Object.entries(obj || {}).map(([key, value], i) => {
       if (!hasContent(value)) return null;
