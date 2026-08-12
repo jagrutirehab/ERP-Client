@@ -313,6 +313,18 @@ const Charts = ({
                   admission={admission}
                 />
               </RenderWhen>
+
+              {/* IPD only — admission type has no GENERAL variant. */}
+              <RenderWhen
+                isTrue={chart?.chart === ADMISSION_TYPE && chart.type === IPD}
+              >
+                <AdmissionType
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
             </Page>
           );
         })}
