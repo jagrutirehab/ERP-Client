@@ -20,6 +20,8 @@ import {
   getItemTypes,
   getItemCategories,
   getItemMasters,
+  getUoms,
+  getVendors,
   createItemMaster,
   updateItemMaster,
   uploadItemImage,
@@ -27,6 +29,7 @@ import {
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import FormSectionLabel from "../shared/FormSectionLabel";
+import COUNTRIES from "../shared/countries";
 import "../shared/itemMasterForms.scss";
 
 const CATEGORY_LEVELS = [
@@ -51,6 +54,8 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
   const [activeTab, setActiveTab] = useState("general");
 
   const [itemTypes, setItemTypes] = useState([]);
+  const [uoms, setUoms] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [catOptions, setCatOptions] = useState({
     l1: [],
     l2: [],
@@ -61,8 +66,13 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
   const [codeStatus, setCodeStatus] = useState("idle");
   const [generatingCode, setGeneratingCode] = useState(false);
   const [images, setImages] = useState(editingItem?.productImages || []);
+  const [stagedFiles, setStagedFiles] = useState([]);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isAutoCode, setIsAutoCode] = useState(!editingItem);
+  const [hierarchyType, setHierarchyType] = useState(
+    editingItem?.parentItemId ? "child" : "parent",
+  );
+  const [parentItemOptions, setParentItemOptions] = useState([]);
 
   const validation = useFormik({
     initialValues: {
@@ -163,14 +173,25 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
         if (payload.planning && !payload.planning.inventoryClass) {
           delete payload.planning.inventoryClass;
         }
-        delete payload.uomId; // plain text for now — not a real ObjectId until UOM picker exists
+        // delete payload.uomId; // plain text for now — not a real ObjectId until UOM picker exists
         delete payload.productImages;
 
         if (editingItem) {
           await updateItemMaster(editingItem._id, payload);
           toast.success("Item updated successfully");
         } else {
-          await createItemMaster(payload);
+          const res = await createItemMaster(payload);
+          const newItemId = res?.data?._id;
+
+          if (newItemId && stagedFiles.length > 0) {
+            for (const staged of stagedFiles) {
+              try {
+                const formData = new FormData();
+                formData.append("file", staged.file);
+                await uploadItemImage(newItemId, formData);
+              } catch {}
+            }
+          }
           toast.success("Item created successfully");
         }
         onSaved();
@@ -191,7 +212,7 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
   const fetchNextCode = async () => {
     const res = await getItemMasters({ page: 1, limit: 1 });
     const total = res?.pagination?.total || 0;
-    return `ITM-${String(total + 1).padStart(3, "0")}`;
+    return `JRC-${String(total + 1).padStart(3, "0")}`;
   };
 
   useEffect(() => {
@@ -211,6 +232,30 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
   useEffect(() => {
     getItemTypes({})
       .then((res) => setItemTypes(res?.data || []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    getItemMasters({ limit: 1000 })
+      .then((res) => {
+        const list = (res?.data || []).filter(
+          (it) => it._id !== editingItem?._id,
+        );
+        setParentItemOptions(list);
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    getUoms({})
+      .then((res) => setUoms(res?.data || []))
+      .catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    getVendors({})
+      .then((res) => setVendors(res?.data || []))
       .catch(() => {});
   }, []);
 
@@ -319,10 +364,16 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
   const handleImageUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // Create mode: no item id exists yet, so just stage it locally with a preview.
+    // Actual upload happens right after the item is created (see onSubmit).
     if (!editingItem) {
-      toast.error("Please save the item first, then upload images.");
+      const previewUrl = URL.createObjectURL(file);
+      setStagedFiles((prev) => [...prev, { file, previewUrl }]);
+      e.target.value = "";
       return;
     }
+
     setUploadingImage(true);
     try {
       const formData = new FormData();
@@ -340,6 +391,15 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
       setUploadingImage(false);
       e.target.value = "";
     }
+  };
+
+  const removeStagedFile = (idx) => {
+    setStagedFiles((prev) => {
+      const copy = [...prev];
+      URL.revokeObjectURL(copy[idx].previewUrl);
+      copy.splice(idx, 1);
+      return copy;
+    });
   };
 
   const handleImageDelete = async (imageId) => {
@@ -524,9 +584,9 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
     <div className="im-surface">
       <div className="im-page-header">
         <div className="d-flex gap-3">
-          <div className="im-icon-badge">
+          {/* <div className="im-icon-badge">
             <i className="bx bx-box"></i>
-          </div>
+          </div> */}
           <div className="im-page-title">
             <h4>{editingItem ? "Edit Item" : "Create Item"}</h4>
             <p>Add new item with details and attributes</p>
@@ -614,7 +674,9 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
             </Col>
 
             <Col md={3}>
-              <Label>Item Type</Label>
+              <Label>
+                Item Type <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={v.itemTypeId}
@@ -704,13 +766,23 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
                     </div>
                     <Row>
                       <Col md={6} className="mb-4">
-                        <Label>Unit of Measure (UOM)</Label>
+                        <Label>
+                          Unit of Measure (UOM){" "}
+                          <span className="text-danger">*</span>
+                        </Label>
                         <Input
+                          type="select"
                           name="uomId"
-                          // placeholder="UOM identifier (not saved yet — picker coming soon)"
                           value={v.uomId}
                           onChange={validation.handleChange}
-                        />
+                        >
+                          <option value="">Select UOM</option>
+                          {uoms.map((u) => (
+                            <option key={u._id} value={u._id}>
+                              {u.name} ({u.symbol})
+                            </option>
+                          ))}
+                        </Input>
                       </Col>
                       <Col md={6} className="mb-4">
                         <Label>Brand</Label>
@@ -776,13 +848,49 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
                     </Row>
 
                     <FormSectionLabel icon="bx-git-branch" text="Hierarchy" />
-                    <Label>Parent Item ID</Label>
-                    <Input
-                      name="parentItemId"
-                      placeholder="Leave blank if this is a standalone item"
-                      value={v.parentItemId}
-                      onChange={validation.handleChange}
-                    />
+                    <Row>
+                      <Col md={6} className="mb-4">
+                        <Label>Hierarchy</Label>
+                        <Input
+                          type="select"
+                          value={hierarchyType}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setHierarchyType(val);
+                            if (val === "parent") {
+                              validation.setFieldValue("parentItemId", "");
+                            }
+                          }}
+                        >
+                          <option value="parent">Parent Item</option>
+                          <option value="child">Child Item</option>
+                        </Input>
+                      </Col>
+                      {hierarchyType === "child" && (
+                        <Col md={6} className="mb-4">
+                          <Label>
+                            Select Parent <span className="text-danger">*</span>
+                          </Label>
+                          <Input
+                            type="select"
+                            value={v.parentItemId}
+                            onChange={(e) =>
+                              validation.setFieldValue(
+                                "parentItemId",
+                                e.target.value,
+                              )
+                            }
+                          >
+                            <option value="">Select Parent</option>
+                            {parentItemOptions.map((it) => (
+                              <option key={it._id} value={it._id}>
+                                {it.itemCode} - {it.itemName}
+                              </option>
+                            ))}
+                          </Input>
+                        </Col>
+                      )}
+                    </Row>
                   </div>
                 </div>
               </div>
@@ -931,9 +1039,9 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
                 <FormSectionLabel icon="bx-truck" text="Procurement Info" />
                 <Row>
                   <Col md={6} className="mb-4">
-                    <Label>Default Vendor ID</Label>
+                    <Label>Default Vendor</Label>
                     <Input
-                      // placeholder="Optional"
+                      type="select"
                       value={v.procurementInfo.defaultVendorId}
                       onChange={(e) =>
                         setNested(
@@ -941,7 +1049,14 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
                           e.target.value,
                         )
                       }
-                    />
+                    >
+                      <option value="">Select Vendor</option>
+                      {vendors.map((vendor) => (
+                        <option key={vendor._id} value={vendor._id}>
+                          {vendor.tradeName} ({vendor.vendorCode})
+                        </option>
+                      ))}
+                    </Input>
                   </Col>
                   <Col md={6} className="mb-4">
                     <Label>Manufacturer Name</Label>
@@ -969,7 +1084,7 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
                   <Col md={6} className="mb-4">
                     <Label>Country of Origin</Label>
                     <Input
-                      // placeholder="Optional"
+                      type="select"
                       value={v.procurementInfo.countryOfOrigin}
                       onChange={(e) =>
                         setNested(
@@ -977,7 +1092,14 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
                           e.target.value,
                         )
                       }
-                    />
+                    >
+                      <option value="">Select Country</option>
+                      {COUNTRIES.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </Input>
                   </Col>
                 </Row>
 
@@ -1162,43 +1284,37 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
 
                 <FormSectionLabel icon="bx-image" text="Product Images" />
 
-                {!editingItem && (
-                  <div
-                    className="text-muted small border rounded-3 p-3 mb-3"
-                    style={{ background: "#fbfbfd" }}
+                <div className="mb-3">
+                  <label
+                    htmlFor="item-image-upload"
+                    className="im-add-dashed btn btn-sm btn-outline-primary"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      cursor: "pointer",
+                    }}
                   >
-                    Save the item first, then come back here to upload images.
-                  </div>
-                )}
+                    <i
+                      className={`bx ${uploadingImage ? "bx-loader-alt bx-spin" : "bx-upload"} me-1`}
+                    ></i>
+                    {uploadingImage ? "Uploading..." : "Upload Image"}
+                  </label>
+                  <input
+                    id="item-image-upload"
+                    type="file"
+                    accept="image/*"
+                    style={{ display: "none" }}
+                    onChange={handleImageUpload}
+                    disabled={uploadingImage}
+                  />
+                  {!editingItem && (
+                    <div className="text-muted small mt-1">
+                      Images will be uploaded once you save the item.
+                    </div>
+                  )}
+                </div>
 
-                {editingItem && (
-                  <div className="mb-3">
-                    <label
-                      htmlFor="item-image-upload"
-                      className="im-add-dashed btn btn-sm btn-outline-primary"
-                      style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <i
-                        className={`bx ${uploadingImage ? "bx-loader-alt bx-spin" : "bx-upload"} me-1`}
-                      ></i>
-                      {uploadingImage ? "Uploading..." : "Upload Image"}
-                    </label>
-                    <input
-                      id="item-image-upload"
-                      type="file"
-                      accept="image/*"
-                      style={{ display: "none" }}
-                      onChange={handleImageUpload}
-                      disabled={uploadingImage}
-                    />
-                  </div>
-                )}
-
-                {images.length === 0 ? (
+                {images.length === 0 && stagedFiles.length === 0 ? (
                   <div className="text-muted small">
                     No images uploaded yet.
                   </div>
@@ -1221,6 +1337,44 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
                             background: "#fff",
                           }}
                           onClick={() => handleImageDelete(img._id)}
+                        >
+                          <i className="bx bx-x" style={{ fontSize: 13 }}></i>
+                        </button>
+                      </div>
+                    ))}
+
+                    {stagedFiles.map((staged, idx) => (
+                      <div key={idx} style={{ position: "relative" }}>
+                        <img
+                          src={staged.previewUrl}
+                          alt=""
+                          className="im-image-thumb"
+                        />
+                        <span
+                          className="badge bg-warning text-dark"
+                          style={{
+                            position: "absolute",
+                            bottom: 2,
+                            left: 2,
+                            fontSize: 9,
+                          }}
+                        >
+                          Pending
+                        </span>
+                        <button
+                          type="button"
+                          className="im-close-btn"
+                          style={{
+                            position: "absolute",
+                            top: -8,
+                            right: -8,
+                            width: 24,
+                            height: 24,
+                            color: "#e04f4f",
+                            borderColor: "#fbdada",
+                            background: "#fff",
+                          }}
+                          onClick={() => removeStagedFile(idx)}
                         >
                           <i className="bx bx-x" style={{ fontSize: 13 }}></i>
                         </button>

@@ -4630,6 +4630,12 @@ export const deleteItemImage = (id, imageId) => {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
+export const getUoms = (params = {}) => {
+  return axios.get(url.GET_UOMS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
 export const deleteEmployeeDocumentFile = (documentId, fileId) => {
   return axios.patch(
     `${url.EMPLOYEE_DOC_DELETE}/${documentId}/${fileId}`,

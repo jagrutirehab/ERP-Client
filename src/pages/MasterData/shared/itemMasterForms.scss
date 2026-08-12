@@ -7,6 +7,10 @@
   --im-primary-soft: #eef2ff;
   --im-primary-ring: rgba(79, 70, 229, 0.15);
 
+  --im-accent: #06b6d4;
+  --im-primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 55%, #4338ca 100%);
+  --im-label-gradient: linear-gradient(180deg, #6366f1, #06b6d4);
+
   --im-border: #e2e5ea;
   --im-border-soft: #edeff3;
   --im-muted: #667085;
@@ -34,11 +38,13 @@
   --im-shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
   --im-shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
   --im-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+  --im-shadow-premium: 0 1px 2px rgba(16, 24, 40, 0.04), 0 16px 40px -18px rgba(79, 70, 229, 0.28);
 }
 
 // ---------- Base surface ----------
 
 .im-surface {
+  width: 100%;
   background: var(--im-bg-page);
 }
 
@@ -51,6 +57,8 @@
   margin-bottom: 24px;
   flex-wrap: wrap;
   gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--im-border-soft);
 }
 
 .im-page-title h4 {
@@ -59,6 +67,7 @@
   letter-spacing: -0.01em;
   color: var(--im-text);
   margin-bottom: 3px;
+  padding-right: 20px;
 }
 
 .im-page-title p {
@@ -70,16 +79,16 @@
 // ---------- Icon badge ----------
 
 .im-icon-badge {
-  width: 46px;
-  height: 46px;
-  border-radius: 12px;
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 21px;
+  font-size: 22px;
   color: #fff;
-  background: linear-gradient(135deg, #6366f1 0%, #4f46e5 55%, #4338ca 100%);
-  box-shadow: 0 4px 10px rgba(79, 70, 229, 0.25);
+  background: var(--im-primary-gradient);
+  box-shadow: 0 8px 18px -4px rgba(79, 70, 229, 0.45);
   flex-shrink: 0;
 }
 
@@ -97,10 +106,12 @@
   color: var(--im-muted);
   font-size: 18px;
   transition: all 0.15s ease;
+  cursor: pointer;
 
   &:hover {
     background: #f3f4f6;
     color: #374151;
+    border-color: #d3d7e3;
   }
 }
 
@@ -131,34 +142,23 @@
   }
 }
 
-// ---------- Card ----------
+// ---------- Cards / Panels ----------
 
 .im-card {
   background: #fff;
   border: 1px solid var(--im-border-soft);
   border-radius: var(--im-radius-lg);
   box-shadow: var(--im-shadow-xs);
+  transition: box-shadow 0.2s ease;
 }
 
 .im-panel {
   background: #fff;
   border: 1px solid var(--im-border-soft);
   border-radius: var(--im-radius-lg);
-  box-shadow: var(--im-shadow-sm);
-  padding: 24px 28px;
+  box-shadow: var(--im-shadow-premium);
+  padding: 26px 30px;
 }
-
-
-// .im-stats-row {
-//   display: grid;
-//   grid-template-columns: repeat(4, 1fr);
-//   gap: 14px;
-//   margin-bottom: 20px;
-
-//   @media (max-width: 900px) {
-//     grid-template-columns: repeat(2, 1fr);
-//   }
-// }
 
 .im-stat-card {
   background: #fff;
@@ -173,6 +173,7 @@
 
   &:hover {
     box-shadow: var(--im-shadow-sm);
+    transform: translateY(-1px);
   }
 
   .im-stat-icon {
@@ -205,7 +206,7 @@
   &.is-neutral .im-stat-icon { background: #f3f4f6; color: #4b5563; }
 }
 
-// ---------- Pill tab switcher (generic, reused for form tabs too) ----------
+// ---------- Pill tab switcher (generic — module-level tabs) ----------
 
 .im-pill-tabs {
   display: inline-flex;
@@ -411,6 +412,7 @@
     color: var(--im-primary);
     font-size: 27px;
     margin-bottom: 18px;
+    box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.06);
   }
 
   h6 {
@@ -468,10 +470,11 @@
   border-radius: 12px;
   padding: 12px 14px;
   background: var(--im-bg-soft);
-  transition: border-color 0.15s ease;
+  transition: border-color 0.15s ease, background 0.15s ease;
 
   &:hover {
     border-color: #dcdfe6;
+    background: #fff;
   }
 }
 
@@ -480,9 +483,11 @@
   color: var(--im-primary) !important;
   background: #f7f7ff !important;
   font-weight: 600 !important;
+  transition: all 0.15s ease;
 
   &:hover {
     background: #efeeff !important;
+    border-color: var(--im-primary) !important;
   }
 }
 
@@ -491,11 +496,46 @@
 .im-footer-bar {
   position: sticky;
   bottom: 0;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
   border-top: 1px solid var(--im-border-soft);
   margin: 28px -28px -24px;
   padding: 16px 28px;
   border-radius: 0 0 var(--im-radius-lg) var(--im-radius-lg);
+
+  .btn-primary {
+    background: var(--im-primary-gradient) !important;
+    border: none !important;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: var(--im-radius-md);
+    box-shadow: 0 10px 20px -8px rgba(79, 70, 229, 0.5);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+    &:active {
+      transform: translateY(1px);
+    }
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+
+  .btn-light {
+    border: 1px solid var(--im-border) !important;
+    font-weight: 600;
+    border-radius: var(--im-radius-md);
+    background: #fff !important;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: #f7f8fa !important;
+      border-color: #d3d7e3 !important;
+    }
+  }
 }
 
 // ---------- Checkbox grid (Controls tab) ----------
@@ -521,7 +561,8 @@
   transition: border-color 0.15s ease, background 0.15s ease;
   cursor: pointer;
 
-  input[type="checkbox"] {
+  input[type="checkbox"],
+  input[type="radio"] {
     width: 16px;
     height: 16px;
     accent-color: var(--im-primary);
@@ -543,14 +584,23 @@
   object-fit: cover;
   border: 1px solid var(--im-border-soft);
   box-shadow: var(--im-shadow-xs);
+  transition: transform 0.15s ease;
+
+  &:hover {
+    transform: scale(1.04);
+  }
 }
 
 // ---------- Item Master full form ----------
 
 .im-required-note {
-  font-size: 12.5px;
+  font-size: 12px;
   color: var(--im-muted-soft);
   margin: 2px 0 22px;
+  display: inline-block;
+  background: var(--im-bg-soft);
+  padding: 6px 13px;
+  border-radius: 999px;
 }
 
 .im-code-input-group {
@@ -568,7 +618,7 @@
     left: 12px;
     top: 50%;
     transform: translateY(-50%);
-    color: #9ca3af;
+    color: var(--im-primary);
     font-size: 15px;
   }
   input {
@@ -589,10 +639,13 @@
   justify-content: center;
   font-size: 17px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 
   &:hover {
-    background: #efeeff;
+    background: var(--im-primary-gradient);
+    color: #fff;
+    border-color: transparent;
+    transform: rotate(20deg);
   }
   &.active {
     background: var(--im-primary);
@@ -611,7 +664,7 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  font-weight: 500;
+  font-weight: 600;
 
   &.auto {
     color: var(--im-success);
@@ -635,7 +688,6 @@
 }
 
 // Segmented, pill-style tab nav used by the item master form
-// (kept visually consistent with .im-pill-tabs above)
 .im-form-tabs {
   display: inline-flex;
   gap: 4px;
@@ -687,12 +739,18 @@
   border: 1px solid var(--im-border-soft);
   border-radius: var(--im-radius-lg);
   padding: 26px 28px;
+  animation: im-fade-in 0.2s ease;
+}
+
+@keyframes im-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 // Global-ish helpers scoped with im- prefix so they only affect this module
 .im-label-row {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 6px;
 
@@ -706,33 +764,996 @@
   color: var(--im-muted-soft);
 }
 
-// ---- Skeleton loading rows (replaces default "Loading..." text) ----
+.im-code-hint.error {
+  color: var(--im-danger);
+}
 
-@keyframes im-shimmer {
-  0% {
-    background-position: -400px 0;
+// =========================================================
+// PREMIUM HIGHLIGHTED FIELD LABEL
+// Applies automatically to every <Label> inside .im-panel / .im-card
+// =========================================================
+
+.im-panel label,
+.im-card label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: var(--im-text);
+  margin-bottom: 8px;
+
+  &::before {
+    content: "";
+    width: 4px;
+    height: 13px;
+    margin-right: 8px;
+    border-radius: 3px;
+    background: var(--im-label-gradient);
+    display: inline-block;
+    flex-shrink: 0;
   }
-  100% {
-    background-position: 400px 0;
+
+  .text-danger {
+    margin-left: 3px;
   }
 }
 
-.im-skeleton-wrap {
-  padding: 8px 0;
+// Checkbox/radio row labels shouldn't get the bar + uppercase treatment
+.im-checkbox-row label,
+label.im-checkbox-row {
+  &::before {
+    display: none;
+  }
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: normal;
+  margin-bottom: 0;
 }
 
-.im-skeleton-row {
+// =========================================================
+// PREMIUM INPUT / SELECT / TEXTAREA STATES
+// =========================================================
+
+.im-surface {
+  .form-control,
+  select.form-control {
+    border-radius: var(--im-radius-sm);
+    border: 1.5px solid var(--im-border);
+    background-color: #fbfbfe;
+    font-size: 14px;
+    color: var(--im-text);
+    padding: 9px 13px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+    &:hover {
+      border-color: #d3d7e3;
+    }
+
+    &:focus {
+      border-color: var(--im-primary);
+      background-color: #fff;
+      box-shadow: 0 0 0 4px var(--im-primary-ring);
+    }
+
+    &:disabled {
+      background-color: var(--im-bg-soft);
+      color: var(--im-muted-soft);
+    }
+
+    &.is-invalid,
+    &:invalid {
+      border-color: var(--im-danger);
+    }
+  }
+
+  textarea.form-control {
+    border-radius: 12px;
+  }
+}
+
+// =========================================================
+// Extra polish: badges, scrollbars, row hover
+// =========================================================
+
+.im-surface .badge {
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+// Thin, subtle scrollbar for any scrollable areas inside the module
+.im-surface *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.im-surface *::-webkit-scrollbar-thumb {
+  background: #d8dbe3;
+  border-radius: 8px;
+}
+.im-surface *::-webkit-scrollbar-thumb:hover {
+  background: #c1c5cf;
+}
+.im-surface *::-webkit-scrollbar-track {
+  background: transparent;
+}// =========================================================
+// Item Master — Design Tokens
+// =========================================================
+:root {
+  --im-primary: #4f46e5;
+  --im-primary-dark: #4338ca;
+  --im-primary-soft: #eef2ff;
+  --im-primary-ring: rgba(79, 70, 229, 0.15);
+
+  --im-accent: #06b6d4;
+  --im-primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 55%, #4338ca 100%);
+  --im-label-gradient: linear-gradient(180deg, #6366f1, #06b6d4);
+
+  --im-border: #e2e5ea;
+  --im-border-soft: #edeff3;
+  --im-muted: #667085;
+  --im-muted-soft: #98a2b3;
+  --im-text: #101828;
+  --im-bg-soft: #f8f9fb;
+  --im-bg-page: #f7f8fa;
+
+  --im-danger: #d92d20;
+  --im-danger-soft: #fef3f2;
+  --im-danger-border: #fecdca;
+
+  --im-success: #067647;
+  --im-success-soft: #ecfdf3;
+  --im-success-border: #abefc6;
+
+  --im-warning: #b54708;
+  --im-warning-soft: #fffaeb;
+  --im-warning-border: #fedf89;
+
+  --im-radius-lg: 14px;
+  --im-radius-md: 10px;
+  --im-radius-sm: 8px;
+
+  --im-shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --im-shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --im-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
+  --im-shadow-premium: 0 1px 2px rgba(16, 24, 40, 0.04), 0 16px 40px -18px rgba(79, 70, 229, 0.28);
+}
+
+// ---------- Base surface ----------
+
+.im-surface {
+  width: 100%;
+  background: var(--im-bg-page);
+}
+
+// ---------- Page header ----------
+
+.im-page-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--im-border-soft);
+}
+
+.im-page-title h4 {
+  font-weight: 700;
+  font-size: 20px;
+  letter-spacing: -0.01em;
+  color: var(--im-text);
+  margin-bottom: 3px;
+  padding-right: 20px;
+}
+
+.im-page-title p {
+  color: var(--im-muted);
+  font-size: 13.5px;
+  margin: 0;
+}
+
+// ---------- Icon badge ----------
+
+.im-icon-badge {
+  width: 48px;
+  height: 48px;
+  border-radius: 13px;
   display: flex;
   align-items: center;
-  gap: 24px;
-  padding: 14px 20px;
-  border-bottom: 1px solid #edeff3;
+  justify-content: center;
+  font-size: 22px;
+  color: #fff;
+  background: var(--im-primary-gradient);
+  box-shadow: 0 8px 18px -4px rgba(79, 70, 229, 0.45);
+  flex-shrink: 0;
 }
 
-.im-skeleton-bar {
-  height: 14px;
+// ---------- Close / icon buttons ----------
+
+.im-close-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--im-border);
+  background: #fff;
+  color: var(--im-muted);
+  font-size: 18px;
+  transition: all 0.15s ease;
+  cursor: pointer;
+
+  &:hover {
+    background: #f3f4f6;
+    color: #374151;
+    border-color: #d3d7e3;
+  }
+}
+
+// ---------- Section label ----------
+
+.im-section-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--im-muted);
+  margin-bottom: 16px;
+
+  i {
+    font-size: 15px;
+    color: var(--im-primary);
+  }
+
+  &::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--im-border-soft);
+    margin-left: 6px;
+  }
+}
+
+// ---------- Cards / Panels ----------
+
+.im-card {
+  background: #fff;
+  border: 1px solid var(--im-border-soft);
+  border-radius: var(--im-radius-lg);
+  box-shadow: var(--im-shadow-xs);
+  transition: box-shadow 0.2s ease;
+}
+
+.im-panel {
+  background: #fff;
+  border: 1px solid var(--im-border-soft);
+  border-radius: var(--im-radius-lg);
+  box-shadow: var(--im-shadow-premium);
+  padding: 26px 30px;
+}
+
+.im-stat-card {
+  background: #fff;
+  border: 1px solid var(--im-border-soft);
+  border-radius: var(--im-radius-md);
+  box-shadow: var(--im-shadow-xs);
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  transition: box-shadow 0.15s ease, transform 0.15s ease;
+
+  &:hover {
+    box-shadow: var(--im-shadow-sm);
+    transform: translateY(-1px);
+  }
+
+  .im-stat-icon {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .im-stat-value {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--im-text);
+    line-height: 1.2;
+  }
+
+  .im-stat-label {
+    font-size: 12px;
+    color: var(--im-muted);
+    font-weight: 600;
+  }
+
+  &.is-primary .im-stat-icon { background: var(--im-primary-soft); color: var(--im-primary); }
+  &.is-success .im-stat-icon { background: var(--im-success-soft); color: var(--im-success); }
+  &.is-warning .im-stat-icon { background: var(--im-warning-soft); color: var(--im-warning); }
+  &.is-neutral .im-stat-icon { background: #f3f4f6; color: #4b5563; }
+}
+
+// ---------- Pill tab switcher (generic — module-level tabs) ----------
+
+.im-pill-tabs {
+  display: inline-flex;
+  gap: 4px;
+  background: #f1f2f5;
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+
+  button {
+    border: none;
+    background: transparent;
+    padding: 9px 18px;
+    border-radius: 9px;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--im-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+
+    i { font-size: 15px; }
+
+    &:hover:not(.active) {
+      color: var(--im-text);
+    }
+
+    &.active {
+      background: #fff;
+      color: var(--im-primary-dark);
+      box-shadow: var(--im-shadow-xs);
+    }
+  }
+}
+
+.im-form-tabs-wrap {
+  margin-bottom: 22px;
+}
+
+// ---------- List toolbar ----------
+
+.im-toolbar-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+  flex-wrap: wrap;
+}
+
+.im-toolbar-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--im-text);
+}
+
+.im-filter-pills-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.im-filter-pill {
+  border: 1px solid var(--im-border);
+  background: #fff;
+  color: #4b5563;
+  border-radius: 999px;
+  padding: 7px 15px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #c7c9ff;
+    background: #f7f7ff;
+  }
+  &.active {
+    background: var(--im-text);
+    color: #fff;
+    border-color: var(--im-text);
+  }
+}
+
+// ---------- Search box ----------
+
+.im-search-wrap {
+  position: relative;
+  max-width: 320px;
+  flex: 1;
+
+  i {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 16px;
+  }
+  input {
+    padding-left: 38px !important;
+    border-radius: var(--im-radius-sm) !important;
+    border-color: var(--im-border) !important;
+
+    &:focus {
+      border-color: var(--im-primary) !important;
+      box-shadow: 0 0 0 3px var(--im-primary-ring) !important;
+    }
+  }
+}
+
+// ---------- Table card ----------
+
+.im-table-card {
+  border: 1px solid var(--im-border-soft);
+  border-radius: var(--im-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--im-shadow-xs);
+}
+
+.im-table-head-cell {
+  font-size: 11.5px !important;
+  font-weight: 700 !important;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--im-muted) !important;
+}
+
+.im-table-code {
+  font-family: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  color: var(--im-text);
+  background: var(--im-bg-soft);
+  border: 1px solid var(--im-border-soft);
   border-radius: 6px;
-  background: linear-gradient(90deg, #eef0f4 25%, #e2e5ea 37%, #eef0f4 63%);
-  background-size: 800px 100%;
-  animation: im-shimmer 1.4s ease-in-out infinite;
+  padding: 2px 7px;
+  display: inline-block;
+}
+
+.im-table-primary-cell {
+  font-weight: 600;
+  color: var(--im-text);
+}
+
+.im-table-sub {
+  font-size: 12px;
+  color: var(--im-muted-soft);
+}
+
+// ---------- Status pill ----------
+
+.im-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+
+  &.active {
+    background: var(--im-success-soft);
+    color: var(--im-success);
+    border: 1px solid var(--im-success-border);
+  }
+  &.inactive {
+    background: var(--im-warning-soft);
+    color: var(--im-warning);
+    border: 1px solid var(--im-warning-border);
+  }
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+  }
+}
+
+// ---------- Empty state ----------
+
+.im-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 64px 20px;
+  text-align: center;
+
+  .im-empty-icon {
+    width: 58px;
+    height: 58px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--im-primary-soft);
+    color: var(--im-primary);
+    font-size: 27px;
+    margin-bottom: 18px;
+    box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.06);
+  }
+
+  h6 {
+    font-weight: 700;
+    font-size: 15px;
+    margin-bottom: 6px;
+    color: var(--im-text);
+  }
+
+  p {
+    color: var(--im-muted);
+    font-size: 13.5px;
+    max-width: 420px;
+    margin-bottom: 20px;
+  }
+}
+
+// ---------- Level pill selector (Category form) ----------
+
+.im-level-group {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.im-level-pill {
+  border: 1.5px solid var(--im-border);
+  background: #fff;
+  color: #4b5563;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    border-color: #c7c9ff;
+    background: #f7f7ff;
+  }
+  &.active {
+    border-color: var(--im-primary);
+    background: var(--im-primary);
+    color: #fff;
+    box-shadow: 0 2px 6px rgba(99, 102, 241, 0.3);
+  }
+  &.is-invalid {
+    border-color: var(--im-danger);
+  }
+}
+
+// ---------- Sub-type / attribute rows ----------
+
+.im-subtype-row {
+  border: 1px solid var(--im-border-soft);
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: var(--im-bg-soft);
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: #dcdfe6;
+    background: #fff;
+  }
+}
+
+.im-add-dashed {
+  border: 1.5px dashed #c7c9ff !important;
+  color: var(--im-primary) !important;
+  background: #f7f7ff !important;
+  font-weight: 600 !important;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #efeeff !important;
+    border-color: var(--im-primary) !important;
+  }
+}
+
+// ---------- Footer action bar ----------
+
+.im-footer-bar {
+  position: sticky;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(6px);
+  border-top: 1px solid var(--im-border-soft);
+  margin: 28px -28px -24px;
+  padding: 16px 28px;
+  border-radius: 0 0 var(--im-radius-lg) var(--im-radius-lg);
+
+  .btn-primary {
+    background: var(--im-primary-gradient) !important;
+    border: none !important;
+    font-weight: 600;
+    padding: 10px 22px;
+    border-radius: var(--im-radius-md);
+    box-shadow: 0 10px 20px -8px rgba(79, 70, 229, 0.5);
+    transition: opacity 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+      opacity: 0.92;
+      transform: translateY(-1px);
+    }
+    &:active {
+      transform: translateY(1px);
+    }
+    &:disabled {
+      opacity: 0.6;
+    }
+  }
+
+  .btn-light {
+    border: 1px solid var(--im-border) !important;
+    font-weight: 600;
+    border-radius: var(--im-radius-md);
+    background: #fff !important;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: #f7f8fa !important;
+      border-color: #d3d7e3 !important;
+    }
+  }
+}
+
+// ---------- Checkbox grid (Controls tab) ----------
+
+.im-checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px 16px;
+
+  @media (max-width: 700px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+.im-checkbox-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--im-border-soft);
+  border-radius: 10px;
+  padding: 11px 13px;
+  background: var(--im-bg-soft);
+  transition: border-color 0.15s ease, background 0.15s ease;
+  cursor: pointer;
+
+  input[type="checkbox"],
+  input[type="radio"] {
+    width: 16px;
+    height: 16px;
+    accent-color: var(--im-primary);
+    cursor: pointer;
+  }
+
+  &:hover {
+    border-color: #c7c9ff;
+    background: #f7f7ff;
+  }
+}
+
+// ---------- Product image thumbnail ----------
+
+.im-image-thumb {
+  width: 72px;
+  height: 72px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid var(--im-border-soft);
+  box-shadow: var(--im-shadow-xs);
+  transition: transform 0.15s ease;
+
+  &:hover {
+    transform: scale(1.04);
+  }
+}
+
+// ---------- Item Master full form ----------
+
+.im-required-note {
+  font-size: 12px;
+  color: var(--im-muted-soft);
+  margin: 2px 0 22px;
+  display: inline-block;
+  background: var(--im-bg-soft);
+  padding: 6px 13px;
+  border-radius: 999px;
+}
+
+.im-code-input-group {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+.im-code-input-wrap {
+  position: relative;
+  flex: 1;
+
+  i {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--im-primary);
+    font-size: 15px;
+  }
+  input {
+    padding-left: 34px !important;
+  }
+}
+
+.im-magic-btn {
+  width: 42px;
+  height: 42px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  border: 1px solid #c7c9ff;
+  background: #f7f7ff;
+  color: var(--im-primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 17px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background: var(--im-primary-gradient);
+    color: #fff;
+    border-color: transparent;
+    transform: rotate(20deg);
+  }
+  &.active {
+    background: var(--im-primary);
+    color: #fff;
+    border-color: var(--im-primary);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.im-code-hint {
+  font-size: 12px;
+  margin-top: 7px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-weight: 600;
+
+  &.auto {
+    color: var(--im-success);
+  }
+  &.manual {
+    color: var(--im-muted);
+  }
+  &.error {
+    color: var(--im-danger);
+  }
+}
+
+.im-two-col-panel {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 32px;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Segmented, pill-style tab nav used by the item master form
+.im-form-tabs {
+  display: inline-flex;
+  gap: 4px;
+  background: #f1f2f5;
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 22px;
+  flex-wrap: wrap;
+  border: none;
+
+  .nav-item {
+    list-style: none;
+  }
+
+  .nav-link {
+    border: none;
+    color: var(--im-muted);
+    font-weight: 600;
+    font-size: 13px;
+    padding: 9px 16px;
+    margin: 0;
+    border-radius: 9px;
+    background: transparent !important;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+
+    i {
+      margin-right: 7px;
+      font-size: 15px;
+    }
+
+    &:hover:not(.active) {
+      color: var(--im-text);
+    }
+
+    &.active {
+      color: var(--im-primary-dark) !important;
+      background: #fff !important;
+      box-shadow: var(--im-shadow-xs);
+    }
+  }
+}
+
+.im-tab-panel {
+  background: #fff;
+  border: 1px solid var(--im-border-soft);
+  border-radius: var(--im-radius-lg);
+  padding: 26px 28px;
+  animation: im-fade-in 0.2s ease;
+}
+
+@keyframes im-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+// Global-ish helpers scoped with im- prefix so they only affect this module
+.im-label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+
+  label {
+    margin-bottom: 0;
+  }
+}
+
+.im-field-hint {
+  font-size: 11.5px;
+  color: var(--im-muted-soft);
+}
+
+.im-code-hint.error {
+  color: var(--im-danger);
+}
+
+// =========================================================
+// PREMIUM HIGHLIGHTED FIELD LABEL
+// Applies automatically to every <Label> inside .im-panel / .im-card
+// =========================================================
+
+.im-panel label,
+.im-card label {
+  display: inline-flex;
+  align-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.045em;
+  text-transform: uppercase;
+  color: var(--im-text);
+  margin-bottom: 8px;
+
+  &::before {
+    content: "";
+    width: 4px;
+    height: 13px;
+    margin-right: 8px;
+    border-radius: 3px;
+    background: var(--im-label-gradient);
+    display: inline-block;
+    flex-shrink: 0;
+  }
+
+  .text-danger {
+    margin-left: 3px;
+  }
+}
+
+// Checkbox/radio row labels shouldn't get the bar + uppercase treatment
+.im-checkbox-row label,
+label.im-checkbox-row {
+  &::before {
+    display: none;
+  }
+  text-transform: none;
+  font-weight: 500;
+  letter-spacing: normal;
+  margin-bottom: 0;
+}
+
+// =========================================================
+// PREMIUM INPUT / SELECT / TEXTAREA STATES
+// =========================================================
+
+.im-surface {
+  .form-control,
+  select.form-control {
+    border-radius: var(--im-radius-sm);
+    border: 1.5px solid var(--im-border);
+    background-color: #fbfbfe;
+    font-size: 14px;
+    color: var(--im-text);
+    padding: 9px 13px;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+
+    &:hover {
+      border-color: #d3d7e3;
+    }
+
+    &:focus {
+      border-color: var(--im-primary);
+      background-color: #fff;
+      box-shadow: 0 0 0 4px var(--im-primary-ring);
+    }
+
+    &:disabled {
+      background-color: var(--im-bg-soft);
+      color: var(--im-muted-soft);
+    }
+
+    &.is-invalid,
+    &:invalid {
+      border-color: var(--im-danger);
+    }
+  }
+
+  textarea.form-control {
+    border-radius: 12px;
+  }
+}
+
+// =========================================================
+// Extra polish: badges, scrollbars, row hover
+// =========================================================
+
+.im-surface .badge {
+  font-weight: 600;
+  padding: 5px 10px;
+  border-radius: 999px;
+}
+
+// Thin, subtle scrollbar for any scrollable areas inside the module
+.im-surface *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.im-surface *::-webkit-scrollbar-thumb {
+  background: #d8dbe3;
+  border-radius: 8px;
+}
+.im-surface *::-webkit-scrollbar-thumb:hover {
+  background: #c1c5cf;
+}
+.im-surface *::-webkit-scrollbar-track {
+  background: transparent;
 }

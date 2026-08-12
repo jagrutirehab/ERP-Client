@@ -9,6 +9,7 @@ import {
   getItemCategories,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import "../shared/itemMasterForms.scss";
 
 const StatusPill = ({ status }) => (
@@ -90,6 +91,16 @@ const tableCustomStyles = {
 
 const ItemMasterList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const { hasPermission } = usePermissions(token);
+  const canCreate = hasPermission("MASTERDATA", "ITEM_CREATE", "WRITE");
+  const canEdit = hasPermission("MASTERDATA", "ITEM_EDIT", "WRITE");
+  const canChangeStatus = hasPermission(
+    "MASTERDATA",
+    "ITEM_STATUS_CHANGE",
+    "WRITE",
+  );
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -217,27 +228,33 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
       right: true,
       cell: (row) => (
         <div className="d-flex gap-2">
-          <Button size="sm" color="light" onClick={() => onEdit(row)}>
-            <i className="bx bx-edit-alt"></i>
-          </Button>
-          {row.status !== "active" ? (
-            <Button
-              size="sm"
-              color="success"
-              outline
-              onClick={() => handleStatusChange(row._id, "active")}
-            >
-              Activate
+          {canEdit && (
+            <Button size="sm" color="light" onClick={() => onEdit(row)}>
+              <i className="bx bx-edit-alt"></i>
             </Button>
-          ) : (
-            <Button
-              size="sm"
-              color="warning"
-              outline
-              onClick={() => handleStatusChange(row._id, "discontinued")}
-            >
-              Discontinue
-            </Button>
+          )}
+          {canChangeStatus &&
+            (row.status !== "active" ? (
+              <Button
+                size="sm"
+                color="success"
+                outline
+                onClick={() => handleStatusChange(row._id, "active")}
+              >
+                Activate
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                color="warning"
+                outline
+                onClick={() => handleStatusChange(row._id, "discontinued")}
+              >
+                Discontinue
+              </Button>
+            ))}
+          {!canEdit && !canChangeStatus && (
+            <span className="text-muted small">—</span>
           )}
         </div>
       ),
@@ -250,9 +267,11 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
         <div className="im-toolbar-title">
           {total} item{total === 1 ? "" : "s"}
         </div>
-        <Button color="primary" onClick={onAdd}>
-          <i className="bx bx-plus me-1"></i> Create Item
-        </Button>
+        {canCreate && (
+          <Button color="primary" onClick={onAdd}>
+            <i className="bx bx-plus me-1"></i> Create Item
+          </Button>
+        )}
       </div>
 
       <div className="im-toolbar-row" style={{ marginTop: -6 }}>
@@ -305,16 +324,18 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
           }}
           noDataComponent={
             <div className="im-empty-state">
-              <div className="im-empty-icon">
+              {/* <div className="im-empty-icon">
                 <i className="bx bx-package"></i>
-              </div>
+              </div> */}
               <h6>No items found</h6>
               <p>
                 Try adjusting your search or filters, or create your first item.
               </p>
-              <Button color="primary" onClick={onAdd}>
-                <i className="bx bx-plus me-1"></i> Create Item
-              </Button>
+              {canCreate && (
+                <Button color="primary" onClick={onAdd}>
+                  <i className="bx bx-plus me-1"></i> Create Item
+                </Button>
+              )}
             </div>
           }
         />

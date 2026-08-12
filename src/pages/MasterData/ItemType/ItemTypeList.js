@@ -7,6 +7,7 @@ import {
   updateItemTypeStatus,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import "../shared/itemMasterForms.scss";
 
 const StatusPill = ({ status }) => (
@@ -33,9 +34,18 @@ const SkeletonRows = () => (
   </div>
 );
 
-
 const ItemTypeList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const { hasPermission } = usePermissions(token);
+  const canCreate = hasPermission("MASTERDATA", "ITEM_TYPE_CREATE", "WRITE");
+  const canEdit = hasPermission("MASTERDATA", "ITEM_TYPE_EDIT", "WRITE");
+  const canChangeStatus = hasPermission(
+    "MASTERDATA",
+    "ITEM_TYPE_STATUS_CHANGE",
+    "WRITE",
+  );
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -111,27 +121,33 @@ const ItemTypeList = ({ onAdd, onEdit }) => {
       right: true,
       cell: (row) => (
         <div className="d-flex gap-2">
-          <Button size="sm" color="light" onClick={() => onEdit(row)}>
-            <i className="bx bx-edit-alt"></i> Edit
-          </Button>
-          {row.status !== "active" ? (
-            <Button
-              size="sm"
-              color="success"
-              outline
-              onClick={() => handleStatusChange(row._id, "active")}
-            >
-              Activate
+          {canEdit && (
+            <Button size="sm" color="light" onClick={() => onEdit(row)}>
+              <i className="bx bx-edit-alt"></i> Edit
             </Button>
-          ) : (
-            <Button
-              size="sm"
-              color="warning"
-              outline
-              onClick={() => handleStatusChange(row._id, "inactive")}
-            >
-              Deactivate
-            </Button>
+          )}
+          {canChangeStatus &&
+            (row.status !== "active" ? (
+              <Button
+                size="sm"
+                color="success"
+                outline
+                onClick={() => handleStatusChange(row._id, "active")}
+              >
+                Activate
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                color="warning"
+                outline
+                onClick={() => handleStatusChange(row._id, "inactive")}
+              >
+                Deactivate
+              </Button>
+            ))}
+          {!canEdit && !canChangeStatus && (
+            <span className="text-muted small">—</span>
           )}
         </div>
       ),
@@ -143,13 +159,15 @@ const ItemTypeList = ({ onAdd, onEdit }) => {
       <div className="d-flex justify-content-between align-items-center mb-3">
         <div>
           <h5 className="mb-1 fw-semibold">Item Types</h5>
-          <p className="text-muted mb-0 small">
+          {/* <p className="text-muted mb-0 small">
             Classify items — Fixed Asset, Consumable, Service, etc.
-          </p>
+          </p> */}
         </div>
-        <Button color="primary" onClick={onAdd}>
-          <i className="bx bx-plus me-1"></i> Add Item Type
-        </Button>
+        {canCreate && (
+          <Button color="primary" onClick={onAdd}>
+            <i className="bx bx-plus me-1"></i> Add Item Type
+          </Button>
+        )}
       </div>
 
       <div className="im-search-wrap mb-3">
@@ -166,22 +184,24 @@ const ItemTypeList = ({ onAdd, onEdit }) => {
           columns={columns}
           data={items}
           progressPending={loading}
-          progressComponent={<SkeletonRows />}  
+          progressComponent={<SkeletonRows />}
           pagination
           highlightOnHover
           noDataComponent={
             <div className="im-empty-state">
-              <div className="im-empty-icon">
+              {/* <div className="im-empty-icon">
                 <i className="bx bx-shapes"></i>
-              </div>
+              </div> */}
               <h6>No classification yet</h6>
               <p>
                 Create item types and sub types to organize your catalog. Types group items; sub
                 types refine them further.
               </p>
-              <Button color="primary" onClick={onAdd}>
-                <i className="bx bx-plus me-1"></i> Create first type
-              </Button>
+              {canCreate && (
+                <Button color="primary" onClick={onAdd}>
+                  <i className="bx bx-plus me-1"></i> Create first type
+                </Button>
+              )}
             </div>
           }
         />

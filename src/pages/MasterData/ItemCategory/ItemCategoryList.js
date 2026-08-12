@@ -7,10 +7,10 @@ import {
   updateItemCategoryStatus,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import "../shared/itemMasterForms.scss";
 
 const LEVEL_LABEL = { 1: "L1", 2: "L2", 3: "L3", 4: "L4" };
-
 
 const StatusPill = ({ status }) => (
   <span
@@ -38,6 +38,16 @@ const SkeletonRows = () => (
 
 const ItemCategoryList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const { hasPermission } = usePermissions(token);
+  const canCreate = hasPermission("MASTERDATA", "ITEM_CATEGORY_CREATE", "WRITE");
+  const canEdit = hasPermission("MASTERDATA", "ITEM_CATEGORY_EDIT", "WRITE");
+  const canChangeStatus = hasPermission(
+    "MASTERDATA",
+    "ITEM_CATEGORY_STATUS_CHANGE",
+    "WRITE",
+  );
+
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -114,27 +124,33 @@ const ItemCategoryList = ({ onAdd, onEdit }) => {
       right: true,
       cell: (row) => (
         <div className="d-flex gap-2">
-          <Button size="sm" color="light" onClick={() => onEdit(row)}>
-            <i className="bx bx-edit-alt"></i> Edit
-          </Button>
-          {row.status !== "active" ? (
-            <Button
-              size="sm"
-              color="success"
-              outline
-              onClick={() => handleStatusChange(row._id, "active")}
-            >
-              Activate
+          {canEdit && (
+            <Button size="sm" color="light" onClick={() => onEdit(row)}>
+              <i className="bx bx-edit-alt"></i> Edit
             </Button>
-          ) : (
-            <Button
-              size="sm"
-              color="warning"
-              outline
-              onClick={() => handleStatusChange(row._id, "inactive")}
-            >
-              Deactivate
-            </Button>
+          )}
+          {canChangeStatus &&
+            (row.status !== "active" ? (
+              <Button
+                size="sm"
+                color="success"
+                outline
+                onClick={() => handleStatusChange(row._id, "active")}
+              >
+                Activate
+              </Button>
+            ) : (
+              <Button
+                size="sm"
+                color="warning"
+                outline
+                onClick={() => handleStatusChange(row._id, "inactive")}
+              >
+                Deactivate
+              </Button>
+            ))}
+          {!canEdit && !canChangeStatus && (
+            <span className="text-muted small">—</span>
           )}
         </div>
       ),
@@ -150,9 +166,11 @@ const ItemCategoryList = ({ onAdd, onEdit }) => {
             L1 to L4 hierarchy used for classifying items
           </p>
         </div>
-        <Button color="primary" onClick={onAdd}>
-          <i className="bx bx-plus me-1"></i> Add Category
-        </Button>
+        {canCreate && (
+          <Button color="primary" onClick={onAdd}>
+            <i className="bx bx-plus me-1"></i> Add Category
+          </Button>
+        )}
       </div>
 
       <div className="im-search-wrap mb-3">
