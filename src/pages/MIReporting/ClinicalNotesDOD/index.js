@@ -164,7 +164,7 @@
     const dateTotals = useMemo(() => {
         const totals = {};
         last30Days.forEach(({ key }) => {
-            totals[key] = filteredData.reduce((sum, row) => sum + (Number(row[key]) || 0), 0);
+            totals[key] = filteredData.reduce((sum, row) => sum + ((Number(row[key]) || 0) > 0 ? 1 : 0), 0);
         });
         return totals;
     }, [filteredData, last30Days]);

@@ -2494,6 +2494,22 @@ export const getCentralExpensesMonthly = (data) => {
   });
 };
 
+export const getDoctorPsychologistStayRange = (data) => {
+  return api.get(url.GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getNursesDailyActivity = (data) => {
+  return api.get(url.GET_NURSES_DAILY_ACTIVITY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getOccupancyMonthly = (data) => {
   return api.get(url.GET_OCCUPANCY_MONTHLY, {
     params: {
@@ -4617,25 +4633,7 @@ export const updateItemMasterStatus = (id, status) => {
     { headers: { "X-No-Cookie-Token": "true" } },
   );
 };
-export const uploadItemImage = (id, formData) => {
-  return axios.post(`${url.ITEM_MASTER_BASE}/${id}/images`, formData, {
-    headers: {
-      "X-No-Cookie-Token": "true",
-      "Content-Type": "multipart/form-data",
-    },
-  });
-};
-export const deleteItemImage = (id, imageId) => {
-  return axios.delete(`${url.ITEM_MASTER_BASE}/${id}/images/${imageId}`, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
-};
-export const getUoms = (params = {}) => {
-  return axios.get(url.GET_UOMS, {
-    params,
-    headers: { "X-No-Cookie-Token": "true" },
-  });
-};
+
 export const deleteEmployeeDocumentFile = (documentId, fileId) => {
   return axios.patch(
     `${url.EMPLOYEE_DOC_DELETE}/${documentId}/${fileId}`,
@@ -4822,4 +4820,4 @@ export const getCenterAuditTimeline = (params) => {
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
-};
+};  
