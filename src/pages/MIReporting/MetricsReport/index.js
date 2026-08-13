@@ -39,6 +39,14 @@ const METRIC_GROUPS = [
     ],
   },
   {
+    label: "Total Amount (IPD+OPD)",
+    category: "total_amount",
+    fields: [
+      { key: "net_amount", label: "Net Amount" },
+      { key: "net_amount_mtd", label: "Net Amount" },
+    ],
+  },
+  {
     label: "Admitted Patients",
     category: "admitted_patients",
     fields: [
@@ -49,14 +57,6 @@ const METRIC_GROUPS = [
   {
     label: "Discharged Patients",
     category: "discharged_patients",
-    fields: [
-      { key: "count", label: "Count" },
-      { key: "count_mtd", label: "Count" },
-    ],
-  },
-  {
-    label: "Repeat Patients",
-    category: "repeat_patients",
     fields: [
       { key: "count", label: "Count" },
       { key: "count_mtd", label: "Count" },
@@ -76,6 +76,15 @@ const METRIC_GROUPS = [
     ],
   },
   {
+    label: "Repeat Patients",
+    category: "repeat_patients",
+    fields: [
+      { key: "count", label: "Count" },
+      { key: "count_mtd", label: "Count" },
+    ],
+  },
+  
+  {
     label: "New Patients",
     category: "new_patients",
     fields: [
@@ -83,14 +92,7 @@ const METRIC_GROUPS = [
       { key: "count_mtd" },
     ],
   },
-  {
-    label: "Total Amount (IPD+OPD)",
-    category: "total_amount",
-    fields: [
-      { key: "net_amount", label: "Net Amount" },
-      { key: "net_amount_mtd", label: "Net Amount" },
-    ],
-  },
+  
   {
     label: "Expenses",
     category: "expenses_amount",
