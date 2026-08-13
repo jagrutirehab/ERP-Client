@@ -4791,6 +4791,26 @@ export const uploadCenterFloorPhoto = (formData) => {
   });
 };
 
+export const uploadItemImage = (id, formData) => {
+  return axios.post(`${url.ITEM_MASTER_BASE}/${id}/images`, formData, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+export const deleteItemImage = (id, imageId) => {
+  return axios.delete(`${url.ITEM_MASTER_BASE}/${id}/images/${imageId}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getUoms = (params = {}) => {
+  return axios.get(url.GET_UOMS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 export const deleteCenterFloorPhotoFile = (recordId, fileId) => {
   return axios.patch(
     `${url.CENTER_FLOOR_PHOTOS}/${recordId}/files/${fileId}/delete`,

@@ -19,6 +19,8 @@ const FORMAT_OPTIONS = [
   { value: "PERCENTAGE", label: "Percentage" },
 ];
 
+const MONTH_NAMES = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
 const DAYS_RANGE_OPTIONS = [
   { value: "OVERALL", label: "Overall" },
   { value: "0-15", label: "0-15" },
@@ -75,7 +77,7 @@ const DoctorPsychologistStayRange = () => {
 
   const centerOptions = useMemo(() => [
     { value: "ALL", label: "All Centers" },
-    ...[...new Set(roleData.map((item) => item.current_center))].filter(Boolean).sort().map((center) => ({
+    ...[...new Set(roleData.map((item) => item.center_name))].filter(Boolean).sort().map((center) => ({
       value: center,
       label: center,
     })),
@@ -91,14 +93,18 @@ const DoctorPsychologistStayRange = () => {
 
   const filteredData = useMemo(() => {
     if (selectedCenter === "ALL") return roleData;
-    return roleData.filter((item) => item.current_center === selectedCenter);
+    return roleData.filter((item) => item.center_name === selectedCenter);
   }, [roleData, selectedCenter]);
 
   const months = useMemo(() => {
-    return Array.from(
-      new Set(filteredData.map((item) => item.month).filter(Boolean))
-    ).sort((a, b) => new Date(b) - new Date(a));
-  }, [filteredData]);
+    const now = new Date();
+    const result = [];
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      result.push(`${MONTH_NAMES[d.getMonth()]} ${d.getFullYear()}`);
+    }
+    return result;
+  }, []);
 
   const people = useMemo(() => {
     const map = new Map();
@@ -107,7 +113,7 @@ const DoctorPsychologistStayRange = () => {
         map.set(item.user_id, {
           userId: item.user_id,
           name: item.name,
-          center: item.current_center,
+          center: item.center_name,
           currentPatientsCount: item.current_patients_count,
         });
       }
