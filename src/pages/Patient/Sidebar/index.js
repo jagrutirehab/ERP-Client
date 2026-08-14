@@ -104,7 +104,7 @@ const Sidebar = ({
   return (
     <div>
       <div className="chat-leftsidebar">
-        <div className="px-4 pt-4 mb-4">
+        <div className="px-4 pt-4 mb-1">
           <div className="d-flex align-items-start">
             <div className="flex-grow-1">
               <h5 className="mb-4">Patients</h5>
