@@ -21,6 +21,7 @@ import {
   DISCHARGE_SUMMARY,
   EXPIRY_SUMMARY,
   OUTPASS,
+  ADMISSION_TYPE,
   PRESCRIPTION,
   records,
   testRecord,
@@ -262,7 +263,10 @@ const ChartDate = ({
                             : type === "GENERAL" &&
                               (item.category === DISCHARGE_SUMMARY ||
                                 item.category === EXPIRY_SUMMARY ||
-                                item.category === OUTPASS)
+                                item.category === OUTPASS ||
+                                // Admission type only means something for an
+                                // admitted patient.
+                                item.category === ADMISSION_TYPE)
                               ? true
                               : !editChartData.data && isOnOutpass
                                 ? true

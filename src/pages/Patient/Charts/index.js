@@ -20,6 +20,7 @@ import {
   NURSE_SOS_PROCEDURE,
   INJURY_MARKS,
   ECT_SESSION,
+  ADMISSION_TYPE,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -52,6 +53,7 @@ import InputOutput from "./InputOutput";
 import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
+import AdmissionType from "./AdmissionType";
 import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
 import { api } from "../../../config";
@@ -278,9 +280,9 @@ const Charts = ({
                   printItem={printChart}
                   addAdditionalDetails={
                     String(chart.addmission) === String(currentAddmissionId) &&
-                    !!chart.addmission && // ← add this — hides for OPD (no admission)
-                    !addmission?.dischargeDate &&
-                    !isPatientDischarged
+                      !!chart.addmission && // ← add this — hides for OPD (no admission)
+                      !addmission?.dischargeDate &&
+                      !isPatientDischarged
                       ? handleAddAdditionalDetails
                       : undefined
                   }
@@ -362,6 +364,9 @@ const Charts = ({
                   )}
                   {chart.chart === ECT_SESSION && (
                     <EctSession data={chart.ectSession} />
+                  )}
+                  {chart.chart === ADMISSION_TYPE && (
+                    <AdmissionType data={chart.admissionType} />
                   )}
                 </Wrapper>
               );
