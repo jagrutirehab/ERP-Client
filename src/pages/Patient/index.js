@@ -42,6 +42,11 @@ const Patient = ({ centerAccess, patients, user }) => {
     }
   };
 
+  // Gender sub-filter for whichever tab is active. Sibling state to the tab so
+  // the selection carries over when the tab changes, and — like the tab — it
+  // resets only when you leave /patient entirely.
+  const [gender, setGender] = useState(null);
+
   const onCloseClick = () => {
     setDeletePatient({ data: null, isOpen: false });
   };
@@ -57,10 +62,13 @@ const Patient = ({ centerAccess, patients, user }) => {
       fetchPatients({
         type: customActiveTab,
         centerAccess,
+        gender,
+        // Always page 1. fetchPatients.fulfilled replaces state.data outright,
+        // which is what resets the infinite scroll when the tab or gender changes.
         skip: 0,
       })
     );
-  }, [dispatch, centerAccess, customActiveTab]);
+  }, [dispatch, centerAccess, customActiveTab, gender]);
 
   useEffect(() => {
     dispatch(fetchBillItems(centerAccess));
@@ -84,6 +92,8 @@ const Patient = ({ centerAccess, patients, user }) => {
               <Sidebar
                 customActiveTab={customActiveTab}
                 toggleCustom={toggleCustom}
+                gender={gender}
+                setGender={setGender}
               />
               <Offcanvas />
               <AddPatient />

@@ -364,6 +364,10 @@ export const getPatients = (data) =>
       centerIds: data?.centerAccess,
       type: data?.type,
       skip: data?.skip,
+      // `|| undefined` so the "All" gender pill (null) omits the param entirely.
+      // qs.stringify serialises null as `gender=`, which would send an empty
+      // value on every unfiltered request.
+      gender: data?.gender || undefined,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
@@ -378,6 +382,7 @@ export const getMorePatients = (data) =>
       centerIds: data?.centerAccess,
       type: data?.type,
       skip: data?.skip,
+      gender: data?.gender || undefined,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
