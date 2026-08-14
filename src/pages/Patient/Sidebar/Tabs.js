@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { Nav, NavItem, NavLink, UncontrolledTooltip } from "reactstrap";
+import {
+  Button,
+  ButtonGroup,
+  Nav,
+  NavItem,
+  NavLink,
+  UncontrolledTooltip,
+} from "reactstrap";
 import classnames from "classnames";
 import {
   ADMIT_PATIENTS,
@@ -8,9 +15,10 @@ import {
   DISCHARGE_PATIENTS,
   MY_PATIENTS,
   OPD_PATIENTS,
+  PATIENT_GENDER_FILTERS,
 } from "../../../Components/constants/patient";
 
-const Tabs = ({ customActiveTab, toggleCustom }) => {
+const Tabs = ({ customActiveTab, toggleCustom, gender, setGender }) => {
   return (
     <React.Fragment>
       <div>
@@ -116,6 +124,21 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
             </UncontrolledTooltip>
           </NavItem>
         </Nav>
+
+        {/* Gender sub-filter for whichever tab is active above. Narrows the list
+            server-side; "All" removes the filter. Selection carries across tabs. */}
+        <ButtonGroup size="sm" className="w-100 mb-3">
+          {PATIENT_GENDER_FILTERS.map(({ key, label }) => (
+            <Button
+              key={label}
+              color={gender === key ? "primary" : "secondary"}
+              outline={gender !== key}
+              onClick={() => setGender(key)}
+            >
+              {label}
+            </Button>
+          ))}
+        </ButtonGroup>
       </div>
     </React.Fragment>
   );
@@ -124,6 +147,8 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
 Tabs.propTypes = {
   customActiveTab: PropTypes.string,
   toggleCustom: PropTypes.func,
+  gender: PropTypes.string,
+  setGender: PropTypes.func,
 };
 
 export default Tabs;

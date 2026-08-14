@@ -2299,6 +2299,17 @@ const DISCHARGE_PATIENTS = "DISCHARGE_PATIENTS";
 const OPD_PATIENTS = "OPD_PATIENTS";
 export const MY_PATIENTS = "MY_PATIENTS";
 
+// Gender sub-filter shown under the sidebar tabs. `key: null` means no filter —
+// axios drops null params, so "All" sends no `gender` at all and the request is
+// byte-identical to what it was before this filter existed. Values match the
+// Gender radio options on the patient form (MALE / FEMALE / OTHERS); OTHERS and
+// blank-gender records are deliberately reachable only via "All".
+export const PATIENT_GENDER_FILTERS = [
+  { key: null, label: "All" },
+  { key: "MALE", label: "Male" },
+  { key: "FEMALE", label: "Female" },
+];
+
 //PATIENT LOG
 const CREATED = "CREATED";
 const ADMITTED = "ADMITTED";
