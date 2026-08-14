@@ -34,6 +34,36 @@ const INTEREST_OPTIONS = [
   { value: "COLD", label: "Cold" },
 ];
 
+const getMultipleGpsReadings = () => {
+  return new Promise((resolve, reject) => {
+    const readings = [];
+    let count = 0;
+
+    const captureOne = () => {
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          readings.push({
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+            accuracy: position.coords.accuracy,
+          });
+          count++;
+
+          if (count < 3) {
+            setTimeout(captureOne, 1200);
+          } else {
+            resolve(readings);
+          }
+        },
+        (err) => reject(err),
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      );
+    };
+
+    captureOne();
+  });
+};
+
 const AddVisitLog = () => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("user"))?.token;
@@ -228,10 +258,31 @@ const AddVisitLog = () => {
       }
 
       setSubmitting(true);
+      let gpsReadings = [{ lat: gps.lat, lng: gps.lng, accuracy: null }];
+      let finalLat = gps.lat;
+      let finalLng = gps.lng;
+
+      try {
+        const freshReadings = await getMultipleGpsReadings();
+        gpsReadings = freshReadings;
+        const lastReading = freshReadings[freshReadings.length - 1];
+        finalLat = lastReading.lat;
+        finalLng = lastReading.lng;
+      } catch (gpsErr) {
+        // Fresh reading fail ho gayi — purani location pe hi fallback karo
+      }
+
       try {
         const formData = new FormData();
-        formData.append("gps[lat]", gps.lat);
-        formData.append("gps[lng]", gps.lng);
+        formData.append("gps[lat]", finalLat);
+        formData.append("gps[lng]", finalLng);
+        if (gpsReadings[gpsReadings.length - 1]?.accuracy != null) {
+          formData.append(
+            "gps[accuracy]",
+            gpsReadings[gpsReadings.length - 1].accuracy,
+          );
+        }
+        formData.append("gpsReadings", JSON.stringify(gpsReadings));
         formData.append("center", values.center);
         formData.append("areaLocality", values.areaLocality);
         formData.append("doctor[name]", values.doctorName);
