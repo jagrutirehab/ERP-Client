@@ -39,7 +39,7 @@ const DailyDashboard = () => {
     const error = useSelector((state) => state.MIReporting.error);
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
-    const [selectedCenter, setSelectedCenter] = useState("Total");
+    const [selectedCenter, setSelectedCenter] = useState("");
     const [selectedDate, setSelectedDate] = useState(moment().subtract(1, "day").format("YYYY-MM-DD"));
 
     useEffect(() => {
@@ -48,13 +48,19 @@ const DailyDashboard = () => {
 
     const rows = useMemo(() => data?.data || [], [data]);
 
-    const centerOptions = useMemo(() => [
-        { value: "Total", label: "All Centers" },
-        ...rows
+    const centerOptions = useMemo(() =>
+        rows
             .filter((r) => r.center_name !== "Total")
             .map((r) => ({ value: r.center_name, label: r.center_name })),
-    ], [rows]);
-    // console.log(centerOptions)
+    [rows]);
+
+    useEffect(() => {
+        if (centerOptions.length === 0) return;
+        if (!centerOptions.some((o) => o.value === selectedCenter)) {
+            setSelectedCenter(centerOptions[0].value);
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [centerOptions]);
 
     const selectedRow = useMemo(
         () => rows.find((r) => r.center_name === selectedCenter) || {},

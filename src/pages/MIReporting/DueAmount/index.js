@@ -11,6 +11,12 @@ const PATIENT_TYPE_OPTIONS = [
   { value: "discharged", label: "Discharged" },
 ];
 
+const ADVANCE_FILTER_OPTIONS = [
+  { value: "ALL", label: "All Advance Payments" },
+  { value: "GT0", label: "Advance Payment > 0" },
+  { value: "EQ0", label: "Advance Payment = 0" },
+];
+
 const labels = [
   "Patient UID",
   "Name",
@@ -61,6 +67,7 @@ const DueAmount = () => {
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [selectedPatientType, setSelectedPatientType] = useState("admitted");
+  const [selectedAdvanceFilter, setSelectedAdvanceFilter] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 100;
   const currentMonthLabel = new Date().toLocaleDateString("en-GB", { month: "short", year: "numeric" });
@@ -105,16 +112,29 @@ const DueAmount = () => {
     return data
       .filter((item) => {
         if (selectedCenter !== "ALL" && item.center_name !== selectedCenter) return false;
+        const totalAdvance = Number(item.total_advance ?? 0);
+        if (selectedAdvanceFilter === "GT0" && !(totalAdvance > 0)) return false;
+        if (selectedAdvanceFilter === "EQ0" && totalAdvance !== 0) return false;
         return true;
       })
       .sort((a, b) => Number(a.due_amount ?? 0) - Number(b.due_amount ?? 0));
-  }, [data, selectedCenter]);
+  }, [data, selectedCenter, selectedAdvanceFilter]);
 
   const negativeDueSum = useMemo(
     () => filteredData.reduce((sum, item) => {
       const due = Number(item.due_amount ?? 0);
       return due < 0 ? sum + due : sum;
     }, 0),
+    [filteredData]
+  );
+
+  const totalInvoicedSum = useMemo(
+    () => filteredData.reduce((sum, item) => sum + Number(item.total_invoiced ?? 0), 0),
+    [filteredData]
+  );
+
+  const totalAdvanceSum = useMemo(
+    () => filteredData.reduce((sum, item) => sum + Number(item.total_advance ?? 0), 0),
     [filteredData]
   );
 
@@ -210,6 +230,14 @@ const DueAmount = () => {
                   placeholder="Month..."
                 />
               </Col>
+              <Col md={2}>
+                <Select
+                  value={ADVANCE_FILTER_OPTIONS.find((o) => o.value === selectedAdvanceFilter) || ADVANCE_FILTER_OPTIONS[0]}
+                  onChange={(opt) => setSelectedAdvanceFilter(opt.value)}
+                  options={ADVANCE_FILTER_OPTIONS}
+                  placeholder="Advance Payment..."
+                />
+              </Col>
             </Row>
 
             <Card>
@@ -250,6 +278,16 @@ const DueAmount = () => {
                               {label === "Due Amount" && negativeDueSum < 0 && (
                                 <div style={{ fontWeight: "normal", fontSize: "0.72rem", color: "#ffcdd2", marginTop: 2 }}>
                                   Total: {formatCurrency(negativeDueSum)}
+                                </div>
+                              )}
+                              {label === "Total Invoiced" && (
+                                <div style={{ fontWeight: "normal", fontSize: "0.72rem", color: "#c8e6c9", marginTop: 2 }}>
+                                  Total: {formatCurrency(totalInvoicedSum)}
+                                </div>
+                              )}
+                              {label === "Total Advance" && (
+                                <div style={{ fontWeight: "normal", fontSize: "0.72rem", color: "#c8e6c9", marginTop: 2 }}>
+                                  Total: {formatCurrency(totalAdvanceSum)}
                                 </div>
                               )}
                             </th>

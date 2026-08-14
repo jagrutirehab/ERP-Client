@@ -1,6 +1,13 @@
 import React, { useState } from "react";
 import PropTypes from "prop-types";
-import { Nav, NavItem, NavLink, UncontrolledTooltip } from "reactstrap";
+import {
+  Button,
+  ButtonGroup,
+  Nav,
+  NavItem,
+  NavLink,
+  UncontrolledTooltip,
+} from "reactstrap";
 import classnames from "classnames";
 import {
   ADMIT_PATIENTS,
@@ -8,20 +15,24 @@ import {
   DISCHARGE_PATIENTS,
   MY_PATIENTS,
   OPD_PATIENTS,
+  PATIENT_GENDER_FILTERS,
 } from "../../../Components/constants/patient";
 
-const Tabs = ({ customActiveTab, toggleCustom }) => {
+// Shared between the buttons and their tooltips, which are rendered separately.
+const genderTargetId = (key) => `gender-filter-${key.toLowerCase()}`;
+
+const Tabs = ({ customActiveTab, toggleCustom, gender, setGender }) => {
   return (
     <React.Fragment>
       <div>
         <Nav
           tabs
-          className="nav nav-tabs nav-tabs-custom nav-success nav-justified mb-3"
+          className="nav nav-tabs nav-tabs-custom nav-success nav-justified flex-nowrap mb-2"
         >
           <NavItem>
             <NavLink
               style={{ cursor: "pointer" }}
-              className={classnames({
+              className={classnames("px-2", {
                 active: customActiveTab === ALL_PATIENTS,
               })}
               onClick={() => {
@@ -38,7 +49,7 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
           <NavItem>
             <NavLink
               style={{ cursor: "pointer" }}
-              className={classnames({
+              className={classnames("px-2", {
                 active: customActiveTab === ADMIT_PATIENTS,
               })}
               onClick={() => {
@@ -55,7 +66,7 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
           <NavItem>
             <NavLink
               style={{ cursor: "pointer" }}
-              className={classnames({
+              className={classnames("px-2", {
                 active: customActiveTab === DISCHARGE_PATIENTS,
               })}
               onClick={() => {
@@ -72,7 +83,7 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
           <NavItem>
             <NavLink
               style={{ cursor: "pointer" }}
-              className={classnames({
+              className={classnames("px-2", {
                 active: customActiveTab === OPD_PATIENTS,
               })}
               onClick={() => {
@@ -80,7 +91,9 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
               }}
               id="opd-patients"
             >
-              <span id="opd-patients" className="fs-6">
+              {/* No id here — "opd-patients" is already on the NavLink above,
+                  and a duplicate would make the tooltip target ambiguous. */}
+              <span className="fs-6">
                 <svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="18"
@@ -101,7 +114,7 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
           <NavItem>
             <NavLink
               style={{ cursor: "pointer" }}
-              className={classnames({
+              className={classnames("px-2", {
                 active: customActiveTab === MY_PATIENTS,
               })}
               onClick={() => {
@@ -116,6 +129,44 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
             </UncontrolledTooltip>
           </NavItem>
         </Nav>
+
+        {/* Gender sub-filter for whichever tab is active above. Icon-only, to sit
+            quietly under the tab row; the label lives in the tooltip. Narrows the
+            list server-side and carries across tab changes. Clicking the active
+            icon clears it. */}
+        <div className="d-flex justify-content-center mb-3">
+          <ButtonGroup size="sm" className="rounded-pill border bg-light p-1">
+            {PATIENT_GENDER_FILTERS.map(({ key, icon, iconActive }) => {
+              const isActive = gender === key;
+              return (
+                <Button
+                  key={key}
+                  id={genderTargetId(key)}
+                  color={isActive ? "success" : "light"}
+                  className="px-3 rounded-pill border-0"
+                  onClick={() => setGender(isActive ? null : key)}
+                >
+                  <i
+                    className={`${isActive ? iconActive : icon} fs-6 align-middle ${isActive ? "" : "text-muted"
+                      }`}
+                  ></i>
+                </Button>
+              );
+            })}
+          </ButtonGroup>
+        </div>
+
+        {/* Kept outside the ButtonGroup: an open tooltip rendered inside it would
+            become a flex child of .btn-group and distort the pill. */}
+        {PATIENT_GENDER_FILTERS.map(({ key, label }) => (
+          <UncontrolledTooltip
+            key={key}
+            placement="bottom"
+            target={genderTargetId(key)}
+          >
+            {gender === key ? `${label} only - click to clear` : label}
+          </UncontrolledTooltip>
+        ))}
       </div>
     </React.Fragment>
   );
@@ -124,6 +175,8 @@ const Tabs = ({ customActiveTab, toggleCustom }) => {
 Tabs.propTypes = {
   customActiveTab: PropTypes.string,
   toggleCustom: PropTypes.func,
+  gender: PropTypes.string,
+  setGender: PropTypes.func,
 };
 
 export default Tabs;

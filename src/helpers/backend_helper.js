@@ -364,6 +364,10 @@ export const getPatients = (data) =>
       centerIds: data?.centerAccess,
       type: data?.type,
       skip: data?.skip,
+      // `|| undefined` so the "All" gender pill (null) omits the param entirely.
+      // qs.stringify serialises null as `gender=`, which would send an empty
+      // value on every unfiltered request.
+      gender: data?.gender || undefined,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
@@ -378,6 +382,7 @@ export const getMorePatients = (data) =>
       centerIds: data?.centerAccess,
       type: data?.type,
       skip: data?.skip,
+      gender: data?.gender || undefined,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
@@ -2488,6 +2493,22 @@ export const getDoctorOpdChargesMonthly = (data) => {
 
 export const getCentralExpensesMonthly = (data) => {
   return api.get(url.GET_CENTRAL_EXPENSES_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getDoctorPsychologistStayRange = (data) => {
+  return api.get(url.GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getNursesDailyActivity = (data) => {
+  return api.get(url.GET_NURSES_DAILY_ACTIVITY, {
     params: {
       centerIds: data?.centerAccess,
     },
@@ -4775,6 +4796,26 @@ export const uploadCenterFloorPhoto = (formData) => {
   });
 };
 
+export const uploadItemImage = (id, formData) => {
+  return axios.post(`${url.ITEM_MASTER_BASE}/${id}/images`, formData, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+export const deleteItemImage = (id, imageId) => {
+  return axios.delete(`${url.ITEM_MASTER_BASE}/${id}/images/${imageId}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getUoms = (params = {}) => {
+  return axios.get(url.GET_UOMS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 export const deleteCenterFloorPhotoFile = (recordId, fileId) => {
   return axios.patch(
     `${url.CENTER_FLOOR_PHOTOS}/${recordId}/files/${fileId}/delete`,
@@ -4804,4 +4845,4 @@ export const getCenterAuditTimeline = (params) => {
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
-};
+};  

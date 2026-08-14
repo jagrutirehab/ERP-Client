@@ -2299,6 +2299,31 @@ const DISCHARGE_PATIENTS = "DISCHARGE_PATIENTS";
 const OPD_PATIENTS = "OPD_PATIENTS";
 export const MY_PATIENTS = "MY_PATIENTS";
 
+// Gender sub-filter shown under the sidebar tabs. Icon-only to match the tab row
+// above it, with the label surfaced as a tooltip.
+//
+// There is no explicit "All" option: clicking the active icon clears it back to
+// no filter (gender = null), which axios then omits from the request entirely, so
+// an unfiltered list is byte-identical to what it was before this filter existed.
+//
+// Values match the Gender radio options on the patient form (MALE / FEMALE /
+// OTHERS). OTHERS and blank-gender records are deliberately only reachable with
+// the filter cleared.
+export const PATIENT_GENDER_FILTERS = [
+  {
+    key: "MALE",
+    label: "Male",
+    icon: "ri-men-line",
+    iconActive: "ri-men-fill",
+  },
+  {
+    key: "FEMALE",
+    label: "Female",
+    icon: "ri-women-line",
+    iconActive: "ri-women-fill",
+  },
+];
+
 //PATIENT LOG
 const CREATED = "CREATED";
 const ADMITTED = "ADMITTED";
