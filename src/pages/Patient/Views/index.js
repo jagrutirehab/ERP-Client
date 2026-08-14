@@ -10,6 +10,7 @@ import {
 } from "../../../Components/constants/patient";
 import SopPanel from "./Components/SopPanel";
 import SpecialRequirementsSummary from "./Components/SpecialRequirementsSummary";
+import AdmissionTypeSummary from "./Components/AdmissionTypeSummary";
 import Charting from "./Charting";
 import Billing from "./Billing";
 import Timeline from "./Timeline";
@@ -112,6 +113,7 @@ const Views = (props) => {
                     })}
                 </ButtonGroup>
                 <SpecialRequirementsSummary />
+                <AdmissionTypeSummary />
               </Col>
               <Col xs={12} xl={7} xxl={8}>
                 <SopPanel />
