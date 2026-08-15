@@ -839,7 +839,7 @@ export const HR = [
       {
         id: "new-joining-biometric",
         label: "Biometric Approvals",
-        icon: "bx bx-check-shield",
+        icon: "bx bx-fingerprint",
         link: "/hr/new-joinings/biometric/approval",
       },
       {
@@ -872,7 +872,7 @@ export const HR = [
       {
         id: "exit-biometric",
         label: "Biometric Approvals",
-        icon: "bx bx-check-shield",
+        icon: "bx bx-fingerprint",
         link: "/hr/exit-employees/biometric/approval",
       },
       {
@@ -952,7 +952,7 @@ export const HR = [
   {
     id: "biometric-addition-request",
     label: "Biometric",
-    icon: "bx bx-badge",
+    icon: "bx bx-fingerprint",
     link: "/hr/biometric",
     isAccordion: true,
     children: [
@@ -965,7 +965,7 @@ export const HR = [
       {
         id: "get-biometric-addition-requests",
         label: "Get Biometric Addition Requests",
-        icon: "bx bx-plus",
+        icon: "bx bx-user-plus",
         link: "/hr/biometric/addition/requests",
       },
       // {
