@@ -65,7 +65,7 @@ export const ExitBiometricRequests = ({
     },
     {
       name: "Employment Type",
-      selector: (row) => normalizeText(row?.employee?.employmentType) || "-",
+      selector: (row) => normalizeText(row?.employee?.newEmploymentType) || "-",
       sortable: true,
       minWidth: "150px",
       wrap: true,
