@@ -2,6 +2,7 @@ import { Button } from "reactstrap";
 import { Check, X } from "lucide-react";
 import Select from "react-select";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
+import { normalizeText } from "../../components/helpers/normalizeText";
 
 export const BiometricAdditionColumns = ({
   onApprove,
@@ -21,7 +22,7 @@ export const BiometricAdditionColumns = ({
   },
   {
     name: "Name",
-    selector: (row) => row?.employee?.name || "-",
+    selector: (row) => normalizeText(row?.employee?.name) || "-",
     sortable: true,
     minWidth: "150px",
     wrap: true,
@@ -42,14 +43,15 @@ export const BiometricAdditionColumns = ({
   },
   {
     name: "Department",
-    selector: (row) => row?.employee?.department?.department || "-",
+    selector: (row) =>
+      normalizeText(row?.employee?.department?.department) || "-",
     sortable: true,
     minWidth: "150px",
     wrap: true,
   },
   {
     name: "Designation",
-    selector: (row) => row?.employee?.designation?.name || "-",
+    selector: (row) => normalizeText(row?.employee?.designation?.name) || "-",
     sortable: true,
     minWidth: "150px",
     wrap: true,
@@ -60,6 +62,43 @@ export const BiometricAdditionColumns = ({
     sortable: true,
     minWidth: "130px",
     wrap: true,
+  },
+  {
+    name: "Shifts",
+    selector: (row) => row?.shifts?.length || 0,
+    sortable: true,
+    minWidth: "200px",
+    cell: (row) =>
+      row?.shifts?.length ? (
+        <div
+          style={{
+            maxHeight: "80px",
+            overflowY: "auto",
+            width: "100%",
+            padding: "4px 0",
+          }}
+        >
+          {row.shifts.map((s, i) => (
+            <div
+              key={i}
+              style={{
+                backgroundColor: "#f0f4ff",
+                borderRadius: "6px",
+                padding: "4px 8px",
+                fontSize: "12px",
+                marginBottom: "4px",
+              }}
+            >
+              <span className="fw-semibold text-primary">{s.shift}</span>
+              {s.answers && (
+                <span className="text-muted ms-1">— {s.answers}</span>
+              )}
+            </div>
+          ))}
+        </div>
+      ) : (
+        "-"
+      ),
   },
   {
     name: "Created On",

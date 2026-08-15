@@ -49,12 +49,12 @@ const AllBiometricRequests = () => {
   const { hasPermission, loading } = usePermissions(token);
   const hasUserPermission = hasPermission(
     "HR",
-    "BIOMETRIC_ADDITION_REQUEST",
+    "GET_BIOMETRIC_ADDITION_REQUESTS",
     "READ",
   );
   const hasWritePermission = hasPermission(
     "HR",
-    "BIOMETRIC_ADDITION_REQUEST",
+    "GET_BIOMETRIC_ADDITION_REQUESTS",
     "WRITE",
   );
 
