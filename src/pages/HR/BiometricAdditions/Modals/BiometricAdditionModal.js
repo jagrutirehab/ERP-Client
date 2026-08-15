@@ -19,7 +19,7 @@ const BiometricAdditionModal = ({
   toggle,
   row,
   status,
-  assignedTo,
+  // assignedTo,
   onSuccess,
 }) => {
   const [additionReason, setAdditionReason] = useState("");
@@ -39,7 +39,7 @@ const BiometricAdditionModal = ({
       await actionOnBiometricAdditionRequest({
         doc_id: row?._id,
         status,
-        ...(assignedTo && { assignedTo }),
+        // ...(assignedTo && { assignedTo }),
         ...(additionReason.trim() && { additionReason: additionReason.trim() }),
       });
       toast.success(

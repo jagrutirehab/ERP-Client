@@ -8,9 +8,9 @@ export const BiometricAdditionColumns = ({
   onReject,
   hasWritePermission,
   status,
-  users = [],
-  assignedUsers = {},
-  onAssign,
+  // users = [],
+  // assignedUsers = {},
+  // onAssign,
 } = {}) => [
   {
     name: "ECode",
@@ -98,24 +98,24 @@ export const BiometricAdditionColumns = ({
   },
   ...(hasWritePermission && status === "addition_pending"
     ? [
-        {
-          name: "Assign To",
-          minWidth: "200px",
-          cell: (row) => (
-            <div style={{ width: "180px" }}>
-              <Select
-                placeholder="Select user..."
-                options={users}
-                value={assignedUsers[row._id] || null}
-                onChange={(option) => onAssign(row._id, option)}
-                classNamePrefix="react-select"
-                menuPortalTarget={document.body}
-                styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
-                isClearable
-              />
-            </div>
-          ),
-        },
+        // {
+        //   name: "Assign To",
+        //   minWidth: "200px",
+        //   cell: (row) => (
+        //     <div style={{ width: "180px" }}>
+        //       <Select
+        //         placeholder="Select user..."
+        //         options={users}
+        //         value={assignedUsers[row._id] || null}
+        //         onChange={(option) => onAssign(row._id, option)}
+        //         classNamePrefix="react-select"
+        //         menuPortalTarget={document.body}
+        //         styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+        //         isClearable
+        //       />
+        //     </div>
+        //   ),
+        // },
         {
           name: "Actions",
           minWidth: "130px",
@@ -125,7 +125,7 @@ export const BiometricAdditionColumns = ({
                 color="success"
                 size="sm"
                 title="Approve"
-                disabled={!assignedUsers[row._id]}
+                // disabled={!assignedUsers[row._id]}
                 onClick={() => onApprove(row)}
                 style={{
                   width: "32px",
@@ -135,7 +135,7 @@ export const BiometricAdditionColumns = ({
                   alignItems: "center",
                   justifyContent: "center",
                   borderRadius: "50%",
-                  opacity: !assignedUsers[row._id] ? 0.5 : 1,
+                  // opacity: !assignedUsers[row._id] ? 0.5 : 1,
                 }}
               >
                 <Check size={16} strokeWidth={2.5} />
@@ -144,7 +144,7 @@ export const BiometricAdditionColumns = ({
                 color="danger"
                 size="sm"
                 title="Reject"
-                disabled={!!assignedUsers[row._id]}
+                // disabled={!!assignedUsers[row._id]}
                 onClick={() => onReject(row)}
                 style={{
                   width: "32px",
@@ -154,7 +154,7 @@ export const BiometricAdditionColumns = ({
                   alignItems: "center",
                   justifyContent: "center",
                   borderRadius: "50%",
-                  opacity: !!assignedUsers[row._id] ? 0.5 : 1,
+                  // opacity: !!assignedUsers[row._id] ? 0.5 : 1,
                 }}
               >
                 <X size={16} strokeWidth={2.5} />
@@ -173,13 +173,13 @@ export const BiometricAdditionColumns = ({
           minWidth: "150px",
           wrap: true,
         },
-        {
-          name: "Assigned To",
-          selector: (row) => row?.assignedTo?.name || "-",
-          sortable: true,
-          minWidth: "150px",
-          wrap: true,
-        },
+        // {
+        //   name: "Assigned To",
+        //   selector: (row) => row?.assignedTo?.name || "-",
+        //   sortable: true,
+        //   minWidth: "150px",
+        //   wrap: true,
+        // },
         {
           name: "Actioned On",
           selector: (row) => row?.actionOn || "-",

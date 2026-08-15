@@ -324,10 +324,10 @@ export const permissionList = [
         name: "GET_BIOMETRIC_ADDITION_REQUESTS",
         label: "Get Biometric Addition Requests",
       },
-      {
-        name: "GET_MY_BIOMETRIC_REQUESTS",
-        label: "Get My Biometric Requests",
-      },
+      // {
+      //   name: "GET_MY_BIOMETRIC_REQUESTS",
+      //   label: "Get My Biometric Requests",
+      // },
       // TPM-Third Party Manpower
       {
         name: "THIRD_PARTY_MANPOWER_ADD_REQUEST",
@@ -520,12 +520,18 @@ export const permissionList = [
       { name: "ITEM_TYPE_VIEW", label: "View Item Types" },
       { name: "ITEM_TYPE_CREATE", label: "Create Item Type" },
       { name: "ITEM_TYPE_EDIT", label: "Edit Item Type" },
-      { name: "ITEM_TYPE_STATUS_CHANGE", label: "Activate/Deactivate Item Type" },
+      {
+        name: "ITEM_TYPE_STATUS_CHANGE",
+        label: "Activate/Deactivate Item Type",
+      },
 
       { name: "ITEM_CATEGORY_VIEW", label: "View Item Categories" },
       { name: "ITEM_CATEGORY_CREATE", label: "Create Item Category" },
       { name: "ITEM_CATEGORY_EDIT", label: "Edit Item Category" },
-      { name: "ITEM_CATEGORY_STATUS_CHANGE", label: "Activate/Deactivate Item Category" },
+      {
+        name: "ITEM_CATEGORY_STATUS_CHANGE",
+        label: "Activate/Deactivate Item Category",
+      },
     ],
   },
 ];

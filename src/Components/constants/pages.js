@@ -968,12 +968,12 @@ export const HR = [
         icon: "bx bx-plus",
         link: "/hr/biometric/addition/requests",
       },
-      {
-        id: "get-biometric-my-requests",
-        label: "Get My Biometric Requests",
-        icon: "bx bx-plus",
-        link: "/hr/biometric/my/requests",
-      },
+      // {
+      //   id: "get-biometric-my-requests",
+      //   label: "Get My Biometric Requests",
+      //   icon: "bx bx-plus",
+      //   link: "/hr/biometric/my/requests",
+      // },
     ],
   },
   {
