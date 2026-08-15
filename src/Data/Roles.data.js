@@ -265,6 +265,7 @@ export const permissionList = [
       // new joining
       { name: "NEW_JOINING_ADD_REQUEST", label: "New Joinings Add Request" },
       { name: "NEW_JOINING_APPROVAL", label: "New Joinings Approval" },
+      { name: "NEW_JOINING_BIOMETRIC", label: "Biometric Approvals" },
       { name: "NEW_JOINING_IT", label: "New Joinings IT" },
       // exit employee
       {
@@ -272,6 +273,7 @@ export const permissionList = [
         label: "Exit Employees Add Request",
       },
       { name: "EXIT_EMPLOYEE_APPROVAL", label: "Exit Employees Approval" },
+      { name: "EXIT_BIOMETRIC_APPROVAL", label: "Exit Biometric Approval" },
       { name: "EXIT_EMPLOYEE_FNF", label: "Exit Employees FNF" },
       { name: "EXIT_EMPLOYEE_IT", label: "Exit Employees IT" },
       // salary advance
@@ -313,6 +315,18 @@ export const permissionList = [
       {
         name: "MY_HIRING_STATUS",
         label: "My Hiring Status",
+      },
+      {
+        name: "BIOMETRIC_ADDITION_REQUEST",
+        label: "Add Biometric Addition Request",
+      },
+      {
+        name: "GET_BIOMETRIC_ADDITION_REQUESTS",
+        label: "Get Biometric Addition Requests",
+      },
+      {
+        name: "GET_MY_BIOMETRIC_REQUESTS",
+        label: "Get My Biometric Requests",
       },
       // TPM-Third Party Manpower
       {

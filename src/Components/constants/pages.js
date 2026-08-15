@@ -837,6 +837,12 @@ export const HR = [
         link: "/hr/new-joinings/approval",
       },
       {
+        id: "new-joining-biometric",
+        label: "Biometric Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/new-joinings/biometric/approval",
+      },
+      {
         id: "new-joining-it",
         label: "IT Approvals",
         icon: "bx bx-chip",
@@ -862,6 +868,12 @@ export const HR = [
         label: "Exit Approvals",
         icon: "bx bx-check-shield",
         link: "/hr/exit-employees/approval",
+      },
+      {
+        id: "exit-biometric",
+        label: "Biometric Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/exit-employees/biometric/approval",
       },
       {
         id: "exit-fnf-approval",
@@ -937,7 +949,33 @@ export const HR = [
       },
     ],
   },
-
+  {
+    id: "biometric-addition-request",
+    label: "Biometric",
+    icon: "bx bx-badge",
+    link: "/hr/biometric",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-biometric-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/biometric/add",
+      },
+      {
+        id: "get-biometric-addition-requests",
+        label: "Get Biometric Addition Requests",
+        icon: "bx bx-plus",
+        link: "/hr/biometric/addition/requests",
+      },
+      {
+        id: "get-biometric-my-requests",
+        label: "Get My Biometric Requests",
+        icon: "bx bx-plus",
+        link: "/hr/biometric/my/requests",
+      },
+    ],
+  },
   {
     id: "hiring",
     label: "Hiring",

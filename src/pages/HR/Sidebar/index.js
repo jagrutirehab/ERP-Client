@@ -52,6 +52,11 @@ const Sidebar = () => {
     "READ",
   );
   const hasUserPermission3 = hasPermission("HR", "NEW_JOINING_IT", "READ");
+  const hasUserPermissionBiometric = hasPermission(
+    "HR",
+    "NEW_JOINING_BIOMETRIC",
+    "READ",
+  );
   const hasExitEmployeeAddRequestPermission = hasPermission(
     "HR",
     "EXIT_EMPLOYEE_ADD_REQUEST",
@@ -60,6 +65,11 @@ const Sidebar = () => {
   const hasUserPermission4 = hasPermission(
     "HR",
     "EXIT_EMPLOYEE_APPROVAL",
+    "READ",
+  );
+  const hasUserExitBiometric = hasPermission(
+    "HR",
+    "EXIT_BIOMETRIC_APPROVAL",
     "READ",
   );
   const hasUserPermission5 = hasPermission("HR", "EXIT_EMPLOYEE_FNF", "READ");
@@ -115,6 +125,21 @@ const Sidebar = () => {
   const hasHiringManagementPermission = hasPermission(
     "HR",
     "MY_HIRING_STATUS",
+    "READ",
+  );
+  const hasBiometricAddiitonRequest = hasPermission(
+    "HR",
+    "BIOMETRIC_ADDITION_REQUEST",
+    "READ",
+  );
+  const hasGetBiometricAddiitonRequests = hasPermission(
+    "HR",
+    "GET_BIOMETRIC_ADDITION_REQUESTS",
+    "READ",
+  );
+  const hasGetMyBiometricRequests = hasPermission(
+    "HR",
+    "GET_MY_BIOMETRIC_REQUESTS",
     "READ",
   );
 
@@ -349,6 +374,11 @@ const Sidebar = () => {
             return false;
           if (child.id === "new-joining-it" && !hasUserPermission3)
             return false;
+          if (
+            child.id === "new-joining-biometric" &&
+            !hasUserPermissionBiometric
+          )
+            return false;
           return true;
         });
         return page.children.length > 0;
@@ -362,6 +392,8 @@ const Sidebar = () => {
           )
             return false;
           if (child.id === "exit-approval" && !hasUserPermission4) return false;
+          if (child.id === "exit-biometric" && !hasUserExitBiometric)
+            return false;
           if (child.id === "exit-fnf-approval" && !hasUserPermission5)
             return false;
           if (child.id === "exit-it-approval" && !hasUserPermission6)
@@ -517,6 +549,28 @@ const Sidebar = () => {
         });
         return page.children.length > 0;
       }
+      if (page.id === "biometric-addition-request") {
+        page.children = page.children.filter((child) => {
+          if (
+            child.id === "add-biometric-request" &&
+            !hasBiometricAddiitonRequest
+          )
+            return false;
+          if (
+            child.id === "get-biometric-addition-requests" &&
+            !hasGetBiometricAddiitonRequests
+          )
+            return false;
+          if (
+            child.id === "get-biometric-my-requests" &&
+            !hasGetMyBiometricRequests
+          )
+            return false;
+
+          return true;
+        });
+        return page.children.length > 0;
+      }
       if (page.id === "payslips") {
         page.children = page.children.filter((child) => {
           if (child.id === "my-pay-slip" && !hasMyPayslipsPermission)
@@ -603,10 +657,7 @@ const Sidebar = () => {
             return false;
           if (child.id === "all-leave-history" && !hasAllLeaveHistoryPerm)
             return false;
-          if (
-            child.id === "all-regularizations" &&
-            !hasAllRegularizationsPerm
-          )
+          if (child.id === "all-regularizations" && !hasAllRegularizationsPerm)
             return false;
           if (
             child.id === "create-regularization" &&
