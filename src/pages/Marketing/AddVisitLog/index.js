@@ -34,33 +34,19 @@ const INTEREST_OPTIONS = [
   { value: "COLD", label: "Cold" },
 ];
 
-const getMultipleGpsReadings = () => {
+const getSingleGpsReading = () => {
   return new Promise((resolve, reject) => {
-    const readings = [];
-    let count = 0;
-
-    const captureOne = () => {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          readings.push({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude,
-            accuracy: position.coords.accuracy,
-          });
-          count++;
-
-          if (count < 3) {
-            setTimeout(captureOne, 1200);
-          } else {
-            resolve(readings);
-          }
-        },
-        (err) => reject(err),
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-      );
-    };
-
-    captureOne();
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        });
+      },
+      (err) => reject(err),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 },
+    );
   });
 };
 
@@ -263,13 +249,12 @@ const AddVisitLog = () => {
       let finalLng = gps.lng;
 
       try {
-        const freshReadings = await getMultipleGpsReadings();
-        gpsReadings = freshReadings;
-        const lastReading = freshReadings[freshReadings.length - 1];
-        finalLat = lastReading.lat;
-        finalLng = lastReading.lng;
+        const reading = await getSingleGpsReading();
+        gpsReadings = [reading];
+        finalLat = reading.lat;
+        finalLng = reading.lng;
       } catch (gpsErr) {
-        // Fresh reading fail ho gayi — purani location pe hi fallback karo
+        // fallback, purani location use karo
       }
 
       try {
