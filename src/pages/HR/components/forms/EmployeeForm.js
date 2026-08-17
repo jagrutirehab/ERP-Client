@@ -3492,6 +3492,15 @@ const EmployeeForm = ({
                 />
               </Col>
 
+              {/* PT */}
+              <Col md={6}>
+                <Label htmlFor="PT">PT (Yearly)</Label>
+                <Input disabled id="PT" type="number" value={ptYearly} />
+                <div className="text-muted small mt-1">
+                  Monthly ≈ ₹{ptMonthly.toLocaleString("en-IN")}
+                </div>
+              </Col>
+
               {/* IN HAND SALARY */}
               <Col md={6}>
                 <Label htmlFor="inHandSalary">In Hand Salary (Yearly)</Label>
@@ -3669,9 +3678,9 @@ const EmployeeForm = ({
             </Button>
           )}
 
-          <Button onClick={() => console.log(errors)}>
+          {/* <Button onClick={() => console.log(errors)}>
             test
-          </Button> 
+          </Button>  */}
         </div>
       </div>
       <PreviewFile
