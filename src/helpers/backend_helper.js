@@ -4430,6 +4430,12 @@ export const exportDoctorDirectory = (params = {}) =>
     headers: { "X-No-Cookie-Token": "true" },
   });
 
+export const getFlaggedVisits = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/flagged`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 // master data
 export const getVendors = (params = {}) => {
   return axios.get(url.GET_VENDORS, {
