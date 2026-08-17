@@ -20,7 +20,11 @@ import {
   ModalHeader,
   ModalBody,
 } from "reactstrap";
-import { getVisitLogs, getAllCenters } from "../../../helpers/backend_helper";
+import {
+  getVisitLogs,
+  getAllCenters,
+  getFlaggedVisits,
+} from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 const INTEREST_STYLE = {
   HOT: { bg: "#fde8e4", color: "#f06548" },
@@ -91,6 +95,7 @@ const VisitLogList = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const searchWrapperRef = useRef(null);
   const [centers, setCenters] = useState([]);
+  const [showFlaggedOnly, setShowFlaggedOnly] = useState(false);
 
   useEffect(() => {
     getAllCenters()
@@ -105,11 +110,11 @@ const VisitLogList = () => {
       })
       .catch(() => {});
   }, []);
-  const fetchLogs = useCallback(async (activeFilters) => {
+  const fetchLogs = useCallback(async (activeFilters, flaggedOnly) => {
     setLoading(true);
     setError(null);
     try {
-      const params = {limit: 500};
+      const params = { limit: 500 };
       if (activeFilters.visitType) params.visitType = activeFilters.visitType;
       if (activeFilters.center) params.center = activeFilters.center;
       if (activeFilters.interestLevel)
@@ -117,7 +122,11 @@ const VisitLogList = () => {
       if (activeFilters.from) params.from = activeFilters.from;
       if (activeFilters.to) params.to = activeFilters.to;
 
-      const res = await getVisitLogs(params);
+      // Flagged-only mode hits the dedicated fraud-review endpoint instead
+      // of the normal visit-log list.
+      const res = flaggedOnly
+        ? await getFlaggedVisits(params)
+        : await getVisitLogs(params);
       const data = res?.payload || res?.data?.payload || res?.data?.data || [];
       setLogs(data);
     } catch (err) {
@@ -130,7 +139,8 @@ const VisitLogList = () => {
   }, []);
 
   useEffect(() => {
-    fetchLogs(DEFAULT_FILTERS);
+    fetchLogs(DEFAULT_FILTERS, showFlaggedOnly);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchLogs]);
 
   // Close suggestions dropdown when clicking outside of it
@@ -151,13 +161,19 @@ const VisitLogList = () => {
     setFilters((f) => ({ ...f, [key]: value }));
   const applyFilters = () => {
     setCurrentPage(1);
-    fetchLogs(filters);
+    fetchLogs(filters, showFlaggedOnly);
   };
   const resetFilters = () => {
     setFilters(DEFAULT_FILTERS);
     setSearch("");
     setCurrentPage(1);
-    fetchLogs(DEFAULT_FILTERS);
+    fetchLogs(DEFAULT_FILTERS, showFlaggedOnly);
+  };
+  const toggleFlaggedOnly = () => {
+    const next = !showFlaggedOnly;
+    setShowFlaggedOnly(next);
+    setCurrentPage(1);
+    fetchLogs(filters, next);
   };
 
   // ---- Build unique agent + doctor suggestion lists from currently loaded logs ----
@@ -341,6 +357,31 @@ const VisitLogList = () => {
       </span>
     ) : null;
 
+  const REASON_LABELS = {
+    CLINIC_LOCATION_MISMATCH: "Clinic Mismatch",
+    IMPOSSIBLE_TRAVEL_SPEED: "Impossible Travel Speed",
+    SAME_LOCATION_MULTIPLE_CLINICS: "Same Spot, Multiple Clinics",
+    IP_REGION_MISMATCH: "IP Region Mismatch",
+    SUSPICIOUS_ACCURACY: "Suspicious GPS Accuracy",
+  };
+
+  const SuspiciousBadge = ({ log }) => {
+    if (!log.isSuspicious) return null;
+    const reasons = (log.suspiciousReasons || [])
+      .map((r) => REASON_LABELS[r] || r)
+      .join(", ");
+    return (
+      <span
+        className="badge rounded-pill fw-semibold"
+        style={{ background: "#f06548", color: "#fff", fontSize: "10px" }}
+        title={reasons}
+      >
+        <i className="bx bx-shield-quarter me-1" />
+        Risk {log.riskScore}
+      </span>
+    );
+  };
+
   const GpsStatus = ({ matched }) =>
     matched ? (
       <span className="d-inline-flex align-items-center gap-1 text-success fw-medium fs-13">
@@ -383,20 +424,33 @@ const VisitLogList = () => {
           {/*Filters*/}
           <Card className="border-0 shadow-sm mb-3">
             <CardBody className="p-3 p-lg-4">
-              <div className="d-flex align-items-center justify-content-between mb-3">
+              <div className="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
                 <span className="fw-semibold text-dark fs-14">
                   <i className="bx bx-filter-alt me-1 text-muted" /> Filters
                 </span>
-                {hasActiveFilters && (
+                <div className="d-flex align-items-center gap-3">
                   <Button
                     size="sm"
-                    color="link"
-                    className="text-decoration-none p-0"
-                    onClick={resetFilters}
+                    color={showFlaggedOnly ? "danger" : "light"}
+                    className="d-flex align-items-center gap-1"
+                    onClick={toggleFlaggedOnly}
                   >
-                    Clear all
+                    <i className="bx bx-shield-quarter" />
+                    {showFlaggedOnly
+                      ? "Showing Flagged Only"
+                      : "Show Flagged Only"}
                   </Button>
-                )}
+                  {hasActiveFilters && (
+                    <Button
+                      size="sm"
+                      color="link"
+                      className="text-decoration-none p-0"
+                      onClick={resetFilters}
+                    >
+                      Clear all
+                    </Button>
+                  )}
+                </div>
               </div>
               <Row className="g-3 align-items-end">
                 <Col xs={12} md={3}>
@@ -609,6 +663,7 @@ const VisitLogList = () => {
                           <div className="fw-semibold fs-14 d-flex align-items-center gap-1 flex-wrap">
                             {log.agent?.name || "Unknown"}
                             <RepeatOffenderBadge count={agentMismatches} />
+                            <SuspiciousBadge log={log} />
                           </div>
                           <div
                             className="text-muted"
@@ -795,6 +850,7 @@ const VisitLogList = () => {
                                     <RepeatOffenderBadge
                                       count={agentMismatches}
                                     />
+                                    <SuspiciousBadge log={log} />
                                   </div>
                                   <div
                                     className="text-muted"
@@ -1029,7 +1085,10 @@ const VisitLogList = () => {
                   </div>
                 </div>
                 <div className="text-end">
-                  <GpsStatus matched={selectedLog.gps?.matchedClinic} />
+                  <div className="d-flex align-items-center gap-2 justify-content-end mb-1">
+                    <GpsStatus matched={selectedLog.gps?.matchedClinic} />
+                    <SuspiciousBadge log={selectedLog} />
+                  </div>
                   <div className="text-muted fs-12 mt-1">
                     <i className="bx bx-calendar me-1" />
                     {new Date(selectedLog.visitDate).toLocaleDateString(
