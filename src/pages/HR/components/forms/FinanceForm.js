@@ -152,6 +152,10 @@ const getFinanceInitialValues = (initialData) => ({
     initialData?.financeDetails?.paymentType === "PER_SESSION"
       ? initialData?.financeDetails?.totalCostToCompany || 0
       : annualFieldValue(initialData?.financeDetails, "totalCostToCompany"),
+  annualInsurance:
+    initialData?.financeDetails?.paymentType === "PER_SESSION"
+      ? initialData?.financeDetails?.insurance || 0
+      : annualFieldValue(initialData?.financeDetails, "insurance"),
 });
 
 const validationSchema = (isEdit, step, simplified, consultant) => {
@@ -183,6 +187,7 @@ const validationSchema = (isEdit, step, simplified, consultant) => {
         }
       ),
       annualCTC: buildNumberSchema("Annual CTC"),
+      annualInsurance: buildNumberSchema("Insurance"),
     });
   }
 
@@ -233,7 +238,6 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
   const isEdit = mode === "EDIT";
   const [step, setStep] = useState(isEdit ? 2 : 1);
   const [selectedEmployee, setSelectedEmployee] = useState(null);
-  const [inHandManual, setInHandManual] = useState(isEdit);
 
   const employeeForType = isEdit ? initialData?.employee : selectedEmployee?.raw;
   const simplified = isSimplifiedFinanceType(employeeForType?.employmentType);
@@ -257,6 +261,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
             paymentType: values.paymentType || "MONTHLY",
             inHandSalary: Number(values.annualInHandSalary) || 0,
             totalCostToCompany: Number(values.annualCTC) || 0,
+            insurance: Number(values.annualInsurance) || 0,
             salaryUnit: "ANNUAL",
           };
 
@@ -345,17 +350,20 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
       100
   );
 
+  // In Hand is always derived, never typed: CTC − TDS − Insurance. TDS only
+  // applies to consultants (consultantTdsAmount is 0 for every other simplified
+  // type), so this single formula covers both cases.
   useEffect(() => {
-    if (!consultant) return;
+    const insurance = Number(form.values.annualInsurance) || 0;
     const inHand = Math.max(
       0,
-      (Number(form.values.annualCTC) || 0) - consultantTdsAmount
+      (Number(form.values.annualCTC) || 0) - consultantTdsAmount - insurance
     );
     if (Number(form.values.annualInHandSalary) !== inHand) {
       form.setFieldValue("annualInHandSalary", inHand, false);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [consultant, form.values.annualCTC, form.values.TDSRate]);
+  }, [consultantTdsAmount, form.values.annualCTC, form.values.annualInsurance]);
 
   const payrollInitializedRef = useRef(false);
 
@@ -790,14 +798,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                 type="number"
                 min={0}
                 value={form.values.annualCTC}
-                onChange={(e) => {
-                  handleNumericFieldChange(e);
-                  // In Hand mirrors CTC until the user overrides it — except for
-                  // consultants, whose In Hand is driven by the TDS deduction.
-                  if (!inHandManual && !consultant) {
-                    form.setFieldValue("annualInHandSalary", e.target.value);
-                  }
-                }}
+                onChange={handleNumericFieldChange}
                 onBlur={form.handleBlur}
                 invalid={form.touched.annualCTC && !!form.errors.annualCTC}
               />
@@ -807,6 +808,34 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                   Monthly ≈ ₹
                   {Math.round(
                     (Number(form.values.annualCTC) || 0) / 12,
+                  ).toLocaleString("en-IN")}
+                </div>
+              )}
+            </Col>
+
+            {/* INSURANCE — all non-FTE types */}
+            <Col md={6}>
+              <Label htmlFor="annualInsurance">
+                Insurance {perSession ? "(Per Session)" : "(Yearly)"}
+              </Label>
+              <Input
+                id="annualInsurance"
+                name="annualInsurance"
+                type="number"
+                min={0}
+                value={form.values.annualInsurance}
+                onChange={handleNumericFieldChange}
+                onBlur={form.handleBlur}
+                invalid={
+                  form.touched.annualInsurance && !!form.errors.annualInsurance
+                }
+              />
+              {errorText("annualInsurance")}
+              {!perSession && (
+                <div className="text-muted small mt-1">
+                  Monthly ≈ ₹
+                  {Math.round(
+                    (Number(form.values.annualInsurance) || 0) / 12,
                   ).toLocaleString("en-IN")}
                 </div>
               )}
@@ -858,11 +887,8 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                 type="number"
                 min={0}
                 value={form.values.annualInHandSalary}
-                disabled={consultant}
-                onChange={(e) => {
-                  setInHandManual(true);
-                  handleNumericFieldChange(e);
-                }}
+                disabled
+                onChange={handleNumericFieldChange}
                 onBlur={form.handleBlur}
                 invalid={
                   form.touched.annualInHandSalary &&
@@ -870,7 +896,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                 }
               />
               {errorText("annualInHandSalary")}
-              {!perSession && (
+            {!perSession && (
                 <div className="text-muted small mt-1">
                   Monthly ≈ ₹
                   {Math.round(
@@ -878,17 +904,10 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                   ).toLocaleString("en-IN")}
                 </div>
               )}
-              {consultant ? (
-                <div className="text-muted small">
-                  Auto-calculated as Annual CTC − TDS.
-                </div>
-              ) : (
-                !inHandManual && (
-                  <div className="text-muted small">
-                    Auto-filled from Annual CTC — edit to override.
-                  </div>
-                )
-              )}
+              <div className="text-muted small">
+                Auto-calculated as Annual CTC{consultant ? " − TDS" : ""} −
+                Insurance.
+              </div>
             </Col>
 
             {/* PAYMENT TYPE */}
