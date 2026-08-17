@@ -1,6 +1,7 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import PropTypes from "prop-types";
 import { Form, Row, Col, Button } from "reactstrap";
+import { format } from "date-fns";
 
 // Formik Validation
 import * as Yup from "yup";
@@ -21,10 +22,28 @@ import {
   createEditChart,
   updateAdmissionType,
 } from "../../../store/actions";
+import {
+  admissionTypeLabel,
+  getAdmissionTypeDetailParts,
+  getLatestAdmissionTypeChart,
+} from "../../../utils/admissionType";
 
 // Every field that belongs to some branch. Anything not in the current branch is
 // cleared before saving.
 const ALL_BRANCH_FIELDS = Object.values(admissionTypeBranchFields).flat();
+
+// The form's own view of the descriptor. Two local overrides, deliberately NOT
+// pushed into the shared `admissionTypeFields` constant:
+//   - the admission-type label reads "Target Admission Type" here, because the
+//     form sits beside a panel showing the current one. The chart display and
+//     both print renderers keep saying "Admission Type".
+//   - fullWidth, because these fields now live in a half-width column and
+//     RenderFields would otherwise put each at lg={6} of that half.
+const FORM_FIELDS = admissionTypeFields.map((field) =>
+  field.name === "admissionType"
+    ? { ...field, label: "Target Admission Type", fullWidth: true }
+    : { ...field, fullWidth: true },
+);
 
 const validationSchema = Yup.object({
   admissionType: Yup.string().required("Admission type is required"),
@@ -57,10 +76,37 @@ const AdmissionType = ({
   editChartData,
   shouldPrintAfterSave = false,
   type,
+  addmissionsCharts,
 }) => {
   const dispatch = useDispatch();
 
   const editChart = editChartData?.admissionType;
+
+  // The admission type as it stands today — the most recent Admission Type chart
+  // on this admission. Matched by admission id rather than by index: state.Chart.data
+  // is a shared slice holding admissions for every patient visited this session.
+  const currentAdmissionType = useMemo(() => {
+    const admissionId = patient?.addmission?._id;
+    if (!admissionId) return null;
+
+    const charts =
+      (addmissionsCharts || []).find((a) => a._id === admissionId)?.charts || [];
+
+    // While editing, the chart being edited is the thing being changed — showing
+    // it as "current" would be circular, so compare against the one before it.
+    const pool = editChartData
+      ? charts.filter((c) => c?._id !== editChartData._id)
+      : charts;
+
+    const latest = getLatestAdmissionTypeChart(pool);
+    if (!latest?.admissionType) return null;
+
+    return {
+      data: latest.admissionType,
+      date: latest.date || latest.createdAt || null,
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [addmissionsCharts, patient?.addmission?._id, editChartData?._id]);
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -147,9 +193,62 @@ const AdmissionType = ({
         className="needs-validation"
         action="#"
       >
-        <div className="mt-3">
-          <RenderFields fields={admissionTypeFields} validation={validation} />
-        </div>
+        <Row className="mt-3">
+          {/* LEFT — where the patient stands today. Read-only. */}
+          <Col xs={12} lg={6} className="mb-3 mb-lg-0">
+            <div
+              className="border rounded p-3 h-100"
+              style={{ backgroundColor: "#fafbfc" }}
+            >
+              <div
+                className="text-muted text-uppercase fw-semibold mb-2"
+                style={{ fontSize: "0.65rem", letterSpacing: "0.5px" }}
+              >
+                Current Admission Type
+              </div>
+
+              {currentAdmissionType ? (
+                <React.Fragment>
+                  <div className="fw-semibold">
+                    {admissionTypeLabel(
+                      "admissionType",
+                      currentAdmissionType.data.admissionType,
+                    )}
+                  </div>
+
+                  {getAdmissionTypeDetailParts(currentAdmissionType.data)
+                    .length > 0 && (
+                    <div
+                      className="text-muted mt-1"
+                      style={{ fontSize: "0.8rem" }}
+                    >
+                      {getAdmissionTypeDetailParts(
+                        currentAdmissionType.data,
+                      ).join(" · ")}
+                    </div>
+                  )}
+
+                  {currentAdmissionType.date && (
+                    <div
+                      className="text-muted mt-2"
+                      style={{ fontSize: "0.7rem" }}
+                    >
+                      Recorded{" "}
+                      {format(new Date(currentAdmissionType.date), "dd MMM yyyy")}
+                    </div>
+                  )}
+                </React.Fragment>
+              ) : (
+                <div className="fw-semibold text-muted">Nil</div>
+              )}
+            </div>
+          </Col>
+
+          {/* RIGHT — what it should become. */}
+          <Col xs={12} lg={6}>
+            <RenderFields fields={FORM_FIELDS} validation={validation} />
+          </Col>
+        </Row>
 
         <Row>
           <Col xs={12} className="mt-3">
@@ -177,6 +276,9 @@ AdmissionType.propTypes = {
   chartDate: PropTypes.any,
   editChartData: PropTypes.object,
   type: PropTypes.string,
+  // Raw state.Chart.data — admissions for every patient visited this session.
+  // Scoped to the current admission inside the component.
+  addmissionsCharts: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
@@ -185,6 +287,7 @@ const mapStateToProps = (state) => ({
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm?.data,
   shouldPrintAfterSave: state.Chart.chartForm.shouldPrintAfterSave,
+  addmissionsCharts: state.Chart.data,
 });
 
 export default connect(mapStateToProps)(AdmissionType);
