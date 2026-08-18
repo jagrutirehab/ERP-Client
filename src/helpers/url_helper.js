@@ -549,9 +549,12 @@ export const GET_TRAINING_FORMS_MONTHLY =
 export const GET_AUDIT_DAILY = "/mi-reporting/audit-daily";
 export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
 export const GET_OPD_CHARGES_MONTHLY = "/mi-reporting/opd-charges-monthly";
-export const GET_DOCTOR_OPD_CHARGES_MONTHLY = "/mi-reporting/doctor-opd-charges-monthly";
-export const GET_CENTRAL_EXPENSES_MONTHLY = "/mi-reporting/central-expenses-monthly";
-export const GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE = "/mi-reporting/doctor-psychologist-stay-range";
+export const GET_DOCTOR_OPD_CHARGES_MONTHLY =
+  "/mi-reporting/doctor-opd-charges-monthly";
+export const GET_CENTRAL_EXPENSES_MONTHLY =
+  "/mi-reporting/central-expenses-monthly";
+export const GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE =
+  "/mi-reporting/doctor-psychologist-stay-range";
 export const GET_NURSES_DAILY_ACTIVITY = "/mi-reporting/nurses-daily-activity";
 export const GET_OCCUPANCY_MONTHLY = "/mi-reporting/occupancy-monthly";
 export const GET_ADMISSION_DISCHARGE_DAILY =
@@ -560,6 +563,9 @@ export const GET_ADMISSION_DISCHARGE_DAILY =
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
 export const EMPLOYEE = "/hr/employee";
+export const EMPLOYEE_BIOMETRIC = "/hr/employee/bio-metric";
+export const UPDATE_EMPLOYEE_BIOMETRIC = "/hr/employee/update/bio-metric";
+export const UPDATE_EMPLOYEE_EXIT_BIOMETRIC = "/hr/exit/biometric/action";
 export const EMPLOYEE_DETAILS = "/hr/employee/details";
 export const EMPLOYEE_EMAILS = "/hr/employee/emails";
 export const EMPLOYEE_BY_KEY = "/hr/employee/by-key";
@@ -574,6 +580,8 @@ export const IT_TRANSFER_ACTION = "/hr/it/transfer";
 export const EXIT_EMPLOYEE = "/hr/exit";
 
 export const EXIT_EMPLOYEE_EXIT_ACTION = "/hr/exit/exit-action";
+export const EXIT_EMPLOYEE_BIOMETRIC_REQUESTS =
+  "/hr/exit/exit-request/biometric";
 export const EXIT_EMPLOYEE_FNF_ACTION = "/hr/exit/fnf-action";
 
 export const SEARCH_EXIT_EMPLOYEE = "/hr/exit/search";
@@ -879,3 +887,10 @@ export const CENTER_FLOOR_PHOTOS = "/center-floor/photos";
 export const CENTER_FLOOR_PHOTO_UPLOAD = "/center-floor/photos/upload";
 export const CENTER_FLOOR_PHOTOS_ALL = "/center-floor/photos/all";
 export const CENTER_FLOOR_AUDITS = "/center-floor/audits";
+
+export const ADD_BIOMETRIC_ADDITION_REQUEST = "/hr/biometric/addition";
+export const GET_BIOMETRIC_ADDITION_REQUESTS = "/hr/biometric/requests/get";
+export const GET_USERS_BY_ROLE = "/hr/biometric/get/usersbyrole";
+export const ACTION_ON_BIOMETRIC_ADDITION_REQUEST = "/hr/biometric/action";
+export const GET_MY_ASSIGNED_BIOMETRICS = "/hr/biometric/get/my/assigns";
+export const UPDATE_ASSIGNEE_STATUS = "/hr/biometric/update/assignee/status";

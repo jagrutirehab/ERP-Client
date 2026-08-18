@@ -92,6 +92,7 @@ export const SIMPLIFIED_FINANCE_TYPES = [
     "INTERN",
     "APPRENTICE",
     "CONSULTANT_SESSION",
+    "VENDOR",
 ];
 
 export const isSimplifiedFinanceType = (type) =>

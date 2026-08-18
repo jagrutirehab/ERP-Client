@@ -69,6 +69,11 @@ import UploadForm from "./employeeForms/UploadForm";
 import Forms from "./employeeForms/Forms";
 import MyForms from "./employeeForms/MyForms";
 import EmployeeDocuments from "./Dashboard/EmployeeDocuments";
+import Biometric from "./NewJoining/Biometric";
+import BiometricApprovals from "./ExitEmployees/BiometricApprovals";
+import BiometricAdditionForm from "./BiometricAdditions/BiometricAdditionForm";
+import AllBiometricRequests from "./BiometricAdditions/AllBiometricRequests";
+import MyBiometrics from "./BiometricAdditions/MyBiometrics";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -115,6 +120,10 @@ const HR = () => {
                   path={`/new-joinings/approval`}
                   element={<NewJoiningApprovals />}
                 />
+                <Route
+                  path={`/new-joinings/biometric/approval`}
+                  element={<Biometric />}
+                />
                 <Route path={`/new-joinings/it`} element={<NewJoiningIT />} />
                 <Route
                   path={`/exit-employees/add`}
@@ -123,6 +132,10 @@ const HR = () => {
                 <Route
                   path={`/exit-employees/approval`}
                   element={<ExitApprovals />}
+                />
+                <Route
+                  path={`/exit-employees/biometric/approval`}
+                  element={<BiometricApprovals />}
                 />
                 <Route path={`/exit-employees/fnf`} element={<FNFApproval />} />
                 <Route
@@ -303,6 +316,18 @@ const HR = () => {
                 <Route
                   path={`/employee/docs`}
                   element={<EmployeeDocuments />}
+                />
+                <Route
+                  path="/biometric/add"
+                  element={<BiometricAdditionForm />}
+                />
+                <Route
+                  path="/biometric/addition/requests"
+                  element={<AllBiometricRequests />}
+                />
+                <Route
+                  path="/biometric/my/requests"
+                  element={<MyBiometrics />}
                 />
               </Routes>
             </div>

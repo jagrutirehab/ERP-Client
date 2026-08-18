@@ -265,6 +265,7 @@ export const permissionList = [
       // new joining
       { name: "NEW_JOINING_ADD_REQUEST", label: "New Joinings Add Request" },
       { name: "NEW_JOINING_APPROVAL", label: "New Joinings Approval" },
+      { name: "NEW_JOINING_BIOMETRIC", label: "Biometric Approvals" },
       { name: "NEW_JOINING_IT", label: "New Joinings IT" },
       // exit employee
       {
@@ -272,6 +273,7 @@ export const permissionList = [
         label: "Exit Employees Add Request",
       },
       { name: "EXIT_EMPLOYEE_APPROVAL", label: "Exit Employees Approval" },
+      { name: "EXIT_BIOMETRIC_APPROVAL", label: "Exit Biometric Approval" },
       { name: "EXIT_EMPLOYEE_FNF", label: "Exit Employees FNF" },
       { name: "EXIT_EMPLOYEE_IT", label: "Exit Employees IT" },
       // salary advance
@@ -314,6 +316,18 @@ export const permissionList = [
         name: "MY_HIRING_STATUS",
         label: "My Hiring Status",
       },
+      {
+        name: "BIOMETRIC_ADDITION_REQUEST",
+        label: "Add Biometric Addition Request",
+      },
+      {
+        name: "GET_BIOMETRIC_ADDITION_REQUESTS",
+        label: "Get Biometric Addition Requests",
+      },
+      // {
+      //   name: "GET_MY_BIOMETRIC_REQUESTS",
+      //   label: "Get My Biometric Requests",
+      // },
       // TPM-Third Party Manpower
       {
         name: "THIRD_PARTY_MANPOWER_ADD_REQUEST",
@@ -506,12 +520,18 @@ export const permissionList = [
       { name: "ITEM_TYPE_VIEW", label: "View Item Types" },
       { name: "ITEM_TYPE_CREATE", label: "Create Item Type" },
       { name: "ITEM_TYPE_EDIT", label: "Edit Item Type" },
-      { name: "ITEM_TYPE_STATUS_CHANGE", label: "Activate/Deactivate Item Type" },
+      {
+        name: "ITEM_TYPE_STATUS_CHANGE",
+        label: "Activate/Deactivate Item Type",
+      },
 
       { name: "ITEM_CATEGORY_VIEW", label: "View Item Categories" },
       { name: "ITEM_CATEGORY_CREATE", label: "Create Item Category" },
       { name: "ITEM_CATEGORY_EDIT", label: "Edit Item Category" },
-      { name: "ITEM_CATEGORY_STATUS_CHANGE", label: "Activate/Deactivate Item Category" },
+      {
+        name: "ITEM_CATEGORY_STATUS_CHANGE",
+        label: "Activate/Deactivate Item Category",
+      },
     ],
   },
 ];

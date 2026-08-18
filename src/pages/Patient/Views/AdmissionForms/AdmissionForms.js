@@ -27,7 +27,7 @@ import {
   Spinner,
   UncontrolledTooltip,
 } from "reactstrap";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import AdmissionformModal from "../../Modals/Admissionform.modal";
 import { connect, useDispatch, useSelector } from "react-redux";
 import PropTypes from "prop-types";
@@ -38,6 +38,7 @@ import { toast } from "react-toastify";
 import {
   createEditChart,
   fetchCharts,
+  fetchChartsAddmissions,
   fetchPatientById,
 } from "../../../../store/actions";
 import AddmissionCard from "../Components/AddmissionCard";
@@ -49,13 +50,33 @@ import ConsentformModal from "../../Modals/Consentform.modal";
 import UndertakingDischargeForm from "./UndertakingDischargeForm";
 import AudioVideoConsentForm from "./AudioVideoConsentForm";
 import { uploadECTConsentSignedCopy } from "../../../../helpers/backend_helper";
+import {
+  admissionBelongsToPatient,
+  scopeAdmissionsToPatient,
+} from "../../../../utils/admissions";
 // import { Document, Page, pdfjs } from "react-pdf";
 // import pdfWorker from "pdfjs-dist/build/pdf.worker.min.js";
 // pdfjs.GlobalWorkerOptions.workerSrc = pdfWorker;
 
-const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
+const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   const dispatch = useDispatch();
   const formType = useSelector((state) => state.Chart?.chartForm?.chart);
+
+  // `state.Chart.data` can hold admissions belonging to any patient visited this
+  // session, so scope every read to the patient actually on screen rather than
+  // trusting whatever fetch resolved last. See src/utils/admissions.js.
+  const addmissionsKey = patient?.addmissions?.join(",") ?? "";
+  const scopedAddmissions = useMemo(
+    () => scopeAdmissionsToPatient(allAddmissions, patient),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [allAddmissions, addmissionsKey],
+  );
+
+  // Both names are used throughout this file and both mean "this patient's
+  // admissions" — aliasing them here keeps the scoping in one place.
+  const admissions = scopedAddmissions;
+  const addmissionsCharts = scopedAddmissions;
+
   const [openform, setOpenform] = useState(false);
   const [dateModal, setDateModal] = useState(false);
   const [dateModal2, setDateModal2] = useState(false);
@@ -118,46 +139,94 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     }
   };
 
+  // This tab never fetched its own admissions — it relied on the Charting tab's
+  // IPD.js having populated state.Chart.data first (IPD is imported above but
+  // never rendered here). Since Main.js clears that slice on every patient
+  // switch, landing on Forms without visiting Charting left the list empty.
+  // Fetching here makes the tab self-sufficient, the way Main.js already does
+  // for Billing.
   useEffect(() => {
-    if (
-      addmissionsCharts.length &&
-      !addmissionsCharts.find((ch) => ch._id === addmissionId)
-    ) {
+    if (!patient?.addmissions?.length) return;
+    dispatch(fetchChartsAddmissions(patient.addmissions));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, patient?._id, addmissionsKey]);
+
+  // Keep the selected admission pointed at one of THIS patient's admissions.
+  // The old version was guarded on `addmissionsCharts.length`, so whenever the
+  // list was empty — patient just switched, or an OPD patient with no
+  // admissions — addmissionId silently kept its previous value. Every submit
+  // handler below interpolates it into a PATCH/POST URL, so clearing it is the
+  // important half of this effect, not the reselection.
+  useEffect(() => {
+    if (!addmissionsCharts.length) {
+      setOpen(null);
+      setAddmissionId(undefined);
+      return;
+    }
+    if (!addmissionsCharts.find((ch) => ch._id === addmissionId)) {
       setOpen("0");
       setAddmissionId(addmissionsCharts[0]?._id);
     }
-
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [patient, addmissionsCharts]);
+  }, [patient?._id, addmissionsCharts]);
 
   useEffect(() => {
-    if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
-      dispatch(fetchCharts(addmissionId))
-        .unwrap()
-        .then((charts) => {
-          // filter charts that contain detailAdmission
-          const detailAdmissionCharts =
-            charts.payload?.filter((c) => c.detailAdmission) || [];
-
-          if (detailAdmissionCharts.length > 0) {
-            // sort by createdAt or date to get the latest
-            const latest = detailAdmissionCharts.sort(
-              (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
-            )[0];
-            setChartData(latest);
-          } else {
-            setChartData(null); // or []
-          }
-        })
-        .catch((err) => {
-          console.error("Error fetching charts:", err);
-          setChartData(null);
-        });
+    // chartData is the latest detailAdmission chart and pre-fills the printable
+    // forms further down. It is local state, so without the early clear here it
+    // survived a patient switch and pre-filled the new patient's forms with the
+    // previous patient's details.
+    if (!admissionBelongsToPatient(addmissionId, patient)) {
+      setChartData(null);
+      return;
     }
-  }, [dispatch, patient, addmissionId]);
+
+    // Guards against a slow response for a previous admission landing after the
+    // selection has already moved on.
+    let cancelled = false;
+
+    dispatch(fetchCharts(addmissionId))
+      .unwrap()
+      .then((charts) => {
+        if (cancelled) return;
+        // filter charts that contain detailAdmission
+        const detailAdmissionCharts =
+          charts.payload?.filter((c) => c.detailAdmission) || [];
+
+        if (detailAdmissionCharts.length > 0) {
+          // sort by createdAt or date to get the latest
+          const latest = detailAdmissionCharts.sort(
+            (a, b) => new Date(b.createdAt) - new Date(a.createdAt),
+          )[0];
+          setChartData(latest);
+        } else {
+          setChartData(null); // or []
+        }
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        console.error("Error fetching charts:", err);
+        setChartData(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dispatch, patient?._id, addmissionId]);
 
   const { register, handleSubmit, setValue, reset, watch } = useForm();
 
+  // Belt and braces for the write paths. The scoping above should already make a
+  // foreign addmissionId unreachable, but every handler below PATCHes a patient
+  // record, and targeting the wrong admission would put one patient's signed
+  // form on another patient's file. Cheap to check, so they all check.
+  const resolveTargetAddmission = () => {
+    if (admissionBelongsToPatient(addmissionId, patient)) return addmissionId;
+    toast.error(
+      "Could not tell which admission this form belongs to. Please reopen the patient and try again.",
+    );
+    return null;
+  };
 
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGenerating2, setIsGenerating2] = useState(false);
@@ -293,6 +362,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   }, [dispatch, patient._id]);
 
   const onSubmitAdmission = async (data) => {
+    const targetId = resolveTargetAddmission();
+    if (!targetId) return;
     setIsGenerating2(true);
     try {
       const pdf = new jsPDF("p", "pt", "a4");
@@ -321,7 +392,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       if (admissiontype === "EMERGENCY_ADMISSION" && emergencyRestraint)
         formData.append("emergencyRestraint", emergencyRestraint);
 
-      await axios.patch(`/patient/admission-submit/${addmissionId}`, formData, {
+      await axios.patch(`/patient/admission-submit/${targetId}`, formData, {
         headers: {
           "Content-Type": "multipart/form-data",
         },
@@ -368,6 +439,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
+    const targetId = resolveTargetAddmission();
+    if (!targetId) return;
     setIsGenerating2(true);
     if (!file) return;
 
@@ -380,7 +453,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     try {
       const formData = new FormData();
       formData.append("addmissionformURL", file);
-      formData.append("id", addmissionId);
+      formData.append("id", targetId);
       await axios.patch("/patient/admission-submit-file", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -396,6 +469,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
   const handleFileChangeConsent = async (e) => {
     const file = e.target.files[0];
+    const targetId = resolveTargetAddmission();
+    if (!targetId) return;
     setIsGenerating2(true);
     if (!file) return;
 
@@ -408,7 +483,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     try {
       const formData = new FormData();
       formData.append("consentformURL", file);
-      formData.append("id", addmissionId);
+      formData.append("id", targetId);
       await axios.patch("/patient/consent-submit", formData, {
         headers: {
           "Content-Type": "multipart/form-data",
@@ -423,6 +498,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   };
 
   const onSubmitConsent = async (data) => {
+    const targetId = resolveTargetAddmission();
+    if (!targetId) return;
     setIsGenerating2(true);
     try {
       const pdf = new jsPDF("p", "pt", "a4");
@@ -452,7 +529,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
         formData.append("refundableDeposit", details.advDeposit);
 
       await axios.patch(
-        `/patient/consent-submit-file/${addmissionId}`,
+        `/patient/consent-submit-file/${targetId}`,
         formData,
         {
           headers: {
@@ -483,6 +560,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
   const handleFileChangeDishcharge = async (e) => {
     const file = e.target.files[0];
+    const targetId = resolveTargetAddmission();
+    if (!targetId) return;
     setIsGenerating2(true);
     if (!file) return;
     if (file.type !== "application/pdf") {
@@ -493,7 +572,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     try {
       const formData = new FormData();
       formData.append("dischargeFormURL", file);
-      formData.append("id", addmissionId);
+      formData.append("id", targetId);
       await axios.patch("/patient/discharge-submit", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -507,6 +586,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
   const handleFileChangeundertakingDishcharge = async (e) => {
     const file = e.target.files[0];
+    const targetId = resolveTargetAddmission();
+    if (!targetId) return;
     setIsGenerating2(true);
     if (!file) return;
     if (file.type !== "application/pdf") {
@@ -517,7 +598,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     try {
       const formData = new FormData();
       formData.append("undertakingdischargeFormURL", file);
-      formData.append("id", addmissionId);
+      formData.append("id", targetId);
       await axios.patch("/patient/undertaking-submit", formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
@@ -530,6 +611,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
   };
 
   const onSubmitDischarge = async (data) => {
+    const targetId = resolveTargetAddmission();
+    if (!targetId) return;
     setIsGenerating2(true);
 
     try {
@@ -572,8 +655,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
       // ---------------------------
       const apiUrl =
         admissiontype === "DISCHARGE_UNDERTAKING"
-          ? `/patient/undertaking-discharge-submit-file/${addmissionId}`
-          : `/patient/discharge-submit-file/${addmissionId}`;
+          ? `/patient/undertaking-discharge-submit-file/${targetId}`
+          : `/patient/discharge-submit-file/${targetId}`;
 
       await axios.patch(apiUrl, formData, {
         headers: { "Content-Type": "multipart/form-data" },
@@ -646,6 +729,8 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
   const handleFileChangeCapacityAssessment = async (e) => {
     const file = e.target.files[0];
+    const targetId = resolveTargetAddmission();
+    if (!targetId) return;
     setIsGenerating2(true);
 
     if (!file) return;
@@ -659,7 +744,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     try {
       const formData = new FormData();
       formData.append("capacityAssessmentFormURL", file);
-      formData.append("id", addmissionId);
+      formData.append("id", targetId);
 
       await axios.patch("/patient/capacity-assessment-upload-file", formData, {
         headers: {
@@ -681,6 +766,11 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
   const handleFileChangeECTConsent = async (e) => {
     const file = e.target.files[0];
+    const targetId = resolveTargetAddmission();
+    if (!targetId) {
+      e.target.value = "";
+      return;
+    }
     setIsGenerating2(true);
 
     if (!file) {
@@ -697,7 +787,7 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
     try {
       const formData = new FormData();
       formData.append("ectConsentFormURL", file);
-      formData.append("id", addmissionId);
+      formData.append("id", targetId);
 
       await uploadECTConsentSignedCopy(formData);
 
@@ -1898,13 +1988,15 @@ const AddmissionForms = ({ patient, admissions, addmissionsCharts }) => {
 
 AddmissionForms.propTypes = {
   patient: PropTypes.object,
-  addmissionsCharts: PropTypes.array,
+  // Raw state.Chart.data — every admission fetched this session, for any
+  // patient. Scoped to the current patient inside the component; do not read
+  // this prop directly.
+  admissions: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
   chartDate: state.Chart.chartDate,
   patient: state.Patient.patient,
-  addmissionsCharts: state.Chart.data,
   doctors: state.User?.doctor,
   psychologists: state.User?.counsellors,
   admissions: state.Chart.data,

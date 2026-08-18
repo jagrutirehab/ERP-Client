@@ -6,6 +6,7 @@ import "flatpickr/dist/themes/material_green.css";
 import { useDispatch, connect } from "react-redux";
 import { Button, Input, Label } from "reactstrap";
 import { setChartDate } from "../../../store/actions";
+import { getLatestAdmission } from "../../../utils/admissions";
 
 const DischargeFormModal = ({
   isOpen,
@@ -22,6 +23,11 @@ const DischargeFormModal = ({
   setOpenform3,
 }) => {
   const dispatch = useDispatch();
+
+  // `admissions` is the raw, session-wide state.Chart.data — reading [0] off it
+  // printed whichever patient's admission happened to be first, which after a
+  // patient switch could be the previous patient's. See utils/admissions.js.
+  const currentAdmission = getLatestAdmission(admissions, patient);
 
   useEffect(() => {
     if (!chartDate) {
@@ -93,7 +99,7 @@ const DischargeFormModal = ({
           <div className="mt-3">
             <p className="text-muted mb-0">Doctor Name:</p>
             <p className="text-primary ms-3 mb-0 font-semi-bold fs-6">
-              {(admissions[0]?.doctor?.name || "Doctor Name").toUpperCase()}
+              {(currentAdmission?.doctor?.name || "Doctor Name").toUpperCase()}
             </p>
           </div>
 
@@ -101,7 +107,7 @@ const DischargeFormModal = ({
             <p className="text-muted mb-0">Psychologist Name:</p>
             <p className="text-primary ms-3 mb-0 font-semi-bold fs-6">
               {(
-                admissions[0]?.psychologist?.name || "Psychologist Name"
+                currentAdmission?.psychologist?.name || "Psychologist Name"
               ).toUpperCase()}
             </p>
           </div>

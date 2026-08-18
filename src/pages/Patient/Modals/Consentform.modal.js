@@ -6,6 +6,7 @@ import "flatpickr/dist/themes/material_green.css";
 import { useDispatch, connect } from "react-redux";
 import { Button, Input, Label } from "reactstrap";
 import { setChartDate } from "../../../store/actions";
+import { getLatestAdmission } from "../../../utils/admissions";
 import Select from "react-select";
 import { toast } from "react-toastify";
 
@@ -21,6 +22,11 @@ const ConsentFormModal = ({
   invoiceProcedures,
 }) => {
   const dispatch = useDispatch();
+
+  // `admissions` is the raw, session-wide state.Chart.data — reading [0] off it
+  // printed whichever patient's admission happened to be first, which after a
+  // patient switch could be the previous patient's. See utils/admissions.js.
+  const currentAdmission = getLatestAdmission(admissions, patient);
 
   useEffect(() => {
     if (!chartDate) {
@@ -99,7 +105,7 @@ const ConsentFormModal = ({
             <p className="text-muted mb-0">
               Doctor:{" "}
               <span className="text-primary font-semi-bold fs-6 ms-1">
-                {(admissions[0]?.doctor?.name || "Doctor Name").toUpperCase()}
+                {(currentAdmission?.doctor?.name || "Doctor Name").toUpperCase()}
               </span>
             </p>
 
@@ -107,7 +113,7 @@ const ConsentFormModal = ({
               Psychologist:{" "}
               <span className="text-primary font-semi-bold fs-6 ms-1">
                 {(
-                  admissions[0]?.psychologist?.name || "Psychologist Name"
+                  currentAdmission?.psychologist?.name || "Psychologist Name"
                 ).toUpperCase()}
               </span>
             </p>

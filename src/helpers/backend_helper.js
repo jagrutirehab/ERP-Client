@@ -2597,6 +2597,53 @@ export const getEmployees = (params = {}) => {
   });
 };
 
+export const getBiometricEmployeesData = (params = {}) => {
+  return axios.get(url.EMPLOYEE_BIOMETRIC, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getBiometricExitEmployeesData = (params = {}) => {
+  return axios.get(url.EXIT_EMPLOYEE_BIOMETRIC_REQUESTS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+export const updateBiometricStatus = (doc_id, data) =>
+  axios.patch(url.UPDATE_EMPLOYEE_BIOMETRIC, null, {
+    params: {
+      doc_id,
+      status: data.status,
+      ...(data.reason && { reason: data.reason }),
+    },
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+
+export const updateExitBiometricStatus = (doc_id, data) =>
+  axios.patch(url.UPDATE_EMPLOYEE_EXIT_BIOMETRIC, null, {
+    params: {
+      doc_id,
+      status: data.status,
+      ...(data.reason && { reason: data.reason }),
+    },
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+
 export const exportEmployeesXLSX = (params = {}) => {
   return api.get(url.EMPLOYEE, {
     params: { ...params, isExcel: true },
@@ -4451,6 +4498,12 @@ export const exportDoctorDirectory = (params = {}) =>
     headers: { "X-No-Cookie-Token": "true" },
   });
 
+export const getFlaggedVisits = (params = {}) =>
+  axios.get(`${url.GET_VISIT_LOGS}/flagged`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 // master data
 export const getVendors = (params = {}) => {
   return axios.get(url.GET_VENDORS, {
@@ -4845,4 +4898,62 @@ export const getCenterAuditTimeline = (params) => {
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
-};  
+};
+
+export const addBiometricAdditionRequest = (data) =>
+  axios.post(url.ADD_BIOMETRIC_ADDITION_REQUEST, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const getBiometricAdditionRequestsData = (params = {}) =>
+  axios.get(url.GET_BIOMETRIC_ADDITION_REQUESTS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+
+export const getUsersByRole = () =>
+  axios.get(url.GET_USERS_BY_ROLE, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
+export const actionOnBiometricAdditionRequest = (params = {}) =>
+  axios.patch(url.ACTION_ON_BIOMETRIC_ADDITION_REQUEST, null, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+
+export const getMyAssignedBiometricsData = (params = {}) =>
+  axios.get(url.GET_MY_ASSIGNED_BIOMETRICS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+
+export const updateAssigneeStatusData = (params = {}) =>
+  axios.patch(url.UPDATE_ASSIGNEE_STATUS, null, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });

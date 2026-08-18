@@ -119,7 +119,7 @@ function calculatePT(grossSalary, state, gender) {
             return grossSalary >= 25000 ? 200 : 0;
 
         case "Maharashtra":
-            if (gender === "FEMALE" && grossSalary >= 25000) return 0;
+            if (gender === "FEMALE" && grossSalary <= 25000) return 0;
             if (grossSalary <= 7500) return 0;
             if (grossSalary <= 10000) return 175;
             return 200;
