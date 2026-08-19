@@ -1094,16 +1094,15 @@ const EmployeeForm = ({
     </div>
   );
 
-  // Tamil Nadu PT is half-yearly, so calculatePayroll supplies the exact annual
-  // (slab × 2) via PTAnnual; other states are simply monthly PT × 12.
+  // Professional Tax uses flat state-wise slabs, so the yearly total is monthly
+  // PT × 12 for every state — calculatePayroll supplies this via PTAnnual.
   const ptMonthly = Math.round(Number(values.PT) || 0);
   const ptYearly =
     values.PTAnnual !== undefined
       ? Math.round(Number(values.PTAnnual) || 0)
       : ptMonthly * 12;
 
-  // annual deductions swap the monthly PT × 12 for the exact
-  // PT annual (matters for Tamil Nadu's half-yearly PT).
+  // annual deductions swap the monthly PT × 12 for the exact PT annual.
   // These start as the naive rollups; the LWF correction below (once lwfState is
   // resolved) swaps the monthly-LWF × 12 for the true yearly LWF.
   let deductionsYearly =
@@ -1299,7 +1298,9 @@ const EmployeeForm = ({
     const payroll = calculatePayroll({
       ...values,
       ...annualToMonthly(values),
-      pfApplicable: values.newEmploymentType === "FULL_TIME",
+      pfApplicable:
+        values.newEmploymentType === "FULL_TIME" &&
+        values.category !== "FORM11",
       currentLocation: selectedCenter
         ? { title: selectedCenter.title, address: selectedCenter.address }
         : null,
@@ -1319,6 +1320,7 @@ const EmployeeForm = ({
     values.basicAmount,
     values.HRAAmount,
     values.newEmploymentType,
+    values.category,
     values.gender,
     values.joinningDate,
     values.ESICSalary,

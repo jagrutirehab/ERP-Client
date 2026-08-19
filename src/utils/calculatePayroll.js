@@ -169,8 +169,16 @@ export const calculatePayroll = (values) => {
     let PFEmployer = 0;
     let PFSalary = 0;
 
+    // rule till 17.08.2026 (included conveyance allowance in the PF wage base)
+    // if (values.pfApplicable) {
+    //     PFSalary = Math.min(basic + spl + conveyance, PF_WAGE_CAP);
+    //     PFEmployee = Math.round(PFSalary * 0.12);
+    //     PFEmployer = Math.round(PFSalary * 0.13);
+    // }
+
+    // new rule from 18.08.2026 — conveyance allowance excluded from PF wage base
     if (values.pfApplicable) {
-        PFSalary = Math.min(basic + spl + conveyance, PF_WAGE_CAP);
+        PFSalary = Math.min(basic + spl, PF_WAGE_CAP);
         PFEmployee = Math.round(PFSalary * 0.12);
         PFEmployer = Math.round(PFSalary * 0.13);
     }
@@ -208,16 +216,21 @@ export const calculatePayroll = (values) => {
     //     }
     // }
 
-    // new rule
+    // rule till 17.08.2026 (Tamil Nadu slab-based, halved into a monthly figure)
     const ptState = currentLocation.title === "Head-Office"
         ? "Maharashtra"
         : (detectState(currentLocation.address) || "");
 
     const gender = values.gender?.toUpperCase();
-    const rawPT = calculatePT(gross, ptState, gender);
+    // const rawPT = calculatePT(gross, ptState, gender);
     const isTamilNaduPT = ptState.trim() === "Tamil Nadu";
-    PT = isTamilNaduPT ? Math.round(rawPT / 6) : rawPT;
-    const PTAnnual = isTamilNaduPT ? rawPT * 2 : PT * 12;
+    // PT = isTamilNaduPT ? Math.round(rawPT / 6) : rawPT;
+    // const PTAnnual = isTamilNaduPT ? rawPT * 2 : PT * 12;
+
+    // new rule from 18.08.2026 — Tamil Nadu: flat ₹208/month PT (₹2,496/year)
+    // instead of the gross-salary slab; other states unchanged.
+    PT = isTamilNaduPT ? 208 : calculatePT(gross, ptState, gender);
+    const PTAnnual = PT * 12;
 
     // ----- TDS -----
     let TDSAmount = 0;
