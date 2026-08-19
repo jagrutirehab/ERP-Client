@@ -376,7 +376,10 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
       gender: employeeData?.gender || "",
       joinningDate: employeeData?.joinningDate || "",
       currentLocation:
-        employeeData?.center || employeeData?.currentLocation || null,
+        employeeData?.costCenter ||
+        employeeData?.center ||
+        employeeData?.currentLocation ||
+        null,
     });
 
     const isFirstRunInEdit = isEdit && !payrollInitializedRef.current;
@@ -428,7 +431,12 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
   // never entered by hand. The yearly figure is the TRUE annual (sum of the
   // applicable months), not a monthly amount × 12.
   const lwfState = useMemo(
-    () => resolveLWFState(employeeData?.center || employeeData?.currentLocation),
+    () =>
+      resolveLWFState(
+        employeeData?.costCenter ||
+          employeeData?.center ||
+          employeeData?.currentLocation
+      ),
     [employeeData]
   );
 
@@ -607,6 +615,10 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
                     {selectedEmployee.raw?.currentLocation || "-"}
                   </Col>
                   <Col md={4}>
+                    <strong>Cost Center:</strong>{" "}
+                    {selectedEmployee.raw?.costCenter?.title || "-"}
+                  </Col>
+                  <Col md={4}>
                     <strong>PF Applicable:</strong>{" "}
                     {selectedEmployee.raw?.pfApplicable ? "Yes" : "No"}
                   </Col>
@@ -686,6 +698,14 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
               <strong>Employee:</strong> {selectedEmployee?.label}
             </Col>
             <Col md={4}>
+              <strong>Current Location:</strong>{" "}
+              {selectedEmployee?.raw?.currentLocation || "-"}
+            </Col>
+            <Col md={4}>
+              <strong>Cost Center:</strong>{" "}
+              {selectedEmployee?.raw?.costCenter?.title || "-"}
+            </Col>
+            <Col md={4}>
               <strong>PF Applicable:</strong>{" "}
               {selectedEmployee?.raw?.pfApplicable ? "Yes" : "No"}
             </Col>
@@ -728,6 +748,10 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
               <Col md={4}>
                 <strong>Current Location:</strong>{" "}
                 {initialData?.employee?.center?.title || "-"}
+              </Col>
+              <Col md={4}>
+                <strong>Cost Center:</strong>{" "}
+                {initialData?.employee?.costCenter?.title || "-"}
               </Col>
               <Col md={4}>
                 <strong>PF Applicable:</strong>{" "}

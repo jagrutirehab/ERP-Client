@@ -1292,7 +1292,7 @@ const EmployeeForm = ({
   useEffect(() => {
     if (simplified) return;
     const selectedCenter = centerOptions?.find(
-      (o) => o.value === values.currentLocation,
+      (o) => o.value === (values.firstLocation || values.currentLocation),
     );
     // values holds YEARLY amounts; calculatePayroll is monthly, so feed it the
     // monthly equivalents (the derived fields it returns are therefore monthly).
@@ -1330,6 +1330,7 @@ const EmployeeForm = ({
     values.reimbursement,
     values.minimumWages,
     values.currentLocation,
+    values.firstLocation,
     values.LWFEmployer,
     simplified,
   ]);
@@ -1362,14 +1363,14 @@ const EmployeeForm = ({
   // in one or two months.
   const lwfState = useMemo(() => {
     const selectedCenter = centerOptions?.find(
-      (o) => o.value === values.currentLocation,
+      (o) => o.value === (values.firstLocation || values.currentLocation),
     );
     return resolveLWFState(
       selectedCenter
         ? { title: selectedCenter.title, address: selectedCenter.address }
         : null,
     );
-  }, [centerOptions, values.currentLocation]);
+  }, [centerOptions, values.currentLocation, values.firstLocation]);
 
   // LWF is charged only in specific months, so its true yearly total is NOT the
   // monthly charge × 12. Mirror the server's applyAnnualLWF so the yearly In-Hand
