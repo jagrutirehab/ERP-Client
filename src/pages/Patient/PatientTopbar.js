@@ -86,7 +86,7 @@ const PatientTopbar = ({
     if (admission?.center?._id) {
       dispatch(fetchDoctors({ center: admission.center?._id }));
     }
-  }, [dispatch, admission?.center]);
+  }, [dispatch, admission?.center?._id]);
 
   // Current (active) admission id — always present on the patient object,
   // independent of whether the charts tab has been opened.
