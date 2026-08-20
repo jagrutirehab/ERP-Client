@@ -171,16 +171,16 @@ const Wrapper = ({
 
   const chartName = chart
     ? chart
+      .toLowerCase()
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ")
+    : bill
+      ? bill
         .toLowerCase()
         .split("_")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ")
-    : bill
-      ? bill
-          .toLowerCase()
-          .split("_")
-          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(" ")
       : "";
 
   const chartDiagnosis = Array.isArray(additionalDiagnosis)
@@ -201,11 +201,11 @@ const Wrapper = ({
       }}
       // onCli
       transition={{ duration: 0.5 }}
-      // transition={{
-      //   layout: {
-      //     duration: 1.5,
-      //   },
-      // }}
+    // transition={{
+    //   layout: {
+    //     duration: 1.5,
+    //   },
+    // }}
     >
       <Col xs={12}>
         <div className="px-3 bg-white timeline-date border border-dark py-2">
@@ -229,9 +229,8 @@ const Wrapper = ({
                 }}
               >
                 <i
-                  className={`ri-${copied ? "check" : "file-copy"}-line fs-6 ${
-                    copied ? "text-success" : "text-muted"
-                  }`}
+                  className={`ri-${copied ? "check" : "file-copy"}-line fs-6 ${copied ? "text-success" : "text-muted"
+                    }`}
                 />
               </button>
             )}
@@ -510,14 +509,14 @@ const Wrapper = ({
                         Print
                       </DropdownItem>
                     </RenderWhen>
-                    {disableEdit ||
-                    item?.bill === WRITE_OFF ||
-                    isDetailAdmissionValidated ? (
+                    {(disableEdit && user.email !== "owais@gmail.com") ||
+                      item?.bill === WRITE_OFF ||
+                      isDetailAdmissionValidated ? (
                       ""
                     ) : (
                       <CheckPermission permission={"edit"} subAccess={name}>
                         <DropdownItem
-                          disabled={disableEdit}
+                          disabled={disableEdit && user.email !== "owais@gmail.com"}
                           onClick={() => {
                             editItem(item, patient);
                           }}
