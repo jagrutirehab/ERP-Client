@@ -11,7 +11,7 @@ export const SHIFT_CONFIG = Object.freeze({
     },
 });
 
-export const allViewPermissionRoles = ["HR", "MANAGER", "SUPERADMIN", "New_limited"];
+export const  allViewPermissionRoles = ["HR", "MANAGER", "SUPERADMIN", "New_limited"];
 
 export const leaveTypes = [
     "EARNED_LEAVE",
