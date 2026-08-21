@@ -15,7 +15,16 @@ import { editExitEmployee, postExitEmployee } from "../../../../helpers/backend_
 
 const validationSchema = Yup.object().shape({
     lastWorkingDay: Yup.string()
-        .required("Last working day date is required"),
+        .required("Last working day date is required")
+        .test(
+            "exit-after-joining",
+            "Last working day cannot be before the joining date",
+            function (value) {
+                const { joinningDate } = this.parent;
+                if (!value || !joinningDate) return true;
+                return new Date(value) >= new Date(joinningDate);
+            },
+        ),
 
     reason: Yup.string()
         .required("Reason is required"),
@@ -80,6 +89,7 @@ const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePer
             name: initialData?.employeeName || "",
             eCode: initialData?.eCode || "",
             currentLocation: initialData?.currentLocation?.title || "",
+            joinningDate: initialData?.joinningDate || "",
             lastWorkingDay: initialData?.lastWorkingDay || "",
             reason: initialData?.reason || "",
             otherReason: initialData?.otherReason || "",
@@ -126,6 +136,7 @@ const ExitEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreatePer
         form.setFieldValue("name", emp.name);
         form.setFieldValue("eCode", emp.eCode);
         form.setFieldValue("currentLocation", emp.currentLocation);
+        form.setFieldValue("joinningDate", emp.joinningDate);
         setShowList(false);
         setSearchText("");
     };

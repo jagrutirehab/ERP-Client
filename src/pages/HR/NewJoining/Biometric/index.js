@@ -47,10 +47,14 @@ const Biometric = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const { hasPermission, loading } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "NEW_JOINING_APPROVAL", "READ");
+  const hasUserPermission = hasPermission(
+    "HR",
+    "NEW_JOINING_BIOMETRIC",
+    "READ",
+  );
   const hasWritePermission = hasPermission(
     "HR",
-    "NEW_JOINING_APPROVAL",
+    "NEW_JOINING_BIOMETRIC",
     "WRITE",
   );
 

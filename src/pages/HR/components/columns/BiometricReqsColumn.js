@@ -1,6 +1,7 @@
 import { Button } from "reactstrap";
 import { Check, X } from "lucide-react";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
+import { normalizeText } from "../helpers/normalizeText";
 
 export const BiometricReqsColumn = ({
   onApprove,
@@ -15,6 +16,13 @@ export const BiometricReqsColumn = ({
     {
       name: "ECode",
       selector: (row) => row?.employee?.eCode || "-",
+      sortable: true,
+      minWidth: "120px",
+      wrap: true,
+    },
+    {
+      name: "Biometric Id",
+      selector: (row) => row?.employee?.biometricId || "-",
       sortable: true,
       minWidth: "120px",
       wrap: true,
@@ -42,21 +50,22 @@ export const BiometricReqsColumn = ({
     },
     {
       name: "Department",
-      selector: (row) => row?.employee?.department?.department || "-",
+      selector: (row) =>
+        normalizeText(row?.employee?.department?.department) || "-",
       sortable: true,
       minWidth: "150px",
       wrap: true,
     },
     {
       name: "Designation",
-      selector: (row) => row?.employee?.designation?.name || "-",
+      selector: (row) => normalizeText(row?.employee?.designation?.name) || "-",
       sortable: true,
       minWidth: "150px",
       wrap: true,
     },
     {
       name: "Employment Type",
-      selector: (row) => row?.employee?.employmentType || "-",
+      selector: (row) => normalizeText(row?.employee?.newEmploymentType) || "-",
       sortable: true,
       minWidth: "150px",
       wrap: true,
@@ -151,10 +160,10 @@ export const BiometricReqsColumn = ({
                     textOverflow: "ellipsis",
                     whiteSpace: "normal",
                     fontSize: "13px",
-                    color: status === "rejected" ? "#dc3545" : "inherit",
+                    // color: status === "rejected" ? "#dc3545" : "inherit",
                   }}
                 >
-                  {row.reason}
+                  {normalizeText(row.reason)}
                 </span>
               ) : (
                 "-"

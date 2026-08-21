@@ -46,6 +46,66 @@ function handleLogout() {
   }
 }
 
+const CSRF_COOKIE = "XSRF-TOKEN";
+let csrfRefreshPromise = null;
+
+const refreshCsrfToken = () => {
+  if (!csrfRefreshPromise) {
+    csrfRefreshPromise = authAxios
+      .get("/csrf-token", { _skipCsrfRetry: true })
+      .finally(() => {
+        csrfRefreshPromise = null;
+      });
+  }
+  return csrfRefreshPromise;
+};
+
+// Call before the app renders.
+const ensureCsrf = async () => {
+  try {
+    if (Cookies.get(CSRF_COOKIE)) return true;
+    await refreshCsrfToken();
+    return true;
+  } catch (err) {
+    console.error("Could not initialise CSRF token:", err);
+    return false;
+  }
+};
+
+const isCsrfFailure = (status, body) => {
+  if (status !== 400 && status !== 401 && status !== 403) return false;
+  if (body?.code === "CSRF_INVALID" || body?.data?.code === "CSRF_INVALID") {
+    return true;
+  }
+  return !Cookies.get(CSRF_COOKIE);
+};
+
+const readErrorBody = async (error) => {
+  const raw = error.response?.data;
+  if (raw instanceof Blob && raw.type === "application/json") {
+    try {
+      return JSON.parse(await raw.text());
+    } catch (e) {
+      console.error("Error parsing blob to json", e);
+    }
+  }
+  return raw;
+};
+const recoverFromCsrfFailure = async (instance, error, body) => {
+  const cfg = error.config;
+  if (!cfg || cfg._csrfRetried || cfg._skipCsrfRetry) return null;
+  if (!isCsrfFailure(error.response?.status, body)) return null;
+
+  cfg._csrfRetried = true;
+  try {
+    await refreshCsrfToken();
+    return { value: await instance(cfg) };
+  } catch (e) {
+    console.error("CSRF recovery failed:", e);
+    return null;
+  }
+};
+
 
 // main API request interceptor
 axios.interceptors.request.use((config) => {
@@ -72,16 +132,10 @@ axios.interceptors.response.use(
     return response.data ? response.data : response;
   },
   async function (error) {
-    let errorData = error.response?.data;
-    
-    if (errorData instanceof Blob && errorData.type === "application/json") {
-      try {
-        const text = await errorData.text();
-        errorData = JSON.parse(text);
-      } catch (e) {
-        console.error("Error parsing blob to json", e);
-      }
-    }
+    const errorData = await readErrorBody(error);
+
+    const replayed = await recoverFromCsrfFailure(axios, error, errorData);
+    if (replayed) return replayed.value;
 
     console.error("❌ API Error:", {
       url: error.config?.url,
@@ -124,16 +178,10 @@ if (microToken) {
 authAxios.interceptors.response.use(
   (response) => (response.data ? response.data : response),
   async (error) => {
-    let errorData = error.response?.data;
-    
-    if (errorData instanceof Blob && errorData.type === "application/json") {
-      try {
-        const text = await errorData.text();
-        errorData = JSON.parse(text);
-      } catch (e) {
-        console.error("Error parsing blob to json", e);
-      }
-    }
+    const errorData = await readErrorBody(error);
+
+    const replayed = await recoverFromCsrfFailure(authAxios, error, errorData);
+    if (replayed) return replayed.value;
 
     console.error("❌ Auth API Error:", {
       url: error.config?.url,
@@ -214,4 +262,10 @@ const getLoggedinUser = () => {
   }
 };
 
-export { APIClient, AuthAPIClient, setAuthorization, getLoggedinUser };
+export {
+  APIClient,
+  AuthAPIClient,
+  setAuthorization,
+  getLoggedinUser,
+  ensureCsrf,
+};

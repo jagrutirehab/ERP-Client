@@ -72,8 +72,14 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         minWidth: "160px",
     },
     {
-        name: <div>Cost Center</div>,
+        name: <div>Current Location</div>,
         selector: row => capitalizeWords(row?.center?.title || "-"),
+        wrap: true,
+        minWidth: "120px",
+    },
+    {
+        name: <div>Cost Center</div>,
+        selector: row => capitalizeWords(row?.costCenter?.title || "-"),
         wrap: true,
         minWidth: "120px",
     },
@@ -334,6 +340,13 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     {
         name: <div>Insurance</div>,
         selector: row => formatCurrency(row?.earned?.insurance),
+        wrap: true,
+        center: true,
+        style: employeeDeductionStyle,
+    },
+    {
+        name: <div>Other Deductions</div>,
+        selector: row => formatCurrency(row?.earned?.otherDeductions),
         wrap: true,
         center: true,
         style: employeeDeductionStyle,

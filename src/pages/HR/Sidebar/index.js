@@ -561,11 +561,11 @@ const Sidebar = () => {
             !hasGetBiometricAddiitonRequests
           )
             return false;
-          if (
-            child.id === "get-biometric-my-requests" &&
-            !hasGetMyBiometricRequests
-          )
-            return false;
+          // if (
+          //   child.id === "get-biometric-my-requests" &&
+          //   !hasGetMyBiometricRequests
+          // )
+          //   return false;
 
           return true;
         });

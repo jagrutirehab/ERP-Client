@@ -33,8 +33,6 @@ const AllBiometricRequests = () => {
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [users, setUsers] = useState([]);
-  const [assignedUsers, setAssignedUsers] = useState({});
   const [modal, setModal] = useState(false);
   const [selectedRow, setSelectedRow] = useState(null);
   const [modalStatus, setModalStatus] = useState("");
@@ -51,12 +49,12 @@ const AllBiometricRequests = () => {
   const { hasPermission, loading } = usePermissions(token);
   const hasUserPermission = hasPermission(
     "HR",
-    "BIOMETRIC_ADDITION_REQUEST",
+    "GET_BIOMETRIC_ADDITION_REQUESTS",
     "READ",
   );
   const hasWritePermission = hasPermission(
     "HR",
-    "BIOMETRIC_ADDITION_REQUEST",
+    "GET_BIOMETRIC_ADDITION_REQUESTS",
     "WRITE",
   );
 
@@ -66,22 +64,22 @@ const AllBiometricRequests = () => {
     }
   }, [loading, hasUserPermission, navigate]);
 
-  useEffect(() => {
-    const fetchUsers = async () => {
-      try {
-        const response = await getUsersByRole();
-        setUsers(
-          response?.data?.map((u) => ({
-            value: u._id,
-            label: `${u.name} (${u.email})`,
-          })) || [],
-        );
-      } catch (err) {
-        console.error("Failed to fetch users", err);
-      }
-    };
-    fetchUsers();
-  }, []);
+  // useEffect(() => {
+  //   const fetchUsers = async () => {
+  //     try {
+  //       const response = await getUsersByRole();
+  //       setUsers(
+  //         response?.data?.map((u) => ({
+  //           value: u._id,
+  //           label: `${u.name} (${u.email})`,
+  //         })) || [],
+  //       );
+  //     } catch (err) {
+  //       console.error("Failed to fetch users", err);
+  //     }
+  //   };
+  //   fetchUsers();
+  // }, []);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -159,13 +157,13 @@ const AllBiometricRequests = () => {
       setDebouncedSearch("");
       setSelectedCenter("ALL");
       setPage(1);
-      setAssignedUsers({});
+      // setAssignedUsers({});
     }
   };
 
-  const handleAssign = (docId, option) => {
-    setAssignedUsers((prev) => ({ ...prev, [docId]: option }));
-  };
+  // const handleAssign = (docId, option) => {
+  //   setAssignedUsers((prev) => ({ ...prev, [docId]: option }));
+  // };
 
   const handleApprove = (row) => {
     setSelectedRow(row);
@@ -267,9 +265,9 @@ const AllBiometricRequests = () => {
               onReject: handleReject,
               hasWritePermission,
               status: activeTab,
-              users,
-              assignedUsers,
-              onAssign: handleAssign,
+              // users,
+              // assignedUsers,
+              // onAssign: handleAssign,
             })}
             data={Array.isArray(data) ? data : []}
             pagination
@@ -294,7 +292,7 @@ const AllBiometricRequests = () => {
         toggle={() => setModal(false)}
         row={selectedRow}
         status={modalStatus}
-        assignedTo={assignedUsers[selectedRow?._id]?.value}
+        // assignedTo={assignedUsers[selectedRow?._id]?.value}
         onSuccess={fetchRequests}
       />
     </CardBody>

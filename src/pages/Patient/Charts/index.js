@@ -118,6 +118,19 @@ const Charts = ({
     socketRef.current.on("audioProcessingDone", (data) => {
       console.log(" Processing Done:", data);
 
+      const isRelevant = chartsRef.current?.some(
+        (c) =>
+          String(c.counsellingNote) === String(data.counsellingNoteId) ||
+          String(c.counsellingNote?._id) === String(data.counsellingNoteId),
+      );
+
+      if (!isRelevant) {
+        console.log(
+          "Ignoring audioProcessingDone — not relevant to this admission",
+        );
+        return;
+      }
+
       setTimeout(() => {
         dispatch(fetchChartsAddmissions([addmissionRef.current._id]));
         dispatch(fetchCharts(addmissionRef.current._id));
@@ -143,6 +156,19 @@ const Charts = ({
         !eventName.startsWith("psycho-diagnostic-ai:")
       )
         return;
+
+      const eventId = eventName.split(":")[1];
+
+      const isRelevant = chartsRef.current?.some(
+        (c) =>
+          String(c.labReport?._id) === String(eventId) ||
+          String(c.labReport) === String(eventId) ||
+          String(c.psychoDiagnosticForm?._id) === String(eventId) ||
+          String(c.psychoDiagnosticForm) === String(eventId),
+      );
+
+      if (!isRelevant) return;
+
       console.log(`[AI] Socket received: ${eventName}`, data);
       console.log("addmissionRef.current?._id", addmissionRef.current?._id);
       console.log("Addmission ref", addmissionRef);
@@ -280,9 +306,9 @@ const Charts = ({
                   printItem={printChart}
                   addAdditionalDetails={
                     String(chart.addmission) === String(currentAddmissionId) &&
-                      !!chart.addmission && // ← add this — hides for OPD (no admission)
-                      !addmission?.dischargeDate &&
-                      !isPatientDischarged
+                    !!chart.addmission && // ← add this — hides for OPD (no admission)
+                    !addmission?.dischargeDate &&
+                    !isPatientDischarged
                       ? handleAddAdditionalDetails
                       : undefined
                   }
