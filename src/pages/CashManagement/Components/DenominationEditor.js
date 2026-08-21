@@ -16,10 +16,6 @@ export const denominationTotal = (rows) =>
 export const validateDenominationRows = (rows) => {
   const errors = {};
 
-  if (rows.filter((row) => Number(row.count) > 0).length === 0) {
-    errors.rows = "Please enter at least one denomination count";
-  }
-
   const rowErrors = {};
   rows.forEach((row, index) => {
     if (row.count === "") return;
@@ -30,20 +26,14 @@ export const validateDenominationRows = (rows) => {
   });
   if (Object.keys(rowErrors).length) errors.rowErrors = rowErrors;
 
-  if (!errors.rows && denominationTotal(rows) <= 0) {
-    errors.rows = "Total must be greater than 0";
-  }
-
   return errors;
 };
 
 export const toDenominationPayload = (rows) =>
-  rows
-    .filter((row) => Number(row.count) > 0)
-    .map((row) => ({
-      denomination: Number(row.denomination),
-      count: Number(row.count),
-    }));
+  rows.map((row) => ({
+    denomination: Number(row.denomination),
+    count: Number(row.count) || 0,
+  }));
 
 export const toDenominationRows = (denominations = []) =>
   denominationOptions.map((d) => {
