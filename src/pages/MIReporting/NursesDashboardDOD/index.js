@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col, Input } from "reactstrap";
+import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
 import { CSVLink } from "react-csv";
 import { fetchNursesDailyActivity } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
@@ -20,9 +20,7 @@ const NursesDashboardDOD = () => {
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [selectedMetric, setSelectedMetric] = useState("VITAL_SIGNS");
-    const [searchInput, setSearchInput] = useState("");
-    const [searchTerm, setSearchTerm] = useState("");
-    const [isSearching, setIsSearching] = useState(false);
+    const [selectedNurse, setSelectedNurse] = useState("ALL");
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
@@ -31,26 +29,15 @@ const NursesDashboardDOD = () => {
         dispatch(fetchNursesDailyActivity({ centerAccess }));
     }, [dispatch, centerAccess]);
 
-    useEffect(() => {
-        if (searchInput === searchTerm) return;
-        setIsSearching(true);
-        const timeout = setTimeout(() => {
-            setSearchTerm(searchInput);
-            setIsSearching(false);
-        }, 1500);
-        return () => clearTimeout(timeout);
-    }, [searchInput, searchTerm]);
-
     const data = useMemo(() => nursesDailyActivity?.data || [], [nursesDailyActivity]);
 
     const filteredData = useMemo(() => {
-        const term = searchTerm.trim().toLowerCase();
         return data.filter(item => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
-            if (term && !(item?.nurse_name || "").toLowerCase().includes(term)) return false;
+            if (selectedNurse !== "ALL" && item?.nurse_name !== selectedNurse) return false;
             return true;
         });
-    }, [data, selectedCenter, searchTerm]);
+    }, [data, selectedCenter, selectedNurse]);
 
     const centerOptions = useMemo(() => [
         { value: "ALL", label: "All Centers" },
@@ -59,6 +46,26 @@ const NursesDashboardDOD = () => {
             label: center,
         })),
     ], [data]);
+
+    const nurseOptions = useMemo(() => [
+        { value: "ALL", label: "All Nurses" },
+        ...[...new Set(
+            data
+                .filter((item) => selectedCenter === "ALL" || item?.center_name === selectedCenter)
+                .map((item) => item.nurse_name)
+        )].filter(Boolean).sort().map((nurse) => ({
+            value: nurse,
+            label: nurse,
+        })),
+    ], [data, selectedCenter]);
+
+    useEffect(() => {
+        if (selectedNurse === "ALL") return;
+        if (!nurseOptions.some((o) => o.value === selectedNurse)) {
+            setSelectedNurse("ALL");
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [nurseOptions]);
 
     const dayKeyField = selectedMetric === "MEDICINES" ? "medicines_marked_dod" : "vital_signs_dod";
     const mtdField = selectedMetric === "MEDICINES" ? "current_month_medicines_marked_total" : "current_month_vital_signs_total";
@@ -204,26 +211,26 @@ const NursesDashboardDOD = () => {
                                 />
                             </Col>
                             <Col md={2}>
-                                <Input
-                                    type="text"
-                                    placeholder="Search Nurse Name..."
-                                    value={searchInput}
-                                    onChange={(e) => setSearchInput(e.target.value)}
+                                <Select
+                                    value={nurseOptions.find((o) => o.value === selectedNurse) || nurseOptions[0]}
+                                    onChange={(opt) => setSelectedNurse(opt.value)}
+                                    options={nurseOptions}
+                                    placeholder="Nurse..."
                                 />
                             </Col>
                         </Row>
                         <Card>
                             <CardBody>
-                                {(loading || isSearching) && (
+                                {loading && (
                                     <div className="text-center py-5">
                                         <Spinner color="primary" />
-                                        <p className="mt-2 text-muted">{isSearching ? "Searching..." : "Loading data..."}</p>
+                                        <p className="mt-2 text-muted">Loading data...</p>
                                     </div>
                                 )}
 
-                                {error && !loading && !isSearching && <Alert color="danger">{error}</Alert>}
+                                {error && !loading && <Alert color="danger">{error}</Alert>}
 
-                                {!loading && !isSearching && !error && (
+                                {!loading && !error && (
                                     <>
                                         <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
                                             <Table

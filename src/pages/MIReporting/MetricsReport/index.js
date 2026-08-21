@@ -42,8 +42,8 @@ const METRIC_GROUPS = [
     label: "Total Amount (IPD+OPD)",
     category: "total_amount",
     fields: [
-      { key: "net_amount", label: "Net Amount" },
-      { key: "net_amount_mtd", label: "Net Amount" },
+      { key: "amount", label: "Net Amount" },
+      { key: "amount_mtd", label: "Net Amount" },
     ],
   },
   {
@@ -97,8 +97,8 @@ const METRIC_GROUPS = [
     label: "Expenses",
     category: "expenses_amount",
     fields: [
-      { key: "total_amount", label: "Total Amount" },
-      { key: "total_amount_mtd", label: "Total Amount" },
+      { key: "amount", label: "Total Amount" },
+      { key: "amount_mtd", label: "Total Amount" },
     ],
   },
 ];
