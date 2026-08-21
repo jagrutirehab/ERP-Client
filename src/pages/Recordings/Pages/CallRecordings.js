@@ -146,7 +146,7 @@ const CallRecordings = () => {
   const handleGenerateBulkOverview = async (allIds) => {
     const total = allIds.length;
     let completed = 0;
-    const chunkSize = 10;
+    const chunkSize = 1000;
 
     setBulkProgress(0);
 
