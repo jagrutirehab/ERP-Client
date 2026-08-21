@@ -10,8 +10,18 @@ import {
   setFallbackCentreManager,
   getEmployeesBySearch,
 } from "../../../helpers/backend_helper";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const CenterFallbackManager = () => {
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
+  const hasWriteAccess = hasPermission(
+    "SETTING",
+    "CENTERFALLBACKMANAGER",
+    "WRITE",
+  );
+
   const [centers, setCenters] = useState([]);
   const [loadingCenters, setLoadingCenters] = useState(false);
   const [selectedCenter, setSelectedCenter] = useState(null);
@@ -200,8 +210,8 @@ const CenterFallbackManager = () => {
       <div className="mb-4">
         <h4 className="fw-semibold mb-1">Centre Fallback Manager</h4>
         <p className="text-muted small mb-0">
-          Select a center to assign a backup Centre Manager — used only when
-          no active Centre Manager is found for that center.
+          Select a center to assign a backup Centre Manager — used only when no
+          active Centre Manager is found for that center.
         </p>
       </div>
 
@@ -257,29 +267,31 @@ const CenterFallbackManager = () => {
                   onChange={(option) => setSelectedEmployee(option)}
                 />
 
-                <div className="d-flex gap-2 mt-3">
-                  <button
-                    className="btn btn-primary"
-                    disabled={saving}
-                    onClick={handleSave}
-                  >
-                    {saving ? <Spinner size="sm" color="light" /> : "Save"}
-                  </button>
-
-                  {isFallbackActive && (
+                {hasWriteAccess && (
+                  <div className="d-flex gap-2 mt-3">
                     <button
-                      className="btn btn-outline-danger"
-                      disabled={removing}
-                      onClick={handleRemove}
+                      className="btn btn-primary"
+                      disabled={saving}
+                      onClick={handleSave}
                     >
-                      {removing ? (
-                        <Spinner size="sm" color="danger" />
-                      ) : (
-                        "Remove Fallback"
-                      )}
+                      {saving ? <Spinner size="sm" color="light" /> : "Save"}
                     </button>
-                  )}
-                </div>
+
+                    {isFallbackActive && (
+                      <button
+                        className="btn btn-outline-danger"
+                        disabled={removing}
+                        onClick={handleRemove}
+                      >
+                        {removing ? (
+                          <Spinner size="sm" color="danger" />
+                        ) : (
+                          "Remove Fallback"
+                        )}
+                      </button>
+                    )}
+                  </div>
+                )}
               </>
             )}
           </Col>
