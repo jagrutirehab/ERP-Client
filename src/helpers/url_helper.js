@@ -37,6 +37,8 @@ export const DELETE_CENTER_LOGO = "/center";
 export const RESTORE_CENTER = "/center/restore";
 export const DELETE_CENTER = "/center";
 export const DELETE_CENTER_PERMANENTLY = "/center/delete-permanently";
+export const GET_CENTERS_FALLBACK_MANAGERS = "/center/fallback-managers";
+export const SET_FALLBACK_CENTRE_MANAGER = "/center/fallback-manager";
 
 //BOOKING
 export const GET_APPOINTMENTS = "/booking";

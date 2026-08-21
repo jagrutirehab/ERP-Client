@@ -124,6 +124,7 @@ export const permissionList = [
       { name: "DOCUMENTCONFIG", label: "Document Configuration" },
       { name: "CENTERFLOORCONFIG", label: "Center Floor Configuration" },
       { name: "HRCONFIGURATIONSSETTING", label: "HR Configurations" },
+      { name: "CENTERFALLBACKMANAGER", label: "Centre Fallback Manager" },
     ],
   },
   {
