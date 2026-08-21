@@ -4957,3 +4957,15 @@ export const updateAssigneeStatusData = (params = {}) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+// center fallbacks
+export const getCentersWithFallbackManager = () => {
+  return axios.get(url.GET_CENTERS_FALLBACK_MANAGERS, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const setFallbackCentreManager = (data) => {
+  return axios.patch(url.SET_FALLBACK_CENTRE_MANAGER, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};

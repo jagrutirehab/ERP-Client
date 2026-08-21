@@ -633,6 +633,12 @@ export const setting = [
     link: "/setting/center/floor/configs",
     icon: "bx bx-building-house",
   },
+  {
+    id: "centerfallbackmanager",
+    label: "Centre Fallback Manager",
+    link: "/setting/center/fallback/manager",
+    icon: "bx bx-user-pin",
+  },
 ];
 
 export const recyclebin = [
