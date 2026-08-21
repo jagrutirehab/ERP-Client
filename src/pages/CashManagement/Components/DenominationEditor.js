@@ -30,10 +30,12 @@ export const validateDenominationRows = (rows) => {
 };
 
 export const toDenominationPayload = (rows) =>
-  rows.map((row) => ({
-    denomination: Number(row.denomination),
-    count: Number(row.count) || 0,
-  }));
+  rows
+    .filter((row) => row.count !== "")
+    .map((row) => ({
+      denomination: Number(row.denomination),
+      count: Number(row.count),
+    }));
 
 export const toDenominationRows = (denominations = []) =>
   denominationOptions.map((d) => {
