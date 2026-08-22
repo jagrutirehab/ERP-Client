@@ -4088,6 +4088,11 @@ export const generateOverviewRecording = (id, recordingUrl) => {
 export const bulkGenerateOverviewRecording = (ids) => {
   return axios.post(url.BULK_GENERATE_OVERVIEW_RECORDING, ids);
 };
+
+// Live progress of the background bulk-overview queue (survives server restarts).
+export const getBulkOverviewStatus = () => {
+  return axios.get(url.BULK_OVERVIEW_STATUS);
+};
 export const uploadXlsx = (data) => {
   return api.create(url.UPLOAD_XLSX_FILE, data, {
     headers: {

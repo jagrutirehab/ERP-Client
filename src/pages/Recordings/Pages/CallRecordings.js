@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { bulkGenerateOverviewRecording, generateOverviewRecording, getCallRecordings, uploadXlsx } from '../../../helpers/backend_helper';
+import { bulkGenerateOverviewRecording, generateOverviewRecording, getBulkOverviewStatus, getCallRecordings, uploadXlsx } from '../../../helpers/backend_helper';
 import { toast } from 'react-toastify';
 import { CardBody, Label, Spinner } from 'reactstrap';
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
@@ -14,14 +14,20 @@ import UploadXlsxModal from '../Components/UploadXlsxModal';
 import { useSelector } from 'react-redux';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import { FaFilter } from 'react-icons/fa';
+import { defaultDateRange, todayInputValue, validateDateRange } from '../Helpers/dateRange';
 
 const CallRecordings = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
   const navigate = useNavigate();
 
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
+  // Opens on the last two days through today rather than the whole archive.
+  // Clearing either
+  // field with its ✕ widens the range again. Resolved once, so the two fields
+  // cannot straddle midnight.
+  const [initialRange] = useState(defaultDateRange);
+  const [fromDate, setFromDate] = useState(initialRange.fromDate);
+  const [toDate, setToDate] = useState(initialRange.toDate);
   const [loading, setLoading] = useState(false);
   const [recordings, setRecordings] = useState([]);
   const [pagination, setPagination] = useState({
@@ -42,7 +48,16 @@ const CallRecordings = () => {
   const [talkTimeFilter, setTalkTimeFilter] = useState("");
   const [selectedRows, setSelectedRows] = useState([]);
   const [showBulkOverviewModal, setShowBulkOverviewModal] = useState(false);
-  const [bulkProgress, setBulkProgress] = useState(0);
+  const [queueStatus, setQueueStatus] = useState({
+    running: false,
+    busy: false,
+    total: 0,
+    completed: 0,
+    done: 0,
+    failed: 0,
+    progress: 0,
+    queuedSingles: 0
+  });
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const token = JSON.parse(localStorage.getItem("user"))?.token;
@@ -56,6 +71,10 @@ const CallRecordings = () => {
   // const fileInputRef = useRef(null);
 
   const loadRecordings = async (page = pagination?.page, limit = pagination?.limit) => {
+    // Don't query on a range the user is midway through correcting — the
+    // message under the filters explains what is wrong.
+    if (validateDateRange(fromDate, toDate)) return;
+
     setLoading(true);
 
     try {
@@ -95,17 +114,13 @@ const CallRecordings = () => {
       const id = selectedRecording?._id
       const recordingUrl = selectedRecording?.Files?.recording_url
       const response = await generateOverviewRecording(id, recordingUrl);
-      console.log("Response", response);
-      if (response?.geminiResponse?.startsWith("API Error")) {
-        toast.error("Failed to generate overview with API error");
-      } else {
-        toast.success(response?.message);
-      }
-      loadRecordings(page, limit);
+      if (response?.queueStatus) setQueueStatus(response.queueStatus);
+      toast.success(response?.message || "Recording queued for transcription.");
       setShowGenerateModal(false);
+      pollNowRef.current();
     } catch (error) {
       console.error("Error generating overview:", error);
-      toast.error(error?.message || "Failed to generate overview");
+      toast.error(error?.message || "Failed to queue overview");
     } finally {
       setGenerateLoading(false);
     }
@@ -143,33 +158,86 @@ const CallRecordings = () => {
     { value: "over_15", label: "Over 15 min" }
   ];
 
-  const handleGenerateBulkOverview = async (allIds) => {
-    const total = allIds.length;
-    let completed = 0;
-    const chunkSize = 1000;
+  const refreshRef = useRef(() => { });
+  const inFlightRef = useRef(null);
+  const pollNowRef = useRef(() => { });
 
-    setBulkProgress(0);
+  const today = todayInputValue();
+  const dateError = validateDateRange(fromDate, toDate);
 
+  useEffect(() => {
+    refreshRef.current = () => loadRecordings(page, limit);
+  });
+
+  const fetchQueueStatus = async () => {
     try {
-      for (let i = 0; i < allIds.length; i += chunkSize) {
-        const chunk = allIds.slice(i, i + chunkSize);
+      const response = await getBulkOverviewStatus();
+      if (response?.queueStatus) setQueueStatus(response.queueStatus);
+      return response?.queueStatus || null;
+    } catch (error) {
+      return null;
+    }
+  };
 
-        const response = await bulkGenerateOverviewRecording({ ids: chunk });
-        console.log("Response", response);
+  useEffect(() => {
+    let cancelled = false;
+    let timer;
 
-
-        completed += chunk.length;
-        setBulkProgress(Math.round((completed / total) * 100));
-        toast.success(`Bulk overview generation completed successfully succeed : ${response?.summary?.success}, failed : ${response?.summary?.failed}`);
+    const tick = async () => {
+      const status = await fetchQueueStatus();
+      if (cancelled) return;
+      if (!status) {
+        timer = setTimeout(tick, 5000);
+        return;
       }
 
-      loadRecordings(page, limit);
+      // Queue just drained — pull in the overviews it generated.
+      const wasInFlight = inFlightRef.current;
+      if (wasInFlight && !status.busy) {
+        toast.success(
+          wasInFlight.running
+            ? `Bulk overview generation finished — ${status.done || 0} succeeded, ${status.failed || 0} failed.`
+            : "Overview generation finished."
+        );
+        refreshRef.current();
+      }
+      inFlightRef.current = status.busy ? status : null;
+
+      timer = setTimeout(tick, status.busy ? 3000 : 20000);
+    };
+
+    pollNowRef.current = () => {
+      clearTimeout(timer);
+      tick();
+    };
+
+    tick();
+
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+      pollNowRef.current = () => { };
+    };
+  }, []);
+
+  const handleGenerateBulkOverview = async (allIds) => {
+    try {
+      const response = await bulkGenerateOverviewRecording({ ids: allIds });
+
+      if (response?.queueStatus) setQueueStatus(response.queueStatus);
+
+      if (!response?.queued) {
+        toast.info(response?.message || "No eligible recordings to queue.");
+        return false;
+      }
+      inFlightRef.current = response.queueStatus || { running: true };
+      toast.success(response?.message);
+      pollNowRef.current();
       return true;
     } catch (error) {
+      if (error?.queueStatus) setQueueStatus(error.queueStatus);
       toast.error(error?.message || "Failed during bulk generation");
       return false;
-    } finally {
-      setBulkProgress(0);
     }
   };
 
@@ -221,9 +289,10 @@ const CallRecordings = () => {
             <div style={{ position: "relative" }}>
               <input
                 type="date"
-                className="form-control pe-5"
+                className={`form-control pe-5 ${dateError ? "is-invalid" : ""}`}
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
+                max={toDate && toDate < today ? toDate : today}
               />
 
               {fromDate && (
@@ -253,9 +322,11 @@ const CallRecordings = () => {
             <div style={{ position: "relative" }}>
               <input
                 type="date"
-                className="form-control pe-5"
+                className={`form-control pe-5 ${dateError ? "is-invalid" : ""}`}
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
+                min={fromDate || undefined}
+                max={today}
               />
 
               {toDate && (
@@ -285,8 +356,8 @@ const CallRecordings = () => {
             <button
               className="btn btn-primary px-4"
               style={{ height: "38px" }}
-              onClick={loadRecordings}
-              disabled={loading}
+              onClick={() => loadRecordings(page, limit)}
+              disabled={loading || Boolean(dateError)}
             >
               {loading ? (
                 <Spinner size="sm" />
@@ -300,6 +371,13 @@ const CallRecordings = () => {
 
 
         </div>
+
+        {dateError && (
+          <div className="text-danger small mb-3">
+            <i className="ri-error-warning-line me-1"></i>
+            {dateError}
+          </div>
+        )}
 
         <div
           className={`d-flex mb-3 ${isMobile
@@ -355,7 +433,14 @@ const CallRecordings = () => {
               // disabled={selectedRows.length === 0}
               onClick={() => setShowBulkOverviewModal(true)}
             >
-              Generate Overview
+              {queueStatus.running ? (
+                <>
+                  <Spinner size="sm" className="me-2" />
+                  {`Generating ${queueStatus.completed}/${queueStatus.total}`}
+                </>
+              ) : (
+                "Generate Overview"
+              )}
             </button>
 
             <button
@@ -373,6 +458,15 @@ const CallRecordings = () => {
           <Label className="mb-0 text-dark">
             Total Recordings: {pagination.totalDocs}
           </Label>
+
+          {queueStatus.busy && (
+            <Label className="mb-0 text-primary small d-flex align-items-center">
+              <Spinner size="sm" className="me-2" />
+              {queueStatus.running
+                ? `Transcribing ${queueStatus.completed}/${queueStatus.total}`
+                : `${queueStatus.queuedSingles} queued for transcription`}
+            </Label>
+          )}
           <div style={{ width: "120px" }}>
             <Select
               options={overviewOptions}
@@ -439,7 +533,7 @@ const CallRecordings = () => {
         selectedRows={recordings}
         totalAvailable={pagination.totalDocs}
         currentFilters={{ fromDate, toDate }}
-        progress={bulkProgress}
+        queueStatus={queueStatus}
       />
       <UploadXlsxModal
         isOpen={showUploadModal}
