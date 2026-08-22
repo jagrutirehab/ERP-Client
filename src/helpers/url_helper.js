@@ -753,6 +753,7 @@ export const GET_RECORDING_BY_ID = "/ozonetel/get";
 export const GENERATE_OVERVIEW_RECORDING = "/ozonetel/generate-overview-by-id";
 export const BULK_GENERATE_OVERVIEW_RECORDING =
   "/ozonetel/generate-bulk-overview";
+export const BULK_OVERVIEW_STATUS = "/ozonetel/bulk-overview/status";
 export const UPLOAD_XLSX_FILE = "/ozonetel/upload/file";
 export const GET_CALL_RECORDING_OVERVIEW = "/ozonetel/get/call/overviews";
 

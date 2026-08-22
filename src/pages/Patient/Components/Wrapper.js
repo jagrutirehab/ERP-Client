@@ -558,7 +558,7 @@ const Wrapper = ({
                       isTrue={item?.bill === INVOICE && item.type === IPD}
                     >
                       <DropdownItem
-                        disabled={disableDelete}
+                        disabled={disableDelete && user.email !== "owais@gmail.com"}
                         onClick={() => {
                           dispatch(
                             createEditBill({

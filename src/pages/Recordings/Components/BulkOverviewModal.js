@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import {
   Modal,
   ModalHeader,
@@ -12,13 +12,18 @@ import {
 } from "reactstrap";
 import { getCallRecordings } from "../../../helpers/backend_helper";
 import Select from "react-select";
+import {
+  defaultDateRange,
+  todayInputValue,
+  validateDateRange,
+} from "../Helpers/dateRange";
 
 const BulkOverviewModal = ({
   isOpen,
   toggle,
   onGenerate,
   currentFilters,
-  progress,
+  queueStatus,
 }) => {
   // --- State Management ---
   const [fromDate, setFromDate] = useState("");
@@ -34,6 +39,18 @@ const BulkOverviewModal = ({
   const [totalDocs, setTotalDocs] = useState(0);
   const LIMIT = 200;
 
+  const isQueueRunning = Boolean(queueStatus?.running);
+  const progress = queueStatus?.progress || 0;
+  const busy = isSubmitting || isQueueRunning;
+
+  // Read on every render rather than once, so a tab left open past midnight
+  // still caps the pickers at the real today.
+  const today = todayInputValue();
+  const dateError = useMemo(
+    () => validateDateRange(fromDate, toDate),
+    [fromDate, toDate],
+  );
+
   const talkTimeOptions = [
     { value: "", label: "All Durations" },
     { value: "0_2", label: "0 - 2 min" },
@@ -44,8 +61,9 @@ const BulkOverviewModal = ({
   ];
 
   const resetForm = useCallback(() => {
-    setFromDate(currentFilters.fromDate || "");
-    setToDate(currentFilters.toDate || "");
+    const fallback = defaultDateRange();
+    setFromDate(currentFilters.fromDate || fallback.fromDate);
+    setToDate(currentFilters.toDate || fallback.toDate);
     setTalkTimeFilter("");
     setRecordings([]);
     setSelectedIds([]);
@@ -60,18 +78,31 @@ const BulkOverviewModal = ({
     return !resp || resp === "" || resp.toLowerCase().startsWith("api error");
   };
 
-  const fetchRecordings = async (pageNum = 1, isAppend = false) => {
-    if (!fromDate && !toDate && !talkTimeFilter) return;
+  // `override` lets a caller fetch with values it has only just set — reading
+  // them from state here would use the previous render's, which is why opening
+  // the modal never loaded anything.
+  const fetchRecordings = async (pageNum = 1, isAppend = false, override = {}) => {
+    const from = override.fromDate !== undefined ? override.fromDate : fromDate;
+    const to = override.toDate !== undefined ? override.toDate : toDate;
+    const talkTime =
+      override.talkTime !== undefined ? override.talkTime : talkTimeFilter;
+
+    if (!from && !to && !talkTime) return;
+    if (validateDateRange(from, to)) return;
 
     if (isAppend) setLoadingMore(true);
     else setLoading(true);
 
     try {
       const response = await getCallRecordings({
-        fromDate,
-        toDate,
-        ...(talkTimeFilter && { talkTime: talkTimeFilter }),
+        fromDate: from,
+        toDate: to,
+        ...(talkTime && { talkTime }),
         overview: "not_generated",
+        // Recordings already waiting on the transcription service are not
+        // offered again — selecting them would inflate the run without
+        // transcribing anything extra.
+        excludeQueued: true,
         page: pageNum,
         limit: LIMIT,
       });
@@ -98,11 +129,15 @@ const BulkOverviewModal = ({
   };
   useEffect(() => {
     if (isOpen) {
-      const start = currentFilters.fromDate || "";
-      const end = currentFilters.toDate || "";
+      // Falls back to the default range when the page has no date filter of its
+      // own, so the modal opens on a usable selection instead of an empty table.
+      const fallback = defaultDateRange();
+      const start = currentFilters.fromDate || fallback.fromDate;
+      const end = currentFilters.toDate || fallback.toDate;
       setFromDate(start);
       setToDate(end);
-      if (start || end) fetchRecordings(1, false);
+      setTalkTimeFilter("");
+      fetchRecordings(1, false, { fromDate: start, toDate: end, talkTime: "" });
     } else {
       resetForm();
     }
@@ -131,8 +166,13 @@ const BulkOverviewModal = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const success = await onGenerate(selectedIds);
-      if (success) toggle();
+      const queued = await onGenerate(selectedIds);
+
+      // Re-filter so what was just queued drops off the list — it is no longer
+      // selectable, and leaving it there invites picking it again.
+      if (queued) {
+        await fetchRecordings(1, false);
+      }
     } catch (error) {
       console.error("Submission error", error);
     } finally {
@@ -140,7 +180,7 @@ const BulkOverviewModal = ({
     }
   };
 
-  const canFilter = fromDate || toDate || talkTimeFilter;
+  const canFilter = (fromDate || toDate || talkTimeFilter) && !dateError;
 
   return (
     <Modal
@@ -165,6 +205,9 @@ const BulkOverviewModal = ({
                 size="sm"
                 value={fromDate}
                 onChange={(e) => setFromDate(e.target.value)}
+                max={toDate && toDate < today ? toDate : today}
+                invalid={Boolean(dateError)}
+                disabled={isSubmitting}
                 className="pe-4"
               />
               {fromDate && (
@@ -193,6 +236,10 @@ const BulkOverviewModal = ({
                 size="sm"
                 value={toDate}
                 onChange={(e) => setToDate(e.target.value)}
+                min={fromDate || undefined}
+                max={today}
+                invalid={Boolean(dateError)}
+                disabled={isSubmitting}
                 className="pe-4"
               />
               {toDate && (
@@ -258,6 +305,35 @@ const BulkOverviewModal = ({
           </div>
         </div>
 
+        {dateError && (
+          <Alert
+            color="danger"
+            className="p-2 py-1 mb-2 border-0"
+            style={{ fontSize: "13px" }}
+          >
+            <i className="ri-error-warning-line me-1"></i>
+            {dateError}
+          </Alert>
+        )}
+
+        {isQueueRunning && (
+          <Alert
+            color="info"
+            className="p-2 py-1 mb-2 border-0 d-flex align-items-center"
+            style={{ fontSize: "13px" }}
+          >
+            <Spinner size="sm" className="me-2" />
+            <span>
+              A bulk overview run is already in progress —{" "}
+              <strong>
+                {queueStatus.completed}/{queueStatus.total}
+              </strong>{" "}
+              done. It resumes automatically if the server restarts. Generating
+              is disabled until it finishes.
+            </span>
+          </Alert>
+        )}
+
         {/* --- NEW WARNING MESSAGE --- */}
         <Alert
           color="warning"
@@ -265,7 +341,8 @@ const BulkOverviewModal = ({
           style={{ fontSize: "13px" }}
         >
           <i className="ri-error-warning-line me-1"></i>
-          <strong>Note:</strong> To prevent overlapping, only recordings with{" "}
+          <strong>Note:</strong> Recordings already queued for transcription are
+          hidden. Only recordings with{" "}
           <strong>no generated overview</strong> or{" "}
           <strong>API/server errors</strong> are listed here.
         </Alert>
@@ -371,11 +448,13 @@ const BulkOverviewModal = ({
 
       <ModalFooter className="d-flex align-items-center justify-content-between">
         <div className="flex-grow-1 me-3" style={{ minHeight: "45px" }}>
-          {isSubmitting && (
+          {busy && (
             <div className="w-100">
               <div className="d-flex justify-content-between mb-1">
                 <span className="small fw-bold text-primary">
-                  {progress < 100 ? "AI Processing..." : "Completing..."}
+                  {isQueueRunning
+                    ? `AI Processing... ${queueStatus.completed} of ${queueStatus.total} recordings`
+                    : "Queueing..."}
                 </span>
                 <span className="small fw-bold text-primary">{progress}%</span>
               </div>
@@ -389,21 +468,27 @@ const BulkOverviewModal = ({
                   }}
                 ></div>
               </div>
+              {isQueueRunning && (
+                <div className="small text-muted mt-1">
+                  {queueStatus.done} generated · {queueStatus.failed} failed —
+                  runs in the background, safe to close this window.
+                </div>
+              )}
             </div>
           )}
         </div>
 
         <div className="d-flex gap-2">
           <Button color="secondary" onClick={toggle} disabled={isSubmitting}>
-            Cancel
+            {isQueueRunning ? "Close" : "Cancel"}
           </Button>
           <Button
             color="success"
             onClick={handleSubmit}
-            disabled={loading || isSubmitting || selectedIds.length === 0}
+            disabled={loading || busy || selectedIds.length === 0}
             style={{ minWidth: "140px" }}
           >
-            {isSubmitting ? (
+            {busy ? (
               <>
                 <Spinner size="sm" className="me-2" />
                 Processing
