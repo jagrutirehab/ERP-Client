@@ -101,6 +101,11 @@ export const OPERATORS_BY_TYPE = {
   // field. Only one operator is meaningful here and the value editor is a
   // bespoke "test name + severity threshold" pair handled in ConditionRow.
   FlaggedItemArray: ["ARRAY_ANY_MATCHES"],
+  // Synthetic type for Addmission.patientCategory — a derived patient-group
+  // filter (ADDICTION / PSYCHIATRY) the server resolves from the patient's ICD
+  // codes. The value is a category id, so only equality applies; the dropdown
+  // itself comes from the field's `options` metadata, not from here.
+  PatientCategory: ["EQUALS", "NOT_EQUALS"],
 };
 
 // Severity threshold dropdown for LabReport flagged-items conditions.
