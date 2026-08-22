@@ -118,6 +118,9 @@ const CallRecordings = () => {
       toast.success(response?.message || "Recording queued for transcription.");
       setShowGenerateModal(false);
       pollNowRef.current();
+      // Reload so the row swaps its Generate button for "Queued" straight away
+      // rather than only when the whole queue drains.
+      loadRecordings(page, limit);
     } catch (error) {
       console.error("Error generating overview:", error);
       toast.error(error?.message || "Failed to queue overview");
@@ -233,6 +236,8 @@ const CallRecordings = () => {
       inFlightRef.current = response.queueStatus || { running: true };
       toast.success(response?.message);
       pollNowRef.current();
+      // Reload so the queued rows show their state instead of a Generate button.
+      loadRecordings(page, limit);
       return true;
     } catch (error) {
       if (error?.queueStatus) setQueueStatus(error.queueStatus);

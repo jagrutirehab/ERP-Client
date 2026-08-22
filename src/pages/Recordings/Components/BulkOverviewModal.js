@@ -99,6 +99,10 @@ const BulkOverviewModal = ({
         toDate: to,
         ...(talkTime && { talkTime }),
         overview: "not_generated",
+        // Recordings already waiting on the transcription service are not
+        // offered again — selecting them would inflate the run without
+        // transcribing anything extra.
+        excludeQueued: true,
         page: pageNum,
         limit: LIMIT,
       });
@@ -162,7 +166,13 @@ const BulkOverviewModal = ({
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      await onGenerate(selectedIds);
+      const queued = await onGenerate(selectedIds);
+
+      // Re-filter so what was just queued drops off the list — it is no longer
+      // selectable, and leaving it there invites picking it again.
+      if (queued) {
+        await fetchRecordings(1, false);
+      }
     } catch (error) {
       console.error("Submission error", error);
     } finally {
@@ -331,7 +341,8 @@ const BulkOverviewModal = ({
           style={{ fontSize: "13px" }}
         >
           <i className="ri-error-warning-line me-1"></i>
-          <strong>Note:</strong> To prevent overlapping, only recordings with{" "}
+          <strong>Note:</strong> Recordings already queued for transcription are
+          hidden. Only recordings with{" "}
           <strong>no generated overview</strong> or{" "}
           <strong>API/server errors</strong> are listed here.
         </Alert>
