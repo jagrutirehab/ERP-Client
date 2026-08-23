@@ -314,6 +314,18 @@ const Charts = ({
                   }
                   // Round-note charts are auto-generated read-only snapshots —
                   // they are edited/removed only from the Round Notes screen.
+                  // disableEdit={
+                  //   chart.chart === ROUND_NOTE ||
+                  //   (addmission?.dischargeDate ? true : false) ||
+                  //   isPatientDischarged ||
+                  //   (currentAddmissionId
+                  //     ? chart.addmission !== currentAddmissionId
+                  //     : false)
+                  // }
+                  // disableDelete={
+                  //   chart.chart === ROUND_NOTE ||
+                  //   (addmission?.dischargeDate ? true : false)
+                  // }
                   disableEdit={
                     chart.chart === ROUND_NOTE ||
                     (addmission?.dischargeDate ? true : false) ||
@@ -324,7 +336,8 @@ const Charts = ({
                   }
                   disableDelete={
                     chart.chart === ROUND_NOTE ||
-                    (addmission?.dischargeDate ? true : false)
+                    (addmission?.dischargeDate ? true : false) ||
+                    isPatientDischarged
                   }
                   itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
                   geminiResponseGeneratedBy={chart?.geminiResponseGeneratedBy}

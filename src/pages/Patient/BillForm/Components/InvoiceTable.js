@@ -22,7 +22,7 @@ const InvoiceTable = ({
   type,
   validation,
   setShowModal,
-  setSelectedIndex
+  setSelectedIndex,
 }) => {
   const [cost, setCost] = useState(0);
   // const [discount, setDiscount] = useState("");
@@ -131,13 +131,9 @@ const InvoiceTable = ({
     newInvoiceList[idx] = item;
     setInvoiceList(newInvoiceList);
   };
-
   const deleteForm = (idx) => {
-    const list = [...invoiceList];
-    list.splice(idx, 1);
-    setInvoiceList(list);
+    setInvoiceList((prevList) => prevList.filter((_, i) => i !== idx));
   };
-
   const getUnitOptions = (category) => {
     return (
       categoryUnitOptions[category?.toLowerCase()] ||
@@ -197,7 +193,7 @@ const InvoiceTable = ({
       (item) =>
         item?.category?.toLowerCase() === "room charges" &&
         item?.isNew === true &&
-        !item?.fromDate
+        !item?.fromDate,
     );
 
     if (index !== -1) {
@@ -214,9 +210,7 @@ const InvoiceTable = ({
 
     if (unit.toLowerCase() === "days") {
       result.setDate(start.getDate() + Number(quantity) - 1);
-    }
-
-    else if (unit.toLowerCase() === "month") {
+    } else if (unit.toLowerCase() === "month") {
       result.setMonth(start.getMonth() + Number(quantity));
       result.setDate(result.getDate() - 1);
     }
@@ -237,7 +231,7 @@ const InvoiceTable = ({
         const newToDate = calculateToDate(
           item.fromDate,
           item.unitOfMeasurement,
-          item.unit
+          item.unit,
         );
 
         if (item.toDate !== newToDate) {
@@ -286,8 +280,9 @@ const InvoiceTable = ({
         </div>
         <div>
           {(invoiceList || [])
-            .filter((item) => !isRowEmpty(item))
-            .map((item, idx) => {
+            .map((item, idx) => ({ item, idx }))
+            .filter(({ item }) => !isRowEmpty(item))
+            .map(({ item, idx }) => {
               console.log("itemo", item);
 
               const totalValue =
@@ -299,7 +294,7 @@ const InvoiceTable = ({
                 (item.availablePrices || []).find(
                   (p) =>
                     String(p.unit).toLowerCase() ===
-                    String(item.unitOfMeasurement).toLowerCase()
+                    String(item.unitOfMeasurement).toLowerCase(),
                 )?.price ?? 0;
 
               // let finalTotal = totalValue;
@@ -317,16 +312,20 @@ const InvoiceTable = ({
               const unitOptions =
                 item?.availablePrices?.length > 0
                   ? item?.availablePrices.map((u) => ({
-                    label: u?.unit,
-                    value: u.unit,
-                    price: u.price,
-                  }))
+                      label: u?.unit,
+                      value: u.unit,
+                      price: u.price,
+                    }))
                   : getUnitOptions(item.category);
               // const unitOptions = getUnitOptions(item.category);
               // console.log("unitOptions", unitOptions);
 
               return (
-                <React.Fragment key={item.id + item.slot}>
+                <React.Fragment
+                  key={
+                    item?.id ? item.id : `row-${idx}-${item.slot || "empty"}`
+                  }
+                >
                   {/* Mobile Layout */}
                   <div className="d-md-none card shadow-sm mb-3 mt-2">
                     <div className="card-body">
@@ -371,7 +370,11 @@ const InvoiceTable = ({
                                 if (e.which === 38 || e.which === 40) {
                                   e.preventDefault();
                                 }
-                                if (e.key === "." || e.key === "e" || e.key === "-") {
+                                if (
+                                  e.key === "." ||
+                                  e.key === "e" ||
+                                  e.key === "-"
+                                ) {
                                   e.preventDefault();
                                 }
                               }}
@@ -402,7 +405,7 @@ const InvoiceTable = ({
                                 }
                               }}
                               disabled={selectedPrice > 0}
-                            // 
+                              //
                             />
                           </div>
                         </Col>
@@ -459,11 +462,11 @@ const InvoiceTable = ({
                                     item.discountType === "%"
                                       ? item.discount && item.unit && item.cost
                                         ? Math.round(
-                                          (Number(item.discount) /
-                                            (Number(item.unit) *
-                                              Number(item.cost))) *
-                                          100,
-                                        )
+                                            (Number(item.discount) /
+                                              (Number(item.unit) *
+                                                Number(item.cost))) *
+                                              100,
+                                          )
                                         : ""
                                       : item.discount || ""
                                   }
@@ -571,22 +574,41 @@ const InvoiceTable = ({
                                 value={item.fromDate || ""}
                                 disabled={isEdit}
                                 onChange={(e) => {
-                                  handleDateChange(idx, "fromDate", e.target.value);
-                                  validation.setFieldValue(`invoiceList[${idx}].fromDate`, e.target.value);
+                                  handleDateChange(
+                                    idx,
+                                    "fromDate",
+                                    e.target.value,
+                                  );
+                                  validation.setFieldValue(
+                                    `invoiceList[${idx}].fromDate`,
+                                    e.target.value,
+                                  );
                                 }}
                                 onBlur={() =>
-                                  validation.setFieldTouched(`invoiceList[${idx}].fromDate`, true)
+                                  validation.setFieldTouched(
+                                    `invoiceList[${idx}].fromDate`,
+                                    true,
+                                  )
                                 }
                                 invalid={
-                                  validation.touched.invoiceList?.[idx]?.fromDate &&
+                                  validation.touched.invoiceList?.[idx]
+                                    ?.fromDate &&
                                   validation.errors.invoiceList?.[idx]?.fromDate
                                 }
                               />
 
-                              {validation.touched.invoiceList?.[idx]?.fromDate &&
-                                validation.errors.invoiceList?.[idx]?.fromDate && (
-                                  <div className="text-danger" style={{ fontSize: "12px" }}>
-                                    {validation.errors.invoiceList[idx].fromDate}
+                              {validation.touched.invoiceList?.[idx]
+                                ?.fromDate &&
+                                validation.errors.invoiceList?.[idx]
+                                  ?.fromDate && (
+                                  <div
+                                    className="text-danger"
+                                    style={{ fontSize: "12px" }}
+                                  >
+                                    {
+                                      validation.errors.invoiceList[idx]
+                                        .fromDate
+                                    }
                                   </div>
                                 )}
 
@@ -599,21 +621,36 @@ const InvoiceTable = ({
                                 value={item.toDate || ""}
                                 disabled
                                 onChange={(e) => {
-                                  handleDateChange(idx, "toDate", e.target.value);
-                                  validation.setFieldValue(`invoiceList[${idx}].toDate`, e.target.value);
+                                  handleDateChange(
+                                    idx,
+                                    "toDate",
+                                    e.target.value,
+                                  );
+                                  validation.setFieldValue(
+                                    `invoiceList[${idx}].toDate`,
+                                    e.target.value,
+                                  );
                                 }}
                                 onBlur={() =>
-                                  validation.setFieldTouched(`invoiceList[${idx}].toDate`, true)
+                                  validation.setFieldTouched(
+                                    `invoiceList[${idx}].toDate`,
+                                    true,
+                                  )
                                 }
                                 invalid={
-                                  validation.touched.invoiceList?.[idx]?.toDate &&
+                                  validation.touched.invoiceList?.[idx]
+                                    ?.toDate &&
                                   validation.errors.invoiceList?.[idx]?.toDate
                                 }
                               />
 
                               {validation.touched.invoiceList?.[idx]?.toDate &&
-                                validation.errors.invoiceList?.[idx]?.toDate && (
-                                  <div className="text-danger" style={{ fontSize: "12px" }}>
+                                validation.errors.invoiceList?.[idx]
+                                  ?.toDate && (
+                                  <div
+                                    className="text-danger"
+                                    style={{ fontSize: "12px" }}
+                                  >
                                     {validation.errors.invoiceList[idx].toDate}
                                   </div>
                                 )}
@@ -659,7 +696,8 @@ const InvoiceTable = ({
                             rows="2"
                             placeholder="Discount Reason"
                             value={
-                              validation.values.invoiceList?.[idx]?.discountReason || ""
+                              validation.values.invoiceList?.[idx]
+                                ?.discountReason || ""
                             }
                             onChange={(e) => {
                               const value = e.target.value;
@@ -672,17 +710,27 @@ const InvoiceTable = ({
                             }}
                             onBlur={validation.handleBlur}
                             invalid={
-                              (validation.touched.invoiceList?.[idx]?.discountReason ||
+                              (validation.touched.invoiceList?.[idx]
+                                ?.discountReason ||
                                 validation.submitCount > 0) &&
-                              validation.errors.invoiceList?.[idx]?.discountReason
+                              validation.errors.invoiceList?.[idx]
+                                ?.discountReason
                             }
                           />
 
-                          {(validation.touched.invoiceList?.[idx]?.discountReason ||
+                          {(validation.touched.invoiceList?.[idx]
+                            ?.discountReason ||
                             validation.submitCount > 0) &&
-                            validation.errors.invoiceList?.[idx]?.discountReason && (
-                              <div className="text-danger" style={{ fontSize: "12px" }}>
-                                {validation.errors.invoiceList[idx].discountReason}
+                            validation.errors.invoiceList?.[idx]
+                              ?.discountReason && (
+                              <div
+                                className="text-danger"
+                                style={{ fontSize: "12px" }}
+                              >
+                                {
+                                  validation.errors.invoiceList[idx]
+                                    .discountReason
+                                }
                               </div>
                             )}
                         </div>
@@ -799,10 +847,10 @@ const InvoiceTable = ({
                             item.discountType === "%"
                               ? item.discount && item.unit && item.cost
                                 ? Math.round(
-                                  (Number(item.discount) /
-                                    (Number(item.unit) * Number(item.cost))) *
-                                  100,
-                                )
+                                    (Number(item.discount) /
+                                      (Number(item.unit) * Number(item.cost))) *
+                                      100,
+                                  )
                                 : ""
                               : item.discount || ""
                           }
@@ -916,13 +964,10 @@ const InvoiceTable = ({
                       </p>
                     </Col>
 
-
                     {item.category?.toLowerCase() === "room charges" && (
                       <Col xs={3} md={3}>
-
                         {/* Row for inputs */}
                         <div className="d-flex gap-1 align-items-center">
-
                           <Input
                             bsSize="sm"
                             type="date"
@@ -931,10 +976,16 @@ const InvoiceTable = ({
                             disabled={isEdit && item.isNew === false}
                             onChange={(e) => {
                               handleDateChange(idx, "fromDate", e.target.value);
-                              validation.setFieldValue(`invoiceList[${idx}].fromDate`, e.target.value);
+                              validation.setFieldValue(
+                                `invoiceList[${idx}].fromDate`,
+                                e.target.value,
+                              );
                             }}
                             onBlur={() =>
-                              validation.setFieldTouched(`invoiceList[${idx}].fromDate`, true)
+                              validation.setFieldTouched(
+                                `invoiceList[${idx}].fromDate`,
+                                true,
+                              )
                             }
                             invalid={
                               validation.touched.invoiceList?.[idx]?.fromDate &&
@@ -952,29 +1003,36 @@ const InvoiceTable = ({
                             disabled
                             onChange={(e) => {
                               handleDateChange(idx, "toDate", e.target.value);
-                              validation.setFieldValue(`invoiceList[${idx}].toDate`, e.target.value);
+                              validation.setFieldValue(
+                                `invoiceList[${idx}].toDate`,
+                                e.target.value,
+                              );
                             }}
                             onBlur={() =>
-                              validation.setFieldTouched(`invoiceList[${idx}].toDate`, true)
+                              validation.setFieldTouched(
+                                `invoiceList[${idx}].toDate`,
+                                true,
+                              )
                             }
                             invalid={
                               validation.touched.invoiceList?.[idx]?.toDate &&
                               validation.errors.invoiceList?.[idx]?.toDate
                             }
                           />
-
                         </div>
 
                         {(validation?.touched?.invoiceList?.[idx]?.fromDate &&
                           validation?.errors?.invoiceList?.[idx]?.fromDate) ||
-                          (validation?.touched?.invoiceList?.[idx]?.toDate &&
-                            validation?.errors?.invoiceList?.[idx]?.toDate) ? (
-                          <div className="text-danger mt-1" style={{ fontSize: "12px" }}>
+                        (validation?.touched?.invoiceList?.[idx]?.toDate &&
+                          validation?.errors?.invoiceList?.[idx]?.toDate) ? (
+                          <div
+                            className="text-danger mt-1"
+                            style={{ fontSize: "12px" }}
+                          >
                             {validation?.errors?.invoiceList?.[idx]?.fromDate ||
                               validation?.errors?.invoiceList?.[idx]?.toDate}
                           </div>
                         ) : null}
-
                       </Col>
                     )}
 
@@ -997,7 +1055,8 @@ const InvoiceTable = ({
                           rows="2"
                           placeholder="Discount Reason"
                           value={
-                            validation.values.invoiceList?.[idx]?.discountReason || ""
+                            validation.values.invoiceList?.[idx]
+                              ?.discountReason || ""
                           }
                           onChange={(e) => {
                             const value = e.target.value;
@@ -1010,17 +1069,26 @@ const InvoiceTable = ({
                           }}
                           onBlur={validation.handleBlur}
                           invalid={
-                            (validation.touched.invoiceList?.[idx]?.discountReason ||
+                            (validation.touched.invoiceList?.[idx]
+                              ?.discountReason ||
                               validation.submitCount > 0) &&
                             validation.errors.invoiceList?.[idx]?.discountReason
                           }
                         />
 
-                        {(validation.touched.invoiceList?.[idx]?.discountReason ||
+                        {(validation.touched.invoiceList?.[idx]
+                          ?.discountReason ||
                           validation.submitCount > 0) &&
-                          validation.errors.invoiceList?.[idx]?.discountReason && (
-                            <div className="text-danger" style={{ fontSize: "12px" }}>
-                              {validation.errors.invoiceList[idx].discountReason}
+                          validation.errors.invoiceList?.[idx]
+                            ?.discountReason && (
+                            <div
+                              className="text-danger"
+                              style={{ fontSize: "12px" }}
+                            >
+                              {
+                                validation.errors.invoiceList[idx]
+                                  .discountReason
+                              }
                             </div>
                           )}
                       </Col>
@@ -1043,7 +1111,6 @@ const InvoiceTable = ({
             })}
         </div>
       </div>
-
     </React.Fragment>
   );
 };
