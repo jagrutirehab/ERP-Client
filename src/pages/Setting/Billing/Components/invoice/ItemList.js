@@ -117,9 +117,10 @@ const InvoiceProcedureList = ({
                     <CheckPermission
                       accessRolePermission={roles?.permissions}
                       permission={"edit"}
-                      subAccess={"INVOICESETTING"}>
+                      subAccess={"INVOICESETTING"}
+                    >
                       <Button
-                        id={`categoryEdit-${idx}`}
+                        id={`categoryEdit-${item._id}`}
                         size="sm"
                         color="info"
                         onClick={() => setEditRowId(item._id)}
@@ -128,14 +129,14 @@ const InvoiceProcedureList = ({
                       </Button>
                       <UncontrolledTooltip
                         placement="top"
-                        target={`categoryEdit-${idx}`}
+                        target={`categoryEdit-${item._id}`}
                       >
                         Edit Category
                       </UncontrolledTooltip>
                     </CheckPermission>
 
                     <Button
-                      id={`viewEditCentersBtn-${idx}`}
+                      id={`viewEditCentersBtn-${item._id}`}
                       size="sm"
                       color="secondary"
                       onClick={() => {
@@ -147,16 +148,17 @@ const InvoiceProcedureList = ({
                     </Button>
                     <UncontrolledTooltip
                       placement="top"
-                      target={`viewEditCentersBtn-${idx}`}
+                      target={`viewEditCentersBtn-${item._id}`}
                     >
                       View & Edit Centers
                     </UncontrolledTooltip>
                     <CheckPermission
                       accessRolePermission={roles?.permissions}
                       permission={"delete"}
-                      subAccess={"INVOICESETTING"}>
+                      subAccess={"INVOICESETTING"}
+                    >
                       <Button
-                        id="deletePro"
+                        id={`deletePro-${item._id}`}
                         size="sm"
                         color="danger"
                         outline
@@ -166,7 +168,7 @@ const InvoiceProcedureList = ({
                       >
                         <i className="ri-close-circle-line"></i>
                       </Button>
-                      <UncontrolledTooltip placement="top" target="deletePro">
+                      <UncontrolledTooltip placement="top" target={`deletePro-${item._id}`}>
                         Delete Procedure Data
                       </UncontrolledTooltip>
                     </CheckPermission>
