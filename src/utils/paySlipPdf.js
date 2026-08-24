@@ -155,13 +155,6 @@ const dmTotal = (value) => {
 const monthYearLabel = (row) =>
   row?.month && row?.year ? `${row.month} ${row.year}` : "--";
 
-// Sum all finite numeric values; null/undefined entries skipped
-const sumRows = (values = []) =>
-  values
-    .map((v) => Number(v))
-    .filter((v) => Number.isFinite(v))
-    .reduce((a, b) => a + b, 0);
-
 const numberToWordsIndian = (num) => {
   const n = Number(num);
   if (!Number.isFinite(n) || n === 0) return "Zero Only";
@@ -246,8 +239,8 @@ const PayslipPdf = ({ row }) => {
   ];
 
   // ── Totals ─────────────────────────────────────────────────────────────────
-  const totalE = sumRows(earningsRows.map((r) => r.value));
-  const totalD = sumRows(deductionRows.map((r) => r.value));
+  const totalE = Number(row?.grossSalary) || 0;
+  const totalD = Number(row?.totalDeductions) || 0;
 
   // Prefer stored inHandSalary (top-level); fall back to computed
   const netPay =
