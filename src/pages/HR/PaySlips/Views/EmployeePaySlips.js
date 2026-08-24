@@ -211,6 +211,27 @@ const EmployeePaySlipsTab = () => {
         width: "70px",
       },
       {
+        name: "Preview",
+        center: true,
+        minWidth: "100px",
+        cell: (row) => (
+          <Button
+            color="primary"
+            size="sm"
+            className="d-inline-flex align-items-center justify-content-center text-white"
+            onClick={() => handlePreview(row)}
+            disabled={downloadingId === row._id}
+            title="Preview payslip"
+          >
+            {downloadingId === row._id ? (
+              <Spinner size="sm" />
+            ) : (
+              <Eye size={16} />
+            )}
+          </Button>
+        ),
+      },
+      {
         name: "Month",
         cell: (row) => displayValue(monthLabel(row)),
         sortable: true,
@@ -248,6 +269,18 @@ const EmployeePaySlipsTab = () => {
         minWidth: "150px",
       },
       {
+        name: "Total Days",
+        cell: (row) => displayValue(row.totalDays),
+        right: true,
+        minWidth: "100px",
+      },
+      {
+        name: "Payable Days",
+        cell: (row) => displayValue(row.payableDays),
+        right: true,
+        minWidth: "110px",
+      },
+      {
         name:"Gross Salary",
         cell: (row) => displayMoney(row.grossSalary),
         right: true,
@@ -264,39 +297,6 @@ const EmployeePaySlipsTab = () => {
         cell: (row) => displayMoney(row.inHandSalary),
         right: true,
         minWidth: "110px",
-      },
-      {
-        name: "Total Days",
-        cell: (row) => displayValue(row.totalDays),
-        right: true,
-        minWidth: "100px",
-      },
-      {
-        name: "Payable Days",
-        cell: (row) => displayValue(row.payableDays),
-        right: true,
-        minWidth: "110px",
-      },
-      {
-        name: "Preview",
-        center: true,
-        minWidth: "100px",
-        cell: (row) => (
-          <Button
-            color="primary"
-            size="sm"
-            className="d-inline-flex align-items-center justify-content-center text-white"
-            onClick={() => handlePreview(row)}
-            disabled={downloadingId === row._id}
-            title="Preview payslip"
-          >
-            {downloadingId === row._id ? (
-              <Spinner size="sm" />
-            ) : (
-              <Eye size={16} />
-            )}
-          </Button>
-        ),
       },
     ],
     [data, downloadingId, limit, page], // eslint-disable-line

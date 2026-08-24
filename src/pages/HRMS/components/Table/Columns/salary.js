@@ -541,7 +541,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
             minWidth: "180px"
         },
     ] : []),
-    ...((approvalStatusFilter === "ALL" || approvalStatusFilter === "APPROVED" || approvalStatusFilter === "REJECTED") ? [
+    ...((approvalStatusFilter === "ALL" || approvalStatusFilter === "APPROVED" || approvalStatusFilter === "REJECTED" || approvalStatusFilter === "MANNUALLY_PROCESSED") ? [
         {
             name: <div>Approved By</div>,
             selector: (row) => (

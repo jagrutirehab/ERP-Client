@@ -466,7 +466,7 @@ const Salary = () => {
                                 loading={loading}
                                 onRefresh={fetchEmployeePayrolls}
                             />
-                            {hasEditPermission && (
+                            {hasEditPermission && approvalStatus !== "MANNUALLY_PROCESSED" && (
                                 <>
                                     <Button
                                         color="success"
@@ -489,7 +489,7 @@ const Salary = () => {
                                 </>
                             )}
                             {
-                                hasPermission("HR", "SALARY", "DELETE") && (
+                                hasPermission("HR", "SALARY", "DELETE") && approvalStatus !== "MANNUALLY_PROCESSED" && (
                                     <Button
                                         color="primary"
                                         className="d-flex align-items-center gap-1 text-white"
@@ -566,7 +566,7 @@ const Salary = () => {
                                 onRefresh={fetchEmployeePayrolls}
                             />
 
-                            {hasEditPermission && (
+                            {hasEditPermission && approvalStatus !== "MANNUALLY_PROCESSED" && (
                                 <>
                                     <Button
                                         color="success"
@@ -588,7 +588,7 @@ const Salary = () => {
                                     </Button>
                                 </>
                             )}
-                            {hasPermission("HR", "SALARY", "DELETE") && (
+                            {hasPermission("HR", "SALARY", "DELETE") && approvalStatus !== "MANNUALLY_PROCESSED" && (
                                 <Button
                                     color="primary"
                                     className="d-flex align-items-center gap-1 text-white"

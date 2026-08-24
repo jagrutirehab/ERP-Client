@@ -242,7 +242,7 @@ const PayslipPdf = ({ row }) => {
     { label: "Salary Advance", value: row?.advanceSalary  ?? null },
     { label: "TDS",            value: row?.TDSAmount      ?? null },
     { label: "Insurance",      value: row?.insurance      ?? null },
-    { label: "--",             value: null                         },
+    { label: "Other Deductions", value: row?.otherDeductions ?? null },
   ];
 
   // ── Totals ─────────────────────────────────────────────────────────────────
