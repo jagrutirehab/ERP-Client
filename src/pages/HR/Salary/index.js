@@ -407,7 +407,8 @@ const Salary = () => {
         onApprove: (row) => handleAction([row._id], "APPROVE"),
         onReject: (row) => handleAction([row._id], "REJECT"),
         approvalStatusFilter: approvalStatus,
-        hasEditPermission
+        hasEditPermission,
+        hasManuallyProcessedForMonth
     });
 
 
