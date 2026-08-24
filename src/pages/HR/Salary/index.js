@@ -17,7 +17,7 @@ import { usePermissions } from '../../../Components/Hooks/useRoles';
 import { useCenterOptions } from '../../../Components/Hooks/useCenterOptions';
 import { salaryColumns } from '../../HRMS/components/Table/Columns/salary';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { exportPayrollsXLSX, generatePayroll, getPayrollGenerationStatus, payrollBulkAction } from '../../../helpers/backend_helper';
+import { exportPayrollsXLSX, generatePayroll, getPayrollGenerationStatus, getPayrolls, payrollBulkAction } from '../../../helpers/backend_helper';
 import { approvalStatusOptions, legends } from '../../../Components/constants/HR';
 import ApproveModal from '../components/ApproveModal';
 import RefreshButton from '../../../Components/Common/RefreshButton';
@@ -101,6 +101,7 @@ const Salary = () => {
     const [paymentType, setPaymentType] = useState("");
     const [eCode, setECode] = useState("");
     const [isExcelGenerating, setIsExcelGenerating] = useState(false);
+    const [hasManuallyProcessedForMonth, setHasManuallyProcessedForMonth] = useState(false);
 
     const [searchParams, setSearchParams] = useSearchParams();
     const jobId = searchParams.get("jobId");
@@ -199,6 +200,32 @@ const Salary = () => {
         limit,
         debouncedSearch,
     ]);
+
+    useEffect(() => {
+        if (!hasUserPermission || centers.length === 0) {
+            setHasManuallyProcessedForMonth(false);
+            return;
+        }
+        let cancelled = false;
+        (async () => {
+            try {
+                const response = await getPayrolls({
+                    page: 1,
+                    limit: 1,
+                    centers,
+                    startDate: startOfMonth(selectedMonth),
+                    endDate: endOfMonth(selectedMonth),
+                    approvalStatus: "MANNUALLY_PROCESSED",
+                });
+                if (!cancelled) {
+                    setHasManuallyProcessedForMonth((response?.pagination?.totalDocs || 0) > 0);
+                }
+            } catch (error) {
+                if (!cancelled) setHasManuallyProcessedForMonth(false);
+            }
+        })();
+        return () => { cancelled = true; };
+    }, [selectedMonth, centerAccess, selectedCenter, hasUserPermission]);
 
     const handleRegeneratePayroll = async () => {
         setRegenerateLoading(true);
@@ -466,7 +493,7 @@ const Salary = () => {
                                 loading={loading}
                                 onRefresh={fetchEmployeePayrolls}
                             />
-                            {hasEditPermission && approvalStatus !== "MANNUALLY_PROCESSED" && (
+                            {hasEditPermission && !hasManuallyProcessedForMonth && (
                                 <>
                                     <Button
                                         color="success"
@@ -489,7 +516,7 @@ const Salary = () => {
                                 </>
                             )}
                             {
-                                hasPermission("HR", "SALARY", "DELETE") && approvalStatus !== "MANNUALLY_PROCESSED" && (
+                                hasPermission("HR", "SALARY", "DELETE") && !hasManuallyProcessedForMonth && (
                                     <Button
                                         color="primary"
                                         className="d-flex align-items-center gap-1 text-white"
@@ -566,7 +593,7 @@ const Salary = () => {
                                 onRefresh={fetchEmployeePayrolls}
                             />
 
-                            {hasEditPermission && approvalStatus !== "MANNUALLY_PROCESSED" && (
+                            {hasEditPermission && !hasManuallyProcessedForMonth && (
                                 <>
                                     <Button
                                         color="success"
@@ -588,7 +615,7 @@ const Salary = () => {
                                     </Button>
                                 </>
                             )}
-                            {hasPermission("HR", "SALARY", "DELETE") && approvalStatus !== "MANNUALLY_PROCESSED" && (
+                            {hasPermission("HR", "SALARY", "DELETE") && !hasManuallyProcessedForMonth && (
                                 <Button
                                     color="primary"
                                     className="d-flex align-items-center gap-1 text-white"
