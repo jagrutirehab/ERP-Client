@@ -21,7 +21,9 @@ export const permissionList = [
       // Data scope, not an action: READ or above lets the role see every lead;
       // NONE restricts them to leads they authored. Read server-side by
       // canViewAllLeads (ERP-Server src/helpers/leadAccess.js).
-      { key: "VIEW_ALL", label: "View All Leads" },
+      // Submodules are keyed by `name` (not `key` like the parent module) —
+      // AddEditModal reads sm.name when seeding and saving.
+      { name: "VIEW_ALL", label: "View All Leads" },
     ],
   },
   {
