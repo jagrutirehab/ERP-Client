@@ -137,9 +137,27 @@ const MyPaySlipsTab = () => {
 
   const columns = useMemo(() => [
     {
-      name: "S No.",
+      name: "No.",
       cell: (_, i) => (page - 1) * limit + i + 1,
-      width: "70px",
+      width: "60px",
+      wrap:true,
+    },
+    {
+      name: "Preview",
+      center: true,
+      minWidth: "100px",
+      cell: (row) => (
+        <Button
+          color="primary"
+          size="sm"
+          className="d-inline-flex align-items-center justify-content-center text-white"
+          onClick={() => handlePreview(row)}
+          disabled={downloadingId === row._id}
+          title="Preview payslip"
+        >
+          {downloadingId === row._id ? <Spinner size="sm" /> : <Eye size={16} />}
+        </Button>
+      ),
     },
     {
       name: "Month",
@@ -163,20 +181,32 @@ const MyPaySlipsTab = () => {
       cell: (row) => displayValue(row.center?.title),
       minWidth: "130px",
     },
-    {
-      name: "Designation",
-      cell: (row) => capitalizeWords(row.designation),
-      minWidth: "150px",
+    // {
+    //   name: "Designation",
+    //   cell: (row) => capitalizeWords(row.designation),
+    //   minWidth: "150px",
+    // },
+    // {
+    //   name: "Department",
+    //   cell: (row) => capitalizeWords(row.department),
+    //   minWidth: "150px",
+    // },
+    // {
+    //   name: "Position",
+    //   cell: (row) => capitalizeWords(row.position),
+    //   minWidth: "150px",
+    // },
+     {
+      name: "Total Days",
+      cell: (row) => displayValue(row.totalDays),
+      right: true,
+      minWidth: "100px",
     },
     {
-      name: "Department",
-      cell: (row) => capitalizeWords(row.department),
-      minWidth: "150px",
-    },
-    {
-      name: "Position",
-      cell: (row) => capitalizeWords(row.position),
-      minWidth: "150px",
+      name: "Payable Days",
+      cell: (row) => displayValue(row.payableDays),
+      right: true,
+      minWidth: "110px",
     },
     {
       name: "Gross Salary",
@@ -195,35 +225,6 @@ const MyPaySlipsTab = () => {
       cell: (row) => displayMoney(row.inHandSalary),
       right: true,
       minWidth: "110px",
-    },
-    {
-      name: "Total Days",
-      cell: (row) => displayValue(row.totalDays),
-      right: true,
-      minWidth: "100px",
-    },
-    {
-      name: "Payable Days",
-      cell: (row) => displayValue(row.payableDays),
-      right: true,
-      minWidth: "110px",
-    },
-    {
-      name: "Preview",
-      center: true,
-      minWidth: "100px",
-      cell: (row) => (
-        <Button
-          color="primary"
-          size="sm"
-          className="d-inline-flex align-items-center justify-content-center text-white"
-          onClick={() => handlePreview(row)}
-          disabled={downloadingId === row._id}
-          title="Preview payslip"
-        >
-          {downloadingId === row._id ? <Spinner size="sm" /> : <Eye size={16} />}
-        </Button>
-      ),
     },
   ], [data, downloadingId, limit, page]); // eslint-disable-line
 

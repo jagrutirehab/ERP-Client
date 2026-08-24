@@ -83,6 +83,10 @@ export const renderStatusBadge = (stage) => {
       text: "Rejected",
       color: "danger",
     },
+    MANNUALLY_PROCESSED: {
+      text: "Manually Processed",
+      color: "primary",
+    },
     CANCELLED: {
       text: "Cancelled",
       color: "secondary",
