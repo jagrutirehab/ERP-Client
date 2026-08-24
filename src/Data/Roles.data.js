@@ -17,7 +17,12 @@ export const permissionList = [
   {
     key: "LEAD",
     label: "Lead",
-    subModules: [],
+    subModules: [
+      // Data scope, not an action: READ or above lets the role see every lead;
+      // NONE restricts them to leads they authored. Read server-side by
+      // canViewAllLeads (ERP-Server src/helpers/leadAccess.js).
+      { key: "VIEW_ALL", label: "View All Leads" },
+    ],
   },
   {
     key: "BOOKING",
