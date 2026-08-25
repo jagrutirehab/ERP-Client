@@ -450,7 +450,8 @@ const IssuesPage = ({ type }) => {
           activeTab === "new" &&
           (selectedIssue?.issueType === "TECH" ||
             selectedIssue?.issueType === "MAINTENANCE" ||
-            selectedIssue?.issueType === "COMPLAINT")
+            selectedIssue?.issueType === "COMPLAINT" ||
+            selectedIssue?.issueType === "OPERATIONAL")
             ? "Assign Issue to Employee"
             : "Update Issue Status"
         }

@@ -102,11 +102,12 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
   // };
 
   // const isTechAssign = activeTab === "new" && issue?.issueType === "TECH";
-const isTechAssign =
-  activeTab === "new" &&
-  (issue?.issueType === "TECH" ||
-    issue?.issueType === "MAINTENANCE" ||
-    issue?.issueType === "COMPLAINT");
+  const isTechAssign =
+    activeTab === "new" &&
+    (issue?.issueType === "TECH" ||
+      issue?.issueType === "MAINTENANCE" ||
+      issue?.issueType === "COMPLAINT" ||
+      issue?.issueType === "OPERATIONAL");
   const handleSubmit = () => {
     if (isTechAssign) {
       onAssign({

@@ -25,8 +25,16 @@ const List = ({
   centerAccess,
   grouped,
   date,
+  // Module-level LEAD access, resolved by the parent page. Default to false so
+  // a caller that forgets to pass them can't accidentally expose the actions.
+  canWrite = false,
+  canDelete = false,
 }) => {
   const dispatch = useDispatch();
+
+  // Every entry in the row menu mutates something, so with neither permission
+  // there is nothing to show.
+  const showRowActions = canWrite || canDelete;
 
   return (
     <React.Fragment>
@@ -254,89 +262,101 @@ const List = ({
                       className="border border-top-2 text-center border-bottom-2 p-1"
                       xs={1}
                     >
-                      <UncontrolledButtonDropdown
-                      // isOpen={settings_Menu}
-                      // toggle={toggleSettings}
-                      >
-                        <DropdownToggle
-                          className="btn btn-ghost-secondary btn-icon"
-                          tag="button"
+                      <RenderWhen isTrue={showRowActions}>
+                        <UncontrolledButtonDropdown
+                        // isOpen={settings_Menu}
+                        // toggle={toggleSettings}
                         >
-                          <i className="bx bx-dots-vertical-rounded fs-4"></i>
-                          {/* <FeatherIcon icon="more-vertical" className="icon-sm" /> */}
-                        </DropdownToggle>
-                        <Portal
-                          node={document.querySelector(".dropdown-portal")}
-                        >
-                          <DropdownMenu style={{ width: "200px" }}>
-                            <DropdownItem
-                              href="#"
-                              className="d-block user-profile-show"
-                              disabled={lead.isRegister}
-                              onClick={() => setUnMergeLead(lead)}
-                            >
-                              <i className="ri-git-branch-fill align-bottom text-muted me-2"></i>{" "}
-                              Un Merge
-                            </DropdownItem>
-                            <DropdownItem
-                              href="#"
-                              className="d-block user-profile-show"
-                              disabled={lead.isRegister}
-                              onClick={() => setMergeLead(lead)}
-                            >
-                              <i className="ri-git-merge-fill align-bottom text-muted me-2"></i>{" "}
-                              Merge
-                            </DropdownItem>
-                            <DropdownItem
-                              href="#"
-                              className="d-block user-profile-show"
-                              disabled={lead.isRegister}
-                              onClick={() =>
-                                dispatch(
-                                  togglePatientForm({
-                                    data: null,
-                                    leadData: {
-                                      ...lead,
-                                      leadOrigin: "generic",
-                                      leadQuery,
-                                      centerAccess,
-                                      grouped,
-                                      date,
-                                    },
-                                    isOpen: true,
-                                  }),
-                                )
-                              }
-                            >
-                              <i className="ri-user-2-fill align-bottom text-muted me-2"></i>{" "}
-                              Register Patient
-                            </DropdownItem>
-                            <DropdownItem
-                              href="#"
-                              className="d-block user-profile-show"
-                              onClick={() =>
-                                dispatch(
-                                  createEditLead({ data: lead, isOpen: true }),
-                                )
-                              }
-                            >
-                              <i className="ri-quill-pen-line align-bottom text-muted me-2"></i>{" "}
-                              Edit
-                            </DropdownItem>
-                            <DropdownItem
-                              href="#"
-                              disabled={lead.isRegister}
-                              onClick={() =>
-                                setDeleteLead({ id: lead._id, isOpen: true })
-                              }
-                            >
-                              {" "}
-                              <i className="ri-delete-bin-5-line align-bottom text-muted me-2"></i>{" "}
-                              Delete
-                            </DropdownItem>
-                          </DropdownMenu>
-                        </Portal>
-                      </UncontrolledButtonDropdown>
+                          <DropdownToggle
+                            className="btn btn-ghost-secondary btn-icon"
+                            tag="button"
+                          >
+                            <i className="bx bx-dots-vertical-rounded fs-4"></i>
+                            {/* <FeatherIcon icon="more-vertical" className="icon-sm" /> */}
+                          </DropdownToggle>
+                          <Portal
+                            node={document.querySelector(".dropdown-portal")}
+                          >
+                            <DropdownMenu style={{ width: "200px" }}>
+                              <RenderWhen isTrue={canWrite}>
+                                <DropdownItem
+                                  href="#"
+                                  className="d-block user-profile-show"
+                                  disabled={lead.isRegister}
+                                  onClick={() => setUnMergeLead(lead)}
+                                >
+                                  <i className="ri-git-branch-fill align-bottom text-muted me-2"></i>{" "}
+                                  Un Merge
+                                </DropdownItem>
+                                <DropdownItem
+                                  href="#"
+                                  className="d-block user-profile-show"
+                                  disabled={lead.isRegister}
+                                  onClick={() => setMergeLead(lead)}
+                                >
+                                  <i className="ri-git-merge-fill align-bottom text-muted me-2"></i>{" "}
+                                  Merge
+                                </DropdownItem>
+                                <DropdownItem
+                                  href="#"
+                                  className="d-block user-profile-show"
+                                  disabled={lead.isRegister}
+                                  onClick={() =>
+                                    dispatch(
+                                      togglePatientForm({
+                                        data: null,
+                                        leadData: {
+                                          ...lead,
+                                          leadOrigin: "generic",
+                                          leadQuery,
+                                          centerAccess,
+                                          grouped,
+                                          date,
+                                        },
+                                        isOpen: true,
+                                      }),
+                                    )
+                                  }
+                                >
+                                  <i className="ri-user-2-fill align-bottom text-muted me-2"></i>{" "}
+                                  Register Patient
+                                </DropdownItem>
+                                <DropdownItem
+                                  href="#"
+                                  className="d-block user-profile-show"
+                                  onClick={() =>
+                                    dispatch(
+                                      createEditLead({
+                                        data: lead,
+                                        isOpen: true,
+                                      }),
+                                    )
+                                  }
+                                >
+                                  <i className="ri-quill-pen-line align-bottom text-muted me-2"></i>{" "}
+                                  Edit
+                                </DropdownItem>
+                              </RenderWhen>
+                              <RenderWhen isTrue={canDelete}>
+                                <DropdownItem
+                                  href="#"
+                                  disabled={lead.isRegister}
+                                  onClick={() =>
+                                    setDeleteLead({
+                                      id: lead._id,
+                                      isOpen: true,
+                                    })
+                                  }
+                                >
+                                  {" "}
+                                  <i className="ri-delete-bin-5-line align-bottom text-muted me-2"></i>{" "}
+                                  Delete
+                                </DropdownItem>
+                              </RenderWhen>
+                            </DropdownMenu>
+                          </Portal>
+                        </UncontrolledButtonDropdown>
+                      </RenderWhen>
                       {/* <Button size="sm" outline></Button> */}
                     </Col>
                     {/* <Col xs={2}>{lead.}</Col> */}
@@ -355,6 +375,8 @@ List.propTypes = {
   leads: PropTypes.array,
   leadQuery: PropTypes.string,
   setDeleteLead: PropTypes.func,
+  canWrite: PropTypes.bool,
+  canDelete: PropTypes.bool,
 };
 
 export default List;
