@@ -342,6 +342,7 @@ const OPDView = ({
                                       >
                                         <Prescription
                                           data={doc.chart?.prescription}
+                                          baseDate={doc.chart?.date || doc.chart?.createdAt}
                                         />
                                       </Wrapper>
                                     )}

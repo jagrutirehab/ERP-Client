@@ -1,193 +1,173 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import GeneralCard from "../../Patient/Views/Components/GeneralCard";
 import { Row, Nav, NavItem, NavLink, Badge } from "reactstrap";
 import { useParams } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import {
-  getMedicineActivitiesByStatus,
-  getPatientPrescriptionHistory,
-} from "../../../store/features/nurse/nurseSlice";
+import { toast } from "react-toastify";
 import Placeholder from "../../Patient/Views/Components/Placeholder";
-import {
-  CheckCheck,
-  XCircle,
-  ChevronLeft,
-  ChevronRight,
-  Undo2,
-} from "lucide-react";
-import ActivityCard from "./Components/ActivityCard";
+import { CheckCheck, XCircle, Undo2, Clock } from "lucide-react";
 import moment from "moment";
 import Select from "react-select";
+import { getDailyMedicationRecord } from "../../../helpers/backend_helper";
 
-const LIMIT = 10;
+const STATUS_META = {
+  completed: { label: "Completed", color: "success", Icon: CheckCheck },
+  missed: { label: "Missed", color: "danger", Icon: XCircle },
+  retrieved: { label: "Retrieved", color: "warning", Icon: Undo2 },
+  pending: { label: "Pending", color: "secondary", Icon: Clock },
+};
+
+const TABS = ["completed", "missed", "retrieved"];
+const SLOT_ORDER = { morning: 0, evening: 1, night: 2 };
 
 const Activities = () => {
   const { id } = useParams();
-  const dispatch = useDispatch();
-  const { medicineLoading, medicines, prescriptionHistory, loading } =
-    useSelector((state) => state.Nurse);
-  const [activeTab, setActiveTab] = useState("COMPLETED");
-  const [selectedPrescriptionId, setSelectedPrescriptionId] = useState("");
-  const [page, setPage] = useState(1);
+  const [days, setDays] = useState([]);
+  const [record, setRecord] = useState(null);
+  const [selectedDate, setSelectedDate] = useState(null);
+  const [activeTab, setActiveTab] = useState("completed");
+  const [loading, setLoading] = useState(false);
 
-  const toggle = (tab) => {
-    if (activeTab !== tab) {
-      setActiveTab(tab);
-      setPage(1);
-    }
-  };
-
-  // Fetch prescription history on mount
-  useEffect(() => {
+  const load = useCallback(() => {
     if (!id || id === "*") return;
-    dispatch(getPatientPrescriptionHistory(id));
-  }, [id, dispatch]);
-
-  // Build react-select options with "Prescription 1", "Prescription 2" labels
-  const prescriptionOptions = prescriptionHistory?.map((p, index) => ({
-    value: p.prescriptionId,
-    label: `Prescription ${prescriptionHistory.length - index} — ${moment(p.startDate).format("DD MMM YYYY")} → ${moment(p.endDate).format("DD MMM YYYY")}`,
-  })) || [];
-
-  // Auto-select first prescription when history loads
-  useEffect(() => {
-    if (prescriptionHistory?.length > 0 && !selectedPrescriptionId) {
-      setSelectedPrescriptionId(prescriptionHistory[0].prescriptionId);
-    }
-  }, [prescriptionHistory]);
-
-  // Fetch activities whenever tab, prescription, or page changes
-  useEffect(() => {
-    if (!id || id === "*" || !selectedPrescriptionId) return;
-    dispatch(
-      getMedicineActivitiesByStatus({
-        patientId: id,
-        prescriptionId: selectedPrescriptionId,
-        status:
-          activeTab === "COMPLETED"
-            ? "completed"
-            : activeTab === "RETRIEVED"
-              ? "retrieved"
-              : "missed",
-        page,
-        limit: LIMIT,
+    setLoading(true);
+    getDailyMedicationRecord({ patientId: id, date: selectedDate })
+      .then((res) => {
+        setDays(res?.days || []);
+        setRecord(res?.record || null);
+        // Server falls back to the newest day when none was asked for.
+        if (!selectedDate && res?.record?.date) {
+          setSelectedDate(res.record.date);
+        }
       })
-    );
-  }, [activeTab, id, selectedPrescriptionId, page, dispatch]);
+      .catch((err) => {
+        toast.error(err?.message || "Failed to load medication record");
+        setDays([]);
+        setRecord(null);
+      })
+      .finally(() => setLoading(false));
+  }, [id, selectedDate]);
 
-  const pagination = medicines?.activities?.pagination || {};
-  const totalPages = pagination.totalPages || 1;
+  useEffect(() => {
+    load();
+  }, [load]);
 
-  const handlePrescriptionChange = (option) => {
-    setSelectedPrescriptionId(option?.value || "");
-    setPage(1);
-  };
+  const dayOptions = days.map((d) => ({
+    value: d.date,
+    // Tomorrow is in the list because its box is filled today — that is the
+    // day the nurse is actually working on.
+    label:
+      `Day ${d.day} — ${moment(d.date).format("DD MMM YYYY")}` +
+      (d.isTomorrow ? " (Tomorrow)" : d.isToday ? " (Today)" : ""),
+  }));
+
+  const counts = record?.counts || {};
+  const shown = (record?.medicines || [])
+    .filter((m) => m.status === activeTab)
+    .sort((a, b) => (SLOT_ORDER[a.slot] ?? 9) - (SLOT_ORDER[b.slot] ?? 9));
 
   return (
     <div>
       <Row className="timeline-right" style={{ rowGap: "2rem" }}>
         <GeneralCard data="Daily Medication Record">
           <div style={{ padding: "1rem" }}>
-            {/* Prescription selector */}
             <div className="mb-3">
               <label className="form-label fw-semibold small text-muted mb-1">
-                Select Prescription
+                Select Day
               </label>
-              {loading ? (
-                <div className="text-muted small">Loading prescriptions…</div>
-              ) : prescriptionHistory?.length > 0 ? (
+              {loading && !days.length ? (
+                <div className="text-muted small">Loading days…</div>
+              ) : days.length ? (
                 <Select
-                  options={prescriptionOptions}
-                  value={prescriptionOptions.find(
-                    (o) => o.value === selectedPrescriptionId
-                  ) || null}
-                  onChange={handlePrescriptionChange}
-                  placeholder="Select a prescription…"
+                  options={dayOptions}
+                  value={dayOptions.find((o) => o.value === selectedDate) || null}
+                  onChange={(option) => {
+                    setSelectedDate(option?.value || null);
+                    setActiveTab("completed");
+                  }}
+                  placeholder="Select a day…"
                   isSearchable={false}
                   styles={{ container: (base) => ({ ...base, maxWidth: 480 }) }}
                 />
               ) : (
-                <div className="text-muted small">
-                  No prescription history found
-                </div>
+                <div className="text-muted small">No medication days yet</div>
               )}
             </div>
 
             <Nav tabs className="mb-4">
-              <NavItem>
-                <NavLink
-                  className={`cursor-pointer ${
-                    activeTab === "COMPLETED" ? "active" : ""
-                  }`}
-                  onClick={() => toggle("COMPLETED")}
-                >
-                  <div className="d-flex align-items-center gap-2">
-                    <CheckCheck size={16} className="text-success" />
-                    Completed
-                  </div>
-                </NavLink>
-              </NavItem>
-              <NavItem>
-                <NavLink
-                  className={`cursor-pointer ${
-                    activeTab === "MISSED" ? "active" : ""
-                  }`}
-                  onClick={() => toggle("MISSED")}
-                >
-                  <div className="d-flex align-items-center gap-2">
-                    <XCircle size={16} className="text-danger" />
-                    Missed
-                  </div>
-                </NavLink>
-              </NavItem>
-              <NavItem>
-                <NavLink
-                  className={`cursor-pointer ${
-                    activeTab === "RETRIEVED" ? "active" : ""
-                  }`}
-                  onClick={() => toggle("RETRIEVED")}
-                >
-                  <div className="d-flex align-items-center gap-2">
-                    <Undo2 size={16} className="text-warning" />
-                    Retrieved
-                  </div>
-                </NavLink>
-              </NavItem>
+              {TABS.map((key) => {
+                const { label, color, Icon } = STATUS_META[key];
+                return (
+                  <NavItem key={key}>
+                    <NavLink
+                      className={`cursor-pointer ${activeTab === key ? "active" : ""}`}
+                      onClick={() => setActiveTab(key)}
+                    >
+                      <div className="d-flex align-items-center gap-2">
+                        <Icon size={16} className={`text-${color}`} />
+                        {label}
+                        {counts[key] > 0 && (
+                          <Badge color={color} pill>
+                            {counts[key]}
+                          </Badge>
+                        )}
+                      </div>
+                    </NavLink>
+                  </NavItem>
+                );
+              })}
             </Nav>
 
-            {medicineLoading ? (
+            {loading ? (
               <Placeholder />
-            ) : activeTab === "COMPLETED" ? (
-              <ActivityCard medicines={medicines} status="completed" />
-            ) : activeTab === "RETRIEVED" ? (
-              <ActivityCard medicines={medicines} status="retrieved" />
+            ) : !record ? (
+              <div className="text-center py-5">
+                <Clock size={40} className="text-muted mb-3" />
+                <h6 className="mb-1">No medication record</h6>
+                <p className="text-muted small mb-0">
+                  Days appear here once medicines are prescribed
+                </p>
+              </div>
+            ) : !shown.length ? (
+              <div className="text-center py-5">
+                <h6 className="mb-1">
+                  No {STATUS_META[activeTab].label} medications
+                </h6>
+                <p className="text-muted small mb-0">
+                  {record.counts.total === 0
+                    ? "No medicines were due on this day"
+                    : `Nothing ${STATUS_META[activeTab].label.toLowerCase()} on ${moment(record.date).format("DD MMM, YYYY")}`}
+                </p>
+              </div>
             ) : (
-              <ActivityCard medicines={medicines} status="missed" />
-            )}
-
-            {/* Pagination */}
-            {!medicineLoading && totalPages > 1 && (
-              <div className="d-flex justify-content-between align-items-center mt-4">
-                <small className="text-muted">
-                  Page {pagination.page} of {totalPages} &nbsp;·&nbsp; Total:{" "}
-                  {pagination.total} date(s)
-                </small>
-                <div className="d-flex gap-2">
-                  <button
-                    className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
-                    disabled={page <= 1}
-                    onClick={() => setPage((p) => p - 1)}
-                  >
-                    <ChevronLeft size={14} /> Prev
-                  </button>
-                  <button
-                    className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
-                    disabled={page >= totalPages}
-                    onClick={() => setPage((p) => p + 1)}
-                  >
-                    Next <ChevronRight size={14} />
-                  </button>
-                </div>
+              <div className="table-responsive">
+                <table className="table table-sm mb-0 align-middle">
+                  <thead>
+                    <tr>
+                      <th>Medicine</th>
+                      <th>Slot</th>
+                      <th>Dosage</th>
+                      <th>Intake</th>
+                      <th>Prescribed by</th>
+                      <th>Marked at</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {shown.map((med, idx) => (
+                      <tr key={`${med.medicineName}-${med.slot}-${idx}`}>
+                        <td>{med.medicineName}</td>
+                        <td className="text-capitalize">{med.slot}</td>
+                        <td>{med.dosage}</td>
+                        <td>{med.intake || "-"}</td>
+                        <td>{med.prescribedBy || "-"}</td>
+                        <td>
+                          {med.takenAt
+                            ? moment(med.takenAt).format("hh:mm A")
+                            : "-"}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             )}
           </div>
@@ -217,14 +197,6 @@ const Activities = () => {
 
         .cursor-pointer {
           cursor: pointer;
-        }
-
-        .space-y-3 > * + * {
-          margin-top: 0.75rem;
-        }
-
-        .space-y-4 > * + * {
-          margin-top: 1rem;
         }
       `}</style>
     </div>

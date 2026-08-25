@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { Row } from "reactstrap";
+import { DropdownItem, Row } from "reactstrap";
 import Wrapper from "../Components/Wrapper";
 import {
   CLINICAL_NOTE,
@@ -56,6 +56,9 @@ import EctSession from "./EctSession";
 import AdmissionType from "./AdmissionType";
 import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
+import { getCurrentUserId } from "../../../helpers/currentMedicines";
+import { toast } from "react-toastify";
+import { toggleCarryForwardChart } from "../../../store/features/chart/chartSlice";
 import { api } from "../../../config";
 import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
 import AdditionalDetailsModal from "./Components/AdditionalDetailsModal";
@@ -64,8 +67,10 @@ const Charts = ({
   addmission,
   charts,
   toggleDateModal,
+  setChartType,
   currentAddmissionId,
   isPatientDischarged,
+  carryForwardCharts,
 }) => {
   const dispatch = useDispatch();
   const [, forceUpdate] = useState(0);
@@ -201,6 +206,19 @@ const Charts = ({
   const editChart = (chart) => {
     toggleDateModal();
     dispatch(createEditChart({ data: chart, chart: null, isOpen: false }));
+  };
+
+  const isStagedForCarryForward = (chart) =>
+    (carryForwardCharts || []).some((c) => String(c._id) === String(chart._id));
+
+  const carryForwardChart = (chart) => {
+    const alreadyStaged = isStagedForCarryForward(chart);
+    dispatch(toggleCarryForwardChart(chart));
+    toast.success(
+      alreadyStaged
+        ? "Removed from carry forward"
+        : "Added to carry forward — open Create new Chart to use it",
+    );
   };
 
   const getChart = (chart) => {
@@ -345,9 +363,41 @@ const Charts = ({
                   validatorId={chart?.validatorId}
                   doctorValidatorId={chart?.doctorValidatorId}
                   currentAddmissionId={currentAddmissionId}
+                  hideEdit={chart.chart === PRESCRIPTION}
+                  extraOptions={(item) =>
+                    item?.chart === PRESCRIPTION &&
+                    item?.type === "IPD" &&
+                    (item?.prescription?.medicines || []).some(
+                      (med) => med.status !== "discontinued",
+                    ) ? (
+                      <DropdownItem
+                        onClick={() => carryForwardChart(item)}
+                        href="#"
+                      >
+                        {isStagedForCarryForward(item) ? (
+                          <>
+                            <i className="ri-check-line align-bottom text-success me-2"></i>{" "}
+                            Remove from Carry Forward
+                          </>
+                        ) : (
+                          <>
+                            <i className="ri-file-copy-line align-bottom text-muted me-2"></i>{" "}
+                            Add to Carry Forward
+                          </>
+                        )}
+                      </DropdownItem>
+                    ) : null
+                  }
                 >
                   {chart.chart === PRESCRIPTION && (
-                    <Prescription data={chart?.prescription} />
+                    <Prescription
+                      data={chart?.prescription}
+                      baseDate={chart?.date || chart?.createdAt}
+                      showDates={chart?.type === "IPD"}
+                      showOwner={chart?.type === "IPD"}
+                      currentUserId={getCurrentUserId()}
+                      fallbackPrescriber={chart?.author}
+                    />
                   )}
                   {chart.chart === RELATIVE_VISIT && (
                     <RelativeVisit data={chart?.relativeVisit} />
@@ -434,6 +484,7 @@ Charts.propTypes = {
 
 const mapStateToProps = (state) => ({
   // charts: state.Chart.data,
+  carryForwardCharts: state.Chart.carryForwardCharts,
 });
 
 export default connect(mapStateToProps)(Charts);

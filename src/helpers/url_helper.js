@@ -127,6 +127,8 @@ export const POST_PRESCRIPTION = "/chart/prescription";
 export const EDIT_PRESCRIPTION = "/chart/prescription";
 export const POST_GENERAL_PRESCRIPTION = "/chart/prescription/general";
 export const EDIT_GENERAL_PRESCRIPTION = "/chart/prescription/general";
+export const GET_CURRENT_MEDICINES = "/chart/prescription/current-medicines";
+export const UPDATE_MEDICINE_ENTRY = "/chart/prescription";
 export const POST_VITAL_SIGN = "/chart/vital-sign";
 export const EDIT_VITAL_SIGN = "/chart/vital-sign";
 export const POST_GENERAL_VITAL_SIGN = "/chart/vital-sign/general";
@@ -372,6 +374,7 @@ export const GET_NURSE_GIVEN_MEDICINES = "/nurse/medicine-records";
 export const GET_NURSE_GIVEN_MEDICINE_DETAILS =
   "/nurse/medicine-record-details";
 export const GET_PRESCRIPTION_HISTORY = "/nurse/prescription-history";
+export const GET_DAILY_MEDICATION_RECORD = "/nurse/daily-medication-record";
 
 // alerts
 export const GET_ALERTS_BY_PATIENT = "/alerts/nurse";

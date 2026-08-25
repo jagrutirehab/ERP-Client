@@ -31,6 +31,7 @@ const ADMISSION_TYPE = "ADMISSION_TYPE";
 const OPD = "OPD";
 const IPD = "IPD";
 const CLINIC_TEST = "CLINICTEST";
+const CURRENT_MEDICINES = "CURRENT_MEDICINES";
 export const GENERAL = "GENERAL";
 export const NOTES = "NOTES";
 //Admit Discharge
@@ -3055,6 +3056,7 @@ export {
   OPD,
   IPD,
   CLINIC_TEST,
+  CURRENT_MEDICINES,
   //PATIENT ADVANCE PAYMENT OPTIONS
   CASH,
   CARD,

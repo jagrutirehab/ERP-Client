@@ -482,8 +482,12 @@ export const getCharts = (data) => {
   const _t = typeof data === "string" ? Date.now() : (data._t ?? Date.now());
   return api.get(url.GET_CHARTS, { addmission, chartType, _t });
 };
-export const getLatestCharts = ({ patient, limit }) =>
-  api.get(`${url.GET_LATEST_CHARTS}?patient=${patient}&limit=${limit}`);
+export const getLatestCharts = ({ patient, limit, chartType, type }) =>
+  api.get(
+    `${url.GET_LATEST_CHARTS}?patient=${patient}&limit=${limit}` +
+    `${chartType ? `&chartType=${chartType}` : ""}` +
+    `${type ? `&type=${type}` : ""}`,
+  );
 export const getGeneralCharts = (data) => api.get(url.GET_GENERAL_CHARTS, data);
 export const postPrescription = (data) =>
   api.create(url.POST_PRESCRIPTION, data);
@@ -492,6 +496,13 @@ export const postGeneralPrescription = (data) =>
   api.create(url.POST_GENERAL_PRESCRIPTION, data);
 export const editGeneralPrescription = (data) =>
   api.put(url.EDIT_GENERAL_PRESCRIPTION, data);
+export const getCurrentMedicines = (patientId) =>
+  api.get(`${url.GET_CURRENT_MEDICINES}/${patientId}`);
+export const updateMedicineEntry = (prescriptionId, medicineId, data) =>
+  api.update(
+    `${url.UPDATE_MEDICINE_ENTRY}/${prescriptionId}/medicine/${medicineId}`,
+    data,
+  );
 export const postVitalSign = (data) => api.create(url.POST_VITAL_SIGN, data);
 export const editVitalSign = (data) => api.put(url.EDIT_VITAL_SIGN, data);
 export const postGeneralVitalSign = (data) =>
@@ -1181,6 +1192,12 @@ export const getActivitiesByStatus = ({
     `${url.GET_ACTIVITIES_BY_STATUS}?patientId=${patientId}&prescriptionId=${prescriptionId}&status=${status}&page=${page}&limit=${limit}`,
   );
 };
+
+export const getDailyMedicationRecord = ({ patientId, date }) =>
+  api.get(
+    `${url.GET_DAILY_MEDICATION_RECORD}?patientId=${patientId}` +
+    `${date ? `&date=${date}` : ""}`,
+  );
 
 export const getPrescriptionHistory = (patientId) => {
   return api.get(`${url.GET_PRESCRIPTION_HISTORY}?patientId=${patientId}`);

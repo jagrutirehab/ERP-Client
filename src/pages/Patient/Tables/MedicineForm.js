@@ -21,16 +21,20 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Menu } from "lucide-react";
+import Flatpicker from "react-flatpickr";
+import { capitalizeWords } from "../../../utils/toCapitalize";
+import "flatpickr/dist/themes/material_green.css";
 import {
   getMedicineFrequencyLabel,
   getMedicineFrequencyPreset,
   normalizeMedicineFrequency,
 } from "../../../helpers/prescriptionFrequency";
+import { getMedicineEndDate, getDaysBetween } from "../../../helpers/currentMedicines";
 
 
-const SortableMedicine = ({ index, children }) => {
+const SortableMedicine = ({ index, locked, children }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: index });
+    useSortable({ id: index, disabled: locked });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -38,17 +42,39 @@ const SortableMedicine = ({ index, children }) => {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="d-flex align-items-center gap-2">
-      <span {...listeners} {...attributes} style={{ cursor: "grab", marginRight: 6, fontSize: window.innerWidth < 768 ? 14 : 20, touchAction: "none" }}>
+    <div
+      ref={setNodeRef}
+      style={{
+        ...style,
+        borderBottom: "1px solid #6c757d",
+        opacity: locked ? 0.75 : 1,
+      }}
+      className="d-flex align-items-center gap-2 pb-3 mb-3"
+    >
+      <span
+        {...(locked ? {} : { ...listeners, ...attributes })}
+        style={{
+          cursor: locked ? "not-allowed" : "grab",
+          marginRight: 6,
+          fontSize: window.innerWidth < 768 ? 14 : 20,
+          touchAction: "none",
+          visibility: locked ? "hidden" : "visible",
+        }}
+      >
         <Menu />
       </span>
-      {children}
+      <div
+        className="d-flex align-items-center gap-2 flex-grow-1"
+        style={locked ? { pointerEvents: "none", userSelect: "none" } : undefined}
+      >
+        {children}
+      </div>
     </div>
   );
 };
 
 
-const Medicine = ({ medicines, setMedicines, isNew }) => {
+const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 }
@@ -95,6 +121,40 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
     } else {
       drugsTable[index][prop] = value;
     }
+
+    // Editing duration/unit directly drives the To date off the From date.
+    if (prop === "duration" || prop === "unit") {
+      drugsTable[index].endDate = getMedicineEndDate(
+        drugsTable[index].startDate,
+        drugsTable[index],
+      );
+    }
+
+    setMedicines(drugsTable);
+  };
+
+  // From/To dates and duration stay in sync in both directions: editing the
+  // date range recomputes duration (in days) from the gap between them;
+  // editing duration/unit (above) recomputes the To date instead.
+  const handleStartDateChange = (idx, date) => {
+    const drugsTable = [...medicines];
+    drugsTable[idx].startDate = date;
+    if (drugsTable[idx].endDate) {
+      drugsTable[idx].duration = String(getDaysBetween(date, drugsTable[idx].endDate));
+      drugsTable[idx].unit = "Day (s)";
+    } else {
+      drugsTable[idx].endDate = getMedicineEndDate(date, drugsTable[idx]);
+    }
+    setMedicines(drugsTable);
+  };
+
+  const handleEndDateChange = (idx, date) => {
+    const drugsTable = [...medicines];
+    drugsTable[idx].endDate = date;
+    drugsTable[idx].duration = String(
+      getDaysBetween(drugsTable[idx].startDate, date),
+    );
+    drugsTable[idx].unit = "Day (s)";
     setMedicines(drugsTable);
   };
 
@@ -167,7 +227,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
               strategy={verticalListSortingStrategy}
             >
               {(medicines || []).map((medicine, idx) => (
-                <SortableMedicine key={idx} index={idx}>
+                <SortableMedicine key={idx} index={idx} locked={medicine.locked}>
                   <Col xs={2} className="">
                     <span className="font-semi-bold text-uppercase d-flex">
                       <span
@@ -479,6 +539,24 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         <option>Year (s)</option>
                       </Input>
                     </div>
+                    {showDates && (
+                      <div className="d-flex flex-column mt-2">
+                        <Flatpicker
+                          value={medicine.startDate || ""}
+                          onChange={([date]) => handleStartDateChange(idx, date)}
+                          options={{ dateFormat: "d M, Y" }}
+                          className="form-control form-control-sm bg-white mb-1"
+                          placeholder="From"
+                        />
+                        <Flatpicker
+                          value={medicine.endDate || ""}
+                          onChange={([date]) => handleEndDateChange(idx, date)}
+                          options={{ dateFormat: "d M, Y" }}
+                          className="form-control form-control-sm bg-white"
+                          placeholder="To"
+                        />
+                      </div>
+                    )}
                   </Col>
                   <Col xs={2} className="">
                     <div>
@@ -551,10 +629,25 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                     </div>
                   </Col>
                   <Col xs={1}>
-                    <i
-                      onClick={() => removeDrug(idx)}
-                      className="btn text-black btn-sm btn-outline-danger ri-delete-bin-6-line"
-                    ></i>
+                    {medicine.locked ? (
+                      // Carried forward from another doctor's prescription —
+                      // it stays theirs, so it is shown under their name and
+                      // cannot be edited or removed here.
+                      <span
+                        className="badge bg-secondary text-wrap"
+                        style={{ fontSize: "10px" }}
+                        title="Prescribed by another user — read only"
+                      >
+                        {capitalizeWords(
+                          medicine.prescribedByUser?.name || medicine.author?.name,
+                        ) || "Locked"}
+                      </span>
+                    ) : (
+                      <i
+                        onClick={() => removeDrug(idx)}
+                        className="btn text-black btn-sm btn-outline-danger ri-delete-bin-6-line"
+                      ></i>
+                    )}
                   </Col>
                 </SortableMedicine>
               ))}
@@ -569,6 +662,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
 Medicine.propTypes = {
   medicines: PropTypes.array,
   setMedicines: PropTypes.func,
+  showDates: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({

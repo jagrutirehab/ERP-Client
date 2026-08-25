@@ -41,6 +41,8 @@ import {
 import MedicineDropdown from "../Dropdowns/Medicine";
 import MedicineTable from "../Tables/MedicineForm";
 import SopSuggestedMedicines from "./SopSuggestedMedicines";
+import CurrentMedicinesPanel from "./CurrentMedicinesPanel";
+import { getCurrentUserId, getMedicineEndDate } from "../../../helpers/currentMedicines";
 import { connect, useDispatch } from "react-redux";
 import {
   addGeneralPrescription,
@@ -51,7 +53,6 @@ import {
   toggleAppointmentForm,
   updatePrescription,
 } from "../../../store/actions";
-import { fetchLatestCharts } from "../../../store/features/chart/chartSlice";
 import Wrapper from "../Components/Wrapper";
 import RelativeVisit from "../Charts/RelativeVisit";
 import DischargeSummary from "../Charts/DischargeSummary";
@@ -63,8 +64,9 @@ import DetailAdmission from "../Charts/DetailAdmission";
 import PrescriptionChart from "../Charts/Prescription";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { getICDCodes } from "../../../helpers/backend_helper.js";
+import { getICDCodes, getLatestCharts } from "../../../helpers/backend_helper.js";
 import { normalizeMedicineFrequency } from "../../../helpers/prescriptionFrequency";
+import { clearCarryForwardCharts } from "../../../store/features/chart/chartSlice";
 
 
 // Dr Notes carry-forward
@@ -186,6 +188,7 @@ const Prescription = ({
   type,
   appointment,
   charts,
+  carryForwardCharts,
   patientLatestOPDPrescription,
   populatePreviousAppointment = false,
   shouldPrintAfterSave = false,
@@ -195,19 +198,64 @@ const Prescription = ({
   const [loading, setLoading] = useState(false);
   const [allICDCodes, setAllICDCodes] = useState([]);
   const [icdOptions, setIcdOptions] = useState([]);
+  // Previous IPD prescription, used to prefill the clinical notes on a new
+  // chart. Never used for medicines.
+  const [lastIpdPrescription, setLastIpdPrescription] = useState(null);
   const icd2Initialized = React.useRef(false);
 
   const editPrescription = editChartData?.prescription;
   const ptLatestOPDPrescription = patientLatestOPDPrescription?.prescription;
 
   const isEditMode = !!editPrescription;
-  const isPopulateMode = populatePreviousAppointment && ptLatestOPDPrescription;
 
+  const isIPD = type === "IPD";
+
+  const isPopulateMode =
+    !isIPD && populatePreviousAppointment && ptLatestOPDPrescription;
+
+  const currentUserId = getCurrentUserId();
+  const editChartAuthorId = editChartData?.author?._id || editChartData?.author;
+
+  const carryForwardMedicines = React.useMemo(() => {
+    if (!isIPD) return [];
+
+    const byDrug = new Map();
+
+    [...(carryForwardCharts || [])]
+      .sort(
+        (a, b) =>
+          new Date(a.date || a.createdAt) - new Date(b.date || b.createdAt),
+      )
+      .forEach((chart) => {
+        (chart?.prescription?.medicines || [])
+          .filter((med) => med.status !== "discontinued")
+          .forEach((med) => {
+            const key = [
+              med.medicine?.name,
+              med.medicine?.strength,
+              med.medicine?.unit,
+            ]
+              .map((v) => String(v || "").trim().toLowerCase())
+              .join("|");
+            byDrug.set(key, med);
+          });
+      });
+
+    return Array.from(byDrug.values());
+  }, [carryForwardCharts, isIPD]);
+
+  const isCarryForwardMode = !isEditMode && carryForwardMedicines.length > 0;
+
+  // Clinical text comes from the chart being edited, the previous OPD visit
+  // (OPD populate mode), or — on a new IPD chart — the patient's previous IPD
+  // prescription. Medicines never come from here.
   const sourcePrescription = isEditMode
     ? editPrescription
     : isPopulateMode
       ? ptLatestOPDPrescription
-      : null;
+      : isIPD
+        ? lastIpdPrescription
+        : null;
 
   // console.log(patient.referredBy, "this is patient")
 
@@ -217,11 +265,34 @@ const Prescription = ({
 
   console.log("type", type);
   useEffect(() => {
-    if (populatePreviousAppointment)
+    if (!isIPD && populatePreviousAppointment)
       dispatch(
         fetchOPDPrescription({ id: appointment?.patient?._id || patient?._id }),
       );
-  }, [dispatch, appointment, populatePreviousAppointment, patient._id]);
+  }, [dispatch, appointment, populatePreviousAppointment, isIPD, patient._id]);
+
+  useEffect(() => {
+    if (!isIPD || isEditMode || !patient?._id) return;
+
+    let cancelled = false;
+    getLatestCharts({
+      patient: patient._id,
+      limit: 1,
+      chartType: PRESCRIPTION,
+      type: IPD,
+    })
+      .then((res) => {
+        if (cancelled) return;
+        setLastIpdPrescription(res?.payload?.[0]?.prescription || null);
+      })
+      .catch(() => {
+        if (!cancelled) setLastIpdPrescription(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isIPD, isEditMode, patient?._id]);
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -235,14 +306,11 @@ const Prescription = ({
       chart: PRESCRIPTION,
       age: patient ? patient.age : "",
       dateOfBirth: patient ? patient.dateOfBirth : "",
-      // Every new prescription starts with today's date header; populate mode
-      // additionally carries the previous windowed history above it.
+      // Every new prescription starts with today's date header, with the
+      // previous prescription's windowed history carried below it.
       drNotes: isEditMode
         ? editPrescription?.drNotes || ""
-        : buildDrNotesPrefill(
-            isPopulateMode ? ptLatestOPDPrescription?.drNotes : "",
-            chartDate,
-          ),
+        : buildDrNotesPrefill(sourcePrescription?.drNotes || "", chartDate),
       diagnosis: sourcePrescription?.diagnosis || "",
       // diagnosis2: editPrescription
       //   ? editPrescription.diagnosis2
@@ -339,52 +407,103 @@ const Prescription = ({
       }
       // closeForm();
       dispatch(setPtLatestOPDPrescription(null));
+      // Staged carry-forward prescriptions have been consumed by this save.
+      dispatch(clearCarryForwardCharts());
     },
   });
 
-  // console.log({ editPrescription, patientLatestOPDPrescription, patient });
-
   useEffect(() => {
-    if (type !== "OPD" && !appointment) return;
-    dispatch(fetchLatestCharts({ patient: patient?._id }));
-  }, [patient?._id, dispatch]);
-
-  // useEffect(() => {
-  //   if (editPrescription) {
-  //     setMedicines(_.cloneDeep(editPrescription.medicines));
-  //   } else if (ptLatestOPDPrescription) {
-  //     setMedicines(_.cloneDeep(ptLatestOPDPrescription.medicines));
-  //     validation.setFieldValue("drNotes", ptLatestOPDPrescription.drNotes);
-  //     validation.setFieldValue("diagnosis", ptLatestOPDPrescription.diagnosis);
-  //     validation.setFieldValue("notes", ptLatestOPDPrescription.notes);
-  //     validation.setFieldValue(
-  //       "investigationPlan",
-  //       ptLatestOPDPrescription.investigationPlan
-  //     );
-  //     validation.setFieldValue(
-  //       "complaints",
-  //       ptLatestOPDPrescription.complaints
-  //     );
-  //     validation.setFieldValue(
-  //       "observation",
-  //       ptLatestOPDPrescription.observation
-  //     );
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [editPrescription, ptLatestOPDPrescription]);
-
-  useEffect(() => {
-    const source = sourcePrescription?.medicines;
+    const source = isEditMode
+      ? sourcePrescription?.medicines
+      : isCarryForwardMode
+        ? carryForwardMedicines
+        : isPopulateMode
+          ? sourcePrescription?.medicines
+          : null;
 
     if (!source) return;
 
     const meds = _.cloneDeep(source);
 
+    // Edit mode keeps the chart's own date as the From anchor; carry-forward
+    // reissues the medicine under the current user today, so it starts now.
+    const baseStartDate = isEditMode
+      ? editChartData?.date || editChartData?.createdAt || chartDate
+      : chartDate;
+
     const fixed = meds.map((med) => {
       const m = med.medicine;
+
+      // OPD keeps its original behaviour: a straight copy, no dates,
+      // no ownership, no locking.
+      if (!isIPD) {
+        const normalizedOpdMedicine = {
+          ...med,
+          frequency: normalizeMedicineFrequency(med.frequency),
+        };
+        if (m?._id) return normalizedOpdMedicine;
+
+        const opdMatch = drugs.find(
+          (d) =>
+            d.name?.toLowerCase().trim() === m.name?.toLowerCase().trim() &&
+            String(d.strength).trim() === String(m.strength).trim() &&
+            String(d.unit).trim().toLowerCase() ===
+            String(m.unit).trim().toLowerCase(),
+        );
+
+        return opdMatch
+          ? {
+            ...normalizedOpdMedicine,
+            medicine: {
+              ...m,
+              _id: opdMatch._id,
+              name: opdMatch.name,
+              strength: opdMatch.strength,
+              unit: opdMatch.unit,
+              isNew: false,
+            },
+          }
+          : normalizedOpdMedicine;
+      }
+
+      // Carrying a medicine forward reissues it as the current user's own
+      // order: the source row's identity, prescriber and date window are all
+      // dropped, and it restarts from today for its stated duration.
+      const {
+        _id,
+        prescribedBy,
+        prescribedByUser,
+        discontinuedAt,
+        discontinuedBy,
+        startDate: sourceStartDate,
+        endDate: sourceEndDate,
+        ...carried
+      } = med;
+      const base = isEditMode ? med : carried;
+      const ownerId = isEditMode
+        ? med.prescribedBy
+          ? String(med.prescribedBy?._id || med.prescribedBy)
+          : editChartAuthorId
+            ? String(editChartAuthorId)
+            : null
+        : currentUserId;
+      const startDate = isEditMode ? med.startDate || baseStartDate : baseStartDate;
       const normalizedMedicine = {
-        ...med,
+        ...base,
         frequency: normalizeMedicineFrequency(med.frequency),
+        prescribedBy: ownerId,
+        prescribedByUser: isEditMode
+          ? med.prescribedByUser || editChartData?.author
+          : undefined,
+        startDate,
+        endDate: isEditMode
+          ? med.endDate || getMedicineEndDate(startDate, med)
+          : getMedicineEndDate(startDate, med),
+        status: "active",
+        // Only relevant when editing an existing chart: a medicine is editable
+        // only by the person who prescribed it. Carried-forward rows are the
+        // current user's own, so they are never locked.
+        locked: !!ownerId && !!currentUserId && ownerId !== String(currentUserId),
       };
 
       // if  _id ,then skip
@@ -418,13 +537,12 @@ const Prescription = ({
 
     setMedicines(fixed);
 
-    if (ptLatestOPDPrescription && !editPrescription) {
+    if (isPopulateMode && !editPrescription) {
       validation.setFieldValue(
         "drNotes",
         buildDrNotesPrefill(ptLatestOPDPrescription.drNotes, chartDate),
       );
       validation.setFieldValue("diagnosis", ptLatestOPDPrescription.diagnosis);
-      // validation.setFieldValue("diagnosis2", ptLatestOPDPrescription.diagnosis2);
       validation.setFieldValue("notes", ptLatestOPDPrescription.notes);
       validation.setFieldValue(
         "investigationPlan",
@@ -441,26 +559,21 @@ const Prescription = ({
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editPrescription, ptLatestOPDPrescription, drugs]);
+  }, [editPrescription, ptLatestOPDPrescription, carryForwardMedicines, drugs]);
 
-  // useEffect(() => {
-  //   if (!editPrescription) {
-  //     dispatch(setPtLatestOPDPrescription(null));
-  //     setMedicines([]);
-  //     validation.resetForm();
-  //   }
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [dispatch, editPrescription]);
   useEffect(() => {
-    if (!isEditMode && !isPopulateMode) {
+    if (!isEditMode && !isCarryForwardMode && !isPopulateMode) {
       setMedicines([]);
       dispatch(setPtLatestOPDPrescription(null));
     }
-  }, [isEditMode, isPopulateMode]);
+  }, [isEditMode, isCarryForwardMode, isPopulateMode]);
 
   const closeForm = () => {
     dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
     dispatch(setPtLatestOPDPrescription(null));
+    // Abandoning the form drops the staged carry-forward selection too, so it
+    // can't leak into an unrelated chart later.
+    dispatch(clearCarryForwardCharts());
     setMedicines([]);
     validation.resetForm();
   };
@@ -476,6 +589,7 @@ const Prescription = ({
     );
 
     if (!checkMedicine) {
+      const startDate = chartDate || new Date();
       const medicine = {
         medicine: {
           _id: med?._id || "",
@@ -495,11 +609,49 @@ const Prescription = ({
         duration: "30",
         unit: "Day (s)",
         frequency: 1,
+        startDate,
+        endDate: getMedicineEndDate(startDate, { duration: "30", unit: "Day (s)" }),
       };
       // console.log(medicine);
 
       setMedicines((prevMeds) => [medicine, ...prevMeds]);
     }
+  };
+
+  // Pulls a medicine from the current-medicines panel (one the logged in
+  // user prescribed) into today's editable prescription, so it can be
+  // reviewed/continued/adjusted the same way a carried-forward medicine is.
+  const addCurrentMedicineToRx = (entry) => {
+    const medicineName = entry?.medicine?.name;
+    if (!medicineName) return;
+
+    const alreadyAdded = medicines.some(
+      (m) => m.medicine?.name?.toLowerCase().trim() === medicineName.toLowerCase().trim(),
+    );
+    if (alreadyAdded) return;
+
+    // Reissuing a current medicine writes it as the current user's own order:
+    // the source row's identity, prescriber and date window are dropped, and
+    // it restarts from today for its stated duration.
+    const {
+      _id,
+      prescribedBy,
+      prescribedByUser,
+      discontinuedAt,
+      discontinuedBy,
+      startDate: sourceStartDate,
+      endDate: sourceEndDate,
+      ...medicineFields
+    } = entry;
+    const startDate = chartDate || new Date();
+    const newEntry = {
+      ..._.cloneDeep(medicineFields),
+      prescribedBy: currentUserId,
+      startDate,
+      endDate: getMedicineEndDate(startDate, medicineFields),
+      status: "active",
+    };
+    setMedicines((prevMeds) => [newEntry, ...prevMeds]);
   };
 
   const medicineDropdown = useMemo(() => {
@@ -520,11 +672,15 @@ const Prescription = ({
     return (
       medicines?.length > 0 && (
         <Col xs={12}>
-          <MedicineTable medicines={medicines} setMedicines={setMedicines} />
+          <MedicineTable
+            medicines={medicines}
+            setMedicines={setMedicines}
+            showDates={isIPD}
+          />
         </Col>
       )
     );
-  }, [medicines]);
+  }, [medicines, isIPD]);
 
   useEffect(() => {
     const fetchICD = async () => {
@@ -654,6 +810,24 @@ const Prescription = ({
                   </div>
                 </Col> */}
               </>
+            )}
+            {isIPD && !isEditMode && (
+              <Col xs={12}>
+                <CurrentMedicinesPanel
+                  patientId={patient?._id}
+                  existingMedicines={medicines}
+                  onAddMedicine={addCurrentMedicineToRx}
+                />
+              </Col>
+            )}
+            {isIPD && medicines.some((med) => med.locked) && (
+              <Col xs={12} className="mb-3">
+                <div className="alert alert-warning py-2 mb-0" role="alert">
+                  Some medicines below were prescribed by another doctor. They
+                  stay under their name and cannot be edited or removed here —
+                  you can still add and manage your own medicines.
+                </div>
+              </Col>
             )}
             {medicineDropdown}
             {patient?._id && (patient?.addmission?._id || patient?.addmission) && (
@@ -885,7 +1059,14 @@ const Prescription = ({
                     itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
                   >
                     {chart.chart === PRESCRIPTION && (
-                      <PrescriptionChart data={chart?.prescription} />
+                      <PrescriptionChart
+                        data={chart?.prescription}
+                        baseDate={chart?.date || chart?.createdAt}
+                        showDates={isIPD}
+                        showOwner={isIPD}
+                        currentUserId={currentUserId}
+                        fallbackPrescriber={chart?.author}
+                      />
                     )}
                     {chart.chart === RELATIVE_VISIT && (
                       <div className="mt-4">
@@ -943,6 +1124,7 @@ Prescription.propTypes = {
   dataList: PropTypes.array,
   type: PropTypes.string.isRequired,
   appointment: PropTypes.object,
+  carryForwardCharts: PropTypes.array,
   patientLatestOPDPrescription: PropTypes.object,
   charts: PropTypes.array,
 };
@@ -955,12 +1137,13 @@ const mapStateToProps = (state) => ({
   center: state.Chart.chartForm?.center,
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm?.data,
-  populatePreviousAppointment:
-    state.Chart.chartForm.populatePreviousAppointment,
+  carryForwardCharts: state.Chart.carryForwardCharts,
   shouldPrintAfterSave: state.Chart.chartForm.shouldPrintAfterSave,
   appointment: state.Chart.chartForm.appointment,
   type: state.Chart.chartForm.type,
   charts: state.Chart.charts,
+  populatePreviousAppointment:
+    state.Chart.chartForm.populatePreviousAppointment,
   patientLatestOPDPrescription: state.Chart.patientLatestOPDPrescription,
 });
 

@@ -64,6 +64,8 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
           if (doses[i] > 0) {
             return [
               {
+                prescriptionId: med.prescriptionId,
+                medicineId: med.medicineId,
                 medicineIndex: med.medicineIndex,
                 slot,
                 status: "pending",
@@ -75,6 +77,8 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
       }),
       ...medicinesToRemove.map((med) => ({
         historyId: med.historyId,
+        prescriptionId: med.prescriptionId,
+        medicineId: med.medicineId,
         medicineIndex: med.medicineIndex,
         slot: med.slot,
         status: "pending",
@@ -220,19 +224,21 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
               enableReinitialize
             >
               {({ values, setFieldValue }) => {
-                const getSlotIndexes = (medicineIndex) =>
+                const getSlotIndexes = (target) =>
                   values.medicines
-                    .map((med, i) =>
-                      med.medicineIndex === medicineIndex && !med.historyId
-                        ? i
-                        : -1
-                    )
+                    .map((med, i) => {
+                      if (med.historyId) return -1;
+                      const same = target?.medicineId
+                        ? String(med.medicineId) === String(target.medicineId)
+                        : med.medicineIndex === target?.medicineIndex;
+                      return same ? i : -1;
+                    })
                     .filter((i) => i !== -1);
 
                 const allTakeNowCompleted =
                   medicinesToTakeNow.length === 0 ||
                   medicinesToTakeNow.every((med) =>
-                    getSlotIndexes(med.medicineIndex).every(
+                    getSlotIndexes(med).every(
                       (i) => values.medicines[i].status === "completed"
                     )
                   );
@@ -283,9 +289,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                                 ? medicinesToTakeNow
                                 : medicinesToTakeNow.slice(0, 2)
                               ).map((medicine, idx) => {
-                                const slotIndexes = getSlotIndexes(
-                                  medicine.medicineIndex
-                                );
+                                const slotIndexes = getSlotIndexes(medicine);
                                 const allSlotsCompleted = slotIndexes.every(
                                   (i) =>
                                     values.medicines[i].status === "completed"
@@ -392,9 +396,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                                     onChange={(e) => {
                                       const checked = e.target.checked;
                                       medicinesToTakeNow.forEach((med) =>
-                                        getSlotIndexes(
-                                          med.medicineIndex
-                                        ).forEach((i) =>
+                                        getSlotIndexes(med).forEach((i) =>
                                           setFieldValue(
                                             `medicines[${i}].status`,
                                             checked

@@ -38,6 +38,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.Chart.data);
   const chartLoading = useSelector((state) => state.Chart.chartLoading);
+  const chartsStale = useSelector((state) => state.Chart.chartsStale);
   const [open, setOpen] = useState(null);
   const [filterChartType, setFilterChartType] = useState({});
   const [admissionsSettled, setAdmissionsSettled] = useState(false);
@@ -143,13 +144,14 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
     if (open === null) return;
     const admission = admissions[parseInt(open)];
     if (!admission) return;
-    if (admission.charts) return; // already loaded
+ 
+    if (admission.charts && !chartsStale) return;
     const chartType = filterChartType[admission._id] || "All";
     dispatch(
       fetchCharts({ addmissionId: admission._id, chartType, _t: Date.now() }),
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, open, admissions]);
+  }, [dispatch, open, admissions, chartsStale]);
 
   // Refetch charts when filter changes
   useEffect(() => {
@@ -357,6 +359,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     ) : (
                       <Charts
                         toggleDateModal={toggleModal}
+                        setChartType={setChartType}
                         charts={addmission.charts ?? []}
                         addmission={addmission}
                         doctor={addmission?.doctor}

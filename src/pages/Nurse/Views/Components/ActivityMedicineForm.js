@@ -97,7 +97,7 @@ import { CheckCircle, XCircle } from "lucide-react";
 //                   {Array.isArray(meds) && meds.length > 0 ? (
 //                     meds.map((med) => (
 //                       <div
-//                         key={`${timeSlot}-${med.medicineIndex}`}
+//                         key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
 //                         className="border rounded-lg p-3 bg-white shadow-sm"
 //                       >
 //                         <div className="d-flex justify-content-between align-items-start">
@@ -235,7 +235,7 @@ import { CheckCircle, XCircle } from "lucide-react";
 
 //                                 return (
 //                                   <div
-//                                     key={`${timeSlot}-${med.medicineIndex}`}
+//                                     key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
 //                                     className="border rounded-lg p-3 bg-white shadow-sm d-flex justify-content-between align-items-center"
 //                                   >
 //                                     <div>
@@ -380,6 +380,8 @@ export const medicineSchema = Yup.object().shape({
   medicines: Yup.array().of(
     Yup.object().shape({
       medicineIndex: Yup.number().nullable(),
+      medicineId: Yup.string().nullable(),
+      prescriptionId: Yup.string().nullable(),
       slot: Yup.string().oneOf(["morning", "evening", "night"]).required(),
       status: Yup.string()
         .oneOf(["completed", "missed", "retrieved", "pending"])
@@ -455,7 +457,7 @@ const ActivityMedicineForm = ({
                   {Array.isArray(meds) && meds.length > 0 ? (
                     meds.map((med) => (
                       <div
-                        key={`${timeSlot}-${med.medicineIndex}`}
+                        key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
                         className="border rounded-lg p-3 bg-white shadow-sm"
                       >
                         <div className="d-flex justify-content-between align-items-start">
@@ -525,6 +527,8 @@ const ActivityMedicineForm = ({
       ([slot, meds]) => {
         meds.forEach((med) => {
           initialValues.medicines.push({
+            prescriptionId: med.prescriptionId,
+            medicineId: med.medicineId,
             medicineIndex: med.medicineIndex,
             slot,
             status: "pending",
@@ -544,6 +548,8 @@ const ActivityMedicineForm = ({
         meds.forEach((med) => {
           initialValues.medicines.push({
             historyId: med.historyId,
+            prescriptionId: med.prescriptionId,
+            medicineId: med.medicineId,
             medicineIndex: med.medicineIndex,
             slot,
             status: "pending",
@@ -686,13 +692,16 @@ const ActivityMedicineForm = ({
                             meds.map((med, idx) => {
                               const medicineIndex = values.medicines.findIndex(
                                 (m) =>
-                                  m.medicineIndex === med.medicineIndex &&
+                                  (med.medicineId
+                                    ? String(m.medicineId) ===
+                                      String(med.medicineId)
+                                    : m.medicineIndex === med.medicineIndex) &&
                                   m.slot === timeSlot
                               );
 
                               return (
                                 <div
-                                  key={`${timeSlot}-${med.medicineIndex}`}
+                                  key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
                                   className="border rounded-lg p-3 bg-white shadow-sm d-flex justify-content-between align-items-center"
                                 >
                                   <div>
