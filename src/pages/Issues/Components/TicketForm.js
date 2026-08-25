@@ -39,7 +39,7 @@ const TicketForm = ({
   canSubmit,
   centreManagers,
   loadingCentreManagers,
-  fixedAssignees,
+  // fixedAssignees,
 }) => {
   const [loading, setLoading] = useState(false);
   const token = JSON.parse(localStorage.getItem("user"))?.token;
@@ -124,7 +124,7 @@ const TicketForm = ({
 
     if (issueType === "OPERATIONAL") {
       if (!form.operationalCentreManager) return false;
-      if (!form.operationalAssignedTo) return false;
+      // if (!form.operationalAssignedTo) return false;
       if (!form.operationalCategory) return false;
       if (
         form.operationalCategory?.value === "OTHER" &&
@@ -690,19 +690,6 @@ const TicketForm = ({
               />
             </Col> */}
 
-            <Col md={6}>
-              <Label className="fw-semibold">
-                Assign To<span className="text-danger">*</span>
-              </Label>
-              <Select
-                placeholder="Select Assignee"
-                options={fixedAssignees}
-                value={form.operationalAssignedTo}
-                onChange={(option) =>
-                  setForm({ ...form, operationalAssignedTo: option })
-                }
-              />
-            </Col>
 
             <Col md={6}>
               <Label className="fw-semibold">
