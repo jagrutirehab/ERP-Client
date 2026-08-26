@@ -2558,6 +2558,30 @@ export const getMIAttendance = (data) => {
   });
 };
 
+export const getIncidentStatusMonthly = (data) => {
+  return api.get(url.GET_INCIDENT_STATUS_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getReadmissionMonthly = (data) => {
+  return api.get(url.GET_READMISSION_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getCenterDashboardLive = (data) => {
+  return api.get(url.GET_CENTER_DASHBOARD_LIVE, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 // HR
 export const getEmployeeId = (params = {}) => {
   return api.get(url.GET_EMPLOYEE_ID, {

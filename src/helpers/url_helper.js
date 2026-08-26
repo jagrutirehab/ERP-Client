@@ -564,6 +564,12 @@ export const GET_NURSES_DAILY_ACTIVITY = "/mi-reporting/nurses-daily-activity";
 export const GET_OCCUPANCY_MONTHLY = "/mi-reporting/occupancy-monthly";
 export const GET_ADMISSION_DISCHARGE_DAILY =
   "/mi-reporting/admission-discharge-daily";
+export const GET_INCIDENT_STATUS_MONTHLY =
+  "/mi-reporting/incident-status-monthly";
+export const GET_READMISSION_MONTHLY = "/mi-reporting/readmission-monthly";
+
+// CENTER DASHBOARD
+export const GET_CENTER_DASHBOARD_LIVE = "/center-dashboard/live";
 
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";

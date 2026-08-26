@@ -5,6 +5,11 @@ export const permissionList = [
     subModules: [],
   },
   {
+    key: "CENTER_DASHBOARD",
+    label: "Center Dashboard",
+    subModules: [],
+  },
+  {
     key: "NURSE",
     label: "Nurse",
     subModules: [],

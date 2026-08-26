@@ -44,6 +44,8 @@ import {
   getCentralExpensesMonthly,
   getDoctorPsychologistStayRange,
   getNursesDailyActivity,
+  getIncidentStatusMonthly,
+  getReadmissionMonthly,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -97,6 +99,8 @@ const initialState = {
   centralExpensesMonthly: [],
   doctorPsychologistStayRange: [],
   nursesDailyActivity: [],
+  incidentStatusMonthly: [],
+  readmissionMonthly: [],
   loading: false,
   error: null,
 };
@@ -762,6 +766,33 @@ export const fetchDailyDashboard = createAsyncThunk(
   }
 );
 
+export const fetchIncidentStatusMonthly = createAsyncThunk(
+  "miReporting/fetchIncidentStatusMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getIncidentStatusMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Incident Status Monthly"
+      );
+    }
+  }
+);
+
+export const fetchReadmissionMonthly = createAsyncThunk(
+  "miReporting/fetchReadmissionMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getReadmissionMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Readmission Monthly"
+      );
+    }
+  }
+);
 
 
 
@@ -1371,6 +1402,32 @@ const miReportingSlice = createSlice({
         state.nursesDailyActivity = action.payload.payload || [];
       })
       .addCase(fetchNursesDailyActivity.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Incident Status Monthly
+      .addCase(fetchIncidentStatusMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchIncidentStatusMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.incidentStatusMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchIncidentStatusMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Readmission Monthly
+      .addCase(fetchReadmissionMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchReadmissionMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.readmissionMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchReadmissionMonthly.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

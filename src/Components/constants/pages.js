@@ -7,6 +7,13 @@ const pages = [
     icon: "ri-delete-bin-6-line",
   },
   {
+    id: "centerDashboard",
+    label: "Center Dashboard",
+    name: "Center Dashboard",
+    link: "/center-dashboard",
+    icon: "bx bx-broadcast",
+  },
+  {
     id: "nurse",
     label: "Nurse",
     name: "Nurse",
@@ -268,6 +275,7 @@ const pages = [
       edit: true,
       delete: true,
     },
+    
   },
   {
     id: "booking",
