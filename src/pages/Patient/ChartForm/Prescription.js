@@ -177,6 +177,12 @@ export const cleanDrNotesForSave = (value) =>
     parseDrNotesEntries(value).slice(0, DR_NOTES_HISTORY_LIMIT),
   );
 
+const defaultStartDate = (chartDate, isIPD) => {
+  const d = chartDate ? new Date(chartDate) : new Date();
+  if (isIPD) d.setDate(d.getDate() + 1);
+  return d;
+};
+
 const Prescription = ({
   drugs,
   author,
@@ -429,7 +435,7 @@ const Prescription = ({
     // reissues the medicine under the current user today, so it starts now.
     const baseStartDate = isEditMode
       ? editChartData?.date || editChartData?.createdAt || chartDate
-      : chartDate;
+      : defaultStartDate(chartDate, isIPD);
 
     const fixed = meds.map((med) => {
       const m = med.medicine;
@@ -589,7 +595,7 @@ const Prescription = ({
     );
 
     if (!checkMedicine) {
-      const startDate = chartDate || new Date();
+      const startDate = defaultStartDate(chartDate, isIPD);
       const medicine = {
         medicine: {
           _id: med?._id || "",
@@ -643,7 +649,7 @@ const Prescription = ({
       endDate: sourceEndDate,
       ...medicineFields
     } = entry;
-    const startDate = chartDate || new Date();
+    const startDate = defaultStartDate(chartDate, isIPD);
     const newEntry = {
       ..._.cloneDeep(medicineFields),
       prescribedBy: currentUserId,

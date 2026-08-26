@@ -129,7 +129,8 @@ const MedicineChart = ({
       name: "Medicine",
       selector: (row) => {
         // A medicine stopped early stays on the prescription it was written
-        // on — struck through and labelled, so an old chart never reads as if
+        // on — the row is tinted red and labelled (not struck through, which
+        // made the drug name hard to read), so an old chart never reads as if
         // the drug were still running. Medicines that simply ran out their
         // course are left as they are.
         const isDiscontinued = row.status === "discontinued";
@@ -141,9 +142,16 @@ const MedicineChart = ({
               {row.medicine?.type} {row.medicine?.name} {row.medicine?.strength}
             </span>
             {isDiscontinued && (
-              <span className="text-danger" style={{ fontSize: "11px" }}>
-                <span className="badge bg-danger-subtle text-danger me-1">
-                  Discontinued
+              <span className="text-danger" style={{ fontSize: "12px" }}>
+                <span
+                  className="badge bg-danger text-white me-1"
+                  style={{
+                    fontSize: "9px",
+                    letterSpacing: "0.3px",
+                    padding: "2px 5px",
+                  }}
+                >
+                  DISCONTINUED
                 </span>
                 {stoppedBy ? `by ${stoppedBy}` : ""}
                 {row.discontinuedAt
@@ -360,8 +368,8 @@ const MedicineChart = ({
             {
               when: (row) => row.status === "discontinued",
               style: {
-                backgroundColor: "rgba(240, 101, 72, 0.08)",
-                borderLeft: "3px solid #f06548",
+                backgroundColor: "rgba(240, 101, 72, 0.22)",
+                borderLeft: "5px solid #f06548",
               },
             },
           ]}
