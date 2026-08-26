@@ -40,6 +40,8 @@ const centerDashboardSlice = createSlice({
       .addCase(fetchCenterDashboardLive.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+        state.data = [];
+        state.month = null;
       });
   },
 });

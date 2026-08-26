@@ -32,7 +32,7 @@ const CenterDashboard = () => {
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
-
+    
     const { loading: permissionLoader, hasPermission } = usePermissions(token);
     const hasCenterDashboardPermission = hasPermission("CENTER_DASHBOARD", null, "READ");
 
@@ -46,6 +46,10 @@ const CenterDashboard = () => {
     // }, [hasCenterDashboardPermission, permissionLoader]);
 
     useEffect(() => {
+        if (!centerAccess || centerAccess.length === 0) {
+            setLastUpdated(null);
+            return;
+        }
         const load = () => {
             dispatch(fetchCenterDashboardLive({ centerAccess })).then(() => {
                 setLastUpdated(new Date());
@@ -54,6 +58,7 @@ const CenterDashboard = () => {
         load();
         const interval = setInterval(load, REFRESH_INTERVAL_MS);
         return () => clearInterval(interval);
+
     }, [dispatch, centerAccess]);
 
     useEffect(() => {
@@ -61,7 +66,10 @@ const CenterDashboard = () => {
         return () => clearInterval(tick);
     }, []);
 
-    const centers = useMemo(() => data || [], [data]);
+    const centers = useMemo(
+        () => (!centerAccess || centerAccess.length === 0 ? [] : data || []),
+        [data, centerAccess]
+    );
 
     useEffect(() => {
         if (centers.length === 0) return;
