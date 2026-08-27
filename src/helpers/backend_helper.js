@@ -4974,3 +4974,50 @@ export const setFallbackCentreManager = (data) => {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
+
+export const createUom = (data) => {
+  return axios.post(url.UOM_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const updateUom = (id, data) => {
+  return axios.put(`${url.UOM_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const updateUomStatus = (id, status) => {
+  return axios.patch(
+    `${url.UOM_BASE}/${id}/status`,
+    { status },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const deleteUom = (id) => {
+  return axios.delete(`${url.UOM_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const deleteItemMaster = (id) => {
+  return axios.delete(`${url.ITEM_MASTER_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const previewItemImport = (formData) => {
+  return axios.post(`${url.ITEM_MASTER_BASE}/import/preview`, formData, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const confirmItemImport = (rows) => {
+  return axios.post(
+    `${url.ITEM_MASTER_BASE}/import/confirm`,
+    { rows },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};

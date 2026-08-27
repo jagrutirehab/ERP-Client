@@ -4,6 +4,7 @@ import { Container, Spinner } from "reactstrap";
 import Sidebar from "./Sidebar";
 import Vendor from "./Vendor";
 import Items from "./Items";
+import UnitOfMeasurement from "./UnitOfMeasurement";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import "./masterData.scss";
@@ -29,7 +30,10 @@ const MasterData = () => {
 
   const canViewVendor = hasPermission("MASTERDATA", "VENDOR_VIEW", "READ");
 
-  if (!canViewVendor) {
+  const canViewItems = hasPermission("MASTERDATA", "ITEM_VIEW", "READ");
+  const canViewUom = hasPermission("MASTERDATA", "UOM_VIEW", "READ");
+
+  if (!canViewVendor && !canViewItems && !canViewUom) {
     return <Basic404 />;
   }
 
@@ -45,6 +49,7 @@ const MasterData = () => {
               <Route path="/" element={null} />
               <Route path="vendor/*" element={<Vendor />} />
               <Route path="item/*" element={<Items />} />
+              <Route path="uom/*" element={<UnitOfMeasurement />} />
             </Routes>
           </div>
         </div>
