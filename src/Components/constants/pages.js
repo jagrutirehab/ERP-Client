@@ -1561,12 +1561,12 @@ export const MASTER_DATA = [
   //   link: "/master-data/customer",
   //   icon: "bx bx-user",
   // },
-  // {
-  //   id: "masterdata-uom",
-  //   label: "Unit of Measurement",
-  //   link: "/master-data/uom",
-  //   icon: "bx bx-ruler",
-  // },
+{
+    id: "masterdata-uom",
+    label: "Unit of Measurements",
+    link: "/vendor-management/uom",
+    icon: "bx bx-ruler",
+  },
   // {
   //   id: "masterdata-payment-term",
   //   label: "Payment Terms",

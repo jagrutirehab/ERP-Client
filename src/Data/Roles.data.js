@@ -524,6 +524,8 @@ export const permissionList = [
       { name: "ITEM_CREATE", label: "Create Item" },
       { name: "ITEM_EDIT", label: "Edit Item" },
       { name: "ITEM_STATUS_CHANGE", label: "Activate/Discontinue Item" },
+      { name: "ITEM_DELETE", label: "Delete Item" },
+      { name: "ITEM_IMPORT", label: "Import Items" },
 
       { name: "ITEM_TYPE_VIEW", label: "View Item Types" },
       { name: "ITEM_TYPE_CREATE", label: "Create Item Type" },
@@ -540,6 +542,10 @@ export const permissionList = [
         name: "ITEM_CATEGORY_STATUS_CHANGE",
         label: "Activate/Deactivate Item Category",
       },
+      { name: "UOM_VIEW", label: "View Units of Measurement" },
+      { name: "UOM_CREATE", label: "Create Unit of Measurement" },
+      { name: "UOM_EDIT", label: "Edit Unit of Measurement" },
+      { name: "UOM_DELETE", label: "Delete Unit of Measurement" },
     ],
   },
 ];

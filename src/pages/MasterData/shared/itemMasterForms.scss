@@ -8,7 +8,12 @@
   --im-primary-ring: rgba(79, 70, 229, 0.15);
 
   --im-accent: #06b6d4;
-  --im-primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 55%, #4338ca 100%);
+  --im-primary-gradient: linear-gradient(
+    135deg,
+    #6366f1 0%,
+    #4f46e5 55%,
+    #4338ca 100%
+  );
   --im-label-gradient: linear-gradient(180deg, #6366f1, #06b6d4);
 
   --im-border: #e2e5ea;
@@ -32,13 +37,15 @@
   --im-warning-border: #fedf89;
 
   --im-radius-lg: 14px;
-  --im-radius-md: 10px;
+  --im-radius-md: 16px;
   --im-radius-sm: 8px;
 
   --im-shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
-  --im-shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --im-shadow-sm:
+    0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
   --im-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
-  --im-shadow-premium: 0 1px 2px rgba(16, 24, 40, 0.04), 0 16px 40px -18px rgba(79, 70, 229, 0.28);
+  --im-shadow-premium:
+    0 1px 2px rgba(16, 24, 40, 0.04), 0 16px 40px -18px rgba(79, 70, 229, 0.28);
 }
 
 // ---------- Base surface ----------
@@ -169,7 +176,9 @@
   display: flex;
   align-items: center;
   gap: 14px;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 
   &:hover {
     box-shadow: var(--im-shadow-sm);
@@ -200,10 +209,22 @@
     font-weight: 600;
   }
 
-  &.is-primary .im-stat-icon { background: var(--im-primary-soft); color: var(--im-primary); }
-  &.is-success .im-stat-icon { background: var(--im-success-soft); color: var(--im-success); }
-  &.is-warning .im-stat-icon { background: var(--im-warning-soft); color: var(--im-warning); }
-  &.is-neutral .im-stat-icon { background: #f3f4f6; color: #4b5563; }
+  &.is-primary .im-stat-icon {
+    background: var(--im-primary-soft);
+    color: var(--im-primary);
+  }
+  &.is-success .im-stat-icon {
+    background: var(--im-success-soft);
+    color: var(--im-success);
+  }
+  &.is-warning .im-stat-icon {
+    background: var(--im-warning-soft);
+    color: var(--im-warning);
+  }
+  &.is-neutral .im-stat-icon {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
 }
 
 // ---------- Pill tab switcher (generic — module-level tabs) ----------
@@ -231,7 +252,9 @@
     white-space: nowrap;
     transition: all 0.15s ease;
 
-    i { font-size: 15px; }
+    i {
+      font-size: 15px;
+    }
 
     &:hover:not(.active) {
       color: var(--im-text);
@@ -470,7 +493,9 @@
   border-radius: 12px;
   padding: 12px 14px;
   background: var(--im-bg-soft);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 
   &:hover {
     border-color: #dcdfe6;
@@ -510,7 +535,9 @@
     padding: 10px 22px;
     border-radius: var(--im-radius-md);
     box-shadow: 0 10px 20px -8px rgba(79, 70, 229, 0.5);
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    transition:
+      opacity 0.15s ease,
+      transform 0.15s ease;
 
     &:hover {
       opacity: 0.92;
@@ -558,7 +585,9 @@
   border-radius: 10px;
   padding: 11px 13px;
   background: var(--im-bg-soft);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
   cursor: pointer;
 
   input[type="checkbox"],
@@ -743,8 +772,14 @@
 }
 
 @keyframes im-fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // Global-ish helpers scoped with im- prefix so they only affect this module
@@ -825,7 +860,10 @@ label.im-checkbox-row {
     font-size: 14px;
     color: var(--im-text);
     padding: 9px 13px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      background 0.15s ease;
 
     &:hover {
       border-color: #d3d7e3;
@@ -877,7 +915,7 @@ label.im-checkbox-row {
 }
 .im-surface *::-webkit-scrollbar-track {
   background: transparent;
-}// =========================================================
+} // =========================================================
 // Item Master — Design Tokens
 // =========================================================
 :root {
@@ -887,7 +925,12 @@ label.im-checkbox-row {
   --im-primary-ring: rgba(79, 70, 229, 0.15);
 
   --im-accent: #06b6d4;
-  --im-primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 55%, #4338ca 100%);
+  --im-primary-gradient: linear-gradient(
+    135deg,
+    #6366f1 0%,
+    #4f46e5 55%,
+    #4338ca 100%
+  );
   --im-label-gradient: linear-gradient(180deg, #6366f1, #06b6d4);
 
   --im-border: #e2e5ea;
@@ -915,9 +958,11 @@ label.im-checkbox-row {
   --im-radius-sm: 8px;
 
   --im-shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
-  --im-shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+  --im-shadow-sm:
+    0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
   --im-shadow-md: 0 4px 12px rgba(16, 24, 40, 0.08);
-  --im-shadow-premium: 0 1px 2px rgba(16, 24, 40, 0.04), 0 16px 40px -18px rgba(79, 70, 229, 0.28);
+  --im-shadow-premium:
+    0 1px 2px rgba(16, 24, 40, 0.04), 0 16px 40px -18px rgba(79, 70, 229, 0.28);
 }
 
 // ---------- Base surface ----------
@@ -1048,7 +1093,9 @@ label.im-checkbox-row {
   display: flex;
   align-items: center;
   gap: 14px;
-  transition: box-shadow 0.15s ease, transform 0.15s ease;
+  transition:
+    box-shadow 0.15s ease,
+    transform 0.15s ease;
 
   &:hover {
     box-shadow: var(--im-shadow-sm);
@@ -1079,10 +1126,22 @@ label.im-checkbox-row {
     font-weight: 600;
   }
 
-  &.is-primary .im-stat-icon { background: var(--im-primary-soft); color: var(--im-primary); }
-  &.is-success .im-stat-icon { background: var(--im-success-soft); color: var(--im-success); }
-  &.is-warning .im-stat-icon { background: var(--im-warning-soft); color: var(--im-warning); }
-  &.is-neutral .im-stat-icon { background: #f3f4f6; color: #4b5563; }
+  &.is-primary .im-stat-icon {
+    background: var(--im-primary-soft);
+    color: var(--im-primary);
+  }
+  &.is-success .im-stat-icon {
+    background: var(--im-success-soft);
+    color: var(--im-success);
+  }
+  &.is-warning .im-stat-icon {
+    background: var(--im-warning-soft);
+    color: var(--im-warning);
+  }
+  &.is-neutral .im-stat-icon {
+    background: #f3f4f6;
+    color: #4b5563;
+  }
 }
 
 // ---------- Pill tab switcher (generic — module-level tabs) ----------
@@ -1110,7 +1169,9 @@ label.im-checkbox-row {
     white-space: nowrap;
     transition: all 0.15s ease;
 
-    i { font-size: 15px; }
+    i {
+      font-size: 15px;
+    }
 
     &:hover:not(.active) {
       color: var(--im-text);
@@ -1349,7 +1410,9 @@ label.im-checkbox-row {
   border-radius: 12px;
   padding: 12px 14px;
   background: var(--im-bg-soft);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
 
   &:hover {
     border-color: #dcdfe6;
@@ -1389,7 +1452,9 @@ label.im-checkbox-row {
     padding: 10px 22px;
     border-radius: var(--im-radius-md);
     box-shadow: 0 10px 20px -8px rgba(79, 70, 229, 0.5);
-    transition: opacity 0.15s ease, transform 0.15s ease;
+    transition:
+      opacity 0.15s ease,
+      transform 0.15s ease;
 
     &:hover {
       opacity: 0.92;
@@ -1437,7 +1502,9 @@ label.im-checkbox-row {
   border-radius: 10px;
   padding: 11px 13px;
   background: var(--im-bg-soft);
-  transition: border-color 0.15s ease, background 0.15s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease;
   cursor: pointer;
 
   input[type="checkbox"],
@@ -1622,8 +1689,14 @@ label.im-checkbox-row {
 }
 
 @keyframes im-fade-in {
-  from { opacity: 0; transform: translateY(4px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // Global-ish helpers scoped with im- prefix so they only affect this module
@@ -1704,7 +1777,10 @@ label.im-checkbox-row {
     font-size: 14px;
     color: var(--im-text);
     padding: 9px 13px;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+    transition:
+      border-color 0.15s ease,
+      box-shadow 0.15s ease,
+      background 0.15s ease;
 
     &:hover {
       border-color: #d3d7e3;
@@ -1756,4 +1832,133 @@ label.im-checkbox-row {
 }
 .im-surface *::-webkit-scrollbar-track {
   background: transparent;
+}
+
+.im-overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--im-border-soft);
+  margin-bottom: 18px;
+}
+
+.im-overview-title h5 {
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--im-text);
+  margin-bottom: 6px;
+}
+
+.im-overview-body {
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 6px;
+}
+
+.im-overview-section {
+  background: var(--im-bg-soft);
+  border: 1px solid var(--im-border-soft);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.im-overview-section-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 11.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--im-primary-dark);
+  margin-bottom: 14px;
+
+  i {
+    font-size: 15px;
+    color: var(--im-primary);
+  }
+}
+
+.im-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px 24px;
+
+  @media (max-width: 700px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.im-overview-field {
+  min-width: 0;
+}
+
+.im-overview-label {
+  font-size: 10.5px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--im-muted-soft);
+  margin-bottom: 4px;
+}
+
+.im-overview-value {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--im-text);
+  word-break: break-word;
+}
+
+.im-overview-desc-block {
+  background: #fff;
+  border: 1px solid var(--im-border-soft);
+  border-radius: 12px;
+  padding: 16px 18px;
+  margin-bottom: 14px;
+}
+
+.im-overview-desc-text {
+  font-size: 13.5px;
+  color: #344054;
+  line-height: 1.65;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+
+.im-overview-attr-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border: 1px solid var(--im-border-soft);
+  border-radius: 8px;
+  padding: 8px 12px;
+  background: #fff;
+}
+
+.im-overview-attr-key {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--im-text);
+}
+
+.im-overview-attr-value {
+  font-size: 12.5px;
+  color: var(--im-muted);
+}
+
+.im-overview-footer {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--im-border-soft);
 }
