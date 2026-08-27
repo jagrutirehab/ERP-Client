@@ -57,6 +57,7 @@ import AdmissionType from "./AdmissionType";
 import { io } from "socket.io-client";
 import { getCharts } from "../../../helpers/backend_helper";
 import { getCurrentUserId } from "../../../helpers/currentMedicines";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { toast } from "react-toastify";
 import { toggleCarryForwardChart } from "../../../store/features/chart/chartSlice";
 import { api } from "../../../config";
@@ -370,6 +371,7 @@ const Charts = ({
                     (item?.prescription?.medicines || []).some(
                       (med) => med.status !== "discontinued",
                     ) ? (
+                      <CheckPermission permission={"edit"} subAccess="Charting">
                       <DropdownItem
                         onClick={() => carryForwardChart(item)}
                         href="#"
@@ -386,6 +388,7 @@ const Charts = ({
                           </>
                         )}
                       </DropdownItem>
+                      </CheckPermission>
                     ) : null
                   }
                 >

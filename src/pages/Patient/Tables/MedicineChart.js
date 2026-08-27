@@ -109,6 +109,7 @@ import moment from "moment";
 import { getMedicineFrequencyLabel, formatDosage } from "../../../helpers/prescriptionFrequency";
 import { getMedicineEndDate } from "../../../helpers/currentMedicines";
 import { capitalizeWords } from "../../../utils/toCapitalize";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 const MedicineChart = ({
   medicines,
@@ -306,13 +307,15 @@ const MedicineChart = ({
             // Any doctor may stop any medicine, not just the one who
             // prescribed it — the action is recorded against them.
             return (
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-danger text-nowrap"
-                onClick={() => onDiscontinue(row)}
-              >
-                Discontinue
-              </button>
+              <CheckPermission permission={"edit"} subAccess="Charting">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-danger text-nowrap"
+                  onClick={() => onDiscontinue(row)}
+                >
+                  Discontinue
+                </button>
+              </CheckPermission>
             );
           },
           // Fixed width and no wrapping, otherwise the narrow action column

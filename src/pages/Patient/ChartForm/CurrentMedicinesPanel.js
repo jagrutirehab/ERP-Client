@@ -10,6 +10,7 @@ import {
 import { getCurrentUserId, drugIdentity } from "../../../helpers/currentMedicines";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import ConfirmationModal from "../../../Components/Common/ConfirmationModal";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useDispatch } from "react-redux";
 import { markChartsStale } from "../../../store/features/chart/chartSlice";
 import {
@@ -161,13 +162,15 @@ const CurrentMedicinesPanel = ({
                         >
                           {isAlreadyAdded(entry) ? "Added" : "Add to Rx"}
                         </button>
-                        <button
-                          type="button"
-                          className="btn btn-sm btn-outline-danger text-nowrap"
-                          onClick={() => setPendingStop(row)}
-                        >
-                          Discontinue
-                        </button>
+                        <CheckPermission permission={"edit"} subAccess="Charting">
+                          <button
+                            type="button"
+                            className="btn btn-sm btn-outline-danger text-nowrap"
+                            onClick={() => setPendingStop(row)}
+                          >
+                            Discontinue
+                          </button>
+                        </CheckPermission>
                       </div>
                     </td>
                   </tr>
