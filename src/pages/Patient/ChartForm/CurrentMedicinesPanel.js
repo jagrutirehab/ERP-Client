@@ -7,7 +7,7 @@ import {
   getCurrentMedicines,
   updateMedicineEntry,
 } from "../../../helpers/backend_helper";
-import { getCurrentUserId } from "../../../helpers/currentMedicines";
+import { getCurrentUserId, drugIdentity } from "../../../helpers/currentMedicines";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import ConfirmationModal from "../../../Components/Common/ConfirmationModal";
 import { useDispatch } from "react-redux";
@@ -72,9 +72,7 @@ const CurrentMedicinesPanel = ({
 
   const isAlreadyAdded = (entry) =>
     (existingMedicines || []).some(
-      (m) =>
-        m.medicine?.name?.toLowerCase().trim() ===
-        entry.medicine?.name?.toLowerCase().trim(),
+      (m) => drugIdentity(m.medicine) === drugIdentity(entry.medicine),
     );
 
   return (

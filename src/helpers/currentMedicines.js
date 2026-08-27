@@ -46,12 +46,13 @@ export const isMedicineCurrentlyRunning = (
   return referenceDate <= endDate;
 };
 
-const medicineKey = (medicine) => {
-  const m = medicine?.medicine || {};
-  return [m.name, m.strength, m.unit]
+
+export const drugIdentity = (drug) =>
+  [drug?.name, drug?.strength, drug?.unit]
     .map((v) => String(v || "").toLowerCase().trim())
     .join("|");
-};
+
+const medicineKey = (medicine) => drugIdentity(medicine?.medicine);
 
 
 export const buildCurrentMedicinesList = (charts, referenceDate = new Date()) => {

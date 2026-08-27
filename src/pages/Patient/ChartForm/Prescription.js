@@ -42,7 +42,7 @@ import MedicineDropdown from "../Dropdowns/Medicine";
 import MedicineTable from "../Tables/MedicineForm";
 import SopSuggestedMedicines from "./SopSuggestedMedicines";
 import CurrentMedicinesPanel from "./CurrentMedicinesPanel";
-import { getCurrentUserId, getMedicineEndDate } from "../../../helpers/currentMedicines";
+import { getCurrentUserId, getMedicineEndDate, drugIdentity } from "../../../helpers/currentMedicines";
 import { connect, useDispatch } from "react-redux";
 import {
   addGeneralPrescription,
@@ -177,11 +177,8 @@ export const cleanDrNotesForSave = (value) =>
     parseDrNotesEntries(value).slice(0, DR_NOTES_HISTORY_LIMIT),
   );
 
-const defaultStartDate = (chartDate, isIPD) => {
-  const d = chartDate ? new Date(chartDate) : new Date();
-  if (isIPD) d.setDate(d.getDate() + 1);
-  return d;
-};
+const defaultStartDate = (chartDate) =>
+  chartDate ? new Date(chartDate) : new Date();
 
 const Prescription = ({
   drugs,
@@ -435,7 +432,7 @@ const Prescription = ({
     // reissues the medicine under the current user today, so it starts now.
     const baseStartDate = isEditMode
       ? editChartData?.date || editChartData?.createdAt || chartDate
-      : defaultStartDate(chartDate, isIPD);
+      : defaultStartDate(chartDate);
 
     const fixed = meds.map((med) => {
       const m = med.medicine;
@@ -590,12 +587,14 @@ const Prescription = ({
     const medicineName = med.name || (typeof med === "string" ? med : "");
     if (!medicineName) return;
 
+    // Matched on name + strength + unit, not name alone: DOLO 500 and DOLO 650
+    // are different medicines and both must be addable.
     const checkMedicine = data.find(
-      (val) => val.medicine?.name === medicineName,
+      (val) => drugIdentity(val.medicine) === drugIdentity(med),
     );
 
     if (!checkMedicine) {
-      const startDate = defaultStartDate(chartDate, isIPD);
+      const startDate = defaultStartDate(chartDate);
       const medicine = {
         medicine: {
           _id: med?._id || "",
@@ -649,7 +648,7 @@ const Prescription = ({
       endDate: sourceEndDate,
       ...medicineFields
     } = entry;
-    const startDate = defaultStartDate(chartDate, isIPD);
+    const startDate = defaultStartDate(chartDate);
     const newEntry = {
       ..._.cloneDeep(medicineFields),
       prescribedBy: currentUserId,

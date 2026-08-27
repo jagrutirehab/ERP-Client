@@ -56,7 +56,7 @@ const Activities = () => {
     // Tomorrow is in the list because its box is filled today — that is the
     // day the nurse is actually working on.
     label:
-      `Day ${d.day} — ${moment(d.date).format("DD MMM YYYY")}` +
+      moment(d.date).format("DD MMM YYYY") +
       (d.isTomorrow ? " (Tomorrow)" : d.isToday ? " (Today)" : ""),
   }));
 
