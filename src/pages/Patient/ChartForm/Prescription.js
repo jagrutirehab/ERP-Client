@@ -64,9 +64,13 @@ import DetailAdmission from "../Charts/DetailAdmission";
 import PrescriptionChart from "../Charts/Prescription";
 import { Link } from "react-router-dom";
 import axios from "axios";
-import { getICDCodes, getLatestCharts } from "../../../helpers/backend_helper.js";
+import {
+  getICDCodes,
+  getLatestCharts,
+  getCarryForward,
+  clearCarryForward,
+} from "../../../helpers/backend_helper.js";
 import { normalizeMedicineFrequency } from "../../../helpers/prescriptionFrequency";
-import { clearCarryForwardCharts } from "../../../store/features/chart/chartSlice";
 
 
 // Dr Notes carry-forward
@@ -191,7 +195,6 @@ const Prescription = ({
   type,
   appointment,
   charts,
-  carryForwardCharts,
   patientLatestOPDPrescription,
   populatePreviousAppointment = false,
   shouldPrintAfterSave = false,
@@ -204,6 +207,9 @@ const Prescription = ({
   // Previous IPD prescription, used to prefill the clinical notes on a new
   // chart. Never used for medicines.
   const [lastIpdPrescription, setLastIpdPrescription] = useState(null);
+  // Prescriptions staged for carry-forward, loaded from the server rather than
+  // redux — so the selection survives a reload and stays private to this user.
+  const [carryForwardCharts, setCarryForwardCharts] = useState([]);
   const icd2Initialized = React.useRef(false);
 
   const editPrescription = editChartData?.prescription;
@@ -290,6 +296,26 @@ const Prescription = ({
       })
       .catch(() => {
         if (!cancelled) setLastIpdPrescription(null);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isIPD, isEditMode, patient?._id]);
+
+  useEffect(() => {
+    if (!isIPD || isEditMode || !patient?._id) {
+      setCarryForwardCharts([]);
+      return;
+    }
+
+    let cancelled = false;
+    getCarryForward(patient._id)
+      .then((res) => {
+        if (!cancelled) setCarryForwardCharts(res?.payload || []);
+      })
+      .catch(() => {
+        if (!cancelled) setCarryForwardCharts([]);
       });
 
     return () => {
@@ -411,7 +437,10 @@ const Prescription = ({
       // closeForm();
       dispatch(setPtLatestOPDPrescription(null));
       // Staged carry-forward prescriptions have been consumed by this save.
-      dispatch(clearCarryForwardCharts());
+      if (isIPD && patient?._id) {
+        clearCarryForward(patient._id).catch(() => {});
+      }
+      setCarryForwardCharts([]);
     },
   });
 
@@ -576,7 +605,10 @@ const Prescription = ({
     dispatch(setPtLatestOPDPrescription(null));
     // Abandoning the form drops the staged carry-forward selection too, so it
     // can't leak into an unrelated chart later.
-    dispatch(clearCarryForwardCharts());
+    if (isIPD && patient?._id) {
+      clearCarryForward(patient._id).catch(() => {});
+    }
+    setCarryForwardCharts([]);
     setMedicines([]);
     validation.resetForm();
   };
@@ -1129,7 +1161,6 @@ Prescription.propTypes = {
   dataList: PropTypes.array,
   type: PropTypes.string.isRequired,
   appointment: PropTypes.object,
-  carryForwardCharts: PropTypes.array,
   patientLatestOPDPrescription: PropTypes.object,
   charts: PropTypes.array,
 };
@@ -1142,7 +1173,6 @@ const mapStateToProps = (state) => ({
   center: state.Chart.chartForm?.center,
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm?.data,
-  carryForwardCharts: state.Chart.carryForwardCharts,
   shouldPrintAfterSave: state.Chart.chartForm.shouldPrintAfterSave,
   appointment: state.Chart.chartForm.appointment,
   type: state.Chart.chartForm.type,

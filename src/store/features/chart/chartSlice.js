@@ -90,7 +90,6 @@ const initialState = {
     chart: null,
     isOpen: false,
   },
-  carryForwardCharts: [],
   chartsStale: false,
   patientLatestOPDPrescription: null,
   patientLatestMentalExamination: null,
@@ -1636,16 +1635,18 @@ export const chartSlice = createSlice({
     setChartDate: (state, { payload }) => {
       state.chartDate = payload;
     },
-    toggleCarryForwardChart: (state, { payload }) => {
-      const idx = state.carryForwardCharts.findIndex(
-        (c) => String(c._id) === String(payload._id),
-      );
-      if (idx >= 0) state.carryForwardCharts.splice(idx, 1);
-      else state.carryForwardCharts.push(payload);
-    },
-    clearCarryForwardCharts: (state) => {
-      state.carryForwardCharts = [];
-    },
+    // Superseded by the server-side carry-forward endpoints (see
+    // controllers/chart/prescription/carryForward.controller.js).
+    // toggleCarryForwardChart: (state, { payload }) => {
+    //   const idx = state.carryForwardCharts.findIndex(
+    //     (c) => String(c._id) === String(payload._id),
+    //   );
+    //   if (idx >= 0) state.carryForwardCharts.splice(idx, 1);
+    //   else state.carryForwardCharts.push(payload);
+    // },
+    // clearCarryForwardCharts: (state) => {
+    //   state.carryForwardCharts = [];
+    // },
     markChartsStale: (state) => {
       state.chartsStale = true;
     },
@@ -3157,8 +3158,6 @@ export const {
   setPtLatestOPDPrescription,
   clearCharts,
   setPtLatestEctSession,
-  toggleCarryForwardChart,
-  clearCarryForwardCharts,
   markChartsStale,
 } = chartSlice.actions;
 

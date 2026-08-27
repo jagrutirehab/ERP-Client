@@ -55,11 +55,14 @@ import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
 import AdmissionType from "./AdmissionType";
 import { io } from "socket.io-client";
-import { getCharts } from "../../../helpers/backend_helper";
+import {
+  getCharts,
+  getCarryForward,
+  toggleCarryForward,
+} from "../../../helpers/backend_helper";
 import { getCurrentUserId } from "../../../helpers/currentMedicines";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { toast } from "react-toastify";
-import { toggleCarryForwardChart } from "../../../store/features/chart/chartSlice";
 import { api } from "../../../config";
 import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
 import AdditionalDetailsModal from "./Components/AdditionalDetailsModal";
@@ -71,10 +74,22 @@ const Charts = ({
   setChartType,
   currentAddmissionId,
   isPatientDischarged,
-  carryForwardCharts,
 }) => {
   const dispatch = useDispatch();
   const [, forceUpdate] = useState(0);
+  // Prescriptions the current user has staged for carry-forward, loaded from
+  // the server rather than kept in redux — so the selection survives a page
+  // reload and stays private to this user, instead of resetting on refresh
+  // and being visible to every doctor viewing the patient.
+  const [carryForwardCharts, setCarryForwardCharts] = useState([]);
+  const patientIdForCarryForward = charts?.[0]?.patient;
+
+  useEffect(() => {
+    if (!patientIdForCarryForward) return;
+    getCarryForward(patientIdForCarryForward)
+      .then((res) => setCarryForwardCharts(res?.payload || []))
+      .catch(() => setCarryForwardCharts([]));
+  }, [patientIdForCarryForward]);
 
   const [chart, setChart] = useState({
     chart: null,
@@ -213,13 +228,18 @@ const Charts = ({
     (carryForwardCharts || []).some((c) => String(c._id) === String(chart._id));
 
   const carryForwardChart = (chart) => {
-    const alreadyStaged = isStagedForCarryForward(chart);
-    dispatch(toggleCarryForwardChart(chart));
-    toast.success(
-      alreadyStaged
-        ? "Removed from carry forward"
-        : "Added to carry forward — open Create new Chart to use it",
-    );
+    toggleCarryForward(chart.patient, chart._id)
+      .then((res) => {
+        setCarryForwardCharts(res?.payload || []);
+        toast.success(
+          res?.staged
+            ? "Added to carry forward — open Create new Chart to use it"
+            : "Removed from carry forward",
+        );
+      })
+      .catch((err) =>
+        toast.error(err?.message || "Failed to update carry forward"),
+      );
   };
 
   const getChart = (chart) => {
@@ -487,7 +507,6 @@ Charts.propTypes = {
 
 const mapStateToProps = (state) => ({
   // charts: state.Chart.data,
-  carryForwardCharts: state.Chart.carryForwardCharts,
 });
 
 export default connect(mapStateToProps)(Charts);

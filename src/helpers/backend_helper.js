@@ -503,6 +503,13 @@ export const updateMedicineEntry = (prescriptionId, medicineId, data) =>
     `${url.UPDATE_MEDICINE_ENTRY}/${prescriptionId}/medicine/${medicineId}`,
     data,
   );
+
+export const getCarryForward = (patientId) =>
+  api.get(`${url.CARRY_FORWARD}/${patientId}`);
+export const toggleCarryForward = (patientId, chartId) =>
+  api.create(`${url.CARRY_FORWARD}/toggle`, { patientId, chartId });
+export const clearCarryForward = (patientId) =>
+  api.delete(`${url.CARRY_FORWARD}/${patientId}`);
 export const postVitalSign = (data) => api.create(url.POST_VITAL_SIGN, data);
 export const editVitalSign = (data) => api.put(url.EDIT_VITAL_SIGN, data);
 export const postGeneralVitalSign = (data) =>

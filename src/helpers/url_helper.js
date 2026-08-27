@@ -129,6 +129,7 @@ export const POST_GENERAL_PRESCRIPTION = "/chart/prescription/general";
 export const EDIT_GENERAL_PRESCRIPTION = "/chart/prescription/general";
 export const GET_CURRENT_MEDICINES = "/chart/prescription/current-medicines";
 export const UPDATE_MEDICINE_ENTRY = "/chart/prescription";
+export const CARRY_FORWARD = "/chart/prescription/carry-forward";
 export const POST_VITAL_SIGN = "/chart/vital-sign";
 export const EDIT_VITAL_SIGN = "/chart/vital-sign";
 export const POST_GENERAL_VITAL_SIGN = "/chart/vital-sign/general";
