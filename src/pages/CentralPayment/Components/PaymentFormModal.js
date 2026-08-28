@@ -133,6 +133,7 @@ const PaymentFormModal = ({
       currentPaymentStatus: "PENDING",
       approvalRemarks: "",
       financeApprovalRemarks: "",
+      accountingApprovalRemarks: "",
     },
     validationSchema: paymentValidationSchema,
     onSubmit: (values) => {
@@ -187,6 +188,7 @@ const PaymentFormModal = ({
         currentPaymentStatus: paymentDetails.currentPaymentStatus || "PENDING",
         approvalRemarks: "",
         financeApprovalRemarks: "",
+        accountingApprovalRemarks: "",
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -266,7 +268,9 @@ const PaymentFormModal = ({
                   ? "Process Approval"
                   : mode === "financeApproval"
                     ? "Finance Approval"
-                    : "UTR Confirmation"
+                    : mode === "accountingApproval"
+                      ? "Accounting Approval"
+                      : "UTR Confirmation"
                 : "Expense Overview"}
             </div>
           </ModalHeader>
@@ -685,7 +689,9 @@ const PaymentFormModal = ({
             )}
 
             {hasCreatePermission &&
-              (mode === "approval" || mode === "financeApproval") && (
+              (mode === "approval" ||
+                mode === "financeApproval" ||
+                mode === "accountingApproval") && (
                 <>
                   <Row className="mt-3">
                     <Col md={12}>
@@ -694,7 +700,9 @@ const PaymentFormModal = ({
                           for={
                             mode === "financeApproval"
                               ? "financeApprovalRemarks"
-                              : "approvalRemarks"
+                              : mode === "accountingApproval"
+                                ? "accountingApprovalRemarks"
+                                : "approvalRemarks"
                           }
                         >
                           Remarks (Optional)
@@ -704,18 +712,24 @@ const PaymentFormModal = ({
                           id={
                             mode === "financeApproval"
                               ? "financeApprovalRemarks"
-                              : "approvalRemarks"
+                              : mode === "accountingApproval"
+                                ? "accountingApprovalRemarks"
+                                : "approvalRemarks"
                           }
                           name={
                             mode === "financeApproval"
                               ? "financeApprovalRemarks"
-                              : "approvalRemarks"
+                              : mode === "accountingApproval"
+                                ? "accountingApprovalRemarks"
+                                : "approvalRemarks"
                           }
                           placeholder="Enter remarks"
                           value={
                             mode === "financeApproval"
                               ? formik.values.financeApprovalRemarks
-                              : formik.values.approvalRemarks
+                              : mode === "accountingApproval"
+                                ? formik.values.accountingApprovalRemarks
+                                : formik.values.approvalRemarks
                           }
                           onChange={formik.handleChange}
                           onBlur={formik.handleBlur}
@@ -735,7 +749,9 @@ const PaymentFormModal = ({
 
           <ModalFooter>
             {hasCreatePermission &&
-              (mode === "financeApproval" || mode === "approval" ? (
+              (mode === "financeApproval" ||
+              mode === "approval" ||
+              mode === "accountingApproval" ? (
                 <div className="d-flex justify-content-end">
                   <Button
                     size="sm"
@@ -755,7 +771,9 @@ const PaymentFormModal = ({
                         "REJECTED",
                         mode === "financeApproval"
                           ? formik.values.financeApprovalRemarks
-                          : formik.values.approvalRemarks,
+                          : mode === "accountingApproval"
+                            ? formik.values.accountingApprovalRemarks
+                            : formik.values.approvalRemarks,
                       )
                     }
                     color="danger"
@@ -782,7 +800,9 @@ const PaymentFormModal = ({
                         "APPROVED",
                         mode === "financeApproval"
                           ? formik.values.financeApprovalRemarks
-                          : formik.values.approvalRemarks,
+                          : mode === "accountingApproval"
+                            ? formik.values.accountingApprovalRemarks
+                            : formik.values.approvalRemarks,
                       )
                     }
                     color="success"

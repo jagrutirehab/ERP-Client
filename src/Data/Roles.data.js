@@ -101,6 +101,10 @@ export const permissionList = [
       { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
       { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
       {
+        name: "CENTRALPAYMENTACCOUNTINGAPPROVAL",
+        label: "Accounting Approval Dashboard",
+      },
+      {
         name: "CENTRALPAYMENTFINANCEAPPROVAL",
         label: "Finance Approval Dashboard",
       },

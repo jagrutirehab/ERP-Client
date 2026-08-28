@@ -10,7 +10,7 @@ import ItemCard from "../Components/ItemCard";
 import Select from "react-select";
 import { formatCurrency } from "../../../utils/formatCurrency";
 
-const FinanceApprovalDashboard = ({
+const AccountingApprovalDashboard = ({
   centerAccess,
   centers,
   loading,
@@ -27,8 +27,16 @@ const FinanceApprovalDashboard = ({
   const { hasPermission } = usePermissions(token);
 
   const hasCreatePermission =
-    hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTFINANCEAPPROVAL", "WRITE") ||
-    hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTFINANCEAPPROVAL", "DELETE");
+    hasPermission(
+      "CENTRALPAYMENT",
+      "CENTRALPAYMENTACCOUNTINGAPPROVAL",
+      "WRITE",
+    ) ||
+    hasPermission(
+      "CENTRALPAYMENT",
+      "CENTRALPAYMENTACCOUNTINGAPPROVAL",
+      "DELETE",
+    );
 
   const centerOptions = [
     ...(centerAccess?.length > 1
@@ -58,7 +66,7 @@ const FinanceApprovalDashboard = ({
   }, [selectedCenter, centerAccess]);
 
   useEffect(() => {
-    const fetchPendingFinanceApprovals = async () => {
+    const fetchPendingAccountingApprovals = async () => {
       try {
         const centers =
           selectedCenter === "ALL"
@@ -73,20 +81,19 @@ const FinanceApprovalDashboard = ({
             limit,
             centers: centers,
             approvalStatus: "APPROVED",
-            accountingApprovalStatus: "APPROVED",
-            financeApprovalStatus: "PENDING",
+            accountingApprovalStatus: "PENDING",
           }),
         ).unwrap();
       } catch (error) {
         if (!handleAuthError(error)) {
           toast.error(
-            error.message || "Failed to fetch pending finance approvals.",
+            error.message || "Failed to fetch pending accounting approvals.",
           );
         }
       }
     };
 
-    fetchPendingFinanceApprovals();
+    fetchPendingAccountingApprovals();
   }, [centerAccess, selectedCenter, dispatch, page, limit]);
 
   if (loading) {
@@ -99,6 +106,7 @@ const FinanceApprovalDashboard = ({
       </div>
     );
   }
+
   return (
     <React.Fragment>
       <div className="d-flex flex-column">
@@ -138,7 +146,7 @@ const FinanceApprovalDashboard = ({
                   >
                     <ItemCard
                       item={payment}
-                      flag="financeApproval"
+                      flag="accountingApproval"
                       border={true}
                       hasCreatePermission={hasCreatePermission}
                     />
@@ -150,7 +158,7 @@ const FinanceApprovalDashboard = ({
                 className="d-flex flex-column justify-content-center align-items-center text-center text-muted"
                 style={{ minHeight: "40vh" }}
               >
-                <h6 className="mb-1">No pending finance approvals</h6>
+                <h6 className="mb-1">No pending accounting approvals</h6>
               </div>
             )}
           </div>
@@ -221,7 +229,7 @@ const FinanceApprovalDashboard = ({
   );
 };
 
-FinanceApprovalDashboard.prototype = {
+AccountingApprovalDashboard.prototype = {
   loading: PropTypes.bool,
   approvals: PropTypes.object,
   centerAccess: PropTypes.array,
@@ -235,4 +243,4 @@ const mapStateToProps = (state) => ({
   approvals: state.CentralPayment?.approvals,
 });
 
-export default connect(mapStateToProps)(FinanceApprovalDashboard);
+export default connect(mapStateToProps)(AccountingApprovalDashboard);

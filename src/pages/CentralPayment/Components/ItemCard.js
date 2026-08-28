@@ -18,323 +18,433 @@ import { downloadFile } from "../../../Components/Common/downloadFile";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import { checkIsExcel } from "../../../utils/checkIsExcel";
 
-const ItemCard = ({ item, flag, border = false, hasCreatePermission, selected, onSelect, showSelect = false, onCopyENet, copyLoading }) => {
-    const dispatch = useDispatch();
-    const [updating, setUpdating] = useState({ id: null, type: null });
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [previewOpen, setPreviewOpen] = useState(false);
-    const [previewFile, setPreviewFile] = useState(null);
+const ItemCard = ({
+  item,
+  flag,
+  border = false,
+  hasCreatePermission,
+  selected,
+  onSelect,
+  showSelect = false,
+  onCopyENet,
+  copyLoading,
+}) => {
+  const dispatch = useDispatch();
+  const [updating, setUpdating] = useState({ id: null, type: null });
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewFile, setPreviewFile] = useState(null);
 
-    const handleAuthError = useAuthError();
+  const handleAuthError = useAuthError();
 
-    const getStatusBadgeColor = (status) => {
-        switch (status) {
-            case "APPROVED":
-                return "success";
-            case "PENDING":
-                return "warning";
-            case "REJECTED":
-                return "danger";
-            default:
-                return "secondary";
-        }
-    };
-
-    const handleAttachmentClick = (file) => {
-        if (isPreviewable(file, item?.updatedAt)) {
-            setPreviewFile(file);
-            setPreviewOpen(true);
-        } else {
-            downloadFile(file);
-            setPreviewOpen(false);
-            setPreviewFile(null);
-        }
-    };
-
-    const closePreview = () => {
-        setPreviewOpen(false);
-        setPreviewFile(null);
-    };
-
-    const handleUpdateFinanceApprovalStatus = async (paymentId, approvalStatus, financeApprovalRemarks) => {
-        setUpdating({ id: paymentId, type: approvalStatus });
-        try {
-            await dispatch(updateCentralPaymentAction({ paymentId, financeApprovalStatus: approvalStatus, financeApprovalRemarks })).unwrap();
-            toast.success(`Finance Approval ${approvalStatus.toLowerCase()} successfully!`);
-        } catch (error) {
-            if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to update finance approval Status.");
-            }
-        } finally {
-            setUpdating({ id: null, type: null });
-        }
+  const getStatusBadgeColor = (status) => {
+    switch (status) {
+      case "APPROVED":
+        return "success";
+      case "PENDING":
+        return "warning";
+      case "REJECTED":
+        return "danger";
+      default:
+        return "secondary";
     }
+  };
 
-    const handleUpdateApprovalStatus = async (paymentId, approvalStatus, approvalRemarks) => {
-        setUpdating({ id: paymentId, type: approvalStatus });
-        try {
-            await dispatch(updateCentralPaymentAction({ paymentId, approvalStatus, approvalRemarks })).unwrap();
-            toast.success(`Approval ${approvalStatus.toLowerCase()} successfully!`);
-        } catch (error) {
-            if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to update approval Status.");
-            }
-        } finally {
-            setUpdating({ id: null, type: null });
-        }
+  const handleAttachmentClick = (file) => {
+    if (isPreviewable(file, item?.updatedAt)) {
+      setPreviewFile(file);
+      setPreviewOpen(true);
+    } else {
+      downloadFile(file);
+      setPreviewOpen(false);
+      setPreviewFile(null);
     }
+  };
 
-    const handleUTRConfirmation = async (formData) => {
-        setUpdating({ id: item._id, type: formData.currentPaymentStatus });
-        try {
-            console.log("Central payment transactionDate payload:", formData.transactionDate);
-            await dispatch(updateCentralPaymentAction({
-                paymentId: item._id,
-                transactionId: formData.transactionId,
-                transactionDate: formData.transactionDate,
-                transactionBankDetails: formData.transactionBankDetails,
-                currentPaymentStatus: formData.currentPaymentStatus
-            })).unwrap();
+  const closePreview = () => {
+    setPreviewOpen(false);
+    setPreviewFile(null);
+  };
 
-            toast.success(`Payment ${formData.currentPaymentStatus.toLowerCase()} successfully!`);
-            setIsModalOpen(false);
-        } catch (error) {
-            if (!handleAuthError(error)) {
-                toast.error(error.message || "Failed to update UTR confirmation.");
-            }
-        } finally {
-            setUpdating({ id: null, type: null });
-        }
+  const handleUpdateFinanceApprovalStatus = async (
+    paymentId,
+    approvalStatus,
+    financeApprovalRemarks,
+  ) => {
+    setUpdating({ id: paymentId, type: approvalStatus });
+    try {
+      await dispatch(
+        updateCentralPaymentAction({
+          paymentId,
+          financeApprovalStatus: approvalStatus,
+          financeApprovalRemarks,
+        }),
+      ).unwrap();
+      toast.success(
+        `Finance Approval ${approvalStatus.toLowerCase()} successfully!`,
+      );
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(
+          error.message || "Failed to update finance approval Status.",
+        );
+      }
+    } finally {
+      setUpdating({ id: null, type: null });
     }
+  };
 
-    const openPaymentModal = () => {
-        setIsModalOpen(true);
+  const handleUpdateAccountingApprovalStatus = async (
+    paymentId,
+    approvalStatus,
+    accountingApprovalRemarks,
+  ) => {
+    setUpdating({ id: paymentId, type: approvalStatus });
+    try {
+      await dispatch(
+        updateCentralPaymentAction({
+          paymentId,
+          accountingApprovalStatus: approvalStatus,
+          accountingApprovalRemarks,
+        }),
+      ).unwrap();
+      toast.success(
+        `Accounting Approval ${approvalStatus.toLowerCase()} successfully!`,
+      );
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(
+          error.message || "Failed to update accounting approval status.",
+        );
+      }
+    } finally {
+      setUpdating({ id: null, type: null });
     }
+  };
 
-    const closePaymentModal = () => {
-        setIsModalOpen(false);
+  const handleUpdateApprovalStatus = async (
+    paymentId,
+    approvalStatus,
+    approvalRemarks,
+  ) => {
+    setUpdating({ id: paymentId, type: approvalStatus });
+    try {
+      await dispatch(
+        updateCentralPaymentAction({
+          paymentId,
+          approvalStatus,
+          approvalRemarks,
+        }),
+      ).unwrap();
+      toast.success(`Approval ${approvalStatus.toLowerCase()} successfully!`);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to update approval Status.");
+      }
+    } finally {
+      setUpdating({ id: null, type: null });
     }
+  };
 
-    return (
-        <React.Fragment>
-            <Card
-                className={`mb-3 shadow-sm hover-shadow transition-all ${border ? 'border-1' : 'border-0'}`}
-                style={{
-                    position: "relative",
-                    ...((flag === "processPayment" || flag === "UTRConfirmation") && { minHeight: 265 })
-                }}
+  const handleUTRConfirmation = async (formData) => {
+    setUpdating({ id: item._id, type: formData.currentPaymentStatus });
+    try {
+      console.log(
+        "Central payment transactionDate payload:",
+        formData.transactionDate,
+      );
+      await dispatch(
+        updateCentralPaymentAction({
+          paymentId: item._id,
+          transactionId: formData.transactionId,
+          transactionDate: formData.transactionDate,
+          transactionBankDetails: formData.transactionBankDetails,
+          currentPaymentStatus: formData.currentPaymentStatus,
+        }),
+      ).unwrap();
+
+      toast.success(
+        `Payment ${formData.currentPaymentStatus.toLowerCase()} successfully!`,
+      );
+      setIsModalOpen(false);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to update UTR confirmation.");
+      }
+    } finally {
+      setUpdating({ id: null, type: null });
+    }
+  };
+
+  const openPaymentModal = () => {
+    setIsModalOpen(true);
+  };
+
+  const closePaymentModal = () => {
+    setIsModalOpen(false);
+  };
+
+  return (
+    <React.Fragment>
+      <Card
+        className={`mb-3 shadow-sm hover-shadow transition-all ${border ? "border-1" : "border-0"}`}
+        style={{
+          position: "relative",
+          ...((flag === "processPayment" || flag === "UTRConfirmation") && {
+            minHeight: 265,
+          }),
+        }}
+      >
+        <CardBody
+          className="py-3"
+          style={{ position: "relative", paddingTop: 28 }}
+        >
+          {showSelect && (
+            <div
+              style={{
+                position: "absolute",
+                top: 12,
+                right: 12,
+                zIndex: 50,
+              }}
             >
-                <CardBody className="py-3" style={{ position: "relative", paddingTop: 28 }}>
-                    {showSelect && (
-                        <div
-                            style={{
-                                position: "absolute",
-                                top: 12,
-                                right: 12,
-                                zIndex: 50,
-                            }}
-                        >
-                            <label
-                                style={{
-                                    cursor: "pointer",
-                                    display: "inline-flex",
-                                    alignItems: "center"
-                                }}
-                            >
-                                <input
-                                    type="checkbox"
-                                    checked={selected}
-                                    onChange={() => onSelect(item._id)}
-                                    style={{
-                                        opacity: 0,
-                                        position: "absolute",
-                                        width: 0,
-                                        height: 0,
-                                        cursor: "pointer"
-                                    }}
-                                />
+              <label
+                style={{
+                  cursor: "pointer",
+                  display: "inline-flex",
+                  alignItems: "center",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  onChange={() => onSelect(item._id)}
+                  style={{
+                    opacity: 0,
+                    position: "absolute",
+                    width: 0,
+                    height: 0,
+                    cursor: "pointer",
+                  }}
+                />
 
-                                <span
-                                    style={{
-                                        width: 20,
-                                        height: 20,
-                                        borderRadius: "50%",
-                                        border: selected ? "2px solid #28a745" : "2px solid #aaa",
-                                        backgroundColor: selected ? "#28a745" : "transparent",
-                                        display: "flex",
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                        transition: "all 0.15s ease"
-                                    }}
-                                >
-                                    <span
-                                        style={{
-                                            width: 10,
-                                            height: 10,
-                                            borderRadius: "50%",
-                                            backgroundColor: "white",
-                                            opacity: selected ? 1 : 0,
-                                            transition: "opacity 0.15s ease"
-                                        }}
-                                    />
-                                </span>
-                            </label>
-                        </div>
+                <span
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: "50%",
+                    border: selected ? "2px solid #28a745" : "2px solid #aaa",
+                    backgroundColor: selected ? "#28a745" : "transparent",
+                    display: "flex",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    transition: "all 0.15s ease",
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: "50%",
+                      backgroundColor: "white",
+                      opacity: selected ? 1 : 0,
+                      transition: "opacity 0.15s ease",
+                    }}
+                  />
+                </span>
+              </label>
+            </div>
+          )}
+          <Row className="align-items-center">
+            <Col md={8}>
+              <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
+                <Badge color="primary" className="me-1">
+                  {capitalizeWords(item.center?.title) || "Unknown Center"}
+                </Badge>
+
+                <Badge
+                  color={getStatusBadgeColor(item.approvalStatus)}
+                  className="me-2"
+                >
+                  <Tag size={12} className="me-1" />
+                  {capitalizeWords(item.approvalStatus || "Unknown")}
+                </Badge>
+
+                <div className="d-flex align-items-center text-muted">
+                  <Calendar size={14} className="me-1" />
+                  <i>{moment(item.date).format("lll")}</i>
+                </div>
+              </div>
+
+              {item.items && (
+                <h6 className="mb-1 fw-bold text-dark">{item.items}</h6>
+              )}
+
+              {item.description && (
+                <ExpandableText
+                  text={item.description}
+                  limit={20}
+                  className="mb-2"
+                />
+              )}
+
+              {item.eNet && (
+                <p>
+                  <strong>E-Net: </strong>
+                  <span className="border-bottom border-dark">
+                    <ExpandableText text={item.eNet} limit={140} />
+                  </span>
+                </p>
+              )}
+
+              {item.attachments && item.attachments.length > 0 && (
+                <div className="mt-2">
+                  <AttachmentCell
+                    attachments={item.attachments}
+                    onPreview={handleAttachmentClick}
+                  />
+                </div>
+              )}
+            </Col>
+
+            <Col md={4} className="text-end">
+              <div className="d-flex flex-column align-items-end">
+                <span className="h5 mb-0 fw-bold text-dark">
+                  {formatCurrency(item.finalAmount)}
+                </span>
+                {item.finalAmount && (
+                  <i className="text-muted mt-1">Payable (TDS Deducted)</i>
+                )}
+                <span className="mt-1 ">
+                  <span className="fw-bold">TDS Rate:</span>{" "}
+                  {item?.TDSRate ?? 0}%
+                </span>
+                <span
+                  className={`mt-1 ${item.initialPaymentStatus === "PENDING" ? "text-danger fw-bold fs-6" : "text-success fw-bold fs-6"}`}
+                >
+                  {item.initialPaymentStatus === "PENDING"
+                    ? "To Be Paid"
+                    : "Paid"}
+                </span>
+              </div>
+            </Col>
+          </Row>
+          {(flag === "financeApproval" ||
+            flag === "accountingApproval" ||
+            flag === "approval" ||
+            flag === "processPayment" ||
+            flag === "UTRConfirmation") && (
+            <>
+              <div className="my-3 border-1 border-top border-dashed"></div>
+              <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
+                <div className="d-flex flex-wrap gap-3 gap-md-4 flex-grow-1">
+                  {item?.author && (
+                    <div style={{ minWidth: 120 }}>
+                      <i className="text-muted d-block">Initiator:</i>
+                      <span className="fw-semibold text-dark d-block">
+                        {item.author?.name?.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  {item?.approvedBy && (
+                    <div style={{ minWidth: 140 }}>
+                      <i className="text-muted d-block">Approved by:</i>
+                      <span className="fw-semibold text-dark d-block">
+                        {item.approvedBy?.name?.toUpperCase()}
+                      </span>
+                    </div>
+                  )}
+                  {(flag === "processPayment" || flag === "UTRConfirmation") &&
+                    item?.financeApprovedBy && (
+                      <div style={{ minWidth: 140 }}>
+                        <i className="text-muted d-block">
+                          Finance Approved by:
+                        </i>
+                        <span className="fw-semibold text-dark d-block">
+                          {item.financeApprovedBy?.name?.toUpperCase()}
+                        </span>
+                      </div>
                     )}
-                    <Row className="align-items-center">
-                        <Col md={8}>
-                            <div className="d-flex align-items-center flex-wrap gap-2 mb-2">
-                                <Badge color="primary" className="me-1">
-                                    {capitalizeWords(item.center?.title) || "Unknown Center"}
-                                </Badge>
+                </div>
+                <Button
+                  onClick={
+                    flag === "processPayment"
+                      ? () => onCopyENet(item.eNet, item._id)
+                      : openPaymentModal
+                  }
+                  color="primary"
+                  size="sm"
+                  className="d-flex align-items-center justify-content-center text-white w-100 w-sm-auto"
+                  style={{ maxWidth: "260px" }}
+                  disabled={updating.id === item._id || copyLoading}
+                >
+                  {updating.id === item._id || copyLoading ? (
+                    <Spinner size="sm" color="light" className="me-1" />
+                  ) : !hasCreatePermission && flag === "processPayment" ? (
+                    <Copy size={16} className="me-1" />
+                  ) : (
+                    <CheckCheck size={16} className="me-1" />
+                  )}
+                  <span className="text-truncate">
+                    {hasCreatePermission
+                      ? flag === "financeApproval"
+                        ? "Process Payment"
+                        : flag === "accountingApproval"
+                          ? "Process Accounting"
+                          : flag === "approval"
+                            ? "Process Approval"
+                            : flag === "processPayment"
+                              ? "Copy E-Net & Process"
+                              : "Submit UTR & Confirm"
+                      : flag === "processPayment"
+                        ? "Copy E-Net"
+                        : "Details"}
+                  </span>
+                </Button>
+              </div>
+            </>
+          )}
+        </CardBody>
+      </Card>
 
-                                <Badge color={getStatusBadgeColor(item.approvalStatus)} className="me-2">
-                                    <Tag size={12} className="me-1" />
-                                    {capitalizeWords(item.approvalStatus || "Unknown")}
-                                </Badge>
-
-                                <div className="d-flex align-items-center text-muted">
-                                    <Calendar size={14} className="me-1" />
-                                    <i>{moment(item.date).format("lll")}</i>
-                                </div>
-                            </div>
-
-                            {item.items && (
-                                <h6 className="mb-1 fw-bold text-dark">
-                                    {item.items}
-                                </h6>
-                            )}
-
-                            {item.description && (
-                                <ExpandableText
-                                    text={item.description} limit={20}
-                                    className="mb-2"
-                                />
-                            )}
-
-                            {item.eNet && (
-                                <p>
-                                    <strong>E-Net: </strong><span className="border-bottom border-dark"><ExpandableText text={item.eNet} limit={140} /></span>
-                                </p>
-                            )}
-
-                            {item.attachments && item.attachments.length > 0 && (
-                                <div className="mt-2">
-                                    <AttachmentCell
-                                        attachments={item.attachments}
-                                        onPreview={handleAttachmentClick}
-
-                                    />
-                                </div>
-                            )}
-                        </Col>
-
-                        <Col md={4} className="text-end">
-                            <div className="d-flex flex-column align-items-end">
-                                <span className="h5 mb-0 fw-bold text-dark">
-                                    {formatCurrency(item.finalAmount)}
-                                </span>
-                                {item.finalAmount && (
-                                    <i className="text-muted mt-1">
-                                        Payable (TDS Deducted)
-                                    </i>
-                                )}
-                                <span className="mt-1 ">
-                                    <span className="fw-bold">TDS Rate:</span> {item?.TDSRate ?? 0}%
-                                </span>
-                                <span className={`mt-1 ${item.initialPaymentStatus === "PENDING" ? "text-danger fw-bold fs-6" : "text-success fw-bold fs-6"}`}>
-                                    {item.initialPaymentStatus === "PENDING" ? "To Be Paid" : "Paid"}
-                                </span>
-                            </div>
-                        </Col>
-                    </Row>
-                    {(flag === "financeApproval" || flag === "approval" || flag === "processPayment" || flag === "UTRConfirmation") && (
-                        <>
-                            <div className="my-3 border-1 border-top border-dashed"></div>
-                            <div className="d-flex flex-column flex-md-row justify-content-between align-items-start align-items-md-center gap-3">
-                                <div className="d-flex flex-wrap gap-3 gap-md-4 flex-grow-1">
-                                    {item?.author && (
-                                        <div style={{ minWidth: 120 }}>
-                                            <i className="text-muted d-block">Initiator:</i>
-                                            <span className="fw-semibold text-dark d-block">
-                                                {item.author?.name?.toUpperCase()}
-                                            </span>
-                                        </div>
-                                    )}
-                                    {item?.approvedBy && (
-                                        <div style={{ minWidth: 140 }}>
-                                            <i className="text-muted d-block">Approved by:</i>
-                                            <span className="fw-semibold text-dark d-block">
-                                                {item.approvedBy?.name?.toUpperCase()}
-                                            </span>
-                                        </div>
-                                    )}
-                                    {(flag === "processPayment" || flag === "UTRConfirmation") && item?.financeApprovedBy && (
-                                        <div style={{ minWidth: 140 }}>
-                                            <i className="text-muted d-block">Finance Approved by:</i>
-                                            <span className="fw-semibold text-dark d-block">
-                                                {item.financeApprovedBy?.name?.toUpperCase()}
-                                            </span>
-                                        </div>
-                                    )}
-                                </div>
-                                <Button
-                                    onClick={flag === "processPayment" ? () => onCopyENet(item.eNet, item._id) : openPaymentModal}
-                                    color="primary"
-                                    size="sm"
-                                    className="d-flex align-items-center justify-content-center text-white w-100 w-sm-auto"
-                                    style={{ maxWidth: "260px" }}
-                                    disabled={updating.id === item._id || copyLoading}
-                                >
-                                    {(updating.id === item._id || copyLoading) ? (
-                                        <Spinner size="sm" color="light" className="me-1" />
-                                    ) : (
-                                        !hasCreatePermission && flag === "processPayment" ?
-                                            <Copy size={16} className="me-1" /> : <CheckCheck size={16} className="me-1" />
-                                    )}
-                                    <span className="text-truncate">
-                                        {hasCreatePermission
-                                            ? (flag === "financeApproval" ? "Process Payment" : flag === "approval" ? "Process Approval" : flag === "processPayment" ? "Copy E-Net & Process" : "Submit UTR & Confirm")
-                                            : flag === "processPayment" ? "Copy E-Net" : "Details"
-                                        }
-                                    </span>
-                                </Button>
-                            </div>
-                        </>
-                    )}
-                </CardBody>
-            </Card>
-
-            <PaymentFormModal
-                isOpen={isModalOpen}
-                toggle={closePaymentModal}
-                item={item}
-                mode={flag}
-                onConfirm={flag === "financeApproval" ? handleUpdateFinanceApprovalStatus : flag === "approval" ? handleUpdateApprovalStatus : handleUTRConfirmation}
-                isProcessing={updating}
-                hasCreatePermission={hasCreatePermission}
-            />
-            <PreviewFile
-                title="Attachment Preview"
-                file={previewFile}
-                isOpen={previewOpen}
-                toggle={closePreview}
-                allowDownload={checkIsExcel(previewFile)}
-            />
-        </React.Fragment>
-    );
+      <PaymentFormModal
+        isOpen={isModalOpen}
+        toggle={closePaymentModal}
+        item={item}
+        mode={flag}
+        onConfirm={
+          flag === "financeApproval"
+            ? handleUpdateFinanceApprovalStatus
+            : flag === "accountingApproval"
+              ? handleUpdateAccountingApprovalStatus
+              : flag === "approval"
+                ? handleUpdateApprovalStatus
+                : handleUTRConfirmation
+        }
+        isProcessing={updating}
+        hasCreatePermission={hasCreatePermission}
+      />
+      <PreviewFile
+        title="Attachment Preview"
+        file={previewFile}
+        isOpen={previewOpen}
+        toggle={closePreview}
+        allowDownload={checkIsExcel(previewFile)}
+      />
+    </React.Fragment>
+  );
 };
 
 ItemCard.propTypes = {
-    item: PropTypes.object,
-    flag: PropTypes.string,
-    border: PropTypes.bool,
-    hasCreatePermission: PropTypes.bool,
-    selected: PropTypes.bool,
-    onSelect: PropTypes.func,
-    showSelect: PropTypes.bool,
-    onCopyENet: PropTypes.func,
-    copyLoading: PropTypes.bool,
+  item: PropTypes.object,
+  flag: PropTypes.string,
+  border: PropTypes.bool,
+  hasCreatePermission: PropTypes.bool,
+  selected: PropTypes.bool,
+  onSelect: PropTypes.func,
+  showSelect: PropTypes.bool,
+  onCopyENet: PropTypes.func,
+  copyLoading: PropTypes.bool,
 };
 
 export default ItemCard;
