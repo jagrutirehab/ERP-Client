@@ -89,8 +89,20 @@ const hydrateCondition = (c) => ({
       }
     : null,
   consecutiveMatch: c.consecutiveMatch
-    ? { count: c.consecutiveMatch.count != null ? String(c.consecutiveMatch.count) : "" }
+    ? {
+        count:
+          c.consecutiveMatch.count != null
+            ? String(c.consecutiveMatch.count)
+            : "",
+      }
     : null,
+  // Mongoose defaults changeMatch.direction to EITHER on every saved condition,
+  // so only treat the side-car as present when the operator actually uses it —
+  // otherwise an unrelated condition would hydrate a stray direction.
+  changeMatch:
+    c.operator === "CHANGE_SINCE_FIRST"
+      ? { direction: c.changeMatch?.direction || "EITHER" }
+      : null,
   // Treat the gate as "on" only when it carries at least one criterion. Mongoose
   // initializes `discontinueGate` to `{ criteria: [] }` on every saved condition
   // (the criteria array path defaults to []), so a present-but-empty gate must
@@ -119,8 +131,7 @@ const buildMedicineOption = (medicineId, snap) => {
     [s.type, s.name, s.strength, s.unit].filter(Boolean).join(" ") ||
     "(Medicine)";
   return {
-    value:
-      typeof medicineId === "string" ? medicineId : medicineId.toString(),
+    value: typeof medicineId === "string" ? medicineId : medicineId.toString(),
     label,
     snapshot: s,
   };
@@ -138,8 +149,8 @@ const hydrateMedicine = (m) => ({
   dosageAndFrequency: {
     morning: m.dosageAndFrequency?.morning || "",
     evening: m.dosageAndFrequency?.evening || "",
-    night:   m.dosageAndFrequency?.night   || "",
-    unit:    m.dosageAndFrequency?.unit    || "",
+    night: m.dosageAndFrequency?.night || "",
+    unit: m.dosageAndFrequency?.unit || "",
   },
   applicableDays: Array.isArray(m.applicableDays)
     ? m.applicableDays.filter((n) => Number.isInteger(n) && n >= 0)
@@ -148,9 +159,11 @@ const hydrateMedicine = (m) => ({
   intake:
     findOpt(MEDICINE_INTAKE_OPTIONS, m.intake) || MEDICINE_INTAKE_OPTIONS[1],
   priority:
-    findOpt(MEDICINE_PRIORITY_OPTIONS, m.priority) || MEDICINE_PRIORITY_OPTIONS[0],
+    findOpt(MEDICINE_PRIORITY_OPTIONS, m.priority) ||
+    MEDICINE_PRIORITY_OPTIONS[0],
   category:
-    findOpt(MEDICINE_CATEGORY_OPTIONS, m.category) || MEDICINE_CATEGORY_OPTIONS[0],
+    findOpt(MEDICINE_CATEGORY_OPTIONS, m.category) ||
+    MEDICINE_CATEGORY_OPTIONS[0],
   rationale: m.rationale || "",
 });
 
@@ -391,12 +404,12 @@ const SOPForm = ({
   const formatSchedule = (s) => {
     if (!s?.period?.value) return undefined;
     const period = s.period.value;
-    const interval = s.intervalHours !== "" && s.intervalHours != null
-      ? Number(s.intervalHours)
-      : undefined;
-    const grace = s.graceHours !== "" && s.graceHours != null
-      ? Number(s.graceHours)
-      : 0;
+    const interval =
+      s.intervalHours !== "" && s.intervalHours != null
+        ? Number(s.intervalHours)
+        : undefined;
+    const grace =
+      s.graceHours !== "" && s.graceHours != null ? Number(s.graceHours) : 0;
 
     const out = { period, graceHours: grace };
 
@@ -445,8 +458,8 @@ const SOPForm = ({
       dosageAndFrequency: {
         morning: (d.morning || "").trim(),
         evening: (d.evening || "").trim(),
-        night:   (d.night   || "").trim(),
-        unit:    (d.unit    || "").trim(),
+        night: (d.night || "").trim(),
+        unit: (d.unit || "").trim(),
       },
       applicableDays: Array.isArray(m.applicableDays) ? m.applicableDays : [],
       instructions: m.instructions?.trim() || undefined,
@@ -496,6 +509,14 @@ const SOPForm = ({
     if (c.operator?.value === "CONSECUTIVE_LOW" && c.consecutiveMatch) {
       out.consecutiveMatch = {
         count: Number(c.consecutiveMatch.count),
+      };
+    }
+
+    // CHANGE_SINCE_FIRST carries the direction in changeMatch. The threshold
+    // stays in value[0] and is always positive — direction carries the sign.
+    if (c.operator?.value === "CHANGE_SINCE_FIRST") {
+      out.changeMatch = {
+        direction: c.changeMatch?.direction || "EITHER",
       };
     }
 
@@ -560,6 +581,20 @@ const SOPForm = ({
           const count = Number(c.consecutiveMatch?.count);
           if (!Number.isFinite(count) || count < 1) {
             bErr.conditions[cIdx] = "Consecutive count must be >= 1";
+            hasTargetErrors = true;
+          }
+        } else if (c.operator?.value === "CHANGE_SINCE_FIRST") {
+          // Threshold is always positive — the direction carries the sign.
+          const threshold = Number(c.value?.[0]);
+          if (!Number.isFinite(threshold) || threshold <= 0) {
+            bErr.conditions[cIdx] = "Enter a positive change threshold";
+            hasTargetErrors = true;
+          } else if (
+            !["GAIN", "LOSS", "EITHER"].includes(
+              c.changeMatch?.direction || "EITHER",
+            )
+          ) {
+            bErr.conditions[cIdx] = "Pick a change direction";
             hasTargetErrors = true;
           }
         } else if (
