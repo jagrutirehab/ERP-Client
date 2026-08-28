@@ -5021,3 +5021,8 @@ export const confirmItemImport = (rows) => {
     { headers: { "X-No-Cookie-Token": "true" } },
   );
 };
+export const deleteVendor = (id) => {
+  return axios.delete(`${url.VENDOR_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
