@@ -61,7 +61,7 @@ const BiometricAdditionForm = () => {
     }
     try {
       setLoadingEmployees(true);
-      const params = { type: "biometric" };
+      const params = { type: "employee" };
       if (isECodeLike(text)) {
         params.eCode = text;
       } else {
@@ -75,6 +75,7 @@ const BiometricAdditionForm = () => {
           label: `${emp.name} (${emp.eCode})`,
           eCode: emp.eCode,
           currentLocation: emp.currentLocation,
+          biometricId: emp.biometricId,
         })),
       );
     } catch (error) {
@@ -94,6 +95,7 @@ const BiometricAdditionForm = () => {
   const handleEmployeeChange = (option) => {
     setSelectedEmployee(option || null);
     setEmployeeDetails(option || null);
+    setBiometricId(option?.biometricId || "");
     if (errors.employee) setErrors((prev) => ({ ...prev, employee: "" }));
   };
 
