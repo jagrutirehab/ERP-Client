@@ -70,6 +70,17 @@ export const OPERATOR_OPTIONS = [
   // Streak-based operator for discontinuation rules. Fires when the last N
   // assessments all score below the threshold.
   { value: "CONSECUTIVE_LOW", label: "Consecutive low (discontinue)" },
+  // Trend operator. Compares the first and latest reading of the admission and
+  // fires when the change reaches the threshold in the chosen direction.
+  { value: "CHANGE_SINCE_FIRST", label: "Changed since first (trend)" },
+];
+
+// Direction for CHANGE_SINCE_FIRST. The threshold is always entered as a
+// positive number; the direction carries the sign.
+export const CHANGE_DIRECTION_OPTIONS = [
+  { value: "EITHER", label: "Changed by (\u2265)" },
+  { value: "GAIN", label: "Increased by (\u2265)" },
+  { value: "LOSS", label: "Decreased by (\u2265)" },
 ];
 
 // Operators whose value editor is a plain number of days against a Date field.
@@ -84,6 +95,7 @@ export const OPERATORS_BY_TYPE = {
     "EQUALS",
     "NOT_EQUALS",
     "CONSECUTIVE_LOW",
+    "CHANGE_SINCE_FIRST",
   ],
   Date: [
     "GREATER_THAN",
@@ -148,16 +160,16 @@ export const BOOLEAN_OPTIONS = [
 //   - FREQUENCY  : "N documents per period over a day-range" — a `bands` table
 //                  (e.g. 2/week between admission day 5–30).
 export const PERIOD_OPTIONS = [
-  { value: "DEADLINE",   label: "Deadline (one-time)" },
+  { value: "DEADLINE", label: "Deadline (one-time)" },
   { value: "CONTINUOUS", label: "Continuous (every N hours)" },
-  { value: "DAYS",       label: "Days (specific days)" },
-  { value: "FREQUENCY",  label: "Frequency (N per period)" },
+  { value: "DAYS", label: "Days (specific days)" },
+  { value: "FREQUENCY", label: "Frequency (N per period)" },
 ];
 
 // FREQUENCY band period unit.
 export const PER_OPTIONS = [
-  { value: "DAY",   label: "per day" },
-  { value: "WEEK",  label: "per week" },
+  { value: "DAY", label: "per day" },
+  { value: "WEEK", label: "per week" },
   { value: "MONTH", label: "per month" },
 ];
 
@@ -179,12 +191,12 @@ export const emptyConditionItem = () => ({
   deadlineHours: "",
   value: [],
   schedule: {
-    period: PERIOD_OPTIONS[0],   // "Days" default
-    days: [],                     // e.g. [1, 3, 7] — day numbers since admission
-    daysOnwards: false,           // DAYS only: due every day after the max listed day
-    intervalHours: "",            // optional integer (every N hours)
-    graceHours: 0,                // tolerance window in hours
-    bands: [],                    // FREQUENCY only: [{ fromDay, toDay, times, per, onwards }]
+    period: PERIOD_OPTIONS[0], // "Days" default
+    days: [], // e.g. [1, 3, 7] — day numbers since admission
+    daysOnwards: false, // DAYS only: due every day after the max listed day
+    intervalHours: "", // optional integer (every N hours)
+    graceHours: 0, // tolerance window in hours
+    bands: [], // FREQUENCY only: [{ fromDay, toDay, times, per, onwards }]
   },
   // Populated only when operator is ARRAY_ANY_MATCHES (today: LabReport
   // flagged-items conditions).
@@ -192,6 +204,8 @@ export const emptyConditionItem = () => ({
   // Populated only when operator is CONSECUTIVE_LOW (discontinuation rules).
   // count = how many consecutive assessments must score below the threshold.
   consecutiveMatch: null,
+  // Populated only when operator is CHANGE_SINCE_FIRST — { direction }.
+  changeMatch: null,
   // Optional discontinue-gate for DELAYED cadence ("missing assessment")
   // conditions — { count, criteria: [{ field, threshold }] }. Null = off.
   // When the last `count` assessments all score below the thresholds, the
@@ -237,35 +251,35 @@ export const BLOOD_GROUP_OPTIONS = [
 // ─── Suggested Medicines ──────────────────────────────────────────────────
 
 export const MEDICINE_CATEGORY_OPTIONS = [
-  { value: "WITHDRAWAL",  label: "Withdrawal (CDZ, antiepileptics)" },
-  { value: "GENERAL",     label: "General (Thiamine, B-Plex, antacids)" },
-  { value: "HEPATIC",     label: "Hepatic (Udiliv, Rifagut, Lornit)" },
+  { value: "WITHDRAWAL", label: "Withdrawal (CDZ, antiepileptics)" },
+  { value: "GENERAL", label: "General (Thiamine, B-Plex, antacids)" },
+  { value: "HEPATIC", label: "Hepatic (Udiliv, Rifagut, Lornit)" },
   { value: "MAINTENANCE", label: "Maintenance (Acamprosate, Topiramate)" },
-  { value: "DISCHARGE",   label: "Discharge prescription" },
-  { value: "SOS",         label: "SOS / PRN" },
-  { value: "OTHER",       label: "Other" },
+  { value: "DISCHARGE", label: "Discharge prescription" },
+  { value: "SOS", label: "SOS / PRN" },
+  { value: "OTHER", label: "Other" },
 ];
 
 export const MEDICINE_PRIORITY_OPTIONS = [
-  { value: "ROUTINE",   label: "Routine" },
-  { value: "HIGH",      label: "High" },
-  { value: "URGENT",    label: "Urgent" },
+  { value: "ROUTINE", label: "Routine" },
+  { value: "HIGH", label: "High" },
+  { value: "URGENT", label: "Urgent" },
   { value: "EMERGENCY", label: "Emergency" },
 ];
 
 export const MEDICINE_INTAKE_OPTIONS = [
   { value: "Before food", label: "Before food" },
-  { value: "After food",  label: "After food" },
+  { value: "After food", label: "After food" },
 ];
 
 export const emptySuggestedMedicine = () => ({
-  id: Date.now() + Math.random(),                  // local-only UI key
-  medicine: null,                                  // { value, label, snapshot? }
+  id: Date.now() + Math.random(), // local-only UI key
+  medicine: null, // { value, label, snapshot? }
   medicineSnapshot: { name: "", type: "", strength: "", unit: "" },
   dosageAndFrequency: { morning: "", evening: "", night: "", unit: "tab" },
-  applicableDays: [],                              // [] = throughout admission
+  applicableDays: [], // [] = throughout admission
   instructions: "",
-  intake: MEDICINE_INTAKE_OPTIONS[1],               // After food default
+  intake: MEDICINE_INTAKE_OPTIONS[1], // After food default
   priority: MEDICINE_PRIORITY_OPTIONS[0],
   category: MEDICINE_CATEGORY_OPTIONS[0],
   rationale: "",

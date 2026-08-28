@@ -17,6 +17,7 @@ import {
   SEVERITY_THRESHOLD_OPTIONS,
   ANY_LAB_TEST_OPTION,
   RELATIVE_DAY_OPERATORS,
+  CHANGE_DIRECTION_OPTIONS,
 } from "../../../Components/constants/sopConstants";
 import { getICDCodes, sopGetLabTests } from "../../../helpers/backend_helper";
 
@@ -65,6 +66,7 @@ const ConditionRow = ({
   const isBoolean = fieldType === "Boolean";
   const isFlaggedItems = fieldType === "FlaggedItemArray";
   const isConsecutiveLow = condition.operator?.value === "CONSECUTIVE_LOW";
+  const isChangeSinceFirst = condition.operator?.value === "CHANGE_SINCE_FIRST";
   const isDelayed = condition.triggerType?.value === "DELAYED";
   const isFrequency = condition.schedule?.period?.value === "FREQUENCY";
   const hasEnum =
@@ -135,7 +137,10 @@ const ConditionRow = ({
     onChange(idx, "field", newField);
     onChange(idx, "value", []);
     if (newType === "FlaggedItemArray") {
-      onChange(idx, "operator", { value: "ARRAY_ANY_MATCHES", label: "ARRAY ANY MATCHES" });
+      onChange(idx, "operator", {
+        value: "ARRAY_ANY_MATCHES",
+        label: "ARRAY ANY MATCHES",
+      });
       onChange(idx, "arrayMatch", {
         keyField: "canonicalName",
         keyValue: "",
@@ -154,6 +159,9 @@ const ConditionRow = ({
       );
       onChange(idx, "arrayMatch", null);
     }
+    // A field change always resets the operator above, so the trend side-car
+    // can never still apply — clear it, mirroring arrayMatch.
+    onChange(idx, "changeMatch", null);
     if (ICD_FIELDS.has(newField)) fetchIcd();
   };
   // FlaggedItemArray supports two modes, set via arrayMatch.comparator:
@@ -197,8 +205,9 @@ const ConditionRow = ({
     const selectedTest =
       testOpts.find((o) => o.value === condition.arrayMatch?.keyValue) || null;
     const selectedSeverity =
-      SEVERITY_THRESHOLD_OPTIONS.find((o) => o.value === condition.value?.[0]) ||
-      null;
+      SEVERITY_THRESHOLD_OPTIONS.find(
+        (o) => o.value === condition.value?.[0],
+      ) || null;
     const selectedMode =
       MODE_OPTIONS.find((o) => o.value === comparator) || MODE_OPTIONS[0];
 
@@ -371,7 +380,9 @@ const ConditionRow = ({
                   placeholder="From day"
                   value={band.fromDay ?? ""}
                   onChange={(e) =>
-                    updateBand({ fromDay: e.target.value.replace(/[^\d]/g, "") })
+                    updateBand({
+                      fromDay: e.target.value.replace(/[^\d]/g, ""),
+                    })
                   }
                   disabled={isDisabled}
                 />
@@ -493,6 +504,42 @@ const ConditionRow = ({
       );
     }
 
+    // CHANGE_SINCE_FIRST: direction + a positive threshold. The threshold is
+    // always entered positive; the direction carries the sign server-side.
+    if (isChangeSinceFirst) {
+      const direction = condition.changeMatch?.direction || "EITHER";
+      const selected =
+        CHANGE_DIRECTION_OPTIONS.find((o) => o.value === direction) ||
+        CHANGE_DIRECTION_OPTIONS[0];
+      return (
+        <div>
+          <Select
+            options={CHANGE_DIRECTION_OPTIONS}
+            value={selected}
+            onChange={(o) =>
+              onChange(idx, "changeMatch", { direction: o?.value || "EITHER" })
+            }
+            isDisabled={isDisabled}
+          />
+          <div className="mt-1">
+            <Input
+              type="number"
+              min="0"
+              step="any"
+              placeholder="Change threshold (e.g. 5)"
+              value={condition.value?.[0] ?? ""}
+              onChange={(e) => onChange(idx, "value", [e.target.value])}
+              disabled={isDisabled}
+            />
+          </div>
+          <small className="text-muted d-block mt-1">
+            Compares the first and latest reading of the admission — fires when
+            it {selected.label.toLowerCase()} {condition.value?.[0] || "N"}
+          </small>
+        </div>
+      );
+    }
+
     // Relative-date operators (e.g. OLDER_THAN_DAYS) take a plain number of
     // days, not a date. Stored as a single-element array to match the other
     // numeric value editors.
@@ -552,7 +599,7 @@ const ConditionRow = ({
             Array.isArray(condition.value) && condition.value.length === 2
               ? { value: "Both", label: "Both" }
               : GENDER_OPTIONS.find((o) => o.value === condition.value?.[0]) ||
-              null
+                null
           }
           onChange={(s) => {
             if (!s) return onChange(idx, "value", []);
@@ -651,7 +698,19 @@ const ConditionRow = ({
               filteredOps.find((o) => o.value === condition.operator?.value) ||
               null
             }
-            onChange={(v) => onChange(idx, "operator", v)}
+            onChange={(v) => {
+              onChange(idx, "operator", v);
+              // Seed the trend side-car when switching to CHANGE_SINCE_FIRST,
+              // clear it when switching away, so a stale direction can't ride
+              // along on an unrelated operator.
+              onChange(
+                idx,
+                "changeMatch",
+                v?.value === "CHANGE_SINCE_FIRST"
+                  ? { direction: condition.changeMatch?.direction || "EITHER" }
+                  : null,
+              );
+            }}
             isDisabled={isDisabled || isFieldExists}
           />
         </Col>
