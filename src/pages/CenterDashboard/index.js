@@ -367,7 +367,7 @@ const CenterDashboard = () => {
                                 <Col xs="12" lg="4">
                                     <MetricPanel
                                         panelKey="discharged"
-                                        badge="CUM"
+                                        badge="PTD"
                                         title="PATIENTS TREATED TILL DATE"
                                         mainValue={viewData.discharged_patients}
                                         deltaValue={viewData.discharged_this_month}
