@@ -242,7 +242,7 @@ const SECTION_ICONS = {
 };
 
 const emptyInitialValues = {
-  entityType: "",
+  vendorType: "",
   tradeName: "",
   legalName: "",
   alias: "",
@@ -288,7 +288,7 @@ const emptyInitialValues = {
 
 const validationSchema = Yup.object({
   tradeName: Yup.string().required("Trade name is required"),
-  entityType: Yup.string().required("Entity type is required"),
+  vendorType: Yup.string().required("Vendor type is required"),
   supplyType: Yup.string().required("Supply type is required"),
   udyamNumber: Yup.string().when("msmeRegistered", {
     is: true,
@@ -376,7 +376,7 @@ const ADDRESS_FIELD_LABELS = {
 const collectMissingFields = (errors) => {
   const labels = [];
 
-  if (errors.entityType) labels.push("Entity type");
+  if (errors.vendorType) labels.push("Vendor type");
   if (errors.tradeName) labels.push("Trade name");
   if (errors.supplyType) labels.push("Supply type");
   if (errors.udyamNumber) labels.push("Udyam number");
@@ -415,7 +415,7 @@ const collectMissingFields = (errors) => {
 };
 
 const SECTION_FIELD_MAP = {
-  entityType: "identity",
+  vendorType: "identity",
   tradeName: "identity",
   supplyType: "identity",
   udyamNumber: "identity",
@@ -521,7 +521,7 @@ const DocDropzone = ({
 
   return (
     <div className="mb-3">
-     <Label className="small mb-1">
+      <Label className="small mb-1">
         {label}
         {required ? (
           <>
@@ -776,7 +776,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
         number: 1,
         title: "Identity",
         sub: "Legal name, trade name, and vendor classification",
-        checks: [!!v.entityType, !!v.tradeName, !!v.supplyType],
+        checks: [!!v.vendorType, !!v.tradeName, !!v.supplyType],
       },
       {
         key: "tax",
@@ -1032,27 +1032,27 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                 <Row>
                   <Col md={6} className="mb-3">
                     <Label>
-                      Entity type <span className="text-danger">*</span>
+                      Vendor type <span className="text-danger">*</span>
                     </Label>
                     <Input
                       type="select"
-                      name="entityType"
-                      value={v.entityType}
+                      name="vendorType"
+                      value={v.vendorType}
                       onChange={validation.handleChange}
                       onBlur={validation.handleBlur}
                       invalid={
-                        validation.touched.entityType &&
-                        !!validation.errors.entityType
+                        validation.touched.vendorType &&
+                        !!validation.errors.vendorType
                       }
                     >
-                      <option value="">Select entity type</option>
+                      <option value="">Select vendor type</option>
                       {ENTITY_TYPES.map((t) => (
                         <option key={t.value} value={t.value}>
                           {t.label}
                         </option>
                       ))}
                     </Input>
-                    <FormFeedback>{validation.errors.entityType}</FormFeedback>
+                    <FormFeedback>{validation.errors.vendorType}</FormFeedback>
                   </Col>
                   <Col md={6} className="mb-3">
                     <Label>
@@ -1074,9 +1074,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     <FormFeedback>{validation.errors.tradeName}</FormFeedback>
                   </Col>
                   <Col md={6} className="mb-3">
-                    <Label>
-                      Legal name
-                    </Label>
+                    <Label>Legal name</Label>
                     <small className="vendor-hint-text">
                       Auto-fetched from GST verification, or enter manually
                     </small>
@@ -1087,9 +1085,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     />
                   </Col>
                   <Col md={6} className="mb-3">
-                    <Label>
-                      Alias
-                    </Label>
+                    <Label>Alias</Label>
                     <small className="vendor-hint-text">
                       Optional short name shown on invoices
                     </small>
@@ -1217,7 +1213,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
               <div className="vendor-section-body">
                 <Row>
                   <Col md={6} className="mb-3">
-                    <Label>PAN <span className="text-danger">*</span></Label>
+                    <Label>
+                      PAN <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       name="pan"
                       className="text-uppercase"
@@ -1236,7 +1234,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     />
                     <FormFeedback>{validation.errors.pan}</FormFeedback>
                   </Col>
-                  {v.entityType === "company" && (
+                  {v.vendorType === "company" && (
                     <Col md={6} className="mb-3">
                       <Label>CIN number</Label>
                       <Input
@@ -1310,7 +1308,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       </div>
                       <Row>
                         <Col md={12} className="mb-2">
-                         <Label className="small mb-1">GSTIN / UIN <span className="text-danger">*</span></Label>
+                          <Label className="small mb-1">
+                            GSTIN / UIN <span className="text-danger">*</span>
+                          </Label>
                           <Input
                             className="text-uppercase"
                             placeholder="22AAAAA0000A1Z5"
@@ -1352,7 +1352,8 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                         </Col>
                         <Col md={6} className="mb-2">
                           <Label className="small mb-1">
-                            GST registration type <span className="text-danger">*</span>
+                            GST registration type{" "}
+                            <span className="text-danger">*</span>
                           </Label>
                           <Input
                             type="select"
@@ -1573,7 +1574,10 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                 <p className="vendor-repeat-row-title mb-3">Primary contact</p>
                 <Row className="mb-4">
                   <Col md={3} className="mb-2">
-<Label className="small mb-1">Contact person <span className="text-danger">*</span></Label>                    <Input
+                    <Label className="small mb-1">
+                      Contact person <span className="text-danger">*</span>
+                    </Label>{" "}
+                    <Input
                       value={v.primaryContact.name}
                       onChange={(e) =>
                         validation.setFieldValue(
@@ -1593,7 +1597,10 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     </FormFeedback>
                   </Col>
                   <Col md={3} className="mb-2">
-<Label className="small mb-1">Phone <span className="text-danger">*</span></Label>                    <Input
+                    <Label className="small mb-1">
+                      Phone <span className="text-danger">*</span>
+                    </Label>{" "}
+                    <Input
                       value={v.primaryContact.phone}
                       onChange={(e) =>
                         validation.setFieldValue(
@@ -1613,7 +1620,10 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     </FormFeedback>
                   </Col>
                   <Col md={3} className="mb-2">
-<Label className="small mb-1">Email <span className="text-danger">*</span></Label>                    <Input
+                    <Label className="small mb-1">
+                      Email <span className="text-danger">*</span>
+                    </Label>{" "}
+                    <Input
                       type="email"
                       value={v.primaryContact.email}
                       onChange={(e) =>
@@ -1653,7 +1663,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                 </p>
                 <Row className="mb-4">
                   <Col md={8} className="mb-2">
-                    <Label className="small mb-1">Address line 1 <span className="text-danger">*</span></Label>
+                    <Label className="small mb-1">
+                      Address line 1 <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       value={v.registeredAddress.line1}
                       onChange={(e) =>
@@ -1677,7 +1689,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     />
                   </Col>
                   <Col md={3} className="mb-2">
-                    <Label className="small mb-1">Pincode <span className="text-danger">*</span></Label>
+                    <Label className="small mb-1">
+                      Pincode <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       value={v.registeredAddress.pincode}
                       onChange={(e) =>
@@ -1689,7 +1703,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     />
                   </Col>
                   <Col md={3} className="mb-2">
-                    <Label className="small mb-1">City <span className="text-danger">*</span></Label>
+                    <Label className="small mb-1">
+                      City <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       value={v.registeredAddress.city}
                       onChange={(e) =>
@@ -1701,7 +1717,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     />
                   </Col>
                   <Col md={3} className="mb-2">
-                    <Label className="small mb-1">Country <span className="text-danger">*</span></Label>
+                    <Label className="small mb-1">
+                      Country <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       type="select"
                       value={v.registeredAddress.country}
@@ -1720,7 +1738,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     </Input>
                   </Col>
                   <Col md={3} className="mb-2">
-                    <Label className="small mb-1">State <span className="text-danger">*</span></Label>
+                    <Label className="small mb-1">
+                      State <span className="text-danger">*</span>
+                    </Label>
                     {v.registeredAddress.country === "India" ? (
                       <Input
                         type="select"
@@ -1779,7 +1799,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                 {!v.billingAddress.sameAsRegistered && (
                   <Row>
                     <Col md={8} className="mb-2">
-                      <Label className="small mb-1">Address line 1 <span className="text-danger">*</span></Label>
+                      <Label className="small mb-1">
+                        Address line 1 <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         value={v.billingAddress.line1}
                         onChange={(e) =>
@@ -1812,7 +1834,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       />
                     </Col>
                     <Col md={3} className="mb-2">
-                      <Label className="small mb-1">Pincode <span className="text-danger">*</span></Label>
+                      <Label className="small mb-1">
+                        Pincode <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         value={v.billingAddress.pincode}
                         onChange={(e) =>
@@ -1833,7 +1857,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       </FormFeedback>
                     </Col>
                     <Col md={3} className="mb-2">
-                      <Label className="small mb-1">City <span className="text-danger">*</span></Label>
+                      <Label className="small mb-1">
+                        City <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         value={v.billingAddress.city}
                         onChange={(e) =>
@@ -1854,7 +1880,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       </FormFeedback>
                     </Col>
                     <Col md={3} className="mb-2">
-                      <Label className="small mb-1">Country <span className="text-danger">*</span></Label>
+                      <Label className="small mb-1">
+                        Country <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         type="select"
                         value={v.billingAddress.country}
@@ -1873,7 +1901,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       </Input>
                     </Col>
                     <Col md={3} className="mb-2">
-                      <Label className="small mb-1">State <span className="text-danger">*</span></Label>
+                      <Label className="small mb-1">
+                        State <span className="text-danger">*</span>
+                      </Label>
                       {v.billingAddress.country === "India" ? (
                         <Input
                           type="select"
@@ -1941,7 +1971,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
               <div className="vendor-section-body">
                 <Row>
                   <Col md={6} className="mb-3">
-                    <Label>Account number <span className="text-danger">*</span></Label>
+                    <Label>
+                      Account number <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       value={v.bankDetails.accountNo}
                       onChange={(e) =>
@@ -1962,7 +1994,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     </FormFeedback>
                   </Col>
                   <Col md={6} className="mb-3">
-                    <Label>IFSC code <span className="text-danger">*</span></Label>
+                    <Label>
+                      IFSC code <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       className="text-uppercase"
                       value={v.bankDetails.ifsc}
@@ -1985,7 +2019,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     </FormFeedback>
                   </Col>
                   <Col md={6} className="mb-3">
-                    <Label>Bank name <span className="text-danger">*</span></Label>
+                    <Label>
+                      Bank name <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       value={v.bankDetails.bankName}
                       onChange={(e) =>
