@@ -20,11 +20,11 @@ import {
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 const STEPS = [
+  { key: "photo", label: "Photo Proof" },
   { key: "visit", label: "Visit Details" },
   { key: "doctor", label: "Doctor & Clinic" },
   { key: "collateral", label: "Collateral" },
   { key: "discussion", label: "Discussion" },
-  { key: "photo", label: "Photo Proof" },
   { key: "review", label: "Review & Submit" },
 ];
 
@@ -534,8 +534,8 @@ const AddVisitLog = () => {
   const stepHasError = (idx) => {
     const t = validation.touched;
     const err = validation.errors;
-    if (idx === 0) return t.areaLocality && err.areaLocality;
-    if (idx === 1)
+    if (idx === 1) return t.areaLocality && err.areaLocality;
+    if (idx === 2)
       return (
         (t.doctorName && err.doctorName) ||
         (t.clinicName && err.clinicName) ||
@@ -544,9 +544,9 @@ const AddVisitLog = () => {
         (t.visitType && err.visitType) ||
         (t.metWith && err.metWith)
       );
-    if (idx === 2)
-      return t.collateralGiven && (err.collateralGiven || err.pricingBrochure);
     if (idx === 3)
+      return t.collateralGiven && (err.collateralGiven || err.pricingBrochure);
+    if (idx === 4)
       return (
         (t.visitNotes && err.visitNotes) ||
         (t.interestLevel && err.interestLevel)
@@ -555,6 +555,7 @@ const AddVisitLog = () => {
   };
 
   const STEP_FIELDS = [
+    [],
     ["center", "areaLocality"],
     [
       "doctorName",
@@ -571,15 +572,14 @@ const AddVisitLog = () => {
       "commissionDiscussed",
       "commissionPercentage",
     ],
-    [],
-    [],
+    [], // Step 5 = Review
   ];
   const validateCurrentStep = async () => {
-    if (activeStep === 4 && !selfieFile) {
+    if (activeStep === 0 && !selfieFile) {
       toast.error("Please take a live selfie before continuing");
       return false;
     }
-    if (activeStep === 4 && !clinicPhotoFile) {
+    if (activeStep === 0 && !clinicPhotoFile) {
       toast.error("Please take a photo of the clinic before continuing");
       return false;
     }
@@ -623,12 +623,12 @@ const AddVisitLog = () => {
     }
     if (!selfieFile) {
       toast.error("Selfie photo proof is required");
-      setActiveStep(4);
+      setActiveStep(0);
       return;
     }
     if (!clinicPhotoFile) {
       toast.error("Clinic/hospital photo is required");
-      setActiveStep(4);
+      setActiveStep(0);
       return;
     }
 
@@ -996,7 +996,7 @@ const AddVisitLog = () => {
               <div className="mt-4 pt-2">
                 <form onSubmit={(e) => e.preventDefault()}>
                   {/* ---- STEP 0: VISIT DETAILS ---- */}
-                  {activeStep === 0 && (
+                  {activeStep === 1 && (
                     <Row>
                       <Col xs={12} lg={7}>
                         <div className="field-group">
@@ -1058,7 +1058,7 @@ const AddVisitLog = () => {
                   )}
 
                   {/* {STEP 1 DOCTOR & CLINIC } */}
-                  {activeStep === 1 && (
+                  {activeStep === 2 && (
                     <Row>
                       <Col xs={12} lg={6}>
                         <div className="field-group">
@@ -1383,7 +1383,7 @@ const AddVisitLog = () => {
                   )}
 
                   {/*STEP 2 COLLATERAL*/}
-                  {activeStep === 2 && (
+                  {activeStep === 3 && (
                     <Row>
                       <Col xs={12} lg={6}>
                         <div className="field-group">
@@ -1615,7 +1615,7 @@ const AddVisitLog = () => {
                   )}
 
                   {/* STEP 3 DISCUSSION */}
-                  {activeStep === 3 && (
+                  {activeStep === 4 && (
                     <Row>
                       <Col xs={12}>
                         <div className="field-group">
@@ -1750,7 +1750,7 @@ const AddVisitLog = () => {
                   )}
 
                   {/*STEP 4: PHOTO PROOF live camera only */}
-                  {activeStep === 4 && (
+                  {activeStep === 0 && (
                     <Row>
                       <Col xs={12} lg={7}>
                         <div className="field-group">
@@ -1959,14 +1959,14 @@ const AddVisitLog = () => {
 
                       {[
                         {
-                          step: 0,
+                          step: 1,
                           title: "Visit Details",
                           rows: [
                             ["Area / Locality", validation.values.areaLocality],
                           ],
                         },
                         {
-                          step: 1,
+                          step: 2,
                           title: "Doctor & Clinic",
                           rows: [
                             ["Doctor Name", validation.values.doctorName],
@@ -1989,7 +1989,7 @@ const AddVisitLog = () => {
                           ],
                         },
                         {
-                          step: 2,
+                          step: 3,
                           title: "Collateral",
                           rows: [
                             [
@@ -2025,7 +2025,7 @@ const AddVisitLog = () => {
                           ],
                         },
                         {
-                          step: 3,
+                          step: 4,
                           title: "Discussion",
                           rows: [
                             ["Visit Notes", validation.values.visitNotes],
@@ -2064,7 +2064,7 @@ const AddVisitLog = () => {
                               onClick={() => {
                                 goToStep(section.step);
                                 if (
-                                  section.step === 1 &&
+                                  section.step === 2 &&
                                   validation.values.visitType === "REPEAT_VISIT"
                                 ) {
                                   setEditingDoctor(true);
@@ -2095,7 +2095,7 @@ const AddVisitLog = () => {
                             size="sm"
                             color="link"
                             className="text-decoration-none p-0"
-                            onClick={() => goToStep(4)}
+                            onClick={() => goToStep(0)}
                           >
                             Edit
                           </Button>
