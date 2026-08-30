@@ -435,6 +435,7 @@ export const USER = "/user";
 export const GET_USER_BY_EMAIL = "/user/email";
 export const MOVE_TO_BIN = "/user/move-recyclebin";
 export const ACTIVATE_DEACTIVATE_USER = "/user/deactive";
+export const TOGGLE_APP_LOGIN = "/user/app-login";
 export const CHANGE_USER_PASSWORD = "/user/change-password";
 export const EDIT_SELF = "/user/edit-self";
 export const USER_ACTIVITY = "/activity";

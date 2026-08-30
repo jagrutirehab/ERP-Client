@@ -1791,6 +1791,18 @@ export const suspendUser = (id, token) => {
   );
 };
 
+export const toggleUserAppLogin = (id, appLogin, token) => {
+  return userService.patch(
+    `${url.TOGGLE_APP_LOGIN}/${id}`,
+    { appLogin },
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+};
+
 export const editUserPassword = (id, newPassword, token) => {
   return userService.post(
     `${url.CHANGE_USER_PASSWORD}/${id}`,

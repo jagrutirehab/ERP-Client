@@ -9,6 +9,7 @@ import {
   postUserDetailInformation,
   postUserProfilePicture,
   suspendUser,
+  toggleUserAppLogin,
   createDoctorsScheduleNew,
   getDoctorsScheduleNew,
   postDoctorSchedule,
@@ -218,6 +219,35 @@ export const suspendStaff = createAsyncThunk(
 
       return response;
     } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const toggleAppLogin = createAsyncThunk(
+  "toggleAppLogin",
+  async ({ id, appLogin, token }, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await toggleUserAppLogin(id, appLogin, token);
+      dispatch(
+        setAlert({
+          type: "success",
+          message:
+            response.message ||
+            (response.data.appLogin
+              ? "App Login Enabled!"
+              : "App Login Disabled!"),
+        })
+      );
+
+      return response;
+    } catch (error) {
+      dispatch(
+        setAlert({
+          type: "error",
+          message: error.message || "Failed to update app login",
+        })
+      );
       return rejectWithValue(error);
     }
   }
@@ -547,6 +577,16 @@ const userSlice = createSlice({
       })
       .addCase(suspendStaff.rejected, (state, action) => {
         state.loading = false;
+      });
+
+    builder
+      .addCase(toggleAppLogin.fulfilled, (state, { payload }) => {
+        const findUserIndex = state.data.findIndex(
+          (el) => el._id === payload.data._id
+        );
+        if (findUserIndex !== -1) {
+          state.data[findUserIndex].appLogin = payload.data.appLogin;
+        }
       });
 
     builder

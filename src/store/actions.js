@@ -9,6 +9,7 @@ export {
   updateUserWeeklySchedule,
   updateUserPassword,
   suspendStaff,
+  toggleAppLogin,
   // fetchUsers,
   removeUser,
   updateUser,

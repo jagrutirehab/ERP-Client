@@ -314,3 +314,28 @@
     }
   }
 }
+
+// Solid switch — the default off state is a nearly invisible outline, which
+// disappears on a card. This fills the track so "off" is as readable as "on".
+// Combine with .form-switch-{color} for the checked colour.
+.form-switch.form-switch-solid {
+  // Only the off state is repainted — the checked colour keeps coming from
+  // .form-switch-{color}, which sits earlier in this file at equal specificity.
+  .form-check-input:not(:checked),
+  .form-check-input:not(:checked):focus {
+    background-color: $gray-500;
+    border-color: $gray-600;
+  }
+
+  .form-check-input,
+  .form-check-input:focus,
+  .form-check-input:checked {
+    background-image: escape-svg(
+      url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-4 -4 8 8'><circle r='3' fill='#{$white}'/></svg>")
+    );
+  }
+
+  .form-check-input:disabled {
+    opacity: 0.65;
+  }
+}
