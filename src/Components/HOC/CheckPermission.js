@@ -24,12 +24,14 @@ const CheckPermission = ({
   accessRolePermission,
   children,
   allowedRoles,
-  userRole
+  userRole,
+  page: pageOverride,
 }) => {
-  //page,
   const location = useLocation();
   const currentLocation = location.pathname.split("/")[1];
-  const page = `${currentLocation[0].toUpperCase()}${currentLocation.slice(1)}`;
+  const page =
+    pageOverride ||
+    `${currentLocation[0].toUpperCase()}${currentLocation.slice(1)}`;
 
   let pg = pages?.find((p) => p.name === page);
 
@@ -90,7 +92,8 @@ CheckPermission.propTypes = {
   children: PropTypes.node,
   accessRolePermission: PropTypes.array,
   allowedRoles:PropTypes.array,
-  userRole:PropTypes.string
+  userRole:PropTypes.string,
+  page: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({

@@ -1126,7 +1126,8 @@ const Prescription = ({
             </div>
           </div>
         </Form>
-        {(type === OPD || type === IPD) && appointment && (
+
+        {(type === OPD || type === IPD) && appointment && shouldPrintAfterSave && (
           <Card className="mt-3">
             <CardHeader
               tag="h5"

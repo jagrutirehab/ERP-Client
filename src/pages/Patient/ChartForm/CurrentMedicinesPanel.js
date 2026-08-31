@@ -163,7 +163,11 @@ const CurrentMedicinesPanel = ({
                         >
                           {isAlreadyAdded(entry) ? "Added" : "Add to Rx"}
                         </button>
-                        <CheckPermission permission={"edit"} subAccess="Charting">
+                        <CheckPermission
+                          permission={"edit"}
+                          subAccess="Charting"
+                          page="Patient"
+                        >
                           <button
                             type="button"
                             className="btn btn-sm btn-outline-danger text-nowrap"
