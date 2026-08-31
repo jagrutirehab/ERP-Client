@@ -261,6 +261,79 @@ const Prescription = ({
 
   const isCarryForwardMode = !isEditMode && carryForwardMedicines.length > 0;
 
+
+  const mergedCarryForwardChartIds = React.useRef(new Set());
+
+  useEffect(() => {
+    if (isIPD || isEditMode) return;
+
+    const currentIds = new Set(
+      (carryForwardCharts || []).map((c) => String(c._id)),
+    );
+    const prevIds = mergedCarryForwardChartIds.current;
+
+    const newlyStaged = [...currentIds].filter((id) => !prevIds.has(id));
+    const newlyUnstaged = [...prevIds].filter((id) => !currentIds.has(id));
+
+    if (newlyStaged.length || newlyUnstaged.length) {
+      setMedicines((prevMeds) => {
+        let next = newlyUnstaged.length
+          ? prevMeds.filter(
+            (m) => !newlyUnstaged.includes(String(m.carriedFromChartId)),
+          )
+          : prevMeds;
+
+        if (newlyStaged.length) {
+          const existingNames = new Set(
+            next
+              .map((m) => m.medicine?.name?.toLowerCase().trim())
+              .filter(Boolean),
+          );
+          const startDate = defaultStartDate(chartDate);
+          const additions = [];
+
+          newlyStaged.forEach((chartId) => {
+            const stagedChart = (carryForwardCharts || []).find(
+              (c) => String(c._id) === chartId,
+            );
+            (stagedChart?.prescription?.medicines || [])
+              .filter((m) => m.status !== "discontinued" && m?.medicine?.name)
+              .forEach((entry) => {
+                const key = entry.medicine.name.toLowerCase().trim();
+                if (existingNames.has(key)) return;
+                existingNames.add(key);
+
+                const {
+                  _id,
+                  prescribedBy,
+                  prescribedByUser,
+                  discontinuedAt,
+                  discontinuedBy,
+                  startDate: sourceStartDate,
+                  endDate: sourceEndDate,
+                  ...medicineFields
+                } = entry;
+                additions.push({
+                  ..._.cloneDeep(medicineFields),
+                  prescribedBy: currentUserId,
+                  startDate,
+                  endDate: getMedicineEndDate(startDate, medicineFields),
+                  status: "active",
+                  carriedFromChartId: chartId,
+                });
+              });
+          });
+
+          next = [...additions, ...next];
+        }
+
+        return next;
+      });
+    }
+
+    mergedCarryForwardChartIds.current = currentIds;
+  }, [carryForwardCharts, isIPD, isEditMode, chartDate]);
+
   // Clinical text comes from the chart being edited, the previous OPD visit
   // (OPD populate mode), or — on a new IPD chart — the patient's previous IPD
   // prescription. Medicines never come from here.
@@ -427,13 +500,16 @@ const Prescription = ({
           code: item?.label,
         }))
         : [];
+      const medicinesForSave = medicines.map(
+        ({ carriedFromChartId, ...m }) => m,
+      );
       if (editPrescription) {
         dispatch(
           updatePrescription({
             id: editChartData._id,
             chartId: editPrescription._id,
             doctor,
-            medicines,
+            medicines: medicinesForSave,
             appointment: appointment?._id,
             ...values,
             shouldPrintAfterSave,
@@ -446,7 +522,7 @@ const Prescription = ({
           addGeneralPrescription({
             ...values,
             drNotes: cleanDrNotesForSave(values.drNotes),
-            medicines,
+            medicines: medicinesForSave,
             icdCode: values.icdCode?.value || null,
             icdCode2: formattedICD2,
           }),
@@ -459,7 +535,7 @@ const Prescription = ({
             ...values,
             drNotes: cleanDrNotesForSave(values.drNotes),
             appointment: appointment?._id,
-            medicines,
+            medicines: medicinesForSave,
             shouldPrintAfterSave,
             icdCode: values.icdCode?.value || null,
             icdCode2: formattedICD2,
@@ -480,7 +556,7 @@ const Prescription = ({
   useEffect(() => {
     const source = isEditMode
       ? sourcePrescription?.medicines
-      : isCarryForwardMode
+      : isIPD && isCarryForwardMode
         ? carryForwardMedicines
         : null;
 
