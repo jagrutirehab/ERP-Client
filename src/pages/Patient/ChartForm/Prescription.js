@@ -10,6 +10,7 @@ import {
   FormFeedback,
   Label,
   CardHeader,
+  Spinner,
 } from "reactstrap";
 import PropTypes from "prop-types";
 import _ from "lodash";
@@ -64,10 +65,12 @@ import DetailAdmission from "../Charts/DetailAdmission";
 import PrescriptionChart from "../Charts/Prescription";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 import {
   getICDCodes,
   getLatestCharts,
   getCarryForward,
+  toggleCarryForward,
   clearCarryForward,
 } from "../../../helpers/backend_helper.js";
 import { normalizeMedicineFrequency } from "../../../helpers/prescriptionFrequency";
@@ -210,6 +213,10 @@ const Prescription = ({
   // Prescriptions staged for carry-forward, loaded from the server rather than
   // redux — so the selection survives a reload and stays private to this user.
   const [carryForwardCharts, setCarryForwardCharts] = useState([]);
+  // Chart id currently being staged/unstaged, so only that chart's button
+  // shows a loader while its request is in flight.
+  const [togglingCarryForwardId, setTogglingCarryForwardId] = useState(null);
+  const [opdLatestCharts, setOpdLatestCharts] = useState([]);
   const icd2Initialized = React.useRef(false);
 
   const editPrescription = editChartData?.prescription;
@@ -218,6 +225,7 @@ const Prescription = ({
   const isEditMode = !!editPrescription;
 
   const isIPD = type === "IPD";
+  const opdPatientId = appointment?.patient?._id || patient?._id;
 
   const isPopulateMode =
     !isIPD && populatePreviousAppointment && ptLatestOPDPrescription;
@@ -226,8 +234,6 @@ const Prescription = ({
   const editChartAuthorId = editChartData?.author?._id || editChartData?.author;
 
   const carryForwardMedicines = React.useMemo(() => {
-    if (!isIPD) return [];
-
     const byDrug = new Map();
 
     [...(carryForwardCharts || [])]
@@ -251,7 +257,7 @@ const Prescription = ({
       });
 
     return Array.from(byDrug.values());
-  }, [carryForwardCharts, isIPD]);
+  }, [carryForwardCharts]);
 
   const isCarryForwardMode = !isEditMode && carryForwardMedicines.length > 0;
 
@@ -281,6 +287,31 @@ const Prescription = ({
   }, [dispatch, appointment, populatePreviousAppointment, isIPD, patient._id]);
 
   useEffect(() => {
+    if (isIPD || !opdPatientId) {
+      setOpdLatestCharts([]);
+      return;
+    }
+
+    let cancelled = false;
+    getLatestCharts({
+      patient: opdPatientId,
+      limit: 5,
+      chartType: PRESCRIPTION,
+      type: OPD,
+    })
+      .then((res) => {
+        if (!cancelled) setOpdLatestCharts(res?.payload || []);
+      })
+      .catch(() => {
+        if (!cancelled) setOpdLatestCharts([]);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [isIPD, opdPatientId]);
+
+  useEffect(() => {
     if (!isIPD || isEditMode || !patient?._id) return;
 
     let cancelled = false;
@@ -304,13 +335,14 @@ const Prescription = ({
   }, [isIPD, isEditMode, patient?._id]);
 
   useEffect(() => {
-    if (!isIPD || isEditMode || !patient?._id) {
+    const carryForwardPatientId = isIPD ? patient?._id : opdPatientId;
+    if (isEditMode || !carryForwardPatientId) {
       setCarryForwardCharts([]);
       return;
     }
 
     let cancelled = false;
-    getCarryForward(patient._id)
+    getCarryForward(carryForwardPatientId)
       .then((res) => {
         if (!cancelled) setCarryForwardCharts(res?.payload || []);
       })
@@ -321,7 +353,7 @@ const Prescription = ({
     return () => {
       cancelled = true;
     };
-  }, [isIPD, isEditMode, patient?._id]);
+  }, [isIPD, isEditMode, patient?._id, opdPatientId]);
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -437,8 +469,9 @@ const Prescription = ({
       // closeForm();
       dispatch(setPtLatestOPDPrescription(null));
       // Staged carry-forward prescriptions have been consumed by this save.
-      if (isIPD && patient?._id) {
-        clearCarryForward(patient._id).catch(() => {});
+      const carryForwardPatientId = isIPD ? patient?._id : opdPatientId;
+      if (carryForwardPatientId) {
+        clearCarryForward(carryForwardPatientId).catch(() => { });
       }
       setCarryForwardCharts([]);
     },
@@ -449,12 +482,9 @@ const Prescription = ({
       ? sourcePrescription?.medicines
       : isCarryForwardMode
         ? carryForwardMedicines
-        : isPopulateMode
-          ? sourcePrescription?.medicines
-          : null;
+        : null;
 
-    if (!source) return;
-
+    if (source) {
     const meds = _.cloneDeep(source);
 
     // Edit mode keeps the chart's own date as the From anchor; carry-forward
@@ -568,6 +598,7 @@ const Prescription = ({
     });
 
     setMedicines(fixed);
+    }
 
     if (isPopulateMode && !editPrescription) {
       validation.setFieldValue(
@@ -605,8 +636,9 @@ const Prescription = ({
     dispatch(setPtLatestOPDPrescription(null));
     // Abandoning the form drops the staged carry-forward selection too, so it
     // can't leak into an unrelated chart later.
-    if (isIPD && patient?._id) {
-      clearCarryForward(patient._id).catch(() => {});
+    const carryForwardPatientId = isIPD ? patient?._id : opdPatientId;
+    if (carryForwardPatientId) {
+      clearCarryForward(carryForwardPatientId).catch(() => { });
     }
     setCarryForwardCharts([]);
     setMedicines([]);
@@ -691,6 +723,29 @@ const Prescription = ({
     setMedicines((prevMeds) => [newEntry, ...prevMeds]);
   };
 
+  const isStagedForCarryForward = (chart) =>
+    (carryForwardCharts || []).some((c) => String(c._id) === String(chart._id));
+
+  const hasCarryForwardableMedicines = (chart) =>
+    (chart?.prescription?.medicines || []).some(
+      (m) => m.status !== "discontinued" && m?.medicine?.name,
+    );
+
+  const handleToggleCarryForward = (chart) => {
+    setTogglingCarryForwardId(chart._id);
+    toggleCarryForward(chart.patient, chart._id)
+      .then((res) => {
+        setCarryForwardCharts(res?.payload || []);
+        toast.success(
+          res?.staged ? "Added to carry forward" : "Removed from carry forward",
+        );
+      })
+      .catch((err) =>
+        toast.error(err?.message || "Failed to update carry forward"),
+      )
+      .finally(() => setTogglingCarryForwardId(null));
+  };
+
   const medicineDropdown = useMemo(() => {
     return (
       <Col xl={12} className="mb-4">
@@ -712,12 +767,12 @@ const Prescription = ({
           <MedicineTable
             medicines={medicines}
             setMedicines={setMedicines}
-            showDates={isIPD}
+            showDates
           />
         </Col>
       )
     );
-  }, [medicines, isIPD]);
+  }, [medicines]);
 
   useEffect(() => {
     const fetchICD = async () => {
@@ -848,16 +903,19 @@ const Prescription = ({
                 </Col> */}
               </>
             )}
-            {isIPD && !isEditMode && (
+            {(isIPD
+              ? !isEditMode && patient?._id
+              : opdPatientId) && (
               <Col xs={12}>
                 <CurrentMedicinesPanel
-                  patientId={patient?._id}
+                  patientId={isIPD ? patient?._id : opdPatientId}
+                  type={isIPD ? "IPD" : "OPD"}
                   existingMedicines={medicines}
                   onAddMedicine={addCurrentMedicineToRx}
                 />
               </Col>
             )}
-            {isIPD && medicines.some((med) => med.locked) && (
+            {medicines.some((med) => med.locked) && (
               <Col xs={12} className="mb-3">
                 <div className="alert alert-warning py-2 mb-0" role="alert">
                   Some medicines below were prescribed by another doctor. They
@@ -1088,62 +1146,89 @@ const Prescription = ({
               </Button>
             </CardHeader>
             <CardBody>
-              {(charts || []).slice(0, 5).map((chart, idx) => (
-                <div className="mb-4" key={chart._id}>
-                  <Wrapper
-                    hideDropDown
-                    item={chart}
-                    itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
-                  >
-                    {chart.chart === PRESCRIPTION && (
-                      <PrescriptionChart
-                        data={chart?.prescription}
-                        baseDate={chart?.date || chart?.createdAt}
-                        showDates={isIPD}
-                        showOwner={isIPD}
-                        currentUserId={currentUserId}
-                        fallbackPrescriber={chart?.author}
-                      />
-                    )}
-                    {chart.chart === RELATIVE_VISIT && (
-                      <div className="mt-4">
-                        <RelativeVisit data={chart?.relativeVisit} />
-                      </div>
-                    )}
-                    {chart.chart === DISCHARGE_SUMMARY && (
-                      <div className="mt-4">
-                        <DischargeSummary data={chart?.dischargeSummary} />
-                      </div>
-                    )}
-                    {chart.chart === VITAL_SIGN && (
-                      <div className="mt-4 mx-3">
-                        <VitalSign data={chart.vitalSign} />
-                      </div>
-                    )}
-                    {chart.chart === CLINICAL_NOTE && (
-                      <div className="mt-4">
-                        <ClinicalNote data={chart.clinicalNote} />
-                      </div>
-                    )}
-                    {chart.chart === COUNSELLING_NOTE && (
-                      <diV className="mt-4">
-                        <CounsellingNote data={chart.counsellingNote} />
-                      </diV>
-                    )}
-                    {chart.chart === LAB_REPORT && (
-                      <LabReport
-                        data={chart.labReport?.reports}
-                        date={chart.labReport?.updatedAt}
-                      />
-                    )}
-                    {chart.chart === DETAIL_ADMISSION && (
-                      <div className="mt-4">
-                        <DetailAdmission data={chart.detailAdmission} />
-                      </div>
-                    )}
-                  </Wrapper>
-                </div>
-              ))}
+              {/* OPD only wants its last 5 prescriptions here; IPD keeps
+                  showing whatever mixed chart kinds it already did (notes,
+                  vitals, discharge summaries, etc — handled below). */}
+              {(isIPD ? charts || [] : opdLatestCharts)
+                .filter((chart) => isIPD || chart.chart === PRESCRIPTION)
+                .slice(0, 5)
+                .map((chart, idx) => (
+                  <div className="mb-4" key={chart._id}>
+                    <Wrapper
+                      hideDropDown
+                      item={chart}
+                      itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
+                    >
+                      {chart.chart === PRESCRIPTION && (
+                        <>
+                          {!isEditMode && hasCarryForwardableMedicines(chart) && (
+                            <div className="d-flex justify-content-end mt-2 mb-2">
+                              <Button
+                                color="primary"
+                                outline={!isStagedForCarryForward(chart)}
+                                size="sm"
+                                disabled={togglingCarryForwardId === chart._id}
+                                onClick={() => handleToggleCarryForward(chart)}
+                              >
+                                {togglingCarryForwardId === chart._id ? (
+                                  <Spinner size="sm" />
+                                ) : isStagedForCarryForward(chart) ? (
+                                  "Remove from Carry Forward"
+                                ) : (
+                                  "Add to Carry Forward"
+                                )}
+                              </Button>
+                            </div>
+                          )}
+                          <PrescriptionChart
+                            data={chart?.prescription}
+                            baseDate={chart?.date || chart?.createdAt}
+                            showDates
+                            showOwner
+                            currentUserId={currentUserId}
+                            fallbackPrescriber={chart?.author}
+                          />
+                        </>
+                      )}
+                      {chart.chart === RELATIVE_VISIT && (
+                        <div className="mt-4">
+                          <RelativeVisit data={chart?.relativeVisit} />
+                        </div>
+                      )}
+                      {chart.chart === DISCHARGE_SUMMARY && (
+                        <div className="mt-4">
+                          <DischargeSummary data={chart?.dischargeSummary} />
+                        </div>
+                      )}
+                      {chart.chart === VITAL_SIGN && (
+                        <div className="mt-4 mx-3">
+                          <VitalSign data={chart.vitalSign} />
+                        </div>
+                      )}
+                      {chart.chart === CLINICAL_NOTE && (
+                        <div className="mt-4">
+                          <ClinicalNote data={chart.clinicalNote} />
+                        </div>
+                      )}
+                      {chart.chart === COUNSELLING_NOTE && (
+                        <diV className="mt-4">
+                          <CounsellingNote data={chart.counsellingNote} />
+                        </diV>
+                      )}
+                      {chart.chart === LAB_REPORT && (
+                        <LabReport
+                          data={chart.labReport?.reports}
+                          date={chart.labReport?.updatedAt}
+                        />
+                      )}
+                      {chart.chart === DETAIL_ADMISSION && (
+                        <div className="mt-4">
+                          <DetailAdmission data={chart.detailAdmission} />
+                        </div>
+                      )}
+                    </Wrapper>
+                  </div>
+                ))}
             </CardBody>
           </Card>
         )}

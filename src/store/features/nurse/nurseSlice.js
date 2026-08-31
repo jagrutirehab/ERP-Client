@@ -524,16 +524,11 @@ export const NurseSlice = createSlice({
           );
           state.data.data[patientIndex] = {
             ...state.data.data[patientIndex],
-            alertCount: activityCompleted
-              ? state.data.data[patientIndex].alertCount - 1
-              : state.data.data[patientIndex].alertCount,
-            // The server now returns the flag it actually resolved and wrote
-            // to Redis (payload.data.flag) — trust that instead of guessing.
-            // The guess below only counted alerts, never checking whether one
-            // declares itself urgent (e.g. a C-SSRS High Risk alert), which is
-            // why the card showed "attention" here and "urgent" after a
-            // reload. Kept as a fallback for a stale API response with no
-            // flag field.
+            alertCount:
+              payload?.data?.alertCount ??
+              (activityCompleted
+                ? state.data.data[patientIndex].alertCount - 1
+                : state.data.data[patientIndex].alertCount),
             flag:
               payload?.data?.flag ||
               (hasPendingRemoval
@@ -614,6 +609,7 @@ export const NurseSlice = createSlice({
             ...(payload.data.type === "prescription-update" && {
               isPrescriptionUpdated: false,
             }),
+            ...(payload.data.flag && { flag: payload.data.flag }),
             alertCount: Math.max(
               0,
               (state.data.data[patientIndex]?.alertCount || 1) - 1

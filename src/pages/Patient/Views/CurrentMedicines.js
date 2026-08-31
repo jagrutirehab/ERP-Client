@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Row } from "reactstrap";
+import { Row, Button } from "reactstrap";
 import { toast } from "react-toastify";
 import GeneralCard from "./Components/GeneralCard";
 import MedicineChart from "../Tables/MedicineChart";
@@ -10,13 +10,12 @@ import {
 } from "../../../helpers/backend_helper";
 import { getCurrentUserId } from "../../../helpers/currentMedicines";
 import ConfirmationModal from "../../../Components/Common/ConfirmationModal";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { markChartsStale } from "../../../store/features/chart/chartSlice";
+import { togglePrint } from "../../../store/actions";
+import { PRESCRIPTION } from "../../../Components/constants/patient";
 
-// Everything the patient is currently on, across all prescriptions of the
-// running admission — medicines that were discontinued or whose To date has
-// passed are already filtered out server-side. A doctor can stop a medicine
-// they prescribed from here; everyone else's rows are read-only.
+
 const CurrentMedicines = ({ patient }) => {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -24,18 +23,21 @@ const CurrentMedicines = ({ patient }) => {
   const [stopping, setStopping] = useState(false);
   const currentUserId = getCurrentUserId();
   const dispatch = useDispatch();
+  const doctor = useSelector((state) => state.User.user);
+
+  const medicineType = patient?.isAdmit ? "IPD" : "OPD";
 
   const load = useCallback(() => {
     if (!patient?._id) return Promise.resolve();
     setLoading(true);
-    return getCurrentMedicines(patient._id)
+    return getCurrentMedicines(patient._id, medicineType)
       .then((res) => setRows(res?.payload || []))
       .catch((err) => {
         toast.error(err?.message || "Failed to load current medicines");
         setRows([]);
       })
       .finally(() => setLoading(false));
-  }, [patient?._id]);
+  }, [patient?._id, medicineType]);
 
   useEffect(() => {
     load();
@@ -69,6 +71,35 @@ const CurrentMedicines = ({ patient }) => {
     prescribedByUser: row.prescribedByUser,
   }));
 
+  const handlePrint = () => {
+    if (!medicines.length) return;
+    const now = new Date();
+    const printChart = {
+      _id: `current-medicines-${patient?._id}`,
+      chart: PRESCRIPTION,
+      type: medicineType,
+      date: now,
+      createdAt: now,
+      author: doctor,
+      center: patient?.center,
+      // Marks this as the Current Medicines print, not a regular
+      // prescription — shows From/To + Prescribed By per medicine, drops the
+      // single-doctor signature block (rows can span several prescribers),
+      // and labels the page so it can't be mistaken for a real prescription.
+      isCurrentMedicinesPrint: true,
+      prescription: { medicines },
+    };
+    dispatch(
+      togglePrint({
+        data: printChart,
+        modal: true,
+        patient,
+        center: patient?.center,
+        doctor,
+      }),
+    );
+  };
+
   const pendingName = pendingStop
     ? [
       pendingStop.medicine?.type,
@@ -81,22 +112,35 @@ const CurrentMedicines = ({ patient }) => {
 
   return (
     <Row className="timeline-right" style={{ rowGap: "2rem" }}>
-      <GeneralCard data="Current Medicines">
-        {loading ? (
-          <p className="px-2">Loading...</p>
-        ) : medicines.length > 0 ? (
-          <MedicineChart
-            medicines={medicines}
-            currentUserId={currentUserId}
-            onDiscontinue={setPendingStop}
-            showDates
-            showOwner
-          />
-        ) : (
-          <p style={{ color: "#888", fontStyle: "italic" }} className="px-2">
-            No medicines currently applicable to this patient.
-          </p>
-        )}
+      <GeneralCard data={`${medicineType} Current Medicines`}>
+        <div className="d-flex justify-content-end w-100">
+          <Button
+            color="primary"
+            size="sm"
+            disabled={!medicines.length}
+            onClick={handlePrint}
+            className="text-white"
+          >
+            Print
+          </Button>
+        </div>
+        <div className="mt-3 w-100">
+          {loading ? (
+            <p className="px-2">Loading...</p>
+          ) : medicines.length > 0 ? (
+            <MedicineChart
+              medicines={medicines}
+              currentUserId={currentUserId}
+              onDiscontinue={setPendingStop}
+              showDates
+              showOwner
+            />
+          ) : (
+            <p style={{ color: "#888", fontStyle: "italic" }} className="px-2">
+              No medicines currently applicable to this patient.
+            </p>
+          )}
+        </div>
       </GeneralCard>
 
       <ConfirmationModal

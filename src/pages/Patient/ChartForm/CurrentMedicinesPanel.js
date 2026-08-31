@@ -20,6 +20,7 @@ import {
 
 const CurrentMedicinesPanel = ({
   patientId,
+  type = "IPD",
   existingMedicines,
   onAddMedicine,
 }) => {
@@ -31,10 +32,10 @@ const CurrentMedicinesPanel = ({
 
   const load = useCallback(() => {
     if (!patientId) return Promise.resolve();
-    return getCurrentMedicines(patientId)
+    return getCurrentMedicines(patientId, type)
       .then((res) => setRows(res?.payload || []))
       .catch(() => setRows([]));
-  }, [patientId]);
+  }, [patientId, type]);
 
   useEffect(() => {
     load();
@@ -198,6 +199,7 @@ const CurrentMedicinesPanel = ({
 
 CurrentMedicinesPanel.propTypes = {
   patientId: PropTypes.string,
+  type: PropTypes.oneOf(["IPD", "OPD"]),
   existingMedicines: PropTypes.array,
   onAddMedicine: PropTypes.func.isRequired,
 };

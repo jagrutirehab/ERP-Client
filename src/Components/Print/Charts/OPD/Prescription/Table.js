@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, Font } from "@react-pdf/renderer";
+import { format } from "date-fns";
 import { getMedicineFrequencyLabel, formatDosage } from "../../../../../helpers/prescriptionFrequency";
+import { getMedicineEndDate } from "../../../../../helpers/currentMedicines";
 
 import Montserrat from "../../../../../assets/fonts/Montserrat-ExtraBold.ttf";
 import RobotoHeavy from "../../../../../assets/fonts/Roboto-Black.ttf";
@@ -102,6 +104,8 @@ const styles = StyleSheet.create({
     width: "30%",
   },
   col1: { flex: 0.5, paddingLeft: 6, },
+  colDate: { flex: 1, textAlign: "center" },
+  colPrescriber: { flex: 0.8, textAlign: "center" },
   fontBold: {
     fontFamily: "Helvetica Neue",
     fontSize: "11px",
@@ -145,7 +149,38 @@ const styles = StyleSheet.create({
   },
 });
 
-const PrescriptionTable = ({ medicines }) => {
+const PrescriptionTable = ({
+  medicines,
+  baseDate,
+  showDates = false,
+  showPrescribedBy = false,
+}) => {
+  // Same fallback the on-screen table uses: a stored startDate/endDate wins;
+  // an old prescription written before dates existed derives them from the
+  // chart's own date plus the medicine's duration.
+  const formatDate = (d) => {
+    if (!d) return null;
+    const parsed = new Date(d);
+    return Number.isNaN(parsed.getTime()) ? null : format(parsed, "dd MMM yy");
+  };
+
+  const getDateRange = (item) => {
+    const from = item?.startDate || baseDate;
+    const to = item?.endDate || (from ? getMedicineEndDate(from, item) : null);
+    return {
+      from: formatDate(from) || "-",
+      to: formatDate(to) || "Ongoing",
+    };
+  };
+
+  // Prescriber arrives populated (current-medicines endpoint) or as a plain
+  // id (rows saved before prescribedBy existed fall back to the chart
+  // author, already resolved server-side into prescribedByUser).
+  const getPrescriberName = (item) =>
+    (item?.prescribedBy && typeof item.prescribedBy === "object"
+      ? item.prescribedBy.name
+      : item?.prescribedByUser?.name) || "-";
+
   return (
     <React.Fragment>
       <View style={{ ...styles.fontSm, width: "100%" }}>
@@ -176,11 +211,25 @@ const PrescriptionTable = ({ medicines }) => {
               </View>
             </View>
           </View>
-          <Text style={{ ...styles.col6, textAlign: "right" }}>Timing - Freq. - Duration</Text>
+          <Text style={{ ...styles.col6, textAlign: "right" }}>
+            Timing - Freq. - Duration
+          </Text>
+          {showDates && (
+            <>
+              <Text style={styles.colDate}>From</Text>
+              <Text style={styles.colDate}>To</Text>
+            </>
+          )}
+          {showPrescribedBy && (
+            <Text style={styles.colPrescriber}>Prescribed By</Text>
+          )}
           {/* <Text style={styles.col2}>Qty</Text> */}
         </View>
         <View style={{ ...styles.tableBody }}>
-          {(medicines || []).map((item, idx) => (
+          {(medicines || []).map((item, idx) => {
+            const { from, to } = getDateRange(item);
+            const prescriber = getPrescriberName(item);
+            return (
             <View
               key={item._id}
               style={{
@@ -193,7 +242,18 @@ const PrescriptionTable = ({ medicines }) => {
                 <Text style={{ ...styles.col1, ...styles.fontBold }}>
                   {idx + 1}
                 </Text>
-                <Text style={{ ...styles.col5, ...styles.fontBold }}>
+                <Text
+                  style={{
+                    ...styles.col5,
+                    ...styles.fontBold,
+                    // Current Medicines adds three more columns (From, To,
+                    // Prescribed By) — a smaller font lets long names wrap
+                    // onto two lines within the same width instead of
+                    // pushing into the columns next to it. Regular
+                    // prescription prints are unaffected.
+                    ...(showPrescribedBy ? { fontSize: "9px" } : {}),
+                  }}
+                >
                   <Text style={{ textTransform: "uppercase" }}>
                     {item.medicine.type ? `${item.medicine.type} ` : ""}
                   </Text>{" "}
@@ -214,7 +274,13 @@ const PrescriptionTable = ({ medicines }) => {
                   </View>
                 </View>
 
-                <View style={{ ...styles.col6, alignItems: "flex-end", marginRight: "10px" }}>
+                <View
+                  style={{
+                    ...styles.col6,
+                    alignItems: "flex-end",
+                    marginRight: "10px",
+                  }}
+                >
                   <Text
                     style={{
                       ...styles.fontMd,
@@ -224,6 +290,18 @@ const PrescriptionTable = ({ medicines }) => {
                     {item.intake}{" - "}{getMedicineFrequencyLabel(item)}{" - "}{item.duration} {item.unit}
                   </Text>
                 </View>
+
+                {showDates && (
+                  <>
+                    <Text style={styles.colDate}>{from}</Text>
+                    <Text style={styles.colDate}>{to}</Text>
+                  </>
+                )}
+                {showPrescribedBy && (
+                  <Text style={{ ...styles.colPrescriber, textTransform: "capitalize" }}>
+                    {prescriber}
+                  </Text>
+                )}
 
                 {/* <Text style={{ ...styles.col2, ...styles.fontMd }}>
                   {item.intake}
@@ -276,7 +354,8 @@ const PrescriptionTable = ({ medicines }) => {
                 <Text>{item.intake || "Intake"}</Text>
               </View> */}
             </View>
-          ))}
+            );
+          })}
         </View>
       </View>
     </React.Fragment>

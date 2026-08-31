@@ -496,8 +496,8 @@ export const postGeneralPrescription = (data) =>
   api.create(url.POST_GENERAL_PRESCRIPTION, data);
 export const editGeneralPrescription = (data) =>
   api.put(url.EDIT_GENERAL_PRESCRIPTION, data);
-export const getCurrentMedicines = (patientId) =>
-  api.get(`${url.GET_CURRENT_MEDICINES}/${patientId}`);
+export const getCurrentMedicines = (patientId, type) =>
+  api.get(`${url.GET_CURRENT_MEDICINES}/${patientId}`, type ? { type } : undefined);
 export const updateMedicineEntry = (prescriptionId, medicineId, data) =>
   api.update(
     `${url.UPDATE_MEDICINE_ENTRY}/${prescriptionId}/medicine/${medicineId}`,
