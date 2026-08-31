@@ -5,6 +5,7 @@ import RXIcon from "../../../../../assets/images/small/rx.jpeg";
 
 //table
 import PrescriptionTable from "./Table";
+import CurrentMedicinesTable from "./CurrentMedicinesTable";
 import { format } from "date-fns";
 import { safeText } from "../../../../../utils/safeText";
 
@@ -171,12 +172,14 @@ const PrescriptionBody = ({ chart, doctor, baseDate, isCurrentMedicinesPrint }) 
         </View>
         {chart?.medicines?.length > 0 && (
           <View style={styles.mrgnTop10}>
-            <PrescriptionTable
-              medicines={chart.medicines}
-              baseDate={baseDate}
-              showDates={isCurrentMedicinesPrint}
-              showPrescribedBy={isCurrentMedicinesPrint}
-            />
+            {isCurrentMedicinesPrint ? (
+              <CurrentMedicinesTable
+                medicines={chart.medicines}
+                baseDate={baseDate}
+              />
+            ) : (
+              <PrescriptionTable medicines={chart.medicines} />
+            )}
           </View>
         )}
         {chart?.notes && (
