@@ -20,6 +20,8 @@ const DischargeFormModal = ({
   setAdultationtype,
   supporttype,
   setSupporttype,
+  emergencyDischargeType,
+  setEmergencyDischargeType,
   setOpenform3,
 }) => {
   const dispatch = useDispatch();
@@ -95,14 +97,12 @@ const DischargeFormModal = ({
               {(patient?.name || "Patient Name").toUpperCase()}
             </p>
           </div>
-
           <div className="mt-3">
             <p className="text-muted mb-0">Doctor Name:</p>
             <p className="text-primary ms-3 mb-0 font-semi-bold fs-6">
               {(currentAdmission?.doctor?.name || "Doctor Name").toUpperCase()}
             </p>
           </div>
-
           <div className="mt-3">
             <p className="text-muted mb-0">Psychologist Name:</p>
             <p className="text-primary ms-3 mb-0 font-semi-bold fs-6">
@@ -111,7 +111,6 @@ const DischargeFormModal = ({
               ).toUpperCase()}
             </p>
           </div>
-
           {/* Admission Type */}
           <div className="mt-3">
             <Label className="text-muted mb-1">Admission Type</Label>
@@ -124,12 +123,13 @@ const DischargeFormModal = ({
               <option value="INDEPENDENT_ADMISSION">
                 Independent Discharge
               </option>
+              <option value="SUPPORTIVE_ADMISSION">Supportive Discharge</option>
+              <option value="EMERGENCY_DISCHARGE">Emergency Discharge</option>
               <option value="DISCHARGE_UNDERTAKING">
                 Discharge Undertaking
               </option>
             </Input>
           </div>
-
           {/* Conditional fields */}
           {admissiontype === "INDEPENDENT_ADMISSION" && (
             <div className="mt-3">
@@ -145,8 +145,7 @@ const DischargeFormModal = ({
               </Input>
             </div>
           )}
-
-          {/* {admissiontype === "SUPPORTIVE_ADMISSION" && (
+          {admissiontype === "SUPPORTIVE_ADMISSION" && (
             <div className="mt-3">
               <Label className="text-muted mb-1">Support Type</Label>
               <Input
@@ -155,14 +154,32 @@ const DischargeFormModal = ({
                 onChange={(e) => setSupporttype(e.target.value)}
               >
                 <option value="">Select Support Type</option>
-                <option value="UPTO30DAYS">Upto 30 days</option>
+                <option value="UPTO30DAYS">Upto 30 days (Section 89)</option>
                 <option value="BEYOND30DAYS">
-                  Beyond 30 days Upto 90 days
+                  Beyond 30 days (Section 90)
                 </option>
               </Input>
             </div>
-          )} */}
-
+          )}
+          {admissiontype === "EMERGENCY_DISCHARGE" && (
+            <div className="mt-3">
+              <Label className="text-muted mb-1">Emergency Type</Label>
+              <Input
+                type="select"
+                value={emergencyDischargeType}
+                onChange={(e) => setEmergencyDischargeType(e.target.value)}
+              >
+                <option value="">Select Emergency Type</option>
+                <option value="AMA">Discharge Against Medical Advice</option>
+                <option value="EMERGENCY_TRANSFER">
+                  Emergency Hospital Transfer
+                </option>
+                <option value="ABSCONDING">Absconding Patient Report</option>
+                <option value="INTER_FACILITY">Inter-Facility Transfer</option>
+                <option value="DEATH">Death / Expiry Declaration</option>
+              </Input>
+            </div>
+          )}
           {/* Next Button */}
           <div className="text-center mt-4">
             <Button
@@ -170,7 +187,10 @@ const DischargeFormModal = ({
               color="primary"
               disabled={
                 !admissiontype ||
-                (admissiontype === "INDEPENDENT_ADMISSION" && !adultationype)
+                (admissiontype === "INDEPENDENT_ADMISSION" && !adultationype) ||
+                (admissiontype === "SUPPORTIVE_ADMISSION" && !supporttype) ||
+                (admissiontype === "EMERGENCY_DISCHARGE" &&
+                  !emergencyDischargeType)
               }
               onClick={() => {
                 toggle();

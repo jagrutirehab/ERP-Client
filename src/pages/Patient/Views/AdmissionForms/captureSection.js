@@ -44,9 +44,7 @@ export const captureSection = async (ref, pdf, isFirstPage = false) => {
     if (!name || handledRadioNames.has(name)) return;
     handledRadioNames.add(name);
 
-    const group = clone.querySelectorAll(
-      `input[type='radio'][name='${name}']`,
-    );
+    const group = clone.querySelectorAll(`input[type='radio'][name='${name}']`);
     const labels = [];
     let selectedValue = null;
 
@@ -82,7 +80,18 @@ export const captureSection = async (ref, pdf, isFirstPage = false) => {
     });
   });
 
+  const checkboxesInClone = clone.querySelectorAll("input[type='checkbox']");
+  checkboxesInClone.forEach((checkbox) => {
+    const span = document.createElement("span");
+    span.innerText = checkbox.checked ? "☑" : "☐";
+    span.style.fontSize = "16px";
+    span.style.marginRight = "4px";
+    span.style.display = "inline-block";
+    checkbox.parentNode.replaceChild(span, checkbox);
+  });
+
   const inputsInClone = clone.querySelectorAll("input, textarea, select");
+
   inputsInClone.forEach((input) => {
     const span = document.createElement("span");
     let value = "";
@@ -163,10 +172,7 @@ export const captureSection = async (ref, pdf, isFirstPage = false) => {
       if (val && val !== "0px") {
         const num = parseFloat(val) || 0;
         if (num > 0)
-          elx.style[`border${s}Width`] = `${Math.max(
-            1,
-            num * BORDER_MULT,
-          )}px`;
+          elx.style[`border${s}Width`] = `${Math.max(1, num * BORDER_MULT)}px`;
       }
     });
 

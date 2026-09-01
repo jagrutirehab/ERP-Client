@@ -12,6 +12,13 @@ import SeriousnessConsent from "./SeriousnessConsent";
 import MediactionConcent from "./MediactionConcent";
 import DischargeIndependentAdult from "./DischargeIndependentAdult";
 import DischargeIndependentMinor from "./DischargeIndependentMinor";
+import DischargeWithHighSupport from "./DischargeWithHighSupport";
+import DischargeWithHighSupport2 from "./DischargeWithHighSupport2";
+import DischargeAMA from "./DischargeAMA";
+import DischargeEmergencyTransfer from "./DischargeEmergencyTransfer";
+import DischargeAbsconding from "./DischargeAbsconding";
+import DischargeInterFacility from "./DischargeInterFacility";
+import DischargeDeath from "./DischargeDeath";
 // import IndipendentOpinion1 from "./IndipendentOpinion1";
 // import IndipendentOpinion2 from "./IndipendentOpinion2";
 // import IndipendentOpinion3 from "./IndipendentOpinion3";
@@ -105,6 +112,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     semiprivate: "",
     advDeposit: "",
   });
+  const [emergencyDischargeType, setEmergencyDischargeType] = useState("");
 
   const fileInputRef = useRef(null);
   const consentFileInputRef = useRef(null);
@@ -129,6 +137,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   const dischargeRefAdult = useRef(null);
   const dischargeRefMinor = useRef(null);
   const dischargeRefUndertaking = useRef(null);
+  const dischargeRefSupport = useRef(null);
+  const dischargeRefEmergency = useRef(null);
 
   const [open, setOpen] = useState(addmissionsCharts?.length > 0 ? "0" : null);
   const toggleAccordian = (id) => {
@@ -288,6 +298,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         await captureSection(dischargeRefMinor, pdf, true);
       if (dischargeRefUndertaking.current)
         await captureSection(dischargeRefUndertaking, pdf, true);
+      if (dischargeRefSupport.current)
+        await captureSection(dischargeRefSupport, pdf, true);
+      if (dischargeRefEmergency.current)
+        await captureSection(dischargeRefEmergency, pdf, true);
       const blob = pdf.output("blob");
       const url = URL.createObjectURL(blob);
       if (pdfUrl3) URL.revokeObjectURL(pdfUrl3);
@@ -350,6 +364,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     setSupporttype("");
     setEmergencyType("");
     setEmergencyRestraint("");
+    setEmergencyDischargeType("");
     setDetails({
       IPDnum: "",
       bed: "",
@@ -528,15 +543,11 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (details.advDeposit)
         formData.append("refundableDeposit", details.advDeposit);
 
-      await axios.patch(
-        `/patient/consent-submit-file/${targetId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+      await axios.patch(`/patient/consent-submit-file/${targetId}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      );
+      });
 
       toast.success("Consent form submitted successfully!");
       setOpenform4(false);
@@ -625,6 +636,11 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (dischargeRefUndertaking.current)
         await captureSection(dischargeRefUndertaking, pdf, true);
 
+      if (dischargeRefSupport.current)
+        await captureSection(dischargeRefSupport, pdf, true);
+      if (dischargeRefEmergency.current)
+        await captureSection(dischargeRefEmergency, pdf, true);
+
       const pdfBlob = pdf.output("blob");
       const formData = new FormData();
 
@@ -649,7 +665,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (admissiontype) formData.append("dischargeType", admissiontype);
       if (admissiontype === "INDEPENDENT_ADMISSION" && adultationype)
         formData.append("adultationType", adultationype);
-
+      if (admissiontype === "SUPPORTIVE_ADMISSION" && supporttype)
+        formData.append("supportType", supporttype);
+      if (admissiontype === "EMERGENCY_DISCHARGE" && emergencyDischargeType)
+        formData.append("emergencyDischargeType", emergencyDischargeType);
       // ---------------------------
       // SELECT API BASED ON CONDITION
       // ---------------------------
@@ -666,6 +685,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       setOpenform3(false);
       setAdmissiontype("");
       setAdultationtype("");
+      setSupporttype("");
+      setEmergencyDischargeType("");
     } catch (error) {
       toast.error("Failed to submit Consent form");
     } finally {
@@ -1790,6 +1811,82 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                   />
                 </div>
               )}
+              {admissiontype === "SUPPORTIVE_ADMISSION" &&
+                supporttype === "UPTO30DAYS" && (
+                  <div ref={dischargeRefSupport}>
+                    <DischargeWithHighSupport
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                    />
+                  </div>
+                )}
+              {/* Supportive Discharge — Section 90 >30 days */}
+              {admissiontype === "SUPPORTIVE_ADMISSION" &&
+                supporttype === "BEYOND30DAYS" && (
+                  <div ref={dischargeRefSupport}>
+                    <DischargeWithHighSupport2
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                    />
+                  </div>
+                )}
+              {/* Emergency Discharge — AMA */}
+              {admissiontype === "EMERGENCY_DISCHARGE" &&
+                emergencyDischargeType === "AMA" && (
+                  <div ref={dischargeRefEmergency}>
+                    <DischargeAMA
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                    />
+                  </div>
+                )}
+              {/* Emergency Discharge — Emergency Hospital Transfer */}
+              {admissiontype === "EMERGENCY_DISCHARGE" &&
+                emergencyDischargeType === "EMERGENCY_TRANSFER" && (
+                  <div ref={dischargeRefEmergency}>
+                    <DischargeEmergencyTransfer
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                    />
+                  </div>
+                )}
+              {/* Emergency Discharge — Absconding */}
+              {admissiontype === "EMERGENCY_DISCHARGE" &&
+                emergencyDischargeType === "ABSCONDING" && (
+                  <div ref={dischargeRefEmergency}>
+                    <DischargeAbsconding
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                    />
+                  </div>
+                )}
+              {/* Emergency Discharge — Inter-Facility Transfer */}
+              {admissiontype === "EMERGENCY_DISCHARGE" &&
+                emergencyDischargeType === "INTER_FACILITY" && (
+                  <div ref={dischargeRefEmergency}>
+                    <DischargeInterFacility
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                    />
+                  </div>
+                )}
+              {/* Emergency Discharge — Death / Expiry Declaration */}
+              {admissiontype === "EMERGENCY_DISCHARGE" &&
+                emergencyDischargeType === "DEATH" && (
+                  <div ref={dischargeRefEmergency}>
+                    <DischargeDeath
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                    />
+                  </div>
+                )}
               <div style={{ textAlign: "center", margin: "20px" }}>
                 <Button
                   color="secondary"
@@ -1968,6 +2065,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         adultationype={adultationype}
         setAdultationtype={setAdultationtype}
         supporttype={supporttype}
+        emergencyDischargeType={emergencyDischargeType}
+        setEmergencyDischargeType={setEmergencyDischargeType}
         setSupporttype={setSupporttype}
         setOpenform3={setOpenform3}
         openform3={openform3}
