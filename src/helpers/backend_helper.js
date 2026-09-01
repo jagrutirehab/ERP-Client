@@ -5086,3 +5086,22 @@ export const deleteVendor = (id) => {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
+export const createDraft = (formData) =>
+  axios.post(`${url.GET_VISIT_LOGS}/draft`, formData, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const updateDraft = (id, formData) =>
+  axios.put(`${url.GET_VISIT_LOGS}/draft/${id}`, formData, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const submitDraft = (id, formData) =>
+  axios.post(`${url.GET_VISIT_LOGS}/draft/${id}/submit`, formData, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const discardDraft = (id) =>
+  axios.delete(`${url.GET_VISIT_LOGS}/draft/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
