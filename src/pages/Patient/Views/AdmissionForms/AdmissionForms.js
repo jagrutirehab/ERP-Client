@@ -823,6 +823,34 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     }
   };
 
+  const getDischargeFormLabel = (file) => {
+    const type = file?.dischargeType;
+    const adult = file?.adultationType;
+    const support = file?.supportType;
+    const emergency = file?.emergencyDischargeType;
+
+    if (type === "INDEPENDENT_ADMISSION" && adult === "ADULT")
+      return "Independent (Adult)";
+    if (type === "INDEPENDENT_ADMISSION" && adult === "MINOR")
+      return "Independent (Minor)";
+    if (type === "SUPPORTIVE_ADMISSION" && support === "UPTO30DAYS")
+      return "Supportive (≤30 Days)";
+    if (type === "SUPPORTIVE_ADMISSION" && support === "BEYOND30DAYS")
+      return "Supportive (>30 Days)";
+    if (type === "DISCHARGE_UNDERTAKING") return "Discharge Undertaking";
+    if (type === "EMERGENCY_DISCHARGE" && emergency === "AMA")
+      return "Emergency - AMA";
+    if (type === "EMERGENCY_DISCHARGE" && emergency === "EMERGENCY_TRANSFER")
+      return "Emergency - Hospital Transfer";
+    if (type === "EMERGENCY_DISCHARGE" && emergency === "ABSCONDING")
+      return "Emergency - Absconding";
+    if (type === "EMERGENCY_DISCHARGE" && emergency === "INTER_FACILITY")
+      return "Emergency - Inter-Facility";
+    if (type === "EMERGENCY_DISCHARGE" && emergency === "DEATH")
+      return "Emergency - Death Declaration";
+    return "Discharge Form";
+  };
+
   return (
     <>
       <div style={{ marginTop: "4rem" }}>
@@ -1166,7 +1194,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Draft Discharge Form{" "}
+                                            Download Draft Discharge Form —{" "}
+                                            {getDischargeFormLabel(file)}{" "}
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
@@ -1851,6 +1880,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                       register={register}
                       admissions={admissions[0]}
                       patient={patient}
+                      chartData={chartData}
+                      setValue={setValue}
                     />
                   </div>
                 )}
