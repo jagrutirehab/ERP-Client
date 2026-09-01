@@ -376,7 +376,7 @@ const DischargeAMA = ({ register, patient, admissions }) => {
         <span style={{ marginLeft: "12px" }}>Date:</span>
         <input
           type="date"
-          defaultValue={today}
+          // defaultValue={today}
           {...register("ama_patientSignDate", {
             setValueAs: (val) => {
               if (!val) return "";
@@ -421,7 +421,7 @@ const DischargeAMA = ({ register, patient, admissions }) => {
         <span style={{ marginLeft: "12px" }}>Date:</span>
         <input
           type="date"
-          defaultValue={today}
+          // defaultValue={today}
           {...register("ama_psychDate", {
             setValueAs: (val) => {
               if (!val) return "";
@@ -462,7 +462,7 @@ const DischargeAMA = ({ register, patient, admissions }) => {
         <span style={{ marginLeft: "12px" }}>Date:</span>
         <input
           type="date"
-          defaultValue={today}
+          // defaultValue={today}
           {...register("ama_witness1Date", {
             setValueAs: (val) => {
               if (!val) return "";
@@ -501,7 +501,7 @@ const DischargeAMA = ({ register, patient, admissions }) => {
         <span style={{ marginLeft: "12px" }}>Date:</span>
         <input
           type="date"
-          defaultValue={today}
+          // defaultValue={today}
           {...register("ama_witness2Date", {
             setValueAs: (val) => {
               if (!val) return "";
@@ -526,6 +526,7 @@ const DischargeAMA = ({ register, patient, admissions }) => {
           { key: "ama_check1", label: "AMA discharge summary issued" },
           { key: "ama_check2", label: "Prescription provided" },
           { key: "ama_check3", label: "Entered in AMA register" },
+          { key: "ama_check4", label: "48-hr follow-up scheduled" },
         ].map(({ key, label }) => (
           <div key={key} style={checkboxRow}>
             <input
