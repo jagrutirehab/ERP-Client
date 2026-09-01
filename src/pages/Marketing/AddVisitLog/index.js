@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
 import {
   Card,
   CardBody,
@@ -8,6 +8,10 @@ import {
   Label,
   FormFeedback,
   Button,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
 } from "reactstrap";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -16,6 +20,10 @@ import {
   createVisitLog,
   searchDoctors,
   getAllCenters,
+  createDraft,
+  updateDraft,
+  submitDraft,
+  discardDraft,
 } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
@@ -64,6 +72,11 @@ const AddVisitLog = () => {
   });
   const [gpsRefreshing, setGpsRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [draftId, setDraftId] = useState(null);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState(null);
   //Selfie live camera only
   const [selfieFile, setSelfieFile] = useState(null);
   const [selfiePreview, setSelfiePreview] = useState(null);
@@ -276,9 +289,15 @@ const AddVisitLog = () => {
         formData.append("doctor[specialisation]", values.specialisation);
         formData.append("visitType", values.visitType);
         formData.append("metWith", values.metWith);
-        formData.append("collateral[given]", values.collateralGiven);
-        formData.append("collateral[pricingBrochure]", values.pricingBrochure);
-        formData.append("collateral[centreBrochure]", values.centreBrochure);
+        if (values.collateralGiven != null && values.collateralGiven !== "")
+          formData.append("collateral[given]", values.collateralGiven);
+        if (values.pricingBrochure != null && values.pricingBrochure !== "")
+          formData.append(
+            "collateral[pricingBrochure]",
+            values.pricingBrochure,
+          );
+        if (values.centreBrochure != null && values.centreBrochure !== "")
+          formData.append("collateral[centreBrochure]", values.centreBrochure);
         formData.append("visitNotes", values.visitNotes);
         formData.append("interestLevel", values.interestLevel);
         formData.append("commissionDiscussed", values.commissionDiscussed);
@@ -303,18 +322,13 @@ const AddVisitLog = () => {
           formData.append("collateralProofCentre", collateralProofFiles.centre);
         }
 
-        await createVisitLog(formData);
+        if (draftId) {
+          await submitDraft(draftId, formData);
+        } else {
+          await createVisitLog(formData);
+        }
         toast.success("Visit logged successfully");
-        validation.resetForm();
-        setSelfieFile(null);
-        setSelfiePreview(null);
-        setClinicPhotoFile(null);
-        setClinicPhotoPreview(null);
-        setCollateralProofFiles({ pricing: null, centre: null });
-        setCollateralProofPreviews({ pricing: null, centre: null });
-        setSelectedDoctor(null);
-        setDoctorQuery("");
-        setActiveStep(0);
+        resetWholeForm();
       } catch (err) {
         if (!handleAuthError(err)) {
           toast.error(
@@ -327,8 +341,105 @@ const AddVisitLog = () => {
     },
   });
 
+  const buildDraftFormData = () => {
+    const values = validation.values;
+    const formData = new FormData();
+
+    if (gps.lat) formData.append("gps[lat]", gps.lat);
+    if (gps.lng) formData.append("gps[lng]", gps.lng);
+    if (values.center) formData.append("center", values.center);
+    if (values.areaLocality)
+      formData.append("areaLocality", values.areaLocality);
+    if (values.doctorName) formData.append("doctor[name]", values.doctorName);
+    if (values.clinicName)
+      formData.append("doctor[clinicName]", values.clinicName);
+    if (values.contactNumber)
+      formData.append("doctor[contactNumber]", values.contactNumber);
+    if (values.specialisation)
+      formData.append("doctor[specialisation]", values.specialisation);
+    if (values.visitType) formData.append("visitType", values.visitType);
+    if (values.metWith) formData.append("metWith", values.metWith);
+    if (values.collateralGiven != null && values.collateralGiven !== "")
+      formData.append("collateral[given]", values.collateralGiven);
+    if (values.pricingBrochure != null && values.pricingBrochure !== "")
+      formData.append("collateral[pricingBrochure]", values.pricingBrochure);
+    if (values.centreBrochure != null && values.centreBrochure !== "")
+      formData.append("collateral[centreBrochure]", values.centreBrochure);
+    if (values.visitNotes) formData.append("visitNotes", values.visitNotes);
+    if (values.interestLevel)
+      formData.append("interestLevel", values.interestLevel);
+    if (values.commissionDiscussed != null && values.commissionDiscussed !== "")
+      formData.append("commissionDiscussed", values.commissionDiscussed);
+    if (values.commissionPercentage)
+      formData.append("commissionPercentage", values.commissionPercentage);
+    if (values.nextFollowUpDate)
+      formData.append("nextFollowUpDate", values.nextFollowUpDate);
+    if (selfieFile) formData.append("selfie", selfieFile, "selfie.jpg");
+    if (clinicPhotoFile)
+      formData.append("clinicPhoto", clinicPhotoFile, "clinic.jpg");
+
+    return formData;
+  };
+
+  const handleSaveDraft = async () => {
+    setSavingDraft(true);
+    try {
+      const formData = buildDraftFormData();
+      if (draftId) {
+        await updateDraft(draftId, formData);
+      } else {
+        const res = await createDraft(formData);
+        const newId = res?.data?.payload?._id || res?.payload?._id;
+        setDraftId(newId);
+      }
+      setLastSavedAt(new Date());
+      toast.success("Draft saved — you can continue later");
+    } catch (err) {
+      if (!handleAuthError(err)) {
+        toast.error(err?.response?.data?.message || "Failed to save draft");
+      }
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const resetWholeForm = () => {
+    validation.resetForm();
+    setSelfieFile(null);
+    setSelfiePreview(null);
+    setClinicPhotoFile(null);
+    setClinicPhotoPreview(null);
+    setCollateralProofFiles({ pricing: null, centre: null });
+    setCollateralProofPreviews({ pricing: null, centre: null });
+    setSelectedDoctor(null);
+    setDoctorQuery("");
+    setDraftId(null);
+    setActiveStep(0);
+  };
+
+  const handleDiscard = () => {
+    if (!draftId) return;
+    setShowDiscardConfirm(true);
+  };
+
+  const confirmDiscard = async () => {
+    setDiscarding(true);
+    try {
+      await discardDraft(draftId);
+      toast.success("Draft discarded");
+      resetWholeForm();
+      setShowDiscardConfirm(false);
+    } catch (err) {
+      if (!handleAuthError(err)) {
+        toast.error(err?.response?.data?.message || "Failed to discard draft");
+      }
+    } finally {
+      setDiscarding(false);
+    }
+  };
+
   //LIVE CAMERA
-  const openCamera = async () => {
+  const openCamera = useCallback(async () => {
     setCameraError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -347,7 +458,7 @@ const AddVisitLog = () => {
         "Camera access denied or unavailable. Please allow camera permission.",
       );
     }
-  };
+  }, [facingMode]);
 
   const closeCamera = () => {
     if (streamRef.current) {
@@ -356,7 +467,7 @@ const AddVisitLog = () => {
     }
     setCameraOpen(false);
   };
-  const openClinicCamera = async () => {
+  const openClinicCamera = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: clinicFacingMode },
@@ -372,7 +483,7 @@ const AddVisitLog = () => {
     } catch (err) {
       toast.error("Camera access denied or unavailable.");
     }
-  };
+  }, [clinicFacingMode]);
 
   const closeClinicCamera = () => {
     if (clinicStreamRef.current) {
@@ -393,7 +504,7 @@ const AddVisitLog = () => {
     if (clinicCameraOpen) {
       openClinicCamera();
     }
-  }, [clinicFacingMode]);
+  }, [clinicFacingMode, clinicCameraOpen, openClinicCamera]);
 
   const captureClinicPhoto = () => {
     const video = clinicVideoRef.current;
@@ -436,7 +547,7 @@ const AddVisitLog = () => {
     if (cameraOpen) {
       openCamera();
     }
-  }, [facingMode]);
+  }, [facingMode, cameraOpen, openCamera]);
 
   const capturePhoto = () => {
     const video = videoRef.current;
@@ -2152,7 +2263,32 @@ const AddVisitLog = () => {
                     </div>
                   )}
                   {/*Navigation buttons*/}
-                  <div className="wizard-nav">
+                  {draftId && (
+                    <div
+                      className="mb-3 px-3 py-2 rounded-3 d-flex align-items-center gap-2"
+                      style={{
+                        background: "#eef2ff",
+                        color: "#3577f1",
+                        fontSize: 13,
+                      }}
+                    >
+                      <i className="bx bx-save" style={{ fontSize: 15 }} />
+                      <span>
+                        Draft saved
+                        {lastSavedAt && (
+                          <>
+                            {" · Last saved "}
+                            {lastSavedAt.toLocaleTimeString("en-IN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="wizard-nav d-flex flex-wrap gap-2">
                     <Button
                       type="button"
                       color="light"
@@ -2162,6 +2298,31 @@ const AddVisitLog = () => {
                     >
                       Back
                     </Button>
+
+                    {canWrite && (
+                      <Button
+                        type="button"
+                        outline
+                        color="primary"
+                        className="px-4 flex-fill flex-md-grow-0"
+                        disabled={savingDraft}
+                        onClick={handleSaveDraft}
+                      >
+                        {savingDraft ? "Saving…" : "Save Draft"}
+                      </Button>
+                    )}
+
+                    {canWrite && draftId && (
+                      <Button
+                        type="button"
+                        color="danger"
+                        outline
+                        className="px-4 flex-fill flex-md-grow-0"
+                        onClick={handleDiscard}
+                      >
+                        Discard Draft
+                      </Button>
+                    )}
 
                     {canWrite &&
                       (activeStep !== STEPS.length - 1 ? (
@@ -2191,10 +2352,35 @@ const AddVisitLog = () => {
           </Card>
         </Col>
       </Row>
+      <Modal
+        isOpen={showDiscardConfirm}
+        toggle={() => setShowDiscardConfirm(false)}
+        centered
+      >
+        <ModalHeader toggle={() => setShowDiscardConfirm(false)}>
+          Discard this draft?
+        </ModalHeader>
+        <ModalBody>
+          <p className="mb-0 text-muted">
+            This will permanently delete the draft along with any photos and
+            details you've entered so far. This action cannot be undone.
+          </p>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            color="light"
+            onClick={() => setShowDiscardConfirm(false)}
+            disabled={discarding}
+          >
+            Cancel
+          </Button>
+          <Button color="danger" onClick={confirmDiscard} disabled={discarding}>
+            {discarding ? "Discarding…" : "Yes, Discard"}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 };
 
 export default AddVisitLog;
-
-// //
