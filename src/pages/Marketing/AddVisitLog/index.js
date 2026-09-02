@@ -2395,7 +2395,7 @@ const AddVisitLog = () => {
                       Back
                     </Button>
 
-                    {/* {canWrite && (
+                    {canWrite && (
                       <Button
                         type="button"
                         outline
@@ -2418,7 +2418,7 @@ const AddVisitLog = () => {
                       >
                         Discard Draft
                       </Button>
-                    )} */}
+                    )}
 
                     {canWrite &&
                       (activeStep !== STEPS.length - 1 ? (
