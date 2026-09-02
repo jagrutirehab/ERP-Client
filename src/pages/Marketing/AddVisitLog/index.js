@@ -2387,8 +2387,36 @@ const AddVisitLog = () => {
                   )}
 
                   <div className="wizard-nav">
-                    {/* Row 1: Back + Next/Submit */}
-                    <div className="d-flex flex-wrap gap-2 mb-2">
+                    {/* Row 1: Save Draft + Discard */}
+                    {canWrite && (
+                      <div className="d-flex flex-wrap gap-2 mb-2">
+                        {draftId && (
+                          <Button
+                            type="button"
+                            color="danger"
+                            outline
+                            className="px-4 flex-fill"
+                            onClick={handleDiscard}
+                          >
+                            Discard Draft
+                          </Button>
+                        )}
+
+                        <Button
+                          type="button"
+                          outline
+                          color="primary"
+                          className="px-4 flex-fill"
+                          disabled={savingDraft}
+                          onClick={handleSaveDraft}
+                        >
+                          {savingDraft ? "Saving…" : "Save Draft"}
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Row 2: Back + Next/Submit */}
+                    <div className="d-flex flex-wrap gap-2">
                       <Button
                         type="button"
                         color="light"
@@ -2421,34 +2449,6 @@ const AddVisitLog = () => {
                           </Button>
                         ))}
                     </div>
-
-                    {/* Row 2: Save Draft + Discard */}
-                    {canWrite && (
-                      <div className="d-flex flex-wrap gap-2">
-                        <Button
-                          type="button"
-                          outline
-                          color="primary"
-                          className="px-4 flex-fill"
-                          disabled={savingDraft}
-                          onClick={handleSaveDraft}
-                        >
-                          {savingDraft ? "Saving…" : "Save Draft"}
-                        </Button>
-
-                        {draftId && (
-                          <Button
-                            type="button"
-                            color="danger"
-                            outline
-                            className="px-4 flex-fill"
-                            onClick={handleDiscard}
-                          >
-                            Discard Draft
-                          </Button>
-                        )}
-                      </div>
-                    )}
                   </div>
                 </form>
               </div>
