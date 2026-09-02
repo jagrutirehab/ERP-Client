@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Card,
   CardBody,
@@ -24,6 +25,7 @@ import {
   updateDraft,
   submitDraft,
   discardDraft,
+  getVisitLogById,
 } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
@@ -77,6 +79,9 @@ const AddVisitLog = () => {
   const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
   const [discarding, setDiscarding] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState(null);
+  const [searchParams] = useSearchParams();
+  const [draftLoading, setDraftLoading] = useState(false);
+  const [lockedGps, setLockedGps] = useState(null);
   //Selfie live camera only
   const [selfieFile, setSelfieFile] = useState(null);
   const [selfiePreview, setSelfiePreview] = useState(null);
@@ -165,7 +170,10 @@ const AddVisitLog = () => {
   };
 
   useEffect(() => {
-    fetchLocation(false);
+    const draftIdFromUrl = searchParams.get("draftId");
+    if (!draftIdFromUrl) {
+      fetchLocation(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -177,7 +185,7 @@ const AddVisitLog = () => {
   }, []);
 
   const validation = useFormik({
-    enableReinitialize: true,
+    enableReinitialize: false,
     initialValues: {
       center: "",
       areaLocality: "",
@@ -240,19 +248,15 @@ const AddVisitLog = () => {
         }),
     }),
     onSubmit: async (values) => {
-      if (!gps.lat || !gps.lng) {
-        toast.error("GPS location not available. Please enable location.");
-        return;
-      }
-      if (!selfieFile) {
+      if (!selfieFile && !selfiePreview) {
         toast.error("Selfie photo proof is required");
-        setActiveStep(4);
+        setActiveStep(0);
         return;
       }
 
-      if (!clinicPhotoFile) {
+      if (!clinicPhotoFile && !clinicPhotoPreview) {
         toast.error("Clinic/hospital photo is required");
-        setActiveStep(4);
+        setActiveStep(0);
         return;
       }
 
@@ -261,13 +265,25 @@ const AddVisitLog = () => {
       let finalLat = gps.lat;
       let finalLng = gps.lng;
 
-      try {
-        const reading = await getSingleGpsReading();
-        gpsReadings = [reading];
-        finalLat = reading.lat;
-        finalLng = reading.lng;
-      } catch (gpsErr) {
-        // fallback, purani location use karo
+      if (lockedGps) {
+        finalLat = lockedGps.lat;
+        finalLng = lockedGps.lng;
+        gpsReadings = [
+          {
+            lat: lockedGps.lat,
+            lng: lockedGps.lng,
+            accuracy: lockedGps.accuracy,
+          },
+        ];
+      } else {
+        try {
+          const reading = await getSingleGpsReading();
+          gpsReadings = [reading];
+          finalLat = reading.lat;
+          finalLng = reading.lng;
+        } catch (gpsErr) {
+          // fallback, purani location use karo
+        }
       }
 
       try {
@@ -310,8 +326,12 @@ const AddVisitLog = () => {
         if (values.nextFollowUpDate) {
           formData.append("nextFollowUpDate", values.nextFollowUpDate);
         }
-        formData.append("selfie", selfieFile, "selfie.jpg");
-        formData.append("clinicPhoto", clinicPhotoFile, "clinic.jpg");
+        if (selfieFile) {
+          formData.append("selfie", selfieFile, "selfie.jpg");
+        }
+        if (clinicPhotoFile) {
+          formData.append("clinicPhoto", clinicPhotoFile, "clinic.jpg");
+        }
         if (collateralProofFiles.pricing) {
           formData.append(
             "collateralProofPricing",
@@ -340,6 +360,77 @@ const AddVisitLog = () => {
       }
     },
   });
+
+  useEffect(() => {
+    const draftIdFromUrl = searchParams.get("draftId");
+    if (!draftIdFromUrl) return;
+
+    setDraftLoading(true);
+    getVisitLogById(draftIdFromUrl)
+      .then((res) => {
+        const draft = res?.data?.payload || res?.payload || res?.data;
+        if (!draft) return;
+
+        setDraftId(draft._id);
+        validation.setValues({
+          center: draft.center || "",
+          areaLocality: draft.areaLocality || "",
+          doctorName: draft.doctor?.name || "",
+          clinicName: draft.doctor?.clinicName || "",
+          contactNumber: draft.doctor?.contactNumber || "",
+          specialisation: draft.doctor?.specialisation || "",
+          visitType: draft.visitType || "",
+          metWith: draft.metWith || "",
+          collateralGiven:
+            draft.collateral?.given != null
+              ? String(draft.collateral.given)
+              : "",
+          pricingBrochure: draft.collateral?.pricingBrochure || false,
+          centreBrochure: draft.collateral?.centreBrochure || false,
+          visitNotes: draft.visitNotes || "",
+          interestLevel: draft.interestLevel || "",
+          commissionDiscussed:
+            draft.commissionDiscussed != null
+              ? String(draft.commissionDiscussed)
+              : "",
+          commissionPercentage: draft.commissionPercentage || "",
+          nextFollowUpDate: draft.nextFollowUpDate
+            ? draft.nextFollowUpDate.slice(0, 10)
+            : "",
+        });
+        if (draft.selfieProof?.url) {
+          setSelfiePreview(draft.selfieProof.url);
+        }
+        if (draft.clinicPhoto?.url) {
+          setClinicPhotoPreview(draft.clinicPhoto.url);
+        }
+
+        if (draft.gps?.lat && draft.gps?.lng) {
+          const locked = {
+            lat: draft.gps.lat,
+            lng: draft.gps.lng,
+            accuracy: draft.gps.accuracy || null,
+          };
+          setLockedGps(locked);
+
+          setGps({
+            lat: locked.lat,
+            lng: locked.lng,
+            error: null,
+            updatedAt: new Date(draft.createdAt || draft.visitDate),
+          });
+        }
+
+        toast.info("Draft loaded — continue filling in the remaining details");
+      })
+      .catch((err) => {
+        if (!handleAuthError(err)) {
+          toast.error("Failed to load draft");
+        }
+      })
+      .finally(() => setDraftLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const buildDraftFormData = () => {
     const values = validation.values;
@@ -385,6 +476,7 @@ const AddVisitLog = () => {
     setSavingDraft(true);
     try {
       const formData = buildDraftFormData();
+
       if (draftId) {
         await updateDraft(draftId, formData);
       } else {
@@ -414,6 +506,7 @@ const AddVisitLog = () => {
     setSelectedDoctor(null);
     setDoctorQuery("");
     setDraftId(null);
+    setLockedGps(null);
     setActiveStep(0);
   };
 
@@ -686,11 +779,11 @@ const AddVisitLog = () => {
     [], // Step 5 = Review
   ];
   const validateCurrentStep = async () => {
-    if (activeStep === 0 && !selfieFile) {
+    if (activeStep === 0 && !selfieFile && !selfiePreview) {
       toast.error("Please take a live selfie before continuing");
       return false;
     }
-    if (activeStep === 0 && !clinicPhotoFile) {
+    if (activeStep === 0 && !clinicPhotoFile && !clinicPhotoPreview) {
       toast.error("Please take a photo of the clinic before continuing");
       return false;
     }
@@ -732,12 +825,13 @@ const AddVisitLog = () => {
       );
       return;
     }
-    if (!selfieFile) {
+    if (!selfieFile && !selfiePreview) {
       toast.error("Selfie photo proof is required");
       setActiveStep(0);
       return;
     }
-    if (!clinicPhotoFile) {
+
+    if (!clinicPhotoFile && !clinicPhotoPreview) {
       toast.error("Clinic/hospital photo is required");
       setActiveStep(0);
       return;
@@ -1039,21 +1133,23 @@ const AddVisitLog = () => {
                       )}
                     </span>
                   </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    color="light"
-                    className="gps-refresh-btn"
-                    onClick={() => fetchLocation(true)}
-                    disabled={gpsRefreshing}
-                  >
-                    <i
-                      className={
-                        "bx bx-refresh" + (gpsRefreshing ? " bx-spin" : "")
-                      }
-                    />
-                    {gpsRefreshing ? "Refreshing…" : "Refresh"}
-                  </Button>
+                  {!lockedGps && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      color="light"
+                      className="gps-refresh-btn"
+                      onClick={() => fetchLocation(true)}
+                      disabled={gpsRefreshing}
+                    >
+                      <i
+                        className={
+                          "bx bx-refresh" + (gpsRefreshing ? " bx-spin" : "")
+                        }
+                      />
+                      {gpsRefreshing ? "Refreshing…" : "Refresh"}
+                    </Button>
+                  )}
                 </div>
               </div>
 

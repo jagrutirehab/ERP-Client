@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const DischargeEmergencyTransfer = ({ register, patient, admissions }) => {
+const DischargeEmergencyTransfer = ({
+  register,
+  patient,
+  admissions,
+  chartData,
+  setValue,
+}) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -77,6 +83,42 @@ const DischargeEmergencyTransfer = ({ register, patient, admissions }) => {
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
   }, []);
+
+  const latestPrescription = admissions?.charts
+    ?.filter((c) => c.chart === "PRESCRIPTION")
+    ?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))?.[0];
+
+  console.log("latestPrescription", latestPrescription?.prescription);
+
+  useEffect(() => {
+    if (!admissions?.charts) return;
+
+    const latestPrescription = admissions.charts
+      .filter((c) => c.chart === "PRESCRIPTION")
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+
+    const medicines = latestPrescription?.prescription?.medicines || [];
+
+    medicines.slice(0, 3).forEach((med, index) => {
+      const row = index + 1;
+      const { morning, evening, night } = med.dosageAndFrequency || {};
+
+      // setValue(`eht_currMed${row}_medication`, med.medicine?.name || "");
+      setValue(
+        `eht_currMed${row}_medication`,
+        [med.medicine?.name, med.medicine?.type].filter(Boolean).join(" - ") ||
+          "",
+      );
+      setValue(
+        `eht_currMed${row}_dose`,
+        `${morning || 0}-${evening || 0}-${night || 0}`,
+      );
+      setValue(
+        `eht_currMed${row}_frequency`,
+        `${med.frequency || ""} ${med.unit || ""}`.trim(),
+      );
+    });
+  }, [admissions]);
 
   return (
     <div style={pageContainer}>

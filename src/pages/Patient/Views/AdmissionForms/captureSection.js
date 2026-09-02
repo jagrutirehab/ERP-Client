@@ -191,30 +191,80 @@ export const captureSection = async (ref, pdf, isFirstPage = false) => {
   let captureScale = Math.min(Math.max(1.5, DPR), PREFERRED_SCALE);
 
   // === Always fit whole content into one single PDF page ===
-  const addCanvasAsSinglePage = (canvas, firstPageFlag) => {
+  // const addCanvasAsSinglePage = (canvas, firstPageFlag) => {
+  //   const usableWpts = pdfW_pts - marginPts * 2;
+  //   const usableHpts = pdfH_pts - marginPts * 2;
+
+  //   const cW_px = canvas.width;
+  //   const cH_px = canvas.height;
+
+  //   // const fitScale = Math.min(usableWpts / cW_px, usableHpts / cH_px);
+  //   const fitScale = usableWpts / cW_px;
+
+  //   const targetW_pts = cW_px * fitScale;
+  //   const targetH_pts = cH_px * fitScale;
+
+  //   const imgData = canvas.toDataURL("image/jpeg", 1.0);
+  //   if (!firstPageFlag) pdf.addPage();
+  //   pdf.addImage(
+  //     imgData,
+  //     "JPEG",
+  //     marginPts,
+  //     marginPts,
+  //     targetW_pts,
+  //     targetH_pts,
+  //     undefined,
+  //     "FAST",
+  //   );
+  // };
+
+  // Replace addCanvasAsSinglePage with this
+  const addCanvasAsPages = (canvas, firstPageFlag) => {
     const usableWpts = pdfW_pts - marginPts * 2;
     const usableHpts = pdfH_pts - marginPts * 2;
 
     const cW_px = canvas.width;
     const cH_px = canvas.height;
 
-    const fitScale = Math.min(usableWpts / cW_px, usableHpts / cH_px);
-
+    // Scale by width only
+    const fitScale = usableWpts / cW_px;
     const targetW_pts = cW_px * fitScale;
-    const targetH_pts = cH_px * fitScale;
 
-    const imgData = canvas.toDataURL("image/jpeg", 1.0);
-    if (!firstPageFlag) pdf.addPage();
-    pdf.addImage(
-      imgData,
-      "JPEG",
-      marginPts,
-      marginPts,
-      targetW_pts,
-      targetH_pts,
-      undefined,
-      "FAST",
-    );
+    // How many canvas px fit in one PDF page
+    const pageHeightPx = usableHpts / fitScale;
+    const totalPages = Math.ceil(cH_px / pageHeightPx);
+
+    for (let page = 0; page < totalPages; page++) {
+      const sourceY = page * pageHeightPx;
+      const sourceH = Math.min(pageHeightPx, cH_px - sourceY);
+
+      // Slice canvas for this page
+      const tempCanvas = document.createElement("canvas");
+      tempCanvas.width = cW_px;
+      tempCanvas.height = sourceH;
+      const ctx = tempCanvas.getContext("2d");
+      ctx.drawImage(canvas, 0, sourceY, cW_px, sourceH, 0, 0, cW_px, sourceH);
+
+      const targetH_pts = sourceH * fitScale;
+      const imgData = tempCanvas.toDataURL("image/jpeg", 1.0);
+
+      if (page === 0 && firstPageFlag) {
+        // first page already exists, don't add
+      } else {
+        pdf.addPage();
+      }
+
+      pdf.addImage(
+        imgData,
+        "JPEG",
+        marginPts,
+        marginPts,
+        targetW_pts,
+        targetH_pts,
+        undefined,
+        "FAST",
+      );
+    }
   };
 
   try {
@@ -226,9 +276,10 @@ export const captureSection = async (ref, pdf, isFirstPage = false) => {
       backgroundColor: "#fff",
       imageTimeout: 20000,
       allowTaint: false,
-      windowWidth: document.documentElement.scrollWidth,
+      // windowWidth: document.documentElement.scrollWidth,
+      windowWidth: clone.offsetWidth || pdfWidthPx,
     });
-    addCanvasAsSinglePage(c, isFirstPage);
+    addCanvasAsPages(c, isFirstPage);
   } catch (err) {
     console.error("captureSection error:", err);
   } finally {
