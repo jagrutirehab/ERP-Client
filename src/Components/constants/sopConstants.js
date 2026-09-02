@@ -143,6 +143,12 @@ export const OPERATORS_BY_TYPE = {
   // codes. The value is a category id, so only equality applies; the dropdown
   // itself comes from the field's `options` metadata, not from here.
   PatientCategory: ["EQUALS", "NOT_EQUALS"],
+  // Synthetic type for Addmission.admissionSupportType — the admission form's
+  // supported-admission window (up to 30 days / beyond 30 days), resolved by the
+  // server from the newest uploaded form. EXISTS/NOT_EXISTS are kept so a rule
+  // can target admissions whose form type was never recorded. The dropdown comes
+  // from the field's `options` metadata, not from here.
+  AdmissionSupportType: ["EQUALS", "NOT_EQUALS", "EXISTS", "NOT_EXISTS"],
 };
 
 // Severity threshold dropdown for LabReport flagged-items conditions.
