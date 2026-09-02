@@ -61,8 +61,7 @@ const Sidebar = () => {
     "EXPORT_DOCTOR_DIRECTORY",
     "READ",
   );
-  const canViewDrafts = hasPermission("MARKETING", "ADD_VISIT_LOG", "READ");
-
+  const canViewDrafts = hasPermission("MARKETING", "VIEW_MY_DRAFTS", "READ");
   const MarketingPages = [
     canViewAdd
       ? {
@@ -96,7 +95,7 @@ const Sidebar = () => {
           icon: "bx bx-id-card",
         }
       : null,
-        canViewDoctorExport
+    canViewDoctorExport
       ? {
           id: "doctor-directory-export",
           label: "Doctor Report",

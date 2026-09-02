@@ -43,7 +43,7 @@ const Marketing = () => {
     "EXPORT_DOCTOR_DIRECTORY",
     "READ",
   );
-  const canViewDrafts = hasPermission("MARKETING", "ADD_VISIT_LOG", "READ");
+  const canViewDrafts = hasPermission("MARKETING", "VIEW_MY_DRAFTS", "READ");
   if (
     !canViewAdd &&
     !canViewList &&
