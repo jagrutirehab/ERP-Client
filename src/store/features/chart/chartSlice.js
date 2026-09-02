@@ -232,8 +232,8 @@ export const addPrescription = createAsyncThunk(
         dispatch(viewPatient(patient));
         dispatch(togglePrint({ modal: true, data: payload, patient, doctor }));
       }
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
@@ -300,8 +300,8 @@ export const updatePrescription = createAsyncThunk(
           );
       }
 
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -1034,8 +1034,8 @@ export const addDischargeSummary = createAsyncThunk(
         }),
       );
 
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
       // dispatch(fetchCharts(response?.addmission));
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -1059,8 +1059,8 @@ export const updateDischargeSummary = createAsyncThunk(
         }),
       );
 
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
