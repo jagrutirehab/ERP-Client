@@ -384,7 +384,13 @@ const Charts = ({
                   validatorId={chart?.validatorId}
                   doctorValidatorId={chart?.doctorValidatorId}
                   currentAddmissionId={currentAddmissionId}
-                  hideEdit={chart.chart === PRESCRIPTION}
+                  hideEdit={
+                    chart.chart === PRESCRIPTION &&
+                    (String(chart.author?._id || chart.author) !==
+                      String(getCurrentUserId()) ||
+                      Date.now() - new Date(chart.createdAt).getTime() >
+                        24 * 60 * 60 * 1000)
+                  }
                   extraOptions={(item) =>
                     item?.chart === PRESCRIPTION &&
                     item?.type === "IPD" &&

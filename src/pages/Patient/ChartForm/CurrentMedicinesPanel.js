@@ -77,15 +77,31 @@ const CurrentMedicinesPanel = ({
       (m) => drugIdentity(m.medicine) === drugIdentity(entry.medicine),
     );
 
+  const pendingRows = rows.filter((row) => !isAlreadyAdded(row.medicine));
+
+  const addAllToRx = () => {
+    pendingRows.forEach((row) => onAddMedicine(row.medicine));
+  };
+
   return (
     <Card className="mb-4">
-      <CardHeader className="mb-0">
-        <h6 className="mb-1">Current Medicines</h6>
-        <small className="text-muted">
-          Everything the patient is currently on. These keep running on their
-          own — add one here only to reissue it under you with a fresh date
-          range.
-        </small>
+      <CardHeader className="mb-0 d-flex justify-content-between align-items-start">
+        <div>
+          <h6 className="mb-1">Current Medicines</h6>
+          <small className="text-muted">
+            Everything the patient is currently on. These keep running on their
+            own — add one here only to reissue it under you with a fresh date
+            range.
+          </small>
+        </div>
+        <button
+          type="button"
+          className="btn btn-sm btn-outline-primary text-nowrap"
+          disabled={!pendingRows.length}
+          onClick={addAllToRx}
+        >
+          {pendingRows.length ? "Add All to Rx" : "All Added"}
+        </button>
       </CardHeader>
       <CardBody className="p-0">
         <div className="table-responsive">
