@@ -172,6 +172,7 @@ const AddVisitLog = () => {
   useEffect(() => {
     const draftIdFromUrl = searchParams.get("draftId");
     if (!draftIdFromUrl) {
+      setLockedGps(null);
       fetchLocation(false);
     }
   }, []);
@@ -508,6 +509,7 @@ const AddVisitLog = () => {
     setDraftId(null);
     setLockedGps(null);
     setActiveStep(0);
+    fetchLocation(false);
   };
 
   const handleDiscard = () => {
@@ -2384,63 +2386,69 @@ const AddVisitLog = () => {
                     </div>
                   )}
 
-                  <div className="wizard-nav d-flex flex-wrap gap-2">
-                    <Button
-                      type="button"
-                      color="light"
-                      className="px-4 flex-fill flex-md-grow-0"
-                      onClick={goBack}
-                      disabled={activeStep === 0}
-                    >
-                      Back
-                    </Button>
+                  <div className="wizard-nav">
+                    {/* Row 1: Back + Next/Submit */}
+                    <div className="d-flex flex-wrap gap-2 mb-2">
+                      <Button
+                        type="button"
+                        color="light"
+                        className="px-4 flex-fill"
+                        onClick={goBack}
+                        disabled={activeStep === 0}
+                      >
+                        Back
+                      </Button>
 
+                      {canWrite &&
+                        (activeStep !== STEPS.length - 1 ? (
+                          <Button
+                            type="button"
+                            color="primary"
+                            className="px-4 flex-fill"
+                            onClick={goNext}
+                          >
+                            Next
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            color="success"
+                            className="px-4 flex-fill"
+                            disabled={submitting}
+                            onClick={handleFinalSubmit}
+                          >
+                            {submitting ? "Submitting…" : "Submit Visit"}
+                          </Button>
+                        ))}
+                    </div>
+
+                    {/* Row 2: Save Draft + Discard */}
                     {canWrite && (
-                      <Button
-                        type="button"
-                        outline
-                        color="primary"
-                        className="px-4 flex-fill flex-md-grow-0"
-                        disabled={savingDraft}
-                        onClick={handleSaveDraft}
-                      >
-                        {savingDraft ? "Saving…" : "Save Draft"}
-                      </Button>
-                    )}
-
-                    {canWrite && draftId && (
-                      <Button
-                        type="button"
-                        color="danger"
-                        outline
-                        className="px-4 flex-fill flex-md-grow-0"
-                        onClick={handleDiscard}
-                      >
-                        Discard Draft
-                      </Button>
-                    )}
-
-                    {canWrite &&
-                      (activeStep !== STEPS.length - 1 ? (
+                      <div className="d-flex flex-wrap gap-2">
                         <Button
                           type="button"
+                          outline
                           color="primary"
-                          className="px-4 flex-fill flex-md-grow-0"
-                          onClick={goNext}
+                          className="px-4 flex-fill"
+                          disabled={savingDraft}
+                          onClick={handleSaveDraft}
                         >
-                          Next
+                          {savingDraft ? "Saving…" : "Save Draft"}
                         </Button>
-                      ) : (
-                        <Button
-                          type="button"
-                          color="success"
-                          className="px-4 flex-fill flex-md-grow-0"
-                          disabled={submitting}
-                          onClick={handleFinalSubmit}
-                        >
-                          {submitting ? "Submitting…" : "Submit Visit"}
-                        </Button>
-                      ))}
+
+                        {draftId && (
+                          <Button
+                            type="button"
+                            color="danger"
+                            outline
+                            className="px-4 flex-fill"
+                            onClick={handleDiscard}
+                          >
+                            Discard Draft
+                          </Button>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </form>
               </div>
