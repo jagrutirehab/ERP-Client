@@ -2387,7 +2387,7 @@ const AddVisitLog = () => {
                   )}
 
                   <div className="wizard-nav">
-                    {/* Row 1: Save Draft + Discard */}
+                    {/* Row 1: Discard + Back */}
                     {canWrite && (
                       <div className="d-flex flex-wrap gap-2 mb-2">
                         {draftId && (
@@ -2404,6 +2404,21 @@ const AddVisitLog = () => {
 
                         <Button
                           type="button"
+                          color="light"
+                          className="px-4 flex-fill"
+                          onClick={goBack}
+                          disabled={activeStep === 0}
+                        >
+                          Back
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* Row 2: Save Draft + Next/Submit */}
+                    <div className="d-flex flex-wrap gap-2">
+                      {canWrite && (
+                        <Button
+                          type="button"
                           outline
                           color="primary"
                           className="px-4 flex-fill"
@@ -2412,20 +2427,7 @@ const AddVisitLog = () => {
                         >
                           {savingDraft ? "Saving…" : "Save Draft"}
                         </Button>
-                      </div>
-                    )}
-
-                    {/* Row 2: Back + Next/Submit */}
-                    <div className="d-flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        color="light"
-                        className="px-4 flex-fill"
-                        onClick={goBack}
-                        disabled={activeStep === 0}
-                      >
-                        Back
-                      </Button>
+                      )}
 
                       {canWrite &&
                         (activeStep !== STEPS.length - 1 ? (
