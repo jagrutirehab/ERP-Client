@@ -503,6 +503,14 @@ export const permissionList = [
     ],
   },
   {
+    key: "UTILITIES",
+    label: "Utilities",
+    subModules: [
+      { name: "UPLOAD_BILL", label: "Upload Bill" },
+      { name: "REPORTS", label: "Reports" },
+    ],
+  },
+  {
     key: "MARKETING",
     label: "Marketing",
     subModules: [
