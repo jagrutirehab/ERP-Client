@@ -14,11 +14,12 @@ export const generateToken = async (meetingId, name, userType) => {
             userType,
             custom_participant_id: `${userType}-${Date.now()}`, // Unique ID for each participant
         });
+
         // The response BODY is what callers want ({ token, meetingId,
         // participantId }). This used to return the whole axios response, so
         // `data?.token` in the caller was always undefined and the doctor's
         // "Join Meeting" button silently did nothing.
-        return response.data;
+        return response.data || response;
     } catch (error) {
         console.error("Error generating token:", error.response?.data || error.message);
         return null;
