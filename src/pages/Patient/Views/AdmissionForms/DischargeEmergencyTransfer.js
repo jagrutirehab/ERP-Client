@@ -79,6 +79,7 @@ const DischargeEmergencyTransfer = ({
   };
 
   const [today, setToday] = useState("");
+  const [medicineRows, setMedicineRows] = useState([1, 2, 3]);
 
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
@@ -99,15 +100,18 @@ const DischargeEmergencyTransfer = ({
 
     const medicines = latestPrescription?.prescription?.medicines || [];
 
-    medicines.slice(0, 3).forEach((med, index) => {
+    // Set rows dynamically — minimum 3, grows with medicines count
+    const rowCount = Math.max(3, medicines.length);
+    setMedicineRows(Array.from({ length: rowCount }, (_, i) => i + 1));
+
+    medicines.forEach((med, index) => {
       const row = index + 1;
       const { morning, evening, night } = med.dosageAndFrequency || {};
-
-      // setValue(`eht_currMed${row}_medication`, med.medicine?.name || "");
       setValue(
         `eht_currMed${row}_medication`,
-        [med.medicine?.name, med.medicine?.type].filter(Boolean).join(" - ") ||
-          "",
+        [med.medicine?.name, med.medicine?.strength, med.medicine?.type]
+          .filter(Boolean)
+          .join(" ") || "",
       );
       setValue(
         `eht_currMed${row}_dose`,
@@ -707,7 +711,7 @@ const DischargeEmergencyTransfer = ({
           </tr>
         </thead>
         <tbody>
-          {[1, 2, 3].map((row) => (
+          {medicineRows.map((row) => (
             <tr key={row}>
               <td style={tdStyle}>
                 <input
@@ -835,7 +839,7 @@ const DischargeEmergencyTransfer = ({
           </tr>
         </thead>
         <tbody>
-          {[1, 2, 3].map((row) => (
+          {medicineRows.map((row) => (
             <tr key={row}>
               <td style={tdStyle}>
                 <input
