@@ -236,6 +236,13 @@ const Prescription = ({
   const carryForwardMedicines = React.useMemo(() => {
     const byDrug = new Map();
 
+    const drugKey = (drug) =>
+      drug?._id
+        ? `id:${String(drug._id)}`
+        : `key:${[drug?.name, drug?.strength, drug?.unit]
+            .map((v) => String(v || "").trim().toLowerCase())
+            .join("|")}`;
+
     [...(carryForwardCharts || [])]
       .sort(
         (a, b) =>
@@ -245,14 +252,7 @@ const Prescription = ({
         (chart?.prescription?.medicines || [])
           .filter((med) => med.status !== "discontinued")
           .forEach((med) => {
-            const key = [
-              med.medicine?.name,
-              med.medicine?.strength,
-              med.medicine?.unit,
-            ]
-              .map((v) => String(v || "").trim().toLowerCase())
-              .join("|");
-            byDrug.set(key, med);
+            byDrug.set(drugKey(med.medicine), med);
           });
       });
 
