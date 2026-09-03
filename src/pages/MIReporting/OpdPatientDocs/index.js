@@ -7,6 +7,9 @@
     import Select from "react-select";
 
 
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const formatMonthYear = (date) => `${MONTH_ABBR[date.getMonth()]} ${date.getFullYear()}`;
+
 const STATUS_OPTIONS = [
     { value: "ALL", label: "All Statuses" },
     { value: "Complete", label: "Complete" },
@@ -20,7 +23,7 @@ const OpdPatientDocs = () => {
     const error = useSelector((state) => state.MIReporting.error);
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
     const [selectedMonth, setSelectedMonth]=useState(
-        new Date().toLocaleDateString("en-GB", { month: "short", year: "numeric" })
+        formatMonthYear(new Date())
     )
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [selectedStatus, setSelectedStatus] = useState("ALL");
@@ -84,7 +87,7 @@ const OpdPatientDocs = () => {
         const end = new Date(now.getFullYear(), now.getMonth(), 1);
         const start = new Date(now.getFullYear() - 5, now.getMonth() + 1, 1);
         for (let d = new Date(end); d >= start; d.setMonth(d.getMonth() - 1)) {
-            const label = d.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+            const label = formatMonthYear(d);
             options.push({ value: label, label });
         }
         return options;
