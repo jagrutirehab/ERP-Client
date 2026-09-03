@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import Select from "react-select";
 import {
@@ -26,8 +26,6 @@ const ALLOWED_FILE_TYPES = [
 ];
 const INVALID_FILE_MESSAGE =
   "Only PDF, DOCX, JPG, JPEG, and PNG files are allowed";
-const CURRENT_YEAR = new Date().getFullYear();
-const DEFAULT_YEAR = Math.max(2026, CURRENT_YEAR);
 const YEAR_RANGE_END = 2076;
 const yearOptions = Array.from(
   { length: YEAR_RANGE_END - 2026 + 1 },
@@ -44,8 +42,8 @@ const monthOptions = Array.from({ length: 12 }, (_, idx) => ({
 const makeEmptyRow = (id) => ({
   id,
   center: null,
-  month: 1,
-  year: DEFAULT_YEAR,
+  month: null,
+  year: null,
   comment: "",
   file: null,
   fileError: "",
@@ -85,15 +83,24 @@ const UploadBill = () => {
   const { loading: permissionLoader, hasPermission } = usePermissions(token);
   const hasReadPermission = hasPermission("UTILITIES", "UPLOAD_BILL", "READ");
   const hasWritePermission = hasPermission("UTILITIES", "UPLOAD_BILL", "WRITE");
+  const hasDeletePermission = hasPermission(
+    "UTILITIES",
+    "UPLOAD_BILL",
+    "DELETE",
+  );
+  const canUpload = hasWritePermission || hasDeletePermission;
 
   const [rows, setRows] = useState([makeEmptyRow(0)]);
   const [uploading, setUploading] = useState(false);
   const [submitAttempted, setSubmitAttempted] = useState(false);
   const [rowErrors, setRowErrors] = useState({});
+  const [formKey, setFormKey] = useState(0);
 
-  if (!permissionLoader && !hasReadPermission) {
-    navigate("/unauthorized");
-  }
+  useEffect(() => {
+    if (!permissionLoader && !hasReadPermission) {
+      navigate("/unauthorized");
+    }
+  }, [permissionLoader, hasReadPermission, navigate]);
 
   if (permissionLoader) {
     return (
@@ -162,7 +169,7 @@ const UploadBill = () => {
     isDateAllowed(row);
 
   const canSubmit =
-    hasWritePermission &&
+    canUpload &&
     rows.length > 0 &&
     rows.every(isRowValid) &&
     duplicateRowIds.size === 0;
@@ -175,6 +182,7 @@ const UploadBill = () => {
     setRows([makeEmptyRow(0)]);
     setSubmitAttempted(false);
     setRowErrors({});
+    setFormKey((key) => key + 1);
   };
 
   const handleSubmit = async () => {
@@ -230,12 +238,14 @@ const UploadBill = () => {
     >
       <div className="container-fluid p-3 p-lg-4">
         <div className="row">
-          <div className="col-lg-8 col-xl-10 mx-auto">
+          <div className="col-lg-8 col-xl-10 mx-auto border rounded p-4">
             <h4 className="fw-bold mb-4">Upload Electricity Bill</h4>
-            <Form>
+            <Form key={formKey}>
               {rows.map((row, index) => {
                 const isDuplicate = duplicateRowIds.has(row.id);
                 const centerMissing = submitAttempted && !row.center;
+                const monthMissing = submitAttempted && !row.month;
+                const yearMissing = submitAttempted && !row.year;
                 const fileMissing =
                   submitAttempted && !row.file && !row.fileError;
                 const apiError = rowErrors[row.id];
@@ -315,6 +325,14 @@ const UploadBill = () => {
                             placeholder="Select month..."
                             isDisabled={uploading}
                           />
+                          {monthMissing && (
+                            <div
+                              className="text-danger mt-1"
+                              style={{ fontSize: 13 }}
+                            >
+                              Month is required
+                            </div>
+                          )}
                         </FormGroup>
                       </Col>
 
@@ -337,7 +355,15 @@ const UploadBill = () => {
                             placeholder="Select year..."
                             isDisabled={uploading}
                           />
-                          {!isDateAllowed(row) && (
+                          {yearMissing && (
+                            <div
+                              className="text-danger mt-1"
+                              style={{ fontSize: 13 }}
+                            >
+                              Year is required
+                            </div>
+                          )}
+                          {row.month && row.year && !isDateAllowed(row) && (
                             <div
                               className="text-danger mt-1"
                               style={{ fontSize: 13 }}
@@ -398,16 +424,18 @@ const UploadBill = () => {
                 );
               })}
 
-              <div className="d-flex justify-content-start mb-4">
-                <button
-                  type="button"
-                  className="btn btn-outline-primary"
-                  onClick={addRow}
-                  disabled={uploading}
-                >
-                  + Add Row
-                </button>
-              </div>
+              {canUpload && (
+                <div className="d-flex justify-content-start mb-4">
+                  <button
+                    type="button"
+                    className="btn btn-outline-primary"
+                    onClick={addRow}
+                    disabled={uploading}
+                  >
+                    + Add Row
+                  </button>
+                </div>
+              )}
 
               {previewRows.length > 0 && (
                 <div className="mb-4">
@@ -435,23 +463,25 @@ const UploadBill = () => {
                 </div>
               )}
 
-              <div className="d-flex justify-content-end">
-                <Button
-                  color="primary"
-                  className="text-white"
-                  onClick={handleSubmit}
-                  disabled={uploading}
-                >
-                  {uploading ? (
-                    <>
-                      <Spinner size="sm" className="me-1" />
-                      Uploading...
-                    </>
-                  ) : (
-                    "Upload"
-                  )}
-                </Button>
-              </div>
+              {canUpload && (
+                <div className="d-flex justify-content-end">
+                  <Button
+                    color="primary"
+                    className="text-white"
+                    onClick={handleSubmit}
+                    disabled={uploading}
+                  >
+                    {uploading ? (
+                      <>
+                        <Spinner size="sm" className="me-1" />
+                        Uploading...
+                      </>
+                    ) : (
+                      "Upload"
+                    )}
+                  </Button>
+                </div>
+              )}
             </Form>
           </div>
         </div>

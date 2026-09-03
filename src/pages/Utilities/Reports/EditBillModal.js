@@ -31,6 +31,7 @@ const formatFileSize = (bytes) => {
 const EditBillModal = ({ isOpen, onClose, bill, onRefresh, onSubmittingChange }) => {
     const [file, setFile] = useState(null);
     const [fileError, setFileError] = useState("");
+    const [comment, setComment] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [previewUrl, setPreviewUrl] = useState(null);
 
@@ -43,10 +44,17 @@ const EditBillModal = ({ isOpen, onClose, bill, onRefresh, onSubmittingChange })
         setPreviewUrl(null);
     }, [file]);
 
+    useEffect(() => {
+        if (isOpen && bill) {
+            setComment(bill.comment || "");
+        }
+    }, [isOpen, bill]);
+
     const handleClose = () => {
         if (submitting) return;
         setFile(null);
         setFileError("");
+        setComment("");
         onClose();
     };
 
@@ -68,9 +76,9 @@ const EditBillModal = ({ isOpen, onClose, bill, onRefresh, onSubmittingChange })
     };
 
     const handleSubmit = async () => {
-        if (!file || fileError || !bill) return;
+        if (!bill || fileError) return;
 
-        if (!ALLOWED_FILE_TYPES.includes(file.type)) {
+        if (file && !ALLOWED_FILE_TYPES.includes(file.type)) {
             toast.error(INVALID_FILE_MESSAGE);
             return;
         }
@@ -79,7 +87,8 @@ const EditBillModal = ({ isOpen, onClose, bill, onRefresh, onSubmittingChange })
         onSubmittingChange?.(true);
         try {
             const formData = new FormData();
-            formData.append("billFile", file);
+            if (file) formData.append("billFile", file);
+            formData.append("comment", comment || "");
             await updateUtilityBill(bill._id, formData);
 
             toast.success("File updated successfully");
@@ -149,10 +158,19 @@ const EditBillModal = ({ isOpen, onClose, bill, onRefresh, onSubmittingChange })
                     </div>
                 )}
 
+                <FormGroup>
+                    <Label className="fw-semibold">Comment</Label>
+                    <Input
+                        type="textarea"
+                        value={comment}
+                        onChange={(e) => setComment(e.target.value)}
+                        disabled={submitting}
+                        rows={3}
+                    />
+                </FormGroup>
+
                 <FormGroup className="mb-0">
-                    <Label className="fw-semibold">
-                        Replacement File <span className="text-danger">*</span>
-                    </Label>
+                    <Label className="fw-semibold">Replacement File</Label>
                     <Input
                         type="file"
                         accept=".pdf,.docx,.jpg,.jpeg,.png"
@@ -196,7 +214,7 @@ const EditBillModal = ({ isOpen, onClose, bill, onRefresh, onSubmittingChange })
                 <Button
                     color="primary"
                     onClick={handleSubmit}
-                    disabled={!file || !!fileError || submitting}
+                    disabled={!!fileError || submitting}
                 >
                     {submitting ? <Spinner size="sm" /> : "Save"}
                 </Button>
