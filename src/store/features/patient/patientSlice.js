@@ -22,7 +22,13 @@ import {
   updatePatientAdmission,
   getSopOverview,
 } from "../../../helpers/backend_helper";
-import { setChartAdmission, updateChartAdmission } from "../chart/chartSlice";
+import {
+  setChartAdmission,
+  updateChartAdmission,
+  addAdmissionType,
+  updateAdmissionType,
+  removeChart,
+} from "../chart/chartSlice";
 import { setBillAdmission, updateBillAdmission } from "../bill/billSlice";
 
 const initialState = {
@@ -466,6 +472,30 @@ export const patientSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
+    // Admission Type chart writes land in the chart slice, but the header's
+    // Admission Type card reads the admission from THIS slice — so the timeline
+    // has to be refreshed here too, or the card keeps showing the previous type
+    // until the patient is refetched. The three responses carry the fresh array
+    // (see controllers/chart/admissionType and chart/delete).
+    const syncAdmissionTypeHistory = (state, { payload }) => {
+      const history = payload?.admissionTypeHistory;
+      if (!Array.isArray(history)) return; // other chart kinds send nothing
+      const addmission = state.patient?.addmission;
+      if (!addmission) return;
+      if (
+        payload.addmission &&
+        String(addmission._id) !== String(payload.addmission)
+      ) {
+        return; // response is for a different admission
+      }
+      addmission.admissionTypeHistory = history;
+    };
+
+    builder
+      .addCase(addAdmissionType.fulfilled, syncAdmissionTypeHistory)
+      .addCase(updateAdmissionType.fulfilled, syncAdmissionTypeHistory)
+      .addCase(removeChart.fulfilled, syncAdmissionTypeHistory);
+
     builder
       .addCase(fetchPatients.pending, (state) => {
         state.loading = true;
