@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
 import { CSVLink } from "react-csv";
 import Select from "react-select";
-import { fetchOpdChargesMonthly, fetchDoctorOpdChargesMonthly, fetchDoctorOpdChargesDetail } from "../../../store/features/miReporting/miReportingSlice";
+import { fetchOpdChargesMonthly, fetchDoctorOpdChargesMonthly } from "../../../store/features/miReporting/miReportingSlice";
 
 const headerStyle = {
   border: "1px solid #cfd8e3",
@@ -451,7 +451,8 @@ const OPDCharges = () => {
   useEffect(() => {
     dispatch(fetchOpdChargesMonthly({ centerAccess }));
     dispatch(fetchDoctorOpdChargesMonthly({ centerAccess }));
-    dispatch(fetchDoctorOpdChargesDetail({ centerAccess }));
+    // TODO: will ask devender
+    // dispatch(fetchDoctorOpdChargesDetail({ centerAccess }));
   }, [dispatch, centerAccess]);
 
   const months = React.useMemo(() => {
