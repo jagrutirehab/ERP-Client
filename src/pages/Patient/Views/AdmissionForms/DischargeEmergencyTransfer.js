@@ -109,7 +109,7 @@ const DischargeEmergencyTransfer = ({
       const { morning, evening, night } = med.dosageAndFrequency || {};
       setValue(
         `eht_currMed${row}_medication`,
-        [med.medicine?.name, med.medicine?.strength, med.medicine?.type]
+        [med.medicine?.type, med.medicine?.name, med.medicine?.strength]
           .filter(Boolean)
           .join(" ") || "",
       );
