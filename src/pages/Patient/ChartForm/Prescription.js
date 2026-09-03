@@ -637,7 +637,7 @@ const Prescription = ({
         endDate: isEditMode
           ? med.endDate || getMedicineEndDate(startDate, med)
           : getMedicineEndDate(startDate, med),
-        status: "active",
+        status: isEditMode ? med.status || "active" : "active",
         // Only relevant when editing an existing chart: a medicine is editable
         // only by the person who prescribed it. Carried-forward rows are the
         // current user's own, so they are never locked.
