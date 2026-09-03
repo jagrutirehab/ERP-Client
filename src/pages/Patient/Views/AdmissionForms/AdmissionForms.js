@@ -1904,6 +1904,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                       register={register}
                       admissions={admissions[0]}
                       patient={patient}
+                      chartData={chartData}
+                      setValue={setValue}
                     />
                   </div>
                 )}
