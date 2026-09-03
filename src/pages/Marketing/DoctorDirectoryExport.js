@@ -18,15 +18,19 @@ import {
   getDoctorDirectory,
 } from "../../helpers/backend_helper";
 
-const getInitials = (name = "") =>
-  name
-    .replace(/^dr\.?\s+/i, "")
-    .split(" ")
-    .map((w) => w[0])
-    .filter(Boolean)
-    .join("")
-    .slice(0, 2)
-    .toUpperCase() || "DR";
+const getInitials = (name) => {
+  const safeName = name || "";
+  return (
+    safeName
+      .replace(/^dr\.?\s+/i, "")
+      .split(" ")
+      .map((w) => w[0])
+      .filter(Boolean)
+      .join("")
+      .slice(0, 2)
+      .toUpperCase() || "DR"
+  );
+};
 
 const AVATAR_COLORS = [
   "#3577f1",
@@ -36,8 +40,10 @@ const AVATAR_COLORS = [
   "#299cdb",
   "#7d5fff",
 ];
-const getAvatarColor = (name = "") =>
-  AVATAR_COLORS[name.charCodeAt(0) % AVATAR_COLORS.length || 0];
+const getAvatarColor = (name) => {
+  const safeName = name || "?";
+  return AVATAR_COLORS[safeName.charCodeAt(0) % AVATAR_COLORS.length || 0];
+};
 
 const toISO = (d) => {
   const year = d.getFullYear();

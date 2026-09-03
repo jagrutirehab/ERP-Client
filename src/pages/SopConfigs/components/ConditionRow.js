@@ -18,6 +18,9 @@ import {
   ANY_LAB_TEST_OPTION,
   RELATIVE_DAY_OPERATORS,
   CHANGE_DIRECTION_OPTIONS,
+  CHANGE_COMPARATOR_OPTIONS,
+  CHANGE_UNIT_OPTIONS,
+  CHANGE_PERIOD_UNIT_OPTIONS,
 } from "../../../Components/constants/sopConstants";
 import { getICDCodes, sopGetLabTests } from "../../../helpers/backend_helper";
 
@@ -66,7 +69,7 @@ const ConditionRow = ({
   const isBoolean = fieldType === "Boolean";
   const isFlaggedItems = fieldType === "FlaggedItemArray";
   const isConsecutiveLow = condition.operator?.value === "CONSECUTIVE_LOW";
-  const isChangeSinceFirst = condition.operator?.value === "CHANGE_SINCE_FIRST";
+  const isChangeOverPeriod = condition.operator?.value === "CHANGE_OVER_PERIOD";
   const isDelayed = condition.triggerType?.value === "DELAYED";
   const isFrequency = condition.schedule?.period?.value === "FREQUENCY";
   const hasEnum =
@@ -504,37 +507,129 @@ const ConditionRow = ({
       );
     }
 
-    // CHANGE_SINCE_FIRST: direction + a positive threshold. The threshold is
-    // always entered positive; the direction carries the sign server-side.
-    if (isChangeSinceFirst) {
-      const direction = condition.changeMatch?.direction || "EITHER";
-      const selected =
-        CHANGE_DIRECTION_OPTIONS.find((o) => o.value === direction) ||
-        CHANGE_DIRECTION_OPTIONS[0];
+    // CHANGE_OVER_PERIOD: direction + comparator + unit + period length, then
+    // one or two positive thresholds. Thresholds are always entered positive —
+    // the direction carries the sign server-side.
+    if (isChangeOverPeriod) {
+      const cm = condition.changeMatch || {};
+      const patch = (next) => onChange(idx, "changeMatch", { ...cm, ...next });
+
+      const pick = (options, value, fallbackIdx = 0) =>
+        options.find((o) => o.value === value) || options[fallbackIdx];
+
+      const comparator = cm.comparator || "GREATER_THAN_OR_EQUAL";
+      const isBetween = comparator === "BETWEEN";
+
       return (
         <div>
-          <Select
-            options={CHANGE_DIRECTION_OPTIONS}
-            value={selected}
-            onChange={(o) =>
-              onChange(idx, "changeMatch", { direction: o?.value || "EITHER" })
-            }
-            isDisabled={isDisabled}
-          />
-          <div className="mt-1">
-            <Input
-              type="number"
-              min="0"
-              step="any"
-              placeholder="Change threshold (e.g. 5)"
-              value={condition.value?.[0] ?? ""}
-              onChange={(e) => onChange(idx, "value", [e.target.value])}
-              disabled={isDisabled}
-            />
-          </div>
+          <Row className="g-1">
+            <Col xs={5}>
+              <Select
+                options={CHANGE_DIRECTION_OPTIONS}
+                value={pick(CHANGE_DIRECTION_OPTIONS, cm.direction)}
+                onChange={(o) => patch({ direction: o?.value || "EITHER" })}
+                isDisabled={isDisabled}
+              />
+            </Col>
+            <Col xs={7}>
+              <Select
+                options={CHANGE_COMPARATOR_OPTIONS}
+                value={pick(CHANGE_COMPARATOR_OPTIONS, comparator)}
+                onChange={(o) => {
+                  // Clear the operands so a stale high value can't survive a
+                  // BETWEEN -> single-operand switch.
+                  patch({ comparator: o?.value || "GREATER_THAN_OR_EQUAL" });
+                  onChange(idx, "value", []);
+                }}
+                isDisabled={isDisabled}
+              />
+            </Col>
+          </Row>
+
+          {isBetween ? (
+            <Row className="g-1 mt-1">
+              <Col xs={6}>
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="low"
+                  value={condition.value?.[0] ?? ""}
+                  onChange={(e) =>
+                    onChange(idx, "value", [
+                      e.target.value,
+                      condition.value?.[1] ?? "",
+                    ])
+                  }
+                  disabled={isDisabled}
+                />
+              </Col>
+              <Col xs={6}>
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="high"
+                  value={condition.value?.[1] ?? ""}
+                  onChange={(e) =>
+                    onChange(idx, "value", [
+                      condition.value?.[0] ?? "",
+                      e.target.value,
+                    ])
+                  }
+                  disabled={isDisabled}
+                />
+              </Col>
+            </Row>
+          ) : (
+            <div className="mt-1">
+              <Input
+                type="number"
+                min="0"
+                step="any"
+                placeholder="Amount (e.g. 5)"
+                value={condition.value?.[0] ?? ""}
+                onChange={(e) => onChange(idx, "value", [e.target.value])}
+                disabled={isDisabled}
+              />
+            </div>
+          )}
+
+          <Row className="g-1 mt-1">
+            <Col xs={5}>
+              <Select
+                options={CHANGE_UNIT_OPTIONS}
+                value={pick(CHANGE_UNIT_OPTIONS, cm.unit)}
+                onChange={(o) => patch({ unit: o?.value || "ABSOLUTE" })}
+                isDisabled={isDisabled}
+              />
+            </Col>
+            <Col xs={3}>
+              <Input
+                type="number"
+                min="1"
+                step="1"
+                placeholder="every"
+                value={cm.periodCount ?? ""}
+                onChange={(e) =>
+                  patch({ periodCount: e.target.value.replace(/[^\d]/g, "") })
+                }
+                disabled={isDisabled}
+              />
+            </Col>
+            <Col xs={4}>
+              <Select
+                options={CHANGE_PERIOD_UNIT_OPTIONS}
+                value={pick(CHANGE_PERIOD_UNIT_OPTIONS, cm.periodUnit, 2)}
+                onChange={(o) => patch({ periodUnit: o?.value || "MONTH" })}
+                isDisabled={isDisabled}
+              />
+            </Col>
+          </Row>
+
           <small className="text-muted d-block mt-1">
-            Compares the first and latest reading of the admission — fires when
-            it {selected.label.toLowerCase()} {condition.value?.[0] || "N"}
+            Periods run from the admission date. Each period compares its first
+            and last reading and alerts separately.
           </small>
         </div>
       );
@@ -700,14 +795,22 @@ const ConditionRow = ({
             }
             onChange={(v) => {
               onChange(idx, "operator", v);
-              // Seed the trend side-car when switching to CHANGE_SINCE_FIRST,
+              // Seed the trend side-car when switching to CHANGE_OVER_PERIOD,
               // clear it when switching away, so a stale direction can't ride
               // along on an unrelated operator.
               onChange(
                 idx,
                 "changeMatch",
-                v?.value === "CHANGE_SINCE_FIRST"
-                  ? { direction: condition.changeMatch?.direction || "EITHER" }
+                v?.value === "CHANGE_OVER_PERIOD"
+                  ? {
+                      direction: condition.changeMatch?.direction || "EITHER",
+                      comparator:
+                        condition.changeMatch?.comparator ||
+                        "GREATER_THAN_OR_EQUAL",
+                      unit: condition.changeMatch?.unit || "ABSOLUTE",
+                      periodUnit: condition.changeMatch?.periodUnit || "MONTH",
+                      periodCount: condition.changeMatch?.periodCount || 1,
+                    }
                   : null,
               );
             }}

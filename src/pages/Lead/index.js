@@ -250,7 +250,7 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
                       </RenderWhen>
 
                       <div className="list-grid-nav hstack gap-1">
-                        <CSVLink
+                        {/* <CSVLink
                           data={documents() || []}
                           title="CSV Download"
                           filename={"leads.csv"}
@@ -258,7 +258,7 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
                           className="btn btn-info px-2 ms-3"
                         >
                           <i className="ri-file-paper-2-line text-light text-decoration-none"></i>
-                        </CSVLink>
+                        </CSVLink> */}
                       </div>
                     </Col>
                   </Row>
