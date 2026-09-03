@@ -728,6 +728,12 @@ export const UPLOAD_ECT_CONSENT_FORM = "/patient/ect-consent-upload-file";
 // upload file
 export const UPLOAD_FILE = "/upload";
 
+// UTILITIES
+export const UPLOAD_UTILITY_BILL = "/utilities/upload-bill";
+export const GET_UTILITY_BILLS = "/utilities/bills";
+export const UPDATE_UTILITY_BILL = (id) => `/utilities/bills/${id}`;
+export const DELETE_UTILITY_BILL = (id) => `/utilities/bills/${id}`;
+
 // TALLY
 export const POST_TALLY_SEND = "/tally/send";
 export const GET_TALLY_ACTIVE_SESSION = "/tally/send/active";
