@@ -4,10 +4,15 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { listMyDrafts, discardDraft } from "../../../helpers/backend_helper";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const MyDrafts = () => {
   const navigate = useNavigate();
   const handleAuthError = useAuthError();
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const { hasPermission } = usePermissions(token);
+  const canContinue = hasPermission("MARKETING", "VIEW_MY_DRAFTS", "WRITE");
+  const canDiscard = hasPermission("MARKETING", "VIEW_MY_DRAFTS", "DELETE");
   const [drafts, setDrafts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -142,39 +147,45 @@ const MyDrafts = () => {
                             >
                               Cancel
                             </Button>
-                            <Button
-                              size="sm"
-                              color="danger"
-                              onClick={() => handleDiscard(draft._id)}
-                              disabled={discardingId === draft._id}
-                            >
-                              {discardingId === draft._id
-                                ? "Discarding…"
-                                : "Confirm Discard"}
-                            </Button>
+                            {canDiscard && (
+                              <Button
+                                size="sm"
+                                color="danger"
+                                onClick={() => handleDiscard(draft._id)}
+                                disabled={discardingId === draft._id}
+                              >
+                                {discardingId === draft._id
+                                  ? "Discarding…"
+                                  : "Confirm Discard"}
+                              </Button>
+                            )}
                           </>
                         ) : (
                           <>
-                            <Button
-                              size="sm"
-                              color="light"
-                              outline
-                              className="text-danger border-danger"
-                              onClick={() => setConfirmId(draft._id)}
-                            >
-                              Discard
-                            </Button>
-                            <Button
-                              size="sm"
-                              style={{
-                                backgroundColor: "#1e90ff",
-                                color: "#fff",
-                                border: "none",
-                              }}
-                              onClick={() => handleContinue(draft)}
-                            >
-                              Continue
-                            </Button>
+                            {canDiscard && (
+                              <Button
+                                size="sm"
+                                color="light"
+                                outline
+                                className="text-danger border-danger"
+                                onClick={() => setConfirmId(draft._id)}
+                              >
+                                Discard
+                              </Button>
+                            )}
+                            {canContinue && (
+                              <Button
+                                size="sm"
+                                style={{
+                                  backgroundColor: "#1e90ff",
+                                  color: "#fff",
+                                  border: "none",
+                                }}
+                                onClick={() => handleContinue(draft)}
+                              >
+                                Continue
+                              </Button>
+                            )}
                           </>
                         )}
                       </div>
