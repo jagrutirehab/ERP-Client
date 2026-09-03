@@ -100,8 +100,17 @@ const hydrateCondition = (c) => ({
   // so only treat the side-car as present when the operator actually uses it —
   // otherwise an unrelated condition would hydrate a stray direction.
   changeMatch:
-    c.operator === "CHANGE_SINCE_FIRST"
-      ? { direction: c.changeMatch?.direction || "EITHER" }
+    c.operator === "CHANGE_OVER_PERIOD"
+      ? {
+          direction: c.changeMatch?.direction || "EITHER",
+          comparator: c.changeMatch?.comparator || "GREATER_THAN_OR_EQUAL",
+          unit: c.changeMatch?.unit || "ABSOLUTE",
+          periodUnit: c.changeMatch?.periodUnit || "MONTH",
+          periodCount:
+            c.changeMatch?.periodCount != null
+              ? String(c.changeMatch.periodCount)
+              : "1",
+        }
       : null,
   // Treat the gate as "on" only when it carries at least one criterion. Mongoose
   // initializes `discontinueGate` to `{ criteria: [] }` on every saved condition
@@ -512,11 +521,16 @@ const SOPForm = ({
       };
     }
 
-    // CHANGE_SINCE_FIRST carries the direction in changeMatch. The threshold
-    // stays in value[0] and is always positive — direction carries the sign.
-    if (c.operator?.value === "CHANGE_SINCE_FIRST") {
+    // CHANGE_OVER_PERIOD carries direction/comparator/unit and the period
+    // length in changeMatch. Thresholds stay in value[0] (and value[1] for
+    // BETWEEN) and are always positive — direction carries the sign.
+    if (c.operator?.value === "CHANGE_OVER_PERIOD") {
       out.changeMatch = {
         direction: c.changeMatch?.direction || "EITHER",
+        comparator: c.changeMatch?.comparator || "GREATER_THAN_OR_EQUAL",
+        unit: c.changeMatch?.unit || "ABSOLUTE",
+        periodUnit: c.changeMatch?.periodUnit || "MONTH",
+        periodCount: Number(c.changeMatch?.periodCount) || 1,
       };
     }
 
@@ -583,18 +597,27 @@ const SOPForm = ({
             bErr.conditions[cIdx] = "Consecutive count must be >= 1";
             hasTargetErrors = true;
           }
-        } else if (c.operator?.value === "CHANGE_SINCE_FIRST") {
-          // Threshold is always positive — the direction carries the sign.
-          const threshold = Number(c.value?.[0]);
-          if (!Number.isFinite(threshold) || threshold <= 0) {
-            bErr.conditions[cIdx] = "Enter a positive change threshold";
+        } else if (c.operator?.value === "CHANGE_OVER_PERIOD") {
+          // Thresholds are always positive — the direction carries the sign.
+          const low = Number(c.value?.[0]);
+          const count = Number(c.changeMatch?.periodCount);
+          if (!Number.isFinite(low) || low <= 0) {
+            bErr.conditions[cIdx] = "Enter a positive change amount";
             hasTargetErrors = true;
-          } else if (
-            !["GAIN", "LOSS", "EITHER"].includes(
-              c.changeMatch?.direction || "EITHER",
-            )
-          ) {
-            bErr.conditions[cIdx] = "Pick a change direction";
+          } else if (c.changeMatch?.comparator === "BETWEEN") {
+            // Checked explicitly: the flagged-items editor only validates the
+            // low operand, so an empty high field reaches the server.
+            const high = Number(c.value?.[1]);
+            if (!Number.isFinite(high)) {
+              bErr.conditions[cIdx] = "Enter both ends of the range";
+              hasTargetErrors = true;
+            } else if (low > high) {
+              bErr.conditions[cIdx] = "Range low must be ≤ high";
+              hasTargetErrors = true;
+            }
+          }
+          if (!hasTargetErrors && (!Number.isInteger(count) || count < 1)) {
+            bErr.conditions[cIdx] = "Period must be a whole number ≥ 1";
             hasTargetErrors = true;
           }
         } else if (

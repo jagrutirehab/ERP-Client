@@ -70,17 +70,42 @@ export const OPERATOR_OPTIONS = [
   // Streak-based operator for discontinuation rules. Fires when the last N
   // assessments all score below the threshold.
   { value: "CONSECUTIVE_LOW", label: "Consecutive low (discontinue)" },
-  // Trend operator. Compares the first and latest reading of the admission and
-  // fires when the change reaches the threshold in the chosen direction.
-  { value: "CHANGE_SINCE_FIRST", label: "Changed since first (trend)" },
+  // Trend operator. Splits the admission into successive periods counted from
+  // the admission date and compares the first and last reading in each.
+  { value: "CHANGE_OVER_PERIOD", label: "Changed over period (trend)" },
 ];
 
-// Direction for CHANGE_SINCE_FIRST. The threshold is always entered as a
-// positive number; the direction carries the sign.
+// --- CHANGE_OVER_PERIOD side-car options -------------------------------------
+// The threshold is always entered as a positive number; `direction` carries the
+// sign and `comparator` is applied to the magnitude of the change.
+
 export const CHANGE_DIRECTION_OPTIONS = [
-  { value: "EITHER", label: "Changed by (\u2265)" },
-  { value: "GAIN", label: "Increased by (\u2265)" },
-  { value: "LOSS", label: "Decreased by (\u2265)" },
+  { value: "EITHER", label: "Changed" },
+  { value: "GAIN", label: "Increased" },
+  { value: "LOSS", label: "Decreased" },
+];
+
+export const CHANGE_COMPARATOR_OPTIONS = [
+  { value: "GREATER_THAN_OR_EQUAL", label: "by at least (\u2265)" },
+  { value: "GREATER_THAN", label: "by more than (>)" },
+  { value: "LESS_THAN_OR_EQUAL", label: "by at most (\u2264)" },
+  { value: "LESS_THAN", label: "by less than (<)" },
+  { value: "BETWEEN", label: "by between" },
+];
+
+// ABSOLUTE compares the raw change (kg for weight); PERCENT compares it against
+// the period's first reading.
+export const CHANGE_UNIT_OPTIONS = [
+  { value: "ABSOLUTE", label: "kg / units" },
+  { value: "PERCENT", label: "%" },
+];
+
+// Period length unit. Mirrors PER_DAYS on the server ({ DAY:1, WEEK:7,
+// MONTH:30 }) — keep the two in step.
+export const CHANGE_PERIOD_UNIT_OPTIONS = [
+  { value: "DAY", label: "day(s)" },
+  { value: "WEEK", label: "week(s)" },
+  { value: "MONTH", label: "month(s)" },
 ];
 
 // Operators whose value editor is a plain number of days against a Date field.
@@ -95,7 +120,7 @@ export const OPERATORS_BY_TYPE = {
     "EQUALS",
     "NOT_EQUALS",
     "CONSECUTIVE_LOW",
-    "CHANGE_SINCE_FIRST",
+    "CHANGE_OVER_PERIOD",
   ],
   Date: [
     "GREATER_THAN",
@@ -204,7 +229,8 @@ export const emptyConditionItem = () => ({
   // Populated only when operator is CONSECUTIVE_LOW (discontinuation rules).
   // count = how many consecutive assessments must score below the threshold.
   consecutiveMatch: null,
-  // Populated only when operator is CHANGE_SINCE_FIRST — { direction }.
+  // Populated only when operator is CHANGE_OVER_PERIOD —
+  // { direction, comparator, unit, periodUnit, periodCount }.
   changeMatch: null,
   // Optional discontinue-gate for DELAYED cadence ("missing assessment")
   // conditions — { count, criteria: [{ field, threshold }] }. Null = off.

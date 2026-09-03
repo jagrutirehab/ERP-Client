@@ -980,7 +980,7 @@ const Prescription = ({
               </>
             )}
             {(isIPD
-              ? !isEditMode && patient?._id
+              ? patient?._id
               : opdPatientId) && (
               <Col xs={12}>
                 <CurrentMedicinesPanel

@@ -6,6 +6,9 @@ import { CSVLink } from "react-csv";
 import { fetchMIAttendance } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
 
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const pad2 = (n) => String(n).padStart(2, "0");
+
 const MONTH_OPTIONS = [
     { value: "CURRENT", label: "Current Month" },
     { value: "LAST", label: "Last Month" },
@@ -71,8 +74,8 @@ const Attendance = () => {
         for (let i = 1; i <= 60; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
-            const key = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
-            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).replace(/ /g, "-");
+            const key = `${pad2(d.getDate())}-${MONTH_ABBR[d.getMonth()]}-${d.getFullYear()}`;
+            const label = `${pad2(d.getDate())}-${MONTH_ABBR[d.getMonth()]}`;
             days.push({ key, label });
         }
         return days;

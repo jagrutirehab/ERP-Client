@@ -515,10 +515,6 @@ const Wrapper = ({
                         Print
                       </DropdownItem>
                     </RenderWhen>
-                    {/* Edit is temporarily hidden on prescription cards
-                        (hideEdit) — medicines are revised by writing a new
-                        prescription via "Add to Carry Forward" instead.
-                        Remove the hideEdit prop to restore it. */}
                     {hideEdit ||
                     (disableEdit && user.email !== "owais@gmail.com") ||
                     item?.bill === WRITE_OFF ||
