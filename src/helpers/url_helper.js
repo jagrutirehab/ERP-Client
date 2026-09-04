@@ -860,6 +860,8 @@ export const GET_ITEM_MASTERS = ITEM_MASTER_BASE;
 export const GET_UOMS = "/master/uom";
 export const UOM_BASE = "/master/uom";
 
+export const PAYMENT_TERM_BASE = "/master/payment-term";
+
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
 
 export const DOC_INPUT_POST = "/hr/doc/post";

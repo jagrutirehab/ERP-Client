@@ -275,7 +275,6 @@ const pages = [
       edit: true,
       delete: true,
     },
-    
   },
   {
     id: "booking",
@@ -1561,18 +1560,18 @@ export const MASTER_DATA = [
   //   link: "/master-data/customer",
   //   icon: "bx bx-user",
   // },
-{
+  {
     id: "masterdata-uom",
     label: "Unit of Measurements",
     link: "/vendor-management/uom",
     icon: "bx bx-ruler",
   },
-  // {
-  //   id: "masterdata-payment-term",
-  //   label: "Payment Terms",
-  //   link: "/master-data/payment-term",
-  //   icon: "bx bx-credit-card",
-  // },
+  {
+    id: "masterdata-payment-term",
+    label: "Payment Terms",
+    link: "/vendor-management/payment-term",
+    icon: "bx bx-credit-card",
+  },
   // {
   //   id: "masterdata-delivery-partner",
   //   label: "Delivery Partners",

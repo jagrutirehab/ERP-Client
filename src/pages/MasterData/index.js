@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar";
 import Vendor from "./Vendor";
 import Items from "./Items";
 import UnitOfMeasurement from "./UnitOfMeasurement";
+import PaymentTerm from "./PaymentTerm";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import "./masterData.scss";
@@ -50,6 +51,7 @@ const MasterData = () => {
               <Route path="vendor/*" element={<Vendor />} />
               <Route path="item/*" element={<Items />} />
               <Route path="uom/*" element={<UnitOfMeasurement />} />
+              <Route path="payment-term/*" element={<PaymentTerm />} />
             </Routes>
           </div>
         </div>

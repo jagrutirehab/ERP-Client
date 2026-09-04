@@ -551,6 +551,11 @@ export const permissionList = [
       { name: "UOM_CREATE", label: "Create Unit of Measurement" },
       { name: "UOM_EDIT", label: "Edit Unit of Measurement" },
       { name: "UOM_DELETE", label: "Delete Unit of Measurement" },
+      
+      { name: "PAYMENT_TERM_VIEW", label: "View Payment Terms" },
+      { name: "PAYMENT_TERM_CREATE", label: "Create Payment Term" },
+      { name: "PAYMENT_TERM_EDIT", label: "Edit Payment Term" },
+      { name: "PAYMENT_TERM_DELETE", label: "Delete Payment Term" },
     ],
   },
 ];

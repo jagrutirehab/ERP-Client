@@ -5,6 +5,7 @@ import {
   updateVendor,
   getVendorById,
   uploadVendorDocument,
+  getPaymentTerms,
 } from "../../../helpers/backend_helper";
 import { Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
 import { useFormik } from "formik";
@@ -158,15 +159,6 @@ const COUNTRIES = [
   "United States",
   "Vietnam",
   "Zimbabwe",
-];
-
-const PAYMENT_TERMS = [
-  { value: "advance_0", label: "Advance (0 days)" },
-  { value: "net_15", label: "Net (15 days)" },
-  { value: "net_30", label: "Net (30 days)" },
-  { value: "net_45", label: "Net (45 days)" },
-  { value: "net_60", label: "Net (60 days)" },
-  { value: "cod_0", label: "COD (0 days)" },
 ];
 
 const DOC_TYPES = [
@@ -598,6 +590,14 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
     fetchVendor();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vendorId]);
+
+  const [paymentTermOptions, setPaymentTermOptions] = useState([]);
+
+  useEffect(() => {
+    getPaymentTerms({ status: "active" })
+      .then((res) => setPaymentTermOptions(res?.data || []))
+      .catch(() => {});
+  }, []);
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -2078,14 +2078,14 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     <Label>Payment terms</Label>
                     <Input
                       type="select"
-                      name="paymentTerms"
-                      value={v.paymentTerms}
+                      name="paymentTermId"
+                      value={v.paymentTermId}
                       onChange={validation.handleChange}
                     >
                       <option value="">Select terms</option>
-                      {PAYMENT_TERMS.map((p) => (
-                        <option key={p.value} value={p.value}>
-                          {p.label}
+                      {paymentTermOptions.map((p) => (
+                        <option key={p._id} value={p._id}>
+                          {p.code} ({p.dueDays} day{p.dueDays === 1 ? "" : "s"})
                         </option>
                       ))}
                     </Input>

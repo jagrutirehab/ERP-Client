@@ -485,8 +485,8 @@ export const getCharts = (data) => {
 export const getLatestCharts = ({ patient, limit, chartType, type }) =>
   api.get(
     `${url.GET_LATEST_CHARTS}?patient=${patient}&limit=${limit}` +
-    `${chartType ? `&chartType=${chartType}` : ""}` +
-    `${type ? `&type=${type}` : ""}`,
+      `${chartType ? `&chartType=${chartType}` : ""}` +
+      `${type ? `&type=${type}` : ""}`,
   );
 export const getGeneralCharts = (data) => api.get(url.GET_GENERAL_CHARTS, data);
 export const postPrescription = (data) =>
@@ -497,7 +497,10 @@ export const postGeneralPrescription = (data) =>
 export const editGeneralPrescription = (data) =>
   api.put(url.EDIT_GENERAL_PRESCRIPTION, data);
 export const getCurrentMedicines = (patientId, type) =>
-  api.get(`${url.GET_CURRENT_MEDICINES}/${patientId}`, type ? { type } : undefined);
+  api.get(
+    `${url.GET_CURRENT_MEDICINES}/${patientId}`,
+    type ? { type } : undefined,
+  );
 export const updateMedicineEntry = (prescriptionId, medicineId, data) =>
   api.update(
     `${url.UPDATE_MEDICINE_ENTRY}/${prescriptionId}/medicine/${medicineId}`,
@@ -1203,7 +1206,7 @@ export const getActivitiesByStatus = ({
 export const getDailyMedicationRecord = ({ patientId, date }) =>
   api.get(
     `${url.GET_DAILY_MEDICATION_RECORD}?patientId=${patientId}` +
-    `${date ? `&date=${date}` : ""}`,
+      `${date ? `&date=${date}` : ""}`,
   );
 
 export const getPrescriptionHistory = (patientId) => {
@@ -5118,3 +5121,31 @@ export const listMyDrafts = () =>
   axios.get(`${url.GET_VISIT_LOGS}/drafts`, {
     headers: { "X-No-Cookie-Token": "true" },
   });
+export const getPaymentTerms = (params = {}) => {
+  return axios.get(url.PAYMENT_TERM_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createPaymentTerm = (data) => {
+  return axios.post(url.PAYMENT_TERM_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updatePaymentTerm = (id, data) => {
+  return axios.put(`${url.PAYMENT_TERM_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updatePaymentTermStatus = (id, status) => {
+  return axios.patch(
+    `${url.PAYMENT_TERM_BASE}/${id}/status`,
+    { status },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const deletePaymentTerm = (id) => {
+  return axios.delete(`${url.PAYMENT_TERM_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
