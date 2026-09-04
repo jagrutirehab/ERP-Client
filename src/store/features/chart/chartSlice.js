@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
+  setRamsayApplicable as setRamsayApplicableApi,
   deleteChart,
   deleteClinicalNoteFile,
   deleteCounsellingNoteFile,
@@ -372,6 +373,25 @@ export const updateVitalSign = createAsyncThunk(
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+// Ramsay applicability, toggled from the IPD admission card.
+//
+// Lives in THIS slice, not patientSlice, because IPD.js renders admissions from
+// `state.Chart.data` — patching anywhere else leaves the checkbox showing the
+// old value until the next fetch. (That is exactly the flaw the Patient Category
+// dropdown next to it has: assignEmergencyPatientType writes to
+// state.Patient.patient.addmission, which IPD.js never reads.)
+export const setAdmissionRamsayApplicable = createAsyncThunk(
+  "setRamsayApplicable",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      return await setRamsayApplicableApi(data);
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error.message || "Failed to update Ramsay applicability");
     }
   },
 );
@@ -1973,6 +1993,15 @@ export const chartSlice = createSlice({
     builder
       .addCase(addAdmissionType.pending, (state) => {
         state.loading = true;
+      })
+      .addCase(setAdmissionRamsayApplicable.fulfilled, (state, { payload }) => {
+        // IPD.js reads this array, so patch it here or the checkbox reverts on
+        // the next render.
+        const id = payload?.data?._id;
+        if (!id) return;
+        const idx = state.data.findIndex((el) => String(el._id) === String(id));
+        if (idx === -1) return;
+        state.data[idx].isRamsayApplicable = payload.data.isRamsayApplicable;
       })
       .addCase(addAdmissionType.fulfilled, (state, { payload }) => {
         state.loading = false;
