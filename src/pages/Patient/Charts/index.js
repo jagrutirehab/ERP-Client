@@ -422,8 +422,8 @@ const Charts = ({
                     <Prescription
                       data={chart?.prescription}
                       baseDate={chart?.date || chart?.createdAt}
-                      showDates={chart?.type === "IPD"}
-                      showOwner={chart?.type === "IPD"}
+                      showDates={["IPD", "OPD", "GENERAL"].includes(chart?.type)}
+                      showOwner={["IPD", "OPD", "GENERAL"].includes(chart?.type)}
                       currentUserId={getCurrentUserId()}
                       fallbackPrescriber={chart?.author}
                     />
