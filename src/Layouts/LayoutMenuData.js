@@ -40,6 +40,7 @@ const Navdata = () => {
       "pharmacy",
       "masterdata",
       "training",
+      "utilities",
       "guidelines",
       "hr",
       "audit",

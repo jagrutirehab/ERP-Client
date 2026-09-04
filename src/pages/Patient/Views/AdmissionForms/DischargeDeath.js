@@ -78,6 +78,8 @@ const DischargeDeath = ({ register, patient, admissions }) => {
     setToday(new Date().toISOString().split("T")[0]);
   }, []);
 
+  console.log("patient", patient);
+
   return (
     <div style={pageContainer}>
       <style>{`
@@ -239,7 +241,7 @@ const DischargeDeath = ({ register, patient, admissions }) => {
         <span>Centre:</span>
         <input
           type="text"
-          defaultValue="Jagruti Rehabilitation Centre"
+          value={patient?.center?.title || "Jagruti Rehabilitation Centre"}
           {...register("death_centre")}
           style={{ ...inputLine, maxWidth: "200px" }}
         />

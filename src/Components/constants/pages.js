@@ -275,7 +275,6 @@ const pages = [
       edit: true,
       delete: true,
     },
-    
   },
   {
     id: "booking",
@@ -328,6 +327,13 @@ const pages = [
     name: "Trainings",
     link: "/trainings",
     icon: "bx bx-book-reader",
+  },
+  {
+    id: "utilities",
+    label: "Utilities",
+    name: "Utilities",
+    link: "/utilities",
+    icon: "bx bx-receipt",
   },
   {
     id: "guidelines",
@@ -1542,6 +1548,20 @@ export const TRAININGS = [
     icon: "bx bx-spreadsheet",
   },
 ];
+export const UTILITIES = [
+  {
+    id: "upload-bill",
+    label: "Upload Electricity Bill",
+    link: "/utilities/upload-bill",
+    icon: "bx bx-cloud-upload",
+  },
+  {
+    id: "reports",
+    label: "Reports",
+    link: "/utilities/reports",
+    icon: "bx bxs-report",
+  },
+];
 export const MASTER_DATA = [
   {
     id: "masterdata-vendor",
@@ -1561,7 +1581,7 @@ export const MASTER_DATA = [
   //   link: "/master-data/customer",
   //   icon: "bx bx-user",
   // },
-{
+  {
     id: "masterdata-uom",
     label: "Unit of Measurements",
     link: "/vendor-management/uom",

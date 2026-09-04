@@ -236,6 +236,13 @@ const Prescription = ({
   const carryForwardMedicines = React.useMemo(() => {
     const byDrug = new Map();
 
+    const drugKey = (drug) =>
+      drug?._id
+        ? `id:${String(drug._id)}`
+        : `key:${[drug?.name, drug?.strength, drug?.unit]
+            .map((v) => String(v || "").trim().toLowerCase())
+            .join("|")}`;
+
     [...(carryForwardCharts || [])]
       .sort(
         (a, b) =>
@@ -245,14 +252,7 @@ const Prescription = ({
         (chart?.prescription?.medicines || [])
           .filter((med) => med.status !== "discontinued")
           .forEach((med) => {
-            const key = [
-              med.medicine?.name,
-              med.medicine?.strength,
-              med.medicine?.unit,
-            ]
-              .map((v) => String(v || "").trim().toLowerCase())
-              .join("|");
-            byDrug.set(key, med);
+            byDrug.set(drugKey(med.medicine), med);
           });
       });
 
@@ -637,7 +637,7 @@ const Prescription = ({
         endDate: isEditMode
           ? med.endDate || getMedicineEndDate(startDate, med)
           : getMedicineEndDate(startDate, med),
-        status: "active",
+        status: isEditMode ? med.status || "active" : "active",
         // Only relevant when editing an existing chart: a medicine is editable
         // only by the person who prescribed it. Carried-forward rows are the
         // current user's own, so they are never locked.
@@ -980,7 +980,7 @@ const Prescription = ({
               </>
             )}
             {(isIPD
-              ? !isEditMode && patient?._id
+              ? patient?._id
               : opdPatientId) && (
               <Col xs={12}>
                 <CurrentMedicinesPanel

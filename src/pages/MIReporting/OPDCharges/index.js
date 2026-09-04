@@ -235,14 +235,214 @@ const DoctorOpdChargesTable = ({ data, loading, error }) => {
   );
 };
 
+const formatColumnLabel = (key) =>
+  key
+    .replace(/_/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+
+const formatCellValue = (key, value) => {
+  if (value === null || value === undefined) return "";
+  if (/date/i.test(key)) {
+    const d = new Date(value);
+    if (!isNaN(d)) {
+      return d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
+    }
+  }
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
+};
+
+const currentMonthLabel = new Date().toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+
+const DoctorOpdChargesDetailTable = ({ data, optionsData, loading, error }) => {
+  const [csvData, setCsvData] = useState([]);
+  const [csvLoading, setCsvLoading] = useState(false);
+  const csvRef = useRef();
+
+  const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthLabel);
+  const [selectedDoctor, setSelectedDoctor] = useState("ALL");
+
+  const rows = React.useMemo(() => data || [], [data]);
+  const optionRows = React.useMemo(() => optionsData || [], [optionsData]);
+
+  const columns = React.useMemo(() => {
+    if (rows.length === 0) return [];
+    return Object.keys(rows[0]).filter((k) => !k.startsWith("_"));
+  }, [rows]);
+
+  const centerOptions = React.useMemo(() => [
+    { value: "ALL", label: "All Centers" },
+    ...[...new Set(optionRows.map((item) => item.center_name))].filter(Boolean).sort().map((center) => ({
+      value: center,
+      label: center,
+    })),
+  ], [optionRows]);
+
+  const monthOptions = React.useMemo(() => [
+    { value: "ALL", label: "All Months" },
+    ...[...new Set(optionRows.map((item) => item.month))].filter(Boolean).sort(
+      (a, b) => new Date(b) - new Date(a)
+    ).map((month) => ({ value: month, label: month })),
+  ], [optionRows]);
+
+  const doctorOptions = React.useMemo(() => [
+    { value: "ALL", label: "All Doctors" },
+    ...[...new Set(
+      optionRows
+        .filter((item) => selectedCenter === "ALL" || item.center_name === selectedCenter)
+        .map((item) => item.doctor_name)
+    )].filter(Boolean).sort().map((doctor) => ({
+      value: doctor,
+      label: doctor,
+    })),
+  ], [optionRows, selectedCenter]);
+
+  useEffect(() => {
+    if (selectedDoctor === "ALL") return;
+    if (!doctorOptions.some((o) => o.value === selectedDoctor)) {
+      setSelectedDoctor("ALL");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [doctorOptions]);
+
+  const filteredRows = React.useMemo(() => {
+    return rows.filter((item) => {
+      if (selectedCenter !== "ALL" && item.center_name !== selectedCenter) return false;
+      if (selectedMonth !== "ALL" && item.month !== selectedMonth) return false;
+      if (selectedDoctor !== "ALL" && item.doctor_name !== selectedDoctor) return false;
+      return true;
+    });
+  }, [rows, selectedCenter, selectedMonth, selectedDoctor]);
+
+  const csvHeaders = React.useMemo(
+    () => columns.map((key) => ({ label: formatColumnLabel(key), key })),
+    [columns]
+  );
+
+  const prepareCsvData = () => {
+    setCsvLoading(true);
+    setCsvData(filteredRows);
+    setTimeout(() => {
+      csvRef.current.link.click();
+      setCsvLoading(false);
+    }, 100);
+  };
+
+  return (
+    <div className="mt-4">
+      <div className="d-flex align-items-center justify-content-between mb-2">
+        <h6 className="mb-0">Doctor OPD Charges Detail</h6>
+        <Button
+          color="info"
+          size="sm"
+          onClick={prepareCsvData}
+          disabled={csvLoading || loading || filteredRows.length === 0}
+        >
+          {csvLoading ? "Preparing CSV..." : "Export CSV"}
+        </Button>
+        <CSVLink
+          data={csvData || []}
+          filename="doctor-opd-charges-detail.csv"
+          headers={csvHeaders}
+          className="d-none"
+          ref={csvRef}
+        />
+      </div>
+
+      <Row className="g-2 align-items-center mb-3">
+        <Col xs="auto">
+          <Select
+            value={centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]}
+            onChange={(opt) => setSelectedCenter(opt.value)}
+            options={centerOptions}
+            placeholder="Center..."
+            styles={{ container: (b) => ({ ...b, minWidth: 200 }) }}
+          />
+        </Col>
+        <Col xs="auto">
+          <Select
+            value={monthOptions.find((o) => o.value === selectedMonth) || monthOptions[0]}
+            onChange={(opt) => setSelectedMonth(opt.value)}
+            options={monthOptions}
+            placeholder="Month..."
+            styles={{ container: (b) => ({ ...b, minWidth: 160 }) }}
+          />
+        </Col>
+        <Col xs="auto">
+          <Select
+            value={doctorOptions.find((o) => o.value === selectedDoctor) || doctorOptions[0]}
+            onChange={(opt) => setSelectedDoctor(opt.value)}
+            options={doctorOptions}
+            placeholder="Doctor..."
+            styles={{ container: (b) => ({ ...b, minWidth: 200 }) }}
+          />
+        </Col>
+      </Row>
+
+      <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10, width: "100%" }}>
+        <CardBody className="p-0">
+          {loading && (
+            <div className="text-center py-4">
+              <Spinner color="primary" />
+              <p className="mt-2 text-muted mb-0">Loading data...</p>
+            </div>
+          )}
+
+          {error && !loading && <Alert color="danger" className="m-3">{error}</Alert>}
+
+          {!loading && !error && (
+            <div className="shadow-sm bg-white" style={{ borderRadius: 10, overflow: "auto", maxHeight: "70vh" }}>
+              <Table
+                className="mb-0"
+                style={{ borderCollapse: "collapse", fontSize: "0.7rem", width: "max-content" }}
+              >
+                <thead>
+                  <tr>
+                    {columns.map((key) => (
+                      <th key={key} className="text-center fw-bold px-1 py-1" style={{ ...headerStyle, minWidth: 110 }}>
+                        {formatColumnLabel(key)}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredRows.length > 0 ? (
+                    filteredRows.map((row, idx) => (
+                      <tr key={row._id ?? idx}>
+                        {columns.map((key) => (
+                          <td key={key} className="text-center px-1 py-1" style={cellStyle(idx)}>
+                            {formatCellValue(key, row[key])}
+                          </td>
+                        ))}
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={columns.length || 1} className="text-center text-muted py-4" style={{ border: "1px solid #d6dde8" }}>
+                        No data available
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </Table>
+            </div>
+          )}
+        </CardBody>
+      </Card>
+    </div>
+  );
+};
+
 const OPDCharges = () => {
   const dispatch = useDispatch();
-  const { opdChargesMonthly, doctorOpdChargesMonthly, loading, error } = useSelector(
+  const { opdChargesMonthly, doctorOpdChargesMonthly, doctorOpdChargesDetail, loading, error } = useSelector(
     (state) => state.MIReporting
   );
   const centerAccess = useSelector((state) => state.User?.centerAccess || []);
   const data = opdChargesMonthly?.data;
   const doctorData = doctorOpdChargesMonthly?.data;
+  const doctorDetailData = doctorOpdChargesDetail?.data;
 
   const [csvData, setCsvData] = useState([]);
   const [csvLoading, setCsvLoading] = useState(false);
@@ -251,6 +451,8 @@ const OPDCharges = () => {
   useEffect(() => {
     dispatch(fetchOpdChargesMonthly({ centerAccess }));
     dispatch(fetchDoctorOpdChargesMonthly({ centerAccess }));
+    // TODO: will ask devender
+    // dispatch(fetchDoctorOpdChargesDetail({ centerAccess }));
   }, [dispatch, centerAccess]);
 
   const months = React.useMemo(() => {
@@ -427,6 +629,8 @@ const OPDCharges = () => {
         )}
 
         <DoctorOpdChargesTable data={doctorData} loading={loading} error={error} />
+
+        <DoctorOpdChargesDetailTable data={doctorDetailData} optionsData={doctorData} loading={loading} error={error} />
       </div>
     </div>
   );

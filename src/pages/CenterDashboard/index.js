@@ -7,8 +7,17 @@ import { usePermissions } from "../../Components/Hooks/useRoles";
 import { fetchCenterDashboardLive } from "../../store/features/centerDashboard/centerDashboardSlice";
 
 const REFRESH_INTERVAL_MS = 15 * 60 * 1000;
-const MAX_HISTORY = 30;
 const ACCENT = "#34d399";
+
+const sumSeries = (arrays) => {
+    const reversed = arrays.map((a) => [...(a || [])].reverse());
+    const maxLen = Math.max(0, ...reversed.map((a) => a.length));
+    const out = [];
+    for (let i = 0; i < maxLen; i++) {
+        out.push(reversed.reduce((s, a) => s + (Number(a[i]) || 0), 0));
+    }
+    return out.reverse();
+};
 
 const selectLightStyles = {
     control: (base, state) => ({
@@ -156,7 +165,6 @@ const CenterDashboard = () => {
 
     const [now, setNow] = useState(new Date());
     const [selectedKey, setSelectedKey] = useState("ALL");
-    const [history, setHistory] = useState({});
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -193,34 +201,6 @@ const CenterDashboard = () => {
         [data, centerAccess]
     );
 
-    useEffect(() => {
-        if (centers.length === 0) return;
-        setHistory((prev) => {
-            const next = { ...prev };
-            const pushPoint = (key, admitted, discharged, counselling) => {
-                const existing = next[key] || { admitted: [], discharged: [], counselling: [] };
-                next[key] = {
-                    admitted: [...existing.admitted, admitted].slice(-MAX_HISTORY),
-                    discharged: [...existing.discharged, discharged].slice(-MAX_HISTORY),
-                    counselling: [...existing.counselling, counselling].slice(-MAX_HISTORY),
-                };
-            };
-            let totalAdmitted = 0, totalDischarged = 0, totalCounselling = 0;
-            centers.forEach((center) => {
-                const admitted = Number(center.admitted_patients) || 0;
-                const discharged = Number(center.discharged_patients) || 0;
-                const counselling = Number(center.counselling_sessions_count) || 0;
-                pushPoint(center.center_name, admitted, discharged, counselling);
-                totalAdmitted += admitted;
-                totalDischarged += discharged;
-                totalCounselling += counselling;
-            });
-            pushPoint("ALL", totalAdmitted, totalDischarged, totalCounselling);
-            return next;
-        });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [centers]);
-
     const centerOptions = useMemo(() => [
         { value: "ALL", label: "All Centers" },
         ...centers.map((c) => ({ value: c.center_name, label: c.center_name })),
@@ -238,7 +218,7 @@ const CenterDashboard = () => {
         if (centers.length === 0) return null;
         if (selectedKey === "ALL") {
             const sum = (field) => centers.reduce((s, c) => s + (Number(c[field]) || 0), 0);
-            const avgYears = centers.reduce((s, c) => s + (Number(c.years_of_service) || 0), 0) / centers.length;
+            const maxYears = Math.max(...centers.map((c) => Number(c.years_of_service) || 0));
             return {
                 center_name: "All Centers",
                 admitted_patients: sum("admitted_patients"),
@@ -251,13 +231,27 @@ const CenterDashboard = () => {
                 counselling_today: sum("counselling_today"),
                 sessions_this_week: sum("sessions_this_week"),
                 sessions_this_quarter: sum("sessions_this_quarter"),
-                years_of_service: avgYears,
+                years_of_service: maxYears,
             };
         }
         return centers.find((c) => c.center_name === selectedKey) || null;
     }, [centers, selectedKey]);
 
-    const viewHistory = history[selectedKey] || { admitted: [], discharged: [], counselling: [] };
+    const viewHistory = useMemo(() => {
+        if (selectedKey === "ALL") {
+            return {
+                admitted: sumSeries(centers.map((c) => c.admitted_history)),
+                discharged: sumSeries(centers.map((c) => c.discharged_history)),
+                counselling: sumSeries(centers.map((c) => c.counselling_history)),
+            };
+        }
+        const center = centers.find((c) => c.center_name === selectedKey);
+        return {
+            admitted: center?.admitted_history || [],
+            discharged: center?.discharged_history || [],
+            counselling: center?.counselling_history || [],
+        };
+    }, [centers, selectedKey]);
 
     const hiLo = (arr) => (arr.length === 0 ? { hi: 0, lo: 0 } : { hi: Math.max(...arr), lo: Math.min(...arr) });
     const admittedHiLo = hiLo(viewHistory.admitted);

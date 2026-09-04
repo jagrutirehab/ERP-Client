@@ -46,6 +46,7 @@ const Issues = React.lazy(() => import("../pages/Issues"));
 const Recordings = React.lazy(() => import("../pages/Recordings"));
 const SOP = React.lazy(() => import("../pages/SopConfigs"));
 const Trainings = React.lazy(() => import("../pages/Trainings"));
+const Utilities = React.lazy(() => import("../pages/Utilities"));
 const AlertPage = React.lazy(() => import("../pages/Alerts"));
 const Marketing = React.lazy(() => import("../pages/Marketing"));
 const DoctorVisits = React.lazy(() => import("../pages/DoctorVisits/DoctorVisits"));
@@ -79,6 +80,7 @@ const allElements = [
   { element: Recordings, label: "Recordings" },
   { element: SOP, label: "SOP-configs" },
   { element: Trainings, label: "Trainings" },
+  { element: Utilities, label: "Utilities" },
   { element: AlertPage, label: "Alert" },
   { element: Marketing, label: "Marketing" },
   { element: MasterData, label: "Vendor Management" },
@@ -123,6 +125,7 @@ const authProtectedRoutes = [
   { path: "/tally", component: Tally },
   { path: "/sop-configs/*", component: SOP },
   { path: "/trainings/*", component: Trainings },
+  { path: "/utilities/*", component: Utilities },
   { path: "/marketing/*", component: Marketing },
   { path: "/vendor-management/*", component: MasterData },
   { path: "/doctor-visits", component: DoctorVisits },
