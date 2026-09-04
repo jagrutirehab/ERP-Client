@@ -40,12 +40,12 @@ const ItemCategoryList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canCreate = hasPermission("MASTERDATA", "ITEM_CATEGORY_CREATE", "WRITE");
-  const canEdit = hasPermission("MASTERDATA", "ITEM_CATEGORY_EDIT", "WRITE");
+  const canCreate = hasPermission("MASTERDATA", "ITEM_CATEGORY", "WRITE");
+  const canEdit = hasPermission("MASTERDATA", "ITEM_CATEGORY", "WRITE");
   const canChangeStatus = hasPermission(
     "MASTERDATA",
-    "ITEM_CATEGORY_STATUS_CHANGE",
-    "WRITE",
+    "ITEM_CATEGORY",
+    "DELETE",
   );
 
   const [categories, setCategories] = useState([]);
