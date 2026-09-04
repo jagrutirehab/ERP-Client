@@ -32,6 +32,7 @@ import {
 } from "../../../Components/constants/patient";
 import { toast } from "react-toastify";
 import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
+import { setAdmissionRamsayApplicable } from "../../../store/features/chart/chartSlice";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
@@ -84,6 +85,24 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
         assignEmergencyPatientType({ patientId, patientType }),
       ).unwrap();
       toast.success("Category assigned successfully");
+    } catch (error) {
+      toast.warn(error.message);
+    }
+  };
+
+  // Takes the admission id, not the patient id: a patient can have several
+  // admissions rendered here, and this flag belongs to one of them.
+  const handleRamsayApplicableChange = async (admissionId, isApplicable) => {
+    try {
+      await dispatch(
+        setAdmissionRamsayApplicable({
+          admissionId,
+          isRamsayApplicable: isApplicable,
+        }),
+      ).unwrap();
+      toast.success(
+        `Ramsay marked as ${isApplicable ? "applicable" : "not applicable"}`,
+      );
     } catch (error) {
       toast.warn(error.message);
     }
@@ -216,6 +235,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     </div>
                   </RenderWhen>
                 </div>
+
                 <div className="d-flex align-items-center gap-1 ms-2">
                   <Label className="mb-0 text-nowrap">Chart Type:</Label>
                   <Input
@@ -291,6 +311,50 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                 >
                   <i className="ri-printer-line align-bottom text-dark"></i>
                 </Button>
+
+                {/* Whether the Ramsay Sedation Scale applies to this admission.
+                    Gates the Ramsay SOP protocol, so it is editable only while
+                    the patient is admitted and read-only afterwards — matching
+                    how Patient Category behaves.
+
+                    w-100 makes this its own flex line so it sits beneath the
+                    Patient Category dropdown rather than crowding the row; it
+                    must therefore stay the LAST child of this row. */}
+                <div className="d-flex align-items-center gap-1 w-100">
+                  <RenderWhen isTrue={!addmission.dischargeDate}>
+                    <div className="form-check form-switch d-flex align-items-center mb-0">
+                      <Input
+                        type="checkbox"
+                        role="switch"
+                        id={`ramsay-applicable-${addmission._id}`}
+                        checked={!!addmission.isRamsayApplicable}
+                        onChange={(e) =>
+                          handleRamsayApplicableChange(
+                            addmission._id,
+                            e.target.checked,
+                          )
+                        }
+                      />
+                      <Label
+                        className="form-check-label text-nowrap ms-2 mb-0"
+                        htmlFor={`ramsay-applicable-${addmission._id}`}
+                      >
+                        Is Ramsay Applicable
+                      </Label>
+                    </div>
+                  </RenderWhen>
+
+                  <RenderWhen isTrue={addmission.dischargeDate}>
+                    <div className="d-flex align-items-center">
+                      <Label className="mb-0 text-nowrap me-2">
+                        Is Ramsay Applicable:
+                      </Label>
+                      <p className="mb-0">
+                        {addmission.isRamsayApplicable ? "Yes" : "No"}
+                      </p>
+                    </div>
+                  </RenderWhen>
+                </div>
               </div>
               <div className="d-flex align-items-center gap-4">
                 {(user?.email === "rijutarafder000@gmail.com" ||
