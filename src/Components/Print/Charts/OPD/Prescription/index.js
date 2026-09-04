@@ -24,11 +24,14 @@ const Prescription = ({ chart, center, patient, doctor, admission }) => {
         center={center}
         patient={patient}
         admission={admission}
+        isCurrentMedicinesPrint={!!chart?.isCurrentMedicinesPrint}
       />
       <PrescriptionBody
         author={chart?.author}
         chart={chart?.prescription}
         doctor={primaryDoctor}
+        baseDate={chart?.date || chart?.createdAt}
+        isCurrentMedicinesPrint={!!chart?.isCurrentMedicinesPrint}
       />
       <Footer />
     </React.Fragment>

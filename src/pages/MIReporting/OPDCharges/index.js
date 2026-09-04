@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
 import { CSVLink } from "react-csv";
+import Select from "react-select";
 import { fetchOpdChargesMonthly, fetchDoctorOpdChargesMonthly } from "../../../store/features/miReporting/miReportingSlice";
 
 const headerStyle = {
@@ -30,27 +31,41 @@ const DoctorOpdChargesTable = ({ data, loading, error }) => {
   const [csvData, setCsvData] = useState([]);
   const [csvLoading, setCsvLoading] = useState(false);
   const csvRef = useRef();
+  const [selectedCenter, setSelectedCenter] = useState("ALL");
+
+  const centerOptions = React.useMemo(() => [
+    { value: "ALL", label: "All Centers" },
+    ...[...new Set((data || []).map((item) => item.center_name))].filter(Boolean).sort().map((center) => ({
+      value: center,
+      label: center,
+    })),
+  ], [data]);
+
+  const filteredData = React.useMemo(() => {
+    if (selectedCenter === "ALL") return data || [];
+    return (data || []).filter((item) => item.center_name === selectedCenter);
+  }, [data, selectedCenter]);
 
   const months = React.useMemo(() => {
-    if (!data || data.length === 0) return [];
-    return Array.from(new Set(data.map((item) => item.month))).sort(
+    if (!filteredData || filteredData.length === 0) return [];
+    return Array.from(new Set(filteredData.map((item) => item.month))).sort(
       (a, b) => new Date(b) - new Date(a)
     );
-  }, [data]);
+  }, [filteredData]);
 
   const doctors = React.useMemo(() => {
-    if (!data || data.length === 0) return [];
-    return Array.from(new Set(data.map((item) => item.doctor_name))).sort();
-  }, [data]);
+    if (!filteredData || filteredData.length === 0) return [];
+    return Array.from(new Set(filteredData.map((item) => item.doctor_name))).sort();
+  }, [filteredData]);
 
   const pivot = React.useMemo(() => {
     const map = {};
-    (data || []).forEach((item) => {
+    (filteredData || []).forEach((item) => {
       if (!map[item.doctor_name]) map[item.doctor_name] = {};
       map[item.doctor_name][item.month] = item;
     });
     return map;
-  }, [data]);
+  }, [filteredData]);
 
   const getValue = (doctor, month) =>
     pivot[doctor]?.[month]?.opd_charges ?? 0;
@@ -128,6 +143,18 @@ const DoctorOpdChargesTable = ({ data, loading, error }) => {
           ref={csvRef}
         />
       </div>
+
+      <Row className="g-2 align-items-center mb-3">
+        <Col xs="auto">
+          <Select
+            value={centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]}
+            onChange={(opt) => setSelectedCenter(opt.value)}
+            options={centerOptions}
+            placeholder="Center..."
+            styles={{ container: (b) => ({ ...b, minWidth: 200 }) }}
+          />
+        </Col>
+      </Row>
 
       <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10, display: "inline-block", width: "auto", maxWidth: "100%" }}>
         <CardBody className="p-0">

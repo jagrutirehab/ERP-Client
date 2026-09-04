@@ -92,6 +92,7 @@ export const SIMPLIFIED_FINANCE_TYPES = [
     "INTERN",
     "APPRENTICE",
     "CONSULTANT_SESSION",
+    "VENDOR",
 ];
 
 export const isSimplifiedFinanceType = (type) =>
@@ -212,6 +213,7 @@ export const approvalStatusOptions = [
     { value: "PENDING", label: "Pending Approvals" },
     { value: "APPROVED", label: "Approved Approvals" },
     { value: "REJECTED", label: "Rejected Approvals" },
+    { value: "MANNUALLY_PROCESSED", label: "Manually Processed" },
 ];
 
 export const FILE_PREVIEW_CUTOFF = "2026-02-06";

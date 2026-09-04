@@ -37,6 +37,8 @@ export const DELETE_CENTER_LOGO = "/center";
 export const RESTORE_CENTER = "/center/restore";
 export const DELETE_CENTER = "/center";
 export const DELETE_CENTER_PERMANENTLY = "/center/delete-permanently";
+export const GET_CENTERS_FALLBACK_MANAGERS = "/center/fallback-managers";
+export const SET_FALLBACK_CENTRE_MANAGER = "/center/fallback-manager";
 
 //BOOKING
 export const GET_APPOINTMENTS = "/booking";
@@ -125,6 +127,9 @@ export const POST_PRESCRIPTION = "/chart/prescription";
 export const EDIT_PRESCRIPTION = "/chart/prescription";
 export const POST_GENERAL_PRESCRIPTION = "/chart/prescription/general";
 export const EDIT_GENERAL_PRESCRIPTION = "/chart/prescription/general";
+export const GET_CURRENT_MEDICINES = "/chart/prescription/current-medicines";
+export const UPDATE_MEDICINE_ENTRY = "/chart/prescription";
+export const CARRY_FORWARD = "/chart/prescription/carry-forward";
 export const POST_VITAL_SIGN = "/chart/vital-sign";
 export const EDIT_VITAL_SIGN = "/chart/vital-sign";
 export const POST_GENERAL_VITAL_SIGN = "/chart/vital-sign/general";
@@ -370,6 +375,7 @@ export const GET_NURSE_GIVEN_MEDICINES = "/nurse/medicine-records";
 export const GET_NURSE_GIVEN_MEDICINE_DETAILS =
   "/nurse/medicine-record-details";
 export const GET_PRESCRIPTION_HISTORY = "/nurse/prescription-history";
+export const GET_DAILY_MEDICATION_RECORD = "/nurse/daily-medication-record";
 
 // alerts
 export const GET_ALERTS_BY_PATIENT = "/alerts/nurse";
@@ -429,6 +435,7 @@ export const USER = "/user";
 export const GET_USER_BY_EMAIL = "/user/email";
 export const MOVE_TO_BIN = "/user/move-recyclebin";
 export const ACTIVATE_DEACTIVATE_USER = "/user/deactive";
+export const TOGGLE_APP_LOGIN = "/user/app-login";
 export const CHANGE_USER_PASSWORD = "/user/change-password";
 export const EDIT_SELF = "/user/edit-self";
 export const USER_ACTIVITY = "/activity";
@@ -553,13 +560,25 @@ export const GET_DOCTOR_OPD_CHARGES_MONTHLY =
   "/mi-reporting/doctor-opd-charges-monthly";
 export const GET_CENTRAL_EXPENSES_MONTHLY =
   "/mi-reporting/central-expenses-monthly";
+export const GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE =
+  "/mi-reporting/doctor-psychologist-stay-range";
+export const GET_NURSES_DAILY_ACTIVITY = "/mi-reporting/nurses-daily-activity";
 export const GET_OCCUPANCY_MONTHLY = "/mi-reporting/occupancy-monthly";
 export const GET_ADMISSION_DISCHARGE_DAILY =
   "/mi-reporting/admission-discharge-daily";
+export const GET_INCIDENT_STATUS_MONTHLY =
+  "/mi-reporting/incident-status-monthly";
+export const GET_READMISSION_MONTHLY = "/mi-reporting/readmission-monthly";
+
+// CENTER DASHBOARD
+export const GET_CENTER_DASHBOARD_LIVE = "/center-dashboard/live";
 
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
 export const EMPLOYEE = "/hr/employee";
+export const EMPLOYEE_BIOMETRIC = "/hr/employee/bio-metric";
+export const UPDATE_EMPLOYEE_BIOMETRIC = "/hr/employee/update/bio-metric";
+export const UPDATE_EMPLOYEE_EXIT_BIOMETRIC = "/hr/exit/biometric/action";
 export const EMPLOYEE_DETAILS = "/hr/employee/details";
 export const EMPLOYEE_EMAILS = "/hr/employee/emails";
 export const EMPLOYEE_BY_KEY = "/hr/employee/by-key";
@@ -574,6 +593,8 @@ export const IT_TRANSFER_ACTION = "/hr/it/transfer";
 export const EXIT_EMPLOYEE = "/hr/exit";
 
 export const EXIT_EMPLOYEE_EXIT_ACTION = "/hr/exit/exit-action";
+export const EXIT_EMPLOYEE_BIOMETRIC_REQUESTS =
+  "/hr/exit/exit-request/biometric";
 export const EXIT_EMPLOYEE_FNF_ACTION = "/hr/exit/fnf-action";
 
 export const SEARCH_EXIT_EMPLOYEE = "/hr/exit/search";
@@ -743,6 +764,7 @@ export const GET_RECORDING_BY_ID = "/ozonetel/get";
 export const GENERATE_OVERVIEW_RECORDING = "/ozonetel/generate-overview-by-id";
 export const BULK_GENERATE_OVERVIEW_RECORDING =
   "/ozonetel/generate-bulk-overview";
+export const BULK_OVERVIEW_STATUS = "/ozonetel/bulk-overview/status";
 export const UPLOAD_XLSX_FILE = "/ozonetel/upload/file";
 export const GET_CALL_RECORDING_OVERVIEW = "/ozonetel/get/call/overviews";
 
@@ -835,6 +857,8 @@ export const GET_ITEM_CATEGORIES = "/master/item-category";
 export const ITEM_CATEGORY_BASE = "/master/item-category";
 export const ITEM_MASTER_BASE = "/master/item";
 export const GET_ITEM_MASTERS = ITEM_MASTER_BASE;
+export const GET_UOMS = "/master/uom";
+export const UOM_BASE = "/master/uom";
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
 
@@ -877,3 +901,10 @@ export const CENTER_FLOOR_PHOTOS = "/center-floor/photos";
 export const CENTER_FLOOR_PHOTO_UPLOAD = "/center-floor/photos/upload";
 export const CENTER_FLOOR_PHOTOS_ALL = "/center-floor/photos/all";
 export const CENTER_FLOOR_AUDITS = "/center-floor/audits";
+
+export const ADD_BIOMETRIC_ADDITION_REQUEST = "/hr/biometric/addition";
+export const GET_BIOMETRIC_ADDITION_REQUESTS = "/hr/biometric/requests/get";
+export const GET_USERS_BY_ROLE = "/hr/biometric/get/usersbyrole";
+export const ACTION_ON_BIOMETRIC_ADDITION_REQUEST = "/hr/biometric/action";
+export const GET_MY_ASSIGNED_BIOMETRICS = "/hr/biometric/get/my/assigns";
+export const UPDATE_ASSIGNEE_STATUS = "/hr/biometric/update/assignee/status";

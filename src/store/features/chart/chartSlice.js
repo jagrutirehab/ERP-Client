@@ -90,6 +90,7 @@ const initialState = {
     chart: null,
     isOpen: false,
   },
+  chartsStale: false,
   patientLatestOPDPrescription: null,
   patientLatestMentalExamination: null,
   patientLatestEctSession: null,
@@ -231,8 +232,8 @@ export const addPrescription = createAsyncThunk(
         dispatch(viewPatient(patient));
         dispatch(togglePrint({ modal: true, data: payload, patient, doctor }));
       }
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
@@ -299,8 +300,8 @@ export const updatePrescription = createAsyncThunk(
           );
       }
 
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -376,6 +377,29 @@ export const updateVitalSign = createAsyncThunk(
 );
 
 // Admission Type — IPD only, so there is no addGeneral counterpart.
+// Keeps the admission's type timeline current in the form's copy of the patient.
+//
+// `chartForm.patient` is a snapshot taken when the form opened, and the Admission
+// Type form reads `addmission.admissionTypeHistory` from it to show the current
+// type. Without this, saving/editing/deleting an Admission Type chart would leave
+// that snapshot stale and the panel would keep showing the previous value until a
+// full page reload. The server returns the fresh array on those three responses.
+const syncAdmissionTypeHistory = (state, payload) => {
+  const history = payload?.admissionTypeHistory;
+  if (!Array.isArray(history)) return;
+
+  const formPatient = state.chartForm?.patient;
+  if (!formPatient?.addmission) return;
+  // Only patch when the response is about the admission the form is open on.
+  if (
+    payload.addmission &&
+    String(formPatient.addmission._id) !== String(payload.addmission)
+  ) {
+    return;
+  }
+  formPatient.addmission.admissionTypeHistory = history;
+};
+
 export const addAdmissionType = createAsyncThunk(
   "postAdmissionType",
   async (data, { rejectWithValue, dispatch }) => {
@@ -1033,8 +1057,8 @@ export const addDischargeSummary = createAsyncThunk(
         }),
       );
 
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
       // dispatch(fetchCharts(response?.addmission));
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -1058,8 +1082,8 @@ export const updateDischargeSummary = createAsyncThunk(
         }),
       );
 
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -1634,6 +1658,21 @@ export const chartSlice = createSlice({
     setChartDate: (state, { payload }) => {
       state.chartDate = payload;
     },
+    // Superseded by the server-side carry-forward endpoints (see
+    // controllers/chart/prescription/carryForward.controller.js).
+    // toggleCarryForwardChart: (state, { payload }) => {
+    //   const idx = state.carryForwardCharts.findIndex(
+    //     (c) => String(c._id) === String(payload._id),
+    //   );
+    //   if (idx >= 0) state.carryForwardCharts.splice(idx, 1);
+    //   else state.carryForwardCharts.push(payload);
+    // },
+    // clearCarryForwardCharts: (state) => {
+    //   state.carryForwardCharts = [];
+    // },
+    markChartsStale: (state) => {
+      state.chartsStale = true;
+    },
     setChartAdmission: (state, { payload }) => {
       const index = state.data?.findIndex((d) => d._id === payload._id);
       state.data[index] = payload;
@@ -1746,6 +1785,7 @@ export const chartSlice = createSlice({
       })
       .addCase(fetchCharts.fulfilled, (state, { payload }) => {
         state.chartLoading = false;
+        state.chartsStale = false;
         const findIndex = state.data.findIndex(
           (el) => el._id === payload.addmission,
         );
@@ -1936,6 +1976,7 @@ export const chartSlice = createSlice({
       })
       .addCase(addAdmissionType.fulfilled, (state, { payload }) => {
         state.loading = false;
+        syncAdmissionTypeHistory(state, payload);
         // IPD only, so the admission always exists — guard the lookup anyway
         // rather than writing to state.data[-1].
         const findIndex = state.data.findIndex(
@@ -1959,6 +2000,7 @@ export const chartSlice = createSlice({
       })
       .addCase(updateAdmissionType.fulfilled, (state, { payload }) => {
         state.loading = false;
+        syncAdmissionTypeHistory(state, payload);
         const findIndex = state.data.findIndex(
           (el) => el._id === payload?.payload?.addmission,
         );
@@ -2729,6 +2771,9 @@ export const chartSlice = createSlice({
         state.loading = true;
       })
       .addCase(removeChart.fulfilled, (state, { payload }) => {
+        // Only carries admissionTypeHistory for Admission Type charts; the
+        // helper no-ops for every other chart kind.
+        syncAdmissionTypeHistory(state, payload);
         state.loading = false;
         if (payload.payload.type === "GENERAL") {
           state.charts = state.charts.filter(
@@ -3141,6 +3186,7 @@ export const {
   setPtLatestOPDPrescription,
   clearCharts,
   setPtLatestEctSession,
+  markChartsStale,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;

@@ -43,7 +43,11 @@ import AuditForms from "./AuditForms";
 import MetricsReport from "./MetricsReport";
 import OPDCharges from "./OPDCharges";
 import CentralExpenses from "./CentralExpenses";
+import DoctorPsychologistStayRange from "./DoctorPsychologistStayRange";
+import NursesDashboardDOD from "./NursesDashboardDOD";
 import Occupancy from "./Occupancy";
+import Incident from "./Incident";
+import Readmission from "./Readmission";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -305,11 +309,29 @@ const MiReporting = () => {
                   />}
 
                   {hasMISPermission&&<Route
+                    path="/doctor-psychologist-stay-range"
+                    element={<DoctorPsychologistStayRange />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/nurses-dashboard-dod"
+                    element={<NursesDashboardDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
                     path="/occupancy"
                     element={<Occupancy />}
                   />}
 
+                  {hasMISPermission&&<Route
+                    path="/incident"
+                    element={<Incident />}
+                  />}
 
+                  {hasMISPermission&&<Route
+                    path="/readmission"
+                    element={<Readmission />}
+                  />}
 
 
                   

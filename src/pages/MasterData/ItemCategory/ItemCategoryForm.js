@@ -101,9 +101,9 @@ const ItemCategoryForm = ({ editingItem, onSaved, onCancel }) => {
       <CardBody className="p-4">
         <div className="d-flex justify-content-between align-items-start mb-4 pb-3 border-bottom">
           <div className="d-flex gap-3">
-            <div className="im-icon-badge">
+            {/* <div className="im-icon-badge">
               <i className="bx bx-category-alt"></i>
-            </div>
+            </div> */}
             <div>
               <h5 className="mb-1 fw-semibold">
                 {editingItem ? "Edit Category" : "Create Category"}

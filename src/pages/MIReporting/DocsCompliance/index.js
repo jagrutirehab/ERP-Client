@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { Card, CardBody, Table, Spinner, Alert, Row, Col } from "reactstrap";
+import { Card, CardBody, Table, Spinner, Alert, Row, Col, UncontrolledTooltip } from "reactstrap";
 import { fetchDocsCompliance } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
 import {
@@ -22,32 +22,33 @@ const COLORS = [
 ];
 
 const METRICS = [
-    { label: "Admission Form",       key: "admission_form"       },
-    { label: "Consent Form",         key: "consent_form"         },
-    { label: "Bio Data",             key: "bio_data"             },
-    { label: "Profile Photo",        key: "profile_photo"        },
-    { label: "Prescription",         key: "prescription"         },
-    { label: "History",              key: "history"              },
-    { label: "Belongings Form",      key: "belongings_form"      },
-    { label: "Lab Report",           key: "lab_report"           },
-    { label: "Discharge Summary",    key: "discharge_summary"    },
-    { label: "Discharge Form",       key: "dischargeform"        },
-    { label: "Undertaking Discharge Form", key: "undertakingdischargeform" },
-    { label: "Nurses DOD",           key: "nurses_dod"           },
-    { label: "Daily Invoice",        key: "daily_invoice"        },
-    { label: "Vital Signs",          key: "vital_signs"          },
-    { label: "Clinical Notes",       key: "clinical_notes"       },
-    { label: "Counselling Sessions", key: "counselling_sessions" },
-    { label: "Counselling Recording",key: "counselling_recording"},
-    { label: "Counselling Sessions Patients",  key: "counselling_sessions_patients"  },
-    { label: "Round Notes",          key: "round_notes"          },
-    { label: "Due Amount",           key: "due_amount"           },
-    { label: "Prescription Status",  key: "prescription_status"  },
-    { label: "Frisking",             key: "frisking"             },
-    { label: "Form-1 Nursing Staff Training", key: "form_1"      },
-    { label: "Form-2 Patient Care Training",  key: "form_2"      },
-    { label: "Form-3 Psychologist Training Pointers", key: "form_3" },
-    { label: "Form-4 MSW/New Joinee Training", key: "form_4"     },
+    { label: "Admission Form",       key: "admission_form",       description: "Percentage of admitted patients with a completed admission form." },
+    { label: "Consent Form",         key: "consent_form",         description: "Percentage of patients with consent form completed." },
+    { label: "Bio Data",             key: "bio_data",              description: "Percentage of patient profiles with complete demographic information." },
+    { label: "Profile Photo",        key: "profile_photo",        description: "Percentage of patient records with a profile photo uploaded." },
+    { label: "Prescription",         key: "prescription",         description: "Percentage of new patients with a prescription available in the system" },
+    { label: "History",              key: "history",               description: "Percentage of patient records with complete medical and psychiatric history documented." },
+    { label: "Belongings Form",      key: "belongings_form",      description: "Percentage of patients with belongings documentation completed at admission." },
+    { label: "Lab Report",           key: "lab_report",           description: "Percentage of required lab reports uploaded and linked to the patient record." },
+    { label: "Capacity Assessment Form",        key: "capacity_assessment_form" ,description: "Percentage of patients with capacity assesment form completed."},
+    { label: "Discharge Summary",    key: "discharge_summary",    description: "Percentage of discharged patients with Discharge Summary completed." },
+    { label: "Discharge Form",       key: "dischargeform",        description: "Percentage of discharged patients with Discharge Form completed." },
+    { label: "Undertaking Discharge Form", key: "undertakingdischargeform", description: "Percentage of discharged patients with Undertaking Discharge Form completed." },
+    { label: "Nurses DOD",           key: "nurses_dod",           description: "Percentage of patients with the Daily medicines updated by nursing staff for next day" },
+    { label: "Daily Invoice",        key: "daily_invoice",        description: "Percentage of daily invoices generated and updated for admitted patients." },
+    { label: "Vital Signs",          key: "vital_signs",          description: "Percentage of daily vital signs recorded on a daily basis" },
+    { label: "Clinical Notes",       key: "clinical_notes",       description: "Percentage of patients with clinical notes updated everyday" },
+    { label: "Counselling Sessions", key: "counselling_sessions", description: "Percentage of scheduled counselling sessions completed and documented. 2 in a day per Psycologist" },
+    { label: "Counselling Recording",key: "counselling_recording",description: "Percentage of scheduled counselling Recording completed and documented. (2 in a week per patient) 2 in a day per Psycologist" },
+    { label: "Counselling Sessions Patients",  key: "counselling_sessions_patients", description: "Percentage of scheduled counselling sessions completed and documented. (2 in a week per patient)" },
+    { label: "Round Notes",          key: "round_notes",          description: "Percentage of doctor/clinical round notes completed as per schedule. (12 rounds in a day 24 hours)" },
+    { label: "Due Amount",           key: "due_amount",           description: "Percentage of outstanding dues collected or updated as per billing timelines." },
+    { label: "Prescription Status",  key: "prescription_status", description: "Percentage of active prescriptions in the required timeline." },
+    { label: "Frisking",             key: "frisking",             description: "Percentage of frisking done.(2 in a month)" },
+    { label: "Form-1 Nursing Staff Training", key: "form_1",      description: "Percentage of nurse staff training forms filled.(2 in a month)" },
+    { label: "Form-2 Patient Care Training",  key: "form_2",      description: "Percentage of patient care training forms filled.(2 in a month)" },
+    { label: "Form-3 Psychologist Training Pointers", key: "form_3", description: "Percentage of psychologist training forms filled.(2 in a month)" },
+    { label: "Form-4 MSW/New Joinee Training", key: "form_4",     description: "Percentage of new joinee training forms filled.(4 in a month)" },
 ];
 
 const DocsCompliance = () => {
@@ -60,6 +61,7 @@ const DocsCompliance = () => {
     const [selectedCenter, setSelectedCenter] = useState("Total");
     const [compliance, setCompliance] = useState(true);
     const [selectedMetric, setSelectedMetric] = useState(METRICS[0].key);
+    const [chartMetric, setChartMetric] = useState("ALL");
     const data = useMemo(() => docsCompliance?.data || [], [docsCompliance]);
 
     useEffect(() => {
@@ -162,6 +164,7 @@ const DocsCompliance = () => {
     }, [months, data, selectedCenter, compliance]);
 
     const metricOptions = METRICS.map((m) => ({ value: m.key, label: m.label }));
+    const chartMetricOptions = [{ value: "ALL", label: "All Metrics" }, ...metricOptions];
 
 const getCenterCellValue = (row, metricKey) => {
         const entry = row[metricKey] || {};
@@ -191,39 +194,6 @@ const getCenterCellValue = (row, metricKey) => {
         if (!row) return "";
         return getCenterCellValue(row, selectedMetric);
     };
-
-    const getCenterCellNumericValue = (row, metricKey) => {
-        const entry = row[metricKey] || {};
-        const actual = entry.result_count ?? null;
-        const shouldBe = entry.should_be_count ?? null;
-        if (actual == null) return 0;
-        if (compliance) {
-            if (!shouldBe) return 0;
-            return Math.round((actual / shouldBe) * 100);
-        }
-        return actual;
-    };
-
-    const getCenterMonthNumericValue = (centerName, month) => {
-        const rows = data.find((d) => d.month === month)?.rows || [];
-        const row = rows.find((r) => r.center_name === centerName);
-        if (!row) return 0;
-        return getCenterCellNumericValue(row, selectedMetric);
-    };
-
-    const centerChartData = useMemo(() => {
-        return months
-            .slice()
-            .reverse()
-            .map((month) => {
-                const row = { month: formatMonth(month) };
-                centerNames.forEach((name) => {
-                    row[name] = getCenterMonthNumericValue(name, formatMonth(month));
-                });
-                return row;
-            });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [months, centerNames, data, selectedMetric, compliance]);
 
     const headerStyle = {
         border: "1px solid #cfd8e3",
@@ -306,10 +276,23 @@ const getCenterCellValue = (row, metricKey) => {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {METRICS.map(({ label, key }, idx) => (
+                                                {METRICS.map(({ label, key, description }, idx) => (
                                                     <tr key={key}>
-                                                        <td className="px-1 py-1 fw-semibold" style={{ ...cellStyle(idx), whiteSpace: "normal", wordBreak: "break-word" }}>
+                                                        <td
+                                                            id={description ? `docs-metric-info-${key}` : undefined}
+                                                            className="px-1 py-1 fw-semibold"
+                                                            style={{ ...cellStyle(idx), whiteSpace: "normal", wordBreak: "break-word" }}
+                                                        >
                                                             {label}
+                                                            {description && (
+                                                                <UncontrolledTooltip
+                                                                    target={`docs-metric-info-${key}`}
+                                                                    placement="right"
+                                                                    trigger="hover"
+                                                                >
+                                                                    {description}
+                                                                </UncontrolledTooltip>
+                                                            )}
                                                         </td>
                                                         {months.map((month) => (
                                                             <td key={month} className="text-center px-1 py-1" style={cellStyle(idx)}>
@@ -329,7 +312,15 @@ const getCenterCellValue = (row, metricKey) => {
                     <Col lg={6}>
                         <Card className="shadow-sm h-100" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
                             <CardBody>
+                                <Select
+                                    value={chartMetricOptions.find((o) => o.value === chartMetric) || chartMetricOptions[0]}
+                                    onChange={(opt) => setChartMetric(opt.value)}
+                                    options={chartMetricOptions}
+                                    placeholder="Data..."
+                                    styles={{ container: (b) => ({ ...b, minWidth: 200, marginBottom: 12 }) }}
+                                />
                                 <h6 className="mb-3">
+                                    {chartMetric !== "ALL" && `${chartMetricOptions.find((o) => o.value === chartMetric)?.label} - `}
                                     {compliance ? "Compliance % Trend" : "Count Trend"}
                                 </h6>
                                 {!loading && !error && (
@@ -346,7 +337,7 @@ const getCenterCellValue = (row, metricKey) => {
                                                     formatter={(value) => (compliance ? `${value}%` : value)}
                                                 />
                                                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                                                {METRICS.map(({ label }, idx) => (
+                                                {METRICS.filter(({ key }) => chartMetric === "ALL" || key === chartMetric).map(({ label }, idx) => (
                                                     <Line
                                                         key={label}
                                                         type="monotone"
@@ -415,44 +406,6 @@ const getCenterCellValue = (row, metricKey) => {
                                                 ))}
                                             </tbody>
                                         </Table>
-                                    </div>
-                                )}
-                            </CardBody>
-                        </Card>
-                    </Col>
-
-                    <Col lg={6}>
-                        <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
-                            <CardBody>
-                                <h6 className="mb-3">
-                                    {metricOptions.find((o) => o.value === selectedMetric)?.label} - {compliance ? "Compliance % Trend" : "Count Trend"} by Center
-                                </h6>
-                                {!loading && !error && (
-                                    <div style={{ width: "100%", height: 420 }}>
-                                        <ResponsiveContainer>
-                                            <LineChart data={centerChartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                                                <CartesianGrid strokeDasharray="3 3" />
-                                                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                                                <YAxis tick={{ fontSize: 11 }} />
-                                                <Tooltip
-                                                    contentStyle={{ backgroundColor: "#000", opacity: 1, color: "#fff" }}
-                                                    itemStyle={{ color: "#fff" }}
-                                                    labelStyle={{ color: "#fff" }}
-                                                    formatter={(value) => (compliance ? `${value}%` : value)}
-                                                />
-                                                <Legend wrapperStyle={{ fontSize: 11 }} />
-                                                {centerNames.map((name, idx) => (
-                                                    <Line
-                                                        key={name}
-                                                        type="monotone"
-                                                        dataKey={name}
-                                                        stroke={COLORS[idx % COLORS.length]}
-                                                        strokeWidth={2}
-                                                        dot={{ r: 2 }}
-                                                    />
-                                                ))}
-                                            </LineChart>
-                                        </ResponsiveContainer>
                                     </div>
                                 )}
                             </CardBody>

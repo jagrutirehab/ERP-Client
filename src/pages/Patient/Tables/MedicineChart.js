@@ -105,23 +105,69 @@
 import React from "react";
 import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
+import moment from "moment";
 import { getMedicineFrequencyLabel, formatDosage } from "../../../helpers/prescriptionFrequency";
+import { getMedicineEndDate } from "../../../helpers/currentMedicines";
+import { capitalizeWords } from "../../../utils/toCapitalize";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
 
-const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) => {
+const MedicineChart = ({
+  medicines,
+  handleDispensedCountChange,
+  isPharmacy,
+  baseDate,
+  currentUserId,
+  onDiscontinue,
+  showDates = false,
+  showOwner = false,
+  fallbackPrescriber,
+}) => {
+  // The owner badge stands on its own (read-only views want it too); the
+  // action column only appears where discontinuing is actually offered.
+  const showOwnerColumn = showOwner || !!onDiscontinue;
   const columns = [
     {
       name: "Medicine",
-      selector: (row) =>
-        <div className="d-flex flex-column">
-          <span>
-            {row.medicine?.type} {row.medicine?.name} {row.medicine?.strength}
-          </span>
-          {isPharmacy && row.availableStock !== undefined && (row.dispensedCount > row.availableStock || row.totalQuantity > row.availableStock) && (
-            <span className="text-danger small fw-bold">
-              ⚠ Only {row.availableStock} left
+      selector: (row) => {
+        // A medicine stopped early stays on the prescription it was written
+        // on — the row is tinted red and labelled (not struck through, which
+        // made the drug name hard to read), so an old chart never reads as if
+        // the drug were still running. Medicines that simply ran out their
+        // course are left as they are.
+        const isDiscontinued = row.status === "discontinued";
+        const stoppedBy = capitalizeWords(row.discontinuedBy?.name);
+
+        return (
+          <div className="d-flex flex-column">
+            <span>
+              {row.medicine?.type} {row.medicine?.name} {row.medicine?.strength}
             </span>
-          )}
-        </div>,
+            {isDiscontinued && (
+              <span className="text-danger" style={{ fontSize: "12px" }}>
+                <span
+                  className="badge bg-danger text-white me-1"
+                  style={{
+                    fontSize: "9px",
+                    letterSpacing: "0.3px",
+                    padding: "2px 5px",
+                  }}
+                >
+                  DISCONTINUED
+                </span>
+                {stoppedBy ? `by ${stoppedBy}` : ""}
+                {row.discontinuedAt
+                  ? ` on ${moment(row.discontinuedAt).format("DD MMM, YYYY")}`
+                  : ""}
+              </span>
+            )}
+            {isPharmacy && row.availableStock !== undefined && (row.dispensedCount > row.availableStock || row.totalQuantity > row.availableStock) && (
+              <span className="text-danger small fw-bold">
+                ⚠ Only {row.availableStock} left
+              </span>
+            )}
+          </div>
+        );
+      },
       style: {
         textTransform: "capitalize",
       },
@@ -179,6 +225,28 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
         `${row?.duration} ${row?.unit} - ${getMedicineFrequencyLabel(row)}`,
       wrap: true,
     },
+    ...(showDates
+      ? [
+        {
+          name: "From",
+          selector: (row) => {
+            const from = row?.startDate || baseDate;
+            return from ? moment(from).format("DD MMM, YYYY") : "-";
+          },
+          wrap: true,
+        },
+        {
+          name: "To",
+          selector: (row) => {
+            const from = row?.startDate || baseDate;
+            const to =
+              row?.endDate || (from ? getMedicineEndDate(from, row) : null);
+            return to ? moment(to).format("DD MMM, YYYY") : "Ongoing";
+          },
+          wrap: true,
+        },
+      ]
+      : []),
     {
       name: "Intake",
       cell: (row) => (
@@ -194,6 +262,70 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
       //   whiteSpace: "normal",
       // },
     },
+    ...(showOwnerColumn
+      ? [
+        {
+          name: "Prescribed by",
+          cell: (row) => {
+            // prescribedBy arrives populated on charts and as a plain id from
+            // the current-medicines endpoint (which sends prescribedByUser
+            // alongside). Rows saved before prescribedBy existed fall back to
+            // whoever authored the chart they sit on.
+            const prescriber =
+              (row.prescribedBy && typeof row.prescribedBy === "object"
+                ? row.prescribedBy
+                : row.prescribedByUser) || fallbackPrescriber;
+            const ownerId =
+              row.prescribedBy?._id ||
+              row.prescribedBy ||
+              fallbackPrescriber?._id;
+            const isOwn =
+              ownerId && currentUserId
+                ? String(ownerId) === String(currentUserId)
+                : false;
+
+            // Only your own rows get a badge — everyone else's prescriber is
+            // shown as plain text.
+            return isOwn ? (
+              <span className="badge bg-success">You</span>
+            ) : (
+              <span>{capitalizeWords(prescriber?.name) || "-"}</span>
+            );
+          },
+          wrap: true,
+          minWidth: "120px",
+        },
+      ]
+      : []),
+    ...(onDiscontinue
+      ? [
+        {
+          name: "",
+          cell: (row) => {
+            if (row.status === "discontinued") return null;
+
+            // Any doctor may stop any medicine, not just the one who
+            // prescribed it — the action is recorded against them.
+            return (
+              <CheckPermission permission={"edit"} subAccess="Charting">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-danger text-nowrap"
+                  onClick={() => onDiscontinue(row)}
+                >
+                  Discontinue
+                </button>
+              </CheckPermission>
+            );
+          },
+          // Fixed width and no wrapping, otherwise the narrow action column
+          // breaks the button label across lines.
+          width: "150px",
+          center: true,
+          wrap: false,
+        },
+      ]
+      : []),
     ...(isPharmacy
       ? [
         {
@@ -230,7 +362,21 @@ const MedicineChart = ({ medicines, handleDispensedCountChange, isPharmacy }) =>
   return (
     <React.Fragment>
       <div className="px-2">
-        <DataTable columns={columns} data={medicines} />
+        <DataTable
+          columns={columns}
+          data={medicines}
+          // A stopped medicine stays on the prescription it was written on,
+          // tinted rather than struck through so the drug name stays readable.
+          conditionalRowStyles={[
+            {
+              when: (row) => row.status === "discontinued",
+              style: {
+                backgroundColor: "rgba(240, 101, 72, 0.22)",
+                borderLeft: "5px solid #f06548",
+              },
+            },
+          ]}
+        />
         {/* <Row className="bg-white">
           <Col xs={3} className="border-bottom">
             <span className="font-semi-bold fs-6">Medicine</span>{" "}
@@ -281,6 +427,12 @@ MedicineChart.propTypes = {
   medicines: PropTypes.array.isRequired,
   isPharmacy: PropTypes.bool,
   handleDispensedCountChange: PropTypes.func,
+  baseDate: PropTypes.any,
+  currentUserId: PropTypes.string,
+  onDiscontinue: PropTypes.func,
+  showDates: PropTypes.bool,
+  showOwner: PropTypes.bool,
+  fallbackPrescriber: PropTypes.object,
 };
 
 export default MedicineChart;

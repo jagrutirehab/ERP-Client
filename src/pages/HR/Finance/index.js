@@ -802,7 +802,7 @@ const FinanceDashboard = () => {
               loading={loading}
               onRefresh={fetchEmployeeFinanceList}
             />
-            {hasDeletePermission && (
+            {hasEditPermission && (
               <Button
                 color="primary"
                 className="text-white"

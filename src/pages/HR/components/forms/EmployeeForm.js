@@ -296,6 +296,7 @@ const baseValidationSchema = (mode, isEdit) =>
             .required("Annual CTC is required"),
         otherwise: (s) => s.notRequired(),
       }),
+    annualInsurance: Yup.number().min(0).notRequired(),
     grossSalary: Yup.number()
       .min(0)
       .when("employmentType", {
@@ -557,6 +558,10 @@ const getInitialValues = (initialData, mode) => ({
     initialData?.financeDetails?.paymentType === "PER_SESSION"
       ? initialData?.financeDetails?.totalCostToCompany || 0
       : annualFieldValue(initialData?.financeDetails, "totalCostToCompany"),
+  annualInsurance:
+    initialData?.financeDetails?.paymentType === "PER_SESSION"
+      ? initialData?.financeDetails?.insurance || 0
+      : annualFieldValue(initialData?.financeDetails, "insurance"),
 
   debitStatementNarration:
     initialData?.financeDetails?.debitStatementNarration || "",
@@ -628,10 +633,6 @@ const EmployeeForm = ({
   const [positionOptions, setPositionOptions] = useState([]);
   const [manual, setManual] = useState({
     SPLAllowance: false,
-    // Simplified: In Hand Salary auto-mirrors Annual CTC until the user edits
-    // it. Existing records start "manual" so a CTC edit can't clobber a stored,
-    // intentionally-different In Hand value.
-    annualInHandSalary: !!initialData?._id,
   });
   const [uploading, setUploading] = useState({
     panFile: false,
@@ -846,6 +847,7 @@ const EmployeeForm = ({
         // Client-only mirror fields — never sent to the server as-is.
         formData.delete("annualInHandSalary");
         formData.delete("annualCTC");
+        formData.delete("annualInsurance");
         formData.delete("paymentType");
 
         const isSimplified = isSimplifiedFinanceType(values.employmentType);
@@ -855,6 +857,7 @@ const EmployeeForm = ({
           // Send the three yearly figures; the server splits them into monthly.
           formData.set("inHandSalary", values.annualInHandSalary || 0);
           formData.set("totalCostToCompany", values.annualCTC || 0);
+          formData.set("insurance", values.annualInsurance || 0);
           formData.set("paymentType", values.paymentType || "MONTHLY");
           // Drop the full-breakup fields the simplified flow doesn't use.
           [
@@ -870,7 +873,6 @@ const EmployeeForm = ({
             "ESICSalary",
             "LWFEmployee",
             "LWFEmployer",
-            "insurance",
             "TDSRate",
             "variable",
             "reimbursement",
@@ -946,18 +948,19 @@ const EmployeeForm = ({
     }
   }, [consultant, values.TDSRate]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // For consultants, In Hand is always CTC − TDS (read-only) — keep it in sync
-  // whenever CTC or the TDS rate changes.
+  // In Hand is always derived, never typed: CTC − TDS − Insurance. TDS only
+  // applies to consultants (consultantTdsAmount is 0 for every other simplified
+  // type), so this single formula covers both cases.
   useEffect(() => {
-    if (!consultant) return;
+    const insurance = Number(values.annualInsurance) || 0;
     const inHand = Math.max(
       0,
-      (Number(values.annualCTC) || 0) - consultantTdsAmount,
+      (Number(values.annualCTC) || 0) - consultantTdsAmount - insurance,
     );
     if (Number(values.annualInHandSalary) !== inHand) {
       setFieldValue("annualInHandSalary", inHand, false);
     }
-  }, [consultant, values.annualCTC, values.TDSRate]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [consultantTdsAmount, values.annualCTC, values.annualInsurance]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const touchFileFields = () => {
     setTouched(
@@ -1091,16 +1094,15 @@ const EmployeeForm = ({
     </div>
   );
 
-  // Tamil Nadu PT is half-yearly, so calculatePayroll supplies the exact annual
-  // (slab × 2) via PTAnnual; other states are simply monthly PT × 12.
+  // Professional Tax uses flat state-wise slabs, so the yearly total is monthly
+  // PT × 12 for every state — calculatePayroll supplies this via PTAnnual.
   const ptMonthly = Math.round(Number(values.PT) || 0);
   const ptYearly =
     values.PTAnnual !== undefined
       ? Math.round(Number(values.PTAnnual) || 0)
       : ptMonthly * 12;
 
-  // annual deductions swap the monthly PT × 12 for the exact
-  // PT annual (matters for Tamil Nadu's half-yearly PT).
+  // annual deductions swap the monthly PT × 12 for the exact PT annual.
   // These start as the naive rollups; the LWF correction below (once lwfState is
   // resolved) swaps the monthly-LWF × 12 for the true yearly LWF.
   let deductionsYearly =
@@ -1289,14 +1291,16 @@ const EmployeeForm = ({
   useEffect(() => {
     if (simplified) return;
     const selectedCenter = centerOptions?.find(
-      (o) => o.value === values.currentLocation,
+      (o) => o.value === (values.firstLocation || values.currentLocation),
     );
     // values holds YEARLY amounts; calculatePayroll is monthly, so feed it the
     // monthly equivalents (the derived fields it returns are therefore monthly).
     const payroll = calculatePayroll({
       ...values,
       ...annualToMonthly(values),
-      pfApplicable: values.newEmploymentType === "FULL_TIME",
+      pfApplicable:
+        values.newEmploymentType === "FULL_TIME" &&
+        values.category !== "FORM11",
       currentLocation: selectedCenter
         ? { title: selectedCenter.title, address: selectedCenter.address }
         : null,
@@ -1316,6 +1320,7 @@ const EmployeeForm = ({
     values.basicAmount,
     values.HRAAmount,
     values.newEmploymentType,
+    values.category,
     values.gender,
     values.joinningDate,
     values.ESICSalary,
@@ -1327,6 +1332,7 @@ const EmployeeForm = ({
     values.reimbursement,
     values.minimumWages,
     values.currentLocation,
+    values.firstLocation,
     values.LWFEmployer,
     simplified,
   ]);
@@ -1359,14 +1365,14 @@ const EmployeeForm = ({
   // in one or two months.
   const lwfState = useMemo(() => {
     const selectedCenter = centerOptions?.find(
-      (o) => o.value === values.currentLocation,
+      (o) => o.value === (values.firstLocation || values.currentLocation),
     );
     return resolveLWFState(
       selectedCenter
         ? { title: selectedCenter.title, address: selectedCenter.address }
         : null,
     );
-  }, [centerOptions, values.currentLocation]);
+  }, [centerOptions, values.currentLocation, values.firstLocation]);
 
   // LWF is charged only in specific months, so its true yearly total is NOT the
   // monthly charge × 12. Mirror the server's applyAnnualLWF so the yearly In-Hand
@@ -2881,14 +2887,7 @@ const EmployeeForm = ({
                   name="annualCTC"
                   min={0}
                   value={values.annualCTC}
-                  onChange={(e) => {
-                    handleChange(e);
-                    // In Hand mirrors CTC until the user overrides it — except for
-                    // consultants, whose In Hand is driven by the TDS deduction.
-                    if (!manual.annualInHandSalary && !consultant) {
-                      setFieldValue("annualInHandSalary", e.target.value);
-                    }
-                  }}
+                  onChange={handleChange}
                   onBlur={() => setFieldTouched("annualCTC", true)}
                   invalid={touched.annualCTC && !!errors.annualCTC}
                 />
@@ -2898,6 +2897,32 @@ const EmployeeForm = ({
                     Monthly ≈ ₹
                     {Math.round(
                       (Number(values.annualCTC) || 0) / 12,
+                    ).toLocaleString("en-IN")}
+                  </div>
+                )}
+              </Col>
+
+              {/* INSURANCE — all non-FTE types */}
+              <Col md={6}>
+                <Label htmlFor="annualInsurance">
+                  Insurance {perSession ? "(Per Session)" : "(Yearly)"}
+                </Label>
+                <Input
+                  id="annualInsurance"
+                  type="number"
+                  name="annualInsurance"
+                  min={0}
+                  value={values.annualInsurance}
+                  onChange={handleChange}
+                  onBlur={() => setFieldTouched("annualInsurance", true)}
+                  invalid={touched.annualInsurance && !!errors.annualInsurance}
+                />
+                {errorText("annualInsurance")}
+                {!perSession && (
+                  <div className="text-muted small mt-1">
+                    Monthly ≈ ₹
+                    {Math.round(
+                      (Number(values.annualInsurance) || 0) / 12,
                     ).toLocaleString("en-IN")}
                   </div>
                 )}
@@ -2950,14 +2975,8 @@ const EmployeeForm = ({
                   name="annualInHandSalary"
                   min={0}
                   value={values.annualInHandSalary}
-                  disabled={consultant}
-                  onChange={(e) => {
-                    setManual((prev) => ({
-                      ...prev,
-                      annualInHandSalary: true,
-                    }));
-                    handleChange(e);
-                  }}
+                  disabled
+                  onChange={handleChange}
                   onBlur={() => setFieldTouched("annualInHandSalary", true)}
                   invalid={
                     touched.annualInHandSalary && !!errors.annualInHandSalary
@@ -2972,17 +2991,10 @@ const EmployeeForm = ({
                     ).toLocaleString("en-IN")}
                   </div>
                 )}
-                {consultant ? (
-                  <div className="text-muted small">
-                    Auto-calculated as Annual CTC − TDS.
-                  </div>
-                ) : (
-                  !manual.annualInHandSalary && (
-                    <div className="text-muted small">
-                      Auto-filled from Annual CTC — edit to override.
-                    </div>
-                  )
-                )}
+                <div className="text-muted small">
+                  Auto-calculated as Annual CTC{consultant ? " − TDS" : ""} −
+                  Insurance.
+                </div>
               </Col>
 
               {/* PAYMENT TYPE */}
@@ -3483,6 +3495,15 @@ const EmployeeForm = ({
                 />
               </Col>
 
+              {/* PT */}
+              <Col md={6}>
+                <Label htmlFor="PT">PT (Yearly)</Label>
+                <Input disabled id="PT" type="number" value={ptYearly} />
+                <div className="text-muted small mt-1">
+                  Monthly ≈ ₹{ptMonthly.toLocaleString("en-IN")}
+                </div>
+              </Col>
+
               {/* IN HAND SALARY */}
               <Col md={6}>
                 <Label htmlFor="inHandSalary">In Hand Salary (Yearly)</Label>
@@ -3662,7 +3683,7 @@ const EmployeeForm = ({
 
           {/* <Button onClick={() => console.log(errors)}>
             test
-          </Button> */}
+          </Button>  */}
         </div>
       </div>
       <PreviewFile

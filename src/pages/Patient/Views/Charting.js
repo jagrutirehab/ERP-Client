@@ -24,6 +24,7 @@ import {
   NOTES,
   ADMISSION_SUMMARY,
   BIO_DATA,
+  CURRENT_MEDICINES,
 } from "../../../Components/constants/patient";
 import OPDView from "./OPD";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
@@ -34,6 +35,7 @@ import Notes from "../../Nurse/Views/Notes";
 import AdmissionSummary from "./AdmissionSummary";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import BioData from "./BioData";
+import CurrentMedicines from "./CurrentMedicines";
 import { getCharts } from "../../../helpers/backend_helper";
 
 const Charting = ({
@@ -390,6 +392,18 @@ const Charting = ({
           </li>
           <li className="nav-item rounded-0">
             <button
+              onClick={() => setTab(CURRENT_MEDICINES)}
+              className={`nav-link rounded-0 ${
+                tab === CURRENT_MEDICINES
+                  ? "border-0 border-2 border-top border-primary"
+                  : "active"
+              }`}
+            >
+              Current Medicines
+            </button>
+          </li>
+          <li className="nav-item rounded-0">
+            <button
               onClick={() => setTab(NOTES)}
               className={`nav-link rounded-0 ${
                 tab === NOTES
@@ -498,6 +512,8 @@ const Charting = ({
           patient={patient}
           addmission={currentPatientAddmissionsCharts}
         />
+      ) : tab === CURRENT_MEDICINES ? (
+        <CurrentMedicines patient={patient} />
       ) : (
         ""
       )}

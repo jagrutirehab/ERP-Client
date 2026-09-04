@@ -1,29 +1,52 @@
 import React, { useEffect, useState } from "react";
 import { Row } from "reactstrap";
-import { connect, useDispatch } from "react-redux";
+import { toast } from "react-toastify";
 import GeneralCard from "../../Patient/Views/Components/GeneralCard";
-import Prescription from "../../Patient/Charts/Prescription";
+import MedicineChart from "../../Patient/Tables/MedicineChart";
 import Placeholder from "../../Patient/Views/Components/Placeholder";
-import { getPatientPrescriptionById } from "../../../store/features/nurse/nurseSlice";
+import { getCurrentMedicines } from "../../../helpers/backend_helper";
 import { useParams } from "react-router-dom";
 
-const Medications = ({ testLoading, prescription }) => {
+const Medications = () => {
   const { id } = useParams();
-  const dispatch = useDispatch();
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const fetchPatientPrescription = () => {
-      if (!id || id === "*") return;
-      dispatch(getPatientPrescriptionById(id));
+    if (!id || id === "*") return;
+
+    let cancelled = false;
+    setLoading(true);
+    getCurrentMedicines(id)
+      .then((res) => {
+        if (!cancelled) setRows(res?.payload || []);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        toast.error(err?.message || "Failed to load current medicines");
+        setRows([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
     };
-    fetchPatientPrescription();
-  }, [dispatch, id]);
+  }, [id]);
+
+  const medicines = rows.map((row) => ({
+    ...row.medicine,
+    prescriptionId: row.prescriptionId,
+    chartId: row.chartId,
+    prescribedByUser: row.prescribedByUser,
+  }));
 
   return (
     <div>
       <Row className="timeline-right" style={{ rowGap: "2rem" }}>
         <GeneralCard data="Medications">
-          {testLoading ? (
+          {loading ? (
             <Placeholder />
           ) : (
             <div
@@ -33,16 +56,8 @@ const Medications = ({ testLoading, prescription }) => {
                 paddingRight: "1rem",
               }}
             >
-              {prescription && !prescription.deleted ? (
-                <Prescription
-                  data={prescription.prescription}
-                  startDate={prescription.prescriptionStartDate}
-                  endDate={prescription.prescriptionEndDate}
-                />
-              ) : prescription && prescription.deleted ? (
-                <p style={{ color: "#888", fontStyle: "italic" }}>
-                  Prescription Removed. No Prescription available
-                </p>
+              {medicines.length > 0 ? (
+                <MedicineChart medicines={medicines} showDates showOwner />
               ) : (
                 <p style={{ color: "#888", fontStyle: "italic" }}>
                   No medication data available
@@ -56,11 +71,4 @@ const Medications = ({ testLoading, prescription }) => {
   );
 };
 
-const mapStateToProps = (state) => ({
-  prescription: state.Nurse.prescription,
-  testLoading: state.Nurse.testLoading,
-  profile: state.Nurse.profile,
-  currentPatientIndex:state.Nurse.index
-});
-
-export default connect(mapStateToProps)(Medications);
+export default Medications;

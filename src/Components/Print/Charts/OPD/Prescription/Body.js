@@ -5,6 +5,7 @@ import RXIcon from "../../../../../assets/images/small/rx.jpeg";
 
 //table
 import PrescriptionTable from "./Table";
+import CurrentMedicinesTable from "./CurrentMedicinesTable";
 import { format } from "date-fns";
 import { safeText } from "../../../../../utils/safeText";
 
@@ -87,7 +88,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const PrescriptionBody = ({ chart, doctor }) => {
+const PrescriptionBody = ({ chart, doctor, baseDate, isCurrentMedicinesPrint }) => {
   // console.log('chart',chart)
   const renderImage = (src, _width) => {
     if (!src) return null;
@@ -146,10 +147,39 @@ const PrescriptionBody = ({ chart, doctor }) => {
             </Text>
           </View>
         )} */}
-        <Image src={RXIcon} style={{ width: "25px", ...styles.mrgnTop10 }} />
+        <View
+          style={{
+            ...styles.row,
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Image src={RXIcon} style={{ width: "25px", ...styles.mrgnTop10 }} />
+          {isCurrentMedicinesPrint && (
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: "#1d1d1d",
+                paddingVertical: 4,
+                paddingHorizontal: 10,
+              }}
+            >
+              <Text style={{ ...styles.fontBold, letterSpacing: "0.6px" }}>
+                CURRENT MEDICINES
+              </Text>
+            </View>
+          )}
+        </View>
         {chart?.medicines?.length > 0 && (
           <View style={styles.mrgnTop10}>
-            <PrescriptionTable medicines={chart.medicines} />
+            {isCurrentMedicinesPrint ? (
+              <CurrentMedicinesTable
+                medicines={chart.medicines}
+                baseDate={baseDate}
+              />
+            ) : (
+              <PrescriptionTable medicines={chart.medicines} />
+            )}
           </View>
         )}
         {chart?.notes && (
@@ -317,6 +347,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
             <Text style={{ ...styles.fontNormal }}>27 April, 2023</Text>
           </Text>
         </View> */}
+        {!isCurrentMedicinesPrint && (
         <View
           wrap={false}
           style={{
@@ -379,6 +410,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
             )}
           </View>
         </View>
+        )}
         {/* {doctor && (
           <View
             style={{

@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { Row } from "reactstrap";
+import { DropdownItem, Row } from "reactstrap";
 import Wrapper from "../Components/Wrapper";
 import {
   CLINICAL_NOTE,
@@ -55,7 +55,14 @@ import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
 import AdmissionType from "./AdmissionType";
 import { io } from "socket.io-client";
-import { getCharts } from "../../../helpers/backend_helper";
+import {
+  getCharts,
+  getCarryForward,
+  toggleCarryForward,
+} from "../../../helpers/backend_helper";
+import { getCurrentUserId } from "../../../helpers/currentMedicines";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
+import { toast } from "react-toastify";
 import { api } from "../../../config";
 import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
 import AdditionalDetailsModal from "./Components/AdditionalDetailsModal";
@@ -64,11 +71,25 @@ const Charts = ({
   addmission,
   charts,
   toggleDateModal,
+  setChartType,
   currentAddmissionId,
   isPatientDischarged,
 }) => {
   const dispatch = useDispatch();
   const [, forceUpdate] = useState(0);
+  // Prescriptions the current user has staged for carry-forward, loaded from
+  // the server rather than kept in redux — so the selection survives a page
+  // reload and stays private to this user, instead of resetting on refresh
+  // and being visible to every doctor viewing the patient.
+  const [carryForwardCharts, setCarryForwardCharts] = useState([]);
+  const patientIdForCarryForward = charts?.[0]?.patient;
+
+  useEffect(() => {
+    if (!patientIdForCarryForward) return;
+    getCarryForward(patientIdForCarryForward)
+      .then((res) => setCarryForwardCharts(res?.payload || []))
+      .catch(() => setCarryForwardCharts([]));
+  }, [patientIdForCarryForward]);
 
   const [chart, setChart] = useState({
     chart: null,
@@ -118,6 +139,19 @@ const Charts = ({
     socketRef.current.on("audioProcessingDone", (data) => {
       console.log(" Processing Done:", data);
 
+      const isRelevant = chartsRef.current?.some(
+        (c) =>
+          String(c.counsellingNote) === String(data.counsellingNoteId) ||
+          String(c.counsellingNote?._id) === String(data.counsellingNoteId),
+      );
+
+      if (!isRelevant) {
+        console.log(
+          "Ignoring audioProcessingDone — not relevant to this admission",
+        );
+        return;
+      }
+
       setTimeout(() => {
         dispatch(fetchChartsAddmissions([addmissionRef.current._id]));
         dispatch(fetchCharts(addmissionRef.current._id));
@@ -143,6 +177,19 @@ const Charts = ({
         !eventName.startsWith("psycho-diagnostic-ai:")
       )
         return;
+
+      const eventId = eventName.split(":")[1];
+
+      const isRelevant = chartsRef.current?.some(
+        (c) =>
+          String(c.labReport?._id) === String(eventId) ||
+          String(c.labReport) === String(eventId) ||
+          String(c.psychoDiagnosticForm?._id) === String(eventId) ||
+          String(c.psychoDiagnosticForm) === String(eventId),
+      );
+
+      if (!isRelevant) return;
+
       console.log(`[AI] Socket received: ${eventName}`, data);
       console.log("addmissionRef.current?._id", addmissionRef.current?._id);
       console.log("Addmission ref", addmissionRef);
@@ -175,6 +222,24 @@ const Charts = ({
   const editChart = (chart) => {
     toggleDateModal();
     dispatch(createEditChart({ data: chart, chart: null, isOpen: false }));
+  };
+
+  const isStagedForCarryForward = (chart) =>
+    (carryForwardCharts || []).some((c) => String(c._id) === String(chart._id));
+
+  const carryForwardChart = (chart) => {
+    toggleCarryForward(chart.patient, chart._id)
+      .then((res) => {
+        setCarryForwardCharts(res?.payload || []);
+        toast.success(
+          res?.staged
+            ? "Added to carry forward — open Create new Chart to use it"
+            : "Removed from carry forward",
+        );
+      })
+      .catch((err) =>
+        toast.error(err?.message || "Failed to update carry forward"),
+      );
   };
 
   const getChart = (chart) => {
@@ -280,14 +345,26 @@ const Charts = ({
                   printItem={printChart}
                   addAdditionalDetails={
                     String(chart.addmission) === String(currentAddmissionId) &&
-                      !!chart.addmission && // ← add this — hides for OPD (no admission)
-                      !addmission?.dischargeDate &&
-                      !isPatientDischarged
+                    !!chart.addmission && // ← add this — hides for OPD (no admission)
+                    !addmission?.dischargeDate &&
+                    !isPatientDischarged
                       ? handleAddAdditionalDetails
                       : undefined
                   }
                   // Round-note charts are auto-generated read-only snapshots —
                   // they are edited/removed only from the Round Notes screen.
+                  // disableEdit={
+                  //   chart.chart === ROUND_NOTE ||
+                  //   (addmission?.dischargeDate ? true : false) ||
+                  //   isPatientDischarged ||
+                  //   (currentAddmissionId
+                  //     ? chart.addmission !== currentAddmissionId
+                  //     : false)
+                  // }
+                  // disableDelete={
+                  //   chart.chart === ROUND_NOTE ||
+                  //   (addmission?.dischargeDate ? true : false)
+                  // }
                   disableEdit={
                     chart.chart === ROUND_NOTE ||
                     (addmission?.dischargeDate ? true : false) ||
@@ -298,7 +375,8 @@ const Charts = ({
                   }
                   disableDelete={
                     chart.chart === ROUND_NOTE ||
-                    (addmission?.dischargeDate ? true : false)
+                    (addmission?.dischargeDate ? true : false) ||
+                    isPatientDischarged
                   }
                   itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
                   geminiResponseGeneratedBy={chart?.geminiResponseGeneratedBy}
@@ -306,9 +384,49 @@ const Charts = ({
                   validatorId={chart?.validatorId}
                   doctorValidatorId={chart?.doctorValidatorId}
                   currentAddmissionId={currentAddmissionId}
+                  hideEdit={
+                    chart.chart === PRESCRIPTION &&
+                    (String(chart.author?._id || chart.author) !==
+                      String(getCurrentUserId()) ||
+                      Date.now() - new Date(chart.createdAt).getTime() >
+                        24 * 60 * 60 * 1000)
+                  }
+                  extraOptions={(item) =>
+                    item?.chart === PRESCRIPTION &&
+                    item?.type === "IPD" &&
+                    (item?.prescription?.medicines || []).some(
+                      (med) => med.status !== "discontinued",
+                    ) ? (
+                      <CheckPermission permission={"edit"} subAccess="Charting">
+                      <DropdownItem
+                        onClick={() => carryForwardChart(item)}
+                        href="#"
+                      >
+                        {isStagedForCarryForward(item) ? (
+                          <>
+                            <i className="ri-check-line align-bottom text-success me-2"></i>{" "}
+                            Remove from Carry Forward
+                          </>
+                        ) : (
+                          <>
+                            <i className="ri-file-copy-line align-bottom text-muted me-2"></i>{" "}
+                            Add to Carry Forward
+                          </>
+                        )}
+                      </DropdownItem>
+                      </CheckPermission>
+                    ) : null
+                  }
                 >
                   {chart.chart === PRESCRIPTION && (
-                    <Prescription data={chart?.prescription} />
+                    <Prescription
+                      data={chart?.prescription}
+                      baseDate={chart?.date || chart?.createdAt}
+                      showDates={chart?.type === "IPD"}
+                      showOwner={chart?.type === "IPD"}
+                      currentUserId={getCurrentUserId()}
+                      fallbackPrescriber={chart?.author}
+                    />
                   )}
                   {chart.chart === RELATIVE_VISIT && (
                     <RelativeVisit data={chart?.relativeVisit} />

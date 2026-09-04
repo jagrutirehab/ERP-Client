@@ -39,6 +39,14 @@ const METRIC_GROUPS = [
     ],
   },
   {
+    label: "Total Amount (IPD+OPD)",
+    category: "total_amount",
+    fields: [
+      { key: "amount", label: "Net Amount" },
+      { key: "amount_mtd", label: "Net Amount" },
+    ],
+  },
+  {
     label: "Admitted Patients",
     category: "admitted_patients",
     fields: [
@@ -49,14 +57,6 @@ const METRIC_GROUPS = [
   {
     label: "Discharged Patients",
     category: "discharged_patients",
-    fields: [
-      { key: "count", label: "Count" },
-      { key: "count_mtd", label: "Count" },
-    ],
-  },
-  {
-    label: "Repeat Patients",
-    category: "repeat_patients",
     fields: [
       { key: "count", label: "Count" },
       { key: "count_mtd", label: "Count" },
@@ -76,11 +76,29 @@ const METRIC_GROUPS = [
     ],
   },
   {
+    label: "Repeat Patients",
+    category: "repeat_patients",
+    fields: [
+      { key: "count", label: "Count" },
+      { key: "count_mtd", label: "Count" },
+    ],
+  },
+  
+  {
     label: "New Patients",
     category: "new_patients",
     fields: [
       { key: "count" },
       { key: "count_mtd" },
+    ],
+  },
+  
+  {
+    label: "Expenses",
+    category: "expenses_amount",
+    fields: [
+      { key: "amount", label: "Total Amount" },
+      { key: "amount_mtd", label: "Total Amount" },
     ],
   },
 ];
@@ -126,7 +144,7 @@ const readValue = (record, path) => {
   return record?.[category]?.[field] ?? 0;
 };
 
-const ROUNDED_CATEGORIES = ["payble_amount", "advance_payment", "opd_payment"];
+const ROUNDED_CATEGORIES = ["payble_amount", "advance_payment", "opd_payment", "total_amount", "expenses_amount"];
 
 const MetricSection = ({ title, path, centers, months, pivot, loading, error }) => {
   const [csvData, setCsvData] = useState([]);

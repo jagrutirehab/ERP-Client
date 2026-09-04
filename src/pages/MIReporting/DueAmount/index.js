@@ -11,6 +11,32 @@ const PATIENT_TYPE_OPTIONS = [
   { value: "discharged", label: "Discharged" },
 ];
 
+const ADVANCE_FILTER_OPTIONS = [
+  { value: "ALL", label: "All Advance Payments" },
+  { value: "GT0", label: "Advance Payment > 0" },
+  { value: "EQ0", label: "Advance Payment = 0" },
+];
+
+const DAYS_SINCE_ADVANCE_OPTIONS = [
+  { value: "ALL", label: "All Days Since Last Advance" },
+  { value: "60", label: "60+ Days" },
+  { value: "45", label: "45+ Days" },
+  { value: "30", label: "30+ Days" },
+];
+
+const DUE_AMOUNT_RANGE_OPTIONS = [
+  { value: "ALL", label: "All Due Amounts" },
+  { value: "ABOVE_1L", label: "Above 1 Lac" },
+  { value: "ABOVE_50K", label: "Above 50K" },
+  { value: "0_50K", label: "0 - 50K" },
+];
+
+const FIRST_INVOICE_RECOVERED_OPTIONS = [
+  { value: "ALL", label: "First Invoice Recovered: All" },
+  { value: "Yes", label: "First Invoice Recovered: Yes" },
+  { value: "No", label: "First Invoice Recovered: No" },
+];
+
 const labels = [
   "Patient UID",
   "Name",
@@ -61,6 +87,10 @@ const DueAmount = () => {
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [selectedPatientType, setSelectedPatientType] = useState("admitted");
+  const [selectedAdvanceFilter, setSelectedAdvanceFilter] = useState("ALL");
+  const [selectedDaysSinceAdvance, setSelectedDaysSinceAdvance] = useState("ALL");
+  const [selectedDueAmountRange, setSelectedDueAmountRange] = useState("ALL");
+  const [selectedFirstInvoiceRecovered, setSelectedFirstInvoiceRecovered] = useState("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const PAGE_SIZE = 100;
   const currentMonthLabel = new Date().toLocaleDateString("en-GB", { month: "short", year: "numeric" });
@@ -105,16 +135,35 @@ const DueAmount = () => {
     return data
       .filter((item) => {
         if (selectedCenter !== "ALL" && item.center_name !== selectedCenter) return false;
+        const totalAdvance = Number(item.total_advance ?? 0);
+        if (selectedAdvanceFilter === "GT0" && !(totalAdvance > 0)) return false;
+        if (selectedAdvanceFilter === "EQ0" && totalAdvance !== 0) return false;
+        if (selectedDaysSinceAdvance !== "ALL" && !(Number(item.days_since_last_advance ?? 0) >= Number(selectedDaysSinceAdvance))) return false;
+        const due = Number(item.due_amount ?? 0);
+        if (selectedDueAmountRange === "ABOVE_1L" && !(due < -100000)) return false;
+        if (selectedDueAmountRange === "ABOVE_50K" && !(due < -50000)) return false;
+        if (selectedDueAmountRange === "0_50K" && !(due <= 0 && due >= -50000)) return false;
+        if (selectedFirstInvoiceRecovered !== "ALL" && item.first_invoice_recovered !== selectedFirstInvoiceRecovered) return false;
         return true;
       })
       .sort((a, b) => Number(a.due_amount ?? 0) - Number(b.due_amount ?? 0));
-  }, [data, selectedCenter]);
+  }, [data, selectedCenter, selectedAdvanceFilter, selectedDaysSinceAdvance, selectedDueAmountRange, selectedFirstInvoiceRecovered]);
 
   const negativeDueSum = useMemo(
     () => filteredData.reduce((sum, item) => {
       const due = Number(item.due_amount ?? 0);
       return due < 0 ? sum + due : sum;
     }, 0),
+    [filteredData]
+  );
+
+  const totalInvoicedSum = useMemo(
+    () => filteredData.reduce((sum, item) => sum + Number(item.total_invoiced ?? 0), 0),
+    [filteredData]
+  );
+
+  const totalAdvanceSum = useMemo(
+    () => filteredData.reduce((sum, item) => sum + Number(item.total_advance ?? 0), 0),
     [filteredData]
   );
 
@@ -210,6 +259,38 @@ const DueAmount = () => {
                   placeholder="Month..."
                 />
               </Col>
+              <Col md={2}>
+                <Select
+                  value={ADVANCE_FILTER_OPTIONS.find((o) => o.value === selectedAdvanceFilter) || ADVANCE_FILTER_OPTIONS[0]}
+                  onChange={(opt) => setSelectedAdvanceFilter(opt.value)}
+                  options={ADVANCE_FILTER_OPTIONS}
+                  placeholder="Advance Payment..."
+                />
+              </Col>
+              <Col md={2}>
+                <Select
+                  value={DAYS_SINCE_ADVANCE_OPTIONS.find((o) => o.value === selectedDaysSinceAdvance) || DAYS_SINCE_ADVANCE_OPTIONS[0]}
+                  onChange={(opt) => setSelectedDaysSinceAdvance(opt.value)}
+                  options={DAYS_SINCE_ADVANCE_OPTIONS}
+                  placeholder="Days Since Last Advance..."
+                />
+              </Col>
+              <Col md={2}>
+                <Select
+                  value={DUE_AMOUNT_RANGE_OPTIONS.find((o) => o.value === selectedDueAmountRange) || DUE_AMOUNT_RANGE_OPTIONS[0]}
+                  onChange={(opt) => setSelectedDueAmountRange(opt.value)}
+                  options={DUE_AMOUNT_RANGE_OPTIONS}
+                  placeholder="Due Amount..."
+                />
+              </Col>
+              <Col md={2}>
+                <Select
+                  value={FIRST_INVOICE_RECOVERED_OPTIONS.find((o) => o.value === selectedFirstInvoiceRecovered) || FIRST_INVOICE_RECOVERED_OPTIONS[0]}
+                  onChange={(opt) => setSelectedFirstInvoiceRecovered(opt.value)}
+                  options={FIRST_INVOICE_RECOVERED_OPTIONS}
+                  placeholder="First Invoice Recovered..."
+                />
+              </Col>
             </Row>
 
             <Card>
@@ -250,6 +331,16 @@ const DueAmount = () => {
                               {label === "Due Amount" && negativeDueSum < 0 && (
                                 <div style={{ fontWeight: "normal", fontSize: "0.72rem", color: "#ffcdd2", marginTop: 2 }}>
                                   Total: {formatCurrency(negativeDueSum)}
+                                </div>
+                              )}
+                              {label === "Total Invoiced" && (
+                                <div style={{ fontWeight: "normal", fontSize: "0.72rem", color: "#c8e6c9", marginTop: 2 }}>
+                                  Total: {formatCurrency(totalInvoicedSum)}
+                                </div>
+                              )}
+                              {label === "Total Advance" && (
+                                <div style={{ fontWeight: "normal", fontSize: "0.72rem", color: "#c8e6c9", marginTop: 2 }}>
+                                  Total: {formatCurrency(totalAdvanceSum)}
                                 </div>
                               )}
                             </th>

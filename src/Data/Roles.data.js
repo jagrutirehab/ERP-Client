@@ -101,6 +101,10 @@ export const permissionList = [
       { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
       { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
       {
+        name: "CENTRALPAYMENTACCOUNTINGAPPROVAL",
+        label: "Accounting Approval Dashboard",
+      },
+      {
         name: "CENTRALPAYMENTFINANCEAPPROVAL",
         label: "Finance Approval Dashboard",
       },
@@ -131,6 +135,7 @@ export const permissionList = [
       { name: "DOCUMENTCONFIG", label: "Document Configuration" },
       { name: "CENTERFLOORCONFIG", label: "Center Floor Configuration" },
       { name: "HRCONFIGURATIONSSETTING", label: "HR Configurations" },
+      { name: "CENTERFALLBACKMANAGER", label: "Centre Fallback Manager" },
     ],
   },
   {
@@ -272,6 +277,7 @@ export const permissionList = [
       // new joining
       { name: "NEW_JOINING_ADD_REQUEST", label: "New Joinings Add Request" },
       { name: "NEW_JOINING_APPROVAL", label: "New Joinings Approval" },
+      { name: "NEW_JOINING_BIOMETRIC", label: "Biometric Approvals" },
       { name: "NEW_JOINING_IT", label: "New Joinings IT" },
       // exit employee
       {
@@ -279,6 +285,7 @@ export const permissionList = [
         label: "Exit Employees Add Request",
       },
       { name: "EXIT_EMPLOYEE_APPROVAL", label: "Exit Employees Approval" },
+      { name: "EXIT_BIOMETRIC_APPROVAL", label: "Exit Biometric Approval" },
       { name: "EXIT_EMPLOYEE_FNF", label: "Exit Employees FNF" },
       { name: "EXIT_EMPLOYEE_IT", label: "Exit Employees IT" },
       // salary advance
@@ -321,6 +328,18 @@ export const permissionList = [
         name: "MY_HIRING_STATUS",
         label: "My Hiring Status",
       },
+      {
+        name: "BIOMETRIC_ADDITION_REQUEST",
+        label: "Add Biometric Addition Request",
+      },
+      {
+        name: "GET_BIOMETRIC_ADDITION_REQUESTS",
+        label: "Get Biometric Addition Requests",
+      },
+      // {
+      //   name: "GET_MY_BIOMETRIC_REQUESTS",
+      //   label: "Get My Biometric Requests",
+      // },
       // TPM-Third Party Manpower
       {
         name: "THIRD_PARTY_MANPOWER_ADD_REQUEST",
@@ -493,6 +512,7 @@ export const permissionList = [
       { name: "VIEW_AGENT_PROFILE", label: "My Visit History" },
       { name: "VIEW_DOCTOR_VISITS", label: "Doctor Visits" },
       { name: "EXPORT_DOCTOR_DIRECTORY", label: "Doctor Report" },
+      { name: "VIEW_MY_DRAFTS", label: "My Drafts" },
     ],
   },
   {
@@ -504,6 +524,33 @@ export const permissionList = [
       { name: "VENDOR_EDIT", label: "Edit Vendor" },
       { name: "VENDOR_STATUS_CHANGE", label: "Activate/Deactivate Vendor" },
       { name: "VENDOR_DOCUMENT_UPLOAD", label: "Upload Vendor Documents" },
+
+      { name: "ITEM_VIEW", label: "View Items" },
+      { name: "ITEM_CREATE", label: "Create Item" },
+      { name: "ITEM_EDIT", label: "Edit Item" },
+      { name: "ITEM_STATUS_CHANGE", label: "Activate/Discontinue Item" },
+      { name: "ITEM_DELETE", label: "Delete Item" },
+      { name: "ITEM_IMPORT", label: "Import Items" },
+
+      { name: "ITEM_TYPE_VIEW", label: "View Item Types" },
+      { name: "ITEM_TYPE_CREATE", label: "Create Item Type" },
+      { name: "ITEM_TYPE_EDIT", label: "Edit Item Type" },
+      {
+        name: "ITEM_TYPE_STATUS_CHANGE",
+        label: "Activate/Deactivate Item Type",
+      },
+
+      { name: "ITEM_CATEGORY_VIEW", label: "View Item Categories" },
+      { name: "ITEM_CATEGORY_CREATE", label: "Create Item Category" },
+      { name: "ITEM_CATEGORY_EDIT", label: "Edit Item Category" },
+      {
+        name: "ITEM_CATEGORY_STATUS_CHANGE",
+        label: "Activate/Deactivate Item Category",
+      },
+      { name: "UOM_VIEW", label: "View Units of Measurement" },
+      { name: "UOM_CREATE", label: "Create Unit of Measurement" },
+      { name: "UOM_EDIT", label: "Edit Unit of Measurement" },
+      { name: "UOM_DELETE", label: "Delete Unit of Measurement" },
     ],
   },
 ];

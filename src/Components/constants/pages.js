@@ -7,6 +7,13 @@ const pages = [
     icon: "ri-delete-bin-6-line",
   },
   {
+    id: "centerDashboard",
+    label: "Center Dashboard",
+    name: "Center Dashboard",
+    link: "/center-dashboard",
+    icon: "bx bx-broadcast",
+  },
+  {
     id: "nurse",
     label: "Nurse",
     name: "Nurse",
@@ -268,6 +275,7 @@ const pages = [
       edit: true,
       delete: true,
     },
+    
   },
   {
     id: "booking",
@@ -633,6 +641,12 @@ export const setting = [
     link: "/setting/center/floor/configs",
     icon: "bx bx-building-house",
   },
+  {
+    id: "centerfallbackmanager",
+    label: "Centre Fallback Manager",
+    link: "/setting/center/fallback/manager",
+    icon: "bx bx-user-pin",
+  },
 ];
 
 export const recyclebin = [
@@ -837,6 +851,12 @@ export const HR = [
         link: "/hr/new-joinings/approval",
       },
       {
+        id: "new-joining-biometric",
+        label: "Biometric Approvals",
+        icon: "bx bx-fingerprint",
+        link: "/hr/new-joinings/biometric/approval",
+      },
+      {
         id: "new-joining-it",
         label: "IT Approvals",
         icon: "bx bx-chip",
@@ -862,6 +882,12 @@ export const HR = [
         label: "Exit Approvals",
         icon: "bx bx-check-shield",
         link: "/hr/exit-employees/approval",
+      },
+      {
+        id: "exit-biometric",
+        label: "Biometric Approvals",
+        icon: "bx bx-fingerprint",
+        link: "/hr/exit-employees/biometric/approval",
       },
       {
         id: "exit-fnf-approval",
@@ -937,7 +963,33 @@ export const HR = [
       },
     ],
   },
-
+  {
+    id: "biometric-addition-request",
+    label: "Biometric",
+    icon: "bx bx-fingerprint",
+    link: "/hr/biometric",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-biometric-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/biometric/add",
+      },
+      {
+        id: "get-biometric-addition-requests",
+        label: "Get Biometric Addition Requests",
+        icon: "bx bx-user-plus",
+        link: "/hr/biometric/addition/requests",
+      },
+      // {
+      //   id: "get-biometric-my-requests",
+      //   label: "Get My Biometric Requests",
+      //   icon: "bx bx-plus",
+      //   link: "/hr/biometric/my/requests",
+      // },
+    ],
+  },
   {
     id: "hiring",
     label: "Hiring",
@@ -1509,12 +1561,12 @@ export const MASTER_DATA = [
   //   link: "/master-data/customer",
   //   icon: "bx bx-user",
   // },
-  // {
-  //   id: "masterdata-uom",
-  //   label: "Unit of Measurement",
-  //   link: "/master-data/uom",
-  //   icon: "bx bx-ruler",
-  // },
+{
+    id: "masterdata-uom",
+    label: "Unit of Measurements",
+    link: "/vendor-management/uom",
+    icon: "bx bx-ruler",
+  },
   // {
   //   id: "masterdata-payment-term",
   //   label: "Payment Terms",

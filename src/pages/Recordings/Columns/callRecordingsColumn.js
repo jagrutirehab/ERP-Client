@@ -43,6 +43,27 @@ export const callRecordingsColumns = (
       cell: (row) => {
         const response = row?.Files?.geminiResponse;
 
+        // In the queue: an overview is on its way, so neither "Not Generated"
+        // nor a stale error is the truth here.
+        if (row?.transcriptionQueued) {
+          return (
+            <span
+              className="d-inline-flex align-items-center"
+              style={{ color: "#2f7ed8", fontWeight: 600 }}
+            >
+              <span
+                className="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+                style={{ width: "0.75rem", height: "0.75rem" }}
+              />
+              {row?.transcriptionState === "submitted"
+                ? "Transcribing"
+                : "In Queue"}
+            </span>
+          );
+        }
+
         if (!response) {
           return (
             <span style={{ color: "red", fontWeight: 600 }}>Not Generated</span>
@@ -142,6 +163,14 @@ export const callRecordingsColumns = (
       name: <div className="text-center">Generate</div>,
       cell: (row) => {
         const response = row?.Files?.geminiResponse;
+
+        // Already queued — clicking Generate again would be de-duplicated
+        // server-side and do nothing, so there is nothing to offer.
+        if (row?.transcriptionQueued) {
+          return (
+            <span className="badge bg-info-subtle text-info">Queued</span>
+          );
+        }
 
         if (!response) {
           return (

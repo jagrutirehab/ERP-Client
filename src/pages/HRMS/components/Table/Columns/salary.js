@@ -43,7 +43,7 @@ const employerDeductionStyle = {
 const isSimplifiedEmployee = (row) =>
     (row?.employee?.employmentType || "").trim().toUpperCase() !== "FULL_TIME";
 
-export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, onReject, hasEditPermission, approvalStatusFilter }) => [
+export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, onReject, hasEditPermission, approvalStatusFilter, hasManuallyProcessedForMonth }) => [
     {
         name: <div>ECode</div>,
         selector: row => row?.employee?.eCode || "-",
@@ -72,8 +72,14 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         minWidth: "160px",
     },
     {
-        name: <div>Cost Center</div>,
+        name: <div>Current Location</div>,
         selector: row => capitalizeWords(row?.center?.title || "-"),
+        wrap: true,
+        minWidth: "120px",
+    },
+    {
+        name: <div>Cost Center</div>,
+        selector: row => capitalizeWords(row?.costCenter?.title || "-"),
         wrap: true,
         minWidth: "120px",
     },
@@ -339,6 +345,13 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         style: employeeDeductionStyle,
     },
     {
+        name: <div>Other Deductions</div>,
+        selector: row => formatCurrency(row?.earned?.otherDeductions),
+        wrap: true,
+        center: true,
+        style: employeeDeductionStyle,
+    },
+    {
         name: <div>Deductions</div>,
         selector: row => formatCurrency(row?.earned?.deductions),
         wrap: true,
@@ -483,7 +496,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
             name: <div>Action</div>,
             cell: row => (
                 <div className="d-flex gap-1 align-items-center">
-                    {row.approvalStatus !== "PENDING" ? (
+                    {row.approvalStatus !== "PENDING" || hasManuallyProcessedForMonth ? (
                         <i className="text-muted" style={{ fontSize: "12px" }}>Action not permitted</i>
                     ) : (
                         <>
@@ -528,7 +541,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
             minWidth: "180px"
         },
     ] : []),
-    ...((approvalStatusFilter === "ALL" || approvalStatusFilter === "APPROVED" || approvalStatusFilter === "REJECTED") ? [
+    ...((approvalStatusFilter === "ALL" || approvalStatusFilter === "APPROVED" || approvalStatusFilter === "REJECTED" || approvalStatusFilter === "MANNUALLY_PROCESSED") ? [
         {
             name: <div>Approved By</div>,
             selector: (row) => (

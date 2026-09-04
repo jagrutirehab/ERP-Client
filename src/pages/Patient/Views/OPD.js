@@ -25,6 +25,7 @@ import AppointmentCard from "./Components/AppointmentCard";
 import Wrapper from "../Components/Wrapper";
 import Prescription from "../Charts/Prescription";
 import PsychoDiagnosticForm from "../Charts/PsychoDiagnosticForm";
+import { getCurrentUserId } from "../../../helpers/currentMedicines";
 import OPDInvoice from "../Bills/OPDInvoice";
 import {
   INVOICE,
@@ -342,6 +343,11 @@ const OPDView = ({
                                       >
                                         <Prescription
                                           data={doc.chart?.prescription}
+                                          baseDate={doc.chart?.date || doc.chart?.createdAt}
+                                          showDates
+                                          showOwner
+                                          currentUserId={getCurrentUserId()}
+                                          fallbackPrescriber={doc.chart?.author}
                                         />
                                       </Wrapper>
                                     )}

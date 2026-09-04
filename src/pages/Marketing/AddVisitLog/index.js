@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Card,
   CardBody,
@@ -8,6 +9,10 @@ import {
   Label,
   FormFeedback,
   Button,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
 } from "reactstrap";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -16,15 +21,20 @@ import {
   createVisitLog,
   searchDoctors,
   getAllCenters,
+  createDraft,
+  updateDraft,
+  submitDraft,
+  discardDraft,
+  getVisitLogById,
 } from "../../../helpers/backend_helper";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 const STEPS = [
+  { key: "photo", label: "Photo Proof" },
   { key: "visit", label: "Visit Details" },
   { key: "doctor", label: "Doctor & Clinic" },
   { key: "collateral", label: "Collateral" },
   { key: "discussion", label: "Discussion" },
-  { key: "photo", label: "Photo Proof" },
   { key: "review", label: "Review & Submit" },
 ];
 
@@ -33,6 +43,22 @@ const INTEREST_OPTIONS = [
   { value: "WARM", label: "Warm" },
   { value: "COLD", label: "Cold" },
 ];
+
+const getSingleGpsReading = () => {
+  return new Promise((resolve, reject) => {
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        resolve({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+          accuracy: position.coords.accuracy,
+        });
+      },
+      (err) => reject(err),
+      { enableHighAccuracy: true, timeout: 8000, maximumAge: 0 },
+    );
+  });
+};
 
 const AddVisitLog = () => {
   const handleAuthError = useAuthError();
@@ -48,6 +74,14 @@ const AddVisitLog = () => {
   });
   const [gpsRefreshing, setGpsRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [draftId, setDraftId] = useState(null);
+  const [savingDraft, setSavingDraft] = useState(false);
+  const [showDiscardConfirm, setShowDiscardConfirm] = useState(false);
+  const [discarding, setDiscarding] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState(null);
+  const [searchParams] = useSearchParams();
+  const [draftLoading, setDraftLoading] = useState(false);
+  const [lockedGps, setLockedGps] = useState(null);
   //Selfie live camera only
   const [selfieFile, setSelfieFile] = useState(null);
   const [selfiePreview, setSelfiePreview] = useState(null);
@@ -136,7 +170,11 @@ const AddVisitLog = () => {
   };
 
   useEffect(() => {
-    fetchLocation(false);
+    const draftIdFromUrl = searchParams.get("draftId");
+    if (!draftIdFromUrl) {
+      setLockedGps(null);
+      fetchLocation(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -148,7 +186,7 @@ const AddVisitLog = () => {
   }, []);
 
   const validation = useFormik({
-    enableReinitialize: true,
+    enableReinitialize: false,
     initialValues: {
       center: "",
       areaLocality: "",
@@ -211,27 +249,55 @@ const AddVisitLog = () => {
         }),
     }),
     onSubmit: async (values) => {
-      if (!gps.lat || !gps.lng) {
-        toast.error("GPS location not available. Please enable location.");
-        return;
-      }
-      if (!selfieFile) {
+      if (!selfieFile && !selfiePreview) {
         toast.error("Selfie photo proof is required");
-        setActiveStep(4);
+        setActiveStep(0);
         return;
       }
 
-      if (!clinicPhotoFile) {
+      if (!clinicPhotoFile && !clinicPhotoPreview) {
         toast.error("Clinic/hospital photo is required");
-        setActiveStep(4);
+        setActiveStep(0);
         return;
       }
 
       setSubmitting(true);
+      let gpsReadings = [{ lat: gps.lat, lng: gps.lng, accuracy: null }];
+      let finalLat = gps.lat;
+      let finalLng = gps.lng;
+
+      if (lockedGps) {
+        finalLat = lockedGps.lat;
+        finalLng = lockedGps.lng;
+        gpsReadings = [
+          {
+            lat: lockedGps.lat,
+            lng: lockedGps.lng,
+            accuracy: lockedGps.accuracy,
+          },
+        ];
+      } else {
+        try {
+          const reading = await getSingleGpsReading();
+          gpsReadings = [reading];
+          finalLat = reading.lat;
+          finalLng = reading.lng;
+        } catch (gpsErr) {
+          // fallback, purani location use karo
+        }
+      }
+
       try {
         const formData = new FormData();
-        formData.append("gps[lat]", gps.lat);
-        formData.append("gps[lng]", gps.lng);
+        formData.append("gps[lat]", finalLat);
+        formData.append("gps[lng]", finalLng);
+        if (gpsReadings[gpsReadings.length - 1]?.accuracy != null) {
+          formData.append(
+            "gps[accuracy]",
+            gpsReadings[gpsReadings.length - 1].accuracy,
+          );
+        }
+        formData.append("gpsReadings", JSON.stringify(gpsReadings));
         formData.append("center", values.center);
         formData.append("areaLocality", values.areaLocality);
         formData.append("doctor[name]", values.doctorName);
@@ -240,9 +306,15 @@ const AddVisitLog = () => {
         formData.append("doctor[specialisation]", values.specialisation);
         formData.append("visitType", values.visitType);
         formData.append("metWith", values.metWith);
-        formData.append("collateral[given]", values.collateralGiven);
-        formData.append("collateral[pricingBrochure]", values.pricingBrochure);
-        formData.append("collateral[centreBrochure]", values.centreBrochure);
+        if (values.collateralGiven != null && values.collateralGiven !== "")
+          formData.append("collateral[given]", values.collateralGiven);
+        if (values.pricingBrochure != null && values.pricingBrochure !== "")
+          formData.append(
+            "collateral[pricingBrochure]",
+            values.pricingBrochure,
+          );
+        if (values.centreBrochure != null && values.centreBrochure !== "")
+          formData.append("collateral[centreBrochure]", values.centreBrochure);
         formData.append("visitNotes", values.visitNotes);
         formData.append("interestLevel", values.interestLevel);
         formData.append("commissionDiscussed", values.commissionDiscussed);
@@ -255,8 +327,12 @@ const AddVisitLog = () => {
         if (values.nextFollowUpDate) {
           formData.append("nextFollowUpDate", values.nextFollowUpDate);
         }
-        formData.append("selfie", selfieFile, "selfie.jpg");
-        formData.append("clinicPhoto", clinicPhotoFile, "clinic.jpg");
+        if (selfieFile) {
+          formData.append("selfie", selfieFile, "selfie.jpg");
+        }
+        if (clinicPhotoFile) {
+          formData.append("clinicPhoto", clinicPhotoFile, "clinic.jpg");
+        }
         if (collateralProofFiles.pricing) {
           formData.append(
             "collateralProofPricing",
@@ -267,18 +343,13 @@ const AddVisitLog = () => {
           formData.append("collateralProofCentre", collateralProofFiles.centre);
         }
 
-        await createVisitLog(formData);
+        if (draftId) {
+          await submitDraft(draftId, formData);
+        } else {
+          await createVisitLog(formData);
+        }
         toast.success("Visit logged successfully");
-        validation.resetForm();
-        setSelfieFile(null);
-        setSelfiePreview(null);
-        setClinicPhotoFile(null);
-        setClinicPhotoPreview(null);
-        setCollateralProofFiles({ pricing: null, centre: null });
-        setCollateralProofPreviews({ pricing: null, centre: null });
-        setSelectedDoctor(null);
-        setDoctorQuery("");
-        setActiveStep(0);
+        resetWholeForm();
       } catch (err) {
         if (!handleAuthError(err)) {
           toast.error(
@@ -291,8 +362,179 @@ const AddVisitLog = () => {
     },
   });
 
+  useEffect(() => {
+    const draftIdFromUrl = searchParams.get("draftId");
+    if (!draftIdFromUrl) return;
+
+    setDraftLoading(true);
+    getVisitLogById(draftIdFromUrl)
+      .then((res) => {
+        const draft = res?.data?.payload || res?.payload || res?.data;
+        if (!draft) return;
+
+        setDraftId(draft._id);
+        validation.setValues({
+          center: draft.center || "",
+          areaLocality: draft.areaLocality || "",
+          doctorName: draft.doctor?.name || "",
+          clinicName: draft.doctor?.clinicName || "",
+          contactNumber: draft.doctor?.contactNumber || "",
+          specialisation: draft.doctor?.specialisation || "",
+          visitType: draft.visitType || "",
+          metWith: draft.metWith || "",
+          collateralGiven:
+            draft.collateral?.given != null
+              ? String(draft.collateral.given)
+              : "",
+          pricingBrochure: draft.collateral?.pricingBrochure || false,
+          centreBrochure: draft.collateral?.centreBrochure || false,
+          visitNotes: draft.visitNotes || "",
+          interestLevel: draft.interestLevel || "",
+          commissionDiscussed:
+            draft.commissionDiscussed != null
+              ? String(draft.commissionDiscussed)
+              : "",
+          commissionPercentage: draft.commissionPercentage || "",
+          nextFollowUpDate: draft.nextFollowUpDate
+            ? draft.nextFollowUpDate.slice(0, 10)
+            : "",
+        });
+        if (draft.selfieProof?.url) {
+          setSelfiePreview(draft.selfieProof.url);
+        }
+        if (draft.clinicPhoto?.url) {
+          setClinicPhotoPreview(draft.clinicPhoto.url);
+        }
+
+        if (draft.gps?.lat && draft.gps?.lng) {
+          const locked = {
+            lat: draft.gps.lat,
+            lng: draft.gps.lng,
+            accuracy: draft.gps.accuracy || null,
+          };
+          setLockedGps(locked);
+
+          setGps({
+            lat: locked.lat,
+            lng: locked.lng,
+            error: null,
+            updatedAt: new Date(draft.createdAt || draft.visitDate),
+          });
+        }
+
+        toast.info("Draft loaded — continue filling in the remaining details");
+      })
+      .catch((err) => {
+        if (!handleAuthError(err)) {
+          toast.error("Failed to load draft");
+        }
+      })
+      .finally(() => setDraftLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
+
+  const buildDraftFormData = () => {
+    const values = validation.values;
+    const formData = new FormData();
+
+    if (gps.lat) formData.append("gps[lat]", gps.lat);
+    if (gps.lng) formData.append("gps[lng]", gps.lng);
+    if (values.center) formData.append("center", values.center);
+    if (values.areaLocality)
+      formData.append("areaLocality", values.areaLocality);
+    if (values.doctorName) formData.append("doctor[name]", values.doctorName);
+    if (values.clinicName)
+      formData.append("doctor[clinicName]", values.clinicName);
+    if (values.contactNumber)
+      formData.append("doctor[contactNumber]", values.contactNumber);
+    if (values.specialisation)
+      formData.append("doctor[specialisation]", values.specialisation);
+    if (values.visitType) formData.append("visitType", values.visitType);
+    if (values.metWith) formData.append("metWith", values.metWith);
+    if (values.collateralGiven != null && values.collateralGiven !== "")
+      formData.append("collateral[given]", values.collateralGiven);
+    if (values.pricingBrochure != null && values.pricingBrochure !== "")
+      formData.append("collateral[pricingBrochure]", values.pricingBrochure);
+    if (values.centreBrochure != null && values.centreBrochure !== "")
+      formData.append("collateral[centreBrochure]", values.centreBrochure);
+    if (values.visitNotes) formData.append("visitNotes", values.visitNotes);
+    if (values.interestLevel)
+      formData.append("interestLevel", values.interestLevel);
+    if (values.commissionDiscussed != null && values.commissionDiscussed !== "")
+      formData.append("commissionDiscussed", values.commissionDiscussed);
+    if (values.commissionPercentage)
+      formData.append("commissionPercentage", values.commissionPercentage);
+    if (values.nextFollowUpDate)
+      formData.append("nextFollowUpDate", values.nextFollowUpDate);
+    if (selfieFile) formData.append("selfie", selfieFile, "selfie.jpg");
+    if (clinicPhotoFile)
+      formData.append("clinicPhoto", clinicPhotoFile, "clinic.jpg");
+
+    return formData;
+  };
+
+  const handleSaveDraft = async () => {
+    setSavingDraft(true);
+    try {
+      const formData = buildDraftFormData();
+
+      if (draftId) {
+        await updateDraft(draftId, formData);
+      } else {
+        const res = await createDraft(formData);
+        const newId = res?.data?.payload?._id || res?.payload?._id;
+        setDraftId(newId);
+      }
+      setLastSavedAt(new Date());
+      toast.success("Draft saved — you can continue later");
+    } catch (err) {
+      if (!handleAuthError(err)) {
+        toast.error(err?.response?.data?.message || "Failed to save draft");
+      }
+    } finally {
+      setSavingDraft(false);
+    }
+  };
+
+  const resetWholeForm = () => {
+    validation.resetForm();
+    setSelfieFile(null);
+    setSelfiePreview(null);
+    setClinicPhotoFile(null);
+    setClinicPhotoPreview(null);
+    setCollateralProofFiles({ pricing: null, centre: null });
+    setCollateralProofPreviews({ pricing: null, centre: null });
+    setSelectedDoctor(null);
+    setDoctorQuery("");
+    setDraftId(null);
+    setLockedGps(null);
+    setActiveStep(0);
+    fetchLocation(false);
+  };
+
+  const handleDiscard = () => {
+    if (!draftId) return;
+    setShowDiscardConfirm(true);
+  };
+
+  const confirmDiscard = async () => {
+    setDiscarding(true);
+    try {
+      await discardDraft(draftId);
+      toast.success("Draft discarded");
+      resetWholeForm();
+      setShowDiscardConfirm(false);
+    } catch (err) {
+      if (!handleAuthError(err)) {
+        toast.error(err?.response?.data?.message || "Failed to discard draft");
+      }
+    } finally {
+      setDiscarding(false);
+    }
+  };
+
   //LIVE CAMERA
-  const openCamera = async () => {
+  const openCamera = useCallback(async () => {
     setCameraError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
@@ -311,7 +553,7 @@ const AddVisitLog = () => {
         "Camera access denied or unavailable. Please allow camera permission.",
       );
     }
-  };
+  }, [facingMode]);
 
   const closeCamera = () => {
     if (streamRef.current) {
@@ -320,7 +562,7 @@ const AddVisitLog = () => {
     }
     setCameraOpen(false);
   };
-  const openClinicCamera = async () => {
+  const openClinicCamera = useCallback(async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: clinicFacingMode },
@@ -336,7 +578,7 @@ const AddVisitLog = () => {
     } catch (err) {
       toast.error("Camera access denied or unavailable.");
     }
-  };
+  }, [clinicFacingMode]);
 
   const closeClinicCamera = () => {
     if (clinicStreamRef.current) {
@@ -357,7 +599,7 @@ const AddVisitLog = () => {
     if (clinicCameraOpen) {
       openClinicCamera();
     }
-  }, [clinicFacingMode]);
+  }, [clinicFacingMode, clinicCameraOpen, openClinicCamera]);
 
   const captureClinicPhoto = () => {
     const video = clinicVideoRef.current;
@@ -400,7 +642,7 @@ const AddVisitLog = () => {
     if (cameraOpen) {
       openCamera();
     }
-  }, [facingMode]);
+  }, [facingMode, cameraOpen, openCamera]);
 
   const capturePhoto = () => {
     const video = videoRef.current;
@@ -498,8 +740,8 @@ const AddVisitLog = () => {
   const stepHasError = (idx) => {
     const t = validation.touched;
     const err = validation.errors;
-    if (idx === 0) return t.areaLocality && err.areaLocality;
-    if (idx === 1)
+    if (idx === 1) return t.areaLocality && err.areaLocality;
+    if (idx === 2)
       return (
         (t.doctorName && err.doctorName) ||
         (t.clinicName && err.clinicName) ||
@@ -508,9 +750,9 @@ const AddVisitLog = () => {
         (t.visitType && err.visitType) ||
         (t.metWith && err.metWith)
       );
-    if (idx === 2)
-      return t.collateralGiven && (err.collateralGiven || err.pricingBrochure);
     if (idx === 3)
+      return t.collateralGiven && (err.collateralGiven || err.pricingBrochure);
+    if (idx === 4)
       return (
         (t.visitNotes && err.visitNotes) ||
         (t.interestLevel && err.interestLevel)
@@ -519,6 +761,7 @@ const AddVisitLog = () => {
   };
 
   const STEP_FIELDS = [
+    [],
     ["center", "areaLocality"],
     [
       "doctorName",
@@ -535,15 +778,14 @@ const AddVisitLog = () => {
       "commissionDiscussed",
       "commissionPercentage",
     ],
-    [],
-    [],
+    [], // Step 5 = Review
   ];
   const validateCurrentStep = async () => {
-    if (activeStep === 4 && !selfieFile) {
+    if (activeStep === 0 && !selfieFile && !selfiePreview) {
       toast.error("Please take a live selfie before continuing");
       return false;
     }
-    if (activeStep === 4 && !clinicPhotoFile) {
+    if (activeStep === 0 && !clinicPhotoFile && !clinicPhotoPreview) {
       toast.error("Please take a photo of the clinic before continuing");
       return false;
     }
@@ -585,14 +827,15 @@ const AddVisitLog = () => {
       );
       return;
     }
-    if (!selfieFile) {
+    if (!selfieFile && !selfiePreview) {
       toast.error("Selfie photo proof is required");
-      setActiveStep(4);
+      setActiveStep(0);
       return;
     }
-    if (!clinicPhotoFile) {
+
+    if (!clinicPhotoFile && !clinicPhotoPreview) {
       toast.error("Clinic/hospital photo is required");
-      setActiveStep(4);
+      setActiveStep(0);
       return;
     }
 
@@ -892,21 +1135,23 @@ const AddVisitLog = () => {
                       )}
                     </span>
                   </div>
-                  <Button
-                    type="button"
-                    size="sm"
-                    color="light"
-                    className="gps-refresh-btn"
-                    onClick={() => fetchLocation(true)}
-                    disabled={gpsRefreshing}
-                  >
-                    <i
-                      className={
-                        "bx bx-refresh" + (gpsRefreshing ? " bx-spin" : "")
-                      }
-                    />
-                    {gpsRefreshing ? "Refreshing…" : "Refresh"}
-                  </Button>
+                  {!lockedGps && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      color="light"
+                      className="gps-refresh-btn"
+                      onClick={() => fetchLocation(true)}
+                      disabled={gpsRefreshing}
+                    >
+                      <i
+                        className={
+                          "bx bx-refresh" + (gpsRefreshing ? " bx-spin" : "")
+                        }
+                      />
+                      {gpsRefreshing ? "Refreshing…" : "Refresh"}
+                    </Button>
+                  )}
                 </div>
               </div>
 
@@ -960,7 +1205,7 @@ const AddVisitLog = () => {
               <div className="mt-4 pt-2">
                 <form onSubmit={(e) => e.preventDefault()}>
                   {/* ---- STEP 0: VISIT DETAILS ---- */}
-                  {activeStep === 0 && (
+                  {activeStep === 1 && (
                     <Row>
                       <Col xs={12} lg={7}>
                         <div className="field-group">
@@ -1022,7 +1267,7 @@ const AddVisitLog = () => {
                   )}
 
                   {/* {STEP 1 DOCTOR & CLINIC } */}
-                  {activeStep === 1 && (
+                  {activeStep === 2 && (
                     <Row>
                       <Col xs={12} lg={6}>
                         <div className="field-group">
@@ -1347,7 +1592,7 @@ const AddVisitLog = () => {
                   )}
 
                   {/*STEP 2 COLLATERAL*/}
-                  {activeStep === 2 && (
+                  {activeStep === 3 && (
                     <Row>
                       <Col xs={12} lg={6}>
                         <div className="field-group">
@@ -1579,7 +1824,7 @@ const AddVisitLog = () => {
                   )}
 
                   {/* STEP 3 DISCUSSION */}
-                  {activeStep === 3 && (
+                  {activeStep === 4 && (
                     <Row>
                       <Col xs={12}>
                         <div className="field-group">
@@ -1714,7 +1959,7 @@ const AddVisitLog = () => {
                   )}
 
                   {/*STEP 4: PHOTO PROOF live camera only */}
-                  {activeStep === 4 && (
+                  {activeStep === 0 && (
                     <Row>
                       <Col xs={12} lg={7}>
                         <div className="field-group">
@@ -1923,14 +2168,14 @@ const AddVisitLog = () => {
 
                       {[
                         {
-                          step: 0,
+                          step: 1,
                           title: "Visit Details",
                           rows: [
                             ["Area / Locality", validation.values.areaLocality],
                           ],
                         },
                         {
-                          step: 1,
+                          step: 2,
                           title: "Doctor & Clinic",
                           rows: [
                             ["Doctor Name", validation.values.doctorName],
@@ -1953,7 +2198,7 @@ const AddVisitLog = () => {
                           ],
                         },
                         {
-                          step: 2,
+                          step: 3,
                           title: "Collateral",
                           rows: [
                             [
@@ -1989,7 +2234,7 @@ const AddVisitLog = () => {
                           ],
                         },
                         {
-                          step: 3,
+                          step: 4,
                           title: "Discussion",
                           rows: [
                             ["Visit Notes", validation.values.visitNotes],
@@ -2028,7 +2273,7 @@ const AddVisitLog = () => {
                               onClick={() => {
                                 goToStep(section.step);
                                 if (
-                                  section.step === 1 &&
+                                  section.step === 2 &&
                                   validation.values.visitType === "REPEAT_VISIT"
                                 ) {
                                   setEditingDoctor(true);
@@ -2059,7 +2304,7 @@ const AddVisitLog = () => {
                             size="sm"
                             color="link"
                             className="text-decoration-none p-0"
-                            onClick={() => goToStep(4)}
+                            onClick={() => goToStep(0)}
                           >
                             Edit
                           </Button>
@@ -2116,38 +2361,94 @@ const AddVisitLog = () => {
                     </div>
                   )}
                   {/*Navigation buttons*/}
-                  <div className="wizard-nav">
-                    <Button
-                      type="button"
-                      color="light"
-                      className="px-4 flex-fill flex-md-grow-0"
-                      onClick={goBack}
-                      disabled={activeStep === 0}
+                  {draftId && (
+                    <div
+                      className="mb-3 px-3 py-2 rounded-3 d-flex align-items-center gap-2"
+                      style={{
+                        background: "#eef2ff",
+                        color: "#3577f1",
+                        fontSize: 13,
+                      }}
                     >
-                      Back
-                    </Button>
+                      <i className="bx bx-save" style={{ fontSize: 15 }} />
+                      <span>
+                        Draft saved
+                        {lastSavedAt && (
+                          <>
+                            {" · Last saved "}
+                            {lastSavedAt.toLocaleTimeString("en-IN", {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </>
+                        )}
+                      </span>
+                    </div>
+                  )}
 
-                    {canWrite &&
-                      (activeStep !== STEPS.length - 1 ? (
+                  <div className="wizard-nav">
+                    {/* Row 1: Save Draft + Discard */}
+                    {canWrite && (
+                      <div className="d-flex flex-wrap gap-2 mb-2">
+                        {draftId && (
+                          <Button
+                            type="button"
+                            color="danger"
+                            outline
+                            className="px-4 flex-fill"
+                            onClick={handleDiscard}
+                          >
+                            Discard Draft
+                          </Button>
+                        )}
+
                         <Button
                           type="button"
+                          outline
                           color="primary"
-                          className="px-4 flex-fill flex-md-grow-0"
-                          onClick={goNext}
+                          className="px-4 flex-fill"
+                          disabled={savingDraft}
+                          onClick={handleSaveDraft}
                         >
-                          Next
+                          {savingDraft ? "Saving…" : "Save Draft"}
                         </Button>
-                      ) : (
-                        <Button
-                          type="button"
-                          color="success"
-                          className="px-4 flex-fill flex-md-grow-0"
-                          disabled={submitting}
-                          onClick={handleFinalSubmit}
-                        >
-                          {submitting ? "Submitting…" : "Submit Visit"}
-                        </Button>
-                      ))}
+                      </div>
+                    )}
+
+                    {/* Row 2: Back + Next/Submit */}
+                    <div className="d-flex flex-wrap gap-2">
+                      <Button
+                        type="button"
+                        color="light"
+                        className="px-4 flex-fill"
+                        onClick={goBack}
+                        disabled={activeStep === 0}
+                      >
+                        Back
+                      </Button>
+
+                      {canWrite &&
+                        (activeStep !== STEPS.length - 1 ? (
+                          <Button
+                            type="button"
+                            color="primary"
+                            className="px-4 flex-fill"
+                            onClick={goNext}
+                          >
+                            Next
+                          </Button>
+                        ) : (
+                          <Button
+                            type="button"
+                            color="success"
+                            className="px-4 flex-fill"
+                            disabled={submitting}
+                            onClick={handleFinalSubmit}
+                          >
+                            {submitting ? "Submitting…" : "Submit Visit"}
+                          </Button>
+                        ))}
+                    </div>
                   </div>
                 </form>
               </div>
@@ -2155,10 +2456,35 @@ const AddVisitLog = () => {
           </Card>
         </Col>
       </Row>
+      <Modal
+        isOpen={showDiscardConfirm}
+        toggle={() => setShowDiscardConfirm(false)}
+        centered
+      >
+        <ModalHeader toggle={() => setShowDiscardConfirm(false)}>
+          Discard this draft?
+        </ModalHeader>
+        <ModalBody>
+          <p className="mb-0 text-muted">
+            This will permanently delete the draft along with any photos and
+            details you've entered so far. This action cannot be undone.
+          </p>
+        </ModalBody>
+        <ModalFooter>
+          <Button
+            color="light"
+            onClick={() => setShowDiscardConfirm(false)}
+            disabled={discarding}
+          >
+            Cancel
+          </Button>
+          <Button color="danger" onClick={confirmDiscard} disabled={discarding}>
+            {discarding ? "Discarding…" : "Yes, Discard"}
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 };
 
 export default AddVisitLog;
-
-// //

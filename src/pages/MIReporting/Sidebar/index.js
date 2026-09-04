@@ -9,6 +9,9 @@ const Sidebar = () => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(true);
   const [isMISOpen, setIsMISOpen] = useState(true);
+  const [openMISCategories, setOpenMISCategories] = useState({});
+  const toggleMISCategory = (id) =>
+    setOpenMISCategories((prev) => ({ ...prev, [id]: !prev[id] }));
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isMobile, setIsMobile] = useState(
     typeof window !== "undefined" && window.innerWidth < 992
@@ -91,29 +94,87 @@ const Sidebar = () => {
     hasHubspotReportingPermission ? { id: "center-wise-mom", label: "Center Wise (MoM)", link: "/mi-reporting/center-wise-mom", icon: "bx bx-building" } : null,
   ];
 
-  const MISReports = [
-    { id: "refund-amount", label: "Refund Amount", link: "/mi-reporting/refund-amount", icon: "bx bx-revision" },
-    { id: "round-notes", label: "Round Notes", link: "/mi-reporting/round-notes", icon: "bx bx-notepad" },
-    { id: "clinical-notes", label: "Clinical Notes", link: "/mi-reporting/clinical-notes", icon: "bx bx-clipboard" },
-    { id: "counselling-sessions-patients", label: "Counselling Patients", link: "/mi-reporting/counselling-sessions-patients", icon: "bx bx-conversation" },
-    { id: "vital-signs", label: "Vital Signs", link: "/mi-reporting/vital-signs", icon: "bx bx-heart-circle" },
-    { id: "patient-docs", label: "IPD Patient Docs", link: "/mi-reporting/patient-docs", icon: "bx bx-bed" },
-    { id: "opd-patient-docs", label: "OPD Patient Docs", link: "/mi-reporting/opd-patient-docs", icon: "bx bx-walk" },
-    { id: "daily-invoices", label: "Daily Invoices", link: "/mi-reporting/daily-invoices", icon: "bx bx-receipt" },
-    { id: "counselling-sessions", label: "Counselling Sessions", link: "/mi-reporting/counselling-sessions", icon: "bx bx-conversation" },
-    { id: "counselling-recording", label: "Counselling Recording", link: "/mi-reporting/counselling-recording", icon: "bx bx-microphone" },
-    { id: "daily-dashboard", label: "Daily Dashboard", link: "/mi-reporting/daily-dashboard", icon: "bx bx-tachometer" },
-    { id: "docs-compliance", label: "Docs Compliance", link: "/mi-reporting/docs-compliance", icon: "bx bx-task" },
-    { id: "due-amount", label: "Due Amount", link: "/mi-reporting/due-amount", icon: "bx bx-wallet-alt" },
-    { id: "attendance", label: "Attendance", link: "/mi-reporting/attendance", icon: "bx bx-calendar-check" },
-    { id: "nurses-dod", label: "Nurses DOD", link: "/mi-reporting/nurses-dod", icon: "bx bx-capsule" },
-    { id: "cash-per-center", label: "Cash Per Center", link: "/mi-reporting/cash-per-center", icon: "bx bx-wallet" },
-    { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money" },
-    { id: "forms-data", label: "Forms Data", link: "/mi-reporting/forms-data", icon: "bx bx-clipboard" },
-    { id: "metrics-report", label: "Metrics Report", link: "/mi-reporting/metrics-report", icon: "bx bx-line-chart" },
-    { id: "opd-charges", label: "OPD Charges", link: "/mi-reporting/opd-charges", icon: "bx bx-money" },
-    { id: "central-expenses", label: "Central Expenses", link: "/mi-reporting/central-expenses", icon: "bx bx-receipt" },
-    { id: "occupancy", label: "Occupancy", link: "/mi-reporting/occupancy", icon: "bx bx-bed" },
+  const MIS_REPORT_CATEGORIES = [
+    {
+      id: "dashboards",
+      title: "Dashboards",
+      items: [
+        { id: "daily-dashboard", label: "Daily Dashboard", link: "/mi-reporting/daily-dashboard", icon: "bx bx-tachometer" },
+        { id: "metrics-report", label: "Metrics Report", link: "/mi-reporting/metrics-report", icon: "bx bx-line-chart" },
+      ],
+    },
+    {
+      id: "finance-revenue",
+      title: "💰 Finance & Revenue",
+      items: [
+        { id: "daily-invoices", label: "Daily Invoices", link: "/mi-reporting/daily-invoices", icon: "bx bx-receipt" },
+        { id: "due-amount", label: "Due Amount", link: "/mi-reporting/due-amount", icon: "bx bx-wallet-alt" },
+        { id: "opd-charges", label: "OPD Charges", link: "/mi-reporting/opd-charges", icon: "bx bx-money" },
+        { id: "cash-per-center", label: "Cash Per Center", link: "/mi-reporting/cash-per-center", icon: "bx bx-wallet" },
+        { id: "refund-amount", label: "Refund Amount", link: "/mi-reporting/refund-amount", icon: "bx bx-revision" },
+        { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money" },
+        { id: "central-expenses", label: "Central Expenses", link: "/mi-reporting/central-expenses", icon: "bx bx-receipt" },
+      ],
+    },
+    {
+      id: "occupancy-patient-management",
+      title: "🏥 Occupancy & Patient Management",
+      items: [
+        { id: "occupancy", label: "Occupancy", link: "/mi-reporting/occupancy", icon: "bx bx-bed" },
+        { id: "readmission", label: "Readmission", link: "/mi-reporting/readmission", icon: "bx bx-repost" },
+      ],
+    },
+    {
+      id: "clinical-operations",
+      title: "📋 Clinical Operations",
+      items: [
+        { id: "vital-signs", label: "Vital Signs", link: "/mi-reporting/vital-signs", icon: "bx bx-heart-circle" },
+        { id: "round-notes", label: "Round Notes", link: "/mi-reporting/round-notes", icon: "bx bx-notepad" },
+        { id: "clinical-notes", label: "Clinical Notes", link: "/mi-reporting/clinical-notes", icon: "bx bx-clipboard" },
+      ],
+    },
+    {
+      id: "doctor-counselling",
+      title: "👨‍⚕️ Doctor & Counselling",
+      items: [
+        { id: "doctor-psychologist-stay-range", label: "Doctor/Psychologist Stay Range", link: "/mi-reporting/doctor-psychologist-stay-range", icon: "bx bx-time-five" },
+        { id: "counselling-sessions-patients", label: "Counselling Patients", link: "/mi-reporting/counselling-sessions-patients", icon: "bx bx-conversation" },
+        { id: "counselling-sessions", label: "Counselling Sessions", link: "/mi-reporting/counselling-sessions", icon: "bx bx-conversation" },
+        { id: "counselling-recording", label: "Counselling Recording", link: "/mi-reporting/counselling-recording", icon: "bx bx-microphone" },
+      ],
+    },
+    {
+      id: "nursing-operations",
+      title: "👩‍⚕️ Nursing Operations",
+      items: [
+        { id: "nurses-dod", label: "Nurses DOD", link: "/mi-reporting/nurses-dod", icon: "bx bx-capsule" },
+        { id: "nurses-dashboard-dod", label: "Nurses Dashboard DOD", link: "/mi-reporting/nurses-dashboard-dod", icon: "bx bx-capsule" },
+      ],
+    },
+    {
+      id: "documentation-compliance",
+      title: "📄 Documentation & Compliance",
+      items: [
+        { id: "patient-docs", label: "IPD Patient Docs", link: "/mi-reporting/patient-docs", icon: "bx bx-bed" },
+        { id: "opd-patient-docs", label: "OPD Patient Docs", link: "/mi-reporting/opd-patient-docs", icon: "bx bx-walk" },
+        { id: "docs-compliance", label: "Docs Compliance", link: "/mi-reporting/docs-compliance", icon: "bx bx-task" },
+        { id: "forms-data", label: "Forms Data", link: "/mi-reporting/forms-data", icon: "bx bx-clipboard" },
+      ],
+    },
+    {
+      id: "quality-incidents",
+      title: "⚠️ Quality & Incidents",
+      items: [
+        { id: "incident", label: "Incident", link: "/mi-reporting/incident", icon: "bx bx-error-circle" },
+      ],
+    },
+    {
+      id: "hr-attendance",
+      title: "👥 HR & Attendance",
+      items: [
+        { id: "attendance", label: "Attendance", link: "/mi-reporting/attendance", icon: "bx bx-calendar-check" },
+      ],
+    },
   ];
 
   const sidebarStyle = isMobile
@@ -286,29 +347,52 @@ const Sidebar = () => {
                 </div>
               </div>
               <Collapse isOpen={isMISOpen}>
-                <ul className="list-unstyled chat-list chat-user-list users-list">
-                  {(MISReports || []).map((page, idx) => (
-                    <li key={idx} className={location.pathname === page.link ? "active" : ""}>
-                      <Link to={page.link} onClick={() => isMobile && setIsMobileOpen(false)}>
-                        <div className={`d-flex align-items-center ${showLabels ? "" : "justify-content-center"}`}>
-                          <div
-                            className="flex-shrink-0 chat-user-img online align-self-center ms-0"
-                            style={{ marginRight: showLabels ? "0.5rem" : "0" }}
-                          >
-                            <div className="avatar-xxs">
-                              <i className={`${page.icon} fs-4`}></i>
+                {MIS_REPORT_CATEGORIES.map((category) => (
+                  <div key={category.id}>
+                    {showLabels && (
+                      <div
+                        onClick={() => toggleMISCategory(category.id)}
+                        className="d-flex align-items-center justify-content-between px-3 pt-2 pb-1"
+                        style={{ cursor: "pointer" }}
+                      >
+                        <p
+                          className="text-uppercase text-muted fw-semibold mb-0"
+                          style={{ fontSize: "0.7rem", letterSpacing: "0.03em" }}
+                        >
+                          {category.title}
+                        </p>
+                        <i
+                          className={`mdi mdi-chevron-${openMISCategories[category.id] ? "up" : "down"} text-muted`}
+                        ></i>
+                      </div>
+                    )}
+                    <Collapse isOpen={!showLabels || !!openMISCategories[category.id]}>
+                    <ul className="list-unstyled chat-list chat-user-list users-list">
+                      {category.items.map((page) => (
+                        <li key={page.id} className={location.pathname === page.link ? "active" : ""}>
+                          <Link to={page.link} onClick={() => isMobile && setIsMobileOpen(false)}>
+                            <div className={`d-flex align-items-center ${showLabels ? "" : "justify-content-center"}`}>
+                              <div
+                                className="flex-shrink-0 chat-user-img online align-self-center ms-0"
+                                style={{ marginRight: showLabels ? "0.5rem" : "0" }}
+                              >
+                                <div className="avatar-xxs">
+                                  <i className={`${page.icon} fs-4`}></i>
+                                </div>
+                              </div>
+                              {showLabels && (
+                                <div className="flex-grow-1 overflow-hidden">
+                                  <p className="text-truncate font-semi-bold fs-15 mb-0">{page.label}</p>
+                                </div>
+                              )}
                             </div>
-                          </div>
-                          {showLabels && (
-                            <div className="flex-grow-1 overflow-hidden">
-                              <p className="text-truncate font-semi-bold fs-15 mb-0">{page.label}</p>
-                            </div>
-                          )}
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                    </Collapse>
+                  </div>
+                ))}
               </Collapse>
             </>
           )}

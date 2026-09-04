@@ -6,6 +6,7 @@ import {
   Row,
   Col,
   Input,
+  FormGroup,
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
@@ -31,6 +32,7 @@ import {
   removeUser,
   setUserForm,
   suspendStaff,
+  toggleAppLogin,
 } from "../../store/actions";
 import {
   setData,
@@ -93,6 +95,7 @@ const Main = ({ user, form, centerAccess }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [appLoginUpdatingId, setAppLoginUpdatingId] = useState(null);
   const limit = 12;
 
   const {
@@ -230,6 +233,25 @@ const Main = ({ user, form, centerAccess }) => {
       }
     } finally {
       toggleSuspendModal();
+    }
+  };
+
+  // App Login ON => the user can sign in on the mobile app only, never on the
+  // dashboard. Toggling it also ends the user's current session.
+  const handleAppLoginToggle = async (item) => {
+    setAppLoginUpdatingId(item._id);
+    try {
+      await dispatch(
+        toggleAppLogin({
+          id: item._id,
+          appLogin: !item.appLogin,
+          token,
+        })
+      ).unwrap();
+    } catch (error) {
+      handleAuthError(error);
+    } finally {
+      setAppLoginUpdatingId(null);
     }
   };
 
@@ -497,6 +519,34 @@ const Main = ({ user, form, centerAccess }) => {
                     <p className="text-muted mb-1">Assigned Centers</p>
                     <UserCenterList centers={item?.centerAccess || []} />
                   </div>
+                  <CheckPermission
+                    accessRolePermission={roles?.permissions}
+                    permission="edit"
+                  >
+                    <div className="mb-4">
+                      <div className="d-flex align-items-center justify-content-between">
+                        <p className="text-muted mb-0">App Login</p>
+                        <FormGroup
+                          switch
+                          className="form-switch-md form-switch-solid form-switch-success mb-0 pe-1"
+                        >
+                          <Input
+                            type="switch"
+                            role="switch"
+                            id={`appLogin-${item._id}`}
+                            checked={!!item.appLogin}
+                            disabled={appLoginUpdatingId === item._id}
+                            onChange={() => handleAppLoginToggle(item)}
+                          />
+                        </FormGroup>
+                      </div>
+                      <small className="text-muted d-block mt-1">
+                        {item.appLogin
+                          ? "Mobile app only — dashboard login blocked."
+                          : "Can log in on the dashboard and the app."}
+                      </small>
+                    </div>
+                  </CheckPermission>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
                   <div>

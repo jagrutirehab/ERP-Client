@@ -4,7 +4,17 @@ import MedicineChart from "../Tables/MedicineChart";
 import Divider from "../../../Components/Common/Divider";
 import moment from "moment";
 
-const Prescription = ({ data, startDate, endDate }) => {
+const Prescription = ({
+  data,
+  startDate,
+  endDate,
+  baseDate,
+  showDates,
+  showOwner,
+  currentUserId,
+  fallbackPrescriber,
+}) => {
+  const medicineBaseDate = startDate || baseDate || data?.createdAt;
   console.log("data", data);
   return (
     <React.Fragment>
@@ -121,7 +131,14 @@ const Prescription = ({ data, startDate, endDate }) => {
           <Divider />
         </div>
         <>
-          <MedicineChart medicines={data?.medicines || []} />
+          <MedicineChart
+            medicines={data?.medicines || []}
+            baseDate={medicineBaseDate}
+            showDates={showDates}
+            showOwner={showOwner}
+            currentUserId={currentUserId}
+            fallbackPrescriber={fallbackPrescriber}
+          />
           <div className="d-block text-center mt-3 mb-3">
             <Divider />
           </div>
@@ -153,6 +170,13 @@ const Prescription = ({ data, startDate, endDate }) => {
 
 Prescription.propTypes = {
   data: PropTypes.object.isRequired,
+  startDate: PropTypes.any,
+  endDate: PropTypes.any,
+  baseDate: PropTypes.any,
+  showDates: PropTypes.bool,
+  showOwner: PropTypes.bool,
+  currentUserId: PropTypes.string,
+  fallbackPrescriber: PropTypes.object,
 };
 
 export default Prescription;

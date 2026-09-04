@@ -97,7 +97,7 @@ import { CheckCircle, XCircle } from "lucide-react";
 //                   {Array.isArray(meds) && meds.length > 0 ? (
 //                     meds.map((med) => (
 //                       <div
-//                         key={`${timeSlot}-${med.medicineIndex}`}
+//                         key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
 //                         className="border rounded-lg p-3 bg-white shadow-sm"
 //                       >
 //                         <div className="d-flex justify-content-between align-items-start">
@@ -235,7 +235,7 @@ import { CheckCircle, XCircle } from "lucide-react";
 
 //                                 return (
 //                                   <div
-//                                     key={`${timeSlot}-${med.medicineIndex}`}
+//                                     key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
 //                                     className="border rounded-lg p-3 bg-white shadow-sm d-flex justify-content-between align-items-center"
 //                                   >
 //                                     <div>
@@ -380,6 +380,8 @@ export const medicineSchema = Yup.object().shape({
   medicines: Yup.array().of(
     Yup.object().shape({
       medicineIndex: Yup.number().nullable(),
+      medicineId: Yup.string().nullable(),
+      prescriptionId: Yup.string().nullable(),
       slot: Yup.string().oneOf(["morning", "evening", "night"]).required(),
       status: Yup.string()
         .oneOf(["completed", "missed", "retrieved", "pending"])
@@ -455,7 +457,7 @@ const ActivityMedicineForm = ({
                   {Array.isArray(meds) && meds.length > 0 ? (
                     meds.map((med) => (
                       <div
-                        key={`${timeSlot}-${med.medicineIndex}`}
+                        key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
                         className="border rounded-lg p-3 bg-white shadow-sm"
                       >
                         <div className="d-flex justify-content-between align-items-start">
@@ -523,11 +525,13 @@ const ActivityMedicineForm = ({
   ) {
     Object.entries(medicineBoxFillingActivities.medicines).forEach(
       ([slot, meds]) => {
-        meds.forEach((med) => {
+        meds.filter((med) => !med.marked).forEach((med) => {
           initialValues.medicines.push({
+            prescriptionId: med.prescriptionId,
+            medicineId: med.medicineId,
             medicineIndex: med.medicineIndex,
             slot,
-            status: "pending",
+            status: med.missed ? "missed" : "pending",
           });
         });
       }
@@ -544,6 +548,8 @@ const ActivityMedicineForm = ({
         meds.forEach((med) => {
           initialValues.medicines.push({
             historyId: med.historyId,
+            prescriptionId: med.prescriptionId,
+            medicineId: med.medicineId,
             medicineIndex: med.medicineIndex,
             slot,
             status: "pending",
@@ -615,7 +621,9 @@ const ActivityMedicineForm = ({
   };
 
   const handleSelectAll = (values, setFieldValue) => {
-    const normalMedicines = values.medicines.filter((m) => !m.historyId);
+    const normalMedicines = values.medicines.filter(
+      (m) => !m.historyId && m.status !== "missed"
+    );
     const retrievalMedicines = values.medicines.filter((m) => m.historyId);
 
     const allNormalDone =
@@ -627,6 +635,7 @@ const ActivityMedicineForm = ({
     const allSelected = allNormalDone && allRetrievalsDone;
 
     values.medicines.forEach((m, idx) => {
+      if (m.status === "missed") return;
       if (m.historyId) {
         setFieldValue(
           `medicines[${idx}].status`,
@@ -686,13 +695,16 @@ const ActivityMedicineForm = ({
                             meds.map((med, idx) => {
                               const medicineIndex = values.medicines.findIndex(
                                 (m) =>
-                                  m.medicineIndex === med.medicineIndex &&
+                                  (med.medicineId
+                                    ? String(m.medicineId) ===
+                                      String(med.medicineId)
+                                    : m.medicineIndex === med.medicineIndex) &&
                                   m.slot === timeSlot
                               );
 
                               return (
                                 <div
-                                  key={`${timeSlot}-${med.medicineIndex}`}
+                                  key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
                                   className="border rounded-lg p-3 bg-white shadow-sm d-flex justify-content-between align-items-center"
                                 >
                                   <div>
@@ -745,6 +757,64 @@ const ActivityMedicineForm = ({
                                           strokeLinejoin="round"
                                         >
                                           <path d="M20 6L9 17l-5-5" />
+                                        </svg>
+                                      </div>
+                                    ) : med.marked ? (
+                                      <div
+                                        title="Already completed"
+                                        style={{
+                                          width: "28px",
+                                          height: "28px",
+                                          borderRadius: "50%",
+                                          border: "2px solid #198754",
+                                          cursor: "not-allowed",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          backgroundColor: "#198754",
+                                        }}
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="white"
+                                          strokeWidth="3"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        >
+                                          <path d="M20 6L9 17l-5-5" />
+                                        </svg>
+                                      </div>
+                                    ) : med.missed ? (
+                                      <div
+                                        title="Already recorded as missed for today"
+                                        style={{
+                                          width: "28px",
+                                          height: "28px",
+                                          borderRadius: "50%",
+                                          border: "2px solid #dc3545",
+                                          cursor: "not-allowed",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          backgroundColor: "#dc3545",
+                                        }}
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="white"
+                                          strokeWidth="3"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        >
+                                          <path d="M18 6L6 18M6 6l12 12" />
                                         </svg>
                                       </div>
                                     ) : (
@@ -950,7 +1020,7 @@ const ActivityMedicineForm = ({
                         }
                       >
                         {values.medicines
-                          .filter((m) => !m.historyId)
+                          .filter((m) => !m.historyId && m.status !== "missed")
                           .every((m) => m.status === "completed")
                           ? "Unselect All"
                           : "Select All"}
