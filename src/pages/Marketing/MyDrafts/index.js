@@ -12,7 +12,7 @@ const MyDrafts = () => {
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canContinue = hasPermission("MARKETING", "VIEW_MY_DRAFTS", "WRITE");
-  const canDiscard = hasPermission("MARKETING", "VIEW_MY_DRAFTS", "DELETE");
+  const canDiscard = hasPermission("MARKETING", "VIEW_MY_DRAFTS", "WRITE");
   const [drafts, setDrafts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);

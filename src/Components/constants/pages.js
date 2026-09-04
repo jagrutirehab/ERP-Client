@@ -1587,12 +1587,12 @@ export const MASTER_DATA = [
     link: "/vendor-management/uom",
     icon: "bx bx-ruler",
   },
-  // {
-  //   id: "masterdata-payment-term",
-  //   label: "Payment Terms",
-  //   link: "/master-data/payment-term",
-  //   icon: "bx bx-credit-card",
-  // },
+  {
+    id: "masterdata-payment-term",
+    label: "Payment Terms",
+    link: "/vendor-management/payment-term",
+    icon: "bx bx-credit-card",
+  },
   // {
   //   id: "masterdata-delivery-partner",
   //   label: "Delivery Partners",
