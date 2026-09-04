@@ -377,6 +377,29 @@ export const updateVitalSign = createAsyncThunk(
 );
 
 // Admission Type — IPD only, so there is no addGeneral counterpart.
+// Keeps the admission's type timeline current in the form's copy of the patient.
+//
+// `chartForm.patient` is a snapshot taken when the form opened, and the Admission
+// Type form reads `addmission.admissionTypeHistory` from it to show the current
+// type. Without this, saving/editing/deleting an Admission Type chart would leave
+// that snapshot stale and the panel would keep showing the previous value until a
+// full page reload. The server returns the fresh array on those three responses.
+const syncAdmissionTypeHistory = (state, payload) => {
+  const history = payload?.admissionTypeHistory;
+  if (!Array.isArray(history)) return;
+
+  const formPatient = state.chartForm?.patient;
+  if (!formPatient?.addmission) return;
+  // Only patch when the response is about the admission the form is open on.
+  if (
+    payload.addmission &&
+    String(formPatient.addmission._id) !== String(payload.addmission)
+  ) {
+    return;
+  }
+  formPatient.addmission.admissionTypeHistory = history;
+};
+
 export const addAdmissionType = createAsyncThunk(
   "postAdmissionType",
   async (data, { rejectWithValue, dispatch }) => {
@@ -1953,6 +1976,7 @@ export const chartSlice = createSlice({
       })
       .addCase(addAdmissionType.fulfilled, (state, { payload }) => {
         state.loading = false;
+        syncAdmissionTypeHistory(state, payload);
         // IPD only, so the admission always exists — guard the lookup anyway
         // rather than writing to state.data[-1].
         const findIndex = state.data.findIndex(
@@ -1976,6 +2000,7 @@ export const chartSlice = createSlice({
       })
       .addCase(updateAdmissionType.fulfilled, (state, { payload }) => {
         state.loading = false;
+        syncAdmissionTypeHistory(state, payload);
         const findIndex = state.data.findIndex(
           (el) => el._id === payload?.payload?.addmission,
         );
@@ -2746,6 +2771,9 @@ export const chartSlice = createSlice({
         state.loading = true;
       })
       .addCase(removeChart.fulfilled, (state, { payload }) => {
+        // Only carries admissionTypeHistory for Admission Type charts; the
+        // helper no-ops for every other chart kind.
+        syncAdmissionTypeHistory(state, payload);
         state.loading = false;
         if (payload.payload.type === "GENERAL") {
           state.charts = state.charts.filter(
