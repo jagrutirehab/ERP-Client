@@ -1,7 +1,13 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const DischargeInterFacility = ({ register, patient, admissions }) => {
+const DischargeInterFacility = ({
+  register,
+  patient,
+  admissions,
+  chartData,
+  setValue,
+}) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -73,10 +79,39 @@ const DischargeInterFacility = ({ register, patient, admissions }) => {
   };
 
   const [today, setToday] = useState("");
+  const [medicineRows, setMedicineRows] = useState([1, 2, 3, 4]);
 
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
   }, []);
+
+  useEffect(() => {
+    if (!admissions?.charts) return;
+    const latestPrescription = admissions.charts
+      .filter((c) => c.chart === "PRESCRIPTION")
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
+    const medicines = latestPrescription?.prescription?.medicines || [];
+    const rowCount = Math.max(4, medicines.length);
+    setMedicineRows(Array.from({ length: rowCount }, (_, i) => i + 1));
+    medicines.forEach((med, index) => {
+      const row = index + 1;
+      const { morning, evening, night } = med.dosageAndFrequency || {};
+      setValue(
+        `ift_med${row}_medication`,
+        [med.medicine?.type, med.medicine?.name, med.medicine?.strength]
+          .filter(Boolean)
+          .join(" ") || "",
+      );
+      setValue(
+        `ift_med${row}_dose`,
+        `${morning || 0}-${evening || 0}-${night || 0}`,
+      );
+      setValue(
+        `ift_med${row}_frequency`,
+        `${med.frequency || ""} ${med.unit || ""}`.trim(),
+      );
+    });
+  }, [admissions]);
 
   return (
     <div style={pageContainer}>
@@ -720,7 +755,7 @@ const DischargeInterFacility = ({ register, patient, admissions }) => {
           </tr>
         </thead>
         <tbody>
-          {[1, 2, 3, 4].map((row) => (
+          {medicineRows.map((row) => (
             <tr key={row}>
               <td style={tdStyle}>
                 <input

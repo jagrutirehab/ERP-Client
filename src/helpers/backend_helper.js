@@ -3972,6 +3972,45 @@ export const uploadFile = (data) => {
   });
 };
 
+// utilities
+export const uploadUtilityBill = (data) => {
+  return api.create(url.UPLOAD_UTILITY_BILL, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getUtilityBills = (params = {}) => {
+  return axios.get(url.GET_UTILITY_BILLS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (queryParams) => {
+      return qs.stringify(queryParams, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const updateUtilityBill = (id, data) => {
+  return api.update(url.UPDATE_UTILITY_BILL(id), data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const deleteUtilityBill = (id) => {
+  return api.delete(url.DELETE_UTILITY_BILL(id), {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 // Submit assessment form
 
 export const submitAssessment = (id, payload) => {

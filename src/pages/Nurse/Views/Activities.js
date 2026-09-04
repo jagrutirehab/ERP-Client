@@ -161,7 +161,7 @@ const Activities = () => {
                         <td>{med.prescribedBy || "-"}</td>
                         <td>
                           {med.takenAt
-                            ? moment(med.takenAt).format("hh:mm A")
+                            ? moment(med.takenAt).format("DD MMM YYYY, hh:mm A")
                             : "-"}
                         </td>
                       </tr>
