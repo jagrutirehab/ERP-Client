@@ -1,10 +1,13 @@
 import { useState, useEffect } from "react";
-import { DyteProvider, useDyteClient } from "@dytesdk/react-web-core";
-import { DyteMeeting } from "@dytesdk/react-ui-kit";
+import {
+  RealtimeKitProvider,
+  useRealtimeKitClient,
+} from "@cloudflare/realtimekit-react";
+import { RtkMeeting } from "@cloudflare/realtimekit-react-ui";
 import { useLocation } from "react-router-dom";
 
 function MyMeetingUI() {
-  const [meeting, initMeeting] = useDyteClient();
+  const [meeting, initMeeting] = useRealtimeKitClient();
   const [initialized, setInitialized] = useState(false);
   const location = useLocation();
   const queryParams = new URLSearchParams(location.search);
@@ -21,11 +24,11 @@ function MyMeetingUI() {
   }, [authToken, initMeeting, initialized]);
 
   return meeting ? (
-    <DyteProvider value={meeting}>
+    <RealtimeKitProvider value={meeting}>
       <div style={{ display: "flex", flexDirection: "column", height: "100%" }}>
-        <DyteMeeting meeting={meeting} showSetupScreen={false} />
+        <RtkMeeting meeting={meeting} showSetupScreen={false} />
       </div>
-    </DyteProvider>
+    </RealtimeKitProvider>
   ) : (
     <p>Loading Meeting...</p>
   );

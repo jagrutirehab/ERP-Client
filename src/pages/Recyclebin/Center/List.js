@@ -5,11 +5,7 @@ import { Link } from "react-router-dom";
 
 //redux
 import { useDispatch } from "react-redux";
-import {
-  rest,
-  restoreCenter,
-  restoreCenteroreCenterrestoreCenter,
-} from "../../../store/actions";
+import { restoreCenter } from "../../../store/actions";
 import ListItem from "../Components/ListItem";
 
 const List = ({ centers, setCenter, setDeleteCenter }) => {
