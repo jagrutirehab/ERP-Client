@@ -7,8 +7,7 @@ import Basic404 from "../../AuthenticationInner/Errors/Basic404";
 const PaymentTerm = () => {
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canView = hasPermission("MASTERDATA", "PAYMENT_TERM_VIEW", "READ");
-
+  const canView = hasPermission("MASTERDATA", "PAYMENT_TERM", "READ");
   const [view, setView] = useState("list");
   const [editingItem, setEditingItem] = useState(null);
 
