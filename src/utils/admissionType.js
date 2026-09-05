@@ -30,10 +30,21 @@ export const getCurrentAdmissionType = (addmission, excludeChartId = null) => {
     : history;
   if (pool.length === 0) return null;
 
-  // The open period, or the newest one if the timeline was left fully revoked
-  // (e.g. the only chart backing it was deleted while editing).
-  const current =
-    pool.find((e) => e && e.revokedAt == null) || pool[pool.length - 1];
+  // The most recently RECORDED entry wins — not the one with the latest clinical
+  // date, and not whichever happens to be flagged open.
+  //
+  // Ordering by clinical date was a real bug: a manually-entered type is stamped
+  // with the admission date, so on an admission dated later than the records
+  // added after it, that entry stayed "current" and masked every chart and form
+  // that followed. Sorting here as well as server-side means the display is
+  // right even for rows written before that was fixed.
+  //
+  // `recordedAt` is absent on older entries — fall back to assignedAt for those.
+  const recordedTime = (e) =>
+    new Date(e?.recordedAt ?? e?.assignedAt ?? 0).getTime();
+  const current = [...pool].sort(
+    (a, b) => recordedTime(a) - recordedTime(b),
+  )[pool.length - 1];
   if (!current?.admissionType) return null;
 
   return {
