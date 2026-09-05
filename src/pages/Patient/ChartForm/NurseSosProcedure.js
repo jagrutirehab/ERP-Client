@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Form, Row, Col, Label, Input, Button } from "reactstrap";
 import PropTypes from "prop-types";
 import { toast } from "react-toastify";
+import Select from "react-select";
 
 //constant
 import {
@@ -17,6 +18,11 @@ import {
   createEditChart,
   updateNurseSosProcedure,
 } from "../../../store/actions";
+
+const activityTypeOptions = nurseSosActivityTypes.map((type) => ({
+  value: type,
+  label: type,
+}));
 
 const emptyRow = { activityType: "", description: "" };
 
@@ -129,22 +135,19 @@ const NurseSosProcedure = ({
                 <Label className="mb-1">
                   Activity Type<span className="text-danger">*</span>
                 </Label>
-                <Input
-                  type="select"
-                  bsSize="sm"
-                  value={row.activityType || ""}
-                  onChange={(e) =>
-                    updateRow(idx, "activityType", e.target.value)
+                <Select
+                  options={activityTypeOptions}
+                  value={
+                    activityTypeOptions.find(
+                      (opt) => opt.value === row.activityType
+                    ) || null
                   }
-                  className="form-control"
-                >
-                  <option value="">Select activity type</option>
-                  {(nurseSosActivityTypes || []).map((activity) => (
-                    <option key={activity} value={activity}>
-                      {activity}
-                    </option>
-                  ))}
-                </Input>
+                  onChange={(selected) =>
+                    updateRow(idx, "activityType", selected?.value || "")
+                  }
+                  placeholder="Select activity type..."
+                  isClearable
+                />
               </Col>
               <Col xs={12} md={6}>
                 <Label className="mb-1">Description</Label>

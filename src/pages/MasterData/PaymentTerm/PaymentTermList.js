@@ -56,10 +56,9 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canCreate = hasPermission("MASTERDATA", "PAYMENT_TERM_CREATE", "WRITE");
-  const canEdit = hasPermission("MASTERDATA", "PAYMENT_TERM_EDIT", "WRITE");
-  const canDelete = hasPermission("MASTERDATA", "PAYMENT_TERM_DELETE", "WRITE");
-
+  const canCreate = hasPermission("MASTERDATA", "PAYMENT_TERM", "WRITE");
+  const canEdit = hasPermission("MASTERDATA", "PAYMENT_TERM", "WRITE");
+  const canDelete = hasPermission("MASTERDATA", "PAYMENT_TERM", "DELETE");
   const [terms, setTerms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -77,7 +76,9 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
         if (cancelled) return;
         if (!handleAuthError(error)) {
           toast.error(
-            error?.response?.data?.message || error?.message || "Couldn't load payment terms.",
+            error?.response?.data?.message ||
+              error?.message ||
+              "Couldn't load payment terms.",
           );
         }
       } finally {
@@ -98,7 +99,9 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error(
-          error?.response?.data?.message || error?.message || "Couldn't delete payment term.",
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't delete payment term.",
         );
       }
     }
@@ -115,7 +118,9 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
     {
       name: "Description",
       selector: (row) => row.description,
-      cell: (row) => <span className="uom-cell-primary">{row.description}</span>,
+      cell: (row) => (
+        <span className="uom-cell-primary">{row.description}</span>
+      ),
     },
     {
       name: "Type",
@@ -157,7 +162,11 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
             </Button>
           )}
           {canDelete && (
-            <Button size="sm" color="light" onClick={() => handleDelete(row._id)}>
+            <Button
+              size="sm"
+              color="light"
+              onClick={() => handleDelete(row._id)}
+            >
               <i className="bx bx-trash text-danger"></i>
             </Button>
           )}

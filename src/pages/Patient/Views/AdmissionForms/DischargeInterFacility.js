@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
+import { getCurrentMedicines } from "../../../../helpers/backend_helper";
 
 const DischargeInterFacility = ({
   register,
@@ -79,39 +80,44 @@ const DischargeInterFacility = ({
   };
 
   const [today, setToday] = useState("");
-  const [medicineRows, setMedicineRows] = useState([1, 2, 3, 4]);
+  const [medicineRows, setMedicineRows] = useState([1, 2, 3]);
 
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
   }, []);
 
   useEffect(() => {
-    if (!admissions?.charts) return;
-    const latestPrescription = admissions.charts
-      .filter((c) => c.chart === "PRESCRIPTION")
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))[0];
-    const medicines = latestPrescription?.prescription?.medicines || [];
-    const rowCount = Math.max(4, medicines.length);
-    setMedicineRows(Array.from({ length: rowCount }, (_, i) => i + 1));
-    medicines.forEach((med, index) => {
-      const row = index + 1;
-      const { morning, evening, night } = med.dosageAndFrequency || {};
-      setValue(
-        `ift_med${row}_medication`,
-        [med.medicine?.type, med.medicine?.name, med.medicine?.strength]
-          .filter(Boolean)
-          .join(" ") || "",
-      );
-      setValue(
-        `ift_med${row}_dose`,
-        `${morning || 0}-${evening || 0}-${night || 0}`,
-      );
-      setValue(
-        `ift_med${row}_frequency`,
-        `${med.frequency || ""} ${med.unit || ""}`.trim(),
-      );
-    });
-  }, [admissions]);
+    if (!patient?._id) return;
+
+    getCurrentMedicines(patient._id, "IPD")
+      .then((res) => {
+        const medicines = res?.payload || [];
+
+        const rowCount = Math.max(3, medicines.length);
+        setMedicineRows(Array.from({ length: rowCount }, (_, i) => i + 1));
+
+        medicines.forEach((item, index) => {
+          const row = index + 1;
+          const med = item.medicine;
+          const { morning, evening, night } = med?.dosageAndFrequency || {};
+          setValue(
+            `ift_med${row}_medication`,
+            [med?.medicine?.type, med?.medicine?.name, med?.medicine?.strength]
+              .filter(Boolean)
+              .join(" ") || "",
+          );
+          setValue(
+            `ift_med${row}_dose`,
+            `${morning || 0}-${evening || 0}-${night || 0}`,
+          );
+          setValue(
+            `ift_med${row}_frequency`,
+            `${med?.frequency || ""} ${med?.unit || ""}`.trim(),
+          );
+        });
+      })
+      .catch((err) => console.error("Failed to fetch current medicines", err));
+  }, [patient?._id]);
 
   return (
     <div style={pageContainer}>

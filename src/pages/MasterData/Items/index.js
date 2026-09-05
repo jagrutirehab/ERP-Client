@@ -15,11 +15,11 @@ const TABS = [
 const Items = () => {
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canViewItems = hasPermission("MASTERDATA", "ITEM_VIEW", "READ");
-  const canViewItemTypes = hasPermission("MASTERDATA", "ITEM_TYPE_VIEW", "READ");
+  const canViewItems = hasPermission("MASTERDATA", "ITEM_MASTER", "READ");
+  const canViewItemTypes = hasPermission("MASTERDATA", "ITEM_TYPE", "READ");
   const canViewCategories = hasPermission(
     "MASTERDATA",
-    "ITEM_CATEGORY_VIEW",
+    "ITEM_CATEGORY",
     "READ",
   );
 

@@ -56,9 +56,9 @@ const UOMList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canCreate = hasPermission("MASTERDATA", "UOM_CREATE", "WRITE");
-  const canEdit = hasPermission("MASTERDATA", "UOM_EDIT", "WRITE");
-  const canDelete = hasPermission("MASTERDATA", "UOM_DELETE", "WRITE");
+  const canCreate = hasPermission("MASTERDATA", "UOM", "WRITE");
+  const canEdit = hasPermission("MASTERDATA", "UOM", "WRITE");
+  const canDelete = hasPermission("MASTERDATA", "UOM", "DELETE");
   const [uoms, setUoms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");

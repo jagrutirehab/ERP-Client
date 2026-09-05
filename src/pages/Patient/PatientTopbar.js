@@ -43,6 +43,11 @@ import CheckPermission from "../../Components/HOC/CheckPermission";
 import AddNoteModal from "../Nurse/Views/Components/AddNoteModal";
 import AssignNurseModal from "./Views/Components/AssignNurseModal";
 import { unAssignNurse } from "../../store/features/patient/patientSlice";
+import {
+  getCurrentAdmissionType,
+  admissionTypeLabel,
+  getAdmissionTypeDetailParts,
+} from "../../utils/admissionType";
 // import { getAdditionalDetails } from "../../helpers/backend_helper";
 // import RenderWhen from "../../Components/Common/RenderWhen";
 
@@ -110,6 +115,23 @@ const PatientTopbar = ({
   const finalDiagnosisText = finalDiagnosis?.code || "N/A";
 
   const isFinalDiagnosisReady = !finalDiagnosisLoading;
+
+  // Admission type + its branch detail, e.g. "Supportive Admission · Upto 30
+  // days". Read straight off `patient.addmission` — unlike the final diagnosis
+  // there is nothing to fetch, so this needs no loading state. Same source the
+  // ADMISSION TYPE card below the topbar reads.
+  const currentAdmissionType = getCurrentAdmissionType(patient?.addmission);
+  const admissionTypeText = currentAdmissionType
+    ? [
+        admissionTypeLabel(
+          "admissionType",
+          currentAdmissionType.data?.admissionType,
+        ),
+        ...getAdmissionTypeDetailParts(currentAdmissionType.data),
+      ]
+        .filter(Boolean)
+        .join(" · ") || "N/A"
+    : "N/A";
 
   const handleEditClick = () => {
     if (admission?.doctor) {
@@ -242,6 +264,15 @@ const PatientTopbar = ({
                               ></span>
                             </span>
                           )}
+                        </p>
+                      )}
+                      {currentAdmissionId && (
+                        <p
+                          className="text-muted fs-13 mb-0 mt-1"
+                          title={admissionTypeText}
+                        >
+                          <span className="fw-semibold">Admission Type:</span>{" "}
+                          {admissionTypeText}
                         </p>
                       )}
                       <p className="text-truncate text-muted fs-14 mb-0 userStatus">
