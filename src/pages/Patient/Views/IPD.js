@@ -33,7 +33,22 @@ import {
 import { toast } from "react-toastify";
 import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
 import { setAdmissionRamsayApplicable } from "../../../store/features/chart/chartSlice";
+import SetAdmissionTypeModal from "./Components/SetAdmissionTypeModal";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { capitalizeWords } from "../../../utils/toCapitalize";
+
+// Who may record an admission type directly.
+//
+// Matched against the RolesManagement access-role NAME, not `user.role` — there
+// is no "IT" in the user role enum (authRoles.js), so `user.role` could never
+// carry it. These are the three IT roles that exist in RolesManagement; listed
+// explicitly, and compared exactly, so a new role can't slip in by accident.
+// Add here when a new IT role is created.
+//
+// (Note "New_limited" also contains the letters "it" — a substring match would
+// have wrongly included it. Exact names avoid that class of mistake entirely.)
+const ADMISSION_TYPE_ALLOWED_ROLES = ["IT", "IT-ADMIN", "IT-MIS"];
+const ADMISSION_TYPE_ALLOWED_EMAILS = ["vikas@jagrutirehab.org"];
 
 const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   const dispatch = useDispatch();
@@ -43,7 +58,25 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   const [open, setOpen] = useState(null);
   const [filterChartType, setFilterChartType] = useState({});
   const [admissionsSettled, setAdmissionsSettled] = useState(false);
+  // Admission id whose "Set Admission Type" dialog is open, or null. Keyed by id
+  // rather than a boolean because the page renders one card per admission.
+  const [admissionTypeFor, setAdmissionTypeFor] = useState(null);
   const latestPatientIdRef = useRef();
+
+  // `user.accessroles` is a bare ObjectId on the user document, so the role NAME
+  // has to be resolved through this hook (it caches module-level, so no repeat
+  // request). Same shape as pages/Nurse/Main.js and the HRMS role checks.
+  const microUser = localStorage.getItem("micrologin");
+  const permissionToken = microUser ? JSON.parse(microUser).token : null;
+  const { roles: accessRole, loading: permissionLoader } =
+    usePermissions(permissionToken);
+
+  // Fails closed: while the roles fetch is in flight the button stays hidden
+  // rather than flashing up for someone who may not be allowed to use it.
+  const canSetAdmissionType =
+    (!permissionLoader &&
+      ADMISSION_TYPE_ALLOWED_ROLES.includes(accessRole?.name)) ||
+    ADMISSION_TYPE_ALLOWED_EMAILS.includes(user?.email);
 
   // `state.Chart.data` is a shared slice — other screens (ChartDate modal,
   // AI socket refreshes, Wrapper validation) also read/write it for
@@ -354,8 +387,38 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                       </p>
                     </div>
                   </RenderWhen>
+
+                  {/* Backfill affordance: only for a live admission that has NO
+                      timeline at all, i.e. neither an Admission Type chart nor a
+                      structured Admission Form was ever submitted. Once either
+                      exists the type is already recorded, so this disappears and
+                      corrections go through the chart. */}
+                  <RenderWhen
+                    isTrue={
+                      canSetAdmissionType &&
+                      !addmission.dischargeDate &&
+                      !addmission.admissionTypeHistory?.length
+                    }
+                  >
+                    <Button
+                      size="sm"
+                      color="primary"
+                      outline
+                      className="ms-2"
+                      onClick={() => setAdmissionTypeFor(addmission._id)}
+                    >
+                      Set Admission Type
+                    </Button>
+                  </RenderWhen>
                 </div>
               </div>
+
+              <SetAdmissionTypeModal
+                isOpen={admissionTypeFor === addmission._id}
+                toggle={() => setAdmissionTypeFor(null)}
+                addmission={addmission}
+              />
+
               <div className="d-flex align-items-center gap-4">
                 {(user?.email === "rijutarafder000@gmail.com" ||
                   user?.email === "owais@gmail.com" ||

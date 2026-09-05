@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   setRamsayApplicable as setRamsayApplicableApi,
+  setAdmissionTypeDirect as setAdmissionTypeDirectApi,
   deleteChart,
   deleteClinicalNoteFile,
   deleteCounsellingNoteFile,
@@ -392,6 +393,28 @@ export const setAdmissionRamsayApplicable = createAsyncThunk(
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue(error.message || "Failed to update Ramsay applicability");
+    }
+  },
+);
+
+// Records an admission type directly on an admission that has none — the stays
+// the backfill script can't reach, because it derives history from the very
+// chart/form records these lack. Create-only; the server refuses if a history
+// already exists.
+//
+// In THIS slice for the same reason as the Ramsay toggle: IPD.js renders from
+// `state.Chart.data`, so the "Set Admission Type" button only disappears if the
+// timeline is patched there.
+export const setAdmissionTypeDirect = createAsyncThunk(
+  "setAdmissionTypeDirect",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      return await setAdmissionTypeDirectApi(data);
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(
+        error.message || "Failed to record the admission type",
+      );
     }
   },
 );
@@ -1993,6 +2016,14 @@ export const chartSlice = createSlice({
     builder
       .addCase(addAdmissionType.pending, (state) => {
         state.loading = true;
+      })
+      .addCase(setAdmissionTypeDirect.fulfilled, (state, { payload }) => {
+        const id = payload?.data?._id;
+        const history = payload?.data?.admissionTypeHistory;
+        if (!id || !Array.isArray(history)) return;
+        const idx = state.data.findIndex((el) => String(el._id) === String(id));
+        if (idx === -1) return;
+        state.data[idx].admissionTypeHistory = history;
       })
       .addCase(setAdmissionRamsayApplicable.fulfilled, (state, { payload }) => {
         // IPD.js reads this array, so patch it here or the checkbox reverts on
