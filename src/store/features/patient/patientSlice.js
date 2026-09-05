@@ -28,6 +28,7 @@ import {
   addAdmissionType,
   updateAdmissionType,
   removeChart,
+  setAdmissionTypeDirect,
 } from "../chart/chartSlice";
 import { setBillAdmission, updateBillAdmission } from "../bill/billSlice";
 
@@ -491,10 +492,22 @@ export const patientSlice = createSlice({
       addmission.admissionTypeHistory = history;
     };
 
+    // The direct setter returns the array nested under `data`, unlike the chart
+    // responses which put it at the top level — normalise before reusing the
+    // same patcher.
+    const syncAdmissionTypeHistoryFromData = (state, { payload }) =>
+      syncAdmissionTypeHistory(state, {
+        payload: {
+          addmission: payload?.data?._id,
+          admissionTypeHistory: payload?.data?.admissionTypeHistory,
+        },
+      });
+
     builder
       .addCase(addAdmissionType.fulfilled, syncAdmissionTypeHistory)
       .addCase(updateAdmissionType.fulfilled, syncAdmissionTypeHistory)
-      .addCase(removeChart.fulfilled, syncAdmissionTypeHistory);
+      .addCase(removeChart.fulfilled, syncAdmissionTypeHistory)
+      .addCase(setAdmissionTypeDirect.fulfilled, syncAdmissionTypeHistoryFromData);
 
     builder
       .addCase(fetchPatients.pending, (state) => {

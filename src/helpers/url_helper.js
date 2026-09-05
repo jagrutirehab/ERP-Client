@@ -92,6 +92,7 @@ export const SEARCH_PATIENTS_PHONE_NUMBER = "/patient/search/phone-number";
 export const ADMIT_PATIENT = "/patient/admit";
 export const EDIT_ADMISSION = "/patient/admit/update";
 export const SET_RAMSAY_APPLICABLE = "/patient/admission/ramsay-applicable";
+export const SET_ADMISSION_TYPE_DIRECT = "/patient/admission/admission-type";
 export const DISCHARGE_PATIENT = "/patient/discharge";
 export const UNDISCHARGE_PATIENT = "/patient/un-discharge";
 export const SWITCH_PATIENT_CENTER = "/patient/center";

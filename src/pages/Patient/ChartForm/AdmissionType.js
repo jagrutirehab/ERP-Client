@@ -4,16 +4,11 @@ import { Form, Row, Col, Button } from "reactstrap";
 import { format } from "date-fns";
 
 // Formik Validation
-import * as Yup from "yup";
 import { useFormik } from "formik";
 
 import {
   ADMISSION_TYPE,
   admissionTypeFields,
-  admissionTypeBranchFields,
-  INDEPENDENT_ADMISSION,
-  SUPPORTIVE_ADMISSION,
-  EMERGENCY_ADMISSION,
 } from "../../../Components/constants/patient";
 import RenderFields from "../../../Components/Common/RenderFields";
 import { connect, useDispatch } from "react-redux";
@@ -28,10 +23,11 @@ import {
   getCurrentAdmissionType,
   ADMISSION_TYPE_SOURCE_LABEL,
 } from "../../../utils/admissionType";
-
-// Every field that belongs to some branch. Anything not in the current branch is
-// cleared before saving.
-const ALL_BRANCH_FIELDS = Object.values(admissionTypeBranchFields).flat();
+import {
+  admissionTypeValidationSchema,
+  clearInactiveBranchFields,
+  stripInactiveBranchFields,
+} from "../../../utils/admissionTypeForm";
 
 // The form's own view of the descriptor. Two local overrides, deliberately NOT
 // pushed into the shared `admissionTypeFields` constant:
@@ -45,30 +41,6 @@ const FORM_FIELDS = admissionTypeFields.map((field) =>
     ? { ...field, label: "Target Admission Type", fullWidth: true }
     : { ...field, fullWidth: true },
 );
-
-const validationSchema = Yup.object({
-  admissionType: Yup.string().required("Admission type is required"),
-  adultationType: Yup.string().when("admissionType", {
-    is: INDEPENDENT_ADMISSION,
-    then: (schema) => schema.required("Adultation type is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  supportType: Yup.string().when("admissionType", {
-    is: SUPPORTIVE_ADMISSION,
-    then: (schema) => schema.required("Support type is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  emergencyType: Yup.string().when("admissionType", {
-    is: EMERGENCY_ADMISSION,
-    then: (schema) => schema.required("Emergency type is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  emergencyRestraint: Yup.string().when("admissionType", {
-    is: EMERGENCY_ADMISSION,
-    then: (schema) => schema.required("Restraint is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-});
 
 const AdmissionType = ({
   author,
@@ -114,18 +86,14 @@ const AdmissionType = ({
       date: chartDate,
       shouldPrintAfterSave,
     },
-    validationSchema,
+    validationSchema: admissionTypeValidationSchema,
     onSubmit: (values) => {
       closeForm();
 
       // Belt and braces: the effect below already clears the other branches as
       // the user switches, but strip them again here so a stale value can never
       // reach the server.
-      const keep = admissionTypeBranchFields[values.admissionType] || [];
-      const cleaned = { ...values };
-      ALL_BRANCH_FIELDS.forEach((field) => {
-        if (!keep.includes(field)) cleaned[field] = "";
-      });
+      const cleaned = stripInactiveBranchFields(values);
 
       if (editChart) {
         dispatch(
@@ -148,13 +116,7 @@ const AdmissionType = ({
   // value. Without this, choosing Independent > Adult and then switching to
   // Emergency would still submit adultationType: "ADULT".
   useEffect(() => {
-    const keep = admissionTypeBranchFields[admissionType] || [];
-    ALL_BRANCH_FIELDS.forEach((field) => {
-      if (!keep.includes(field) && validation.values[field]) {
-        validation.setFieldValue(field, "");
-        validation.setFieldTouched(field, false);
-      }
-    });
+    clearInactiveBranchFields(validation);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admissionType]);
 
