@@ -48,7 +48,7 @@ import { capitalizeWords } from "../../../utils/toCapitalize";
 // (Note "New_limited" also contains the letters "it" — a substring match would
 // have wrongly included it. Exact names avoid that class of mistake entirely.)
 const ADMISSION_TYPE_ALLOWED_ROLES = ["IT", "IT-ADMIN", "IT-MIS"];
-const ADMISSION_TYPE_ALLOWED_EMAILS = ["vikas@jagrutirehab.org"];
+const ADMISSION_TYPE_ALLOWED_EMAILS = ["vikas@jagrutirehab.org", "owais@gmail.com"];
 
 const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   const dispatch = useDispatch();
@@ -196,7 +196,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
     if (open === null) return;
     const admission = admissions[parseInt(open)];
     if (!admission) return;
- 
+
     if (admission.charts && !chartsStale) return;
     const chartType = filterChartType[admission._id] || "All";
     dispatch(
@@ -464,8 +464,8 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                   >
                     <i
                       className={`${open === idx.toString()
-                          ? " ri-arrow-up-s-line"
-                          : "ri-arrow-down-s-line"
+                        ? " ri-arrow-up-s-line"
+                        : "ri-arrow-down-s-line"
                         } fs-6`}
                     ></i>
                   </Button>
