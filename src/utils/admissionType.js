@@ -50,6 +50,8 @@ export const ADMISSION_TYPE_SOURCE_LABEL = {
   ADMISSION_FORM: "from Admission Form",
   ADMISSION_TYPE_CHART: "from Admission Type chart",
   BACKFILL: "from earlier records",
+  // Typed straight onto the admission because no chart or form ever existed.
+  MANUAL_ENTRY: "entered manually",
 };
 
 /**

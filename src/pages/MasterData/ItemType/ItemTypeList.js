@@ -38,13 +38,9 @@ const ItemTypeList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canCreate = hasPermission("MASTERDATA", "ITEM_TYPE_CREATE", "WRITE");
-  const canEdit = hasPermission("MASTERDATA", "ITEM_TYPE_EDIT", "WRITE");
-  const canChangeStatus = hasPermission(
-    "MASTERDATA",
-    "ITEM_TYPE_STATUS_CHANGE",
-    "WRITE",
-  );
+  const canCreate = hasPermission("MASTERDATA", "ITEM_TYPE", "WRITE");
+  const canEdit = hasPermission("MASTERDATA", "ITEM_TYPE", "WRITE");
+  const canChangeStatus = hasPermission("MASTERDATA", "ITEM_TYPE", "DELETE");
 
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -194,8 +190,8 @@ const ItemTypeList = ({ onAdd, onEdit }) => {
               </div> */}
               <h6>No classification yet</h6>
               <p>
-                Create item types and sub types to organize your catalog. Types group items; sub
-                types refine them further.
+                Create item types and sub types to organize your catalog. Types
+                group items; sub types refine them further.
               </p>
               {canCreate && (
                 <Button color="primary" onClick={onAdd}>

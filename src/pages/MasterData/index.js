@@ -29,10 +29,9 @@ const MasterData = () => {
     );
   }
 
-  const canViewVendor = hasPermission("MASTERDATA", "VENDOR_VIEW", "READ");
-
-  const canViewItems = hasPermission("MASTERDATA", "ITEM_VIEW", "READ");
-  const canViewUom = hasPermission("MASTERDATA", "UOM_VIEW", "READ");
+  const canViewVendor = hasPermission("MASTERDATA", "VENDOR", "READ");
+  const canViewItems = hasPermission("MASTERDATA", "ITEM_MASTER", "READ");
+  const canViewUom = hasPermission("MASTERDATA", "UOM", "READ");
 
   if (!canViewVendor && !canViewItems && !canViewUom) {
     return <Basic404 />;

@@ -32,7 +32,23 @@ import {
 } from "../../../Components/constants/patient";
 import { toast } from "react-toastify";
 import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
+import { setAdmissionRamsayApplicable } from "../../../store/features/chart/chartSlice";
+import SetAdmissionTypeModal from "./Components/SetAdmissionTypeModal";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { capitalizeWords } from "../../../utils/toCapitalize";
+
+// Who may record an admission type directly.
+//
+// Matched against the RolesManagement access-role NAME, not `user.role` — there
+// is no "IT" in the user role enum (authRoles.js), so `user.role` could never
+// carry it. These are the three IT roles that exist in RolesManagement; listed
+// explicitly, and compared exactly, so a new role can't slip in by accident.
+// Add here when a new IT role is created.
+//
+// (Note "New_limited" also contains the letters "it" — a substring match would
+// have wrongly included it. Exact names avoid that class of mistake entirely.)
+const ADMISSION_TYPE_ALLOWED_ROLES = ["IT", "IT-ADMIN", "IT-MIS"];
+const ADMISSION_TYPE_ALLOWED_EMAILS = ["vikas@jagrutirehab.org", "owais@gmail.com"];
 
 const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   const dispatch = useDispatch();
@@ -42,7 +58,25 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   const [open, setOpen] = useState(null);
   const [filterChartType, setFilterChartType] = useState({});
   const [admissionsSettled, setAdmissionsSettled] = useState(false);
+  // Admission id whose "Set Admission Type" dialog is open, or null. Keyed by id
+  // rather than a boolean because the page renders one card per admission.
+  const [admissionTypeFor, setAdmissionTypeFor] = useState(null);
   const latestPatientIdRef = useRef();
+
+  // `user.accessroles` is a bare ObjectId on the user document, so the role NAME
+  // has to be resolved through this hook (it caches module-level, so no repeat
+  // request). Same shape as pages/Nurse/Main.js and the HRMS role checks.
+  const microUser = localStorage.getItem("micrologin");
+  const permissionToken = microUser ? JSON.parse(microUser).token : null;
+  const { roles: accessRole, loading: permissionLoader } =
+    usePermissions(permissionToken);
+
+  // Fails closed: while the roles fetch is in flight the button stays hidden
+  // rather than flashing up for someone who may not be allowed to use it.
+  const canSetAdmissionType =
+    (!permissionLoader &&
+      ADMISSION_TYPE_ALLOWED_ROLES.includes(accessRole?.name)) ||
+    ADMISSION_TYPE_ALLOWED_EMAILS.includes(user?.email);
 
   // `state.Chart.data` is a shared slice — other screens (ChartDate modal,
   // AI socket refreshes, Wrapper validation) also read/write it for
@@ -84,6 +118,24 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
         assignEmergencyPatientType({ patientId, patientType }),
       ).unwrap();
       toast.success("Category assigned successfully");
+    } catch (error) {
+      toast.warn(error.message);
+    }
+  };
+
+  // Takes the admission id, not the patient id: a patient can have several
+  // admissions rendered here, and this flag belongs to one of them.
+  const handleRamsayApplicableChange = async (admissionId, isApplicable) => {
+    try {
+      await dispatch(
+        setAdmissionRamsayApplicable({
+          admissionId,
+          isRamsayApplicable: isApplicable,
+        }),
+      ).unwrap();
+      toast.success(
+        `Ramsay marked as ${isApplicable ? "applicable" : "not applicable"}`,
+      );
     } catch (error) {
       toast.warn(error.message);
     }
@@ -144,7 +196,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
     if (open === null) return;
     const admission = admissions[parseInt(open)];
     if (!admission) return;
- 
+
     if (admission.charts && !chartsStale) return;
     const chartType = filterChartType[admission._id] || "All";
     dispatch(
@@ -216,6 +268,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     </div>
                   </RenderWhen>
                 </div>
+
                 <div className="d-flex align-items-center gap-1 ms-2">
                   <Label className="mb-0 text-nowrap">Chart Type:</Label>
                   <Input
@@ -291,7 +344,81 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                 >
                   <i className="ri-printer-line align-bottom text-dark"></i>
                 </Button>
+
+                {/* Whether the Ramsay Sedation Scale applies to this admission.
+                    Gates the Ramsay SOP protocol, so it is editable only while
+                    the patient is admitted and read-only afterwards — matching
+                    how Patient Category behaves.
+
+                    w-100 makes this its own flex line so it sits beneath the
+                    Patient Category dropdown rather than crowding the row; it
+                    must therefore stay the LAST child of this row. */}
+                <div className="d-flex align-items-center gap-1 w-100">
+                  <RenderWhen isTrue={!addmission.dischargeDate}>
+                    <div className="form-check form-switch d-flex align-items-center mb-0">
+                      <Input
+                        type="checkbox"
+                        role="switch"
+                        id={`ramsay-applicable-${addmission._id}`}
+                        checked={!!addmission.isRamsayApplicable}
+                        onChange={(e) =>
+                          handleRamsayApplicableChange(
+                            addmission._id,
+                            e.target.checked,
+                          )
+                        }
+                      />
+                      <Label
+                        className="form-check-label text-nowrap ms-2 mb-0"
+                        htmlFor={`ramsay-applicable-${addmission._id}`}
+                      >
+                        Is Ramsay Applicable
+                      </Label>
+                    </div>
+                  </RenderWhen>
+
+                  <RenderWhen isTrue={addmission.dischargeDate}>
+                    <div className="d-flex align-items-center">
+                      <Label className="mb-0 text-nowrap me-2">
+                        Is Ramsay Applicable:
+                      </Label>
+                      <p className="mb-0">
+                        {addmission.isRamsayApplicable ? "Yes" : "No"}
+                      </p>
+                    </div>
+                  </RenderWhen>
+
+                  {/* Backfill affordance: only for a live admission that has NO
+                      timeline at all, i.e. neither an Admission Type chart nor a
+                      structured Admission Form was ever submitted. Once either
+                      exists the type is already recorded, so this disappears and
+                      corrections go through the chart. */}
+                  <RenderWhen
+                    isTrue={
+                      canSetAdmissionType &&
+                      !addmission.dischargeDate &&
+                      !addmission.admissionTypeHistory?.length
+                    }
+                  >
+                    <Button
+                      size="sm"
+                      color="primary"
+                      outline
+                      className="ms-2"
+                      onClick={() => setAdmissionTypeFor(addmission._id)}
+                    >
+                      Set Admission Type
+                    </Button>
+                  </RenderWhen>
+                </div>
               </div>
+
+              <SetAdmissionTypeModal
+                isOpen={admissionTypeFor === addmission._id}
+                toggle={() => setAdmissionTypeFor(null)}
+                addmission={addmission}
+              />
+
               <div className="d-flex align-items-center gap-4">
                 {(user?.email === "rijutarafder000@gmail.com" ||
                   user?.email === "owais@gmail.com" ||
@@ -337,8 +464,8 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                   >
                     <i
                       className={`${open === idx.toString()
-                          ? " ri-arrow-up-s-line"
-                          : "ri-arrow-down-s-line"
+                        ? " ri-arrow-up-s-line"
+                        : "ri-arrow-down-s-line"
                         } fs-6`}
                     ></i>
                   </Button>

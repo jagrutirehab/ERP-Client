@@ -430,6 +430,10 @@ export const updateAdmissionAssignment = (data) =>
 
 export const updatePatientAdmission = (data) =>
   api.update(url.EDIT_ADMISSION, data);
+export const setRamsayApplicable = (data) =>
+  api.update(url.SET_RAMSAY_APPLICABLE, data);
+export const setAdmissionTypeDirect = (data) =>
+  api.update(url.SET_ADMISSION_TYPE_DIRECT, data);
 export const postAdmitPatient = (data) => api.update(url.ADMIT_PATIENT, data);
 export const postPatientCenterSwitch = (data) =>
   api.update(url.SWITCH_PATIENT_CENTER, data);

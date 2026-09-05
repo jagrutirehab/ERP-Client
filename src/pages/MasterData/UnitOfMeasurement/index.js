@@ -7,8 +7,7 @@ import Basic404 from "../../AuthenticationInner/Errors/Basic404";
 const UnitOfMeasurement = () => {
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canView = hasPermission("MASTERDATA", "UOM_VIEW", "READ");
-
+  const canView = hasPermission("MASTERDATA", "UOM", "READ");
   const [view, setView] = useState("list");
   const [editingItem, setEditingItem] = useState(null);
 

@@ -112,11 +112,10 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canCreate = hasPermission("MASTERDATA", "ITEM_CREATE", "WRITE");
-  const canEdit = hasPermission("MASTERDATA", "ITEM_EDIT", "WRITE");
-  const canDelete = hasPermission("MASTERDATA", "ITEM_DELETE", "WRITE");
-  const canImport = hasPermission("MASTERDATA", "ITEM_IMPORT", "WRITE");
-
+  const canCreate = hasPermission("MASTERDATA", "ITEM_MASTER", "WRITE");
+  const canEdit = hasPermission("MASTERDATA", "ITEM_MASTER", "WRITE");
+  const canDelete = hasPermission("MASTERDATA", "ITEM_MASTER", "DELETE");
+  const canImport = hasPermission("MASTERDATA", "ITEM_MASTER", "WRITE");
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");

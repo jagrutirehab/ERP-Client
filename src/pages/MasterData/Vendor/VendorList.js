@@ -52,13 +52,9 @@ const VendorList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canCreate = hasPermission("MASTERDATA", "VENDOR_CREATE", "WRITE");
-  const canEdit = hasPermission("MASTERDATA", "VENDOR_EDIT", "WRITE");
-  const canChangeStatus = hasPermission(
-    "MASTERDATA",
-    "VENDOR_STATUS_CHANGE",
-    "WRITE",
-  );
+  const canCreate = hasPermission("MASTERDATA", "VENDOR", "WRITE");
+  const canEdit = hasPermission("MASTERDATA", "VENDOR", "WRITE");
+  const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "DELETE");
 
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -755,7 +751,7 @@ const VendorList = ({ onAdd, onEdit }) => {
                     </div>
                   </div>
 
-                                   <div className="vendor-overview-card vendor-overview-span-full">
+                  <div className="vendor-overview-card vendor-overview-span-full">
                     <div className="vendor-overview-card-title">
                       <i className="bx bx-map"></i> Address Details
                     </div>
