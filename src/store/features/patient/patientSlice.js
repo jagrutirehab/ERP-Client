@@ -1,6 +1,7 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { setAlert } from "../alert/alertSlice";
 import {
+  submitAdmissionForm as submitAdmissionFormApi,
   assignNurseToPatient,
   assignPatientType,
   deletePatientAadhaarCard,
@@ -365,6 +366,27 @@ export const unAssignNurse = createAsyncThunk(
 );
 
 
+// Admission Form submit.
+//
+// Owned by this slice rather than fired as a bare axios call from the form
+// component: the response carries the admission's refreshed type timeline, and
+// the reducer below patches it in place. That keeps the topbar and the summary
+// card correct with no refetch of the whole patient — which would be an extra
+// round trip for one field and could clobber fresher state mid-flight.
+export const submitAdmissionForm = createAsyncThunk(
+  "submitAdmissionForm",
+  async ({ admissionId, formData }, { dispatch, rejectWithValue }) => {
+    try {
+      return await submitAdmissionFormApi({ admissionId, formData });
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(
+        error.message || "Failed to submit the admission form",
+      );
+    }
+  },
+);
+
 export const assignEmergencyPatientType = createAsyncThunk(
   "assignPatientType",
   async (data, { dispatch, rejectWithValue }) => {
@@ -507,7 +529,9 @@ export const patientSlice = createSlice({
       .addCase(addAdmissionType.fulfilled, syncAdmissionTypeHistory)
       .addCase(updateAdmissionType.fulfilled, syncAdmissionTypeHistory)
       .addCase(removeChart.fulfilled, syncAdmissionTypeHistory)
-      .addCase(setAdmissionTypeDirect.fulfilled, syncAdmissionTypeHistoryFromData);
+      .addCase(setAdmissionTypeDirect.fulfilled, syncAdmissionTypeHistoryFromData)
+      // Same `data: { _id, admissionTypeHistory }` envelope as the direct setter.
+      .addCase(submitAdmissionForm.fulfilled, syncAdmissionTypeHistoryFromData);
 
     builder
       .addCase(fetchPatients.pending, (state) => {
