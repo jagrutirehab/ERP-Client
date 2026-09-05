@@ -37,6 +37,7 @@ import {
 import { useState, useRef, useEffect, useMemo } from "react";
 import AdmissionformModal from "../../Modals/Admissionform.modal";
 import { connect, useDispatch, useSelector } from "react-redux";
+import { submitAdmissionForm } from "../../../../store/features/patient/patientSlice";
 import PropTypes from "prop-types";
 import jsPDF from "jspdf";
 import { captureSection } from "./captureSection";
@@ -407,11 +408,12 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (admissiontype === "EMERGENCY_ADMISSION" && emergencyRestraint)
         formData.append("emergencyRestraint", emergencyRestraint);
 
-      await axios.patch(`/patient/admission-submit/${targetId}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // Through the slice, not a bare axios call: the response carries the
+      // admission's refreshed type timeline and the reducer patches it into
+      // state, so the topbar and summary card update without a refetch.
+      await dispatch(
+        submitAdmissionForm({ admissionId: targetId, formData }),
+      ).unwrap();
 
       toast.success("Admission form submitted successfully!");
       reset();
