@@ -427,16 +427,48 @@ export const setAdmissionTypeDirect = createAsyncThunk(
 // type. Without this, saving/editing/deleting an Admission Type chart would leave
 // that snapshot stale and the panel would keep showing the previous value until a
 // full page reload. The server returns the fresh array on those three responses.
-const syncAdmissionTypeHistory = (state, payload) => {
-  const history = payload?.admissionTypeHistory;
-  if (!Array.isArray(history)) return;
+// The admission's type timeline lives in TWO places in this slice, and every
+// writer has to refresh both or one of them silently goes stale:
+//
+//   state.data[i]                  — the IPD admission cards. Drives whether the
+//                                    "Set Admission Type" button still shows.
+//   state.chartForm.patient        — the snapshot the Admission Type chart form
+//                                    took when it opened; its "current type"
+//                                    panel reads from it.
+//
+// (The third copy, state.Patient.patient.addmission, belongs to patientSlice and
+// is patched there — it feeds the topbar and the header summary card.)
+//
+// Two response envelopes are in play: the chart endpoints put the array at the
+// top level, the direct setter and the form return it under `data`. Normalise
+// rather than making each case unpack its own.
+const readAdmissionTypeUpdate = (payload) => ({
+  admissionId: payload?.addmission ?? payload?.data?._id ?? null,
+  history: Array.isArray(payload?.admissionTypeHistory)
+    ? payload.admissionTypeHistory
+    : Array.isArray(payload?.data?.admissionTypeHistory)
+      ? payload.data.admissionTypeHistory
+      : null,
+});
 
+const syncAdmissionTypeHistory = (state, payload) => {
+  const { admissionId, history } = readAdmissionTypeUpdate(payload);
+  if (!history) return;
+
+  // The IPD card list.
+  if (admissionId) {
+    const idx = state.data.findIndex(
+      (el) => String(el._id) === String(admissionId),
+    );
+    if (idx !== -1) state.data[idx].admissionTypeHistory = history;
+  }
+
+  // The open chart form's snapshot — only when it is about that admission.
   const formPatient = state.chartForm?.patient;
   if (!formPatient?.addmission) return;
-  // Only patch when the response is about the admission the form is open on.
   if (
-    payload.addmission &&
-    String(formPatient.addmission._id) !== String(payload.addmission)
+    admissionId &&
+    String(formPatient.addmission._id) !== String(admissionId)
   ) {
     return;
   }
@@ -2018,13 +2050,19 @@ export const chartSlice = createSlice({
         state.loading = true;
       })
       .addCase(setAdmissionTypeDirect.fulfilled, (state, { payload }) => {
-        const id = payload?.data?._id;
-        const history = payload?.data?.admissionTypeHistory;
-        if (!id || !Array.isArray(history)) return;
-        const idx = state.data.findIndex((el) => String(el._id) === String(id));
-        if (idx === -1) return;
-        state.data[idx].admissionTypeHistory = history;
+        syncAdmissionTypeHistory(state, payload);
       })
+      // The Admission Form submit also rewrites the timeline, but its thunk
+      // lives in patientSlice — and patientSlice already imports from this file,
+      // so importing it back would create a cycle. Match on the action type
+      // instead; it is the `createAsyncThunk` prefix of `submitAdmissionForm`
+      // in store/features/patient/patientSlice.js.
+      .addMatcher(
+        (action) => action.type === "submitAdmissionForm/fulfilled",
+        (state, { payload }) => {
+          syncAdmissionTypeHistory(state, payload);
+        },
+      )
       .addCase(setAdmissionRamsayApplicable.fulfilled, (state, { payload }) => {
         // IPD.js reads this array, so patch it here or the checkbox reverts on
         // the next render.
