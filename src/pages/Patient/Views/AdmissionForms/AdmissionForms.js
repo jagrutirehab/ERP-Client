@@ -323,27 +323,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     link.click();
   };
 
-  const handlePrintAdmission = async () => {
-    setIsGenerating(true);
-    try {
-      const pdf = new jsPDF("p", "pt", "a4");
-      if (adultRef.current) await captureSection(adultRef, pdf, true);
-      if (minorRef.current) await captureSection(minorRef, pdf, true);
-      if (supportRef.current) await captureSection(supportRef, pdf, true);
-      if (emergencyRef.current) await captureSection(emergencyRef, pdf, true);
-      const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-      // setPdfUrl(blob);
-      setPdfUrl(url);
-      setPreviewModal(true);
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const handleDownloadAdmission = () => {
     if (!pdfUrl) return;
     const link = document.createElement("a");
@@ -414,6 +393,24 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       await dispatch(
         submitAdmissionForm({ admissionId: targetId, formData }),
       ).unwrap();
+
+      // Saved — now show the PDF, reusing the very blob just uploaded so the
+      // printed copy and the stored copy cannot differ. This is also why it
+      // happens HERE rather than by calling a print handler afterwards: the
+      // reset block below unmounts the form and nulls adultRef / minorRef /
+      // supportRef / emergencyRef, so a capture at that point would produce an
+      // empty PDF.
+      try {
+        const url = URL.createObjectURL(pdfBlob);
+        if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+        setPdfUrl(url);
+        setPreviewModal(true);
+      } catch (previewError) {
+        // The form IS saved — never report that as a failure. It can be
+        // downloaded from the forms list instead.
+        console.error("PDF preview failed:", previewError);
+        toast.warn("Form submitted, but the PDF preview could not be opened");
+      }
 
       toast.success("Admission form submitted successfully!");
       reset();
@@ -1670,21 +1667,21 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                 </div>
               </div> */}
               <div style={{ textAlign: "center", margin: "20px" }}>
+                {/* Submitting is the only way to get the printed form — the
+                    standalone Print PDF button was removed so a signed paper
+                    copy can't exist without a record of it in the system. The
+                    preview opens from onSubmitAdmission on success. */}
                 <Button
                   color="secondary"
                   type="submit"
                   className="me-2"
                   disabled={isGenerating2}
                 >
-                  {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
-                </Button>
-                <Button
-                  type="button"
-                  color="primary"
-                  onClick={handlePrintAdmission}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
+                  {isGenerating2 ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    "Submit and Print PDF"
+                  )}
                 </Button>
                 <Button
                   style={{ marginLeft: "8px" }}
