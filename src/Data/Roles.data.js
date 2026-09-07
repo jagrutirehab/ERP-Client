@@ -8,8 +8,8 @@ export const permissionList = [
     key: "NURSE",
     label: "Nurse",
     subModules: [
-      { name: "TOMORROW_ACTIVITY", label: "Tomorrow's Activity" },
-      { name: "TODAY_MEDICINES", label: "Today's Medicines" },
+      { name: "MEDICINE_BOX_FILLING_FOR_TOMORROW", label: "Medicine Box Filling for Tomorrow (Fill Today)" },
+      { name: "MEDICINE_GIVEN", label: "Medicine Given" },
     ],
   },
   {

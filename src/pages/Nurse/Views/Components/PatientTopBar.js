@@ -39,7 +39,7 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
-  const writable = hasPermission("NURSE", "TOMORROW_ACTIVITY", "WRITE");
+  const writable = hasPermission("NURSE", "MEDICINE_BOX_FILLING_FOR_TOMORROW", "WRITE");
 
   const toggle = () => setOpen(!open);
 

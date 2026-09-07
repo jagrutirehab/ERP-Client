@@ -33,10 +33,10 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
     hasPermission,
     roles,
   } = usePermissions(token);
-  const hasTomorrowActivity = hasPermission("NURSE", "TOMORROW_ACTIVITY", "READ");
-  const hasTodayMedicines = hasPermission("NURSE", "TODAY_MEDICINES", "READ");
-  const hasTomorrowActivityWrite = hasPermission("NURSE", "TOMORROW_ACTIVITY", "WRITE");
-  const hasTodayMedicinesWrite = hasPermission("NURSE", "TODAY_MEDICINES", "WRITE");
+  const hasTomorrowActivity = hasPermission("NURSE", "MEDICINE_BOX_FILLING_FOR_TOMORROW", "READ");
+  const hasTodayMedicines = hasPermission("NURSE", "MEDICINE_GIVEN", "READ");
+  const hasTomorrowActivityWrite = hasPermission("NURSE", "MEDICINE_BOX_FILLING_FOR_TOMORROW", "WRITE");
+  const hasTodayMedicinesWrite = hasPermission("NURSE", "MEDICINE_GIVEN", "WRITE");
   const hasUserPermission = hasTomorrowActivity || hasTodayMedicines;
 
   useEffect(() => {
@@ -142,7 +142,7 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
                     setMainTab("PATIENTS");
                   }}
                 >
-                  Tomorrow's Activity
+                  Medicine Box Filling for Tomorrow (Fill Today)
                 </NavLink>
               </NavItem>
             )}
@@ -157,7 +157,7 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
                     setMainTab("TODAY_MEDICINES");
                   }}
                 >
-                  Today's Medicines
+                  Medicine Given
                 </NavLink>
               </NavItem>
             )}
