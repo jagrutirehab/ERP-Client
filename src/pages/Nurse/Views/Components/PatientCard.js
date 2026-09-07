@@ -31,7 +31,7 @@ const toTitleCase = (text) => {
   return text.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-const PatientCard = ({ patient, toggleAlertsModal }) => {
+const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showAllMedicines, setShowAllMedicines] = useState(false);
@@ -307,6 +307,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                                       <Field
                                         type="checkbox"
                                         checked={allSlotsCompleted}
+                                        disabled={!writable}
                                         onChange={(e) =>
                                           slotIndexes.forEach((i) =>
                                             setFieldValue(
@@ -357,6 +358,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                                           values.medicines[actionIndex]?.status ===
                                           "retrieved"
                                         }
+                                        disabled={!writable}
                                         onChange={(e) =>
                                           setFieldValue(
                                             `medicines[${actionIndex}].status`,
@@ -380,7 +382,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                             </>
                           )}
 
-                          {(medicinesToRemove.length > 0 ||
+                          {writable && (medicinesToRemove.length > 0 ||
                             (medicinesToTakeNow.length > 0 &&
                               (medicinesToTakeNow.length <= 2 ||
                                 showAllMedicines))) && (
@@ -420,30 +422,32 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                               </>
                             )}
 
-                          <div className="d-flex justify-content-end mt-3">
-                            <Button
-                              disabled={
-                                !values.medicines.some(
-                                  (med) =>
-                                    med.status === "completed" ||
-                                    med.status === "retrieved"
-                                ) ||
-                                values.medicines.some(
-                                  (med) =>
-                                    med.historyId && med.status !== "retrieved"
-                                ) ||
-                                isSubmitting
-                              }
-                              onClick={(e) => e.stopPropagation()}
-                              type="submit"
-                              size="sm"
-                            >
-                              {isSubmitting && (
-                                <Spinner size="sm" className="me-2" />
-                              )}
-                              Submit
-                            </Button>
-                          </div>
+                          {writable && (
+                            <div className="d-flex justify-content-end mt-3">
+                              <Button
+                                disabled={
+                                  !values.medicines.some(
+                                    (med) =>
+                                      med.status === "completed" ||
+                                      med.status === "retrieved"
+                                  ) ||
+                                  values.medicines.some(
+                                    (med) =>
+                                      med.historyId && med.status !== "retrieved"
+                                  ) ||
+                                  isSubmitting
+                                }
+                                onClick={(e) => e.stopPropagation()}
+                                type="submit"
+                                size="sm"
+                              >
+                                {isSubmitting && (
+                                  <Spinner size="sm" className="me-2" />
+                                )}
+                                Submit
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

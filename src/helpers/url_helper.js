@@ -379,6 +379,10 @@ export const GET_NURSE_GIVEN_MEDICINE_DETAILS =
   "/nurse/medicine-record-details";
 export const GET_PRESCRIPTION_HISTORY = "/nurse/prescription-history";
 export const GET_DAILY_MEDICATION_RECORD = "/nurse/daily-medication-record";
+export const GET_TODAY_MEDICINES_TO_GIVE = "/nurse/today-medicines";
+export const MARK_TODAY_MEDICINE_GIVEN = "/nurse/today-medicines/mark";
+export const MARK_TODAY_MEDICINES_GIVEN_BULK = "/nurse/today-medicines/mark-bulk";
+export const GET_TODAY_GIVEN_MEDICINE_HISTORY = "/nurse/today-medicines/history";
 
 // alerts
 export const GET_ALERTS_BY_PATIENT = "/alerts/nurse";

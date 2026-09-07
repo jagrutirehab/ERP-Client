@@ -16,15 +16,18 @@ const ConfirmationModal = ({
     confirmText = "Confirm",
     cancelText = "Cancel",
     confirmColor = "danger",
+    confirmDisabled = false,
+    size,
+    children,
     onConfirm,
     onCancel,
 }) => {
     return (
-        <Modal isOpen={isOpen} toggle={toggle} centered>
+        <Modal isOpen={isOpen} toggle={toggle} centered size={size}>
             <ModalHeader toggle={toggle}>{title}</ModalHeader>
 
             <ModalBody>
-                <p className="mb-0">{message}</p>
+                {children || <p className="mb-0">{message}</p>}
             </ModalBody>
 
             <ModalFooter>
@@ -33,6 +36,7 @@ const ConfirmationModal = ({
                 </Button>
 
                 <Button color={confirmColor} className="text-white"
+                    disabled={confirmDisabled}
                     onClick={onConfirm}>
                     {confirmText}
                 </Button>
@@ -46,9 +50,12 @@ ConfirmationModal.propTypes = {
     toggle: PropTypes.func.isRequired,
     title: PropTypes.string,
     message: PropTypes.string,
-    confirmText: PropTypes.string,
+    confirmText: PropTypes.node,
     cancelText: PropTypes.string,
     confirmColor: PropTypes.string,
+    confirmDisabled: PropTypes.bool,
+    size: PropTypes.string,
+    children: PropTypes.node,
     onConfirm: PropTypes.func,
     onCancel: PropTypes.func,
 };

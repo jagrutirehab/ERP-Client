@@ -2052,17 +2052,6 @@ export const chartSlice = createSlice({
       .addCase(setAdmissionTypeDirect.fulfilled, (state, { payload }) => {
         syncAdmissionTypeHistory(state, payload);
       })
-      // The Admission Form submit also rewrites the timeline, but its thunk
-      // lives in patientSlice — and patientSlice already imports from this file,
-      // so importing it back would create a cycle. Match on the action type
-      // instead; it is the `createAsyncThunk` prefix of `submitAdmissionForm`
-      // in store/features/patient/patientSlice.js.
-      .addMatcher(
-        (action) => action.type === "submitAdmissionForm/fulfilled",
-        (state, { payload }) => {
-          syncAdmissionTypeHistory(state, payload);
-        },
-      )
       .addCase(setAdmissionRamsayApplicable.fulfilled, (state, { payload }) => {
         // IPD.js reads this array, so patch it here or the checkbox reverts on
         // the next render.
@@ -3272,6 +3261,18 @@ export const chartSlice = createSlice({
       .addCase(removeInjuryMarksFile.rejected, (state) => {
         state.loading = false;
       });
+
+    // The Admission Form submit also rewrites the timeline, but its thunk
+    // lives in patientSlice — and patientSlice already imports from this file,
+    // so importing it back would create a cycle. Match on the action type
+    // instead; it is the `createAsyncThunk` prefix of `submitAdmissionForm`
+    // in store/features/patient/patientSlice.js.
+    builder.addMatcher(
+      (action) => action.type === "submitAdmissionForm/fulfilled",
+      (state, { payload }) => {
+        syncAdmissionTypeHistory(state, payload);
+      },
+    );
   },
 });
 

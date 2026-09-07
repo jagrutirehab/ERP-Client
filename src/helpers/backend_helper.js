@@ -1247,6 +1247,40 @@ export const getNurseGivenMedicines = (params = {}) => {
   });
 };
 
+export const getTodayMedicinesToGive = (params = {}) => {
+  return api.get(url.GET_TODAY_MEDICINES_TO_GIVE, {
+    params,
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, {
+        arrayFormat: "repeat",
+        skipNulls: true,
+      }),
+  });
+};
+
+export const markTodayMedicineGiven = (data) => {
+  return api.create(url.MARK_TODAY_MEDICINE_GIVEN, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const markTodayMedicinesGivenBulk = (data) => {
+  return api.create(url.MARK_TODAY_MEDICINES_GIVEN_BULK, data, {
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const getTodayGivenMedicineHistory = (params = {}) => {
+  return api.get(url.GET_TODAY_GIVEN_MEDICINE_HISTORY, {
+    params,
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, {
+        arrayFormat: "repeat",
+        skipNulls: true,
+      }),
+  });
+};
+
 export const getNurseGivenMedicineDetails = (params = {}) => {
   return api.get(url.GET_NURSE_GIVEN_MEDICINE_DETAILS, {
     params,

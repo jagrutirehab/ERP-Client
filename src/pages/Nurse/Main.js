@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
-import { Button, Col, Row, Spinner } from "reactstrap";
+import { Button, Col, Nav, NavItem, NavLink, Row, Spinner } from "reactstrap";
 import NurseBar from "./Views/Components/NurseBar";
 import PatientCard from "./Views/Components/PatientCard";
+import TodayMedicines from "./Views/Components/TodayMedicines";
 import { setAlertModal } from "../../store/actions";
 import PropTypes from "prop-types";
 import { useDispatch, connect } from "react-redux";
@@ -23,6 +24,7 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
   const [selectedPatient, setSelectedPatient] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
   const [flag, setFlag] = useState("");
+  const [mainTab, setMainTab] = useState("PATIENTS");
   const limit = 12;
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -31,7 +33,11 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
     hasPermission,
     roles,
   } = usePermissions(token);
-  const hasUserPermission = hasPermission("NURSE", null, "READ");
+  const hasTomorrowActivity = hasPermission("NURSE", "TOMORROW_ACTIVITY", "READ");
+  const hasTodayMedicines = hasPermission("NURSE", "TODAY_MEDICINES", "READ");
+  const hasTomorrowActivityWrite = hasPermission("NURSE", "TOMORROW_ACTIVITY", "WRITE");
+  const hasTodayMedicinesWrite = hasPermission("NURSE", "TODAY_MEDICINES", "WRITE");
+  const hasUserPermission = hasTomorrowActivity || hasTodayMedicines;
 
   useEffect(() => {
     if (!hasPermission) return;
@@ -60,7 +66,7 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
   }, [debouncedSearch, flag]);
 
   useEffect(() => {
-    if (!hasUserPermission) return;
+    if (!hasTomorrowActivity) return;
 
     if (!centerAccess || centerAccess.length === 0) {
       return;
@@ -74,7 +80,14 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
         centerAccess,
       })
     );
-  }, [dispatch, page, limit, flag, debouncedSearch, centerAccess, roles]);
+  }, [dispatch, page, limit, flag, debouncedSearch, centerAccess, roles, hasTomorrowActivity]);
+
+  useEffect(() => {
+    if (permissionLoader) return;
+    if (!hasTomorrowActivity && hasTodayMedicines) {
+      setMainTab("TODAY_MEDICINES");
+    }
+  }, [permissionLoader, hasTomorrowActivity, hasTodayMedicines]);
 
   const toggleAlertsModal = (patientId) => {
     setSelectedPatient(patientId);
@@ -116,108 +129,152 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
   return (
     <React.Fragment>
       <div>
-        <NurseBar
-          flag={flag}
-          search={search}
-          setSearch={setSearch}
-          setFlag={setFlag}
-        />
-        {centerAccess.length === 0 && (
-         <div
+        <div className="tab-scroll-strip mb-3">
+          <Nav tabs className="flex-nowrap border-bottom-0">
+            {hasTomorrowActivity && (
+              <NavItem>
+                <NavLink
+                  href="#"
+                  active={mainTab === "PATIENTS"}
+                  className="fw-semibold"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setMainTab("PATIENTS");
+                  }}
+                >
+                  Tomorrow's Activity
+                </NavLink>
+              </NavItem>
+            )}
+            {hasTodayMedicines && (
+              <NavItem>
+                <NavLink
+                  href="#"
+                  active={mainTab === "TODAY_MEDICINES"}
+                  className="fw-semibold"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setMainTab("TODAY_MEDICINES");
+                  }}
+                >
+                  Today's Medicines
+                </NavLink>
+              </NavItem>
+            )}
+          </Nav>
+        </div>
+
+        {mainTab === "TODAY_MEDICINES" && hasTodayMedicines && (
+          <TodayMedicines writable={hasTodayMedicinesWrite} />
+        )}
+
+        {mainTab === "PATIENTS" && hasTomorrowActivity && (
+          <>
+            <NurseBar
+              flag={flag}
+              search={search}
+              setSearch={setSearch}
+              setFlag={setFlag}
+            />
+            {centerAccess.length === 0 && (
+              <div
                 className="d-flex justify-content-center align-items-center"
                 style={{ height: "50vh", fontSize: "1.2rem", color: "#555" }}
               >
                 No centers selected.
               </div>
-        )}
-        {centerAccess.length > 0 && (
-          <>
-            {loading ? (
-              <div
-                className="d-flex justify-content-center align-items-center"
-                style={{ height: "50vh" }}
-              >
-                <Spinner color="primary" />
-              </div>
-            ) : data.data && data.data.length > 0 ? (
-              <Row className="g-3">
-                {data.data.map((patient) => (
-                  <Col xl={3} lg={4} md={6} sm={6} xs={12} key={patient._id}>
-                    <PatientCard
-                      toggleAlertsModal={() => {
-                        toggleAlertsModal(patient._id);
-                      }}
-                      patient={{
-                        ...patient,
-                        notes: patient.notes ?? [],
-                      }}
-                    />
+            )}
+            {centerAccess.length > 0 && (
+              <>
+                {loading ? (
+                  <div
+                    className="d-flex justify-content-center align-items-center"
+                    style={{ height: "50vh" }}
+                  >
+                    <Spinner color="primary" />
+                  </div>
+                ) : data.data && data.data.length > 0 ? (
+                  <Row className="g-3">
+                    {data.data.map((patient) => (
+                      <Col xl={3} lg={4} md={6} sm={6} xs={12} key={patient._id}>
+                        <PatientCard
+                          toggleAlertsModal={() => {
+                            toggleAlertsModal(patient._id);
+                          }}
+                          patient={{
+                            ...patient,
+                            notes: patient.notes ?? [],
+                          }}
+                          writable={hasTomorrowActivityWrite}
+                        />
+                      </Col>
+                    ))}
+                  </Row>
+                ) : (
+                  <div
+                    className="d-flex justify-content-center align-items-center"
+                    style={{ height: "50vh", fontSize: "1.2rem", color: "#555" }}
+                  >
+                    No patients found.
+                  </div>
+                )}</>
+            )}
+
+            {!loading && centerAccess.length > 0 && data?.pagination?.totalPages > 1 && (
+              <>
+                {/* Mobile Layout */}
+                <div className="d-block d-md-none text-center mt-3">
+                  <div className="text-muted mb-2">
+                    Showing {(page - 1) * limit + 1}–
+                    {Math.min(page * limit, data.pagination?.totalDocs || 0)} of{" "}
+                    {data.pagination?.totalDocs || 0}
+                  </div>
+                  <div className="d-flex justify-content-center gap-2">
+                    <Button
+                      color="secondary"
+                      disabled={page === 1}
+                      onClick={handlePrev}
+                    >
+                      ← Previous
+                    </Button>
+                    <Button
+                      color="secondary"
+                      disabled={page === data.pagination?.totalPages}
+                      onClick={handleNext}
+                    >
+                      Next →
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Desktop Layout */}
+                <Row className="mt-4 justify-content-center align-items-center d-none d-md-flex">
+                  <Col xs="auto" className="d-flex justify-content-center">
+                    <Button
+                      color="secondary"
+                      disabled={page === 1}
+                      onClick={handlePrev}
+                    >
+                      ← Previous
+                    </Button>
                   </Col>
-                ))}
-              </Row>
-            ) : (
-              <div
-                className="d-flex justify-content-center align-items-center"
-                style={{ height: "50vh", fontSize: "1.2rem", color: "#555" }}
-              >
-                No patients found.
-              </div>
-            )}</>
-        )}
-
-        {!loading && centerAccess.length > 0 && data?.pagination?.totalPages > 1 && (
-          <>
-            {/* Mobile Layout */}
-            <div className="d-block d-md-none text-center mt-3">
-              <div className="text-muted mb-2">
-                Showing {(page - 1) * limit + 1}–
-                {Math.min(page * limit, data.pagination?.totalDocs || 0)} of{" "}
-                {data.pagination?.totalDocs || 0}
-              </div>
-              <div className="d-flex justify-content-center gap-2">
-                <Button
-                  color="secondary"
-                  disabled={page === 1}
-                  onClick={handlePrev}
-                >
-                  ← Previous
-                </Button>
-                <Button
-                  color="secondary"
-                  disabled={page === data.pagination?.totalPages}
-                  onClick={handleNext}
-                >
-                  Next →
-                </Button>
-              </div>
-            </div>
-
-            {/* Desktop Layout */}
-            <Row className="mt-4 justify-content-center align-items-center d-none d-md-flex">
-              <Col xs="auto" className="d-flex justify-content-center">
-                <Button
-                  color="secondary"
-                  disabled={page === 1}
-                  onClick={handlePrev}
-                >
-                  ← Previous
-                </Button>
-              </Col>
-              <Col xs="auto" className="text-center text-muted mx-3">
-                Showing {(page - 1) * limit + 1}–
-                {Math.min(page * limit, data.pagination?.totalDocs || 0)} of{" "}
-                {data.pagination?.totalDocs || 0}
-              </Col>
-              <Col xs="auto" className="d-flex justify-content-center">
-                <Button
-                  color="secondary"
-                  disabled={page === data.pagination?.totalPages}
-                  onClick={handleNext}
-                >
-                  Next →
-                </Button>
-              </Col>
-            </Row>
+                  <Col xs="auto" className="text-center text-muted mx-3">
+                    Showing {(page - 1) * limit + 1}–
+                    {Math.min(page * limit, data.pagination?.totalDocs || 0)} of{" "}
+                    {data.pagination?.totalDocs || 0}
+                  </Col>
+                  <Col xs="auto" className="d-flex justify-content-center">
+                    <Button
+                      color="secondary"
+                      disabled={page === data.pagination?.totalPages}
+                      onClick={handleNext}
+                    >
+                      Next →
+                    </Button>
+                  </Col>
+                </Row>
+              </>
+            )}
           </>
         )}
       </div>
