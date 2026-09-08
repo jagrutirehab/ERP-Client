@@ -418,7 +418,7 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
                         },
                       },
                       {
-                        when: (row) => row.dosageChangedSinceMorningCheck,
+                        when: (row) => row.dosageChangedSinceMorningCheck && !row.changedSinceMorningCheck,
                         style: {
                           backgroundColor: "rgba(255, 193, 7, 0.35)",
                           "&:hover": { backgroundColor: "rgba(255, 193, 7, 0.45)" },
