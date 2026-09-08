@@ -62,7 +62,6 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     consultantDateTime: "",
   });
   const capacityFormRef = useRef(null);
-  const [isGenerating, setIsGenerating] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [previewModal, setPreviewModal] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -129,6 +128,23 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
       ).unwrap();
 
       await dispatch(fetchPatientById(patient?._id));
+
+      // Saved — now show the PDF, reusing the very blob just uploaded so the
+      // printed copy and the stored copy cannot differ. The standalone Print
+      // PDF button is gone, so this is the only way to a paper copy and it
+      // can't happen without a record. Set before toggle() closes the form:
+      // that unmounts the sections, and a capture taken afterwards would
+      // rasterise nothing.
+      try {
+        const url = URL.createObjectURL(pdfBlob);
+        if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+        setPdfUrl(url);
+        setPreviewModal(true);
+      } catch (previewError) {
+        // The assessment IS saved — never turn that into a failure.
+        console.error("PDF preview failed:", previewError);
+        toast.warn("Assessment saved, but the PDF preview could not be opened");
+      }
 
       toggle();
     } catch (error) {
@@ -271,25 +287,6 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(
       d.getDate()
     )}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-  };
-
-  const handlePrint = async () => {
-    setIsGenerating(true);
-    try {
-      const pdf = new jsPDF("p", "pt", "a4");
-
-      await captureSection(capacityFormRef, pdf, true);
-
-      const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-
-      setPdfUrl(url);
-      setPreviewModal(true);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
   console.log("patient", patient);
@@ -876,11 +873,12 @@ Remarks: ${me?.remarks || ""}
           <Button color="light" className="border" onClick={toggle}>
             Discard
           </Button>
-          <Button color="primary" onClick={handlePrint} disabled={isGenerating}>
-            {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
-          </Button>
+          {/* Saving is the only way to get the printed assessment — the
+              standalone Print PDF button was removed so a signed paper copy
+              can't exist without a record of it in the system. The preview
+              opens from handleSubmit on success. */}
           <Button color="dark" onClick={handleSubmit} disabled={isSubmitting}>
-            {isSubmitting ? <Spinner size="sm" /> : "Save Assessment"}
+            {isSubmitting ? <Spinner size="sm" /> : "Save Assessment and Print"}
           </Button>
         </ModalFooter>
       </Modal>

@@ -57,6 +57,13 @@ export const BiometricAdditionColumns = ({
     wrap: true,
   },
   {
+    name: "Position",
+    selector: (row) => normalizeText(row?.employee?.positionName) || "-",
+    sortable: true,
+    minWidth: "150px",
+    wrap: true,
+  },
+  {
     name: "Biometric ID",
     selector: (row) => row?.biometricId || "-",
     sortable: true,

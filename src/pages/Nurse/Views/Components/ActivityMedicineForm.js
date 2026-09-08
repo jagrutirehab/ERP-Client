@@ -22,6 +22,7 @@ import Placeholder from "../../../Patient/Views/Components/Placeholder";
 import moment from "moment";
 import { toast } from "react-toastify";
 import { CheckCircle, XCircle } from "lucide-react";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 // const medicineSchema = Yup.object().shape({
 //   medicines: Yup.array().of(
@@ -401,6 +402,11 @@ const ActivityMedicineForm = ({
   const [submissionValues, setSubmissionValues] = useState(null);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
+  const writable = hasPermission("NURSE", "MEDICINE_BOX_FILLING_FOR_TOMORROW", "WRITE");
 
   const toggleModal = () => setModalOpen(!modalOpen);
 
@@ -821,6 +827,7 @@ const ActivityMedicineForm = ({
                                       <div
                                         className="tick-input"
                                         onClick={() => {
+                                          if (!writable) return;
                                           const currentStatus =
                                             values.medicines[medicineIndex]
                                               ?.status;
@@ -836,7 +843,7 @@ const ActivityMedicineForm = ({
                                           height: "28px",
                                           borderRadius: "50%",
                                           border: "2px solid #dee2e6",
-                                          cursor: "pointer",
+                                          cursor: writable ? "pointer" : "not-allowed",
                                           display: "flex",
                                           alignItems: "center",
                                           justifyContent: "center",
@@ -944,6 +951,7 @@ const ActivityMedicineForm = ({
                                       <div
                                         className="tick-input"
                                         onClick={() => {
+                                          if (!writable) return;
                                           const currentStatus =
                                             values.medicines[medicineIndex]?.status;
                                           setFieldValue(
@@ -958,7 +966,7 @@ const ActivityMedicineForm = ({
                                           height: "28px",
                                           borderRadius: "50%",
                                           border: "2px solid #dee2e6",
-                                          cursor: "pointer",
+                                          cursor: writable ? "pointer" : "not-allowed",
                                           display: "flex",
                                           alignItems: "center",
                                           justifyContent: "center",
@@ -1002,7 +1010,8 @@ const ActivityMedicineForm = ({
                     </div>
                   )}
 
-                {((medicineBoxFillingActivities?.medicines &&
+                {writable &&
+                  ((medicineBoxFillingActivities?.medicines &&
                   !Object.values(medicineBoxFillingActivities.medicines).every(
                     (slotMeds) => slotMeds.length === 0
                   )) ||

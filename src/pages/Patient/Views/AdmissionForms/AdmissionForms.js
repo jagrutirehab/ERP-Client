@@ -239,7 +239,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     return null;
   };
 
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isGenerating2, setIsGenerating2] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfUrl2, setPdfUrl2] = useState(null);
@@ -258,29 +257,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     };
   }, [pdfUrl]);
 
-  const handlePrintConsent = async () => {
-    setIsGenerating(true);
-    try {
-      const pdf = new jsPDF("p", "pt", "a4");
-      await captureSection(admission1Ref, pdf, true);
-      await captureSection(admission2Ref, pdf);
-
-      await captureSection(seriousnessRef, pdf);
-      await captureSection(medicationRef, pdf);
-      await captureSection(audioVideoRef, pdf);
-
-      const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-      if (pdfUrl2) URL.revokeObjectURL(pdfUrl2);
-      setPdfUrl2(url);
-      setPreviewModal2(true);
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const handleDownloadConsent = () => {
     if (!pdfUrl2) return;
     const link = document.createElement("a");
@@ -289,59 +265,12 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     link.click();
   };
 
-  const handlePrintDischarge = async () => {
-    setIsGenerating(true);
-    try {
-      const pdf = new jsPDF("p", "pt", "a4");
-      if (dischargeRefAdult.current)
-        await captureSection(dischargeRefAdult, pdf, true);
-      if (dischargeRefMinor.current)
-        await captureSection(dischargeRefMinor, pdf, true);
-      if (dischargeRefUndertaking.current)
-        await captureSection(dischargeRefUndertaking, pdf, true);
-      if (dischargeRefSupport.current)
-        await captureSection(dischargeRefSupport, pdf, true);
-      if (dischargeRefEmergency.current)
-        await captureSection(dischargeRefEmergency, pdf, true);
-      const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-      if (pdfUrl3) URL.revokeObjectURL(pdfUrl3);
-      setPdfUrl3(url);
-      setPreviewModal3(true);
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const handleDownloadDischarge = () => {
     if (!pdfUrl3) return;
     const link = document.createElement("a");
     link.href = pdfUrl3;
     link.download = `${patient?.id?.value}-${patient?.name}-Discharge-form.pdf`;
     link.click();
-  };
-
-  const handlePrintAdmission = async () => {
-    setIsGenerating(true);
-    try {
-      const pdf = new jsPDF("p", "pt", "a4");
-      if (adultRef.current) await captureSection(adultRef, pdf, true);
-      if (minorRef.current) await captureSection(minorRef, pdf, true);
-      if (supportRef.current) await captureSection(supportRef, pdf, true);
-      if (emergencyRef.current) await captureSection(emergencyRef, pdf, true);
-      const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-      // setPdfUrl(blob);
-      setPdfUrl(url);
-      setPreviewModal(true);
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
   const handleDownloadAdmission = () => {
@@ -414,6 +343,24 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       await dispatch(
         submitAdmissionForm({ admissionId: targetId, formData }),
       ).unwrap();
+
+      // Saved — now show the PDF, reusing the very blob just uploaded so the
+      // printed copy and the stored copy cannot differ. This is also why it
+      // happens HERE rather than by calling a print handler afterwards: the
+      // reset block below unmounts the form and nulls adultRef / minorRef /
+      // supportRef / emergencyRef, so a capture at that point would produce an
+      // empty PDF.
+      try {
+        const url = URL.createObjectURL(pdfBlob);
+        if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+        setPdfUrl(url);
+        setPreviewModal(true);
+      } catch (previewError) {
+        // The form IS saved — never report that as a failure. It can be
+        // downloaded from the forms list instead.
+        console.error("PDF preview failed:", previewError);
+        toast.warn("Form submitted, but the PDF preview could not be opened");
+      }
 
       toast.success("Admission form submitted successfully!");
       reset();
@@ -551,6 +498,21 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         },
       });
 
+      // Saved — now show the PDF, reusing the very blob just uploaded so the
+      // printed copy and the stored copy cannot differ. This has to happen
+      // before the resets below: closing the modal unmounts the sections, so a
+      // capture taken afterwards would rasterise nothing.
+      try {
+        const url = URL.createObjectURL(pdfBlob);
+        if (pdfUrl2) URL.revokeObjectURL(pdfUrl2);
+        setPdfUrl2(url);
+        setPreviewModal2(true);
+      } catch (previewError) {
+        // The form IS saved — never turn that into a failure.
+        console.error("PDF preview failed:", previewError);
+        toast.warn("Form submitted, but the PDF preview could not be opened");
+      }
+
       toast.success("Consent form submitted successfully!");
       setOpenform4(false);
       setAdmissiontype("");
@@ -683,14 +645,27 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      toast.success("Consent form submitted successfully!");
+      // Same as the admission and consent forms: the preview comes from the
+      // blob that was just uploaded, and must open before the resets close the
+      // modal and unmount the sections it was captured from.
+      try {
+        const url = URL.createObjectURL(pdfBlob);
+        if (pdfUrl3) URL.revokeObjectURL(pdfUrl3);
+        setPdfUrl3(url);
+        setPreviewModal3(true);
+      } catch (previewError) {
+        console.error("PDF preview failed:", previewError);
+        toast.warn("Form submitted, but the PDF preview could not be opened");
+      }
+
+      toast.success("Discharge form submitted successfully!");
       setOpenform3(false);
       setAdmissiontype("");
       setAdultationtype("");
       setSupporttype("");
       setEmergencyDischargeType("");
     } catch (error) {
-      toast.error("Failed to submit Consent form");
+      toast.error("Failed to submit Discharge form");
     } finally {
       setIsGenerating2(false);
     }
@@ -698,7 +673,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
 
   useEffect(() => {
     dispatch(fetchPatientById(patient?._id));
-  }, [dispatch, isGenerating2, isGenerating]);
+  }, [dispatch, isGenerating2]);
 
   useEffect(() => {
     if (formType === "ADMISSION FORM") {
@@ -1670,21 +1645,21 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                 </div>
               </div> */}
               <div style={{ textAlign: "center", margin: "20px" }}>
+                {/* Submitting is the only way to get the printed form — the
+                    standalone Print PDF button was removed so a signed paper
+                    copy can't exist without a record of it in the system. The
+                    preview opens from onSubmitAdmission on success. */}
                 <Button
                   color="secondary"
                   type="submit"
                   className="me-2"
                   disabled={isGenerating2}
                 >
-                  {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
-                </Button>
-                <Button
-                  type="button"
-                  color="primary"
-                  onClick={handlePrintAdmission}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
+                  {isGenerating2 ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    "Submit and Print PDF"
+                  )}
                 </Button>
                 <Button
                   style={{ marginLeft: "8px" }}
@@ -1758,21 +1733,21 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
               </div>
 
               <div style={{ textAlign: "center", margin: "20px" }}>
+                {/* Submitting is the only way to get the printed form — the
+                    standalone Print PDF button was removed so a signed paper
+                    copy can't exist without a record of it in the system. The
+                    preview opens from onSubmitConsent on success. */}
                 <Button
                   color="secondary"
                   type="submit"
                   className="me-2"
                   disabled={isGenerating2}
                 >
-                  {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
-                </Button>
-                <Button
-                  type="button"
-                  color="primary"
-                  onClick={handlePrintConsent}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
+                  {isGenerating2 ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    "Submit and Print PDF"
+                  )}
                 </Button>
                 <Button
                   style={{ marginLeft: "8px" }}
@@ -1923,21 +1898,19 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                   </div>
                 )}
               <div style={{ textAlign: "center", margin: "20px" }}>
+                {/* One action only — see the consent form above. The modal
+                    header's own toggle is how this form is closed. */}
                 <Button
                   color="secondary"
                   type="submit"
                   className="me-2"
                   disabled={isGenerating2}
                 >
-                  {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
-                </Button>
-                <Button
-                  type="button"
-                  color="primary"
-                  onClick={handlePrintDischarge}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
+                  {isGenerating2 ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    "Submit and Print PDF"
+                  )}
                 </Button>
               </div>
             </form>

@@ -111,7 +111,7 @@ const PatientDocs = () => {
     ]);
 
     const DISCHARGED_DOC_LABELS = new Set([
-        "Discharge Form", "Undertaking Discharge Form", "Discharge Summary",
+        "Discharge Form", "Undertaking Discharge Form", "Discharge Summary","Expiry Summary"
     ]);
 
     const admittedLabels=[
@@ -165,10 +165,12 @@ const PatientDocs = () => {
             "Discharge Form",
             "Undertaking Discharge Form",
             "Discharge Summary",
+            "Expiry Summary",
             "Doctor Name",
             "Psychologist Name",
             "Center Manager",
-            "Status"
+            "Status",
+            
             ]
 
     const dischargedLabelsMapping={
@@ -181,6 +183,7 @@ const PatientDocs = () => {
             "Discharge Form":"dischargeform",
             "Undertaking Discharge Form":"undertakingdischargeform",
             "Discharge Summary":"discharge_summary",
+            "Expiry Summary":"expiry_summary",
             "Doctor Name":"doctor_name",
             "Psychologist Name":"psychologist_name",
             "Center Manager":"cm",

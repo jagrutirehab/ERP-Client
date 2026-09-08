@@ -7,7 +7,10 @@ export const permissionList = [
   {
     key: "NURSE",
     label: "Nurse",
-    subModules: [],
+    subModules: [
+      { name: "MEDICINE_BOX_FILLING_FOR_TOMORROW", label: "Medicine Box Filling for Tomorrow (Fill Today)" },
+      { name: "MEDICINE_GIVEN", label: "Medicine Given" },
+    ],
   },
   {
     key: "EMERGENCY",
