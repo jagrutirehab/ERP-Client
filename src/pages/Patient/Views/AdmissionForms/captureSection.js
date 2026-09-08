@@ -290,7 +290,6 @@
 
 //   return pdf;
 // };
-
 import html2canvas from "html2canvas";
 
 /**
@@ -429,7 +428,12 @@ const placeSlice = (
  * @param {boolean}         isFirstPage true → use the page jsPDF already created;
  *                                      false → call pdf.addPage() first.
  */
-export const captureSection = async (ref, pdf, isFirstPage = false) => {
+export const captureSection = async (
+  ref,
+  pdf,
+  isFirstPage = false,
+  maxRatio = 1.25,
+) => {
   const marginPts = 10;
   if (!ref?.current) return;
 
@@ -623,9 +627,7 @@ export const captureSection = async (ref, pdf, isFirstPage = false) => {
   // This handles the common case of a form that is just a few percent too tall
   // due to font-rendering differences, preventing the "2 lines on next page"
   // blank-page problem.
-  const SINGLE_PAGE_THRESHOLD = 1.25;
-
-  if (scaledH_pts <= usableH_pts * SINGLE_PAGE_THRESHOLD) {
+  if (scaledH_pts <= usableH_pts * maxRatio) {
     // Uniform scale that fits both width and height
     const uniformScale = Math.min(
       usableW_pts / canvas.width,
