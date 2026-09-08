@@ -38,6 +38,7 @@ const YBSOCSAssesment = () => {
     name: "Choose Doctor",
     id: -1,
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const patient = useSelector((state) => state.Patient.patient);
   const doctorDetails = useSelector((state) => state.User?.doctor) || [];
@@ -113,6 +114,7 @@ const YBSOCSAssesment = () => {
       Array.from(files).forEach((file) => formData.append("files", file));
     }
 
+    setIsLoading(true);
     try {
       await dispatch(createYBOCSTest(formData)).unwrap();
       openModal(
@@ -122,6 +124,8 @@ const YBSOCSAssesment = () => {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to submit assessment");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -296,8 +300,9 @@ const YBSOCSAssesment = () => {
         <button
           className="btn btn-success fw-bold px-4 py-2 shadow-sm"
           onClick={handleSubmit}
+          disabled={isLoading}
         >
-          <i className="fas fa-check-circle me-2"></i> Submit Assessment
+          <i className="fas fa-check-circle me-2"></i> {isLoading ? "Saving..." : "Submit Assessment"}
         </button>
       </div>
 
