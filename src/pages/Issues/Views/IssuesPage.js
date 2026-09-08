@@ -93,7 +93,14 @@ const IssuesPage = ({ type }) => {
 
   console.log("Can Edit", canEdit);
 
-  const approvers = ["HEMANT", "SURJEET", "SHIVANI", "VIKAS", "PUSHPENDRA"];
+  const approvers = [
+    "HEMANT",
+    "SURJEET",
+    "SHIVANI",
+    "VIKAS",
+    "PUSHPENDRA",
+    "SHRIMANDHAR",
+  ];
 
   const loadIssues = async () => {
     try {
