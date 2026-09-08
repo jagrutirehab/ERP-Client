@@ -40,13 +40,8 @@ const ECTConsentFormModal = ({
   const pagesRef = useRef(null);
 
   const [saving, setSaving] = useState(false);
-  const [generating, setGenerating] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [previewOpen, setPreviewOpen] = useState(false);
-
-  const isMobile =
-    typeof navigator !== "undefined" &&
-    /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   const fileName = `${patient?.id?.value || ""}-${patient?.name || "patient"}-ect-consent-form.pdf`;
 
@@ -57,7 +52,7 @@ const ECTConsentFormModal = ({
     return pdf;
   };
 
-  const onSubmit = async () => {
+  const onSubmit = async (data) => {
     if (!addmissionId) {
       toast.error("No active admission found for this patient");
       return;
@@ -71,8 +66,41 @@ const ECTConsentFormModal = ({
       const formData = new FormData();
       formData.append("ectConsentFormRaw", blob, fileName);
 
+      // The typed answers, saved as data beside the PDF — the same thing
+      // addmissionfromRaw and consentfromRaw do. Without this they exist only
+      // as pixels in the rasterised form: unqueryable and unreportable.
+      //
+      // Iterating `data` rather than naming the sixteen fields keeps this
+      // correct when a field is added to either page; the server destructures
+      // what it knows, so that is the bound. Safe because this modal owns its
+      // own useForm() instance (see the docblock) — `data` holds these fields
+      // and nothing else. Blank inputs are skipped so an untouched field
+      // stores nothing rather than "".
+      Object.entries(data || {}).forEach(([field, value]) => {
+        if (value !== undefined && value !== null && String(value).trim()) {
+          formData.append(field, String(value).trim());
+        }
+      });
+
       await dispatch(addECTConsent({ addmissionId, formData })).unwrap();
       await dispatch(fetchPatientById(patient?._id));
+
+      // Saved — now show the PDF, reusing the very blob just uploaded so the
+      // printed copy and the stored copy cannot differ. The standalone Preview
+      // button is gone, so this is the only way to a paper copy and it can't
+      // happen without a record. Set before toggle() closes the form: that
+      // unmounts `pagesRef`, and a capture taken afterwards would produce a
+      // blank document.
+      try {
+        const url = URL.createObjectURL(blob);
+        if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+        setPdfUrl(url);
+        setPreviewOpen(true);
+      } catch (previewError) {
+        // The consent IS saved — never turn that into a failure.
+        console.error("PDF preview failed:", previewError);
+        toast.warn("Consent saved, but the PDF preview could not be opened");
+      }
 
       toggle();
     } catch (error) {
@@ -82,35 +110,22 @@ const ECTConsentFormModal = ({
     }
   };
 
-  const handlePreview = async () => {
-    setGenerating(true);
-    try {
-      const pdf = await buildPdf();
-      const url = URL.createObjectURL(pdf.output("blob"));
-
-      // Mobile browsers won't render a blob in an iframe.
-      if (isMobile) {
-        window.open(url, "_blank");
-      } else {
-        setPdfUrl(url);
-        setPreviewOpen(true);
-      }
-    } catch (error) {
-      toast.error(error?.message || "Failed to generate the preview");
-    } finally {
-      setGenerating(false);
-    }
-  };
-
   const closePreview = () => {
     setPreviewOpen(false);
     if (pdfUrl) URL.revokeObjectURL(pdfUrl);
     setPdfUrl(null);
   };
 
-  const handleDownload = async () => {
-    const pdf = await buildPdf();
-    pdf.save(fileName);
+  // Downloads the blob the preview is already showing. Rebuilding from
+  // `pagesRef` would not work here: the preview only opens after a save, which
+  // closes the form modal and unmounts that ref, so captureSection would return
+  // an untouched pdf and hand the user a blank page.
+  const handleDownload = () => {
+    if (!pdfUrl) return;
+    const link = document.createElement("a");
+    link.href = pdfUrl;
+    link.download = fileName;
+    link.click();
   };
 
   return (
@@ -137,20 +152,10 @@ const ECTConsentFormModal = ({
           <Button color="danger" outline onClick={toggle} disabled={saving}>
             Cancel
           </Button>
-          <Button
-            color="secondary"
-            outline
-            onClick={handlePreview}
-            disabled={generating || saving}
-          >
-            {generating ? (
-              <span className="d-inline-flex align-items-center gap-1">
-                <Spinner size="sm" /> Generating...
-              </span>
-            ) : (
-              "Preview"
-            )}
-          </Button>
+          {/* Saving is the only way to get the printed consent — the standalone
+              Preview button was removed so a signed paper copy can't exist
+              without a record of it in the system. The preview opens from
+              onSubmit on success. */}
           <Button
             color="primary"
             type="submit"
@@ -162,7 +167,7 @@ const ECTConsentFormModal = ({
                 <Spinner size="sm" /> Saving...
               </span>
             ) : (
-              "Save"
+              "Save and Print"
             )}
           </Button>
         </ModalFooter>
