@@ -37,7 +37,8 @@ const ECTConsentFormModal = ({
   const dispatch = useDispatch();
   const { register, handleSubmit } = useForm();
 
-  const pagesRef = useRef(null);
+  const page1Ref = useRef(null);
+  const page2Ref = useRef(null);
 
   const [saving, setSaving] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
@@ -48,7 +49,8 @@ const ECTConsentFormModal = ({
   const buildPdf = async () => {
     const pdf = new jsPDF("p", "pt", "a4");
     // Both pages are one document, so page 1 starts the PDF and page 2 follows.
-    await captureSection(pagesRef, pdf, true);
+    await captureSection(page1Ref, pdf, true, 1.5);
+    await captureSection(page2Ref, pdf, false, 1.5);
     return pdf;
   };
 
@@ -134,12 +136,14 @@ const ECTConsentFormModal = ({
         <ModalHeader toggle={toggle}>ECT Consent Form</ModalHeader>
         <ModalBody>
           <form onSubmit={handleSubmit(onSubmit)} id="ect-consent-form">
-            <div ref={pagesRef}>
+            <div ref={page1Ref}>
               <ECTConsentForm
                 register={register}
                 patient={patient}
                 admissions={admissions}
               />
+            </div>
+            <div ref={page2Ref}>
               <ECTConsentForm2
                 register={register}
                 patient={patient}
@@ -174,7 +178,9 @@ const ECTConsentFormModal = ({
       </Modal>
 
       <Modal isOpen={previewOpen} toggle={closePreview} size="xl" centered>
-        <ModalHeader toggle={closePreview}>ECT Consent Form Preview</ModalHeader>
+        <ModalHeader toggle={closePreview}>
+          ECT Consent Form Preview
+        </ModalHeader>
         <ModalBody style={{ height: "75vh", padding: 0 }}>
           {pdfUrl && (
             <iframe
