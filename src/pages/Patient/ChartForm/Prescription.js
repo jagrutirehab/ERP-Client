@@ -912,7 +912,7 @@ const Prescription = ({
   useEffect(() => {
     if (!allICDCodes.length) return;
 
-    if (!sourcePrescription?.icdCode2?.length) {
+    if (!Array.isArray(sourcePrescription?.icdCode2) || !sourcePrescription.icdCode2.length) {
       validation.setFieldValue("icdCode2", []);
       return;
     }
