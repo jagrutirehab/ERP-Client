@@ -21,6 +21,7 @@ import {
   INJURY_MARKS,
   ECT_SESSION,
   ADMISSION_TYPE,
+  MEDICINE_GIVEN,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -54,6 +55,7 @@ import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
 import AdmissionType from "./AdmissionType";
+import MedicineGiven from "./MedicineGiven";
 import { io } from "socket.io-client";
 import {
   getCharts,
@@ -367,6 +369,7 @@ const Charts = ({
                   // }
                   disableEdit={
                     chart.chart === ROUND_NOTE ||
+                    chart.chart === MEDICINE_GIVEN ||
                     (addmission?.dischargeDate ? true : false) ||
                     isPatientDischarged ||
                     (currentAddmissionId
@@ -375,6 +378,7 @@ const Charts = ({
                   }
                   disableDelete={
                     chart.chart === ROUND_NOTE ||
+                    chart.chart === MEDICINE_GIVEN ||
                     (addmission?.dischargeDate ? true : false) ||
                     isPatientDischarged
                   }
@@ -485,6 +489,9 @@ const Charts = ({
                   )}
                   {chart.chart === ADMISSION_TYPE && (
                     <AdmissionType data={chart.admissionType} />
+                  )}
+                  {chart.chart === MEDICINE_GIVEN && (
+                    <MedicineGiven data={chart.nurseGivenMedicine} />
                   )}
                 </Wrapper>
               );
