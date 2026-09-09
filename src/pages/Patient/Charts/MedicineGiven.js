@@ -1,63 +1,43 @@
 import React from "react";
 import PropTypes from "prop-types";
 import moment from "moment";
+import { capitalizeWords } from "../../../utils/toCapitalize";
+
+const rows = (data) => [
+  { label: "Slot", value: data?.slot || "—" },
+  {
+    label: "Given At",
+    value: data?.takenAt
+      ? moment(data.takenAt).format("D MMM YYYY, hh:mm A")
+      : "—",
+  },
+  { label: "Given By", value: data?.markedBy?.name || "—" },
+  {
+    label: "Comment",
+    value: data?.comment ? capitalizeWords(data.comment) : "—",
+  },
+];
 
 const MedicineGiven = ({ data }) => {
   return (
-    <div
-      style={{
-        width: "100%",
-        minWidth: 0,
-        overflowX: "auto",
-        WebkitOverflowScrolling: "touch",
-        boxSizing: "border-box",
-      }}
-    >
-      <table
-        className="table table-sm table-bordered align-middle mb-0"
-        style={{ minWidth: "500px", width: "100%" }}
-      >
-        <thead className="table-primary">
-          <tr>
-            <th style={{ fontSize: "12px", fontWeight: 600, padding: "8px 6px" }}>
-              Slot
-            </th>
-            <th style={{ fontSize: "12px", fontWeight: 600, padding: "8px 6px" }}>
-              Given At
-            </th>
-            <th style={{ fontSize: "12px", fontWeight: 600, padding: "8px 6px" }}>
-              Given By
-            </th>
-            <th style={{ fontSize: "12px", fontWeight: 600, padding: "8px 6px" }}>
-              Comment
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td className="font-size-14" style={{ padding: "10px 6px" }}>
-              {data?.slot || "—"}
-            </td>
-            <td className="font-size-14" style={{ padding: "10px 6px" }}>
-              {data?.takenAt ? moment(data.takenAt).format("D MMM YYYY, hh:mm A") : "—"}
-            </td>
-            <td className="font-size-14" style={{ padding: "10px 6px" }}>
-              {data?.markedBy?.name || "—"}
-            </td>
-            <td
-              className="font-size-14"
+    <React.Fragment>
+      <div>
+        {rows(data).map((row) => (
+          <div className="d-flex" key={row.label}>
+            <h6 className="fs-xs-10 fs-md-14">{row.label}:-</h6>
+            <p
+              className="fs-xs-9 fs-md-12 mb-0 ms-2"
               style={{
-                padding: "10px 6px",
                 whiteSpace: "pre-line",
-                color: data?.comment ? "inherit" : "#9ca3af",
+                color: row.value === "—" ? "#9ca3af" : "inherit",
               }}
             >
-              {data?.comment || "—"}
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
+              {row.value}
+            </p>
+          </div>
+        ))}
+      </div>
+    </React.Fragment>
   );
 };
 
