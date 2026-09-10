@@ -4778,34 +4778,6 @@ export const updateItemTypeStatus = (id, status) => {
   );
 };
 
-export const getItemCategories = (params = {}) => {
-  return axios.get(url.GET_ITEM_CATEGORIES, {
-    params,
-    headers: { "X-No-Cookie-Token": "true" },
-  });
-};
-export const getItemCategoryById = (id) => {
-  return axios.get(`${url.ITEM_CATEGORY_BASE}/${id}`, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
-};
-export const createItemCategory = (data) => {
-  return axios.post(url.ITEM_CATEGORY_BASE, data, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
-};
-export const updateItemCategory = (id, data) => {
-  return axios.put(`${url.ITEM_CATEGORY_BASE}/${id}`, data, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
-};
-export const updateItemCategoryStatus = (id, status) => {
-  return axios.patch(
-    `${url.ITEM_CATEGORY_BASE}/${id}/status`,
-    { status },
-    { headers: { "X-No-Cookie-Token": "true" } },
-  );
-};
 export const createItemType = (data) => {
   return axios.post(url.ITEM_TYPE_BASE, data, {
     headers: { "X-No-Cookie-Token": "true" },
@@ -5227,6 +5199,139 @@ export const updatePaymentTermStatus = (id, status) => {
 };
 export const deletePaymentTerm = (id) => {
   return axios.delete(`${url.PAYMENT_TERM_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getAssetCategories = (params = {}) => {
+  return axios.get(url.ASSET_CATEGORY_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createAssetCategory = (data) => {
+  return axios.post(url.ASSET_CATEGORY_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateAssetCategory = (id, data) => {
+  return axios.put(`${url.ASSET_CATEGORY_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateAssetCategoryStatus = (id, status) => {
+  return axios.patch(
+    `${url.ASSET_CATEGORY_BASE}/${id}/status`,
+    { status },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const deleteAssetCategory = (id) => {
+  return axios.delete(`${url.ASSET_CATEGORY_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getPRDepartments = (params = {}) => {
+  return axios.get(url.PR_DEPARTMENT_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createPRDepartment = (data) => {
+  return axios.post(url.PR_DEPARTMENT_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updatePRDepartment = (id, data) => {
+  return axios.put(`${url.PR_DEPARTMENT_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const deletePRDepartment = (id) => {
+  return axios.delete(`${url.PR_DEPARTMENT_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getPRSubDepartments = (params = {}) => {
+  return axios.get(url.PR_SUB_DEPARTMENT_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createPRSubDepartment = (data) => {
+  return axios.post(url.PR_SUB_DEPARTMENT_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updatePRSubDepartment = (id, data) => {
+  return axios.put(`${url.PR_SUB_DEPARTMENT_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const deletePRSubDepartment = (id) => {
+  return axios.delete(`${url.PR_SUB_DEPARTMENT_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateVendorApprovalStatus = (id, approvalStatus) => {
+  return axios.patch(
+    `${url.VENDOR_BASE}/${id}/approval-status`,
+    { approvalStatus },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const getBudgets = (params = {}) => {
+  return axios.get(url.BUDGET_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createBudget = (data) => {
+  return axios.post(url.BUDGET_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateBudget = (id, data) => {
+  return axios.put(`${url.BUDGET_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const submitBudget = (id) => {
+  return axios.patch(
+    `${url.BUDGET_BASE}/${id}/submit`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const approveBudget = (id, approvedAmount) => {
+  return axios.patch(
+    `${url.BUDGET_BASE}/${id}/approve`,
+    { approvedAmount },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const rejectBudget = (id, rejectionReason) => {
+  return axios.patch(
+    `${url.BUDGET_BASE}/${id}/reject`,
+    { rejectionReason },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const deleteBudget = (id) => {
+  return axios.delete(`${url.BUDGET_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getUserLookup = (params = {}) => {
+  return axios.get(url.USER_LOOKUP_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const deleteItemType = (id) => {
+  return axios.delete(`${url.ITEM_TYPE_BASE}/${id}`, {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };

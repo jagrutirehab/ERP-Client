@@ -6,6 +6,7 @@ import {
   getVendors,
   updateVendorStatus,
   deleteVendor,
+  updateVendorApprovalStatus,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../Components/Hooks/useRoles.js";
@@ -54,8 +55,7 @@ const VendorList = ({ onAdd, onEdit }) => {
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "VENDOR", "WRITE");
   const canEdit = hasPermission("MASTERDATA", "VENDOR", "WRITE");
-  const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "DELETE");
-
+const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
@@ -67,6 +67,28 @@ const VendorList = ({ onAdd, onEdit }) => {
   const [deleting, setDeleting] = useState(false);
   const [overviewVendor, setOverviewVendor] = useState(null);
   const [showAccountNo, setShowAccountNo] = useState(false);
+  const [approvalSaving, setApprovalSaving] = useState(false);
+
+  const handleApprovalStatusChange = async (newStatus) => {
+    if (!overviewVendor) return;
+    setApprovalSaving(true);
+    try {
+      await updateVendorApprovalStatus(overviewVendor._id, newStatus);
+      setOverviewVendor((v) => ({ ...v, approvalStatus: newStatus }));
+      toast.success("Approval status updated");
+      setRefreshFlag((f) => f + 1);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't update approval status",
+        );
+      }
+    } finally {
+      setApprovalSaving(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -265,22 +287,16 @@ const VendorList = ({ onAdd, onEdit }) => {
           <span className="small text-secondary">No</span>
         ),
     },
-    {
+        {
       name: "Approval Status",
       width: "140px",
       cell: (row) => {
-        const s = row.approvalStatus || "incomplete";
-        const cls =
-          s === "approved"
-            ? "status-active"
-            : s === "rejected"
-              ? "status-blacklisted"
-              : s === "pending"
-                ? "status-draft"
-                : "status-inactive";
+        const isVerified = row.approvalStatus === "approved";
         return (
-          <span className={`vendor-status-pill ${cls}`}>
-            {s.charAt(0).toUpperCase() + s.slice(1)}
+          <span
+            className={`vendor-status-pill ${isVerified ? "status-active" : "status-inactive"}`}
+          >
+            {isVerified ? "Verified" : "Unverified"}
           </span>
         );
       },
@@ -497,22 +513,36 @@ const VendorList = ({ onAdd, onEdit }) => {
                       <span className="vendor-overview-chip">
                         {(overviewVendor.vendorType || "—").replace(/_/g, " ")}
                       </span>
-                      <span
-                        className={`vendor-status-pill status-${overviewVendor.status}`}
-                      >
-                        {overviewVendor.status}
+                      {canChangeStatus ? (
+                        <select
+                          className={`vendor-overview-status-select status-${overviewVendor.status}`}
+                          value={overviewVendor.status}
+                          onChange={(e) =>
+                            handleStatusChange(
+                              overviewVendor._id,
+                              e.target.value,
+                            )
+                          }
+                        >
+                          <option value="draft">Draft</option>
+                          <option value="active">Active</option>
+                          <option value="inactive">Inactive</option>
+                          <option value="blacklisted">Blacklisted</option>
+                        </select>
+                      ) : (
+                        <span
+                          className={`vendor-status-pill status-${overviewVendor.status}`}
+                        >
+                          {overviewVendor.status}
+                        </span>
+                      )}
+                      <span className="vendor-overview-approval-chip">
+                        <i className="bx bx-check-circle"></i>{" "}
+                        {overviewVendor.approvalStatus === "approved"
+                          ? "Verified"
+                          : "Unverified"}
                       </span>
                     </div>
-
-                    <span className="vendor-overview-approval-chip">
-                      <i className="bx bx-time-five"></i>{" "}
-                      {(overviewVendor.approvalStatus || "incomplete")
-                        .charAt(0)
-                        .toUpperCase() +
-                        (overviewVendor.approvalStatus || "incomplete").slice(
-                          1,
-                        )}
-                    </span>
 
                     <div className="vendor-overview-hero-row">
                       <i className="bx bx-hash"></i>
