@@ -33,7 +33,15 @@ const BioData = ({ patient, addmission }) => {
 
   const handleEdit = () => {
     dispatch(
-      togglePatientForm({ data: patient, leadData: null, isOpen: true }),
+      togglePatientForm({
+        data: patient,
+        leadData: null,
+        isOpen: true,
+        mode: "biodata",
+        admissionId: patient.addmission?._id,
+        ward: patient.addmission?.ward,
+        bed: patient.addmission?.bed,
+      }),
     );
   };
 
@@ -152,6 +160,8 @@ const BioData = ({ patient, addmission }) => {
               value={patient.socioeconomicstatus}
             />
             <InfoItem label="Area Type" value={patient?.areatype} />
+            <InfoItem label="Ward / Room" value={patient.addmission?.ward} />
+            <InfoItem label="Bed" value={patient.addmission?.bed} />
             <InfoItem label="IPD Number" value={addmission?.[0]?.Ipdnum} />
             <InfoItem
               label="Provisional Diagnosis"

@@ -225,6 +225,24 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, patient?._id, addmissionId]);
 
+  // Pre-fill the consent form's Ward/Room and Bed from the admission's own
+  // root-level fields (set on the main Admission Form) whenever the selected
+  // admission changes. These are only defaults — details.ward/bed stay plain
+  // local state the user can freely overwrite before submitting the consent
+  // form, and editing them here never writes back to the admission record.
+  useEffect(() => {
+    if (!admissionBelongsToPatient(addmissionId, patient)) return;
+    const currentAddmission = addmissionsCharts.find(
+      (a) => a._id === addmissionId,
+    );
+    if (!currentAddmission) return;
+    setDetails((prev) => ({
+      ...prev,
+      ward: currentAddmission.ward || "",
+      bed: currentAddmission.bed || "",
+    }));
+  }, [addmissionId, addmissionsCharts]);
+
   const { register, handleSubmit, setValue, reset, watch } = useForm();
 
   // Belt and braces for the write paths. The scoping above should already make a
