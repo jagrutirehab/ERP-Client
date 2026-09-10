@@ -166,6 +166,7 @@ export {
   fetchAllPatients,
   fetchPatientById,
   editAdmissionAssignment,
+  editAdmissionWardBed,
 } from "./features/patient/patientSlice";
 
 // timeline

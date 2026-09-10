@@ -434,6 +434,8 @@ export const setRamsayApplicable = (data) =>
   api.update(url.SET_RAMSAY_APPLICABLE, data);
 export const setAdmissionTypeDirect = (data) =>
   api.update(url.SET_ADMISSION_TYPE_DIRECT, data);
+export const updateAdmissionWardBed = (data) =>
+  api.update(url.UPDATE_ADMISSION_WARD_BED, data);
 export const submitAdmissionForm = ({ admissionId, formData }) =>
   api.update(`${url.SUBMIT_ADMISSION_FORM}/${admissionId}`, formData, {
     headers: { "Content-Type": "multipart/form-data" },
