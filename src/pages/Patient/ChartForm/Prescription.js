@@ -265,6 +265,16 @@ const Prescription = ({
 
   const isCarryForwardMode = !isEditMode && carryForwardMedicines.length > 0;
 
+  const latestChartsForDisplay = React.useMemo(() => {
+    const byId = new Map();
+    [...(charts || []), ...(opdLatestCharts || [])].forEach((c) => {
+      if (c?._id) byId.set(String(c._id), c);
+    });
+    return Array.from(byId.values()).sort(
+      (a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt),
+    );
+  }, [charts, opdLatestCharts]);
+
 
   useEffect(() => {
     if (isIPD || isEditMode) return;
@@ -326,7 +336,7 @@ const Prescription = ({
   }, [dispatch, appointment, populatePreviousAppointment, isIPD, patient._id]);
 
   useEffect(() => {
-    if (isIPD || !opdPatientId) {
+    if (!opdPatientId) {
       setOpdLatestCharts([]);
       return;
     }
@@ -347,7 +357,7 @@ const Prescription = ({
     return () => {
       cancelled = true;
     };
-  }, [isIPD, opdPatientId]);
+  }, [opdPatientId]);
 
   useEffect(() => {
     if (!isIPD || isEditMode || !patient?._id) return;
@@ -1191,10 +1201,7 @@ const Prescription = ({
               </Button>
             </CardHeader>
             <CardBody>
-              {/* OPD only wants its last 5 prescriptions here; IPD keeps
-                  showing whatever mixed chart kinds it already did (notes,
-                  vitals, discharge summaries, etc — handled below). */}
-              {(isIPD ? charts || [] : opdLatestCharts)
+              {(isIPD ? latestChartsForDisplay : opdLatestCharts)
                 .filter((chart) => isIPD || chart.chart === PRESCRIPTION)
                 .slice(0, 5)
                 .map((chart, idx) => (
