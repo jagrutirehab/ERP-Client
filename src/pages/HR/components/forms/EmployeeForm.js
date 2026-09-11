@@ -87,7 +87,8 @@ const RELAXED_EMPLOYEE_FORM_USERS = [
   "67a4983f102397b0c939f937",
   "68f8f38cbfb5c1f785102465",
   "696e176dea1a23b429717267",
-  "6874c5a2788d8c2bb3c8e724"
+  "6874c5a2788d8c2bb3c8e724",
+  "6a1fc53e9375ba0ce835157d"
 ];
 
 const isRelaxedEmployeeFormUser = () => {
