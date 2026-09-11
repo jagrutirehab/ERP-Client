@@ -275,7 +275,7 @@ export const editAdmissionWardBed = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message: "Ward/Room and Bed Updated Successfully!",
+          message: "Floor / Ward / Room and Bed Updated Successfully!",
         })
       );
       dispatch(updateChartAdmission(response.payload));

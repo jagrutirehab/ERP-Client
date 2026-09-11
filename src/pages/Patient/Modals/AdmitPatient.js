@@ -935,7 +935,7 @@ const AdmitPatient = ({
         <Col xs={12} md={6}>
           <div className="mb-3">
             <Label htmlFor="ward" className="form-label">
-              Ward / Room
+              Floor / Ward / Room
             </Label>
             <Input
               name="ward"
