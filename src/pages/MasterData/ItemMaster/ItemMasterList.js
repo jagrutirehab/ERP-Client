@@ -6,7 +6,7 @@ import {
   getItemMasters,
   deleteItemMaster,
   getItemTypes,
-  getItemCategories,
+  getAssetCategories,
   getUoms,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
@@ -24,8 +24,8 @@ const StatusPill = ({ status }) => (
 
 const FILTERS = [
   { key: "all", label: "All items" },
-  { key: "active", label: "Active" },
-  { key: "discontinued", label: "Discontinued" },
+  // { key: "active", label: "Active" },
+  // { key: "discontinued", label: "Discontinued" },
 ];
 
 const SkeletonRows = () => (
@@ -143,7 +143,7 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
       })
       .catch(() => {});
 
-    getItemCategories({})
+       getAssetCategories({})
       .then((res) => {
         const map = {};
         (res?.data || []).forEach((c) => (map[c._id] = c.name));
@@ -236,9 +236,9 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
         <span className="im-table-primary-cell">{row.itemName}</span>
       ),
     },
-    {
+        {
       name: "L1",
-      selector: (row) => categoryMap[row.l1Category] || "—",
+      selector: (row) => categoryMap[row.assetCategoryL1] || "—",
       width: "120px",
     },
     { name: "Brand", selector: (row) => row.brand || "—", width: "120px" },
@@ -453,21 +453,21 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
                     label="Sub Type"
                     value={overviewItem.subType}
                   />
-                  <OverviewField
+                                    <OverviewField
                     label="L1 Category"
-                    value={categoryMap[overviewItem.l1Category]}
+                    value={categoryMap[overviewItem.assetCategoryL1]}
                   />
                   <OverviewField
                     label="L2 Category"
-                    value={categoryMap[overviewItem.l2Category]}
+                    value={categoryMap[overviewItem.assetCategoryL2]}
                   />
                   <OverviewField
                     label="L3 Category"
-                    value={categoryMap[overviewItem.l3Category]}
+                    value={categoryMap[overviewItem.assetCategoryL3]}
                   />
                   <OverviewField
                     label="L4 Category"
-                    value={categoryMap[overviewItem.l4Category]}
+                    value={categoryMap[overviewItem.assetCategoryL4]}
                   />
                 </OverviewSection>
 

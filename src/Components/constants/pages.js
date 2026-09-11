@@ -1593,24 +1593,65 @@ export const MASTER_DATA = [
     link: "/vendor-management/payment-term",
     icon: "bx bx-credit-card",
   },
+  {
+  id: "masterdata-department",
+  label: "Departments",
+  link: "/vendor-management/department",
+  icon: "bx bx-building",
+},
   // {
   //   id: "masterdata-delivery-partner",
   //   label: "Delivery Partners",
   //   link: "/master-data/delivery-partner",
   //   icon: "bx bx-car",
   // },
-  // {
-  //   id: "masterdata-asset-category",
-  //   label: "Asset Categories",
-  //   link: "/master-data/asset-category",
-  //   icon: "bx bx-category",
-  // },
-  // {
-  //   id: "masterdata-department",
-  //   label: "Departments",
-  //   link: "/master-data/department",
-  //   icon: "bx bx-building",
-  // },
+{
+  id: "masterdata-asset-category",
+  label: "Asset Categories",
+  icon: "bx bx-category",
+  isAccordion: true,
+  children: [
+    {
+  id: "asset-category-l1",
+  label: "Level 1 Category",
+  link: "/vendor-management/asset-category/level/1",
+  // icon: "bx bx-list-ul",
+},
+{
+  id: "asset-category-l2",
+  label: "Level 2 Category",
+  link: "/vendor-management/asset-category/level/2",
+  // icon: "bx bx-list-ul",
+},
+{
+  id: "asset-category-l3",
+  label: "Level 3 Category",
+  link: "/vendor-management/asset-category/level/3",
+  // icon: "bx bx-list-ul",
+},
+{
+  id: "asset-category-l4",
+  label: "Level 4 Category",
+  link: "/vendor-management/asset-category/level/4",
+  // icon: "bx bx-list-ul",
+},
+  ],
+},
+{
+  id: "finance",
+  label: "Finance",
+  icon: "bx bx-wallet", 
+  isAccordion: true,
+  children: [
+    {
+      id: "finance-budget",
+      label: "Budget Management",
+      link: "/vendor-management/budget"
+      // icon: "bx bx-money",
+    },
+  ],
+},
+
 ];
 
 export default pages;

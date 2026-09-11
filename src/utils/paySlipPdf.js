@@ -197,7 +197,7 @@ const TRow = ({ label, value }) => (
       <Text style={styles.tSmall}>{label}</Text>
     </View>
     <View style={styles.tdAmount}>
-      <Text style={[styles.tSmall, styles.tRight]}>{dm(value)}</Text>
+      <Text style={[styles.tSmall, styles.tRight]}>{label === "" ? "" : dm(value)}</Text>
     </View>
   </View>
 );
@@ -219,14 +219,17 @@ const PayslipPdf = ({ row }) => {
     { label: "Incentive",                   value: row?.incentives          ?? null },
     { label: "Leave Encashment",            value: row?.leaveEncashment     ?? null },
     { label: "Notice Pay out",              value: row?.noticePay           ?? null },
-    { label: "Gratuity",                    value: null           ?? null },  
+    { label: "Gratuity",                    value: null           ?? null },
     { label: "Other Variable",              value: row?.otherVariable1      ?? null },
+    // { label: "",                            value: undefined },
   ];
 
   // ── Deductions ────────────────────────────────────────────────────────────
   // All keys are now camelCase from the new backend response format.
   const deductionRows = [
-    { label: "PF Employee",    value: row?.pfEmployee     ?? null },  
+    { label: "PF Employee",    value: row?.pfEmployee     ?? null },
+    // { label: "PF Employer", value: row?.pfEmployer     ?? null }, // PF Employer hidden from payslip; blank row below keeps row count aligned with earningsRows
+    { label: "",               value: undefined },
     { label: "Voluntary PF",   value: row?.voluntaryPF    ?? null },
     { label: "PF Arrear",      value: row?.pfArrear       ?? null },
     { label: "Member ESIC",    value: row?.esicEmployee   ?? null }, 

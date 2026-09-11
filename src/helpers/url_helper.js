@@ -93,6 +93,7 @@ export const ADMIT_PATIENT = "/patient/admit";
 export const EDIT_ADMISSION = "/patient/admit/update";
 export const SET_RAMSAY_APPLICABLE = "/patient/admission/ramsay-applicable";
 export const SET_ADMISSION_TYPE_DIRECT = "/patient/admission/admission-type";
+export const UPDATE_ADMISSION_WARD_BED = "/patient/admission/ward-bed";
 export const SUBMIT_ADMISSION_FORM = "/patient/admission-submit";
 export const DISCHARGE_PATIENT = "/patient/discharge";
 export const UNDISCHARGE_PATIENT = "/patient/un-discharge";
@@ -866,14 +867,18 @@ export const VENDOR_BASE = "/master/vendor";
 export const GET_ITEM_TYPES = "/master/item-type";
 export const ITEM_TYPE_BASE = "/master/item-type";
 
-export const GET_ITEM_CATEGORIES = "/master/item-category";
-export const ITEM_CATEGORY_BASE = "/master/item-category";
 export const ITEM_MASTER_BASE = "/master/item";
 export const GET_ITEM_MASTERS = ITEM_MASTER_BASE;
 export const GET_UOMS = "/master/uom";
 export const UOM_BASE = "/master/uom";
+export const ASSET_CATEGORY_BASE = "/master/asset-category";
 
 export const PAYMENT_TERM_BASE = "/master/payment-term";
+
+export const PR_DEPARTMENT_BASE = "/master/pr-department";
+export const PR_SUB_DEPARTMENT_BASE = "/master/pr-sub-department";
+export const BUDGET_BASE = "/master/budget";
+export const USER_LOOKUP_BASE = "/master/user-lookup";
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
 

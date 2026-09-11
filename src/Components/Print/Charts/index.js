@@ -23,6 +23,7 @@ import {
   INJURY_MARKS,
   ECT_SESSION,
   ADMISSION_TYPE,
+  MEDICINE_GIVEN,
 } from "../../constants/patient";
 
 //charts
@@ -45,6 +46,7 @@ import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
 import AdmissionType from "./AdmissionType";
+import MedicineGiven from "./MedicineGiven";
 
 const styles = StyleSheet.create({
   page: {
@@ -251,6 +253,15 @@ const Charts = ({
 
               <RenderWhen isTrue={chart?.chart === ROUND_NOTE}>
                 <RoundNote
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
+
+              <RenderWhen isTrue={chart?.chart === MEDICINE_GIVEN}>
+                <MedicineGiven
                   chart={chart}
                   center={chart.center}
                   patient={patient}

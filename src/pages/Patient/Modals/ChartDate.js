@@ -29,6 +29,7 @@ import {
   DETAIL_ADMISSION,
   VITAL_SIGN,
   ROUND_NOTE,
+  MEDICINE_GIVEN,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -236,9 +237,10 @@ const ChartDate = ({
               >
                 {(records || [])
                   .filter((item) => {
-                    // Round-note charts are auto-generated from Round Notes —
+                    // Round-note and medicine-given charts are auto-generated —
                     // never offered as a manually creatable chart type.
                     if (item.category === ROUND_NOTE) return false;
+                    if (item.category === MEDICINE_GIVEN) return false;
                     if (user?.role === "NURSE") {
                       return ![
                         PRESCRIPTION,
