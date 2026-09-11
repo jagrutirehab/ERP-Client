@@ -131,10 +131,10 @@ const records = [
     name: "ECT Session",
     category: ECT_SESSION,
   },
-  {
-    name: "Admission Type",
-    category: ADMISSION_TYPE,
-  },
+  // {
+  //   name: "Admission Type",
+  //   category: ADMISSION_TYPE,
+  // },
 ];
 
 // ── Admission Type chart ───────────────────────────────────────────────────
