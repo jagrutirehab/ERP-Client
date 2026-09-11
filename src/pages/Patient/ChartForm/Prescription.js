@@ -31,6 +31,7 @@ import {
   COUNSELLING_NOTE,
   DETAIL_ADMISSION,
   DISCHARGE_SUMMARY,
+  GENERAL,
   IPD,
   LAB_REPORT,
   OPD,
@@ -1198,13 +1199,13 @@ const Prescription = ({
                 .slice(0, 5)
                 .map((chart, idx) => (
                   <div className="mb-4" key={chart._id}>
-                    {(chart.type === OPD || chart.type === IPD) && (
+                    {(chart.type === OPD || chart.type === IPD || chart.type === GENERAL) && (
                       <span
                         className={`badge mb-1 ${
-                          chart.type === IPD ? "bg-danger" : "bg-success"
+                          chart.type === IPD ? "bg-primary" : "bg-success"
                         }`}
                       >
-                        {chart.type}
+                        {chart.type === GENERAL ? OPD : chart.type}
                       </span>
                     )}
                     <Wrapper

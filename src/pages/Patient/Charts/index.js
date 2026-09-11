@@ -410,6 +410,7 @@ const Charts = ({
                         1 * 60 * 60 * 1000)
                   }
                   extraOptions={(item) =>
+                    !isPatientDischarged &&
                     item?.chart === PRESCRIPTION &&
                     ["IPD", "OPD", "GENERAL"].includes(item?.type) &&
                     (item?.prescription?.medicines || []).some(
