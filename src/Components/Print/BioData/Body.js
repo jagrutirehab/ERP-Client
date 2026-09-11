@@ -173,7 +173,10 @@ const Body = ({ patient, addmission }) => {
               value={patient.socioeconomicstatus}
             />
             <InfoItem label="Area Type" value={patient.areatype} />
-            <InfoItem label="Ward / Room" value={patient.addmission?.ward} />
+            <InfoItem
+              label="Floor / Ward / Room"
+              value={patient.addmission?.ward}
+            />
             <InfoItem label="Bed" value={patient.addmission?.bed} />
             <InfoItem label="IPD Number" value={addmission?.[0]?.Ipdnum} />
             <InfoItem
