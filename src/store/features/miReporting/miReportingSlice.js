@@ -41,6 +41,7 @@ import {
   getAdmissionDischargeDaily,
   getOpdChargesMonthly,
   getDoctorOpdChargesMonthly,
+  getDoctorOpdChargesDetail,
   getCentralExpensesMonthly,
   getDoctorPsychologistStayRange,
   getNursesDailyActivity,
@@ -96,6 +97,7 @@ const initialState = {
   counsellingSessionsPatientsDOD: [],
   opdChargesMonthly: [],
   doctorOpdChargesMonthly: [],
+  doctorOpdChargesDetail: [],
   centralExpensesMonthly: [],
   doctorPsychologistStayRange: [],
   nursesDailyActivity: [],
@@ -480,6 +482,20 @@ export const fetchDoctorOpdChargesMonthly = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.message || "Failed to fetch doctor opd charges monthly"
+      );
+    }
+  }
+);
+
+export const fetchDoctorOpdChargesDetail = createAsyncThunk(
+  "miReporting/fetchDoctorOpdChargesDetail",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getDoctorOpdChargesDetail(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch doctor opd charges detail"
       );
     }
   }
@@ -1363,6 +1379,19 @@ const miReportingSlice = createSlice({
         state.doctorOpdChargesMonthly = action.payload.payload || [];
       })
       .addCase(fetchDoctorOpdChargesMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Doctor OPD Charges Detail
+      .addCase(fetchDoctorOpdChargesDetail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDoctorOpdChargesDetail.fulfilled, (state, action) => {
+        state.loading = false;
+        state.doctorOpdChargesDetail = action.payload.payload || [];
+      })
+      .addCase(fetchDoctorOpdChargesDetail.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

@@ -566,6 +566,8 @@ export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
 export const GET_OPD_CHARGES_MONTHLY = "/mi-reporting/opd-charges-monthly";
 export const GET_DOCTOR_OPD_CHARGES_MONTHLY =
   "/mi-reporting/doctor-opd-charges-monthly";
+export const GET_DOCTOR_OPD_CHARGES_DETAIL =
+  "/mi-reporting/doctor-opd-charges-detail";
 export const GET_CENTRAL_EXPENSES_MONTHLY =
   "/mi-reporting/central-expenses-monthly";
 export const GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE =
