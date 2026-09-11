@@ -100,6 +100,8 @@ const AdmitPatient = ({
       doctor: data ? data.doctor?._id : "",
       provisional_diagnosis: [],
       Ipdnum: data ? data.Ipdnum : "",
+      ward: data ? data.ward || "" : "",
+      bed: data ? data.bed || "" : "",
     },
     validationSchema: Yup.object({
       //patient
@@ -929,6 +931,37 @@ const AdmitPatient = ({
             </div>
           </Col>
         )}
+
+        <Col xs={12} md={6}>
+          <div className="mb-3">
+            <Label htmlFor="ward" className="form-label">
+              Floor / Ward / Room
+            </Label>
+            <Input
+              name="ward"
+              id="ward"
+              onChange={validation.handleChange}
+              onBlur={validation.handleBlur}
+              value={validation.values.ward || ""}
+              className="form-control"
+            />
+          </div>
+        </Col>
+        <Col xs={12} md={6}>
+          <div className="mb-3">
+            <Label htmlFor="bed" className="form-label">
+              Bed
+            </Label>
+            <Input
+              name="bed"
+              id="bed"
+              onChange={validation.handleChange}
+              onBlur={validation.handleBlur}
+              value={validation.values.bed || ""}
+              className="form-control"
+            />
+          </div>
+        </Col>
 
         <FormField
           fields={admissionFields}

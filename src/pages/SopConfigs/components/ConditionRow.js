@@ -30,8 +30,11 @@ let _labTestsPromise = null;
 const loadLabTests = () => {
   if (!_labTestsPromise) {
     _labTestsPromise = sopGetLabTests()
-      .then((res) => res?.data || res || { tests: [], severityThresholds: [] })
-      .catch(() => ({ tests: [], severityThresholds: [] }));
+      .then(
+        (res) =>
+          res?.data || res || { tests: [], panels: [], severityThresholds: [] },
+      )
+      .catch(() => ({ tests: [], panels: [], severityThresholds: [] }));
   }
   return _labTestsPromise;
 };
@@ -56,6 +59,7 @@ const ConditionRow = ({
   const [icdOptions, setIcdOptions] = useState([]);
   const [isLoadingIcd, setIsLoadingIcd] = useState(false);
   const [labTests, setLabTests] = useState([]);
+  const [labPanels, setLabPanels] = useState([]);
 
   const fieldOptions = modelFieldsCache[condition.model?.value] || [];
   const selectedField = fieldOptions.find((f) => f.value === condition.field);
@@ -100,6 +104,7 @@ const ConditionRow = ({
     loadLabTests().then((data) => {
       if (cancelled) return;
       setLabTests(Array.isArray(data?.tests) ? data.tests : []);
+      setLabPanels(Array.isArray(data?.panels) ? data.panels : []);
     });
     return () => {
       cancelled = true;
@@ -114,7 +119,11 @@ const ConditionRow = ({
       setIcdOptions(
         dataArray.map((i) => ({
           value: i._id,
-          label: `${i.text} - ${i.code}`,
+          // Code first, then the name — matching how the diagnosis is picked
+          // everywhere else (AdmitPatient, DoctorSignature, Prescription), so
+          // the same diagnosis reads the same way when authoring a rule as it
+          // does on the admission. The code is the part users search by.
+          label: `${i.code} - ${i.text}`,
         })),
       );
     } catch (err) {
@@ -205,8 +214,35 @@ const ConditionRow = ({
       })),
     ];
 
-    const selectedTest =
-      testOpts.find((o) => o.value === condition.arrayMatch?.keyValue) || null;
+    // keyValue is one id, "*", or a list of ids (a panel). Normalise to an array
+    // so the multi-select works for every shape, including rules authored before
+    // panels existed.
+    const keyValueArr = Array.isArray(condition.arrayMatch?.keyValue)
+      ? condition.arrayMatch.keyValue
+      : condition.arrayMatch?.keyValue
+        ? [condition.arrayMatch.keyValue]
+        : [];
+    const isWildcardSelected = keyValueArr[0] === ANY_LAB_TEST_OPTION.value;
+    const selectedTests = isWildcardSelected
+      ? [ANY_LAB_TEST_OPTION]
+      : testOpts.filter((o) => keyValueArr.includes(o.value));
+    // The × ULN hint only means something for a single test — each test has its
+    // own ULN, so there is no one figure to show for a panel.
+    const selectedTest = selectedTests.length === 1 ? selectedTests[0] : null;
+
+    // Panels fill the selection in one click; they are not stored, so switching
+    // panel just replaces the ids.
+    const panelOpts = labPanels.map((p) => ({
+      value: p.id,
+      label: p.display,
+      tests: p.tests,
+    }));
+    const activePanel =
+      panelOpts.find(
+        (p) =>
+          p.tests.length === keyValueArr.length &&
+          p.tests.every((t) => keyValueArr.includes(t)),
+      ) || null;
     const selectedSeverity =
       SEVERITY_THRESHOLD_OPTIONS.find(
         (o) => o.value === condition.value?.[0],
@@ -229,15 +265,29 @@ const ConditionRow = ({
       onChange(idx, "value", []);
     };
 
-    const handleTestChange = (s) =>
+    const baseArrayMatch = () =>
+      condition.arrayMatch || {
+        keyField: "canonicalName",
+        compareField: isSeverityMode ? "severity" : "ulnMultiplier",
+        comparator,
+      };
+
+    // Stores a bare string for a single test (and for "*"), an array for a
+    // panel — so a one-test condition round-trips exactly as it always has.
+    const setKeyValue = (ids) =>
       onChange(idx, "arrayMatch", {
-        ...(condition.arrayMatch || {
-          keyField: "canonicalName",
-          compareField: isSeverityMode ? "severity" : "ulnMultiplier",
-          comparator,
-        }),
-        keyValue: s?.value || "",
+        ...baseArrayMatch(),
+        keyValue: ids.length === 1 ? ids[0] : ids,
       });
+
+    const handleTestChange = (selection) => {
+      const picked = Array.isArray(selection) ? selection : [];
+      // "Any test" is exclusive — it already means every test.
+      const wildcard = picked.find((p) => p.value === ANY_LAB_TEST_OPTION.value);
+      setKeyValue(wildcard ? [wildcard.value] : picked.map((p) => p.value));
+    };
+
+    const handlePanelChange = (p) => setKeyValue(p?.tests ? [...p.tests] : []);
 
     // Derived hint for numeric mode: "3 × 40 IU/L = 120 IU/L" so the
     // rule author can sanity-check the threshold in real-world units.
@@ -262,20 +312,38 @@ const ConditionRow = ({
           isDisabled={isDisabled}
           placeholder="Mode..."
         />
+        {panelOpts.length > 0 && (
+          <div className="mt-1">
+            <Select
+              options={panelOpts}
+              value={activePanel}
+              onChange={handlePanelChange}
+              isDisabled={isDisabled}
+              isClearable
+              placeholder="Or pick a panel..."
+            />
+          </div>
+        )}
         <div className="mt-1">
           <Select
+            isMulti
             options={testOpts}
-            value={selectedTest}
+            value={selectedTests}
             onChange={handleTestChange}
             isDisabled={isDisabled || testOpts.length === 0}
             placeholder={
               testOpts.length === 0
                 ? "Loading tests..."
                 : isSeverityMode
-                  ? "Select test..."
-                  : "Select test (× ULN)..."
+                  ? "Select test(s)..."
+                  : "Select test(s) (× ULN)..."
             }
           />
+          {selectedTests.length > 1 && (
+            <small className="text-muted">
+              Fires when <strong>any</strong> of these breaches the threshold.
+            </small>
+          )}
         </div>
         {isSeverityMode ? (
           <div className="mt-1">

@@ -533,9 +533,11 @@ export const permissionList = [
       { name: "VENDOR", label: "Vendor" },
       { name: "ITEM_MASTER", label: "Item Master" },
       { name: "ITEM_TYPE", label: "Item Types" },
-      { name: "ITEM_CATEGORY", label: "Item Categories" },
       { name: "UOM", label: "Unit of Measurement" },
       { name: "PAYMENT_TERM", label: "Payment Terms" },
+      { name: "ASSET_CATEGORY", label: "Asset Categories" },
+      { name: "DEPARTMENT", label: "Departments" },
+      { name: "BUDGET", label: "Budget Management" },
     ],
   },
 ];

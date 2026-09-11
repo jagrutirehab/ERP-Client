@@ -31,6 +31,7 @@ import {
   togglePatientForm,
   updatePatient,
   fetchReferrals,
+  editAdmissionWardBed,
 } from "../../store/actions";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
@@ -64,6 +65,7 @@ const AddPatient = ({
 
   const editData = patient.data;
   const leadData = patient.leadData;
+  const isBioDataMode = patient.mode === "biodata";
   const name = editData ? editData.name : leadData ? leadData.patient.name : "";
   const phoneNumber = editData
     ? editData.phoneNumber
@@ -143,6 +145,8 @@ const AddPatient = ({
       languagesKnown: editData ? editData.languagesKnown || [] : [],
       nationality: editData ? editData.nationality || "Indian" : "Indian",
       passportNumber: editData ? editData.passportNumber || "" : "",
+      ward: isBioDataMode ? patient.ward || "" : "",
+      bed: isBioDataMode ? patient.bed || "" : "",
     },
     validationSchema: Yup.object({
       id: Yup.string()
@@ -237,6 +241,15 @@ const AddPatient = ({
           if (!(values.passportCard?.file instanceof Blob))
             formData.delete("passportCard");
           await dispatch(updatePatient(formData)).unwrap();
+          if (isBioDataMode && patient.admissionId) {
+            await dispatch(
+              editAdmissionWardBed({
+                admissionId: patient.admissionId,
+                ward: values.ward,
+                bed: values.bed,
+              }),
+            ).unwrap();
+          }
         } else if (leadData) {
           formData.append("lead", leadData._id);
           formData.append("leadOrigin", leadData.leadOrigin);
@@ -766,6 +779,48 @@ const AddPatient = ({
               />
             </Row>
           </Col>
+
+          {/* Admission Ward/Room & Bed - editable from Bio Data only */}
+          {isBioDataMode && (
+            <Col xs={12} style={{ marginBottom: "1.5rem" }}>
+              <Row
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                  gap: "1.5rem",
+                }}
+              >
+                <div className="mb-3">
+                  <Label htmlFor="ward" className="form-label">
+                    Floor / Ward / Room
+                  </Label>
+                  <Input
+                    type="text"
+                    name="ward"
+                    id="ward"
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.ward || ""}
+                    className="form-control"
+                  />
+                </div>
+                <div className="mb-3">
+                  <Label htmlFor="bed" className="form-label">
+                    Bed
+                  </Label>
+                  <Input
+                    type="text"
+                    name="bed"
+                    id="bed"
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.bed || ""}
+                    className="form-control"
+                  />
+                </div>
+              </Row>
+            </Col>
+          )}
 
           {/* Nationality & Identity Section */}
           <Col xs={12} style={{ marginBottom: "1.5rem" }}>

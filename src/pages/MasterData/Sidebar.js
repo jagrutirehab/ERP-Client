@@ -128,15 +128,25 @@ const Sidebar = () => {
                               : "mb-1"
                           }
                         >
-                          <Link className="d-flex align-items-center py-2" to={child.link}>
-                            <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
-                              <div className="avatar-xxs">
-                                <i className={(child.icon || page.icon) + " fs-5"}></i>
+                          <Link
+                            className="d-flex align-items-center py-2"
+                            to={child.link}
+                          >
+                            {child.icon ? (
+                              <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
+                                <div className="avatar-xxs">
+                                  <i className={child.icon + " fs-5"}></i>
+                                </div>
                               </div>
+                            ) : null}
+                            <div className="flex-grow-1 overflow-hidden">
+                              <p
+                                className="text-truncate font-semi-bold fs-14 mb-0"
+                                style={!child.icon ? { paddingLeft: "4px" } : undefined}
+                              >
+                                {child.label || ""}
+                              </p>
                             </div>
-                            <p className="text-truncate font-semi-bold fs-14 mb-0">
-                              {child.label || ""}
-                            </p>
                           </Link>
                         </li>
                       ))}

@@ -6,6 +6,9 @@ import Vendor from "./Vendor";
 import Items from "./Items";
 import UnitOfMeasurement from "./UnitOfMeasurement";
 import PaymentTerm from "./PaymentTerm";
+import DepartmentMaster from "./DepartmentMaster";
+import AssetCategory from "./AssetCategory";
+import BudgetManagement from "./Finance/BudgetManagement";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import "./masterData.scss";
@@ -32,11 +35,23 @@ const MasterData = () => {
   const canViewVendor = hasPermission("MASTERDATA", "VENDOR", "READ");
   const canViewItems = hasPermission("MASTERDATA", "ITEM_MASTER", "READ");
   const canViewUom = hasPermission("MASTERDATA", "UOM", "READ");
+  const canViewAssetCategory = hasPermission(
+    "MASTERDATA",
+    "ASSET_CATEGORY",
+    "READ",
+  );
+  const canViewBudget = hasPermission("MASTERDATA", "BUDGET", "READ");
 
-  if (!canViewVendor && !canViewItems && !canViewUom) {
+  if (
+    !canViewVendor &&
+    !canViewItems &&
+    !canViewUom &&
+    !canViewAssetCategory &&
+    !canViewBudget
+  ) {
     return <Basic404 />;
   }
-
+  
   return (
     <div className="page-content" style={{ paddingTop: "70px" }}>
       <Container fluid className="p-0">
@@ -51,6 +66,12 @@ const MasterData = () => {
               <Route path="item/*" element={<Items />} />
               <Route path="uom/*" element={<UnitOfMeasurement />} />
               <Route path="payment-term/*" element={<PaymentTerm />} />
+              <Route path="department/*" element={<DepartmentMaster />} />
+              <Route
+                path="asset-category/level/:level/*"
+                element={<AssetCategory />}
+              />
+              <Route path="budget/*" element={<BudgetManagement />} />
             </Routes>
           </div>
         </div>

@@ -63,7 +63,7 @@ const RulePreviewOffcanvas = ({
 }) => {
   const worst = rule ? deriveWorstSeverity(rule) : null;
 
-  // ICD map (id → "text - code"). Lazily fetched the first time the offcanvas
+  // ICD map (id → "code - text"). Lazily fetched the first time the offcanvas
   // opens with a rule that has any ICD-referenced condition. The fetch is a
   // single one-shot call; the map persists for the component's lifetime so
   // re-opening on different rules doesn't refetch.
@@ -93,8 +93,10 @@ const RulePreviewOffcanvas = ({
       try {
         const res = await getICDCodes();
         const list = Array.isArray(res) ? res : res?.data || [];
+        // Same "code - text" order as the ConditionRow picker, so a rule reads
+        // the same way in the preview as it did when it was authored.
         const map = new Map(
-          list.map((i) => [String(i._id), `${i.text} - ${i.code}`]),
+          list.map((i) => [String(i._id), `${i.code} - ${i.text}`]),
         );
         setIcdMap(map);
       } catch (err) {

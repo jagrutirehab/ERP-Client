@@ -27,6 +27,7 @@ const NURSE_SOS_PROCEDURE = "NURSE_SOS_PROCEDURE";
 const INJURY_MARKS = "INJURY_MARKS";
 const ECT_SESSION = "ECT_SESSION";
 const ADMISSION_TYPE = "ADMISSION_TYPE";
+const MEDICINE_GIVEN = "MEDICINE_GIVEN";
 //Chart Bill Types
 const OPD = "OPD";
 const IPD = "IPD";
@@ -131,9 +132,13 @@ const records = [
     name: "ECT Session",
     category: ECT_SESSION,
   },
+  // {
+  //   name: "Admission Type",
+  //   category: ADMISSION_TYPE,
+  // },
   {
-    name: "Admission Type",
-    category: ADMISSION_TYPE,
+    name: "Medicine Given",
+    category: MEDICINE_GIVEN,
   },
 ];
 
@@ -3074,6 +3079,7 @@ export {
   INJURY_MARKS,
   ECT_SESSION,
   ADMISSION_TYPE,
+  MEDICINE_GIVEN,
   //PATIENT BILLS
   INVOICE,
   ADVANCE_PAYMENT,
