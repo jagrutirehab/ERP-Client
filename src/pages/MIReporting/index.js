@@ -22,6 +22,36 @@ import OwnerVisitedDate from "./VisitedDate/OwnerVisitedDate";
 import CityLeadStatus from "./LeadStatus/CityLeadStatus";
 import OwnerLeadStatus from "./LeadStatus/OwnerLeadStatus";
 import RefundAmountMOM from "./RefundAmountMOM";
+<<<<<<< Updated upstream
+=======
+import RoundNotesDOD from "./RoundNotesDOD";
+import ClinicalNotesDOD from "./ClinicalNotesDOD";
+import CounsellingSessionsPatients from "./CounsellingSessionsPatients";
+import VitalSignsDOD from "./VitalSignsDOD";
+import PatientDocs from "./PatientDocs";
+import OpdPatientDocs from "./OpdPatientDocs";
+import DailyInvoices from "./DailyInvoices";
+import CounsellingSessions from "./CounsellingSessions";
+import CounsellingRecording from "./CounsellingRecording";
+import DailyDashboard from "./DailyDashboard";
+import DocsCompliance from "./DocsCompliance";
+import DueAmount from "./DueAmount";
+import Attendance from "./Attendance";
+import NursesDOD from "./NursesDOD";
+import CenterWiseMOM from "./CenterWiseMOM";
+import CashPerCenter from "./CashPerCenter";
+import WriteOFFAmount from "./WriteOFFAmount";
+import AuditForms from "./AuditForms";
+import MetricsReport from "./MetricsReport";
+import OPDCharges from "./OPDCharges";
+import CentralExpenses from "./CentralExpenses";
+import DoctorPsychologistStayRange from "./DoctorPsychologistStayRange";
+import NursesDashboardDOD from "./NursesDashboardDOD";
+import Occupancy from "./Occupancy";
+import Incident from "./Incident";
+import Readmission from "./Readmission";
+import AttritionData from "./AttritionData";
+>>>>>>> Stashed changes
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -165,7 +195,147 @@ const MiReporting = () => {
                 <Route
                     path="/refund-amount"
                     element={<RefundAmountMOM />}
+<<<<<<< Updated upstream
                   />
+=======
+                  />}
+
+                   {hasMISPermission&&<Route
+                    path="/round-notes"
+                    element={<RoundNotesDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/clinical-notes"
+                    element={<ClinicalNotesDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/counselling-sessions-patients"
+                    element={<CounsellingSessionsPatients />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/vital-signs"
+                    element={<VitalSignsDOD />}
+                  />}
+
+
+                  {hasMISPermission&&<Route
+                    path="/patient-docs"
+                    element={<PatientDocs />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/opd-patient-docs"
+                    element={<OpdPatientDocs />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/daily-invoices"
+                    element={<DailyInvoices />}
+                  />}
+
+
+                  {hasMISPermission&&<Route
+                    path="/counselling-sessions"
+                    element={<CounsellingSessions />}
+                  />}
+                  
+                   {hasMISPermission&&<Route
+                    path="/counselling-recording"
+                    element={<CounsellingRecording />}
+                  />}
+                  
+
+                  {hasMISPermission&&<Route
+                    path="/daily-dashboard"
+                    element={<DailyDashboard />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/docs-compliance"
+                    element={<DocsCompliance />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/due-amount"
+                    element={<DueAmount />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/attendance"
+                    element={<Attendance />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/nurses-dod"
+                    element={<NursesDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/cash-per-center"
+                    element={<CashPerCenter />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/write-off-amount"
+                    element={<WriteOFFAmount />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/forms-data"
+                    element={<AuditForms />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/metrics-report"
+                    element={<MetricsReport />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/opd-charges"
+                    element={<OPDCharges />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/central-expenses"
+                    element={<CentralExpenses />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/doctor-psychologist-stay-range"
+                    element={<DoctorPsychologistStayRange />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/nurses-dashboard-dod"
+                    element={<NursesDashboardDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/occupancy"
+                    element={<Occupancy />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/incident"
+                    element={<Incident />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/readmission"
+                    element={<Readmission />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/attrition-data"
+                    element={<AttritionData />}
+                  />}
+
+
+
+>>>>>>> Stashed changes
               </Routes>
             </div>
           </Container>

@@ -1787,6 +1787,172 @@ export const getRefundAmountMOM = (data) => {
 
 
 
+<<<<<<< Updated upstream
+=======
+export const getDocsCompliance = (data) => {
+  return api.get(url.GET_DOCS_COMPLIANCE, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getDueAmount = (data) => {
+  return api.get(url.GET_DUE_AMOUNT, {
+    params: {
+      centerIds: data?.centerAccess,
+      patientType: data?.patientType,
+      month: data?.month,
+    },
+  });
+};
+
+export const getCashPerCenter = (data) => {
+  return api.get(url.GET_CASH_PER_CENTER, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getWriteOffAmount = (data) => {
+  return api.get(url.GET_WRITE_OFF_AMOUNT, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getTrainingFormsWeekly = (data) => {
+  return api.get(url.GET_TRAINING_FORMS_WEEKLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getTrainingFormsMonthly = (data) => {
+  return api.get(url.GET_TRAINING_FORMS_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getAuditDaily = (data) => {
+  return api.get(url.GET_AUDIT_DAILY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getMetricsReport = (data) => {
+  return api.get(url.GET_METRICS_REPORT, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getOpdChargesMonthly = (data) => {
+  return api.get(url.GET_OPD_CHARGES_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getDoctorOpdChargesMonthly = (data) => {
+  return api.get(url.GET_DOCTOR_OPD_CHARGES_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getCentralExpensesMonthly = (data) => {
+  return api.get(url.GET_CENTRAL_EXPENSES_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getDoctorPsychologistStayRange = (data) => {
+  return api.get(url.GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getNursesDailyActivity = (data) => {
+  return api.get(url.GET_NURSES_DAILY_ACTIVITY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getOccupancyMonthly = (data) => {
+  return api.get(url.GET_OCCUPANCY_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getAdmissionDischargeDaily = (data) => {
+  return api.get(url.GET_ADMISSION_DISCHARGE_DAILY, {
+    params: {
+      centerIds: data?.centerAccess,
+      from: data?.startDate,
+      to: data?.endDate,
+    },
+  });
+};
+
+export const getMIAttendance = (data) => {
+  return api.get(url.GET_MI_ATTENDANCE, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getIncidentStatusMonthly = (data) => {
+  return api.get(url.GET_INCIDENT_STATUS_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getReadmissionMonthly = (data) => {
+  return api.get(url.GET_READMISSION_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getAttritionMonthly = (data) => {
+  return api.get(url.GET_ATTRITION_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getCenterDashboardLive = (data) => {
+  return api.get(url.GET_CENTER_DASHBOARD_LIVE, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+>>>>>>> Stashed changes
 
 // HR
 export const getEmployeeId = (params = {}) => {

@@ -185,11 +185,94 @@ const Sidebar = () => {
 
   const MISReports = [
     {
+<<<<<<< Updated upstream
       id: "refund-amount",
       label: "Refund Amount",
       link: "/mi-reporting/refund-amount",
       icon: "bx bx-money",
     }
+=======
+      id: "dashboards",
+      title: "Dashboards",
+      items: [
+        { id: "daily-dashboard", label: "Daily Dashboard", link: "/mi-reporting/daily-dashboard", icon: "bx bx-tachometer" },
+        { id: "metrics-report", label: "Metrics Report", link: "/mi-reporting/metrics-report", icon: "bx bx-line-chart" },
+      ],
+    },
+    {
+      id: "finance-revenue",
+      title: "💰 Finance & Revenue",
+      items: [
+        { id: "daily-invoices", label: "Daily Invoices", link: "/mi-reporting/daily-invoices", icon: "bx bx-receipt" },
+        { id: "due-amount", label: "Due Amount", link: "/mi-reporting/due-amount", icon: "bx bx-wallet-alt" },
+        { id: "opd-charges", label: "OPD Charges", link: "/mi-reporting/opd-charges", icon: "bx bx-money" },
+        { id: "cash-per-center", label: "Cash Per Center", link: "/mi-reporting/cash-per-center", icon: "bx bx-wallet" },
+        { id: "refund-amount", label: "Refund Amount", link: "/mi-reporting/refund-amount", icon: "bx bx-revision" },
+        { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money" },
+        { id: "central-expenses", label: "Central Expenses", link: "/mi-reporting/central-expenses", icon: "bx bx-receipt" },
+      ],
+    },
+    {
+      id: "occupancy-patient-management",
+      title: "🏥 Occupancy & Patient Management",
+      items: [
+        { id: "occupancy", label: "Occupancy", link: "/mi-reporting/occupancy", icon: "bx bx-bed" },
+        { id: "readmission", label: "Readmission", link: "/mi-reporting/readmission", icon: "bx bx-repost" },
+      ],
+    },
+    {
+      id: "clinical-operations",
+      title: "📋 Clinical Operations",
+      items: [
+        { id: "vital-signs", label: "Vital Signs", link: "/mi-reporting/vital-signs", icon: "bx bx-heart-circle" },
+        { id: "round-notes", label: "Round Notes", link: "/mi-reporting/round-notes", icon: "bx bx-notepad" },
+        { id: "clinical-notes", label: "Clinical Notes", link: "/mi-reporting/clinical-notes", icon: "bx bx-clipboard" },
+      ],
+    },
+    {
+      id: "doctor-counselling",
+      title: "👨‍⚕️ Doctor & Counselling",
+      items: [
+        { id: "doctor-psychologist-stay-range", label: "Doctor/Psychologist Stay Range", link: "/mi-reporting/doctor-psychologist-stay-range", icon: "bx bx-time-five" },
+        { id: "counselling-sessions-patients", label: "Counselling Patients", link: "/mi-reporting/counselling-sessions-patients", icon: "bx bx-conversation" },
+        { id: "counselling-sessions", label: "Counselling Sessions", link: "/mi-reporting/counselling-sessions", icon: "bx bx-conversation" },
+        { id: "counselling-recording", label: "Counselling Recording", link: "/mi-reporting/counselling-recording", icon: "bx bx-microphone" },
+      ],
+    },
+    {
+      id: "nursing-operations",
+      title: "👩‍⚕️ Nursing Operations",
+      items: [
+        { id: "nurses-dod", label: "Nurses DOD", link: "/mi-reporting/nurses-dod", icon: "bx bx-capsule" },
+        { id: "nurses-dashboard-dod", label: "Nurses Dashboard DOD", link: "/mi-reporting/nurses-dashboard-dod", icon: "bx bx-capsule" },
+      ],
+    },
+    {
+      id: "documentation-compliance",
+      title: "📄 Documentation & Compliance",
+      items: [
+        { id: "patient-docs", label: "IPD Patient Docs", link: "/mi-reporting/patient-docs", icon: "bx bx-bed" },
+        { id: "opd-patient-docs", label: "OPD Patient Docs", link: "/mi-reporting/opd-patient-docs", icon: "bx bx-walk" },
+        { id: "docs-compliance", label: "Docs Compliance", link: "/mi-reporting/docs-compliance", icon: "bx bx-task" },
+        { id: "forms-data", label: "Forms Data", link: "/mi-reporting/forms-data", icon: "bx bx-clipboard" },
+      ],
+    },
+    {
+      id: "quality-incidents",
+      title: "⚠️ Quality & Incidents",
+      items: [
+        { id: "incident", label: "Incident", link: "/mi-reporting/incident", icon: "bx bx-error-circle" },
+      ],
+    },
+    {
+      id: "hr-attendance",
+      title: "👥 HR & Attendance",
+      items: [
+        { id: "attendance", label: "Attendance", link: "/mi-reporting/attendance", icon: "bx bx-calendar-check" },
+        { id: "attrition-data", label: "Attrition Data", link: "/mi-reporting/attrition-data", icon: "bx bx-user-minus" },
+      ],
+    },
+>>>>>>> Stashed changes
   ];
   return (
     <div>

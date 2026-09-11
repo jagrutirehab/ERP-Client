@@ -434,6 +434,47 @@ export const GET_OWNER_LEAD_STATUS = "/mi-reporting/owner-lead-status";
 
 //MIS Reports
 export const GET_REFUND_AMOUNT_MOM = "/mi-reporting/refund-amount-mom";
+<<<<<<< Updated upstream
+=======
+export const GET_ROUND_NOTES_DOD = "/mi-reporting/round-notes-dod";
+export const GET_CLINICAL_NOTES_DOD = "/mi-reporting/clinical-notes-dod";
+export const GET_COUNSELLING_SESSIONS_PATIENTS_DOD =
+  "/mi-reporting/counselling-sessions-patients-dod";
+export const GET_VITAL_SIGNS_DOD = "/mi-reporting/vital-signs-dod";
+export const GET_NURSES_DOD = "/mi-reporting/nurses-dod";
+export const GET_PATIENT_DOCS = "/mi-reporting/get-patient-docs";
+export const GET_OPD_PATIENT_DOCS = "/mi-reporting/get-opd-patient-docs";
+export const GET_DAILY_INVOICES = "/mi-reporting/get-daily-invoices";
+export const GET_COUNSLLING_SESSIONS = "/mi-reporting/get-counselling-sessions";
+export const GET_COUNSELLING_RECORDING =
+  "/mi-reporting/get-counselling-recording";
+export const GET_DAILY_DASHBOARD = "/mi-reporting/daily-dashboard";
+export const GET_DOCS_COMPLIANCE = "/mi-reporting/docs-compliance";
+export const GET_DUE_AMOUNT = "/mi-reporting/get-due-amount";
+export const GET_MI_ATTENDANCE = "/mi-reporting/get-attendance";
+export const GET_CASH_PER_CENTER = "/mi-reporting/cash-per-center";
+export const GET_WRITE_OFF_AMOUNT = "/mi-reporting/write-off-amount";
+export const GET_TRAINING_FORMS_WEEKLY = "/mi-reporting/training-forms-weekly";
+export const GET_TRAINING_FORMS_MONTHLY =
+  "/mi-reporting/training-forms-monthly";
+export const GET_AUDIT_DAILY = "/mi-reporting/audit-daily";
+export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
+export const GET_OPD_CHARGES_MONTHLY = "/mi-reporting/opd-charges-monthly";
+export const GET_DOCTOR_OPD_CHARGES_MONTHLY =
+  "/mi-reporting/doctor-opd-charges-monthly";
+export const GET_CENTRAL_EXPENSES_MONTHLY =
+  "/mi-reporting/central-expenses-monthly";
+export const GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE =
+  "/mi-reporting/doctor-psychologist-stay-range";
+export const GET_NURSES_DAILY_ACTIVITY = "/mi-reporting/nurses-daily-activity";
+export const GET_OCCUPANCY_MONTHLY = "/mi-reporting/occupancy-monthly";
+export const GET_ADMISSION_DISCHARGE_DAILY =
+  "/mi-reporting/admission-discharge-daily";
+export const GET_INCIDENT_STATUS_MONTHLY =
+  "/mi-reporting/incident-status-monthly";
+export const GET_READMISSION_MONTHLY = "/mi-reporting/readmission-monthly";
+export const GET_ATTRITION_MONTHLY = "/mi-reporting/attrition-monthly";
+>>>>>>> Stashed changes
 
 
 
