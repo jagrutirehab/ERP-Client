@@ -11,6 +11,7 @@ import EmergencyAdmissionForm from "./EmergencyAdmissionForm";
 import SeriousnessConsent from "./SeriousnessConsent";
 import MediactionConcent from "./MediactionConcent";
 import DischargeIndependentAdult from "./DischargeIndependentAdult";
+import DischargeVoluntaryAdult from "./DischargeVoluntaryAdult";
 import DischargeIndependentMinor from "./DischargeIndependentMinor";
 import DischargeWithHighSupport from "./DischargeWithHighSupport";
 import DischargeWithHighSupport2 from "./DischargeWithHighSupport2";
@@ -136,6 +137,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   // const indipendentref2 = useRef(null);
   // const indipendentref3 = useRef(null);
   const dischargeRefAdult = useRef(null);
+  const dischargeRefVoluntary = useRef(null);
   const dischargeRefMinor = useRef(null);
   const dischargeRefUndertaking = useRef(null);
   const dischargeRefSupport = useRef(null);
@@ -613,6 +615,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
 
       if (dischargeRefAdult.current)
         await captureSection(dischargeRefAdult, pdf, true);
+      if (dischargeRefVoluntary.current)
+        await captureSection(dischargeRefVoluntary, pdf, true);
       if (dischargeRefMinor.current)
         await captureSection(dischargeRefMinor, pdf, true);
       if (dischargeRefUndertaking.current)
@@ -1814,6 +1818,17 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                     />
                   </div>
                 )}{" "}
+              {/* Voluntary Adult — Section 86 */}
+              {admissiontype === "INDEPENDENT_ADMISSION" &&
+                adultationype === "VOLUNTARY_ADULT" && (
+                  <div ref={dischargeRefVoluntary}>
+                    <DischargeVoluntaryAdult
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                    />
+                  </div>
+                )}
               {/* for minor */}{" "}
               {admissiontype === "INDEPENDENT_ADMISSION" &&
                 adultationype === "MINOR" && (

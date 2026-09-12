@@ -140,7 +140,10 @@ const DischargeFormModal = ({
                 onChange={(e) => setAdultationtype(e.target.value)}
               >
                 <option value="">Select Adultation</option>
-                <option value="ADULT">Adult (18+)</option>
+                <option value="VOLUNTARY_ADULT">
+                  Adult (18+)
+                </option>
+                {/* <option value="ADULT">Adult (18+)</option> */}
                 <option value="MINOR">Minor (below 18)</option>
               </Input>
             </div>
