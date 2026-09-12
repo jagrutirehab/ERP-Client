@@ -181,35 +181,60 @@ const ConditionRow = ({
   //   GREATER_THAN / LESS_THAN / *_OR_EQUAL / BETWEEN — Test + numeric ULN
   //     multiplier (or other numeric compareField) + threshold value(s).
   // The mode toggle drives which sub-editor renders.
+  // Labels are basis-agnostic — what the number means (× ULN, × LLN or an
+  // absolute value) is chosen separately in COMPARE_BASIS_OPTIONS below.
   const MODE_OPTIONS = [
     { value: "SEVERITY", label: "By severity" },
-    { value: "GREATER_THAN", label: "ULN multiplier  >" },
-    { value: "GREATER_THAN_OR_EQUAL", label: "ULN multiplier  ≥" },
-    { value: "LESS_THAN", label: "ULN multiplier  <" },
-    { value: "LESS_THAN_OR_EQUAL", label: "ULN multiplier  ≤" },
-    { value: "BETWEEN", label: "ULN multiplier  between" },
+    { value: "GREATER_THAN", label: "Numeric  >" },
+    { value: "GREATER_THAN_OR_EQUAL", label: "Numeric  ≥" },
+    { value: "LESS_THAN", label: "Numeric  <" },
+    { value: "LESS_THAN_OR_EQUAL", label: "Numeric  ≤" },
+    { value: "BETWEEN", label: "Numeric  between (low ≤ x ≤ high)" },
+    {
+      value: "BETWEEN_EXCLUSIVE_LOW",
+      label: "Numeric  band (low < x ≤ high)",
+    },
   ];
+
+  // What the threshold is measured against. Tiering tables written as "× ULN"
+  // use the default; eGFR and other DOWN_ONLY tests have no ULN at all and are
+  // authored either against their lower limit or as a plain absolute value.
+  const COMPARE_BASIS_OPTIONS = [
+    { value: "ulnMultiplier", label: "× ULN (upper limit)", bound: "uln" },
+    { value: "llnMultiplier", label: "× LLN (lower limit)", bound: "lln" },
+    { value: "numericValue", label: "Absolute value", bound: null },
+  ];
+
+  const BAND_COMPARATORS = new Set(["BETWEEN", "BETWEEN_EXCLUSIVE_LOW"]);
 
   const renderFlaggedItemsEditor = () => {
     const comparator = condition.arrayMatch?.comparator || "SEVERITY";
     const isSeverityMode = comparator === "SEVERITY";
 
+    const compareField =
+      condition.arrayMatch?.compareField ||
+      (isSeverityMode ? "severity" : "ulnMultiplier");
+    const basis =
+      COMPARE_BASIS_OPTIONS.find((b) => b.value === compareField) ||
+      COMPARE_BASIS_OPTIONS[0];
+
     // Test options:
     //   Severity mode keeps the wildcard ("Any test").
-    //   Numeric modes only allow catalogue entries that carry a ULN — a
-    //   per-test multiplier comparison against a test with uln=null is
-    //   meaningless. Sodium/eGFR etc. should use numericValue + GREATER_THAN
-    //   on an explicit threshold instead (left for future UI; the API
-    //   already supports it via compareField:"numericValue").
+    //   Numeric modes only offer tests for which the chosen basis exists — a
+    //   "× ULN" comparison against a test with uln=null can never match, so
+    //   offering it would just produce a silently dead rule. "Absolute value"
+    //   needs no bound, so every test qualifies there. This is what makes eGFR
+    //   (uln=null, lln=60) authorable: pick × LLN or Absolute value.
     const testsForMode = isSeverityMode
       ? labTests
-      : labTests.filter((t) => t.uln != null);
+      : labTests.filter((t) => !basis.bound || t[basis.bound] != null);
     const testOpts = [
       ...(isSeverityMode ? [ANY_LAB_TEST_OPTION] : []),
       ...testsForMode.map((t) => ({
         value: t.id,
         label: t.display || t.id,
         uln: t.uln,
+        lln: t.lln,
         unit: t.unit,
       })),
     ];
@@ -259,8 +284,26 @@ const ConditionRow = ({
       onChange(idx, "arrayMatch", {
         keyField: "canonicalName",
         keyValue: "",
-        compareField: isNextSeverity ? "severity" : "ulnMultiplier",
+        // Switching between two numeric modes keeps the chosen basis; only a
+        // move to or from severity mode forces it.
+        compareField: isNextSeverity
+          ? "severity"
+          : isSeverityMode
+            ? "ulnMultiplier"
+            : compareField,
         comparator: nextComparator,
+      });
+      onChange(idx, "value", []);
+    };
+
+    // Changing the basis can invalidate the selected test (eGFR has no ULN),
+    // so clear the selection rather than leave a rule the server will reject.
+    const handleBasisChange = (next) => {
+      onChange(idx, "arrayMatch", {
+        keyField: "canonicalName",
+        keyValue: "",
+        compareField: next?.value || "ulnMultiplier",
+        comparator,
       });
       onChange(idx, "value", []);
     };
@@ -289,19 +332,30 @@ const ConditionRow = ({
 
     const handlePanelChange = (p) => setKeyValue(p?.tests ? [...p.tests] : []);
 
-    // Derived hint for numeric mode: "3 × 40 IU/L = 120 IU/L" so the
-    // rule author can sanity-check the threshold in real-world units.
+    // Derived hint for numeric mode: "3 × 40 IU/L = 120 IU/L" so the rule
+    // author can sanity-check the threshold in real-world units. Only shown
+    // for a multiplier basis on a single test — an absolute value is already in
+    // real units, and a panel has no single bound to multiply by.
     const hint = (() => {
-      if (isSeverityMode || !selectedTest?.uln) return null;
+      if (isSeverityMode || !selectedTest) return null;
+      const bound = basis.bound ? selectedTest[basis.bound] : null;
+      if (!bound) return null;
+      const label = basis.bound.toUpperCase();
       const a = Number(condition.value?.[0]);
-      if (comparator === "BETWEEN") {
+      if (BAND_COMPARATORS.has(comparator)) {
         const b = Number(condition.value?.[1]);
         if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
-        return `≈ ${(a * selectedTest.uln).toFixed(2)} – ${(b * selectedTest.uln).toFixed(2)} ${selectedTest.unit}`;
+        return `≈ ${(a * bound).toFixed(2)} – ${(b * bound).toFixed(2)} ${selectedTest.unit}`;
       }
       if (!Number.isFinite(a)) return null;
-      return `≈ ${(a * selectedTest.uln).toFixed(2)} ${selectedTest.unit}  (ULN = ${selectedTest.uln} ${selectedTest.unit})`;
+      return `≈ ${(a * bound).toFixed(2)} ${selectedTest.unit}  (${label} = ${bound} ${selectedTest.unit})`;
     })();
+
+    // Placeholder wording follows the basis: "× ULN", "× LLN" or the test's
+    // own unit when comparing an absolute value.
+    const unitHint = basis.bound
+      ? `× ${basis.bound.toUpperCase()}`
+      : selectedTest?.unit || "value";
 
     return (
       <div>
@@ -312,6 +366,17 @@ const ConditionRow = ({
           isDisabled={isDisabled}
           placeholder="Mode..."
         />
+        {!isSeverityMode && (
+          <div className="mt-1">
+            <Select
+              options={COMPARE_BASIS_OPTIONS}
+              value={basis}
+              onChange={handleBasisChange}
+              isDisabled={isDisabled}
+              placeholder="Compare against..."
+            />
+          </div>
+        )}
         {panelOpts.length > 0 && (
           <div className="mt-1">
             <Select
@@ -336,7 +401,7 @@ const ConditionRow = ({
                 ? "Loading tests..."
                 : isSeverityMode
                   ? "Select test(s)..."
-                  : "Select test(s) (× ULN)..."
+                  : `Select test(s) (${unitHint})...`
             }
           />
           {selectedTests.length > 1 && (
@@ -355,14 +420,14 @@ const ConditionRow = ({
               placeholder="Severity ≥ ..."
             />
           </div>
-        ) : comparator === "BETWEEN" ? (
+        ) : BAND_COMPARATORS.has(comparator) ? (
           <Row className="g-1 mt-1">
             <Col xs={6}>
               <Input
                 type="number"
                 step="0.1"
                 min="0"
-                placeholder="low × ULN"
+                placeholder={`low ${unitHint}`}
                 value={condition.value?.[0] ?? ""}
                 onChange={(e) =>
                   onChange(idx, "value", [
@@ -378,7 +443,7 @@ const ConditionRow = ({
                 type="number"
                 step="0.1"
                 min="0"
-                placeholder="high × ULN"
+                placeholder={`high ${unitHint}`}
                 value={condition.value?.[1] ?? ""}
                 onChange={(e) =>
                   onChange(idx, "value", [
@@ -396,7 +461,7 @@ const ConditionRow = ({
               type="number"
               step="0.1"
               min="0"
-              placeholder="× ULN (e.g. 3)"
+              placeholder={`${unitHint} (e.g. 3)`}
               value={condition.value?.[0] ?? ""}
               onChange={(e) => onChange(idx, "value", [e.target.value])}
               disabled={isDisabled}

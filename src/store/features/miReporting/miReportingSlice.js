@@ -41,11 +41,15 @@ import {
   getAdmissionDischargeDaily,
   getOpdChargesMonthly,
   getDoctorOpdChargesMonthly,
+  getDoctorOpdChargesDetail,
   getCentralExpensesMonthly,
   getDoctorPsychologistStayRange,
   getNursesDailyActivity,
   getIncidentStatusMonthly,
   getReadmissionMonthly,
+  getAttritionMonthly,
+  getAssignedData,
+
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -96,11 +100,15 @@ const initialState = {
   counsellingSessionsPatientsDOD: [],
   opdChargesMonthly: [],
   doctorOpdChargesMonthly: [],
+  doctorOpdChargesDetail: [],
   centralExpensesMonthly: [],
   doctorPsychologistStayRange: [],
   nursesDailyActivity: [],
   incidentStatusMonthly: [],
   readmissionMonthly: [],
+  attritionMonthly: [],
+  assignedData: [],
+
   loading: false,
   error: null,
 };
@@ -485,6 +493,20 @@ export const fetchDoctorOpdChargesMonthly = createAsyncThunk(
   }
 );
 
+export const fetchDoctorOpdChargesDetail = createAsyncThunk(
+  "miReporting/fetchDoctorOpdChargesDetail",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getDoctorOpdChargesDetail(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch doctor opd charges detail"
+      );
+    }
+  }
+);
+
 
 export const fetchMetricsReport = createAsyncThunk(
   "miReporting/fetchMetricsReport",
@@ -798,6 +820,33 @@ export const fetchReadmissionMonthly = createAsyncThunk(
 
 
 
+export const fetchAttritionMonthly = createAsyncThunk(
+  "miReporting/fetchAttritionMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getAttritionMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Attrition Monthly"
+      );
+    }
+  }
+);
+
+export const fetchAssignedData = createAsyncThunk(
+  "miReporting/fetchAssignedData",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getAssignedData(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Assigned Data"
+      );
+    }
+  }
+);
 
 
 
@@ -1366,6 +1415,19 @@ const miReportingSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      // Doctor OPD Charges Detail
+      .addCase(fetchDoctorOpdChargesDetail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDoctorOpdChargesDetail.fulfilled, (state, action) => {
+        state.loading = false;
+        state.doctorOpdChargesDetail = action.payload.payload || [];
+      })
+      .addCase(fetchDoctorOpdChargesDetail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       // Central Expenses Monthly
       .addCase(fetchCentralExpensesMonthly.pending, (state) => {
         state.loading = true;
@@ -1430,8 +1492,34 @@ const miReportingSlice = createSlice({
       .addCase(fetchReadmissionMonthly.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
 
+       // Attrition Monthly
+      .addCase(fetchAttritionMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAttritionMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.attritionMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchAttritionMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Assigned Data
+      .addCase(fetchAssignedData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAssignedData.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assignedData = action.payload.payload || [];
+      })
+      .addCase(fetchAssignedData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
 
   },
 });

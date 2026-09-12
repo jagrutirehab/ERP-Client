@@ -76,6 +76,7 @@ const Charts = ({
   setChartType,
   currentAddmissionId,
   isPatientDischarged,
+  chartForm,
 }) => {
   const dispatch = useDispatch();
   const [, forceUpdate] = useState(0);
@@ -92,6 +93,19 @@ const Charts = ({
       .then((res) => setCarryForwardCharts(res?.payload || []))
       .catch(() => setCarryForwardCharts([]));
   }, [patientIdForCarryForward]);
+
+  const wasChartFormOpen = useRef(false);
+  useEffect(() => {
+    const isOpenNow = !!chartForm?.isOpen;
+    const justClosed = wasChartFormOpen.current && !isOpenNow;
+    wasChartFormOpen.current = isOpenNow;
+
+    if (justClosed && patientIdForCarryForward) {
+      getCarryForward(patientIdForCarryForward)
+        .then((res) => setCarryForwardCharts(res?.payload || []))
+        .catch(() => {});
+    }
+  }, [chartForm?.isOpen, patientIdForCarryForward]);
 
   const [chart, setChart] = useState({
     chart: null,
@@ -396,8 +410,9 @@ const Charts = ({
                         1 * 60 * 60 * 1000)
                   }
                   extraOptions={(item) =>
+                    !isPatientDischarged &&
                     item?.chart === PRESCRIPTION &&
-                    item?.type === "IPD" &&
+                    ["IPD", "OPD", "GENERAL"].includes(item?.type) &&
                     (item?.prescription?.medicines || []).some(
                       (med) => med.status !== "discontinued",
                     ) ? (
@@ -520,6 +535,7 @@ Charts.propTypes = {
 
 const mapStateToProps = (state) => ({
   // charts: state.Chart.data,
+  chartForm: state.Chart.chartForm,
 });
 
 export default connect(mapStateToProps)(Charts);
