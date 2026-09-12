@@ -579,6 +579,8 @@ export const GET_ADMISSION_DISCHARGE_DAILY =
 export const GET_INCIDENT_STATUS_MONTHLY =
   "/mi-reporting/incident-status-monthly";
 export const GET_READMISSION_MONTHLY = "/mi-reporting/readmission-monthly";
+export const GET_ATTRITION_MONTHLY = "/mi-reporting/attrition-monthly";
+export const GET_ASSIGNED_DATA = "/mi-reporting/assigned-data";
 
 // CENTER DASHBOARD
 export const GET_CENTER_DASHBOARD_LIVE = "/center-dashboard/live";

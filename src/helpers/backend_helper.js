@@ -2648,6 +2648,22 @@ export const getReadmissionMonthly = (data) => {
   });
 };
 
+export const getAttritionMonthly = (data) => {
+  return api.get(url.GET_ATTRITION_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getAssignedData = (data) => {
+  return api.get(url.GET_ASSIGNED_DATA, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getCenterDashboardLive = (data) => {
   return api.get(url.GET_CENTER_DASHBOARD_LIVE, {
     params: {
