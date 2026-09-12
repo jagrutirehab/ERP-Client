@@ -346,6 +346,7 @@ const Prescription = ({
       patient: opdPatientId,
       limit: 5,
       chartType: PRESCRIPTION,
+      carryForwardScope: true,
     })
       .then((res) => {
         if (!cancelled) setOpdLatestCharts(res?.payload || []);
