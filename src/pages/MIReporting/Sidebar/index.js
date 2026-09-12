@@ -141,6 +141,7 @@ const Sidebar = () => {
         { id: "counselling-sessions-patients", label: "Counselling Patients", link: "/mi-reporting/counselling-sessions-patients", icon: "bx bx-conversation" },
         { id: "counselling-sessions", label: "Counselling Sessions", link: "/mi-reporting/counselling-sessions", icon: "bx bx-conversation" },
         { id: "counselling-recording", label: "Counselling Recording", link: "/mi-reporting/counselling-recording", icon: "bx bx-microphone" },
+        { id: "patient-assigned-status", label: "Patient Assigned Status", link: "/mi-reporting/patient-assigned-status", icon: "bx bx-user-x" },
       ],
     },
     {
@@ -173,6 +174,7 @@ const Sidebar = () => {
       title: "👥 HR & Attendance",
       items: [
         { id: "attendance", label: "Attendance", link: "/mi-reporting/attendance", icon: "bx bx-calendar-check" },
+        { id: "attrition-data", label: "Attrition Data", link: "/mi-reporting/attrition-data", icon: "bx bx-user-minus" },
       ],
     },
   ];

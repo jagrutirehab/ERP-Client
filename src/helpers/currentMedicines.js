@@ -32,7 +32,9 @@ export const getDaysBetween = (startDate, endDate) => {
   if (!start || !end || Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) {
     return 1;
   }
-  const diffDays = Math.round((end - start) / (1000 * 60 * 60 * 24));
+  const startMidnight = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+  const endMidnight = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+  const diffDays = Math.round((endMidnight - startMidnight) / (1000 * 60 * 60 * 24));
   return Math.max(1, diffDays);
 };
 

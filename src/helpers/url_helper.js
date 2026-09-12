@@ -566,6 +566,8 @@ export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
 export const GET_OPD_CHARGES_MONTHLY = "/mi-reporting/opd-charges-monthly";
 export const GET_DOCTOR_OPD_CHARGES_MONTHLY =
   "/mi-reporting/doctor-opd-charges-monthly";
+export const GET_DOCTOR_OPD_CHARGES_DETAIL =
+  "/mi-reporting/doctor-opd-charges-detail";
 export const GET_CENTRAL_EXPENSES_MONTHLY =
   "/mi-reporting/central-expenses-monthly";
 export const GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE =
@@ -577,6 +579,8 @@ export const GET_ADMISSION_DISCHARGE_DAILY =
 export const GET_INCIDENT_STATUS_MONTHLY =
   "/mi-reporting/incident-status-monthly";
 export const GET_READMISSION_MONTHLY = "/mi-reporting/readmission-monthly";
+export const GET_ATTRITION_MONTHLY = "/mi-reporting/attrition-monthly";
+export const GET_ASSIGNED_DATA = "/mi-reporting/assigned-data";
 
 // CENTER DASHBOARD
 export const GET_CENTER_DASHBOARD_LIVE = "/center-dashboard/live";

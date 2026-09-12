@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Accordion,
   AccordionBody,
   AccordionItem,
   Button,
+  DropdownItem,
   Row,
   UncontrolledTooltip,
 } from "reactstrap";
@@ -39,6 +40,9 @@ import DeleteModal from "../../../Components/Common/DeleteModal";
 import ClinicalNote from "../Charts/ClinicalNote";
 import BillDate from "../Modals/BillDate";
 import Charts from "../Charts";
+import { getCarryForward, toggleCarryForward } from "../../../helpers/backend_helper";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
+import { toast } from "react-toastify";
 
 const OPDView = ({
   view,
@@ -47,6 +51,7 @@ const OPDView = ({
   toggleModal,
   patient,
   loading,
+  chartForm,
 }) => {
   const dispatch = useDispatch();
 
@@ -150,6 +155,51 @@ const OPDView = ({
       dispatch(removeBill(item.item._id));
     }
     setItem({ item: null, isOpen: false });
+  };
+
+  // Prescriptions the current user has staged for carry-forward, loaded from
+  // the server (not redux) so the selection survives a reload and stays
+  // private to this user. Shown here so an OPD prescription can still be
+  // staged even after the patient has since been admitted - it then shows up
+  // as a carry-forward candidate when creating the IPD prescription.
+  const [carryForwardCharts, setCarryForwardCharts] = useState([]);
+
+  useEffect(() => {
+    if (!patient?._id) return;
+    getCarryForward(patient._id)
+      .then((res) => setCarryForwardCharts(res?.payload || []))
+      .catch(() => setCarryForwardCharts([]));
+  }, [patient?._id]);
+
+  const wasChartFormOpen = useRef(false);
+  useEffect(() => {
+    const isOpenNow = !!chartForm?.isOpen;
+    const justClosed = wasChartFormOpen.current && !isOpenNow;
+    wasChartFormOpen.current = isOpenNow;
+
+    if (justClosed && patient?._id) {
+      getCarryForward(patient._id)
+        .then((res) => setCarryForwardCharts(res?.payload || []))
+        .catch(() => {});
+    }
+  }, [chartForm?.isOpen, patient?._id]);
+
+  const isStagedForCarryForward = (chart) =>
+    (carryForwardCharts || []).some((c) => String(c._id) === String(chart._id));
+
+  const carryForwardChart = (chart) => {
+    toggleCarryForward(chart.patient, chart._id)
+      .then((res) => {
+        setCarryForwardCharts(res?.payload || []);
+        toast.success(
+          res?.staged
+            ? "Added to carry forward — open Create new Chart to use it"
+            : "Removed from carry forward",
+        );
+      })
+      .catch((err) =>
+        toast.error(err?.message || "Failed to update carry forward"),
+      );
   };
 
   const onSubmitClinicalForm = (
@@ -340,6 +390,30 @@ const OPDView = ({
                                         doctorValidatorId={doc.chart?.doctorValidatorId}
                                         // disableEdit={doc?.dischargeDate ? true : false}
                                         // disableDelete={addmission?.dischargeDate ? true : false}
+                                        extraOptions={(chartItem) =>
+                                          (chartItem?.prescription?.medicines || []).some(
+                                            (med) => med.status !== "discontinued",
+                                          ) ? (
+                                            <CheckPermission permission={"edit"} subAccess="Charting">
+                                              <DropdownItem
+                                                onClick={() => carryForwardChart(chartItem)}
+                                                href="#"
+                                              >
+                                                {isStagedForCarryForward(chartItem) ? (
+                                                  <>
+                                                    <i className="ri-check-line align-bottom text-success me-2"></i>{" "}
+                                                    Remove from Carry Forward
+                                                  </>
+                                                ) : (
+                                                  <>
+                                                    <i className="ri-file-copy-line align-bottom text-muted me-2"></i>{" "}
+                                                    Add to Carry Forward
+                                                  </>
+                                                )}
+                                              </DropdownItem>
+                                            </CheckPermission>
+                                          ) : null
+                                        }
                                       >
                                         <Prescription
                                           data={doc.chart?.prescription}
@@ -449,6 +523,7 @@ const mapStateToProps = (state) => ({
   appointments: state.Booking.patient.appointments,
   loading: state.Booking.appointmentLoading,
   patient: state.Patient.patient,
+  chartForm: state.Chart.chartForm,
 });
 
 export default connect(mapStateToProps)(OPDView);

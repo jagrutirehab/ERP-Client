@@ -81,6 +81,11 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
     })
   );
 
+  const medicinesRef = React.useRef(medicines);
+  React.useEffect(() => {
+    medicinesRef.current = medicines;
+  }, [medicines]);
+
   const handleChange = (e) => {
     const prop = e.target.name;
     const value = e.target.value;
@@ -137,7 +142,8 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
   // date range recomputes duration (in days) from the gap between them;
   // editing duration/unit (above) recomputes the To date instead.
   const handleStartDateChange = (idx, date) => {
-    const drugsTable = [...medicines];
+    const drugsTable = [...medicinesRef.current];
+    drugsTable[idx] = { ...drugsTable[idx] };
     drugsTable[idx].startDate = date;
     if (drugsTable[idx].endDate) {
       drugsTable[idx].duration = String(getDaysBetween(date, drugsTable[idx].endDate));
@@ -145,16 +151,19 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
     } else {
       drugsTable[idx].endDate = getMedicineEndDate(date, drugsTable[idx]);
     }
+    medicinesRef.current = drugsTable;
     setMedicines(drugsTable);
   };
 
   const handleEndDateChange = (idx, date) => {
-    const drugsTable = [...medicines];
+    const drugsTable = [...medicinesRef.current];
+    drugsTable[idx] = { ...drugsTable[idx] };
     drugsTable[idx].endDate = date;
     drugsTable[idx].duration = String(
       getDaysBetween(drugsTable[idx].startDate, date),
     );
     drugsTable[idx].unit = "Day (s)";
+    medicinesRef.current = drugsTable;
     setMedicines(drugsTable);
   };
 
