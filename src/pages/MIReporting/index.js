@@ -48,6 +48,8 @@ import NursesDashboardDOD from "./NursesDashboardDOD";
 import Occupancy from "./Occupancy";
 import Incident from "./Incident";
 import Readmission from "./Readmission";
+import AttritionData from "./AttritionData";
+import PatientAssignedStatus from "./PatientAssignedStatus";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -334,7 +336,16 @@ const MiReporting = () => {
                   />}
 
 
-                  
+                  {hasMISPermission&&<Route
+                    path="/attrition-data"
+                    element={<AttritionData />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/patient-assigned-status"
+                    element={<PatientAssignedStatus />}
+                  />}
+
               </Routes>
             </div>
           </Container>

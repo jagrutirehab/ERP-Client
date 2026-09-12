@@ -2574,6 +2574,14 @@ export const getDoctorOpdChargesMonthly = (data) => {
   });
 };
 
+export const getDoctorOpdChargesDetail = (data) => {
+  return api.get(url.GET_DOCTOR_OPD_CHARGES_DETAIL, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getCentralExpensesMonthly = (data) => {
   return api.get(url.GET_CENTRAL_EXPENSES_MONTHLY, {
     params: {
@@ -2634,6 +2642,22 @@ export const getIncidentStatusMonthly = (data) => {
 
 export const getReadmissionMonthly = (data) => {
   return api.get(url.GET_READMISSION_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getAttritionMonthly = (data) => {
+  return api.get(url.GET_ATTRITION_MONTHLY, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getAssignedData = (data) => {
+  return api.get(url.GET_ASSIGNED_DATA, {
     params: {
       centerIds: data?.centerAccess,
     },
