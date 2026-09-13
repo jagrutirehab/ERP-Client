@@ -8,6 +8,7 @@ const DischargeInterFacility = ({
   admissions,
   chartData,
   setValue,
+  finalDiagnosis,
 }) => {
   const pageContainer = {
     margin: "0 auto",
@@ -450,13 +451,7 @@ const DischargeInterFacility = ({
         <span>Primary Diagnosis (ICD-10):</span>
         <input
           type="text"
-          value={
-            patient?.addmission?.provisional_diagnosis?.length
-              ? patient.addmission?.provisional_diagnosis
-                  .map((d) => d.code)
-                  .join(", ")
-              : ""
-          }
+          defaultValue={finalDiagnosis || ""}
           {...register("ift_primaryDiagnosis")}
           style={{ ...inputLine, maxWidth: "280px" }}
         />
