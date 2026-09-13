@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const DischargeAMA = ({ register, patient, admissions }) => {
+const DischargeAMA = ({ register, patient, admissions, finalDiagnosis }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -167,6 +167,7 @@ const DischargeAMA = ({ register, patient, admissions }) => {
         <span>Diagnosis:</span>
         <input
           type="text"
+          defaultValue={finalDiagnosis || ""}
           {...register("ama_diagnosis")}
           style={{ ...inputLine, maxWidth: "220px" }}
         />
