@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const DischargeVoluntaryAdult = ({ register, patient, admissions }) => {
+const DischargeVoluntaryAdult = ({ register, patient, admissions, finalDiagnosis }) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -225,13 +225,7 @@ const DischargeVoluntaryAdult = ({ register, patient, admissions }) => {
         <span>Diagnosis (ICD-10):</span>
         <input
           type="text"
-          value={
-            patient?.addmission?.provisional_diagnosis?.length
-              ? patient?.addmission?.provisional_diagnosis
-                  .map((d) => d.code)
-                  .join(", ")
-              : ""
-          }
+          defaultValue={finalDiagnosis || ""}
           {...register("sec86_diagnosis")}
           style={{ ...inputLine, maxWidth: "420px" }}
         />

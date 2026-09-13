@@ -70,6 +70,7 @@ import {
 const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   const dispatch = useDispatch();
   const formType = useSelector((state) => state.Chart?.chartForm?.chart);
+  const finalDiagnosis = useSelector((state) => state.Chart.finalDiagnosis);
 
   // `state.Chart.data` can hold admissions belonging to any patient visited this
   // session, so scope every read to the patient actually on screen rather than
@@ -1826,6 +1827,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                       register={register}
                       admissions={admissions[0]}
                       patient={patient}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
                     />
                   </div>
                 )}
@@ -1857,6 +1859,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                       register={register}
                       admissions={admissions[0]}
                       patient={patient}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
                     />
                   </div>
                 )}
@@ -1868,6 +1871,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                       register={register}
                       admissions={admissions[0]}
                       patient={patient}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
                     />
                   </div>
                 )}
@@ -1879,6 +1883,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                       register={register}
                       admissions={admissions[0]}
                       patient={patient}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
                     />
                   </div>
                 )}
@@ -1916,6 +1921,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                       patient={patient}
                       chartData={chartData}
                       setValue={setValue}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
                     />
                   </div>
                 )}
@@ -1927,6 +1933,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                       register={register}
                       admissions={admissions[0]}
                       patient={patient}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
                     />
                   </div>
                 )}
