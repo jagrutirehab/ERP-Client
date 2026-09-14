@@ -8,7 +8,10 @@ export const permissionList = [
     key: "NURSE",
     label: "Nurse",
     subModules: [
-      { name: "MEDICINE_BOX_FILLING_FOR_TOMORROW", label: "Medicine Box Filling for Tomorrow (Fill Today)" },
+      {
+        name: "MEDICINE_BOX_FILLING_FOR_TOMORROW",
+        label: "Medicine Box Filling for Tomorrow (Fill Today)",
+      },
       { name: "MEDICINE_GIVEN", label: "Medicine Given" },
     ],
   },
@@ -538,6 +541,10 @@ export const permissionList = [
       { name: "ASSET_CATEGORY", label: "Asset Categories" },
       { name: "DEPARTMENT", label: "Departments" },
       { name: "BUDGET", label: "Budget Management" },
+      { name: "PR", label: "Purchase Requisition" },
+      { name: "RFQ", label: "Request for Quotation" },
+      { name: "PO", label: "Purchase Order" },
+      { name: "CONTRACT", label: "Contract Management" },
     ],
   },
 ];

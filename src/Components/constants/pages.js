@@ -1594,64 +1594,99 @@ export const MASTER_DATA = [
     icon: "bx bx-credit-card",
   },
   {
-  id: "masterdata-department",
-  label: "Departments",
-  link: "/vendor-management/department",
-  icon: "bx bx-building",
-},
+    id: "masterdata-department",
+    label: "Departments",
+    link: "/vendor-management/department",
+    icon: "bx bx-building",
+  },
   // {
   //   id: "masterdata-delivery-partner",
   //   label: "Delivery Partners",
   //   link: "/master-data/delivery-partner",
   //   icon: "bx bx-car",
   // },
-{
-  id: "masterdata-asset-category",
-  label: "Asset Categories",
-  icon: "bx bx-category",
-  isAccordion: true,
-  children: [
+  {
+    id: "masterdata-asset-category",
+    label: "Asset Categories",
+    icon: "bx bx-category",
+    isAccordion: true,
+    children: [
+      {
+        id: "asset-category-l1",
+        label: "Level 1 Category",
+        link: "/vendor-management/asset-category/level/1",
+        // icon: "bx bx-list-ul",
+      },
+      {
+        id: "asset-category-l2",
+        label: "Level 2 Category",
+        link: "/vendor-management/asset-category/level/2",
+        // icon: "bx bx-list-ul",
+      },
+      {
+        id: "asset-category-l3",
+        label: "Level 3 Category",
+        link: "/vendor-management/asset-category/level/3",
+        // icon: "bx bx-list-ul",
+      },
+      {
+        id: "asset-category-l4",
+        label: "Level 4 Category",
+        link: "/vendor-management/asset-category/level/4",
+        // icon: "bx bx-list-ul",
+      },
+    ],
+  },
+  {
+    id: "procurement",
+    label: "Procurement",
+    icon: "bx bx-cart",
+    isAccordion: true,
+    children: [
+      {
+        id: "procurement-pr",
+        label: "Purchase Requisitions",
+        link: "/vendor-management/purchase-requisition",
+      },
+      {
+        id: "procurement-rfq",
+        label: "RFQ",
+        link: "/vendor-management/rfq",
+      },
+      {
+        id: "procurement-po",
+        label: "Purchase Orders",
+        link: "/vendor-management/po",
+      },
+    ],
+  },
     {
-  id: "asset-category-l1",
-  label: "Level 1 Category",
-  link: "/vendor-management/asset-category/level/1",
-  // icon: "bx bx-list-ul",
-},
-{
-  id: "asset-category-l2",
-  label: "Level 2 Category",
-  link: "/vendor-management/asset-category/level/2",
-  // icon: "bx bx-list-ul",
-},
-{
-  id: "asset-category-l3",
-  label: "Level 3 Category",
-  link: "/vendor-management/asset-category/level/3",
-  // icon: "bx bx-list-ul",
-},
-{
-  id: "asset-category-l4",
-  label: "Level 4 Category",
-  link: "/vendor-management/asset-category/level/4",
-  // icon: "bx bx-list-ul",
-},
-  ],
-},
-{
-  id: "finance",
-  label: "Finance",
-  icon: "bx bx-wallet", 
-  isAccordion: true,
-  children: [
-    {
-      id: "finance-budget",
-      label: "Budget Management",
-      link: "/vendor-management/budget"
-      // icon: "bx bx-money",
-    },
-  ],
-},
-
+    id: "contracts-projects",
+    label: "Contracts & Projects",
+    icon: "bx bx-briefcase",
+    isAccordion: true,
+    children: [
+      {
+        id: "contract-management",
+        label: "Contract Management",
+        link: "/vendor-management/contract",
+      },
+    ],
+  },
+  {
+    id: "finance",
+    label: "Finance",
+    icon: "bx bx-wallet",
+    isAccordion: true,
+    children: [
+      {
+        id: "finance-budget",
+        label: "Budget Management",
+        link: "/vendor-management/budget",
+        // icon: "bx bx-money",
+      },
+    ],
+  },
 ];
 
 export default pages;
