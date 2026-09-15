@@ -415,6 +415,12 @@ export const WebcamStats = [
     icon: "bx bx-home",
   },
   {
+    id: "webcamstats-health",
+    label: "CCTV Health",
+    link: "/webcamstats/health",
+    icon: "bx bx-server",
+  },
+  {
     id: "webcamstats-stats",
     label: "Stats",
     link: "/webcamstats/stats",
