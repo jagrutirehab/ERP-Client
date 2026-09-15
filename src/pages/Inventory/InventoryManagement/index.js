@@ -26,6 +26,7 @@ import {
   ModalBody,
 } from "reactstrap";
 import AddinventoryMedicine from "../AddinventoryMedicine";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 import { Button } from "../Components/Button";
 import Select from "react-select";
 import {
@@ -684,6 +685,26 @@ const InventoryManagement = () => {
             ) : (
               ""
             )}
+            <RefreshButton
+              loading={showCentralMedicine ? centralMedicineLoading : loading}
+              onRefresh={() =>
+                showCentralMedicine
+                  ? dispatch(
+                      fetchMedicines({
+                        page: currentPage,
+                        limit: pageSize,
+                        search: debouncedSearch,
+                      })
+                    )
+                  : fetchInventoryMedicines({
+                      page: currentPage,
+                      limit: pageSize,
+                      q: debouncedSearch,
+                      fillter: qfilter,
+                      centers,
+                    })
+              }
+            />
           </div>
         </div>
 

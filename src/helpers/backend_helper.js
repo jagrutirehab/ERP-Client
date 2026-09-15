@@ -1236,6 +1236,10 @@ export const getNextDayMedicineBoxFillingMedicines = (patientId) => {
   );
 };
 
+export const getNurseMedicineBatches = (params = {}) => {
+  return api.get(url.GET_NURSE_MEDICINE_BATCHES, params);
+};
+
 export const getNurseGivenMedicines = (params = {}) => {
   return api.get(url.GET_NURSE_GIVEN_MEDICINES, {
     params,
