@@ -98,86 +98,103 @@ const Sidebar = () => {
     {
       id: "dashboards",
       title: "Dashboards",
+      submodule: "DASHBOARDS",
       items: [
-        { id: "daily-dashboard", label: "Daily Dashboard", link: "/mi-reporting/daily-dashboard", icon: "bx bx-tachometer" },
-        { id: "metrics-report", label: "Metrics Report", link: "/mi-reporting/metrics-report", icon: "bx bx-line-chart" },
+        { id: "daily-dashboard", label: "Daily Dashboard", link: "/mi-reporting/daily-dashboard", icon: "bx bx-tachometer", submodule: "DAILY_DASHBOARD" },
+        { id: "metrics-report", label: "Metrics Report", link: "/mi-reporting/metrics-report", icon: "bx bx-line-chart", submodule: "METRICS_REPORT" },
       ],
     },
     {
       id: "finance-revenue",
       title: "💰 Finance & Revenue",
+      submodule: "FINANCE_REVENUE",
       items: [
-        { id: "daily-invoices", label: "Daily Invoices", link: "/mi-reporting/daily-invoices", icon: "bx bx-receipt" },
-        { id: "due-amount", label: "Due Amount", link: "/mi-reporting/due-amount", icon: "bx bx-wallet-alt" },
-        { id: "opd-charges", label: "OPD Charges", link: "/mi-reporting/opd-charges", icon: "bx bx-money" },
-        { id: "cash-per-center", label: "Cash Per Center", link: "/mi-reporting/cash-per-center", icon: "bx bx-wallet" },
-        { id: "refund-amount", label: "Refund Amount", link: "/mi-reporting/refund-amount", icon: "bx bx-revision" },
-        { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money" },
-        { id: "central-expenses", label: "Central Expenses", link: "/mi-reporting/central-expenses", icon: "bx bx-receipt" },
+        { id: "daily-invoices", label: "Daily Invoices", link: "/mi-reporting/daily-invoices", icon: "bx bx-receipt", submodule: "DAILY_INVOICES" },
+        { id: "due-amount", label: "Due Amount", link: "/mi-reporting/due-amount", icon: "bx bx-wallet-alt", submodule: "DUE_AMOUNT" },
+        { id: "opd-charges", label: "OPD Charges", link: "/mi-reporting/opd-charges", icon: "bx bx-money", submodule: "OPD_CHARGES" },
+        { id: "cash-per-center", label: "Cash Per Center", link: "/mi-reporting/cash-per-center", icon: "bx bx-wallet", submodule: "CASH_PER_CENTER" },
+        { id: "refund-amount", label: "Refund Amount", link: "/mi-reporting/refund-amount", icon: "bx bx-revision", submodule: "REFUND_AMOUNT" },
+        { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money", submodule: "WRITE_OFF_AMOUNT" },
+        { id: "central-expenses", label: "Central Expenses", link: "/mi-reporting/central-expenses", icon: "bx bx-receipt", submodule: "CENTRAL_EXPENSES" },
       ],
     },
     {
       id: "occupancy-patient-management",
       title: "🏥 Occupancy & Patient Management",
+      submodule: "OCCUPANCY_PATIENT_MANAGEMENT",
       items: [
-        { id: "occupancy", label: "Occupancy", link: "/mi-reporting/occupancy", icon: "bx bx-bed" },
-        { id: "readmission", label: "Readmission", link: "/mi-reporting/readmission", icon: "bx bx-repost" },
+        { id: "occupancy", label: "Occupancy", link: "/mi-reporting/occupancy", icon: "bx bx-bed", submodule: "OCCUPANCY" },
+        { id: "readmission", label: "Readmission", link: "/mi-reporting/readmission", icon: "bx bx-repost", submodule: "READMISSION" },
       ],
     },
     {
       id: "clinical-operations",
       title: "📋 Clinical Operations",
+      submodule: "CLINICAL_OPERATIONS",
       items: [
-        { id: "vital-signs", label: "Vital Signs", link: "/mi-reporting/vital-signs", icon: "bx bx-heart-circle" },
-        { id: "round-notes", label: "Round Notes", link: "/mi-reporting/round-notes", icon: "bx bx-notepad" },
-        { id: "clinical-notes", label: "Clinical Notes", link: "/mi-reporting/clinical-notes", icon: "bx bx-clipboard" },
+        { id: "vital-signs", label: "Vital Signs", link: "/mi-reporting/vital-signs", icon: "bx bx-heart-circle", submodule: "VITAL_SIGNS" },
+        { id: "round-notes", label: "Round Notes", link: "/mi-reporting/round-notes", icon: "bx bx-notepad", submodule: "ROUND_NOTES" },
+        { id: "clinical-notes", label: "Clinical Notes", link: "/mi-reporting/clinical-notes", icon: "bx bx-clipboard", submodule: "CLINICAL_NOTES" },
       ],
     },
     {
       id: "doctor-counselling",
       title: "👨‍⚕️ Doctor & Counselling",
+      submodule: "DOCTOR_COUNSELLING",
       items: [
-        { id: "doctor-psychologist-stay-range", label: "Doctor/Psychologist Stay Range", link: "/mi-reporting/doctor-psychologist-stay-range", icon: "bx bx-time-five" },
-        { id: "counselling-sessions-patients", label: "Counselling Patients", link: "/mi-reporting/counselling-sessions-patients", icon: "bx bx-conversation" },
-        { id: "counselling-sessions", label: "Counselling Sessions", link: "/mi-reporting/counselling-sessions", icon: "bx bx-conversation" },
-        { id: "counselling-recording", label: "Counselling Recording", link: "/mi-reporting/counselling-recording", icon: "bx bx-microphone" },
-        { id: "patient-assigned-status", label: "Patient Assigned Status", link: "/mi-reporting/patient-assigned-status", icon: "bx bx-user-x" },
+        { id: "doctor-psychologist-stay-range", label: "Doctor/Psychologist Stay Range", link: "/mi-reporting/doctor-psychologist-stay-range", icon: "bx bx-time-five", submodule: "DOCTOR_PSYCHOLOGIST_STAY_RANGE" },
+        { id: "counselling-sessions-patients", label: "Counselling Patients", link: "/mi-reporting/counselling-sessions-patients", icon: "bx bx-conversation", submodule: "COUNSELLING_SESSIONS_PATIENTS" },
+        { id: "counselling-sessions", label: "Counselling Sessions", link: "/mi-reporting/counselling-sessions", icon: "bx bx-conversation", submodule: "COUNSELLING_SESSIONS" },
+        { id: "counselling-recording", label: "Counselling Recording", link: "/mi-reporting/counselling-recording", icon: "bx bx-microphone", submodule: "COUNSELLING_RECORDING" },
+        { id: "patient-assigned-status", label: "Patient Assigned Status", link: "/mi-reporting/patient-assigned-status", icon: "bx bx-user-x", submodule: "PATIENT_ASSIGNED_STATUS" },
       ],
     },
     {
       id: "nursing-operations",
       title: "👩‍⚕️ Nursing Operations",
+      submodule: "NURSING_OPERATIONS",
       items: [
-        { id: "nurses-dod", label: "Nurses DOD", link: "/mi-reporting/nurses-dod", icon: "bx bx-capsule" },
-        { id: "nurses-dashboard-dod", label: "Nurses Dashboard DOD", link: "/mi-reporting/nurses-dashboard-dod", icon: "bx bx-capsule" },
+        { id: "nurses-dod", label: "Nurses DOD", link: "/mi-reporting/nurses-dod", icon: "bx bx-capsule", submodule: "NURSES_DOD" },
+        { id: "nurses-dashboard-dod", label: "Nurses Dashboard DOD", link: "/mi-reporting/nurses-dashboard-dod", icon: "bx bx-capsule", submodule: "NURSES_DASHBOARD_DOD" },
       ],
     },
     {
       id: "documentation-compliance",
       title: "📄 Documentation & Compliance",
+      submodule: "DOCUMENTATION_COMPLIANCE",
       items: [
-        { id: "patient-docs", label: "IPD Patient Docs", link: "/mi-reporting/patient-docs", icon: "bx bx-bed" },
-        { id: "opd-patient-docs", label: "OPD Patient Docs", link: "/mi-reporting/opd-patient-docs", icon: "bx bx-walk" },
-        { id: "docs-compliance", label: "Docs Compliance", link: "/mi-reporting/docs-compliance", icon: "bx bx-task" },
-        { id: "forms-data", label: "Forms Data", link: "/mi-reporting/forms-data", icon: "bx bx-clipboard" },
+        { id: "patient-docs", label: "IPD Patient Docs", link: "/mi-reporting/patient-docs", icon: "bx bx-bed", submodule: "PATIENT_DOCS" },
+        { id: "opd-patient-docs", label: "OPD Patient Docs", link: "/mi-reporting/opd-patient-docs", icon: "bx bx-walk", submodule: "OPD_PATIENT_DOCS" },
+        { id: "docs-compliance", label: "Docs Compliance", link: "/mi-reporting/docs-compliance", icon: "bx bx-task", submodule: "DOCS_COMPLIANCE" },
+        { id: "forms-data", label: "Forms Data", link: "/mi-reporting/forms-data", icon: "bx bx-clipboard", submodule: "FORMS_DATA" },
       ],
     },
     {
       id: "quality-incidents",
       title: "⚠️ Quality & Incidents",
+      submodule: "QUALITY_INCIDENTS",
       items: [
-        { id: "incident", label: "Incident", link: "/mi-reporting/incident", icon: "bx bx-error-circle" },
+        { id: "incident", label: "Incident", link: "/mi-reporting/incident", icon: "bx bx-error-circle", submodule: "INCIDENT" },
       ],
     },
     {
       id: "hr-attendance",
       title: "👥 HR & Attendance",
+      submodule: "HR_ATTENDANCE",
       items: [
-        { id: "attendance", label: "Attendance", link: "/mi-reporting/attendance", icon: "bx bx-calendar-check" },
-        { id: "attrition-data", label: "Attrition Data", link: "/mi-reporting/attrition-data", icon: "bx bx-user-minus" },
+        { id: "attendance", label: "Attendance", link: "/mi-reporting/attendance", icon: "bx bx-calendar-check", submodule: "ATTENDANCE" },
+        { id: "attrition-data", label: "Attrition Data", link: "/mi-reporting/attrition-data", icon: "bx bx-user-minus", submodule: "ATTRITION_DATA" },
       ],
     },
   ];
+
+  const visibleMISCategories = MIS_REPORT_CATEGORIES
+    .filter((category) => hasPermission("MIS_REPORTS", category.submodule, "READ"))
+    .map((category) => ({
+      ...category,
+      items: category.items.filter((item) => hasPermission("MIS_REPORTS", item.submodule, "READ")),
+    }))
+    .filter((category) => category.items.length > 0);
 
   const sidebarStyle = isMobile
     ? {
@@ -349,7 +366,7 @@ const Sidebar = () => {
                 </div>
               </div>
               <Collapse isOpen={isMISOpen}>
-                {MIS_REPORT_CATEGORIES.map((category) => (
+                {visibleMISCategories.map((category) => (
                   <div key={category.id}>
                     {showLabels && (
                       <div

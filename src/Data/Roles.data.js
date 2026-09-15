@@ -267,7 +267,64 @@ export const permissionList = [
   {
     key: "MIS_REPORTS",
     label: "MIS Reports",
-    subModules: [{ name: "MIS_REPORTS_PERMISSION", label: "View MIS Reports" }],
+    subModules: [
+      { name: "MIS_REPORTS_PERMISSION", label: "View MIS Reports" },
+      { name: "DASHBOARDS", label: "Dashboards Category" },
+      { name: "FINANCE_REVENUE", label: "Finance & Revenue Category" },
+      { name: "OCCUPANCY_PATIENT_MANAGEMENT", label: "Occupancy & Patient Management Category" },
+      { name: "CLINICAL_OPERATIONS", label: "Clinical Operations Category" },
+      { name: "DOCTOR_COUNSELLING", label: "Doctor & Counselling Category" },
+      { name: "NURSING_OPERATIONS", label: "Nursing Operations Category" },
+      { name: "DOCUMENTATION_COMPLIANCE", label: "Documentation & Compliance Category" },
+      { name: "QUALITY_INCIDENTS", label: "Quality & Incidents Category" },
+      { name: "HR_ATTENDANCE", label: "HR & Attendance Category" },
+
+      // Dashboards
+      { name: "DAILY_DASHBOARD", label: "Daily Dashboard" },
+      { name: "METRICS_REPORT", label: "Metrics Report" },
+
+      // Finance & Revenue
+      { name: "DAILY_INVOICES", label: "Daily Invoices" },
+      { name: "DUE_AMOUNT", label: "Due Amount" },
+      { name: "OPD_CHARGES", label: "OPD Charges" },
+      { name: "CASH_PER_CENTER", label: "Cash Per Center" },
+      { name: "REFUND_AMOUNT", label: "Refund Amount" },
+      { name: "WRITE_OFF_AMOUNT", label: "Write Off Amount" },
+      { name: "CENTRAL_EXPENSES", label: "Central Expenses" },
+
+      // Occupancy & Patient Management
+      { name: "OCCUPANCY", label: "Occupancy" },
+      { name: "READMISSION", label: "Readmission" },
+
+      // Clinical Operations
+      { name: "VITAL_SIGNS", label: "Vital Signs" },
+      { name: "ROUND_NOTES", label: "Round Notes" },
+      { name: "CLINICAL_NOTES", label: "Clinical Notes" },
+
+      // Doctor & Counselling
+      { name: "DOCTOR_PSYCHOLOGIST_STAY_RANGE", label: "Doctor/Psychologist Stay Range" },
+      { name: "COUNSELLING_SESSIONS_PATIENTS", label: "Counselling Patients" },
+      { name: "COUNSELLING_SESSIONS", label: "Counselling Sessions" },
+      { name: "COUNSELLING_RECORDING", label: "Counselling Recording" },
+      { name: "PATIENT_ASSIGNED_STATUS", label: "Patient Assigned Status" },
+
+      // Nursing Operations
+      { name: "NURSES_DOD", label: "Nurses DOD" },
+      { name: "NURSES_DASHBOARD_DOD", label: "Nurses Dashboard DOD" },
+
+      // Documentation & Compliance
+      { name: "PATIENT_DOCS", label: "IPD Patient Docs" },
+      { name: "OPD_PATIENT_DOCS", label: "OPD Patient Docs" },
+      { name: "DOCS_COMPLIANCE", label: "Docs Compliance" },
+      { name: "FORMS_DATA", label: "Forms Data" },
+
+      // Quality & Incidents
+      { name: "INCIDENT", label: "Incident" },
+
+      // HR & Attendance
+      { name: "ATTENDANCE", label: "Attendance" },
+      { name: "ATTRITION_DATA", label: "Attrition Data" },
+    ],
   },
   {
     key: "HR",
