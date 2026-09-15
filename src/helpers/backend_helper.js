@@ -5513,3 +5513,40 @@ export const deleteContract = (id) => {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
+export const getPOsForDelivery = (params = {}) => {
+  return axios.get(url.DI_BASE_POS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createDI = (formData) => {
+  return axios.post(url.DI_BASE, formData, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+export const getDIs = (params = {}) => {
+  return axios.get(url.DI_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getDIById = (id) => {
+  return axios.get(`${url.DI_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const markDIReceived = (id) => {
+  return axios.patch(
+    `${url.DI_BASE}/${id}/received`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const deleteDI = (id) => {
+  return axios.delete(`${url.DI_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
