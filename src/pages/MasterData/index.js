@@ -13,6 +13,7 @@ import PurchaseRequisition from "./Procurement/PurchaseRequisition";
 import PurchaseOrder from "./Procurement/PurchaseOrder";
 import RFQModule from "./Procurement/RFQ";
 import Contract from "./Contract";
+import DeliveryIntimation from "./Procurement/DeliveryIntimation";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import "./masterData.scss";
@@ -49,6 +50,7 @@ const MasterData = () => {
   const canViewRFQ = hasPermission("MASTERDATA", "RFQ", "READ");
   const canViewPO = hasPermission("MASTERDATA", "PO", "READ");
   const canViewContract = hasPermission("MASTERDATA", "CONTRACT", "READ");
+  const canViewDI = hasPermission("MASTERDATA", "DELIVERY_INTIMATION", "READ");
 
   if (
     !canViewVendor &&
@@ -59,7 +61,8 @@ const MasterData = () => {
     !canViewPR &&
     !canViewRFQ &&
     !canViewPO &&
-    !canViewContract
+    !canViewContract &&
+    !canViewDI
   ) {
     return <Basic404 />;
   }
@@ -91,6 +94,10 @@ const MasterData = () => {
               <Route path="rfq/*" element={<RFQModule />} />
               <Route path="po/*" element={<PurchaseOrder />} />
               <Route path="contract/*" element={<Contract />} />
+              <Route
+                path="delivery-intimation/*"
+                element={<DeliveryIntimation />}
+              />
             </Routes>
           </div>
         </div>

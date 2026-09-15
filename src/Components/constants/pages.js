@@ -415,6 +415,12 @@ export const WebcamStats = [
     icon: "bx bx-home",
   },
   {
+    id: "webcamstats-health",
+    label: "CCTV Health",
+    link: "/webcamstats/health",
+    icon: "bx bx-server",
+  },
+  {
     id: "webcamstats-stats",
     label: "Stats",
     link: "/webcamstats/stats",
@@ -1658,9 +1664,14 @@ export const MASTER_DATA = [
         label: "Purchase Orders",
         link: "/vendor-management/po",
       },
+      {
+        id: "procurement-di",
+        label: "Delivery Intimations",
+        link: "/vendor-management/delivery-intimation",
+      },
     ],
   },
-    {
+  {
     id: "contracts-projects",
     label: "Contracts & Projects",
     icon: "bx bx-briefcase",
