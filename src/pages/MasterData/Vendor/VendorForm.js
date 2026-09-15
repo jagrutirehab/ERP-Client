@@ -275,7 +275,7 @@ const emptyInitialValues = {
     accountType: "",
     upiId: "",
   },
-  paymentTerms: "",
+  paymentTermId: "",
   preferredPaymentMode: "",
 };
 
@@ -717,7 +717,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
         if (!payload.udyamNumber) delete payload.udyamNumber;
         if (!payload.cin) delete payload.cin;
         if (payload.tdsRate === "") delete payload.tdsRate;
-        if (!payload.paymentTerms) delete payload.paymentTerms;
+        if (!payload.paymentTermId) delete payload.paymentTermId;
         if (!payload.preferredPaymentMode) delete payload.preferredPaymentMode;
         if (!payload.bankDetails.accountType)
           delete payload.bankDetails.accountType;

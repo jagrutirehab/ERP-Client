@@ -883,6 +883,10 @@ export const PR_DEPARTMENT_BASE = "/master/pr-department";
 export const PR_SUB_DEPARTMENT_BASE = "/master/pr-sub-department";
 export const BUDGET_BASE = "/master/budget";
 export const USER_LOOKUP_BASE = "/master/user-lookup";
+export const PR_BASE = "/master/pr";
+export const RFQ_BASE = "/master/rfq";
+export const PO_BASE = "/master/po";
+export const CONTRACT_BASE = "/master/contract";
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
 

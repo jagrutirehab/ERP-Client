@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const DischargeWithHighSupport2 = ({ register, patient, admissions, finalDiagnosis }) => {
+const DischargeWithHighSupport2 = ({
+  register,
+  patient,
+  admissions,
+  finalDiagnosis,
+}) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",

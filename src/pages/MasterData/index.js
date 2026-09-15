@@ -9,6 +9,10 @@ import PaymentTerm from "./PaymentTerm";
 import DepartmentMaster from "./DepartmentMaster";
 import AssetCategory from "./AssetCategory";
 import BudgetManagement from "./Finance/BudgetManagement";
+import PurchaseRequisition from "./Procurement/PurchaseRequisition";
+import PurchaseOrder from "./Procurement/PurchaseOrder";
+import RFQModule from "./Procurement/RFQ";
+import Contract from "./Contract";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import "./masterData.scss";
@@ -41,17 +45,25 @@ const MasterData = () => {
     "READ",
   );
   const canViewBudget = hasPermission("MASTERDATA", "BUDGET", "READ");
+  const canViewPR = hasPermission("MASTERDATA", "PR", "READ");
+  const canViewRFQ = hasPermission("MASTERDATA", "RFQ", "READ");
+  const canViewPO = hasPermission("MASTERDATA", "PO", "READ");
+  const canViewContract = hasPermission("MASTERDATA", "CONTRACT", "READ");
 
   if (
     !canViewVendor &&
     !canViewItems &&
     !canViewUom &&
     !canViewAssetCategory &&
-    !canViewBudget
+    !canViewBudget &&
+    !canViewPR &&
+    !canViewRFQ &&
+    !canViewPO &&
+    !canViewContract
   ) {
     return <Basic404 />;
   }
-  
+
   return (
     <div className="page-content" style={{ paddingTop: "70px" }}>
       <Container fluid className="p-0">
@@ -72,6 +84,13 @@ const MasterData = () => {
                 element={<AssetCategory />}
               />
               <Route path="budget/*" element={<BudgetManagement />} />
+              <Route
+                path="purchase-requisition/*"
+                element={<PurchaseRequisition />}
+              />
+              <Route path="rfq/*" element={<RFQModule />} />
+              <Route path="po/*" element={<PurchaseOrder />} />
+              <Route path="contract/*" element={<Contract />} />
             </Routes>
           </div>
         </div>

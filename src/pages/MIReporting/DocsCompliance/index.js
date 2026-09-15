@@ -279,20 +279,28 @@ const getCenterCellValue = (row, metricKey) => {
                                                 {METRICS.map(({ label, key, description }, idx) => (
                                                     <tr key={key}>
                                                         <td
-                                                            id={description ? `docs-metric-info-${key}` : undefined}
                                                             className="px-1 py-1 fw-semibold"
                                                             style={{ ...cellStyle(idx), whiteSpace: "normal", wordBreak: "break-word" }}
                                                         >
-                                                            {label}
-                                                            {description && (
-                                                                <UncontrolledTooltip
-                                                                    target={`docs-metric-info-${key}`}
-                                                                    placement="right"
-                                                                    trigger="hover"
-                                                                >
-                                                                    {description}
-                                                                </UncontrolledTooltip>
-                                                            )}
+                                                            <span className="d-inline-flex align-items-center gap-1">
+                                                                {label}
+                                                                {description && (
+                                                                    <>
+                                                                        <i
+                                                                            id={`docs-metric-info-${key}`}
+                                                                            className="bx bx-info-circle text-muted"
+                                                                            style={{ cursor: "pointer", fontSize: "0.85rem" }}
+                                                                        ></i>
+                                                                        <UncontrolledTooltip
+                                                                            target={`docs-metric-info-${key}`}
+                                                                            placement="right"
+                                                                            trigger="legacy"
+                                                                        >
+                                                                            {description}
+                                                                        </UncontrolledTooltip>
+                                                                    </>
+                                                                )}
+                                                            </span>
                                                         </td>
                                                         {months.map((month) => (
                                                             <td key={month} className="text-center px-1 py-1" style={cellStyle(idx)}>

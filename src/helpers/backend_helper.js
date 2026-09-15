@@ -5362,3 +5362,154 @@ export const deleteItemType = (id) => {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
+
+export const getPRs = (params = {}) => {
+  return axios.get(url.PR_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createPR = (data) => {
+  return axios.post(url.PR_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updatePR = (id, data) => {
+  return axios.put(`${url.PR_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const submitPR = (id) => {
+  return axios.patch(
+    `${url.PR_BASE}/${id}/submit`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const approvePR = (id) => {
+  return axios.patch(
+    `${url.PR_BASE}/${id}/approve`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const rejectPR = (id, rejectionReason) => {
+  return axios.patch(
+    `${url.PR_BASE}/${id}/reject`,
+    { rejectionReason },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const deletePR = (id) => {
+  return axios.delete(`${url.PR_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getRFQs = (params = {}) => {
+  return axios.get(url.RFQ_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createRFQ = (data) => {
+  return axios.post(url.RFQ_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getRFQById = (id) => {
+  return axios.get(`${url.RFQ_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const recordVendorQuote = (rfqId, vendorQuoteId, data) => {
+  return axios.patch(
+    `${url.RFQ_BASE}/${rfqId}/vendor-quote/${vendorQuoteId}`,
+    data,
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const closeRFQ = (id) => {
+  return axios.patch(
+    `${url.RFQ_BASE}/${id}/close`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const deleteRFQ = (id) => {
+  return axios.delete(`${url.RFQ_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getPOs = (params = {}) => {
+  return axios.get(url.PO_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createPO = (data) => {
+  return axios.post(url.PO_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getPOById = (id) => {
+  return axios.get(`${url.PO_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updatePO = (id, data) => {
+  return axios.put(`${url.PO_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const approvePO = (id) => {
+  return axios.patch(
+    `${url.PO_BASE}/${id}/approve`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const deletePO = (id) => {
+  return axios.delete(`${url.PO_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getClosedRFQs = (params = {}) => {
+  return axios.get(url.RFQ_BASE, {
+    params: { ...params, status: "closed" },
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getContracts = (params = {}) => {
+  return axios.get(url.CONTRACT_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createContract = (data) => {
+  return axios.post(url.CONTRACT_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getContractById = (id) => {
+  return axios.get(`${url.CONTRACT_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateContract = (id, data) => {
+  return axios.put(`${url.CONTRACT_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateContractStatus = (id, status) => {
+  return axios.patch(
+    `${url.CONTRACT_BASE}/${id}/status`,
+    { status },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const deleteContract = (id) => {
+  return axios.delete(`${url.CONTRACT_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};

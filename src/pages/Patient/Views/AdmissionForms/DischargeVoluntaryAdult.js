@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const DischargeVoluntaryAdult = ({ register, patient, admissions, finalDiagnosis }) => {
+const DischargeVoluntaryAdult = ({
+  register,
+  patient,
+  admissions,
+  finalDiagnosis,
+}) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -248,9 +253,7 @@ const DischargeVoluntaryAdult = ({ register, patient, admissions, finalDiagnosis
             {...register("sec86_trigger2")}
             style={{ width: "14px", height: "14px" }}
           />
-          <span>
-            Patient-requested discharge
-          </span>
+          <span>Patient-requested discharge</span>
         </div>
         <div style={checkboxRow}>
           <input
