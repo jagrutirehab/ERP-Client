@@ -603,6 +603,8 @@ export const permissionList = [
       { name: "PO", label: "Purchase Order" },
       { name: "CONTRACT", label: "Contract Management" },
       { name: "DELIVERY_INTIMATION", label: "Delivery Intimation" },
+      { name: "GRN", label: "Goods Receipt Note" },
+      { name: "VENDOR_INVOICE", label: "Vendor Invoice" },
     ],
   },
 ];

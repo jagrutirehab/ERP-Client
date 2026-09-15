@@ -125,7 +125,7 @@ const POForm = ({ onSaved, onCancel }) => {
           ),
       }),
     }),
-    onSubmit: async (values, { setTouched }) => {
+       onSubmit: async (values, { setTouched }) => {
       const errors = await validation.validateForm();
       if (Object.keys(errors).length > 0) {
         setTouched({
@@ -167,9 +167,10 @@ const POForm = ({ onSaved, onCancel }) => {
           unitPrice: Number(li.unitPrice) || 0,
           taxPercent: Number(li.taxPercent) || 0,
         }));
-        if (values.poType === "direct") delete payload.contractId;
         if (values.poType !== "direct") delete payload.justification;
       }
+
+
       if (!payload.paymentTermId) delete payload.paymentTermId;
       if (!payload.deliverySiteId) delete payload.deliverySiteId;
       if (!payload.billingSiteId) delete payload.billingSiteId;
@@ -177,6 +178,7 @@ const POForm = ({ onSaved, onCancel }) => {
       if (!payload.startDate) delete payload.startDate;
       if (!payload.endDate) delete payload.endDate;
       if (!payload.projectRef) delete payload.projectRef;
+      if (!payload.contractId) delete payload.contractId;
 
       try {
         await createPO(payload);
@@ -185,9 +187,7 @@ const POForm = ({ onSaved, onCancel }) => {
       } catch (error) {
         if (!handleAuthError(error)) {
           toast.error(
-            error?.response?.data?.message ||
-              error?.message ||
-              "Something went wrong",
+            error?.response?.data?.message || error?.message || "Something went wrong",
           );
         }
       }
@@ -504,7 +504,7 @@ const POForm = ({ onSaved, onCancel }) => {
                     <Label>
                       Contract <span className="text-danger">*</span>
                     </Label>
-                                        <Input
+                    <Input
                       type="select"
                       value={v.contractId}
                       onChange={(e) => {
@@ -512,7 +512,10 @@ const POForm = ({ onSaved, onCancel }) => {
                         validation.setFieldValue("contractId", contractId);
                         const c = contracts.find((ct) => ct._id === contractId);
                         if (c?.vendorId) {
-                          validation.setFieldValue("vendorId", c.vendorId._id || c.vendorId);
+                          validation.setFieldValue(
+                            "vendorId",
+                            c.vendorId._id || c.vendorId,
+                          );
                         }
                         if (c?.departmentId) {
                           validation.setFieldValue(
@@ -523,10 +526,16 @@ const POForm = ({ onSaved, onCancel }) => {
                         if (c?.budgetId) {
                           // Pre-fill; the department-change effect below will
                           // refresh the budgets list, then this value applies.
-                          validation.setFieldValue("budgetId", c.budgetId._id || c.budgetId);
+                          validation.setFieldValue(
+                            "budgetId",
+                            c.budgetId._id || c.budgetId,
+                          );
                         }
                       }}
-                      invalid={validation.touched.contractId && !!validation.errors.contractId}
+                      invalid={
+                        validation.touched.contractId &&
+                        !!validation.errors.contractId
+                      }
                     >
                       <option value="">Select Contract</option>
                       {contracts.map((c) => (

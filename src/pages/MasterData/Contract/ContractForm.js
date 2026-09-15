@@ -101,7 +101,7 @@ const ContractForm = ({ editingItem, onSaved, onCancel }) => {
       effectiveDate: Yup.date().required("Effective date is required"),
       endDate: Yup.date()
         .required("End date is required")
-        .when("effectiveDate", (effectiveDate, schema) =>
+        .when("effectiveDate", ([effectiveDate], schema) =>
           effectiveDate
             ? schema.min(
                 effectiveDate,

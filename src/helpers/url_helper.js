@@ -890,6 +890,10 @@ export const PO_BASE = "/master/po";
 export const CONTRACT_BASE = "/master/contract";
 export const DI_BASE = "/master/delivery-intimation";
 export const DI_BASE_POS = "/master/delivery-intimation/pos";
+export const GRN_BASE = "/master/grn";
+export const GRN_BASE_DI = "/master/grn/pending-di";
+export const VI_BASE = "/master/vendor-invoice";
+export const VI_BASE_GRN = "/master/vendor-invoice/pending-grn";
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
 

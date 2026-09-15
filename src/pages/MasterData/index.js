@@ -14,6 +14,8 @@ import PurchaseOrder from "./Procurement/PurchaseOrder";
 import RFQModule from "./Procurement/RFQ";
 import Contract from "./Contract";
 import DeliveryIntimation from "./Procurement/DeliveryIntimation";
+import GoodsReceiptNote from "./Inventory/GRN";
+import VendorInvoice from "./Finance/VendorInvoice";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import "./masterData.scss";
@@ -51,6 +53,8 @@ const MasterData = () => {
   const canViewPO = hasPermission("MASTERDATA", "PO", "READ");
   const canViewContract = hasPermission("MASTERDATA", "CONTRACT", "READ");
   const canViewDI = hasPermission("MASTERDATA", "DELIVERY_INTIMATION", "READ");
+  const canViewGRN = hasPermission("MASTERDATA", "GRN", "READ");
+  const canViewVI = hasPermission("MASTERDATA", "VENDOR_INVOICE", "READ");
 
   if (
     !canViewVendor &&
@@ -62,7 +66,9 @@ const MasterData = () => {
     !canViewRFQ &&
     !canViewPO &&
     !canViewContract &&
-    !canViewDI
+    !canViewDI &&
+    !canViewGRN &&
+    !canViewVI
   ) {
     return <Basic404 />;
   }
@@ -98,6 +104,8 @@ const MasterData = () => {
                 path="delivery-intimation/*"
                 element={<DeliveryIntimation />}
               />
+              <Route path="grn/*" element={<GoodsReceiptNote />} />
+              <Route path="vendor-invoice/*" element={<VendorInvoice />} />
             </Routes>
           </div>
         </div>

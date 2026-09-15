@@ -1672,6 +1672,15 @@ export const MASTER_DATA = [
     ],
   },
   {
+  id: "inventory",
+  label: "Inventory & Warehouse",
+  icon: "bx bx-store",
+  isAccordion: true,
+  children: [
+    { id: "inventory-grn", label: "Goods Receipt Notes", link: "/vendor-management/grn" },
+  ],
+},
+  {
     id: "contracts-projects",
     label: "Contracts & Projects",
     icon: "bx bx-briefcase",
@@ -1695,6 +1704,11 @@ export const MASTER_DATA = [
         label: "Budget Management",
         link: "/vendor-management/budget",
         // icon: "bx bx-money",
+      },
+      {
+        id: "finance-vendor-invoice",
+        label: "Vendor Invoices",
+        link: "/vendor-management/vendor-invoice",
       },
     ],
   },

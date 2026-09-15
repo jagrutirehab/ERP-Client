@@ -5554,3 +5554,69 @@ export const deleteDI = (id) => {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
+// GRN
+export const getDIsForGRN = () => {
+  return axios.get(url.GRN_BASE_DI, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createGRN = (data) => {
+  return axios.post(url.GRN_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getGRNs = (params = {}) => {
+  return axios.get(url.GRN_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getGRNById = (id) => {
+  return axios.get(`${url.GRN_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// Vendor Invoice
+export const getGRNsForInvoice = () => {
+  return axios.get(url.VI_BASE_GRN, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createVendorInvoice = (data) => {
+  return axios.post(url.VI_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getVendorInvoices = (params = {}) => {
+  return axios.get(url.VI_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getVendorInvoiceById = (id) => {
+  return axios.get(`${url.VI_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const bookVendorInvoice = (id) => {
+  return axios.patch(
+    `${url.VI_BASE}/${id}/book`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const holdVendorInvoice = (id, mismatchNotes) => {
+  return axios.patch(
+    `${url.VI_BASE}/${id}/hold`,
+    { mismatchNotes },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+export const markVendorInvoicePaid = (id) => {
+  return axios.patch(
+    `${url.VI_BASE}/${id}/paid`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
