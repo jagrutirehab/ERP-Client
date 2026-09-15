@@ -1658,9 +1658,14 @@ export const MASTER_DATA = [
         label: "Purchase Orders",
         link: "/vendor-management/po",
       },
+      {
+        id: "procurement-di",
+        label: "Delivery Intimations",
+        link: "/vendor-management/delivery-intimation",
+      },
     ],
   },
-    {
+  {
     id: "contracts-projects",
     label: "Contracts & Projects",
     icon: "bx bx-briefcase",

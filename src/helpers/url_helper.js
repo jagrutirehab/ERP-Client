@@ -887,6 +887,8 @@ export const PR_BASE = "/master/pr";
 export const RFQ_BASE = "/master/rfq";
 export const PO_BASE = "/master/po";
 export const CONTRACT_BASE = "/master/contract";
+export const DI_BASE = "/master/delivery-intimation";
+export const DI_BASE_POS = "/master/delivery-intimation/pos";
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
 

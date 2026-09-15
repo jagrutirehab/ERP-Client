@@ -545,6 +545,7 @@ export const permissionList = [
       { name: "RFQ", label: "Request for Quotation" },
       { name: "PO", label: "Purchase Order" },
       { name: "CONTRACT", label: "Contract Management" },
+      { name: "DELIVERY_INTIMATION", label: "Delivery Intimation" },
     ],
   },
 ];
