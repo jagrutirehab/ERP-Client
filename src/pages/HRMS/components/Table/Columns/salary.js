@@ -303,6 +303,13 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         style: employeeDeductionStyle,
     },
     {
+        name: <div>Voluntary PF</div>,
+        selector: row => formatCurrency(row?.earned?.voluntaryPF),
+        wrap: true,
+        center: true,
+        style: employeeDeductionStyle,
+    },
+    {
         name: <div>ESIC Employee</div>,
         selector: row => formatCurrency(row?.earned?.ESICEmployee),
         wrap: true,
