@@ -174,7 +174,10 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
   };
 
   const bulkEditMedDuration = (duration) => {
-    const meds = [...medicines]?.map((med) => ({ ...med, duration }));
+    const meds = [...medicines]?.map((med) => {
+      const updated = { ...med, duration };
+      return { ...updated, endDate: getMedicineEndDate(med.startDate, updated) };
+    });
     setMedicines(meds);
   };
 

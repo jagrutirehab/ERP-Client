@@ -103,6 +103,34 @@ export const isSimplifiedFinanceType = (type) =>
 export const isConsultantFinanceType = (type) =>
     (type || "").trim().toUpperCase() === "CONSULTANT";
 
+// PF applies to newEmploymentType FULL_TIME employees (category FORM11 opts
+// out). Also covers employees whose employmentType is FULL_TIME but who were
+// downgraded to newEmploymentType PART_TIME while still working 6 days/week
+// (minimumPresentDays: 6, minimumPresentUnit: "WEEK") — they remain
+// PF-eligible despite the PART_TIME label.
+export const isPfApplicable = (employee) => {
+    if (!employee) return false;
+
+    const category = (employee.category || "").trim().toUpperCase();
+    if (category === "FORM11") return false;
+
+    const newEmploymentType = (employee.newEmploymentType || "").trim().toUpperCase();
+    if (newEmploymentType === "FULL_TIME") return true;
+
+    const employmentType = (employee.employmentType || "").trim().toUpperCase();
+    const minimumPresentUnit = (employee.minimumPresentUnit || "").trim().toUpperCase();
+    if (
+        employmentType === "FULL_TIME" &&
+        newEmploymentType === "PART_TIME" &&
+        minimumPresentUnit === "WEEK" &&
+        Number(employee.minimumPresentDays) === 6
+    ) {
+        return true;
+    }
+
+    return false;
+};
+
 export const paymentTypeOptions = [
     { label: "Monthly", value: "MONTHLY" },
     { label: "Per Session", value: "PER_SESSION" },
