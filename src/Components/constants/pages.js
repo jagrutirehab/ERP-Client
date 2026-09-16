@@ -1672,14 +1672,28 @@ export const MASTER_DATA = [
     ],
   },
   {
-  id: "inventory",
-  label: "Inventory & Warehouse",
-  icon: "bx bx-store",
-  isAccordion: true,
-  children: [
-    { id: "inventory-grn", label: "Goods Receipt Notes", link: "/vendor-management/grn" },
-  ],
-},
+    id: "inventory",
+    label: "Inventory & Warehouse",
+    icon: "bx bx-store",
+    isAccordion: true,
+    children: [
+      {
+        id: "inventory-grn",
+        label: "Goods Receipt Notes",
+        link: "/vendor-management/grn",
+      },
+      {
+        id: "inventory-storage-location",
+        label: "Storage Locations",
+        link: "/vendor-management/storage-location",
+      },
+      {
+        id: "inventory-putaway",
+        label: "Putaway",
+        link: "/vendor-management/putaway",
+      },
+    ],
+  },
   {
     id: "contracts-projects",
     label: "Contracts & Projects",
