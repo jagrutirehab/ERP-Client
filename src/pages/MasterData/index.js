@@ -15,6 +15,8 @@ import RFQModule from "./Procurement/RFQ";
 import Contract from "./Contract";
 import DeliveryIntimation from "./Procurement/DeliveryIntimation";
 import GoodsReceiptNote from "./Inventory/GRN";
+import StorageLocation from "./Inventory/StorageLocation";
+import Putaway from "./Inventory/Putaway";
 import VendorInvoice from "./Finance/VendorInvoice";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
@@ -55,6 +57,12 @@ const MasterData = () => {
   const canViewDI = hasPermission("MASTERDATA", "DELIVERY_INTIMATION", "READ");
   const canViewGRN = hasPermission("MASTERDATA", "GRN", "READ");
   const canViewVI = hasPermission("MASTERDATA", "VENDOR_INVOICE", "READ");
+  const canViewStorageLocation = hasPermission(
+    "MASTERDATA",
+    "STORAGE_LOCATION",
+    "READ",
+  );
+  const canViewPutaway = hasPermission("MASTERDATA", "PUTAWAY", "READ");
 
   if (
     !canViewVendor &&
@@ -68,7 +76,9 @@ const MasterData = () => {
     !canViewContract &&
     !canViewDI &&
     !canViewGRN &&
-    !canViewVI
+    !canViewVI &&
+    !canViewStorageLocation &&
+    !canViewPutaway
   ) {
     return <Basic404 />;
   }
@@ -105,6 +115,8 @@ const MasterData = () => {
                 element={<DeliveryIntimation />}
               />
               <Route path="grn/*" element={<GoodsReceiptNote />} />
+              <Route path="storage-location/*" element={<StorageLocation />} />
+              <Route path="putaway/*" element={<Putaway />} />
               <Route path="vendor-invoice/*" element={<VendorInvoice />} />
             </Routes>
           </div>

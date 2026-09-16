@@ -893,6 +893,9 @@ export const GRN_BASE = "/master/grn";
 export const GRN_BASE_DI = "/master/grn/pending-di";
 export const VI_BASE = "/master/vendor-invoice";
 export const VI_BASE_GRN = "/master/vendor-invoice/pending-grn";
+export const STORAGE_LOCATION_BASE = "/master/storage-location";
+export const PUTAWAY_BASE = "/master/putaway";
+export const PUTAWAY_BASE_GRN = "/master/putaway/pending-grn";
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
 

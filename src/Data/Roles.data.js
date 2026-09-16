@@ -271,11 +271,17 @@ export const permissionList = [
       { name: "MIS_REPORTS_PERMISSION", label: "View MIS Reports" },
       { name: "DASHBOARDS", label: "Dashboards Category" },
       { name: "FINANCE_REVENUE", label: "Finance & Revenue Category" },
-      { name: "OCCUPANCY_PATIENT_MANAGEMENT", label: "Occupancy & Patient Management Category" },
+      {
+        name: "OCCUPANCY_PATIENT_MANAGEMENT",
+        label: "Occupancy & Patient Management Category",
+      },
       { name: "CLINICAL_OPERATIONS", label: "Clinical Operations Category" },
       { name: "DOCTOR_COUNSELLING", label: "Doctor & Counselling Category" },
       { name: "NURSING_OPERATIONS", label: "Nursing Operations Category" },
-      { name: "DOCUMENTATION_COMPLIANCE", label: "Documentation & Compliance Category" },
+      {
+        name: "DOCUMENTATION_COMPLIANCE",
+        label: "Documentation & Compliance Category",
+      },
       { name: "QUALITY_INCIDENTS", label: "Quality & Incidents Category" },
       { name: "HR_ATTENDANCE", label: "HR & Attendance Category" },
 
@@ -302,7 +308,10 @@ export const permissionList = [
       { name: "CLINICAL_NOTES", label: "Clinical Notes" },
 
       // Doctor & Counselling
-      { name: "DOCTOR_PSYCHOLOGIST_STAY_RANGE", label: "Doctor/Psychologist Stay Range" },
+      {
+        name: "DOCTOR_PSYCHOLOGIST_STAY_RANGE",
+        label: "Doctor/Psychologist Stay Range",
+      },
       { name: "COUNSELLING_SESSIONS_PATIENTS", label: "Counselling Patients" },
       { name: "COUNSELLING_SESSIONS", label: "Counselling Sessions" },
       { name: "COUNSELLING_RECORDING", label: "Counselling Recording" },
@@ -605,6 +614,8 @@ export const permissionList = [
       { name: "DELIVERY_INTIMATION", label: "Delivery Intimation" },
       { name: "GRN", label: "Goods Receipt Note" },
       { name: "VENDOR_INVOICE", label: "Vendor Invoice" },
+      { name: "STORAGE_LOCATION", label: "Storage Location" },
+      { name: "PUTAWAY", label: "Putaway" },
     ],
   },
 ];

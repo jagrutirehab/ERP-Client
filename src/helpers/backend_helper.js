@@ -5616,3 +5616,48 @@ export const markVendorInvoicePaid = (id) => {
     { headers: { "X-No-Cookie-Token": "true" } },
   );
 };
+// Storage Location
+export const getStorageLocations = (params = {}) => {
+  return axios.get(url.STORAGE_LOCATION_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createStorageLocation = (data) => {
+  return axios.post(url.STORAGE_LOCATION_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const updateStorageLocation = (id, data) => {
+  return axios.put(`${url.STORAGE_LOCATION_BASE}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const deleteStorageLocation = (id) => {
+  return axios.delete(`${url.STORAGE_LOCATION_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// Putaway
+export const getGRNsForPutaway = () => {
+  return axios.get(url.PUTAWAY_BASE_GRN, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createPutaway = (data) => {
+  return axios.post(url.PUTAWAY_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getPutaways = (params = {}) => {
+  return axios.get(url.PUTAWAY_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getPutawayById = (id) => {
+  return axios.get(`${url.PUTAWAY_BASE}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};

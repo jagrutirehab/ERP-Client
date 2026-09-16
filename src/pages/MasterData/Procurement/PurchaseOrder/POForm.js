@@ -106,6 +106,7 @@ const POForm = ({ onSaved, onCancel }) => {
         is: (val) => val !== "pr_based",
         then: (schema) => schema.required("Budget is required"),
       }),
+      deliverySiteId: Yup.string().required("Delivery site is required"),
       justification: Yup.string().when("poType", {
         is: "direct",
         then: (schema) =>
@@ -125,7 +126,7 @@ const POForm = ({ onSaved, onCancel }) => {
           ),
       }),
     }),
-       onSubmit: async (values, { setTouched }) => {
+    onSubmit: async (values, { setTouched }) => {
       const errors = await validation.validateForm();
       if (Object.keys(errors).length > 0) {
         setTouched({
@@ -136,6 +137,7 @@ const POForm = ({ onSaved, onCancel }) => {
           budgetId: true,
           justification: true,
           lineItems: true,
+          deliverySiteId: true,
         });
         toast.error("Please fill in all required fields");
         return;
@@ -170,9 +172,8 @@ const POForm = ({ onSaved, onCancel }) => {
         if (values.poType !== "direct") delete payload.justification;
       }
 
-
       if (!payload.paymentTermId) delete payload.paymentTermId;
-      if (!payload.deliverySiteId) delete payload.deliverySiteId;
+      // if (!payload.deliverySiteId) delete payload.deliverySiteId;
       if (!payload.billingSiteId) delete payload.billingSiteId;
       if (!payload.expectedDeliveryDate) delete payload.expectedDeliveryDate;
       if (!payload.startDate) delete payload.startDate;
@@ -187,7 +188,9 @@ const POForm = ({ onSaved, onCancel }) => {
       } catch (error) {
         if (!handleAuthError(error)) {
           toast.error(
-            error?.response?.data?.message || error?.message || "Something went wrong",
+            error?.response?.data?.message ||
+              error?.message ||
+              "Something went wrong",
           );
         }
       }
@@ -707,12 +710,18 @@ const POForm = ({ onSaved, onCancel }) => {
               />
             </Col>
             <Col md={3} className="mb-4">
-              <Label>Delivery Site</Label>
+              <Label>
+                Delivery Site <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={v.deliverySiteId}
                 onChange={(e) =>
                   validation.setFieldValue("deliverySiteId", e.target.value)
+                }
+                invalid={
+                  validation.touched.deliverySiteId &&
+                  !!validation.errors.deliverySiteId
                 }
               >
                 <option value="">Select site</option>
