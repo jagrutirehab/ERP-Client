@@ -324,7 +324,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         style: employeeDeductionStyle,
     },
     {
-        name: <div>PT Arrears</div>,
+        name: <div>PT Arrear</div>,
         selector: row => formatCurrency(row?.earned?.PTArrears),
         wrap: true,
         center: true,

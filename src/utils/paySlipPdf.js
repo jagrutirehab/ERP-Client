@@ -230,11 +230,11 @@ const PayslipPdf = ({ row }) => {
     { label: "PF Employee",    value: row?.pfEmployee     ?? null },
     // { label: "PF Employer", value: row?.pfEmployer     ?? null }, // PF Employer hidden from payslip
     { label: "Voluntary PF",   value: row?.voluntaryPF    ?? null },
-    { label: "PF Arrears",     value: row?.pfArrear       ?? null },
+    { label: "PF Arrear",      value: row?.pfArrear       ?? null },
     { label: "Member ESIC",    value: row?.esicEmployee   ?? null },
     { label: "LWF",            value: row?.LWFEmployee    ?? null },
     { label: "PT",             value: row?.PT             ?? null },
-    { label: "PT Arrears",     value: row?.PTArrears      ?? null },
+    { label: "PT Arrear",      value: row?.PTArrears      ?? null },
     { label: "Salary Advance", value: row?.advanceSalary  ?? null },
     { label: "TDS",            value: row?.TDSAmount      ?? null },
     { label: "Insurance",      value: row?.insurance      ?? null },
