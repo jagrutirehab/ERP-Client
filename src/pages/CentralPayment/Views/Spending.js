@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Row,
   Col,
@@ -6,6 +6,7 @@ import {
   CardHeader,
   CardBody,
 } from "reactstrap";
+import Select from "react-select";
 import { History, Receipt } from "lucide-react";
 import { connect, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
@@ -14,11 +15,17 @@ import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { getLastCentralPayments } from "../../../store/features/centralPayment/centralPaymentSlice";
+import { getApprovals } from "../../../store/features/centralPayment/centralPaymentSlice";
 import ItemCard from "../Components/ItemCard";
 import SpendingForm from "../Components/SpendingForm";
 
-const Spending = ({ centerAccess, spendings, loading }) => {
+const paymentTypeOptions = [
+  { value: "", label: "All" },
+  { value: "COMPLETED", label: "Paid" },
+  { value: "PENDING", label: "To Be Paid" },
+];
+
+const Spending = ({ centerAccess, approvals, loading }) => {
   const dispatch = useDispatch();
   const handleAuthError = useAuthError();
 
@@ -31,13 +38,18 @@ const Spending = ({ centerAccess, spendings, loading }) => {
 
   const hasReadPermission = hasPermission("CENTRALPAYMENT", "CENTRALPAYMENTSPENDING", "READ");
 
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState("");
+
   useEffect(() => {
     if (!hasReadPermission) return;
 
     const fetchSpendings = async () => {
       try {
-        await dispatch(getLastCentralPayments({
-          page: 1, limit: 10, centers: centerAccess
+        await dispatch(getApprovals({
+          page: 1,
+          limit: 10,
+          centers: centerAccess,
+          ...(paymentTypeFilter && { initialPaymentStatus: paymentTypeFilter }),
         })).unwrap();
       } catch (error) {
         if (!handleAuthError(error)) {
@@ -46,7 +58,7 @@ const Spending = ({ centerAccess, spendings, loading }) => {
       }
     }
     fetchSpendings();
-  }, [centerAccess, dispatch, roles]);
+  }, [centerAccess, dispatch, roles, paymentTypeFilter]);
 
 
   if (!hasCreatePermission && !hasReadPermission) {
@@ -58,8 +70,7 @@ const Spending = ({ centerAccess, spendings, loading }) => {
       </div>
     );
   }
-  const cacheKey = centerAccess?.length ? [...centerAccess].sort().join(",") : "all";
-  const data = spendings?.[cacheKey]?.data || [];
+  const data = approvals?.data || [];
 
   return (
     <React.Fragment>
@@ -89,11 +100,20 @@ const Spending = ({ centerAccess, spendings, loading }) => {
         >
           <Col lg={hasCreatePermission ? 8 : 12}>
             <Card className="h-100 shadow-sm">
-              <CardHeader className="bg-transparent border-bottom d-flex justify-content-between align-items-center">
+              <CardHeader className="bg-transparent border-bottom d-flex flex-wrap align-items-center gap-3">
                 <h5 className="mb-0 fw-semibold">
                   <History size={18} className="me-2 text-primary" />
                   Last 10 Spendings
                 </h5>
+                <div style={{ minWidth: 160 }}>
+                  <Select
+                    value={paymentTypeOptions.find(opt => opt.value === paymentTypeFilter)}
+                    onChange={(option) => setPaymentTypeFilter(option?.value || "")}
+                    options={paymentTypeOptions}
+                    placeholder="All"
+                    classNamePrefix="react-select"
+                  />
+                </div>
               </CardHeader>
               <CardBody className="p-0">
                 <div
@@ -137,13 +157,13 @@ const Spending = ({ centerAccess, spendings, loading }) => {
 Spending.prototype = {
   centerAccess: PropTypes.array,
   loading: PropTypes.bool,
-  spendings: PropTypes.object,
+  approvals: PropTypes.object,
 };
 
 const mapStateToProps = (state) => ({
   centerAccess: state.User?.centerAccess,
   loading: state.CentralPayment.loading,
-  spendings: state.CentralPayment.spendings,
+  approvals: state.CentralPayment.approvals,
 });
 
 export default connect(mapStateToProps)(Spending);

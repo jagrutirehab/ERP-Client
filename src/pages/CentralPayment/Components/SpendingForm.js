@@ -10,8 +10,11 @@ import {
     Label,
     Input,
     Button,
+    ButtonGroup,
     Spinner,
+    Badge,
 } from "reactstrap";
+import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import { addPayment, updateCentralPayment } from '../../../store/features/centralPayment/centralPaymentSlice';
 import FileUpload from './FileUpload';
@@ -23,12 +26,31 @@ import AsyncSelect from "react-select/async";
 import { formatCurrency } from '../../../utils/formatCurrency';
 import { getSearchPatients } from '../../../helpers/backend_helper';
 
-// const clearableFields = [
-//     // "invoiceNo",
-//     // "IFSCCode",
-//     // "accountHolderName",
-//     // "accountNo",
-// ];
+const transactionMethodOptions = [
+    { value: "UPI", label: "UPI" },
+    { value: "NEFT_RTGS_IMPS", label: "NEFT/RTGS/IMPS" },
+];
+
+const ATTACHMENT_TYPE_LABELS = {
+    "INVOICE/BILL": "Invoice/Bill",
+    "QUOTATION": "Quotation",
+    "PROFORMA_INVOICE": "Performa Invoice",
+    "VOUCHER": "Voucher",
+};
+
+const ATTACHMENT_SECTION_LABELS = {
+    "INVOICE/BILL": "Invoice Upload",
+    "QUOTATION": "Quotation Upload",
+    "PROFORMA_INVOICE": "Proforma Invoice Upload",
+    "VOUCHER": "Voucher Upload",
+};
+
+const fieldTransition = {
+    initial: { opacity: 0, y: 16 },
+    animate: { opacity: 1, y: 0 },
+    exit: { opacity: 0, y: -16 },
+    transition: { duration: 0.25, ease: "easeInOut" },
+};
 
 const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     const dispatch = useDispatch();
@@ -45,9 +67,10 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
     const [existingFiles, setExistingFiles] = useState(paymentData?.attachments || []);
     const [removedAttachments, setRemovedAttachments] = useState([]);
+    const [existingScreenshot] = useState(paymentData?.transactionProof || null);
+    const [removeExistingScreenshot, setRemoveExistingScreenshot] = useState(false);
 
     const validationSchema = Yup.object({
-        // name: Yup.string().required("Name is required"),
         center: Yup.string().required("Center is required"),
         items: Yup.string().required("Items are required"),
         category: Yup.string()
@@ -96,7 +119,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         date: Yup.string().required("Transaction date is required"),
         description: Yup.string()
             .max(20, "Description cannot be more than 20 characters")
-            .required("Description is required"),
+            .when("initialPaymentStatus", {
+                is: "COMPLETED",
+                then: (schema) => schema.notRequired(),
+                otherwise: (schema) => schema.required("Description is required"),
+            }),
         vendor: Yup.string().required("Vendor is required"),
         invoiceNo: Yup.string().required("Invoice number is required"),
         invoiceDate: Yup.string().required("Invoice date is required"),
@@ -111,19 +138,27 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         GSTAmount: Yup.string()
             .required("GST amount is required")
             .matches(/^\d+(\.\d{1,2})?$/, "GST amount can have at most 2 decimal places"),
-        IFSCCode: Yup.string()
-            .trim()
-            .required("IFSC Code is required")
-            .matches(/^\S{11}$/, "IFSC Code must be exactly 11 characters"),
-
-        accountHolderName: Yup.string()
-            .trim()
-            .required("Account holder name is required"),
-
-        accountNo: Yup.string()
-            .trim()
-            .required("Account number is required")
-            .max(25, "Account number cannot be more than 25 characters"),
+        IFSCCode: Yup.string().when("initialPaymentStatus", {
+            is: "COMPLETED",
+            then: (schema) => schema.notRequired(),
+            otherwise: (schema) => schema
+                .trim()
+                .required("IFSC Code is required")
+                .matches(/^\S{11}$/, "IFSC Code must be exactly 11 characters"),
+        }),
+        accountHolderName: Yup.string().when("initialPaymentStatus", {
+            is: "COMPLETED",
+            then: (schema) => schema.notRequired(),
+            otherwise: (schema) => schema.trim().required("Account holder name is required"),
+        }),
+        accountNo: Yup.string().when("initialPaymentStatus", {
+            is: "COMPLETED",
+            then: (schema) => schema.notRequired(),
+            otherwise: (schema) => schema
+                .trim()
+                .required("Account number is required")
+                .max(25, "Account number cannot be more than 25 characters"),
+        }),
         TDSRate: Yup.number()
             .typeError("TDS Rate must be a number")
             .nullable()
@@ -131,8 +166,14 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             .max(35, "TDS Rate cannot be greater than 35%"),
         initialPaymentStatus: Yup.string()
             .oneOf(["PENDING", "COMPLETED"], "Invalid payment status")
-            .required("Payment status is required"),
-        attachmentType: Yup.string().oneOf(["INVOICE/BILL", "QUOTATION", "PROFORMA_INVOICE", "VOUCHER"], "Invalid attachment type").required("Attachment type is required"),
+            .required("Please select Paid or To Be Paid"),
+        attachmentType: Yup.string().when("initialPaymentStatus", {
+            is: "COMPLETED",
+            then: (schema) => schema.notRequired(),
+            otherwise: (schema) => schema
+                .oneOf(["INVOICE/BILL", "QUOTATION", "PROFORMA_INVOICE", "VOUCHER"], "Invalid attachment type")
+                .required("Attachment type is required"),
+        }),
         attachments: Yup.array().when([], {
             is: () => !paymentData?._id,
             then: (schema) =>
@@ -150,13 +191,46 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     return files.every((f) => f.size <= 100 * 1024 * 1024);
                 }),
         }),
-
+        transactionId: Yup.string().when("initialPaymentStatus", {
+            is: "COMPLETED",
+            then: (schema) => schema.required("Transaction ID is required"),
+            otherwise: (schema) => schema.notRequired(),
+        }),
+        transactionMethod: Yup.string().when("initialPaymentStatus", {
+            is: "COMPLETED",
+            then: (schema) => schema
+                .oneOf(["UPI", "NEFT_RTGS_IMPS"], "Invalid transaction method")
+                .required("Transaction method is required"),
+            otherwise: (schema) => schema.notRequired(),
+        }),
+        paidFromBankAccount: Yup.string().when("initialPaymentStatus", {
+            is: "COMPLETED",
+            then: (schema) => schema.required("Bank account is required"),
+            otherwise: (schema) => schema.notRequired(),
+        }),
+        paymentMadeBy: Yup.string().when("initialPaymentStatus", {
+            is: "COMPLETED",
+            then: (schema) => schema.required("Payment made by is required"),
+            otherwise: (schema) => schema.notRequired(),
+        }),
+        paymentScreenshot: Yup.array().when("initialPaymentStatus", {
+            is: "COMPLETED",
+            then: (schema) => schema
+                .test("fileSize", "File must be under 100MB", (files) => {
+                    if (!files || files.length === 0) return true;
+                    return files.every((f) => f.size <= 100 * 1024 * 1024);
+                })
+                .test("fileCount", "Upload the payment screenshot", (files) => {
+                    if (paymentData?._id) return true;
+                    return files && files.length > 0;
+                }),
+            otherwise: (schema) => schema.notRequired(),
+        }),
     });
 
 
     const form = useFormik({
         initialValues: {
-            // name: paymentData?.name || "",
             center: paymentData?.center?._id || "",
             items: paymentData?.items || "",
             category: paymentData?.category || "",
@@ -188,7 +262,12 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             initialPaymentStatus: paymentData?.initialPaymentStatus || "",
             TDSRate: paymentData?.TDSRate || "",
             attachmentType: paymentData?.attachmentType || "",
-            attachments: []
+            attachments: [],
+            transactionId: paymentData?.transactionId || "",
+            transactionMethod: paymentData?.transactionMethod || "",
+            paidFromBankAccount: paymentData?.paidFromBankAccount || "",
+            paymentMadeBy: paymentData?.paymentMadeBy || "",
+            paymentScreenshot: [],
         },
         validationSchema,
         onSubmit: async (values, { resetForm }) => {
@@ -198,14 +277,24 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             const finalCount = remainingExistingAttachments + newUploads;
 
             if (paymentData?._id && finalCount === 0) {
-                toast.error("You must have at least one attachment");
+                toast.error("Invoice upload is required");
+                return;
+            }
+
+            if (
+                paymentData?._id &&
+                values.initialPaymentStatus === "COMPLETED" &&
+                removeExistingScreenshot &&
+                values.paymentScreenshot.length === 0
+            ) {
+                toast.error("Payment screenshot is required");
                 return;
             }
 
             const formData = new FormData();
 
             Object.entries(values).forEach(([key, val]) => {
-                if (key === "attachments") return;
+                if (key === "attachments" || key === "paymentScreenshot") return;
 
                 if (key === "date" || key === "invoiceDate") {
                     const now = new Date();
@@ -218,13 +307,6 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     formData.append(key, spendingDate.toISOString());
                     return;
                 }
-
-                // if (clearableFields.includes(key)) {
-                //     if (val !== undefined && val !== null) {
-                //         formData.append(key, val);
-                //     }
-                //     return;
-                // }
 
                 if (key === "TDSRate") {
                     formData.append("TDSRate", val === "" ? 0 : val);
@@ -270,8 +352,17 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             });
 
             values.attachments.forEach(f => formData.append("attachments", f));
+            values.paymentScreenshot.forEach(f => formData.append("paymentScreenshot", f));
             if (paymentData?._id && removedAttachments.length > 0) {
                 formData.append("removedAttachments", JSON.stringify(removedAttachments));
+            }
+
+            if (paymentData?._id && values.initialPaymentStatus === "COMPLETED") {
+                formData.set("attachmentType", "INVOICE/BILL");
+            }
+
+            if (paymentData?._id && removeExistingScreenshot) {
+                formData.append("removeTransactionProof", "true");
             }
 
             try {
@@ -296,7 +387,11 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         form.handleSubmit(e);
     };
 
-    // transform every text input in uppercase & comma not allowed validation & no space allowd for IFSCCode, accountNo
+    const handlePaymentModeChange = (mode) => {
+        if (form.values.initialPaymentStatus === mode) return;
+        form.setFieldValue("initialPaymentStatus", mode, true);
+    };
+
     const normalizeTextInput = (e) => {
         const { name, value } = e.target;
 
@@ -306,7 +401,6 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
             return;
         }
 
-        // special charracter not allowed in description and vendor
         if (name === "description" || name === "vendor") {
             const valid = /^[a-zA-Z0-9 ]*$/.test(value);
             if (!valid) {
@@ -328,10 +422,19 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     const normalizeAmountInput = (e) => {
         const { name, value } = e.target;
 
-        // allow empty, digits, decimal, max 2 decimals
         if (!/^\d*(\.\d{0,2})?$/.test(value)) return;
 
         form.setFieldValue(name, value);
+    };
+
+    const handleGrossOrGstChange = (e) => {
+        const { name, value } = e.target;
+        if (!/^\d*(\.\d{0,2})?$/.test(value)) return;
+        form.setFieldValue(name, value);
+        const gross = name === "grossAmount" ? value : form.values.grossAmount;
+        const gst = name === "GSTAmount" ? value : form.values.GSTAmount;
+        const total = Math.round(Number(gross || 0) + Number(gst || 0));
+        form.setFieldValue("totalAmountWithGST", String(total));
     };
 
     const loadEmployees = async (inputValue) => {
@@ -398,61 +501,37 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         [form.values.center]
     );
 
-
-    return (
-        <Form onSubmit={handleSubmit}>
-            {/* <FormGroup>
-                <Label for="name" className="fw-medium">
-                    Name <span className="text-danger">*</span>
-                </Label>
-                <Input
-                    type="text"
-                    id="name"
-                    name="name"
-                    value={form.values.name}
-                    onChange={(e) => normalizeTextInput(e)}
-                    onBlur={form.handleBlur}
-                    className={`form-control ${form.touched.name && form.errors.name
-                        ? "is-invalid"
-                        : ""
-                        }`}
-                />
-                {form.touched.name && form.errors.name && (
-                    <div className="invalid-feedback d-block">
-                        <i className="fas fa-exclamation-circle me-1"></i>
-                        {form.errors.name}
-                    </div>
-                )}
-            </FormGroup> */}
+    const renderCenterItemCategoryFields = () => (
+        <>
             <FormGroup>
                 <Label for="center" className="fw-medium">
                     Center <span className="text-danger">*</span>
                 </Label>
-                <Input
-                    type="select"
-                    id="center"
+                <Select
+                    inputId="center"
                     name="center"
-                    value={form.values.center}
-                    onChange={(e) => {
-                        form.handleChange(e);
+                    options={centerOptions.map((c) => ({ value: c._id, label: c.title }))}
+                    value={
+                        form.values.center
+                            ? centerOptions
+                                .map((c) => ({ value: c._id, label: c.title }))
+                                .find(opt => opt.value === form.values.center)
+                            : null
+                    }
+                    onChange={(option) => {
+                        form.setFieldValue("center", option?.value || "", true);
                         form.setFieldValue("employeeId", null);
                         form.setFieldTouched("employeeId", false, false);
                     }}
-                    onBlur={form.handleBlur}
-                    className={`form-select ${form.touched.center && form.errors.center
-                        ? "is-invalid"
-                        : ""
-                        }`}
-                >
-                    <option value="" disabled>
-                        Select a Center
-                    </option>
-                    {centerOptions.map((c) => (
-                        <option key={c._id} value={c._id}>
-                            {c.title}
-                        </option>
-                    ))}
-                </Input>
+                    onBlur={() => form.setFieldTouched("center", true)}
+                    placeholder="Select a Center"
+                    classNamePrefix="react-select"
+                    className={
+                        form.touched.center && form.errors.center
+                            ? "react-select is-invalid"
+                            : "react-select"
+                    }
+                />
                 {form.touched.center && form.errors.center && (
                     <div className="invalid-feedback d-block">
                         <i className="fas fa-exclamation-circle me-1"></i>
@@ -632,7 +711,38 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     )}
                 </FormGroup>
             )}
+            {form.values.category === "SALARY_ADVANCE" && (
+                <FormGroup className="mb-3">
+                    <Label for="monthlyDeductionAmount" className="fw-medium">
+                        Employee's Monthly Deduction Amount <span className="text-danger">*</span>
+                    </Label>
+                    <Input
+                        type="text"
+                        id="monthlyDeductionAmount"
+                        name="monthlyDeductionAmount"
+                        value={form.values.monthlyDeductionAmount}
+                        onChange={(e) => normalizeAmountInput(e)}
+                        onBlur={form.handleBlur}
+                        placeholder="0.00"
+                        className={`form-control ${form.touched.monthlyDeductionAmount && form.errors.monthlyDeductionAmount
+                            ? "is-invalid"
+                            : ""
+                            }`}
+                    />
+                    {form.touched.monthlyDeductionAmount && form.errors.monthlyDeductionAmount && (
+                        <div className="invalid-feedback d-block">
+                            <i className="fas fa-exclamation-circle me-1"></i>
+                            {form.errors.monthlyDeductionAmount}
+                        </div>
+                    )}
+                </FormGroup>
+            )}
+        </>
+    );
 
+    const renderToBePaidFields = () => (
+        <>
+            {renderCenterItemCategoryFields()}
             <FormGroup className="mb-4">
                 <Label for="date" className="fw-medium text-muted">
                     Date <span className="text-danger">*</span>
@@ -763,13 +873,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     id="grossAmount"
                     name="grossAmount"
                     value={form.values.grossAmount}
-                    onChange={(e) => {
-                        const { value } = e.target;
-                        if (!/^\d*(\.\d{0,2})?$/.test(value)) return;
-                        form.setFieldValue("grossAmount", value);
-                        const total = Math.round(Number(value || 0) + Number(form.values.GSTAmount || 0));
-                        form.setFieldValue("totalAmountWithGST", String(total));
-                    }}
+                    onChange={handleGrossOrGstChange}
                     onBlur={form.handleBlur}
                     placeholder="0.00"
                     className={`form-control ${form.touched.grossAmount && form.errors.grossAmount
@@ -793,13 +897,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     id="GSTAmount"
                     name="GSTAmount"
                     value={form.values.GSTAmount}
-                    onChange={(e) => {
-                        const { value } = e.target;
-                        if (!/^\d*(\.\d{0,2})?$/.test(value)) return;
-                        form.setFieldValue("GSTAmount", value);
-                        const total = Math.round(Number(form.values.grossAmount || 0) + Number(value || 0));
-                        form.setFieldValue("totalAmountWithGST", String(total));
-                    }}
+                    onChange={handleGrossOrGstChange}
                     onBlur={form.handleBlur}
                     placeholder="0.00"
                     className={`form-control ${form.touched.GSTAmount && form.errors.GSTAmount
@@ -920,76 +1018,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     </div>
                 )}
             </FormGroup>
-            {form.values.category === "SALARY_ADVANCE" && (
-                <FormGroup className="mb-3">
-                    <Label for="monthlyDeductionAmount" className="fw-medium">
-                        Employee's Monthly Deduction Amount <span className="text-danger">*</span>
-                    </Label>
-                    <Input
-                        type="text"
-                        id="monthlyDeductionAmount"
-                        name="monthlyDeductionAmount"
-                        value={form.values.monthlyDeductionAmount}
-                        onChange={(e) => normalizeAmountInput(e)}
-                        onBlur={form.handleBlur}
-                        placeholder="0.00"
-                        className={`form-control ${form.touched.monthlyDeductionAmount && form.errors.monthlyDeductionAmount
-                            ? "is-invalid"
-                            : ""
-                            }`}
-                    />
-                    {form.touched.monthlyDeductionAmount && form.errors.monthlyDeductionAmount && (
-                        <div className="invalid-feedback d-block">
-                            <i className="fas fa-exclamation-circle me-1"></i>
-                            {form.errors.monthlyDeductionAmount}
-                        </div>
-                    )}
-                </FormGroup>
-            )}
-            <FormGroup>
-                <Label className="fw-medium">Status of the Payment <span className="text-danger">*</span></Label>
-                <div>
-                    <FormGroup check inline>
-                        <Input
-                            type="radio"
-                            id="paid"
-                            name="initialPaymentStatus"
-                            value="COMPLETED"
-                            checked={form.values.initialPaymentStatus === "COMPLETED"}
-                            onChange={form.handleChange}
-                            onBlur={form.handleBlur}
-                        />
-                        <Label for="paid" check>
-                            Paid
-                        </Label>
-                    </FormGroup>
-
-                    <FormGroup check inline>
-                        <Input
-                            type="radio"
-                            id="pending"
-                            name="initialPaymentStatus"
-                            value="PENDING"
-                            checked={form.values.initialPaymentStatus === "PENDING"}
-                            onChange={form.handleChange}
-                            onBlur={form.handleBlur}
-                        />
-                        <Label for="pending" check>
-                            To be Paid
-                        </Label>
-                    </FormGroup>
-                </div>
-
-                {form.touched.initialPaymentStatus && form.errors.initialPaymentStatus && (
-                    <div className="invalid-feedback d-block">
-                        <i className="fas fa-exclamation-circle me-1"></i>
-                        {form.errors.initialPaymentStatus}
-                    </div>
-                )}
-            </FormGroup>
             <FormGroup>
                 <Label className="fw-medium">
-                    You need to upload at least one of the following <span className="text-danger"><span className="text-danger"><span className="text-danger">*</span></span></span>
+                    You need to upload at least one of the following <span className="text-danger">*</span>
                 </Label>
 
                 <div className="d-flex flex-wrap gap-3 mt-2">
@@ -1064,7 +1095,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
             {paymentData?._id && existingFiles.length > 0 && (
                 <FormGroup className="mb-3">
-                    <Label className="fw-medium">Existing Attachments</Label>
+                    <Label className="fw-medium">
+                        {ATTACHMENT_SECTION_LABELS[paymentData?.attachmentType] || "Existing Attachments"}
+                    </Label>
 
                     <ul className="list-unstyled m-0 p-0">
                         {existingFiles.map((file, index) => (
@@ -1074,6 +1107,9 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                                     <FileText size={18} className="text-primary" />
                                     <div>
                                         <strong className="me-2">{file.originalName || `Attachment ${index + 1}`}</strong>
+                                        <Badge color="light" className="text-dark me-2">
+                                            {ATTACHMENT_TYPE_LABELS[paymentData?.attachmentType] || paymentData?.attachmentType}
+                                        </Badge>
                                         <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-underline">
                                             View File
                                         </a>
@@ -1099,7 +1135,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
             <FormGroup>
                 <Label className="fw-medium">
-                    Upload Attachment <span className="text-danger"><span className="text-danger">*</span></span>
+                    Upload Attachment <span className="text-danger">*</span>
                 </Label>
                 <FileUpload
                     files={form.values.attachments || []}
@@ -1112,23 +1148,467 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                     </div>
                 )}
             </FormGroup>
+        </>
+    );
 
-            {/* {console.log("FORM DEBUG:", { errors: form.errors, isValid: form.isValid, dirty: form.dirty, values: form.values })} */}
-            <Button
-                color="primary"
-                type="submit"
-                className="w-100 text-white"
-                disabled={form.isSubmitting || !form.isValid || (!paymentData?._id && !form.dirty)}
-            >
-                {form.isSubmitting ? (
-                    <Spinner size="sm" className="me-2" />
-                ) : (
-                    <>
-                        <Share size={16} className="me-2" />
-                        Submit for Approval
-                    </>
+    const renderPaidFields = () => (
+        <>
+            {renderCenterItemCategoryFields()}
+            <FormGroup className="mb-4">
+                <Label for="date" className="fw-medium text-muted">
+                    Date of Entry <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    type="date"
+                    id="date"
+                    name="date"
+                    value={form.values.date}
+                    onChange={form.handleChange}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.date && form.errors.date
+                        ? "is-invalid"
+                        : ""
+                        }`}
+                />
+                {form.touched.date && form.errors.date && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.date}
+                    </div>
                 )}
-            </Button>
+            </FormGroup>
+            <FormGroup>
+                <Label for="vendor" className="fw-medium">
+                    Vendor <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    type="text"
+                    id="vendor"
+                    name="vendor"
+                    value={form.values.vendor}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.vendor && form.errors.vendor
+                        ? "is-invalid"
+                        : ""
+                        }`}
+                />
+                {form.touched.vendor && form.errors.vendor && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.vendor}
+                    </div>
+                )}
+            </FormGroup>
+            <FormGroup>
+                <Label for="invoiceNo" className="fw-medium">
+                    Invoice No <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    type="text"
+                    id="invoiceNo"
+                    name="invoiceNo"
+                    value={form.values.invoiceNo}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.invoiceNo && form.errors.invoiceNo
+                        ? "is-invalid"
+                        : ""
+                        }`}
+                />
+                {form.touched.invoiceNo && form.errors.invoiceNo && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.invoiceNo}
+                    </div>
+                )}
+            </FormGroup>
+            <FormGroup>
+                <Label for="invoiceDate" className="fw-medium">
+                    Invoice Date <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    type="date"
+                    id="invoiceDate"
+                    name="invoiceDate"
+                    value={form.values.invoiceDate}
+                    onChange={form.handleChange}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.invoiceDate && form.errors.invoiceDate
+                        ? "is-invalid"
+                        : ""
+                        }`}
+                />
+                {form.touched.invoiceDate && form.errors.invoiceDate && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.invoiceDate}
+                    </div>
+                )}
+            </FormGroup>
+            <FormGroup>
+                <Label for="grossAmount" className="fw-medium">
+                    Gross Amount (Excl. GST) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    type="text"
+                    id="grossAmount"
+                    name="grossAmount"
+                    value={form.values.grossAmount}
+                    onChange={handleGrossOrGstChange}
+                    onBlur={form.handleBlur}
+                    placeholder="0.00"
+                    className={`form-control ${form.touched.grossAmount && form.errors.grossAmount
+                        ? "is-invalid"
+                        : ""
+                        }`}
+                />
+                {form.touched.grossAmount && form.errors.grossAmount && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.grossAmount}
+                    </div>
+                )}
+            </FormGroup>
+            <FormGroup>
+                <Label for="GSTAmount" className="fw-medium">
+                    GST Amount <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    type="text"
+                    id="GSTAmount"
+                    name="GSTAmount"
+                    value={form.values.GSTAmount}
+                    onChange={handleGrossOrGstChange}
+                    onBlur={form.handleBlur}
+                    placeholder="0.00"
+                    className={`form-control ${form.touched.GSTAmount && form.errors.GSTAmount
+                        ? "is-invalid"
+                        : ""
+                        }`}
+                />
+                {form.touched.GSTAmount && form.errors.GSTAmount && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.GSTAmount}
+                    </div>
+                )}
+            </FormGroup>
+            <FormGroup>
+                <Label for="totalAmountWithGST" className="fw-medium">
+                    Total Amount Including GST
+                </Label>
+                <Input
+                    type="text"
+                    id="totalAmountWithGST"
+                    name="totalAmountWithGST"
+                    value={form.values.totalAmountWithGST}
+                    readOnly
+                    disabled
+                    className="form-control"
+                />
+            </FormGroup>
+            <FormGroup>
+                <Label for="TDSRate" className="fw-medium">
+                    TDS Deduction (%)
+                </Label>
+                <Input
+                    type="text"
+                    id="TDSRate"
+                    name="TDSRate"
+                    value={form.values.TDSRate}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.TDSRate && form.errors.TDSRate
+                        ? "is-invalid"
+                        : ""
+                        }`}
+                />
+                {form.touched.TDSRate && form.errors.TDSRate && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.TDSRate}
+                    </div>
+                )}
+            </FormGroup>
+            <FormGroup>
+                <Label for="transactionId" className="fw-medium">
+                    Transaction ID <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    type="text"
+                    id="transactionId"
+                    name="transactionId"
+                    value={form.values.transactionId}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.transactionId && form.errors.transactionId
+                        ? "is-invalid"
+                        : ""
+                        }`}
+                />
+                {form.touched.transactionId && form.errors.transactionId && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.transactionId}
+                    </div>
+                )}
+            </FormGroup>
+            <FormGroup>
+                <Label for="transactionMethod" className="fw-medium">
+                    Transaction Method <span className="text-danger">*</span>
+                </Label>
+                <Select
+                    inputId="transactionMethod"
+                    name="transactionMethod"
+                    options={transactionMethodOptions}
+                    value={
+                        transactionMethodOptions.find(opt => opt.value === form.values.transactionMethod) || null
+                    }
+                    onChange={(option) => form.setFieldValue("transactionMethod", option?.value || "")}
+                    onBlur={() => form.setFieldTouched("transactionMethod", true)}
+                    placeholder="Select transaction method"
+                    classNamePrefix="react-select"
+                    className={
+                        form.touched.transactionMethod && form.errors.transactionMethod
+                            ? "react-select is-invalid"
+                            : "react-select"
+                    }
+                />
+                {form.touched.transactionMethod && form.errors.transactionMethod && (
+                    <div className="invalid-feedback d-block">
+                        {form.errors.transactionMethod}
+                    </div>
+                )}
+            </FormGroup>
+            <FormGroup>
+                <Label for="paidFromBankAccount" className="fw-medium">
+                    Bank Account (from which amount deducted) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    type="text"
+                    id="paidFromBankAccount"
+                    name="paidFromBankAccount"
+                    value={form.values.paidFromBankAccount}
+                    onChange={form.handleChange}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.paidFromBankAccount && form.errors.paidFromBankAccount
+                        ? "is-invalid"
+                        : ""
+                        }`}
+                />
+                {form.touched.paidFromBankAccount && form.errors.paidFromBankAccount && (
+                    <div className="invalid-feedback d-block">
+                        {form.errors.paidFromBankAccount}
+                    </div>
+                )}
+            </FormGroup>
+
+            {paymentData?._id && form.values.initialPaymentStatus === "COMPLETED" && existingFiles.length > 0 && (
+                <FormGroup className="mb-3">
+                    <Label className="fw-medium">
+                        {ATTACHMENT_SECTION_LABELS[paymentData?.attachmentType] || "Existing Attachments"}
+                    </Label>
+
+                    <ul className="list-unstyled m-0 p-0">
+                        {existingFiles.map((file, index) => (
+                            <li key={index} className="d-flex justify-content-between align-items-center py-2 border-bottom">
+
+                                <div className="d-flex align-items-center gap-2">
+                                    <FileText size={18} className="text-primary" />
+                                    <div>
+                                        <strong className="me-2">{file.originalName || `Attachment ${index + 1}`}</strong>
+                                        <Badge color="light" className="text-dark me-2">
+                                            {ATTACHMENT_TYPE_LABELS[paymentData?.attachmentType] || paymentData?.attachmentType}
+                                        </Badge>
+                                        <a href={file.url} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-underline">
+                                            View File
+                                        </a>
+                                    </div>
+                                </div>
+
+                                <Button
+                                    size="sm"
+                                    color="danger"
+                                    onClick={() => {
+                                        setRemovedAttachments(prev => [...prev, file._id]);
+                                        setExistingFiles(prev => prev.filter(f => f._id !== file._id));
+                                    }}
+                                >
+                                    Remove
+                                </Button>
+                            </li>
+                        ))}
+                    </ul>
+                </FormGroup>
+            )}
+
+            {paymentData?._id && form.values.initialPaymentStatus === "COMPLETED" && existingScreenshot && !removeExistingScreenshot && (
+                <FormGroup className="mb-3">
+                    <Label className="fw-medium">Existing Payment Screenshot</Label>
+
+                    <ul className="list-unstyled m-0 p-0">
+                        <li className="d-flex justify-content-between align-items-center py-2 border-bottom">
+                            <div className="d-flex align-items-center gap-2">
+                                <FileText size={18} className="text-primary" />
+                                <div>
+                                    <strong className="me-2">Payment Screenshot</strong>
+                                    <Badge color="light" className="text-dark me-2">
+                                        Payment Screenshot
+                                    </Badge>
+                                    <a href={existingScreenshot} target="_blank" rel="noopener noreferrer" className="text-primary text-decoration-underline">
+                                        View File
+                                    </a>
+                                </div>
+                            </div>
+
+                            <Button
+                                size="sm"
+                                color="danger"
+                                onClick={() => setRemoveExistingScreenshot(true)}
+                            >
+                                Remove
+                            </Button>
+                        </li>
+                    </ul>
+                </FormGroup>
+            )}
+
+            <FormGroup>
+                <Label className="fw-medium">
+                    Invoice Upload <span className="text-danger">*</span>
+                </Label>
+                <FileUpload
+                    inputId="invoiceUploadInput"
+                    files={form.values.attachments || []}
+                    setFiles={(files) => form.setFieldValue("attachments", files)}
+                />
+                {form.touched.attachments && form.errors.attachments && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.attachments}
+                    </div>
+                )}
+            </FormGroup>
+
+            <FormGroup>
+                <Label className="fw-medium">
+                    Payment Screenshot Upload <span className="text-danger">*</span>
+                </Label>
+                <FileUpload
+                    inputId="paymentScreenshotUploadInput"
+                    files={form.values.paymentScreenshot || []}
+                    setFiles={(files) => form.setFieldValue("paymentScreenshot", files)}
+                    multiple={false}
+                />
+                {form.touched.paymentScreenshot && form.errors.paymentScreenshot && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.paymentScreenshot}
+                    </div>
+                )}
+            </FormGroup>
+
+            <FormGroup>
+                <Label for="paymentMadeBy" className="fw-medium">
+                    Payment Made By <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    type="text"
+                    id="paymentMadeBy"
+                    name="paymentMadeBy"
+                    value={form.values.paymentMadeBy}
+                    onChange={(e) => normalizeTextInput(e)}
+                    onBlur={form.handleBlur}
+                    className={`form-control ${form.touched.paymentMadeBy && form.errors.paymentMadeBy
+                        ? "is-invalid"
+                        : ""
+                        }`}
+                />
+                {form.touched.paymentMadeBy && form.errors.paymentMadeBy && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.paymentMadeBy}
+                    </div>
+                )}
+            </FormGroup>
+        </>
+    );
+
+    return (
+        <Form onSubmit={handleSubmit}>
+            <FormGroup className="mb-4">
+                <Label className="fw-medium d-block mb-2">
+                    Payment Status <span className="text-danger">*</span>
+                </Label>
+                <ButtonGroup>
+                    <Button
+                        type="button"
+                        color={form.values.initialPaymentStatus === "COMPLETED" ? "success" : "secondary"}
+                        outline={form.values.initialPaymentStatus !== "COMPLETED"}
+                        onClick={() => handlePaymentModeChange("COMPLETED")}
+                    >
+                        Paid
+                    </Button>
+                    <Button
+                        type="button"
+                        color={form.values.initialPaymentStatus === "PENDING" ? "warning" : "secondary"}
+                        outline={form.values.initialPaymentStatus !== "PENDING"}
+                        onClick={() => handlePaymentModeChange("PENDING")}
+                    >
+                        To Be Paid
+                    </Button>
+                </ButtonGroup>
+                {form.touched.initialPaymentStatus && form.errors.initialPaymentStatus && (
+                    <div className="invalid-feedback d-block">
+                        <i className="fas fa-exclamation-circle me-1"></i>
+                        {form.errors.initialPaymentStatus}
+                    </div>
+                )}
+            </FormGroup>
+
+            <AnimatePresence mode="wait">
+                {form.values.initialPaymentStatus === "PENDING" && (
+                    <motion.div
+                        key="to-be-paid"
+                        initial={fieldTransition.initial}
+                        animate={fieldTransition.animate}
+                        exit={fieldTransition.exit}
+                        transition={fieldTransition.transition}
+                    >
+                        {renderToBePaidFields()}
+                    </motion.div>
+                )}
+                {form.values.initialPaymentStatus === "COMPLETED" && (
+                    <motion.div
+                        key="paid"
+                        initial={fieldTransition.initial}
+                        animate={fieldTransition.animate}
+                        exit={fieldTransition.exit}
+                        transition={fieldTransition.transition}
+                    >
+                        {renderPaidFields()}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+
+            {form.values.initialPaymentStatus && (
+                <Button
+                    color="primary"
+                    type="submit"
+                    className="w-100 text-white"
+                    disabled={form.isSubmitting || !form.isValid || (!paymentData?._id && !form.dirty)}
+                >
+                    {form.isSubmitting ? (
+                        <Spinner size="sm" className="me-2" />
+                    ) : (
+                        <>
+                            <Share size={16} className="me-2" />
+                            Submit for Approval
+                        </>
+                    )}
+                </Button>
+            )}
 
         </Form>
     )

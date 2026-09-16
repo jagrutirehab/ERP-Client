@@ -2,7 +2,7 @@ import React from "react";
 import moment from "moment";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 import { Badge, Button, Card, CardBody, Col, Row, Spinner } from "reactstrap";
-import { Calendar, Tag, CheckCheck, Copy } from "lucide-react";
+import { Calendar, Tag, CheckCheck, Copy, Paperclip } from "lucide-react";
 import PropTypes from "prop-types";
 import { ExpandableText } from "../../../Components/Common/ExpandableText";
 import { useDispatch } from "react-redux";
@@ -11,12 +11,18 @@ import { updateCentralPaymentAction } from "../../../store/features/centralPayme
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import PaymentFormModal from "./PaymentFormModal";
-import AttachmentCell from "./AttachmentCell";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import { isPreviewable } from "../../../utils/isPreviewable";
 import { downloadFile } from "../../../Components/Common/downloadFile";
 import { formatCurrency } from "../../../utils/formatCurrency";
 import { checkIsExcel } from "../../../utils/checkIsExcel";
+
+const ATTACHMENT_TYPE_LABELS = {
+  "INVOICE/BILL": "Invoice/Bill",
+  "QUOTATION": "Quotation",
+  "PROFORMA_INVOICE": "Proforma Invoice",
+  "VOUCHER": "Voucher",
+};
 
 const ItemCard = ({
   item,
@@ -186,18 +192,27 @@ const ItemCard = ({
 
   return (
     <React.Fragment>
+      <style>{`
+        .item-card-scroll::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
       <Card
         className={`mb-3 shadow-sm hover-shadow transition-all ${border ? "border-1" : "border-0"}`}
         style={{
           position: "relative",
-          ...((flag === "processPayment" || flag === "UTRConfirmation") && {
-            minHeight: 265,
-          }),
         }}
       >
         <CardBody
-          className="py-3"
-          style={{ position: "relative", paddingTop: 28 }}
+          className="py-3 item-card-scroll"
+          style={{
+            position: "relative",
+            paddingTop: 28,
+            minHeight: 320,
+            maxHeight: 320,
+            overflowY: "auto",
+            scrollbarWidth: "none",
+          }}
         >
           {showSelect && (
             <div
@@ -298,11 +313,52 @@ const ItemCard = ({
               )}
 
               {item.attachments && item.attachments.length > 0 && (
-                <div className="mt-2">
-                  <AttachmentCell
-                    attachments={item.attachments}
-                    onPreview={handleAttachmentClick}
-                  />
+                <div className="mt-2 d-flex flex-wrap align-items-center gap-3">
+                  {item.attachments.map((file, index) => (
+                    <div
+                      key={file._id || index}
+                      className="d-flex align-items-center gap-1"
+                    >
+                      <small className="text-muted">
+                        {ATTACHMENT_TYPE_LABELS[item.attachmentType] || "Attachment"}
+                      </small>
+                      <button
+                        type="button"
+                        className="btn btn-link p-0 text-primary text-decoration-underline mb-1 d-flex align-items-center gap-1"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleAttachmentClick(file);
+                        }}
+                      >
+                        <Paperclip size={14} />
+                        View File
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {item.transactionProof && (
+                <div className="mt-2 d-flex flex-wrap align-items-center gap-3">
+                  <div className="d-flex align-items-center gap-1">
+                    <small className="text-muted">Payment Screenshot</small>
+                    <button
+                      type="button"
+                      className="btn btn-link p-0 text-primary text-decoration-underline mb-1 d-flex align-items-center gap-1"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        handleAttachmentClick({
+                          url: item.transactionProof,
+                          originalName: "Payment Screenshot",
+                        });
+                      }}
+                    >
+                      <Paperclip size={14} />
+                      View File
+                    </button>
+                  </div>
                 </div>
               )}
             </Col>

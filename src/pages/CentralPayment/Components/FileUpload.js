@@ -3,7 +3,7 @@ import { useState, useRef } from "react";
 import { Badge, Button, Input, Label } from "reactstrap";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 
-const FileUpload = ({ files, setFiles, multiple = true, maxFiles = 10 }) => {
+const FileUpload = ({ files, setFiles, multiple = true, maxFiles = 10, inputId = "fileInput" }) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [previewFile, setPreviewFile] = useState(null);
   const fileInputRef = useRef(null);
@@ -78,13 +78,13 @@ const FileUpload = ({ files, setFiles, multiple = true, maxFiles = 10 }) => {
           <FileText className="icon text-muted" size={48} />
         </div>
         <div className="mb-2">
-          <Label htmlFor="fileInput" className="text-primary cursor-pointer mb-0">
+          <Label htmlFor={inputId} className="text-primary cursor-pointer mb-0">
             <Upload size={14} className="me-2" />
             {multiple ? "Upload files" : "Upload file"}
           </Label>
           <Input
-            id="fileInput"
-            name="fileInput"
+            id={inputId}
+            name={inputId}
             type="file"
             className="d-none"
             onChange={handleFileChange}
