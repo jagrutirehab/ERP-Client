@@ -121,6 +121,7 @@ const VisitLogList = () => {
         const params = { limit: rowsPerPage, page: page || 1 };
         if (searchTerm && searchTerm.trim()) params.search = searchTerm.trim();
         if (activeFilters.visitType) params.visitType = activeFilters.visitType;
+        if (activeFilters.gpsMatch) params.gpsMatch = activeFilters.gpsMatch;
         if (activeFilters.center) params.center = activeFilters.center;
         if (activeFilters.interestLevel)
           params.interestLevel = activeFilters.interestLevel;
@@ -326,23 +327,8 @@ const VisitLogList = () => {
     return counts;
   }, [logs]);
 
-  // Live filter — recalculated on every render from current `search` state,
-  // so clearing the box (search === "") immediately shows everything again,
-  // no "Apply"/"Clear all" click needed for this specific filter.
-  let visibleLogs = logsWithDistance.filter((log) => {
-    if (filters.gpsMatch === "verified" && log.gps?.matchedClinic !== true)
-      return false;
-    if (filters.gpsMatch === "mismatch" && log.gps?.matchedClinic !== false)
-      return false;
-    if (search.trim()) {
-      const q = search.trim().toLowerCase();
-      const haystack =
-        `${log.agent?.name || ""} ${log.doctor?.name || ""} ${log.doctor?.clinicName || ""}`.toLowerCase();
-      if (!haystack.includes(q)) return false;
-    }
-    return true;
-  });
 
+  let visibleLogs = logsWithDistance;
   if (sortByDistanceDesc) {
     visibleLogs = [...visibleLogs].sort(
       (a, b) => (b._distance || 0) - (a._distance || 0),
