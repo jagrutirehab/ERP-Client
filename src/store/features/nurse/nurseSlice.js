@@ -9,7 +9,6 @@ import {
   getNotesByPatient,
   getNurseAssignedPatients,
   getNurseGivenMedicines,
-  getNurseMedicineBatches,
   getNursesListByPatientCenter,
   getPatientDetails,
   getPatientOverview,
@@ -33,11 +32,7 @@ const initialState = {
       pagination: {},
     },
     nextDay: [],
-    // Transient, per-medicine suggested/searched pharmacy batches for the
-    // batch-picker modal — not persisted alongside nextDay.
-    pharmacyBatchOptions: {},
   },
-  pharmacyBatchLoading: false,
   prescriptionHistory: [],
   givenMedicines: {
     data: [],
@@ -236,32 +231,6 @@ export const getNextDayMedicineBoxFillingActivities = createAsyncThunk(
       return rejectWithValue(
         "Failed to fetch next day medicine box filling medicine activities"
       );
-    }
-  }
-);
-
-export const getSuggestedPharmacyBatches = createAsyncThunk(
-  "nurse/getSuggestedPharmacyBatches",
-  async ({ patientId, medicineId }, { dispatch, rejectWithValue }) => {
-    try {
-      const response = await getNurseMedicineBatches({ patientId, medicineId });
-      return { medicineId, batches: response.data || [] };
-    } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to fetch suggested pharmacy batches");
-    }
-  }
-);
-
-export const searchPharmacyBatches = createAsyncThunk(
-  "nurse/searchPharmacyBatches",
-  async ({ q, patientId }, { dispatch, rejectWithValue }) => {
-    try {
-      const response = await getNurseMedicineBatches({ patientId, q });
-      return response.data || [];
-    } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("Failed to search pharmacy batches");
     }
   }
 );
@@ -518,15 +487,6 @@ export const NurseSlice = createSlice({
     builder.addCase(
       markTomorrowActivityMedicines.fulfilled,
       (state, { payload }) => {
-        // Stock was just deducted from whichever batches were picked in this
-        // submission — any cached batch/stock counts anywhere in the app
-        // (this patient's other medicines, or another patient prescribed the
-        // same drug off the same shared batch) could now be stale. A precise
-        // invalidation would need to track which cache entries point at
-        // which physical batch id; simplest correct fix is to drop the whole
-        // cache so the next picker open always re-reads live stock.
-        state.medicines.pharmacyBatchOptions = {};
-
         const flattenSchedule = (schedule, status) => {
           if (!schedule) return [];
           return Object.entries(schedule).flatMap(([slot, meds]) =>
@@ -584,13 +544,6 @@ export const NurseSlice = createSlice({
         }
       }
     );
-    builder.addCase(markTomorrowActivityMedicines.rejected, (state) => {
-      // A rejection here is very often exactly "stock ran out between the
-      // picker showing it and this submit" — the cache that led to the pick
-      // is already proven wrong, so drop it rather than let a retry hit the
-      // same stale number again.
-      state.medicines.pharmacyBatchOptions = {};
-    });
     builder
       .addCase(getNextDayMedicineBoxFillingActivities.pending, (state) => {
         state.medicineLoading = true;
@@ -600,31 +553,10 @@ export const NurseSlice = createSlice({
         (state, { payload }) => {
           state.medicines.nextDay = payload.data;
           state.medicineLoading = false;
-
-          // Prefetched under the pharmacy gate, keyed the same way the
-          // picker's own cache is — merging it in here means the picker
-          // finds everything already cached and never has to fetch per tap.
-          if (payload.data?.pharmacyBatchesByMedicineId) {
-            Object.assign(
-              state.medicines.pharmacyBatchOptions,
-              payload.data.pharmacyBatchesByMedicineId
-            );
-          }
         }
       )
       .addCase(getNextDayMedicineBoxFillingActivities.rejected, (state) => {
         state.medicineLoading = false;
-      });
-    builder
-      .addCase(getSuggestedPharmacyBatches.pending, (state) => {
-        state.pharmacyBatchLoading = true;
-      })
-      .addCase(getSuggestedPharmacyBatches.fulfilled, (state, { payload }) => {
-        state.pharmacyBatchLoading = false;
-        state.medicines.pharmacyBatchOptions[payload.medicineId] = payload.batches;
-      })
-      .addCase(getSuggestedPharmacyBatches.rejected, (state) => {
-        state.pharmacyBatchLoading = false;
       });
     builder
       .addCase(getNurseGivenMedicinesList.pending, (state) => {

@@ -196,7 +196,7 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
                 ) : data.data && data.data.length > 0 ? (
                   <Row className="g-3">
                     {data.data.map((patient) => (
-                      <Col xl={4} lg={4} md={6} sm={12} xs={12} key={patient._id}>
+                      <Col xl={3} lg={4} md={6} sm={6} xs={12} key={patient._id}>
                         <PatientCard
                           toggleAlertsModal={() => {
                             toggleAlertsModal(patient._id);

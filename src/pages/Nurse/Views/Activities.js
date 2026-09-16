@@ -154,19 +154,7 @@ const Activities = () => {
                   <tbody>
                     {shown.map((med, idx) => (
                       <tr key={`${med.medicineName}-${med.slot}-${idx}`}>
-                        <td>
-                          {med.medicineName}
-                          {med.givenAs && (
-                            <small
-                              className={`d-block ${med.givenAs.name ? "text-warning-emphasis" : "text-muted"}`}
-                            >
-                              {med.givenAs.name && `Given: ${med.givenAs.name} · `}
-                              {med.givenAs.pharmacyId
-                                ? `ID ${med.givenAs.pharmacyId}`
-                                : ""}
-                            </small>
-                          )}
-                        </td>
+                        <td>{med.medicineName}</td>
                         <td className="text-capitalize">{med.slot}</td>
                         <td>{med.dosage}</td>
                         <td>{med.intake || "-"}</td>

@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import {
   Card,
   CardBody,
@@ -13,15 +13,12 @@ import {
   ModalFooter,
 } from "reactstrap";
 import { useNavigate } from "react-router-dom";
-import { buildMedicineSchema } from "./ActivityMedicineForm";
-import PharmacyBatchPicker from "./PharmacyBatchPicker";
-import { shouldPromptForPharmacy } from "./pharmacyPicker.helper";
+import { medicineSchema } from "./ActivityMedicineForm";
 import { Formik, Form, Field } from "formik";
 import { useDispatch } from "react-redux";
 import { markTomorrowActivityMedicines } from "../../../../store/features/nurse/nurseSlice";
 import { toast } from "react-toastify";
-import { Check, CheckCircle, TriangleAlert } from "lucide-react";
-import { formatBatchLabel } from "./PharmacyBatchPicker";
+import { Check, TriangleAlert } from "lucide-react";
 
 const statusColors = {
   urgent: { color: "danger", border: "#ff4d4f" },
@@ -42,29 +39,8 @@ const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
   const [modalOpen, setModalOpen] = useState(false);
   const [missedCount, setMissedCount] = useState(0);
   const [submissionValues, setSubmissionValues] = useState(null);
-  // medicineIds of the rows whose inline pharmacy picker is expanded — a Set
-  // so Select All can open every still-needed picker at once.
-  const [openPickers, setOpenPickers] = useState(() => new Set());
-  const [pickedBatchLabels, setPickedBatchLabels] = useState({});
 
   const toggleModal = () => setModalOpen(!modalOpen);
-
-  const pharmacyDeductionEnabled = !!patient?.pharmacyDeductionEnabled;
-  const medicineSchemaForPatient = useMemo(
-    () => buildMedicineSchema(pharmacyDeductionEnabled),
-    [pharmacyDeductionEnabled]
-  );
-
-  const isPickerOpen = (medicineId) => openPickers.has(String(medicineId));
-  const openPickerFor = (medicineId) =>
-    setOpenPickers((prev) => new Set(prev).add(String(medicineId)));
-  const closePickerFor = (medicineId) =>
-    setOpenPickers((prev) => {
-      const next = new Set(prev);
-      next.delete(String(medicineId));
-      return next;
-    });
-  const closeAllPickers = () => setOpenPickers(new Set());
 
   const { color, border } = statusColors[patient.flag] || {
     color: "secondary",
@@ -93,7 +69,6 @@ const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
                 medicineIndex: med.medicineIndex,
                 slot,
                 status: "pending",
-                pharmacyId: null,
               },
             ];
           }
@@ -244,7 +219,7 @@ const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
           {hasMedicineActions ? (
             <Formik
               initialValues={medicineFormInitialValues}
-              validationSchema={medicineSchemaForPatient}
+              validationSchema={medicineSchema}
               onSubmit={handleFormSubmit}
               enableReinitialize
             >
@@ -320,64 +295,29 @@ const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
                                     values.medicines[i].status === "completed"
                                 );
 
-                                const pickerOpen = isPickerOpen(
-                                  medicine.medicineId
-                                );
-
                                 return (
-                                  <div key={`mark-${idx}`} className="mb-1">
-                                    <div className="d-flex align-items-center text-body-secondary">
+                                  <div
+                                    key={`mark-${idx}`}
+                                    className="d-flex align-items-center text-body-secondary mb-1"
+                                  >
                                     <label
                                       onClick={(e) => e.stopPropagation()}
                                       className="d-flex align-items-center fw-semibold small"
-                                      style={{ paddingBlock: 2 }}
                                     >
                                       <Field
                                         type="checkbox"
                                         checked={allSlotsCompleted}
                                         disabled={!writable}
-                                        style={{
-                                          width: 15,
-                                          height: 15,
-                                          flexShrink: 0,
-                                        }}
-                                        onChange={(e) => {
-                                          const checked = e.target.checked;
-
-                                          // Completing needs a pharmacy chosen
-                                          // first — expand the picker under
-                                          // this row instead of ticking it.
-                                          if (
-                                            checked &&
-                                            shouldPromptForPharmacy({
-                                              nextStatus: "completed",
-                                              needsRemoval: false,
-                                              pharmacyDeductionEnabled,
-                                            })
-                                          ) {
-                                            if (pickerOpen) {
-                                              closePickerFor(medicine.medicineId);
-                                            } else {
-                                              openPickerFor(medicine.medicineId);
-                                            }
-                                            return;
-                                          }
-                                          slotIndexes.forEach((i) => {
+                                        onChange={(e) =>
+                                          slotIndexes.forEach((i) =>
                                             setFieldValue(
                                               `medicines[${i}].status`,
-                                              checked ? "completed" : "pending"
-                                            );
-                                            if (!checked) {
-                                              setFieldValue(
-                                                `medicines[${i}].pharmacyId`,
-                                                null
-                                              );
-                                            }
-                                          });
-                                          if (!checked) {
-                                            closePickerFor(medicine.medicineId);
-                                          }
-                                        }}
+                                              e.target.checked
+                                                ? "completed"
+                                                : "pending"
+                                            )
+                                          )
+                                        }
                                         className="me-2"
                                       />
                                       <span>
@@ -387,81 +327,6 @@ const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
                                         </span>
                                       </span>
                                     </label>
-                                    </div>
-
-                                    {!pickerOpen &&
-                                      pharmacyDeductionEnabled &&
-                                      values.medicines[slotIndexes[0]]
-                                        ?.pharmacyId && (
-                                        <div
-                                          className="d-flex align-items-center gap-1 mt-1 px-2 rounded"
-                                          style={{
-                                            background: "#f0f9f2",
-                                            border: "1px solid #d3ecd8",
-                                            minHeight: 24,
-                                          }}
-                                        >
-                                          <CheckCircle
-                                            size={11}
-                                            className="text-success flex-shrink-0"
-                                          />
-                                          <span
-                                            className="text-success-emphasis flex-grow-1"
-                                            style={{ fontSize: "0.68rem" }}
-                                          >
-                                            {pickedBatchLabels[
-                                              medicine.medicineId
-                                            ] || "Selected from inventory"}
-                                          </span>
-                                          <button
-                                            type="button"
-                                            className="btn btn-link btn-sm text-decoration-none"
-                                            style={{ fontSize: "0.68rem", padding: "2px 2px" }}
-                                            onClick={() =>
-                                              openPickerFor(medicine.medicineId)
-                                            }
-                                          >
-                                            Change
-                                          </button>
-                                        </div>
-                                      )}
-
-                                    {pickerOpen && (
-                                      <PharmacyBatchPicker
-                                        patientId={patient._id}
-                                        medicine={{
-                                          medicineId: medicine.medicineId,
-                                          medicineName: medicine.medicineName,
-                                        }}
-                                        selectedPharmacyId={
-                                          values.medicines[slotIndexes[0]]
-                                            ?.pharmacyId
-                                        }
-                                        onSelect={(pharmacyId, batch) => {
-                                          slotIndexes.forEach((i) => {
-                                            setFieldValue(
-                                              `medicines[${i}].pharmacyId`,
-                                              pharmacyId
-                                            );
-                                            setFieldValue(
-                                              `medicines[${i}].status`,
-                                              "completed"
-                                            );
-                                          });
-                                          if (batch) {
-                                            setPickedBatchLabels((prev) => ({
-                                              ...prev,
-                                              [medicine.medicineId]:
-                                                formatBatchLabel(batch),
-                                            }));
-                                          }
-                                          closePickerFor(medicine.medicineId);
-                                        }}
-                                        onCancel={() =>
-                                          closePickerFor(medicine.medicineId)
-                                        }
-                                      />
-                                    )}
                                   </div>
                                 );
                               })}
@@ -486,7 +351,6 @@ const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
                                     <label
                                       onClick={(e) => e.stopPropagation()}
                                       className="d-flex align-items-center fw-semibold small text-danger"
-                                      style={{ paddingBlock: 2 }}
                                     >
                                       <Field
                                         type="checkbox"
@@ -495,11 +359,6 @@ const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
                                           "retrieved"
                                         }
                                         disabled={!writable}
-                                        style={{
-                                          width: 15,
-                                          height: 15,
-                                          flexShrink: 0,
-                                        }}
                                         onChange={(e) =>
                                           setFieldValue(
                                             `medicines[${actionIndex}].status`,
@@ -530,65 +389,24 @@ const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
                               <>
                                 <label
                                   className="d-flex align-items-center fw-semibold small"
-                                  style={{ gap: "4px", paddingBlock: 2 }}
+                                  style={{ gap: "4px" }}
                                   onClick={(e) => e.stopPropagation()}
                                 >
                                   <input
                                     type="checkbox"
                                     checked={allMedicinesCompleted}
-                                    style={{ width: 15, height: 15, flexShrink: 0 }}
                                     onChange={(e) => {
                                       const checked = e.target.checked;
-                                      const needsPharmacyIds = [];
-
-                                      medicinesToTakeNow.forEach((med) => {
-                                        const slotIndexes = getSlotIndexes(med);
-
-                                        // Under the pharmacy gate, "Select All"
-                                        // must not complete a drug nobody has
-                                        // chosen a pharmacy for — open its
-                                        // picker instead of silently skipping.
-                                        if (
-                                          checked &&
-                                          pharmacyDeductionEnabled &&
-                                          !slotIndexes.every(
-                                            (i) => values.medicines[i]?.pharmacyId
-                                          )
-                                        ) {
-                                          needsPharmacyIds.push(med.medicineId);
-                                          return;
-                                        }
-
-                                        slotIndexes.forEach((i) => {
+                                      medicinesToTakeNow.forEach((med) =>
+                                        getSlotIndexes(med).forEach((i) =>
                                           setFieldValue(
                                             `medicines[${i}].status`,
-                                            checked ? "completed" : "pending"
-                                          );
-                                          if (!checked) {
-                                            setFieldValue(
-                                              `medicines[${i}].pharmacyId`,
-                                              null
-                                            );
-                                          }
-                                        });
-                                      });
-
-                                      if (!checked) {
-                                        closeAllPickers();
-                                      } else if (needsPharmacyIds.length > 0) {
-                                        // Open every still-needed picker at
-                                        // once instead of making the nurse
-                                        // tap each medicine individually.
-                                        setOpenPickers(
-                                          new Set(
-                                            needsPharmacyIds.map(String)
+                                            checked
+                                              ? "completed"
+                                              : "pending"
                                           )
-                                        );
-                                        toast.info(
-                                          `${needsPharmacyIds.length} medicine${needsPharmacyIds.length > 1 ? "s" : ""} need to be selected from inventory — pick a batch for each below.`
-                                        );
-                                      }
-
+                                        )
+                                      );
                                       values.medicines.forEach((med, i) => {
                                         if (med.historyId) {
                                           setFieldValue(

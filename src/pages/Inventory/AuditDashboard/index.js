@@ -49,7 +49,7 @@ const AuditDashboard = () => {
     >
       <div className="content-wrapper">
         <div className="text-center text-md-left">
-          <h4 className="font-weight-bold text-primary text-uppercase mb-0">Audit Dashboard</h4>
+          <h1 className="display-6 fw-bold text-primary">AUDIT DASHBOARD</h1>
         </div>
         <Nav tabs className="mb-3">
           <NavItem>

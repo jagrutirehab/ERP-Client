@@ -374,7 +374,6 @@ export const GET_COMPLETED_ACTIVE_MEDICINES = "/nurse/completed-medicine";
 export const MARK_MEDICINE_AS_GIVEN = "/nurse/medicine/mark";
 export const GET_NEXT_DAY_MEDICINEBOXFILLING_MEDICINES =
   "/nurse/next-day-medicines";
-export const GET_NURSE_MEDICINE_BATCHES = "/nurse/medicine-batches";
 export const GET_ACTIVITIES_BY_STATUS = "/nurse/activities";
 export const GET_NURSE_GIVEN_MEDICINES = "/nurse/medicine-records";
 export const GET_NURSE_GIVEN_MEDICINE_DETAILS =
