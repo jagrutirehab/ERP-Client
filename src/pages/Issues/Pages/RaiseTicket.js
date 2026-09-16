@@ -116,7 +116,7 @@ const RaiseTicket = () => {
     try {
       setLoadingEmployees(true);
 
-      const params = { type: "employee" };
+      const params = { type: "all" };
 
       if (/^\d+$/.test(searchText)) {
         params.eCode = searchText;

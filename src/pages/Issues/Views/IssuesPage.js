@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import {
   CardBody,
+  Input,
   Label,
   Modal,
   ModalBody,
@@ -46,6 +47,8 @@ const IssuesPage = ({ type }) => {
   const [selectedIssue, setSelectedIssue] = useState(null);
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [issueIdSearch, setIssueIdSearch] = useState("");
+  const [debouncedIssueId, setDebouncedIssueId] = useState("");
 
   const [approvalModal, setApprovalModal] = useState(false);
   const [approvalIssue, setApprovalIssue] = useState(null);
@@ -125,6 +128,7 @@ const IssuesPage = ({ type }) => {
           ? { approvalStatus }
           : {}),
         ...(type === "HR" && managerApproval ? { managerApproval } : {}),
+        ...(debouncedIssueId ? { issueNumber: debouncedIssueId } : {}),
       });
 
       setIssues(data?.data || []);
@@ -150,7 +154,19 @@ const IssuesPage = ({ type }) => {
     approvalStatus,
     type,
     managerApproval,
+    debouncedIssueId,
   ]);
+
+  useEffect(() => {
+    const handler = setTimeout(() => {
+      setDebouncedIssueId(issueIdSearch.trim());
+    }, 500);
+    return () => clearTimeout(handler);
+  }, [issueIdSearch]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedIssueId]);
 
   const handleViewDescription = (desc) => {
     setDescription(desc);
@@ -360,6 +376,19 @@ const IssuesPage = ({ type }) => {
         </Nav>
 
         <div className="mb-3 d-flex gap-2">
+          {type === "TECH" && (
+            <div>
+              <Input
+                type="text"
+                placeholder="Search by Issue ID"
+                value={issueIdSearch}
+                onChange={(e) =>
+                  setIssueIdSearch(e.target.value.replace(/\D/g, ""))
+                }
+                style={{ width: 200 }}
+              />
+            </div>
+          )}
           <div>
             {/* <Label>Center Select</Label> */}
             <Select
