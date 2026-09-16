@@ -48,6 +48,7 @@ import {
   paymentTypeOptions,
   isSimplifiedFinanceType,
   isConsultantFinanceType,
+  isPfApplicable,
   categoryOptions,
 } from "../../../../Components/constants/HR";
 import {
@@ -1299,9 +1300,7 @@ const EmployeeForm = ({
     const payroll = calculatePayroll({
       ...values,
       ...annualToMonthly(values),
-      pfApplicable:
-        values.newEmploymentType === "FULL_TIME" &&
-        values.category !== "FORM11",
+      pfApplicable: isPfApplicable(values),
       currentLocation: selectedCenter
         ? { title: selectedCenter.title, address: selectedCenter.address }
         : null,
