@@ -93,6 +93,9 @@ const VisitLogList = () => {
   const [routeModalKey, setRouteModalKey] = useState(null);
   const [rowsPerPage, setRowsPerPage] = useState(25);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalPagesFromServer, setTotalPagesFromServer] = useState(1);
+  const [totalRecordsFromServer, setTotalRecordsFromServer] = useState(0);
+  const searchDebounceRef = useRef(null);
   const searchWrapperRef = useRef(null);
   const [centers, setCenters] = useState([]);
   const [showFlaggedOnly, setShowFlaggedOnly] = useState(false);
@@ -110,38 +113,45 @@ const VisitLogList = () => {
       })
       .catch(() => {});
   }, []);
-  const fetchLogs = useCallback(async (activeFilters, flaggedOnly) => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = { limit: 500 };
-      if (activeFilters.visitType) params.visitType = activeFilters.visitType;
-      if (activeFilters.center) params.center = activeFilters.center;
-      if (activeFilters.interestLevel)
-        params.interestLevel = activeFilters.interestLevel;
-      if (activeFilters.from) params.from = activeFilters.from;
-      if (activeFilters.to) params.to = activeFilters.to;
+  const fetchLogs = useCallback(
+    async (activeFilters, flaggedOnly, page, searchTerm) => {
+      setLoading(true);
+      setError(null);
+      try {
+        const params = { limit: rowsPerPage, page: page || 1 };
+        if (searchTerm && searchTerm.trim()) params.search = searchTerm.trim();
+        if (activeFilters.visitType) params.visitType = activeFilters.visitType;
+        if (activeFilters.center) params.center = activeFilters.center;
+        if (activeFilters.interestLevel)
+          params.interestLevel = activeFilters.interestLevel;
+        if (activeFilters.from) params.from = activeFilters.from;
+        if (activeFilters.to) params.to = activeFilters.to;
 
-      // Flagged-only mode hits the dedicated fraud-review endpoint instead
-      // of the normal visit-log list.
-      const res = flaggedOnly
-        ? await getFlaggedVisits(params)
-        : await getVisitLogs(params);
-      const data = res?.payload || res?.data?.payload || res?.data?.data || [];
-      setLogs(data);
-    } catch (err) {
-      if (!handleAuthError(err)) {
-        setError(err?.response?.data?.message || "Failed to load visit logs");
+        const res = flaggedOnly
+          ? await getFlaggedVisits(params)
+          : await getVisitLogs(params);
+        const data =
+          res?.payload || res?.data?.payload || res?.data?.data || [];
+        const pag = res?.pagination ||
+          res?.data?.pagination || { totalPages: 1, total: 0 };
+        setLogs(data);
+        setTotalPagesFromServer(pag.totalPages || 1);
+        setTotalRecordsFromServer(pag.total || 0);
+      } catch (err) {
+        if (!handleAuthError(err)) {
+          setError(err?.response?.data?.message || "Failed to load visit logs");
+        }
+      } finally {
+        setLoading(false);
       }
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+    },
+    [rowsPerPage],
+  );
 
   useEffect(() => {
-    fetchLogs(DEFAULT_FILTERS, showFlaggedOnly);
+    fetchLogs(DEFAULT_FILTERS, showFlaggedOnly, 1, "");
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchLogs]);
+  }, []);
 
   // Close suggestions dropdown when clicking outside of it
   useEffect(() => {
@@ -161,19 +171,23 @@ const VisitLogList = () => {
     setFilters((f) => ({ ...f, [key]: value }));
   const applyFilters = () => {
     setCurrentPage(1);
-    fetchLogs(filters, showFlaggedOnly);
+    fetchLogs(filters, showFlaggedOnly, 1, search);
   };
   const resetFilters = () => {
     setFilters(DEFAULT_FILTERS);
     setSearch("");
     setCurrentPage(1);
-    fetchLogs(DEFAULT_FILTERS, showFlaggedOnly);
+    fetchLogs(DEFAULT_FILTERS, showFlaggedOnly, 1, "");
   };
   const toggleFlaggedOnly = () => {
     const next = !showFlaggedOnly;
     setShowFlaggedOnly(next);
     setCurrentPage(1);
-    fetchLogs(filters, next);
+    fetchLogs(filters, next, 1, search);
+  };
+  const goToPage = (newPage) => {
+    setCurrentPage(newPage);
+    fetchLogs(filters, showFlaggedOnly, newPage, search);
   };
 
   // ---- Build unique agent + doctor suggestion lists from currently loaded logs ----
@@ -335,12 +349,9 @@ const VisitLogList = () => {
     );
   }
 
-  const totalPages = Math.max(1, Math.ceil(visibleLogs.length / rowsPerPage));
-  const safePage = Math.min(currentPage, totalPages);
-  const paginatedLogs = visibleLogs.slice(
-    (safePage - 1) * rowsPerPage,
-    safePage * rowsPerPage,
-  );
+  const totalPages = totalPagesFromServer;
+  const safePage = currentPage;
+  const paginatedLogs = visibleLogs;
 
   const hasActiveFilters =
     Object.values(filters).some((v) => v !== "") || search.trim();
@@ -466,9 +477,15 @@ const VisitLogList = () => {
                       placeholder="Agent or doctor name…"
                       value={search}
                       onChange={(e) => {
-                        setSearch(e.target.value);
+                        const val = e.target.value;
+                        setSearch(val);
                         setShowSuggestions(true);
                         setCurrentPage(1);
+                        if (searchDebounceRef.current)
+                          clearTimeout(searchDebounceRef.current);
+                        searchDebounceRef.current = setTimeout(() => {
+                          fetchLogs(filters, showFlaggedOnly, 1, val);
+                        }, 400);
                       }}
                       onFocus={() => setShowSuggestions(true)}
                     />
@@ -990,8 +1007,10 @@ const VisitLogList = () => {
                   style={{ width: "80px" }}
                   value={rowsPerPage}
                   onChange={(e) => {
-                    setRowsPerPage(Number(e.target.value));
+                    const newRows = Number(e.target.value);
+                    setRowsPerPage(newRows);
                     setCurrentPage(1);
+                    fetchLogs(filters, showFlaggedOnly, 1, search);
                   }}
                 >
                   <option value={10}>10</option>
@@ -1002,16 +1021,20 @@ const VisitLogList = () => {
 
               <div className="d-flex align-items-center gap-3">
                 <span className="text-muted fs-13">
-                  {(safePage - 1) * rowsPerPage + 1}–
-                  {Math.min(safePage * rowsPerPage, visibleLogs.length)} of{" "}
-                  {visibleLogs.length}
+                  {totalRecordsFromServer === 0
+                    ? "0"
+                    : `${(safePage - 1) * rowsPerPage + 1}–${Math.min(
+                        safePage * rowsPerPage,
+                        totalRecordsFromServer,
+                      )}`}{" "}
+                  of {totalRecordsFromServer}
                 </span>
                 <div className="d-flex gap-1">
                   <Button
                     size="sm"
                     color="light"
                     disabled={safePage === 1}
-                    onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+                    onClick={() => goToPage(Math.max(1, safePage - 1))}
                   >
                     <i className="bx bx-chevron-left" />
                   </Button>
@@ -1019,9 +1042,7 @@ const VisitLogList = () => {
                     size="sm"
                     color="light"
                     disabled={safePage === totalPages}
-                    onClick={() =>
-                      setCurrentPage((p) => Math.min(totalPages, p + 1))
-                    }
+                    onClick={() => goToPage(Math.min(totalPages, safePage + 1))}
                   >
                     <i className="bx bx-chevron-right" />
                   </Button>
