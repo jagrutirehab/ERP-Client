@@ -10,6 +10,12 @@ import ItemCard from "../Components/ItemCard";
 import Select from "react-select";
 import { formatCurrency } from "../../../utils/formatCurrency";
 
+const paymentTypeOptions = [
+  { value: "", label: "All Payments" },
+  { value: "COMPLETED", label: "Paid" },
+  { value: "PENDING", label: "To Be Paid" },
+];
+
 const FinanceApprovalDashboard = ({
   centerAccess,
   centers,
@@ -20,6 +26,7 @@ const FinanceApprovalDashboard = ({
   const handleAuthError = useAuthError();
   const [page, setPage] = useState(1);
   const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState("");
   const limit = 12;
 
   const microUser = localStorage.getItem("micrologin");
@@ -75,6 +82,7 @@ const FinanceApprovalDashboard = ({
             approvalStatus: "APPROVED",
             accountingApprovalStatus: "APPROVED",
             financeApprovalStatus: "PENDING",
+            ...(paymentTypeFilter && { initialPaymentStatus: paymentTypeFilter }),
           }),
         ).unwrap();
       } catch (error) {
@@ -87,7 +95,7 @@ const FinanceApprovalDashboard = ({
     };
 
     fetchPendingFinanceApprovals();
-  }, [centerAccess, selectedCenter, dispatch, page, limit]);
+  }, [centerAccess, selectedCenter, dispatch, page, limit, paymentTypeFilter]);
 
   if (loading) {
     return (
@@ -105,17 +113,31 @@ const FinanceApprovalDashboard = ({
         <Container fluid>
           <div className="mb-5">
             <Row className="mb-3 align-items-center justify-content-between">
-              <Col lg="2" md="6" sm="12">
-                <Select
-                  value={selectedCenterOption}
-                  onChange={(option) => {
-                    setSelectedCenter(option?.value);
-                    setPage(1);
-                  }}
-                  options={centerOptions}
-                  placeholder="All Centers"
-                  classNamePrefix="react-select"
-                />
+              <Col lg="6" md="12" sm="12" className="d-flex flex-wrap gap-2">
+                <div style={{ minWidth: 200 }}>
+                  <Select
+                    value={selectedCenterOption}
+                    onChange={(option) => {
+                      setSelectedCenter(option?.value);
+                      setPage(1);
+                    }}
+                    options={centerOptions}
+                    placeholder="All Centers"
+                    classNamePrefix="react-select"
+                  />
+                </div>
+                <div style={{ minWidth: 200 }}>
+                  <Select
+                    value={paymentTypeOptions.find(opt => opt.value === paymentTypeFilter)}
+                    onChange={(option) => {
+                      setPaymentTypeFilter(option?.value || "");
+                      setPage(1);
+                    }}
+                    options={paymentTypeOptions}
+                    placeholder="All Payments"
+                    classNamePrefix="react-select"
+                  />
+                </div>
               </Col>
               <Col xs="auto" className="d-flex align-items-center">
                 <span className="text-muted me-1">Total Balance:</span>
