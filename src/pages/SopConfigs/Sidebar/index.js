@@ -26,10 +26,23 @@ const SOPsidebar = () => {
 
   const navigate = useNavigate();
 
+  // Note this filter is opt-OUT: a page with no branch here is visible to
+  // anyone who can reach /sop-configs at all.
   const filteredSOPOptions = SOP_CONFIGS?.filter((page) => {
     if (page.id === "sopconfigs-create") {
       if (!hasConfigurationPermission) return false;
       return true;
+    }
+
+    if (page.id === "sopconfigs-baseline-package") {
+      // OR-fallback to the MANAGE submodule, matching the pages themselves: a
+      // newly added submodule reads as NONE on every existing role until an
+      // admin re-saves it, so without this nobody would see the section on day
+      // one. TODO: drop the fallback once roles have been re-saved.
+      return (
+        hasPermission("SOPCONFIGS", "BASELINE_PACKAGE", "READ") ||
+        hasConfigurationPermission
+      );
     }
 
     return true;

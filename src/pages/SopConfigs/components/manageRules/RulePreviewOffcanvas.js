@@ -11,7 +11,7 @@ import {
   OffcanvasHeader,
   Spinner,
 } from "reactstrap";
-import { SEVERITY_COLOR, SEVERITY_HEX } from "../alerts/alertConstants";
+import { SEVERITY_COLOR, SEVERITY_HEX } from "../../../Alerts/components/alertConstants";
 import { fmtDate } from "./ruleUtils";
 import { getICDCodes } from "../../../../helpers/backend_helper";
 import { buildDocumentViewerSrc } from "../SOPDocumentSection";

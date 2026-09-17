@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { CardBody } from "reactstrap";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "../../Components/Hooks/useMediaQuery";
-import { useAlertsInbox } from "./components/useAlertsInbox";
+import { useAlertsInbox, buildServerParams } from "./components/useAlertsInbox";
 import AlertsHeader from "./components/AlertsHeader";
 import AlertsFilters from "./components/AlertsFilters";
 import AlertsList from "./components/AlertsList";
@@ -13,21 +13,13 @@ import { usePermissions } from "../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
 import { exportSopAlerts } from "../../helpers/backend_helper";
 
-// Pull params from the same filter shape the inbox sends to /sop/alerts, minus
-// pagination. Returns only keys with meaningful values so the URL stays clean.
+// Export params are the inbox's own params minus pagination. Built by REUSING
+// buildServerParams rather than re-listing every filter: the two used to be
+// separate near-identical translators, so any filter added to one was silently
+// dropped by the other and the CSV quietly disagreed with the screen.
 const buildExportParams = (f) => {
-  const out = {};
-  if (f.patients?.length) out.patients = f.patients.map((p) => p.value).join(",");
-  if (f.rules?.length) out.rules = f.rules.map((r) => r.value).join(",");
-  if (f.centers?.length) out.centers = f.centers.join(",");
-  if (f.severity?.length) out.severity = f.severity.join(",");
-  if (f.dateFrom) out.dateFrom = f.dateFrom;
-  if (f.dateTo) out.dateTo = f.dateTo;
-  if (f.readState && f.readState !== "all") out.readState = f.readState;
-  if (f.phase && f.phase !== "all") out.phase = f.phase;
-  if (f.resolvedState && f.resolvedState !== "all")
-    out.resolvedState = f.resolvedState;
-  return out;
+  const { page, pageSize, ...rest } = buildServerParams(f, 1, 1);
+  return rest;
 };
 
 // Pull filename out of the Content-Disposition header the server set. Falls

@@ -34,6 +34,8 @@ import { toast } from "react-toastify";
 import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
 import { setAdmissionRamsayApplicable } from "../../../store/features/chart/chartSlice";
 import SetAdmissionTypeModal from "./Components/SetAdmissionTypeModal";
+import BaselinePackageControl from "./Components/BaselinePackageControl";
+import BaselinePackageStatusModal from "./Components/BaselinePackageStatusModal";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 
@@ -61,6 +63,10 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   // Admission id whose "Set Admission Type" dialog is open, or null. Keyed by id
   // rather than a boolean because the page renders one card per admission.
   const [admissionTypeFor, setAdmissionTypeFor] = useState(null);
+  // { admissionId, nextStatus } for the open baseline-package confirm dialog, or
+  // null. Keyed by admission id for the same reason as admissionTypeFor, and
+  // carries the target status because one modal serves all three transitions.
+  const [baselineTarget, setBaselineTarget] = useState(null);
   const latestPatientIdRef = useRef();
 
   // `user.accessroles` is a bare ObjectId on the user document, so the role NAME
@@ -351,8 +357,12 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     how Patient Category behaves.
 
                     w-100 makes this its own flex line so it sits beneath the
-                    Patient Category dropdown rather than crowding the row; it
-                    must therefore stay the LAST child of this row. */}
+                    Patient Category dropdown rather than crowding the row.
+                    The w-100 rows must stay LAST in this row: anything added
+                    after one of them lands on the wrapped line, not the main
+                    row. Add another w-100 sibling below rather than nesting
+                    into this div, which has no flex-wrap and would overflow on
+                    a narrow screen. */}
                 <div className="d-flex align-items-center gap-1 w-100">
                   <RenderWhen isTrue={!addmission.dischargeDate}>
                     <div className="form-check form-switch d-flex align-items-center mb-0">
@@ -411,12 +421,32 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     </Button>
                   </RenderWhen>
                 </div>
+
+                {/* Baseline investigation package — its own w-100 line for the
+                    same reason as the Ramsay row above. Marking it complete or
+                    not-applicable is what stops the governance escalation
+                    ladder. */}
+                <div className="d-flex align-items-center gap-1 w-100">
+                  <BaselinePackageControl
+                    addmission={addmission}
+                    onRequestChange={(admissionId, nextStatus) =>
+                      setBaselineTarget({ admissionId, nextStatus })
+                    }
+                  />
+                </div>
               </div>
 
               <SetAdmissionTypeModal
                 isOpen={admissionTypeFor === addmission._id}
                 toggle={() => setAdmissionTypeFor(null)}
                 addmission={addmission}
+              />
+
+              <BaselinePackageStatusModal
+                isOpen={baselineTarget?.admissionId === addmission._id}
+                toggle={() => setBaselineTarget(null)}
+                addmission={addmission}
+                nextStatus={baselineTarget?.nextStatus}
               />
 
               <div className="d-flex align-items-center gap-4">

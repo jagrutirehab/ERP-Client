@@ -1,7 +1,12 @@
 import DataTable from "react-data-table-component";
 import { Badge, Button, Spinner } from "reactstrap";
-import { SEVERITY_COLOR, SEVERITY_HEX, PHASE_META } from "./alertConstants";
-import { timeAgo } from "./alertUtils";
+import {
+  SEVERITY_COLOR,
+  SEVERITY_HEX,
+  PHASE_META,
+  ALERT_SOURCE_META,
+} from "./alertConstants";
+import { timeAgo, isRuleSourced, alertSourceLabel } from "./alertUtils";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setTotalAmount, viewPatient } from "../../../store/actions";
@@ -121,13 +126,25 @@ const AlertsList = ({
       ),
     },
     {
-      name: "SOP",
+      name: "Source",
       width: "150px",
       cell: (row) => (
         <div {...RC}>
           <div {...RC} className={row.isRead ? "text-muted" : "fw-semibold"}>
-            {row.rule?.ruleName || "(deleted rule)"}
+            {alertSourceLabel(row)}
           </div>
+          {/* Only badge the exceptions — a rule-sourced alert is the norm and
+              labelling every row would be noise. Every element in a custom cell
+              needs {...RC} or row clicks are silently dropped. */}
+          {!isRuleSourced(row) && (
+            <Badge
+              {...RC}
+              color={ALERT_SOURCE_META[row.source]?.color || "secondary"}
+              className="mt-1"
+            >
+              {ALERT_SOURCE_META[row.source]?.label || row.source}
+            </Badge>
+          )}
         </div>
       ),
     },

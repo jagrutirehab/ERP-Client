@@ -1,5 +1,5 @@
 import { Button, ButtonGroup, Input } from "reactstrap";
-import { SEVERITIES, SEVERITY_COLOR } from "../alerts/alertConstants";
+import { SEVERITIES, SEVERITY_COLOR } from "../../../Alerts/components/alertConstants";
 
 const ManageRulesFilters = ({
   counts,

@@ -432,6 +432,8 @@ export const updatePatientAdmission = (data) =>
   api.update(url.EDIT_ADMISSION, data);
 export const setRamsayApplicable = (data) =>
   api.update(url.SET_RAMSAY_APPLICABLE, data);
+export const setBaselineInvestigationStatus = (data) =>
+  api.update(url.SET_BASELINE_INVESTIGATION_STATUS, data);
 export const setAdmissionTypeDirect = (data) =>
   api.update(url.SET_ADMISSION_TYPE_DIRECT, data);
 export const updateAdmissionWardBed = (data) =>
@@ -4382,6 +4384,31 @@ export const updateSopRule = (id, payload) =>
 export const toggleSopRuleActive = (id, isActive) =>
   axios.patch(`${url.SOP_RULES}/${id}/active`, { isActive });
 export const deleteSopRule = (id) => axios.delete(`${url.SOP_RULES}/${id}`);
+
+// Baseline investigation package config. Bare axios like every other sop*
+// helper — APIClient.get hand-rolls the query string AND passes `params` as the
+// axios config object, which mangles it.
+export const getBaselinePackageMeta = () =>
+  axios.get(`${url.SOP_BASELINE_PACKAGE}/meta`);
+export const listBaselinePackages = (params) =>
+  axios.get(`${url.SOP_BASELINE_PACKAGE}/configs`, { params });
+export const getBaselinePackageById = (id) =>
+  axios.get(`${url.SOP_BASELINE_PACKAGE}/configs/${id}`);
+export const createBaselinePackage = (payload) =>
+  axios.post(`${url.SOP_BASELINE_PACKAGE}/configs`, payload);
+export const updateBaselinePackage = (id, payload) =>
+  axios.patch(`${url.SOP_BASELINE_PACKAGE}/configs/${id}`, payload);
+export const toggleBaselinePackageActive = (id, isActive, effectiveFrom) =>
+  axios.patch(`${url.SOP_BASELINE_PACKAGE}/configs/${id}/active`, {
+    isActive,
+    effectiveFrom,
+  });
+export const deleteBaselinePackage = (id) =>
+  axios.delete(`${url.SOP_BASELINE_PACKAGE}/configs/${id}`);
+export const previewBaselinePackage = (id, effectiveFrom) =>
+  axios.post(`${url.SOP_BASELINE_PACKAGE}/configs/${id}/preview`, {
+    effectiveFrom,
+  });
 
 export const uploadSopRuleDocument = (id, file) => {
   const fd = new FormData();
