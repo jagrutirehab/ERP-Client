@@ -1,6 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   setRamsayApplicable as setRamsayApplicableApi,
+  setBaselineInvestigationStatus as setBaselineInvestigationStatusApi,
   setAdmissionTypeDirect as setAdmissionTypeDirectApi,
   deleteChart,
   deleteClinicalNoteFile,
@@ -393,6 +394,23 @@ export const setAdmissionRamsayApplicable = createAsyncThunk(
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue(error.message || "Failed to update Ramsay applicability");
+    }
+  },
+);
+
+// Baseline investigation package status. In THIS slice for the same reason as
+// the Ramsay toggle above: IPD.js renders from `state.Chart.data`, so the
+// control only holds its new value if the timeline is patched there.
+export const setAdmissionBaselineInvestigationStatus = createAsyncThunk(
+  "setBaselineInvestigationStatus",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      return await setBaselineInvestigationStatusApi(data);
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(
+        error.message || "Failed to update baseline investigation status",
+      );
     }
   },
 );
@@ -2061,6 +2079,28 @@ export const chartSlice = createSlice({
         if (idx === -1) return;
         state.data[idx].isRamsayApplicable = payload.data.isRamsayApplicable;
       })
+      .addCase(
+        setAdmissionBaselineInvestigationStatus.fulfilled,
+        (state, { payload }) => {
+          // Same reason as the Ramsay case above — IPD.js reads this array, so
+          // patch it here or the control reverts on the next render.
+          //
+          // `baselineInvestigationStatus` is a mongoose VIRTUAL derived from
+          // `baselineInvestigationHistory`. Both are patched, and the key must
+          // match the virtual's name exactly: patch one name while the UI reads
+          // another and the control silently snaps back with no error anywhere.
+          const id = payload?.data?._id;
+          if (!id) return;
+          const idx = state.data.findIndex(
+            (el) => String(el._id) === String(id),
+          );
+          if (idx === -1) return;
+          state.data[idx].baselineInvestigationStatus =
+            payload.data.baselineInvestigationStatus;
+          state.data[idx].baselineInvestigationHistory =
+            payload.data.baselineInvestigationHistory || [];
+        },
+      )
       .addCase(addAdmissionType.fulfilled, (state, { payload }) => {
         state.loading = false;
         syncAdmissionTypeHistory(state, payload);

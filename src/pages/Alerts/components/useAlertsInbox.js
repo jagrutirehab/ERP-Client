@@ -29,6 +29,10 @@ const initialFilters = () => ({
   readState: "all",     // all | unread | read
   phase: "all",         // all | IMMEDIATE | DELAYED
   resolvedState: "all", // all | resolved | unresolved
+  // all | SOP_RULE | BASELINE_INVESTIGATION. What produced the alert. Needed
+  // because a baseline-package alert has no `rule`, so it can never be reached
+  // through the SOP-name dropdown above.
+  source: "all",
   severity: [],         // array of LOW/MEDIUM/HIGH/CRITICAL
 });
 
@@ -57,9 +61,16 @@ const buildServerParams = (filters, page, pageSize) => {
   if (filters.phase && filters.phase !== "all") out.phase = filters.phase;
   if (filters.resolvedState && filters.resolvedState !== "all")
     out.resolvedState = filters.resolvedState;
+  if (filters.source && filters.source !== "all") out.source = filters.source;
 
   return out;
 };
+
+// Exported so the CSV export builds its params from the SAME translator. These
+// were two near-duplicate functions, which meant a filter added to one was
+// silently ignored by the other — the downloaded file then disagreed with what
+// the user was looking at.
+export { buildServerParams };
 
 /**
  * Inbox state for the Alerts page. Every filter lives on the server now
