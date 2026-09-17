@@ -5,8 +5,9 @@ import {
   Card,
   CardHeader,
   CardBody,
+  Button,
+  ButtonGroup,
 } from "reactstrap";
-import Select from "react-select";
 import { History, Receipt } from "lucide-react";
 import { connect, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
@@ -18,12 +19,6 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { getApprovals } from "../../../store/features/centralPayment/centralPaymentSlice";
 import ItemCard from "../Components/ItemCard";
 import SpendingForm from "../Components/SpendingForm";
-
-const paymentTypeOptions = [
-  { value: "", label: "All" },
-  { value: "COMPLETED", label: "Paid" },
-  { value: "PENDING", label: "To Be Paid" },
-];
 
 const Spending = ({ centerAccess, approvals, loading }) => {
   const dispatch = useDispatch();
@@ -105,15 +100,32 @@ const Spending = ({ centerAccess, approvals, loading }) => {
                   <History size={18} className="me-2 text-primary" />
                   Last 10 Spendings
                 </h5>
-                <div style={{ minWidth: 160 }}>
-                  <Select
-                    value={paymentTypeOptions.find(opt => opt.value === paymentTypeFilter)}
-                    onChange={(option) => setPaymentTypeFilter(option?.value || "")}
-                    options={paymentTypeOptions}
-                    placeholder="All"
-                    classNamePrefix="react-select"
-                  />
-                </div>
+                <ButtonGroup>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "" ? "primary" : "secondary"}
+                    outline={paymentTypeFilter !== ""}
+                    onClick={() => setPaymentTypeFilter("")}
+                  >
+                    All
+                  </Button>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "COMPLETED" ? "success" : "secondary"}
+                    outline={paymentTypeFilter !== "COMPLETED"}
+                    onClick={() => setPaymentTypeFilter("COMPLETED")}
+                  >
+                    Paid
+                  </Button>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "PENDING" ? "warning" : "secondary"}
+                    outline={paymentTypeFilter !== "PENDING"}
+                    onClick={() => setPaymentTypeFilter("PENDING")}
+                  >
+                    To Be Paid
+                  </Button>
+                </ButtonGroup>
               </CardHeader>
               <CardBody className="p-0">
                 <div

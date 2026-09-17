@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
-import { Button, Col, Container, Row, Spinner } from "reactstrap";
+import { Button, ButtonGroup, Col, Container, Row, Spinner } from "reactstrap";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { getApprovals } from "../../../store/features/centralPayment/centralPaymentSlice";
@@ -9,12 +9,6 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 import ItemCard from "../Components/ItemCard";
 import Select from "react-select";
 import { formatCurrency } from "../../../utils/formatCurrency";
-
-const paymentTypeOptions = [
-  { value: "", label: "All Payments" },
-  { value: "COMPLETED", label: "Paid" },
-  { value: "PENDING", label: "To Be Paid" },
-];
 
 const FinanceApprovalDashboard = ({
   centerAccess,
@@ -126,18 +120,41 @@ const FinanceApprovalDashboard = ({
                     classNamePrefix="react-select"
                   />
                 </div>
-                <div style={{ minWidth: 200 }}>
-                  <Select
-                    value={paymentTypeOptions.find(opt => opt.value === paymentTypeFilter)}
-                    onChange={(option) => {
-                      setPaymentTypeFilter(option?.value || "");
+                <ButtonGroup>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "" ? "primary" : "secondary"}
+                    outline={paymentTypeFilter !== ""}
+                    onClick={() => {
+                      setPaymentTypeFilter("");
                       setPage(1);
                     }}
-                    options={paymentTypeOptions}
-                    placeholder="All Payments"
-                    classNamePrefix="react-select"
-                  />
-                </div>
+                  >
+                    All
+                  </Button>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "COMPLETED" ? "success" : "secondary"}
+                    outline={paymentTypeFilter !== "COMPLETED"}
+                    onClick={() => {
+                      setPaymentTypeFilter("COMPLETED");
+                      setPage(1);
+                    }}
+                  >
+                    Paid
+                  </Button>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "PENDING" ? "warning" : "secondary"}
+                    outline={paymentTypeFilter !== "PENDING"}
+                    onClick={() => {
+                      setPaymentTypeFilter("PENDING");
+                      setPage(1);
+                    }}
+                  >
+                    To Be Paid
+                  </Button>
+                </ButtonGroup>
               </Col>
               <Col xs="auto" className="d-flex align-items-center">
                 <span className="text-muted me-1">Total Balance:</span>
