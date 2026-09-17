@@ -19,17 +19,22 @@ import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import { addPayment, updateCentralPayment } from '../../../store/features/centralPayment/centralPaymentSlice';
 import FileUpload from './FileUpload';
 import { FileText, Share } from 'lucide-react';
-import { categoryOptions } from '../../../Components/constants/centralPayment';
+import { categoryOptions, tallyBankAccounts } from '../../../Components/constants/centralPayment';
 import Select from "react-select";
 import { getExitEmployeesBySearch } from '../../../store/features/HR/hrSlice';
 import AsyncSelect from "react-select/async";
 import { formatCurrency } from '../../../utils/formatCurrency';
-import { getSearchPatients } from '../../../helpers/backend_helper';
+import { getSearchPatients, getEmployeesBySearch } from '../../../helpers/backend_helper';
 
 const transactionMethodOptions = [
     { value: "UPI", label: "UPI" },
     { value: "NEFT_RTGS_IMPS", label: "NEFT/RTGS/IMPS" },
 ];
+
+const bankAccountOptions = tallyBankAccounts.map((account) => ({
+    value: account.value,
+    label: account.label,
+}));
 
 const ATTACHMENT_TYPE_LABELS = {
     "INVOICE/BILL": "Invoice/Bill",
@@ -58,6 +63,7 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
 
     const patientSearchTimerRef = useRef(null);
     const employeeSearchTimerRef = useRef(null);
+    const paymentMadeBySearchTimerRef = useRef(null);
 
     const centerOptions = centers
         .map((c) => ({
@@ -69,6 +75,15 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
     const [removedAttachments, setRemovedAttachments] = useState([]);
     const [existingScreenshot] = useState(paymentData?.transactionProof || null);
     const [removeExistingScreenshot, setRemoveExistingScreenshot] = useState(false);
+    const [paymentMadeByOption, setPaymentMadeByOption] = useState(
+        paymentData?.paymentMadeBy
+            ? {
+                value: paymentData.paymentMadeBy,
+                label: paymentData.paymentMadeBy,
+                employeeName: paymentData.paymentMadeBy,
+            }
+            : null
+    );
 
     const validationSchema = Yup.object({
         center: Yup.string().required("Center is required"),
@@ -499,6 +514,37 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
         },
         // eslint-disable-next-line react-hooks/exhaustive-deps
         [form.values.center]
+    );
+
+    const loadPaymentMadeByEmployees = async (inputValue) => {
+        if (!inputValue) return [];
+
+        try {
+            const response = await getEmployeesBySearch({
+                type: "all",
+                name: inputValue,
+            });
+            return (response?.data || []).map(emp => ({
+                value: emp._id,
+                label: `${emp.name} (${emp.eCode})`,
+                employeeName: emp.name,
+            }));
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error?.message || "Failed to search employees");
+            }
+            return [];
+        }
+    };
+
+    const debouncedLoadPaymentMadeByEmployees = useCallback(
+        (inputValue, callback) => {
+            if (paymentMadeBySearchTimerRef.current) clearTimeout(paymentMadeBySearchTimerRef.current);
+            paymentMadeBySearchTimerRef.current = setTimeout(() => {
+                loadPaymentMadeByEmployees(inputValue).then(callback);
+            }, 300);
+        },
+        []
     );
 
     const renderCenterItemCategoryFields = () => (
@@ -1385,17 +1431,22 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                 <Label for="paidFromBankAccount" className="fw-medium">
                     Bank Account (from which amount deducted) <span className="text-danger">*</span>
                 </Label>
-                <Input
-                    type="text"
-                    id="paidFromBankAccount"
+                <Select
+                    inputId="paidFromBankAccount"
                     name="paidFromBankAccount"
-                    value={form.values.paidFromBankAccount}
-                    onChange={form.handleChange}
-                    onBlur={form.handleBlur}
-                    className={`form-control ${form.touched.paidFromBankAccount && form.errors.paidFromBankAccount
-                        ? "is-invalid"
-                        : ""
-                        }`}
+                    options={bankAccountOptions}
+                    value={
+                        bankAccountOptions.find(opt => opt.value === form.values.paidFromBankAccount) || null
+                    }
+                    onChange={(option) => form.setFieldValue("paidFromBankAccount", option?.value || "")}
+                    onBlur={() => form.setFieldTouched("paidFromBankAccount", true)}
+                    placeholder="Select bank account"
+                    classNamePrefix="react-select"
+                    className={
+                        form.touched.paidFromBankAccount && form.errors.paidFromBankAccount
+                            ? "react-select is-invalid"
+                            : "react-select"
+                    }
                 />
                 {form.touched.paidFromBankAccount && form.errors.paidFromBankAccount && (
                     <div className="invalid-feedback d-block">
@@ -1513,17 +1564,30 @@ const SpendingForm = ({ centerAccess, centers, paymentData, onUpdate }) => {
                 <Label for="paymentMadeBy" className="fw-medium">
                     Payment Made By <span className="text-danger">*</span>
                 </Label>
-                <Input
-                    type="text"
-                    id="paymentMadeBy"
+                <AsyncSelect
+                    inputId="paymentMadeBy"
                     name="paymentMadeBy"
-                    value={form.values.paymentMadeBy}
-                    onChange={(e) => normalizeTextInput(e)}
-                    onBlur={form.handleBlur}
-                    className={`form-control ${form.touched.paymentMadeBy && form.errors.paymentMadeBy
-                        ? "is-invalid"
-                        : ""
-                        }`}
+                    cacheOptions={false}
+                    defaultOptions={false}
+                    loadOptions={debouncedLoadPaymentMadeByEmployees}
+                    value={paymentMadeByOption}
+                    onChange={(option) => {
+                        setPaymentMadeByOption(option);
+                        form.setFieldValue("paymentMadeBy", option?.employeeName || "");
+                    }}
+                    onBlur={() => form.setFieldTouched("paymentMadeBy", true)}
+                    placeholder="Search employee by name"
+                    classNamePrefix="react-select"
+                    className={
+                        form.touched.paymentMadeBy && form.errors.paymentMadeBy
+                            ? "react-select is-invalid"
+                            : "react-select"
+                    }
+                    noOptionsMessage={({ inputValue }) =>
+                        inputValue
+                            ? "No employee found"
+                            : "Start typing to search employee"
+                    }
                 />
                 {form.touched.paymentMadeBy && form.errors.paymentMadeBy && (
                     <div className="invalid-feedback d-block">
