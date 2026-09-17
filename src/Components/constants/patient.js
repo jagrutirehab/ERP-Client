@@ -2385,6 +2385,15 @@ const timelineFilters = [
     label: "Clinical_test",
     name: "PATIENT_CLINICAL_TEST",
   },
+  // Appointment logs. Every appointment controller (add, addwebsite, edit,
+  // cancel, deletePermanently, editPatientAppointment) writes its log with
+  // `relation: BOOKING`, but the patient timeline endpoint matches on
+  // `relation: { $in: filter }` — so without an entry here the client never
+  // asks for them and they were silently dropped from the timeline.
+  {
+    label: "Appointment",
+    name: "BOOKING",
+  },
 ];
 
 const InternTimelineFilter = [

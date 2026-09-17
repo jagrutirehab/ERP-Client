@@ -92,6 +92,8 @@ export const SEARCH_PATIENTS_PHONE_NUMBER = "/patient/search/phone-number";
 export const ADMIT_PATIENT = "/patient/admit";
 export const EDIT_ADMISSION = "/patient/admit/update";
 export const SET_RAMSAY_APPLICABLE = "/patient/admission/ramsay-applicable";
+export const SET_BASELINE_INVESTIGATION_STATUS =
+  "/patient/admission/baseline-investigation";
 export const SET_ADMISSION_TYPE_DIRECT = "/patient/admission/admission-type";
 export const SUBMIT_ADMISSION_FORM = "/patient/admission-submit";
 export const DISCHARGE_PATIENT = "/patient/discharge";
@@ -810,6 +812,7 @@ export const RESOLVE_SOP_ALERT = "/sop/alerts";
 
 export const SOP_RULES = "/sop/rules";
 export const SOP_SUGGESTED_MEDICINES = "/sop/suggested-medicines";
+export const SOP_BASELINE_PACKAGE = "/sop/baseline-package";
 
 // trainings
 

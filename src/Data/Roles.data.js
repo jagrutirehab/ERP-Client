@@ -490,6 +490,9 @@ export const permissionList = [
     label: "Sop Configs",
     subModules: [
       { name: "MANAGE", label: "Manage" },
+      // Reads as NONE on every existing role until an admin re-saves each one,
+      // so the pages fall back to MANAGE until that happens.
+      { name: "BASELINE_PACKAGE", label: "Baseline Package" },
       // { name: "ALERT_HISTORY", label: "Alert History" },
     ],
   },

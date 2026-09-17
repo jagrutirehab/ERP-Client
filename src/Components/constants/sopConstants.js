@@ -316,3 +316,89 @@ export const emptySuggestedMedicine = () => ({
   category: MEDICINE_CATEGORY_OPTIONS[0],
   rationale: "",
 });
+
+// ─── Baseline Investigation Package ───────────────────────────────────────
+// The admission-time lab package and its escalation ladder. Lives here rather
+// than under pages/SopConfigs/ so the patient views can import the status
+// metadata without reaching across the page tree.
+
+export const BASELINE_STATUS = {
+  PENDING: "PENDING",
+  COMPLETED: "COMPLETED",
+  WAIVED: "WAIVED",
+};
+
+// Shared by the IPD control, the SOP overview strip and the config preview, so
+// one status can't render three different ways.
+//
+// WAIVED reads as "Not Applicable" rather than "Waived": to a nurse the
+// question is whether the package applies to this patient, not whether someone
+// exercised a waiver.
+export const BASELINE_STATUS_META = {
+  PENDING: { label: "Pending", color: "warning", icon: "bx bx-time-five" },
+  COMPLETED: {
+    label: "Completed",
+    color: "success",
+    icon: "bx bx-check-circle",
+  },
+  WAIVED: {
+    label: "Not Applicable",
+    color: "secondary",
+    icon: "bx bx-minus-circle",
+  },
+};
+
+// The 24/48/72/96h policy from the Governance SOP, used to seed a new ladder.
+// The ladder is variable-length rather than fixed at four: the persisted shape
+// is an array, the server validates it regardless, and "max alerts per
+// admission" is DERIVED from ladder length — which the form shows live, so the
+// relationship stays visible rather than hidden behind a fixed set of rows.
+export const BASELINE_TIER_SEED = [
+  { key: "T1", hours: 24, severity: "LOW" },
+  { key: "T2", hours: 48, severity: "MEDIUM" },
+  { key: "T3", hours: 72, severity: "HIGH" },
+  { key: "T4", hours: 96, severity: "CRITICAL" },
+];
+
+export const BASELINE_TIER_KEYS = ["T1", "T2", "T3", "T4"];
+
+// Starting point only — curate against the actual formulary before go-live.
+// Note these are SUBSTRINGS matched against the prescribed name plus the drug
+// master's genericName/composition. A brand like LITHOSUN is NOT matched by
+// "LITHIUM" on name alone; it relies on the master carrying the generic.
+export const BASELINE_DRUG_PATTERN_SUGGESTIONS = [
+  "VALPRO",
+  "DIVALPROEX",
+  "LITHIUM",
+  "CLOZAP",
+];
+
+export const emptyBaselineTier = (seed = {}) => ({
+  id: Date.now() + Math.random(), // local-only UI key
+  key: seed.key || "",
+  hours: seed.hours ?? "",
+  severity:
+    SEVERITY_OPTIONS.find((o) => o.value === seed.severity) ||
+    SEVERITY_OPTIONS[0],
+  message: "",
+  actionGuidance: "",
+  referenceSection: seed.key || "",
+  // Reused, NOT redeclared — this makes a tier's routing payload byte-identical
+  // to a target block's, which is why RoutingCard needs no adaptation at all.
+  ...emptyRouting(),
+});
+
+export const emptyBaselinePackageForm = () => ({
+  name: "",
+  description: "",
+  centers: [],
+  // Defaults to today. The server requires it and gates admissionDate on it —
+  // it is the floor that stops a newly activated package firing against every
+  // existing admission at once.
+  effectiveFrom: new Date().toISOString().slice(0, 10),
+  tests: [],
+  escalationEnabled: true,
+  drugPatterns: [],
+  escalationNote: "",
+  tiers: BASELINE_TIER_SEED.map(emptyBaselineTier),
+});

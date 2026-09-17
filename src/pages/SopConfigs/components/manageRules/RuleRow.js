@@ -1,5 +1,5 @@
 import { Badge, Button } from "reactstrap";
-import { SEVERITY_COLOR, SEVERITY_HEX } from "../alerts/alertConstants";
+import { SEVERITY_COLOR, SEVERITY_HEX } from "../../../Alerts/components/alertConstants";
 import { fmtDate, ruleSummary } from "./ruleUtils";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
 

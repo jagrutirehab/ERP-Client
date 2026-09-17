@@ -6,8 +6,13 @@ import {
   Row,
   Col,
 } from "reactstrap";
-import { SEVERITY_COLOR, SEVERITY_HEX, PHASE_META } from "./alertConstants";
-import { timeAgo } from "./alertUtils";
+import {
+  SEVERITY_COLOR,
+  SEVERITY_HEX,
+  PHASE_META,
+  ALERT_SOURCE_META,
+} from "./alertConstants";
+import { timeAgo, isRuleSourced, alertSourceLabel } from "./alertUtils";
 
 const sectionLabel = (icon, text) => (
   <small
@@ -23,6 +28,8 @@ const AlertDetailOffcanvas = ({ isOpen, onClose, alert }) => {
   const phase = alert
     ? PHASE_META[alert.phase] || PHASE_META.IMMEDIATE
     : PHASE_META.IMMEDIATE;
+  // An alert with no `source` predates the field and is rule-sourced.
+  const ruleSourced = isRuleSourced(alert);
 
   return (
     <Offcanvas
@@ -95,21 +102,33 @@ const AlertDetailOffcanvas = ({ isOpen, onClose, alert }) => {
                 )}
               </div>
 
-              {/* SOP + Protocol */}
+              {/* Source + Protocol. A baseline-package alert has no SOPRule, so
+                  Protocol has nothing to show — drop the column and let Source
+                  take the full width, the same conditional-width idiom the
+                  window row below already uses. */}
               <Row className="mb-2">
-                <Col xs={6}>
-                  {sectionLabel("bx bx-list-check", "SOP")}
-                  <div>{alert.rule?.ruleName || "—"}</div>
+                <Col xs={ruleSourced ? 6 : 12}>
+                  {sectionLabel(
+                    ALERT_SOURCE_META[alert.source]?.icon || "bx bx-list-check",
+                    "Source",
+                  )}
+                  <div>{alertSourceLabel(alert)}</div>
                 </Col>
-                <Col xs={6}>
-                  {sectionLabel(null, "Protocol")}
-                  <div>{alert.rule?.protocol || "—"}</div>
-                </Col>
+                {ruleSourced && (
+                  <Col xs={6}>
+                    {sectionLabel(null, "Protocol")}
+                    <div>{alert.rule?.protocol || "—"}</div>
+                  </Col>
+                )}
               </Row>
-              {/* Specific rule (block name) that fired */}
+              {/* The specific rule block — or, for the baseline ladder, the tier
+                  that fired. Same field either way; only the label differs. */}
               <Row className="mb-3">
                 <Col xs={alert.window?.label ? 6 : 12}>
-                  {sectionLabel("bx bx-target-lock", "Rule")}
+                  {sectionLabel(
+                    "bx bx-target-lock",
+                    ruleSourced ? "Rule" : "Tier",
+                  )}
                   <div>{alert.blockName || "—"}</div>
                 </Col>
                 {alert.window?.label && (

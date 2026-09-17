@@ -1504,6 +1504,15 @@ export const SOP_CONFIGS = [
     ],
   },
   {
+    // Flat, not a second accordion: the sidebar's flat branch highlights on
+    // pathname.startsWith(link), so /baseline-package/save/:id keeps this item
+    // lit. One nav entry, three routes, no extra chrome.
+    id: "sopconfigs-baseline-package",
+    label: "Baseline Package",
+    link: "/sop-configs/baseline-package",
+    icon: "bx bx-test-tube",
+  },
+  {
     id: "sopconfigs-guide",
     label: "How-to Guide",
     link: "/sop-configs/guide",
