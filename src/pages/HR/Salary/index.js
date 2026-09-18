@@ -374,6 +374,7 @@ const Salary = () => {
                     setSearchParams(params, { replace: true });
                     if (status === "completed") {
                         toast.success("Payroll data regenerated successfully");
+                        fetchEmployeePayrolls();
                     } else {
                         toast.error("payroll data regeneration failed");
                     }
