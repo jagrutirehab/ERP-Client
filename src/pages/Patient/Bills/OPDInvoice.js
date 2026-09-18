@@ -4,6 +4,7 @@ import InvoiceList from "../Tables/InvoiceList";
 import { Col, Label, Row } from "reactstrap";
 import { CARD, CASH, CHEQUE, UPI } from "../../../Components/constants/patient";
 import RenderWhen from "../../../Components/Common/RenderWhen";
+import TransactionProofLink from "./TransactionProofLink";
 
 const OPDInvoice = ({ data, bill }) => {
   return (
@@ -30,7 +31,12 @@ const OPDInvoice = ({ data, bill }) => {
               <span className="fs-xs-10 fs-md-12">{data?.payable}</span>
             </Col>
             <Col xs={12}>
-              {data?.paymentModes.map((paymentMode, i) => (
+              {data?.paymentModes.map((paymentMode, i) => {
+                const proofUrl = (data?.transactionProof || []).find(
+                  (proof) => proof.mode === paymentMode?.type
+                )?.url;
+
+                return (
                 <div key={i} className="d-flex align-items-center gap-3">
                   <h6 className="display-6 fs-14 mb-0">Payment Mode--</h6>
                   <div className="fs-13">
@@ -57,9 +63,17 @@ const OPDInvoice = ({ data, bill }) => {
                       {" - "}
                       <span>{paymentMode?.transactionId}</span>
                     </RenderWhen>
+
+                    {proofUrl && (
+                      <>
+                        {" - "}
+                        <TransactionProofLink url={proofUrl} />
+                      </>
+                    )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </Col>
           </Row>
         </div>

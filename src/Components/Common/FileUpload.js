@@ -1,7 +1,7 @@
 import { Eye, FileText, Upload, X } from "lucide-react";
 import { useState, useRef } from "react";
 import { Badge, Button, Input, Label } from "reactstrap";
-import PreviewFile from "../../../Components/Common/PreviewFile";
+import PreviewFile from "./PreviewFile";
 
 const FileUpload = ({ files, setFiles, multiple = true, maxFiles = 10, inputId = "fileInput" }) => {
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);

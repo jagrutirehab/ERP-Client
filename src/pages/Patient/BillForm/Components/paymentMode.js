@@ -8,12 +8,14 @@ import {
 } from "../../../../Components/constants/patient";
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import PaymentModeEvidence from "./PaymentModeEvidence";
 
 const PaymentMode = ({
   paymentModes,
   setPaymentModes,
   validation,
   paymentAccounts,
+  existingTransactionProof,
 }) => {
   const addPaymentMode = (e) => {
     const value = e.target.value;
@@ -47,6 +49,12 @@ const PaymentMode = ({
     setPaymentModes(newPaymentModes);
   };
 
+  const setEvidenceFile = (idx, file) => {
+    const newPaymentModes = [...paymentModes];
+    newPaymentModes[idx] = { ...newPaymentModes[idx], evidenceFile: file };
+    setPaymentModes(newPaymentModes);
+  };
+
   return (
     <React.Fragment>
       <div>
@@ -73,9 +81,15 @@ const PaymentMode = ({
             </div>
           </div>
           {(paymentModes || []).map((val, idx) => (
-            <div className="d-flex align-items-end mb-2 w-100" key={idx}>
-              <div className="me-2" style={{ width: "100px" }}>
-                <Label className="text-muted fs-10">
+            <div
+              className="d-flex flex-nowrap align-items-center mb-2 w-100"
+              key={idx}
+            >
+              <Col xs="auto" className="me-2">
+                <Label
+                  className="text-muted fs-10"
+                  style={{ whiteSpace: "nowrap" }}
+                >
                   Cash Amount
                   <span className="text-danger">*</span>
                 </Label>
@@ -85,104 +99,111 @@ const PaymentMode = ({
                   required
                   size={"1"}
                   name="amount"
-                  style={{ width: "70px" }}
+                  style={{ maxWidth: "90px", minWidth: "60px" }}
                   value={val.amount || ""}
                   onChange={handleChange}
                   type="number"
                 />
-              </div>
+              </Col>
 
               {val?.type === CARD && (
-                <Col className="me-2" md={4} lg={4}>
-                  <div className="">
-                    <Label className="text-muted fs-10">
-                      Card Number
-                      <span className="text-danger">*</span>
-                    </Label>
-                    <Input
-                      bsSize="sm"
-                      className="w-100 fs-10"
-                      id={idx}
-                      required
-                      name="cardNumber"
-                      style={{ height: "30px" }}
-                      value={val.cardNumber || ""}
-                      onChange={handleChange}
-                      type="text"
-                    />
-                  </div>
+                <Col xs="auto" className="me-2">
+                  <Label className="text-muted fs-10" style={{ whiteSpace: "nowrap" }}>
+                    Card Number
+                    <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    bsSize="sm"
+                    id={idx}
+                    required
+                    name="cardNumber"
+                    style={{
+                      height: "30px",
+                      maxWidth: "90px",
+                      minWidth: "60px",
+                    }}
+                    value={val.cardNumber || ""}
+                    onChange={handleChange}
+                    type="text"
+                  />
                 </Col>
               )}
 
               {val?.type === CHEQUE && (
                 <>
-                  <Col className="me-2" md={4} lg={4}>
-                    <div>
-                      <Label className="text-muted fs-10">
-                        Bank Name
-                        <span className="text-danger">*</span>
-                      </Label>
-                      <Input
-                        bsSize="sm"
-                        className="w-100 fs-10"
-                        id={idx}
-                        required
-                        name="bankName"
-                        style={{ height: "30px" }}
-                        value={val.bankName || ""}
-                        onChange={handleChange}
-                        type="text"
-                      />
-                    </div>
+                  <Col xs="auto" className="me-2">
+                    <Label className="text-muted fs-10" style={{ whiteSpace: "nowrap" }}>
+                      Bank Name
+                      <span className="text-danger">*</span>
+                    </Label>
+                    <Input
+                      bsSize="sm"
+                      id={idx}
+                      required
+                      name="bankName"
+                      style={{
+                        height: "30px",
+                        maxWidth: "90px",
+                        minWidth: "60px",
+                      }}
+                      value={val.bankName || ""}
+                      onChange={handleChange}
+                      type="text"
+                    />
                   </Col>
 
-                  <Col className="me-2" md={4} lg={4}>
-                    <div>
-                      <Label className="text-muted fs-10">
-                        Cheque Number
-                        <span className="text-danger">*</span>
-                      </Label>
-                      <Input
-                        bsSize="sm"
-                        className="w-100 fs-10"
-                        id={idx}
-                        required
-                        name="chequeNumber"
-                        style={{ height: "30px" }}
-                        value={val.chequeNumber || ""}
-                        onChange={handleChange}
-                        type="text"
-                      />
-                    </div>
+                  <Col xs="auto" className="me-2">
+                    <Label className="text-muted fs-10" style={{ whiteSpace: "nowrap" }}>
+                      Cheque Number
+                      <span className="text-danger">*</span>
+                    </Label>
+                    <Input
+                      bsSize="sm"
+                      id={idx}
+                      required
+                      name="chequeNumber"
+                      style={{
+                        height: "30px",
+                        maxWidth: "90px",
+                        minWidth: "60px",
+                      }}
+                      value={val.chequeNumber || ""}
+                      onChange={handleChange}
+                      type="text"
+                    />
                   </Col>
                 </>
               )}
 
               {val?.type === UPI && (
-                <Col className="me-2" md={4} lg={4}>
-                  <div>
-                    <Label className="text-muted fs-10">
-                      Transaction id
-                      <span className="text-danger">*</span>
-                    </Label>
-                    <Input
-                      bsSize="sm"
-                      className="w-100 fs-10"
-                      id={idx}
-                      required
-                      name="transactionId"
-                      style={{ height: "30px" }}
-                      value={val.transactionId || ""}
-                      onChange={handleChange}
-                      type="text"
-                    />
-                  </div>
+                <Col xs="auto" className="me-2">
+                  <Label className="text-muted fs-10" style={{ whiteSpace: "nowrap" }}>
+                    Transaction id
+                    <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    bsSize="sm"
+                    id={idx}
+                    required
+                    name="transactionId"
+                    style={{
+                      height: "30px",
+                      maxWidth: "90px",
+                      minWidth: "60px",
+                    }}
+                    value={val.transactionId || ""}
+                    onChange={handleChange}
+                    type="text"
+                  />
                 </Col>
               )}
 
               {val.type !== CASH && (
-                <Col className="me-2" xs={12} md={12}>
-                  <Label className="text-muted fs-10">
+                <Col xs="auto" className="me-2">
+                  <Label
+                    className="text-muted fs-10"
+                    style={{ whiteSpace: "nowrap" }}
+                  >
                     Bank Accounts
                     <span className="text-danger">*</span>
                   </Label>
@@ -194,6 +215,7 @@ const PaymentMode = ({
                     value={val.bankAccount || ""}
                     onChange={handleChange}
                     type="select"
+                    style={{ maxWidth: "130px" }}
                     required
                   >
                     <option value={""} selected defaultValue={""}>
@@ -208,7 +230,25 @@ const PaymentMode = ({
                 </Col>
               )}
 
-              <Col>
+              {val.type !== CASH && (
+                <Col xs="auto" className="me-2">
+                  <div className="d-flex align-items-center h-100">
+                    <PaymentModeEvidence
+                      inputId={`invoicePaymentEvidence-${idx}`}
+                      file={val.evidenceFile}
+                      existingUrl={
+                        (existingTransactionProof || []).find(
+                          (proof) => proof.mode === val.type,
+                        )?.url
+                      }
+                      onSelect={(file) => setEvidenceFile(idx, file)}
+                      onRemove={() => setEvidenceFile(idx, undefined)}
+                    />
+                  </div>
+                </Col>
+              )}
+
+              <Col xs="auto">
                 <div className="d-flex align-items-center h-100">
                   <Button
                     onClick={() => deleteForm(idx)}
@@ -237,6 +277,7 @@ const PaymentMode = ({
 PaymentMode.propTypes = {
   paymentModes: PropTypes.array,
   setPaymentModes: PropTypes.func,
+  existingTransactionProof: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({

@@ -24,6 +24,36 @@ import {
 import InvoiceDateRange from "./Components/InvoiceDateRange";
 import FromDateModal from "./Components/FromDateModal";
 
+// Each paymentModes row may carry a transient `evidenceFile` (a File, never sent as-is).
+// Strip it before the array goes out as JSON, and collect it separately for FormData.
+const stripEvidenceFiles = (modes) =>
+  (modes || []).map(({ evidenceFile, ...rest }) => rest);
+
+const collectEvidenceFiles = (modes) =>
+  (modes || [])
+    .filter((mode) => mode.evidenceFile)
+    .map((mode) => ({ file: mode.evidenceFile, mode: mode.type }));
+
+const buildTransactionProofFormData = (payload, evidenceEntries) => {
+  const formData = new FormData();
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    if (value instanceof Date) {
+      formData.append(key, value.toISOString());
+    } else if (key === "invoiceList" || key === "paymentModes") {
+      formData.append(key, JSON.stringify(value));
+    } else {
+      formData.append(key, value);
+    }
+  });
+  evidenceEntries.forEach(({ file }) => formData.append("transactionProof", file));
+  formData.append(
+    "transactionProofModes",
+    JSON.stringify(evidenceEntries.map((entry) => entry.mode))
+  );
+  return formData;
+};
+
 const DuePayment = ({
   author,
   patient,
@@ -51,6 +81,7 @@ const DuePayment = ({
       ? editBillData.receiptInvoice
       : editBillData.invoice
     : null;
+  const existingTransactionProof = editData?.transactionProof;
   // getProceduresByid
   const advpayment = useSelector((state) => state.Bill.calculatedAdvance);
 
@@ -181,16 +212,24 @@ const DuePayment = ({
     }),
 
     onSubmit: async (values) => {
+      const evidenceEntries = collectEvidenceFiles(paymentModes);
+      const cleanPaymentModes = stripEvidenceFiles(paymentModes);
+
       if (editData) {
+        const payload = {
+          id: editBillData._id,
+          billId: editData._id,
+          appointment: appointment?._id,
+          shouldPrintAfterSave,
+          ...values,
+          paymentModes: cleanPaymentModes,
+        };
         const response = await dispatch(
-          updateInvoice({
-            id: editBillData._id,
-            billId: editData._id,
-            appointment: appointment?._id,
-            shouldPrintAfterSave,
-            ...values,
-            paymentModes,
-          }),
+          updateInvoice(
+            evidenceEntries.length > 0
+              ? buildTransactionProofFormData(payload, evidenceEntries)
+              : payload
+          ),
         ).unwrap();
         dispatch(
           setBillingStatus({
@@ -199,13 +238,18 @@ const DuePayment = ({
           }),
         );
       } else {
+        const payload = {
+          ...values,
+          appointment: appointment?._id,
+          paymentModes: cleanPaymentModes,
+          shouldPrintAfterSave,
+        };
         const response = await dispatch(
-          addInvoice({
-            ...values,
-            appointment: appointment?._id,
-            paymentModes,
-            shouldPrintAfterSave,
-          }),
+          addInvoice(
+            evidenceEntries.length > 0
+              ? buildTransactionProofFormData(payload, evidenceEntries)
+              : payload
+          ),
         ).unwrap();
         dispatch(
           setBillingStatus({
@@ -732,6 +776,7 @@ const DuePayment = ({
             paymentModes={paymentModes}
             setPaymentModes={setPaymentModes}
             isLatest={isLatest}
+            existingTransactionProof={existingTransactionProof}
             {...rest}
           />
           <SubmitForm
