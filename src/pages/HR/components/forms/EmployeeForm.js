@@ -423,7 +423,7 @@ const baseValidationSchema = (mode, isEdit) =>
         otherwise: (schema) => schema.notRequired(),
       }),
     minimumPresentUnit: Yup.string()
-      .oneOf(["WEEK", "MONTH", "SESSION"], "Select a valid unit")
+      .oneOf(["WEEK", "MONTH", "SESSION", "SESSIONS"], "Select a valid unit")
       .when("newEmploymentType", {
         is: "PART_TIME",
         then: (schema) =>
@@ -1784,7 +1784,9 @@ const EmployeeForm = ({
           {values.newEmploymentType === "PART_TIME" && (
             <Col md={6}>
               <Label htmlFor="minimumPresentDays">
-                Minimum Presence
+                {values.minimumPresentUnit === "SESSIONS"
+                  ? "Number of Sessions"
+                  : "Minimum Presence"}
                 {values.minimumPresentUnit !== "SESSION" && (
                   <span className="text-danger"> *</span>
                 )}
@@ -1801,7 +1803,11 @@ const EmployeeForm = ({
                       value={values.minimumPresentDays}
                       onChange={handleChange}
                       onBlur={() => setFieldTouched("minimumPresentDays", true)}
-                      placeholder="Enter number of days"
+                      placeholder={
+                        values.minimumPresentUnit === "SESSIONS"
+                          ? "Enter number of sessions"
+                          : "Enter number of days"
+                      }
                       invalid={
                         touched.minimumPresentDays &&
                         !!errors.minimumPresentDays
@@ -1842,6 +1848,14 @@ const EmployeeForm = ({
                   Requirement is measured per session — set the hours in Minimum
                   Work Hours above.
                 </div>
+              ) : values.minimumPresentUnit === "SESSIONS" ? (
+                values.minimumPresentDays !== "" && (
+                  <div className="text-muted small mt-1">
+                    = {values.minimumPresentDays} session
+                    {Number(values.minimumPresentDays) === 1 ? "" : "s"} per
+                    month
+                  </div>
+                )
               ) : (
                 values.minimumPresentDays !== "" &&
                 values.minimumPresentUnit && (

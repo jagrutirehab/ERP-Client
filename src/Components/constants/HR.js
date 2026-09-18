@@ -151,6 +151,7 @@ export const presentUnitOptions = [
     { label: "Per Week", value: "WEEK" },
     { label: "Per Month", value: "MONTH" },
     { label: "Per Session", value: "SESSION" },
+    { label: "Sessions", value: "SESSIONS" },
 ];
 
 export const filterEmploymentOptions = [
