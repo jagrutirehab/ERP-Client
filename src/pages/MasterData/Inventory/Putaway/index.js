@@ -21,7 +21,9 @@ const Putaway = () => {
   };
 
   if (view === "form" && selectedGRN) {
-    return <PutawayForm grn={selectedGRN} onSaved={goToList} onCancel={goToList} />;
+    return (
+      <PutawayForm di={selectedGRN} onSaved={goToList} onCancel={goToList} />
+    );
   }
 
   return (

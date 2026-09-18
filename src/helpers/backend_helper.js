@@ -494,7 +494,13 @@ export const getCharts = (data) => {
   const _t = typeof data === "string" ? Date.now() : (data._t ?? Date.now());
   return api.get(url.GET_CHARTS, { addmission, chartType, _t });
 };
-export const getLatestCharts = ({ patient, limit, chartType, type, carryForwardScope }) =>
+export const getLatestCharts = ({
+  patient,
+  limit,
+  chartType,
+  type,
+  carryForwardScope,
+}) =>
   api.get(
     `${url.GET_LATEST_CHARTS}?patient=${patient}&limit=${limit}` +
       `${chartType ? `&chartType=${chartType}` : ""}` +
@@ -5697,3 +5703,93 @@ export const getPutawayById = (id) => {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
+export const createMaterialIssue = (data) => {
+  return axios.post(url.MATERIAL_ISSUE_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const createMaterialReturn = (data) => {
+  return axios.post(url.MATERIAL_RETURN_BASE, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getStockBalances = (params = {}) => {
+  return axios.get(url.STOCK_BALANCE_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getStockLedger = (params = {}) => {
+  return axios.get(url.STOCK_LEDGER_BASE, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getPOsForGRN = (params = {}) => {
+  return axios.get(url.GRN_BASE_PO, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+export const getInventoryTransfers = () =>
+  axios.get("/master/inventory-transfer", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createInventoryTransfer = (data) =>
+  axios.post("/master/inventory-transfer", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getMoveOrders = () =>
+  axios.get("/master/move-order", { headers: { "X-No-Cookie-Token": "true" } });
+export const createMoveOrder = (data) =>
+  axios.post("/master/move-order", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getCycleCounts = () =>
+  axios.get("/master/cycle-count", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createCycleCount = (data) =>
+  axios.post("/master/cycle-count", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const reconcileCycleCount = (id) =>
+  axios.patch(
+    `/master/cycle-count/${id}/reconcile`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+
+export const getStockAdjustments = () =>
+  axios.get("/master/stock-adjustment", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createStockAdjustment = (data) =>
+  axios.post("/master/stock-adjustment", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getReorderRules = () =>
+  axios.get("/master/reorder-rule", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createReorderRule = (data) =>
+  axios.post("/master/reorder-rule", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const deleteReorderRule = (id) =>
+  axios.delete(`/master/reorder-rule/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getReorderAlerts = () =>
+  axios.get("/master/reorder-rule/alerts", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getLocationStock = (params = {}) =>
+  axios.get("/master/location-stock", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });

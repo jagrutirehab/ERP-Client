@@ -11,17 +11,20 @@ const GRNForm = ({ di, onSaved, onCancel }) => {
   const [remarks, setRemarks] = useState("");
 
   const [lines, setLines] = useState(
-    di.lineItems.map((li) => ({
+    di.lines.map((li) => ({
       itemName: li.itemName,
       orderedQty: li.orderedQty,
-      intimatedQty: li.intimatedQty,
-      receivedQty: li.intimatedQty,
+      alreadyReceived: li.receivedQty,
+      toReceive: li.toReceive,
+      receivedQty: li.toReceive,
       remarks: "",
     })),
   );
 
   const updateLine = (idx, field, value) => {
-    setLines((prev) => prev.map((li, i) => (i === idx ? { ...li, [field]: value } : li)));
+    setLines((prev) =>
+      prev.map((li, i) => (i === idx ? { ...li, [field]: value } : li)),
+    );
   };
 
   const handleSubmit = async (e) => {
@@ -33,13 +36,11 @@ const GRNForm = ({ di, onSaved, onCancel }) => {
     setSubmitting(true);
     try {
       await createGRN({
-        poId: di.poId._id || di.poId,
-        deliveryIntimationId: di._id,
+        poId: di._id,
         remarks,
         lineItems: lines.map((li) => ({
           itemName: li.itemName,
           orderedQty: li.orderedQty,
-          intimatedQty: li.intimatedQty,
           receivedQty: Number(li.receivedQty),
           remarks: li.remarks,
         })),
@@ -48,7 +49,11 @@ const GRNForm = ({ di, onSaved, onCancel }) => {
       onSaved();
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong",
+        );
       }
     } finally {
       setSubmitting(false);
@@ -64,22 +69,24 @@ const GRNForm = ({ di, onSaved, onCancel }) => {
         </Button>
       </div>
       <p className="text-muted mb-4">
-        Delivery Intimation: <strong>{di.intimationNumber}</strong> · PO:{" "}
-        <strong>{di.poId?.poNumber}</strong>
+        PO: <strong>{di.poNumber}</strong> · Vendor:{" "}
+        <strong>{di.vendorId?.tradeName || di.vendorId?.legalName}</strong>
       </p>
 
       <div className="uom-form-panel">
         <form onSubmit={handleSubmit}>
           <h6 className="uom-form-section-title">Verify Received Quantities</h6>
           <p className="text-muted small mb-3">
-            Confirm what physically arrived — this may differ from what was intimated.
+            Confirm what physically arrived — this may differ from what was
+            intimated.
           </p>
 
           {lines.map((li, idx) => (
             <div key={idx} className="uom-table-card p-3 mb-3">
               <div className="fw-semibold mb-1">{li.itemName}</div>
               <div className="text-muted small mb-3">
-                Ordered: {li.orderedQty} · Intimated: {li.intimatedQty}
+                Ordered: {li.orderedQty} · Already Received:{" "}
+                {li.alreadyReceived} · To Receive: {li.toReceive}
               </div>
               <Row>
                 <Col md={4} className="mb-2">
@@ -89,14 +96,17 @@ const GRNForm = ({ di, onSaved, onCancel }) => {
                   <Input
                     type="number"
                     min={0}
+                    max={li.toReceive}
                     value={li.receivedQty}
                     onFocus={(e) => e.target.select()}
-                    onChange={(e) => updateLine(idx, "receivedQty", e.target.value)}
+                    onChange={(e) =>
+                      updateLine(idx, "receivedQty", e.target.value)
+                    }
                   />
-                  {Number(li.receivedQty) !== li.intimatedQty && (
-                    <div className="text-warning small mt-1">
+                  {Number(li.receivedQty) > li.toReceive && (
+                    <div className="text-danger small mt-1">
                       <i className="bx bx-error-circle me-1"></i>
-                      Differs from intimated quantity
+                      Cannot exceed {li.toReceive}
                     </div>
                   )}
                 </Col>

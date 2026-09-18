@@ -17,6 +17,15 @@ import DeliveryIntimation from "./Procurement/DeliveryIntimation";
 import GoodsReceiptNote from "./Inventory/GRN";
 import StorageLocation from "./Inventory/StorageLocation";
 import Putaway from "./Inventory/Putaway";
+import Stock from "./Inventory/Stock";
+import InventoryTransfer from "./Inventory/InventoryTransfer";
+import MoveOrder from "./Inventory/MoveOrder";
+import CycleCount from "./Inventory/CycleCount";
+import StockAdjustment from "./Inventory/StockAdjustment";
+import ReorderRule from "./Inventory/ReorderRule";
+import MaterialIssue from "./Inventory/MaterialIssue";
+import MaterialReturn from "./Inventory/MaterialReturn";
+import LocationStock from "./Inventory/LocationStock";
 import VendorInvoice from "./Finance/VendorInvoice";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
@@ -63,6 +72,35 @@ const MasterData = () => {
     "READ",
   );
   const canViewPutaway = hasPermission("MASTERDATA", "PUTAWAY", "READ");
+  const canViewStock = hasPermission("MASTERDATA", "STOCK", "READ");
+  const canViewInventoryTransfer = hasPermission(
+    "MASTERDATA",
+    "INVENTORY_TRANSFER",
+    "READ",
+  );
+  const canViewMoveOrder = hasPermission("MASTERDATA", "MOVE_ORDER", "READ");
+  const canViewCycleCount = hasPermission("MASTERDATA", "CYCLE_COUNT", "READ");
+  const canViewStockAdjustment = hasPermission(
+    "MASTERDATA",
+    "STOCK_ADJUSTMENT",
+    "READ",
+  );
+  const canViewReorderRule = hasPermission(
+    "MASTERDATA",
+    "REORDER_RULE",
+    "READ",
+  );
+  const canViewMaterialIssue = hasPermission(
+    "MASTERDATA",
+    "MATERIAL_ISSUE",
+    "READ",
+  );
+  const canViewMaterialReturn = hasPermission(
+    "MASTERDATA",
+    "MATERIAL_RETURN",
+    "READ",
+  );
+  const canViewLocationStock = hasPermission("MASTERDATA", "PUTAWAY", "READ");
 
   if (
     !canViewVendor &&
@@ -78,7 +116,16 @@ const MasterData = () => {
     !canViewGRN &&
     !canViewVI &&
     !canViewStorageLocation &&
-    !canViewPutaway
+    !canViewPutaway &&
+    !canViewStock &&
+    !canViewInventoryTransfer &&
+    !canViewMoveOrder &&
+    !canViewCycleCount &&
+    !canViewStockAdjustment &&
+    !canViewReorderRule &&
+    !canViewMaterialIssue &&
+    !canViewMaterialReturn &&
+    !canViewLocationStock
   ) {
     return <Basic404 />;
   }
@@ -117,6 +164,18 @@ const MasterData = () => {
               <Route path="grn/*" element={<GoodsReceiptNote />} />
               <Route path="storage-location/*" element={<StorageLocation />} />
               <Route path="putaway/*" element={<Putaway />} />
+              <Route path="stock/*" element={<Stock />} />
+              <Route
+                path="inventory-transfer/*"
+                element={<InventoryTransfer />}
+              />
+              <Route path="move-order/*" element={<MoveOrder />} />
+              <Route path="cycle-count/*" element={<CycleCount />} />
+              <Route path="stock-adjustment/*" element={<StockAdjustment />} />
+              <Route path="reorder-rule/*" element={<ReorderRule />} />
+              <Route path="material-issue/*" element={<MaterialIssue />} />
+              <Route path="material-return/*" element={<MaterialReturn />} />
+              <Route path="location-stock/*" element={<LocationStock />} />
               <Route path="vendor-invoice/*" element={<VendorInvoice />} />
             </Routes>
           </div>

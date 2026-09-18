@@ -1701,6 +1701,51 @@ export const MASTER_DATA = [
         label: "Putaway",
         link: "/vendor-management/putaway",
       },
+      {
+        id: "inventory-location-stock",
+        label: "Stock by Location",
+        link: "/vendor-management/location-stock",
+      },
+      {
+        id: "inventory-stock",
+        label: "Stock / Inventory",
+        link: "/vendor-management/stock",
+      },
+      {
+        id: "inventory-transfer",
+        label: "Inventory Transfer",
+        link: "/vendor-management/inventory-transfer",
+      },
+      {
+        id: "inventory-move-order",
+        label: "Move Orders",
+        link: "/vendor-management/move-order",
+      },
+      {
+        id: "inventory-material-issue",
+        label: "Material Issues",
+        link: "/vendor-management/material-issue",
+      },
+      {
+        id: "inventory-material-return",
+        label: "Material Returns",
+        link: "/vendor-management/material-return",
+      },
+      {
+        id: "inventory-cycle-count",
+        label: "Cycle Counts",
+        link: "/vendor-management/cycle-count",
+      },
+      {
+        id: "inventory-stock-adjustment",
+        label: "Stock Adjustments",
+        link: "/vendor-management/stock-adjustment",
+      },
+      {
+        id: "inventory-reorder-rule",
+        label: "Reorder Rules",
+        link: "/vendor-management/reorder-rule",
+      },
     ],
   },
   {

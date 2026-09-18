@@ -894,11 +894,16 @@ export const DI_BASE = "/master/delivery-intimation";
 export const DI_BASE_POS = "/master/delivery-intimation/pos";
 export const GRN_BASE = "/master/grn";
 export const GRN_BASE_DI = "/master/grn/pending-di";
+export const GRN_BASE_PO = "/master/grn/pending-po";
 export const VI_BASE = "/master/vendor-invoice";
 export const VI_BASE_GRN = "/master/vendor-invoice/pending-grn";
 export const STORAGE_LOCATION_BASE = "/master/storage-location";
 export const PUTAWAY_BASE = "/master/putaway";
 export const PUTAWAY_BASE_GRN = "/master/putaway/pending-grn";
+export const MATERIAL_ISSUE_BASE = "/master/stock/material-issue";
+export const MATERIAL_RETURN_BASE = "/master/stock/material-return";
+export const STOCK_BALANCE_BASE = "/master/stock/balances";
+export const STOCK_LEDGER_BASE = "/master/stock/ledger";
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
 

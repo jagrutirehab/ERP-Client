@@ -115,9 +115,14 @@ const PutawayList = ({ onAdd }) => {
       name: "Reference",
       cell: (row) => <span className="uom-cell-muted">{row.grnId?.grnNumber || "—"}</span>,
     },
-    {
-      name: "Location",
-      cell: (row) => <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>,
+        {
+      name: "Location(s)",
+      cell: (row) => {
+        const names = (row.lineItems || [])
+          .map((li) => li.storageLocationId?.name)
+          .filter(Boolean);
+        return <span className="uom-cell-muted small">{names.join(", ") || "—"}</span>;
+      },
     },
     {
       name: "Items",

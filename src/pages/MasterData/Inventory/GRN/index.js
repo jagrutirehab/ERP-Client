@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import GRNList from "./GRNList";
-import DISelector from "./DISelector";
+import POSelectorForGRN from "./POSelectorForGRN";
 import GRNForm from "./GRNForm";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import Basic404 from "../../../AuthenticationInner/Errors/Basic404";
@@ -23,9 +23,9 @@ const GoodsReceiptNote = () => {
     setSelectedDI(null);
   };
 
-  if (view === "select-di") {
+  if (view === "select-po") {
     return (
-      <DISelector
+      <POSelectorForGRN
         onBack={goToList}
         onSelect={(di) => {
           setSelectedDI(di);
@@ -39,7 +39,7 @@ const GoodsReceiptNote = () => {
     return <GRNForm di={selectedDI} onSaved={goToList} onCancel={goToList} />;
   }
 
-  return <GRNList onAdd={() => setView("select-di")} />;
+  return <GRNList onAdd={() => setView("select-po")} />;
 };
 
 export default GoodsReceiptNote;
