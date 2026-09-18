@@ -21,6 +21,13 @@ import { IPD, OPD } from "../../../Components/constants/patient";
 import { togglePrint } from "../print/printSlice";
 import { removeEventBill, setEventBill } from "../booking/bookingSlice";
 
+// FormData stringifies every value, so booleans/keys must be read back explicitly
+// instead of via plain property access (which FormData doesn't support anyway).
+const getSubmittedField = (data, key) =>
+  data instanceof FormData ? data.get(key) : data?.[key];
+const getSubmittedBoolean = (data, key) =>
+  data instanceof FormData ? data.get(key) === "true" : Boolean(data?.[key]);
+
 const initialState = {
   data: [],
   draftData: [],
@@ -92,7 +99,7 @@ export const addInvoice = createAsyncThunk(
       const payload = response?.bill;
       const patient = response?.patient;
       const appointment = response?.appointment;
-      if (data?.type === OPD) {
+      if (getSubmittedField(data, "type") === OPD) {
         dispatch(setEventBill({ bill: payload, appointment }));
         dispatch(togglePrint({ modal: true, data: payload, patient: patient }));
       }
@@ -181,7 +188,7 @@ export const updateInvoice = createAsyncThunk(
       const appointment = response?.appointment;
       if (payload.type === OPD) {
         dispatch(setEventBill({ bill: payload, appointment }));
-        if (data.shouldPrintAfterSave)
+        if (getSubmittedBoolean(data, "shouldPrintAfterSave"))
           dispatch(
             togglePrint({
               modal: true,

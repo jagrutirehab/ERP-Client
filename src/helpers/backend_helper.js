@@ -712,9 +712,17 @@ export const getBillsAddmissions = (data) =>
   });
 export const getBills = (data) => api.get(url.GET_BILLS, { addmission: data });
 export const getDraftBills = (data) => api.get(url.GET_DRAFT_BILLS, data);
-export const postInvoice = (data) => api.create(url.POST_INVOICE, data);
-export const postDeposit = (data) => api.create(url.POST_DEPOSIT, data);
-export const editDeposit = (data) => api.put(url.EDIT_DEPOSIT, data);
+const multipartConfig = (data) =>
+  data instanceof FormData
+    ? { headers: { "Content-Type": "multipart/form-data" } }
+    : undefined;
+
+export const postInvoice = (data) =>
+  api.create(url.POST_INVOICE, data, multipartConfig(data));
+export const postDeposit = (data) =>
+  api.create(url.POST_DEPOSIT, data, multipartConfig(data));
+export const editDeposit = (data) =>
+  api.put(url.EDIT_DEPOSIT, data, multipartConfig(data));
 export const convertDepositToAdvance = (data) =>
   api.put(url.CONVERT_DEPOSIT_TO_ADVANCE, data);
 export const postDraftInvoice = (data) =>
@@ -722,11 +730,12 @@ export const postDraftInvoice = (data) =>
 export const postDraftToInvoice = (data) =>
   api.create(url.POST_DRAFT_TO_INVOICE, data);
 export const editDraftInvoice = (data) => api.put(url.EDIT_DRAFT_INVOICE, data);
-export const editInvoice = (data) => api.put(url.EDIT_INVOICE, data);
+export const editInvoice = (data) =>
+  api.put(url.EDIT_INVOICE, data, multipartConfig(data));
 export const postAdvancePayment = (data) =>
-  api.create(url.POST_ADVANCE_PAYMENT, data);
+  api.create(url.POST_ADVANCE_PAYMENT, data, multipartConfig(data));
 export const editAdvancePayment = (data) =>
-  api.put(url.EDIT_ADVANCE_PAYMENT, data);
+  api.put(url.EDIT_ADVANCE_PAYMENT, data, multipartConfig(data));
 export const deleteDraftBill = (data) =>
   api.delete(`${url.DELETE_DRAFT_BILL}/${data}`);
 export const deleteBill = (data) => api.delete(`${url.DELETE_BILL}/${data}`);

@@ -9,8 +9,14 @@ import {
   CHEQUE,
   UPI,
 } from "../../../../Components/constants/patient";
+import PaymentModeEvidence from "./PaymentModeEvidence";
 
-const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
+const Payment = ({
+  paymentModes,
+  setPaymentModes,
+  paymentAccounts,
+  existingTransactionProof,
+}) => {
   const handleChange = (e) => {
     const idx = e.target.id;
     const prop = e.target.name;
@@ -28,48 +34,54 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
     setPaymentModes(newPaymentModes);
   };
 
+  const setEvidenceFile = (idx, file) => {
+    const newPaymentModes = [...paymentModes];
+    newPaymentModes[idx] = { ...newPaymentModes[idx], evidenceFile: file };
+    setPaymentModes(newPaymentModes);
+  };
+
   return (
     <React.Fragment>
       <div>
         {(paymentModes || []).map((item, idx) => {
           return (
-            <Col xs={12} key={idx}>
-              <Row>
-                <Col md={2}>
-                  <div className="mb-3">
-                    <Label>
-                      Amount
-                      <span className="text-danger">*</span>
-                    </Label>
-                    <Input
-                      bsSize="sm"
-                      id={idx}
-                      className="w-100"
-                      size={"1"}
-                      name="amount"
-                      value={item.amount || ""}
-                      onKeyDown={(e) => {
-                        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-                          e.preventDefault();
-                        }
-                      }}
-                      onChange={(e) => {
-                        const event = {
-                          target: {
-                            value: parseInt(e.target.value),
-                            name: e.target.name,
-                            id: e.target.id,
-                          },
-                        };
-                        handleChange(event);
-                      }}
-                      type="number"
-                      onWheel={(e) => e.target.blur()}
-                    />
-                  </div>
+            <Col xs={12} key={idx} className="mb-3">
+              <Row className="flex-nowrap align-items-end g-3">
+                <Col xs="auto">
+                  <Label>
+                    Amount
+                    <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    bsSize="sm"
+                    id={idx}
+                    className="w-100"
+                    style={{ maxWidth: "110px", minWidth: "70px" }}
+                    size={"1"}
+                    name="amount"
+                    value={item.amount || ""}
+                    onKeyDown={(e) => {
+                      if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+                        e.preventDefault();
+                      }
+                    }}
+                    onChange={(e) => {
+                      const event = {
+                        target: {
+                          value: parseInt(e.target.value),
+                          name: e.target.name,
+                          id: e.target.id,
+                        },
+                      };
+                      handleChange(event);
+                    }}
+                    type="number"
+                    onWheel={(e) => e.target.blur()}
+                  />
                 </Col>
                 {item.paymentMode === CARD && (
-                  <Col md={2} className="padding-top-2 card-number">
+                  <Col xs="auto" className="card-number">
+                    <Label className="invisible">Card Number</Label>
                     <Input
                       id={idx}
                       bsSize="sm"
@@ -80,13 +92,15 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                       value={item.cardNumber || ""}
                       onChange={handleChange}
                       placeholder="Last 4 Digit"
+                      style={{ maxWidth: "110px", minWidth: "70px" }}
                       required
                     />
                   </Col>
                 )}
                 {item.paymentMode === CHEQUE && (
                   <>
-                    <Col md={2} className="padding-top-2 bank-name">
+                    <Col xs="auto" className="bank-name">
+                      <Label className="invisible">Bank Name</Label>
                       <Input
                         id={idx}
                         bsSize="sm"
@@ -95,10 +109,12 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                         value={item.bankName || ""}
                         onChange={handleChange}
                         placeholder="Bank Name"
+                        style={{ maxWidth: "110px", minWidth: "70px" }}
                         required
                       />
                     </Col>
-                    <Col md={2} className="padding-top-2 cheque-no">
+                    <Col xs="auto" className="cheque-no">
+                      <Label className="invisible">Cheque No</Label>
                       <Input
                         id={idx}
                         bsSize="sm"
@@ -107,6 +123,7 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                         value={item.chequeNumber || ""}
                         onChange={handleChange}
                         placeholder="Cheque No"
+                        style={{ maxWidth: "110px", minWidth: "70px" }}
                         required
                       />
                     </Col>
@@ -114,7 +131,7 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                 )}
 
                 {item.paymentMode === UPI && (
-                  <Col xs={12} md={4}>
+                  <Col xs="auto">
                     <Label>
                       Transaction Id
                       <span className="text-danger">*</span>
@@ -127,13 +144,14 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                       value={item.transactionId || ""}
                       onChange={handleChange}
                       type="text"
+                      style={{ maxWidth: "110px", minWidth: "70px" }}
                       required
                     />
                   </Col>
                 )}
 
                 {item.paymentMode !== CASH && (
-                  <Col xs={12} md={4}>
+                  <Col xs="auto">
                     <Label>
                       Bank Accounts
                       <span className="text-danger">*</span>
@@ -146,6 +164,7 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                       value={item.bankAccount || ""}
                       onChange={handleChange}
                       type="select"
+                      style={{ maxWidth: "160px" }}
                       required
                     >
                       <option value={""} selected defaultValue={""}>
@@ -153,7 +172,9 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                       </option>
                       {(paymentAccounts || [])
                         .filter((acc) => {
-                          const isCardOrUpi = item.paymentMode === "CARD" || item.paymentMode === "UPI";
+                          const isCardOrUpi =
+                            item.paymentMode === "CARD" ||
+                            item.paymentMode === "UPI";
                           if (isCardOrUpi) {
                             // Show all accounts (including pinelabs)
                             return true;
@@ -171,8 +192,28 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                   </Col>
                 )}
 
-                <Col>
-                  <div className="d-flex align-items-center h-100 pt-3">
+                {item.paymentMode !== CASH && (
+                  <Col xs="auto" style={{ flex: "0 0 auto" }}>
+                    <Label className="invisible">Evidence</Label>
+                    <div className="d-flex align-items-center">
+                      <PaymentModeEvidence
+                        inputId={`depositPaymentEvidence-${idx}`}
+                        file={item.evidenceFile}
+                        existingUrl={
+                          (existingTransactionProof || []).find(
+                            (proof) => proof.mode === item.paymentMode,
+                          )?.url
+                        }
+                        onSelect={(file) => setEvidenceFile(idx, file)}
+                        onRemove={() => setEvidenceFile(idx, undefined)}
+                      />
+                    </div>
+                  </Col>
+                )}
+
+                <Col xs="auto" style={{ flex: "0 0 auto" }}>
+                  <Label className="invisible">Remove</Label>
+                  <div className="d-flex align-items-center">
                     <Button
                       onClick={() => deleteForm(idx)}
                       size="sm"
@@ -195,6 +236,7 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
 Payment.propTypes = {
   paymentModes: PropTypes.array,
   setPaymentModes: PropTypes.func,
+  existingTransactionProof: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({

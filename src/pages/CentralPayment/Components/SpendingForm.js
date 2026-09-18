@@ -17,7 +17,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuthError } from '../../../Components/Hooks/useAuthError';
 import { addPayment, updateCentralPayment } from '../../../store/features/centralPayment/centralPaymentSlice';
-import FileUpload from './FileUpload';
+import FileUpload from '../../../Components/Common/FileUpload';
 import { FileText, Share } from 'lucide-react';
 import { categoryOptions, tallyBankAccounts } from '../../../Components/constants/centralPayment';
 import Select from "react-select";

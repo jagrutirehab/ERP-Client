@@ -289,6 +289,7 @@ const InvoiceFooter = (props) => {
                     setPaymentModes={props.setPaymentModes}
                     payable={props.payable}
                     validation={props.validation}
+                    existingTransactionProof={props.existingTransactionProof}
                   />
                 </Col>
               </RenderWhen>

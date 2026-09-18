@@ -1,6 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Col, Row } from "reactstrap";
+import TransactionProofLink from "./TransactionProofLink";
 
 const AdvancePayment = ({ data }) => {
   return (
@@ -25,6 +26,10 @@ const AdvancePayment = ({ data }) => {
             </p>
             <div className="p-2">
               {(data?.paymentModes || []).map((item) => {
+                const proofUrl = (data?.transactionProof || []).find(
+                  (proof) => proof.mode === item.paymentMode
+                )?.url;
+
                 return (
                   <div
                     className="d-flex align-items-center justify-content-between border-bottom-1 pt-1"
@@ -69,6 +74,11 @@ const AdvancePayment = ({ data }) => {
                           <p className="text-muted fs-xs-11 fs-md-14 pb-0 mb-0">
                             {item.cardNumber}
                           </p>
+                        </div>
+                      )}
+                      {proofUrl && (
+                        <div className="text-center ms-3">
+                          <TransactionProofLink url={proofUrl} />
                         </div>
                       )}
                     </div>

@@ -26,6 +26,30 @@ import {
 } from "../../../store/actions";
 import { setBillingStatus } from "../../../store/features/patient/patientSlice";
 
+// Each paymentModes row may carry a transient `evidenceFile` (a File, never sent as-is).
+// Strip it before the array goes out as JSON, and collect it separately for FormData.
+const stripEvidenceFiles = (modes) =>
+  (modes || []).map(({ evidenceFile, ...rest }) => rest);
+
+const collectEvidenceFiles = (modes) =>
+  (modes || [])
+    .filter((mode) => mode.evidenceFile)
+    .map((mode) => ({ file: mode.evidenceFile, mode: mode.paymentMode }));
+
+const buildTransactionProofFormData = (payload, evidenceEntries) => {
+  const formData = new FormData();
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    formData.append(key, key === "paymentModes" ? JSON.stringify(value) : value);
+  });
+  evidenceEntries.forEach(({ file }) => formData.append("transactionProof", file));
+  formData.append(
+    "transactionProofModes",
+    JSON.stringify(evidenceEntries.map((entry) => entry.mode))
+  );
+  return formData;
+};
+
 const AdvancePayment = ({
   toggleForm,
   author,
@@ -75,6 +99,7 @@ const AdvancePayment = ({
   }, [paymentModes]);
 
   const editData = editBillData?.advancePayment;
+  const existingTransactionProof = editData?.transactionProof;
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -97,15 +122,23 @@ const AdvancePayment = ({
       totalAmount: Yup.number().moreThan(0),
     }),
     onSubmit: async (values) => {
+      const evidenceEntries = collectEvidenceFiles(paymentModes);
+      const cleanPaymentModes = stripEvidenceFiles(paymentModes);
+
       if (editData) {
+        const payload = {
+          id: editBillData._id,
+          billId: editData._id,
+          totalAmount: totalAmount,
+          paymentModes: cleanPaymentModes,
+          ...values,
+        };
         const response = await dispatch(
-          updateAdvancePayment({
-            id: editBillData._id,
-            billId: editData._id,
-            totalAmount: totalAmount,
-            paymentModes: paymentModes,
-            ...values,
-          }),
+          updateAdvancePayment(
+            evidenceEntries.length > 0
+              ? buildTransactionProofFormData(payload, evidenceEntries)
+              : payload
+          ),
         ).unwrap();
         dispatch(
           setBillingStatus({
@@ -114,12 +147,17 @@ const AdvancePayment = ({
           }),
         );
       } else {
+        const payload = {
+          totalAmount: totalAmount,
+          paymentModes: cleanPaymentModes,
+          ...values,
+        };
         const response = await dispatch(
-          addAdvancePayment({
-            totalAmount: totalAmount,
-            paymentModes: paymentModes,
-            ...values,
-          }),
+          addAdvancePayment(
+            evidenceEntries.length > 0
+              ? buildTransactionProofFormData(payload, evidenceEntries)
+              : payload
+          ),
         ).unwrap();
         dispatch(
           setBillingStatus({
@@ -198,6 +236,7 @@ const AdvancePayment = ({
             <Payment
               paymentModes={paymentModes}
               setPaymentModes={setPaymentModes}
+              existingTransactionProof={existingTransactionProof}
             />
           </div>
 
