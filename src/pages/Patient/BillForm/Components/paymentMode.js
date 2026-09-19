@@ -49,9 +49,23 @@ const PaymentMode = ({
     setPaymentModes(newPaymentModes);
   };
 
-  const setEvidenceFile = (idx, file) => {
+  const addEvidenceFiles = (idx, newFiles) => {
     const newPaymentModes = [...paymentModes];
-    newPaymentModes[idx] = { ...newPaymentModes[idx], evidenceFile: file };
+    const existingFiles = newPaymentModes[idx].evidenceFiles || [];
+    newPaymentModes[idx] = {
+      ...newPaymentModes[idx],
+      evidenceFiles: [...existingFiles, ...newFiles],
+    };
+    setPaymentModes(newPaymentModes);
+  };
+
+  const removeEvidenceFile = (idx, fileIdx) => {
+    const newPaymentModes = [...paymentModes];
+    const existingFiles = newPaymentModes[idx].evidenceFiles || [];
+    newPaymentModes[idx] = {
+      ...newPaymentModes[idx],
+      evidenceFiles: existingFiles.filter((_, i) => i !== fileIdx),
+    };
     setPaymentModes(newPaymentModes);
   };
 
@@ -82,7 +96,8 @@ const PaymentMode = ({
           </div>
           {(paymentModes || []).map((val, idx) => (
             <div
-              className="d-flex flex-nowrap align-items-center mb-2 w-100"
+              className="d-flex flex-wrap flex-sm-nowrap align-items-center mb-2 w-100"
+              style={{ rowGap: "0.5rem" }}
               key={idx}
             >
               <Col xs="auto" className="me-2">
@@ -235,14 +250,13 @@ const PaymentMode = ({
                   <div className="d-flex align-items-center h-100">
                     <PaymentModeEvidence
                       inputId={`invoicePaymentEvidence-${idx}`}
-                      file={val.evidenceFile}
-                      existingUrl={
-                        (existingTransactionProof || []).find(
-                          (proof) => proof.mode === val.type,
-                        )?.url
-                      }
-                      onSelect={(file) => setEvidenceFile(idx, file)}
-                      onRemove={() => setEvidenceFile(idx, undefined)}
+                      files={val.evidenceFiles}
+                      existingUrls={(existingTransactionProof || [])
+                        .filter((proof) => proof.mode === val.type)
+                        .map((proof) => proof.url)}
+                      onAddFiles={(newFiles) => addEvidenceFiles(idx, newFiles)}
+                      onRemoveFile={(fileIdx) => removeEvidenceFile(idx, fileIdx)}
+                      labelClassName="text-muted fs-10"
                     />
                   </div>
                 </Col>
