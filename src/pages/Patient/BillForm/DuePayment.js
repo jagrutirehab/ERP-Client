@@ -24,15 +24,16 @@ import {
 import InvoiceDateRange from "./Components/InvoiceDateRange";
 import FromDateModal from "./Components/FromDateModal";
 
-// Each paymentModes row may carry a transient `evidenceFile` (a File, never sent as-is).
-// Strip it before the array goes out as JSON, and collect it separately for FormData.
+// Each paymentModes row may carry a transient `evidenceFiles` array (Files, never sent as-is).
+// Strip it before the array goes out as JSON, and collect it separately for FormData —
+// one entry per file, with the mode repeated so the backend can pair them positionally.
 const stripEvidenceFiles = (modes) =>
-  (modes || []).map(({ evidenceFile, ...rest }) => rest);
+  (modes || []).map(({ evidenceFiles, ...rest }) => rest);
 
 const collectEvidenceFiles = (modes) =>
-  (modes || [])
-    .filter((mode) => mode.evidenceFile)
-    .map((mode) => ({ file: mode.evidenceFile, mode: mode.type }));
+  (modes || []).flatMap((mode) =>
+    (mode.evidenceFiles || []).map((file) => ({ file, mode: mode.type }))
+  );
 
 const buildTransactionProofFormData = (payload, evidenceEntries) => {
   const formData = new FormData();

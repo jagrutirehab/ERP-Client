@@ -1,113 +1,124 @@
 import React, { useRef } from "react";
 import PropTypes from "prop-types";
-import { UploadCloud, X } from "lucide-react";
+import { Button, Label } from "reactstrap";
+import { Paperclip, X } from "lucide-react";
 
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "application/pdf"];
 const MAX_SIZE = 100 * 1024 * 1024; // 100 MB
 
-const PaymentModeEvidence = ({ inputId, file, existingUrl, onSelect, onRemove }) => {
+const PaymentModeEvidence = ({
+  inputId,
+  files,
+  existingUrls,
+  onAddFiles,
+  onRemoveFile,
+  labelClassName,
+}) => {
   const inputRef = useRef(null);
+  const fileList = Array.isArray(files) ? files : [];
+  const urlList = Array.isArray(existingUrls) ? existingUrls : [];
 
   const handleFileChange = (e) => {
-    const selected = e.target.files && e.target.files[0];
+    const selected = Array.from(e.target.files || []);
     e.target.value = "";
-    if (!selected) return;
-    if (!ALLOWED_TYPES.includes(selected.type)) return;
-    if (selected.size > MAX_SIZE) return;
-    onSelect(selected);
+    if (!selected.length) return;
+
+    const validFiles = selected.filter(
+      (f) => ALLOWED_TYPES.includes(f.type) && f.size <= MAX_SIZE,
+    );
+    if (!validFiles.length) return;
+
+    onAddFiles(validFiles);
   };
 
   const openPicker = () => inputRef.current?.click();
 
-  const hiddenInput = (
-    <input
-      id={inputId}
-      ref={inputRef}
-      type="file"
-      accept=".png,.jpg,.jpeg,.pdf"
-      onChange={handleFileChange}
-      style={{
-        position: "absolute",
-        opacity: 0,
-        width: "1px",
-        height: "1px",
-        overflow: "hidden",
-        pointerEvents: "none",
-      }}
-    />
-  );
-
-  if (file) {
-    return (
-      <div className="d-inline-flex align-items-center gap-1" style={{ lineHeight: 1 }}>
-        {hiddenInput}
-        <span
-          className="small text-truncate"
-          style={{ maxWidth: "90px", display: "inline-block", lineHeight: "normal" }}
-          title={file.name}
-        >
-          {file.name}
-        </span>
-        <Wrapping onClick={onRemove}>
-          <X size={14} />
-        </Wrapping>
-      </div>
-    );
-  }
-
-  if (existingUrl) {
-    return (
-      <div className="d-inline-flex align-items-center gap-2" style={{ lineHeight: 1 }}>
-        {hiddenInput}
-        <a
-          href={existingUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="small d-inline-flex align-items-center"
-        >
-          View
-        </a>
-        <Wrapping onClick={openPicker} title="Replace">
-          <UploadCloud size={14} />
-        </Wrapping>
-      </div>
-    );
-  }
-
   return (
-    <div
-      role="button"
-      onClick={openPicker}
-      className="d-inline-flex align-items-center gap-1 text-primary"
-      style={{ cursor: "pointer", lineHeight: 1 }}
-    >
-      {hiddenInput}
-      <UploadCloud size={20} />
-      <span className="small" style={{ whiteSpace: "nowrap" }}>
-        Upload evidence screenshot
-      </span>
+    // Capped width + wrap keeps the button, existing-evidence links and picked-file
+    // rows from overflowing the row on narrow/mobile screens — they stack instead.
+    <div style={{ maxWidth: "170px" }}>
+      <input
+        id={inputId}
+        ref={inputRef}
+        type="file"
+        multiple
+        accept=".png,.jpg,.jpeg,.pdf"
+        onChange={handleFileChange}
+        style={{
+          position: "absolute",
+          opacity: 0,
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
+          pointerEvents: "none",
+        }}
+      />
+
+      <Label className={labelClassName}>Upload Evidence Screenshot</Label>
+
+      <div className="d-flex flex-wrap align-items-center gap-2">
+        <Button
+          type="button"
+          outline
+          size="sm"
+          color="primary"
+          onClick={openPicker}
+          className="d-inline-flex align-items-center gap-1"
+        >
+          <Paperclip size={14} />
+          Upload
+        </Button>
+
+        {urlList.map((url, i) => (
+          <a
+            key={`existing-${i}`}
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="small d-inline-flex align-items-center"
+          >
+            View{urlList.length > 1 ? ` ${i + 1}` : ""}
+          </a>
+        ))}
+      </div>
+
+      {fileList.length > 0 && (
+        <div className="mt-1">
+          {fileList.map((file, i) => (
+            <div
+              key={`${file.name}-${i}`}
+              className="d-flex align-items-center gap-1"
+            >
+              <span
+                className="small text-truncate"
+                style={{ maxWidth: "110px", display: "inline-block" }}
+                title={file.name}
+              >
+                {file.name}
+              </span>
+              <span
+                role="button"
+                onClick={() => onRemoveFile(i)}
+                className="text-muted"
+                style={{ cursor: "pointer", lineHeight: 0 }}
+              >
+                <X size={14} />
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
 
-const Wrapping = ({ onClick, title, children }) => (
-  <span
-    role="button"
-    onClick={onClick}
-    title={title}
-    className="text-muted d-inline-flex align-items-center"
-    style={{ cursor: "pointer", lineHeight: 0 }}
-  >
-    {children}
-  </span>
-);
-
 PaymentModeEvidence.propTypes = {
   inputId: PropTypes.string.isRequired,
-  file: PropTypes.object,
-  existingUrl: PropTypes.string,
-  onSelect: PropTypes.func.isRequired,
-  onRemove: PropTypes.func.isRequired,
+  files: PropTypes.array,
+  existingUrls: PropTypes.array,
+  onAddFiles: PropTypes.func.isRequired,
+  onRemoveFile: PropTypes.func.isRequired,
+  labelClassName: PropTypes.string,
 };
 
 export default PaymentModeEvidence;

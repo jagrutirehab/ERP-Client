@@ -32,9 +32,9 @@ const OPDInvoice = ({ data, bill }) => {
             </Col>
             <Col xs={12}>
               {data?.paymentModes.map((paymentMode, i) => {
-                const proofUrl = (data?.transactionProof || []).find(
-                  (proof) => proof.mode === paymentMode?.type
-                )?.url;
+                const proofUrls = (data?.transactionProof || [])
+                  .filter((proof) => proof.mode === paymentMode?.type)
+                  .map((proof) => proof.url);
 
                 return (
                 <div key={i} className="d-flex align-items-center gap-3">
@@ -64,10 +64,10 @@ const OPDInvoice = ({ data, bill }) => {
                       <span>{paymentMode?.transactionId}</span>
                     </RenderWhen>
 
-                    {proofUrl && (
+                    {proofUrls.length > 0 && (
                       <>
                         {" - "}
-                        <TransactionProofLink url={proofUrl} />
+                        <TransactionProofLink urls={proofUrls} />
                       </>
                     )}
                   </div>
