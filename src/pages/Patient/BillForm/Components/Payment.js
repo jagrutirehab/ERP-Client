@@ -34,9 +34,23 @@ const Payment = ({
     setPaymentModes(newPaymentModes);
   };
 
-  const setEvidenceFile = (idx, file) => {
+  const addEvidenceFiles = (idx, newFiles) => {
     const newPaymentModes = [...paymentModes];
-    newPaymentModes[idx] = { ...newPaymentModes[idx], evidenceFile: file };
+    const existingFiles = newPaymentModes[idx].evidenceFiles || [];
+    newPaymentModes[idx] = {
+      ...newPaymentModes[idx],
+      evidenceFiles: [...existingFiles, ...newFiles],
+    };
+    setPaymentModes(newPaymentModes);
+  };
+
+  const removeEvidenceFile = (idx, fileIdx) => {
+    const newPaymentModes = [...paymentModes];
+    const existingFiles = newPaymentModes[idx].evidenceFiles || [];
+    newPaymentModes[idx] = {
+      ...newPaymentModes[idx],
+      evidenceFiles: existingFiles.filter((_, i) => i !== fileIdx),
+    };
     setPaymentModes(newPaymentModes);
   };
 
@@ -46,7 +60,7 @@ const Payment = ({
         {(paymentModes || []).map((item, idx) => {
           return (
             <Col xs={12} key={idx} className="mb-3">
-              <Row className="flex-nowrap align-items-end g-3">
+              <Row className="flex-wrap flex-sm-nowrap align-items-end g-3">
                 <Col xs="auto">
                   <Label>
                     Amount
@@ -194,18 +208,20 @@ const Payment = ({
 
                 {item.paymentMode !== CASH && (
                   <Col xs="auto" style={{ flex: "0 0 auto" }}>
-                    <Label className="invisible">Evidence</Label>
                     <div className="d-flex align-items-center">
                       <PaymentModeEvidence
                         inputId={`depositPaymentEvidence-${idx}`}
-                        file={item.evidenceFile}
-                        existingUrl={
-                          (existingTransactionProof || []).find(
-                            (proof) => proof.mode === item.paymentMode,
-                          )?.url
+                        files={item.evidenceFiles}
+                        existingUrls={(existingTransactionProof || [])
+                          .filter((proof) => proof.mode === item.paymentMode)
+                          .map((proof) => proof.url)}
+                        onAddFiles={(newFiles) =>
+                          addEvidenceFiles(idx, newFiles)
                         }
-                        onSelect={(file) => setEvidenceFile(idx, file)}
-                        onRemove={() => setEvidenceFile(idx, undefined)}
+                        onRemoveFile={(fileIdx) =>
+                          removeEvidenceFile(idx, fileIdx)
+                        }
+                        labelClassName="w-100"
                       />
                     </div>
                   </Col>

@@ -27,9 +27,9 @@ const Deposit = ({ data }) => {
             </p>
             <div className="p-2">
               {(data?.paymentModes || []).map((item) => {
-                const proofUrl = (data?.transactionProof || []).find(
-                  (proof) => proof.mode === item.paymentMode
-                )?.url;
+                const proofUrls = (data?.transactionProof || [])
+                  .filter((proof) => proof.mode === item.paymentMode)
+                  .map((proof) => proof.url);
 
                 return (
                   <div
@@ -77,9 +77,9 @@ const Deposit = ({ data }) => {
                           </p>
                         </div>
                       )}
-                      {proofUrl && (
+                      {proofUrls.length > 0 && (
                         <div className="text-center ms-3">
-                          <TransactionProofLink url={proofUrl} />
+                          <TransactionProofLink urls={proofUrls} />
                         </div>
                       )}
                     </div>
