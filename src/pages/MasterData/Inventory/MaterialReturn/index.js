@@ -1,48 +1,41 @@
 import React, { useState, useEffect } from "react";
 import DataTable from "react-data-table-component";
-import { Button, Input, Modal, ModalBody, Label } from "reactstrap";
+import { Button, Input, Label } from "reactstrap";
 import { toast } from "react-toastify";
 import {
-  getStockLedger,
+  getMaterialReturns,
+  getIssuesForReturn,
   createMaterialReturn,
-  getAllCenters,
-  getStockBalances,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
-const dateFmt = (d) => (d ? new Date(d).toLocaleString("en-IN") : "—");
+const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
 
 const MaterialReturn = () => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "MATERIAL_RETURN", "WRITE");
-  
+
+  const [view, setView] = useState("list");
   const [returns, setReturns] = useState([]);
+  const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
-  const [centers, setCenters] = useState([]);
-  const [stockOptions, setStockOptions] = useState([]);
+  const [selectedIssue, setSelectedIssue] = useState(null);
 
-  const [modalOpen, setModalOpen] = useState(false);
-  const [centerId, setCenterId] = useState("");
-  const [itemName, setItemName] = useState("");
-  const [quantity, setQuantity] = useState("");
+  const [returnReason, setReturnReason] = useState("");
   const [remarks, setRemarks] = useState("");
+  const [returnQtys, setReturnQtys] = useState({});
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
+    if (view !== "list") return;
     let cancelled = false;
     setLoading(true);
-    getStockLedger({ referenceType: "material_return" })
+    getMaterialReturns()
       .then((res) => {
         if (!cancelled) setReturns(res?.data || []);
       })
@@ -53,39 +46,47 @@ const MaterialReturn = () => {
     return () => {
       cancelled = true;
     };
-  }, [refreshFlag]);
+  }, [view, refreshFlag]);
 
-  const openModal = () => {
-    setCenterId("");
-    setItemName("");
-    setQuantity("");
-    setRemarks("");
-    setStockOptions([]);
-    setModalOpen(true);
+  const openSelectIssue = () => {
+    setLoading(true);
+    getIssuesForReturn()
+      .then((res) => setIssues(res?.data || []))
+      .catch(() => setIssues([]))
+      .finally(() => setLoading(false));
+    setView("select-issue");
   };
 
-  const handleCenterChange = (id) => {
-    setCenterId(id);
-    setItemName("");
-    if (!id) {
-      setStockOptions([]);
-      return;
-    }
-    getStockBalances({ centerId: id })
-      .then((res) => setStockOptions(res?.data || []))
-      .catch(() => setStockOptions([]));
+  const selectIssue = (issue) => {
+    setSelectedIssue(issue);
+    const initial = {};
+    issue.returnableLines.forEach((li) => {
+      initial[li.itemName] = li.remaining;
+    });
+    setReturnQtys(initial);
+    setReturnReason("");
+    setRemarks("");
+    setView("form");
   };
 
   const handleSubmit = async () => {
-    if (!centerId || !itemName.trim() || !quantity) return toast.error("Fill in all required fields");
-    const qty = Number(quantity);
-    if (!qty || qty <= 0) return toast.error("Enter a valid quantity");
+    const lineItems = Object.entries(returnQtys)
+      .filter(([, qty]) => Number(qty) > 0)
+      .map(([itemName, qty]) => ({ itemName, returnQty: Number(qty) }));
+
+    if (lineItems.length === 0) return toast.error("Enter a return quantity for at least one item");
 
     setSubmitting(true);
     try {
-      await createMaterialReturn({ itemName, centerId, quantity: qty, remarks });
-      toast.success("Material return recorded successfully");
-      setModalOpen(false);
+      await createMaterialReturn({
+        materialIssueId: selectedIssue._id,
+        returnReason,
+        remarks,
+        lineItems,
+      });
+      toast.success("Material return created successfully");
+      setView("list");
+      setSelectedIssue(null);
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -96,47 +97,162 @@ const MaterialReturn = () => {
     }
   };
 
-  const columns = [
+  const listColumns = [
+    { name: "Return #", selector: (row) => row.returnNumber, sortable: true, width: "150px" },
     {
-      name: "Date",
-      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.transactionDate)}</span>,
-      width: "180px",
+      name: "From Issue",
+      cell: (row) => <span className="uom-cell-muted">{row.materialIssueId?.issueNumber || "—"}</span>,
     },
-    { name: "Item", selector: (row) => row.itemName },
     {
-      name: "Center",
+      name: "Site",
       cell: (row) => <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>,
     },
     {
-      name: "Qty Returned",
-      width: "120px",
-      cell: (row) => <span className="text-success fw-semibold">+{row.quantity}</span>,
+      name: "Location",
+      cell: (row) => <span className="uom-cell-muted">{row.storageLocationId?.name || "—"}</span>,
     },
-    { name: "Balance After", width: "120px", selector: (row) => row.balanceAfter },
-    { name: "Reference", cell: (row) => <span className="uom-cell-muted small">{row.referenceNumber}</span> },
-    { name: "Remarks", cell: (row) => <span className="uom-cell-muted small">{row.remarks || "—"}</span> },
+    {
+      name: "Items",
+      width: "80px",
+      cell: (row) => <span className="uom-cell-muted">{row.lineItems?.length || 0}</span>,
+    },
+    { name: "Reason", cell: (row) => <span className="small text-muted">{row.returnReason || "—"}</span> },
+    {
+      name: "Date",
+      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.createdAt)}</span>,
+    },
   ];
+
+  if (view === "select-issue") {
+    return (
+      <div className="uom-page">
+        <div className="uom-list-header">
+          <div>
+            <h4>Select Material Issue</h4>
+            <p>Choose the issue you're returning material from</p>
+          </div>
+          <Button color="light" onClick={() => setView("list")}>
+            <i className="bx bx-arrow-back me-1"></i> Back
+          </Button>
+        </div>
+
+        {loading && <div className="text-muted p-3">Loading...</div>}
+
+        {!loading && issues.length === 0 && (
+          <div className="uom-empty-state">
+            <p className="uom-empty-title">Nothing to return</p>
+            <p className="uom-empty-sub">All issued material has already been fully returned.</p>
+          </div>
+        )}
+
+        <div className="d-flex flex-column gap-2">
+          {issues.map((issue) => (
+            <div
+              key={issue._id}
+              className="uom-table-card p-3"
+              style={{ cursor: "pointer" }}
+              onClick={() => selectIssue(issue)}
+            >
+              <div className="d-flex justify-content-between">
+                <div>
+                  <div className="fw-semibold">{issue.issueNumber}</div>
+                  <div className="text-muted small">
+                    {issue.centerId?.title} · {issue.departmentId?.name || "No department"}
+                  </div>
+                </div>
+                <div className="text-muted small">{issue.returnableLines.length} item(s) returnable</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (view === "form" && selectedIssue) {
+    return (
+      <div className="uom-form-page">
+        <div className="d-flex justify-content-between align-items-start mb-1">
+          <h4 className="uom-form-title mb-0">Create Material Return</h4>
+          <Button color="success" onClick={handleSubmit} disabled={submitting}>
+            {submitting ? "Saving..." : "Create Return"}
+          </Button>
+        </div>
+        <p className="text-muted mb-4">
+          From Issue: <strong>{selectedIssue.issueNumber}</strong>
+        </p>
+
+        <div className="uom-form-panel">
+          <h6 className="fw-semibold mb-3">Items to Return</h6>
+          {selectedIssue.returnableLines.map((li) => (
+            <div key={li.itemName} className="uom-table-card p-3 mb-2">
+              <div className="d-flex justify-content-between align-items-center">
+                <div>
+                  <div className="fw-semibold">{li.itemName}</div>
+                  <div className="text-muted small">
+                    Issued: {li.issuedQty} · Already Returned: {li.alreadyReturned} · Returnable:{" "}
+                    {li.remaining}
+                  </div>
+                </div>
+                <Input
+                  type="number"
+                  min={0}
+                  max={li.remaining}
+                  style={{ width: 120 }}
+                  value={returnQtys[li.itemName] ?? 0}
+                  onFocus={(e) => e.target.select()}
+                  onChange={(e) =>
+                    setReturnQtys((prev) => ({ ...prev, [li.itemName]: e.target.value }))
+                  }
+                />
+              </div>
+            </div>
+          ))}
+
+          <Label className="mt-3">Return Reason</Label>
+          <Input
+            className="mb-3"
+            value={returnReason}
+            onChange={(e) => setReturnReason(e.target.value)}
+            placeholder="e.g. Unused, project cancelled"
+          />
+
+          <Label>Remarks</Label>
+          <Input type="textarea" rows={2} value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+
+          <div className="uom-form-footer d-flex justify-content-end gap-2 mt-3">
+            <Button color="light" onClick={() => setView("list")} disabled={submitting}>
+              Cancel
+            </Button>
+            <Button color="success" onClick={handleSubmit} disabled={submitting}>
+              {submitting ? "Saving..." : "Create Return"}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="uom-page">
       <div className="uom-list-header">
         <div>
           <h4>Material Returns</h4>
-          <p>Unused or defective stock returned to inventory</p>
+          <p>Return materials from an existing issue</p>
         </div>
       </div>
 
       <div className="d-flex justify-content-end mb-3">
         {canCreate && (
-          <Button color="primary" onClick={openModal}>
-            <i className="bx bx-plus me-1"></i> New Return
+          <Button color="primary" onClick={openSelectIssue}>
+            <i className="bx bx-plus me-1"></i> Create
           </Button>
         )}
       </div>
 
       <div className="uom-table-card">
         <DataTable
-          columns={columns}
+          columns={listColumns}
           data={returns}
           progressPending={loading}
           pagination
@@ -144,71 +260,6 @@ const MaterialReturn = () => {
           noDataComponent={<div className="uom-empty-state">No material returns yet</div>}
         />
       </div>
-
-      <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} centered>
-        <ModalBody className="p-4">
-          <h5 className="mb-3">Return Material</h5>
-
-          <Label>Site</Label>
-          <Input
-            type="select"
-            className="mb-3"
-            value={centerId}
-            onChange={(e) => handleCenterChange(e.target.value)}
-          >
-            <option value="">Select site</option>
-            {centers.map((c) => (
-              <option key={c._id} value={c._id}>
-                {c.title}
-              </option>
-            ))}
-          </Input>
-
-          <Label>Item</Label>
-          <Input
-            type="select"
-            className="mb-3"
-            value={itemName}
-            disabled={!centerId}
-            onChange={(e) => setItemName(e.target.value)}
-          >
-            <option value="">{!centerId ? "Select site first" : "Select item (or type below)"}</option>
-            {stockOptions.map((s) => (
-              <option key={s._id} value={s.itemName}>
-                {s.itemName} (Current: {s.quantity})
-              </option>
-            ))}
-          </Input>
-
-          <Label>Quantity</Label>
-          <Input
-            type="number"
-            min={1}
-            className="mb-3"
-            value={quantity}
-            onFocus={(e) => e.target.select()}
-            onChange={(e) => setQuantity(e.target.value)}
-          />
-
-          <Label>Remarks</Label>
-          <Input
-            type="textarea"
-            rows={2}
-            value={remarks}
-            onChange={(e) => setRemarks(e.target.value)}
-            placeholder="e.g. Unused, returned by Nursing department"
-          />
-
-          <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button color="light" onClick={() => setModalOpen(false)} disabled={submitting}>
-              Cancel
-            </Button>
-            <Button color="success" onClick={handleSubmit} disabled={submitting}>
-              {submitting ? "Saving..." : "Return"}
-            </Button>
-          </div>
-        </ModalBody>
-      </Modal>
     </div>
   );
 };

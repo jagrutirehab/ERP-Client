@@ -6,7 +6,8 @@ import {
   getInventoryTransfers,
   createInventoryTransfer,
   getAllCenters,
-  getStockBalances,
+  getStorageLocations,
+  getLocationStock,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
@@ -28,6 +29,8 @@ const InventoryTransfer = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [fromCenterId, setFromCenterId] = useState("");
+  const [fromLocationId, setFromLocationId] = useState("");
+  const [fromLocations, setFromLocations] = useState([]);
   const [toCenterId, setToCenterId] = useState("");
   const [expectedDispatch, setExpectedDispatch] = useState("");
   const [remarks, setRemarks] = useState("");
@@ -60,6 +63,8 @@ const InventoryTransfer = () => {
   const openModal = () => {
     setTitle("");
     setFromCenterId("");
+    setFromLocationId("");
+    setFromLocations([]);
     setToCenterId("");
     setExpectedDispatch("");
     setRemarks("");
@@ -70,14 +75,39 @@ const InventoryTransfer = () => {
 
   const handleFromCenterChange = (centerId) => {
     setFromCenterId(centerId);
+    setFromLocationId("");
     setLines([{ itemName: "", quantity: 1 }]);
+    setAvailableStock([]);
     if (!centerId) {
+      setFromLocations([]);
+      return;
+    }
+    getStorageLocations({ centerId, status: "active" })
+      .then((res) => setFromLocations(res?.data || []))
+      .catch(() => {});
+  };
+
+  const handleFromLocationChange = (locationId) => {
+    setFromLocationId(locationId);
+    setLines([{ itemName: "", quantity: 1 }]);
+    if (!locationId) {
       setAvailableStock([]);
       return;
     }
-    getStockBalances({ centerId })
-      .then((res) => setAvailableStock(res?.data || []))
-      .catch(() => {});
+    getLocationStock()
+      .then((res) => {
+        const atThisLocation = (res?.data || []).filter(
+          (r) => r.location?._id === locationId,
+        );
+        setAvailableStock(
+          atThisLocation.map((r) => ({
+            _id: r.location._id + r.itemName,
+            itemName: r.itemName,
+            quantity: r.quantity,
+          })),
+        );
+      })
+      .catch(() => setAvailableStock([]));
   };
 
   const updateLine = (idx, field, value) => {
@@ -91,7 +121,8 @@ const InventoryTransfer = () => {
     setLines((prev) => prev.filter((_, i) => i !== idx));
 
   const handleSubmit = async () => {
-    if (!fromCenterId || !toCenterId) return toast.error("Select both centers");
+    if (!fromCenterId || !toCenterId || !fromLocationId)
+      return toast.error("Select both centers and source location");
     if (fromCenterId === toCenterId)
       return toast.error("From and To center must differ");
     if (lines.some((l) => !l.itemName.trim() || Number(l.quantity) <= 0)) {
@@ -103,6 +134,7 @@ const InventoryTransfer = () => {
       await createInventoryTransfer({
         title,
         fromCenterId,
+        fromLocationId: fromLocationId || undefined,
         toCenterId,
         expectedDispatch: expectedDispatch || undefined,
         remarks,
@@ -237,11 +269,29 @@ const InventoryTransfer = () => {
               </Input>
             </Col>
           </Row>
-
+          <Label>
+            Source Storage Location <span className="text-danger">*</span>
+          </Label>
+          <Input
+            type="select"
+            className="mb-3"
+            value={fromLocationId}
+            disabled={!fromCenterId}
+            onChange={(e) => handleFromLocationChange(e.target.value)}
+          >
+            <option value="">
+              {!fromCenterId ? "Select source site first" : "Select location"}
+            </option>
+            {fromLocations.map((l) => (
+              <option key={l._id} value={l._id}>
+                {l.name} ({l.code})
+              </option>
+            ))}
+          </Input>
           <Label>Transfer Items</Label>
-          {!fromCenterId && (
+          {!fromLocationId && (
             <div className="text-muted small mb-2">
-              Please select a source site first
+              Please select a source location first
             </div>
           )}
           {lines.map((l, idx) => {
@@ -255,7 +305,7 @@ const InventoryTransfer = () => {
                   <Input
                     type="select"
                     value={l.itemName}
-                    disabled={!fromCenterId}
+                    disabled={!fromLocationId}
                     onChange={(e) =>
                       updateLine(idx, "itemName", e.target.value)
                     }
@@ -300,7 +350,6 @@ const InventoryTransfer = () => {
               <i className="bx bx-plus me-1"></i> Add line
             </Button>
           </div>
-
           <Label>Expected Dispatch</Label>
           <Input
             type="date"
@@ -308,7 +357,6 @@ const InventoryTransfer = () => {
             value={expectedDispatch}
             onChange={(e) => setExpectedDispatch(e.target.value)}
           />
-
           <Label>Remarks</Label>
           <Input
             type="textarea"
@@ -316,7 +364,6 @@ const InventoryTransfer = () => {
             value={remarks}
             onChange={(e) => setRemarks(e.target.value)}
           />
-
           <div className="d-flex justify-content-end gap-2 mt-4">
             <Button
               color="light"

@@ -5,8 +5,9 @@ import { toast } from "react-toastify";
 import {
   getMoveOrders,
   createMoveOrder,
+  getAllCenters,
   getStorageLocations,
-  getStockBalances,
+  getLocationStock,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
@@ -71,17 +72,22 @@ const MoveOrder = () => {
     setToLocationId(fromLocationId);
   };
 
-  const handleSourceLocationChange = (locationId) => {
+   const handleSourceLocationChange = (locationId) => {
     setFromLocationId(locationId);
     setItemName("");
-    const location = allLocations.find((l) => l._id === locationId);
-    const centerId = location?.centerId?._id || location?.centerId;
-    if (!centerId) {
+    if (!locationId) {
       setAvailableItems([]);
       return;
     }
-    getStockBalances({ centerId })
-      .then((res) => setAvailableItems(res?.data || []))
+    getLocationStock()
+      .then((res) => {
+        const atThisLocation = (res?.data || []).filter(
+          (r) => r.location?._id === locationId,
+        );
+        setAvailableItems(
+          atThisLocation.map((r) => ({ _id: locationId + r.itemName, itemName: r.itemName, quantity: r.quantity })),
+        );
+      })
       .catch(() => setAvailableItems([]));
   };
 

@@ -5703,16 +5703,16 @@ export const getPutawayById = (id) => {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };
-export const createMaterialIssue = (data) => {
-  return axios.post(url.MATERIAL_ISSUE_BASE, data, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
-};
-export const createMaterialReturn = (data) => {
-  return axios.post(url.MATERIAL_RETURN_BASE, data, {
-    headers: { "X-No-Cookie-Token": "true" },
-  });
-};
+// export const createMaterialIssue = (data) => {
+//   return axios.post(url.MATERIAL_ISSUE_BASE, data, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
+// };
+// export const createMaterialReturn = (data) => {
+//   return axios.post(url.MATERIAL_RETURN_BASE, data, {
+//     headers: { "X-No-Cookie-Token": "true" },
+//   });
+// };
 export const getStockBalances = (params = {}) => {
   return axios.get(url.STOCK_BALANCE_BASE, {
     params,
@@ -5793,3 +5793,18 @@ export const getLocationStock = (params = {}) =>
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });
+
+export const createMaterialIssue = (data) =>
+  axios.post("/master/material-issue", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getMaterialIssues = () =>
+  axios.get("/master/material-issue", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getIssuesForReturn = () =>
+  axios.get("/master/material-return/pending-issue", { headers: { "X-No-Cookie-Token": "true" } });
+export const createMaterialReturn = (data) =>
+  axios.post("/master/material-return", data, { headers: { "X-No-Cookie-Token": "true" } });
+export const getMaterialReturns = () =>
+  axios.get("/master/material-return", { headers: { "X-No-Cookie-Token": "true" } });
