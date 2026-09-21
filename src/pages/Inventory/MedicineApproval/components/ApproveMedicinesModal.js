@@ -277,14 +277,22 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
         selectableMeds.length > 0 &&
         selectableMeds.every((m) => !!selected[m.prescriptionMedicineId]);
 
-    // In the live view, split out already-given/rejected rows so they can be
-    // collapsed by default — nothing left for the pharmacist to do on them.
-    // History always shows everything, since that's the point of it.
     const completedMeds = medicines.filter((m) => m.alreadyDispensed || m.rejected);
     const visibleMeds =
         readOnly || showCompleted
             ? medicines
             : medicines.filter((m) => !m.alreadyDispensed && !m.rejected);
+
+    // History summary: how much of what was prescribed was actually given.
+    // Medicines given in an earlier round are shown for context but not counted
+    // as part of this record.
+    const givenCount = medicines.filter((m) => m.alreadyDispensed && !m.givenEarlier).length;
+    const givenEarlierCount = medicines.filter((m) => m.givenEarlier).length;
+    const notGivenCount = medicines.length - givenCount - givenEarlierCount;
+    const givenUnits = medicines.reduce(
+        (sum, m) => sum + (m.alreadyDispensed && !m.givenEarlier ? Number(m.dispensedCount) || 0 : 0),
+        0
+    );
 
     const selectedCount = Object.keys(selected).length;
     const selectedTotalQty = Object.values(selected).reduce(
@@ -315,6 +323,14 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                 {approval.doctorName ? ` by ${approval.doctorName}` : ""}
                             </div>
                             {approval.approvalStatus && renderStatusBadge(approval.approvalStatus)}
+                            {readOnly && medicines.length > 0 && (
+                                <div className="small text-muted mt-1">
+                                    {givenCount} medicine{givenCount === 1 ? "" : "s"} given
+                                    {givenEarlierCount > 0 && ` · ${givenEarlierCount} given earlier`}
+                                    {notGivenCount > 0 && ` · ${notGivenCount} not given`}
+                                    {` · ${givenUnits} unit${givenUnits === 1 ? "" : "s"} dispensed`}
+                                </div>
+                            )}
                         </div>
                         {!readOnly && (
                             <div className="d-flex gap-2">
@@ -329,7 +345,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                     {allSelectable ? "Unselect All" : "Select All"}
                                 </Button>
                                 */}
-                                {approval.approvalStatus === "PENDING" && (
+                                {["PENDING", "PARTIALLY_PENDING"].includes(approval.approvalStatus) && (
                                     <Button
                                         color="danger"
                                         size="sm"
@@ -434,21 +450,39 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                         </div>
                                         {med.alreadyDispensed && (
                                             <div className="small">
-                                                <Badge color="success">
-                                                    Given — Qty: {med.dispensedCount}
-                                                </Badge>
-                                                <div className="text-muted mt-1">
-                                                    {med.batch?.medicineName && <>{med.batch.medicineName} · </>}
-                                                    {med.batch?.id && <> {med.batch.id} · </>}
-                                                    Batch: {med.batch?.Batch || "-"}
-                                                    {med.batch?.company && <> · {med.batch.company}</>}
-                                                </div>
+                                                {/* In the live view every given medicine was given in a
+                                                    previous round (this session hasn't submitted yet). */}
+                                                {med.givenEarlier || !readOnly ? (
+                                                    <Badge color="secondary">
+                                                        Given earlier — {med.dispensedCount} of {med.totalQuantity}
+                                                    </Badge>
+                                                ) : (
+                                                    <Badge color="success">
+                                                        Given — {med.dispensedCount} of {med.totalQuantity}
+                                                    </Badge>
+                                                )}
+                                                {med.batch && (
+                                                    <div className="text-muted mt-1">
+                                                        {med.batch.medicineName && <>{med.batch.medicineName} · </>}
+                                                        {med.batch.id && <> {med.batch.id} · </>}
+                                                        Batch: {med.batch.Batch || "-"}
+                                                        {med.batch.company && <> · {med.batch.company}</>}
+                                                    </div>
+                                                )}
                                             </div>
                                         )}
                                         {!med.alreadyDispensed && med.rejected && (
                                             <Badge color="danger">Rejected — not dispensed</Badge>
                                         )}
-                                        {!med.alreadyDispensed && !med.rejected && resolved && !pickingHere && (
+                                        {readOnly && !med.alreadyDispensed && !med.rejected && (
+                                            <Badge color="secondary">Not given</Badge>
+                                        )}
+                                        {readOnly && !med.alreadyDispensed && (
+                                            <div className="small text-muted mt-1">
+                                                Prescribed qty: {med.totalQuantity} · Given: 0
+                                            </div>
+                                        )}
+                                        {!readOnly && !med.alreadyDispensed && !med.rejected && resolved && !pickingHere && (
                                             <div className="small d-flex align-items-center gap-2 flex-wrap">
                                                 <span>
                                                     {link.medicineName && <>{link.medicineName} · </>}
@@ -486,9 +520,6 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                         )}
                                         {!med.alreadyDispensed && !med.rejected && !resolved && !readOnly && !pickingHere && (
                                             <span className="small text-muted">Tick to select from inventory</span>
-                                        )}
-                                        {!med.alreadyDispensed && !med.rejected && !resolved && readOnly && (
-                                            <span className="small text-muted">Not linked · not dispensed</span>
                                         )}
                                         {!readOnly && pickingHere && (
                                             <div className="mt-2" style={{ width: "100%" }}>

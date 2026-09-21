@@ -311,6 +311,10 @@ export const renderStatusBadge = (stage) => {
       text: "Partially Approved",
       color: "warning"
     },
+    PARTIALLY_PENDING: {
+      text: "Partially Pending",
+      color: "info"
+    },
 
 };
 

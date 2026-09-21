@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
-import DataTable from "react-data-table-component";
-import { Input, Spinner } from "reactstrap";
+import DataTableComponent from "../../../../Components/Common/DataTable";
+import { Input } from "reactstrap";
 import { format } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
@@ -9,8 +9,8 @@ import { toast } from "react-toastify";
 import { ExpandableText } from "../../../../Components/Common/ExpandableText";
 import Select from "react-select";
 import { Button } from "reactstrap";
+import { Pill } from "lucide-react";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
-import { isPilotCenterRow } from "../../../../helpers/pilotCenter";
 import ApproveMedicinesModal from "./ApproveMedicinesModal";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
@@ -123,7 +123,8 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
         {
             name: <div>Patient Name</div>,
             selector: (row) => capitalizeWords(row.patient?.name || "-"),
-            wrap: true
+            wrap: true,
+            minWidth: "100px"
         },
         {
             name: <div>Patient UID</div>,
@@ -134,64 +135,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             name: <div>Center</div>,
             selector: (row) => capitalizeWords(row?.center?.title || "-"),
             wrap: true,
-        },
-        {
-            name: <div>Prescription</div>,
-            cell: (row) => (
-                <Button
-                    color="primary"
-                    size="sm"
-                    disabled={!row.prescriptionId}
-                    onClick={() => openViewPrescription(row)}
-                >
-                    View
-                </Button>
-            ),
-            center: true,
-        },
-        {
-            name: <div>Medicines</div>,
-            cell: (row) => {
-                if (isPilotCenterRow(row.center?._id)) {
-                    return (
-                        <Button
-                            color="primary"
-                            size="sm"
-                            onClick={() => openApproveModal(row._id, row.center?._id)}
-                        >
-                            View
-                        </Button>
-                    );
-                }
-
-                return (
-                <div style={{ lineHeight: "1.6", width: "100%" }}>
-                    {row.medicineCounts?.map((medicine, index) => (
-                        <div key={medicine._id} style={{ width: "100%" }}>
-                            <div
-                                className="d-flex justify-content-between mb-1"
-                                style={{ gap: "12px" }}
-                            >
-                                <span className="fw-semibold">
-                                    {medicine.medicineName}
-                                </span>
-
-                                <span
-                                    className="fw-semibold text-end"
-                                    style={{ minWidth: "90px" }}
-                                >
-                                    <div>Dispensed: {medicine.dispensedCount}</div>
-                                    <div>Total: {medicine.totalQuantity}</div>
-                                </span>
-                            </div>
-                            {index !== row.medicineCounts.length - 1 && (
-                                <div className="border-bottom border-black my-md-2 my-1"></div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-                );
-            },
+            minWidth: "100px"
         },
         {
             name: <div>Prescription Date</div>,
@@ -202,6 +146,43 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             wrap: true,
         },
         {
+            name: <div>Status</div>,
+            cell: (row) => renderStatusBadge(row.approvalStatus),
+            center: true,
+            wrap: true
+        },
+        {
+            name: <div>Prescription</div>,
+            cell: (row) => (
+                <Button
+                    color="primary"
+                    size="sm"
+                    className="text-white"
+                    disabled={!row.prescriptionId}
+                    onClick={() => openViewPrescription(row)}
+                >
+                    View
+                </Button>
+            ),
+            center: true,
+        },
+        {
+            name: <div>Medicines</div>,
+            cell: (row) => (
+                <Button
+                    color="primary"
+                    size="sm"
+                    className="d-flex align-items-center justify-content-center text-white"
+                    style={{ minWidth: "95px", fontSize: "12px" }}
+                    onClick={() => openApproveModal(row._id, row.center?._id)}
+                >
+                    <Pill size={14} className="me-1" />
+                    Medicines
+                </Button>
+            ),
+            center: true,
+        },
+        {
             name: <div>Approval Date</div>,
             selector: (row) =>
                 row?.approvedAt
@@ -210,42 +191,12 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             wrap: true,
         },
         {
-            name: <div>Status</div>,
-            cell: (row) => renderStatusBadge(row.approvalStatus),
-            center: true,
-            wrap: true
-        },
-        {
             name: <div>Remarks</div>,
             selector: (row) => <ExpandableText text={capitalizeWords(row.remarks) ?? "-"} />,
             wrap: true,
             minWidth: "200px"
         }
     ];
-
-    const getPageRange = (total, current, maxButtons = 7) => {
-        if (total <= maxButtons)
-            return Array.from({ length: total }, (_, i) => i + 1);
-
-        const sideButtons = Math.floor((maxButtons - 3) / 2);
-        let start = Math.max(2, current - sideButtons);
-        let end = Math.min(total - 1, current + sideButtons);
-        if (current - 1 <= sideButtons) {
-            start = 2;
-            end = Math.min(total - 1, maxButtons - 2);
-        }
-        if (total - current <= sideButtons) {
-            end = total - 1;
-            start = Math.max(2, total - (maxButtons - 3));
-        }
-
-        const range = [1];
-        if (start > 2) range.push("...");
-        for (let i = start; i <= end; i++) range.push(i);
-        if (end < total - 1) range.push("...");
-        range.push(total);
-        return range;
-    };
 
     const historyData = medicineApprovals?.data || [];
     const pagination = medicineApprovals?.pagination || {};
@@ -344,112 +295,20 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             </div>
 
 
-            <div style={{ width: "100%", overflowX: "visible", overflowY: "visible" }}>
-                <div
-                    style={{
-                        minWidth: "100%",
-                        overflow: "visible"
-                    }}
-                >
-                    <DataTable
-                        columns={columns}
-                        data={historyData}
-                        progressPending={loading}
-                        progressComponent={<Spinner className="text-primary" />}
-                        highlightOnHover
-                        striped
-                        responsive
-                        fixedHeader
-                        fixedHeaderScrollHeight="400px"
-                        customStyles={{
-                            table: {
-                                style: {
-                                    minHeight: "350px",
-                                },
-                            },
-                            rows: {
-                                style: {
-                                    minHeight: "72px",
-                                    borderBottom: "1px solid #f1f1f1",
-                                },
-                            },
-                            headCells: {
-                                style: {
-                                    fontWeight: "600",
-                                    backgroundColor: "#f8f9fa",
-                                    borderBottom: "2px solid #e9ecef",
-                                },
-                            },
-                            cells: {
-                                style: {
-                                    paddingTop: "10px",
-                                    paddingBottom: "10px",
-                                },
-                            },
-                        }}
-                    />
-                </div>
-            </div>
-
-            {!loading && pagination.totalDocs > 0 && <div className="d-flex justify-content-between align-items-center mt-3">
-                <div className="small text-muted">
-                    <>
-                        Showing {(page - 1) * limit + 1} to{" "}
-                        {Math.min(page * limit, pagination.totalDocs)} of{" "}
-                        {pagination.totalDocs} entries
-                    </>
-
-                </div>
-
-                <nav>
-                    <ul className="pagination mb-0">
-                        <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
-                            <button
-                                className="page-link"
-                                onClick={() => setPage(Math.max(1, page - 1))}
-                                disabled={page === 1}
-                            >
-                                Previous
-                            </button>
-                        </li>
-
-                        {getPageRange(pagination.totalPages || 1, page, 7).map((p, idx) => (
-                            <li
-                                key={idx}
-                                className={`page-item ${p === page ? "active" : ""} ${p === "..." ? "disabled" : ""
-                                    }`}
-                            >
-                                {p === "..." ? (
-                                    <span className="page-link">...</span>
-                                ) : (
-                                    <button className="page-link" onClick={() => setPage(p)}>
-                                        {p}
-                                    </button>
-                                )}
-                            </li>
-                        ))}
-
-                        <li
-                            className={`page-item ${page === pagination.totalPages || pagination.totalDocs === 0
-                                ? "disabled"
-                                : ""
-                                }`}
-                        >
-                            <button
-                                className="page-link"
-                                onClick={() =>
-                                    setPage(Math.min(pagination.totalPages, page + 1))
-                                }
-                                disabled={
-                                    page === pagination.totalPages || pagination.totalDocs === 0
-                                }
-                            >
-                                Next
-                            </button>
-                        </li>
-                    </ul>
-                </nav>
-            </div>}
+            <DataTableComponent
+                columns={columns}
+                data={historyData}
+                loading={loading}
+                pagination={pagination}
+                limit={limit}
+                page={page}
+                setPage={setPage}
+                setLimit={(rows) => {
+                    setLimit(rows);
+                    setPage(1);
+                }}
+                paginationRowsPerPageOptions={[10, 20, 30, 40, 50]}
+            />
 
             <ApproveMedicinesModal
                 isOpen={!!approveModalApprovalId}

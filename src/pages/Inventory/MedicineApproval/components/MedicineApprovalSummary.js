@@ -2,7 +2,7 @@ import { format } from "date-fns";
 import { CheckCheck, X } from "lucide-react";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
-import DataTable from "react-data-table-component";
+import DataTableComponent from "../../../../Components/Common/DataTable";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { Button, Input, Modal, ModalBody, ModalFooter, ModalHeader, Spinner } from "reactstrap";
@@ -295,6 +295,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                 <Button
                     color="primary"
                     size="sm"
+                    className="text-white"
                     disabled={!row.prescriptionId}
                     onClick={() => openViewPrescription(row)}
                 >
@@ -356,30 +357,6 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             center: true,
         },
     ].filter(Boolean);
-
-    const getPageRange = (total, current, maxButtons = 7) => {
-        if (total <= maxButtons)
-            return Array.from({ length: total }, (_, i) => i + 1);
-
-        const sideButtons = Math.floor((maxButtons - 3) / 2);
-        let start = Math.max(2, current - sideButtons);
-        let end = Math.min(total - 1, current + sideButtons);
-        if (current - 1 <= sideButtons) {
-            start = 2;
-            end = Math.min(total - 1, maxButtons - 2);
-        }
-        if (total - current <= sideButtons) {
-            end = total - 1;
-            start = Math.max(2, total - (maxButtons - 3));
-        }
-
-        const range = [1];
-        if (start > 2) range.push("...");
-        for (let i = start; i <= end; i++) range.push(i);
-        if (end < total - 1) range.push("...");
-        range.push(total);
-        return range;
-    };
 
     const pagination = medicineApprovals?.pagination || {};
 
@@ -494,96 +471,20 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                 </div>
             </div>
 
-            <DataTable
+            <DataTableComponent
                 columns={columns}
                 data={tableData}
-                progressPending={loading}
-                progressComponent={<Spinner className="text-primary" />}
-                highlightOnHover
-                striped
-                responsive
-                fixedHeader
-                fixedHeaderScrollHeight="400px"
-                customStyles={{
-                    table: {
-                        style: {
-                            minHeight: "350px",
-                        },
-                    },
-                    headCells: {
-                        style: {
-                            backgroundColor: "#f8f9fa",
-                            fontWeight: "600",
-                            borderBottom: "2px solid #e9ecef",
-                        },
-                    },
-                    rows: {
-                        style: {
-                            minHeight: "60px",
-                            borderBottom: "1px solid #f1f1f1",
-                        },
-                    },
+                loading={loading}
+                pagination={pagination}
+                limit={limit}
+                page={page}
+                setPage={setPage}
+                setLimit={(rows) => {
+                    setLimit(rows);
+                    setPage(1);
                 }}
+                paginationRowsPerPageOptions={[10, 20, 30, 40, 50]}
             />
-            {!loading && pagination.totalDocs > 0 && <div className="d-flex justify-content-between align-items-center mt-3">
-                <div className="small text-muted">
-                    <>
-                        Showing {(page - 1) * limit + 1} to{" "}
-                        {Math.min(page * limit, pagination.totalDocs)} of{" "}
-                        {pagination.totalDocs} entries
-                    </>
-
-                </div>
-
-                <nav>
-                    <ul className="pagination mb-0">
-                        <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
-                            <button
-                                className="page-link"
-                                onClick={() => setPage(Math.max(1, page - 1))}
-                                disabled={page === 1}
-                            >
-                                Previous
-                            </button>
-                        </li>
-
-                        {getPageRange(pagination.totalPages || 1, page, 7).map((p, idx) => (
-                            <li
-                                key={idx}
-                                className={`page-item ${p === page ? "active" : ""} ${p === "..." ? "disabled" : ""
-                                    }`}
-                            >
-                                {p === "..." ? (
-                                    <span className="page-link">...</span>
-                                ) : (
-                                    <button className="page-link" onClick={() => setPage(p)}>
-                                        {p}
-                                    </button>
-                                )}
-                            </li>
-                        ))}
-
-                        <li
-                            className={`page-item ${page === pagination.totalPages || pagination.totalDocs === 0
-                                ? "disabled"
-                                : ""
-                                }`}
-                        >
-                            <button
-                                className="page-link"
-                                onClick={() =>
-                                    setPage(Math.min(pagination.totalPages, page + 1))
-                                }
-                                disabled={
-                                    page === pagination.totalPages || pagination.totalDocs === 0
-                                }
-                            >
-                                Next
-                            </button>
-                        </li>
-                    </ul>
-                </nav>
-            </div>}
             <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)}>
                 <ModalHeader toggle={() => setModalOpen(false)}>
                     {actionType === "BULK_APPROVE" ? "Approve All" : "Reject Approval"}

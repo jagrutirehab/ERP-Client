@@ -275,6 +275,12 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                         <small className="text-muted">Patient ID: {patient?.patientId?.prefix} {patient?.patientId?.value}</small>
                                     </div>
 
+                                    {patient?.approvalStatus === "PARTIALLY_PENDING" && (
+                                        <Badge color="info" pill className="flex-shrink-0 align-self-start">
+                                            Partially Pending
+                                        </Badge>
+                                    )}
+
                                     {patient?.centerName && (
                                         <Badge
                                             color="secondary"
