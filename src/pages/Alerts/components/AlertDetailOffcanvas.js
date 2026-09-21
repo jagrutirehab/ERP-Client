@@ -12,7 +12,12 @@ import {
   PHASE_META,
   ALERT_SOURCE_META,
 } from "./alertConstants";
-import { timeAgo, isRuleSourced, alertSourceLabel } from "./alertUtils";
+import {
+  timeAgo,
+  isRuleSourced,
+  alertSourceLabel,
+  resolutionNote,
+} from "./alertUtils";
 
 const sectionLabel = (icon, text) => (
   <small
@@ -171,8 +176,13 @@ const AlertDetailOffcanvas = ({ isOpen, onClose, alert }) => {
                   }}
                 >
                   {sectionLabel("bx bx-check-circle", "Resolved")}
+                  {/* The reason lives in notes[] tagged "RESOLUTION", not on
+                      `resolution` — this previously read alert.resolution.note,
+                      a field the server has never written, so it always showed
+                      a dash. Alerts resolved before the note became mandatory
+                      genuinely have none, hence the fallback. */}
                   <div className="fw-medium">
-                    {alert.resolution.note || "—"}
+                    {resolutionNote(alert)?.text || "—"}
                   </div>
                   {alert.resolution.resolvedAt && (
                     <small className="text-muted">
