@@ -83,15 +83,20 @@ const Alerts = () => {
     setResolveTarget(null);
   };
 
-  const submitResolve = async () => {
+  // `text` is the mandatory resolution note, supplied by the modal.
+  const submitResolve = async (text) => {
     if (!resolveTarget) return;
     setResolving(true);
     try {
-      await inbox.resolveAlert(resolveTarget._id);
+      await inbox.resolveAlert(resolveTarget._id, text);
       toast.success("Alert resolved");
       setResolveTarget(null);
     } catch (err) {
-      toast.error(err?.response?.data?.message || "Failed to resolve alert");
+      // The axios interceptor rejects with the UNWRAPPED body, so the message
+      // is on err.message. `err.response.data.message` is a dead path — it was
+      // making every resolve failure show the generic fallback instead of the
+      // server's actual reason.
+      toast.error(err?.message || "Failed to resolve alert");
     } finally {
       setResolving(false);
     }

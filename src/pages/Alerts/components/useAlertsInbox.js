@@ -203,22 +203,31 @@ export const useAlertsInbox = () => {
     }
   }, [load, debouncedFilters, page, pageSize]);
 
-  // Resolve an alert with a free-text note. On success the server returns the
-  // resolution snapshot; we patch the row in place (and flip it read, mirroring
-  // the server) so the UI updates without a refetch. Throws on failure so the
-  // caller can keep the modal open and surface the error.
-  const resolveAlert = useCallback(async (id) => {
-    const res = await resolveSopAlert(id);
+  // Resolve an alert. `text` is mandatory — the server 400s without it.
+  //
+  // The response carries both the resolution snapshot AND the new note (stored
+  // tagged as kind "RESOLUTION"), so the row is patched with both and the notes
+  // column updates in place without a refetch. Also flips the row read,
+  // mirroring the server's $addToSet. Throws on failure so the caller can keep
+  // the modal open and surface the error.
+  const resolveAlert = useCallback(async (id, text) => {
+    const res = await resolveSopAlert(id, text);
     const resolution = res?.resolution || {
       resolved: true,
       resolvedAt: new Date().toISOString(),
     };
+    const newNote = res?.note;
     let wasUnread = false;
     setAlerts((prev) =>
       prev.map((a) => {
         if (a._id !== id) return a;
         if (!a.isRead) wasUnread = true;
-        return { ...a, resolution, isRead: true };
+        return {
+          ...a,
+          resolution,
+          isRead: true,
+          notes: newNote ? [...(a.notes || []), newNote] : a.notes,
+        };
       }),
     );
     if (wasUnread) setTotalUnread((u) => Math.max(0, u - 1));

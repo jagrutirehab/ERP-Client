@@ -33,3 +33,19 @@ export const isRuleSourced = (a) => !a?.source || a.source === "SOP_RULE";
  */
 export const alertSourceLabel = (a) =>
   a?.rule?.ruleName || a?.sourceLabel || (isRuleSourced(a) ? "(deleted rule)" : "—");
+
+/* ── Resolution notes ──────────────────────────────────────────────────────
+ * Resolving an alert requires a note; it is stored as a normal notes[] entry
+ * tagged kind "RESOLUTION" rather than on `resolution`, so there is one copy of
+ * the text and it appears in the notes column without extra merge logic.
+ *
+ * ⚠️ Notes written before `kind` existed carry no value at all, so "is this an
+ * ordinary note?" is asked as `!== "RESOLUTION"`. Testing `=== "NOTE"` would
+ * misclassify every historical note.
+ */
+export const isResolutionNote = (n) => n?.kind === "RESOLUTION";
+
+// The resolution note for an alert, or null. Alerts resolved before this
+// feature have none — callers must handle that.
+export const resolutionNote = (a) =>
+  (a?.notes || []).find(isResolutionNote) || null;

@@ -4423,9 +4423,11 @@ export const markSopAlertRead = (id) =>
 export const markAllSopAlertsRead = () =>
   axios.post(url.MARK_ALL_SOP_ALERTS_READ);
 
-// Marks an alert as resolved. No note required — resolution is now a single click.
-export const resolveSopAlert = (id) =>
-  axios.post(`${url.RESOLVE_SOP_ALERT}/${id}/resolve`);
+// Marks an alert as resolved. `text` is MANDATORY — the server rejects an empty
+// note with a 400. It is stored as a notes[] entry tagged kind "RESOLUTION", so
+// the response carries both the resolution and the new note.
+export const resolveSopAlert = (id, text) =>
+  axios.post(`${url.RESOLVE_SOP_ALERT}/${id}/resolve`, { text });
 
 // Appends a free-text note to an alert. Returns the new note with addedByName.
 export const addAlertNote = (id, text) =>
