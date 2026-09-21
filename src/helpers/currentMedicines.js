@@ -21,8 +21,9 @@ export const getMedicineEndDate = (startDate, medicine) => {
 
   if (durationDays <= 0) return null;
 
+  // The To date is the last dose day, so N days ends N-1 days after the start.
   const end = new Date(start);
-  end.setDate(end.getDate() + durationDays);
+  end.setDate(end.getDate() + durationDays - 1);
   return end;
 };
 
@@ -34,7 +35,8 @@ export const getDaysBetween = (startDate, endDate) => {
   }
   const startMidnight = new Date(start.getFullYear(), start.getMonth(), start.getDate());
   const endMidnight = new Date(end.getFullYear(), end.getMonth(), end.getDate());
-  const diffDays = Math.round((endMidnight - startMidnight) / (1000 * 60 * 60 * 24));
+  // Both the From and To day count, so the same day is 1 day.
+  const diffDays = Math.round((endMidnight - startMidnight) / (1000 * 60 * 60 * 24)) + 1;
   return Math.max(1, diffDays);
 };
 
@@ -43,9 +45,17 @@ export const isMedicineCurrentlyRunning = (
   medicine,
   referenceDate = new Date(),
 ) => {
-  const endDate = getMedicineEndDate(startDate, medicine);
-  if (!endDate) return true; // no computable end date => treat as ongoing
-  return referenceDate <= endDate;
+  // The To date is the last day the medicine is given, so it stays running
+  // through the end of that day. A stored To date wins (that keeps
+  // prescriptions saved under the old end-date rule as they were).
+  const endDate = medicine?.endDate
+    ? new Date(medicine.endDate)
+    : getMedicineEndDate(startDate, medicine);
+  if (!endDate || Number.isNaN(endDate.getTime())) return true; // no computable end date => treat as ongoing
+
+  const lastMoment = new Date(endDate);
+  lastMoment.setHours(23, 59, 59, 999);
+  return referenceDate <= lastMoment;
 };
 
 
@@ -79,7 +89,7 @@ export const buildCurrentMedicinesList = (charts, referenceDate = new Date()) =>
           chartAuthor: chart.author,
           chartDate,
           startDate: chartDate,
-          endDate: getMedicineEndDate(chartDate, medicine),
+          endDate: medicine.endDate || getMedicineEndDate(chartDate, medicine),
         });
       });
     });
