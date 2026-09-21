@@ -823,11 +823,12 @@ const Prescription = ({
             medicines={medicines}
             setMedicines={setMedicines}
             showDates
+            centerId={center ? center : patient?.center?._id}
           />
         </Col>
       )
     );
-  }, [medicines]);
+  }, [medicines, center, patient?.center?._id]);
 
   useEffect(() => {
     const fetchICD = async () => {

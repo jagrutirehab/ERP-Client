@@ -2072,6 +2072,23 @@ export const getDetailedPrescription = (prescriptionId) => {
   });
 };
 
+export const getApprovalMedicines = (approvalId, params = {}) => {
+  return api.get(`${url.GET_APPROVAL_MEDICINES}/${approvalId}/pilot-medicines`, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const approvePilotApproval = (approvalId, data) => {
+  return api.update(`${url.APPROVE_PILOT_APPROVAL}/${approvalId}/pilot`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const downloadAuditTemplate = (params) => {
   return api.get(`${url.DOWNLOAD_AUDIT_TEMPLATE}`, {
     params,
@@ -2231,6 +2248,20 @@ export const searchPharmacyMedicines = (params = {}) => {
     headers: {
       "X-No-Cookie-Token": "true",
     },
+  });
+};
+
+export const getAvailableMedicineIds = (ids, centerId) => {
+  return api.get(url.PHARMACY_AVAILABLE_MEDICINES, {
+    params: { ids: ids.join(","), centerId },
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getAlternativeMedicines = (medicineId, centerId) => {
+  return api.get(url.PHARMACY_ALTERNATIVE_MEDICINES, {
+    params: { medicineId, centerId },
+    headers: { "X-No-Cookie-Token": "true" },
   });
 };
 

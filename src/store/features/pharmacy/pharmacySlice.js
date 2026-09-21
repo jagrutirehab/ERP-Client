@@ -19,6 +19,8 @@ import {
     getPharmacyConsolidated,
     getMatchingMedicines,
     getSareyaanInventoryImports,
+    getApprovalMedicines as getApprovalMedicinesApi,
+    approvePilotApproval as approvePilotApprovalApi,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -29,6 +31,10 @@ const initialState = {
     pendingPatients: [],
     detailedPrescription: {},
     pendingAudits: [],
+    approvalMedicines: {
+        loading: false,
+        data: null,
+    },
     auditHistory: {
         data: [],
         pagination: {}
@@ -63,6 +69,30 @@ export const updateApprovalStatus = createAsyncThunk("pharmacy/updateMedicineApp
         return rejectWithValue(error);
     }
 });
+
+export const fetchApprovalMedicines = createAsyncThunk(
+    "pharmacy/fetchApprovalMedicines",
+    async ({ approvalId, view }, { rejectWithValue }) => {
+        try {
+            const response = await getApprovalMedicinesApi(approvalId, { ...(view && { view }) });
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const submitPilotApproval = createAsyncThunk(
+    "pharmacy/submitPilotApproval",
+    async ({ approvalId, ...data }, { rejectWithValue }) => {
+        try {
+            const response = await approvePilotApprovalApi(approvalId, data);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
 
 export const getPendingApprovalsByPatient = createAsyncThunk("pharmacy/getPendingPatientApprovals", async (data, { rejectWithValue }) => {
     try {
@@ -265,6 +295,9 @@ export const pharmacySlice = createSlice({
         clearMedicineApprovals: (state) => {
             state.medicineApprovals = []
         },
+        clearApprovalMedicines: (state) => {
+            state.approvalMedicines = initialState.approvalMedicines;
+        },
         clearAuditHistory: (state) => {
             state.auditHistory = initialState.auditHistory
         },
@@ -297,6 +330,18 @@ export const pharmacySlice = createSlice({
                     state.pendingPatients.data = state.pendingPatients.data.filter((data) => data._id !== payload._id);
                 }
             });
+        builder
+            .addCase(fetchApprovalMedicines.pending, (state) => {
+                state.approvalMedicines.loading = true;
+            })
+            .addCase(fetchApprovalMedicines.fulfilled, (state, { payload }) => {
+                state.approvalMedicines.loading = false;
+                state.approvalMedicines.data = payload?.data || null;
+            })
+            .addCase(fetchApprovalMedicines.rejected, (state) => {
+                state.approvalMedicines.loading = false;
+            });
+
         builder
             .addCase(getPendingApprovalsByPatient.pending, (state) => {
                 state.loading = true
@@ -507,6 +552,6 @@ export const pharmacySlice = createSlice({
     }
 });
 
-export const { clearMedicineApprovals, clearAuditHistory, clearInternalTransfer } = pharmacySlice.actions;
+export const { clearMedicineApprovals, clearAuditHistory, clearInternalTransfer, clearApprovalMedicines } = pharmacySlice.actions;
 
 export default pharmacySlice.reducer;

@@ -130,7 +130,7 @@ const ChartDate = ({
                   disabled={
                     type === "CLINICTEST" ||
                       ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
-                        patient.center.title === "Gurgaon") &&
+                        patient.center?.title === "Gurgaon") &&
                         type !== "GENERAL")
                       ? true
                       : false
@@ -153,7 +153,7 @@ const ChartDate = ({
                     // ],
                   }}
                   // className={`form-control shadow-none bg-white`}
-                  className={`form-control shadow-none ${patient.center?._id === "694e565ed6e6dd32a39c9815" || (patient.center.title === "Gurgaon" && type !== "GENERAL") ? "disabled text-muted" : "bg-white"}`}
+                  className={`form-control shadow-none ${patient.center?._id === "694e565ed6e6dd32a39c9815" || (patient.center?.title === "Gurgaon" && type !== "GENERAL") ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>
@@ -165,7 +165,7 @@ const ChartDate = ({
                   disabled={
                     type === "CLINICTEST" ||
                       ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
-                        patient.center.title === "Gurgaon") &&
+                        patient.center?.title === "Gurgaon") &&
                         type !== "GENERAL")
                       ? true
                       : false
@@ -188,7 +188,7 @@ const ChartDate = ({
                   }}
                   // className={`form-control shadow-none bg-white`}
                   className={`form-control shadow-none
-                    ${patient.center?._id === "694e565ed6e6dd32a39c9815" || (patient.center.title === "Gurgaon" && type !== "GENERAL") ? "disabled text-muted" : "bg-white"}`}
+                    ${patient.center?._id === "694e565ed6e6dd32a39c9815" || (patient.center?.title === "Gurgaon" && type !== "GENERAL") ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>

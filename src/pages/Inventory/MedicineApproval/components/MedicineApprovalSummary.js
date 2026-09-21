@@ -7,12 +7,17 @@ import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { Button, Input, Modal, ModalBody, ModalFooter, ModalHeader, Spinner } from "reactstrap";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
-import { getMedicineApprovals, updateApprovalStatus } from "../../../../store/features/pharmacy/pharmacySlice";
+import { getMedicineApprovals, updateApprovalStatus, submitPilotApproval } from "../../../../store/features/pharmacy/pharmacySlice";
 import Select from "react-select";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../../Components/HOC/CheckPermission";
 import * as XLSX from "xlsx";
+import { isPilotCenterRow } from "../../../../helpers/pilotCenter";
+import ApproveMedicinesModal from "./ApproveMedicinesModal";
+import RefreshButton from "../../../../Components/Common/RefreshButton";
+import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
+import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
 
 const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const dispatch = useDispatch();
@@ -33,6 +38,23 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [bulkResult, setBulkResult] = useState(null);
     const [bulkResultModal, setBulkResultModal] = useState(false);
+    const [approveModalApprovalId, setApproveModalApprovalId] = useState(null);
+    const [approveModalCenterId, setApproveModalCenterId] = useState(null);
+    const [viewPrescriptionModal, setViewPrescriptionModal] = useState(false);
+    const [viewPrescriptionPatient, setViewPrescriptionPatient] = useState(null);
+
+    const openApproveModal = (approvalId, centerId) => {
+        setApproveModalApprovalId(approvalId);
+        setApproveModalCenterId(centerId);
+    };
+
+    const openViewPrescription = (row) => {
+        setViewPrescriptionPatient({
+            prescriptionId: row.prescriptionId,
+            patient: { name: row.patient?.name },
+        });
+        setViewPrescriptionModal(true);
+    };
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -129,50 +151,26 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         setModalOpen(true);
     };
 
-    const handleUpdateApprovalStatus = async (status, row = null, remarksOverride = "") => {
+    // Bulk approve/reject only — per-row approve now goes through the
+    // View/Approve Medicines modal, and per-row reject goes through
+    // handleRowReject below.
+    const handleUpdateApprovalStatus = async (status, remarksOverride = "") => {
         try {
-            let payload = {};
+            const centers =
+                selectedCenter === "ALL"
+                    ? user?.centerAccess
+                    : [selectedCenter];
 
-            if (row) {
-                const currentRowData = tableData.find(item => item._id === row._id);
-                if (!currentRowData) {
-                    toast.error("Selected row data not found");
-                    return;
-                }
+            const payload = {
+                centers,
+                status,
+                id: "bulk",
+                type: activeTab,
+                remarks: remarksOverride,
+                update: "pendingApprovals",
+            };
 
-                // for (const m of currentRowData.medicineCounts) {
-                //     if (!m.totalQuantity || Number(m.totalQuantity) <= 0) {
-                //         toast.error("Quantity must be greater than 0 for all medicines before approving");
-                //         return;
-                //     }
-                // }
-
-                setUpdatingRowId(`ROW-${status}-${row._id}`);
-
-                payload.id = row._id;
-                payload.status = status;
-                payload.remarks = remarksOverride;
-
-                payload.medicines = currentRowData.medicineCounts.map(m => ({
-                    medicineId: m.medicineId,
-                    dispensedCount: m.totalQuantity
-                }));
-
-            } else {
-                const centers =
-                    selectedCenter === "ALL"
-                        ? user?.centerAccess
-                        : [selectedCenter];
-
-                payload.centers = centers;
-                payload.status = status;
-                payload.id = "bulk";
-                payload.type = activeTab;
-                payload.remarks = remarksOverride;
-                payload.update = "pendingApprovals"
-
-                setUpdatingRowId(`BULK-${status}`);
-            }
+            setUpdatingRowId(`BULK-${status}`);
 
             const result = await dispatch(updateApprovalStatus(payload)).unwrap();
 
@@ -202,26 +200,24 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         }
     };
 
-    const handleDispenseChange = (approvalId, medicineId, value) => {
-        const newValue = Number(value);
+    // Per-row reject — routed through the same approve/reject endpoint the
+    // View/Approve Medicines modal uses, so it works uniformly whether or
+    // not the medicine list is dispensed via pharmacy stock links.
+    const handleRowReject = async (row, remarksOverride = "") => {
+        setUpdatingRowId(`ROW-REJECTED-${row._id}`);
+        try {
+            await dispatch(
+                submitPilotApproval({ approvalId: row._id, status: "REJECTED", remarks: remarksOverride })
+            ).unwrap();
 
-        setTableData(prev =>
-            prev.map(item =>
-                item._id !== approvalId
-                    ? item
-                    : {
-                        ...item,
-                        medicineCounts: item.medicineCounts.map((med, medIndex) =>
-                            med.medicineId === medicineId
-                                ? {
-                                    ...med,
-                                    totalQuantity: newValue
-                                }
-                                : med
-                        )
-                    }
-            )
-        );
+            toast.success("Approval rejected");
+            setModalOpen(false);
+            setUpdatingRowId(null);
+            setPage(1);
+        } catch (err) {
+            setUpdatingRowId(null);
+            toast.error(err?.message || "Failed to reject");
+        }
     };
 
     const downloadFailedApprovalsXlsx = () => {
@@ -289,71 +285,38 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             wrap: true,
         },
         {
-            name: <div>Medicines</div>,
-            cell: (row) => {
-                return (
-                    <div className="w-100">
-                        {row.medicineCounts?.map((medicine, index) => {
-                            const userQty = Number(medicine.totalQuantity);
-                            const stock = Number(medicine.availableStock);
-                            const isShort = stock >= 0 && userQty > stock;
-
-                            return (
-                                <div key={medicine.medicineId} className="w-100">
-                                    <div className="d-flex justify-content-between align-items-center flex-wrap py-1">
-
-                                        <div className="d-flex flex-column" style={{ flex: "1 1 60%" }}>
-                                            <span className="fw-semibold text-dark">
-                                                {medicine.medicineName}
-                                            </span>
-
-                                            {medicine.availableStock !== undefined && isShort && (
-                                                <span className="text-danger small fw-bold">
-                                                    ⚠ Only {stock} left
-                                                </span>
-                                            )}
-                                        </div>
-
-                                        {canWrite("PHARMACY", "MEDICINEAPPROVAL") ? (
-                                            <Input
-                                                type="number"
-                                                bsSize="sm"
-                                                className={`text-center mt-1 mt-md-0 ${isShort ? "border-danger" : ""}`}
-                                                style={{ width: "70px" }}
-                                                value={userQty}
-                                                onChange={(e) =>
-                                                    handleDispenseChange(row._id, medicine.medicineId, e.target.value)
-                                                }
-                                            />
-                                        ) : (
-                                            <span className="fw-semibold">{userQty}</span>
-                                        )}
-                                    </div>
-
-                                    {index !== row.medicineCounts.length - 1 && (
-                                        <div className="border-bottom border-black my-md-2 my-1"></div>
-                                    )}
-                                </div>
-                            );
-                        })}
-                    </div>
-                );
-            },
-            wrap: true,
-            minWidth: "310px"
+            name: <div>Status</div>,
+            cell: (row) => renderStatusBadge(row.approvalStatus || "PENDING"),
+            center: true,
         },
-
-        canWrite("PHARMACY", "MEDICINEAPPROVAL") && {
-            name: <div>Remarks</div>,
+        {
+            name: <div>Prescription</div>,
             cell: (row) => (
                 <Button
-                    onClick={() => openRemarksModal(row, "REMARK_ONLY")}
-                    color="outline"
+                    color="primary"
+                    size="sm"
+                    disabled={!row.prescriptionId}
+                    onClick={() => openViewPrescription(row)}
                 >
-                    Add
+                    View
                 </Button>
-
-            )
+            ),
+            center: true,
+        },
+        // Remarks column — commented out for now.
+        false && canWrite("PHARMACY", "MEDICINEAPPROVAL") && {
+            name: <div>Remarks</div>,
+            cell: (row) => {
+                if (isPilotCenterRow(row.center?._id)) return null;
+                return (
+                    <Button
+                        onClick={() => openRemarksModal(row, "REMARK_ONLY")}
+                        color="outline"
+                    >
+                        Add
+                    </Button>
+                );
+            }
         },
         canWrite("PHARMACY", "MEDICINEAPPROVAL") && {
             name: <div>Actions</div>,
@@ -362,31 +325,18 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                     <Button
                         color="success"
                         size="sm"
-                        onClick={() => handleUpdateApprovalStatus("APPROVED", row)}
-                        disabled={
-                            updatingRowId === `ROW-APPROVED-${row._id}` ||
-                            row.medicineCounts.some((medicine) =>
-                                Number(medicine.totalQuantity) > Number(medicine.availableStock ?? Infinity) || Number(medicine.totalQuantity) === 0
-                            )
-                        }
+                        onClick={() => openApproveModal(row._id, row.center?._id)}
                         className="d-flex align-items-center justify-content-center text-white"
                         style={{ minWidth: "85px", fontSize: "12px" }}
                     >
-                        {updatingRowId === `ROW-APPROVED-${row._id}` ? (
-                            <Spinner size="sm" />
-                        ) : (
-                            <>
-                                <CheckCheck size={14} className="me-1" />
-                                Approve
-                            </>
-                        )}
+                        <CheckCheck size={14} className="me-1" />
+                        Approve
                     </Button>
-
 
                     <Button
                         color="danger"
                         size="sm"
-                        onClick={() => handleUpdateApprovalStatus("REJECTED", row)}
+                        onClick={() => openRemarksModal(row, "REJECTED")}
                         disabled={updatingRowId === `ROW-REJECTED-${row._id}`}
                         className="d-flex align-items-center justify-content-center text-white"
                         style={{ minWidth: "85px", fontSize: "12px" }}
@@ -513,8 +463,11 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                         </div>
                     </div>
 
-                    <div className="order-4 d-flex flex-row gap-2 justify-content-start justify-content-md-end w-100 w-md-auto">
-                        {!loading && pagination?.totalDocs > 0 ? (
+                    <div className="order-4 d-flex flex-row align-items-center gap-2 justify-content-start justify-content-md-end w-100 w-md-auto">
+                        <RefreshButton loading={loading} onRefresh={fetchMedicineApprovals} />
+
+                        {/* Approve All / Reject All — commented out for now.
+                        {!loading && pagination?.totalDocs > 0 && !isPilotCenterRow(selectedCenter) ? (
                             <CheckPermission accessRolePermission={roles?.permissions} permission={"create"} subAccess={"MEDICINEAPPROVAL"}>
                                 <>
                                     <Button
@@ -534,9 +487,8 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                                     </Button>
                                 </>
                             </CheckPermission>
-                        ) : (
-                            <div style={{ width: "1px" }}></div>
-                        )}
+                        ) : null}
+                        */}
                     </div>
 
                 </div>
@@ -634,7 +586,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
             </div>}
             <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)}>
                 <ModalHeader toggle={() => setModalOpen(false)}>
-                    Add Remarks
+                    {actionType === "BULK_APPROVE" ? "Approve All" : "Reject Approval"}
                 </ModalHeader>
                 <ModalBody>
                     <Input
@@ -646,42 +598,32 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                     />
                 </ModalBody>
                 <ModalFooter>
-                    <Button
-                        color="danger"
-                        className="text-white"
-                        onClick={() => {
-                            if (actionType === "BULK_REJECT") {
-                                handleUpdateApprovalStatus("REJECTED", null, remarkText);
-                            } else {
-                                handleUpdateApprovalStatus("REJECTED", selectedRow, remarkText);
-                            }
-                        }}
-                        disabled={actionType === "APPROVED"}
-                    >
-                        Save & Reject
+                    <Button color="secondary" onClick={() => setModalOpen(false)}>
+                        Cancel
                     </Button>
-                    <Button
-                        color="success"
-                        className="text-white"
-                        disabled={
-                            actionType === "REJECTED" ||
-                            selectedRow?.medicineCounts?.some(
-                                (m) =>
-                                    m.availableStock !== undefined &&
-                                    m.availableStock < m.totalQuantity
-                            )
-                        }
-                        onClick={() => {
-                            if (actionType === "BULK_APPROVE") {
-                                handleUpdateApprovalStatus("APPROVED", null, remarkText);
-                            } else {
-                                handleUpdateApprovalStatus("APPROVED", selectedRow, remarkText);
-                            }
-                        }}
-                    >
-                        Save & Approve
-                    </Button>
-
+                    {actionType === "BULK_APPROVE" ? (
+                        <Button
+                            color="success"
+                            className="text-white"
+                            onClick={() => handleUpdateApprovalStatus("APPROVED", remarkText)}
+                        >
+                            Save & Approve
+                        </Button>
+                    ) : (
+                        <Button
+                            color="danger"
+                            className="text-white"
+                            onClick={() => {
+                                if (actionType === "BULK_REJECT") {
+                                    handleUpdateApprovalStatus("REJECTED", remarkText);
+                                } else {
+                                    handleRowReject(selectedRow, remarkText);
+                                }
+                            }}
+                        >
+                            Save & Reject
+                        </Button>
+                    )}
                 </ModalFooter>
 
             </Modal>
@@ -729,6 +671,21 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                     </Button>
                 </ModalFooter>
             </Modal>
+
+            <ApproveMedicinesModal
+                isOpen={!!approveModalApprovalId}
+                onClose={() => openApproveModal(null, null)}
+                approvalId={approveModalApprovalId}
+                centerId={approveModalCenterId}
+                onDone={fetchMedicineApprovals}
+            />
+
+            <DetailedPrescriptionModal
+                patient={viewPrescriptionPatient}
+                modal={viewPrescriptionModal}
+                setModal={setViewPrescriptionModal}
+                readOnly
+            />
 
         </div>
     );

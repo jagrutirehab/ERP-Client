@@ -518,7 +518,7 @@ const Salary = () => {
                                 </>
                             )}
                             {
-                                hasPermission("HR", "SALARY", "DELETE") && !hasManuallyProcessedForMonth && (
+                                hasPermission("HR", "SALARY", "DELETE") && (
                                     <Button
                                         color="primary"
                                         className="d-flex align-items-center gap-1 text-white"
@@ -617,7 +617,7 @@ const Salary = () => {
                                     </Button>
                                 </>
                             )}
-                            {hasPermission("HR", "SALARY", "DELETE") && !hasManuallyProcessedForMonth && (
+                            {hasPermission("HR", "SALARY", "DELETE") && (
                                 <Button
                                     color="primary"
                                     className="d-flex align-items-center gap-1 text-white"

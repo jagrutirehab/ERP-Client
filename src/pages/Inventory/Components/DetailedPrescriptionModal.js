@@ -10,7 +10,7 @@ import { usePermissions } from '../../../Components/Hooks/useRoles';
 import CheckPermission from '../../../Components/HOC/CheckPermission';
 import * as XLSX from "xlsx";
 
-const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
+const DetailedPrescriptionModal = ({ patient, setModal, modal, readOnly }) => {
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const { detailedPrescription } = useSelector((state) => state.Pharmacy);
@@ -152,6 +152,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
                                 onDispenseChanges={setShortageInfo}
                                 onRemarks={setRemarks}
                                 roles={roles}
+                                readOnly={readOnly}
                             />
                         ) : (
                             <>
@@ -189,7 +190,11 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
             </ModalBody>
 
             <ModalFooter>
-                {!shortageMode ? (
+                {readOnly ? (
+                    <Button color="secondary" onClick={resetAll}>
+                        Close
+                    </Button>
+                ) : !shortageMode ? (
                     <CheckPermission
                         accessRolePermission={roles?.permissions}
                         permission={"create"}

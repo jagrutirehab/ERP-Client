@@ -15,7 +15,7 @@ import Select from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getPendingApprovalsByPatient } from "../../../../store/features/pharmacy/pharmacySlice";
-import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
+import ApproveMedicinesModal from "./ApproveMedicinesModal";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 
 const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
@@ -76,33 +76,32 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
         return () => clearTimeout(handler);
     }, [search]);
 
+    const fetchMedicineApprovals = async () => {
+        try {
+            const centers =
+                selectedCenter === "ALL"
+                    ? user?.centerAccess
+                    : [selectedCenter];
+
+            await dispatch(
+                getPendingApprovalsByPatient({
+                    page,
+                    limit,
+                    type: activeTab,
+                    centers,
+                    ...search.trim() !== "" && { search: debouncedSearch }
+                })
+            ).unwrap();
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to fetch medicine approvals.");
+            }
+        }
+    };
+
     useEffect(() => {
         if (activeSubTab !== "DETAILED" || !hasUserPermission) return;
-        const fetchMedicineApprovals = async () => {
-            try {
-                const centers =
-                    selectedCenter === "ALL"
-                        ? user?.centerAccess
-                        : [selectedCenter];
-
-                await dispatch(
-                    getPendingApprovalsByPatient({
-                        page,
-                        limit,
-                        type: activeTab,
-                        centers,
-                        ...search.trim() !== "" && { search: debouncedSearch }
-                    })
-                ).unwrap();
-            } catch (error) {
-                if (!handleAuthError(error)) {
-                    toast.error(error.message || "Failed to fetch medicine approvals.");
-                }
-            }
-        };
-
         fetchMedicineApprovals();
-
     }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, user.centerAccess]);
 
 
@@ -380,7 +379,13 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                 </nav>
             </div>}
 
-            <DetailedPrescriptionModal patient={selectedPatient} modal={modal} setModal={setModal} />
+            <ApproveMedicinesModal
+                isOpen={modal && !!selectedPatient?._id}
+                onClose={() => setModal(false)}
+                approvalId={selectedPatient?._id}
+                centerId={selectedPatient?.centerId}
+                onDone={fetchMedicineApprovals}
+            />
         </div>
     );
 };

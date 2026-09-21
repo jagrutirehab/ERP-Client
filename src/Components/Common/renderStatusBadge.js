@@ -307,7 +307,11 @@ export const renderStatusBadge = (stage) => {
       text: "Leave Without Pay - Half Day Present",
       color: "warning"
     },
-    
+    PARTIALLY_APPROVED: {
+      text: "Partially Approved",
+      color: "warning"
+    },
+
 };
 
 const config = map[stage];

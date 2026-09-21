@@ -97,7 +97,6 @@ const MedicineApproval = () => {
                                 className={activeTab === tab ? "active" : ""}
                                 onClick={() => handleTabSwicth("parent", tab)}
                                 style={{ cursor: "pointer", fontWeight: 500 }}
-                                disabled={tab === "IPD"}
                             >
                                 {tab}
                             </NavLink>

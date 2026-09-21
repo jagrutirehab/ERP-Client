@@ -121,3 +121,28 @@
     width: 1000px;
   }
 }
+
+// Pharmacy-stock strip under each prescribed medicine (badge, swap search,
+// same-generic suggestions).
+.medicine-stock-search {
+  flex: 1 1 240px;
+  min-width: 0;
+  max-width: 420px;
+}
+
+@media (max-width: 1100px) {
+  // The table row is 1000px wide and scrolls sideways here; pin the strip to
+  // the visible left edge, at the screen's width, so it never needs a sideways
+  // scroll to use.
+  .medicine-stock-panel {
+    position: sticky;
+    left: 0;
+    width: min(100%, calc(100vw - 5rem));
+  }
+
+  // Search box goes on its own line under the badge.
+  .medicine-stock-search {
+    flex-basis: 100%;
+    max-width: none;
+  }
+}

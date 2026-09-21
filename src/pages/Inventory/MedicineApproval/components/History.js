@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
-import { Badge, Input, Spinner } from "reactstrap";
+import { Input, Spinner } from "reactstrap";
 import { format } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
@@ -8,7 +8,12 @@ import { getMedicineApprovals } from "../../../../store/features/pharmacy/pharma
 import { toast } from "react-toastify";
 import { ExpandableText } from "../../../../Components/Common/ExpandableText";
 import Select from "react-select";
+import { Button } from "reactstrap";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
+import { isPilotCenterRow } from "../../../../helpers/pilotCenter";
+import ApproveMedicinesModal from "./ApproveMedicinesModal";
+import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
+import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
 
 const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const dispatch = useDispatch();
@@ -21,6 +26,23 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [approveModalApprovalId, setApproveModalApprovalId] = useState(null);
+    const [approveModalCenterId, setApproveModalCenterId] = useState(null);
+    const [viewPrescriptionModal, setViewPrescriptionModal] = useState(false);
+    const [viewPrescriptionPatient, setViewPrescriptionPatient] = useState(null);
+
+    const openApproveModal = (approvalId, centerId) => {
+        setApproveModalApprovalId(approvalId);
+        setApproveModalCenterId(centerId);
+    };
+
+    const openViewPrescription = (row) => {
+        setViewPrescriptionPatient({
+            prescriptionId: row.prescriptionId,
+            patient: { name: row.patient?.name },
+        });
+        setViewPrescriptionModal(true);
+    };
 
 
     const centerOptions = [
@@ -114,8 +136,35 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             wrap: true,
         },
         {
-            name: <div>Medicines</div>,
+            name: <div>Prescription</div>,
             cell: (row) => (
+                <Button
+                    color="primary"
+                    size="sm"
+                    disabled={!row.prescriptionId}
+                    onClick={() => openViewPrescription(row)}
+                >
+                    View
+                </Button>
+            ),
+            center: true,
+        },
+        {
+            name: <div>Medicines</div>,
+            cell: (row) => {
+                if (isPilotCenterRow(row.center?._id)) {
+                    return (
+                        <Button
+                            color="primary"
+                            size="sm"
+                            onClick={() => openApproveModal(row._id, row.center?._id)}
+                        >
+                            View
+                        </Button>
+                    );
+                }
+
+                return (
                 <div style={{ lineHeight: "1.6", width: "100%" }}>
                     {row.medicineCounts?.map((medicine, index) => (
                         <div key={medicine._id} style={{ width: "100%" }}>
@@ -141,13 +190,8 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                         </div>
                     ))}
                 </div>
-            ),
-            style: {
-                whiteSpace: "normal",
-                wordBreak: "break-word",
+                );
             },
-            minWidth: "200px",
-            grow: 4,
         },
         {
             name: <div>Prescription Date</div>,
@@ -167,25 +211,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
         },
         {
             name: <div>Status</div>,
-            cell: (row) => (
-                <Badge
-                    color={
-                        row.approvalStatus === "APPROVED"
-                            ? "success"
-                            : row.approvalStatus === "REJECTED"
-                                ? "danger"
-                                : "secondary"
-                    }
-                    style={{
-                        minWidth: "90px",
-                        textAlign: "center",
-                        fontSize: "12px",
-                        padding: "5px 8px",
-                    }}
-                >
-                    {row.approvalStatus}
-                </Badge>
-            ),
+            cell: (row) => renderStatusBadge(row.approvalStatus),
             center: true,
             wrap: true
         },
@@ -424,6 +450,21 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                     </ul>
                 </nav>
             </div>}
+
+            <ApproveMedicinesModal
+                isOpen={!!approveModalApprovalId}
+                onClose={() => openApproveModal(null, null)}
+                approvalId={approveModalApprovalId}
+                centerId={approveModalCenterId}
+                readOnly
+            />
+
+            <DetailedPrescriptionModal
+                patient={viewPrescriptionPatient}
+                modal={viewPrescriptionModal}
+                setModal={setViewPrescriptionModal}
+                readOnly
+            />
         </div>
     );
 };

@@ -476,6 +476,10 @@ export const GET_PENDING_PATIENT_APPROVALS =
 export const GET_DETAILED_PRESCRIPTION =
   "/pharmacy/approvals/detailed-prescription";
 
+// PHARMACY MEDICINE APPROVAL — pilot (Noida) patient-scoped flow
+export const GET_APPROVAL_MEDICINES = "/pharmacy/approvals";
+export const APPROVE_PILOT_APPROVAL = "/pharmacy/approvals";
+
 // PHARMACY AUDIT
 export const DOWNLOAD_AUDIT_TEMPLATE = "/pharmacy/audit/template";
 export const AUDITS = "/pharmacy/audit";
@@ -489,6 +493,8 @@ export const PHARMACY_INTERNAL_TRANSFER =
   "/pharmacy/requisition/internal-transfer";
 export const PHARMACY_MEDICINE_SEARCH = "/pharmacy/search";
 export const PHARMACY_STOCK_BY_IDS = "/pharmacy/stock-by-ids";
+export const PHARMACY_AVAILABLE_MEDICINES = "/pharmacy/available-medicines";
+export const PHARMACY_ALTERNATIVE_MEDICINES = "/pharmacy/alternative-medicines";
 export const PHARMACY_STOCK_BY_MEDICINES = "/pharmacy/stock-by-medicines";
 export const PHARMACY_BATCHES_BY_MEDICINES = "/pharmacy/batches-by-medicines";
 
