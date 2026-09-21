@@ -21,9 +21,14 @@ import {
 } from "../../../../store/features/pharmacy/pharmacySlice";
 import PharmacyStockPicker from "./PharmacyStockPicker";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly, onDone }) => {
     const dispatch = useDispatch();
+    const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+    const { hasPermission } = usePermissions(token);
+    const canAct = !readOnly && hasPermission("PHARMACY", "MEDICINEAPPROVAL", "WRITE");
     const { data: approval, loading } = useSelector(
         (state) => state.Pharmacy.approvalMedicines
     );
@@ -217,6 +222,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
         });
 
     const handleApprove = async () => {
+        if (!canAct) return;
         setSubmitting(true);
         try {
             await dispatch(
@@ -240,6 +246,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
     };
 
     const handleReject = async () => {
+        if (!canAct) return;
         setSubmitting(true);
         try {
             await dispatch(
@@ -258,14 +265,14 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
     const medicines = approval?.medicines || [];
 
     useEffect(() => {
-        if (!isOpen || readOnly) return;
+        if (!isOpen || !canAct) return;
         if (loading) {
             autoSelectRef.current = "loading";
         } else if (autoSelectRef.current === "loading" && approval) {
             autoSelectRef.current = "done";
             handleSelectAll();
         }
-    }, [isOpen, readOnly, loading, approval]);
+    }, [isOpen, canAct, loading, approval]);
 
     // Whether every currently-selectable medicine (resolved + eligible, not
     // already given/rejected) is checked — flips the toggle button between
@@ -303,7 +310,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
     return (
         <Modal isOpen={isOpen} toggle={onClose} size="xl">
             <ModalHeader toggle={onClose}>
-                {readOnly ? "Medicines" : "Approve Medicines"}
+                {canAct ? "Approve Medicines" : "Medicines"}
             </ModalHeader>
             <ModalBody>
                 {loading && (
@@ -332,7 +339,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                 </div>
                             )}
                         </div>
-                        {!readOnly && (
+                        {canAct && (
                             <div className="d-flex gap-2">
                                 {/* Select All / Unselect All — commented out for now (auto-selected on open).
                                 <Button
@@ -357,6 +364,11 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                     </Button>
                                 )}
                             </div>
+                        )}
+                        {!readOnly && !canAct && (
+                            <Badge color="light" className="text-muted border">
+                                View only
+                            </Badge>
                         )}
                     </div>
                 )}
@@ -402,7 +414,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                 isChecked && Number(dispensedCount) > Number(link.stock);
 
                             const rowDisabled = med.alreadyDispensed || (resolved && !eligible);
-                            const canToggle = !readOnly && !rowDisabled;
+                            const canToggle = canAct && !rowDisabled;
                             const handleRowToggle = () => {
                                 if (!canToggle) return;
                                 if (resolved) toggleSelect(med);
@@ -416,7 +428,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                     style={{ backgroundColor: "#f4f7fb" }}
                                 >
                                 <div className="d-flex align-items-start gap-2 w-100">
-                                    {!readOnly && (
+                                    {canAct && (
                                         <Input
                                             type="checkbox"
                                             className="mt-1"
@@ -494,7 +506,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                                         <span className="text-danger ms-1">EXPIRED</span>
                                                     )}
                                                 </span>
-                                                {!readOnly && (
+                                                {canAct && (
                                                     <>
                                                         <Button
                                                             color="link"
@@ -518,10 +530,10 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                                 )}
                                             </div>
                                         )}
-                                        {!med.alreadyDispensed && !med.rejected && !resolved && !readOnly && !pickingHere && (
+                                        {!med.alreadyDispensed && !med.rejected && !resolved && canAct && !pickingHere && (
                                             <span className="small text-muted">Tick to select from inventory</span>
                                         )}
-                                        {!readOnly && pickingHere && (
+                                        {canAct && pickingHere && (
                                             <div className="mt-2" style={{ width: "100%" }}>
                                                 <PharmacyStockPicker
                                                     centerId={centerId}
@@ -532,7 +544,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                                 />
                                             </div>
                                         )}
-                                        {!med.alreadyDispensed && !readOnly && isChecked && (
+                                        {!med.alreadyDispensed && canAct && isChecked && (
                                             <div className="d-flex align-items-center gap-2 mt-1">
                                                 <label className="small text-muted mb-0">
                                                     Qty to dispense:
@@ -568,7 +580,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                     </Row>
                 )}
 
-                {!readOnly && (
+                {canAct && (
                     <Input
                         type="textarea"
                         rows={2}
@@ -579,7 +591,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                     />
                 )}
             </ModalBody>
-            {!readOnly && (
+            {canAct && (
                 <ModalFooter className="d-flex justify-content-between align-items-center">
                     <div className="small text-muted">
                         {selectedCount > 0
