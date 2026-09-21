@@ -47,6 +47,7 @@ const labels = [
   "Total Advance",
   "Due Amount",
   "Last Advance Date",
+  "Due Since",
   "Last Advance Amount",
 ];
 
@@ -60,6 +61,7 @@ const labelsMapping = {
   "Total Advance": "total_advance", 
   "Due Amount": "due_amount",
   "Last Advance Date": "last_advance_payment_date",
+  "Due Since": "days_since_last_advance",
   "Last Advance Amount": "last_advance_amount",
 };
 
@@ -77,6 +79,7 @@ const formatCurrency = (val) => {
 
 const DATE_FIELDS = new Set(["Admission Date", "Discharge Date", "Last Advance Date"]);
 const CURRENCY_FIELDS = new Set(["Total Invoiced", "Total Advance", "Due Amount", "Last Advance Amount"]);
+const DAYS_FIELDS = new Set(["Due Since"]);
 
 const DueAmount = () => {
   const dispatch = useDispatch();
@@ -177,6 +180,11 @@ const DueAmount = () => {
     const raw = item[labelsMapping[label]];
     if (DATE_FIELDS.has(label)) return formatDate(raw);
     if (CURRENCY_FIELDS.has(label)) return formatCurrency(raw);
+    if (DAYS_FIELDS.has(label)) {
+      if (raw === null || raw === undefined || raw === "") return "";
+      if (typeof raw === "number" || !isNaN(Number(raw))) return `${raw} days`;
+      return raw;
+    }
     return raw ?? "";
   };
 

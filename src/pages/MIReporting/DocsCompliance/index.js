@@ -49,6 +49,8 @@ const METRICS = [
     { label: "Form-2 Patient Care Training",  key: "form_2",      description: "Percentage of patient care training forms filled.(2 in a month)" },
     { label: "Form-3 Psychologist Training Pointers", key: "form_3", description: "Percentage of psychologist training forms filled.(2 in a month)" },
     { label: "Form-4 MSW/New Joinee Training", key: "form_4",     description: "Percentage of new joinee training forms filled.(4 in a month)" },
+    { label: "Multidisciplinary Meeting(Monthly)",              key: "multidisciplinary_meeting",       description: "Percentage of multidisciplinary meeting done.(4 in a month)"    },
+
 ];
 
 const DocsCompliance = () => {

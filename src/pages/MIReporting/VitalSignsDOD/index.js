@@ -70,6 +70,24 @@
         return totals;
     }, [filteredData, last30Days]);
 
+    const isOnOutpassForDay = (item, key) => {
+        if (!item?.last_outpass) return false;
+        const outpassDate = new Date(item.last_outpass);
+        if (isNaN(outpassDate)) return false;
+        return outpassDate.toISOString().slice(0, 10) === key;
+    };
+
+    const dateCompliance = useMemo(() => {
+        const pct = {};
+        last30Days.forEach(({ key }) => {
+            const eligible = filteredData.filter((row) => !isOnOutpassForDay(row, key));
+            const compliant = eligible.reduce((sum, row) => sum + ((Number(row?.dod_data?.[key]) || 0) > 0 ? 1 : 0), 0);
+            pct[key] = eligible.length > 0 ? Math.round((compliant / eligible.length) * 100) : 0;
+        });
+        return pct;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filteredData, last30Days]);
+
     const centerOptions = useMemo(() => [
         { value: "ALL", label: "All Centers" },
         ...[...new Set(data.map((item) => item.center_name))].map((center) => ({
@@ -211,6 +229,41 @@
                             }}
                         >
                             <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
+                                <tr>
+                                    {labels.map((label, i) => {
+                                        const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                                        return (
+                                        <th
+                                            key={label}
+                                            className="text-center fw-bold px-1 py-1"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#00694d",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                                minWidth: fixedColWidths[i],
+                                                ...(i < 3 && { position: "sticky", left, zIndex: 1 }),
+                                            }}
+                                        >
+                                            {i === labels.length - 1 ? "Compliance %" : ""}
+                                        </th>
+                                        );
+                                    })}
+                                    {last30Days.map(({ key }) => (
+                                        <th
+                                            key={key}
+                                            className="text-center fw-bold px-1 py-1"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#00694d",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                            }}
+                                        >
+                                            {`${dateCompliance[key] ?? 0}%`}
+                                        </th>
+                                    ))}
+                                </tr>
                                 <tr>
                                     {labels.map((label, i) => {
                                         const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);

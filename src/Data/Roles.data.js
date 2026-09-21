@@ -297,6 +297,7 @@ export const permissionList = [
       { name: "REFUND_AMOUNT", label: "Refund Amount" },
       { name: "WRITE_OFF_AMOUNT", label: "Write Off Amount" },
       { name: "CENTRAL_EXPENSES", label: "Central Expenses" },
+      { name: "CASH_RECO_COMPLIANCE", label: "Cash Reco Compliance" },
 
       // Occupancy & Patient Management
       { name: "OCCUPANCY", label: "Occupancy" },

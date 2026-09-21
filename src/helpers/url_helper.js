@@ -583,6 +583,7 @@ export const GET_INCIDENT_STATUS_MONTHLY =
 export const GET_READMISSION_MONTHLY = "/mi-reporting/readmission-monthly";
 export const GET_ATTRITION_MONTHLY = "/mi-reporting/attrition-monthly";
 export const GET_ASSIGNED_DATA = "/mi-reporting/assigned-data";
+export const GET_CASH_RECO_COMPLIANCE = "/mi-reporting/cash-reco-compliance";
 
 // CENTER DASHBOARD
 export const GET_CENTER_DASHBOARD_LIVE = "/center-dashboard/live";

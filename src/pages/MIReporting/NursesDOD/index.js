@@ -91,10 +91,18 @@ const NursesDOD = () => {
         return days;
     }, []);
 
+    const isOnOutpassForDay = (item, key) => {
+        if (!item?.last_outpass) return false;
+        const outpassDate = new Date(item.last_outpass);
+        if (isNaN(outpassDate)) return false;
+        return outpassDate.toISOString().slice(0, 10) === key;
+    };
+
     const dateTotals = useMemo(() => {
         const totals = {};
         last30Days.forEach(({ key }) => {
             totals[key] = filteredData.reduce((sum, row) => {
+                if (isOnOutpassForDay(row, key)) return sum;
                 const entry = row.dod_data?.[key];
                 const val = countType === "missed"
                     ? Number(entry?.missed_count) || 0
@@ -108,7 +116,10 @@ const NursesDOD = () => {
     const dateShouldBeTotals = useMemo(() => {
         const totals = {};
         last30Days.forEach(({ key }) => {
-            totals[key] = filteredData.reduce((sum, row) => sum + (Number(row.dod_data?.[key]?.should_be_count) || 0), 0);
+            totals[key] = filteredData.reduce((sum, row) => {
+                if (isOnOutpassForDay(row, key)) return sum;
+                return sum + (Number(row.dod_data?.[key]?.should_be_count) || 0);
+            }, 0);
         });
         return totals;
     }, [filteredData, last30Days]);
@@ -121,6 +132,26 @@ const NursesDOD = () => {
             return `${Math.round((count / shouldBe) * 100)}%`;
         }
         return count || "";
+    };
+
+    const centerDailyTotals = useMemo(() => nursesDOD?.center_daily_totals || [], [nursesDOD]);
+
+    const centerDailyPivot = useMemo(() => {
+        const map = {};
+        centerDailyTotals.forEach((item) => {
+            if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return;
+            if (!map[item.date]) map[item.date] = { result_count: 0, should_be_count: 0, missed_count: 0 };
+            map[item.date].result_count += Number(item.result_count) || 0;
+            map[item.date].should_be_count += Number(item.should_be_count) || 0;
+            map[item.date].missed_count += Number(item.missed_count) || 0;
+        });
+        return map;
+    }, [centerDailyTotals, selectedCenter]);
+
+    const getDateComplianceDisplay = (key) => {
+        const entry = centerDailyPivot[key];
+        if (!entry || !entry.should_be_count) return "";
+        return `${Math.round((entry.result_count / entry.should_be_count) * 100)}%`;
     };
 
     const centerOptions = useMemo(() => [
@@ -282,28 +313,28 @@ const NursesDOD = () => {
                                                                 className="text-center fw-bold px-1 py-1"
                                                                 style={{
                                                                     border: "1px solid #cfd8e3",
-                                                                    background: "#004d00",
+                                                                    background: "#00694d",
                                                                     color: "white",
                                                                     whiteSpace: "nowrap",
                                                                     minWidth: fixedColWidths[i],
                                                                     ...(i < 2 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
                                                                 }}
                                                             >
-                                                                {i === prescCountColIdx ? "Total (Single Day)" : i === lastOutpassColIdx ? "Pt. Count" : i === mtdColIdx ? `${filteredData.length}` : ""}
+                                                                {i === prescCountColIdx ? "Compliance %" : i === lastOutpassColIdx ? "Pt. Count" : i === mtdColIdx ? `${filteredData.length}` : ""}
                                                             </th>
                                                         ))}
-                                                        {last30Days.map(({ key, label }) => (
+                                                        {last30Days.map(({ key }) => (
                                                             <th
                                                                 key={key}
                                                                 className="text-center fw-bold px-1 py-1"
                                                                 style={{
                                                                     border: "1px solid #cfd8e3",
-                                                                    background: "#004d00",
+                                                                    background: "#00694d",
                                                                     color: "white",
                                                                     whiteSpace: "nowrap",
                                                                 }}
                                                             >
-                                                                {getDateTotalDisplay(key)}
+                                                                {getDateComplianceDisplay(key)}
                                                             </th>
                                                         ))}
                                                     </tr>

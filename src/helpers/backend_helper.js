@@ -2682,6 +2682,14 @@ export const getAssignedData = (data) => {
   });
 };
 
+export const getCashRecoCompliance = (data) => {
+  return api.get(url.GET_CASH_RECO_COMPLIANCE, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getCenterDashboardLive = (data) => {
   return api.get(url.GET_CENTER_DASHBOARD_LIVE, {
     params: {

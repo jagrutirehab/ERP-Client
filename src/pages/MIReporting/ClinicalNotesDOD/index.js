@@ -171,6 +171,26 @@ const ClinicalNotesDOD = () => {
         return totals;
     }, [filteredData, last30Days]);
 
+    const isOnOutpassForDay = (item, key) => {
+        if (!item?.last_outpass) return false;
+        const outpassDate = new Date(item.last_outpass);
+        if (isNaN(outpassDate)) return false;
+        const [day, mon, year] = key.split("-");
+        const dayDate = new Date(`${mon} ${day}, ${year}`);
+        return outpassDate.toDateString() === dayDate.toDateString();
+    };
+
+    const dateCompliance = useMemo(() => {
+        const pct = {};
+        last30Days.forEach(({ key }) => {
+            const eligible = filteredData.filter((row) => !isOnOutpassForDay(row, key));
+            const compliant = eligible.reduce((sum, row) => sum + ((Number(row[key]) || 0) > 0 ? 1 : 0), 0);
+            pct[key] = eligible.length > 0 ? Math.round((compliant / eligible.length) * 100) : 0;
+        });
+        return pct;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [filteredData, last30Days]);
+
     const currentMonthDays = useMemo(() => {
         const now = new Date();
         const currentMonth = now.getMonth();
@@ -307,6 +327,38 @@ const ClinicalNotesDOD = () => {
                                                 }}
                                             >
                                                 <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
+                                                    <tr>
+                                                        {labels.map((label, i) => (
+                                                            <th
+                                                                key={label}
+                                                                className="text-center fw-bold px-1 py-1"
+                                                                style={{
+                                                                    border: "1px solid #cfd8e3",
+                                                                    background: "#00694d",
+                                                                    color: "white",
+                                                                    whiteSpace: "nowrap",
+                                                                    minWidth: fixedColWidths[i],
+                                                                    ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
+                                                                }}
+                                                            >
+                                                                {i === labels.length - 1 ? "Compliance %" : ""}
+                                                            </th>
+                                                        ))}
+                                                        {last30Days.map(({ key }) => (
+                                                            <th
+                                                                key={key}
+                                                                className="text-center fw-bold px-1 py-1"
+                                                                style={{
+                                                                    border: "1px solid #cfd8e3",
+                                                                    background: "#00694d",
+                                                                    color: "white",
+                                                                    whiteSpace: "nowrap",
+                                                                }}
+                                                            >
+                                                                {`${dateCompliance[key] ?? 0}%`}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
                                                     <tr>
                                                         {labels.map((label, i) => (
                                                             <th

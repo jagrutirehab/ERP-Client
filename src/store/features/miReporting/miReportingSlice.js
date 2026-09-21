@@ -49,6 +49,7 @@ import {
   getReadmissionMonthly,
   getAttritionMonthly,
   getAssignedData,
+  getCashRecoCompliance,
 
 } from "../../../helpers/backend_helper";
 
@@ -108,6 +109,7 @@ const initialState = {
   readmissionMonthly: [],
   attritionMonthly: [],
   assignedData: [],
+  cashRecoCompliance: [],
 
   loading: false,
   error: null,
@@ -848,6 +850,20 @@ export const fetchAssignedData = createAsyncThunk(
   }
 );
 
+export const fetchCashRecoCompliance = createAsyncThunk(
+  "miReporting/fetchCashRecoCompliance",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getCashRecoCompliance(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Cash Reco Compliance"
+      );
+    }
+  }
+);
+
 
 
 const miReportingSlice = createSlice({
@@ -1517,6 +1533,19 @@ const miReportingSlice = createSlice({
         state.assignedData = action.payload.payload || [];
       })
       .addCase(fetchAssignedData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Cash Reco Compliance
+      .addCase(fetchCashRecoCompliance.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCashRecoCompliance.fulfilled, (state, action) => {
+        state.loading = false;
+        state.cashRecoCompliance = action.payload.payload || [];
+      })
+      .addCase(fetchCashRecoCompliance.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });

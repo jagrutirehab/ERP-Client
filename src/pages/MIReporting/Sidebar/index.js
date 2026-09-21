@@ -116,6 +116,7 @@ const Sidebar = () => {
         { id: "refund-amount", label: "Refund Amount", link: "/mi-reporting/refund-amount", icon: "bx bx-revision", submodule: "REFUND_AMOUNT" },
         { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money", submodule: "WRITE_OFF_AMOUNT" },
         { id: "central-expenses", label: "Central Expenses", link: "/mi-reporting/central-expenses", icon: "bx bx-receipt", submodule: "CENTRAL_EXPENSES" },
+        { id: "cash-reco-compliance", label: "Cash Reco Compliance", link: "/mi-reporting/cash-reco-compliance", icon: "bx bx-wallet-alt", submodule: "CASH_RECO_COMPLIANCE" },
       ],
     },
     {
