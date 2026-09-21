@@ -218,7 +218,13 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
             const qty = Number(s.dispensedCount);
             const med = findMedicine(id);
             const stock = med ? getLink(med).stock : undefined;
-            return qty > 0 && (stock === undefined || qty <= Number(stock));
+            const prescribed = Number(med?.totalQuantity);
+            return (
+                Number.isInteger(qty) &&
+                qty > 0 &&
+                (stock === undefined || qty <= Number(stock)) &&
+                !(prescribed > 0 && qty > prescribed)
+            );
         });
 
     const handleApprove = async () => {
@@ -412,6 +418,14 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                             const dispensedCount = selected[med.prescriptionMedicineId]?.dispensedCount;
                             const exceedsStock =
                                 isChecked && Number(dispensedCount) > Number(link.stock);
+                            const prescribedQty = Number(med.totalQuantity) > 0 ? Number(med.totalQuantity) : undefined;
+                            const exceedsPrescribed =
+                                isChecked && prescribedQty !== undefined && Number(dispensedCount) > prescribedQty;
+                            const maxQty = Math.min(
+                                ...[prescribedQty, Number(link.stock) > 0 ? Number(link.stock) : undefined].filter(
+                                    (v) => v !== undefined,
+                                ),
+                            );
 
                             const rowDisabled = med.alreadyDispensed || (resolved && !eligible);
                             const canToggle = canAct && !rowDisabled;
@@ -553,20 +567,32 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                                     type="number"
                                                     bsSize="sm"
                                                     min={1}
-                                                    max={link.stock || undefined}
+                                                    step={1}
+                                                    max={Number.isFinite(maxQty) ? maxQty : undefined}
                                                     style={{ width: "90px" }}
                                                     value={dispensedCount ?? ""}
-                                                    invalid={exceedsStock}
-                                                    onChange={(e) =>
-                                                        updateDispensedCount(
-                                                            med.prescriptionMedicineId,
-                                                            e.target.value === "" ? "" : Number(e.target.value)
-                                                        )
-                                                    }
+                                                    invalid={exceedsStock || exceedsPrescribed}
+                                                    onKeyDown={(e) => {
+                                                        // Whole units only: no decimals, exponents or signs.
+                                                        if ([".", ",", "e", "E", "+", "-"].includes(e.key)) e.preventDefault();
+                                                    }}
+                                                    onChange={(e) => {
+                                                        const raw = e.target.value;
+                                                        if (raw === "") {
+                                                            updateDispensedCount(med.prescriptionMedicineId, "");
+                                                        } else if (Number.isInteger(Number(raw))) {
+                                                            updateDispensedCount(med.prescriptionMedicineId, Number(raw));
+                                                        }
+                                                    }}
                                                 />
                                                 {exceedsStock && (
                                                     <span className="small text-danger">
                                                         Exceeds available stock ({link.stock})
+                                                    </span>
+                                                )}
+                                                {exceedsPrescribed && (
+                                                    <span className="small text-danger">
+                                                        Can't exceed prescribed qty ({prescribedQty})
                                                     </span>
                                                 )}
                                             </div>
