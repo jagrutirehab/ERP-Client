@@ -100,6 +100,17 @@ const styles = StyleSheet.create({
     width: "37%", paddingHorizontal: 5, paddingVertical: 4, alignItems: "flex-end",
   },
 
+  // ── PF Breakup ──
+  pfBox: { border: "2 solid #000", marginTop: 6 },
+  pfTitleCell: { paddingVertical: 4, borderBottom: "1 solid #000", alignItems: "center" },
+  pfRow: { flexDirection: "row", height: 20 },
+  pfHeaderRow: { flexDirection: "row", height: 20, borderBottom: "1 solid #000" },
+  pfCell: {
+    width: "33.33%", borderRight: "1 solid #000",
+    justifyContent: "center", alignItems: "center",
+  },
+  pfCellLast: { width: "33.34%", justifyContent: "center", alignItems: "center" },
+
   // ── Footer ──
   footerBox: {
     borderLeft: "2 solid #000",
@@ -250,6 +261,12 @@ const PayslipPdf = ({ row }) => {
     row?.inHandSalary != null && Number.isFinite(Number(row.inHandSalary))
       ? Number(row.inHandSalary)
       : totalE - totalD;
+
+  // ── PF Breakup ────────────────────────────────────────────────────────────
+  const hasPF = row?.pfApplicable === true;
+  const pfEmployeeVal = Number(row?.pfEmployee) || 0;
+  const pfEmployerVal = Number(row?.pfEmployer) || 0;
+  const totalPF = pfEmployeeVal + pfEmployerVal;
 
   const infoRows = [
     [
@@ -416,6 +433,37 @@ const PayslipPdf = ({ row }) => {
               </View>
             </View>
           </View>
+
+          {/* ── PF Breakup ─────────────────────────────────────────────── */}
+          {hasPF && (
+            <View style={styles.pfBox}>
+              <View style={styles.pfTitleCell}>
+                <Text style={styles.tSection}>Provident Fund (PF) Breakup</Text>
+              </View>
+              <View style={styles.pfHeaderRow} wrap={false}>
+                <View style={styles.pfCell}>
+                  <Text style={styles.tHeader}>PF Employee</Text>
+                </View>
+                <View style={styles.pfCell}>
+                  <Text style={styles.tHeader}>PF Employer</Text>
+                </View>
+                <View style={styles.pfCellLast}>
+                  <Text style={styles.tHeader}>Total PF</Text>
+                </View>
+              </View>
+              <View style={styles.pfRow} wrap={false}>
+                <View style={styles.pfCell}>
+                  <Text style={styles.tSmall}>{dm(pfEmployeeVal)}</Text>
+                </View>
+                <View style={styles.pfCell}>
+                  <Text style={styles.tSmall}>{dm(pfEmployerVal)}</Text>
+                </View>
+                <View style={styles.pfCellLast}>
+                  <Text style={[styles.tSmall, styles.tBold]}>{dm(totalPF)}</Text>
+                </View>
+              </View>
+            </View>
+          )}
 
         </View>
       </Page>
