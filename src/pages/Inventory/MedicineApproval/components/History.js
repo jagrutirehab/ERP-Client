@@ -55,10 +55,12 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             : []
         ),
         ...(
-            centerList?.map(c => ({
-                value: c._id,
-                label: c.title,
-            })) || []
+            centerList
+                ?.filter(c => user?.centerAccess?.includes(c._id))
+                ?.map(c => ({
+                    value: c._id,
+                    label: c.title,
+                })) || []
         )
     ];
 
