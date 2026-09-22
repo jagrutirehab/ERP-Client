@@ -1,4 +1,4 @@
-import { endOfDay, endOfMonth, startOfDay, startOfMonth, subDays } from "date-fns";
+import { endOfDay, endOfMonth, format, startOfDay, startOfMonth, subDays } from "date-fns";
 import dayjs from "dayjs";
 
 export const timeToMinutes = (time) => {
@@ -73,6 +73,13 @@ export const getTableRange = (start, end) => ({
     start: start ? startOfDay(new Date(start)) : startOfMonth(new Date()),
     end: end ? endOfDay(new Date(end)) : endOfDay(new Date()),
 });
+
+export const formatDateOnly = (dateStr) => {
+    if (!dateStr) return "";
+    const [year, month, day] = dateStr.split("-").map(Number);
+    if (!year || !month || !day) return "";
+    return format(new Date(year, month - 1, day), "d MMMM, yyyy");
+};
 
 export const normalizeDateForInput = (value) => {
     if (!value) return "";
