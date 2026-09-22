@@ -24,6 +24,7 @@ const ReporteesLeaveBalance = () => {
 
     const navigate = useNavigate();
     const dispatch = useDispatch();
+    const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR.reporteesLeaveBalance);
     const handleAuthError = useAuthError();
 
@@ -39,9 +40,6 @@ const ReporteesLeaveBalance = () => {
     const hasUserPermission = hasPermission("HR", "REPORTEES_LEAVE_BALANCE", "READ");
     const columns = leaveBalanceColumns({ searchText: debouncedSearch });
 
-    // Centers are an optional narrowing filter here, not a requirement — by
-    // default reportees are shown across all centers regardless of the
-    // manager's own centerAccess.
     const centerOptions = useCenterOptions();
 
     const yearOptions = Array.from({ length: 6 }, (_, i) => {
@@ -54,6 +52,16 @@ const ReporteesLeaveBalance = () => {
         centerOptions[0];
 
     useEffect(() => {
+        if (
+            selectedCenter !== "ALL" &&
+            !user?.centerAccess?.includes(selectedCenter)
+        ) {
+            setSelectedCenter("ALL");
+            setPage(1);
+        }
+    }, [selectedCenter, user?.centerAccess]);
+
+    useEffect(() => {
         const handler = setTimeout(() => {
             setDebouncedSearch(search);
             setPage(1);
@@ -64,12 +72,19 @@ const ReporteesLeaveBalance = () => {
 
     const loadReporteesLeaveBalance = async () => {
         try {
+            const centers =
+                selectedCenter === "ALL"
+                    ? user?.centerAccess
+                    : !user?.centerAccess.length
+                        ? []
+                        : [selectedCenter];
+
             await dispatch(
                 fetchReporteesLeaveBalance({
                     page,
                     limit,
                     year,
-                    ...(selectedCenter !== "ALL" && { centers: [selectedCenter] }),
+                    centers,
                     ...(search.trim() !== "" && { search: debouncedSearch }),
                 }),
             ).unwrap();
@@ -84,7 +99,7 @@ const ReporteesLeaveBalance = () => {
         if (hasUserPermission) {
             loadReporteesLeaveBalance();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, year]);
+    }, [page, limit, selectedCenter, debouncedSearch, year, user?.centerAccess]);
 
 
     if (!permissionLoader && !hasUserPermission) {
