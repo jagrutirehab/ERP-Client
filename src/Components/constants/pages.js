@@ -14,6 +14,13 @@ const pages = [
     icon: "bx bx-broadcast",
   },
   {
+    id: "misMaster",
+    label: "MIS Master",
+    name: "MIS Master",
+    link: "/mis-master",
+    icon: "bx bx-line-chart",
+  },
+  {
     id: "nurse",
     label: "Nurse",
     name: "Nurse",

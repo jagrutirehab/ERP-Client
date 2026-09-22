@@ -89,7 +89,7 @@ const PatientDocs = () => {
     ], [data]);
 
     const monthOptions = useMemo(() => {
-        const options = [];
+        const options = [{ value: "last-6-months", label: "Last 6 Months" }];
         const now = new Date();
         const end = new Date(now.getFullYear(), now.getMonth(), 1);
         const start = new Date(now.getFullYear() - 5, now.getMonth() + 1, 1);
