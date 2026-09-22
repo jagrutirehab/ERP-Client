@@ -5853,8 +5853,51 @@ export const getMaterialIssues = () =>
     headers: { "X-No-Cookie-Token": "true" },
   });
 export const getIssuesForReturn = () =>
-  axios.get("/master/material-return/pending-issue", { headers: { "X-No-Cookie-Token": "true" } });
+  axios.get("/master/material-return/pending-issue", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
 export const createMaterialReturn = (data) =>
-  axios.post("/master/material-return", data, { headers: { "X-No-Cookie-Token": "true" } });
+  axios.post("/master/material-return", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
 export const getMaterialReturns = () =>
-  axios.get("/master/material-return", { headers: { "X-No-Cookie-Token": "true" } });
+  axios.get("/master/material-return", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createCapitalizationRequest = (data) =>
+  axios.post("/master/capitalization-request", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getCapitalizationRequests = (params = {}) =>
+  axios.get("/master/capitalization-request", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const approveCapitalizationRequest = (id) =>
+  axios.patch(
+    `/master/capitalization-request/${id}/approve`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+export const rejectCapitalizationRequest = (id, data) =>
+  axios.patch(`/master/capitalization-request/${id}/reject`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getApprovedRequestsForCWIP = () =>
+  axios.get("/master/cwip/pending-request", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createCWIP = (data) =>
+  axios.post("/master/cwip", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getCWIPs = (params = {}) =>
+  axios.get("/master/cwip", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const markCWIPReady = (id, data) =>
+  axios.patch(`/master/cwip/${id}/ready`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });

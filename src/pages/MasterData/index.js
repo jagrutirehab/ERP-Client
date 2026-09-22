@@ -25,6 +25,8 @@ import StockAdjustment from "./Inventory/StockAdjustment";
 import ReorderRule from "./Inventory/ReorderRule";
 import MaterialIssue from "./Inventory/MaterialIssue";
 import MaterialReturn from "./Inventory/MaterialReturn";
+import CapitalizationRequest from "./AssetLifecycle/CapitalizationRequest";
+import CWIP from "./AssetLifecycle/CWIP";
 import LocationStock from "./Inventory/LocationStock";
 import VendorInvoice from "./Finance/VendorInvoice";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
@@ -102,6 +104,13 @@ const MasterData = () => {
   );
   const canViewLocationStock = hasPermission("MASTERDATA", "PUTAWAY", "READ");
 
+  const canViewCapReq = hasPermission(
+    "MASTERDATA",
+    "CAPITALIZATION_REQUEST",
+    "READ",
+  );
+  const canViewCWIP = hasPermission("MASTERDATA", "CWIP", "READ");
+
   if (
     !canViewVendor &&
     !canViewItems &&
@@ -125,7 +134,9 @@ const MasterData = () => {
     !canViewReorderRule &&
     !canViewMaterialIssue &&
     !canViewMaterialReturn &&
-    !canViewLocationStock
+    !canViewLocationStock &&
+    !canViewCapReq &&
+    !canViewCWIP
   ) {
     return <Basic404 />;
   }
@@ -175,6 +186,11 @@ const MasterData = () => {
               <Route path="reorder-rule/*" element={<ReorderRule />} />
               <Route path="material-issue/*" element={<MaterialIssue />} />
               <Route path="material-return/*" element={<MaterialReturn />} />
+              <Route
+                path="capitalization-request/*"
+                element={<CapitalizationRequest />}
+              />
+              <Route path="cwip/*" element={<CWIP />} />
               <Route path="location-stock/*" element={<LocationStock />} />
               <Route path="vendor-invoice/*" element={<VendorInvoice />} />
             </Routes>
