@@ -51,6 +51,7 @@ import ShiftRoaster from "./ShiftRoaster";
 import AssignShift from "./ShiftRoaster/AssignShift";
 import CancellationRequestsPage from "../HRMS/Leaves/CancellationRequests";
 import EmployeeLeaveBalanceDashboard from "./Dashboard/EmployeeLeaveBalance";
+import ReporteesLeaveBalance from "./Dashboard/ReporteesLeaveBalance";
 import EmployeeRegularizationDetails from "./Dashboard/EmployeeRegularizationDetails";
 import EmployeeRegularizationSummaryDashboard from "./Dashboard/EmployeeRegularizationSummary";
 import AllLeaveHistory from "./Dashboard/AllLeaveHistory";
@@ -241,6 +242,10 @@ const HR = () => {
                 <Route
                   path={`/leaves/my/compOffs`}
                   element={<RaisedCompOffsRequest />}
+                />
+                <Route
+                  path={`/leaves/reportees/balance`}
+                  element={<ReporteesLeaveBalance />}
                 />
                 <Route
                   path={`/incentives/add`}

@@ -1127,6 +1127,12 @@ export const HR = [
         icon: "bx bx-layer",
       },
       {
+        id: "reportees-leave-balance",
+        label: "Reportees Leave Balance",
+        link: "/hr/leaves/reportees/balance",
+        icon: "bx bx-group",
+      },
+      {
         id: "festive-leaves",
         label: "Festive Leaves List",
         link: "/hr/leaves/festive/leaves",

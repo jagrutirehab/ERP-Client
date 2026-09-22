@@ -1,0 +1,206 @@
+import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { CardBody, Input } from "reactstrap";
+import Select from "react-select";
+import { toast } from "react-toastify";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { fetchReporteesLeaveBalance } from "../../../store/features/HR/hrSlice";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
+import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
+import { leaveBalanceColumns } from "../components/columns/LeaveBalanceColumns";
+import DataTableComponent from "../../../Components/Common/DataTable";
+import RefreshButton from "../../../Components/Common/RefreshButton";
+
+
+const ReporteesLeaveBalance = () => {
+    const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [page, setPage] = useState(1);
+    const [limit, setLimit] = useState(10);
+    const [search, setSearch] = useState("");
+    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [year, setYear] = useState(new Date().getFullYear());
+
+    const navigate = useNavigate();
+    const dispatch = useDispatch();
+    const { data, pagination, loading } = useSelector((state) => state.HR.reporteesLeaveBalance);
+    const handleAuthError = useAuthError();
+
+    const isMobile = useMediaQuery("(max-width: 1000px)");
+
+    const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+
+    const {
+        hasPermission,
+        loading: permissionLoader,
+    } = usePermissions(token);
+    const hasUserPermission = hasPermission("HR", "REPORTEES_LEAVE_BALANCE", "READ");
+    const columns = leaveBalanceColumns({ searchText: debouncedSearch });
+
+    // Centers are an optional narrowing filter here, not a requirement — by
+    // default reportees are shown across all centers regardless of the
+    // manager's own centerAccess.
+    const centerOptions = useCenterOptions();
+
+    const yearOptions = Array.from({ length: 6 }, (_, i) => {
+        const y = 2025 + i;
+        return { value: y, label: y.toString() };
+    });
+
+    const selectedCenterOption =
+        centerOptions.find((opt) => opt.value === selectedCenter) ||
+        centerOptions[0];
+
+    useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [search]);
+
+    const loadReporteesLeaveBalance = async () => {
+        try {
+            await dispatch(
+                fetchReporteesLeaveBalance({
+                    page,
+                    limit,
+                    year,
+                    ...(selectedCenter !== "ALL" && { centers: [selectedCenter] }),
+                    ...(search.trim() !== "" && { search: debouncedSearch }),
+                }),
+            ).unwrap();
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to fetch reportees leave balance");
+            }
+        }
+    };
+
+    useEffect(() => {
+        if (hasUserPermission) {
+            loadReporteesLeaveBalance();
+        }
+    }, [page, limit, selectedCenter, debouncedSearch, year]);
+
+
+    if (!permissionLoader && !hasUserPermission) {
+        navigate("/unauthorized");
+    }
+
+    return (
+        <CardBody
+            className="p-3 bg-white"
+            style={isMobile ? { width: "100%" } : { width: "78%" }}
+        >
+            <div className="text-center text-md-left mb-3">
+                <h4 className="fw-bold text-primary">REPORTEES LEAVE BALANCE</h4>
+            </div>
+
+            <div className="mb-3">
+                {/*  DESKTOP VIEW */}
+                <div className="d-none d-md-flex justify-content-between align-items-center">
+
+                    <div className="d-flex gap-3 align-items-center">
+                        <div style={{ width: "200px" }}>
+                            <Select
+                                value={selectedCenterOption}
+                                onChange={(option) => {
+                                    setSelectedCenter(option?.value);
+                                    setPage(1);
+                                }}
+                                options={centerOptions}
+                                placeholder="All Centers"
+                                classNamePrefix="react-select"
+                            />
+                        </div>
+
+                        <div style={{ width: "220px" }}>
+                            <Input
+                                type="text"
+                                className="form-control"
+                                placeholder="Search by name or Ecode..."
+                                value={search}
+                                onChange={(e) => setSearch(e.target.value)}
+                            />
+                        </div>
+
+                        <div style={{ width: "120px" }}>
+                            <Select
+                                value={yearOptions.find(opt => opt.value === year)}
+                                onChange={(option) => {
+                                    setYear(option?.value);
+                                    setPage(1);
+                                }}
+                                options={yearOptions}
+                                placeholder="Year"
+                                classNamePrefix="react-select"
+                            />
+                        </div>
+                    </div>
+
+                    <RefreshButton loading={loading} onRefresh={loadReporteesLeaveBalance} />
+                </div>
+
+                {/*  MOBILE VIEW */}
+                <div className="d-flex d-md-none flex-column gap-3">
+                    <div style={{ width: "100%" }}>
+                        <Select
+                            value={selectedCenterOption}
+                            onChange={(option) => {
+                                setSelectedCenter(option?.value);
+                                setPage(1);
+                            }}
+                            options={centerOptions}
+                            placeholder="All Centers"
+                            classNamePrefix="react-select"
+                        />
+                    </div>
+
+                    <div style={{ width: "100%" }}>
+                        <Input
+                            type="text"
+                            className="form-control"
+                            placeholder="Search by name or Ecode..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+
+                    <div style={{ width: "100%" }}>
+                        <Select
+                            value={yearOptions.find(opt => opt.value === year)}
+                            onChange={(option) => {
+                                setYear(option?.value);
+                                setPage(1);
+                            }}
+                            options={yearOptions}
+                            placeholder="Year"
+                            classNamePrefix="react-select"
+                        />
+                    </div>
+                    <div className="d-flex justify-content-end">
+                        <RefreshButton loading={loading} onRefresh={loadReporteesLeaveBalance} />
+                    </div>
+                </div>
+            </div>
+
+            <div className="mt-4">
+                <DataTableComponent columns={columns}
+                    data={data}
+                    page={page}
+                    setPage={setPage}
+                    limit={limit}
+                    setLimit={setLimit}
+                    loading={loading}
+                    pagination={pagination}
+                />
+            </div>
+        </CardBody>
+    )
+}
+
+export default ReporteesLeaveBalance;

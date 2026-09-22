@@ -278,6 +278,11 @@ const Sidebar = () => {
     "LEAVE_BALANCE_DASHBOARD",
     "READ",
   );
+  const hasReporteesLeaveBalancePermission = hasPermission(
+    "HR",
+    "REPORTEES_LEAVE_BALANCE",
+    "READ",
+  );
   const hasAllLeaveHistoryPerm = hasPermission(
     "HR",
     "ALL_LEAVE_HISTORY",
@@ -475,6 +480,11 @@ const Sidebar = () => {
             return false;
           if (child.id === "my-leaves" && !hasMyLeavesPermission) return false;
           if (child.id === "my-balance-leaves" && !hasBalancePermission)
+            return false;
+          if (
+            child.id === "reportees-leave-balance" &&
+            !hasReporteesLeaveBalancePermission
+          )
             return false;
           if (child.id === "festive-leaves" && !hasFestiveLeavesPermission)
             return false;
@@ -734,6 +744,7 @@ const Sidebar = () => {
     hasMyPendingApprovalsPermission,
     hasFinancePermission,
     hasLeaveBalanceDashboardPermission,
+    hasReporteesLeaveBalancePermission,
     hasAllLeaveHistoryPerm,
     hasRegularizationDashboardPermission,
     hasTransferApprovalsPermission,

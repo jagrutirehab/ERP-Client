@@ -480,6 +480,7 @@ export const permissionList = [
       { name: "EMPLOYEE_FORMS", label: "Employee Forms" },
       // HR DASHBOARD
       { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
+      { name: "REPORTEES_LEAVE_BALANCE", label: "Reportees Leave Balance" },
       { name: "EMPLOYEE_DOCUMENTS", label: "Employee Documents" },
       { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },
       { name: "ALL_LEAVE_HISTORY", label: "All Leave History" },
