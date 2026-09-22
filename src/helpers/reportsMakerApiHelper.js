@@ -35,7 +35,7 @@ reportsMakerAxios.interceptors.response.use(
 export const getActiveReports = () => reportsMakerAxios.get("/reports/active");
 
 export const runReport = (reportKey) =>
-  reportsMakerAxios.get(`/reports/run/${reportKey}`); 
+  reportsMakerAxios.post(`/reports/run/${reportKey}`); 
 
 export const getScripts = () => reportsMakerAxios.get("/scripts");
 
