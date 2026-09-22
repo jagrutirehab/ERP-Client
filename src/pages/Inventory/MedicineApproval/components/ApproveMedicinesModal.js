@@ -212,6 +212,8 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
     const findMedicine = (prescriptionMedicineId) =>
         (approval?.medicines || []).find((m) => m.prescriptionMedicineId === prescriptionMedicineId);
 
+    const isOPD = approval?.type === "OPD";
+
     const canSubmitApprove =
         Object.keys(selected).length > 0 &&
         Object.entries(selected).every(([id, s]) => {
@@ -223,7 +225,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                 Number.isInteger(qty) &&
                 qty > 0 &&
                 (stock === undefined || qty <= Number(stock)) &&
-                !(prescribed > 0 && qty > prescribed)
+                (isOPD || !(prescribed > 0 && qty > prescribed))
             );
         });
 
@@ -420,9 +422,9 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                 isChecked && Number(dispensedCount) > Number(link.stock);
                             const prescribedQty = Number(med.totalQuantity) > 0 ? Number(med.totalQuantity) : undefined;
                             const exceedsPrescribed =
-                                isChecked && prescribedQty !== undefined && Number(dispensedCount) > prescribedQty;
+                                !isOPD && isChecked && prescribedQty !== undefined && Number(dispensedCount) > prescribedQty;
                             const maxQty = Math.min(
-                                ...[prescribedQty, Number(link.stock) > 0 ? Number(link.stock) : undefined].filter(
+                                ...[isOPD ? undefined : prescribedQty, Number(link.stock) > 0 ? Number(link.stock) : undefined].filter(
                                     (v) => v !== undefined,
                                 ),
                             );
