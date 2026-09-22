@@ -58,7 +58,7 @@ const RunHistory = () => {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const scriptOptions = scripts.map((s) => ({ value: s, label: s }));
+    const scriptOptions = scripts.map((s) => ({ value: s.script, label: s.script }));
 
     const handleLoadHistory = () => {
         if (!selectedScript) {

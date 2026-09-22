@@ -70,13 +70,18 @@ const RunScripts = () => {
                             <tr>
                                 <th>Script</th>
                                 <th>Last Run Status</th>
+                                <th>Last Run Started At</th>
                                 <th>Duration (s)</th>
                                 <th style={{ width: 220 }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {scripts.map((scriptName) => {
+                            {scripts.map((s) => {
+                                const scriptName = s.script;
                                 const result = resultsMap[scriptName];
+                                const status = result ? result.status : s.last_run_status;
+                                const startedAt = result?.started_at ?? s.last_run_started_at;
+                                const duration = result?.duration_seconds ?? s.last_run_duration_seconds;
                                 const isRunning = !!runningMap[scriptName];
                                 const isExpanded = !!expandedMap[scriptName];
                                 return (
@@ -84,13 +89,14 @@ const RunScripts = () => {
                                         <tr>
                                             <td>{scriptName}</td>
                                             <td>
-                                                {result ? (
-                                                    <Badge color={statusColor(result.status)}>{result.status}</Badge>
+                                                {status ? (
+                                                    <Badge color={statusColor(status)}>{status}</Badge>
                                                 ) : (
-                                                    <span className="text-muted">—</span>
+                                                    <span className="text-muted">Never run</span>
                                                 )}
                                             </td>
-                                            <td>{result?.duration_seconds !== undefined ? result.duration_seconds.toFixed(1) : "—"}</td>
+                                            <td>{startedAt || "—"}</td>
+                                            <td>{duration !== undefined && duration !== null ? duration.toFixed(1) : "—"}</td>
                                             <td>
                                                 <Button
                                                     size="sm"
@@ -114,7 +120,7 @@ const RunScripts = () => {
                                         </tr>
                                         {result && (
                                             <tr>
-                                                <td colSpan={4} className="p-0 border-0">
+                                                <td colSpan={5} className="p-0 border-0">
                                                     <Collapse isOpen={isExpanded}>
                                                         <div className="p-3 bg-light">
                                                             {result.error && (

@@ -24,6 +24,11 @@ const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep
 const pad2 = (n) => String(n).padStart(2, "0");
 
 const toIsoDate = (d) => `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}`;
+const fromIsoDate = (iso) => {
+    if (!iso) return null;
+    const [y, m, d] = iso.split("-").map(Number);
+    return new Date(y, m - 1, d);
+};
 const formatDateLabel = (d) => `${pad2(d.getDate())}-${MONTH_ABBR[d.getMonth()]}-${d.getFullYear()}`;
 
 const formatNumber = (val) => {
@@ -71,7 +76,7 @@ const CashReco = () => {
     }, []);
 
     const [selectedType, setSelectedType] = useState("OPENING");
-    const [selectedDate, setSelectedDate] = useState(dateOptions[0].value);
+    const [selectedDate, setSelectedDate] = useState(() => toIsoDate(new Date()));
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
@@ -178,7 +183,7 @@ const CashReco = () => {
                             <Col md={2}>
                                 <Flatpickr
                                     className="form-control"
-                                    value={selectedDate}
+                                    value={fromIsoDate(selectedDate)}
                                     options={{
                                         dateFormat: "d-M-Y",
                                         maxDate: dateBounds.maxDate,
