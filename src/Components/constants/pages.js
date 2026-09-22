@@ -1762,6 +1762,29 @@ export const MASTER_DATA = [
     ],
   },
   {
+    id: "asset-lifecycle",
+    label: "Asset Lifecycle",
+    icon: "bx bx-package",
+    isAccordion: true,
+    children: [
+      {
+        id: "asset-cap-request",
+        label: "Capitalization Requests",
+        link: "/vendor-management/capitalization-request",
+      },
+      {
+        id: "asset-cwip",
+        label: "Capital Work in Progress",
+        link: "/vendor-management/cwip",
+      },
+      {
+        id: "asset-fixed-register",
+        label: "Fixed Assets Register",
+        link: "/vendor-management/fixed-asset",
+      },
+    ],
+  },
+  {
     id: "contracts-projects",
     label: "Contracts & Projects",
     icon: "bx bx-briefcase",
