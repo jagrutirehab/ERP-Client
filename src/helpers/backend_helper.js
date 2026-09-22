@@ -3899,6 +3899,15 @@ export const getAllEmployeeLeaveBalance = (params = {}) => {
   });
 };
 
+export const getReporteesLeaveBalance = (params = {}) => {
+  return api.get(url.GET_REPORTEES_LEAVE_BALANCE, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const setRotationalShifts = (id, data) => {
   return api.put(`${url.EMPLOYEE_REPORTING}/${id}/rotational-shifts`, data, {
     headers: {
