@@ -2073,12 +2073,15 @@ export const getDetailedPrescription = (prescriptionId) => {
 };
 
 export const getApprovalMedicines = (approvalId, params = {}) => {
-  return api.get(`${url.GET_APPROVAL_MEDICINES}/${approvalId}/pilot-medicines`, {
-    params,
-    headers: {
-      "X-No-Cookie-Token": "true",
+  return api.get(
+    `${url.GET_APPROVAL_MEDICINES}/${approvalId}/pilot-medicines`,
+    {
+      params,
+      headers: {
+        "X-No-Cookie-Token": "true",
+      },
     },
-  });
+  );
 };
 
 export const approvePilotApproval = (approvalId, data) => {
@@ -5899,5 +5902,28 @@ export const getCWIPs = (params = {}) =>
   });
 export const markCWIPReady = (id, data) =>
   axios.patch(`/master/cwip/${id}/ready`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getReadyCWIPs = () =>
+  axios.get("/master/asset-capitalization/pending-cwip", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createAssetCapitalization = (data) =>
+  axios.post("/master/asset-capitalization", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getAssetCapitalizations = () =>
+  axios.get("/master/asset-capitalization", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getFixedAssets = (params = {}) =>
+  axios.get("/master/fixed-asset", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const updateFixedAsset = (id, data) =>
+  axios.put(`/master/fixed-asset/${id}`, data, {
     headers: { "X-No-Cookie-Token": "true" },
   });

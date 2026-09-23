@@ -632,6 +632,7 @@ export const permissionList = [
       { name: "CAPITALIZATION_REQUEST", label: "Capitalization Requests" },
       { name: "CWIP", label: "Capital Work in Progress" },
       { name: "FIXED_ASSET", label: "Fixed Assets Register" },
+      { name: "ASSET_CAPITALIZATION", label: "Asset Capitalization" },
     ],
   },
 ];

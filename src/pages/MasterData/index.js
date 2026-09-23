@@ -27,6 +27,8 @@ import MaterialIssue from "./Inventory/MaterialIssue";
 import MaterialReturn from "./Inventory/MaterialReturn";
 import CapitalizationRequest from "./AssetLifecycle/CapitalizationRequest";
 import CWIP from "./AssetLifecycle/CWIP";
+import AssetCapitalization from "./AssetLifecycle/AssetCapitalization";
+import FixedAssetRegister from "./AssetLifecycle/FixedAssetRegister";
 import LocationStock from "./Inventory/LocationStock";
 import VendorInvoice from "./Finance/VendorInvoice";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
@@ -110,6 +112,17 @@ const MasterData = () => {
     "READ",
   );
   const canViewCWIP = hasPermission("MASTERDATA", "CWIP", "READ");
+  const canViewFixedAsset = hasPermission(
+    "MASTERDATA",
+    "FIXED_ASSET",
+    "READ",
+  );
+
+  const canViewAssetCap = hasPermission(
+    "MASTERDATA",
+    "ASSET_CAPITALIZATION",
+    "READ",
+  );
 
   if (
     !canViewVendor &&
@@ -136,7 +149,9 @@ const MasterData = () => {
     !canViewMaterialReturn &&
     !canViewLocationStock &&
     !canViewCapReq &&
-    !canViewCWIP
+    !canViewAssetCap &&
+    !canViewCWIP &&
+    !canViewFixedAsset
   ) {
     return <Basic404 />;
   }
@@ -179,7 +194,7 @@ const MasterData = () => {
               <Route
                 path="inventory-transfer/*"
                 element={<InventoryTransfer />}
-              />
+              />  
               <Route path="move-order/*" element={<MoveOrder />} />
               <Route path="cycle-count/*" element={<CycleCount />} />
               <Route path="stock-adjustment/*" element={<StockAdjustment />} />
@@ -190,9 +205,15 @@ const MasterData = () => {
                 path="capitalization-request/*"
                 element={<CapitalizationRequest />}
               />
+              <Route
+                path="asset-capitalization/*"
+                element={<AssetCapitalization />}
+              />
               <Route path="cwip/*" element={<CWIP />} />
               <Route path="location-stock/*" element={<LocationStock />} />
               <Route path="vendor-invoice/*" element={<VendorInvoice />} />
+              <Route path="fixed-asset/*" element={<FixedAssetRegister />} />
+              <Route path="*" element={<Basic404 />} />
             </Routes>
           </div>
         </div>
@@ -200,5 +221,4 @@ const MasterData = () => {
     </div>
   );
 };
-
 export default MasterData;
