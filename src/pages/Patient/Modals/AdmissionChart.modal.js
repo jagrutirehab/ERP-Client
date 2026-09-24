@@ -16,6 +16,7 @@ import { connect, useDispatch } from "react-redux";
 import { createEditChart, setChartDate } from "../../../store/actions";
 import CapacityAssessmentModal from "./CapacityAssessmentModal";
 import ECTConsentFormModal from "./ECTConsentFormModal";
+import MHRBEmailUploadModal from "./MHRBEmailUploadModal";
 
 const AdmissionChart = ({
   isOpen,
@@ -30,6 +31,7 @@ const AdmissionChart = ({
   const toggle2 = () => setDropdownOpen((prevState) => !prevState);
   const [capacityModal, setCapacityModal] = useState(false);
   const [ectConsentModal, setEctConsentModal] = useState(false);
+  const [mhrbEmailModal, setMhrbEmailModal] = useState(false);
 
   useEffect(() => {
     const d = new Date();
@@ -150,6 +152,8 @@ const AdmissionChart = ({
                         setCapacityModal(true);
                       } else if (item.name === "ECT Consent Form") {
                         setEctConsentModal(true);
+                      } else if (item.name === "MHRB Email Upload") {
+                        setMhrbEmailModal(true);
                       } else {
                         dispatch(
                           createEditChart({
@@ -189,6 +193,12 @@ const AdmissionChart = ({
       <CapacityAssessmentModal
         isOpen={capacityModal}
         toggle={() => setCapacityModal(false)}
+        patient={patient}
+        addmissionId={patient?.addmission?._id}
+      />
+      <MHRBEmailUploadModal
+        isOpen={mhrbEmailModal}
+        toggle={() => setMhrbEmailModal(false)}
         patient={patient}
         addmissionId={patient?.addmission?._id}
       />

@@ -4194,6 +4194,14 @@ export const uploadECTConsentSignedCopy = (payload) => {
     },
   });
 };
+
+export const uploadMHRBEmail = (payload) => {
+  return axios.patch(url.UPLOAD_MHRB_EMAIL_FORM, payload, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
 // TALLY
 export const sendToTally = (data) => api.create(url.POST_TALLY_SEND, data);
 export const getActiveTallySession = () =>

@@ -617,6 +617,10 @@ const Forms = [
     name: "ECT Consent Form",
     category: "ECT CONSENT FORM",
   },
+  {
+    name: "MHRB Email Upload",
+    category: "MHRB EMAIL FORM",
+  },
 ];
 const testRecord = [
   { name: "YMRS" },

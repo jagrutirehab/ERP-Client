@@ -749,6 +749,9 @@ export const SUBMIT_ASSESSMENT_FROM =
 export const SUBMIT_ECT_CONSENT_FORM = "/patient/ect-consent-submit-file";
 export const UPLOAD_ECT_CONSENT_FORM = "/patient/ect-consent-upload-file";
 
+// MHRB EMAIL FORM
+export const UPLOAD_MHRB_EMAIL_FORM = "/patient/mhrb-email-upload-file";
+
 // upload file
 export const UPLOAD_FILE = "/upload";
 
