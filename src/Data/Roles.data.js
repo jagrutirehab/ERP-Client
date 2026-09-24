@@ -188,6 +188,7 @@ export const permissionList = [
       { name: "GIVENMEDICINES", label: "Given Medicine" },
       { name: "NURSEGIVENMEDICINES", label: "Nurse Given Medicine" },
       { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
+      { name: "MEDICINE_RETURN", label: "Medicine Return" },
       { name: "AUDIT", label: "Audit" },
       {
         name: "REQUISITION_INTERNAL_TRANSFER",

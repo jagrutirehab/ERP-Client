@@ -6,6 +6,7 @@ import InventoryManagement from "./InventoryManagement";
 import InventoryDashboard from "./InventoryDashboard";
 import GivenMedicine from "./GivenMedicine";
 import MedicineApproval from "./MedicineApproval";
+import MedicineReturn from "./MedicineReturn";
 import AuditDashboad from "./AuditDashboard";
 import NurseGivenMedicine from "./NurseGivenMedicine";
 import InternalTransfer from "./Requisition/InternalTransfer";
@@ -58,6 +59,7 @@ const Pharmacy = () => {
                 <Route path={`/given-med`} element={<GivenMedicine />} />
                 <Route path={`/nurse-given-med`} element={<NurseGivenMedicine />} />
                 <Route path={`/approval`} element={<MedicineApproval />} />
+                <Route path={`/medicine-return`} element={<MedicineReturn />} />
                 <Route path={`/audit`} element={<AuditDashboad />} />
                 <Route path={`/requisition/internal-transfer`} element={<InternalTransfer isSareyaanPage={false} />} />
                 <Route path={`/requisition/internal-transfer/add`} element={<InternalTransferAddRequest />} />

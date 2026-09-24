@@ -14,6 +14,7 @@ const Sidebar = () => {
   const hasUserPermission2 = hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ");
   const hasUserPermission3 = hasPermission("PHARMACY", "GIVENMEDICINES", "READ");
   const hasUserPermission4 = hasPermission("PHARMACY", "MEDICINEAPPROVAL", "READ");
+  const hasUserPermission13 = hasPermission("PHARMACY", "MEDICINE_RETURN", "READ");
   const hasUserPermission5 = hasPermission("PHARMACY", "AUDIT", "READ");
   const hasUserPermission6 = hasPermission("PHARMACY", "NURSEGIVENMEDICINES", "READ");
   const hasUserPermission7 = hasPermission("PHARMACY", "REQUISITION_INTERNAL_TRANSFER", "READ");
@@ -67,6 +68,9 @@ const Sidebar = () => {
       return false;
     }
     if (page.id === "medicineaApproval" && !hasUserPermission4) {
+      return false;
+    }
+    if (page.id === "medicineReturn" && !hasUserPermission13) {
       return false;
     }
     if (page.id === "audit" && !hasUserPermission5) {

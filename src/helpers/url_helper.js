@@ -479,6 +479,8 @@ export const GET_DETAILED_PRESCRIPTION =
 // PHARMACY MEDICINE APPROVAL — pilot (Noida) patient-scoped flow
 export const GET_APPROVAL_MEDICINES = "/pharmacy/approvals";
 export const APPROVE_PILOT_APPROVAL = "/pharmacy/approvals";
+export const RETURN_MEDICINE = "/pharmacy/approvals";
+export const GET_PHARMACY_RETURNS = "/pharmacy/returns";
 
 // PHARMACY AUDIT
 export const DOWNLOAD_AUDIT_TEMPLATE = "/pharmacy/audit/template";

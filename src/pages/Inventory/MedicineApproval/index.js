@@ -19,6 +19,20 @@ import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 const tabOptions = ["OPD", "IPD"];
 const subTabOptions = ["ALL", "DETAILED", "HISTORY"];
 
+const tabNavStyle = (isActive) => ({
+    fontSize: 13,
+    fontWeight: isActive ? 700 : 500,
+    cursor: "pointer",
+    color: isActive ? "#212529" : "#0d6efd",
+    background: isActive ? "#fff" : "transparent",
+    border: isActive ? "1px solid #dee2e6" : "none",
+    borderBottom: isActive ? "1px solid #fff" : "none",
+    borderRadius: isActive ? "4px 4px 0 0" : 0,
+    padding: "6px 14px",
+    marginBottom: -1,
+    textDecoration: "none",
+});
+
 const MedicineApproval = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -85,26 +99,36 @@ const MedicineApproval = () => {
             className="p-3 bg-white"
             style={isMobile ? { width: "100%" } : { width: "78%" }}
         >
-            <div className="content-wrapper">
-                <div className="text-center text-md-left mb-3">
-                    <h4 className="font-weight-bold text-primary text-uppercase">Approve Medicine</h4>
+            <div className="d-flex flex-column h-100">
+                <div className="mb-3">
+                    <h5 className="mb-1 fw-semibold">Medicine Approval</h5>
+                    <p className="text-muted mb-0 fs-13">
+                        Review and approve prescribed medicines for dispensing
+                    </p>
                 </div>
 
-                <Nav tabs className="mb-3">
-                    {tabOptions.map((tab) => (
-                        <NavItem key={tab}>
-                            <NavLink
-                                className={activeTab === tab ? "active" : ""}
-                                onClick={() => handleTabSwicth("parent", tab)}
-                                style={{ cursor: "pointer", fontWeight: 500 }}
-                            >
-                                {tab}
-                            </NavLink>
-                        </NavItem>
-                    ))}
+                <Nav tabs className="flex-wrap mb-0" style={{ borderBottom: "1px solid #dee2e6" }}>
+                    {tabOptions.map((tab) => {
+                        const isActive = activeTab === tab;
+                        return (
+                            <NavItem key={tab}>
+                                <NavLink
+                                    href="#"
+                                    active={isActive}
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        handleTabSwicth("parent", tab);
+                                    }}
+                                    style={tabNavStyle(isActive)}
+                                >
+                                    {tab}
+                                </NavLink>
+                            </NavItem>
+                        );
+                    })}
                 </Nav>
 
-                <div className="d-flex justify-content-center">
+                <div className="d-flex justify-content-center mt-3">
                     <ButtonGroup style={{ gap: "8px" }}>
                         {subTabOptions.map((tab) => (
                             <Button

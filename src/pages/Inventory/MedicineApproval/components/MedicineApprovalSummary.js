@@ -324,36 +324,29 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
         canWrite("PHARMACY", "MEDICINEAPPROVAL") && {
             name: <div>Actions</div>,
             cell: (row) => (
-                <div className="d-flex flex-column align-items-center gap-1 my-2">
+                <div className="d-flex gap-2">
                     <Button
                         color="success"
+                        className="text-white"
                         size="sm"
                         onClick={() => openApproveModal(row._id, row.center?._id)}
-                        className="d-flex align-items-center justify-content-center text-white"
-                        style={{ minWidth: "85px", fontSize: "12px" }}
                     >
-                        <CheckCheck size={14} className="me-1" />
-                        Approve
+                        <CheckCheck size={18} />
                     </Button>
 
                     <Button
                         color="danger"
+                        className="text-white"
                         size="sm"
                         onClick={() => openRemarksModal(row, "REJECTED")}
                         disabled={updatingRowId === `ROW-REJECTED-${row._id}`}
-                        className="d-flex align-items-center justify-content-center text-white"
-                        style={{ minWidth: "85px", fontSize: "12px" }}
                     >
                         {updatingRowId === `ROW-REJECTED-${row._id}` ? (
                             <Spinner size="sm" />
                         ) : (
-                            <>
-                                <X size={14} className="me-1" />
-                                Reject
-                            </>
+                            <X size={16} />
                         )}
                     </Button>
-
                 </div>
             ),
             center: true,

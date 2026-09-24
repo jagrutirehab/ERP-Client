@@ -2092,6 +2092,23 @@ export const approvePilotApproval = (approvalId, data) => {
   });
 };
 
+export const returnMedicine = (approvalId, data) => {
+  return api.update(`${url.RETURN_MEDICINE}/${approvalId}/return`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getPharmacyReturns = (params = {}) => {
+  return api.get(url.GET_PHARMACY_RETURNS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const downloadAuditTemplate = (params) => {
   return api.get(`${url.DOWNLOAD_AUDIT_TEMPLATE}`, {
     params,

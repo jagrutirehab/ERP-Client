@@ -444,7 +444,29 @@ const InventoryManagement = () => {
                 className="btn btn-outline-primary text-primary"
                 onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
                 onMouseLeave={(e) => (e.currentTarget.style.color = "")}
-                onClick={downloadInventoryTemplate}
+                onClick={async () => {
+                  try {
+                    const response = await axios.get("/medicine", {
+                      params: { limit: 100000 },
+                      headers: {
+                        "Authorization": `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                      },
+                    });
+                    const medicines = Array.isArray(response?.payload)
+                      ? response.payload
+                      : [];
+                    const approvedMedicines = medicines.filter(
+                      (m) => String(m?.status || "").trim().toUpperCase() === "APPROVED"
+                    );
+                    await downloadInventoryTemplate(
+                      approvedMedicines.length === 0 ? "NO_MEDICINE" : "TEMPLATE",
+                      approvedMedicines
+                    );
+                  } catch (err) {
+                    toast.error("Failed to download template");
+                  }
+                }}
               >
                 Download Template
               </Button>

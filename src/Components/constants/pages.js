@@ -473,6 +473,12 @@ export const Pharmacy = [
     icon: "bx bx-checkbox-checked",
   },
   {
+    id: "medicineReturn",
+    label: "Medicine Return",
+    link: "/pharmacy/medicine-return",
+    icon: "bx bx-undo",
+  },
+  {
     id: "audit",
     label: "Audit",
     link: "/pharmacy/audit",

@@ -21,6 +21,8 @@ import {
     getSareyaanInventoryImports,
     getApprovalMedicines as getApprovalMedicinesApi,
     approvePilotApproval as approvePilotApprovalApi,
+    returnMedicine as returnMedicineApi,
+    getPharmacyReturns as getPharmacyReturnsApi,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -34,6 +36,11 @@ const initialState = {
     approvalMedicines: {
         loading: false,
         data: null,
+    },
+    pharmacyReturns: {
+        loading: false,
+        data: [],
+        pagination: {},
     },
     auditHistory: {
         data: [],
@@ -87,6 +94,30 @@ export const submitPilotApproval = createAsyncThunk(
     async ({ approvalId, ...data }, { rejectWithValue }) => {
         try {
             const response = await approvePilotApprovalApi(approvalId, data);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const returnMedicine = createAsyncThunk(
+    "pharmacy/returnMedicine",
+    async ({ approvalId, ...data }, { rejectWithValue }) => {
+        try {
+            const response = await returnMedicineApi(approvalId, data);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const getPharmacyReturns = createAsyncThunk(
+    "pharmacy/getPharmacyReturns",
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await getPharmacyReturnsApi(data);
             return response;
         } catch (error) {
             return rejectWithValue(error);
@@ -316,6 +347,18 @@ export const pharmacySlice = createSlice({
             })
             .addCase(getMedicineApprovals.rejected, (state) => {
                 state.loading = false;
+            });
+        builder
+            .addCase(getPharmacyReturns.pending, (state) => {
+                state.pharmacyReturns.loading = true;
+            })
+            .addCase(getPharmacyReturns.fulfilled, (state, { payload }) => {
+                state.pharmacyReturns.data = payload?.data || [];
+                state.pharmacyReturns.pagination = payload?.pagination || {};
+                state.pharmacyReturns.loading = false;
+            })
+            .addCase(getPharmacyReturns.rejected, (state) => {
+                state.pharmacyReturns.loading = false;
             });
         builder
             .addCase(updateApprovalStatus.fulfilled, (state, { payload }) => {
