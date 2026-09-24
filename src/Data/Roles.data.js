@@ -634,6 +634,8 @@ export const permissionList = [
       { name: "CWIP", label: "Capital Work in Progress" },
       { name: "FIXED_ASSET", label: "Fixed Assets Register" },
       { name: "ASSET_CAPITALIZATION", label: "Asset Capitalization" },
+      { name: "MAINTENANCE_REQUEST", label: "Maintenance Requests" },
+      { name: "WORK_ORDER", label: "Work Orders" },
     ],
   },
 ];

@@ -5952,3 +5952,33 @@ export const updateFixedAsset = (id, data) =>
   axios.put(`/master/fixed-asset/${id}`, data, {
     headers: { "X-No-Cookie-Token": "true" },
   });
+
+export const createMaintenanceRequest = (data) =>
+  axios.post("/master/maintenance-request", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getMaintenanceRequests = (params = {}) =>
+  axios.get("/master/maintenance-request", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const approveMaintenanceRequest = (id) =>
+  axios.patch(
+    `/master/maintenance-request/${id}/approve`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+export const rejectMaintenanceRequest = (id, data) =>
+  axios.patch(`/master/maintenance-request/${id}/reject`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getWorkOrders = (params = {}) =>
+  axios.get("/master/work-order", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const updateWorkOrder = (id, data) =>
+  axios.put(`/master/work-order/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
