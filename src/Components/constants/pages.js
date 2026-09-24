@@ -1788,7 +1788,7 @@ export const MASTER_DATA = [
         label: "Fixed Assets Register",
         link: "/vendor-management/fixed-asset",
       },
-            {
+      {
         id: "asset-capitalization",
         label: "Asset Capitalization",
         link: "/vendor-management/asset-capitalization",
@@ -1802,6 +1802,11 @@ export const MASTER_DATA = [
         id: "asset-work-order",
         label: "Work Orders",
         link: "/vendor-management/work-order",
+      },
+      {
+        id: "asset-transfer",
+        label: "Asset Transfer",
+        link: "/vendor-management/asset-transfer",
       },
     ],
   },

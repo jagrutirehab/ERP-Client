@@ -5982,3 +5982,12 @@ export const updateWorkOrder = (id, data) =>
   axios.put(`/master/work-order/${id}`, data, {
     headers: { "X-No-Cookie-Token": "true" },
   });
+export const getAssetTransfers = (params = {}) =>
+  axios.get("/master/asset-transfer", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createAssetTransfer = (data) =>
+  axios.post("/master/asset-transfer", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });

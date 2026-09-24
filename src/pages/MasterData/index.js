@@ -32,6 +32,7 @@ import FixedAssetRegister from "./AssetLifecycle/FixedAssetRegister";
 import MaintenanceRequest from "./AssetLifecycle/MaintenanceRequest";
 import WorkOrder from "./AssetLifecycle/WorkOrder";
 import LocationStock from "./Inventory/LocationStock";
+import AssetTransfer from "./AssetLifecycle/AssetTransfer";
 import VendorInvoice from "./Finance/VendorInvoice";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
@@ -129,6 +130,12 @@ const MasterData = () => {
   );
   const canViewWorkOrder = hasPermission("MASTERDATA", "WORK_ORDER", "READ");
 
+  const canViewAssetTransfer = hasPermission(
+    "MASTERDATA",
+    "ASSET_TRANSFER",
+    "READ",
+  );
+
   if (
     !canViewVendor &&
     !canViewItems &&
@@ -158,7 +165,8 @@ const MasterData = () => {
     !canViewCWIP &&
     !canViewFixedAsset &&
     !canViewMaintenanceRequest &&
-    !canViewWorkOrder
+    !canViewWorkOrder &&
+    !canViewAssetTransfer
   ) {
     return <Basic404 />;
   }
@@ -225,6 +233,7 @@ const MasterData = () => {
                 element={<MaintenanceRequest />}
               />
               <Route path="work-order/*" element={<WorkOrder />} />
+              <Route path="asset-transfer/*" element={<AssetTransfer />} />
               <Route path="*" element={<Basic404 />} />
             </Routes>
           </div>
