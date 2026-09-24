@@ -938,7 +938,11 @@ const InventoryManagement = () => {
                           </TableCell>
                           <TableCell noWrap>
                             {med?.Expiry
-                              ? new Date(med.Expiry).toLocaleDateString("en-US")
+                              ? new Date(med.Expiry).toLocaleDateString("en-GB", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                })
                               : "-"}
                           </TableCell>
                           <TableCell noWrap>
@@ -1228,7 +1232,11 @@ const InventoryManagement = () => {
                           <TableCell noWrap>{display(med?.SalesPrice)}</TableCell>
                           <TableCell noWrap>
                             {med?.Expiry
-                              ? new Date(med.Expiry).toLocaleDateString("en-US")
+                              ? new Date(med.Expiry).toLocaleDateString("en-GB", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                })
                               : "-"}
                           </TableCell>
                           <TableCell noWrap>

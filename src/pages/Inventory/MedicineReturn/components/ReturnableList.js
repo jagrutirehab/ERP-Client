@@ -14,6 +14,7 @@ import ReturnMedicinesModal from "./ReturnMedicinesModal";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const ReturnableList = ({ activeTab, hasUserPermission }) => {
     const dispatch = useDispatch();
@@ -30,6 +31,20 @@ const ReturnableList = ({ activeTab, hasUserPermission }) => {
     const [returnModalCenterId, setReturnModalCenterId] = useState(null);
     const [viewPrescriptionModal, setViewPrescriptionModal] = useState(false);
     const [viewPrescriptionPatient, setViewPrescriptionPatient] = useState(null);
+
+    const microUser = localStorage.getItem("micrologin");
+    const token = microUser ? JSON.parse(microUser).token : null;
+    const { roles } = usePermissions(token);
+
+    const canWrite = (module, subModule) => {
+        const mod = roles?.permissions?.find(p => p.module === module);
+        if (!mod) return false;
+
+        const sm = mod.subModules?.find(s => s.name === subModule);
+        if (!sm) return false;
+
+        return ["WRITE", "DELETE"].includes(sm.type);
+    };
 
     const openReturnModal = (approvalId, centerId) => {
         setReturnModalApprovalId(approvalId);
@@ -166,7 +181,7 @@ const ReturnableList = ({ activeTab, hasUserPermission }) => {
                     : "-",
             wrap: true,
         },
-        {
+        canWrite("PHARMACY", "MEDICINE_RETURN") && {
             name: <div>Return</div>,
             cell: (row) => (
                 <Button
@@ -182,7 +197,7 @@ const ReturnableList = ({ activeTab, hasUserPermission }) => {
             ),
             center: true,
         },
-    ];
+    ].filter(Boolean);
 
     const listData = medicineApprovals?.data || [];
     const pagination = medicineApprovals?.pagination || {};

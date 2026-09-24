@@ -9,6 +9,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import CheckPermission from '../../../Components/HOC/CheckPermission';
 import * as XLSX from "xlsx";
+import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const DetailedPrescriptionModal = ({ patient, setModal, modal, readOnly }) => {
     const dispatch = useDispatch();
@@ -136,7 +137,9 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal, readOnly }) => {
     return (
         <Modal isOpen={modal} toggle={resetAll} size="xl" centered>
             <ModalHeader toggle={resetAll}>
-                {shortageMode ? "Approval Failed — Stock Shortage" : patient?.patient?.name}
+                {shortageMode
+                    ? "Approval Failed — Stock Shortage"
+                    : `${capitalizeWords(patient?.patient?.name || "")}${detailedPrescription?.chartId ? ` (${detailedPrescription.chartId})` : ""}`}
             </ModalHeader>
 
             <ModalBody className="bg-light">
