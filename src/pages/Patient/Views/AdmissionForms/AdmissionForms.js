@@ -59,6 +59,7 @@ import ConsentformModal from "../../Modals/Consentform.modal";
 import UndertakingDischargeForm from "./UndertakingDischargeForm";
 import AudioVideoConsentForm from "./AudioVideoConsentForm";
 import { uploadECTConsentSignedCopy } from "../../../../helpers/backend_helper";
+import MHRBEmailUploadModal from "../../Modals/MHRBEmailUploadModal";
 import {
   admissionBelongsToPatient,
   scopeAdmissionsToPatient,
@@ -99,6 +100,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   const toggleModal4 = () => setDateModal4(!dateModal4);
   const [openform3, setOpenform3] = useState(false);
   const [openform4, setOpenform4] = useState(false);
+  const [mhrbModalOpen, setMhrbModalOpen] = useState(false);
+  const [mhrbTargetAdmissionId, setMhrbTargetAdmissionId] = useState(null);
   const [addmissionId, setAddmissionId] = useState();
   const [admissiontype, setAdmissiontype] = useState("");
   const [adultationype, setAdultationtype] = useState("");
@@ -384,6 +387,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       }
 
       toast.success("Admission form submitted successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       reset();
       setOpenform(false);
       setAdmissiontype("");
@@ -445,6 +452,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         },
       });
       toast.success("Signed PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
@@ -475,6 +486,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         },
       });
       toast.success("Signed PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
@@ -535,6 +550,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       }
 
       toast.success("Consent form submitted successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setOpenform4(false);
       setAdmissiontype("");
       setAdultationtype("");
@@ -573,6 +592,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Signed PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
@@ -599,6 +622,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Signed PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
@@ -682,6 +709,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       }
 
       toast.success("Discharge form submitted successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setOpenform3(false);
       setAdmissiontype("");
       setAdultationtype("");
@@ -774,6 +805,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       });
 
       toast.success("Capacity Assessment PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
     } catch (err) {
       toast.error("Upload failed");
     } finally {
@@ -814,6 +849,9 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
 
       toast.success("ECT Consent PDF uploaded successfully!");
       dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
     } catch (err) {
       toast.error("Upload failed");
     } finally {
@@ -974,6 +1012,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -982,6 +1021,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   color="primary"
                                   className="mr-10"
                                   disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "44px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1064,6 +1104,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -1072,6 +1113,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   color="primary"
                                   className="mr-10"
                                   disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "44px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1150,6 +1192,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -1159,6 +1202,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   className="mr-10"
                                   disabled={isGenerating2}
                                   label="patient-discharge-form"
+                                  style={{ width: "100%", minHeight: "44px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1247,6 +1291,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -1257,6 +1302,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   color="primary"
                                   className="mr-10"
                                   disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "44px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1346,6 +1392,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -1354,6 +1401,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   color="primary"
                                   className="mr-10"
                                   disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "44px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1439,6 +1487,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -1447,6 +1496,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   color="primary"
                                   className="mr-10"
                                   disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "60px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1507,6 +1557,69 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             className="btn btn-outline-success btn-sm"
                                           >
                                             Download Signed ECT Consent{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* MHRB email form */}
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                  width: "100%",
+                                }}
+                              >
+                                <Button
+                                  onClick={() => {
+                                    const targetId = resolveTargetAddmission();
+                                    if (targetId) {
+                                      setMhrbTargetAdmissionId(targetId);
+                                      setMhrbModalOpen(true);
+                                    }
+                                  }}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "60px" }}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "MHRB Email Upload"
+                                  )}
+                                </Button>
+
+                                {test?.mhrbEmailFormURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.mhrbEmailFormURL.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-success btn-sm"
+                                          >
+                                            Download MHRB Email File{" "}
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
@@ -2128,6 +2241,14 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         setDetails={setDetails}
         setOpenform={setOpenform4}
         openform={openform4}
+      />
+
+      <MHRBEmailUploadModal
+        isOpen={mhrbModalOpen}
+        toggle={() => setMhrbModalOpen(false)}
+        addmissionId={mhrbTargetAdmissionId}
+        patient={patient}
+        dispatch={dispatch}
       />
     </>
   );

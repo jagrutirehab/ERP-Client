@@ -3,6 +3,7 @@ import { Collapse, UncontrolledTooltip } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
 import { format } from "date-fns";
 import { fetchSopOverview } from "../../../../store/features/patient/patientSlice";
+import { getCurrentAdmissionType } from "../../../../utils/admissionType";
 
 const itemLabels = {
   VITAL_SIGN: "Vital Sign",
@@ -101,6 +102,21 @@ const SopPanel = ({ patient, sopOverview, sopLoading }) => {
 
   const overview = sopOverview?.sopOverview;
 
+  // MHRB Email Informed — shown only for Supportive (Sec. 89/90), Emergency,
+  // or Minor admissions. Computed client-side from the admission/patient
+  // objects already in scope here, not from the sopOverview API payload.
+  const currentAdmissionType = getCurrentAdmissionType(activeAdmission)?.data;
+  const isSupportiveAdmission =
+    currentAdmissionType?.admissionType === "SUPPORTIVE_ADMISSION";
+  const isEmergencyAdmission =
+    currentAdmissionType?.admissionType === "EMERGENCY_ADMISSION";
+  const isMinorPatient =
+    currentAdmissionType?.admissionType === "INDEPENDENT_ADMISSION" &&
+    currentAdmissionType?.adultationType === "MINOR";
+  const showMhrbEmailItem =
+    isSupportiveAdmission || isEmergencyAdmission || isMinorPatient;
+  const isMHRBEmailSent = activeAdmission?.isMHRBEmailSent === true;
+
   return (
     <div>
       <div
@@ -184,6 +200,46 @@ const SopPanel = ({ patient, sopOverview, sopLoading }) => {
                     </div>
                   );
                 })}
+            {showMhrbEmailItem && (
+              <div
+                id="sop-MHRB_EMAIL"
+                className="d-flex flex-column align-items-start"
+                style={{ minWidth: 100, cursor: "default" }}
+              >
+                <div className="d-flex align-items-center gap-1">
+                  <span
+                    className="rounded-circle d-inline-block"
+                    style={{
+                      width: 8,
+                      height: 8,
+                      backgroundColor: isMHRBEmailSent
+                        ? statusColors.yes.bg
+                        : statusColors.no.bg,
+                      flexShrink: 0,
+                    }}
+                  ></span>
+                  <span
+                    className="fw-medium text-dark"
+                    style={{ fontSize: "0.75rem" }}
+                  >
+                    MHRB Email Informed
+                  </span>
+                </div>
+                <span
+                  className="text-muted"
+                  style={{
+                    fontSize: "0.7rem",
+                    paddingLeft: 14,
+                  }}
+                >
+                  {isMHRBEmailSent ? "Yes" : "No"}
+                </span>
+                <UncontrolledTooltip target="sop-MHRB_EMAIL" placement="top">
+                  MHRB email sent to the board
+                  {isMHRBEmailSent ? ": Yes" : ": No"}
+                </UncontrolledTooltip>
+              </div>
+            )}
           </div>
         </Collapse>
       </div>

@@ -19,7 +19,11 @@ import html2canvas from "html2canvas";
 import { useRef } from "react";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
-import { fetchCharts, fetchPatientById } from "../../../store/actions";
+import {
+  fetchCharts,
+  fetchPatientById,
+  fetchChartsAddmissions,
+} from "../../../store/actions";
 import { addCapacityAssessment } from "../../../store/features/chart/chartSlice";
 
 const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
@@ -128,6 +132,9 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
       ).unwrap();
 
       await dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
 
       // Saved — now show the PDF, reusing the very blob just uploaded so the
       // printed copy and the stored copy cannot differ. The standalone Print
