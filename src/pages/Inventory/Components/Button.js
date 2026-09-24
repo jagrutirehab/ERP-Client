@@ -1,4 +1,4 @@
-export const Button = ({ children, variant = "default", size = "md", onClick }) => {
+export const Button = ({ children, variant = "default", size = "md", onClick, disabled, title, type }) => {
   const base =
     "btn font-weight-bold transition-all duration-300 d-flex align-items-center justify-content-center shadow-sm";
   const variants = {
@@ -15,7 +15,10 @@ export const Button = ({ children, variant = "default", size = "md", onClick }) 
   };
   return (
     <button
+      type={type}
       onClick={onClick}
+      disabled={disabled}
+      title={title}
       className={`${base} ${variants[variant]} ${sizes[size]}`}
     >
       {children}
