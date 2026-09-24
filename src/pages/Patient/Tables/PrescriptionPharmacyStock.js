@@ -67,7 +67,7 @@ const PrescriptionPharmacyStock = ({ medicine, centerId, available, onReplace })
       debounceTimer.current = setTimeout(async () => {
         try {
           const res = await axios.get("/medicine/", {
-            params: { search: input.trim(), page: 1, limit: 15, includeGeneric: "true" },
+            params: { search: input.trim(), page: 1, limit: 15, includeGeneric: "true", centerId },
           });
           const needle = input.trim().toLowerCase();
           resolve(
@@ -134,6 +134,7 @@ const PrescriptionPharmacyStock = ({ medicine, centerId, available, onReplace })
           <>
             <div className="medicine-stock-search">
             <AsyncSelect
+              key={centerId}
               cacheOptions
               defaultOptions={false}
               value={null}
@@ -157,7 +158,7 @@ const PrescriptionPharmacyStock = ({ medicine, centerId, available, onReplace })
               menuPortalTarget={document.body}
               noOptionsMessage={({ inputValue }) =>
                 inputValue.trim().length >= MIN_SEARCH_LENGTH
-                  ? "No medicine found"
+                  ? "No medicine in stock at this center"
                   : "Type to search"
               }
               styles={{
