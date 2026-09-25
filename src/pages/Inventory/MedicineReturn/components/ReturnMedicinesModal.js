@@ -67,14 +67,14 @@ const ReturnMedicinesModal = ({ isOpen, onClose, approvalId, centerId, onDone })
 
     const lineCredits = (med, sel) =>
         sourcesForLine(med)
-            .map((src) => ({ src, qty: Number(sel?.perSource?.[src.pharmacyStockRef]) || 0 }))
+            .map((src, index) => ({ src, index, qty: Number(sel?.perSource?.[index]) || 0 }))
             .filter((c) => c.qty > 0);
 
     const lineTotal = (med, sel) => lineCredits(med, sel).reduce((sum, c) => sum + c.qty, 0);
 
     const lineHasInvalid = (med, sel) =>
-        sourcesForLine(med).some((src) => {
-            const raw = sel?.perSource?.[src.pharmacyStockRef];
+        sourcesForLine(med).some((src, index) => {
+            const raw = sel?.perSource?.[index];
             if (raw === undefined || raw === "") return false;
             const qty = Number(raw);
             return !Number.isInteger(qty) || qty < 0 || qty > (Number(src.dispensedCount) || 0);
@@ -92,14 +92,14 @@ const ReturnMedicinesModal = ({ isOpen, onClose, approvalId, centerId, onDone })
         });
     };
 
-    const updatePerSourceQty = (prescriptionMedicineId, pharmacyStockRef, value) => {
+    const updatePerSourceQty = (prescriptionMedicineId, sourceIndex, value) => {
         setSelected((prev) => {
             if (!prev[prescriptionMedicineId]) return prev;
             return {
                 ...prev,
                 [prescriptionMedicineId]: {
                     ...prev[prescriptionMedicineId],
-                    perSource: { ...prev[prescriptionMedicineId].perSource, [pharmacyStockRef]: value },
+                    perSource: { ...prev[prescriptionMedicineId].perSource, [sourceIndex]: value },
                 },
             };
         });
@@ -129,6 +129,7 @@ const ReturnMedicinesModal = ({ isOpen, onClose, approvalId, centerId, onDone })
                     const med = medicines.find((m) => m.prescriptionMedicineId === prescriptionMedicineId);
                     const credits = lineCredits(med, sel).map((c) => ({
                         pharmacyStockRef: c.src.pharmacyStockRef,
+                        sourceIndex: c.index,
                         qty: c.qty,
                     }));
                     return { prescriptionMedicineId, credits, remarks: sel.remarks || "" };
@@ -238,8 +239,8 @@ const ReturnMedicinesModal = ({ isOpen, onClose, approvalId, centerId, onDone })
                                     submitting={submitting}
                                     lineQty={lineQty}
                                     onRowToggle={() => canToggle && toggleSelect(med)}
-                                    onSourceQtyChange={(pharmacyStockRef, value) =>
-                                        updatePerSourceQty(med.prescriptionMedicineId, pharmacyStockRef, value)
+                                    onSourceQtyChange={(sourceIndex, value) =>
+                                        updatePerSourceQty(med.prescriptionMedicineId, sourceIndex, value)
                                     }
                                     onRemarksChange={(value) => updateRemarks(med.prescriptionMedicineId, value)}
                                 />

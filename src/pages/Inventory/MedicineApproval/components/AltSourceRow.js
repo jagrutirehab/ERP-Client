@@ -1,20 +1,32 @@
 import PropTypes from "prop-types";
 import { Badge, Button, Input } from "reactstrap";
 
-// One alternative/extra stock source added on top of a line's primary batch —
-// its own qty input, capped to whatever the line still has left once the
-// primary and every other alt source's qty is accounted for.
-const AltSourceRow = ({ alt, maxQty, onChangeQty, onRemove }) => {
+// One extra stock source added on top of a line's primary batch — either a
+// genuine substitute (a different medicine covering a shortfall) or just
+// another batch of the same medicine. Its own qty input, capped to whatever
+// the line still has left once the primary and every other alt source's qty
+// is accounted for.
+const AltSourceRow = ({ alt, isSubstitute, maxQty, onChangeQty, onRemove }) => {
     const exceedsStock = Number(alt.dispensedCount) > Number(alt.stock);
 
     return (
         <div
             className="d-flex align-items-start gap-2 p-2 mb-2 rounded"
-            style={{ backgroundColor: "#fff9ec", border: "1px solid #f0dca0" }}
+            style={
+                isSubstitute
+                    ? { backgroundColor: "#fff9ec", border: "1px solid #f0dca0" }
+                    : { backgroundColor: "#f1f5fb", border: "1px solid #d3e0f0" }
+            }
         >
-            <Badge color="warning" className="text-dark mt-1 flex-shrink-0">
-                Alt
-            </Badge>
+            {isSubstitute ? (
+                <Badge color="warning" className="text-dark mt-1 flex-shrink-0">
+                    Alt
+                </Badge>
+            ) : (
+                <Badge color="secondary" className="mt-1 flex-shrink-0">
+                    Another batch
+                </Badge>
+            )}
             <div className="flex-grow-1" style={{ minWidth: 0 }}>
                 <div className="small fw-semibold">{alt.medicineName}</div>
                 <div className="small text-muted">
@@ -66,6 +78,7 @@ AltSourceRow.propTypes = {
         stock: PropTypes.number,
         dispensedCount: PropTypes.oneOfType([PropTypes.number, PropTypes.string]),
     }).isRequired,
+    isSubstitute: PropTypes.bool,
     maxQty: PropTypes.number,
     onChangeQty: PropTypes.func.isRequired,
     onRemove: PropTypes.func.isRequired,

@@ -45,15 +45,18 @@ const ReturnMedicineRow = ({
                         {isChecked && ` · Returning: ${lineQty}`}
                     </div>
 
+                    {/* Keyed by index, not pharmacyStockRef — the same batch can appear
+                        more than once (a line completed from the same batch across two
+                        rounds), and keying by the batch id would collapse those rows. */}
                     {sources.map((src, i) => (
                         <ReturnSourceRow
-                            key={src.pharmacyStockRef || i}
+                            key={i}
                             src={src}
-                            value={sel?.perSource?.[src.pharmacyStockRef] ?? ""}
+                            value={sel?.perSource?.[i] ?? ""}
                             showInput={canAct && isChecked}
                             submitting={submitting}
                             isFirst={i === 0}
-                            onChange={(value) => onSourceQtyChange(src.pharmacyStockRef, value)}
+                            onChange={(value) => onSourceQtyChange(i, value)}
                         />
                     ))}
 

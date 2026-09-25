@@ -134,21 +134,45 @@ const ReturnHistoryList = ({ activeTab, hasUserPermission }) => {
             center: true,
         },
         {
-            name: <div>Medicine</div>,
-            selector: (row) =>
-                `${row.stock?.medicineName || "-"}${row.stock?.id ? ` · ${row.stock.id}` : ""}`,
+            name: <div>Medicines Returned</div>,
+            cell: (row) => {
+                const credits = row.credits?.length ? row.credits : [{ stock: row.stock, qty: row.returnQty }];
+                return (
+                    <table
+                        className="table table-sm mb-0"
+                        style={{ fontSize: "0.78rem", backgroundColor: "transparent" }}
+                    >
+                        <tbody>
+                            {credits.map((c, i) => (
+                                <tr key={i} style={credits.length > 1 ? { borderBottom: "1px solid #000" } : undefined}>
+                                    <td className="pe-2" style={{ backgroundColor: "transparent" }}>
+                                        {c.stock?.medicineName || "-"}
+                                        {c.stock?.id ? ` · ${c.stock.id}` : ""}
+                                    </td>
+                                    <td className="pe-2" style={{ backgroundColor: "transparent" }}>
+                                        {capitalizeWords(c.stock?.Batch || "-")}
+                                    </td>
+                                    <td className="text-end" style={{ backgroundColor: "transparent" }}>
+                                        {c.qty}
+                                    </td>
+                                </tr>
+                            ))}
+                            {credits.length > 1 && (
+                                <tr>
+                                    <td colSpan={2} className="fw-semibold" style={{ backgroundColor: "transparent" }}>
+                                        Total
+                                    </td>
+                                    <td className="text-end fw-semibold" style={{ backgroundColor: "transparent" }}>
+                                        {row.returnQty}
+                                    </td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                );
+            },
             wrap: true,
-            minWidth: "160px"
-        },
-        {
-            name: <div>Batch</div>,
-            selector: (row) => capitalizeWords(row.stock?.Batch || "-"),
-            wrap: true,
-        },
-        {
-            name: <div>Qty Returned</div>,
-            selector: (row) => row.returnQty,
-            center: true,
+            minWidth: "260px",
         },
         {
             name: <div>Processed By</div>,

@@ -246,6 +246,11 @@ const MedicineApprovalRow = ({
                                     <AltSourceRow
                                         key={alt.key}
                                         alt={alt}
+                                        isSubstitute={
+                                            !!alt.medicineId &&
+                                            !!med.medicine?._id &&
+                                            String(alt.medicineId) !== String(med.medicine._id)
+                                        }
                                         maxQty={altMaxQtyFor(alt)}
                                         onChangeQty={(value) => onAltDispensedCountChange(alt.key, value)}
                                         onRemove={() => onRemoveAltSource(alt.key)}
