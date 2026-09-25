@@ -129,9 +129,9 @@ const ChartDate = ({
                   name="dateOfAdmission"
                   disabled={
                     type === "CLINICTEST" ||
-                      ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
-                        patient.center?.title === "Gurgaon") &&
-                        type !== "GENERAL")
+                    ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
+                      patient.center?.title === "Gurgaon") &&
+                      type !== "GENERAL")
                       ? true
                       : false
                   }
@@ -164,9 +164,9 @@ const ChartDate = ({
                   value={chartDate || ""}
                   disabled={
                     type === "CLINICTEST" ||
-                      ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
-                        patient.center?.title === "Gurgaon") &&
-                        type !== "GENERAL")
+                    ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
+                      patient.center?.title === "Gurgaon") &&
+                      type !== "GENERAL")
                       ? true
                       : false
                   }
@@ -253,6 +253,9 @@ const ChartDate = ({
                         item.category,
                       );
                     }
+                    if (["COUNSELLOR"].includes(user?.role)) {
+                      return ![PRESCRIPTION].includes(item.category);
+                    }
                     return true;
                   })
                   .map((item, idx) => {
@@ -260,15 +263,15 @@ const ChartDate = ({
                       <DropdownItem
                         disabled={
                           editChartData.data &&
-                            editChartData.data.chart !== item.category
+                          editChartData.data.chart !== item.category
                             ? true
                             : type === "GENERAL" &&
-                              (item.category === DISCHARGE_SUMMARY ||
-                                item.category === EXPIRY_SUMMARY ||
-                                item.category === OUTPASS ||
-                                // Admission type only means something for an
-                                // admitted patient.
-                                item.category === ADMISSION_TYPE)
+                                (item.category === DISCHARGE_SUMMARY ||
+                                  item.category === EXPIRY_SUMMARY ||
+                                  item.category === OUTPASS ||
+                                  // Admission type only means something for an
+                                  // admitted patient.
+                                  item.category === ADMISSION_TYPE)
                               ? true
                               : !editChartData.data && isOnOutpass
                                 ? true
