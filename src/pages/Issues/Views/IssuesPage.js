@@ -483,12 +483,11 @@ const IssuesPage = ({ type }) => {
         onAssign={handleAssignSubmit}
         activeTab={activeTab}
         title={
-          (selectedIssue?.issueType === "MAINTENANCE"
-            ? activeTab !== "resolved"
-            : activeTab === "new" &&
-              (selectedIssue?.issueType === "TECH" ||
-                selectedIssue?.issueType === "COMPLAINT" ||
-                selectedIssue?.issueType === "OPERATIONAL"))
+          selectedIssue?.nextStatus == null &&
+          (selectedIssue?.issueType === "TECH" ||
+            selectedIssue?.issueType === "MAINTENANCE" ||
+            selectedIssue?.issueType === "COMPLAINT" ||
+            selectedIssue?.issueType === "OPERATIONAL")
             ? "Assign Issue to Employee"
             : "Update Issue Status"
         }
