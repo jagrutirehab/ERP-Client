@@ -101,14 +101,15 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
   //     toggle();
   // };
 
-  // const isTechAssign = activeTab === "new" && issue?.issueType === "TECH";
+  // Assign vs Change Status is decided by which button opened this modal
+  // (handleAssign never sets nextStatus, handleAction always does) —
+  // not by activeTab/type, since both buttons can be visible on the same tab.
   const isTechAssign =
-    issue?.issueType === "MAINTENANCE"
-      ? activeTab !== "resolved"
-      : activeTab === "new" &&
-        (issue?.issueType === "TECH" ||
-          issue?.issueType === "COMPLAINT" ||
-          issue?.issueType === "OPERATIONAL");
+    issue?.nextStatus == null &&
+    (issue?.issueType === "TECH" ||
+      issue?.issueType === "MAINTENANCE" ||
+      issue?.issueType === "COMPLAINT" ||
+      issue?.issueType === "OPERATIONAL");
   const handleSubmit = () => {
     if (isTechAssign) {
       onAssign({
@@ -131,7 +132,7 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
     toggle();
   };
   const statusOptions = [
-    { value: "assigned", label: "Assigned" },
+    // { value: "assigned", label: "Assigned" },
     { value: "in_progress", label: "In Progress" },
     { value: "on_hold", label: "On Hold" },
     { value: "pending_user", label: "Pending User" },
