@@ -428,6 +428,33 @@ export const Issues = (
         },
       ]
     : []),
+  ...(status !== "new" && type === "MAINTENANCE"
+    ? [
+        {
+          name: <div className="text-center">Assigned To</div>,
+          width: "160px",
+          cell: (row) => {
+            const name = row?.assignedTo?.name
+              ? row.assignedTo.name.charAt(0).toUpperCase() +
+                row.assignedTo.name.slice(1).toLowerCase()
+              : "-";
+
+            const eCode = row?.assignedTo?.eCode;
+
+            return (
+              <div className="text-center">
+                <div>{name}</div>
+                {/* {eCode && (
+              <div style={{ fontSize: "12px", color: "#6c757d", marginTop: '4px' }}>
+                {eCode}
+              </div>
+            )} */}
+              </div>
+            );
+          },
+        },
+      ]
+    : []),
   ...(status !== "new"
     ? [
         {
@@ -473,7 +500,9 @@ export const Issues = (
     width: "180px",
   },
 
-  ...(status === "new" && type !== "HR" && canEdit
+  ...((type === "MAINTENANCE"
+    ? status !== "resolved"
+    : status === "new" && type !== "HR") && canEdit
     ? [
         {
           name: <div className="text-center">Assign</div>,
