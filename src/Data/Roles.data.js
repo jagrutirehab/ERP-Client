@@ -637,6 +637,7 @@ export const permissionList = [
       { name: "MAINTENANCE_REQUEST", label: "Maintenance Requests" },
       { name: "WORK_ORDER", label: "Work Orders" },
       { name: "ASSET_TRANSFER", label: "Asset Transfer" },
+      { name: "ASSET_WRITEOFF", label: "Asset Write-off / Sale" },
     ],
   },
 ];

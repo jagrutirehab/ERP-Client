@@ -1808,6 +1808,11 @@ export const MASTER_DATA = [
         label: "Asset Transfer",
         link: "/vendor-management/asset-transfer",
       },
+      {
+        id: "asset-writeoff",
+        label: "Asset Write-off / Sale",
+        link: "/vendor-management/asset-writeoff",
+      },
     ],
   },
   {

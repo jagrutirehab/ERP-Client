@@ -31,6 +31,7 @@ import AssetCapitalization from "./AssetLifecycle/AssetCapitalization";
 import FixedAssetRegister from "./AssetLifecycle/FixedAssetRegister";
 import MaintenanceRequest from "./AssetLifecycle/MaintenanceRequest";
 import WorkOrder from "./AssetLifecycle/WorkOrder";
+import AssetWriteOffRequest from "./AssetLifecycle/AssetWriteOff";
 import LocationStock from "./Inventory/LocationStock";
 import AssetTransfer from "./AssetLifecycle/AssetTransfer";
 import VendorInvoice from "./Finance/VendorInvoice";
@@ -136,6 +137,12 @@ const MasterData = () => {
     "READ",
   );
 
+  const canViewAssetWriteOff = hasPermission(
+    "MASTERDATA",
+    "ASSET_WRITEOFF",
+    "READ",
+  );
+
   if (
     !canViewVendor &&
     !canViewItems &&
@@ -166,7 +173,8 @@ const MasterData = () => {
     !canViewFixedAsset &&
     !canViewMaintenanceRequest &&
     !canViewWorkOrder &&
-    !canViewAssetTransfer
+    !canViewAssetTransfer &&
+    !canViewAssetWriteOff
   ) {
     return <Basic404 />;
   }
@@ -234,6 +242,7 @@ const MasterData = () => {
               />
               <Route path="work-order/*" element={<WorkOrder />} />
               <Route path="asset-transfer/*" element={<AssetTransfer />} />
+              <Route path="asset-writeoff/*" element={<AssetWriteOffRequest />} />
               <Route path="*" element={<Basic404 />} />
             </Routes>
           </div>

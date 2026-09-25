@@ -5991,3 +5991,22 @@ export const createAssetTransfer = (data) =>
   axios.post("/master/asset-transfer", data, {
     headers: { "X-No-Cookie-Token": "true" },
   });
+export const getAssetWriteOffRequests = (params = {}) =>
+  axios.get("/master/asset-writeoff-request", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createAssetWriteOffRequest = (data) =>
+  axios.post("/master/asset-writeoff-request", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const approveAssetWriteOffRequest = (id) =>
+  axios.patch(
+    `/master/asset-writeoff-request/${id}/approve`,
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+export const rejectAssetWriteOffRequest = (id, data) =>
+  axios.patch(`/master/asset-writeoff-request/${id}/reject`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
