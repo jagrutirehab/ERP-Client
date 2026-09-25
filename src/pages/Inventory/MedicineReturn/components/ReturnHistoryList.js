@@ -172,7 +172,7 @@ const ReturnHistoryList = ({ activeTab, hasUserPermission }) => {
                 );
             },
             wrap: true,
-            minWidth: "260px",
+            minWidth: "340px",
         },
         {
             name: <div>Processed By</div>,

@@ -76,10 +76,12 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         ...(user?.centerAccess?.length > 1
             ? [{ value: "ALL", label: "All Centers" }]
             : []),
-        ...(centerList?.map((c) => ({
-            value: c._id,
-            label: c.title,
-        })) || []),
+        ...(centerList
+            ?.filter((c) => user?.centerAccess?.includes(c._id))
+            ?.map((c) => ({
+                value: c._id,
+                label: c.title,
+            })) || []),
     ];
 
     const selectedCenterOption =
