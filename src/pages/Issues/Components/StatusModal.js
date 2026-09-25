@@ -103,11 +103,12 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
 
   // const isTechAssign = activeTab === "new" && issue?.issueType === "TECH";
   const isTechAssign =
-    activeTab === "new" &&
-    (issue?.issueType === "TECH" ||
-      issue?.issueType === "MAINTENANCE" ||
-      issue?.issueType === "COMPLAINT" ||
-      issue?.issueType === "OPERATIONAL");
+    issue?.issueType === "MAINTENANCE"
+      ? activeTab !== "resolved"
+      : activeTab === "new" &&
+        (issue?.issueType === "TECH" ||
+          issue?.issueType === "COMPLAINT" ||
+          issue?.issueType === "OPERATIONAL");
   const handleSubmit = () => {
     if (isTechAssign) {
       onAssign({
@@ -155,7 +156,7 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
               isLoading={loadingEmployees}
               isClearable
               onInputChange={(value, { action }) => {
-                if (action === "input-change" && activeTab === "new") {
+                if (action === "input-change" && isTechAssign) {
                   debouncedFetchEmployees(value);
                 }
               }}
