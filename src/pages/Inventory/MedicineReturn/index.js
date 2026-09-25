@@ -34,7 +34,7 @@ const MedicineReturn = () => {
                 <div className="mb-3">
                     <h5 className="mb-1 fw-semibold">Medicine Return</h5>
                     <p className="text-muted mb-0 fs-13">
-                        Return dispensed medicines back to inventory
+                        Return IPD dispensed medicines back to inventory
                     </p>
                 </div>
 

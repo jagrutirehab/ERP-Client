@@ -64,11 +64,12 @@ const selectStyles = {
     placeholder: (base) => ({ ...base, fontSize: "0.85rem" }),
 };
 
-const PharmacyStockPicker = ({ centerId, medicineId, selectedPharmacyId, onSelect, onCancel }) => {
+const PharmacyStockPicker = ({ centerId, medicineId, selectedPharmacyId, excludeIds, onSelect, onCancel }) => {
     const dispatch = useDispatch();
     const [loading, setLoading] = useState(!!medicineId);
     const [scopedDocs, setScopedDocs] = useState(null); // null = not loaded yet
     const debounceTimer = useRef(null);
+    const excludeSet = new Set((excludeIds || []).map(String));
 
     useEffect(() => {
         if (!medicineId) {
@@ -117,13 +118,15 @@ const PharmacyStockPicker = ({ centerId, medicineId, selectedPharmacyId, onSelec
                         })
                     ).unwrap();
                     resolve(
-                        (res?.data || []).map((doc) => ({
-                            value: doc._id,
-                            label: `${formatBatchLabel(doc)} (${centerStockOf(doc, centerId)} left)`,
-                            genericMatch: isGenericNameMatch(doc, input),
-                            genericName: doc.medicineId?.genericName,
-                            doc,
-                        }))
+                        (res?.data || [])
+                            .filter((doc) => !excludeSet.has(String(doc._id)))
+                            .map((doc) => ({
+                                value: doc._id,
+                                label: `${formatBatchLabel(doc)} (${centerStockOf(doc, centerId)} left)`,
+                                genericMatch: isGenericNameMatch(doc, input),
+                                genericName: doc.medicineId?.genericName,
+                                doc,
+                            }))
                     );
                 } catch {
                     resolve([]);
@@ -132,7 +135,7 @@ const PharmacyStockPicker = ({ centerId, medicineId, selectedPharmacyId, onSelec
         });
     };
 
-    const list = scopedDocs || [];
+    const list = (scopedDocs || []).filter((doc) => !excludeSet.has(String(doc._id)));
 
     return (
         <div className="rounded border bg-white" style={{ borderColor: "#dbe3ea" }}>
@@ -291,6 +294,7 @@ PharmacyStockPicker.propTypes = {
     centerId: PropTypes.string.isRequired,
     medicineId: PropTypes.string,
     selectedPharmacyId: PropTypes.string,
+    excludeIds: PropTypes.arrayOf(PropTypes.string),
     onSelect: PropTypes.func.isRequired,
     onCancel: PropTypes.func,
 };

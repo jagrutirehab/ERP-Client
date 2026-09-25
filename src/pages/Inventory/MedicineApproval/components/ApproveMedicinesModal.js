@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import {
     Badge,
     Button,
-    Col,
     Input,
     Modal,
     ModalBody,
@@ -19,7 +18,7 @@ import {
     fetchApprovalMedicines,
     submitPilotApproval,
 } from "../../../../store/features/pharmacy/pharmacySlice";
-import PharmacyStockPicker from "./PharmacyStockPicker";
+import MedicineApprovalRow from "./MedicineApprovalRow";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
@@ -35,6 +34,8 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
     const [selected, setSelected] = useState({});
     const [localLinks, setLocalLinks] = useState({});
     const [openPickers, setOpenPickers] = useState(new Set());
+    const [altSources, setAltSources] = useState({}); // { [prescriptionMedicineId]: [{ key, medicineId, medicineName, pharmacyStockRef, phrId, company, batch, stock, dispensedCount }] }
+    const [openAltPickers, setOpenAltPickers] = useState(new Set());
     const [remarks, setRemarks] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const [showCompleted, setShowCompleted] = useState(false);
@@ -45,6 +46,8 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
             setSelected({});
             setLocalLinks({});
             setOpenPickers(new Set());
+            setAltSources({});
+            setOpenAltPickers(new Set());
             setRemarks("");
             setShowCompleted(false);
             autoSelectRef.current = "waiting";
@@ -64,6 +67,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
         if (local) return { ...local, isLocal: true };
         return {
             pharmacyStockRef: med.pharmacyStockRef,
+            medicineId: med.batch?.medicineId || med.medicine?._id,
             phrId: med.batch?.id,
             medicineName: med.batch?.medicineName,
             company: med.batch?.company,
@@ -78,11 +82,65 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
 
     const isEligible = (med) => {
         if (med.alreadyDispensed || med.rejected) return false;
+        if (Number.isFinite(med.remainingQuantity) && med.remainingQuantity <= 0) return false;
         const link = getLink(med);
         return !!link.pharmacyStockRef && Number(link.stock) > 0 && !link.expired;
     };
 
+    // What to default the qty input to for a line: whatever is still owed for
+    // a partially-given line, or the full prescribed amount otherwise — capped
+    // to what the batch actually has, so ticking a short-stocked line doesn't
+    // start out invalid (and hide the "add another source" prompt because of it).
+    const defaultQtyFor = (med) => {
+        const wanted = (Number.isFinite(med.remainingQuantity) ? med.remainingQuantity : med.totalQuantity) || 1;
+        const stock = Number(getLink(med).stock);
+        return stock > 0 ? Math.min(wanted, stock) : wanted;
+    };
+
+    // How much of a line's remaining quantity is still uncovered by whatever
+    // has been staged for it so far this session (primary source + every
+    // alternative added on top). Undefined for legacy lines with no known
+    // prescribed quantity — there's no defined shortfall to cover there.
+    const altQtyFor = (prescriptionMedicineId) =>
+        (altSources[prescriptionMedicineId] || []).reduce((sum, a) => sum + (Number(a.dispensedCount) || 0), 0);
+
+    // Batches already staged for this line — its own linked batch plus every
+    // alternative already added — so the picker for one more source doesn't
+    // offer the same batch again.
+    const usedStockRefsFor = (med) => {
+        const refs = [];
+        const primaryRef = selected[med.prescriptionMedicineId]?.pharmacyStockRef || getLink(med).pharmacyStockRef;
+        if (primaryRef) refs.push(primaryRef);
+        (altSources[med.prescriptionMedicineId] || []).forEach((a) => refs.push(a.pharmacyStockRef));
+        return refs;
+    };
+
+    // Whatever's typed in the primary field, capped to what its batch can
+    // actually deliver — an over-typed, invalid amount (e.g. 60 typed against
+    // 44 in stock) must never appear to cover more than it really can.
+    const effectivePrimaryQtyFor = (med) => {
+        const stock = Number(getLink(med).stock) || 0;
+        const raw = Number(selected[med.prescriptionMedicineId]?.dispensedCount) || 0;
+        return Math.min(raw, stock);
+    };
+
+    // Total already staged by every OTHER alt source on this line (excluding
+    // one given by key) — used to cap each alt qty input against what the
+    // rest of the line hasn't already claimed.
+    const altQtyExcluding = (prescriptionMedicineId, excludeKey) =>
+        (altSources[prescriptionMedicineId] || [])
+            .filter((a) => a.key !== excludeKey)
+            .reduce((sum, a) => sum + (Number(a.dispensedCount) || 0), 0);
+
+    const sessionRemaining = (med) => {
+        if (!Number.isFinite(med.remainingQuantity)) return undefined;
+        return med.remainingQuantity - effectivePrimaryQtyFor(med) - altQtyFor(med.prescriptionMedicineId);
+    };
+
+
     const toggleSelect = (med) => {
+        const isUnselecting = !!selected[med.prescriptionMedicineId];
+
         setSelected((prev) => {
             const next = { ...prev };
             if (next[med.prescriptionMedicineId]) {
@@ -91,11 +149,25 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                 next[med.prescriptionMedicineId] = {
                     prescriptionMedicineId: med.prescriptionMedicineId,
                     pharmacyStockRef: getLink(med).pharmacyStockRef,
-                    dispensedCount: med.totalQuantity || 1,
+                    dispensedCount: defaultQtyFor(med),
                 };
             }
             return next;
         });
+
+        // Unchecking the line means "don't dispense this at all" — any
+        // alternative sources added on top of it have to go too, otherwise
+        // the line would still get submitted from just those, even though
+        // the checkbox looks unticked.
+        if (isUnselecting) {
+            setAltSources((prev) => {
+                if (!prev[med.prescriptionMedicineId]?.length) return prev;
+                const next = { ...prev };
+                delete next[med.prescriptionMedicineId];
+                return next;
+            });
+            cancelAltPicker(med.prescriptionMedicineId);
+        }
     };
 
     const handleStockPicked = (med, doc) => {
@@ -108,6 +180,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
             ...prev,
             [med.prescriptionMedicineId]: {
                 pharmacyStockRef: doc._id,
+                medicineId: doc.medicineId?._id || doc.medicineId,
                 phrId: doc.id,
                 medicineName: doc.medicineName,
                 company: doc.company,
@@ -126,7 +199,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                 prescriptionMedicineId: med.prescriptionMedicineId,
                 pharmacyStockRef: doc._id,
                 dispensedCount:
-                    prev[med.prescriptionMedicineId]?.dispensedCount || med.totalQuantity || 1,
+                    prev[med.prescriptionMedicineId]?.dispensedCount || defaultQtyFor(med),
             },
         }));
 
@@ -138,7 +211,9 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
     };
 
     const handleSelectAll = () => {
-        const eligibleMeds = medicines.filter((m) => !m.alreadyDispensed && !m.rejected);
+        const eligibleMeds = medicines.filter(
+            (m) => !m.alreadyDispensed && !m.rejected && !(Number.isFinite(m.remainingQuantity) && m.remainingQuantity <= 0)
+        );
         const toSelect = {};
         const unresolved = [];
 
@@ -149,7 +224,7 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                     prescriptionMedicineId: med.prescriptionMedicineId,
                     pharmacyStockRef: link.pharmacyStockRef,
                     dispensedCount:
-                        selected[med.prescriptionMedicineId]?.dispensedCount || med.totalQuantity || 1,
+                        selected[med.prescriptionMedicineId]?.dispensedCount || defaultQtyFor(med),
                 };
             } else if (!link.pharmacyStockRef) {
                 // Not linked at all — open its picker, same as clicking
@@ -194,6 +269,105 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
             delete next[med.prescriptionMedicineId];
             return next;
         });
+        // Unlinking undoes the whole line's dispensing plan, not just its
+        // primary batch — any alternative sources added on top go too.
+        setAltSources((prev) => {
+            if (!prev[med.prescriptionMedicineId]?.length) return prev;
+            const next = { ...prev };
+            delete next[med.prescriptionMedicineId];
+            return next;
+        });
+        cancelAltPicker(med.prescriptionMedicineId);
+    };
+
+    // Opens a second inventory picker for the line — same component as the
+    // primary source, scoped to this medicine first, with its own free-text
+    // search underneath for anything else (another batch, or a substitute)
+    // when nothing scoped is available.
+    const openAltPicker = (prescriptionMedicineId) => {
+        setOpenAltPickers((prev) => new Set(prev).add(prescriptionMedicineId));
+    };
+
+    const cancelAltPicker = (prescriptionMedicineId) => {
+        setOpenAltPickers((prev) => {
+            const next = new Set(prev);
+            next.delete(prescriptionMedicineId);
+            return next;
+        });
+    };
+
+    const handleAltStockPicked = (med, doc) => {
+        const centerStock =
+            (doc.centers || []).find(
+                (c) => String(c.centerId?._id || c.centerId) === String(centerId)
+            )?.stock ?? 0;
+        const remaining = sessionRemaining(med);
+        const defaultQty = Math.max(1, Math.min(Number.isFinite(remaining) ? remaining : centerStock, centerStock));
+
+        setAltSources((prev) => ({
+            ...prev,
+            [med.prescriptionMedicineId]: [
+                ...(prev[med.prescriptionMedicineId] || []),
+                {
+                    key: `${doc._id}-${Date.now()}`,
+                    medicineId: doc.medicineId?._id || doc.medicineId,
+                    medicineName: doc.medicineName,
+                    pharmacyStockRef: doc._id,
+                    phrId: doc.id,
+                    company: doc.company,
+                    batch: doc.Batch,
+                    stock: centerStock,
+                    dispensedCount: defaultQty,
+                },
+            ],
+        }));
+
+        cancelAltPicker(med.prescriptionMedicineId);
+    };
+
+    const removeAltSource = (prescriptionMedicineId, key) => {
+        setAltSources((prev) => ({
+            ...prev,
+            [prescriptionMedicineId]: (prev[prescriptionMedicineId] || []).filter((a) => a.key !== key),
+        }));
+    };
+
+    const updateAltDispensedCount = (prescriptionMedicineId, key, value) => {
+        setAltSources((prev) => ({
+            ...prev,
+            [prescriptionMedicineId]: (prev[prescriptionMedicineId] || []).map((a) =>
+                a.key === key ? { ...a, dispensedCount: value } : a
+            ),
+        }));
+    };
+
+    // Every stock source staged for a line: the primary (the prescribed
+    // medicine's own batch, if selected) plus every alternative added on top.
+    const buildSourcesForLine = (prescriptionMedicineId) => {
+        const primary = selected[prescriptionMedicineId];
+        const alts = altSources[prescriptionMedicineId] || [];
+        const list = [];
+        if (primary && Number(primary.dispensedCount) > 0) {
+            const med = findMedicine(prescriptionMedicineId);
+            // The medicine the linked batch actually belongs to — not
+            // necessarily the prescribed one, since "change" can swap the
+            // primary link to a completely different medicine.
+            list.push({
+                medicineId: med ? getLink(med).medicineId : undefined,
+                pharmacyStockRef: primary.pharmacyStockRef,
+                dispensedCount: Number(primary.dispensedCount),
+            });
+        }
+        alts.forEach((a) => {
+            if (Number(a.dispensedCount) > 0) {
+                list.push({
+                    medicineId: a.medicineId,
+                    pharmacyStockRef: a.pharmacyStockRef,
+                    dispensedCount: Number(a.dispensedCount),
+                });
+            }
+        });
+        return list;
     };
 
     const updateDispensedCount = (prescriptionMedicineId, value) => {
@@ -212,36 +386,54 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
     const findMedicine = (prescriptionMedicineId) =>
         (approval?.medicines || []).find((m) => m.prescriptionMedicineId === prescriptionMedicineId);
 
+    // Every line that has something staged this session — a primary source,
+    // one or more alternatives, or both.
+    const lineIdsForSubmit = [
+        ...new Set([
+            ...Object.keys(selected),
+            ...Object.keys(altSources).filter((id) => (altSources[id] || []).length > 0),
+        ]),
+    ];
+
     const canSubmitApprove =
-        Object.keys(selected).length > 0 &&
-        Object.entries(selected).every(([id, s]) => {
-            const qty = Number(s.dispensedCount);
+        lineIdsForSubmit.length > 0 &&
+        lineIdsForSubmit.every((id) => {
+            const sources = buildSourcesForLine(id);
+            if (!sources.length || !sources.every((s) => Number.isInteger(s.dispensedCount) && s.dispensedCount > 0)) {
+                return false;
+            }
             const med = findMedicine(id);
-            const stock = med ? getLink(med).stock : undefined;
-            const prescribed = Number(med?.totalQuantity);
-            return (
-                Number.isInteger(qty) &&
-                qty > 0 &&
-                (stock === undefined || qty <= Number(stock)) &&
-                !(prescribed > 0 && qty > prescribed)
-            );
+            const remaining = med && Number.isFinite(med.remainingQuantity) ? med.remainingQuantity : undefined;
+            const total = sources.reduce((sum, s) => sum + s.dispensedCount, 0);
+            if (remaining !== undefined && total > remaining) return false;
+
+            const primary = selected[id];
+            const primaryStock = primary && med ? Number(getLink(med).stock) : undefined;
+            if (primary && primaryStock !== undefined && Number(primary.dispensedCount) > primaryStock) return false;
+
+            const alts = altSources[id] || [];
+            return alts.every((a) => Number(a.dispensedCount) <= Number(a.stock));
         });
 
     const handleApprove = async () => {
         if (!canAct) return;
         setSubmitting(true);
         try {
+            const selectionsPayload = lineIdsForSubmit
+                .map((id) => ({ prescriptionMedicineId: id, sources: buildSourcesForLine(id) }))
+                .filter((s) => s.sources.length > 0);
             await dispatch(
                 submitPilotApproval({
                     approvalId,
                     status: "APPROVED",
-                    selections: Object.values(selected),
+                    selections: selectionsPayload,
                     remarks,
                 })
             ).unwrap();
             toast.success("Medicines approved");
             setSelected({});
             setLocalLinks({});
+            setAltSources({});
             onDone && onDone();
             onClose();
         } catch (err) {
@@ -307,9 +499,9 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
         0
     );
 
-    const selectedCount = Object.keys(selected).length;
-    const selectedTotalQty = Object.values(selected).reduce(
-        (sum, s) => sum + (Number(s.dispensedCount) || 0),
+    const selectedCount = lineIdsForSubmit.length;
+    const selectedTotalQty = lineIdsForSubmit.reduce(
+        (sum, id) => sum + buildSourcesForLine(id).reduce((s2, src) => s2 + src.dispensedCount, 0),
         0
     );
 
@@ -416,13 +608,15 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                             const pickingHere = openPickers.has(med.prescriptionMedicineId);
 
                             const dispensedCount = selected[med.prescriptionMedicineId]?.dispensedCount;
-                            const exceedsStock =
-                                isChecked && Number(dispensedCount) > Number(link.stock);
-                            const prescribedQty = Number(med.totalQuantity) > 0 ? Number(med.totalQuantity) : undefined;
-                            const exceedsPrescribed =
-                                isChecked && prescribedQty !== undefined && Number(dispensedCount) > prescribedQty;
+                            // Cap against what's still owed (remainingQuantity) minus whatever
+                            // alt sources have already claimed, not the full prescribed
+                            // quantity — a partially-given line, or one already topped up
+                            // with an alternative, only has the leftover amount to give.
+                            const remainingQty = Number.isFinite(med.remainingQuantity)
+                                ? med.remainingQuantity - altQtyFor(med.prescriptionMedicineId)
+                                : undefined;
                             const maxQty = Math.min(
-                                ...[prescribedQty, Number(link.stock) > 0 ? Number(link.stock) : undefined].filter(
+                                ...[remainingQty, Number(link.stock) > 0 ? Number(link.stock) : undefined].filter(
                                     (v) => v !== undefined,
                                 ),
                             );
@@ -435,172 +629,51 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                                 else openPicker(med);
                             };
 
+                            const altSourcesForLine = altSources[med.prescriptionMedicineId] || [];
+
                             return (
-                                <Col xs={12} lg={6} key={med.prescriptionMedicineId} className="mb-3">
-                                <div
-                                    className="d-flex justify-content-between align-items-start p-2 border rounded h-100"
-                                    style={{ backgroundColor: "#f4f7fb" }}
-                                >
-                                <div className="d-flex align-items-start gap-2 w-100">
-                                    {canAct && (
-                                        <Input
-                                            type="checkbox"
-                                            className="mt-1"
-                                            style={
-                                                med.alreadyDispensed || isChecked
-                                                    ? undefined
-                                                    : { backgroundColor: "#fff", borderColor: "#6c757d" }
-                                            }
-                                            checked={med.alreadyDispensed || isChecked}
-                                            disabled={rowDisabled}
-                                            onChange={handleRowToggle}
-                                        />
-                                    )}
-                                    <div className="flex-grow-1">
-                                        <div
-                                            className="fw-semibold"
-                                            style={canToggle ? { cursor: "pointer" } : undefined}
-                                            onClick={handleRowToggle}
-                                        >
-                                            {med.medicine?.type} {med.medicine?.name} {med.medicine?.strength}
-                                        </div>
-                                        <div
-                                            className="small text-muted"
-                                            style={canToggle ? { cursor: "pointer" } : undefined}
-                                            onClick={handleRowToggle}
-                                        >
-                                            {med.dosageAndFrequency?.morning || 0}-
-                                            {med.dosageAndFrequency?.evening || 0}-
-                                            {med.dosageAndFrequency?.night || 0} · {med.duration} {med.unit}
-                                            {!readOnly && ` · Total qty (by duration): ${med.totalQuantity}`}
-                                        </div>
-                                        {med.alreadyDispensed && (
-                                            <div className="small">
-                                                {/* In the live view every given medicine was given in a
-                                                    previous round (this session hasn't submitted yet). */}
-                                                {med.givenEarlier || !readOnly ? (
-                                                    <Badge color="secondary">
-                                                        Given earlier — {med.dispensedCount} of {med.totalQuantity}
-                                                    </Badge>
-                                                ) : (
-                                                    <Badge color="success">
-                                                        Given — {med.dispensedCount} of {med.totalQuantity}
-                                                    </Badge>
-                                                )}
-                                                {med.batch && (
-                                                    <div className="text-muted mt-1">
-                                                        {med.batch.medicineName && <>{med.batch.medicineName} · </>}
-                                                        {med.batch.id && <> {med.batch.id} · </>}
-                                                        Batch: {med.batch.Batch || "-"}
-                                                        {med.batch.company && <> · {med.batch.company}</>}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        )}
-                                        {!med.alreadyDispensed && med.rejected && (
-                                            <Badge color="danger">Rejected — not dispensed</Badge>
-                                        )}
-                                        {readOnly && !med.alreadyDispensed && !med.rejected && (
-                                            <Badge color="secondary">Not given</Badge>
-                                        )}
-                                        {readOnly && !med.alreadyDispensed && (
-                                            <div className="small text-muted mt-1">
-                                                Prescribed qty: {med.totalQuantity} · Given: 0
-                                            </div>
-                                        )}
-                                        {!readOnly && !med.alreadyDispensed && !med.rejected && resolved && !pickingHere && (
-                                            <div className="small d-flex align-items-center gap-2 flex-wrap">
-                                                <span>
-                                                    {link.medicineName && <>{link.medicineName} · </>}
-                                                    {link.phrId && <> {link.phrId} · </>}
-                                                    Batch: {link.batch || "-"}
-                                                    {link.company && <> · {link.company}</>}
-                                                    {" · Stock: "}{link.stock}
-                                                    {link.expired && (
-                                                        <span className="text-danger ms-1">EXPIRED</span>
-                                                    )}
-                                                </span>
-                                                {canAct && (
-                                                    <>
-                                                        <Button
-                                                            color="link"
-                                                            size="sm"
-                                                            className="p-0"
-                                                            onClick={() => openPicker(med)}
-                                                        >
-                                                            change
-                                                        </Button>
-                                                        {link.isLocal && (
-                                                            <Button
-                                                                color="link"
-                                                                size="sm"
-                                                                className="p-0 text-danger"
-                                                                onClick={() => clearStockLink(med)}
-                                                            >
-                                                                unlink
-                                                            </Button>
-                                                        )}
-                                                    </>
-                                                )}
-                                            </div>
-                                        )}
-                                        {!med.alreadyDispensed && !med.rejected && !resolved && canAct && !pickingHere && (
-                                            <span className="small text-muted">Tick to select from inventory</span>
-                                        )}
-                                        {canAct && pickingHere && (
-                                            <div className="mt-2" style={{ width: "100%" }}>
-                                                <PharmacyStockPicker
-                                                    centerId={centerId}
-                                                    medicineId={med.medicine?._id}
-                                                    selectedPharmacyId={link.pharmacyStockRef}
-                                                    onSelect={(doc) => handleStockPicked(med, doc)}
-                                                    onCancel={() => cancelPicker(med)}
-                                                />
-                                            </div>
-                                        )}
-                                        {!med.alreadyDispensed && canAct && isChecked && (
-                                            <div className="d-flex align-items-center gap-2 mt-1">
-                                                <label className="small text-muted mb-0">
-                                                    Qty to dispense:
-                                                </label>
-                                                <Input
-                                                    type="number"
-                                                    bsSize="sm"
-                                                    min={1}
-                                                    step={1}
-                                                    max={Number.isFinite(maxQty) ? maxQty : undefined}
-                                                    style={{ width: "90px" }}
-                                                    value={dispensedCount ?? ""}
-                                                    invalid={exceedsStock || exceedsPrescribed}
-                                                    onKeyDown={(e) => {
-                                                        // Whole units only: no decimals, exponents or signs.
-                                                        if ([".", ",", "e", "E", "+", "-"].includes(e.key)) e.preventDefault();
-                                                    }}
-                                                    onChange={(e) => {
-                                                        const raw = e.target.value;
-                                                        if (raw === "") {
-                                                            updateDispensedCount(med.prescriptionMedicineId, "");
-                                                        } else if (Number.isInteger(Number(raw))) {
-                                                            updateDispensedCount(med.prescriptionMedicineId, Number(raw));
-                                                        }
-                                                    }}
-                                                />
-                                                {exceedsStock && (
-                                                    <span className="small text-danger">
-                                                        Exceeds available stock ({link.stock})
-                                                    </span>
-                                                )}
-                                                {exceedsPrescribed && (
-                                                    <span className="small text-danger">
-                                                        Can't exceed prescribed qty ({prescribedQty})
-                                                    </span>
-                                                )}
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
-                                </div>
-                                </Col>
+                                <MedicineApprovalRow
+                                    key={med.prescriptionMedicineId}
+                                    med={med}
+                                    centerId={centerId}
+                                    canAct={canAct}
+                                    readOnly={readOnly}
+                                    isChecked={isChecked}
+                                    dispensedCount={dispensedCount}
+                                    pickingHere={pickingHere}
+                                    altSourcesForLine={altSourcesForLine}
+                                    altPickerOpen={openAltPickers.has(med.prescriptionMedicineId)}
+                                    link={link}
+                                    resolved={resolved}
+                                    eligible={eligible}
+                                    remainingQty={remainingQty}
+                                    maxQty={maxQty}
+                                    sessionRemainingQty={sessionRemaining(med)}
+                                    usedStockRefs={usedStockRefsFor(med)}
+                                    altMaxQtyFor={(alt) => {
+                                        const altRemaining = Number.isFinite(med.remainingQuantity)
+                                            ? med.remainingQuantity -
+                                              effectivePrimaryQtyFor(med) -
+                                              altQtyExcluding(med.prescriptionMedicineId, alt.key)
+                                            : undefined;
+                                        return Math.min(
+                                            ...[Number(alt.stock) || 0, altRemaining].filter((v) => v !== undefined),
+                                        );
+                                    }}
+                                    onRowToggle={handleRowToggle}
+                                    onOpenPicker={() => openPicker(med)}
+                                    onCancelPicker={() => cancelPicker(med)}
+                                    onStockPicked={(doc) => handleStockPicked(med, doc)}
+                                    onClearStockLink={() => clearStockLink(med)}
+                                    onDispensedCountChange={(value) => updateDispensedCount(med.prescriptionMedicineId, value)}
+                                    onOpenAltPicker={() => openAltPicker(med.prescriptionMedicineId)}
+                                    onCancelAltPicker={() => cancelAltPicker(med.prescriptionMedicineId)}
+                                    onAltStockPicked={(doc) => handleAltStockPicked(med, doc)}
+                                    onRemoveAltSource={(key) => removeAltSource(med.prescriptionMedicineId, key)}
+                                    onAltDispensedCountChange={(key, value) =>
+                                        updateAltDispensedCount(med.prescriptionMedicineId, key, value)
+                                    }
+                                />
                             );
                         })}
                     </Row>

@@ -86,8 +86,11 @@ const StockSummary = () => {
     return (
         <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
             <div className="content-wrapper">
-                <div className="text-center text-md-left mb-3">
-                    <h4 className="font-weight-bold text-primary text-uppercase">Stock Summary</h4>
+                <div className="mb-3">
+                    <h5 className="mb-1 fw-semibold">Stock Summary</h5>
+                    <p className="text-muted mb-0 fs-13">
+                        View current medicine stock levels across centers
+                    </p>
                 </div>
 
                 <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-4">

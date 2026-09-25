@@ -6,8 +6,6 @@ import { toast } from "react-toastify";
 import {
     Badge,
     Button,
-    Col,
-    Input,
     Modal,
     ModalBody,
     ModalFooter,
@@ -19,6 +17,7 @@ import {
     fetchApprovalMedicines,
     returnMedicine,
 } from "../../../../store/features/pharmacy/pharmacySlice";
+import ReturnMedicineRow from "./ReturnMedicineRow";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
@@ -51,45 +50,90 @@ const ReturnMedicinesModal = ({ isOpen, onClose, approvalId, centerId, onDone })
     const returnedMeds = medicines.filter((m) => m.returned);
     const visibleMeds = showReturned ? medicines : medicines.filter((m) => !m.returned);
 
+    const sourcesForLine = (med) =>
+        med.sources && med.sources.length
+            ? med.sources
+            : med.pharmacyStockRef && med.batch
+                ? [
+                    {
+                        pharmacyStockRef: med.pharmacyStockRef,
+                        medicineId: med.batch.medicineId,
+                        medicineName: med.batch.medicineName,
+                        batch: med.batch,
+                        dispensedCount: med.dispensedCount,
+                    },
+                ]
+                : [];
+
+    const lineCredits = (med, sel) =>
+        sourcesForLine(med)
+            .map((src) => ({ src, qty: Number(sel?.perSource?.[src.pharmacyStockRef]) || 0 }))
+            .filter((c) => c.qty > 0);
+
+    const lineTotal = (med, sel) => lineCredits(med, sel).reduce((sum, c) => sum + c.qty, 0);
+
+    const lineHasInvalid = (med, sel) =>
+        sourcesForLine(med).some((src) => {
+            const raw = sel?.perSource?.[src.pharmacyStockRef];
+            if (raw === undefined || raw === "") return false;
+            const qty = Number(raw);
+            return !Number.isInteger(qty) || qty < 0 || qty > (Number(src.dispensedCount) || 0);
+        });
+
     const toggleSelect = (med) => {
         setSelected((prev) => {
             const next = { ...prev };
             if (next[med.prescriptionMedicineId]) {
                 delete next[med.prescriptionMedicineId];
             } else {
-                next[med.prescriptionMedicineId] = { returnQty: "", remarks: "" };
+                next[med.prescriptionMedicineId] = { perSource: {}, remarks: "" };
             }
             return next;
         });
     };
 
-    const updateSelection = (prescriptionMedicineId, field, value) => {
+    const updatePerSourceQty = (prescriptionMedicineId, pharmacyStockRef, value) => {
         setSelected((prev) => {
             if (!prev[prescriptionMedicineId]) return prev;
             return {
                 ...prev,
-                [prescriptionMedicineId]: { ...prev[prescriptionMedicineId], [field]: value },
+                [prescriptionMedicineId]: {
+                    ...prev[prescriptionMedicineId],
+                    perSource: { ...prev[prescriptionMedicineId].perSource, [pharmacyStockRef]: value },
+                },
             };
+        });
+    };
+
+    const updateRemarks = (prescriptionMedicineId, value) => {
+        setSelected((prev) => {
+            if (!prev[prescriptionMedicineId]) return prev;
+            return { ...prev, [prescriptionMedicineId]: { ...prev[prescriptionMedicineId], remarks: value } };
         });
     };
 
     const canSubmit =
         Object.keys(selected).length > 0 &&
-        Object.entries(selected).every(([id, s]) => {
-            const qty = Number(s.returnQty);
+        Object.entries(selected).every(([id, sel]) => {
             const med = medicines.find((m) => m.prescriptionMedicineId === id);
-            return Number.isInteger(qty) && qty > 0 && qty <= (med?.returnableCount || 0);
+            if (!med || lineHasInvalid(med, sel)) return false;
+            return lineTotal(med, sel) > 0;
         });
 
     const handleReturn = async () => {
         if (!canAct || !canSubmit) return;
         setSubmitting(true);
         try {
-            const items = Object.entries(selected).map(([prescriptionMedicineId, s]) => ({
-                prescriptionMedicineId,
-                returnQty: Number(s.returnQty),
-                remarks: s.remarks || "",
-            }));
+            const items = Object.entries(selected)
+                .map(([prescriptionMedicineId, sel]) => {
+                    const med = medicines.find((m) => m.prescriptionMedicineId === prescriptionMedicineId);
+                    const credits = lineCredits(med, sel).map((c) => ({
+                        pharmacyStockRef: c.src.pharmacyStockRef,
+                        qty: c.qty,
+                    }));
+                    return { prescriptionMedicineId, credits, remarks: sel.remarks || "" };
+                })
+                .filter((item) => item.credits.length > 0);
 
             const response = await dispatch(returnMedicine({ approvalId, items })).unwrap();
             const failed = (response?.results || []).filter((r) => !r.success);
@@ -114,10 +158,10 @@ const ReturnMedicinesModal = ({ isOpen, onClose, approvalId, centerId, onDone })
     };
 
     const selectedCount = Object.keys(selected).length;
-    const selectedTotalQty = Object.values(selected).reduce(
-        (sum, s) => sum + (Number(s.returnQty) || 0),
-        0
-    );
+    const selectedTotalQty = Object.entries(selected).reduce((sum, [id, sel]) => {
+        const med = medicines.find((m) => m.prescriptionMedicineId === id);
+        return sum + (med ? lineTotal(med, sel) : 0);
+    }, 0);
 
     return (
         <Modal isOpen={isOpen} toggle={onClose} size="xl">
@@ -177,105 +221,28 @@ const ReturnMedicinesModal = ({ isOpen, onClose, approvalId, centerId, onDone })
                         {visibleMeds.map((med) => {
                             const canReturn = med.returnableCount > 0;
                             const isChecked = !!selected[med.prescriptionMedicineId];
-                            const qty = selected[med.prescriptionMedicineId]?.returnQty ?? "";
-                            const invalidQty =
-                                isChecked &&
-                                qty !== "" &&
-                                (!Number.isInteger(Number(qty)) || Number(qty) <= 0 || Number(qty) > med.returnableCount);
+                            const sel = selected[med.prescriptionMedicineId];
+                            const sources = sourcesForLine(med);
+                            const lineQty = isChecked ? lineTotal(med, sel) : 0;
                             const canToggle = canAct && canReturn;
-                            const handleRowToggle = () => {
-                                if (!canToggle) return;
-                                toggleSelect(med);
-                            };
 
                             return (
-                                <Col xs={12} lg={6} key={med.prescriptionMedicineId} className="mb-3">
-                                    <div
-                                        className="d-flex align-items-start gap-2 p-2 border rounded h-100"
-                                        style={{ backgroundColor: "#f4f7fb" }}
-                                    >
-                                        {canAct && canReturn && (
-                                            <Input
-                                                type="checkbox"
-                                                className="mt-1"
-                                                style={isChecked ? undefined : { backgroundColor: "#fff", borderColor: "#6c757d" }}
-                                                checked={isChecked}
-                                                onChange={handleRowToggle}
-                                            />
-                                        )}
-                                        <div className="flex-grow-1">
-                                            <div
-                                                className="fw-semibold"
-                                                style={canToggle ? { cursor: "pointer" } : undefined}
-                                                onClick={handleRowToggle}
-                                            >
-                                                {med.medicine?.type} {med.medicine?.name} {med.medicine?.strength}
-                                            </div>
-                                            <div className="small text-muted">
-                                                Dispensed: {med.dispensedCount}
-                                            </div>
-                                            {med.batch && (
-                                                <div className="small text-muted">
-                                                    {med.batch.medicineName && <>{med.batch.medicineName} · </>}
-                                                    {med.batch.id && <>{med.batch.id} · </>}
-                                                    Batch: {med.batch.Batch || "-"}
-                                                    {med.batch.company && <> · {med.batch.company}</>}
-                                                </div>
-                                            )}
-
-                                            {canAct && isChecked && (
-                                                <>
-                                                    <div className="d-flex align-items-center gap-2 mt-1">
-                                                        <label className="small text-muted mb-0">Qty to return:</label>
-                                                        <Input
-                                                            type="number"
-                                                            bsSize="sm"
-                                                            min={1}
-                                                            step={1}
-                                                            max={med.returnableCount}
-                                                            style={{ width: "90px" }}
-                                                            value={qty}
-                                                            invalid={invalidQty}
-                                                            disabled={submitting}
-                                                            onKeyDown={(e) => {
-                                                                if ([".", ",", "e", "E", "+", "-"].includes(e.key)) e.preventDefault();
-                                                            }}
-                                                            onChange={(e) => {
-                                                                const raw = e.target.value;
-                                                                if (raw === "") {
-                                                                    updateSelection(med.prescriptionMedicineId, "returnQty", "");
-                                                                } else if (Number.isInteger(Number(raw))) {
-                                                                    updateSelection(med.prescriptionMedicineId, "returnQty", Number(raw));
-                                                                }
-                                                            }}
-                                                        />
-                                                        {invalidQty && (
-                                                            <span className="small text-danger">
-                                                                Max {med.returnableCount}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                    <Input
-                                                        type="text"
-                                                        bsSize="sm"
-                                                        className="mt-2"
-                                                        placeholder="Remarks (optional)"
-                                                        value={selected[med.prescriptionMedicineId]?.remarks || ""}
-                                                        disabled={submitting}
-                                                        onChange={(e) =>
-                                                            updateSelection(med.prescriptionMedicineId, "remarks", e.target.value)
-                                                        }
-                                                    />
-                                                </>
-                                            )}
-                                            {med.returned && (
-                                                <Badge color="secondary" className="mt-2">
-                                                    Already returned
-                                                </Badge>
-                                            )}
-                                        </div>
-                                    </div>
-                                </Col>
+                                <ReturnMedicineRow
+                                    key={med.prescriptionMedicineId}
+                                    med={med}
+                                    sources={sources}
+                                    sel={sel}
+                                    isChecked={isChecked}
+                                    canReturn={canReturn}
+                                    canAct={canAct}
+                                    submitting={submitting}
+                                    lineQty={lineQty}
+                                    onRowToggle={() => canToggle && toggleSelect(med)}
+                                    onSourceQtyChange={(pharmacyStockRef, value) =>
+                                        updatePerSourceQty(med.prescriptionMedicineId, pharmacyStockRef, value)
+                                    }
+                                    onRemarksChange={(value) => updateRemarks(med.prescriptionMedicineId, value)}
+                                />
                             );
                         })}
                     </Row>
