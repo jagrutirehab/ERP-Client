@@ -345,13 +345,18 @@ export const MyIssuesCol = (
             cell: (row) => {
               if (type === "MAINTENANCE") {
                 const managers = row?.maintenanceIssue?.assignedManagers || [];
-                if (!managers.length) return "-";
-                return (
-                  managers
-                    .map((m) => m?.name)
-                    .filter(Boolean)
-                    .join(", ") || "-"
-                );
+                if (managers.length) {
+                  return (
+                    managers
+                      .map((m) => m?.name)
+                      .filter(Boolean)
+                      .join(", ") || "-"
+                  );
+                }
+                return row?.assignedTo?.name
+                  ? row.assignedTo.name.charAt(0).toUpperCase() +
+                      row.assignedTo.name.slice(1).toLowerCase()
+                  : "-";
               }
               return row?.assignedTo?.name
                 ? row.assignedTo.name.charAt(0).toUpperCase() +
