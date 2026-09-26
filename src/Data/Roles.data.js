@@ -648,6 +648,8 @@ export const permissionList = [
       { name: "WORK_ORDER", label: "Work Orders" },
       { name: "ASSET_TRANSFER", label: "Asset Transfer" },
       { name: "ASSET_WRITEOFF", label: "Asset Write-off / Sale" },
+      { name: "TASK_TEMPLATE", label: "Task Templates" },
+      { name: "PM_SCHEDULE", label: "PM Schedules" },
     ],
   },
 ];

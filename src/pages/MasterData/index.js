@@ -32,6 +32,8 @@ import FixedAssetRegister from "./AssetLifecycle/FixedAssetRegister";
 import MaintenanceRequest from "./AssetLifecycle/MaintenanceRequest";
 import WorkOrder from "./AssetLifecycle/WorkOrder";
 import AssetWriteOffRequest from "./AssetLifecycle/AssetWriteOff";
+import TaskTemplate from "./AssetLifecycle/TaskTemplate";
+import PMSchedule from "./AssetLifecycle/PMSchedule";
 import LocationStock from "./Inventory/LocationStock";
 import AssetTransfer from "./AssetLifecycle/AssetTransfer";
 import VendorInvoice from "./Finance/VendorInvoice";
@@ -143,6 +145,13 @@ const MasterData = () => {
     "READ",
   );
 
+  const canViewTaskTemplate = hasPermission(
+    "MASTERDATA",
+    "TASK_TEMPLATE",
+    "READ",
+  );
+
+  const canViewPMSchedule = hasPermission("MASTERDATA", "PM_SCHEDULE", "READ");
   if (
     !canViewVendor &&
     !canViewItems &&
@@ -174,7 +183,9 @@ const MasterData = () => {
     !canViewMaintenanceRequest &&
     !canViewWorkOrder &&
     !canViewAssetTransfer &&
-    !canViewAssetWriteOff
+    !canViewAssetWriteOff &&
+    !canViewTaskTemplate &&
+    !canViewPMSchedule
   ) {
     return <Basic404 />;
   }
@@ -242,7 +253,12 @@ const MasterData = () => {
               />
               <Route path="work-order/*" element={<WorkOrder />} />
               <Route path="asset-transfer/*" element={<AssetTransfer />} />
-              <Route path="asset-writeoff/*" element={<AssetWriteOffRequest />} />
+              <Route
+                path="asset-writeoff/*"
+                element={<AssetWriteOffRequest />}
+              />
+              <Route path="task-template/*" element={<TaskTemplate />} />
+              <Route path="pm-schedule/*" element={<PMSchedule />} />
               <Route path="*" element={<Basic404 />} />
             </Routes>
           </div>

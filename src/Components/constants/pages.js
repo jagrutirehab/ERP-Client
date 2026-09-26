@@ -1820,6 +1820,16 @@ export const MASTER_DATA = [
         label: "Asset Write-off / Sale",
         link: "/vendor-management/asset-writeoff",
       },
+      {
+        id: "asset-task-template",
+        label: "Task Templates",
+        link: "/vendor-management/task-template",
+      },
+      {
+        id: "asset-pm-schedule",
+        label: "PM Schedules",
+        link: "/vendor-management/pm-schedule",
+      },
     ],
   },
   {

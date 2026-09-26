@@ -6023,3 +6023,44 @@ export const rejectAssetWriteOffRequest = (id, data) =>
   axios.patch(`/master/asset-writeoff-request/${id}/reject`, data, {
     headers: { "X-No-Cookie-Token": "true" },
   });
+export const getTaskTemplates = (params = {}) =>
+  axios.get("/master/task-template", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createTaskTemplate = (data) =>
+  axios.post("/master/task-template", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const deleteTaskTemplate = (id) =>
+  axios.delete(`/master/task-template/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getTaskTemplateCategories = () =>
+  axios.get("/master/task-template-category", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createTaskTemplateCategory = (data) =>
+  axios.post("/master/task-template-category", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getPMSchedules = (params = {}) =>
+  axios.get("/master/pm-schedule", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createPMSchedule = (data) =>
+  axios.post("/master/pm-schedule", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const updatePMSchedule = (id, data) =>
+  axios.put(`/master/pm-schedule/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const generateDueWorkOrders = () =>
+  axios.post(
+    "/master/pm-schedule/generate-due",
+    {},
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
