@@ -19,10 +19,10 @@ import { BASELINE_STATUS_META } from "../../../../Components/constants/sopConsta
 const fmt = (d) =>
   d
     ? new Date(d).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      })
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    })
     : "";
 
 const BaselinePackageControl = ({ addmission, onRequestChange }) => {
@@ -46,7 +46,7 @@ const BaselinePackageControl = ({ addmission, onRequestChange }) => {
 
   return (
     <div className="d-flex align-items-center flex-wrap gap-2">
-      <Label className="mb-0 text-nowrap">Baseline Package:</Label>
+      <Label className="mb-0 text-nowrap">Baseline Lab:</Label>
 
       <Badge color={meta.color} className="d-inline-flex align-items-center">
         <i className={`${meta.icon} me-1`} />
