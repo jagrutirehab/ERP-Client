@@ -399,6 +399,13 @@ const pages = [
     icon: "bx bx-transfer",
   },
   {
+    id: "pospayments",
+    label: "POS Payments",
+    name: "POS Payments",
+    link: "/pos-payments",
+    icon: "bx bx-credit-card",
+  },
+  {
     id: "sopconfigs",
     label: "SOP-configs",
     name: "SOP-configs",

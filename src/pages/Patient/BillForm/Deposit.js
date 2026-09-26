@@ -37,11 +37,20 @@ const collectEvidenceFiles = (modes) =>
     (mode.evidenceFiles || []).map((file) => ({ file, mode: mode.paymentMode }))
   );
 
+// IDs of Pine Labs charges already approved on the terminal. The server
+// re-reads each one from its own record before it will bill them, so sending
+// the id is enough — the tender details are never trusted from here.
+const collectPosTransactionIds = (modes) =>
+  (modes || []).map((mode) => mode.posTransaction).filter(Boolean);
+
 const buildTransactionProofFormData = (payload, evidenceEntries) => {
   const formData = new FormData();
   Object.entries(payload).forEach(([key, value]) => {
     if (value === undefined || value === null) return;
-    formData.append(key, key === "paymentModes" ? JSON.stringify(value) : value);
+    // Only these two are structured; everything else (dates included) must go
+    // across as its plain string form.
+    const isJsonField = key === "paymentModes" || key === "posTransactionIds";
+    formData.append(key, isJsonField ? JSON.stringify(value) : value);
   });
   evidenceEntries.forEach(({ file }) => formData.append("transactionProof", file));
   formData.append(
@@ -137,9 +146,11 @@ const Deposit = ({
           )
         );
       } else {
+        const posTransactionIds = collectPosTransactionIds(paymentModes);
         const payload = {
           totalAmount: totalAmount,
           paymentModes: cleanPaymentModes,
+          ...(posTransactionIds.length ? { posTransactionIds } : {}),
           ...values,
         };
         dispatch(
@@ -222,6 +233,20 @@ const Deposit = ({
               paymentModes={paymentModes}
               setPaymentModes={setPaymentModes}
               existingTransactionProof={existingTransactionProof}
+              // Deposit is the only form that collects on a POS terminal.
+              // Enables "Charge on POS" on card/UPI rows when this centre has
+              // a Pine Labs machine configured. Editing an existing deposit
+              // does not re-charge, so the action is offered on new ones only.
+              posContext={
+                editData
+                  ? undefined
+                  : {
+                      center: patient.center._id,
+                      patient: patient._id,
+                      addmission: admission || patient.addmission?._id,
+                      purpose: "DEPOSIT",
+                    }
+              }
             />
           </div>
           <div className="mb-3 w-50 mt-5">

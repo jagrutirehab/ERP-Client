@@ -166,6 +166,16 @@ export const permissionList = [
     ],
   },
   {
+    key: "POS_PAYMENTS",
+    label: "POS Payments",
+    subModules: [
+      { name: "POS_MONITOR", label: "View POS Payments" },
+      // Refunds move money back to the customer — kept separate so it can be
+      // granted to finance without giving it to every cashier.
+      { name: "POS_REFUND", label: "Refund POS Payments" },
+    ],
+  },
+  {
     key: "REPORT",
     label: "Report",
     subModules: [

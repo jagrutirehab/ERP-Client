@@ -50,6 +50,7 @@ const Navdata = () => {
       // "hrms",
       "webcamstats",
       "tally",
+      "pospayments",
       "sop-configs"
     ];
 
