@@ -4,8 +4,6 @@ import {
     CardBody,
     CardTitle,
     Badge,
-    Row,
-    Col,
     Input
 } from "reactstrap";
 import { UserRound, Calendar } from "lucide-react";
@@ -231,13 +229,20 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
 
 
             {loading && <LoaderSkeleton />}
-            <Row className="g-3 mb-4">
+            <div
+                className="mb-4"
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                    gap: "1.5rem",
+                }}
+            >
                 {!loading && patientData.length === 0 ? (
                     <div className="d-flex justify-content-center align-items-center py-5 w-100">
                         There is no records to display
                     </div>
                 ) : !loading && patientData.map((patient) => (
-                    <Col xs={12} sm={6} lg={4} key={patient._id} className="d-flex">
+                    <div key={patient._id} className="d-flex">
                         <Card
                             className="cursor-pointer w-100 transition-all"
                             style={{
@@ -323,9 +328,9 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                 </div>
                             </CardBody>
                         </Card>
-                    </Col>
+                    </div>
                 ))}
-            </Row>
+            </div>
 
             {!loading && pagination.totalPages > 1 && <div className="d-flex justify-content-between align-items-center mt-3 mb-4">
                 <div className="small text-muted">
@@ -400,20 +405,25 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
 
 
 const LoaderSkeleton = () => (
-    <Row className="g-3">
+    <div
+        style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: "1.5rem",
+        }}
+    >
         {[...Array(9)].map((_, index) => (
-            <Col xs={12} sm={6} lg={4} key={index}>
-                <div
-                    style={{
-                        background: "#f1f5f9",
-                        height: "180px",
-                        borderRadius: "8px",
-                        animation: "pulse 1.5s infinite",
-                    }}
-                />
-            </Col>
+            <div
+                key={index}
+                style={{
+                    background: "#f1f5f9",
+                    height: "180px",
+                    borderRadius: "8px",
+                    animation: "pulse 1.5s infinite",
+                }}
+            />
         ))}
-    </Row>
+    </div>
 );
 
 

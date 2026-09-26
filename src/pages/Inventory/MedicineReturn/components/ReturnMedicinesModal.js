@@ -67,13 +67,14 @@ const ReturnMedicinesModal = ({ isOpen, onClose, approvalId, centerId, onDone })
 
     const lineCredits = (med, sel) =>
         sourcesForLine(med)
-            .map((src, index) => ({ src, index, qty: Number(sel?.perSource?.[index]) || 0 }))
-            .filter((c) => c.qty > 0);
+            .map((src, index) => ({ src, index, sourceId: src.sourceId, qty: Number(sel?.perSource?.[index]) || 0 }))
+            .filter((c) => !c.src.returned && c.qty > 0);
 
     const lineTotal = (med, sel) => lineCredits(med, sel).reduce((sum, c) => sum + c.qty, 0);
 
     const lineHasInvalid = (med, sel) =>
         sourcesForLine(med).some((src, index) => {
+            if (src.returned) return false;
             const raw = sel?.perSource?.[index];
             if (raw === undefined || raw === "") return false;
             const qty = Number(raw);
@@ -129,7 +130,7 @@ const ReturnMedicinesModal = ({ isOpen, onClose, approvalId, centerId, onDone })
                     const med = medicines.find((m) => m.prescriptionMedicineId === prescriptionMedicineId);
                     const credits = lineCredits(med, sel).map((c) => ({
                         pharmacyStockRef: c.src.pharmacyStockRef,
-                        sourceIndex: c.index,
+                        sourceId: c.sourceId,
                         qty: c.qty,
                     }));
                     return { prescriptionMedicineId, credits, remarks: sel.remarks || "" };
