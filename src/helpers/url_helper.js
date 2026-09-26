@@ -225,6 +225,15 @@ export const DELETE_BILL = "/bill";
 export const POST_RESTORE_BILL = "/bill/restore";
 export const DELETE_BILL_PERMANENTLY = "/bill/delete-permanently";
 
+// Pine Labs POS terminal (card / UPI collected on the machine)
+export const GET_POS_TERMINAL = "/pos/pine-labs/terminal";
+export const POST_POS_INITIATE = "/pos/pine-labs/initiate";
+export const GET_POS_STATUS = "/pos/pine-labs/status";
+export const POST_POS_CANCEL = "/pos/pine-labs/cancel";
+export const GET_POS_PENDING = "/pos/pine-labs/pending";
+export const GET_POS_TRANSACTIONS = "/pos/pine-labs/transactions";
+export const POST_POS_REFUND = "/pos/pine-labs/refund";
+
 // Write Off
 export const GET_WRITE_OFF = "/bill/get/write/off";
 export const POST_WRITE_OFF = "/bill/post/write/off";

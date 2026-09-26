@@ -750,6 +750,19 @@ export const deleteBillPermanently = (param) =>
 export const postRestoreBill = (data) =>
   api.update(url.POST_RESTORE_BILL, data);
 
+// Pine Labs POS terminal
+export const getPosTerminal = (centerId) =>
+  api.get(`${url.GET_POS_TERMINAL}/${centerId}`);
+export const postPosInitiate = (data) => api.create(url.POST_POS_INITIATE, data);
+export const getPosStatus = (id) => api.get(`${url.GET_POS_STATUS}/${id}`);
+export const postPosCancel = (id) =>
+  api.create(`${url.POST_POS_CANCEL}/${id}`, {});
+export const getPosPending = (params) => api.get(url.GET_POS_PENDING, params);
+export const getPosTransactions = (params) =>
+  api.get(url.GET_POS_TRANSACTIONS, params);
+export const postPosRefund = (id, data) =>
+  api.create(`${url.POST_POS_REFUND}/${id}`, data);
+
 // Write Off
 export const getWriteOff = (data) => {
   return axios.get(url.GET_WRITE_OFF, {

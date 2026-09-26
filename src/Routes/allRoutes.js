@@ -42,6 +42,7 @@ const MiReporting = React.lazy(() => import("../pages/MIReporting/index.js"));
 const HRMS = React.lazy(() => import("../pages/HRMS"));
 const Referral = React.lazy(() => import("../pages/Referral"));
 const Tally = React.lazy(() => import("../pages/Tally"));
+const PosPayments = React.lazy(() => import("../pages/PosPayments"));
 const Issues = React.lazy(() => import("../pages/Issues"));
 const Recordings = React.lazy(() => import("../pages/Recordings"));
 const SOP = React.lazy(() => import("../pages/SopConfigs"));
@@ -77,6 +78,7 @@ const allElements = [
   { element: WebCamStats, label: "Web Cam Stats" },
   { element: Referral, label: "Referral" },
   { element: Tally, label: "Tally" },
+  { element: PosPayments, label: "POS Payments" },
   { element: Issues, label: "Issues" },
   { element: Recordings, label: "Recordings" },
   { element: SOP, label: "SOP-configs" },
@@ -125,6 +127,7 @@ const authProtectedRoutes = [
   { path: "/contacts", component: Referral },
   { path: "/referral", component: () => <Navigate to="/contacts" replace /> },
   { path: "/tally", component: Tally },
+  { path: "/pos-payments", component: PosPayments },
   { path: "/sop-configs/*", component: SOP },
   { path: "/trainings/*", component: Trainings },
   { path: "/utilities/*", component: Utilities },
