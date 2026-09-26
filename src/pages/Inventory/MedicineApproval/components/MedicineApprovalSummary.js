@@ -382,29 +382,6 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                     <div className="d-flex flex-column flex-md-row gap-3 w-100">
 
                         <div
-                            className="order-1 order-md-1 w-100 w-md-auto flex-md-grow-0"
-                            style={{ minWidth: "110px" }}
-                        >
-                            <Select
-                                value={{ value: limit, label: limit }}
-                                onChange={(option) => {
-                                    setLimit(option.value);
-                                    setPage(1);
-                                }}
-                                options={[
-                                    { value: 10, label: "10" },
-                                    { value: 20, label: "20" },
-                                    { value: 30, label: "30" },
-                                    { value: 40, label: "40" },
-                                    { value: 50, label: "50" },
-                                ]}
-                                className="react-select-container"
-                                classNamePrefix="react-select"
-                                placeholder="Limit"
-                            />
-                        </div>
-
-                        <div
                             className="order-2 order-md-2 flex-grow-1"
                             style={{ minWidth: "200px" }}
                         >

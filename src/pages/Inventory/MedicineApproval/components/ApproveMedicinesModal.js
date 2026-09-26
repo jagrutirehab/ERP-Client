@@ -226,6 +226,10 @@ const ApproveMedicinesModal = ({ isOpen, onClose, approvalId, centerId, readOnly
                     dispensedCount:
                         selected[med.prescriptionMedicineId]?.dispensedCount || defaultQtyFor(med),
                 };
+                
+                if (med.partiallyGiven) {
+                    unresolved.push(med.prescriptionMedicineId);
+                }
             } else if (!link.pharmacyStockRef) {
                 // Not linked at all — open its picker, same as clicking
                 // "Link pharmacy stock" on it individually.

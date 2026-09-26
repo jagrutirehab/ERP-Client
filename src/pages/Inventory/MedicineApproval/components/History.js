@@ -14,6 +14,7 @@ import { capitalizeWords } from "../../../../utils/toCapitalize";
 import ApproveMedicinesModal from "./ApproveMedicinesModal";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
+import RefreshButton from "../../../../Components/Common/RefreshButton";
 
 const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const dispatch = useDispatch();
@@ -91,34 +92,33 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
         return () => clearTimeout(handler);
     }, [search]);
 
+    const fetchMedicineApprovals = async () => {
+        try {
+            const centers =
+                selectedCenter === "ALL"
+                    ? user?.centerAccess
+                    : [selectedCenter];
+
+            await dispatch(
+                getMedicineApprovals({
+                    page,
+                    limit,
+                    type: activeTab,
+                    centers,
+                    status: "HISTORY",
+                    ...search.trim() !== "" && { search: debouncedSearch }
+                })
+            ).unwrap();
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to fetch medicine approvals.");
+            }
+        }
+    };
+
     useEffect(() => {
         if (activeSubTab !== "HISTORY" || !hasUserPermission) return;
-        const fetchMedicineApprovals = async () => {
-            try {
-                const centers =
-                    selectedCenter === "ALL"
-                        ? user?.centerAccess
-                        : [selectedCenter];
-
-                await dispatch(
-                    getMedicineApprovals({
-                        page,
-                        limit,
-                        type: activeTab,
-                        centers,
-                        status: "HISTORY",
-                        ...search.trim() !== "" && { search: debouncedSearch }
-                    })
-                ).unwrap();
-            } catch (error) {
-                if (!handleAuthError(error)) {
-                    toast.error(error.message || "Failed to fetch medicine approvals.");
-                }
-            }
-        };
-
         fetchMedicineApprovals();
-
     }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, user.centerAccess])
 
     const columns = [
@@ -210,23 +210,6 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
 
                 {/*  DESKTOP VIEW */}
                 <div className="d-none d-md-flex flex-row align-items-center gap-3">
-                    <div style={{ width: "110px" }}>
-                        <Select
-                            value={{ value: limit, label: limit }}
-                            onChange={(option) => {
-                                setLimit(option.value);
-                                setPage(1);
-                            }}
-                            options={[
-                                { value: 10, label: "10" },
-                                { value: 20, label: "20" },
-                                { value: 30, label: "30" },
-                                { value: 40, label: "40" },
-                                { value: 50, label: "50" },
-                            ]}
-                            classNamePrefix="react-select"
-                        />
-                    </div>
                     <div style={{ width: "200px" }}>
                         <Select
                             value={selectedCenterOption}
@@ -249,27 +232,11 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                         />
                     </div>
                     <div style={{ flexGrow: 1 }}></div>
+                    <RefreshButton loading={loading} onRefresh={fetchMedicineApprovals} />
                 </div>
 
                 {/*  MOBILE VIEW */}
                 <div className="d-flex d-md-none flex-column gap-3">
-                    <div style={{ width: "100%" }}>
-                        <Select
-                            value={{ value: limit, label: limit }}
-                            onChange={(option) => {
-                                setLimit(option.value);
-                                setPage(1);
-                            }}
-                            options={[
-                                { value: 10, label: "10" },
-                                { value: 20, label: "20" },
-                                { value: 30, label: "30" },
-                                { value: 40, label: "40" },
-                                { value: 50, label: "50" },
-                            ]}
-                            classNamePrefix="react-select"
-                        />
-                    </div>
                     <div style={{ width: "100%" }}>
                         <Select
                             value={selectedCenterOption}
@@ -282,7 +249,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                             classNamePrefix="react-select"
                         />
                     </div>
-                    <div style={{ width: "100%" }}>
+                    <div className="d-flex align-items-center gap-2">
                         <Input
                             type="text"
                             className="form-control"
@@ -290,6 +257,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
                         />
+                        <RefreshButton loading={loading} onRefresh={fetchMedicineApprovals} />
                     </div>
 
                 </div>
