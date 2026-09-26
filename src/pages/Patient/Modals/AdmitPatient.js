@@ -40,6 +40,18 @@ import axios from "axios";
 import { toast } from "react-toastify";
 import { getICDCodes } from "../../../helpers/backend_helper";
 
+// Ahmedabad is closed to new admissions — they must go to Ahmedabad-2 instead.
+// Matched on the exact trimmed title rather than an _id so the block holds in
+// staging/dev where the ids differ, and compared with === (not includes) so
+// "Ahmedabad-2" itself is never caught by its own block rule.
+const BLOCKED_CENTER_TITLE = "Ahmedabad";
+const BLOCKED_CENTER_ALTERNATIVE = "Ahmedabad-2";
+
+const isBlockedCenterTitle = (title) =>
+  String(title ?? "")
+    .trim()
+    .toLowerCase() === BLOCKED_CENTER_TITLE.toLowerCase();
+
 const AdmitPatient = ({
   isOpen,
   data,
@@ -296,6 +308,14 @@ const AdmitPatient = ({
     if (validation.values.center)
       dispatch(fetchDoctors({ center: validation.values.center }));
   }, [dispatch, validation.values.center]);
+
+  // True when the currently-selected centre is the blocked one. Resolved from
+  // the centres list rather than the stored id so it survives an id change.
+  const isBlockedCenterSelected = (centers || []).some(
+    (c) =>
+      String(c?._id) === String(validation.values.center) &&
+      isBlockedCenterTitle(c?.title),
+  );
 
   const createIpdfile = async (id) => {
     try {
@@ -859,6 +879,15 @@ const AdmitPatient = ({
             {validation.touched.center && validation.errors.center ? (
               <FormFeedback>{validation.errors.center}</FormFeedback>
             ) : null}
+            {/* Rendered outside FormFeedback because the select is not
+                `invalid` here — Formik's own validation passes, this is a
+                separate business rule. FormFeedback only shows when the
+                sibling input carries .is-invalid. */}
+            {isBlockedCenterSelected ? (
+              <div className="text-danger small mt-1">
+                {`Cannot admit to ${BLOCKED_CENTER_TITLE}. Please admit to ${BLOCKED_CENTER_ALTERNATIVE} instead.`}
+              </div>
+            ) : null}
           </div>
         </Col>
         <Col xs={12} md={6}>
@@ -949,7 +978,7 @@ const AdmitPatient = ({
         <Button
           size="sm"
           type="submit"
-          disabled={submitting}
+          disabled={submitting || isBlockedCenterSelected}
           onClick={(e) => {
             e.preventDefault();
 
@@ -1118,6 +1147,10 @@ const AdmitPatient = ({
       <Form
         onSubmit={(e) => {
           e.preventDefault();
+          // Also guarded here, not just on the button: pressing Enter in any
+          // field submits the form directly and would otherwise bypass the
+          // disabled submit button.
+          if (isBlockedCenterSelected) return;
           validation.handleSubmit();
         }}
         className="needs-validation"
