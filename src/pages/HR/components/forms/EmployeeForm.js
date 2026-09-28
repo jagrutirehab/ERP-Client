@@ -101,6 +101,12 @@ const isRelaxedEmployeeFormUser = () => {
   }
 };
 
+const getMaxDOB = () => {
+  const maxDOB = new Date();
+  maxDOB.setFullYear(maxDOB.getFullYear() - 18);
+  return maxDOB;
+};
+
 const relaxedOverrides = {
   eCode: Yup.string().notRequired(),
   department: Yup.string().notRequired(),
@@ -136,9 +142,9 @@ const relaxedOverrides = {
       excludeEmptyString: true,
     })
     .test(
-      "dob-in-past",
-      "Date of birth must be in the past",
-      (value) => !value || new Date(value) < new Date(),
+      "dob-18-plus",
+      "Employee must be at least 18 years old",
+      (value) => !value || new Date(value) <= getMaxDOB(),
     ),
   mobile: Yup.string()
     .notRequired()
@@ -196,9 +202,12 @@ const baseValidationSchema = (mode, isEdit) =>
       .required("Date of birth is required")
       .matches(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)")
       .test(
-        "dob-in-past",
-        "Date of birth must be in the past",
-        (value) => value && new Date(value) < new Date(),
+        "dob-18-plus",
+        "Employee must be at least 18 years old",
+        (value) => {
+          if (!value) return false;
+          return new Date(value) <= getMaxDOB();
+        },
       ),
     exitDate: Yup.string()
       .nullable()
@@ -924,6 +933,7 @@ const EmployeeForm = ({
     setFieldValue,
     setTouched,
     setFieldTouched,
+    validateForm,
     touched,
     isValid,
   } = form;
@@ -2162,11 +2172,13 @@ const EmployeeForm = ({
               id="dob"
               name="dateOfBirth"
               value={values.dateOfBirth}
-              onChange={([date]) => {
-                setFieldValue(
+              onChange={async ([date]) => {
+                await setFieldValue(
                   "dateOfBirth",
                   date ? format(date, "yyyy-MM-dd") : "",
                 );
+                await setFieldTouched("dateOfBirth", true, false);
+                await validateForm();
               }}
               options={{
                 dateFormat: "Y-m-d",
