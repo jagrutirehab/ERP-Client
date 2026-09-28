@@ -118,38 +118,59 @@ const Sidebar = () => {
                   </div>
 
                   {isOpen && (
-                    <ul className="list-unstyled ps-4">
-                      {children.map((child) => (
-                        <li
-                          key={child.id || child.link}
-                          className={
-                            child.link && location.pathname.startsWith(child.link)
-                              ? "active mb-1"
-                              : "mb-1"
-                          }
-                        >
-                          <Link
-                            className="d-flex align-items-center py-2"
-                            to={child.link}
+                                        <ul className="list-unstyled ps-4">
+                      {children.map((child) => {
+                        if (child.isDivider) {
+                          return (
+                            <li
+                              key={child.id}
+                              style={{
+                                padding: "8px 8px 4px",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                color: "#9ca3af",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.05em",
+                                borderTop: "1px solid #eee",
+                                marginTop: "6px",
+                              }}
+                            >
+                              {child.label}
+                            </li>
+                          );
+                        }
+                        return (
+                          <li
+                            key={child.id || child.link}
+                            className={
+                              child.link && location.pathname.startsWith(child.link)
+                                ? "active mb-1"
+                                : "mb-1"
+                            }
                           >
-                            {child.icon ? (
-                              <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
-                                <div className="avatar-xxs">
-                                  <i className={child.icon + " fs-5"}></i>
+                            <Link
+                              className="d-flex align-items-center py-2"
+                              to={child.link}
+                            >
+                              {child.icon ? (
+                                <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
+                                  <div className="avatar-xxs">
+                                    <i className={child.icon + " fs-5"}></i>
+                                  </div>
                                 </div>
+                              ) : null}
+                              <div className="flex-grow-1 overflow-hidden">
+                                <p
+                                  className="text-truncate font-semi-bold fs-14 mb-0"
+                                  style={!child.icon ? { paddingLeft: "4px" } : undefined}
+                                >
+                                  {child.label || ""}
+                                </p>
                               </div>
-                            ) : null}
-                            <div className="flex-grow-1 overflow-hidden">
-                              <p
-                                className="text-truncate font-semi-bold fs-14 mb-0"
-                                style={!child.icon ? { paddingLeft: "4px" } : undefined}
-                              >
-                                {child.label || ""}
-                              </p>
-                            </div>
-                          </Link>
-                        </li>
-                      ))}
+                            </Link>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </li>

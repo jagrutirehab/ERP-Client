@@ -1748,6 +1748,11 @@ export const MASTER_DATA = [
         link: "/vendor-management/move-order",
       },
       {
+        id: "inventory-stock-ops-divider",
+        label: "— Stock Operations —",
+        isDivider: true,
+      },
+      {
         id: "inventory-material-issue",
         label: "Material Issues",
         link: "/vendor-management/material-issue",
@@ -1801,16 +1806,6 @@ export const MASTER_DATA = [
         link: "/vendor-management/asset-capitalization",
       },
       {
-        id: "asset-maintenance-request",
-        label: "Maintenance Requests",
-        link: "/vendor-management/maintenance-request",
-      },
-      {
-        id: "asset-work-order",
-        label: "Work Orders",
-        link: "/vendor-management/work-order",
-      },
-      {
         id: "asset-transfer",
         label: "Asset Transfer",
         link: "/vendor-management/asset-transfer",
@@ -1819,6 +1814,21 @@ export const MASTER_DATA = [
         id: "asset-writeoff",
         label: "Asset Write-off / Sale",
         link: "/vendor-management/asset-writeoff",
+      },
+      {
+        id: "asset-maintenance-divider",
+        label: "— Asset Maintenance —",
+        isDivider: true,
+      },
+      {
+        id: "asset-maintenance-request",
+        label: "Maintenance Requests",
+        link: "/vendor-management/maintenance-request",
+      },
+      {
+        id: "asset-work-order",
+        label: "Work Orders",
+        link: "/vendor-management/work-order",
       },
       {
         id: "asset-task-template",
