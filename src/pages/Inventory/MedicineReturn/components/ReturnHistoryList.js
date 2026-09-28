@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import { Button, Input } from "reactstrap";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getPharmacyReturns } from "../../../../store/features/pharmacy/pharmacySlice";
@@ -11,6 +11,7 @@ import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { ExpandableText } from "../../../../Components/Common/ExpandableText";
 import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
+import DateRangeFilter from "../../../../Components/Common/DateRangeFilter";
 
 const ReturnHistoryList = ({ activeTab, hasUserPermission }) => {
     const dispatch = useDispatch();
@@ -23,6 +24,10 @@ const ReturnHistoryList = ({ activeTab, hasUserPermission }) => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [reportDate, setReportDate] = useState({
+        start: startOfDay(new Date()),
+        end: endOfDay(new Date()),
+    });
     const [viewPrescriptionModal, setViewPrescriptionModal] = useState(false);
     const [viewPrescriptionPatient, setViewPrescriptionPatient] = useState(null);
 
@@ -90,7 +95,12 @@ const ReturnHistoryList = ({ activeTab, hasUserPermission }) => {
                     limit,
                     type: activeTab,
                     centers,
-                    ...search.trim() !== "" && { search: debouncedSearch }
+                    ...search.trim() !== "" && { search: debouncedSearch },
+                    ...(reportDate.start && reportDate.end && {
+                        startDate: reportDate.start.toISOString(),
+                        endDate: reportDate.end.toISOString(),
+                        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    }),
                 })
             ).unwrap();
         } catch (error) {
@@ -102,7 +112,7 @@ const ReturnHistoryList = ({ activeTab, hasUserPermission }) => {
 
     useEffect(() => {
         fetchReturns();
-    }, [page, limit, activeTab, selectedCenter, debouncedSearch, user.centerAccess]);
+    }, [page, limit, activeTab, selectedCenter, debouncedSearch, reportDate, user.centerAccess]);
 
     const columns = [
         {
@@ -223,6 +233,15 @@ const ReturnHistoryList = ({ activeTab, hasUserPermission }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
                     <div style={{ flexGrow: 1 }}></div>
                     <RefreshButton loading={pharmacyReturns?.loading} onRefresh={fetchReturns} />
                 </div>
@@ -247,6 +266,15 @@ const ReturnHistoryList = ({ activeTab, hasUserPermission }) => {
                             placeholder="Search by patient name or UID..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
                         />
                     </div>
                     <div>

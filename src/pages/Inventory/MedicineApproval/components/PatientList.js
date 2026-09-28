@@ -8,13 +8,14 @@ import {
 } from "reactstrap";
 import { UserRound, Calendar } from "lucide-react";
 import { toast } from "react-toastify";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import Select from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getPendingApprovalsByPatient } from "../../../../store/features/pharmacy/pharmacySlice";
 import ApproveMedicinesModal from "./ApproveMedicinesModal";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
+import DateRangeFilter from "../../../../Components/Common/DateRangeFilter";
 
 const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const [modal, setModal] = useState(false);
@@ -29,6 +30,10 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [reportDate, setReportDate] = useState({
+        start: startOfDay(new Date()),
+        end: endOfDay(new Date()),
+    });
 
     const centerOptions = [
         ...(user?.centerAccess?.length > 1
@@ -89,7 +94,12 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                     limit,
                     type: activeTab,
                     centers,
-                    ...search.trim() !== "" && { search: debouncedSearch }
+                    ...search.trim() !== "" && { search: debouncedSearch },
+                    ...(reportDate.start && reportDate.end && {
+                        startDate: reportDate.start.toISOString(),
+                        endDate: reportDate.end.toISOString(),
+                        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    }),
                 })
             ).unwrap();
         } catch (error) {
@@ -102,7 +112,7 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
     useEffect(() => {
         if (activeSubTab !== "DETAILED" || !hasUserPermission) return;
         fetchMedicineApprovals();
-    }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, user.centerAccess]);
+    }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, reportDate, user.centerAccess]);
 
 
     const handleCardClick = (patient) => {
@@ -180,6 +190,15 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
                     <div style={{ flexGrow: 1 }}></div>
                 </div>
 
@@ -220,6 +239,15 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                             placeholder="Search by patient name or UID..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
                         />
                     </div>
 
