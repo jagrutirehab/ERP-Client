@@ -86,22 +86,21 @@ const Payment = ({
   const missingPineLabsAccount =
     posEnabled && !pineLabsAccount && (paymentAccounts || []).length > 0;
 
-  // Pin card and UPI rows to the Pine Labs account. Terminal money never
-  // lands in the centre's own bank, so letting a cashier pick anything else
-  // just files the payment against a ledger it will never reconcile with.
+  // Default card and UPI rows to the Pine Labs account where the centre has
+  // POS switched on, since that is where terminal money settles. Only fills a
+  // row that has no account yet — re-applying it would fight the cashier
+  // every time they deliberately picked something else.
   useEffect(() => {
     if (!posEnabled || !pineLabsAccount) return;
 
-    const needsPinning = (paymentModes || []).some(
-      (mode) =>
-        POS_MODES.includes(mode.paymentMode) &&
-        mode.bankAccount !== pineLabsAccount.name,
+    const needsDefault = (paymentModes || []).some(
+      (mode) => POS_MODES.includes(mode.paymentMode) && !mode.bankAccount,
     );
-    if (!needsPinning) return;
+    if (!needsDefault) return;
 
     setPaymentModes(
       (paymentModes || []).map((mode) =>
-        POS_MODES.includes(mode.paymentMode)
+        POS_MODES.includes(mode.paymentMode) && !mode.bankAccount
           ? { ...mode, bankAccount: pineLabsAccount.name }
           : mode,
       ),
@@ -123,8 +122,10 @@ const Payment = ({
         lastFourDigits(result.cardNumber) ||
         newPaymentModes[idx].cardNumber ||
         "",
+      // Keep whatever the cashier chose; only fall back to the Pine Labs
+      // account if the row still has none.
       bankAccount:
-        pineLabsAccount?.name || newPaymentModes[idx].bankAccount || "",
+        newPaymentModes[idx].bankAccount || pineLabsAccount?.name || "",
       posTransaction: posTransaction._id,
       posApprovalCode: result.approvalCode,
       posReferenceId: posTransaction.plutusTransactionReferenceId,
@@ -336,16 +337,6 @@ const Payment = ({
                       type="select"
                       style={{ maxWidth: "160px" }}
                       required
-                      // Pinned for card and UPI wherever Pine Labs is switched
-                      // on: that money settles to Pine Labs, never the
-                      // centre's own account. Stays editable if no Pine Labs
-                      // ledger account exists, so a missing one never traps
-                      // the cashier.
-                      disabled={
-                        !!pineLabsAccount &&
-                        ((posEnabled && POS_MODES.includes(item.paymentMode)) ||
-                          !!item.posTransaction)
-                      }
                     >
                       <option value={""} selected defaultValue={""}>
                         No Bank Account Selected
