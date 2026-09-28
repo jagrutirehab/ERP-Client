@@ -1,4 +1,4 @@
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { CheckCheck, X } from "lucide-react";
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
@@ -18,6 +18,7 @@ import ApproveMedicinesModal from "./ApproveMedicinesModal";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
+import DateRangeFilter from "../../../../Components/Common/DateRangeFilter";
 
 const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const dispatch = useDispatch();
@@ -36,6 +37,10 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
     const [tableData, setTableData] = useState([]);
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [reportDate, setReportDate] = useState({
+        start: startOfDay(new Date()),
+        end: endOfDay(new Date()),
+    });
     const [bulkResult, setBulkResult] = useState(null);
     const [bulkResultModal, setBulkResultModal] = useState(false);
     const [approveModalApprovalId, setApproveModalApprovalId] = useState(null);
@@ -127,7 +132,12 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                     type: activeTab,
                     centers,
                     status: "PENDING",
-                    ...search.trim() !== "" && { search: debouncedSearch }
+                    ...search.trim() !== "" && { search: debouncedSearch },
+                    ...(reportDate.start && reportDate.end && {
+                        startDate: reportDate.start.toISOString(),
+                        endDate: reportDate.end.toISOString(),
+                        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    }),
                 })
             ).unwrap();
         } catch (error) {
@@ -140,7 +150,7 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
     useEffect(() => {
         if (activeSubTab !== "ALL" || !hasUserPermission) return;
         fetchMedicineApprovals();
-    }, [page, limit, activeTab, selectedCenter, debouncedSearch, user.centerAccess, hasUserPermission]);
+    }, [page, limit, activeTab, selectedCenter, debouncedSearch, reportDate, user.centerAccess, hasUserPermission]);
 
     useEffect(() => {
         setPage(1);
@@ -410,12 +420,22 @@ const MedicineApprovalSummary = ({ activeTab, activeSubTab, hasUserPermission })
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                         </div>
+
+                        <div className="order-3 order-md-3" style={{ minWidth: "320px" }}>
+                            <DateRangeFilter
+                                reportDate={reportDate}
+                                setReportDate={(d) => {
+                                    setReportDate(d);
+                                    setPage(1);
+                                }}
+                            />
+                        </div>
                     </div>
 
                     <div className="order-4 d-flex flex-row align-items-center gap-2 justify-content-start justify-content-md-end w-100 w-md-auto">
                         <RefreshButton loading={loading} onRefresh={fetchMedicineApprovals} />
 
-                        {/* Approve All / Reject All — commented out for now.
+                        {/*
                         {!loading && pagination?.totalDocs > 0 && !isPilotCenterRow(selectedCenter) ? (
                             <CheckPermission accessRolePermission={roles?.permissions} permission={"create"} subAccess={"MEDICINEAPPROVAL"}>
                                 <>

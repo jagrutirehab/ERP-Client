@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import { Input } from "reactstrap";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getMedicineApprovals } from "../../../../store/features/pharmacy/pharmacySlice";
@@ -15,6 +15,7 @@ import ApproveMedicinesModal from "./ApproveMedicinesModal";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
+import DateRangeFilter from "../../../../Components/Common/DateRangeFilter";
 
 const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const dispatch = useDispatch();
@@ -27,6 +28,10 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [reportDate, setReportDate] = useState({
+        start: startOfDay(new Date()),
+        end: endOfDay(new Date()),
+    });
     const [approveModalApprovalId, setApproveModalApprovalId] = useState(null);
     const [approveModalCenterId, setApproveModalCenterId] = useState(null);
     const [viewPrescriptionModal, setViewPrescriptionModal] = useState(false);
@@ -106,7 +111,12 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                     type: activeTab,
                     centers,
                     status: "HISTORY",
-                    ...search.trim() !== "" && { search: debouncedSearch }
+                    ...search.trim() !== "" && { search: debouncedSearch },
+                    ...(reportDate.start && reportDate.end && {
+                        startDate: reportDate.start.toISOString(),
+                        endDate: reportDate.end.toISOString(),
+                        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    }),
                 })
             ).unwrap();
         } catch (error) {
@@ -119,7 +129,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     useEffect(() => {
         if (activeSubTab !== "HISTORY" || !hasUserPermission) return;
         fetchMedicineApprovals();
-    }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, user.centerAccess])
+    }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, reportDate, user.centerAccess])
 
     const columns = [
         {
@@ -231,6 +241,15 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
                     <div style={{ flexGrow: 1 }}></div>
                     <RefreshButton loading={loading} onRefresh={fetchMedicineApprovals} />
                 </div>
@@ -258,6 +277,15 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                         <RefreshButton loading={loading} onRefresh={fetchMedicineApprovals} />
+                    </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
+                        />
                     </div>
 
                 </div>

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import { Input } from "reactstrap";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getMedicineApprovals } from "../../../../store/features/pharmacy/pharmacySlice";
@@ -15,6 +15,7 @@ import { renderStatusBadge } from "../../../../Components/Common/renderStatusBad
 import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
+import DateRangeFilter from "../../../../Components/Common/DateRangeFilter";
 
 const ReturnableList = ({ activeTab, hasUserPermission }) => {
     const dispatch = useDispatch();
@@ -27,6 +28,10 @@ const ReturnableList = ({ activeTab, hasUserPermission }) => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [reportDate, setReportDate] = useState({
+        start: startOfDay(new Date()),
+        end: endOfDay(new Date()),
+    });
     const [returnModalApprovalId, setReturnModalApprovalId] = useState(null);
     const [returnModalCenterId, setReturnModalCenterId] = useState(null);
     const [viewPrescriptionModal, setViewPrescriptionModal] = useState(false);
@@ -116,7 +121,12 @@ const ReturnableList = ({ activeTab, hasUserPermission }) => {
                     type: activeTab,
                     centers,
                     status: "RETURNABLE",
-                    ...search.trim() !== "" && { search: debouncedSearch }
+                    ...search.trim() !== "" && { search: debouncedSearch },
+                    ...(reportDate.start && reportDate.end && {
+                        startDate: reportDate.start.toISOString(),
+                        endDate: reportDate.end.toISOString(),
+                        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    }),
                 })
             ).unwrap();
         } catch (error) {
@@ -128,7 +138,7 @@ const ReturnableList = ({ activeTab, hasUserPermission }) => {
 
     useEffect(() => {
         refetch();
-    }, [page, limit, activeTab, selectedCenter, debouncedSearch, user.centerAccess]);
+    }, [page, limit, activeTab, selectedCenter, debouncedSearch, reportDate, user.centerAccess]);
 
     const columns = [
         {
@@ -227,6 +237,15 @@ const ReturnableList = ({ activeTab, hasUserPermission }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
                     <div style={{ flexGrow: 1 }}></div>
                     <RefreshButton loading={loading} onRefresh={refetch} />
                 </div>
@@ -251,6 +270,15 @@ const ReturnableList = ({ activeTab, hasUserPermission }) => {
                             placeholder="Search by patient name or UID..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
                         />
                     </div>
                     <div>
