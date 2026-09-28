@@ -753,7 +753,8 @@ export const postRestoreBill = (data) =>
 // Pine Labs POS terminal
 export const getPosTerminal = (centerId) =>
   api.get(`${url.GET_POS_TERMINAL}/${centerId}`);
-export const postPosInitiate = (data) => api.create(url.POST_POS_INITIATE, data);
+export const postPosInitiate = (data) =>
+  api.create(url.POST_POS_INITIATE, data);
 export const getPosStatus = (id) => api.get(`${url.GET_POS_STATUS}/${id}`);
 export const postPosCancel = (id) =>
   api.create(`${url.POST_POS_CANCEL}/${id}`, {});
@@ -6064,3 +6065,17 @@ export const generateDueWorkOrders = () =>
     {},
     { headers: { "X-No-Cookie-Token": "true" } },
   );
+
+export const getMaintenanceJobs = (params = {}) =>
+  axios.get("/master/maintenance-job", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createMaintenanceJob = (data) =>
+  axios.post("/master/maintenance-job", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const updateMaintenanceJob = (id, data) =>
+  axios.put(`/master/maintenance-job/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });

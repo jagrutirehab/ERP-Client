@@ -650,6 +650,7 @@ export const permissionList = [
       { name: "ASSET_WRITEOFF", label: "Asset Write-off / Sale" },
       { name: "TASK_TEMPLATE", label: "Task Templates" },
       { name: "PM_SCHEDULE", label: "PM Schedules" },
+      { name: "MAINTENANCE_JOB", label: "Maintenance Jobs" },
     ],
   },
 ];

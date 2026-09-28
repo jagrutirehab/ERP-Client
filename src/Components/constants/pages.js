@@ -1830,6 +1830,11 @@ export const MASTER_DATA = [
         label: "PM Schedules",
         link: "/vendor-management/pm-schedule",
       },
+      {
+        id: "asset-maintenance-job",
+        label: "Maintenance Jobs",
+        link: "/vendor-management/maintenance-job",
+      },
     ],
   },
   {
