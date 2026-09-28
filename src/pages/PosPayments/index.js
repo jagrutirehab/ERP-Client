@@ -107,9 +107,24 @@ const PosPayments = ({ centers, centerAccess }) => {
     (centerAccess || []).includes(c._id),
   );
 
+  // The navbar's centre picker. Joined rather than passed as an array so it
+  // survives the query-string builder, which stringifies arrays anyway.
+  const scopeIds = (centerAccess || []).join(",");
+
+  // A centre chosen here but since dropped from the navbar selection would
+  // otherwise keep showing rows the user just filtered away.
+  useEffect(() => {
+    if (!centerId) return;
+    if (!(centerAccess || []).includes(centerId)) {
+      setCenterId("");
+      setPage(1);
+    }
+  }, [centerAccess, centerId]);
+
   const load = useCallback(async () => {
     try {
       const response = await getPosTransactions({
+        ...(scopeIds ? { centerIds: scopeIds } : {}),
         ...(centerId ? { centerId } : {}),
         ...(status && status !== "ALL" ? { status } : {}),
         ...(from ? { from } : {}),
@@ -131,7 +146,7 @@ const PosPayments = ({ centers, centerAccess }) => {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [centerId, status, from, to, page, perPage]);
+  }, [scopeIds, centerId, status, from, to, page, perPage]);
 
   useEffect(() => {
     setLoading(true);
