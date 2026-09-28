@@ -290,7 +290,9 @@ const MaintenanceJob = () => {
           </p>
 
           <h6 className="fw-semibold mb-3">Assignment</h6>
-          <Label>Work Order</Label>
+          <Label>
+            Work Order <span className="text-danger">*</span>
+          </Label>
           <Input
             type="select"
             className="mb-3"
@@ -309,7 +311,9 @@ const MaintenanceJob = () => {
               </option>
             ))}
           </Input>
-          <Label>Technician</Label>
+          <Label>
+            Technician <span className="text-danger">*</span>
+          </Label>
           <div style={{ position: "relative" }} className="mb-3">
             <Input
               value={technicianSearch}
@@ -360,7 +364,9 @@ const MaintenanceJob = () => {
           <h6 className="fw-semibold mb-3">Schedule</h6>
           <Row>
             <Col md={6} className="mb-3">
-              <Label>Date</Label>
+              <Label>
+                Date <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="date"
                 value={scheduledDate}
@@ -368,7 +374,9 @@ const MaintenanceJob = () => {
               />
             </Col>
             <Col md={6} className="mb-3">
-              <Label>Time</Label>
+              <Label>
+                Time <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="time"
                 value={scheduledTime}

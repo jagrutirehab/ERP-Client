@@ -34,8 +34,16 @@ const CapitalizationRequest = () => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canCreate = hasPermission("MASTERDATA", "CAPITALIZATION_REQUEST", "WRITE");
-  const canApprove = hasPermission("MASTERDATA", "CAPITALIZATION_REQUEST", "DELETE");
+  const canCreate = hasPermission(
+    "MASTERDATA",
+    "CAPITALIZATION_REQUEST",
+    "WRITE",
+  );
+  const canApprove = hasPermission(
+    "MASTERDATA",
+    "CAPITALIZATION_REQUEST",
+    "DELETE",
+  );
 
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -107,7 +115,8 @@ const CapitalizationRequest = () => {
     if (!grnId) return toast.error("Select a GRN");
     if (!itemName.trim()) return toast.error("Select an item");
     if (!category.trim()) return toast.error("Enter a category");
-    if (!unitCost || Number(unitCost) <= 0) return toast.error("Enter a valid unit cost");
+    if (!unitCost || Number(unitCost) <= 0)
+      return toast.error("Enter a valid unit cost");
     if (!justification.trim() || justification.trim().length < 10) {
       return toast.error("Justification must be at least 10 characters");
     }
@@ -121,14 +130,20 @@ const CapitalizationRequest = () => {
         unitCost: Number(unitCost),
         category,
         justification,
-        centerId: selectedGrn?.poId?.deliverySiteId?._id || selectedGrn?.poId?.deliverySiteId,
+        centerId:
+          selectedGrn?.poId?.deliverySiteId?._id ||
+          selectedGrn?.poId?.deliverySiteId,
       });
       toast.success("Capitalization request created successfully");
       setModalOpen(false);
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong",
+        );
       }
     } finally {
       setSubmitting(false);
@@ -142,7 +157,11 @@ const CapitalizationRequest = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't approve.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't approve.",
+        );
       }
     }
   };
@@ -150,34 +169,55 @@ const CapitalizationRequest = () => {
   const confirmReject = async () => {
     if (!rejectReason.trim()) return toast.error("Provide a rejection reason");
     try {
-      await rejectCapitalizationRequest(rejectTarget._id, { rejectionReason: rejectReason });
+      await rejectCapitalizationRequest(rejectTarget._id, {
+        rejectionReason: rejectReason,
+      });
       toast.success("Request rejected");
       setRejectTarget(null);
       setRejectReason("");
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't reject.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't reject.",
+        );
       }
     }
   };
 
   const columns = [
-    { name: "Request #", selector: (row) => row.requestNumber, sortable: true, width: "150px" },
+    {
+      name: "Request #",
+      selector: (row) => row.requestNumber,
+      sortable: true,
+      width: "150px",
+    },
     { name: "Item", selector: (row) => row.itemName },
     { name: "Qty", width: "70px", selector: (row) => row.quantity },
     {
       name: "Total Cost",
-      cell: (row) => <span className="uom-cell-primary">{money(row.totalCost)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-primary">{money(row.totalCost)}</span>
+      ),
     },
     {
       name: "Site",
-      cell: (row) => <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>
+      ),
     },
-    { name: "Status", width: "120px", cell: (row) => <StatusPill status={row.status} /> },
+    {
+      name: "Status",
+      width: "120px",
+      cell: (row) => <StatusPill status={row.status} />,
+    },
     {
       name: "Date",
-      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.createdAt)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{dateFmt(row.createdAt)}</span>
+      ),
     },
     {
       name: "Actions",
@@ -187,10 +227,19 @@ const CapitalizationRequest = () => {
         row.status === "pending" &&
         canApprove && (
           <div className="d-flex gap-2">
-            <Button size="sm" color="success" onClick={() => handleApprove(row._id)}>
+            <Button
+              size="sm"
+              color="success"
+              onClick={() => handleApprove(row._id)}
+            >
               Approve
             </Button>
-            <Button size="sm" color="danger" outline onClick={() => setRejectTarget(row)}>
+            <Button
+              size="sm"
+              color="danger"
+              outline
+              onClick={() => setRejectTarget(row)}
+            >
               Reject
             </Button>
           </div>
@@ -222,15 +271,26 @@ const CapitalizationRequest = () => {
           progressPending={loading}
           pagination
           highlightOnHover
-          noDataComponent={<div className="uom-empty-state">No capitalization requests yet</div>}
+          noDataComponent={
+            <div className="uom-empty-state">
+              No capitalization requests yet
+            </div>
+          }
         />
       </div>
 
-      <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} centered size="lg">
+      <Modal
+        isOpen={modalOpen}
+        toggle={() => setModalOpen(false)}
+        centered
+        size="lg"
+      >
         <ModalBody className="p-4">
           <h5 className="mb-3">New Capitalization Request</h5>
 
-          <Label>GRN</Label>
+          <Label>
+            GRN <span className="text-danger">*</span>
+          </Label>
           <Input
             type="select"
             className="mb-3"
@@ -247,14 +307,18 @@ const CapitalizationRequest = () => {
 
           <Row>
             <Col md={6} className="mb-3">
-              <Label>Item Name</Label>
+              <Label>
+                Item Name <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={itemName}
                 disabled={!grnId}
                 onChange={(e) => handleItemChange(e.target.value)}
               >
-                <option value="">{!grnId ? "Select GRN first" : "Select item"}</option>
+                <option value="">
+                  {!grnId ? "Select GRN first" : "Select item"}
+                </option>
                 {grnItems.map((li) => (
                   <option key={li.itemName} value={li.itemName}>
                     {li.itemName} (Received: {li.receivedQty})
@@ -285,7 +349,9 @@ const CapitalizationRequest = () => {
               />
             </Col>
             <Col md={4} className="mb-3">
-              <Label>Unit Cost</Label>
+              <Label>
+                Unit Cost <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="number"
                 min={0}
@@ -295,11 +361,17 @@ const CapitalizationRequest = () => {
             </Col>
             <Col md={4} className="mb-3">
               <Label>Total Cost</Label>
-              <Input value={money(Number(quantity) * Number(unitCost || 0))} disabled />
+              <Input
+                value={money(Number(quantity) * Number(unitCost || 0))}
+                disabled
+              />
             </Col>
           </Row>
 
-          <Label>Justification (min 10 characters)</Label>
+          <Label>
+            Justification (min 10 characters){" "}
+            <span className="text-danger">*</span>
+          </Label>
           <Input
             type="textarea"
             rows={3}
@@ -309,17 +381,29 @@ const CapitalizationRequest = () => {
           />
 
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button color="light" onClick={() => setModalOpen(false)} disabled={submitting}>
+            <Button
+              color="light"
+              onClick={() => setModalOpen(false)}
+              disabled={submitting}
+            >
               Cancel
             </Button>
-            <Button color="primary" onClick={handleSubmit} disabled={submitting}>
+            <Button
+              color="primary"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
               {submitting ? "Saving..." : "Create Request"}
             </Button>
           </div>
         </ModalBody>
       </Modal>
 
-      <Modal isOpen={!!rejectTarget} toggle={() => setRejectTarget(null)} centered>
+      <Modal
+        isOpen={!!rejectTarget}
+        toggle={() => setRejectTarget(null)}
+        centered
+      >
         <ModalBody className="p-4">
           <h5 className="mb-3">Reject Request</h5>
           <Label>Reason</Label>

@@ -103,28 +103,40 @@ const TaskTemplate = () => {
   };
 
   const updateSection = (sIdx, field, value) => {
-    setSections((prev) => prev.map((s, i) => (i === sIdx ? { ...s, [field]: value } : s)));
+    setSections((prev) =>
+      prev.map((s, i) => (i === sIdx ? { ...s, [field]: value } : s)),
+    );
   };
   const addSection = () => setSections((prev) => [...prev, emptySection()]);
-  const removeSection = (sIdx) => setSections((prev) => prev.filter((_, i) => i !== sIdx));
+  const removeSection = (sIdx) =>
+    setSections((prev) => prev.filter((_, i) => i !== sIdx));
 
   const updateItem = (sIdx, iIdx, field, value) => {
     setSections((prev) =>
       prev.map((s, i) =>
         i !== sIdx
           ? s
-          : { ...s, items: s.items.map((it, j) => (j === iIdx ? { ...it, [field]: value } : it)) },
+          : {
+              ...s,
+              items: s.items.map((it, j) =>
+                j === iIdx ? { ...it, [field]: value } : it,
+              ),
+            },
       ),
     );
   };
   const addItem = (sIdx) => {
     setSections((prev) =>
-      prev.map((s, i) => (i !== sIdx ? s : { ...s, items: [...s.items, emptyItem()] })),
+      prev.map((s, i) =>
+        i !== sIdx ? s : { ...s, items: [...s.items, emptyItem()] },
+      ),
     );
   };
   const removeItem = (sIdx, iIdx) => {
     setSections((prev) =>
-      prev.map((s, i) => (i !== sIdx ? s : { ...s, items: s.items.filter((_, j) => j !== iIdx) })),
+      prev.map((s, i) =>
+        i !== sIdx ? s : { ...s, items: s.items.filter((_, j) => j !== iIdx) },
+      ),
     );
   };
 
@@ -144,7 +156,11 @@ const TaskTemplate = () => {
       setNewCategoryDesc("");
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't add category.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't add category.",
+        );
       }
     } finally {
       setSavingCategory(false);
@@ -157,7 +173,9 @@ const TaskTemplate = () => {
     }
     const invalidSection = sections.find((s) => !s.sectionName.trim());
     if (invalidSection) return toast.error("Every section needs a name");
-    const invalidItem = sections.find((s) => s.items.some((it) => !it.label.trim()));
+    const invalidItem = sections.find((s) =>
+      s.items.some((it) => !it.label.trim()),
+    );
     if (invalidItem) return toast.error("Every checklist item needs a label");
 
     setSubmitting(true);
@@ -167,7 +185,8 @@ const TaskTemplate = () => {
         categoryId,
         active,
         description,
-        estimatedDurationMinutes: Number(durationHours) * 60 + Number(durationMinutes),
+        estimatedDurationMinutes:
+          Number(durationHours) * 60 + Number(durationMinutes),
         estimatedCost: Number(estimatedCost),
         sections: sections.map((s) => ({
           ...s,
@@ -182,7 +201,11 @@ const TaskTemplate = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong",
+        );
       }
     } finally {
       setSubmitting(false);
@@ -196,28 +219,41 @@ const TaskTemplate = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't delete.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't delete.",
+        );
       }
     }
   };
 
   const columns = [
-    { name: "Template Name", selector: (row) => row.templateName, sortable: true },
+    {
+      name: "Template Name",
+      selector: (row) => row.templateName,
+      sortable: true,
+    },
     {
       name: "Category",
-      cell: (row) => <span className="uom-cell-muted">{row.categoryId?.name || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.categoryId?.name || "—"}</span>
+      ),
     },
     {
       name: "Sections",
       width: "90px",
-      cell: (row) => <span className="uom-cell-muted">{row.sections?.length || 0}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.sections?.length || 0}</span>
+      ),
     },
     {
       name: "Est. Duration",
       width: "120px",
       cell: (row) => (
         <span className="uom-cell-muted">
-          {Math.floor(row.estimatedDurationMinutes / 60)}h {row.estimatedDurationMinutes % 60}m
+          {Math.floor(row.estimatedDurationMinutes / 60)}h{" "}
+          {row.estimatedDurationMinutes % 60}m
         </span>
       ),
     },
@@ -225,7 +261,9 @@ const TaskTemplate = () => {
       name: "Status",
       width: "100px",
       cell: (row) => (
-        <span className={`uom-status-pill ${row.active ? "status-active" : "status-inactive"}`}>
+        <span
+          className={`uom-status-pill ${row.active ? "status-active" : "status-inactive"}`}
+        >
           <span className="dot"></span> {row.active ? "Active" : "Inactive"}
         </span>
       ),
@@ -240,7 +278,11 @@ const TaskTemplate = () => {
             View
           </Button>
           {canDelete && (
-            <Button size="sm" color="light" onClick={() => handleDelete(row._id)}>
+            <Button
+              size="sm"
+              color="light"
+              onClick={() => handleDelete(row._id)}
+            >
               <i className="bx bx-trash text-danger"></i>
             </Button>
           )}
@@ -281,33 +323,61 @@ const TaskTemplate = () => {
           progressPending={loading}
           pagination
           highlightOnHover
-          noDataComponent={<div className="uom-empty-state">No task templates yet</div>}
+          noDataComponent={
+            <div className="uom-empty-state">No task templates yet</div>
+          }
         />
       </div>
 
-      <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} centered size="lg">
+      <Modal
+        isOpen={modalOpen}
+        toggle={() => setModalOpen(false)}
+        centered
+        size="lg"
+      >
         <ModalBody className="p-4">
           <h5 className="mb-1">Create Task Template</h5>
-          <p className="text-muted small mb-3">Build a reusable maintenance checklist</p>
+          <p className="text-muted small mb-3">
+            Build a reusable maintenance checklist
+          </p>
 
           <h6 className="fw-semibold mb-3">Basic Information</h6>
           <Row>
             <Col md={6} className="mb-3">
-              <Label>Template Name</Label>
-              <Input value={templateName} onChange={(e) => setTemplateName(e.target.value)} />
+              <Label>
+                Template Name <span className="text-danger">*</span>
+              </Label>
+              <Input
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+              />
             </Col>
             <Col md={6} className="mb-3">
-              <Label>Category</Label>
-              <div className="d-flex gap-2">
-                <Input type="select" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
-                  <option value="">Select or search category...</option>
-                  {categories.map((c) => (
-                    <option key={c._id} value={c._id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </Input>
-                <Button color="light" onClick={() => setCategoryModalOpen(true)}>
+              <Label>
+                Category <span className="text-danger">*</span>
+              </Label>
+              <div className="d-flex gap-2" style={{ width: "100%" }}>
+                <div style={{ flex: "1 1 0%", minWidth: 0, maxWidth: "100%" }}>
+                  <Input
+                    type="select"
+                    value={categoryId}
+                    onChange={(e) => setCategoryId(e.target.value)}
+                    style={{ width: "100%" }}
+                  >
+                    <option value="">Select or search category...</option>
+                    {categories.map((c) => (
+                      <option key={c._id} value={c._id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </Input>
+                </div>
+                <Button
+                  color="light"
+                  type="button"
+                  style={{ flex: "0 0 auto", whiteSpace: "nowrap" }}
+                  onClick={() => setCategoryModalOpen(true)}
+                >
                   <i className="bx bx-plus"></i> Add
                 </Button>
               </div>
@@ -377,33 +447,51 @@ const TaskTemplate = () => {
             <div key={sIdx} className="uom-table-card p-3 mb-3">
               <div className="d-flex gap-2 mb-3 align-items-end">
                 <div style={{ flex: 1 }}>
-                  <Label className="small">Section Name</Label>
+                  <Label className="small">
+                    Section Name <span className="text-danger">*</span>
+                  </Label>{" "}
                   <Input
                     value={section.sectionName}
-                    onChange={(e) => updateSection(sIdx, "sectionName", e.target.value)}
+                    onChange={(e) =>
+                      updateSection(sIdx, "sectionName", e.target.value)
+                    }
                     placeholder="e.g. Electrical Checks"
                   />
                 </div>
-                <Button color="light" disabled={sections.length === 1} onClick={() => removeSection(sIdx)}>
+                <Button
+                  color="light"
+                  disabled={sections.length === 1}
+                  onClick={() => removeSection(sIdx)}
+                >
                   <i className="bx bx-trash text-danger"></i>
                 </Button>
               </div>
 
               {section.items.map((item, iIdx) => (
-                <div key={iIdx} className="p-2 mb-2" style={{ background: "#fafbfc", borderRadius: 8 }}>
+                <div
+                  key={iIdx}
+                  className="p-2 mb-2"
+                  style={{ background: "#fafbfc", borderRadius: 8 }}
+                >
                   <Row>
                     <Col md={3} className="mb-2">
-                      <Label className="small">Item Label</Label>
+                      <Label className="small">
+                        Item Label <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         value={item.label}
-                        onChange={(e) => updateItem(sIdx, iIdx, "label", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(sIdx, iIdx, "label", e.target.value)
+                        }
                       />
                     </Col>
                     <Col md={3} className="mb-2">
                       <Label className="small">Description</Label>
                       <Input
                         value={item.description}
-                        onChange={(e) => updateItem(sIdx, iIdx, "description", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(sIdx, iIdx, "description", e.target.value)
+                        }
                       />
                     </Col>
                     <Col md={2} className="mb-2">
@@ -411,7 +499,9 @@ const TaskTemplate = () => {
                       <Input
                         type="select"
                         value={item.inputType}
-                        onChange={(e) => updateItem(sIdx, iIdx, "inputType", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(sIdx, iIdx, "inputType", e.target.value)
+                        }
                       >
                         {INPUT_TYPES.map((t) => (
                           <option key={t.value} value={t.value}>
@@ -424,7 +514,9 @@ const TaskTemplate = () => {
                       <Label className="small">Placeholder</Label>
                       <Input
                         value={item.placeholder}
-                        onChange={(e) => updateItem(sIdx, iIdx, "placeholder", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(sIdx, iIdx, "placeholder", e.target.value)
+                        }
                       />
                     </Col>
                     <Col md={2} className="mb-2">
@@ -433,7 +525,9 @@ const TaskTemplate = () => {
                         type="number"
                         min={0}
                         value={item.maxLength}
-                        onChange={(e) => updateItem(sIdx, iIdx, "maxLength", e.target.value)}
+                        onChange={(e) =>
+                          updateItem(sIdx, iIdx, "maxLength", e.target.value)
+                        }
                       />
                     </Col>
                   </Row>
@@ -443,10 +537,15 @@ const TaskTemplate = () => {
                         className="form-check-input"
                         type="checkbox"
                         checked={item.required}
-                        onChange={(e) => updateItem(sIdx, iIdx, "required", e.target.checked)}
+                        onChange={(e) =>
+                          updateItem(sIdx, iIdx, "required", e.target.checked)
+                        }
                         id={`req-${sIdx}-${iIdx}`}
                       />
-                      <label className="form-check-label small" htmlFor={`req-${sIdx}-${iIdx}`}>
+                      <label
+                        className="form-check-label small"
+                        htmlFor={`req-${sIdx}-${iIdx}`}
+                      >
                         Required
                       </label>
                     </div>
@@ -474,17 +573,29 @@ const TaskTemplate = () => {
           </div>
 
           <div className="d-flex justify-content-end gap-2">
-            <Button color="light" onClick={() => setModalOpen(false)} disabled={submitting}>
+            <Button
+              color="light"
+              onClick={() => setModalOpen(false)}
+              disabled={submitting}
+            >
               Cancel
             </Button>
-            <Button color="primary" onClick={handleSubmit} disabled={submitting}>
+            <Button
+              color="primary"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
               {submitting ? "Saving..." : "Create Template"}
             </Button>
           </div>
         </ModalBody>
       </Modal>
 
-      <Modal isOpen={categoryModalOpen} toggle={() => setCategoryModalOpen(false)} centered>
+      <Modal
+        isOpen={categoryModalOpen}
+        toggle={() => setCategoryModalOpen(false)}
+        centered
+      >
         <ModalBody className="p-4">
           <h5 className="mb-3">Add New Category</h5>
           <Label>
@@ -503,22 +614,38 @@ const TaskTemplate = () => {
             onChange={(e) => setNewCategoryDesc(e.target.value)}
           />
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button color="light" onClick={() => setCategoryModalOpen(false)} disabled={savingCategory}>
+            <Button
+              color="light"
+              onClick={() => setCategoryModalOpen(false)}
+              disabled={savingCategory}
+            >
               Cancel
             </Button>
-            <Button color="primary" onClick={handleSaveCategory} disabled={savingCategory}>
+            <Button
+              color="primary"
+              onClick={handleSaveCategory}
+              disabled={savingCategory}
+            >
               {savingCategory ? "Saving..." : "Add Category"}
             </Button>
           </div>
         </ModalBody>
       </Modal>
 
-      <Modal isOpen={!!detailModal} toggle={() => setDetailModal(null)} centered size="md">
+      <Modal
+        isOpen={!!detailModal}
+        toggle={() => setDetailModal(null)}
+        centered
+        size="md"
+      >
         <ModalBody className="p-0">
           {detailModal && (
             <>
               {/* Header strip */}
-              <div className="p-4 pb-3" style={{ borderBottom: "1px solid #f1f3f5" }}>
+              <div
+                className="p-4 pb-3"
+                style={{ borderBottom: "1px solid #f1f3f5" }}
+              >
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
                     <h5 className="mb-1">{detailModal.templateName}</h5>
@@ -537,7 +664,8 @@ const TaskTemplate = () => {
                       <span
                         className={`uom-status-pill ${detailModal.active ? "status-active" : "status-inactive"}`}
                       >
-                        <span className="dot"></span> {detailModal.active ? "Active" : "Inactive"}
+                        <span className="dot"></span>{" "}
+                        {detailModal.active ? "Active" : "Inactive"}
                       </span>
                     </div>
                   </div>
@@ -546,22 +674,30 @@ const TaskTemplate = () => {
                       Est. Cost
                     </div>
                     <div className="fs-5 fw-bold text-primary">
-                      {detailModal.estimatedCost > 0 ? `₹${detailModal.estimatedCost}` : "—"}
+                      {detailModal.estimatedCost > 0
+                        ? `₹${detailModal.estimatedCost}`
+                        : "—"}
                     </div>
                   </div>
                 </div>
                 {detailModal.description && (
-                  <p className="text-muted small mt-2 mb-0">{detailModal.description}</p>
+                  <p className="text-muted small mt-2 mb-0">
+                    {detailModal.description}
+                  </p>
                 )}
                 <div className="d-flex align-items-center gap-1 text-muted small mt-2">
                   <i className="bx bx-time-five"></i>
-                  Est. {Math.floor(detailModal.estimatedDurationMinutes / 60)}h{" "}
-                  {detailModal.estimatedDurationMinutes % 60}m
+                  Est. {Math.floor(
+                    detailModal.estimatedDurationMinutes / 60,
+                  )}h {detailModal.estimatedDurationMinutes % 60}m
                 </div>
               </div>
 
               {/* Checklist sections */}
-              <div className="px-4 py-3" style={{ maxHeight: 420, overflowY: "auto" }}>
+              <div
+                className="px-4 py-3"
+                style={{ maxHeight: 420, overflowY: "auto" }}
+              >
                 {detailModal.sections.map((section, idx) => (
                   <div key={idx} className="mb-3">
                     <div
@@ -589,11 +725,17 @@ const TaskTemplate = () => {
                         <div
                           key={i}
                           className="d-flex justify-content-between align-items-center p-2"
-                          style={{ background: "#fafbfc", borderRadius: 8, fontSize: 13 }}
+                          style={{
+                            background: "#fafbfc",
+                            borderRadius: 8,
+                            fontSize: 13,
+                          }}
                         >
                           <span>
                             {item.label}
-                            {item.required && <span className="text-danger"> *</span>}
+                            {item.required && (
+                              <span className="text-danger"> *</span>
+                            )}
                           </span>
                           <span
                             className="text-muted text-capitalize"
@@ -613,7 +755,10 @@ const TaskTemplate = () => {
                 ))}
               </div>
 
-              <div className="d-flex justify-content-end p-3" style={{ borderTop: "1px solid #f1f3f5" }}>
+              <div
+                className="d-flex justify-content-end p-3"
+                style={{ borderTop: "1px solid #f1f3f5" }}
+              >
                 <Button color="light" onClick={() => setDetailModal(null)}>
                   Close
                 </Button>

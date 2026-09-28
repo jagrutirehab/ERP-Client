@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import DataTable from "react-data-table-component";
 import { Button, Input } from "reactstrap";
 import { toast } from "react-toastify";
-import { getGRNsForPutaway, getPutaways } from "../../../../helpers/backend_helper";
+import {
+  getGRNsForPutaway,
+  getPutaways,
+} from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
@@ -11,7 +14,11 @@ const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
 
 const tableCustomStyles = {
   headRow: {
-    style: { backgroundColor: "#fff", borderBottom: "1px solid #edeff3", minHeight: "44px" },
+    style: {
+      backgroundColor: "#fff",
+      borderBottom: "1px solid #edeff3",
+      minHeight: "44px",
+    },
   },
   headCells: { style: { fontSize: "13px", fontWeight: 600, color: "#475569" } },
   rows: {
@@ -27,7 +34,9 @@ const tableCustomStyles = {
       outline: "none",
     },
   },
-  pagination: { style: { borderTopColor: "#edeff3", fontSize: "13px", color: "#667085" } },
+  pagination: {
+    style: { borderTopColor: "#edeff3", fontSize: "13px", color: "#667085" },
+  },
 };
 
 const SummaryCard = ({ label, sub, value }) => (
@@ -65,7 +74,11 @@ const PutawayList = ({ onAdd }) => {
       } catch (error) {
         if (cancelled) return;
         if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Couldn't load data.");
+          toast.error(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Couldn't load data.",
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -85,18 +98,31 @@ const PutawayList = ({ onAdd }) => {
   }).length;
 
   const pendingColumns = [
-    { name: "GRN #", selector: (row) => row.grnNumber, sortable: true, width: "160px" },
+    {
+      name: "GRN #",
+      selector: (row) => row.grnNumber,
+      sortable: true,
+      width: "160px",
+    },
     {
       name: "PO #",
-      cell: (row) => <span className="uom-cell-muted">{row.poId?.poNumber || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.poId?.poNumber || "—"}</span>
+      ),
     },
     {
       name: "Delivery Site",
-      cell: (row) => <span className="uom-cell-muted">{row.poId?.deliverySiteId?.title || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">
+          {row.poId?.deliverySiteId?.title || "—"}
+        </span>
+      ),
     },
     {
       name: "Received Date",
-      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.receivedDate)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{dateFmt(row.receivedDate)}</span>
+      ),
     },
     {
       name: "Actions",
@@ -110,28 +136,43 @@ const PutawayList = ({ onAdd }) => {
   ];
 
   const allColumns = [
-    { name: "Putaway #", selector: (row) => row.putawayNumber, sortable: true, width: "160px" },
+    {
+      name: "Putaway #",
+      selector: (row) => row.putawayNumber,
+      sortable: true,
+      width: "160px",
+    },
     {
       name: "Reference",
-      cell: (row) => <span className="uom-cell-muted">{row.grnId?.grnNumber || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.grnId?.grnNumber || "—"}</span>
+      ),
     },
-        {
+    {
       name: "Location(s)",
       cell: (row) => {
         const names = (row.lineItems || [])
           .map((li) => li.storageLocationId?.name)
           .filter(Boolean);
-        return <span className="uom-cell-muted small">{names.join(", ") || "—"}</span>;
+        return (
+          <span className="uom-cell-muted small">
+            {names.join(", ") || "—"}
+          </span>
+        );
       },
     },
     {
       name: "Items",
       width: "90px",
-      cell: (row) => <span className="uom-cell-muted">{row.lineItems?.length || 0}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.lineItems?.length || 0}</span>
+      ),
     },
     {
       name: "Created",
-      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.createdAt)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{dateFmt(row.createdAt)}</span>
+      ),
     },
   ];
 
@@ -145,10 +186,21 @@ const PutawayList = ({ onAdd }) => {
       </div>
 
       <div className="d-flex gap-3 mb-4">
-        <SummaryCard label="Pending GRNs" sub="To Action" value={pendingGRNs.length} />
-        <SummaryCard label="Drafts" sub="—" value={0} />
-        <SummaryCard label="Pending Appr" sub="—" value={0} />
-        <SummaryCard label="Done Today" sub="Completed" value={doneToday} />
+        <SummaryCard
+          label="Pending GRNs"
+          sub="Awaiting putaway"
+          value={pendingGRNs.length}
+        />
+        <SummaryCard
+          label="Total Putaways"
+          sub="All time"
+          value={putaways.length}
+        />
+        <SummaryCard
+          label="Done Today"
+          sub="Completed today"
+          value={doneToday}
+        />
       </div>
 
       <div className="d-flex gap-2 mb-3">
@@ -158,7 +210,10 @@ const PutawayList = ({ onAdd }) => {
         >
           Pending GRNs
         </Button>
-        <Button color={tab === "all" ? "primary" : "light"} onClick={() => setTab("all")}>
+        <Button
+          color={tab === "all" ? "primary" : "light"}
+          onClick={() => setTab("all")}
+        >
           All Records
         </Button>
       </div>

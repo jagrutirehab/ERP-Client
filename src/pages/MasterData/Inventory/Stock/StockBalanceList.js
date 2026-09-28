@@ -294,49 +294,75 @@ const StockBalanceList = () => {
                     overflowY: "auto",
                   }}
                 >
-                  <table className="table mb-0">
-                    <thead>
-                      <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th className="text-end">Qty</th>
-                        <th className="text-end">Balance After</th>
-                        <th>Reference</th>
-                        <th>Remarks</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {ledgerRows.map((row) => (
-                        <tr key={row._id}>
-                          <td className="text-muted small">
-                            {dateFmt(row.transactionDate)}
-                          </td>
-                          <td>
+                  <div className="d-flex flex-column gap-2">
+                    {ledgerRows.map((row) => (
+                      <div
+                        key={row._id}
+                        className="p-3"
+                        style={{
+                          background: "#fafbfc",
+                          borderRadius: 10,
+                          border: "1px solid #f1f3f5",
+                        }}
+                      >
+                        <div className="d-flex justify-content-between align-items-start mb-2">
+                          <div className="d-flex align-items-center gap-2">
                             <span
                               className={`uom-status-pill ${row.transactionType === "in" ? "status-active" : "status-blacklisted"}`}
                             >
                               <span className="dot"></span>
-                              {row.transactionType === "in" ? "IN" : "OUT"}
+                              {row.transactionType === "in"
+                                ? "Stock IN"
+                                : "Stock OUT"}
                             </span>
-                          </td>
-                          <td className="text-end fw-semibold">
+                            <span
+                              className="text-muted text-capitalize"
+                              style={{
+                                fontSize: 11,
+                                background: "#eef0f4",
+                                padding: "2px 8px",
+                                borderRadius: 20,
+                              }}
+                            >
+                              {row.referenceType?.replace("_", " ")}
+                            </span>
+                          </div>
+                          <span
+                            className={`fw-bold fs-6 ${row.transactionType === "in" ? "text-success" : "text-danger"}`}
+                          >
                             {row.transactionType === "in" ? "+" : "-"}
                             {row.quantity}
-                          </td>
-                          <td className="text-end fw-semibold">
+                          </span>
+                        </div>
+
+                        <div className="d-flex justify-content-between align-items-center">
+                          <div className="text-muted small">
+                            <i className="bx bx-hash"></i> {row.referenceNumber}
+                          </div>
+                          <div className="text-muted small">
+                            <i className="bx bx-time-five"></i>{" "}
+                            {dateFmt(row.transactionDate)}
+                          </div>
+                        </div>
+
+                        {row.remarks && (
+                          <div
+                            className="text-muted small mt-2 pt-2"
+                            style={{ borderTop: "1px dashed #e5e7eb" }}
+                          >
+                            {row.remarks}
+                          </div>
+                        )}
+
+                        <div className="text-end mt-2" style={{ fontSize: 12 }}>
+                          <span className="text-muted">Balance after: </span>
+                          <span className="fw-semibold">
                             {row.balanceAfter}
-                          </td>
-                          <td className="small text-muted text-capitalize">
-                            {row.referenceType?.replace("_", " ")} ·{" "}
-                            {row.referenceNumber}
-                          </td>
-                          <td className="small text-muted">
-                            {row.remarks || "—"}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                          </span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
 

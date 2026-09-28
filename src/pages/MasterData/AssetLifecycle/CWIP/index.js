@@ -93,7 +93,11 @@ const CWIP = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong",
+        );
       }
     } finally {
       setSubmitting(false);
@@ -107,34 +111,61 @@ const CWIP = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't update.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't update.",
+        );
       }
     }
   };
 
   const columns = [
-    { name: "CWIP #", selector: (row) => row.cwipNumber, sortable: true, width: "150px" },
+    {
+      name: "CWIP #",
+      selector: (row) => row.cwipNumber,
+      sortable: true,
+      width: "150px",
+    },
     { name: "Item", selector: (row) => row.itemName },
     {
       name: "Total Cost",
-      cell: (row) => <span className="uom-cell-primary">{money(row.totalCost)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-primary">{money(row.totalCost)}</span>
+      ),
     },
     {
       name: "Site",
-      cell: (row) => <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>
+      ),
     },
-    { name: "Status", width: "170px", cell: (row) => <StatusPill status={row.status} /> },
+    {
+      name: "Status",
+      width: "170px",
+      cell: (row) => <StatusPill status={row.status} />,
+    },
     {
       name: "Started",
-      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.installationStartDate)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">
+          {dateFmt(row.installationStartDate)}
+        </span>
+      ),
     },
     {
       name: "Actions",
       right: true,
+      width: "150px",
       cell: (row) =>
         row.status === "in_progress" && (
-          <Button size="sm" color="success" onClick={() => handleMarkReady(row._id)}>
-            Mark Installation Complete
+          <Button
+            size="sm"
+            color="success"
+            style={{ fontSize: 12, padding: "4px 10px", whiteSpace: "nowrap" }}
+            onClick={() => handleMarkReady(row._id)}
+          >
+            Mark Ready
           </Button>
         ),
     },
@@ -158,7 +189,9 @@ const CWIP = () => {
         {!loading && pendingRequests.length === 0 && (
           <div className="uom-empty-state">
             <p className="uom-empty-title">Nothing pending</p>
-            <p className="uom-empty-sub">All approved requests already have a CWIP record.</p>
+            <p className="uom-empty-sub">
+              All approved requests already have a CWIP record.
+            </p>
           </div>
         )}
 
@@ -203,7 +236,8 @@ const CWIP = () => {
           <div className="uom-table-card p-3 mb-3">
             <div className="fw-semibold">{selectedRequest.itemName}</div>
             <div className="text-muted small">
-              Qty {selectedRequest.quantity} · Total Cost {money(selectedRequest.totalCost)}
+              Qty {selectedRequest.quantity} · Total Cost{" "}
+              {money(selectedRequest.totalCost)}
             </div>
           </div>
 
@@ -216,13 +250,26 @@ const CWIP = () => {
           />
 
           <Label>Remarks</Label>
-          <Input type="textarea" rows={2} value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+          <Input
+            type="textarea"
+            rows={2}
+            value={remarks}
+            onChange={(e) => setRemarks(e.target.value)}
+          />
 
           <div className="uom-form-footer d-flex justify-content-end gap-2 mt-3">
-            <Button color="light" onClick={() => setView("list")} disabled={submitting}>
+            <Button
+              color="light"
+              onClick={() => setView("list")}
+              disabled={submitting}
+            >
               Cancel
             </Button>
-            <Button color="primary" onClick={handleSubmit} disabled={submitting}>
+            <Button
+              color="primary"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
               {submitting ? "Saving..." : "Create CWIP"}
             </Button>
           </div>
@@ -255,7 +302,9 @@ const CWIP = () => {
           progressPending={loading}
           pagination
           highlightOnHover
-          noDataComponent={<div className="uom-empty-state">No CWIP records yet</div>}
+          noDataComponent={
+            <div className="uom-empty-state">No CWIP records yet</div>
+          }
         />
       </div>
     </div>

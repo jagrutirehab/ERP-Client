@@ -297,11 +297,12 @@ const PMSchedule = () => {
           <p className="text-muted small mb-3">
             Set up recurring preventive maintenance
           </p>
-
           <h6 className="fw-semibold mb-3">Asset Selection</h6>
           <Row>
             <Col md={6} className="mb-3">
-              <Label>Site</Label>
+              <Label>
+                Site <span className="text-danger">*</span>
+              </Label>{" "}
               <Input
                 type="select"
                 value={centerId}
@@ -316,7 +317,9 @@ const PMSchedule = () => {
               </Input>
             </Col>
             <Col md={6} className="mb-3">
-              <Label>Asset</Label>
+              <Label>
+                Asset <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={assetId}
@@ -334,18 +337,20 @@ const PMSchedule = () => {
               </Input>
             </Col>
           </Row>
-
           <h6 className="fw-semibold mb-3">Schedule Configuration</h6>
-          <Label>Schedule Name</Label>
+          <Label>
+            Schedule Name <span className="text-danger">*</span>
+          </Label>{" "}
           <Input
             className="mb-3"
             value={scheduleName}
             onChange={(e) => setScheduleName(e.target.value)}
           />
-
           <Row>
             <Col md={3} className="mb-3">
-              <Label>Frequency Value</Label>
+              <Label>
+                Frequency Value <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="number"
                 min={1}
@@ -354,7 +359,9 @@ const PMSchedule = () => {
               />
             </Col>
             <Col md={3} className="mb-3">
-              <Label>Frequency Unit</Label>
+              <Label>
+                Frequency Unit <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={frequencyUnit}
@@ -368,7 +375,9 @@ const PMSchedule = () => {
               </Input>
             </Col>
             <Col md={3} className="mb-3">
-              <Label>Priority</Label>
+              <Label>
+                Priority <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={priority}
@@ -382,7 +391,9 @@ const PMSchedule = () => {
               </Input>
             </Col>
             <Col md={3} className="mb-3">
-              <Label>Start Date</Label>
+              <Label>
+                Start Date <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="date"
                 value={startDate}
@@ -390,7 +401,6 @@ const PMSchedule = () => {
               />
             </Col>
           </Row>
-
           <h6 className="fw-semibold mb-3">Task Details</h6>
           <Label>
             Task Template (Optional — auto-fills description & estimates)
@@ -408,7 +418,6 @@ const PMSchedule = () => {
               </option>
             ))}
           </Input>
-
           <Label>Task Description</Label>
           <Input
             type="textarea"
@@ -417,7 +426,6 @@ const PMSchedule = () => {
             value={taskDescription}
             onChange={(e) => setTaskDescription(e.target.value)}
           />
-
           <h6 className="fw-semibold mb-3">Assignment & Estimates</h6>
           <Row>
             <Col md={6} className="mb-3">
@@ -439,7 +447,6 @@ const PMSchedule = () => {
               />
             </Col>
           </Row>
-
           <h6 className="fw-semibold mb-3">Automation Settings</h6>
           <Row>
             <Col md={6} className="mb-3">
@@ -461,7 +468,6 @@ const PMSchedule = () => {
               />
             </Col>
           </Row>
-
           <div className="form-check form-switch mb-4">
             <input
               className="form-check-input"
@@ -474,7 +480,6 @@ const PMSchedule = () => {
               Auto-generate work orders (recommended for PM automation)
             </label>
           </div>
-
           <div className="d-flex justify-content-end gap-2">
             <Button
               color="light"

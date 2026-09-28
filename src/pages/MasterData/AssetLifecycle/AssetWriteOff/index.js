@@ -106,19 +106,30 @@ const AssetWriteOffRequest = () => {
   };
 
   const updateItem = (idx, field, value) => {
-    setItems((prev) => prev.map((it, i) => (i === idx ? { ...it, [field]: value } : it)));
+    setItems((prev) =>
+      prev.map((it, i) => (i === idx ? { ...it, [field]: value } : it)),
+    );
   };
   const addItem = () => setItems((prev) => [...prev, emptyItem()]);
-  const removeItem = (idx) => setItems((prev) => prev.filter((_, i) => i !== idx));
+  const removeItem = (idx) =>
+    setItems((prev) => prev.filter((_, i) => i !== idx));
 
-  const totalEstValue = items.reduce((sum, it) => sum + (Number(it.estValue) || 0), 0);
+  const totalEstValue = items.reduce(
+    (sum, it) => sum + (Number(it.estValue) || 0),
+    0,
+  );
 
   const handleSubmit = async () => {
-    if (!centerId || !title.trim()) return toast.error("Fill in Site and Title");
+    if (!centerId || !title.trim())
+      return toast.error("Fill in Site and Title");
     const invalid = items.find((it) => !it.assetId || !it.reason.trim());
-    if (invalid) return toast.error("Select an asset and enter a reason for every item");
-    const invalidSale = items.find((it) => it.disposalType === "sale" && !it.buyerName.trim());
-    if (invalidSale) return toast.error("Enter Buyer Name for items marked as Sale");
+    if (invalid)
+      return toast.error("Select an asset and enter a reason for every item");
+    const invalidSale = items.find(
+      (it) => it.disposalType === "sale" && !it.buyerName.trim(),
+    );
+    if (invalidSale)
+      return toast.error("Enter Buyer Name for items marked as Sale");
 
     setSubmitting(true);
     try {
@@ -139,7 +150,11 @@ const AssetWriteOffRequest = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong",
+        );
       }
     } finally {
       setSubmitting(false);
@@ -153,7 +168,11 @@ const AssetWriteOffRequest = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't approve.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't approve.",
+        );
       }
     }
   };
@@ -161,29 +180,44 @@ const AssetWriteOffRequest = () => {
   const confirmReject = async () => {
     if (!rejectReason.trim()) return toast.error("Provide a rejection reason");
     try {
-      await rejectAssetWriteOffRequest(rejectTarget._id, { rejectionReason: rejectReason });
+      await rejectAssetWriteOffRequest(rejectTarget._id, {
+        rejectionReason: rejectReason,
+      });
       toast.success("Request rejected");
       setRejectTarget(null);
       setRejectReason("");
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't reject.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't reject.",
+        );
       }
     }
   };
 
   const columns = [
-    { name: "Scrap ID", selector: (row) => row.requestNumber, sortable: true, width: "150px" },
+    {
+      name: "Scrap ID",
+      selector: (row) => row.requestNumber,
+      sortable: true,
+      width: "150px",
+    },
     { name: "Title", selector: (row) => row.title },
     {
       name: "Site",
-      cell: (row) => <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>
+      ),
     },
     {
       name: "Items",
       width: "80px",
-      cell: (row) => <span className="uom-cell-muted">{row.items?.length || 0}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.items?.length || 0}</span>
+      ),
     },
     {
       name: "Est. Value",
@@ -193,10 +227,16 @@ const AssetWriteOffRequest = () => {
         </span>
       ),
     },
-    { name: "Status", width: "120px", cell: (row) => <StatusPill status={row.status} /> },
+    {
+      name: "Status",
+      width: "120px",
+      cell: (row) => <StatusPill status={row.status} />,
+    },
     {
       name: "Date",
-      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.createdAt)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{dateFmt(row.createdAt)}</span>
+      ),
     },
     {
       name: "Actions",
@@ -206,10 +246,19 @@ const AssetWriteOffRequest = () => {
         row.status === "pending" &&
         canApprove && (
           <div className="d-flex gap-2">
-            <Button size="sm" color="success" onClick={() => handleApprove(row._id)}>
+            <Button
+              size="sm"
+              color="success"
+              onClick={() => handleApprove(row._id)}
+            >
               Approve
             </Button>
-            <Button size="sm" color="danger" outline onClick={() => setRejectTarget(row)}>
+            <Button
+              size="sm"
+              color="danger"
+              outline
+              onClick={() => setRejectTarget(row)}
+            >
               Reject
             </Button>
           </div>
@@ -222,7 +271,9 @@ const AssetWriteOffRequest = () => {
       <div className="uom-list-header">
         <div>
           <h4>Asset Write-off / Scrap Requests</h4>
-          <p>Submit a request to write off, scrap, or sell capitalized assets</p>
+          <p>
+            Submit a request to write off, scrap, or sell capitalized assets
+          </p>
         </div>
       </div>
 
@@ -241,11 +292,18 @@ const AssetWriteOffRequest = () => {
           progressPending={loading}
           pagination
           highlightOnHover
-          noDataComponent={<div className="uom-empty-state">No write-off requests yet</div>}
+          noDataComponent={
+            <div className="uom-empty-state">No write-off requests yet</div>
+          }
         />
       </div>
 
-      <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} centered size="lg">
+      <Modal
+        isOpen={modalOpen}
+        toggle={() => setModalOpen(false)}
+        centered
+        size="lg"
+      >
         <ModalBody className="p-4">
           <h5 className="mb-1">Create Write-off Request</h5>
           <p className="text-muted small mb-3">
@@ -255,12 +313,20 @@ const AssetWriteOffRequest = () => {
           <h6 className="fw-semibold mb-3">Basic Details</h6>
           <Row>
             <Col md={6} className="mb-3">
-              <Label>Scrap Title</Label>
+              <Label>
+                Scrap Title <span className="text-danger">*</span>
+              </Label>
               <Input value={title} onChange={(e) => setTitle(e.target.value)} />
             </Col>
             <Col md={6} className="mb-3">
-              <Label>Source Site</Label>
-              <Input type="select" value={centerId} onChange={(e) => handleCenterChange(e.target.value)}>
+              <Label>
+                Source Site <span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="select"
+                value={centerId}
+                onChange={(e) => handleCenterChange(e.target.value)}
+              >
                 <option value="">Select source site</option>
                 {centers.map((c) => (
                   <option key={c._id} value={c._id}>
@@ -286,20 +352,29 @@ const AssetWriteOffRequest = () => {
             <div key={idx} className="uom-table-card p-3 mb-3">
               <div className="d-flex justify-content-between mb-2">
                 <div className="fw-semibold small">Item #{idx + 1}</div>
-                <Button size="sm" color="light" disabled={items.length === 1} onClick={() => removeItem(idx)}>
+                <Button
+                  size="sm"
+                  color="light"
+                  disabled={items.length === 1}
+                  onClick={() => removeItem(idx)}
+                >
                   <i className="bx bx-trash text-danger"></i>
                 </Button>
               </div>
               <Row>
                 <Col md={6} className="mb-2">
-                  <Label className="small">Item</Label>
+                  <Label className="small">
+                    Item <span className="text-danger">*</span>
+                  </Label>
                   <Input
                     type="select"
                     value={it.assetId}
                     disabled={!centerId}
                     onChange={(e) => updateItem(idx, "assetId", e.target.value)}
                   >
-                    <option value="">{!centerId ? "Select site first" : "Select asset"}</option>
+                    <option value="">
+                      {!centerId ? "Select site first" : "Select asset"}
+                    </option>
                     {assets.map((a) => (
                       <option key={a._id} value={a._id}>
                         {a.assetName} ({a.assetTag})
@@ -308,11 +383,16 @@ const AssetWriteOffRequest = () => {
                   </Input>
                 </Col>
                 <Col md={3} className="mb-2">
-                  <Label className="small">Disposal Type</Label>
+                  {" "}
+                  <Label className="small">
+                    Disposal Type <span className="text-danger">*</span>
+                  </Label>
                   <Input
                     type="select"
                     value={it.disposalType}
-                    onChange={(e) => updateItem(idx, "disposalType", e.target.value)}
+                    onChange={(e) =>
+                      updateItem(idx, "disposalType", e.target.value)
+                    }
                   >
                     <option value="write_off">Write-off / Scrap</option>
                     <option value="sale">Sale</option>
@@ -324,21 +404,32 @@ const AssetWriteOffRequest = () => {
                     type="number"
                     min={0}
                     value={it.estValue}
-                    onChange={(e) => updateItem(idx, "estValue", e.target.value)}
+                    onChange={(e) =>
+                      updateItem(idx, "estValue", e.target.value)
+                    }
                   />
                 </Col>
               </Row>
               <Row>
                 <Col md={it.disposalType === "sale" ? 6 : 12} className="mb-2">
-                  <Label className="small">Write-off Reason</Label>
-                  <Input value={it.reason} onChange={(e) => updateItem(idx, "reason", e.target.value)} />
+                  <Label className="small">
+                    Write-off Reason <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    value={it.reason}
+                    onChange={(e) => updateItem(idx, "reason", e.target.value)}
+                  />
                 </Col>
                 {it.disposalType === "sale" && (
                   <Col md={6} className="mb-2">
-                    <Label className="small">Buyer Name</Label>
+                    <Label className="small">
+                      Buyer Name <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       value={it.buyerName}
-                      onChange={(e) => updateItem(idx, "buyerName", e.target.value)}
+                      onChange={(e) =>
+                        updateItem(idx, "buyerName", e.target.value)
+                      }
                     />
                   </Col>
                 )}
@@ -352,7 +443,10 @@ const AssetWriteOffRequest = () => {
             </Button>
           </div>
 
-          <div className="uom-table-card p-3 mb-4" style={{ maxWidth: 320, marginLeft: "auto" }}>
+          <div
+            className="uom-table-card p-3 mb-4"
+            style={{ maxWidth: 320, marginLeft: "auto" }}
+          >
             <div className="d-flex justify-content-between">
               <span className="text-muted small">Total estimated value</span>
               <span className="fw-bold">{money(totalEstValue)}</span>
@@ -360,7 +454,11 @@ const AssetWriteOffRequest = () => {
           </div>
 
           <div className="d-flex justify-content-end gap-2">
-            <Button color="light" onClick={() => setModalOpen(false)} disabled={submitting}>
+            <Button
+              color="light"
+              onClick={() => setModalOpen(false)}
+              disabled={submitting}
+            >
               Cancel
             </Button>
             <Button color="danger" onClick={handleSubmit} disabled={submitting}>
@@ -370,7 +468,11 @@ const AssetWriteOffRequest = () => {
         </ModalBody>
       </Modal>
 
-      <Modal isOpen={!!rejectTarget} toggle={() => setRejectTarget(null)} centered>
+      <Modal
+        isOpen={!!rejectTarget}
+        toggle={() => setRejectTarget(null)}
+        centered
+      >
         <ModalBody className="p-4">
           <h5 className="mb-3">Reject Request</h5>
           <Label>Reason</Label>

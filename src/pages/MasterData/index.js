@@ -36,7 +36,7 @@ import TaskTemplate from "./AssetLifecycle/TaskTemplate";
 import PMSchedule from "./AssetLifecycle/PMSchedule";
 import MaintenanceJob from "./AssetLifecycle/MaintenanceJob";
 import LocationStock from "./Inventory/LocationStock";
-import AssetTransfer from "./AssetLifecycle/AssetTransfer";
+import AssetTransferRequest from "./AssetLifecycle/AssetTransfer";
 import VendorInvoice from "./Finance/VendorInvoice";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
@@ -151,7 +151,7 @@ const MasterData = () => {
     "TASK_TEMPLATE",
     "READ",
   );
-   
+
   const canViewMaintenanceJob = hasPermission(
     "MASTERDATA",
     "MAINTENANCE_JOB",
@@ -259,7 +259,10 @@ const MasterData = () => {
                 element={<MaintenanceRequest />}
               />
               <Route path="work-order/*" element={<WorkOrder />} />
-              <Route path="asset-transfer/*" element={<AssetTransfer />} />
+              <Route
+                path="asset-transfer/*"
+                element={<AssetTransferRequest />}
+              />{" "}
               <Route
                 path="asset-writeoff/*"
                 element={<AssetWriteOffRequest />}
