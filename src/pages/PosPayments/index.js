@@ -48,11 +48,6 @@ const rememberPageSize = (size) => {
 
 const todayValue = () => format(new Date(), "yyyy-MM-dd");
 
-/**
- * Tiles double as the status filter. Each one is the count for that state
- * across the chosen centre and dates, so narrowing the table never hides how
- * much else is going on.
- */
 const TILES = [
   { key: "ALL", countKey: "all", label: "All", color: "secondary" },
   { key: "APPROVED", countKey: "approved", label: "Approved", color: "success" },
@@ -107,12 +102,9 @@ const PosPayments = ({ centers, centerAccess }) => {
     (centerAccess || []).includes(c._id),
   );
 
-  // The navbar's centre picker. Joined rather than passed as an array so it
-  // survives the query-string builder, which stringifies arrays anyway.
-  const scopeIds = (centerAccess || []).join(",");
+  const hasScope = Array.isArray(centerAccess);
+  const scopeIds = hasScope ? centerAccess.join(",") : null;
 
-  // A centre chosen here but since dropped from the navbar selection would
-  // otherwise keep showing rows the user just filtered away.
   useEffect(() => {
     if (!centerId) return;
     if (!(centerAccess || []).includes(centerId)) {
@@ -124,7 +116,7 @@ const PosPayments = ({ centers, centerAccess }) => {
   const load = useCallback(async () => {
     try {
       const response = await getPosTransactions({
-        ...(scopeIds ? { centerIds: scopeIds } : {}),
+        ...(hasScope ? { centerIds: scopeIds } : {}),
         ...(centerId ? { centerId } : {}),
         ...(status && status !== "ALL" ? { status } : {}),
         ...(from ? { from } : {}),
@@ -136,8 +128,6 @@ const PosPayments = ({ centers, centerAccess }) => {
       setRows(response.payload || []);
       setCounts(response.counts || {});
       setTotal(response.total || 0);
-      // The server clamps an out-of-range page, so follow it back rather than
-      // leaving the control pointing at a page that does not exist.
       if (response.page && response.page !== page) setPage(response.page);
       setError(null);
     } catch (err) {
@@ -146,7 +136,7 @@ const PosPayments = ({ centers, centerAccess }) => {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [scopeIds, centerId, status, from, to, page, perPage]);
+  }, [hasScope, scopeIds, centerId, status, from, to, page, perPage]);
 
   useEffect(() => {
     setLoading(true);
@@ -155,8 +145,6 @@ const PosPayments = ({ centers, centerAccess }) => {
     return () => clearInterval(timer);
   }, [load]);
 
-  // Any filter change restarts paging, otherwise page 3 of a narrower result
-  // set looks empty.
   const applyFilter = (setter) => (value) => {
     setter(value);
     setPage(1);
@@ -296,9 +284,6 @@ const PosPayments = ({ centers, centerAccess }) => {
                   </Alert>
                 )}
 
-                {/* Paging and the page-size picker are the table's own, and
-                    every change refetches from the server — only one page of
-                    rows is ever in memory. */}
                 <PosTransactionTable
                   rows={rows}
                   loading={loading}
