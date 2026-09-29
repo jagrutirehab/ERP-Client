@@ -396,6 +396,8 @@ export const getSearchPatients = (query) =>
     params: {
       centerIds: query?.centerAccess,
       name: query.name,
+      centerId: query?.centerId,
+      admittedOnly: query?.admittedOnly,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });

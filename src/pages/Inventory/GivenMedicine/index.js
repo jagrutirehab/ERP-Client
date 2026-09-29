@@ -18,7 +18,7 @@ import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCenters } from "../../../store/actions";
 import { Button } from "../Components/Button";
-import { Card, CardBody, Col, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
+import { Card, CardBody, Col, Input, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
 import GiveMedicine from "../GiveMedicine";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
@@ -37,6 +37,8 @@ const GivenMedicine = () => {
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [modalOpengive, setModalOpengive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [reportDate, setReportDate] = useState({
     start: startOfDay(new Date()),
     end: endOfDay(new Date()),
@@ -173,13 +175,22 @@ const GivenMedicine = () => {
   };
 
   useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  useEffect(() => {
     fetchGivenMedicines({
       page: currentPage,
       limit: pageSize,
       centers,
+      q: debouncedSearch,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize, selectedCenter, user?.centerAccess, reportDate]);
+  }, [currentPage, pageSize, selectedCenter, user?.centerAccess, reportDate, debouncedSearch]);
 
   const handlePageSizeChange = (e) => {
     const newSize = parseInt(e.target.value, 10);
@@ -250,7 +261,16 @@ const GivenMedicine = () => {
               classNamePrefix="react-select"
             />
               </Col>
-              <Col md={8} lg={9}>
+              <Col md={4} lg={3}>
+                <Input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search by patient name or UID..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </Col>
+              <Col md={4} lg={6}>
                 <Header
                   reportDate={reportDate}
                   setReportDate={(newDate) => {
@@ -309,11 +329,10 @@ const GivenMedicine = () => {
                         .replace(/am|pm/g, (match) => match.toUpperCase())}
                     </TableCell>
                     <TableCell>
-                      {display(
-                        item?.patientId?.name
-                          ? item.patientId.name.toUpperCase()
-                          : "Unassigned"
-                      )}
+                      {item?.patientId?.name
+                        ? `${item.patientId.name.toUpperCase()}${item.patientId.uid ? ` (${item.patientId.uid})` : ""
+                        }`
+                        : display("Unassigned")}
                     </TableCell>
                     <TableCell>
                       {display(item?.centerInfo?.title || "-")}

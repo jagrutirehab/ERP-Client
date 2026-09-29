@@ -22,7 +22,6 @@ const Givemedicine = ({
   fetchMedicines,
   onResetPagination,
 }) => {
-  const centerAccess = useSelector((state) => state.User.centerAccess);
   const centerList = useSelector((state) => state.Center.data);
   const [selectedCenter, setSelectedCenter] = useState("");
   const [selectedMedicines, setSelectedMedicines] = useState([]);
@@ -80,8 +79,12 @@ const Givemedicine = ({
     return new Promise((resolve) => {
       patientDebounceRef.current = setTimeout(async () => {
         try {
-          const res = await getSearchPatients({ name: input, centerAccess });
-          const list = res?.data?.payload || [];
+          const res = await getSearchPatients({
+            name: input,
+            centerId: selectedCenter,
+            admittedOnly: true,
+          });
+          const list = res?.payload || [];
           resolve(
             list.map((p) => ({
               value: p._id,
@@ -106,6 +109,10 @@ const Givemedicine = ({
       toast.error("Please select at least one medicine *");
       return;
     }
+    if (!selectedPatient) {
+      toast.error("Patient is mandatory *");
+      return;
+    }
 
     const payload = {
       userId: user.user._id,
@@ -114,7 +121,7 @@ const Givemedicine = ({
         Medicine: m._id,
         quantity: m.quantity,
       })),
-      patientId: selectedPatient ? selectedPatient._id : null,
+      patientId: selectedPatient._id,
     };
 
     try {
@@ -141,7 +148,7 @@ const Givemedicine = ({
       }
     } catch (error) {
       console.error(error);
-      toast.error(error.response?.data?.message || "Server Error");
+      toast.error(error?.message || "Server Error");
     } finally {
       setLoading(false);
     }
@@ -246,12 +253,15 @@ const Givemedicine = ({
         )}
       </div>
 
-      {/* Patient (optional) */}
+      {/* Patient (mandatory) */}
       <div>
-        <label>Patient:</label>
+        <label>
+          Patient: <span style={{ color: "red" }}>*</span>
+        </label>
         {!selectedPatient ? (
           <AsyncSelect
-            placeholder="Search Patient..."
+            isDisabled={!selectedCenter}
+            placeholder={selectedCenter ? "Search Patient..." : "Select a center first"}
             noOptionsMessage={({ inputValue }) =>
               inputValue ? "No patients found" : "Type to search"
             }
