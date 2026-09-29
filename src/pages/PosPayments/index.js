@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { connect } from "react-redux";
+import { connect, useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import {
   Alert,
@@ -16,6 +16,12 @@ import {
 import { format } from "date-fns";
 
 import { getPosTransactions } from "../../helpers/backend_helper";
+import { createEditBill, setBillDate } from "../../store/actions";
+import {
+  ADVANCE_PAYMENT,
+  DEPOSIT,
+  INVOICE,
+} from "../../Components/constants/patient";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import PosTransactionTable from "./PosTransactionTable";
 import RefundModal from "./RefundModal";
@@ -61,6 +67,7 @@ const TILES = [
 
 const PosPayments = ({ centers, centerAccess }) => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
@@ -154,6 +161,75 @@ const PosPayments = ({ centers, centerAccess }) => {
     setFrom("");
     setTo("");
     setPage(1);
+  };
+
+  // Recovery for a payment the terminal took but nothing billed — usually an
+  // ERP crash mid-transaction. Rather than writing the bill from here, this
+  // hands the cashier the patient's own Deposit form with the charge already
+  // filled in and locked, so the deposit is created through exactly the same
+  // path as any other and lands in the patient's billing as usual.
+  const createBill = (row) => {
+    // An OPD receipt belongs to an appointment, not the patient's billing tab,
+    // so it reopens over the calendar instead. The procedures still have to be
+    // entered — the charge only carries the tender — but the payment row comes
+    // back filled and locked.
+    if (row.purpose === "INVOICE") {
+      if (!row.appointment) {
+        setError(
+          "This OPD charge is not linked to an appointment, so the invoice cannot be reopened automatically. Collect payment on the appointment quoting RRN " +
+            (row.result?.rrn || row.transactionNumber) +
+            ".",
+        );
+        return;
+      }
+
+      dispatch(setBillDate(new Date().toISOString()));
+      dispatch(
+        createEditBill({
+          bill: INVOICE,
+          isOpen: true,
+          type: row.billType || "OPD",
+          // The invoice form reads patient.center for its procedure list, and
+          // the dashboard row carries the centre separately.
+          patient: { ...(row.patient || {}), center: row.center },
+          center: row.center?._id || row.center,
+          appointment: { _id: row.appointment },
+          shouldPrintAfterSave: true,
+          posPrefill: row,
+        }),
+      );
+      navigate("/booking");
+      return;
+    }
+
+    const patientId = row.patient?._id || row.patient;
+    if (!patientId) {
+      setError(
+        "This payment is not linked to a patient, so a deposit cannot be raised from it.",
+      );
+      return;
+    }
+
+    // Dated to now, like any other bill raised today. Dating it back to when
+    // the terminal took the money buries it among older bills and the cashier
+    // cannot tell the save worked — the collection time is kept in the
+    // remarks and the form banner instead.
+    dispatch(setBillDate(new Date().toISOString()));
+    // Reopen the form the charge was collected on — a payment taken against
+    // an invoice belongs back on Advance Payment, not on Deposit.
+    dispatch(
+      createEditBill({
+        data: null,
+        bill: row.purpose === "ADVANCE_PAYMENT" ? ADVANCE_PAYMENT : DEPOSIT,
+        isOpen: true,
+        admission: row.addmission,
+        paymentAgainstBillNo: row.paymentAgainstBillNo,
+        // The Deposit form reads this, pre-fills the tender from it and locks
+        // the fields — see Deposit.js.
+        posPrefill: row,
+      }),
+    );
+    navigate(`/patient/${patientId}?view=BILLING`);
   };
 
   const handleChangePage = (nextPage) => setPage(nextPage);
@@ -294,6 +370,7 @@ const PosPayments = ({ centers, centerAccess }) => {
                   }
                   showRefund={canRefund}
                   onRefund={setRefundTarget}
+                  onCreateBill={createBill}
                   totalRows={total}
                   page={page}
                   perPage={perPage}

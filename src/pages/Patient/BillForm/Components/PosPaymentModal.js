@@ -106,6 +106,10 @@ const PosPaymentModal = ({
   const [notice, setNotice] = useState(null);
   const [starting, setStarting] = useState(false);
   const [cancelling, setCancelling] = useState(false);
+  // Re-renders once a second so the waiting state shows progress. A bare
+  // spinner gives no clue whether the charge is seconds old or about to be
+  // auto-cancelled, which reads as "stuck".
+  const [now, setNow] = useState(() => Date.now());
 
   const machines = terminals || [];
   // With several machines the cashier confirms which counter before anything
@@ -145,6 +149,12 @@ const PosPaymentModal = ({
           patient: context.patient,
           addmission: context.addmission,
           purpose: context.purpose || "DEPOSIT",
+          // Remembered on the charge so a payment that never got billed
+          // reopens the right form, against the right invoice.
+          billType: context.billType,
+          paymentAgainstBillNo: context.paymentAgainstBillNo,
+          appointment: context.appointment,
+          invoiceSnapshot: context.invoiceSnapshot,
           amount,
           paymentMode,
           terminalId: chosenTerminalId || undefined,
@@ -194,6 +204,12 @@ const PosPaymentModal = ({
     },
     [stopPolling],
   );
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    const tick = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(tick);
+  }, [isOpen]);
 
   // Poll while the charge is live.
   useEffect(() => {
@@ -279,6 +295,15 @@ const PosPaymentModal = ({
   // The cashier still has a counter to confirm before anything is sent.
   const awaitingChoice = mustChoose && !posTransaction && !starting;
 
+  const waitedSeconds = posTransaction?.createdAt
+    ? Math.max(0, Math.floor((now - new Date(posTransaction.createdAt)) / 1000))
+    : 0;
+  const expiresInSeconds = posTransaction?.expiresAt
+    ? Math.max(0, Math.floor((new Date(posTransaction.expiresAt) - now) / 1000))
+    : null;
+  const mmss = (total) =>
+    `${Math.floor(total / 60)}:${String(total % 60).padStart(2, "0")}`;
+
   return (
     <Modal
       isOpen={isOpen}
@@ -358,6 +383,19 @@ const PosPaymentModal = ({
                 <div className="fs-12 mt-1">
                   {posTransaction.responseMessage || copy.detail}
                 </div>
+                {pending && (
+                  <div className="fs-11 mt-2">
+                    Waiting {mmss(waitedSeconds)}
+                    {expiresInSeconds !== null && (
+                      <>
+                        {" · "}
+                        {expiresInSeconds > 0
+                          ? `auto-cancels in ${mmss(expiresInSeconds)}`
+                          : "auto-cancel window passed — settling"}
+                      </>
+                    )}
+                  </div>
+                )}
               </Alert>
             )}
 
@@ -472,6 +510,10 @@ PosPaymentModal.propTypes = {
     patient: PropTypes.string,
     addmission: PropTypes.string,
     purpose: PropTypes.string,
+    billType: PropTypes.string,
+    paymentAgainstBillNo: PropTypes.string,
+    appointment: PropTypes.string,
+    invoiceSnapshot: PropTypes.object,
   }).isRequired,
   // The centre's POS machines. One starts the charge immediately; several
   // make the cashier pick a counter first.

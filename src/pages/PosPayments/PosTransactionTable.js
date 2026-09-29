@@ -41,6 +41,14 @@ const formatWhen = (value) => {
 
 const isReversal = (row) => row.purpose === "REVERSAL";
 
+// What the charge was collected on, as the cashier would name it.
+const PURPOSE_LABEL = {
+  DEPOSIT: "Deposit",
+  ADVANCE_PAYMENT: "Advance Payment",
+  INVOICE: "Invoice",
+  REVERSAL: "Refund",
+};
+
 /**
  * The dashboard table.
  *
@@ -54,6 +62,7 @@ const PosTransactionTable = ({
   emptyText,
   onRefund,
   showRefund,
+  onCreateBill,
   totalRows,
   page,
   perPage,
@@ -95,6 +104,24 @@ const PosTransactionTable = ({
       ),
     },
     {
+      name: "For",
+      minWidth: "150px",
+      wrap: true,
+      cell: (row) => (
+        <div className="py-1">
+          <div>{PURPOSE_LABEL[row.purpose] || row.purpose || "—"}</div>
+          {row.paymentAgainstBillNo && (
+            <div className="text-muted fs-11">
+              vs {row.paymentAgainstBillNo}
+            </div>
+          )}
+          {row.billType && (
+            <div className="text-muted fs-11">{row.billType}</div>
+          )}
+        </div>
+      ),
+    },
+    {
       name: "Mode",
       width: "90px",
       selector: (row) => row.result?.paymentMode || row.requestedMode || "—",
@@ -122,6 +149,13 @@ const PosTransactionTable = ({
           <Badge color={STATUS_COLOR[row.status] || "secondary"}>
             {row.status}
           </Badge>
+          {/* A stand-in charge took no money. Without saying so it reads
+              exactly like a real one. */}
+          {row.isMock && (
+            <Badge color="warning" className="ms-1" title="Test charge — no money was taken">
+              TEST
+            </Badge>
+          )}
           {isReversal(row) && (
             <Badge color="dark" className="ms-1">
               {row.reversalKind || "REFUND"}
@@ -174,30 +208,44 @@ const PosTransactionTable = ({
         </div>
       ),
     },
-    ...(showRefund
-      ? [
-          {
-            name: "",
-            width: "110px",
-            right: true,
-            cell: (row) => {
-              if (row.reversedBy)
-                return <span className="text-muted fs-11">Reversed</span>;
-              if (row.status !== "APPROVED" || isReversal(row)) return null;
-              return (
-                <Button
-                  size="sm"
-                  outline
-                  color="danger"
-                  onClick={() => onRefund(row)}
-                >
-                  Refund
-                </Button>
-              );
-            },
-          },
-        ]
-      : []),
+    {
+      name: "",
+      width: "190px",
+      right: true,
+      cell: (row) => {
+        if (row.reversedBy)
+          return <span className="text-muted fs-11">Reversed</span>;
+        if (row.status !== "APPROVED" || isReversal(row)) return null;
+
+        return (
+          <div className="d-flex gap-1 justify-content-end">
+            {/* The terminal took this money and nothing recorded it — most
+                often an ERP crash mid-transaction. Raising the deposit here
+                is the recovery, and needs no re-charge. */}
+            {!row.consumed && (
+              <Button
+                size="sm"
+                color="primary"
+                onClick={() => onCreateBill(row)}
+                title="Open this patient's deposit form, pre-filled"
+              >
+                Bill it
+              </Button>
+            )}
+            {showRefund && (
+              <Button
+                size="sm"
+                outline
+                color="danger"
+                onClick={() => onRefund(row)}
+              >
+                Refund
+              </Button>
+            )}
+          </div>
+        );
+      },
+    },
   ];
 
   return (
@@ -234,6 +282,7 @@ PosTransactionTable.propTypes = {
   emptyText: PropTypes.string,
   onRefund: PropTypes.func,
   showRefund: PropTypes.bool,
+  onCreateBill: PropTypes.func,
   totalRows: PropTypes.number,
   page: PropTypes.number,
   perPage: PropTypes.number,
