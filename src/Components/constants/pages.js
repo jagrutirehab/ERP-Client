@@ -1851,6 +1851,21 @@ export const MASTER_DATA = [
         label: "Maintenance Jobs",
         link: "/vendor-management/maintenance-job",
       },
+      {
+        id: "asset-verification-job",
+        label: "Verification Jobs",
+        link: "/vendor-management/verification-job",
+      },
+      {
+        id: "asset-physical-verification",
+        label: "Physical Verifications",
+        link: "/vendor-management/physical-verification",
+      },
+      {
+        id: "asset-tag",
+        label: "Create Tags",
+        link: "/vendor-management/asset-tag",
+      },
     ],
   },
   {

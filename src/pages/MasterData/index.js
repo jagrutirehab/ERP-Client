@@ -35,6 +35,9 @@ import AssetWriteOffRequest from "./AssetLifecycle/AssetWriteOff";
 import TaskTemplate from "./AssetLifecycle/TaskTemplate";
 import PMSchedule from "./AssetLifecycle/PMSchedule";
 import MaintenanceJob from "./AssetLifecycle/MaintenanceJob";
+import VerificationJob from "./AssetLifecycle/VerificationJob";
+import PhysicalVerification from "./AssetLifecycle/PhysicalVerification";
+import AssetTag from "./AssetLifecycle/AssetTag";
 import LocationStock from "./Inventory/LocationStock";
 import AssetTransferRequest from "./AssetLifecycle/AssetTransfer";
 import VendorInvoice from "./Finance/VendorInvoice";
@@ -158,6 +161,22 @@ const MasterData = () => {
     "READ",
   );
   const canViewPMSchedule = hasPermission("MASTERDATA", "PM_SCHEDULE", "READ");
+
+  const canViewVerificationJob = hasPermission(
+    "MASTERDATA",
+    "VERIFICATION_JOB",
+    "READ",
+  );
+
+  const canViewPhysicalVerification = hasPermission(
+    "MASTERDATA",
+    "PHYSICAL_VERIFICATION",
+    "READ",
+  );
+
+  const canViewAssetTag = hasPermission("MASTERDATA", "ASSET_TAG", "READ");
+
+
   if (
     !canViewVendor &&
     !canViewItems &&
@@ -192,7 +211,10 @@ const MasterData = () => {
     !canViewAssetWriteOff &&
     !canViewTaskTemplate &&
     !canViewPMSchedule &&
-    !canViewMaintenanceJob
+    !canViewMaintenanceJob &&
+    !canViewVerificationJob &&
+    !canViewPhysicalVerification &&
+    !canViewAssetTag
   ) {
     return <Basic404 />;
   }
@@ -270,6 +292,9 @@ const MasterData = () => {
               <Route path="task-template/*" element={<TaskTemplate />} />
               <Route path="pm-schedule/*" element={<PMSchedule />} />
               <Route path="maintenance-job/*" element={<MaintenanceJob />} />
+              <Route path="verification-job/*" element={<VerificationJob />} />
+              <Route path="physical-verification/*" element={<PhysicalVerification />} />
+              <Route path="asset-tag/*" element={<AssetTag />} />
               <Route path="*" element={<Basic404 />} />
             </Routes>
           </div>

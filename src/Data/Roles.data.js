@@ -655,6 +655,9 @@ export const permissionList = [
       { name: "TASK_TEMPLATE", label: "Task Templates" },
       { name: "PM_SCHEDULE", label: "PM Schedules" },
       { name: "MAINTENANCE_JOB", label: "Maintenance Jobs" },
+      { name: "VERIFICATION_JOB", label: "Verification Jobs" },
+      { name: "PHYSICAL_VERIFICATION", label: "Physical Verifications" },
+      { name: "ASSET_TAG", label: "Create Tags" },
     ],
   },
 ];

@@ -6086,3 +6086,51 @@ export const updateMaintenanceJob = (id, data) =>
   axios.put(`/master/maintenance-job/${id}`, data, {
     headers: { "X-No-Cookie-Token": "true" },
   });
+export const getVerificationJobs = (params = {}) =>
+  axios.get("/master/verification-job", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createVerificationJob = (data) =>
+  axios.post("/master/verification-job", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const updateVerificationJob = (id, data) =>
+  axios.put(`/master/verification-job/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getPhysicalVerifications = (params = {}) =>
+  axios.get("/master/physical-verification", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createPhysicalVerification = (data) =>
+  axios.post("/master/physical-verification", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getAssetTags = (params = {}) =>
+  axios.get("/master/asset-tag", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const createAssetTags = (data) =>
+  axios.post("/master/asset-tag", data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const reviewPhysicalVerification = (id, data) =>
+  axios.patch(`/master/physical-verification/${id}/review`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const uploadPhysicalVerificationImage = (id, imageType, formData) =>
+  axios.post(
+    `/master/physical-verification/${id}/upload-image?imageType=${imageType}`,
+    formData,
+    {
+      headers: {
+        "X-No-Cookie-Token": "true",
+        "Content-Type": "multipart/form-data",
+      },
+    },
+  );
