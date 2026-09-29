@@ -406,6 +406,7 @@ const GivenMedicine = () => {
           size="xl"
           scrollable
           backdrop="static"
+          fullscreen="sm"
         >
           <ModalHeader toggle={() => setModalOpengive(false)}>
             {"Give Medicine"}

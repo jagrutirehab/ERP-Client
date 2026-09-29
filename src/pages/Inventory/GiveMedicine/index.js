@@ -1,105 +1,44 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Select } from "../Components/Select";
-import { useDispatch, useSelector } from "react-redux";
+import { useRef, useState } from "react";
+import ReactSelect from "react-select";
+import AsyncSelect from "react-select/async";
+import { useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
-import { Input } from "reactstrap";
-import { searchPatient } from "../../../store/actions";
-import { connect } from "react-redux";
 import PropTypes from "prop-types";
+import { getSearchPatients } from "../../../helpers/backend_helper";
+import MedicinePicker, { formatExpiry, medicineKeyString } from "./MedicinePicker";
+
+const selectStyles = {
+  control: (base) => ({ ...base, minHeight: 38 }),
+  menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+};
+
+const PATIENT_SEARCH_DEBOUNCE_MS = 350;
+const PATIENT_MIN_SEARCH_LENGTH = 2;
 
 const Givemedicine = ({
-  patients,
   user,
   setModalOpengive,
   fetchMedicines,
   onResetPagination,
 }) => {
-  const dispatch = useDispatch();
   const centerAccess = useSelector((state) => state.User.centerAccess);
   const centerList = useSelector((state) => state.Center.data);
   const [selectedCenter, setSelectedCenter] = useState("");
-  const [searchQuery, setSearchQuery] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
-  const [medicines, setMedicines] = useState([]);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
   const [loading, setLoading] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
-  const [loadingPatients, setLoadingPatients] = useState(false);
-  const abortRef = useRef(null);
-  const [value, setValue] = useState("");
+  const patientDebounceRef = useRef(null);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
-  const onChangeData = (value) => setValue(value);
-
-
-  const centerOptions = centerList?.map((center) => ({
-    value: center?._id ?? "",
-    label: center?.title ?? "Unknown Center",
-  })) || [];
-
-  const getCenters = () => {
-    if (selectedCenter && selectedCenter !== "") {
-      return [selectedCenter];
-    }
-    return user?.centerAccess || [];
-  };
-  const centers = getCenters();
-
-
-
-  // Fetch medicines
-  async function fetchLocalMedicines({
-    page = 1,
-    limit = 10,
-    q = "",
-  } = {}) {
-    if (abortRef.current) abortRef.current?.abort?.();
-
-    const controller = new AbortController();
-    abortRef.current = controller;
-    setLoading(true);
-
-    try {
-      const params = { page, limit, search: q || undefined, centers };
-      // if (center) params.center = center;
-      // else if (user?.centerAccess) params.centers = user.centerAccess;
-
-      const response = await axios.get("/pharmacy/", {
-        params,
-        signal: controller.signal,
-        headers: {
-          "Authorization": `Bearer ${token}`,
-          "Content-Type": "application/json"
-        },
-      });
-
-      setMedicines(Array.isArray(response.data) ? response.data : []);
-    } catch (err) {
-      const cancelled =
-        err?.name === "CanceledError" ||
-        err?.name === "AbortError" ||
-        err?.code === "ERR_CANCELED";
-      if (!cancelled) return;
-      // toast.error("Failed to fetch medicines");
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  // Debounce medicine search
-  useEffect(() => {
-    const t = setTimeout(() => setDebouncedSearch(searchQuery.trim()), 400);
-    return () => clearTimeout(t);
-  }, [searchQuery]);
-
-  useEffect(() => {
-    if (debouncedSearch.length >= 1) {
-      fetchLocalMedicines({ q: debouncedSearch });
-    } else setMedicines([]);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedSearch, selectedCenter]);
+  const centerOptions =
+    centerList
+      ?.filter((center) => user?.centerAccess?.includes(center?._id))
+      ?.map((center) => ({
+        value: center?._id ?? "",
+        label: center?.title ?? "Unknown Center",
+      })) || [];
 
   // Select medicine
   const handleSelectMedicine = (med) => {
@@ -110,8 +49,6 @@ const Givemedicine = ({
       ...prev,
       { ...med, quantity: 1, availableStock: centerStock },
     ]);
-    setSearchQuery("");
-    setMedicines([]);
   };
 
   const handleQuantityChange = (id, qty) => {
@@ -121,7 +58,7 @@ const Givemedicine = ({
           const safeQty = Math.min(Number(qty) || 0, m.availableStock || 0);
           if (Number(qty) > m.availableStock) {
             toast.warn(
-              `⚠️ Only ${m.availableStock} units available for ${m.medicineName}`
+              `Only ${m.availableStock} units available for ${m.medicineName}`
             );
           }
           return { ...m, quantity: safeQty };
@@ -135,20 +72,29 @@ const Givemedicine = ({
     setSelectedMedicines((prev) => prev.filter((m) => m._id !== id));
 
   // Patient search
-  useEffect(() => {
-    if (!value.trim()) return;
-    const t = setTimeout(async () => {
-      try {
-        setLoadingPatients(true);
-        await dispatch(searchPatient({ name: value, centerAccess }));
-      } catch (err) {
-        console.error("Patient search failed:", err);
-      } finally {
-        setLoadingPatients(false);
-      }
-    }, 400);
-    return () => clearTimeout(t);
-  }, [value, dispatch, centerAccess]);
+  const loadPatientOptions = (input) => {
+    clearTimeout(patientDebounceRef.current);
+    if (!input || input.trim().length < PATIENT_MIN_SEARCH_LENGTH) {
+      return Promise.resolve([]);
+    }
+    return new Promise((resolve) => {
+      patientDebounceRef.current = setTimeout(async () => {
+        try {
+          const res = await getSearchPatients({ name: input, centerAccess });
+          const list = res?.data?.payload || [];
+          resolve(
+            list.map((p) => ({
+              value: p._id,
+              label: `${p.name} : ${p?.id?.prefix || ""} ${p?.id?.value || ""}`,
+              patient: p,
+            }))
+          );
+        } catch {
+          resolve([]);
+        }
+      }, PATIENT_SEARCH_DEBOUNCE_MS);
+    });
+  };
 
   // Form submit validation
   const handleSubmit = async () => {
@@ -186,9 +132,6 @@ const Givemedicine = ({
         setSelectedMedicines([]);
         setSelectedCenter("");
         setSelectedPatient(null);
-        setValue("");
-        setSearchQuery("");
-        setMedicines([]);
         // Close modal and refetch data
         setModalOpengive(false);
         onResetPagination();
@@ -211,14 +154,17 @@ const Givemedicine = ({
         <label>
           Center: <span style={{ color: "red" }}>*</span>
         </label>
-        <Select
+        <ReactSelect
           placeholder="Select Center"
-          value={selectedCenter}
-          onChange={(e) => {
-            setSelectedCenter(e.target.value);
+          value={centerOptions.find((o) => o.value === selectedCenter) || null}
+          onChange={(opt) => {
+            setSelectedCenter(opt?.value || "");
             setSelectedMedicines([]);
           }}
           options={centerOptions}
+          styles={selectStyles}
+          menuPortalTarget={document.body}
+          isClearable
         />
       </div>
 
@@ -227,52 +173,12 @@ const Givemedicine = ({
         <label>
           Medicine: <span style={{ color: "red" }}>*</span>
         </label>
-        <div style={{ position: "relative" }}>
-          <input
-            type="text"
-            placeholder="Search medicines..."
-            className="form-control"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && medicines.length > 0 && (
-            <ul
-              style={{
-                position: "absolute",
-                top: "42px",
-                left: 0,
-                right: 0,
-                background: "#fff",
-                border: "1px solid #ddd",
-                borderRadius: "6px",
-                maxHeight: "200px",
-                overflowY: "auto",
-                listStyle: "none",
-                zIndex: 999,
-                margin: 0,
-                padding: 0,
-              }}
-            >
-              {medicines.map((med) => (
-                <li
-                  key={med._id}
-                  onClick={() => handleSelectMedicine(med)}
-                  style={{
-                    padding: "8px 12px",
-                    cursor: "pointer",
-                    borderBottom: "1px solid #eee",
-                  }}
-                >
-                  {med.medicineName} ({med.Strength}
-                  {med.unitType}, stock:{" "}
-                  {med.centers?.find((c) => c.centerId?._id === selectedCenter)
-                    ?.stock ?? 0}
-                  ), Exp: {med.Expiry}
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
+        <MedicinePicker
+          centerId={selectedCenter}
+          excludeIds={selectedMedicines.map((m) => m._id)}
+          onSelect={handleSelectMedicine}
+          isDisabled={!selectedCenter}
+        />
 
         {/* Selected Medicines */}
         {selectedMedicines.length > 0 && (
@@ -292,12 +198,14 @@ const Givemedicine = ({
                   borderRadius: "8px",
                   padding: "8px 12px",
                   display: "flex",
+                  flexWrap: "wrap",
                   alignItems: "center",
                   gap: "10px",
                   background: "#f9f9f9",
+                  width: "100%",
                 }}
               >
-                <span>{med.medicineName}</span>
+                <span>{medicineKeyString(med)}</span>
                 <input
                   type="number"
                   min="1"
@@ -311,11 +219,14 @@ const Givemedicine = ({
                 <span style={{ fontSize: "12px", color: "#888" }}>
                   / {med.availableStock} max
                 </span>
-                <span>
-                  Unit: {med.Strength}
-                  {med.unitType}
+                <span style={{ fontSize: "12px", color: "#888" }}>
+                  {[
+                    med.id || "N/A",
+                    `Batch: ${med.Batch || "N/A"}`,
+                    `Company: ${med.company || "N/A"}`,
+                  ].join(" · ")}
                 </span>
-                <span> Exp: {med.Expiry}</span>
+                <span> Exp: {formatExpiry(med.Expiry)}</span>
                 <button
                   type="button"
                   onClick={() => handleRemoveMedicine(med._id)}
@@ -324,6 +235,7 @@ const Givemedicine = ({
                     background: "transparent",
                     color: "red",
                     cursor: "pointer",
+                    marginLeft: "auto",
                   }}
                 >
                   ✕
@@ -338,54 +250,22 @@ const Givemedicine = ({
       <div>
         <label>Patient:</label>
         {!selectedPatient ? (
-          <div style={{ position: "relative" }}>
-            <Input
-              type="text"
-              placeholder="Search Patient..."
-              value={value}
-              onChange={(e) => onChangeData(e.target.value)}
-            />
-            {value && patients?.length > 0 && (
-              <ul
-                style={{
-                  position: "absolute",
-                  top: "42px",
-                  left: 0,
-                  right: 0,
-                  background: "#fff",
-                  border: "1px solid #ddd",
-                  borderRadius: "6px",
-                  maxHeight: "200px",
-                  overflowY: "auto",
-                  listStyle: "none",
-                  zIndex: 999,
-                  margin: 0,
-                  padding: 0,
-                }}
-              >
-                {patients.map((p) => (
-                  <li
-                    key={p._id}
-                    onClick={() => {
-                      setSelectedPatient(p);
-                      setValue("");
-                    }}
-                    style={{
-                      padding: "8px 12px",
-                      cursor: "pointer",
-                      borderBottom: "1px solid #eee",
-                    }}
-                  >
-                    {p.name}
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
+          <AsyncSelect
+            placeholder="Search Patient..."
+            noOptionsMessage={({ inputValue }) =>
+              inputValue ? "No patients found" : "Type to search"
+            }
+            loadOptions={loadPatientOptions}
+            value={null}
+            onChange={(opt) => opt && setSelectedPatient(opt.patient)}
+            styles={selectStyles}
+            menuPortalTarget={document.body}
+          />
         ) : (
           <div
             style={{
               display: "flex",
+              flexWrap: "wrap",
               alignItems: "center",
               gap: "10px",
               border: "1px solid #ddd",
@@ -394,7 +274,7 @@ const Givemedicine = ({
               background: "#f9f9f9",
             }}
           >
-            <span>
+            <span style={{ wordBreak: "break-word" }}>
               {`${selectedPatient.name} : ${selectedPatient?.id?.prefix || ""
                 } ${selectedPatient?.id?.value || ""}`}
             </span>
@@ -406,6 +286,7 @@ const Givemedicine = ({
                 background: "transparent",
                 color: "red",
                 cursor: "pointer",
+                marginLeft: "auto",
               }}
             >
               ✕
@@ -414,7 +295,7 @@ const Givemedicine = ({
         )}
       </div>
 
-      <button onClick={handleSubmit} className="btn btn-primary mt-3">
+      <button onClick={handleSubmit} className="btn btn-primary mt-3" disabled={loading}>
         Submit
       </button>
     </div>
@@ -422,14 +303,10 @@ const Givemedicine = ({
 };
 
 Givemedicine.propTypes = {
-  patients: PropTypes.array,
   user: PropTypes.object,
   setModalOpengive: PropTypes.func,
   fetchMedicines: PropTypes.func,
+  onResetPagination: PropTypes.func,
 };
 
-const mapStateToProps = (state) => ({
-  patients: state.Patient.searchedPatients,
-});
-
-export default connect(mapStateToProps)(Givemedicine);
+export default Givemedicine;
