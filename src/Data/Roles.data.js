@@ -418,7 +418,7 @@ export const permissionList = [
       },
       {
         name: "BIOMETRIC_ADDITION_REQUEST",
-        label: "Add Biometric Addition Request",
+        label: "JRC Mapping",
       },
       {
         name: "GET_BIOMETRIC_ADDITION_REQUESTS",
