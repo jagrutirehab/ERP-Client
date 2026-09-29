@@ -24,7 +24,6 @@ import {
   Modal,
   ModalHeader,
   ModalBody,
-  Spinner,
 } from "reactstrap";
 import AddinventoryMedicine from "../AddinventoryMedicine";
 import { Button } from "../Components/Button";
@@ -76,6 +75,7 @@ const InventoryManagement = () => {
   const handleAuthError = useAuthError();
   const [view, setView] = useState("table");
   const [dropdownOpen, setDropdownOpen] = useState({});
+  const [actionsMenuOpen, setActionsMenuOpen] = useState(false);
   const [modalOpen, setModalOpen] = useState(false);
   const [editingMedicine, setEditingMedicine] = useState(null);
   const [modalOpengive, setModalOpengive] = useState(false);
@@ -301,10 +301,9 @@ const InventoryManagement = () => {
         err?.name === "CanceledError" ||
         err?.name === "AbortError" ||
         err?.code === "ERR_CANCELED";
-      if (!cancelled || !handleAuthError(err)) {
-        return;
-        // console.error(err);
-        // toast.error("Failed to fetch medicines");
+      if (cancelled) return;
+      if (!handleAuthError(err)) {
+        toast.error(err?.response?.data?.message || err?.message || "Failed to fetch medicines");
       }
     } finally {
       setLoading(false);
@@ -385,15 +384,152 @@ const InventoryManagement = () => {
 
 
 
+  const handleDownloadTemplate = async () => {
+    try {
+      const response = await axios.get("/medicine", {
+        params: { limit: 100000 },
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const medicines = Array.isArray(response?.payload)
+        ? response.payload
+        : [];
+      const approvedMedicines = medicines.filter(
+        (m) => String(m?.status || "").trim().toUpperCase() === "APPROVED"
+      );
+      await downloadInventoryTemplate(
+        approvedMedicines.length === 0 ? "NO_MEDICINE" : "TEMPLATE",
+        approvedMedicines
+      );
+    } catch (err) {
+      toast.error("Failed to download template");
+    }
+  };
+
+  const handleExportExcel = async () => {
+    try {
+      setPrintLoading(true);
+
+      const endpoint = showCentralMedicine
+        ? "/medicine/export/master"
+        : "/pharmacy/export";
+
+      const params = showCentralMedicine
+        ? { search: debouncedSearch || undefined }
+        : {
+          search: debouncedSearch || undefined,
+          fillter: qfilter || undefined,
+          centers: centers?.join(",") || undefined,
+        };
+
+      const response = await axios.get(endpoint, {
+        params,
+        responseType: "blob",
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      const blob = new Blob([response.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const filenamePrefix = showCentralMedicine
+        ? "Master_Medicine_Export"
+        : "Pharmacy_Export";
+
+      saveAs(
+        blob,
+        `${filenamePrefix}_${new Date().toISOString().slice(0, 10)}.xlsx`
+      );
+
+      toast.success(
+        showCentralMedicine
+          ? "Master Medicine List exported successfully"
+          : "Inventory exported successfully"
+      );
+    } catch (err) {
+      if (!handleAuthError(err)) {
+        console.error("Excel export error:", err);
+        toast.error("Failed to export Excel file");
+      }
+    } finally {
+      setPrintLoading(false);
+    }
+  };
+
   return (
     <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
       <div className="content-wrapper">
-        <div className="text-center text-md-left mb-3">
-          <h4 className="font-weight-bold text-primary text-uppercase">Inventory Management</h4>
+        {/* Header: title + primary actions */}
+        <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-3">
+          <div>
+            <h5 className="mb-1 fw-semibold">Inventory Management</h5>
+            <p className="text-muted mb-0 fs-13">
+              Manage medicine stock, pricing, and details across centers
+            </p>
+          </div>
+
+          <div className="d-flex align-items-center gap-2">
+            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
+              <Button onClick={handleAdd}>+ Add Medicine</Button>
+            ) : (
+              ""
+            )}
+
+            <Dropdown
+              isOpen={actionsMenuOpen}
+              toggle={() => setActionsMenuOpen((prev) => !prev)}
+            >
+              <DropdownToggle
+                tag="button"
+                type="button"
+                className="btn btn-outline-primary d-flex align-items-center gap-1"
+              >
+                <MoreHorizontal className="h-4 w-4" />
+                <span className="d-none d-md-inline">Actions</span>
+              </DropdownToggle>
+              <DropdownMenu end>
+                {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") && (
+                  <DropdownItem onClick={handleViewChange}>
+                    {showCentralMedicine ? "Back to Inventory" : "Master Medicine List"}
+                  </DropdownItem>
+                )}
+                {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") && (
+                  <DropdownItem onClick={handleDownloadTemplate}>
+                    Download Template
+                  </DropdownItem>
+                )}
+                {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") && (
+                  <DropdownItem onClick={() => setBulkOpen(true)}>
+                    Bulk Actions
+                  </DropdownItem>
+                )}
+                {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") && (
+                  <DropdownItem disabled={printloading} onClick={handleExportExcel}>
+                    {printloading ? "Exporting..." : "Export (Excel)"}
+                  </DropdownItem>
+                )}
+                {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") && (
+                  <DropdownItem onClick={handleGiveMedicine}>
+                    Give Medicine
+                  </DropdownItem>
+                )}
+                {!showCentralMedicine && (
+                  <DropdownItem onClick={() => setModalOpenFailedMedicineList(true)}>
+                    View Failed Medicines
+                  </DropdownItem>
+                )}
+              </DropdownMenu>
+            </Dropdown>
+          </div>
         </div>
 
-        <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-4">
-          <div className="w-90 w-md-auto" style={{ maxWidth: "290px" }}>
+        {/* Search + filters */}
+        <div className="d-flex flex-wrap align-items-center gap-2 mb-4">
+          <div style={{ flex: "1 1 240px", maxWidth: isMobile ? "100%" : "290px" }}>
             <div className="position-relative w-100">
               <Search
                 className="position-absolute"
@@ -426,163 +562,9 @@ const InventoryManagement = () => {
             </div>
           </div>
 
-          <div className="d-flex flex-wrap gap-2 inventory-actions">
-            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
-              <Button onClick={handleAdd}>+ Add Medicine</Button>
-            ) : (
-              ""
-            )}
-            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") ? (
-              <Button onClick={handleViewChange}>{showCentralMedicine ? "Back to Inventory" : "Master Medicine List"}</Button>
-            ) : (
-              ""
-            )}
-            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") ? (
-              <Button
-                type="button"
-                className="btn btn-outline-primary text-primary"
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "")}
-                onClick={async () => {
-                  try {
-                    const response = await axios.get("/medicine", {
-                      params: { limit: 100000 },
-                      headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json",
-                      },
-                    });
-                    const medicines = Array.isArray(response?.payload)
-                      ? response.payload
-                      : [];
-                    const approvedMedicines = medicines.filter(
-                      (m) => String(m?.status || "").trim().toUpperCase() === "APPROVED"
-                    );
-                    await downloadInventoryTemplate(
-                      approvedMedicines.length === 0 ? "NO_MEDICINE" : "TEMPLATE",
-                      approvedMedicines
-                    );
-                  } catch (err) {
-                    toast.error("Failed to download template");
-                  }
-                }}
-              >
-                Download Template
-              </Button>
-            ) : (
-              ""
-            )}
-            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
-              <Button
-                type="button"
-                className="btn btn-outline-primary text-primary"
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "")}
-                onClick={() => setBulkOpen(true)}
-              >
-                Bulk Actions
-              </Button>
-            ) : (
-              ""
-            )}
-            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") ? (
-              <Button
-                type="button"
-                className="btn btn-outline-primary text-primary"
-                disabled={printloading}
-                onMouseEnter={(e) => (e.currentTarget.style.color = "#fff")}
-                onMouseLeave={(e) => (e.currentTarget.style.color = "")}
-                onClick={async () => {
-                  try {
-                    setPrintLoading(true);
-
-                    const endpoint = showCentralMedicine
-                      ? "/medicine/export/master"
-                      : "/pharmacy/export";
-
-                    const params = showCentralMedicine
-                      ? { search: debouncedSearch || undefined }
-                      : {
-                        search: debouncedSearch || undefined,
-                        fillter: qfilter || undefined,
-                        centers: centers?.join(",") || undefined,
-                      };
-
-                    const response = await axios.get(endpoint, {
-                      params,
-                      responseType: "blob",
-                      headers: {
-                        Authorization: `Bearer ${token}`,
-                      },
-                    });
-
-                    const blob = new Blob([response.data], {
-                      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-                    });
-
-                    const filenamePrefix = showCentralMedicine
-                      ? "Master_Medicine_Export"
-                      : "Pharmacy_Export";
-
-                    saveAs(
-                      blob,
-                      `${filenamePrefix}_${new Date().toISOString().slice(0, 10)}.xlsx`
-                    );
-
-                    toast.success(
-                      showCentralMedicine
-                        ? "Master Medicine List exported successfully"
-                        : "Inventory exported successfully"
-                    );
-                  } catch (err) {
-                    if (!handleAuthError(err)) {
-                      console.error("Excel export error:", err);
-                      toast.error("Failed to export Excel file");
-                    }
-                  } finally {
-                    setPrintLoading(false);
-                  }
-                }}
-              >
-                {printloading ? (
-                  <>
-                    <Spinner size="sm" className="me-2" />
-                    Exporting...
-                  </>
-                ) : (
-                  "Export (Excel)"
-                )}
-              </Button>
-            ) : (
-              ""
-            )}
-            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
-              <Button onClick={handleGiveMedicine}>Give Medicine</Button>
-            ) : (
-              ""
-            )}
-          </div>
-        </div>
-
-        {/* Filters */}
-        {!showCentralMedicine && (
-          <div className="d-flex align-items-center justify-content-between mb-4 flex-wrap gap-3">
-            {/* left side: selects side by side */}
-            <div className="d-flex align-items-center gap-3 flex-wrap">
-              <div style={{ width: "220px" }}>
-                {/* <Select
-                  placeholder="All Stock Levels"
-                  onChange={(e) => {
-                    setQfilter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  options={[
-                    { value: "LOW", label: "Low" },
-                    { value: "NORMAL", label: "Normal" },
-                    { value: "MODERATE", label: "Moderate" },
-                    { value: "OUTOFSTOCK", label: "Out Of Stock" },
-                  ]}
-                /> */}
+          {!showCentralMedicine && (
+            <>
+              <div style={{ flex: "1 1 180px", maxWidth: isMobile ? "100%" : "220px" }}>
                 <Select
                   placeholder="All Stock Levels"
                   value={
@@ -604,24 +586,9 @@ const InventoryManagement = () => {
                     { value: "OUTOFSTOCK", label: "Out Of Stock" },
                   ]}
                 />
-
               </div>
 
-              <div style={{ width: "220px" }}>
-                {/* <Select
-                  placeholder="All Centers"
-                  value={selectedCenter}
-                  onChange={(e) => {
-                    setSelectedCenter(e.target.value);
-                    setCurrentPage(1);
-                  }}
-                  options={
-                    user?.userCenters?.map((center) => ({
-                      value: center?._id ?? center?.id ?? "",
-                      label: center?.title ?? center?.name ?? "Unknown",
-                    })) || []
-                  }
-                /> */}
+              <div style={{ flex: "1 1 180px", maxWidth: isMobile ? "100%" : "220px" }}>
                 <Select
                   value={selectedCenterOption}
                   onChange={(option) => {
@@ -633,18 +600,9 @@ const InventoryManagement = () => {
                   classNamePrefix="react-select"
                 />
               </div>
-            </div>
-
-            {/* right side: button */}
-            <Button
-              color="primary"
-              className="fw-semibold px-4"
-              onClick={() => setModalOpenFailedMedicineList(true)}
-            >
-              View Failed Medicines
-            </Button>
-          </div>
-        )}
+            </>
+          )}
+        </div>
 
 
 
@@ -783,7 +741,7 @@ const InventoryManagement = () => {
                           <TableCell noWrap>{normalizeUnderscores(med?.storageType)}</TableCell>
                           <TableCell noWrap>{normalizeUnderscores(med?.scheduleType)}</TableCell>
                           <TableCell noWrap>
-                            {normalizeUnderscores(med?.medicineDetails?.type)}
+                            {normalizeUnderscores(med?.type)}
                           </TableCell>
                           <TableCell noWrap>
                             {display(med?.strength)}

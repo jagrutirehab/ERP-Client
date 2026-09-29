@@ -66,7 +66,7 @@ const NurseGivenMedicine = () => {
             : []
         ),
         ...(
-            centerList?.map((c) => ({
+            centerList?.filter((c) => user?.centerAccess?.includes(c._id))?.map((c) => ({
                 value: c._id,
                 label: c.title,
             })) || []
