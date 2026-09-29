@@ -212,6 +212,10 @@ export const permissionList = [
         name: "REQUISITION_MEDICINE_REQUISITION",
         label: "Requisition: Medicine Requisition",
       },
+      {
+        name: "RAISE_MEDICINE_REQUISITION",
+        label: "Requisition: Raise Medicine Requisition",
+      },
       { name: "INVENTORY_STOCK_SUMMARY", label: "Inventory Stock Summary" },
       { name: "BILL_UPLOAD_DASHBOARD", label: "Bill Upload Dashboard" },
       { name: "SAREYAAN_INVENTORY", label: "Sareyaan Inventory" },

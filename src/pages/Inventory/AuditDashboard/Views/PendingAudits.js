@@ -35,14 +35,14 @@ import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 
 const REQUIRED_HEADERS = [
+    "PharmacyId",
+    "MedicineId",
     "Center",
     "Code",
     "MedicineName",
     "Strength",
-    "UnitType",
+    "BaseUnit",
     "MRP",
-    "PurchasePrice",
-    "SalesPrice",
     "Company",
     "Manufacturer",
     "RackNum",

@@ -515,6 +515,12 @@ export const Pharmacy = [
         link: "/pharmacy/requisition/medicine-requisition",
         icon: "bx bx-capsule",
       },
+      {
+        id: "raise-medicine-requisition",
+        label: "Raise Med. Requisition",
+        link: "/pharmacy/requisition/medicine-requisition/add",
+        icon: "bx bx-plus-medical",
+      },
     ],
   },
   {

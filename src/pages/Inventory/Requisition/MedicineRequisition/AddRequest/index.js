@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { CardBody, Spinner } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -14,18 +15,25 @@ const MedicineRequisitionAddRequest = () => {
   const handleAuthError = useAuthError();
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const { loading } = useSelector((state) => state.Medicine);
+  const [formKey, setFormKey] = useState(0);
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: permissionLoader } = usePermissions(token);
 
-  const hasWritePermission = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "WRITE");
+  const hasWritePermission = hasPermission("PHARMACY", "RAISE_MEDICINE_REQUISITION", "WRITE");
+  const hasListPermission = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "READ");
 
   const handleSubmit = async (payload) => {
     try {
       const result = await dispatch(submitMedicineRequisition(payload)).unwrap();
       if (result) {
-        navigate("/pharmacy/requisition/medicine-requisition");
+        if (!hasListPermission) {
+          // No access to the list page — stay here with a fresh form.
+          setFormKey((k) => k + 1);
+        } else {
+          navigate("/pharmacy/requisition/medicine-requisition");
+        }
       }
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -53,6 +61,8 @@ const MedicineRequisitionAddRequest = () => {
       style={isMobile ? { width: "100%" } : { width: "78%" }}
     >
       <MedicineRequisitionForm
+        key={formKey}
+        showBack={hasListPermission}
         initialData={null}
         onSubmit={handleSubmit}
         loading={loading}

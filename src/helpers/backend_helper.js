@@ -262,12 +262,10 @@ export const deleteMedicinePermanently = (param) =>
   api.delete(`${url.DELETE_MEDICINE_PERMANENTLY}/${param}`);
 export const postRestoreMedicine = (data) =>
   api.update(url.POST_RESTORE_MEDICINE, data);
-export const validateDuplicateMedicine = ({ name, strength, id }) => {
-  return api.get(
-    `${url.VALIDATE_DUPLICATE_MEDICINE}?name=${encodeURIComponent(
-      name,
-    )}&strength=${encodeURIComponent(strength)}&id=${id}`,
-  );
+export const validateDuplicateMedicine = ({ name, strength, baseUnit, id }) => {
+  return api.get(url.VALIDATE_DUPLICATE_MEDICINE, {
+    params: { name, strength, baseUnit, id },
+  });
 };
 
 // Billing Setting Method
@@ -2213,6 +2211,13 @@ export const getMedicineRequisitions = (params = {}) => {
     headers: { "X-No-Cookie-Token": "true" },
     paramsSerializer: (parameters) =>
       qs.stringify(parameters, { arrayFormat: "repeat", skipNulls: true }),
+  });
+};
+
+export const checkDuplicateMedicineRequisition = (params = {}) => {
+  return api.get(`${url.PHARMACY_MEDICINE_REQUISITION}/check-duplicate`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
   });
 };
 

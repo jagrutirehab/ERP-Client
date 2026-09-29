@@ -24,6 +24,7 @@ import {
   Modal,
   ModalHeader,
   ModalBody,
+  Spinner,
 } from "reactstrap";
 import AddinventoryMedicine from "../AddinventoryMedicine";
 import { Button } from "../Components/Button";
@@ -44,8 +45,6 @@ import axios from "axios";
 import Barcode from "react-barcode";
 import { useDispatch, useSelector } from "react-redux";
 import { fetchCenters, fetchMedicines } from "../../../store/actions";
-import ExcelJS from "exceljs";
-import JsBarcode from "jsbarcode";
 import { saveAs } from "file-saver";
 import Givemedicine from "../GiveMedicine";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
@@ -497,206 +496,62 @@ const InventoryManagement = () => {
                   try {
                     setPrintLoading(true);
 
-                    const params = {
-                      search: debouncedSearch || undefined,
-                      fillter: qfilter || undefined,
-                      centers: centers?.join(",") || undefined,
-                    };
+                    const endpoint = showCentralMedicine
+                      ? "/medicine/export/master"
+                      : "/pharmacy/export";
 
-                    // if (selectedCenter) {
-                    //   params.center = selectedCenter;
-                    // } else {
-                    //   params.centers = user?.centerAccess;
-                    // }
+                    const params = showCentralMedicine
+                      ? { search: debouncedSearch || undefined }
+                      : {
+                        search: debouncedSearch || undefined,
+                        fillter: qfilter || undefined,
+                        centers: centers?.join(",") || undefined,
+                      };
 
-                    const response = await axios.get("/pharmacy/print", {
+                    const response = await axios.get(endpoint, {
                       params,
+                      responseType: "blob",
                       headers: {
-                        "Authorization": `Bearer ${token}`,
-                        "Content-Type": "application/json"
+                        Authorization: `Bearer ${token}`,
                       },
                     });
 
-                    const data = Array.isArray(response?.data)
-                      ? response.data
-                      : [];
-
-                    if (data.length === 0) {
-                      await downloadInventoryTemplate("NO_MEDICINE");
-                      return;
-                    }
-
-                    const workbook = new ExcelJS.Workbook();
-                    const sheet = workbook.addWorksheet("Pharmacy Inventory");
-
-                    const headers = [
-                      "ID",
-                      "Medicine ID",
-                      "Barcode",
-                      "Medicine Name",
-                      // "Brand Name",
-                      "Generic Name",
-                      "Form",
-                      "Base Unit",
-                      "Purchase Unit",
-                      "Conversion",
-                      "Category",
-                      "Storage Type",
-                      "Schedule Type",
-                      "Type",
-                      "Strength",
-                      "Centre",
-                      "Centre Wise Stock",
-                      "Unit",
-                      "Stock",
-                      // "Cost Price",
-                      // "Value",
-                      "MRP",
-                      "Purchase Price",
-                      "Sales Price",
-                      "Expiry Date",
-                      "Batch",
-                      "Company",
-                      "Manufacturer",
-                      "Rack",
-                      "Status",
-                      "Controlled Drug",
-                    ];
-                    sheet.addRow(headers);
-
-                    sheet.getRow(1).font = {
-                      bold: true,
-                      color: { argb: "FFFFFFFF" },
-                    };
-                    sheet.getRow(1).fill = {
-                      type: "pattern",
-                      pattern: "solid",
-                      fgColor: { argb: "FF007ACC" },
-                    };
-
-                    for (let i = 0; i < data.length; i++) {
-                      const med = data[i];
-                      const medicineDetails = med?.medicineId || {};
-                      const barcodeValue = med?.id ? String(med.id) : med?.code ? String(med.code) : "";
-                      const baseUnit =
-                        medicineDetails?.baseUnit ?? med?.baseUnit ?? "-";
-                      const purchaseUnit =
-                        medicineDetails?.purchaseUnit ?? med?.purchaseUnit ?? "-";
-                      const conversion =
-                        medicineDetails?.conversion ?? med?.conversion ?? {};
-                      const conversionValue =
-                        baseUnit !== "-" &&
-                          purchaseUnit !== "-" &&
-                          conversion?.baseQuantity &&
-                          conversion?.purchaseQuantity
-                          ? `${conversion.purchaseQuantity} ${purchaseUnit} = ${conversion.baseQuantity} ${baseUnit}`
-                          : "-";
-
-                      let barcodeDataURL = null;
-                      if (barcodeValue) {
-                        const canvas = document.createElement("canvas");
-                        JsBarcode(canvas, barcodeValue, {
-                          format: "CODE128",
-                          height: 40,
-                          displayValue: true,
-                          fontSize: 12,
-                        });
-                        barcodeDataURL = canvas.toDataURL("image/png");
-                      }
-
-                      const rowValues = [
-                        med?.id || "-",
-                        med?.medicineId?.id || "-",
-                        "",
-                        med?.medicineName || "-",
-                        // medicineDetails?.brandName ?? med?.brandName ?? "-",
-                        medicineDetails?.genericName ?? med?.genericName ?? "-",
-                        medicineDetails?.form ?? med?.form ?? "-",
-                        baseUnit,
-                        purchaseUnit,
-                        conversionValue,
-                        medicineDetails?.category ?? med?.category ?? "-",
-                        medicineDetails?.storageType ?? med?.storageType ?? "-",
-                        medicineDetails?.scheduleType ?? med?.scheduleType ?? "-",
-                        medicineDetails?.type ?? "-",
-                        med?.Strength || "-",
-                        med?.centersMatched && med.centersMatched.length > 0
-                          ? med.centersMatched.map((c) => c?.centerId?.title).join(", ")
-                          : "-",
-                        med?.centersMatched && med.centersMatched.length > 0
-                          ? med.centersMatched
-                            .map(
-                              (c) =>
-                                `${c?.centerId?.title ?? "Unknown"}: ${c?.stock ?? 0
-                                }`
-                            )
-                            .join(", ")
-                          : "-",
-                        med?.unitType || med?.unit || "-",
-                        med?.stock ?? "-",
-                        // med?.costprice ?? formatCurrency(med?.costprice),
-                        // med?.value ?? "-",
-                        med?.mrp ?? formatCurrency(med?.mrp),
-                        med?.purchasePrice ?? formatCurrency(med?.purchasePrice),
-                        med?.SalesPrice ?? formatCurrency(med?.SalesPrice),
-                        med?.Expiry ?? "-",
-                        med?.Batch ?? "-",
-                        med?.company ?? "-",
-                        med?.manufacturer ?? "-",
-                        med?.RackNum ?? "-",
-                        med?.Status ?? "-",
-                        (medicineDetails?.isControlledDrug ?? med?.isControlledDrug) ? "Yes" : "No",
-                      ];
-
-                      sheet.addRow(rowValues);
-
-                      if (barcodeDataURL) {
-                        const img = workbook.addImage({
-                          base64: barcodeDataURL,
-                          extension: "png",
-                        });
-
-                        sheet.addImage(img, {
-                          tl: { col: 2, row: i + 1 },
-                          ext: { width: 150, height: 40 },
-                        });
-                      }
-                    }
-
-                    sheet.columns.forEach((col) => {
-                      let maxLength = 15;
-                      col.eachCell({ includeEmpty: true }, (cell) => {
-                        const len = cell.value
-                          ? cell.value.toString().length
-                          : 0;
-                        if (len > maxLength) maxLength = len;
-                      });
-                      col.width = maxLength + 2;
-                    });
-
-                    const buffer = await workbook.xlsx.writeBuffer();
-                    const blob = new Blob([buffer], {
+                    const blob = new Blob([response.data], {
                       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
                     });
+
+                    const filenamePrefix = showCentralMedicine
+                      ? "Master_Medicine_Export"
+                      : "Pharmacy_Export";
+
                     saveAs(
                       blob,
-                      `Pharmacy_Export_${new Date()
-                        .toISOString()
-                        .slice(0, 10)}.xlsx`
+                      `${filenamePrefix}_${new Date().toISOString().slice(0, 10)}.xlsx`
                     );
 
                     toast.success(
-                      `Exported ${data.length} medicines with barcodes ✅`
+                      showCentralMedicine
+                        ? "Master Medicine List exported successfully"
+                        : "Inventory exported successfully"
                     );
                   } catch (err) {
-                    console.error("Excel export error:", err);
-                    toast.error("Failed to export Excel file");
+                    if (!handleAuthError(err)) {
+                      console.error("Excel export error:", err);
+                      toast.error("Failed to export Excel file");
+                    }
                   } finally {
                     setPrintLoading(false);
                   }
                 }}
               >
-                Export (Excel)
+                {printloading ? (
+                  <>
+                    <Spinner size="sm" className="me-2" />
+                    Exporting...
+                  </>
+                ) : (
+                  "Export (Excel)"
+                )}
               </Button>
             ) : (
               ""

@@ -11,7 +11,7 @@ import Select from "react-select";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import CheckPermission from "../../../../../Components/HOC/CheckPermission";
 import { toast } from "react-toastify";
 import {
@@ -23,7 +23,7 @@ import {
   storageTypes,
   scheduleTypes
 } from "../../../../../Components/constants/medicine";
-import { duplicateMedicineValidator } from "../../../../../store/features/medicine/medicineSlice";
+import { checkDuplicateMedicineRequisition } from "../../../../../helpers/backend_helper";
 import { normalizeLabel } from "../../../../../Components/constants/medicine";
 import { normalizeUnderscores } from "../../../../../utils/normalizeUnderscore";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
@@ -53,9 +53,8 @@ const stepCircle = (active) => ({
     color: active ? "#fff" : "#adb5bd",
 });
 
-const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => {
+const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showBack = true }) => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [duplicateError, setDuplicateError] = useState("");
 
   const microUser = localStorage.getItem("micrologin");
@@ -66,13 +65,19 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
   const requisingCenterOptions = (centerList || [])
     .map((c) => ({ value: c._id, label: c.title }));
 
-  const checkStrength = async (name, strength) => {
-    if (!name || !strength) {
+  // Duplicate = same name + strength + unit/base unit, in the master or a pending requisition.
+  const checkDuplicate = async (name, strength, baseUnit) => {
+    if (!name || !baseUnit) {
       setDuplicateError("");
       return;
     }
     try {
-      const response = await dispatch(duplicateMedicineValidator({ name, strength })).unwrap();
+      const response = await checkDuplicateMedicineRequisition({
+        name,
+        strength,
+        baseUnit,
+        id: initialData?._id,
+      });
       if (response.exists) {
         setDuplicateError(response.message);
       } else {
@@ -83,7 +88,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
     }
   };
 
-  const debouncedCheck = useDebounce(checkStrength, 500);
+  const debouncedCheck = useDebounce(checkDuplicate, 500);
 
   const formik = useFormik({
     enableReinitialize: true,
@@ -174,14 +179,16 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
   return (
     <div className="px-3">
         {/* Header - Back Button */}
-        <button
-            type="button"
-            className="btn btn-link p-0 text-muted mb-2"
-            style={{ fontSize: 13, textDecoration: "none" }}
-            onClick={() => navigate("/pharmacy/requisition/medicine-requisition")}
-        >
-            <i className="bx bx-chevron-left" /> Back to Requisitions
-        </button>
+        {showBack && (
+            <button
+                type="button"
+                className="btn btn-link p-0 text-muted mb-2"
+                style={{ fontSize: 13, textDecoration: "none" }}
+                onClick={() => navigate("/pharmacy/requisition/medicine-requisition")}
+            >
+                <i className="bx bx-chevron-left" /> Back to Requisitions
+            </button>
+        )}
 
         {/* Page Heading + Step Pills */}
         <div className="d-flex align-items-start justify-content-between mb-4">
@@ -262,7 +269,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                         value={values.medicineName}
                         onChange={(e) => {
                             handleChange(e);
-                            debouncedCheck(e.target.value, values.strength);
+                            debouncedCheck(e.target.value, values.strength, values.baseUnit);
                         }}
                         onBlur={handleBlur}
                         invalid={touched.medicineName && !!errors.medicineName}
@@ -301,7 +308,11 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                             name={name}
                             placeholder={placeholder}
                             options={(options || []).map((item) => ({ value: item, label: normalizeLabel(item) }))}
-                            onChange={(selected) => setFieldValue(name, selected ? selected.value : "")}
+                            onChange={(selected) => {
+                                const next = selected ? selected.value : "";
+                                setFieldValue(name, next);
+                                if (name === "baseUnit") debouncedCheck(values.medicineName, values.strength, next);
+                            }}
                             onBlur={() => handleBlur({ target: { name } })}
                             value={values[name] ? { value: values[name], label: normalizeLabel(values[name]) } : null}
                             classNamePrefix="react-select"
@@ -399,7 +410,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                         value={values.strength}
                         onChange={(e) => {
                             handleChange(e);
-                            debouncedCheck(values.medicineName, e.target.value);
+                            debouncedCheck(values.medicineName, e.target.value, values.baseUnit);
                         }}
                     />
                 </Col>

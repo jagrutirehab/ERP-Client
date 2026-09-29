@@ -1171,6 +1171,13 @@ const OCRBillImport = () => {
       [newIdx]: selectedId,
     }));
 
+    // Tick the row like a dropdown pick does — unticked rows are sent back to
+    // the missing list on Proceed, which made moved medicines silently vanish.
+    setCheckedMedicines(prev => ({
+      ...prev,
+      [newIdx]: true,
+    }));
+
     setMatchingMedicinesMap(prev => ({
       ...prev,
       [newIdx]: errorMatchingMedicinesMap[errorIdx],
@@ -1266,6 +1273,16 @@ const OCRBillImport = () => {
           extractedData.strength
         );
         matchingMap[idx] = matches || [];
+
+        // Keep the user's pick even if the re-search no longer returns it
+        // (e.g. it was found via an edited name/strength on the missing list,
+        // or fell outside the server's candidate limit). Without this the
+        // selection couldn't be resolved and the medicine was silently dropped.
+        const selectedId = selectedMedicineIds[idx];
+        if (selectedId && !matchingMap[idx].some((m) => (m._id || m.id) === selectedId)) {
+          const previousPick = matchingMedicinesMap[idx]?.find((m) => (m._id || m.id) === selectedId);
+          if (previousPick) matchingMap[idx] = [previousPick, ...matchingMap[idx]];
+        }
       }
       setMatchingMedicinesMap(matchingMap);
 
@@ -1341,6 +1358,25 @@ const OCRBillImport = () => {
         let selectedMedicine = matchingMap[idx_num]?.find(
           m => (m._id || m.id) === selectedMedicineId
         );
+
+        // Never drop a row silently: if the pick can't be resolved, send it back
+        // to the missing list so the user sees it and can select again.
+        if (!selectedMedicine) {
+          const editedData = extractedFormData[idx_num] || medicine.ocrExtracted;
+          unselectedMedicines.push({
+            _tempId: medicine._tempId,
+            extractedName: editedData?.medicineName || medicine.ocrExtracted?.name,
+            extractedStrength: editedData?.strength || medicine.ocrExtracted?.strength,
+            quantity: editedData?.quantity || medicine.ocrExtracted?.quantity || 0,
+            batchNumber: editedData?.batchNumber || medicine.ocrExtracted?.batchNumber || null,
+            expiryDate: editedData?.expiryDate || medicine.ocrExtracted?.expiryDate || null,
+            unitPrice: editedData?.unitPrice || medicine.ocrExtracted?.unitPrice || null,
+            totalPrice: editedData?.totalPrice || medicine.ocrExtracted?.totalPrice || null,
+            reason: "Selected medicine could not be resolved — please search and select again",
+            action: "Edit & Retry from missing list",
+          });
+          continue;
+        }
 
         if (selectedMedicine) {
           const medicineId = selectedMedicine._id || selectedMedicine.id;
@@ -2708,7 +2744,7 @@ const OCRBillImport = () => {
                                     <Select
                                       options={errorMatchingMedicinesMap[idx].map((m) => ({
                                         value: m._id || m.id,
-                                        label: `${m.name || ""}${m.strength ? ` — ${m.strength}` : ""}${m.form ? ` (${m.form})` : ""}`,
+                                        label: `${m.name || ""}${m.strength ? ` — ${m.strength}` : ""}${[m.form, m.baseUnit || m.unit].filter(Boolean).length ? ` (${[m.form, m.baseUnit || m.unit].filter(Boolean).join(", ")})` : ""}`,
                                       }))}
                                       value={
                                         selectedErrorMedicineIds[idx]
@@ -2982,7 +3018,7 @@ const OCRBillImport = () => {
                                         <Select
                                           options={errorMatchingMedicinesMap[idx].map((m) => ({
                                             value: m._id || m.id,
-                                            label: `${m.name || ""}${m.strength ? ` — ${m.strength}` : ""}${m.form ? ` (${m.form})` : ""}`,
+                                            label: `${m.name || ""}${m.strength ? ` — ${m.strength}` : ""}${[m.form, m.baseUnit || m.unit].filter(Boolean).length ? ` (${[m.form, m.baseUnit || m.unit].filter(Boolean).join(", ")})` : ""}`,
                                           }))}
                                           value={
                                             selectedErrorMedicineIds[idx]

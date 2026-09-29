@@ -15,6 +15,7 @@ const Sidebar = () => {
   const hasUserPermission3 = hasPermission("PHARMACY", "GIVENMEDICINES", "READ");
   const hasUserPermission4 = hasPermission("PHARMACY", "MEDICINEAPPROVAL", "READ");
   const hasUserPermission13 = hasPermission("PHARMACY", "MEDICINE_RETURN", "READ");
+  const hasUserPermission14 = hasPermission("PHARMACY", "RAISE_MEDICINE_REQUISITION", "READ");
   const hasUserPermission5 = hasPermission("PHARMACY", "AUDIT", "READ");
   const hasUserPermission6 = hasPermission("PHARMACY", "NURSEGIVENMEDICINES", "READ");
   const hasUserPermission7 = hasPermission("PHARMACY", "REQUISITION_INTERNAL_TRANSFER", "READ");
@@ -52,6 +53,7 @@ const Sidebar = () => {
           if (child.id === "internal-transfer" && !hasUserPermission7) return false;
           if (child.id === "sareyaan-orders" && !hasUserPermission8) return false;
           if (child.id === "medicine-requisition" && !hasUserPermission10) return false;
+          if (child.id === "raise-medicine-requisition" && !hasUserPermission14) return false;
           return true;
         }),
       };
@@ -99,12 +101,16 @@ const Sidebar = () => {
     return true;
   });
 
+  const hasExactChild = filteredSettings.some(
+    (page) => page.isAccordion && page.children.some((child) => child.link === location.pathname)
+  );
+  const isChildActive = (child) =>
+    location.pathname === child.link ||
+    (!hasExactChild && location.pathname.startsWith(child.link + "/"));
+
   useEffect(() => {
     filteredSettings.forEach((page) => {
-      if (
-        page.isAccordion &&
-        page.children.some((child) => location.pathname === child.link || location.pathname.startsWith(child.link + "/"))
-      ) {
+      if (page.isAccordion && page.children.some(isChildActive)) {
         setOpenSection(page.id);
       }
     });
@@ -257,11 +263,7 @@ const Sidebar = () => {
                         {page.children.map((child) => (
                           <li
                             key={child.id}
-                            className={
-                              location.pathname === child.link || location.pathname.startsWith(child.link + "/")
-                                ? "active"
-                                : ""
-                            }
+                            className={isChildActive(child) ? "active" : ""}
                           >
                             <Link className="d-flex py-2 align-items-center" style={{ paddingLeft: '3.2rem' }} to={child.link}>
                               <i className={`${child.icon} fs-5 me-2`} />
