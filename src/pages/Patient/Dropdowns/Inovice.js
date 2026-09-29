@@ -217,10 +217,6 @@ const Inovice = ({
   const activeCategoryFilters = selectedCategories.map((c) => c.value.toLowerCase());
   const patientCenterId = String(center?._id ?? center);
 
-  console.log("dataList", dataList[0]);
-  console.log("data", data);
-  console.log("center", center._id);
-  console.log("patientCenterId", patientCenterId);
 
 
 

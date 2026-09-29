@@ -16,6 +16,10 @@ import { getPosTerminal } from "../../../../helpers/backend_helper";
 // Tenders a Pine Labs terminal can collect.
 const POS_MODES = [CARD, UPI];
 
+// Pine Labs refuses anything under ₹1, and their certification requires the
+// billing application to stop it rather than let the terminal reject it.
+const POS_MIN_AMOUNT = 1;
+
 // Pine Labs returns the PAN masked (e.g. "4111XXXXXXXX1111"); the bill only
 // keeps the last four.
 const lastFourDigits = (maskedCard) => {
@@ -37,6 +41,7 @@ const Payment = ({
   paymentAccounts,
   existingTransactionProof,
   posContext,
+  readOnly,
 }) => {
   // Which row, if any, currently has the terminal modal open.
   const [posRowIdx, setPosRowIdx] = useState(null);
@@ -235,6 +240,7 @@ const Payment = ({
                     }}
                     type="number"
                     onWheel={(e) => e.target.blur()}
+                    disabled={readOnly}
                   />
                 </Col>
                 {item.paymentMode === CARD && (
@@ -253,7 +259,7 @@ const Payment = ({
                       style={{ maxWidth: "110px", minWidth: "70px" }}
                       required
                       // Filled from the terminal response — not editable.
-                      disabled={!!item.posTransaction}
+                      disabled={readOnly || !!item.posTransaction}
                     />
                   </Col>
                 )}
@@ -307,7 +313,7 @@ const Payment = ({
                       style={{ maxWidth: "110px", minWidth: "70px" }}
                       required
                       // Filled with the terminal RRN / UTR — not editable.
-                      disabled={!!item.posTransaction}
+                      disabled={readOnly || !!item.posTransaction}
                     />
                     {item.posPayerVpa && (
                       <div
@@ -337,6 +343,7 @@ const Payment = ({
                       type="select"
                       style={{ maxWidth: "160px" }}
                       required
+                      disabled={readOnly}
                     >
                       <option value={""} selected defaultValue={""}>
                         No Bank Account Selected
@@ -384,7 +391,7 @@ const Payment = ({
                   </Col>
                 )}
 
-                {posAvailable && POS_MODES.includes(item.paymentMode) && (
+                {!readOnly && posAvailable && POS_MODES.includes(item.paymentMode) && (
                   <Col xs="auto" style={{ flex: "0 0 auto" }}>
                     <Label className="invisible">POS</Label>
                     <div className="d-flex align-items-center gap-2">
@@ -410,11 +417,11 @@ const Payment = ({
                           outline
                           color="primary"
                           type="button"
-                          disabled={!(Number(item.amount) > 0)}
+                          disabled={!(Number(item.amount) >= POS_MIN_AMOUNT)}
                           title={
-                            Number(item.amount) > 0
+                            Number(item.amount) >= POS_MIN_AMOUNT
                               ? "Send this amount to the POS terminal"
-                              : "Enter an amount first"
+                              : `POS payments must be at least ₹${POS_MIN_AMOUNT}`
                           }
                           onClick={() => setPosRowIdx(idx)}
                         >
@@ -426,6 +433,7 @@ const Payment = ({
                   </Col>
                 )}
 
+                {!readOnly && (
                 <Col xs="auto" style={{ flex: "0 0 auto" }}>
                   <Label className="invisible">Remove</Label>
                   <div className="d-flex align-items-center">
@@ -439,6 +447,7 @@ const Payment = ({
                     </Button>
                   </div>
                 </Col>
+                )}
               </Row>
             </Col>
           );
@@ -467,6 +476,9 @@ Payment.propTypes = {
   paymentModes: PropTypes.array,
   setPaymentModes: PropTypes.func,
   existingTransactionProof: PropTypes.array,
+  // Locks every row. Used when the form was opened to bill a POS payment
+  // that already happened — the tender must match the terminal exactly.
+  readOnly: PropTypes.bool,
   // Supply to enable "Charge on POS" on card/UPI rows. Omitted by forms that
   // only record payments collected elsewhere.
   posContext: PropTypes.shape({

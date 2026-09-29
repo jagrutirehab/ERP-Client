@@ -1,5 +1,5 @@
 import React from "react";
-import { Col, Input, Label, Button, FormFeedback } from "reactstrap";
+import { Col, Input, Label, Button, FormFeedback, Badge } from "reactstrap";
 import {
   CARD,
   CASH,
@@ -9,6 +9,24 @@ import {
 import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import PaymentModeEvidence from "./PaymentModeEvidence";
+import PosPaymentModal from "./PosPaymentModal";
+import { getPosTerminal } from "../../../../helpers/backend_helper";
+
+// Tenders a Pine Labs terminal can collect. These rows key the tender on
+// `type`, unlike the deposit / advance-payment rows which use `paymentMode`.
+const POS_MODES = [CARD, UPI];
+
+// Pine Labs refuses anything under 1 rupee.
+const POS_MIN_AMOUNT = 1;
+
+const lastFourDigits = (maskedCard) =>
+  String(maskedCard || "").replace(/\D/g, "").slice(-4);
+
+// Terminal money settles into the Pine Labs account, never the centre's own.
+const findPineLabsAccount = (paymentAccounts) =>
+  (paymentAccounts || []).find((acc) =>
+    String(acc.name || "").toLowerCase().includes("pinelab"),
+  );
 
 const PaymentMode = ({
   paymentModes,
@@ -16,7 +34,93 @@ const PaymentMode = ({
   validation,
   paymentAccounts,
   existingTransactionProof,
+  posContext,
+  readOnly,
 }) => {
+  const [posRowIdx, setPosRowIdx] = React.useState(null);
+  const [posTerminal, setPosTerminal] = React.useState(null);
+
+  const centerId = posContext?.center;
+
+  React.useEffect(() => {
+    if (!centerId) {
+      setPosTerminal(null);
+      return;
+    }
+    let cancelled = false;
+    getPosTerminal(centerId)
+      .then((response) => {
+        if (!cancelled) setPosTerminal(response.payload);
+      })
+      .catch((err) => {
+        if (!cancelled)
+          setPosTerminal({
+            available: false,
+            reason:
+              err?.message ||
+              "Could not reach the POS service. Is the server running the latest build?",
+          });
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [centerId]);
+
+  const posAvailable = !!posTerminal?.available;
+  const posEnabled = !!posTerminal?.enabled;
+  const posUnavailableReason =
+    posContext && posTerminal && !posAvailable ? posTerminal.reason : null;
+
+  const pineLabsAccount = findPineLabsAccount(paymentAccounts);
+
+  // Default card and UPI rows to the Pine Labs account where the centre has
+  // POS on. Only fills a row that has none yet, so a deliberate choice sticks.
+  React.useEffect(() => {
+    if (!posEnabled || !pineLabsAccount) return;
+    const needsDefault = (paymentModes || []).some(
+      (mode) => POS_MODES.includes(mode.type) && !mode.bankAccount,
+    );
+    if (!needsDefault) return;
+    setPaymentModes(
+      (paymentModes || []).map((mode) =>
+        POS_MODES.includes(mode.type) && !mode.bankAccount
+          ? { ...mode, bankAccount: pineLabsAccount.name }
+          : mode,
+      ),
+    );
+  }, [posEnabled, pineLabsAccount, paymentModes, setPaymentModes]);
+
+  // Fold the terminal's own response into the row and lock those fields.
+  const applyPosApproval = (idx, posTransaction) => {
+    const result = posTransaction.result || {};
+    const next = [...paymentModes];
+    next[idx] = {
+      ...next[idx],
+      amount: posTransaction.amount,
+      transactionId: result.rrn || result.transactionId || "",
+      cardNumber: lastFourDigits(result.cardNumber) || next[idx].cardNumber || "",
+      bankAccount: next[idx].bankAccount || pineLabsAccount?.name || "",
+      posTransaction: posTransaction._id,
+      posApprovalCode: result.approvalCode,
+      posReferenceId: posTransaction.plutusTransactionReferenceId,
+      posPayerVpa: result.upiPayerVpa,
+    };
+    setPaymentModes(next);
+  };
+
+  const clearPosApproval = (idx) => {
+    const next = [...paymentModes];
+    const {
+      posTransaction,
+      posApprovalCode,
+      posReferenceId,
+      posPayerVpa,
+      ...rest
+    } = next[idx];
+    next[idx] = { ...rest, transactionId: "", cardNumber: "" };
+    setPaymentModes(next);
+  };
+
   const addPaymentMode = (e) => {
     const value = e.target.value;
     const isIncluded = paymentModes.find((mode) => mode.type === value);
@@ -73,8 +177,17 @@ const PaymentMode = ({
     <React.Fragment>
       <div>
         <div>
+          {posUnavailableReason && (
+            <div className="text-muted fs-11 mb-2">
+              <i className="ri-information-line me-1"></i>
+              Charge on POS unavailable: {posUnavailableReason}
+            </div>
+          )}
           <div>
-            <div style={{ paddingBottom: "1rem" }}>
+            <div
+              style={{ paddingBottom: "1rem" }}
+              className={readOnly ? "d-none" : ""}
+            >
               <Label className="text-muted fs-10">
                 Payment Mode <span className="text-danger">*</span>
               </Label>
@@ -118,6 +231,7 @@ const PaymentMode = ({
                   value={val.amount || ""}
                   onChange={handleChange}
                   type="number"
+                  disabled={readOnly}
                 />
               </Col>
 
@@ -140,6 +254,8 @@ const PaymentMode = ({
                     value={val.cardNumber || ""}
                     onChange={handleChange}
                     type="text"
+                    // Filled from the terminal response — not editable.
+                    disabled={readOnly || !!val.posTransaction}
                   />
                 </Col>
               )}
@@ -209,6 +325,8 @@ const PaymentMode = ({
                     value={val.transactionId || ""}
                     onChange={handleChange}
                     type="text"
+                    // Filled with the terminal RRN / UTR — not editable.
+                    disabled={readOnly || !!val.posTransaction}
                   />
                 </Col>
               )}
@@ -232,6 +350,7 @@ const PaymentMode = ({
                     type="select"
                     style={{ maxWidth: "130px" }}
                     required
+                    disabled={readOnly}
                   >
                     <option value={""} selected defaultValue={""}>
                       No Bank Account Selected
@@ -262,6 +381,50 @@ const PaymentMode = ({
                 </Col>
               )}
 
+              {!readOnly && posAvailable && POS_MODES.includes(val.type) && (
+                <Col xs="auto" className="me-2">
+                  <div className="d-flex align-items-center h-100 gap-2">
+                    {val.posTransaction ? (
+                      <>
+                        <Badge color="success" className="fs-11">
+                          <i className="ri-bank-card-line me-1"></i>
+                          Paid on POS
+                        </Badge>
+                        <Button
+                          size="sm"
+                          outline
+                          color="secondary"
+                          className="p-1 py-0"
+                          onClick={() => clearPosApproval(idx)}
+                          title="Detach this terminal payment from the row"
+                        >
+                          <i className="ri-close-line fs-9"></i>
+                        </Button>
+                      </>
+                    ) : (
+                      <Button
+                        size="sm"
+                        outline
+                        color="primary"
+                        type="button"
+                        className="text-nowrap"
+                        disabled={!(Number(val.amount) >= POS_MIN_AMOUNT)}
+                        title={
+                          Number(val.amount) >= POS_MIN_AMOUNT
+                            ? "Send this amount to the POS terminal"
+                            : `POS payments must be at least ₹${POS_MIN_AMOUNT}`
+                        }
+                        onClick={() => setPosRowIdx(idx)}
+                      >
+                        <i className="ri-bank-card-line me-1"></i>
+                        Charge on POS
+                      </Button>
+                    )}
+                  </div>
+                </Col>
+              )}
+
+              {!readOnly && (
               <Col xs="auto">
                 <div className="d-flex align-items-center h-100">
                   <Button
@@ -275,6 +438,7 @@ const PaymentMode = ({
                   </Button>
                 </div>
               </Col>
+              )}
             </div>
           ))}
           {validation.touched.paymentModes && validation.errors.paymentModes ? (
@@ -284,6 +448,21 @@ const PaymentMode = ({
           ) : null}
         </div>
       </div>
+
+      {posRowIdx !== null && paymentModes[posRowIdx] && (
+        <PosPaymentModal
+          isOpen
+          toggle={() => setPosRowIdx(null)}
+          amount={Number(paymentModes[posRowIdx].amount)}
+          paymentMode={paymentModes[posRowIdx].type}
+          context={posContext}
+          terminals={posTerminal?.terminals}
+          defaultTerminalId={posTerminal?.defaultTerminalId}
+          onApproved={(posTransaction) =>
+            applyPosApproval(posRowIdx, posTransaction)
+          }
+        />
+      )}
     </React.Fragment>
   );
 };
@@ -292,6 +471,17 @@ PaymentMode.propTypes = {
   paymentModes: PropTypes.array,
   setPaymentModes: PropTypes.func,
   existingTransactionProof: PropTypes.array,
+  // Locks every row — used when billing a charge that already happened.
+  readOnly: PropTypes.bool,
+  // Supply to enable "Charge on POS" on card/UPI rows.
+  posContext: PropTypes.shape({
+    center: PropTypes.string,
+    patient: PropTypes.string,
+    addmission: PropTypes.string,
+    purpose: PropTypes.string,
+    billType: PropTypes.string,
+    paymentAgainstBillNo: PropTypes.string,
+  }),
 };
 
 const mapStateToProps = (state) => ({
