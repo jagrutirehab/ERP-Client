@@ -22,6 +22,7 @@ const MedicineRequisitionAddRequest = () => {
   const { hasPermission, loading: permissionLoader } = usePermissions(token);
 
   const hasWritePermission = hasPermission("PHARMACY", "RAISE_MEDICINE_REQUISITION", "WRITE");
+  const hasReadPermission = hasPermission("PHARMACY", "RAISE_MEDICINE_REQUISITION", "READ");
   const hasListPermission = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "READ");
 
   const handleSubmit = async (payload) => {
@@ -29,7 +30,6 @@ const MedicineRequisitionAddRequest = () => {
       const result = await dispatch(submitMedicineRequisition(payload)).unwrap();
       if (result) {
         if (!hasListPermission) {
-          // No access to the list page — stay here with a fresh form.
           setFormKey((k) => k + 1);
         } else {
           navigate("/pharmacy/requisition/medicine-requisition");
@@ -53,7 +53,7 @@ const MedicineRequisitionAddRequest = () => {
     );
   }
 
-  if (!hasWritePermission) navigate("/unauthorized");
+  if (!hasWritePermission && !hasReadPermission) navigate("/unauthorized");
 
   return (
     <CardBody
@@ -67,6 +67,7 @@ const MedicineRequisitionAddRequest = () => {
         onSubmit={handleSubmit}
         loading={loading}
         isEdit={false}
+        canSubmit={hasWritePermission}
       />
     </CardBody>
   );

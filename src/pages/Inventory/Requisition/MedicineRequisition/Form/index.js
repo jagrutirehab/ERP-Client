@@ -53,7 +53,7 @@ const stepCircle = (active) => ({
     color: active ? "#fff" : "#adb5bd",
 });
 
-const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showBack = true }) => {
+const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showBack = true, canSubmit = true }) => {
   const navigate = useNavigate();
   const [duplicateError, setDuplicateError] = useState("");
 
@@ -63,6 +63,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
   const user = useSelector((state) => state.User);
   const centerList = useSelector((state) => state.Center.data);
   const requisingCenterOptions = (centerList || [])
+    .filter((c) => user?.centerAccess?.includes(c._id))
     .map((c) => ({ value: c._id, label: c.title }));
 
   // Duplicate = same name + strength + unit/base unit, in the master or a pending requisition.
@@ -449,16 +450,18 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
                 </Col>
 
                 {/* Submit Section */}
-                <Col md={12} className="text-end mt-4">
-                    <Button
-                        color="primary"
-                        type="submit"
-                        disabled={loading || !!duplicateError}
-                        className="px-5 text-white"
-                    >
-                        {loading ? <Spinner size="sm" /> : isEdit ? "Update Requisition" : "Submit Requisition"}
-                    </Button>
-                </Col>
+                {canSubmit && (
+                    <Col md={12} className="text-end mt-4">
+                        <Button
+                            color="primary"
+                            type="submit"
+                            disabled={loading || !!duplicateError}
+                            className="px-5 text-white"
+                        >
+                            {loading ? <Spinner size="sm" /> : isEdit ? "Update Requisition" : "Submit Requisition"}
+                        </Button>
+                    </Col>
+                )}
             </Row>
         </form>
     </div>

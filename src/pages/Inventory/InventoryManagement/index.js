@@ -472,59 +472,110 @@ const InventoryManagement = () => {
             </p>
           </div>
 
-          <div className="d-flex align-items-center gap-2">
-            {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
-              <Button onClick={handleAdd}>+ Add Medicine</Button>
-            ) : (
-              ""
-            )}
+          {isMobile ? (
+            <div className="d-flex align-items-center gap-2">
+              {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
+                <Button size="sm" onClick={handleAdd}>+ Add Medicine</Button>
+              ) : (
+                ""
+              )}
 
-            <Dropdown
-              isOpen={actionsMenuOpen}
-              toggle={() => setActionsMenuOpen((prev) => !prev)}
-            >
-              <DropdownToggle
-                tag="button"
-                type="button"
-                className="btn btn-outline-primary d-flex align-items-center gap-1"
+              <Dropdown
+                isOpen={actionsMenuOpen}
+                toggle={() => setActionsMenuOpen((prev) => !prev)}
               >
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="d-none d-md-inline">Actions</span>
-              </DropdownToggle>
-              <DropdownMenu end>
-                {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") && (
-                  <DropdownItem onClick={handleViewChange}>
-                    {showCentralMedicine ? "Back to Inventory" : "Master Medicine List"}
-                  </DropdownItem>
-                )}
-                {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") && (
-                  <DropdownItem onClick={handleDownloadTemplate}>
-                    Download Template
-                  </DropdownItem>
-                )}
-                {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") && (
-                  <DropdownItem onClick={() => setBulkOpen(true)}>
-                    Bulk Actions
-                  </DropdownItem>
-                )}
-                {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") && (
-                  <DropdownItem disabled={printloading} onClick={handleExportExcel}>
-                    {printloading ? "Exporting..." : "Export (Excel)"}
-                  </DropdownItem>
-                )}
-                {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") && (
-                  <DropdownItem onClick={handleGiveMedicine}>
-                    Give Medicine
-                  </DropdownItem>
-                )}
-                {!showCentralMedicine && (
-                  <DropdownItem onClick={() => setModalOpenFailedMedicineList(true)}>
-                    View Failed Medicines
-                  </DropdownItem>
-                )}
-              </DropdownMenu>
-            </Dropdown>
-          </div>
+                <DropdownToggle
+                  tag="button"
+                  type="button"
+                  className="btn btn-sm btn-outline-primary d-flex align-items-center"
+                >
+                  <MoreHorizontal className="h-4 w-4" />
+                </DropdownToggle>
+                <DropdownMenu end>
+                  {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") && (
+                    <DropdownItem onClick={handleViewChange}>
+                      {showCentralMedicine ? "Back to Inventory" : "Master Medicine List"}
+                    </DropdownItem>
+                  )}
+                  {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") && (
+                    <DropdownItem onClick={handleDownloadTemplate}>
+                      Download Template
+                    </DropdownItem>
+                  )}
+                  {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") && (
+                    <DropdownItem onClick={() => setBulkOpen(true)}>
+                      Bulk Actions
+                    </DropdownItem>
+                  )}
+                  {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") && (
+                    <DropdownItem disabled={printloading} onClick={handleExportExcel}>
+                      {printloading ? "Exporting..." : "Export (Excel)"}
+                    </DropdownItem>
+                  )}
+                  {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") && (
+                    <DropdownItem onClick={handleGiveMedicine}>
+                      Give Medicine
+                    </DropdownItem>
+                  )}
+                  {!showCentralMedicine && (
+                    <DropdownItem onClick={() => setModalOpenFailedMedicineList(true)}>
+                      View Failed Medicines
+                    </DropdownItem>
+                  )}
+                </DropdownMenu>
+              </Dropdown>
+            </div>
+          ) : (
+            <div className="d-flex flex-wrap align-items-center gap-2">
+              {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
+                <Button size="sm" onClick={handleAdd}>+ Add Medicine</Button>
+              ) : (
+                ""
+              )}
+              {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") ? (
+                <Button size="sm" onClick={handleViewChange}>
+                  {showCentralMedicine ? "Back to Inventory" : "Master Medicine List"}
+                </Button>
+              ) : (
+                ""
+              )}
+              {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") ? (
+                <Button size="sm" onClick={handleDownloadTemplate}>
+                  Download Template
+                </Button>
+              ) : (
+                ""
+              )}
+              {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
+                <Button size="sm" onClick={() => setBulkOpen(true)}>
+                  Bulk Actions
+                </Button>
+              ) : (
+                ""
+              )}
+              {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "READ") ? (
+                <Button
+                  size="sm"
+                  disabled={printloading}
+                  onClick={handleExportExcel}
+                >
+                  {printloading ? "Exporting..." : "Export (Excel)"}
+                </Button>
+              ) : (
+                ""
+              )}
+              {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
+                <Button size="sm" onClick={handleGiveMedicine}>Give Medicine</Button>
+              ) : (
+                ""
+              )}
+              {!showCentralMedicine && (
+                <Button size="sm" onClick={() => setModalOpenFailedMedicineList(true)}>
+                  View Failed Medicines
+                </Button>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Search + filters */}

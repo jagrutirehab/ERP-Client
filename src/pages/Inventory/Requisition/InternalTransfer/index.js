@@ -144,6 +144,7 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
 
     const SPECIAL_ORDER_CENTER_IDS = ["6673daaeccb7e3e7f6eab071"];
     const filteredCenters = (centerList || []).filter((c) => {
+        if (!user?.centerAccess?.includes(c._id)) return false;
         if (isSareyaanPage) return true;
         return !SPECIAL_ORDER_CENTER_IDS.includes(c._id);
     });
