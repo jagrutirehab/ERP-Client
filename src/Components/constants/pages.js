@@ -1010,7 +1010,7 @@ export const HR = [
     children: [
       {
         id: "add-biometric-request",
-        label: "Add Request",
+        label: "JRC Mapping",
         icon: "bx bx-plus",
         link: "/hr/biometric/add",
       },
