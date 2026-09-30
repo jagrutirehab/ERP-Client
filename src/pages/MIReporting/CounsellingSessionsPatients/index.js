@@ -92,19 +92,21 @@ const CounsellingSessionsPatients = () => {
     const labels = [
         "Patient UID",
         "Patient Name",
-        "MTD",
+        "Actual",
+        "Should Be",
         "Center Name",
         "Ad. Date",
         "Psychologist Name",
         "Last Outpass",
     ];
 
-    const fixedColWidths = [80, 130, 55, 90, 90, 60];
+    const fixedColWidths = [80, 130, 60, 70, 90, 90, 60];
 
     const labelsMapping = {
         "Patient UID": "patient_id",
         "Patient Name": "patient_name",
-        "MTD": "current_month_total",
+        "Actual": "result_count",
+        "Should Be": "should_be_count",
         "Center Name": "center_name",
         "Ad. Date": "admission_date",
         "Psychologist Name": "psychologist_name",
