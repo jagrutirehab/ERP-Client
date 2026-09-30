@@ -95,6 +95,7 @@ const PosPaymentModal = ({
   toggle,
   amount,
   paymentMode,
+  bankAccount,
   context,
   terminals,
   defaultTerminalId,
@@ -153,6 +154,9 @@ const PosPaymentModal = ({
           // reopens the right form, against the right invoice.
           billType: context.billType,
           paymentAgainstBillNo: context.paymentAgainstBillNo,
+          // The account the cashier picked, so a recovered charge is filed
+          // against it rather than the Pine Labs default.
+          bankAccount: bankAccount || undefined,
           appointment: context.appointment,
           invoiceSnapshot: context.invoiceSnapshot,
           amount,
@@ -169,7 +173,7 @@ const PosPaymentModal = ({
         if (mountedRef.current) setStarting(false);
       }
     },
-    [amount, paymentMode, context],
+    [amount, paymentMode, bankAccount, context],
   );
 
   // Kick off the charge once per open — unless the cashier still has a counter
@@ -505,6 +509,7 @@ PosPaymentModal.propTypes = {
   toggle: PropTypes.func.isRequired,
   amount: PropTypes.number.isRequired,
   paymentMode: PropTypes.oneOf(["CARD", "UPI"]).isRequired,
+  bankAccount: PropTypes.string,
   context: PropTypes.shape({
     center: PropTypes.string.isRequired,
     patient: PropTypes.string,

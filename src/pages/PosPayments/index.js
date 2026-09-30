@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { connect, useDispatch } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Alert,
   Button,
@@ -30,7 +30,7 @@ import RefundModal from "./RefundModal";
 // appear without anyone remembering to reload.
 const REFRESH_INTERVAL_MS = 30000;
 
-const DEFAULT_PAGE_SIZE = 25;
+const DEFAULT_PAGE_SIZE = 10;
 
 // Page size is a per-user habit, not something to re-pick every visit.
 const PAGE_SIZE_KEY = "posDashboardPageSize";
@@ -82,13 +82,45 @@ const PosPayments = ({ centers, centerAccess }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [canView, permissionLoader]);
 
-  const [centerId, setCenterId] = useState("");
-  const [status, setStatus] = useState("ALL");
-  // Defaults to today, which is what a cashier checking their own shift wants.
-  const [from, setFrom] = useState(todayValue);
-  const [to, setTo] = useState(todayValue);
-  const [page, setPage] = useState(1);
-  const [perPage, setPerPage] = useState(readPageSize);
+  // Filters, tab and page live in the query string so a refresh (or a shared
+  // link) lands on the same view instead of resetting to today's defaults.
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const centerId = searchParams.get("center") || "";
+  const statusParam = searchParams.get("status");
+  const status = TILES.some((t) => t.key === statusParam) ? statusParam : "ALL";
+  // Absent means today, which is what a cashier checking their own shift
+  // wants. Present-but-empty means "All time" was chosen.
+  const fromParam = searchParams.get("from");
+  const toParam = searchParams.get("to");
+  const from = fromParam === null ? todayValue() : fromParam;
+  const to = toParam === null ? todayValue() : toParam;
+  const page = Math.max(1, Number(searchParams.get("page")) || 1);
+  const perPage = Number(searchParams.get("limit")) || readPageSize();
+
+  // Merges into the current query. `replace` keeps each filter tweak from
+  // piling up history entries behind the back button.
+  const updateParams = useCallback(
+    (patch) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          Object.entries(patch).forEach(([key, value]) => {
+            if (value === undefined || value === null) next.delete(key);
+            else next.set(key, String(value));
+          });
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
+  const setPage = useCallback(
+    (nextPage) => updateParams({ page: nextPage > 1 ? nextPage : null }),
+    [updateParams],
+  );
 
   const [rows, setRows] = useState([]);
   const [counts, setCounts] = useState({});
@@ -114,11 +146,11 @@ const PosPayments = ({ centers, centerAccess }) => {
 
   useEffect(() => {
     if (!centerId) return;
+    // Also guards a pasted link naming a centre this user cannot see.
     if (!(centerAccess || []).includes(centerId)) {
-      setCenterId("");
-      setPage(1);
+      updateParams({ center: null, page: null });
     }
-  }, [centerAccess, centerId]);
+  }, [centerAccess, centerId, updateParams]);
 
   const load = useCallback(async () => {
     try {
@@ -143,7 +175,7 @@ const PosPayments = ({ centers, centerAccess }) => {
     } finally {
       if (mountedRef.current) setLoading(false);
     }
-  }, [hasScope, scopeIds, centerId, status, from, to, page, perPage]);
+  }, [hasScope, scopeIds, centerId, status, from, to, page, perPage, setPage]);
 
   useEffect(() => {
     setLoading(true);
@@ -152,15 +184,16 @@ const PosPayments = ({ centers, centerAccess }) => {
     return () => clearInterval(timer);
   }, [load]);
 
-  const applyFilter = (setter) => (value) => {
-    setter(value);
-    setPage(1);
+  // Any filter change goes back to page 1. Defaults are dropped from the URL
+  // to keep it short.
+  const applyFilter = (key) => (value) => {
+    const isDefault =
+      (key === "center" && !value) || (key === "status" && value === "ALL");
+    updateParams({ [key]: isDefault ? null : value, page: null });
   };
 
   const showAllTime = () => {
-    setFrom("");
-    setTo("");
-    setPage(1);
+    updateParams({ from: "", to: "", page: null });
   };
 
   // Recovery for a payment the terminal took but nothing billed — usually an
@@ -177,8 +210,8 @@ const PosPayments = ({ centers, centerAccess }) => {
       if (!row.appointment) {
         setError(
           "This OPD charge is not linked to an appointment, so the invoice cannot be reopened automatically. Collect payment on the appointment quoting RRN " +
-            (row.result?.rrn || row.transactionNumber) +
-            ".",
+          (row.result?.rrn || row.transactionNumber) +
+          ".",
         );
         return;
       }
@@ -235,9 +268,11 @@ const PosPayments = ({ centers, centerAccess }) => {
   const handleChangePage = (nextPage) => setPage(nextPage);
 
   const handleChangeRowsPerPage = (nextPerPage, nextPage) => {
-    setPerPage(nextPerPage);
     rememberPageSize(nextPerPage);
-    setPage(nextPage || 1);
+    updateParams({
+      limit: nextPerPage,
+      page: nextPage > 1 ? nextPage : null,
+    });
   };
 
   return (
@@ -270,7 +305,7 @@ const PosPayments = ({ centers, centerAccess }) => {
                       type="select"
                       bsSize="sm"
                       value={centerId}
-                      onChange={(e) => applyFilter(setCenterId)(e.target.value)}
+                      onChange={(e) => applyFilter("center")(e.target.value)}
                     >
                       <option value="">All centres</option>
                       {visibleCenters.map((c) => (
@@ -288,7 +323,7 @@ const PosPayments = ({ centers, centerAccess }) => {
                       bsSize="sm"
                       value={from}
                       max={to || undefined}
-                      onChange={(e) => applyFilter(setFrom)(e.target.value)}
+                      onChange={(e) => applyFilter("from")(e.target.value)}
                     />
                   </Col>
 
@@ -299,7 +334,7 @@ const PosPayments = ({ centers, centerAccess }) => {
                       bsSize="sm"
                       value={to}
                       min={from || undefined}
-                      onChange={(e) => applyFilter(setTo)(e.target.value)}
+                      onChange={(e) => applyFilter("to")(e.target.value)}
                     />
                   </Col>
 
@@ -309,7 +344,7 @@ const PosPayments = ({ centers, centerAccess }) => {
                       type="select"
                       bsSize="sm"
                       value={status}
-                      onChange={(e) => applyFilter(setStatus)(e.target.value)}
+                      onChange={(e) => applyFilter("status")(e.target.value)}
                     >
                       {TILES.map((t) => (
                         <option key={t.key} value={t.key}>
@@ -344,7 +379,7 @@ const PosPayments = ({ centers, centerAccess }) => {
                         size="sm"
                         outline={!active}
                         color={count > 0 ? tile.color : "light"}
-                        onClick={() => applyFilter(setStatus)(tile.key)}
+                        onClick={() => applyFilter("status")(tile.key)}
                         className={count === 0 ? "text-muted" : ""}
                       >
                         {tile.label}

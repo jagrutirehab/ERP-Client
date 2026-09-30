@@ -96,7 +96,7 @@ const PosTransactionTable = ({
       wrap: true,
       cell: (row) => (
         <div>
-          <div>{row.center?.name || row.center?.title || "—"}</div>
+          <div>{row.center?.title || "—"}</div>
           {row.terminal?.label && (
             <div className="text-muted fs-11">{row.terminal.label}</div>
           )}

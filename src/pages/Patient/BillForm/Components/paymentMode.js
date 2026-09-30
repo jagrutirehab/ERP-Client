@@ -37,6 +37,7 @@ const PaymentMode = ({
   existingTransactionProof,
   posContext,
   readOnly,
+  chargeBlockedReason,
 }) => {
   const [posRowIdx, setPosRowIdx] = React.useState(null);
   const [posTerminal, setPosTerminal] = React.useState(null);
@@ -106,19 +107,6 @@ const PaymentMode = ({
       posReferenceId: posTransaction.plutusTransactionReferenceId,
       posPayerVpa: result.upiPayerVpa,
     };
-    setPaymentModes(next);
-  };
-
-  const clearPosApproval = (idx) => {
-    const next = [...paymentModes];
-    const {
-      posTransaction,
-      posApprovalCode,
-      posReferenceId,
-      posPayerVpa,
-      ...rest
-    } = next[idx];
-    next[idx] = { ...rest, transactionId: "", cardNumber: "" };
     setPaymentModes(next);
   };
 
@@ -351,7 +339,9 @@ const PaymentMode = ({
                     type="select"
                     style={{ maxWidth: "130px" }}
                     required
-                    disabled={readOnly}
+                    // Sent with the charge, so it is fixed once the terminal
+                    // approves — a later change would not reach a recovery.
+                    disabled={readOnly || !!val.posTransaction}
                   >
                     <option value={""} selected defaultValue={""}>
                       No Bank Account Selected
@@ -391,22 +381,12 @@ const PaymentMode = ({
                 <Col xs="auto" className="me-2">
                   <div className="d-flex align-items-center h-100 gap-2">
                     {val.posTransaction ? (
-                      <>
-                        <Badge color="success" className="fs-11">
-                          <i className="ri-bank-card-line me-1"></i>
-                          Paid on POS
-                        </Badge>
-                        <Button
-                          size="sm"
-                          outline
-                          color="secondary"
-                          className="p-1 py-0"
-                          onClick={() => clearPosApproval(idx)}
-                          title="Detach this terminal payment from the row"
-                        >
-                          <i className="ri-close-line fs-9"></i>
-                        </Button>
-                      </>
+                      // No detach: the money is taken, so the row must be
+                      // saved as it stands.
+                      <Badge color="success" className="fs-11">
+                        <i className="ri-bank-card-line me-1"></i>
+                        Paid on POS
+                      </Badge>
                     ) : (
                       <Button
                         size="sm"
@@ -414,11 +394,19 @@ const PaymentMode = ({
                         color="primary"
                         type="button"
                         className="text-nowrap"
-                        disabled={!(Number(val.amount) >= POS_MIN_AMOUNT)}
+                        // Blocked while the tender exceeds what is owed —
+                        // money must not reach the terminal that the bill
+                        // could never be saved against.
+                        disabled={
+                          !!chargeBlockedReason ||
+                          !(Number(val.amount) >= POS_MIN_AMOUNT)
+                        }
                         title={
-                          Number(val.amount) >= POS_MIN_AMOUNT
-                            ? "Send this amount to the POS terminal"
-                            : `POS payments must be at least ₹${POS_MIN_AMOUNT}`
+                          chargeBlockedReason
+                            ? chargeBlockedReason
+                            : Number(val.amount) >= POS_MIN_AMOUNT
+                              ? "Send this amount to the POS terminal"
+                              : `POS payments must be at least ₹${POS_MIN_AMOUNT}`
                         }
                         onClick={() => setPosRowIdx(idx)}
                       >
@@ -439,6 +427,14 @@ const PaymentMode = ({
                     outline
                     color="danger"
                     className="p-1 py-0"
+                    // Removing a row the terminal already charged would
+                    // leave that money off the bill.
+                    disabled={!!val.posTransaction}
+                    title={
+                      val.posTransaction
+                        ? "Paid on POS — this row cannot be removed"
+                        : undefined
+                    }
                   >
                     <i className="ri-close-circle-line fs-9"></i>
                   </Button>
@@ -461,6 +457,7 @@ const PaymentMode = ({
           toggle={() => setPosRowIdx(null)}
           amount={Number(paymentModes[posRowIdx].amount)}
           paymentMode={paymentModes[posRowIdx].type}
+          bankAccount={paymentModes[posRowIdx].bankAccount}
           context={posContext}
           terminals={posTerminal?.terminals}
           defaultTerminalId={posTerminal?.defaultTerminalId}
@@ -479,6 +476,8 @@ PaymentMode.propTypes = {
   existingTransactionProof: PropTypes.array,
   // Locks every row — used when billing a charge that already happened.
   readOnly: PropTypes.bool,
+  // Set to stop a charge being sent at all, with the reason shown on hover.
+  chargeBlockedReason: PropTypes.string,
   // Supply to enable "Charge on POS" on card/UPI rows.
   posContext: PropTypes.shape({
     center: PropTypes.string,
