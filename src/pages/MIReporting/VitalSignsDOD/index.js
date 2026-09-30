@@ -35,6 +35,7 @@
     }, [searchInput, searchTerm]);
 
     const data = useMemo(() => vitalSignsDOD?.data || [], [vitalSignsDOD]);
+    const centerDailyTotals = useMemo(() => vitalSignsDOD?.center_daily_totals || [], [vitalSignsDOD]);
 
     const last30Days = useMemo(() => {
         const days = [];
@@ -70,23 +71,18 @@
         return totals;
     }, [filteredData, last30Days]);
 
-    const isOnOutpassForDay = (item, key) => {
-        if (!item?.last_outpass) return false;
-        const outpassDate = new Date(item.last_outpass);
-        if (isNaN(outpassDate)) return false;
-        return outpassDate.toISOString().slice(0, 10) === key;
-    };
-
     const dateCompliance = useMemo(() => {
         const pct = {};
         last30Days.forEach(({ key }) => {
-            const eligible = filteredData.filter((row) => !isOnOutpassForDay(row, key));
-            const compliant = eligible.reduce((sum, row) => sum + ((Number(row?.dod_data?.[key]) || 0) > 0 ? 1 : 0), 0);
-            pct[key] = eligible.length > 0 ? Math.round((compliant / eligible.length) * 100) : 0;
+            const rows = centerDailyTotals.filter((row) => (
+                row.date === key && (selectedCenter === "ALL" || row.center_name === selectedCenter)
+            ));
+            const resultCount = rows.reduce((sum, row) => sum + (Number(row.result_count) || 0), 0);
+            const shouldBeCount = rows.reduce((sum, row) => sum + (Number(row.should_be_count) || 0), 0);
+            pct[key] = shouldBeCount > 0 ? Math.round((resultCount / shouldBeCount) * 100) : 0;
         });
         return pct;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredData, last30Days]);
+    }, [centerDailyTotals, last30Days, selectedCenter]);
 
     const centerOptions = useMemo(() => [
         { value: "ALL", label: "All Centers" },

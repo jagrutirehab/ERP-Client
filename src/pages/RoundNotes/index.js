@@ -473,7 +473,7 @@ const RoundNotes = () => {
                           isOpen: true,
                           mode: "edit",
                           data: current,
-                          carryForwardSource: null,
+                        carryForwardSource: null,
                         }),
                       )
                     }

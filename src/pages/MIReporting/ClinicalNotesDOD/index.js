@@ -44,6 +44,7 @@ const ClinicalNotesDOD = () => {
 
 
     const data = useMemo(() => clinicalNotesDOD?.data || [], [clinicalNotesDOD]);
+    const centerDailyTotals = useMemo(() => clinicalNotesDOD?.center_daily_totals || [], [clinicalNotesDOD]);
 
 
     const filteredData = useMemo(() => {
@@ -171,25 +172,25 @@ const ClinicalNotesDOD = () => {
         return totals;
     }, [filteredData, last30Days]);
 
-    const isOnOutpassForDay = (item, key) => {
-        if (!item?.last_outpass) return false;
-        const outpassDate = new Date(item.last_outpass);
-        if (isNaN(outpassDate)) return false;
+    const keyToIso = (key) => {
         const [day, mon, year] = key.split("-");
-        const dayDate = new Date(`${mon} ${day}, ${year}`);
-        return outpassDate.toDateString() === dayDate.toDateString();
+        const monthIdx = MONTH_ABBR.indexOf(mon);
+        return `${year}-${pad2(monthIdx + 1)}-${pad2(Number(day))}`;
     };
 
     const dateCompliance = useMemo(() => {
         const pct = {};
         last30Days.forEach(({ key }) => {
-            const eligible = filteredData.filter((row) => !isOnOutpassForDay(row, key));
-            const compliant = eligible.reduce((sum, row) => sum + ((Number(row[key]) || 0) > 0 ? 1 : 0), 0);
-            pct[key] = eligible.length > 0 ? Math.round((compliant / eligible.length) * 100) : 0;
+            const isoDate = keyToIso(key);
+            const rows = centerDailyTotals.filter((row) => (
+                row.date === isoDate && (selectedCenter === "ALL" || row.center_name === selectedCenter)
+            ));
+            const resultCount = rows.reduce((sum, row) => sum + (Number(row.result_count) || 0), 0);
+            const shouldBeCount = rows.reduce((sum, row) => sum + (Number(row.should_be_count) || 0), 0);
+            pct[key] = shouldBeCount > 0 ? Math.round((resultCount / shouldBeCount) * 100) : 0;
         });
         return pct;
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [filteredData, last30Days]);
+    }, [centerDailyTotals, last30Days, selectedCenter]);
 
     const currentMonthDays = useMemo(() => {
         const now = new Date();
