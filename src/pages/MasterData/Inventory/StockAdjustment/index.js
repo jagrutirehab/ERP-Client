@@ -96,17 +96,23 @@ const StockAdjustment = () => {
   };
 
   const updateLine = (idx, field, value) => {
-    setLines((prev) => prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l)));
+    setLines((prev) =>
+      prev.map((l, i) => (i === idx ? { ...l, [field]: value } : l)),
+    );
   };
   const addLine = () => setLines((prev) => [...prev, emptyLine()]);
-  const removeLine = (idx) => setLines((prev) => prev.filter((_, i) => i !== idx));
+  const removeLine = (idx) =>
+    setLines((prev) => prev.filter((_, i) => i !== idx));
 
   const handleSubmit = async () => {
     if (!centerId) return toast.error("Select a site");
     const invalid = lines.find(
       (l) => !l.itemName.trim() || !l.reason.trim() || Number(l.quantity) <= 0,
     );
-    if (invalid) return toast.error("Fill in Item, Reason and a valid Quantity for every line");
+    if (invalid)
+      return toast.error(
+        "Fill in Item, Reason and a valid Quantity for every line",
+      );
 
     setSubmitting(true);
     try {
@@ -127,7 +133,11 @@ const StockAdjustment = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong",
+        );
       }
     } finally {
       setSubmitting(false);
@@ -135,20 +145,36 @@ const StockAdjustment = () => {
   };
 
   const columns = [
-    { name: "Adjustment #", selector: (row) => row.adjustmentNumber, sortable: true, width: "160px" },
-    { name: "Title", cell: (row) => <span className="uom-cell-primary">{row.title || "—"}</span> },
+    {
+      name: "Adjustment #",
+      selector: (row) => row.adjustmentNumber,
+      sortable: true,
+      width: "160px",
+    },
+    {
+      name: "Title",
+      cell: (row) => (
+        <span className="uom-cell-primary">{row.title || "—"}</span>
+      ),
+    },
     {
       name: "Site",
-      cell: (row) => <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>
+      ),
     },
     {
       name: "Items",
       width: "80px",
-      cell: (row) => <span className="uom-cell-muted">{row.lineItems?.length || 0}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.lineItems?.length || 0}</span>
+      ),
     },
     {
       name: "Date",
-      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.createdAt)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{dateFmt(row.createdAt)}</span>
+      ),
     },
     {
       name: "Actions",
@@ -185,16 +211,25 @@ const StockAdjustment = () => {
           progressPending={loading}
           pagination
           highlightOnHover
-          noDataComponent={<div className="uom-empty-state">No adjustments yet</div>}
+          noDataComponent={
+            <div className="uom-empty-state">No adjustments yet</div>
+          }
         />
       </div>
 
       {/* Create Modal */}
-      <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} centered size="lg">
+      <Modal
+        isOpen={modalOpen}
+        toggle={() => setModalOpen(false)}
+        centered
+        size="lg"
+      >
         <ModalBody className="p-4">
           <h5 className="mb-3">Adjustment Information</h5>
 
-          <Label>Title</Label>
+          <Label>
+            Title <span className="text-danger">*</span>
+          </Label>
           <Input
             className="mb-3"
             placeholder="e.g., Cycle Count Variance Adjustment"
@@ -202,7 +237,9 @@ const StockAdjustment = () => {
             onChange={(e) => setTitle(e.target.value)}
           />
 
-          <Label>Site</Label>
+          <Label>
+            Site <span className="text-danger">*</span>
+          </Label>
           <Input
             type="select"
             className="mb-3"
@@ -249,9 +286,13 @@ const StockAdjustment = () => {
                     type="select"
                     value={l.itemName}
                     disabled={!centerId}
-                    onChange={(e) => updateLine(idx, "itemName", e.target.value)}
+                    onChange={(e) =>
+                      updateLine(idx, "itemName", e.target.value)
+                    }
                   >
-                    <option value="">{!centerId ? "Select site first" : "Select item"}</option>
+                    <option value="">
+                      {!centerId ? "Select site first" : "Select item"}
+                    </option>
                     {stockOptions.map((s) => (
                       <option key={s._id} value={s.itemName}>
                         {s.itemName} (Current: {s.quantity})
@@ -281,7 +322,9 @@ const StockAdjustment = () => {
                     min={1}
                     value={l.quantity}
                     onFocus={(e) => e.target.select()}
-                    onChange={(e) => updateLine(idx, "quantity", e.target.value)}
+                    onChange={(e) =>
+                      updateLine(idx, "quantity", e.target.value)
+                    }
                   />
                 </Col>
               </Row>
@@ -321,10 +364,18 @@ const StockAdjustment = () => {
           </div>
 
           <div className="d-flex justify-content-end gap-2">
-            <Button color="light" onClick={() => setModalOpen(false)} disabled={submitting}>
+            <Button
+              color="light"
+              onClick={() => setModalOpen(false)}
+              disabled={submitting}
+            >
               Cancel
             </Button>
-            <Button color="primary" onClick={handleSubmit} disabled={submitting}>
+            <Button
+              color="primary"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
               {submitting ? "Saving..." : "Create Adjustment"}
             </Button>
           </div>
@@ -332,7 +383,12 @@ const StockAdjustment = () => {
       </Modal>
 
       {/* Detail Modal */}
-      <Modal isOpen={!!detailModal} toggle={() => setDetailModal(null)} centered size="lg">
+      <Modal
+        isOpen={!!detailModal}
+        toggle={() => setDetailModal(null)}
+        centered
+        size="lg"
+      >
         <ModalBody className="p-4">
           {detailModal && (
             <>
@@ -354,7 +410,13 @@ const StockAdjustment = () => {
                     {detailModal.lineItems.map((li, idx) => (
                       <tr key={idx}>
                         <td>{li.itemName}</td>
-                        <td className={li.type === "increase" ? "text-success" : "text-danger"}>
+                        <td
+                          className={
+                            li.type === "increase"
+                              ? "text-success"
+                              : "text-danger"
+                          }
+                        >
                           {li.type === "increase" ? "Increase" : "Decrease"}
                         </td>
                         <td>{li.quantity}</td>

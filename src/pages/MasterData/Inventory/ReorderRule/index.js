@@ -100,8 +100,15 @@ const ReorderRule = () => {
   };
 
   const handleSubmit = async () => {
-    if (!itemName.trim() || !centerId || reorderLevel === "" || reorderQty === "") {
-      return toast.error("Fill in all required fields (Item, Site, Reorder Point, Reorder Qty)");
+    if (
+      !itemName.trim() ||
+      !centerId ||
+      reorderLevel === "" ||
+      reorderQty === ""
+    ) {
+      return toast.error(
+        "Fill in all required fields (Item, Site, Reorder Point, Reorder Qty)",
+      );
     }
     setSubmitting(true);
     try {
@@ -122,7 +129,11 @@ const ReorderRule = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong",
+        );
       }
     } finally {
       setSubmitting(false);
@@ -136,7 +147,11 @@ const ReorderRule = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't delete.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't delete.",
+        );
       }
     }
   };
@@ -145,25 +160,39 @@ const ReorderRule = () => {
     { name: "Item", selector: (row) => row.itemName, sortable: true },
     {
       name: "Site",
-      cell: (row) => <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>
+      ),
     },
     {
       name: "Preferred Vendor",
       cell: (row) => (
         <span className="uom-cell-muted">
-          {row.preferredVendorId?.tradeName || row.preferredVendorId?.legalName || "—"}
+          {row.preferredVendorId?.tradeName ||
+            row.preferredVendorId?.legalName ||
+            "—"}
         </span>
       ),
     },
     { name: "Reorder Pt", width: "110px", selector: (row) => row.reorderLevel },
     { name: "Reorder Qty", width: "110px", selector: (row) => row.reorderQty },
-    { name: "Safety Stock", width: "110px", selector: (row) => row.safetyStock },
-    { name: "Lead Time", width: "100px", cell: (row) => `${row.leadTimeDays || 0}d` },
+    {
+      name: "Safety Stock",
+      width: "110px",
+      selector: (row) => row.safetyStock,
+    },
+    {
+      name: "Lead Time",
+      width: "100px",
+      cell: (row) => `${row.leadTimeDays || 0}d`,
+    },
     {
       name: "Status",
       width: "100px",
       cell: (row) => (
-        <span className={`uom-status-pill ${row.status === "active" ? "status-active" : "status-inactive"}`}>
+        <span
+          className={`uom-status-pill ${row.status === "active" ? "status-active" : "status-inactive"}`}
+        >
           <span className="dot"></span> {row.status}
         </span>
       ),
@@ -184,14 +213,26 @@ const ReorderRule = () => {
     { name: "Item", selector: (row) => row.itemName, sortable: true },
     {
       name: "Center",
-      cell: (row) => <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>
+      ),
     },
     {
       name: "Current Qty",
-      cell: (row) => <span className="text-danger fw-semibold">{row.currentQty}</span>,
+      cell: (row) => (
+        <span className="text-danger fw-semibold">{row.currentQty}</span>
+      ),
     },
-    { name: "Reorder Level", width: "140px", selector: (row) => row.reorderLevel },
-    { name: "Suggested Reorder Qty", width: "180px", selector: (row) => row.reorderQty },
+    {
+      name: "Reorder Level",
+      width: "140px",
+      selector: (row) => row.reorderLevel,
+    },
+    {
+      name: "Suggested Reorder Qty",
+      width: "180px",
+      selector: (row) => row.reorderQty,
+    },
   ];
 
   return (
@@ -204,10 +245,16 @@ const ReorderRule = () => {
       </div>
 
       <div className="d-flex gap-2 mb-3">
-        <Button color={tab === "rules" ? "primary" : "light"} onClick={() => setTab("rules")}>
+        <Button
+          color={tab === "rules" ? "primary" : "light"}
+          onClick={() => setTab("rules")}
+        >
           Rules
         </Button>
-        <Button color={tab === "alerts" ? "primary" : "light"} onClick={() => setTab("alerts")}>
+        <Button
+          color={tab === "alerts" ? "primary" : "light"}
+          onClick={() => setTab("alerts")}
+        >
           Active Alerts {alerts.length > 0 && `(${alerts.length})`}
         </Button>
       </div>
@@ -229,19 +276,28 @@ const ReorderRule = () => {
           highlightOnHover
           noDataComponent={
             <div className="uom-empty-state">
-              {tab === "rules" ? "No reorder rules yet" : "No items below reorder level"}
+              {tab === "rules"
+                ? "No reorder rules yet"
+                : "No items below reorder level"}
             </div>
           }
         />
       </div>
 
-      <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} centered size="lg">
+      <Modal
+        isOpen={modalOpen}
+        toggle={() => setModalOpen(false)}
+        centered
+        size="lg"
+      >
         <ModalBody className="p-4">
           <h5 className="mb-3">Rule Configuration</h5>
 
           <Row>
             <Col md={6} className="mb-3">
-              <Label>Site</Label>
+              <Label>
+                Site <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={centerId}
@@ -256,14 +312,18 @@ const ReorderRule = () => {
               </Input>
             </Col>
             <Col md={6} className="mb-3">
-              <Label>Item</Label>
+              <Label>
+                Item <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={itemName}
                 disabled={!centerId}
                 onChange={(e) => setItemName(e.target.value)}
               >
-                <option value="">{!centerId ? "Select site first" : "Select item"}</option>
+                <option value="">
+                  {!centerId ? "Select site first" : "Select item"}
+                </option>
                 {stockOptions.map((s) => (
                   <option key={s._id} value={s.itemName}>
                     {s.itemName}
@@ -357,13 +417,26 @@ const ReorderRule = () => {
           </div>
 
           <Label>Remarks</Label>
-          <Input type="textarea" rows={2} value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+          <Input
+            type="textarea"
+            rows={2}
+            value={remarks}
+            onChange={(e) => setRemarks(e.target.value)}
+          />
 
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button color="light" onClick={() => setModalOpen(false)} disabled={submitting}>
+            <Button
+              color="light"
+              onClick={() => setModalOpen(false)}
+              disabled={submitting}
+            >
               Cancel
             </Button>
-            <Button color="primary" onClick={handleSubmit} disabled={submitting}>
+            <Button
+              color="primary"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
               {submitting ? "Saving..." : "Create Rule"}
             </Button>
           </div>

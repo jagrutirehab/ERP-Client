@@ -72,7 +72,7 @@ const MoveOrder = () => {
     setToLocationId(fromLocationId);
   };
 
-   const handleSourceLocationChange = (locationId) => {
+  const handleSourceLocationChange = (locationId) => {
     setFromLocationId(locationId);
     setItemName("");
     if (!locationId) {
@@ -85,7 +85,11 @@ const MoveOrder = () => {
           (r) => r.location?._id === locationId,
         );
         setAvailableItems(
-          atThisLocation.map((r) => ({ _id: locationId + r.itemName, itemName: r.itemName, quantity: r.quantity })),
+          atThisLocation.map((r) => ({
+            _id: locationId + r.itemName,
+            itemName: r.itemName,
+            quantity: r.quantity,
+          })),
         );
       })
       .catch(() => setAvailableItems([]));
@@ -101,7 +105,8 @@ const MoveOrder = () => {
 
     const sourceLocation = allLocations.find((l) => l._id === fromLocationId);
     const destLocation = allLocations.find((l) => l._id === toLocationId);
-    const sourceCenterId = sourceLocation?.centerId?._id || sourceLocation?.centerId;
+    const sourceCenterId =
+      sourceLocation?.centerId?._id || sourceLocation?.centerId;
     const destCenterId = destLocation?.centerId?._id || destLocation?.centerId;
     if (sourceCenterId !== destCenterId) {
       return toast.error(
@@ -124,7 +129,11 @@ const MoveOrder = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong",
+        );
       }
     } finally {
       setSubmitting(false);
@@ -132,11 +141,18 @@ const MoveOrder = () => {
   };
 
   const columns = [
-    { name: "Move #", selector: (row) => row.moveOrderNumber, sortable: true, width: "160px" },
+    {
+      name: "Move #",
+      selector: (row) => row.moveOrderNumber,
+      sortable: true,
+      width: "160px",
+    },
     { name: "Item", selector: (row) => row.itemName },
     {
       name: "Center",
-      cell: (row) => <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>
+      ),
     },
     {
       name: "From → To",
@@ -149,7 +165,9 @@ const MoveOrder = () => {
     { name: "Qty", width: "80px", selector: (row) => row.quantity },
     {
       name: "Date",
-      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.createdAt)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{dateFmt(row.createdAt)}</span>
+      ),
     },
   ];
 
@@ -177,11 +195,18 @@ const MoveOrder = () => {
           progressPending={loading}
           pagination
           highlightOnHover
-          noDataComponent={<div className="uom-empty-state">No move orders yet</div>}
+          noDataComponent={
+            <div className="uom-empty-state">No move orders yet</div>
+          }
         />
       </div>
 
-      <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} centered size="lg">
+      <Modal
+        isOpen={modalOpen}
+        toggle={() => setModalOpen(false)}
+        centered
+        size="lg"
+      >
         <ModalBody className="p-4">
           <h5 className="mb-1">Create Move Order Request</h5>
           <p className="text-muted small mb-3">
@@ -190,7 +215,9 @@ const MoveOrder = () => {
 
           <Row className="align-items-end mb-3">
             <Col md={5}>
-              <Label>Source Location</Label>
+              <Label>
+                Source Location <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={fromLocationId}
@@ -210,7 +237,9 @@ const MoveOrder = () => {
               </Button>
             </Col>
             <Col md={5}>
-              <Label>Destination Location</Label>
+              <Label>
+                Destination Location <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={toLocationId}
@@ -226,7 +255,9 @@ const MoveOrder = () => {
             </Col>
           </Row>
 
-          <Label>Item Description</Label>
+          <Label>
+            Item Description <span className="text-danger">*</span>
+          </Label>
           <Input
             type="select"
             className="mb-3"
@@ -248,7 +279,9 @@ const MoveOrder = () => {
             ))}
           </Input>
 
-          <Label>Quantity</Label>
+          <Label>
+            Quantity <span className="text-danger">*</span>
+          </Label>
           <Input
             type="number"
             min={1}
@@ -259,13 +292,26 @@ const MoveOrder = () => {
           />
 
           <Label>Remarks (optional)</Label>
-          <Input type="textarea" rows={2} value={remarks} onChange={(e) => setRemarks(e.target.value)} />
+          <Input
+            type="textarea"
+            rows={2}
+            value={remarks}
+            onChange={(e) => setRemarks(e.target.value)}
+          />
 
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button color="light" onClick={() => setModalOpen(false)} disabled={submitting}>
+            <Button
+              color="light"
+              onClick={() => setModalOpen(false)}
+              disabled={submitting}
+            >
               Cancel
             </Button>
-            <Button color="primary" onClick={handleSubmit} disabled={submitting}>
+            <Button
+              color="primary"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
               {submitting ? "Saving..." : "Move"}
             </Button>
           </div>

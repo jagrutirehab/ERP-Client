@@ -268,7 +268,9 @@ const CycleCount = () => {
               </Input>
             </Col>
             <Col md={6} className="mb-3">
-              <Label>Site</Label>
+              <Label>
+                Site <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={centerId}
@@ -292,7 +294,9 @@ const CycleCount = () => {
             onChange={(e) => setScheduledDate(e.target.value)}
           />
 
-          <Label>Count Items</Label>
+          <Label className="small">
+            Item <span className="text-danger">*</span>
+          </Label>
           {lines.map((l, idx) => (
             <Row key={idx} className="mb-2 align-items-center">
               <Col md={5}>
@@ -319,7 +323,7 @@ const CycleCount = () => {
                 <Input
                   type="number"
                   min={0}
-                  placeholder="Counted qty"
+                  placeholder="Counted qty *"
                   value={l.countedQty}
                   onChange={(e) =>
                     updateLine(idx, "countedQty", e.target.value)

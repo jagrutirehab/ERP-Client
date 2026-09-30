@@ -239,7 +239,9 @@ const InventoryTransfer = () => {
           />
           <Row>
             <Col md={6} className="mb-3">
-              <Label>Source Site</Label>
+              <Label>
+                Source Site <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={fromCenterId}
@@ -254,7 +256,9 @@ const InventoryTransfer = () => {
               </Input>
             </Col>
             <Col md={6} className="mb-3">
-              <Label>Destination Site</Label>
+              <Label>
+                Destination Site <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="select"
                 value={toCenterId}
@@ -288,7 +292,9 @@ const InventoryTransfer = () => {
               </option>
             ))}
           </Input>
-          <Label>Transfer Items</Label>
+          <Label className="small">
+            Item <span className="text-danger">*</span>
+          </Label>
           {!fromLocationId && (
             <div className="text-muted small mb-2">
               Please select a source location first

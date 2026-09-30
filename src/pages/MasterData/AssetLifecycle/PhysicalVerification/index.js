@@ -42,8 +42,16 @@ const PhysicalVerification = () => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canCreate = hasPermission("MASTERDATA", "PHYSICAL_VERIFICATION", "WRITE");
-  const canReview = hasPermission("MASTERDATA", "PHYSICAL_VERIFICATION", "DELETE");
+  const canCreate = hasPermission(
+    "MASTERDATA",
+    "PHYSICAL_VERIFICATION",
+    "WRITE",
+  );
+  const canReview = hasPermission(
+    "MASTERDATA",
+    "PHYSICAL_VERIFICATION",
+    "DELETE",
+  );
 
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -76,7 +84,7 @@ const PhysicalVerification = () => {
     getVerificationJobs({ status: "active" })
       .then((res) => setJobs(res?.data || []))
       .catch(() => {});
-    getFixedAssets({})
+    getFixedAssets({ status: "active" })
       .then((res) => setAssets(res?.data || []))
       .catch(() => {});
   }, []);
@@ -132,11 +140,17 @@ const PhysicalVerification = () => {
         serialNumber,
         remarks,
       });
-      toast.success("Physical verification recorded — now add photos (optional)");
+      toast.success(
+        "Physical verification recorded — now add photos (optional)",
+      );
       setCreatedRecordId(res?.data?._id);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong",
+        );
       }
     } finally {
       setSubmitting(false);
@@ -149,11 +163,17 @@ const PhysicalVerification = () => {
     try {
       const formData = new FormData();
       formData.append("file", file);
-      await uploadPhysicalVerificationImage(createdRecordId, imageType, formData);
+      await uploadPhysicalVerificationImage(
+        createdRecordId,
+        imageType,
+        formData,
+      );
       toast.success(`${imageType === "tag" ? "Tag" : "Asset"} image uploaded`);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Upload failed");
+        toast.error(
+          error?.response?.data?.message || error?.message || "Upload failed",
+        );
       }
     } finally {
       setUploadingImage(false);
@@ -174,7 +194,11 @@ const PhysicalVerification = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't update.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't update.",
+        );
       }
     } finally {
       setReviewing(false);
@@ -182,33 +206,57 @@ const PhysicalVerification = () => {
   };
 
   const columns = [
-    { name: "PV Code", selector: (row) => row.verificationNumber, sortable: true, width: "150px" },
+    {
+      name: "PV Code",
+      selector: (row) => row.verificationNumber,
+      sortable: true,
+      width: "150px",
+    },
     {
       name: "Asset",
-      cell: (row) => <span className="uom-cell-primary">{row.assetId?.assetName || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-primary">
+          {row.assetId?.assetName || "—"}
+        </span>
+      ),
     },
     {
       name: "Job",
-      cell: (row) => <span className="uom-cell-muted">{row.jobId?.jobCode || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.jobId?.jobCode || "—"}</span>
+      ),
     },
     {
       name: "Location Match",
       width: "130px",
       cell: (row) => (
-        <span className={`uom-status-pill ${row.locationMatch ? "status-active" : "status-blacklisted"}`}>
-          <span className="dot"></span> {row.locationMatch ? "Match" : "Mismatch"}
+        <span
+          className={`uom-status-pill ${row.locationMatch ? "status-active" : "status-blacklisted"}`}
+        >
+          <span className="dot"></span>{" "}
+          {row.locationMatch ? "Match" : "Mismatch"}
         </span>
       ),
     },
     {
       name: "Condition",
       width: "120px",
-      cell: (row) => <span className="text-capitalize small">{row.condition?.replace("_", " ")}</span>,
+      cell: (row) => (
+        <span className="text-capitalize small">
+          {row.condition?.replace("_", " ")}
+        </span>
+      ),
     },
-    { name: "Status", width: "110px", cell: (row) => <StatusPill status={row.status} /> },
+    {
+      name: "Status",
+      width: "110px",
+      cell: (row) => <StatusPill status={row.status} />,
+    },
     {
       name: "Date",
-      cell: (row) => <span className="uom-cell-muted small">{dateFmt(row.verifiedAt)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted small">{dateFmt(row.verifiedAt)}</span>
+      ),
     },
     {
       name: "",
@@ -246,13 +294,17 @@ const PhysicalVerification = () => {
           progressPending={loading}
           pagination
           highlightOnHover
-          noDataComponent={<div className="uom-empty-state">No physical verifications yet</div>}
+          noDataComponent={
+            <div className="uom-empty-state">No physical verifications yet</div>
+          }
         />
       </div>
 
       <Modal
         isOpen={modalOpen}
-        toggle={() => (createdRecordId ? finishAndClose() : setModalOpen(false))}
+        toggle={() =>
+          createdRecordId ? finishAndClose() : setModalOpen(false)
+        }
         centered
         size="lg"
       >
@@ -266,7 +318,11 @@ const PhysicalVerification = () => {
                   <Label>
                     Verification Job <span className="text-danger">*</span>
                   </Label>
-                  <Input type="select" value={jobId} onChange={(e) => setJobId(e.target.value)}>
+                  <Input
+                    type="select"
+                    value={jobId}
+                    onChange={(e) => setJobId(e.target.value)}
+                  >
                     <option value="">Select an active job</option>
                     {jobs.map((j) => (
                       <option key={j._id} value={j._id}>
@@ -279,7 +335,11 @@ const PhysicalVerification = () => {
                   <Label>
                     Asset <span className="text-danger">*</span>
                   </Label>
-                  <Input type="select" value={assetId} onChange={(e) => setAssetId(e.target.value)}>
+                  <Input
+                    type="select"
+                    value={assetId}
+                    onChange={(e) => setAssetId(e.target.value)}
+                  >
                     <option value="">Select asset</option>
                     {assets.map((a) => (
                       <option key={a._id} value={a._id}>
@@ -291,13 +351,18 @@ const PhysicalVerification = () => {
               </Row>
               {selectedAsset && (
                 <div className="uom-table-card p-3 mb-3">
-                  <div className="text-muted small mb-1">Expected Location (per register)</div>
-                  <div className="fw-semibold">{selectedAsset.centerId?.title || "Not set"}</div>
+                  <div className="text-muted small mb-1">
+                    Expected Location (per register)
+                  </div>
+                  <div className="fw-semibold">
+                    {selectedAsset.centerId?.title || "Not set"}
+                  </div>
                 </div>
               )}
 
               <Label>
-                Is the asset at its expected location? <span className="text-danger">*</span>
+                Is the asset at its expected location?{" "}
+                <span className="text-danger">*</span>
               </Label>
               <div className="d-flex gap-2 mb-3">
                 <Button
@@ -330,25 +395,39 @@ const PhysicalVerification = () => {
                 ))}
               </Input>
 
-              <h6 className="fw-semibold mb-3">Additional Details (optional)</h6>
+              <h6 className="fw-semibold mb-3">
+                Additional Details (optional)
+              </h6>
               <Row>
                 <Col md={6} className="mb-3">
                   <Label className="small">Room No.</Label>
-                  <Input value={roomNo} onChange={(e) => setRoomNo(e.target.value)} />
+                  <Input
+                    value={roomNo}
+                    onChange={(e) => setRoomNo(e.target.value)}
+                  />
                 </Col>
                 <Col md={6} className="mb-3">
                   <Label className="small">Floor No.</Label>
-                  <Input value={floorNo} onChange={(e) => setFloorNo(e.target.value)} />
+                  <Input
+                    value={floorNo}
+                    onChange={(e) => setFloorNo(e.target.value)}
+                  />
                 </Col>
               </Row>
               <Row>
                 <Col md={6} className="mb-3">
                   <Label className="small">Employee Name</Label>
-                  <Input value={employeeName} onChange={(e) => setEmployeeName(e.target.value)} />
+                  <Input
+                    value={employeeName}
+                    onChange={(e) => setEmployeeName(e.target.value)}
+                  />
                 </Col>
                 <Col md={6} className="mb-3">
                   <Label className="small">Designation</Label>
-                  <Input value={designation} onChange={(e) => setDesignation(e.target.value)} />
+                  <Input
+                    value={designation}
+                    onChange={(e) => setDesignation(e.target.value)}
+                  />
                 </Col>
               </Row>
               <Label className="small">Serial Number</Label>
@@ -368,24 +447,39 @@ const PhysicalVerification = () => {
               />
 
               <div className="d-flex justify-content-end gap-2">
-                <Button color="light" onClick={() => setModalOpen(false)} disabled={submitting}>
+                <Button
+                  color="light"
+                  onClick={() => setModalOpen(false)}
+                  disabled={submitting}
+                >
                   Cancel
                 </Button>
-                <Button color="primary" onClick={handleSubmit} disabled={submitting}>
+                <Button
+                  color="primary"
+                  onClick={handleSubmit}
+                  disabled={submitting}
+                >
                   {submitting ? "Saving..." : "Save & Continue"}
                 </Button>
               </div>
             </>
           ) : (
             <>
-              <div className="uom-table-card p-3 mb-3" style={{ background: "#f0fdf4" }}>
-                <i className="bx bx-check-circle text-success me-1"></i> Verification saved. Add photos
-                below (optional), then finish.
+              <div
+                className="uom-table-card p-3 mb-3"
+                style={{ background: "#f0fdf4" }}
+              >
+                <i className="bx bx-check-circle text-success me-1"></i>{" "}
+                Verification saved. Add photos below (optional), then finish.
               </div>
 
               <Label>Asset Image</Label>
               <div className="d-flex gap-2 mb-4">
-                <Input type="file" accept="image/*" onChange={(e) => setAssetImageFile(e.target.files[0])} />
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setAssetImageFile(e.target.files[0])}
+                />
                 <Button
                   color="light"
                   disabled={!assetImageFile || uploadingImage}
@@ -397,7 +491,11 @@ const PhysicalVerification = () => {
 
               <Label>Tag Image</Label>
               <div className="d-flex gap-2 mb-4">
-                <Input type="file" accept="image/*" onChange={(e) => setTagImageFile(e.target.files[0])} />
+                <Input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => setTagImageFile(e.target.files[0])}
+                />
                 <Button
                   color="light"
                   disabled={!tagImageFile || uploadingImage}
@@ -417,7 +515,12 @@ const PhysicalVerification = () => {
         </ModalBody>
       </Modal>
 
-      <Modal isOpen={!!detailModal} toggle={() => setDetailModal(null)} centered size="lg">
+      <Modal
+        isOpen={!!detailModal}
+        toggle={() => setDetailModal(null)}
+        centered
+        size="lg"
+      >
         <ModalBody className="p-4">
           {detailModal && (
             <>
@@ -431,11 +534,15 @@ const PhysicalVerification = () => {
               <Row className="mb-3">
                 <Col md={6}>
                   <div className="text-muted small">Asset</div>
-                  <div className="fw-semibold">{detailModal.assetId?.assetName}</div>
+                  <div className="fw-semibold">
+                    {detailModal.assetId?.assetName}
+                  </div>
                 </Col>
                 <Col md={6}>
                   <div className="text-muted small">Job</div>
-                  <div className="fw-semibold">{detailModal.jobId?.jobCode}</div>
+                  <div className="fw-semibold">
+                    {detailModal.jobId?.jobCode}
+                  </div>
                 </Col>
               </Row>
               <Row className="mb-3">
@@ -449,19 +556,27 @@ const PhysicalVerification = () => {
                   <div className="text-muted small">Employee</div>
                   <div>
                     {detailModal.employeeName || "—"}{" "}
-                    {detailModal.designation ? `(${detailModal.designation})` : ""}
+                    {detailModal.designation
+                      ? `(${detailModal.designation})`
+                      : ""}
                   </div>
                 </Col>
               </Row>
 
-              {(detailModal.assetImages?.length > 0 || detailModal.tagImage) && (
+              {(detailModal.assetImages?.length > 0 ||
+                detailModal.tagImage) && (
                 <div className="d-flex gap-2 flex-wrap mb-3">
                   {detailModal.assetImages?.map((img, i) => (
                     <img
                       key={i}
                       src={img.url}
                       alt="asset"
-                      style={{ width: 90, height: 90, objectFit: "cover", borderRadius: 8 }}
+                      style={{
+                        width: 90,
+                        height: 90,
+                        objectFit: "cover",
+                        borderRadius: 8,
+                      }}
                     />
                   ))}
                   {detailModal.tagImage && (
@@ -487,7 +602,11 @@ const PhysicalVerification = () => {
 
               {canReview && detailModal.status === "pending" && (
                 <div className="d-flex gap-2 mt-4">
-                  <Button color="success" disabled={reviewing} onClick={() => handleReview(detailModal, "approved")}>
+                  <Button
+                    color="success"
+                    disabled={reviewing}
+                    onClick={() => handleReview(detailModal, "approved")}
+                  >
                     Approve
                   </Button>
                   <Button

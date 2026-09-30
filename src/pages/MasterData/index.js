@@ -100,7 +100,7 @@ const MasterData = () => {
   const { hasPermission, loading } = usePermissions(token);
 
   useEffect(() => {
-    document.title = "Master Data | Jagruti Rehab";
+    document.title = "Vendor | Jagruti Rehab";
   }, []);
 
   if (loading) {
