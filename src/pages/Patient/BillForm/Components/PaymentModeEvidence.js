@@ -13,6 +13,7 @@ const PaymentModeEvidence = ({
   onAddFiles,
   onRemoveFile,
   labelClassName,
+  required,
 }) => {
   const inputRef = useRef(null);
   const fileList = Array.isArray(files) ? files : [];
@@ -54,14 +55,19 @@ const PaymentModeEvidence = ({
         }}
       />
 
-      <Label className={labelClassName}>Upload Evidence Screenshot</Label>
+      <Label className={labelClassName}>
+        Upload Evidence Screenshot
+        {required && <span className="text-danger"> *</span>}
+      </Label>
 
       <div className="d-flex flex-wrap align-items-center gap-2">
         <Button
           type="button"
           outline
           size="sm"
-          color="primary"
+          // Red until something is attached, so the missing one is obvious in
+          // a row of otherwise-complete fields.
+          color={required ? "danger" : "primary"}
           onClick={openPicker}
           className="d-inline-flex align-items-center gap-1"
         >
@@ -119,6 +125,8 @@ PaymentModeEvidence.propTypes = {
   onAddFiles: PropTypes.func.isRequired,
   onRemoveFile: PropTypes.func.isRequired,
   labelClassName: PropTypes.string,
+  // True when this row still needs proof attached before the bill can save.
+  required: PropTypes.bool,
 };
 
 export default PaymentModeEvidence;

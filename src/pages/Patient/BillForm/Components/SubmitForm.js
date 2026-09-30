@@ -7,7 +7,7 @@ const SubmitForm = ({
   toggleForm,
   bill,
   enteredRefundAmount,
-  // POS guards — see Components/posGuards.js.
+  // Save/cancel guards — see Components/billGuards.js.
   blockSave,
   saveReason,
   blockCancel,
