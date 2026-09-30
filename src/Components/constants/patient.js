@@ -621,6 +621,10 @@ const Forms = [
     name: "MHRB Email Upload",
     category: "MHRB EMAIL FORM",
   },
+  {
+    name: "Do Not Resuscitate Form",
+    category: "DNR FORM",
+  },
 ];
 const testRecord = [
   { name: "YMRS" },

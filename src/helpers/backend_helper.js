@@ -4223,6 +4223,22 @@ export const uploadMHRBEmail = (payload) => {
     },
   });
 };
+
+export const dnrFormFilled = (id, payload) => {
+  return axios.patch(`${url.DNR_FORM_FILLED}/${id}`, payload, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const uploadDNRForm = (payload) => {
+  return axios.patch(url.UPLOAD_DNR_FORM, payload, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
 // TALLY
 export const sendToTally = (data) => api.create(url.POST_TALLY_SEND, data);
 export const getActiveTallySession = () =>

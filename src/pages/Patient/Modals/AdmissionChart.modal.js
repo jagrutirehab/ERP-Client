@@ -17,6 +17,7 @@ import { createEditChart, setChartDate } from "../../../store/actions";
 import CapacityAssessmentModal from "./CapacityAssessmentModal";
 import ECTConsentFormModal from "./ECTConsentFormModal";
 import MHRBEmailUploadModal from "./MHRBEmailUploadModal";
+import DnrConsentFormModal from "./DnrConsentFormModal";
 
 const AdmissionChart = ({
   isOpen,
@@ -32,6 +33,7 @@ const AdmissionChart = ({
   const [capacityModal, setCapacityModal] = useState(false);
   const [ectConsentModal, setEctConsentModal] = useState(false);
   const [mhrbEmailModal, setMhrbEmailModal] = useState(false);
+  const [dnrModal, setDnrModal] = useState(false);
 
   useEffect(() => {
     const d = new Date();
@@ -154,6 +156,8 @@ const AdmissionChart = ({
                         setEctConsentModal(true);
                       } else if (item.name === "MHRB Email Upload") {
                         setMhrbEmailModal(true);
+                      } else if (item.name === "Do Not Resuscitate Form") {
+                        setDnrModal(true);
                       } else {
                         dispatch(
                           createEditChart({
@@ -200,6 +204,14 @@ const AdmissionChart = ({
         isOpen={mhrbEmailModal}
         toggle={() => setMhrbEmailModal(false)}
         patient={patient}
+        addmissionId={patient?.addmission?._id}
+      />
+      <DnrConsentFormModal
+        isOpen={dnrModal}
+        toggle={() => setDnrModal(false)}
+        patient={patient}
+        // DnrConsentForm reads admissions[0].doctor for its prefill.
+        admissions={patient?.addmission ? [patient.addmission] : []}
         addmissionId={patient?.addmission?._id}
       />
     </React.Fragment>

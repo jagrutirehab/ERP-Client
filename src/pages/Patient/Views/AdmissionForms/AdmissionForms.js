@@ -58,7 +58,10 @@ import DishchargeformModal from "../../Modals/Dishchargeform.modal";
 import ConsentformModal from "../../Modals/Consentform.modal";
 import UndertakingDischargeForm from "./UndertakingDischargeForm";
 import AudioVideoConsentForm from "./AudioVideoConsentForm";
-import { uploadECTConsentSignedCopy } from "../../../../helpers/backend_helper";
+import {
+  uploadECTConsentSignedCopy,
+  uploadDNRForm,
+} from "../../../../helpers/backend_helper";
 import MHRBEmailUploadModal from "../../Modals/MHRBEmailUploadModal";
 import {
   admissionBelongsToPatient,
@@ -126,6 +129,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   const undertakingDischargeFileInputRef = useRef(null);
   const capacityAssessmentFileInputRef = useRef(null);
   const ectConsentFileInputRef = useRef(null);
+  const dnrFileInputRef = useRef(null);
   // const page1Ref = useRef(null);
   // const page2Ref = useRef(null);
   const seriousnessRef = useRef(null);
@@ -848,6 +852,51 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       await uploadECTConsentSignedCopy(formData);
 
       toast.success("ECT Consent PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
+    } catch (err) {
+      toast.error("Upload failed");
+    } finally {
+      setIsGenerating2(false);
+      // Allow re-selecting the same file after a failure.
+      e.target.value = "";
+    }
+  };
+
+  const handleDNRUploadClick = () => {
+    dnrFileInputRef.current.click();
+  };
+
+  const handleFileChangeDNR = async (e) => {
+    const file = e.target.files[0];
+    const targetId = resolveTargetAddmission();
+    if (!targetId) {
+      e.target.value = "";
+      return;
+    }
+    setIsGenerating2(true);
+
+    if (!file) {
+      setIsGenerating2(false);
+      return;
+    }
+
+    if (file.type !== "application/pdf") {
+      toast.warning("Please upload a PDF file.");
+      setIsGenerating2(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("dnrFormURL", file);
+      formData.append("id", targetId);
+
+      await uploadDNRForm(formData);
+
+      toast.success("Do Not Resuscitate Form PDF uploaded successfully!");
       dispatch(fetchPatientById(patient?._id));
       if (patient?.addmissions?.length) {
         dispatch(fetchChartsAddmissions(patient.addmissions));
@@ -1628,6 +1677,94 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                         </div>
                                       ),
                                     )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* DNR (Do Not Resuscitate) form */}
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                  width: "100%",
+                                }}
+                              >
+                                <Button
+                                  onClick={handleDNRUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "60px" }}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Upload Signed Copy Of Do Not Resuscitate Form"
+                                  )}
+                                </Button>
+
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={dnrFileInputRef}
+                                  style={{ display: "none" }}
+                                  onChange={handleFileChangeDNR}
+                                />
+
+                                {test?.dnrFormRaw?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.dnrFormRaw.map((form, index) => (
+                                      <div key={index} className="mt-2">
+                                        <a
+                                          href={form?.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="btn btn-outline-primary btn-sm"
+                                        >
+                                          Download Draft Do Not Resuscitate
+                                          Form {index + 1}{" "}
+                                          {form?.uploadedAt
+                                            ? `(${new Date(form.uploadedAt).toLocaleDateString()})`
+                                            : ""}
+                                        </a>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                {test?.dnrFormURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.dnrFormURL.map((file, index) => (
+                                      <div key={index} className="mt-2">
+                                        <a
+                                          href={file?.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="btn btn-outline-success btn-sm"
+                                        >
+                                          Download Signed Do Not Resuscitate
+                                          Form {index + 1}{" "}
+                                          {file?.uploadedAt
+                                            ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
+                                            : ""}
+                                        </a>
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                               </div>
