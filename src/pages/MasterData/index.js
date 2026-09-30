@@ -45,12 +45,62 @@ import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import "./masterData.scss";
 
+const getToken = () => {
+  try {
+    return JSON.parse(localStorage.getItem("micrologin"))?.token;
+  } catch {
+    return undefined;
+  }
+};
+
+const ROUTES = [
+  { path: "vendor/*", perm: "VENDOR", element: <Vendor /> },
+  { path: "item/*", perm: "ITEM_MASTER", element: <Items /> },
+  { path: "uom/*", perm: "UOM", element: <UnitOfMeasurement /> },
+  { path: "payment-term/*", perm: "PAYMENT_TERM", element: <PaymentTerm /> }, 
+  { path: "department/*", perm: "DEPARTMENT", element: <DepartmentMaster /> },
+  { path: "asset-category/level/:level/*", perm: "ASSET_CATEGORY", element: <AssetCategory /> },
+  { path: "budget/*", perm: "BUDGET", element: <BudgetManagement /> },
+  { path: "purchase-requisition/*", perm: "PR", element: <PurchaseRequisition /> },
+  { path: "rfq/*", perm: "RFQ", element: <RFQModule /> },
+  { path: "po/*", perm: "PO", element: <PurchaseOrder /> },
+  { path: "contract/*", perm: "CONTRACT", element: <Contract /> },
+  { path: "delivery-intimation/*", perm: "DELIVERY_INTIMATION", element: <DeliveryIntimation /> },
+  { path: "grn/*", perm: "GRN", element: <GoodsReceiptNote /> },
+  { path: "vendor-invoice/*", perm: "VENDOR_INVOICE", element: <VendorInvoice /> },
+  { path: "storage-location/*", perm: "STORAGE_LOCATION", element: <StorageLocation /> },
+  { path: "putaway/*", perm: "PUTAWAY", element: <Putaway /> },
+  { path: "stock/*", perm: "STOCK", element: <Stock /> },
+  { path: "location-stock/*", perm: "PUTAWAY", element: <LocationStock /> }, 
+  { path: "inventory-transfer/*", perm: "INVENTORY_TRANSFER", element: <InventoryTransfer /> },
+  { path: "move-order/*", perm: "MOVE_ORDER", element: <MoveOrder /> },
+  { path: "cycle-count/*", perm: "CYCLE_COUNT", element: <CycleCount /> },
+  { path: "stock-adjustment/*", perm: "STOCK_ADJUSTMENT", element: <StockAdjustment /> },
+  { path: "reorder-rule/*", perm: "REORDER_RULE", element: <ReorderRule /> },
+  { path: "material-issue/*", perm: "MATERIAL_ISSUE", element: <MaterialIssue /> },
+  { path: "material-return/*", perm: "MATERIAL_RETURN", element: <MaterialReturn /> },
+  { path: "capitalization-request/*", perm: "CAPITALIZATION_REQUEST", element: <CapitalizationRequest /> },
+  { path: "asset-capitalization/*", perm: "ASSET_CAPITALIZATION", element: <AssetCapitalization /> },
+  { path: "cwip/*", perm: "CWIP", element: <CWIP /> },
+  { path: "fixed-asset/*", perm: "FIXED_ASSET", element: <FixedAssetRegister /> },
+  { path: "maintenance-request/*", perm: "MAINTENANCE_REQUEST", element: <MaintenanceRequest /> },
+  { path: "work-order/*", perm: "WORK_ORDER", element: <WorkOrder /> },
+  { path: "asset-transfer/*", perm: "ASSET_TRANSFER", element: <AssetTransferRequest /> },
+  { path: "asset-writeoff/*", perm: "ASSET_WRITEOFF", element: <AssetWriteOffRequest /> },
+  { path: "task-template/*", perm: "TASK_TEMPLATE", element: <TaskTemplate /> },
+  { path: "pm-schedule/*", perm: "PM_SCHEDULE", element: <PMSchedule /> },
+  { path: "maintenance-job/*", perm: "MAINTENANCE_JOB", element: <MaintenanceJob /> },
+  { path: "verification-job/*", perm: "VERIFICATION_JOB", element: <VerificationJob /> },
+  { path: "physical-verification/*", perm: "PHYSICAL_VERIFICATION", element: <PhysicalVerification /> },
+  { path: "asset-tag/*", perm: "ASSET_TAG", element: <AssetTag /> },
+];
+
 const MasterData = () => {
-  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const token = getToken();
   const { hasPermission, loading } = usePermissions(token);
 
   useEffect(() => {
-    document.title = "Vendor Management | Jagruti Rehab";
+    document.title = "Master Data | Jagruti Rehab";
   }, []);
 
   if (loading) {
@@ -64,158 +114,9 @@ const MasterData = () => {
     );
   }
 
-  const canViewVendor = hasPermission("MASTERDATA", "VENDOR", "READ");
-  const canViewItems = hasPermission("MASTERDATA", "ITEM_MASTER", "READ");
-  const canViewUom = hasPermission("MASTERDATA", "UOM", "READ");
-  const canViewAssetCategory = hasPermission(
-    "MASTERDATA",
-    "ASSET_CATEGORY",
-    "READ",
-  );
-  const canViewBudget = hasPermission("MASTERDATA", "BUDGET", "READ");
-  const canViewPR = hasPermission("MASTERDATA", "PR", "READ");
-  const canViewRFQ = hasPermission("MASTERDATA", "RFQ", "READ");
-  const canViewPO = hasPermission("MASTERDATA", "PO", "READ");
-  const canViewContract = hasPermission("MASTERDATA", "CONTRACT", "READ");
-  const canViewDI = hasPermission("MASTERDATA", "DELIVERY_INTIMATION", "READ");
-  const canViewGRN = hasPermission("MASTERDATA", "GRN", "READ");
-  const canViewVI = hasPermission("MASTERDATA", "VENDOR_INVOICE", "READ");
-  const canViewStorageLocation = hasPermission(
-    "MASTERDATA",
-    "STORAGE_LOCATION",
-    "READ",
-  );
-  const canViewPutaway = hasPermission("MASTERDATA", "PUTAWAY", "READ");
-  const canViewStock = hasPermission("MASTERDATA", "STOCK", "READ");
-  const canViewInventoryTransfer = hasPermission(
-    "MASTERDATA",
-    "INVENTORY_TRANSFER",
-    "READ",
-  );
-  const canViewMoveOrder = hasPermission("MASTERDATA", "MOVE_ORDER", "READ");
-  const canViewCycleCount = hasPermission("MASTERDATA", "CYCLE_COUNT", "READ");
-  const canViewStockAdjustment = hasPermission(
-    "MASTERDATA",
-    "STOCK_ADJUSTMENT",
-    "READ",
-  );
-  const canViewReorderRule = hasPermission(
-    "MASTERDATA",
-    "REORDER_RULE",
-    "READ",
-  );
-  const canViewMaterialIssue = hasPermission(
-    "MASTERDATA",
-    "MATERIAL_ISSUE",
-    "READ",
-  );
-  const canViewMaterialReturn = hasPermission(
-    "MASTERDATA",
-    "MATERIAL_RETURN",
-    "READ",
-  );
-  const canViewLocationStock = hasPermission("MASTERDATA", "PUTAWAY", "READ");
+  const canView = (perm) => hasPermission("MASTERDATA", perm, "READ");
 
-  const canViewCapReq = hasPermission(
-    "MASTERDATA",
-    "CAPITALIZATION_REQUEST",
-    "READ",
-  );
-  const canViewCWIP = hasPermission("MASTERDATA", "CWIP", "READ");
-  const canViewFixedAsset = hasPermission("MASTERDATA", "FIXED_ASSET", "READ");
-
-  const canViewAssetCap = hasPermission(
-    "MASTERDATA",
-    "ASSET_CAPITALIZATION",
-    "READ",
-  );
-
-  const canViewMaintenanceRequest = hasPermission(
-    "MASTERDATA",
-    "MAINTENANCE_REQUEST",
-    "READ",
-  );
-  const canViewWorkOrder = hasPermission("MASTERDATA", "WORK_ORDER", "READ");
-
-  const canViewAssetTransfer = hasPermission(
-    "MASTERDATA",
-    "ASSET_TRANSFER",
-    "READ",
-  );
-
-  const canViewAssetWriteOff = hasPermission(
-    "MASTERDATA",
-    "ASSET_WRITEOFF",
-    "READ",
-  );
-
-  const canViewTaskTemplate = hasPermission(
-    "MASTERDATA",
-    "TASK_TEMPLATE",
-    "READ",
-  );
-
-  const canViewMaintenanceJob = hasPermission(
-    "MASTERDATA",
-    "MAINTENANCE_JOB",
-    "READ",
-  );
-  const canViewPMSchedule = hasPermission("MASTERDATA", "PM_SCHEDULE", "READ");
-
-  const canViewVerificationJob = hasPermission(
-    "MASTERDATA",
-    "VERIFICATION_JOB",
-    "READ",
-  );
-
-  const canViewPhysicalVerification = hasPermission(
-    "MASTERDATA",
-    "PHYSICAL_VERIFICATION",
-    "READ",
-  );
-
-  const canViewAssetTag = hasPermission("MASTERDATA", "ASSET_TAG", "READ");
-
-
-  if (
-    !canViewVendor &&
-    !canViewItems &&
-    !canViewUom &&
-    !canViewAssetCategory &&
-    !canViewBudget &&
-    !canViewPR &&
-    !canViewRFQ &&
-    !canViewPO &&
-    !canViewContract &&
-    !canViewDI &&
-    !canViewGRN &&
-    !canViewVI &&
-    !canViewStorageLocation &&
-    !canViewPutaway &&
-    !canViewStock &&
-    !canViewInventoryTransfer &&
-    !canViewMoveOrder &&
-    !canViewCycleCount &&
-    !canViewStockAdjustment &&
-    !canViewReorderRule &&
-    !canViewMaterialIssue &&
-    !canViewMaterialReturn &&
-    !canViewLocationStock &&
-    !canViewCapReq &&
-    !canViewAssetCap &&
-    !canViewCWIP &&
-    !canViewFixedAsset &&
-    !canViewMaintenanceRequest &&
-    !canViewWorkOrder &&
-    !canViewAssetTransfer &&
-    !canViewAssetWriteOff &&
-    !canViewTaskTemplate &&
-    !canViewPMSchedule &&
-    !canViewMaintenanceJob &&
-    !canViewVerificationJob &&
-    !canViewPhysicalVerification &&
-    !canViewAssetTag
-  ) {
+  if (!ROUTES.some((r) => canView(r.perm))) {
     return <Basic404 />;
   }
 
@@ -229,72 +130,13 @@ const MasterData = () => {
           <div className="master-data-content-col">
             <Routes>
               <Route path="/" element={null} />
-              <Route path="vendor/*" element={<Vendor />} />
-              <Route path="item/*" element={<Items />} />
-              <Route path="uom/*" element={<UnitOfMeasurement />} />
-              <Route path="payment-term/*" element={<PaymentTerm />} />
-              <Route path="department/*" element={<DepartmentMaster />} />
-              <Route
-                path="asset-category/level/:level/*"
-                element={<AssetCategory />}
-              />
-              <Route path="budget/*" element={<BudgetManagement />} />
-              <Route
-                path="purchase-requisition/*"
-                element={<PurchaseRequisition />}
-              />
-              <Route path="rfq/*" element={<RFQModule />} />
-              <Route path="po/*" element={<PurchaseOrder />} />
-              <Route path="contract/*" element={<Contract />} />
-              <Route
-                path="delivery-intimation/*"
-                element={<DeliveryIntimation />}
-              />
-              <Route path="grn/*" element={<GoodsReceiptNote />} />
-              <Route path="storage-location/*" element={<StorageLocation />} />
-              <Route path="putaway/*" element={<Putaway />} />
-              <Route path="stock/*" element={<Stock />} />
-              <Route
-                path="inventory-transfer/*"
-                element={<InventoryTransfer />}
-              />
-              <Route path="move-order/*" element={<MoveOrder />} />
-              <Route path="cycle-count/*" element={<CycleCount />} />
-              <Route path="stock-adjustment/*" element={<StockAdjustment />} />
-              <Route path="reorder-rule/*" element={<ReorderRule />} />
-              <Route path="material-issue/*" element={<MaterialIssue />} />
-              <Route path="material-return/*" element={<MaterialReturn />} />
-              <Route
-                path="capitalization-request/*"
-                element={<CapitalizationRequest />}
-              />
-              <Route
-                path="asset-capitalization/*"
-                element={<AssetCapitalization />}
-              />
-              <Route path="cwip/*" element={<CWIP />} />
-              <Route path="location-stock/*" element={<LocationStock />} />
-              <Route path="vendor-invoice/*" element={<VendorInvoice />} />
-              <Route path="fixed-asset/*" element={<FixedAssetRegister />} />
-              <Route
-                path="maintenance-request/*"
-                element={<MaintenanceRequest />}
-              />
-              <Route path="work-order/*" element={<WorkOrder />} />
-              <Route
-                path="asset-transfer/*"
-                element={<AssetTransferRequest />}
-              />{" "}
-              <Route
-                path="asset-writeoff/*"
-                element={<AssetWriteOffRequest />}
-              />
-              <Route path="task-template/*" element={<TaskTemplate />} />
-              <Route path="pm-schedule/*" element={<PMSchedule />} />
-              <Route path="maintenance-job/*" element={<MaintenanceJob />} />
-              <Route path="verification-job/*" element={<VerificationJob />} />
-              <Route path="physical-verification/*" element={<PhysicalVerification />} />
-              <Route path="asset-tag/*" element={<AssetTag />} />
+              {ROUTES.map(({ path, perm, element }) => (
+                <Route
+                  key={path}
+                  path={path}
+                  element={canView(perm) ? element : <Basic404 />}
+                />
+              ))}
               <Route path="*" element={<Basic404 />} />
             </Routes>
           </div>
@@ -303,4 +145,5 @@ const MasterData = () => {
     </div>
   );
 };
+
 export default MasterData;
