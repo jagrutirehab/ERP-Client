@@ -761,6 +761,10 @@ export const UPLOAD_ECT_CONSENT_FORM = "/patient/ect-consent-upload-file";
 // MHRB EMAIL FORM
 export const UPLOAD_MHRB_EMAIL_FORM = "/patient/mhrb-email-upload-file";
 
+// DNR FORM
+export const DNR_FORM_FILLED = "/patient/dnr-form-filled";
+export const UPLOAD_DNR_FORM = "/patient/dnr-upload-file";
+
 // upload file
 export const UPLOAD_FILE = "/upload";
 
