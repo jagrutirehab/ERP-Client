@@ -4,9 +4,10 @@ import { Input, Label, Button, Form, Alert } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import Payment from "./Components/Payment";
 import {
+  evaluateEvidenceGuard,
   evaluatePosGuards,
   usePosTerminal,
-} from "./Components/posGuards";
+} from "./Components/billGuards";
 
 //data
 import {
@@ -128,19 +129,30 @@ const Deposit = ({
     ]);
   }, [isPosRecovery, posPrefill]);
 
+  const editData = editBillData?.deposit;
+  const existingTransactionProof = editData?.transactionProof;
+
   // Guards: a card/UPI row on a POS centre must carry an approved charge
   // before the bill may be saved, and once one is approved the form cannot be
   // abandoned — the money is already gone.
   const { posAvailable } = usePosTerminal(patient?.center?._id);
-  const { blockSave, saveReason, blockCancel, cancelReason } =
-    evaluatePosGuards(paymentModes, {
-      posAvailable,
-      tenderKey: "paymentMode",
-      readOnly: isPosRecovery,
-    });
+  const posGuard = evaluatePosGuards(paymentModes, {
+    posAvailable,
+    tenderKey: "paymentMode",
+    readOnly: isPosRecovery,
+  });
+  // Evidence is required for every non-cash tender that was not collected on
+  // a terminal — see billGuards.js.
+  const evidenceGuard = evaluateEvidenceGuard(paymentModes, {
+    tenderKey: "paymentMode",
+    existingTransactionProof,
+    readOnly: isPosRecovery,
+  });
 
-  const editData = editBillData?.deposit;
-  const existingTransactionProof = editData?.transactionProof;
+  const blockSave = posGuard.blockSave || evidenceGuard.blockSave;
+  const saveReason = posGuard.saveReason || evidenceGuard.saveReason;
+  const { blockCancel, cancelReason } = posGuard;
+
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed

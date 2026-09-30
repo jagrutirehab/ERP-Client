@@ -12,6 +12,7 @@ import {
 import PaymentModeEvidence from "./PaymentModeEvidence";
 import PosPaymentModal from "./PosPaymentModal";
 import { getPosTerminal } from "../../../../helpers/backend_helper";
+import { needsEvidence } from "./billGuards";
 
 // Tenders a Pine Labs terminal can collect.
 const POS_MODES = [CARD, UPI];
@@ -386,6 +387,11 @@ const Payment = ({
                           removeEvidenceFile(idx, fileIdx)
                         }
                         labelClassName="w-100"
+                        required={needsEvidence(
+                          item,
+                          "paymentMode",
+                          existingTransactionProof,
+                        )}
                       />
                     </div>
                   </Col>

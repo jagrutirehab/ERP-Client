@@ -11,6 +11,7 @@ import PropTypes from "prop-types";
 import PaymentModeEvidence from "./PaymentModeEvidence";
 import PosPaymentModal from "./PosPaymentModal";
 import { getPosTerminal } from "../../../../helpers/backend_helper";
+import { needsEvidence } from "./billGuards";
 
 // Tenders a Pine Labs terminal can collect. These rows key the tender on
 // `type`, unlike the deposit / advance-payment rows which use `paymentMode`.
@@ -376,6 +377,11 @@ const PaymentMode = ({
                       onAddFiles={(newFiles) => addEvidenceFiles(idx, newFiles)}
                       onRemoveFile={(fileIdx) => removeEvidenceFile(idx, fileIdx)}
                       labelClassName="text-muted fs-10"
+                      required={needsEvidence(
+                        val,
+                        "type",
+                        existingTransactionProof,
+                      )}
                     />
                   </div>
                 </Col>

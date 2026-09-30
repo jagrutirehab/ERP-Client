@@ -6,9 +6,10 @@ import { useFormik } from "formik";
 import InvoiceTable from "./Components/InvoiceTable";
 import InvoiceFooter from "./Components/InvoiceFooter";
 import {
+  evaluateEvidenceGuard,
   evaluatePosGuards,
   usePosTerminal,
-} from "./Components/posGuards";
+} from "./Components/billGuards";
 import SubmitForm from "./Components/SubmitForm";
 import { connect, useDispatch, useSelector } from "react-redux";
 import {
@@ -222,12 +223,37 @@ const DuePayment = ({
   // be abandoned — the money is already gone. OPD rows key the tender on
   // `type`, hence the tenderKey below.
   const { posAvailable } = usePosTerminal(ptCenter);
-  const { blockSave, saveReason, blockCancel, cancelReason } =
-    evaluatePosGuards(paymentModes, {
-      posAvailable: posAvailable && type === OPD,
+  const posGuard = evaluatePosGuards(paymentModes, {
+    posAvailable: posAvailable && type === OPD,
+    tenderKey: "type",
+    readOnly: isPosRecovery,
+  });
+  // Evidence is required for every non-cash tender that was not collected on
+  // a terminal — see billGuards.js. Payment rows only exist on OPD invoices.
+  const evidenceGuard = evaluateEvidenceGuard(
+    type === OPD ? paymentModes : [],
+    {
       tenderKey: "type",
+      existingTransactionProof: editData?.transactionProof,
       readOnly: isPosRecovery,
-    });
+    },
+  );
+
+  // Never let the tender exceed what is owed. The existing rule requires the
+  // two to match exactly on save, but without this a cashier can type 5000
+  // against a 500 invoice and only find out at the end.
+  const tenderedTotal = (paymentModes || []).reduce(
+    (sum, row) => sum + (Number(row.amount) || 0),
+    0,
+  );
+  const overpaid = type === OPD && tenderedTotal > Number(totalPayable || 0);
+
+  const blockSave =
+    posGuard.blockSave || evidenceGuard.blockSave || overpaid;
+  const saveReason = overpaid
+    ? `Payments total ₹${tenderedTotal} but only ₹${totalPayable} is payable. Reduce the amount.`
+    : posGuard.saveReason || evidenceGuard.saveReason;
+  const { blockCancel, cancelReason } = posGuard;
 
   const validation = useFormik({
     enableReinitialize: true,
