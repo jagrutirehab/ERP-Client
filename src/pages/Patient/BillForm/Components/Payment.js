@@ -140,19 +140,6 @@ const Payment = ({
     setPaymentModes(newPaymentModes);
   };
 
-  const clearPosApproval = (idx) => {
-    const newPaymentModes = [...paymentModes];
-    const {
-      posTransaction,
-      posApprovalCode,
-      posReferenceId,
-      posPayerVpa,
-      ...rest
-    } = newPaymentModes[idx];
-    newPaymentModes[idx] = { ...rest, transactionId: "", cardNumber: "" };
-    setPaymentModes(newPaymentModes);
-  };
-
   const handleChange = (e) => {
     const idx = e.target.id;
     const prop = e.target.name;
@@ -344,7 +331,9 @@ const Payment = ({
                       type="select"
                       style={{ maxWidth: "160px" }}
                       required
-                      disabled={readOnly}
+                      // Sent with the charge, so it is fixed once the terminal
+                      // approves — a later change would not reach a recovery.
+                      disabled={readOnly || !!item.posTransaction}
                     >
                       <option value={""} selected defaultValue={""}>
                         No Bank Account Selected
@@ -402,21 +391,12 @@ const Payment = ({
                     <Label className="invisible">POS</Label>
                     <div className="d-flex align-items-center gap-2">
                       {item.posTransaction ? (
-                        <>
-                          <Badge color="success" className="fs-11">
-                            <i className="ri-bank-card-line me-1"></i>
-                            Paid on POS
-                          </Badge>
-                          <Button
-                            size="sm"
-                            outline
-                            color="secondary"
-                            onClick={() => clearPosApproval(idx)}
-                            title="Detach this terminal payment from the row"
-                          >
-                            <i className="ri-close-line"></i>
-                          </Button>
-                        </>
+                        // No detach: the money is taken, so the row must be
+                        // saved as it stands.
+                        <Badge color="success" className="fs-11">
+                          <i className="ri-bank-card-line me-1"></i>
+                          Paid on POS
+                        </Badge>
                       ) : (
                         <Button
                           size="sm"
@@ -448,6 +428,14 @@ const Payment = ({
                       size="sm"
                       outline
                       color="danger"
+                      // Removing a row the terminal already charged would
+                      // leave that money off the bill.
+                      disabled={!!item.posTransaction}
+                      title={
+                        item.posTransaction
+                          ? "Paid on POS — this row cannot be removed"
+                          : undefined
+                      }
                     >
                       <i className="ri-close-circle-line font-size-20"></i>
                     </Button>
@@ -466,6 +454,7 @@ const Payment = ({
           toggle={() => setPosRowIdx(null)}
           amount={Number(paymentModes[posRowIdx].amount)}
           paymentMode={paymentModes[posRowIdx].paymentMode}
+          bankAccount={paymentModes[posRowIdx].bankAccount}
           context={posContext}
           terminals={posTerminal?.terminals}
           defaultTerminalId={posTerminal?.defaultTerminalId}

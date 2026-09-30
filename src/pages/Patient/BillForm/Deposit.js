@@ -76,6 +76,7 @@ const Deposit = ({
   admission,
   paymentAccounts,
   posPrefill,
+  onCloseLockChange,
 }) => {
   console.log(admission, "admission");
 
@@ -121,6 +122,9 @@ const Deposit = ({
         paymentMode: result.paymentMode || posPrefill.requestedMode,
         transactionId: result.rrn || result.transactionId || "",
         cardNumber: String(result.cardNumber || "").replace(/\D/g, "").slice(-4),
+        // The account picked when the charge was sent. Empty on older charges,
+        // which then fall back to the Pine Labs default in Payment.
+        bankAccount: posPrefill.bankAccount || "",
         posTransaction: posPrefill._id,
         posApprovalCode: result.approvalCode,
         posReferenceId: posPrefill.plutusTransactionReferenceId,
@@ -152,6 +156,12 @@ const Deposit = ({
   const blockSave = posGuard.blockSave || evidenceGuard.blockSave;
   const saveReason = posGuard.saveReason || evidenceGuard.saveReason;
   const { blockCancel, cancelReason } = posGuard;
+
+  // Hide the modal's ✕ while Cancel is blocked; release it on unmount.
+  useEffect(() => {
+    onCloseLockChange?.(blockCancel);
+  }, [blockCancel, onCloseLockChange]);
+  useEffect(() => () => onCloseLockChange?.(false), [onCloseLockChange]);
 
 
   const validation = useFormik({
@@ -310,7 +320,7 @@ const Deposit = ({
               // a Pine Labs machine configured. Editing an existing deposit
               // does not re-charge, so the action is offered on new ones only.
               posContext={
-                editData || isPosRecovery
+                editData
                   ? undefined
                   : {
                       center: patient.center._id,

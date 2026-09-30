@@ -296,6 +296,7 @@ const InvoiceFooter = (props) => {
                     existingTransactionProof={props.existingTransactionProof}
                     posContext={props.posContext}
                     readOnly={props.readOnly}
+                    chargeBlockedReason={props.chargeBlockedReason}
                   />
                 </Col>
               </RenderWhen>

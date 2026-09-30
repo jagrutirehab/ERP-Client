@@ -98,6 +98,7 @@ const DuePayment = ({
   shouldPrintAfterSave,
   isLatest,
   posPrefill,
+  onCloseLockChange,
   ...rest
 }) => {
   const dispatch = useDispatch();
@@ -183,6 +184,9 @@ const DuePayment = ({
       posApprovalCode: result.approvalCode,
       posReferenceId: posPrefill.plutusTransactionReferenceId,
       posPayerVpa: result.upiPayerVpa,
+      // The account picked when the charge was sent. Only set when known, so
+      // it never blanks the one kept in the saved invoice snapshot.
+      ...(posPrefill.bankAccount ? { bankAccount: posPrefill.bankAccount } : {}),
     };
 
     const saved = posPrefill.invoiceSnapshot?.paymentModes;
@@ -254,6 +258,19 @@ const DuePayment = ({
     ? `Payments total ₹${tenderedTotal} but only ₹${totalPayable} is payable. Reduce the amount.`
     : posGuard.saveReason || evidenceGuard.saveReason;
   const { blockCancel, cancelReason } = posGuard;
+
+  // Hide the modal's ✕ while Cancel is blocked; release it on unmount.
+  useEffect(() => {
+    onCloseLockChange?.(blockCancel);
+  }, [blockCancel, onCloseLockChange]);
+  useEffect(() => () => onCloseLockChange?.(false), [onCloseLockChange]);
+
+  // Same rule, applied one step earlier: an over-tendered row must not be
+  // sent to the terminal at all. Blocking only the save would take the
+  // customer's money for a bill that cannot then be recorded.
+  const chargeBlockedReason = overpaid
+    ? `Payments already total ₹${tenderedTotal} against ₹${totalPayable} payable. Reduce the amount before charging.`
+    : null;
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -949,6 +966,7 @@ const DuePayment = ({
             // existing invoice does not re-charge, so it is offered on new
             // invoices only.
             readOnly={isPosRecovery}
+            chargeBlockedReason={chargeBlockedReason}
             posContext={
               editData
                 ? undefined

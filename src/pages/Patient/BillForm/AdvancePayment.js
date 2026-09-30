@@ -76,6 +76,7 @@ const AdvancePayment = ({
   admission,
   paymentAccounts,
   posPrefill,
+  onCloseLockChange,
 }) => {
   console.log(admission, "admission");
 
@@ -128,6 +129,9 @@ const AdvancePayment = ({
         paymentMode: result.paymentMode || posPrefill.requestedMode,
         transactionId: result.rrn || result.transactionId || "",
         cardNumber: String(result.cardNumber || "").replace(/\D/g, "").slice(-4),
+        // The account picked when the charge was sent. Empty on older charges,
+        // which then fall back to the Pine Labs default.
+        bankAccount: posPrefill.bankAccount || "",
         posTransaction: posPrefill._id,
         posApprovalCode: result.approvalCode,
         posReferenceId: posPrefill.plutusTransactionReferenceId,
@@ -159,6 +163,12 @@ const AdvancePayment = ({
   const blockSave = posGuard.blockSave || evidenceGuard.blockSave;
   const saveReason = posGuard.saveReason || evidenceGuard.saveReason;
   const { blockCancel, cancelReason } = posGuard;
+
+  // Hide the modal's ✕ while Cancel is blocked; release it on unmount.
+  useEffect(() => {
+    onCloseLockChange?.(blockCancel);
+  }, [blockCancel, onCloseLockChange]);
+  useEffect(() => () => onCloseLockChange?.(false), [onCloseLockChange]);
 
 
   const validation = useFormik({
@@ -326,7 +336,7 @@ const AdvancePayment = ({
               // not re-charge, and neither does billing a charge that already
               // happened, so neither offers the action.
               posContext={
-                editData || isPosRecovery
+                editData
                   ? undefined
                   : {
                       center: patient.center._id,
