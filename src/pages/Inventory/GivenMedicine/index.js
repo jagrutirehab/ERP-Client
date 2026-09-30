@@ -1,4 +1,5 @@
 import React, { useEffect, useState, useRef } from "react";
+import { display } from "../../../utils/display";
 // import { Search } from "lucide-react";
 import {
   Table,
@@ -8,7 +9,7 @@ import {
   TableHeader,
   TableRow,
 } from "../Components/Table";
-import { Select } from "../Components/Select";
+import Select from "react-select";
 import { toast } from "react-toastify";
 import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
@@ -17,15 +18,20 @@ import { Button } from "../Components/Button";
 import { CardBody, Modal, ModalBody, ModalHeader } from "reactstrap";
 import GiveMedicine from "../GiveMedicine";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const GivenMedicine = () => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
+  const centerList = useSelector((state) => state.Center.data);
+  const handleAuthError = useAuthError();
+  const isMobile = useMediaQuery("(max-width: 1000px)");
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
   const [givenMedicines, setGivenMedicines] = useState([]);
-  const [selectedCenter, setSelectedCenter] = useState("");
+  const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [modalOpengive, setModalOpengive] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -37,11 +43,46 @@ const GivenMedicine = () => {
 
   const abortRef = useRef(null);
 
+
+  const centerOptions = [
+    ...(user?.centerAccess?.length > 1
+      ? [{
+        value: "ALL",
+        label: "All Centers",
+        isDisabled: false,
+      }]
+      : []
+    ),
+    ...(
+      centerList?.map(c => ({
+        value: c._id,
+        label: c.title,
+      })) || []
+    )
+  ];
+
+
+  useEffect(() => {
+    if (selectedCenter !== "ALL" && !user?.centerAccess?.includes(selectedCenter)) {
+      setSelectedCenter("ALL");
+      setCurrentPage(1);
+    }
+  }, [user?.centerAccess, selectedCenter]);
+
+
+  const selectedCenterOption = centerOptions.find(
+    opt => opt.value === selectedCenter
+  ) || centerOptions[0];
+
+  const centers =
+    selectedCenter === "ALL"
+      ? user?.centerAccess
+      : [selectedCenter];
+
+
   const handleGiveMedicine = () => {
     setModalOpengive(true);
   };
-
-  const display = (v) => (v === undefined || v === null || v === "" ? "-" : v);
 
   const getPageRange = (total, current, maxButtons = 7) => {
     if (total <= maxButtons)
@@ -68,14 +109,13 @@ const GivenMedicine = () => {
   const fetchGivenMedicines = async ({
     page = currentPage,
     limit = pageSize,
-    center,
     centers,
     q,
   } = {}) => {
     if (abortRef.current) {
       try {
         abortRef.current.abort();
-      } catch (e) {}
+      } catch (e) { }
     }
     const controller = new AbortController();
     abortRef.current = controller;
@@ -86,32 +126,38 @@ const GivenMedicine = () => {
         page,
         limit,
         search: q || undefined,
+        centers
       };
-      if (center) {
-        params.center = center;
-      } else if (user?.centerAccess) {
-        params.centers = user.centerAccess;
-      }
+      // if (center) {
+      //   params.center = center;
+      // } else if (user?.centerAccess) {
+      //   params.centers = user.centerAccess;
+      // }
 
       const response = await axios.get("/pharmacy/getall-give-medicine", {
         params,
         signal: controller.signal,
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Authorization": `Bearer ${token}`,
+          "Content-Type": "application/json"
+        },
       });
 
       const body = response || {};
-      console.log(body);
+      // console.log(body);
       setGivenMedicines(Array.isArray(body.data) ? body.data : []);
       setTotalItems(Number(body.total ?? 0));
       setTotalPages(Number(body.pages ?? 1));
       setCurrentPage(Number(body.page ?? page));
     } catch (err) {
+      console.log(err)
       const cancelled =
         err?.name === "CanceledError" ||
         err?.name === "AbortError" ||
         err?.code === "ERR_CANCELED";
-      if (!cancelled) {
-        toast.error("Failed to fetch records");
+      if (!cancelled || !handleAuthError(err)) {
+        return;
+        // toast.error("Failed to fetch records");
       }
     } finally {
       setLoading(false);
@@ -122,8 +168,7 @@ const GivenMedicine = () => {
     fetchGivenMedicines({
       page: currentPage,
       limit: pageSize,
-      center: selectedCenter || undefined,
-      centers: user?.centerAccess,
+      centers,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageSize, selectedCenter, user?.centerAccess]);
@@ -134,9 +179,9 @@ const GivenMedicine = () => {
     setCurrentPage(1);
   };
 
-  useEffect(() => {
-    dispatch(fetchCenters({ centerIds: user?.centerAccess }));
-  }, [dispatch, user?.centerAccess]);
+  // useEffect(() => {
+  //   dispatch(fetchCenters({ centerIds: user?.centerAccess }));
+  // }, [dispatch, user?.centerAccess]);
 
   const goToPage = (page) => {
     if (page === "..." || page === currentPage) return;
@@ -145,17 +190,17 @@ const GivenMedicine = () => {
   };
 
   return (
-    <CardBody className="p-3 bg-white" style={{ width: "78%" }}>
+    <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
       <div className="content-wrapper">
-        <div className="text-center text-md-left mb-4">
-          <h1 className="display-5 font-weight-bold text-primary">
-            GIVEN MEDICINE
-          </h1>
+        <div className="text-center text-md-left mb-3">
+          <h4 className="font-weight-bold text-primary text-uppercase">
+            Given Medicine
+          </h4>
         </div>
 
         <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
           <div style={{ minWidth: "220px" }}>
-            <Select
+            {/* <Select
               placeholder="All Centers"
               value={selectedCenter}
               onChange={(e) => {
@@ -168,15 +213,26 @@ const GivenMedicine = () => {
                   label: center?.title ?? center?.name ?? "Unknown",
                 })) || []
               }
+            /> */}
+            <Select
+              value={selectedCenterOption}
+              onChange={(option) => {
+                setSelectedCenter(option?.value);
+                setCurrentPage(1);
+              }}
+              options={centerOptions}
+              placeholder="All Centers"
+              className="react-select-container"
+              classNamePrefix="react-select"
             />
           </div>
           <div className="w-100 w-md-auto" style={{ maxWidth: "140px" }}>
             <div className="position-relative w-100">
               {hasPermission("PHARMACY", "GIVENMEDICINES", "WRITE") ? (
-              <Button onClick={handleGiveMedicine}>Give Medicine</Button>
+                <Button onClick={handleGiveMedicine}>Give Medicine</Button>
               ) : (
-              ""
-            )}
+                ""
+              )}
             </div>
           </div>
         </div>
@@ -303,9 +359,8 @@ const GivenMedicine = () => {
                 </li>
               ))}
               <li
-                className={`page-item ${
-                  currentPage === totalPages ? "disabled" : ""
-                }`}
+                className={`page-item ${currentPage === totalPages ? "disabled" : ""
+                  }`}
               >
                 <button
                   className="page-link"
@@ -337,7 +392,7 @@ const GivenMedicine = () => {
                 fetchGivenMedicines({
                   page,
                   limit,
-                  center: selectedCenter || undefined,
+                  centers,
                   q,
                 })
               }

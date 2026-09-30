@@ -21,7 +21,7 @@ const FileCard = ({ showDeleteButton = false, onDelete, onPreview, file }) => {
       <div className="bg-white p-3 border">
         <div className="d-flex justify-content-between">
           <div className="w-100">
-            <h6 className="display-6 fs-10 text-wrap">{file.originalName}</h6>
+            <h6 className="display-6 fs-10 text-wrap">{file?.originalName}</h6>
           </div>
           {showDeleteButton && <DeletButton onDelete={onDelete} file={file} />}
         </div>

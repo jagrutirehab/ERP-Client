@@ -3,6 +3,10 @@ import PropTypes from "prop-types";
 import { Input, Label, Button, Form } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import Payment from "./Components/Payment";
+import {
+  rowsMissingEvidence,
+  evidenceErrorMessage,
+} from "./Components/evidenceRequired";
 
 // data
 import {
@@ -76,6 +80,12 @@ const AdvancePayment = ({
 
   const editData = editBillData?.advancePayment;
 
+  // Recomputed each render so the message and the disabled Save button clear the
+  // moment a file is attached, without any extra state to keep in sync.
+  const evidenceError = evidenceErrorMessage(
+    rowsMissingEvidence(paymentModes, existingTransactionProof),
+  );
+
   const validation = useFormik({
     enableReinitialize: true,
     initialValues: {
@@ -86,8 +96,8 @@ const AdvancePayment = ({
       paymentAgainstBillNo: editData
         ? editData.paymentAgainstBillNo
         : paymentAgainstBillNo
-        ? paymentAgainstBillNo
-        : "",
+          ? paymentAgainstBillNo
+          : "",
       remarks: editData ? editData.remarks : "",
       date: billDate,
       type,
@@ -97,6 +107,15 @@ const AdvancePayment = ({
       totalAmount: Yup.number().moreThan(0),
     }),
     onSubmit: async (values) => {
+      // Enforced here as well as on the disabled button: `paymentModes` lives in
+      // local state, so Formik/Yup never sees it, and the form can still be
+      // submitted by pressing Enter in any field.
+      if (rowsMissingEvidence(paymentModes, existingTransactionProof).length)
+        return;
+
+      const evidenceEntries = collectEvidenceFiles(paymentModes);
+      const cleanPaymentModes = stripEvidenceFiles(paymentModes);
+
       if (editData) {
         const response = await dispatch(
           updateAdvancePayment({
@@ -105,13 +124,13 @@ const AdvancePayment = ({
             totalAmount: totalAmount,
             paymentModes: paymentModes,
             ...values,
-          })
+          }),
         ).unwrap();
         dispatch(
           setBillingStatus({
             patientId: patient._id,
             billingStatus: response.billingStatus,
-          })
+          }),
         );
       } else {
         const response = await dispatch(
@@ -119,13 +138,13 @@ const AdvancePayment = ({
             totalAmount: totalAmount,
             paymentModes: paymentModes,
             ...values,
-          })
+          }),
         ).unwrap();
         dispatch(
           setBillingStatus({
             patientId: patient._id,
             billingStatus: response.billingStatus,
-          })
+          }),
         );
       }
       dispatch(createEditBill({ data: null, bill: null, isOpen: false }));
@@ -147,7 +166,7 @@ const AdvancePayment = ({
           centerIds: [patient.center._id],
           page: 1,
           limit: 1000,
-        })
+        }),
         // fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
       );
     }
@@ -225,6 +244,9 @@ const AdvancePayment = ({
           </div>
 
           <div className="mt-3">
+            {evidenceError ? (
+              <p className="text-danger small text-end mb-2">{evidenceError}</p>
+            ) : null}
             <div className="d-flex gap-3 justify-content-end">
               <Button
                 onClick={() => {
@@ -239,7 +261,7 @@ const AdvancePayment = ({
               >
                 Cancel
               </Button>
-              <Button size="sm" type="submit">
+              <Button size="sm" type="submit" disabled={!!evidenceError}>
                 Save
               </Button>
             </div>

@@ -35,10 +35,14 @@ import {
   GENERAL_INFORMATION,
   JOINING_DETAILS,
   LEAVE_INFORMATION,
+  EMPLOYEE_PROFILE
 } from "../../Components/constants/user";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import { addUserProfilePicture } from "../../store/actions";
 import { toast } from "react-toastify";
+import ChangePasswordForm from "./Components/ChangePasswordForm";
+import { getEmployeeProfile } from "../../helpers/backend_helper";
+import EmployeeProfileTab from "./Components/EmployeeProfileTab";
 
 const UserProfile = () => {
   const dispatch = useDispatch();
@@ -46,12 +50,18 @@ const UserProfile = () => {
 
   const [email, setemail] = useState("admin@gmail.com");
   const [idx, setidx] = useState("1");
+  const [profileLoader, setProfileLoader] = useState(false);
+  const [profileError, setProfileError] = useState("");
+  const [employeeProfile, setEmployeeProfile] = useState(null)
 
   const [userName, setUserName] = useState("Admin");
+  const [showChangePasswordForm, setShowChangePasswordForm] = useState(false);
 
   const { user } = useSelector((state) => ({
     user: state.User.user,
   }));
+
+
 
   useEffect(() => {
     if (sessionStorage.getItem("authUser")) {
@@ -67,7 +77,7 @@ const UserProfile = () => {
       setemail(obj.data.email);
       setidx(obj.data._id || "1");
 
-      setTimeout(() => {}, 3000);
+      setTimeout(() => { }, 3000);
     }
   }, [dispatch, user]);
 
@@ -82,12 +92,28 @@ const UserProfile = () => {
     validationSchema: Yup.object({
       first_name: Yup.string().required("Please Enter Your UserName"),
     }),
-    onSubmit: (values) => {},
+    onSubmit: (values) => { },
   });
 
   const handleTab = (tab) => {
     setTab(tab);
   };
+
+  const loadEmployeeProfile = async () => {
+    setProfileLoader(true);
+    try {
+      const response = await getEmployeeProfile();
+      setEmployeeProfile(response.data);
+    } catch (error) {
+      setProfileError(error?.data?.error || "Failed to Load Employee");
+    } finally {
+      setProfileLoader(false);
+    }
+  };
+
+  useEffect(() => {
+    loadEmployeeProfile();
+  }, []);
 
   document.title = "Profile | Velzon - React Admin & Dashboard Template";
   return (
@@ -163,6 +189,7 @@ const UserProfile = () => {
                         <h5>{user.name || "Admin"}</h5>
                         <p className="mb-1">Email Id : {user.email}</p>
                         <p className="mb-0">Role : {user.role}</p>
+                        <Button size="sm" className="text-white mt-2" type="primary" onClick={() => setShowChangePasswordForm(!showChangePasswordForm)}>Change Password</Button>
                       </div>
                     </div>
                   </div>
@@ -178,6 +205,12 @@ const UserProfile = () => {
                 onClick={() => handleTab(GENERAL_INFORMATION)}
               >
                 General Information
+              </Button>
+              <Button
+                outline={tab !== EMPLOYEE_PROFILE}
+                onClick={() => handleTab(EMPLOYEE_PROFILE)}
+              >
+                Employee Profile
               </Button>
               <Button
                 outline={tab !== ATTENDENCE}
@@ -209,8 +242,12 @@ const UserProfile = () => {
           <RenderWhen isTrue={tab === GENERAL_INFORMATION}>
             <GeneralInformation />
           </RenderWhen>
+          <RenderWhen isTrue={tab === EMPLOYEE_PROFILE}>
+            <EmployeeProfileTab data={employeeProfile} loading={profileLoader} />
+          </RenderWhen>
         </Container>
       </div>
+      <ChangePasswordForm isOpen={showChangePasswordForm} toggle={() => setShowChangePasswordForm(!showChangePasswordForm)} />
     </React.Fragment>
   );
 };

@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import { Button, UncontrolledTooltip } from "reactstrap";
@@ -24,23 +24,59 @@ const Sidebar = ({
   customActiveTab,
   toggleCustom,
   centerAccess,
+  gender,
+  setGender,
+  loading,
 }) => {
   const dispatch = useDispatch();
   const [loadMoreRef, isVisible] = useInView({
     defaultInView: false,
   });
-  useEffect(() => {
-    if (isVisible)
-      dispatch(
-        fetchMorePatients({
-          type: customActiveTab,
-          centerAccess,
-          skip: patients.length ?? 0,
-        })
-      );
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, centerAccess, customActiveTab, isVisible]);
+  // Remembers which filter and which page we last asked for. There is no page
+  // state for this list — `skip` is derived from patients.length — so this ref is
+  // what keeps the two failure modes below from happening.
+  const lastRequestRef = useRef({ key: null, skip: -1 });
+
+  useEffect(() => {
+    const key = `${customActiveTab}|${gender ?? ""}`;
+    const skip = patients.length ?? 0;
+
+    // The filter just changed. Child effects run before the parent's, so at this
+    // point Patient/index.js has not dispatched the replacing fetch yet and
+    // patients.length still describes the PREVIOUS filter — firing here would
+    // append a page from the wrong result set. Record the new filter and wait for
+    // the replaced list to arrive.
+    if (lastRequestRef.current.key !== key) {
+      lastRequestRef.current = { key, skip: -1 };
+      return;
+    }
+
+    if (!isVisible || loading) return;
+
+    // Don't re-request a page we already asked for. At the end of the list the
+    // server returns nothing, patients.length stops growing, and without this
+    // the effect would loop on the same skip forever.
+    if (lastRequestRef.current.skip === skip) return;
+
+    lastRequestRef.current = { key, skip };
+    dispatch(
+      fetchMorePatients({
+        type: customActiveTab,
+        centerAccess,
+        gender,
+        skip,
+      })
+    );
+  }, [
+    dispatch,
+    centerAccess,
+    customActiveTab,
+    gender,
+    isVisible,
+    loading,
+    patients.length,
+  ]);
 
   const generateBillingStatusColor = (billingStatus) => {
     if (billingStatus === BILLING_CYCLE_MISSED) return 'danger';
@@ -68,7 +104,7 @@ const Sidebar = ({
   return (
     <div>
       <div className="chat-leftsidebar">
-        <div className="px-4 pt-4 mb-4">
+        <div className="px-4 pt-4 mb-1">
           <div className="d-flex align-items-start">
             <div className="flex-grow-1">
               <h5 className="mb-4">Patients</h5>
@@ -108,6 +144,8 @@ const Sidebar = ({
             <Tabs
               customActiveTab={customActiveTab}
               toggleCustom={toggleCustom}
+              gender={gender}
+              setGender={setGender}
             />
           </div>
         </div>
@@ -260,6 +298,9 @@ Sidebar.propTypes = {
   patients: PropTypes.array,
   patient: PropTypes.object,
   centerAccess: PropTypes.array.isRequired,
+  gender: PropTypes.string,
+  setGender: PropTypes.func,
+  loading: PropTypes.bool,
 };
 
 const mapStateToProps = (state) => ({
@@ -267,6 +308,9 @@ const mapStateToProps = (state) => ({
   patient: state.Patient.patient,
   centerAccess: state.User?.centerAccess,
   user: state.User.user,
+  // Shared flag: true while either the replacing fetch or a load-more page is in
+  // flight. Used to hold off the load-more effect until the list has settled.
+  loading: state.Patient.loading,
 });
 
 export default connect(mapStateToProps)(Sidebar);

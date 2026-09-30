@@ -20,6 +20,9 @@ import {
   DISCHARGE_SUMMARY,
   PRESCRIPTION,
   records,
+  COUNSELLING_NOTE,
+  DETAIL_ADMISSION,
+  VITAL_SIGN,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -33,6 +36,7 @@ const ChartDate = ({
   chartDate,
   editChartData,
   patient,
+  user,
 }) => {
   const dispatch = useDispatch();
   //popover dropdown
@@ -130,38 +134,48 @@ const ChartDate = ({
               Add Records
             </DropdownToggle>
             <DropdownMenu flip={false} color="warning">
-              {(records || []).map((item, idx) => {
-                return (
-                  <DropdownItem
-                    disabled={
-                      editChartData.data &&
-                      editChartData.data.chart !== item.category
-                        ? true
-                        : type === "GENERAL" &&
-                          item.category === DISCHARGE_SUMMARY
-                        ? true
-                        : false
-                    }
-                    key={idx + item.category}
-                    onClick={() => {
-                      dispatch(
-                        editInternBill({
-                          ...editChartData,
-                          chart: item.category,
-                          patient,
-                          isOpen: true,
-                          ...(item.category === PRESCRIPTION && {
-                            populatePreviousAppointment: true,
-                          }),
-                        })
-                      );
-                      toggle();
-                    }}
-                  >
-                    {item.name}
-                  </DropdownItem>
-                );
-              })}
+              {(records || [])
+                .filter((item) => {
+                  if (user?.role === "NURSE") {
+                    return ![PRESCRIPTION, COUNSELLING_NOTE, DETAIL_ADMISSION].includes(item.category);
+                  }
+                  if (["PSYCHOLOGIST", "MSW", "PSW"].includes(user?.role)) {
+                    return ![PRESCRIPTION, VITAL_SIGN].includes(item.category);
+                  }
+                  return true;
+                })
+                .map((item, idx) => {
+                  return (
+                    <DropdownItem
+                      disabled={
+                        editChartData.data &&
+                        editChartData.data.chart !== item.category
+                          ? true
+                          : type === "GENERAL" &&
+                            item.category === DISCHARGE_SUMMARY
+                          ? true
+                          : false
+                      }
+                      key={idx + item.category}
+                      onClick={() => {
+                        dispatch(
+                          editInternBill({
+                            ...editChartData,
+                            chart: item.category,
+                            patient,
+                            isOpen: true,
+                            ...(item.category === PRESCRIPTION && {
+                              populatePreviousAppointment: true,
+                            }),
+                          })
+                        );
+                        toggle();
+                      }}
+                    >
+                      {item.name}
+                    </DropdownItem>
+                  );
+                })}
             </DropdownMenu>
           </Dropdown>
         </div>
@@ -182,6 +196,7 @@ const mapStateToProps = (state) => ({
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm,
   patient: state.Patient.patient,
+  user: state.User.user,
 });
 
 export default connect(mapStateToProps)(ChartDate);

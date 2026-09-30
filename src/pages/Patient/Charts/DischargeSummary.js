@@ -7,56 +7,58 @@ import Divider from "../../../Components/Common/Divider";
 import SummaryMse from "./Components/SummaryMse";
 
 const DischargeSummary = ({ data }) => {
+
   const topCond =
     data?.presentingSymptoms ||
-    data?.mseAddmission ||
-    data?.pastHistory ||
-    data?.medicalHistory ||
-    data?.familyHistory
+      data?.mseAddmission ||
+      data?.pastHistory ||
+      data?.medicalHistory ||
+      data?.familyHistory
       ? true
       : false;
 
   const mseAtDischarge =
     data?.mseDischarge?.appearance ||
-    data?.mseDischarge?.ecc ||
-    data?.mseDischarge?.speech ||
-    data?.mseDischarge?.mood ||
-    data?.mseDischarge?.affect ||
-    data?.mseDischarge?.thoughts ||
-    data?.mseDischarge?.perception ||
-    data?.mseDischarge?.memory ||
-    data?.mseDischarge?.abstractThinking ||
-    data?.mseDischarge?.socialJudgment ||
-    data?.mseDischarge?.insight
+      data?.mseDischarge?.ecc ||
+      data?.mseDischarge?.speech ||
+      data?.mseDischarge?.mood ||
+      data?.mseDischarge?.affect ||
+      data?.mseDischarge?.thoughts ||
+      data?.mseDischarge?.perception ||
+      data?.mseDischarge?.memory ||
+      data?.mseDischarge?.abstractThinking ||
+      data?.mseDischarge?.socialJudgment ||
+      data?.mseDischarge?.insight
       ? true
       : false;
 
   const mseAtAddmission =
     data?.mseAddmission?.appearance ||
-    data?.mseAddmission?.ecc ||
-    data?.mseAddmission?.speech ||
-    data?.mseAddmission?.mood ||
-    data?.mseAddmission?.affect ||
-    data?.mseAddmission?.thoughts ||
-    data?.mseAddmission?.perception ||
-    data?.mseAddmission?.memory ||
-    data?.mseAddmission?.abstractThinking ||
-    data?.mseAddmission?.socialJudgment ||
-    data?.mseAddmission?.insight
+      data?.mseAddmission?.ecc ||
+      data?.mseAddmission?.speech ||
+      data?.mseAddmission?.mood ||
+      data?.mseAddmission?.affect ||
+      data?.mseAddmission?.thoughts ||
+      data?.mseAddmission?.perception ||
+      data?.mseAddmission?.memory ||
+      data?.mseAddmission?.abstractThinking ||
+      data?.mseAddmission?.socialJudgment ||
+      data?.mseAddmission?.insight
       ? true
       : false;
 
   const advCond =
     data?.psychiatryMedicine ||
-    data?.nonPsychiatryMedicine ||
-    data?.followUp ||
-    data?.note
+      data?.nonPsychiatryMedicine ||
+      data?.followUp ||
+      data?.note
       ? true
       : false;
 
   return (
     <React.Fragment>
       <Row>
+
         {data?.dateOfDischarge && (
           <Col xs={12}>
             <div className="mt-1 mb-1">

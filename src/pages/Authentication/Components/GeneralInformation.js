@@ -266,13 +266,13 @@ const GeneralInformation = ({ user }) => {
                   </Col>
                 </Row>
 
-                <Row className="border-bottom py-1 my-3 border-dark-subtle">
-                  <Col className="p-0" xs={5}>
+                <Row className="py-1 my-3 border-dark-subtle">
+                  {/* <Col className="p-0" xs={5}>
                     <p className="mb-0 fs-6 text-muted">Aadhaar Card</p>
                   </Col>
                   <Col className="p-0" xs={1}>
                     <span>-</span>
-                  </Col>
+                  </Col> */}
                   <Col className="p-0" xs={6}>
                     <RenderWhen
                       isTrue={Boolean(
@@ -289,13 +289,13 @@ const GeneralInformation = ({ user }) => {
                   </Col>
                 </Row>
 
-                <Row className="border-bottom py-1 my-3 border-dark-subtle">
-                  <Col className="p-0" xs={5}>
+                <Row className=" py-1 my-3 border-dark-subtle">
+                  {/* <Col className="p-0" xs={5}>
                     <p className="mb-0 fs-6 text-muted">Pan Card</p>
                   </Col>
                   <Col className="p-0" xs={1}>
                     <span>-</span>
-                  </Col>
+                  </Col> */}
                   <Col className="p-0" xs={6}>
                     <RenderWhen
                       isTrue={Boolean(

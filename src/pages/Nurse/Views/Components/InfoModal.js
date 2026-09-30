@@ -15,6 +15,7 @@ import {
 import { Check } from "lucide-react";
 import { markUnreadAlert } from "../../../../store/features/nurse/nurseSlice";
 import { useParams } from "react-router-dom";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const InfoModal = ({
   patientId,
@@ -26,6 +27,10 @@ const InfoModal = ({
 }) => {
   const [activeTab, setActiveTab] = useState("medicine");
   const dispatch = useDispatch();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
+  const writable = hasPermission("NURSE", "TOMORROW_ACTIVITY", "WRITE");
   const medicineAlerts = content.filter(
     (item) => item.type === "medicine" || item.flag === "other"
   );
@@ -140,8 +145,9 @@ const InfoModal = ({
                             {item.message}
                           </p>
                         </div>
-                        {(item.type === "prescription-update" ||
-                          item.type === "medicine-missed") && (
+                        {writable &&
+                          (item.type === "prescription-update" ||
+                            item.type === "medicine-missed") && (
                           <Check
                             size={18}
                             color="#28a745"

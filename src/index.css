@@ -18,3 +18,157 @@ code {
   border: 1px solid black;
   border-radius: 50%;
 }
+
+.custom-modal-backdrop.modal-backdrop.show {
+  opacity: 0.12 !important;
+  background-color: #000;
+}
+
+.sticky-top {
+  position: sticky;
+  top: 0;
+  background-color: #f8f9fa;
+  border-bottom: 2px solid #dee2e6;
+}
+
+/* Align react-select text vertically */
+/* .react-select__value-container {
+  height: 32px !important;
+  padding: 0 8px !important;
+  display: flex;
+  align-items: center;
+} */
+
+/* Remove extra padding */
+.react-select__control {
+  padding: 0 !important;
+}
+
+/* Dropdown indicator alignment */
+.react-select__indicators {
+  height: 32px;
+}
+
+/* Placeholder + value text alignment */
+.react-select__single-value,
+.react-select__placeholder {
+  line-height: 32px;
+}
+
+/* Match Bootstrap border radius */
+.react-select__control {
+  border-radius: 0.25rem;
+}
+
+.month-picker .calendar-icon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #6b7280;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.month-picker input,
+.month-picker .flatpickr-input {
+  padding-left: 38px !important;
+  height: 32px;
+  line-height: 32px;
+}
+
+.weekoff-link {
+  color: rgba(13, 110, 253, 0.6);
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.weekoff-link:hover {
+  color: rgba(13, 110, 253, 1);
+  text-decoration: underline;
+}
+
+.image-container {
+  position: relative;
+  cursor: pointer;
+}
+
+.issue-image {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  display: block;
+  transition: filter 0.3s ease;
+}
+
+.image-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  color: white;
+  background: rgba(0, 0, 0, 0.45);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.image-container:hover .issue-image {
+  filter: blur(1.2px);
+}
+
+.image-container:hover .image-overlay {
+  opacity: 1;
+}
+
+.scroll-hide-lite::-webkit-scrollbar {
+  width: 2px; /* very thin */
+}
+
+.scroll-hide-lite::-webkit-scrollbar-thumb {
+  background: transparent; /* almost hidden */
+}
+
+
+.tab-scroll-strip {
+  max-width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.tab-scroll-strip::-webkit-scrollbar {
+  height: 0;
+  display: none;
+}
+
+.tab-scroll-strip .btn-group {
+  display: inline-flex;
+  vertical-align: top;
+}
+
+.tab-scroll-strip .btn {
+  flex: 0 0 auto;
+  white-space: nowrap;
+}
+
+.flatpickr-current-month .numInputWrapper span {
+    opacity: 1 !important;
+    visibility: visible !important;
+}
+
+.chat-wrapper > .w-100 {
+  min-width: 0;
+  overflow: hidden;
+}
+
+.patient-content {
+  overflow-x: auto !important;
+}

@@ -18,6 +18,7 @@ import {
   addInternBillReceipt,
   createUpdate,
   editInternReceipt,
+  fetchPaymentAccounts,
 } from "../../../store/actions";
 
 const InternReceipt = ({
@@ -27,7 +28,7 @@ const InternReceipt = ({
   billDate,
   editBillData,
   type,
-  center
+  center,
 }) => {
   const dispatch = useDispatch();
   const [paymentModes, setPaymentModes] = useState([]);
@@ -81,7 +82,7 @@ const InternReceipt = ({
             totalAmount: totalAmount,
             paymentModes: paymentModes,
             ...values,
-          })
+          }),
         );
       } else {
         dispatch(
@@ -89,7 +90,7 @@ const InternReceipt = ({
             totalAmount: totalAmount,
             paymentModes: paymentModes,
             ...values,
-          })
+          }),
         );
       }
 
@@ -104,6 +105,19 @@ const InternReceipt = ({
       setPaymentModes(internReceipt?.paymentModes);
     }
   }, [editBillData]);
+
+  useEffect(() => {
+    if (center._id) {
+      dispatch(
+        fetchPaymentAccounts({
+          centerIds: [center._id],
+          page: 1,
+          limit: 1000,
+        }),
+        // fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
+      );
+    }
+  }, [dispatch, center._id]);
 
   return (
     <React.Fragment>

@@ -81,10 +81,11 @@ const styles = StyleSheet.create({
 
 const PrintFooter = ({ bill, amountInWords, generatedByName, generatedAt }) => {
   let invoice = bill?.invoice;
+  console.log("invoice from charty", invoice);
   let amountChargable = invoice?.calculatedPayable ?? 0.0;
 
-  if (invoice?.refund > 0) amountChargable = invoice.refund;
-  else if (invoice?.calculatedPayable > 0)
+  // if (invoice?.refund > 0) amountChargable = invoice.refund;
+  if (invoice?.calculatedPayable > 0)
     amountChargable = invoice.calculatedPayable;
   else amountChargable = 0;
 

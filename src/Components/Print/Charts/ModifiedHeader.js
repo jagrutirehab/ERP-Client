@@ -113,7 +113,14 @@ const styles = StyleSheet.create({
 });
 
 // const border = "1px solid #000";
-const Header = ({ chart, center, patient, doctor, admission }) => {
+const Header = ({
+  chart,
+  center,
+  patient,
+  doctor,
+  admission,
+  isCurrentMedicinesPrint = false,
+}) => {
   const age = () =>
     patient?.dateOfBirth
       ? `${differenceInYears(new Date(), new Date(patient.dateOfBirth))} Years,`
@@ -172,50 +179,54 @@ const Header = ({ chart, center, patient, doctor, admission }) => {
             <Image src={DoctorLogo} style={{ width: '20px' }} />
           </View> */}
           <View style={{ width: "40%" }}>
-            {doctor?.name ? (
-              <Text
-                style={{
-                  ...styles.fontHeavy,
-                  ...styles.fontSize20,
-                  color: lineColor1,
-                  textTransform: "capitalize",
-                }}
-              >
-                {doctor.name}
-              </Text>
-            ) : (
-              <Text
-                style={{
-                  ...styles.fontHeavy,
-                  ...styles.fontSize20,
-                  color: lineColor1,
-                  textTransform: "capitalize",
-                }}
-              >
-                {chart?.author?.name}
-              </Text>
-            )}
-            {safeText(
-              "",
-              {
-                ...styles.fontSm,
-                ...styles.paddingTop1,
-                whiteSpace: "pre-line",
-                textTransform: "capitalize",
-              },
-              doctor?.degrees,
-              chart?.author?.degrees
-            )}
-            {safeText(
-              "",
-              {
-                ...styles.fontSm,
-                ...styles.paddingTop1,
-                whiteSpace: "pre-line",
-                textTransform: "capitalize",
-              },
-              doctor?.speciality,
-              chart?.author?.speciality
+            {!isCurrentMedicinesPrint && (
+              <>
+                {doctor?.name ? (
+                  <Text
+                    style={{
+                      ...styles.fontHeavy,
+                      ...styles.fontSize20,
+                      color: lineColor1,
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {doctor.name}
+                  </Text>
+                ) : (
+                  <Text
+                    style={{
+                      ...styles.fontHeavy,
+                      ...styles.fontSize20,
+                      color: lineColor1,
+                      textTransform: "capitalize",
+                    }}
+                  >
+                    {chart?.author?.name}
+                  </Text>
+                )}
+                {safeText(
+                  "",
+                  {
+                    ...styles.fontSm,
+                    ...styles.paddingTop1,
+                    whiteSpace: "pre-line",
+                    textTransform: "capitalize",
+                  },
+                  doctor?.degrees,
+                  chart?.author?.degrees
+                )}
+                {safeText(
+                  "",
+                  {
+                    ...styles.fontSm,
+                    ...styles.paddingTop1,
+                    whiteSpace: "pre-line",
+                    textTransform: "capitalize",
+                  },
+                  doctor?.speciality,
+                  chart?.author?.speciality
+                )}
+              </>
             )}
             {/* {doctor?.education?.regNumber && (
               <Text style={{ ...styles.fontSm, ...styles.paddingTop1 }}>

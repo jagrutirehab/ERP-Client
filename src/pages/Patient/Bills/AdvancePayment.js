@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import { Col, Row } from "reactstrap";
 
 const AdvancePayment = ({ data }) => {
-  
   return (
     <React.Fragment>
       <div>
@@ -58,7 +57,7 @@ const AdvancePayment = ({ data }) => {
                           </p>
                         </div>
                       )}
-                      {item.paymentMode === "BANK" && (
+                      {item.paymentMode !== "CASH" && (
                         <div className="text-center">
                           <p className="text-muted fs-xs-11 fs-md-14 pb-0 mb-0">
                             {item.bankAccount}

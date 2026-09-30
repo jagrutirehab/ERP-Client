@@ -12,6 +12,10 @@ import RolesManagement from "./RolesManagement";
 import Therapies from "./Therapies";
 import Conditions from "./Conditions";
 import Symptom from "./Symptom";
+import HrConfigurations from "./HRConfigs";
+import DocumentConfig from "./DocumentConfig";
+import CenterFloorConfig from "./CenterFloorConfig";
+import CenterFallbackManager from "./CenterFallbackManager";
 
 const index = (props) => {
   return (
@@ -31,6 +35,19 @@ const index = (props) => {
               <Route path={`/therapies`} element={<Therapies />} />
               <Route path={`/conditions`} element={<Conditions />} />
               <Route path={`/symptoms`} element={<Symptom />} />
+              <Route path={`/hr/configs`} element={<HrConfigurations />} />
+              <Route
+                path={`/document/input/configs`}
+                element={<DocumentConfig />}
+              />
+              <Route
+                path={`/center/floor/configs`}
+                element={<CenterFloorConfig />}
+              />
+               <Route
+                path={`/center/fallback/manager`}
+                element={<CenterFallbackManager />}
+              />
             </Routes>
           </div>
         </Container>

@@ -8,6 +8,10 @@ const authRoles = [
     value: "DOCTOR",
   },
   {
+    name: "PHYSICIAN",
+    value: "PHYSICIAN",
+  },
+  {
     name: "COUNSELLOR",
     value: "COUNSELLOR",
   },
@@ -20,12 +24,16 @@ const authRoles = [
     value: "MSW",
   },
   {
+    name: "PSW",
+    value: "PSW",
+  },
+  {
     name: "RMO",
     value: "RMO",
   },
   {
-    name: "PSYCHOTHERAPIST",
-    value: "PSYCHOTHERAPIST",
+    name: "PHYSIOTHERAPIST",
+    value: "PHYSIOTHERAPIST",
   },
   {
     name: "ACCOUNTANT",

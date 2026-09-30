@@ -5,6 +5,7 @@ import RXIcon from "../../../../../assets/images/small/rx.jpeg";
 
 //table
 import PrescriptionTable from "./Table";
+import CurrentMedicinesTable from "./CurrentMedicinesTable";
 import { format } from "date-fns";
 import { safeText } from "../../../../../utils/safeText";
 
@@ -87,8 +88,9 @@ const styles = StyleSheet.create({
   },
 });
 
-const PrescriptionBody = ({ chart, doctor }) => {
-  const renderImage = (src, width) => {
+const PrescriptionBody = ({ chart, doctor, baseDate, isCurrentMedicinesPrint }) => {
+  // console.log('chart',chart)
+  const renderImage = (src, _width) => {
     if (!src) return null;
     return <Image src={src} style={styles.image} />;
   };
@@ -128,10 +130,56 @@ const PrescriptionBody = ({ chart, doctor }) => {
             </Text>
           </View>
         )}
-        <Image src={RXIcon} style={{ width: "25px", ...styles.mrgnTop10 }} />
+        {/* {chart?.diagnosis2 && (
+          <View wrap={false} style={{ ...styles.mrgnTop10 }}>
+            <Text style={{ ...styles.instr }}>
+              Diagnosis 2:{" "}
+              <Text
+                style={{
+                  ...styles.textGray,
+                  ...styles.fontNormal,
+                  ...styles.mrgnLeft10,
+                  ...styles.textWrap,
+                }}
+              >
+                {chart?.diagnosis2}
+              </Text>
+            </Text>
+          </View>
+        )} */}
+        <View
+          style={{
+            ...styles.row,
+            justifyContent: "space-between",
+            alignItems: "center",
+          }}
+        >
+          <Image src={RXIcon} style={{ width: "25px", ...styles.mrgnTop10 }} />
+          {isCurrentMedicinesPrint && (
+            <View
+              style={{
+                borderWidth: 1,
+                borderColor: "#1d1d1d",
+                paddingVertical: 4,
+                paddingHorizontal: 10,
+              }}
+            >
+              <Text style={{ ...styles.fontBold, letterSpacing: "0.6px" }}>
+                CURRENT MEDICINES
+              </Text>
+            </View>
+          )}
+        </View>
         {chart?.medicines?.length > 0 && (
           <View style={styles.mrgnTop10}>
-            <PrescriptionTable medicines={chart.medicines} />
+            {isCurrentMedicinesPrint ? (
+              <CurrentMedicinesTable
+                medicines={chart.medicines}
+                baseDate={baseDate}
+              />
+            ) : (
+              <PrescriptionTable medicines={chart.medicines} />
+            )}
           </View>
         )}
         {chart?.notes && (
@@ -219,12 +267,87 @@ const PrescriptionBody = ({ chart, doctor }) => {
             </Text>
           </View>
         )}
+        {chart?.ICD10_Code && (
+          <View wrap={false} style={{ ...styles.mrgnTop10 }}>
+            <Text style={{ ...styles.instr }}>
+              Diagnosis ICD10 Code 1 :{" "}
+              <Text
+                style={{
+                  ...styles.textGray,
+                  ...styles.fontNormal,
+                  ...styles.mrgnLeft10,
+                  ...styles.textWrap,
+                }}
+              >
+                {chart?.ICD10_Code}
+              </Text>
+            </Text>
+          </View>
+        )}
+        {chart?.ICD10_Code2 ? (
+          <View wrap={false} style={{ ...styles.mrgnTop10 }}>
+            <Text style={{ ...styles.instr }}>
+              Diagnosis ICD10 Code 2 :{" "}
+              <Text
+                style={{
+                  ...styles.textGray,
+                  ...styles.fontNormal,
+                  ...styles.mrgnLeft10,
+                  ...styles.textWrap,
+                }}
+              >
+                {chart.ICD10_Code2}
+              </Text>
+            </Text>
+          </View>
+        ) : Array.isArray(chart?.icdCode2) ? (
+          chart.icdCode2.length > 0 && (
+            <View
+              wrap={false}
+              style={{
+                ...styles.mrgnTop10,
+                flexDirection: "row",
+                alignItems: "flex-start",
+              }}
+            >
+              {/* Header Column */}
+              <Text
+                style={{
+                  ...styles.instr,
+                  width: 125,
+                }}
+              >
+                Diagnosis ICD10 Code 2 :
+              </Text>
+
+              {/* Codes Column */}
+              <View style={{ flex: 1 }}>
+                {chart.icdCode2
+                  .filter(item => item?.code)
+                  .map((item, index) => (
+                    <Text
+                      key={item?.code_id || index}
+                      style={{
+                        ...styles.textGray,
+                        ...styles.fontNormal,
+                        marginBottom: 2,
+                      }}
+                    >
+                      {item.code}
+                      {index !== chart.icdCode2.length - 1 ? "," : ""}
+                    </Text>
+                  ))}
+              </View>
+            </View>
+          )
+        ) : null}
         {/* <View style={{ ...styles.mrgnTop10 }}>
           <Text style={{ ...styles.fontBold }}>
             Next Visit:{" "}
             <Text style={{ ...styles.fontNormal }}>27 April, 2023</Text>
           </Text>
         </View> */}
+        {!isCurrentMedicinesPrint && (
         <View
           wrap={false}
           style={{
@@ -256,7 +379,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
             {safeText(
               "",
               { lineHeight: 1.2, marginBottom: 3, ...styles.textCapitalize },
-              doctor?.name ? `${doctor.name}` : ""
+              doctor?.name ? `${doctor.name}` : "",
             )}
             {safeText(
               "",
@@ -265,7 +388,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              doctor?.degrees
+              doctor?.degrees,
             )}
             {safeText(
               "",
@@ -274,7 +397,7 @@ const PrescriptionBody = ({ chart, doctor }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              doctor?.speciality
+              doctor?.speciality,
             )}
             {safeText(
               "Reg. No.",
@@ -283,10 +406,11 @@ const PrescriptionBody = ({ chart, doctor }) => {
                 ...styles.fontNormal,
                 ...styles.textCapitalize,
               },
-              doctor?.registrationNo
+              doctor?.registrationNo,
             )}
           </View>
         </View>
+        )}
         {/* {doctor && (
           <View
             style={{

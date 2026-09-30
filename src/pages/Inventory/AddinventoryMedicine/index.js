@@ -1,7 +1,103 @@
 import axios from "axios";
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { Dropdown, DropdownToggle, Spinner } from "reactstrap";
+import { useSelector } from "react-redux";
+import { Spinner } from "reactstrap";
+import Select from "react-select";
+
+const normalizeLabel = (val) =>
+  val ? val.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (c) => c.toUpperCase()) : "";
+
+const sharedStyles = {
+  title: {
+    fontSize: "28px",
+    fontWeight: "700",
+    color: "#1a202c",
+    marginBottom: "24px",
+    borderBottom: "2px solid #edf2f7",
+    paddingBottom: "12px",
+    textAlign: "center",
+  },
+  formGroup: {
+    display: "flex",
+    flexDirection: "column",
+  },
+  label: {
+    marginBottom: "8px",
+    fontWeight: "600",
+    fontSize: "13px",
+    color: "#475467",
+  },
+  input: {
+    minHeight: "42px",
+    padding: "10px 14px",
+    border: "1px solid #d0d5dd",
+    borderRadius: "10px",
+    fontSize: "14px",
+    lineHeight: 1.4,
+    backgroundColor: "#ffffff",
+    transition: "border-color 0.2s, box-shadow 0.2s",
+  },
+  errorText: {
+    color: "#e53e3e",
+    fontSize: "12px",
+    marginTop: "6px",
+  },
+  fullWidth: {
+    gridColumn: "1 / -1",
+  },
+  select: {
+    minHeight: "42px",
+    padding: "10px 14px",
+    border: "1px solid #d0d5dd",
+    borderRadius: "10px",
+    fontSize: "14px",
+    backgroundColor: "white",
+    appearance: "none",
+  },
+  section: {
+    marginBottom: "20px",
+    padding: "18px",
+    border: "1px solid #eaecf0",
+    borderRadius: "14px",
+    backgroundColor: "#fcfcfd",
+  },
+  sectionHeading: {
+    letterSpacing: "0.08em",
+  },
+};
+
+const InputField = ({
+  label,
+  name,
+  register,
+  errors,
+  type = "text",
+  validation,
+  isFullWidth = false,
+  step,
+  disabled = false,
+}) => (
+  <div
+    style={{
+      ...sharedStyles.formGroup,
+      ...(isFullWidth ? sharedStyles.fullWidth : {}),
+    }}
+  >
+    <label htmlFor={name} style={sharedStyles.label}>
+      {label}
+    </label>
+    <input
+      id={name}
+      type={type}
+      step={step || (type === "number" ? "any" : undefined)}
+      {...register(name, validation)}
+      style={sharedStyles.input}
+      disabled={disabled}
+    />
+    {errors[name] && <p style={sharedStyles.errorText}>{errors[name].message}</p>}
+  </div>
+);
 
 const AddinventoryMedicine = ({
   user,
@@ -9,20 +105,31 @@ const AddinventoryMedicine = ({
   onSubmit,
   uploading = false,
 }) => {
+  const centerList = useSelector((state) => state.Center.data);
   const {
     register,
     handleSubmit,
     setValue,
-    formState: { errors, isValid, isDirty },
+    watch,
+    formState: { errors },
   } = useForm({
     defaultValues: {
+      medicineId: defaultValues.medicineId || "",
       code: defaultValues.code || "",
       medicineName: defaultValues.medicineName || "",
+      brandName: defaultValues.medicineId?.brandName || defaultValues.brandName || "",
+      genericName: defaultValues.medicineId?.genericName || defaultValues.genericName || "",
+      form: defaultValues.medicineId?.form || defaultValues.form || "",
+      baseUnit: defaultValues.medicineId?.baseUnit || defaultValues.baseUnit || "",
+      purchaseUnit: defaultValues.medicineId?.purchaseUnit || defaultValues.purchaseUnit || "",
+      category: defaultValues.medicineId?.category || defaultValues.category || "",
+      storageType: defaultValues.medicineId?.storageType || defaultValues.storageType || "",
+      scheduleType: defaultValues.medicineId?.scheduleType || defaultValues.scheduleType || "",
       unitType: defaultValues.unitType || "",
       Strength: defaultValues.Strength || "",
       stock: defaultValues.stock || "",
-      costprice: defaultValues.costprice || "",
-      value: defaultValues.value || "",
+      // costprice: defaultValues.costprice || "",
+      // value: defaultValues.value || "",
       mrp: defaultValues.mrp || "",
       purchasePrice: defaultValues.purchasePrice || "",
       SalesPrice: defaultValues.SalesPrice || "",
@@ -35,24 +142,47 @@ const AddinventoryMedicine = ({
     },
   });
 
+  const isEditMode = !!defaultValues.medicineName;
+
   const submitHandler = (data) => {
     if (!selectedCenters.length) {
       alert("At least one valid center is required");
       return;
     }
 
-    // Convert selectedCenters (IDs) into objects with stock = 0
-    const centersPayload = selectedCenters.map((id) => ({
-      centerId: id,
-      stock: data.stock,
-    }));
+    const zeroStockCenters = selectedCenters.filter((id) => {
+      const stock = Number(centerStocks[id]) || 0;
+      return stock === 0;
+    });
+
+    if (zeroStockCenters.length > 0) {
+      const touchedCenters = zeroStockCenters.reduce((acc, id) => {
+        acc[id] = true;
+        return acc;
+      }, {});
+      setCenterStockTouched((prev) => ({ ...prev, ...touchedCenters }));
+      return;
+    }
+
+    const centersPayload = selectedCenters.map((id) => {
+      let stock = Number(centerStocks[id]) || 0;
+      const unitType = centerStockUnits[id] || "BASE";
+
+      if (unitType === "PURCHASE" && medicineConversion?.baseQuantity && medicineConversion?.purchaseQuantity) {
+        stock = stock * (medicineConversion.baseQuantity / medicineConversion.purchaseQuantity);
+      }
+
+      return {
+        centerId: id,
+        stock: stock,
+      };
+    });
     onSubmit && onSubmit({ ...data, centers: centersPayload });
     // onSubmit && onSubmit({ ...data, centers: selectedCenters });
   };
 
   // --- Dropdown and selected centers state ---
-  const containerRef = useRef(null);
-  const [centerDropdownOpen, setCenterDropdownOpen] = useState(false);
+  // --- Dropdown and selected centers state ---
   const [medicineDropdownOpen, setMedicineDropdownOpen] = useState(false);
   const [medicineQuery, setMedicineQuery] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -60,13 +190,42 @@ const AddinventoryMedicine = ({
   const [medicineValidLoader, setMedicineValidLoader] = useState(false);
   const [medicineSelected, setMedicineSelected] = useState(false);
   const [medicineValid, setMedicineValid] = useState(true);
+  const [hasUserTyped, setHasUserTyped] = useState(false);
   const [selectedCenters, setSelectedCenters] = useState(
     defaultValues.centers
-      ? defaultValues.centers.map((c) =>
-        typeof c.centerId === "object" ? c.centerId._id : c.centerId
-      )
+      ? defaultValues.centers
+        .map((c) => {
+          return typeof c.centerId === "object"
+            ? String(c.centerId._id)
+            : String(c.centerId);
+        })
+        .filter((id) => user?.centerAccess?.includes(id))
       : []
   );
+  const [centerStocks, setCenterStocks] = useState(() => {
+    const map = {};
+    if (defaultValues.centers) {
+      defaultValues.centers.forEach((c) => {
+        const id =
+          typeof c.centerId === "object"
+            ? String(c.centerId._id)
+            : String(c.centerId);
+
+        map[id] = c.stock ?? "";
+      });
+    }
+    return map;
+  });
+
+  const [medicineConversion, setMedicineConversion] = useState(
+    defaultValues.medicineId?.conversion || defaultValues.conversion || null
+  );
+  const [centerStockUnits, setCenterStockUnits] = useState({});
+  const [centerStockTouched, setCenterStockTouched] = useState({});
+
+
+
+
 
 
   useEffect(() => {
@@ -80,7 +239,7 @@ const AddinventoryMedicine = ({
         });
         const payload = res?.payload || [];
 
-        const found = payload.some(
+        const found = payload.find(
           (m) =>
             m.name?.toLowerCase().trim() ===
             defaultValues.medicineName?.toLowerCase().trim()
@@ -91,7 +250,16 @@ const AddinventoryMedicine = ({
         } else {
           setMedicineQuery(defaultValues.medicineName);
           setMedicineSelected(true);
+          setMedicineConversion(found.conversion || null);
           setValue("medicineName", defaultValues.medicineName);
+          setValue("brandName", defaultValues.medicineId?.brandName || defaultValues.brandName || "");
+          setValue("genericName", defaultValues.medicineId?.genericName || defaultValues.genericName || "");
+          setValue("form", defaultValues.medicineId?.form || defaultValues.form || "");
+          setValue("baseUnit", defaultValues.medicineId?.baseUnit || defaultValues.baseUnit || "");
+          setValue("purchaseUnit", defaultValues.medicineId?.purchaseUnit || defaultValues.purchaseUnit || "");
+          setValue("category", defaultValues.medicineId?.category || defaultValues.category || "");
+          setValue("storageType", defaultValues.medicineId?.storageType || defaultValues.storageType || "");
+          setValue("scheduleType", defaultValues.medicineId?.scheduleType || defaultValues.scheduleType || "");
           setValue("unitType", defaultValues.unitType || "");
           setValue("Strength", defaultValues.Strength || "");
           setValue("purchasePrice", defaultValues.purchasePrice || "");
@@ -135,19 +303,31 @@ const AddinventoryMedicine = ({
 
 
   useEffect(() => {
+    if (isEditMode && !hasUserTyped) return;
+
     const delayDebounce = setTimeout(() => {
       if (medicineQuery.trim()) {
         handleMedicineSearch(medicineQuery);
       } else {
         setSearchResults([]);
       }
-    }, 300);
+    }, 500);
 
     return () => clearTimeout(delayDebounce);
-  }, [medicineQuery]);
+  }, [medicineQuery, hasUserTyped]);
 
   const handleSelectMedicine = (medicine) => {
+    setValue("medicineId", medicine._id);
     setValue("medicineName", medicine.name);
+    setMedicineConversion(medicine.conversion || null);
+    setValue("brandName", medicine.brandName || "");
+    setValue("genericName", medicine.genericName || "");
+    setValue("form", medicine.form || "");
+    setValue("baseUnit", medicine.baseUnit || "");
+    setValue("purchaseUnit", medicine.purchaseUnit || "");
+    setValue("category", medicine.category || "");
+    setValue("storageType", medicine.storageType || "");
+    setValue("scheduleType", medicine.scheduleType || "");
     setValue("unitType", medicine.unit || "");
     setValue("Strength", medicine.strength || "");
     setValue("purchasePrice", medicine.unitPrice || "");
@@ -158,108 +338,50 @@ const AddinventoryMedicine = ({
   };
 
 
-  const availableCenters = user?.userCenters.filter(
-    (c) => !selectedCenters.includes(String(c._id))
-  );
 
-  const handleAddCenter = (id) => {
-    setSelectedCenters((prev) => [...prev, id]);
+
+  const allowedCenters = centerList || [];
+
+  const handleCenterChange = (selectedOptions) => {
+    const newSelectedIds = (selectedOptions || []).map((opt) => opt.value);
+
+    // Find removed centers and delete their stocks & units
+    const removedIds = selectedCenters.filter((id) => !newSelectedIds.includes(id));
+    if (removedIds.length > 0) {
+      setCenterStocks((prev) => {
+        const copy = { ...prev };
+        removedIds.forEach((id) => delete copy[id]);
+        return copy;
+      });
+      setCenterStockUnits((prev) => {
+        const copy = { ...prev };
+        removedIds.forEach((id) => delete copy[id]);
+        return copy;
+      });
+    }
+
+    // Find added centers and initialize them
+    const addedIds = newSelectedIds.filter((id) => !selectedCenters.includes(id));
+    if (addedIds.length > 0) {
+      setCenterStocks((prev) => {
+        const copy = { ...prev };
+        addedIds.forEach((id) => {
+          if (copy[id] === undefined) copy[id] = "";
+        });
+        return copy;
+      });
+      setCenterStockUnits((prev) => {
+        const copy = { ...prev };
+        addedIds.forEach((id) => {
+          if (copy[id] === undefined) copy[id] = "BASE";
+        });
+        return copy;
+      });
+    }
+
+    setSelectedCenters(newSelectedIds);
   };
 
-  const handleRemoveCenter = (id) => {
-    setSelectedCenters((prev) => prev.filter((x) => x !== id));
-  };
-
-  const styles = {
-    title: {
-      fontSize: "28px",
-      fontWeight: "700",
-      color: "#1a202c",
-      marginBottom: "30px",
-      borderBottom: "2px solid #edf2f7",
-      paddingBottom: "10px",
-      textAlign: "center",
-    },
-    form: {
-      display: "grid",
-      gridTemplateColumns: "1fr 1fr",
-      gap: "20px",
-    },
-    formGroup: {
-      display: "flex",
-      flexDirection: "column",
-    },
-    label: {
-      marginBottom: "8px",
-      fontWeight: "600",
-      fontSize: "14px",
-      color: "#4a5568",
-    },
-    input: {
-      padding: "12px 15px",
-      border: "1px solid #e2e8f0",
-      borderRadius: "8px",
-      fontSize: "15px",
-      transition: "border-color 0.2s",
-    },
-    errorText: {
-      color: "#e53e3e",
-      fontSize: "12px",
-      marginTop: "4px",
-    },
-    fullWidth: {
-      gridColumn: "1 / -1",
-    },
-    submitButton: {
-      gridColumn: "1 / -1",
-      backgroundColor: "#4299e1",
-      color: "#ffffff",
-      padding: "15px 25px",
-      borderRadius: "8px",
-      fontWeight: "700",
-      fontSize: "16px",
-      border: "none",
-      cursor: "pointer",
-      marginTop: "20px",
-      transition: "background-color 0.2s, transform 0.1s",
-    },
-    select: {
-      padding: "12px 15px",
-      border: "1px solid #e2e8f0",
-      borderRadius: "8px",
-      fontSize: "15px",
-      transition: "border-color 0.2s",
-      backgroundColor: "white",
-      appearance: "none",
-    },
-  };
-
-  const InputField = ({
-    label,
-    name,
-    type = "text",
-    validation,
-    isFullWidth = false,
-    step,
-    disabled = false
-  }) => (
-    <div
-      style={{ ...styles.formGroup, ...(isFullWidth ? styles.fullWidth : {}) }}
-    >
-      <label htmlFor={name} style={styles.label}>
-        {label}
-      </label>
-      <input
-        id={name}
-        type={type}
-        step={step || (type === "number" ? "any" : undefined)}
-        {...register(name, validation)}
-        style={styles.input}
-        disabled={disabled}
-      />
-      {errors[name] && <p style={styles.errorText}>{errors[name].message}</p>}
-    </div>
-  );
 
   if (medicineValidLoader) {
     return (
@@ -272,7 +394,7 @@ const AddinventoryMedicine = ({
   return (
     <div>
       {
-        medicineValid && (<h2 style={styles.title}>
+        medicineValid && (<h2 style={sharedStyles.title}>
           {defaultValues?.medicineName
             ? "Edit Medicine Details"
             : "Add New Medicine"}
@@ -280,361 +402,223 @@ const AddinventoryMedicine = ({
       }
 
       {!medicineValid ? (
-        <div style={{ textAlign: "center", padding: "40px 0" }}>
-          <h3 style={{ color: "#e53e3e" }}>This medicine no longer exists in the master medicine list.</h3>
-          <p style={{ color: "#718096", marginTop: 10 }}>
-            You can’t edit this entry. Please add it in master medicine list first.
-          </p>
+        <div className="text-center py-5">
+          <i className="ri-error-warning-line fs-1 text-danger"></i>
+          <h5 className="mt-3 text-danger">Medicine no longer exists in master list</h5>
+          <p className="text-muted">Please add it to the master medicine list first before editing.</p>
         </div>
       ) : (
-        <form onSubmit={handleSubmit(submitHandler)} style={styles.form}>
-          <div
-            style={{
-              ...styles.formGroup,
-              ...styles.fullWidth,
-              position: "relative",
-            }}
-          >
-            <label htmlFor="medicineName" style={styles.label}>
-              Medicine Name
-            </label>
+        <form onSubmit={handleSubmit(submitHandler)}>
 
-            <input
-              id="medicineName"
-              type="text"
-              placeholder="Search medicine..."
-              value={medicineQuery}
-              onChange={(e) => setMedicineQuery(e.target.value)}
-              style={{
-                ...styles.input,
-                width: "100%",
-                boxSizing: "border-box",
-              }}
-              autoComplete="off"
-            />
-
-            {medicineDropdownOpen && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  width: "100%",
-                  backgroundColor: "white",
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 8,
-                  maxHeight: 220,
-                  overflowY: "auto",
-                  boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-                  zIndex: 9999,
-                  marginTop: 4,
+          {/* Section: Medicine Search */}
+          <div style={sharedStyles.section}>
+            <p className="fw-semibold text-muted fs-12 text-uppercase mb-2" style={sharedStyles.sectionHeading}>Medicine</p>
+            <div style={{ position: "relative" }}>
+              <label className="fs-12 text-muted mb-1">Medicine Name</label>
+              <input
+                id="medicineName"
+                type="text"
+                placeholder="Search medicine..."
+                value={medicineQuery}
+                onChange={(e) => {
+                  setMedicineQuery(e.target.value);
+                  if (isEditMode) setHasUserTyped(true);
                 }}
-              >
-                {loadingMedicines ? (
-                  <div style={{ padding: 10, color: "#718096" }}>Searching...</div>
-                ) : searchResults.length === 0 ? (
-                  <div style={{ padding: 10, color: "#718096" }}>No medicines found</div>
-                ) : (
-                  searchResults.map((med) => (
-                    <div
-                      key={med._id}
-                      onClick={() => handleSelectMedicine(med)}
-                      style={{
-                        padding: "10px 12px",
-                        cursor: "pointer",
-                        borderBottom: "1px solid #edf2f7",
-                      }}
-                      onMouseDown={(e) => e.preventDefault()}
-                    >
-                      <strong>{med.name}</strong>{" "}
-                      <span style={{ color: "#718096", fontSize: 13 }}>
-                        {med.strength || med.unit
-                          ? `(${[med.strength, med.unit].filter(Boolean).join(" ")})`
-                          : ""}
-                      </span>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-
-            {errors.medicineName && (
-              <p style={styles.errorText}>{errors.medicineName.message}</p>
-            )}
+                className="form-control form-control-sm"
+                autoComplete="off"
+              />
+              {medicineDropdownOpen && (!isEditMode || hasUserTyped) && (
+                <div style={{
+                  position: "absolute", top: "100%", left: 0, width: "100%",
+                  backgroundColor: "white", border: "1px solid #e2e8f0",
+                  borderRadius: 8, maxHeight: 220, overflowY: "auto",
+                  boxShadow: "0 6px 18px rgba(0,0,0,0.1)", zIndex: 9999, marginTop: 4,
+                }}>
+                  {loadingMedicines ? (
+                    <div className="p-3 text-muted fs-13">Searching...</div>
+                  ) : searchResults.length === 0 ? (
+                    <div className="p-3 text-muted fs-13">No medicines found</div>
+                  ) : (
+                    searchResults.map((med) => (
+                      <div
+                        key={med._id}
+                        onClick={() => handleSelectMedicine(med)}
+                        onMouseDown={(e) => e.preventDefault()}
+                        className="px-3 py-2 border-bottom"
+                        style={{ cursor: "pointer" }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = "#f8f9fa"}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = "white"}
+                      >
+                        <span className="fw-semibold">{med.name}</span>{" "}
+                        {(med.strength || med.unit) && (
+                          <span className="text-muted fs-12">({[med.strength, med.unit].filter(Boolean).join(" ")})</span>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
+              )}
+              {errors.medicineName && <p style={sharedStyles.errorText}>{errors.medicineName.message}</p>}
+            </div>
           </div>
 
-          {/* --- Center Multi-Select --- */}
-          <div ref={containerRef} style={{ width: "100%" }}>
-            <label
-              htmlFor="centersMultiCustom"
-              style={{ ...styles.label, display: "block" }}
-            >
-              Select Centers
-            </label>
-
-            <div
-              id="centersMultiCustom"
-              style={{
-                width: "100%", // ✅ full width
-                border: "1px solid #e2e8f0",
-                borderRadius: 8,
-                padding: "8px 10px",
-                minHeight: 44,
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                flexWrap: "wrap",
-                backgroundColor: uploading ? "#f8f9fa" : "white",
-                cursor: uploading ? "not-allowed" : "pointer",
-                boxSizing: "border-box", // important for 100% width
-              }}
-              onClick={() => !uploading && medicineSelected && setCenterDropdownOpen((s) => !s)}
-              role="button"
-              tabIndex={0}
-              onKeyDown={(e) => {
-                if ((e.key === "Enter" || e.key === " ") && !uploading) {
-                  e.preventDefault();
-                  setCenterDropdownOpen((s) => !s);
-                }
-              }}
-            >
-              {selectedCenters.length === 0 && (
-                <div style={{ color: "#6c757d" }}>No centers selected</div>
-              )}
-
-              {selectedCenters.map((id) => {
-                const c = user?.userCenters.find(
-                  (x) => String(x?._id) === String(id)
-                );
-                return (
-                  <div
-                    key={id}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 8,
-                      padding: "6px 10px",
-                      backgroundColor: "#e9f2ff",
-                      border: "1px solid #d0e6ff",
-                      borderRadius: 999,
-                      fontSize: 13,
-                    }}
-                  >
-                    <span>{c?.title ?? id}</span>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleRemoveCenter(id);
-                      }}
-                      style={{
-                        border: "none",
-                        background: "transparent",
-                        cursor: "pointer",
-                        padding: 0,
-                        margin: 0,
-                        lineHeight: 1,
-                        fontWeight: 700,
-                      }}
-                      aria-label={`Remove ${c?.title ?? id}`}
-                      disabled={uploading}
-                    >
-                      ×
-                    </button>
+          {/* Section: Medicine Info (read-only) */}
+          {medicineSelected && (
+            <div className="mb-4 p-3 rounded" style={{ backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }}>
+              <p className="fw-semibold text-muted fs-12 text-uppercase mb-3" style={{ letterSpacing: "0.08em" }}>Medicine Details</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px 20px" }}>
+                {[
+                  // { label: "Brand Name", name: "brandName" },
+                  { label: "Generic Name", name: "genericName" },
+                  { label: "Form", name: "form" },
+                  { label: "Base Unit", name: "baseUnit" },
+                  { label: "Purchase Unit", name: "purchaseUnit" },
+                  { label: "Strength", name: "Strength" },
+                  { label: "Category", name: "category" },
+                  { label: "Storage Type", name: "storageType" },
+                  { label: "Schedule Type", name: "scheduleType" },
+                ].map(({ label, name }) => (
+                  <div key={name}>
+                    <label className="fs-12 text-muted mb-1">{label}</label>
+                    <input {...register(name)} disabled className="form-control form-control-sm bg-white d-none" />
+                    <input readOnly className="form-control form-control-sm bg-white" value={normalizeLabel(watch(name))} />
                   </div>
-                );
-              })}
-
-              <div style={{ marginLeft: "auto", paddingLeft: 8 }}>
-                <svg
-                  width="18"
-                  height="18"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                  style={{
-                    transform: centerDropdownOpen ? "rotate(180deg)" : "none",
-                  }}
-                >
-                  <path
-                    d="M6 9l6 6 6-6"
-                    fill="none"
-                    stroke="#495057"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
+                ))}
+                {medicineConversion?.baseQuantity && medicineConversion?.purchaseQuantity && (
+                  <div>
+                    <label className="fs-12 text-muted mb-1">Conversion</label>
+                    <input 
+                      readOnly 
+                      className="form-control form-control-sm bg-white" 
+                      value={`${medicineConversion.purchaseQuantity} ${normalizeLabel(watch("purchaseUnit"))} = ${medicineConversion.baseQuantity} ${normalizeLabel(watch("baseUnit"))}`} 
+                    />
+                  </div>
+                )}
               </div>
             </div>
+          )}
 
-            {centerDropdownOpen && !uploading && (
-              <div
-                style={{
-                  width: "100%", // ✅ dropdown full width
-                  border: "1px solid #e2e8f0",
-                  borderRadius: 8,
-                  marginTop: 8,
-                  maxHeight: 220,
-                  overflow: "auto",
-                  background: "white",
-                  boxShadow: "0 6px 18px rgba(0,0,0,0.08)",
-                  zIndex: 9999,
-                  position: "relative",
-                  boxSizing: "border-box",
-                }}
-              >
-                {availableCenters.length === 0 ? (
-                  <div style={{ padding: 12, color: "#6c757d" }}>
-                    No more centers
-                  </div>
-                ) : (
-                  availableCenters.map((c) => (
-                    <div
-                      key={c?._id}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddCenter(c?._id);
-                      }}
-                      role="button"
-                      tabIndex={0}
-                      onKeyDown={(e) => {
-                        if (e.key === "Enter") {
-                          e.preventDefault();
-                          handleAddCenter(c?._id);
-                        }
-                      }}
-                      style={{
-                        padding: "10px 12px",
-                        borderBottom: "1px solid #f1f3f5",
-                        cursor: "pointer",
-                      }}
-                    >
-                      {c?.title}
+          {/* Section: Centers */}
+          <div style={sharedStyles.section}>
+            <p className="fw-semibold text-muted fs-12 text-uppercase mb-2" style={sharedStyles.sectionHeading}>Centers & Stock</p>
+            <div>
+              <label className="fs-12 text-muted mb-1">Select Centers</label>
+              <Select
+                isMulti
+                name="centers"
+                placeholder="Choose centers..."
+                options={(allowedCenters || []).map((c) => ({ value: String(c._id), label: c.title }))}
+                value={selectedCenters.map((id) => {
+                  const c = allowedCenters.find((x) => String(x._id) === id) || defaultValues.centers?.find((x) => String(typeof x.centerId === "object" ? x.centerId._id : x.centerId) === id)?.centerId;
+                  return { value: id, label: c?.title || id };
+                })}
+                onChange={handleCenterChange}
+                classNamePrefix="react-select"
+                isDisabled={uploading || !medicineSelected}
+              />
+            </div>
+
+            {/* Center wise stock */}
+            {selectedCenters.length > 0 && (
+              <div className="mt-3" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "12px" }}>
+                {selectedCenters.map((id) => {
+                  const centerInfo =
+                    allowedCenters.find((x) => String(x._id) === id) ||
+                    defaultValues.centers?.find((c) => {
+                      const cid = typeof c.centerId === "object" ? c.centerId._id : c.centerId;
+                      return String(cid) === id;
+                    })?.centerId;
+                  const rawStockStr = centerStocks[id] ?? "";
+                  let stockNum = Number(rawStockStr) || 0;
+                  const unitType = centerStockUnits[id] || "BASE";
+                  let convertedStock = stockNum;
+                  if (unitType === "PURCHASE" && medicineConversion?.baseQuantity && medicineConversion?.purchaseQuantity) {
+                    convertedStock = stockNum * (medicineConversion.baseQuantity / medicineConversion.purchaseQuantity);
+                  }
+
+                  return (
+                    <div key={id}>
+                      <label className="fs-12 text-muted mb-1">{centerInfo?.title || "Center"}</label>
+                      <div className="input-group input-group-sm">
+                        <input
+                          type="number" min="0" step="any"
+                          value={rawStockStr}
+                          onChange={(e) => {
+                            setCenterStocks((prev) => ({ ...prev, [id]: e.target.value }));
+                            if (centerStockTouched[id] === undefined) {
+                              setCenterStockTouched((prev) => ({ ...prev, [id]: true }));
+                            }
+                          }}
+                          onBlur={() => setCenterStockTouched((prev) => ({ ...prev, [id]: true }))}
+                          className="form-control w-50"
+                          placeholder="Stock"
+                          style={{
+                            borderColor: centerStockTouched[id] && stockNum === 0 ? "#e53e3e" : "",
+                          }}
+                        />
+                        <select
+                          className="form-select w-50"
+                          value={unitType}
+                          onChange={(e) => setCenterStockUnits((prev) => ({ ...prev, [id]: e.target.value }))}
+                        >
+                          <option value="BASE">{normalizeLabel(watch("baseUnit")) || "Base Unit"}</option>
+                          <option value="PURCHASE">{normalizeLabel(watch("purchaseUnit")) || "Purchase Unit"}</option>
+                        </select>
+                      </div>
+                      {centerStockTouched[id] && stockNum === 0 && (
+                        <p style={sharedStyles.errorText}>Stock quantity cannot be 0</p>
+                      )}
+                      {rawStockStr !== "" && stockNum !== 0 && (
+                        <div className="fs-12 text-dark mt-1 fw-medium" style={{ fontSize: "11px" }}>
+                          Total Stock: {convertedStock} {normalizeLabel(watch("baseUnit")) || "Unit"}
+                        </div>
+                      )}
                     </div>
-                  ))
-                )}
+                  );
+                })}
               </div>
             )}
           </div>
 
-          {/* --- Form Fields --- */}
-          <InputField
-            label="Code"
-            name="code"
-            validation={{ required: "Code is required" }}
-          />
-          <InputField
-            label="Unit Type"
-            name="unitType"
-            validation={{ required: "Unit Type is required" }}
-            disabled={true}
-          />
-          {/* <InputField
-          label="Current Stock"
-          name="stock"
-          type="number"
-          validation={{ required: "Stock is required" }}
-        /> */}
-          <InputField
-            label="Current Stock"
-            name="stock"
-            type="number"
-            step="any"
-            validation={{ required: "Stock is required" }}
-          />
-          <InputField label="Strength" name="Strength" disabled={true} />
-          <InputField
-            label="Cost Price"
-            name="costprice"
-            type="number"
-            step="any"
-            validation={{
-              required: "Cost Price is required",
-              min: { value: 0, message: "Must be non-negative" },
-            }}
-          />
-          <InputField
-            label="Value"
-            name="value"
-            type="number"
-            step="any"
-            validation={{
-              required: "Value is required",
-              min: { value: 0, message: "Must be non-negative" },
-            }}
-          />
-          <InputField
-            label="M.R.P"
-            name="mrp"
-            type="number"
-            step="any"
-            validation={{
-              required: "MRP is required",
-              min: { value: 0, message: "Must be non-negative" },
-            }}
-          />
-          <InputField
-            label="Purchase Price"
-            name="purchasePrice"
-            type="number"
-            step="any"
-            validation={{
-              required: "Purchase Price is required",
-              min: { value: 0, message: "Must be non-negative" },
-            }}
-          />
-          <InputField
-            label="Sales Price"
-            name="SalesPrice"
-            type="number"
-            step="any"
-            validation={{
-              required: "Sales Price is required",
-              min: { value: 0, message: "Must be non-negative" },
-            }}
-          />
-          <InputField label="Expiry Date" name="Expiry" type="date" />
-          <InputField label="Batch Number" name="Batch" />
-          <div style={styles.formGroup}>
-            <label htmlFor="Status" style={styles.label}>
-              Status
-            </label>
-            <select
-              id="Status"
-              {...register("Status", { required: "Status is required" })}
-              style={styles.select}
-            >
-              <option value="NORMAL">Normal</option>
-              <option value="MODERATE">Moderate</option>
-              <option value="LOW">Low</option>
-              <option value="OUTOFSTOCK">Out of Stock</option>
-            </select>
-            {errors.Status && (
-              <p style={styles.errorText}>{errors.Status.message}</p>
-            )}
+          {/* Section: Inventory Details */}
+          <div style={sharedStyles.section}>
+            <p className="fw-semibold text-muted fs-12 text-uppercase mb-3" style={sharedStyles.sectionHeading}>Inventory Details</p>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "16px" }}>
+              <InputField label="Code" name="code" register={register} errors={errors} />
+              <InputField label="Unit Type" name="unitType" register={register} errors={errors} disabled={true} />
+              {/* <InputField label="Cost Price" name="costprice" type="number" step="any" validation={{ required: "Cost Price is required", min: { value: 0, message: "Must be non-negative" } }} />
+              <InputField label="Value" name="value" type="number" step="any" validation={{ required: "Value is required", min: { value: 0, message: "Must be non-negative" } }} /> */}
+              <InputField label="M.R.P" name="mrp" register={register} errors={errors} type="number" step="any" validation={{ required: "MRP is required", min: { value: 0, message: "Must be non-negative" } }} />
+              <InputField label="Purchase Price" name="purchasePrice" register={register} errors={errors} type="number" step="any" validation={{ min: { value: 0, message: "Must be non-negative" } }} />
+              <InputField label="Sales Price" name="SalesPrice" register={register} errors={errors} type="number" step="any" validation={{ required: "Sales Price is required", min: { value: 0, message: "Must be non-negative" } }} />
+              <InputField label="Expiry Date" name="Expiry" register={register} errors={errors} type="date" />
+              <InputField label="Batch Number" name="Batch" register={register} errors={errors} />
+              <InputField label="Company" name="company" register={register} errors={errors} validation={{ required: "Company is required" }} />
+              <InputField label="Manufacturer" name="manufacturer" register={register} errors={errors} />
+              <InputField label="Rack Number" name="RackNum" register={register} errors={errors} />
+              <div style={sharedStyles.formGroup}>
+                <label htmlFor="Status" style={sharedStyles.label}>Status</label>
+                <select id="Status" {...register("Status", { required: "Status is required" })} style={sharedStyles.select}>
+                  <option value="NORMAL">Normal</option>
+                  <option value="MODERATE">Moderate</option>
+                  <option value="LOW">Low</option>
+                  <option value="OUTOFSTOCK">Out of Stock</option>
+                </select>
+                {errors.Status && <p style={sharedStyles.errorText}>{errors.Status.message}</p>}
+              </div>
+            </div>
           </div>
-          <InputField
-            label="Company"
-            name="company"
-            validation={{ required: "Company is required" }}
-          />
-          <InputField label="Manufacturer" name="manufacturer" />
-          <InputField label="Rack Number" name="RackNum" />
 
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={uploading}
-            style={styles.submitButton}
-            onMouseOver={(e) =>
-              (e.currentTarget.style.backgroundColor = "#3182ce")
-            }
-            onMouseOut={(e) =>
-              (e.currentTarget.style.backgroundColor = "#4299e1")
-            }
-          >
-            {defaultValues?.medicineName ? "Update Medicine" : "Add Medicine"}
-          </button>
+          {/* Submit */}
+          <div className="d-flex justify-content-end">
+            <button
+              type="submit"
+              disabled={uploading}
+              className="btn btn-primary px-4"
+            >
+              {uploading ? "Saving..." : defaultValues?.medicineName ? "Update Medicine" : "Add Medicine"}
+            </button>
+          </div>
         </form>
       )}
     </div>

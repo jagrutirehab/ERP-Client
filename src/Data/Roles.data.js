@@ -7,7 +7,10 @@ export const permissionList = [
   {
     key: "NURSE",
     label: "Nurse",
-    subModules: [],
+    subModules: [
+      { name: "TOMORROW_ACTIVITY", label: "Tomorrow's Activity" },
+      { name: "TODAY_MEDICINES", label: "Today's Medicines" },
+    ],
   },
   {
     key: "EMERGENCY",
@@ -17,7 +20,14 @@ export const permissionList = [
   {
     key: "LEAD",
     label: "Lead",
-    subModules: [],
+    subModules: [
+      // Data scope, not an action: READ or above lets the role see every lead;
+      // NONE restricts them to leads they authored. Read server-side by
+      // canViewAllLeads (ERP-Server src/helpers/leadAccess.js).
+      // Submodules are keyed by `name` (not `key` like the parent module) —
+      // AddEditModal reads sm.name when seeding and saving.
+      { name: "VIEW_ALL", label: "View All Leads" },
+    ],
   },
   {
     key: "BOOKING",
@@ -47,6 +57,20 @@ export const permissionList = [
       { name: "PATIENTSHISTORY", label: "Paitents History" },
       { name: "PATIENTSBILLING", label: "Paitents Bill" },
       { name: "PATIENTCHARTS", label: "Paitents Chart" },
+      { name: "ADDMISSIONSUMMARY", label: "Addmission Summary" },
+    ],
+  },
+  {
+    key: "ALERT",
+    label: "Alert",
+    subModules: [],
+  },
+  {
+    key: "REFERRAL",
+    label: "Contacts",
+    subModules: [
+      { name: "APPROVE_REFERRAL", label: "Approve Contact" },
+      { name: "REJECT_REFERRAL", label: "Reject Contact" },
     ],
   },
   {
@@ -68,6 +92,9 @@ export const permissionList = [
       { name: "CASHBALANCE", label: "Cash Base Balance" },
       { name: "CASHDEPOSITS", label: "Cash Deposits" },
       { name: "CASHSPENDING", label: "Cash Spending" },
+      { name: "CASHINFLOW", label: "Cash Inflow" },
+      { name: "LEDGERREPORT", label: "Ledger Report" },
+      { name: "CASHRECO", label: "Cash Daily Reco" },
     ],
   },
   {
@@ -76,6 +103,18 @@ export const permissionList = [
     subModules: [
       { name: "CENTRALPAYMENTSPENDING", label: "Expense" },
       { name: "CENTRALPAYMENTAPPROVAL", label: "Approval Dashboard" },
+      {
+        name: "CENTRALPAYMENTACCOUNTINGAPPROVAL",
+        label: "Accounting Approval Dashboard",
+      },
+      {
+        name: "CENTRALPAYMENTFINANCEAPPROVAL",
+        label: "Finance Approval Dashboard",
+      },
+      {
+        name: "CENTRALPAYMENTPROCESSING",
+        label: "Payment Processing Dashboard",
+      },
       { name: "CENTRALPAYMENTREPORTS", label: "Reports" },
     ],
   },
@@ -96,6 +135,10 @@ export const permissionList = [
       { name: "THERAPIESSETTING", label: "Therapies" },
       { name: "CONDITIONSSETTING", label: "Conditions" },
       { name: "SYMPTOMSETTING", label: "Symptoms" },
+      { name: "DOCUMENTCONFIG", label: "Document Configuration" },
+      { name: "CENTERFLOORCONFIG", label: "Center Floor Configuration" },
+      { name: "HRCONFIGURATIONSSETTING", label: "HR Configurations" },
+      { name: "CENTERFALLBACKMANAGER", label: "Centre Fallback Manager" },
     ],
   },
   {
@@ -109,6 +152,14 @@ export const permissionList = [
       { name: "LEADLIST", label: "Lead List" },
       { name: "MEDICINELIST", label: "Medicine List" },
       { name: "INTERNLIST", label: "Intern List" },
+    ],
+  },
+  {
+    key: "TALLY",
+    label: "Tally",
+    subModules: [
+      { name: "SEND_TO_TALLY", label: "Send to Tally" },
+      { name: "TALLY_LOGS", label: "Tally Logs" },
     ],
   },
   {
@@ -132,7 +183,24 @@ export const permissionList = [
       { name: "DASHBOARD", label: "Dashboard" },
       { name: "PHARMACYMANAGEMENT", label: "Pharmacy Management" },
       { name: "GIVENMEDICINES", label: "Given Medicine" },
+      { name: "NURSEGIVENMEDICINES", label: "Nurse Given Medicine" },
       { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
+      { name: "AUDIT", label: "Audit" },
+      {
+        name: "REQUISITION_INTERNAL_TRANSFER",
+        label: "Requisition: Internal Transfer",
+      },
+      {
+        name: "REQUISITION_SAREYAAN_ORDERS",
+        label: "Requisition: Sareyaan Orders",
+      },
+      {
+        name: "REQUISITION_MEDICINE_REQUISITION",
+        label: "Requisition: Medicine Requisition",
+      },
+      { name: "INVENTORY_STOCK_SUMMARY", label: "Inventory Stock Summary" },
+      { name: "BILL_UPLOAD_DASHBOARD", label: "Bill Upload Dashboard" },
+      { name: "SAREYAAN_INVENTORY", label: "Sareyaan Inventory" },
     ],
   },
   {
@@ -140,6 +208,14 @@ export const permissionList = [
     label: "Guidelines",
     subModules: [
       { name: "GUIDELINESMANAGEMENT", label: "Guidelines Management" },
+    ],
+  },
+  {
+    key: "AUDIT",
+    label: "Audit",
+    subModules: [
+      { name: "FLOOR_PHOTOS", label: "Floor Photos" },
+      { name: "VERIFICATION", label: "Verification" },
     ],
   },
   {
@@ -163,13 +239,306 @@ export const permissionList = [
     ],
   },
   {
-    key: "MI_REPORTING",
-    label: "MI Reporting",
+    key: "HUBSPOT_REPORTING",
+    label: "Hubspot Reporting",
     subModules: [
-      { name: "VIEW_MI_REPORTING", label: "View MI Reporting" },
-      // { name: "CREATE_ROUND_NOTES", label: "Create Round Notes" },
-      // { name: "UPDATE_ROUND_NOTES", label: "Update Round Notes" },
-      // { name: "DELETE_ROUND_NOTES", label: "Delete Round Notes" },
+      { name: "VIEW_HUBSPOT_REPORTING", label: "View Hubspot Reporting" },
+      { name: "HUBSPOT_CENTER_LEADS_COUNT", label: "Center Leads Count" },
+      { name: "HUBSPOT_OWNER_LEADS_COUNT", label: "Owner Leads Count" },
+      {
+        name: "HUBSPOT_CITY_QUALITY_BREAKDOWN",
+        label: "City Quality Breakdown",
+      },
+      {
+        name: "HUBSPOT_OWNER_QUALITY_BREAKDOWN",
+        label: "Owner Quality Breakdown",
+      },
+      { name: "HUBSPOT_CITY_VISIT_DATE", label: "City Visit Date" },
+      { name: "HUBSPOT_OWNER_VISIT_DATE", label: "Owner Visit Date" },
+      { name: "HUBSPOT_CITY_VISITED_DATE", label: "City Visited Date" },
+      { name: "HUBSPOT_OWNER_VISITED_DATE", label: "Owner Visited Date" },
+      { name: "HUBSPOT_CITY_LEAD_STATUS", label: "City Lead Status" },
+      { name: "HUBSPOT_OWNER_LEAD_STATUS", label: "Owner Lead Status" },
+    ],
+  },
+  {
+    key: "MIS_REPORTS",
+    label: "MIS Reports",
+    subModules: [{ name: "MIS_REPORTS_PERMISSION", label: "View MIS Reports" }],
+  },
+  {
+    key: "HR",
+    label: "HR",
+    subModules: [
+      // master employee
+      { name: "MASTER_EMPLOYEE", label: "Master Employee" },
+      // Offer Letter column in Master Employee
+      {
+        name: "PREVIEW_OFFER_LETTER",
+        label: "Preview Offer Letter (Master Employee)",
+      },
+      // new joining
+      { name: "NEW_JOINING_ADD_REQUEST", label: "New Joinings Add Request" },
+      { name: "NEW_JOINING_APPROVAL", label: "New Joinings Approval" },
+      { name: "NEW_JOINING_BIOMETRIC", label: "Biometric Approvals" },
+      { name: "NEW_JOINING_IT", label: "New Joinings IT" },
+      // exit employee
+      {
+        name: "EXIT_EMPLOYEE_ADD_REQUEST",
+        label: "Exit Employees Add Request",
+      },
+      { name: "EXIT_EMPLOYEE_APPROVAL", label: "Exit Employees Approval" },
+      { name: "EXIT_BIOMETRIC_APPROVAL", label: "Exit Biometric Approval" },
+      { name: "EXIT_EMPLOYEE_FNF", label: "Exit Employees FNF" },
+      { name: "EXIT_EMPLOYEE_IT", label: "Exit Employees IT" },
+      // salary advance
+      {
+        name: "SALARY_ADVANCE_ADD_REQUEST",
+        label: "Salary Advance Add Request",
+      },
+      { name: "SALARY_ADVANCE_APPROVAL", label: "Salary Advance Approval" },
+      // transfer employee
+      {
+        name: "TRANSFER_EMPLOYEE_ADD_REQUEST",
+        label: "Employee Transfer Add Request",
+      },
+      {
+        name: "TRANSFER_EMPLOYEE_APPROVAL",
+        label: "Employee Transfer Approvals",
+      },
+      {
+        name: "TRANSFER_EMPLOYEE_CURRENT_LOCATION_APPROVAL",
+        label: "Outgoing Employee Transfer Approvals",
+      },
+      {
+        name: "TRANSFER_EMPLOYEE_TRANSFER_LOCATION_APPROVAL",
+        label: "Incoming Employee Transfer Approvals",
+      },
+      {
+        name: "TRANSFER_EMPLOYEE_IT",
+        label: "Employee Transfer IT",
+      },
+      // hiring
+      {
+        name: "HIRING_ADD_REQUEST",
+        label: "Hiring Add Request",
+      },
+      {
+        name: "HIRING_APPROVAL",
+        label: "Hiring Approvals",
+      },
+      {
+        name: "MY_HIRING_STATUS",
+        label: "My Hiring Status",
+      },
+      {
+        name: "BIOMETRIC_ADDITION_REQUEST",
+        label: "Add Biometric Addition Request",
+      },
+      {
+        name: "GET_BIOMETRIC_ADDITION_REQUESTS",
+        label: "Get Biometric Addition Requests",
+      },
+      // {
+      //   name: "GET_MY_BIOMETRIC_REQUESTS",
+      //   label: "Get My Biometric Requests",
+      // },
+      // TPM-Third Party Manpower
+      {
+        name: "THIRD_PARTY_MANPOWER_ADD_REQUEST",
+        label: "Third Party Manpower Add Request",
+      },
+      {
+        name: "THIRD_PARTY_MANPOWER_APPROVAL",
+        label: "Third Party Manpower Approvals",
+      },
+      // Attendance
+      { name: "ATTENDANCE_LOG", label: "Attendance Log" },
+      { name: "MONTHLY_ATTENDANCE", label: "Monthly Attendance" },
+      // { name: "MAIN_DASHBOARD", label: "Attendance Dashboard" },
+      { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
+      {
+        name: "REPORTINGS_ATTENDANCE_METRICS",
+        label: "Attendance Metrics - Direct Reportings",
+      },
+      { name: "MY_ATTENDANCE", label: "My Attendance" },
+      {
+        name: "MY_ATTENDANCE_REGULARIZATION",
+        label: "My Attendance Regularization",
+      },
+
+      // Regularization
+      { name: "MY_REGULARIZATIONS", label: "My Regularizations" },
+      {
+        name: "GET_REGULARIZATIONS_REQUESTS",
+        label: "Regularizations Requests",
+      },
+      // Employee Reporting & shift roster
+      { name: "ASSIGN_MANAGER", label: "Assign Manager" },
+      {
+        name: "MANAGE_EMPLOYEE_REPORTINGS",
+        label: "Manage Employee Reportings",
+      },
+      { name: "SHIFT_ROSTER", label: "Shift roster" },
+      { name: "ASSIGN_ROTATIONAL_SHIFT", label: "Assign Rotational Shift" },
+      // Leave
+      { name: "APPLY_LEAVE", label: "Apply Leave" },
+      { name: "LEAVE_HISTORY", label: "Leave History" },
+      { name: "MANAGE_LEAVES", label: "Manage Leaves" },
+      { name: "MY_LEAVES", label: "My Leaves" },
+      { name: "RAISED_COMP_OFFS", label: "Raised Comp-Off's" },
+      { name: "BALANCE_LEAVES", label: "Balance Leaves" },
+      { name: "FESTIVE_LEAVES", label: "Festive Leaves" },
+      { name: "CANCELATIONS_REQUESTS", label: "Cancelations Requests" },
+      { name: "COMP_OFF_REQUESTS", label: "Comp-Off Addition Requests" },
+
+      // Policy
+      { name: "POLICIES", label: "Policies" },
+      // Incentives
+      { name: "INCENTIVES_ADD_REQUEST", label: "Incentives Add Request" },
+      { name: "INCENTIVES_APPROVAL", label: "Incentives Approval" },
+      // Salary
+      { name: "SALARY", label: "Salary" },
+      // My Pending Approvals
+      { name: "MY_PENDING_APPROVALS", label: "My Pending Approvals" },
+
+      { name: "EMPLOYEE_PAYSLIPS", label: "Employee Pay Slips" },
+      { name: "MY_PAYSLIPS", label: "My Pay Slips" },
+      { name: "MY_SALARY_DATA", label: "My Salary Data" },
+      { name: "MY_SALARY_AND_FORMS", label: "My Salary And Forms" },
+      { name: "UPLOAD_EMPLOYEE_FORM", label: "Upload Employee Form" },
+      { name: "EMPLOYEE_FORMS", label: "Employee Forms" },
+      // HR DASHBOARD
+      { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
+      { name: "EMPLOYEE_DOCUMENTS", label: "Employee Documents" },
+      { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },
+      { name: "ALL_LEAVE_HISTORY", label: "All Leave History" },
+      { name: "ALL_REGULARIZATIONS", label: "All Regularizations" },
+      { name: "CREATE_REGULARIZATION", label: "Create Regularization" },
+      { name: "COMP_OFF_HISTORY", label: "Comp Off History" },
+      { name: "CANCELLATIONS_HISTORY", label: "Cancellations History" },
+      // FINANCE
+      { name: "FINANCE", label: "Finance" },
+      {
+        name: "TRANSFER_MANAGER_APPROVALS",
+        label: "Transfer Manager Approvals",
+      },
+    ],
+  },
+  // {
+  //   key: "HRMS",
+  //   label: "HRMS",
+  //   subModules: [
+  //     { name: "ATTENDANCE_LOG", label: "Attendance Log" },
+  //     { name: "ATTENDANCE_METRICS", label: "Attendance Metrics" },
+  //     { name: "MY_ATTENDANCE", label: "My Attendance" },
+  //     { name: "ASSIGN_MANAGER", label: "Assign Manager" },
+  //     {
+  //       name: "MANAGE_EMPLOYEE_REPORTINGS",
+  //       label: "Manage Employee Reportings",
+  //     },
+  //     { name: "LEAVE_HISTORY", label: "Leave History" },
+  //   ],
+  // },
+  {
+    key: "WEBCAMSTATS",
+    label: "Web Cam Stats",
+    subModules: [
+      { name: "DASHBOARD", label: "Dashboard" },
+      { name: "STATS", label: "Stats" },
+      { name: "APIKEYS", label: "Apikeys" },
+    ],
+  },
+  {
+    key: "ISSUES",
+    label: "Issues",
+    subModules: [
+      // { name: "TICKET_DASHBOARD", label: "Ticket Dashboard" },
+      { name: "RAISE_TICKET", label: "Raise Ticket" },
+      { name: "TECHNICAL_ISSUES", label: "Technical Issues" },
+      { name: "HR_ISSUES", label: "HR Issues" },
+      // { name: "HR_ISSUES_REQUESTS", label: "HR Issues Requests" },
+      { name: "FINANCE_ISSUES", label: "Finance Issues" },
+      { name: "FINANCE_ISSUES_APPROVAL", label: "Finance Issues Approval" },
+      // { name: 'PURCHASE_ISSUES', label: "Purchase Issues" },
+      // { name: "REVIEW_SUBMISSIONS", label: "Review Submissions" },
+      { name: "MY_ISSUES", label: "My Assigned Issues" },
+      { name: "MY_RAISED_TICKETS", label: "My Raised Tickets" },
+      { name: "MAINTENANCE_ISSUES", label: "Maintenance Issues" },
+      { name: "COMPLAINT_ISSUES", label: "Complaint Issues" },
+      { name: "OPERATIONAL_ISSUES", label: "Operational Issues" },
+    ],
+  },
+  {
+    key: "RECORDINGS",
+    label: "Recordings",
+    subModules: [
+      { name: "CALL_RECORDINGS", label: "Call Recordings" },
+      { name: "FEEDBACK_RECORDINGS", label: "Feedback Recordings" },
+      {
+        name: "CALL_RECORDINGS_AI_OVERIVIEW",
+        label: "Call Recording Overview",
+      },
+      {
+        name: "FEEDBACK_RECORDINGS_AI_OVERIVIEW",
+        label: "Feedback Recording Overview",
+      },
+    ],
+  },
+  {
+    key: "SOPCONFIGS",
+    label: "Sop Configs",
+    subModules: [
+      { name: "MANAGE", label: "Manage" },
+      // Reads as NONE on every existing role until an admin re-saves each one,
+      // so the pages fall back to MANAGE until that happens.
+      { name: "BASELINE_PACKAGE", label: "Baseline Package" },
+      // { name: "ALERT_HISTORY", label: "Alert History" },
+    ],
+  },
+  {
+    key: "TRAININGS",
+    label: "Trainings",
+    subModules: [
+      { name: "UPLOAD_TRAININGS", label: "Upload Trainings" },
+      { name: "VIEW_TRAININGS", label: "View My Trainings" },
+      { name: "ALL_TRAININGS", label: "All Trainings" },
+      { name: "TRAINING_HISTORY", label: "Training History" },
+      { name: "CREATE_TRAINING_RECORD", label: "Create Trainer Record" },
+      { name: "TRAINING_RECORDS", label: "Trainer Records" },
+    ],
+  },
+  {
+    key: "UTILITIES",
+    label: "Utilities",
+    subModules: [
+      { name: "UPLOAD_BILL", label: "Upload Bill" },
+      { name: "REPORTS", label: "Reports" },
+    ],
+  },
+  {
+    key: "MARKETING",
+    label: "Marketing",
+    subModules: [
+      { name: "ADD_VISIT_LOG", label: "Add Visit Log" },
+      { name: "VIEW_VISIT_LOGS", label: "View All Visit Logs" },
+      { name: "VIEW_AGENT_REPORT", label: "Agent Visit Report" },
+      { name: "VIEW_AGENT_PROFILE", label: "My Visit History" },
+      { name: "VIEW_DOCTOR_VISITS", label: "Doctor Visits" },
+      { name: "EXPORT_DOCTOR_DIRECTORY", label: "Doctor Report" },
+      { name: "VIEW_MY_DRAFTS", label: "My Drafts" },
+    ],
+  },
+  {
+    key: "MASTERDATA",
+    label: "Vendor Management",
+    subModules: [
+      { name: "VENDOR", label: "Vendor" },
+      { name: "ITEM_MASTER", label: "Item Master" },
+      { name: "ITEM_TYPE", label: "Item Types" },
+      { name: "ITEM_CATEGORY", label: "Item Categories" },
+      { name: "UOM", label: "Unit of Measurement" },
+      { name: "PAYMENT_TERM", label: "Payment Terms" },
     ],
   },
 ];

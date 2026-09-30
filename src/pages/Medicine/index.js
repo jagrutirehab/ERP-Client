@@ -57,7 +57,7 @@ const Medicine = () => {
   }, [dispatch, currentPage, itemsPerPage, searchItem]);
 
   return (
-    <div className="container-fluid d-flex flex-column h-100 px-3">
+    <div className="container-fluid d-flex flex-column h-100 px-3" style={{ overflowX: "hidden" }}>
       <div className="mt-4 mx-4">
         <Breadcrumb title="Medicine" pageTitle="Medicine" />
       </div>
@@ -68,7 +68,7 @@ const Medicine = () => {
         setSearchItem={setSearchItem}
       />
 
-      <div className="flex-grow-1 d-flex flex-column overflow-auto">
+      <div className="flex-grow-1 d-flex flex-column">
         <MedicineList
           medicines={medicines}
           totalCount={totalCount}
@@ -82,7 +82,7 @@ const Medicine = () => {
         />
       </div>
 
-      <AddMedicines modal={modal} toggle={toggleForm} />
+      <AddMedicines modal={modal} toggle={toggleForm} currentPage={currentPage} itemsPerPage={itemsPerPage} searchItem={searchItem} />
       <MedicineCSV modal={CSVModal} toggle={toggleCSV} />
       <DeleteModal
         show={deleteMedicine.isOpen}

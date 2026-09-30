@@ -58,7 +58,9 @@ const Reports = () => {
           roles={roles}
           hasUserPermission={hasUserPermission}
         />
+
       </TabContent>
+
     </React.Fragment>
   );
 };

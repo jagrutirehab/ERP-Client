@@ -39,9 +39,12 @@ import { endOfDay, format, startOfDay } from "date-fns";
 import Merge from "./Merge";
 import UnMerge from "./UnMerge";
 import LeadDashboard from "../Report/Components/Hubspot";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import { useNavigate } from "react-router-dom";
 
 const Lead = ({ searchLoading, leads, centerAccess, user }) => {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const [date, setDate] = useState({
     start: startOfDay(new Date()),
@@ -56,23 +59,48 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
   });
   const [activeTab, setActiveTab] = useState("1");
 
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+
+  // Module-level LEAD access: READ gates the page itself, WRITE/DELETE gate the
+  // actions on the General Leads tab. Which leads you can see (all vs only your
+  // own) is a separate concern, decided server-side by the LEAD / VIEW_ALL
+  // submodule.
+  const canReadLeads = hasPermission("LEAD", null, "READ");
+  const canWriteLeads = hasPermission("LEAD", null, "WRITE");
+  const canDeleteLeads = hasPermission("LEAD", null, "DELETE");
+
+  // LEAD READ gates the whole page, matching IncidentReporting.
   useEffect(() => {
+    if (permissionLoader) return;
+    if (!canReadLeads) {
+      navigate("/unauthorized");
+      return;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canReadLeads, permissionLoader]);
+
+  useEffect(() => {
+    // Don't fetch leads for a user who isn't allowed to read them.
+    if (permissionLoader || !canReadLeads) return;
     dispatch(
       searchLead({
         leadQuery,
         grouped: true,
         centerAccess: JSON.stringify(centerAccess),
         ...date,
-      })
+      }),
     );
-  }, [dispatch, leadQuery, centerAccess, date]);
+  }, [dispatch, leadQuery, centerAccess, date, permissionLoader, canReadLeads]);
 
   useEffect(() => {
     dispatch(fetchAllCenters());
   }, [dispatch]);
 
   useEffect(() => {
-    dispatch(fetchCenters({centerIds: user?.centerAccess}));
+    dispatch(fetchCenters({ centerIds: user?.centerAccess }));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, user?.centerAccess]);
 
@@ -122,6 +150,23 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
     });
     return lds;
   };
+
+  if (permissionLoader) {
+    return (
+      <div className="d-flex justify-content-center align-items-center vh-100">
+        <Spinner
+          color="primary"
+          className="d-block"
+          style={{ width: "3rem", height: "3rem" }}
+        />
+      </div>
+    );
+  }
+
+  // The redirect above is already in flight; render nothing meanwhile.
+  if (!canReadLeads) {
+    return null;
+  }
 
   return (
     <React.Fragment>
@@ -188,22 +233,24 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
                     </Col>
                     <Col className="col-sm-auto ms-auto d-flex gap-3">
                       <Header reportDate={date} setReportDate={setDate} />
-                      <div className="list-grid-nav hstack gap-1">
-                        <Button
-                          color="success"
-                          onClick={() =>
-                            dispatch(
-                              createEditLead({ isOpen: true, data: null })
-                            )
-                          }
-                        >
-                          <i className="ri-add-fill me-1 align-bottom"></i> Add
-                          New Lead
-                        </Button>
-                      </div>
+                      <RenderWhen isTrue={canWriteLeads}>
+                        <div className="list-grid-nav hstack gap-1">
+                          <Button
+                            color="success"
+                            onClick={() =>
+                              dispatch(
+                                createEditLead({ isOpen: true, data: null }),
+                              )
+                            }
+                          >
+                            <i className="ri-add-fill me-1 align-bottom"></i>{" "}
+                            Add New Lead
+                          </Button>
+                        </div>
+                      </RenderWhen>
 
                       <div className="list-grid-nav hstack gap-1">
-                        <CSVLink
+                        {/* <CSVLink
                           data={documents() || []}
                           title="CSV Download"
                           filename={"leads.csv"}
@@ -211,7 +258,7 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
                           className="btn btn-info px-2 ms-3"
                         >
                           <i className="ri-file-paper-2-line text-light text-decoration-none"></i>
-                        </CSVLink>
+                        </CSVLink> */}
                       </div>
                     </Col>
                   </Row>
@@ -223,6 +270,11 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
                 setDeleteLead={setDeleteLead}
                 setMergeLead={setMergeLead}
                 setUnMergeLead={setUnMergeLead}
+                centerAccess={centerAccess}
+                date={date}
+                grouped={true}
+                canWrite={canWriteLeads}
+                canDelete={canDeleteLeads}
               />
             </TabPane>
             <TabPane tabId="2">

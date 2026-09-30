@@ -1,5 +1,6 @@
 import React from "react";
 import { View, Text, StyleSheet, Font } from "@react-pdf/renderer";
+import { formatDosage } from "../../../../../helpers/prescriptionFrequency";
 
 import Montserrat from "../../../../assets/fonts/Montserrat-ExtraBold.ttf";
 import RobotoHeavy from "../../../../assets/fonts/Roboto-Black.ttf";
@@ -186,9 +187,9 @@ const PrescriptionTable = ({ medicines }) => {
                   {item.drug?.drugName || item.drug}
                 </Text>
                 <Text style={{ ...styles.col4, ...styles.fontBold }}>
-                  {item.dosageAndFrequency.morning}-
-                  {item.dosageAndFrequency.evening}-
-                  {item.dosageAndFrequency.night}
+                  {formatDosage(item.dosageAndFrequency.morning, item.dosageAndFrequency.unit)}-
+                  {formatDosage(item.dosageAndFrequency.evening, item.dosageAndFrequency.unit)}-
+                  {formatDosage(item.dosageAndFrequency.night, item.dosageAndFrequency.unit)}
                 </Text>
                 <Text style={{ ...styles.col6, ...styles.fontMd }}>
                   {item.instructions && `${item.instructions} - `}

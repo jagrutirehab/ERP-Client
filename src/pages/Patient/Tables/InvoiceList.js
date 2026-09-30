@@ -5,10 +5,19 @@ import DataTable from "react-data-table-component";
 import { v4 as uuid } from "uuid";
 
 const InvoiceList = ({ list }) => {
+  // console.log("list o man", list);
+  const hasDateColumn = list?.some(
+    (item) => item.fromDate && item.toDate
+  );
+  const hasDiscountReason = list?.some(
+    (item) => Number(item.discount) > 0
+  );
   const columns = [
     {
       name: "Treatment",
       selector: (row) => row.slot,
+      wrap: true,
+      grow: 2,
     },
     {
       name: "Quantity",
@@ -19,16 +28,52 @@ const InvoiceList = ({ list }) => {
       selector: (row) => row.cost,
     },
     {
-      name: "Unit of Measurement",
-      selector: (row) => row.unitOfMeasurement,
-      style: {
-        textTransform: "capitalize",
+      name: "Item Discount",
+      selector: (row) => row.discount ?? 0,
+    },
+...(hasDiscountReason
+  ? [
+      {
+        name: "Reason",
+        minWidth: "200px",
+        cell: (row) => (
+          <div
+            style={{
+              maxHeight: "50px",
+              overflowY: "auto",
+              fontSize: "12px",
+              scrollbarWidth: "thin",
+            }}
+            className="scroll-hide-lite"
+          >
+            {row.discount > 0
+              ? row.discountReason || "-"
+              : "-"}
+          </div>
+        ),
+        wrap: true,
       },
-    },
+    ]
+  : []),
+    ...(hasDateColumn
+      ? [
+        {
+          name: "Duration",
+          cell: (row) =>
+            row.fromDate && row.toDate
+              ? `${new Date(row.fromDate).toLocaleDateString()} - ${new Date(
+                row.toDate
+              ).toLocaleDateString()}`
+              : "-",
+        },
+      ]
+      : []),
     {
-      name: "Total",
-      selector: (row) => (row.unit ?? 0) * (row.cost ?? 0) || 0,
+      name: "Net Total",
+      selector: (row) =>
+        (row.unit ?? 0) * (row.cost ?? 0) - (row.discount ?? 0),
     },
+
   ];
 
   return (

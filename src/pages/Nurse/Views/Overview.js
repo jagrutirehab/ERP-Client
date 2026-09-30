@@ -212,7 +212,6 @@ const mapStateToProps = (state) => ({
   medicineBoxFillingActivities: state.Nurse.medicines.nextDay,
   medicineLoading: state.Nurse.medicineLoading,
   currentPatientIndex: state.Nurse.index,
-  profile: state.Nurse.profile,
 });
 
 export default connect(mapStateToProps)(Overview);

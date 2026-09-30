@@ -24,6 +24,8 @@ import {
 import AppointmentCard from "./Components/AppointmentCard";
 import Wrapper from "../Components/Wrapper";
 import Prescription from "../Charts/Prescription";
+import PsychoDiagnosticForm from "../Charts/PsychoDiagnosticForm";
+import { getCurrentUserId } from "../../../helpers/currentMedicines";
 import OPDInvoice from "../Bills/OPDInvoice";
 import {
   INVOICE,
@@ -332,11 +334,20 @@ const OPDView = ({
                                             doc.doctor
                                           )
                                         }
+                                        geminiResponseGeneratedBy={doc.chart?.geminiResponseGeneratedBy}
+                                        geminiResponseIsVerified={doc.chart?.geminiResponseIsVerified}
+                                        validatorId={doc.chart?.validatorId}
+                                        doctorValidatorId={doc.chart?.doctorValidatorId}
                                         // disableEdit={doc?.dischargeDate ? true : false}
                                         // disableDelete={addmission?.dischargeDate ? true : false}
                                       >
                                         <Prescription
                                           data={doc.chart?.prescription}
+                                          baseDate={doc.chart?.date || doc.chart?.createdAt}
+                                          showDates
+                                          showOwner
+                                          currentUserId={getCurrentUserId()}
+                                          fallbackPrescriber={doc.chart?.author}
                                         />
                                       </Wrapper>
                                     )}
@@ -354,11 +365,42 @@ const OPDView = ({
                                             doc.doctor
                                           )
                                         }
+                                        geminiResponseGeneratedBy={doc.chart?.geminiResponseGeneratedBy}
+                                        geminiResponseIsVerified={doc.chart?.geminiResponseIsVerified}
+                                        validatorId={doc.chart?.validatorId}
+                                        doctorValidatorId={doc.chart?.doctorValidatorId}
                                         // disableEdit={doc?.dischargeDate ? true : false}
                                         // disableDelete={addmission?.dischargeDate ? true : false}
                                       >
                                         <ClinicalNote
                                           data={doc.chart?.clinicalNote}
+                                        />
+                                      </Wrapper>
+                                    )}
+                                    {doc.psychoDiagnosticForm && (
+                                      <Wrapper
+                                        item={doc.psychoDiagnosticForm}
+                                        editItem={editChart}
+                                        deleteItem={getItem}
+                                        name="OPD"
+                                        printItem={(item, patient) =>
+                                          printChart(
+                                            item,
+                                            patient,
+                                            doc.center,
+                                            doc.doctor
+                                          )
+                                        }
+                                      >
+                                        <PsychoDiagnosticForm
+                                          data={
+                                            doc.psychoDiagnosticForm
+                                              ?.psychoDiagnosticForm?.reports
+                                          }
+                                          date={
+                                            doc.psychoDiagnosticForm
+                                              ?.psychoDiagnosticForm?.updatedAt
+                                          }
                                         />
                                       </Wrapper>
                                     )}

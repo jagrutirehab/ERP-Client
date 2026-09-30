@@ -9,6 +9,7 @@ export const DISCHARGE_DATE = "DISCAHRGE_DATE";
 export const ADMIT_PATIENT = "ADMIT_PATIENT";
 export const DISCHARGE_PATIENT = "DISCHARGE_PATIENT";
 export const INTERN = "INTERN";
+export const ONLINE_OPD = "ONLINE_OPD";
 
 export const payments = [
   { label: "All Transactions", value: ALL_TRANSACTIONS },
@@ -17,27 +18,33 @@ export const payments = [
   { label: "IPD Due Amount", value: DUE_AMOUNT },
   { label: "OPD Bills", value: OPD_BILL },
   { label: "Interns", value: INTERN },
+  { label: "Online OPD", value: ONLINE_OPD },
 ];
 
 export const calendar = ["Daily", "Monthly", "Pre Doctor", "Pre Procedure"];
 
 export const allTransactionHeaders = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
+  { label: "Bill", key: "bill" },
   { label: "Center", key: "center.title" },
   { label: "Invoice Number", key: "invoiceNumber" },
   { label: "Invoiced Amount (₹Dr)", key: "invoice.payable" },
+  { label: "Refund Amount (₹Dr)", key: "invoice.refund" },
   { label: "Payment Modes", key: "paymentModes" },
   { label: "Paid Amount (₹Cr)", key: "advancePayment.totalAmount" },
 ];
 
 export const allTransactionHeadersAddmissionDischargeDate = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
+  { label: "Bill", key: "bill" },
   { label: "Center", key: "center.title" },
   { label: "Date of Addmission", key: "dateOfAddmission" },
   { label: "Invoice Number", key: "invoiceNumber" },
@@ -71,20 +78,25 @@ export const dueAmountHeaders = [
 
 export const advancePaymentHeaders = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
+  { label: "Bill", key: "bill" },
   { label: "Center", key: "center.title" },
   { label: "Invoice Number", key: "invoiceNumber" },
+  { label: "Refund Amount (₹Dr)", key: "invoice.refund" },
   { label: "Payment Modes", key: "paymentModes" },
   { label: "Paid Amount (₹Cr)", key: "advancePayment.totalAmount" },
 ];
 
 export const advancePaymentHeadersAddmissionDischargeDate = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
+  { label: "Bill", key: "bill" },
   { label: "Center", key: "center.title" },
   { label: "Date of Addmission", key: "dateOfAddmission" },
   // { label: "Date of Discharge", key: "dateOfDischarge" },
@@ -95,9 +107,11 @@ export const advancePaymentHeadersAddmissionDischargeDate = [
 
 export const payableAmountHeaders = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
+  { label: "Bill", key: "bill" },
   { label: "Center", key: "center.title" },
   { label: "Invoice Number", key: "invoiceNumber" },
   { label: "Invoiced Amount (₹Dr)", key: "invoice.payable" },
@@ -105,9 +119,11 @@ export const payableAmountHeaders = [
 
 export const payableAmountHeadersAddmissionDischargeDate = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
+  { label: "Bill", key: "bill" },
   { label: "Center", key: "center.title" },
   { label: "Date of Addmission", key: "dateOfAddmission" },
   // { label: "Date of Discharge", key: "dateOfDischarge" },
@@ -117,9 +133,11 @@ export const payableAmountHeadersAddmissionDischargeDate = [
 
 export const opdBillHeaders = [
   { label: "Date", key: "date" },
+  { label: "Updated At", key: "updatedAt" },
   { label: "Patient/Intern", key: "name" },
   { label: "UID", key: "uid" },
   { label: "Type", key: "type" },
+  { label: "Bill", key: "bill" },
   { label: "Center", key: "center.title" },
   { label: "Invoice Number", key: "invoiceNumber" },
   { label: "Invoiced Amount (₹Dr)", key: "invoice.payable" },

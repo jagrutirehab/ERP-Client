@@ -20,6 +20,7 @@ const styles = StyleSheet.create({
 });
 
 const OPDInvoice = ({ bill, center, patient }) => {
+  console.log("bill", bill);
   return (
     <React.Fragment>
       <Document>

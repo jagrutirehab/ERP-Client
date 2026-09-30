@@ -3,6 +3,7 @@ import { Col, FormFeedback, Input, Label, Spinner } from "reactstrap";
 import RenderWhen from "./RenderWhen";
 import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
+import Select from "react-select";
 
 const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
   return (
@@ -19,19 +20,19 @@ const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
           flex: isAddressFullWidth
             ? "0 0 100%"
             : isHalfWidth
-            ? "0 0 120%"
-            : "1 1 340px",
+              ? "0 0 120%"
+              : "1 1 340px",
           flexBasis: isAddressFullWidth
             ? "100%"
             : isHalfWidth
-            ? "120%"
-            : "340px",
+              ? "120%"
+              : "340px",
           maxWidth: isAddressFullWidth ? "100%" : isHalfWidth ? "120%" : "100%",
           minWidth: isAddressFullWidth
             ? "100%"
             : isHalfWidth
-            ? "420px"
-            : "340px",
+              ? "420px"
+              : "340px",
           gridColumn: isAddressFullWidth ? "1 / -1" : "auto",
         };
 
@@ -110,44 +111,138 @@ const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
               </>
             ) : field.type === "select" ? (
               <>
-                <div className="position-relative d-flex align-items-center">
-                  <Input
-                    type="select"
-                    name={field.name}
-                    className="form-select"
-                    value={validation.values[field.name]}
-                    onChange={validation.handleChange}
-                    style={{
-                      width: "100%",
-                      padding: "0.5rem 0.75rem",
-                      borderRadius: "0.375rem",
-                      fontSize: "1rem",
-                    }}
-                  >
-                    <option value="" disabled hidden>
-                      Choose here
-                    </option>
-                    {(field.options || []).map((option, idx) => (
-                      <option key={idx} value={option._id}>
-                        {option.name}
-                      </option>
-                    ))}
-                  </Input>
-                  <RenderWhen isTrue={doctorLoading}>
-                    <span
-                      className="link-success dropdown-input-icon"
-                      style={{ right: "50px", position: "absolute" }}
-                    >
-                      <Spinner size={"sm"} color="success" />
-                    </span>
-                  </RenderWhen>
-                </div>
-                {validation.touched[field.name] &&
-                  validation.errors[field.name] && (
-                    <FormFeedback type="invalid" className="d-block">
-                      {validation.errors[field.name]}
-                    </FormFeedback>
-                  )}
+                {field.isMulti ? (
+                  <>
+                    <Select
+                      isMulti
+                      options={field.options || []}
+                      value={(field.options || []).filter((opt) =>
+                        validation.values[field.name]?.includes(opt.value),
+                      )}
+                      onChange={(selected) =>
+                        validation.setFieldValue(
+                          field.name,
+                          selected ? selected.map((s) => s.value) : [],
+                        )
+                      }
+                      onBlur={() =>
+                        validation.setFieldTouched(field.name, true)
+                      }
+                      placeholder={`Select ${field.label}`}
+                      menuPortalTarget={document.body}
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        control: (base) => ({
+                          ...base,
+                          borderColor:
+                            validation.touched[field.name] &&
+                            validation.errors[field.name]
+                              ? "#dc3545"
+                              : base.borderColor,
+                          "&:hover": {
+                            borderColor:
+                              validation.touched[field.name] &&
+                              validation.errors[field.name]
+                                ? "#dc3545"
+                                : base.borderColor,
+                          },
+                        }),
+                      }}
+                    />
+
+                    {validation.touched[field.name] &&
+                      validation.errors[field.name] && (
+                        <FormFeedback type="invalid" className="d-block">
+                          {validation.errors[field.name]}
+                        </FormFeedback>
+                      )}
+                  </>
+                ) : field.useReactSelect ? (
+                  <>
+                    <Select
+                      options={field.options || []}
+                      value={
+                        (field.options || []).find(
+                          (opt) => opt.value === validation.values[field.name],
+                        ) || null
+                      }
+                      onChange={(selected) =>
+                        validation.setFieldValue(
+                          field.name,
+                          selected ? selected.value : "",
+                        )
+                      }
+                      onBlur={() =>
+                        validation.setFieldTouched(field.name, true)
+                      }
+                      placeholder={`Select ${field.label}`}
+                      isClearable
+                      menuPortalTarget={document.body}
+                      styles={{
+                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
+                        control: (base) => ({
+                          ...base,
+                          borderColor:
+                            validation.touched[field.name] &&
+                            validation.errors[field.name]
+                              ? "#dc3545"
+                              : base.borderColor,
+                          "&:hover": {
+                            borderColor:
+                              validation.touched[field.name] &&
+                              validation.errors[field.name]
+                                ? "#dc3545"
+                                : base.borderColor,
+                          },
+                        }),
+                      }}
+                    />
+
+                    {validation.touched[field.name] &&
+                      validation.errors[field.name] && (
+                        <FormFeedback type="invalid" className="d-block">
+                          {validation.errors[field.name]}
+                        </FormFeedback>
+                      )}
+                  </>
+                ) : (
+                  <>
+                    <div className="position-relative d-flex align-items-center">
+                      <Input
+                        type="select"
+                        name={field.name}
+                        className="form-select"
+                        value={validation.values[field.name]}
+                        onChange={validation.handleChange}
+                      >
+                        <option value="" disabled hidden>
+                          Choose here
+                        </option>
+                        {(field.options || []).map((option, idx) => (
+                          <option key={idx} value={option._id || option.value}>
+                            {option.name || option.label}
+                          </option>
+                        ))}
+                      </Input>
+
+                      <RenderWhen isTrue={doctorLoading}>
+                        <span
+                          className="link-success dropdown-input-icon"
+                          style={{ right: "50px", position: "absolute" }}
+                        >
+                          <Spinner size={"sm"} color="success" />
+                        </span>
+                      </RenderWhen>
+                    </div>
+
+                    {validation.touched[field.name] &&
+                      validation.errors[field.name] && (
+                        <FormFeedback type="invalid" className="d-block">
+                          {validation.errors[field.name]}
+                        </FormFeedback>
+                      )}
+                  </>
+                )}
               </>
             ) : field.type === "textarea" ? (
               <>
@@ -203,6 +298,7 @@ const FormField = ({ fields, validation, doctorLoading, handleChange }) => {
                   }
                   accept={field.accept}
                   disabled={field.disabled}
+                  max={field.max}
                   style={{
                     width: "100%",
                     padding: "0.5rem 0.75rem",

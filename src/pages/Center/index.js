@@ -15,7 +15,7 @@ import {
   Badge,
 } from "reactstrap";
 import PropTypes from "prop-types";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import BreadCrumb from "../../Components/Common/BreadCrumb";
 
 //assets
@@ -39,11 +39,29 @@ import {
   removeCenter,
 } from "../../store/actions";
 import DeleteModal from "../../Components/Common/DeleteModal";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import RenderWhen from "../../Components/Common/RenderWhen";
 
 const Centers = ({ user, centers, userCenter, isFormOpen }) => {
+  const navigate = useNavigate();
   const dispatch = useDispatch();
   const centerAccess = useSelector((state) => state.User?.centerAccess);
   const [search, setSearch] = useState("");
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+  const hasCenterPermission = hasPermission("CENTER", null, "READ");
+
+  useEffect(() => {
+    if (permissionLoader) return;
+    if (!hasCenterPermission) {
+      navigate("/unauthorized");
+      return;
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [hasCenterPermission, permissionLoader]);
 
   //Modal
   // const [formModal, setFormModal] = useState(false);
@@ -125,15 +143,17 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                   </div>
                 </Col>
                 <Col className="col-sm-auto ms-auto">
-                  <div className="list-grid-nav hstack gap-1">
-                    <Button
-                      color="success"
-                      onClick={() => toggleFormModal(null)}
-                    >
-                      <i className="ri-add-fill me-1 align-bottom"></i> Add New
-                      Center
-                    </Button>
-                  </div>
+                  <RenderWhen isTrue={hasPermission("CENTER", null, "WRITE")}>
+                    <div className="list-grid-nav hstack gap-1">
+                      <Button
+                        color="success"
+                        onClick={() => toggleFormModal(null)}
+                      >
+                        <i className="ri-add-fill me-1 align-bottom"></i> Add
+                        New Center
+                      </Button>
+                    </div>
+                  </RenderWhen>
                 </Col>
               </Row>
             </CardBody>
@@ -188,23 +208,31 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                             <i className="ri-more-fill fs-17"></i>
                           </DropdownToggle>
                           <DropdownMenu>
-                            <DropdownItem
-                              onClick={() => {
-                                toggleFormModal(center);
-                              }}
+                            <RenderWhen
+                              isTrue={hasPermission("CENTER", null, "WRITE")}
                             >
-                              <i className="ri-eye-line me-2 align-middle" />
-                              Edit
-                            </DropdownItem>
-                            <DropdownItem
-                              onClick={() => {
-                                setCenterData(center);
-                                toggleDeleteModal();
-                              }}
+                              <DropdownItem
+                                onClick={() => {
+                                  toggleFormModal(center);
+                                }}
+                              >
+                                <i className="ri-eye-line me-2 align-middle" />
+                                Edit
+                              </DropdownItem>
+                            </RenderWhen>
+                            <RenderWhen
+                              isTrue={hasPermission("CENTER", null, "DELETE")}
                             >
-                              <i className="ri-delete-bin-5-line me-2 align-middle" />
-                              Delete
-                            </DropdownItem>
+                              <DropdownItem
+                                onClick={() => {
+                                  setCenterData(center);
+                                  toggleDeleteModal();
+                                }}
+                              >
+                                <i className="ri-delete-bin-5-line me-2 align-middle" />
+                                Delete
+                              </DropdownItem>
+                            </RenderWhen>
                           </DropdownMenu>
                         </UncontrolledDropdown>
                       </div>
@@ -217,6 +245,11 @@ const Centers = ({ user, centers, userCenter, isFormOpen }) => {
                           ? "Website Listing On"
                           : "Website Listing Off"}
                       </Badge>
+                      {center.globalAccess && (
+                        <Badge pill color="info" className="mt-2 ms-1">
+                          Global Access
+                        </Badge>
+                      )}
                     </CardHeader>
                     {/* <img className="img-fluid" src={img4} alt="Card cap" /> */}
                     <CardBody className="p-4 text-center">

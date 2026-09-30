@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import {
   calculateScores,
   getInterpretationAndRecommendations,
@@ -18,9 +19,11 @@ import {
   setTestName,
   setTestPageOpen,
 } from "../../../../store/features/clinicalTest/clinicalTestSlice";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 const ACDSAssesment = () => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
   const fileInputRef = useRef(null);
 
   const [answers, setAnswers] = useState({});
@@ -72,7 +75,7 @@ const ACDSAssesment = () => {
     setModalMessage("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!selectedDoctor.id || selectedDoctor.id === -1) {
@@ -110,10 +113,16 @@ const ACDSAssesment = () => {
       Array.from(files).forEach((file) => formData.append("files", file));
     }
 
-    dispatch(createACDSTest(formData));
-    openModal(
-      "Test submitted! The results are now available on the next page."
-    );
+    try {
+      await dispatch(createACDSTest(formData)).unwrap();
+      openModal(
+        "Test submitted! The results are now available on the next page."
+      );
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to submit assessment");
+      }
+    }
   };
 
   return (

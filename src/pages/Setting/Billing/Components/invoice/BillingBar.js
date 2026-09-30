@@ -1,9 +1,16 @@
 import PropTypes from "prop-types";
 import { useEffect, useState } from "react";
 import { CardBody, Row, Col, Input, Button } from "reactstrap";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
+import CheckPermission from "../../../../../Components/HOC/CheckPermission";
 
 const BillingBar = ({ toggleForm, setSearch }) => {
   const [tempSearch, setTempSearch] = useState("");
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { roles } = usePermissions(token);
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -34,13 +41,18 @@ const BillingBar = ({ toggleForm, setSearch }) => {
         </Col>
 
         <Col xs="12" sm="4" md="6" lg="4" className="ms-sm-auto text-sm-end">
-          <Button
-            className="text-white w-100 w-sm-auto"
-            color="success"
-            onClick={toggleForm}
-          >
-            <i className="ri-add-fill me-1 align-middle"></i> Add Item
-          </Button>
+          <CheckPermission
+            accessRolePermission={roles?.permissions}
+            permission={"create"}
+            subAccess={"INVOICESETTING"}>
+            <Button
+              className="text-white w-100 w-sm-auto"
+              color="success"
+              onClick={toggleForm}
+            >
+              <i className="ri-add-fill me-1 align-middle"></i> Add Item
+            </Button>
+          </CheckPermission>
         </Col>
       </Row>
     </CardBody>

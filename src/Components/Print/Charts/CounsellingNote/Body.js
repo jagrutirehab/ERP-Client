@@ -89,6 +89,55 @@ const CounsellingBody = ({ chart, doctor }) => {
           <Text style={{ fontSize: "13px" }}>Counselling Notes</Text>
         </View>
         <View style={styles.mrgnTop10}>
+          {chart.objective && (
+            <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
+              <Text style={styles.col5}>Objective of The session:</Text>
+              <Text style={{ ...styles.preLine, ...styles.col7 }}>
+                {chart.objective || ""}
+              </Text>
+            </View>
+          )}
+          {chart.shortTermGoals && (
+            <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
+              <Text style={styles.col5}>Short term goals:</Text>
+              <Text style={{ ...styles.preLine, ...styles.col7 }}>
+                {chart.shortTermGoals || ""}
+              </Text>
+            </View>
+          )}
+          {chart.longTermGoals && (
+            <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
+              <Text style={styles.col5}>Long term goals:</Text>
+              <Text style={{ ...styles.preLine, ...styles.col7 }}>
+                {chart.longTermGoals || ""}
+              </Text>
+            </View>
+          )}
+          {chart.notes && (
+            <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
+              <Text style={styles.col5}>Notes:</Text>
+              <Text style={{ ...styles.preLine, ...styles.col7 }}>
+                {chart.notes || ""}
+              </Text>
+            </View>
+          )}
+          {chart.homework && (
+            <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
+              <Text style={styles.col5}>Homework/Task assigned:</Text>
+              <Text style={{ ...styles.preLine, ...styles.col7 }}>
+                {chart.homework || ""}
+              </Text>
+            </View>
+          )}
+          {chart.reviewPreviousTask && (
+            <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
+              <Text style={styles.col5}>Review of previous task:</Text>
+              <Text style={{ ...styles.preLine, ...styles.col7 }}>
+                {chart.reviewPreviousTask || ""}
+              </Text>
+            </View>
+          )}
+
           {chart.conclusion && (
             <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
               <Text style={styles.col5}>Conclusion:</Text>
@@ -97,25 +146,25 @@ const CounsellingBody = ({ chart, doctor }) => {
               </Text>
             </View>
           )}
-          {chart.endGoalAchieved && (
-            <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
-              <Text style={styles.col5}>End Goal Achieved:</Text>
-              <Text style={{ ...styles.preLine, ...styles.col7 }}>
-                {chart.endGoalAchieved || ""}
-              </Text>
-            </View>
-          )}
           {chart.nextEndGoal && (
             <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
-              <Text style={styles.col5}>End Goal for Next Session:</Text>
+              <Text style={styles.col5}>Goal for next session:</Text>
               <Text style={{ ...styles.preLine, ...styles.col7 }}>
                 {chart.nextEndGoal || ""}
               </Text>
             </View>
           )}
+          {chart.endGoalAchieved && (
+            <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
+              <Text style={styles.col5}>End goal achieved:</Text>
+              <Text style={{ ...styles.preLine, ...styles.col7 }}>
+                {chart.endGoalAchieved || ""}
+              </Text>
+            </View>
+          )}
           {chart.nextSessionDate && (
             <View style={{ ...styles.row, ...styles.mrgnTop10 }}>
-              <Text style={styles.col5}>Next Session Date:</Text>
+              <Text style={styles.col5}>Next session date:</Text>
               <Text style={{ ...styles.preLine, ...styles.col7 }}>
                 {format(new Date(chart.nextSessionDate), "dd MMM yyyy") || ""}
               </Text>

@@ -33,10 +33,10 @@ const BillForm = ({ bill, ...rest }) => {
   const title = isAdvancePayment
     ? "Advance Payment"
     : isDeposit
-    ? "Deposit"
-    : isDraftInvoice
-    ? "Draft Invoice"
-    : "Invoice";
+      ? "Deposit"
+      : isDraftInvoice
+        ? "Draft Invoice"
+        : "Invoice";
 
   return (
     <React.Fragment>
@@ -54,7 +54,11 @@ const BillForm = ({ bill, ...rest }) => {
           <Deposit toggleForm={toggleForm} {...rest} />
         </RenderWhen>
         <RenderWhen isTrue={isInvoice}>
-          <DuePayment toggleForm={toggleForm} {...rest} />
+          <DuePayment
+            toggleForm={toggleForm}
+            isLatest={bill.isLatest}
+            {...rest}
+          />
         </RenderWhen>
         <RenderWhen isTrue={isDraftInvoice}>
           <InvoiceDraft toggleForm={toggleForm} {...rest} />

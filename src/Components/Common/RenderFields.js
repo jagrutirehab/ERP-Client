@@ -1,17 +1,200 @@
 import React from "react";
 import { Col, FormFeedback, Input, Label, Row } from "reactstrap";
+import { capitalizeWords } from "../../utils/toCapitalize";
+import Select from "react-select";
+import * as Yup from "yup";
 
 const RenderFields = ({ fields, validation }) => {
+  console.log("fields", fields);
+
   return (
     <React.Fragment>
       <Row>
         {(fields.filter((fl) => fl) || []).map((field, i) => {
+          if (field.showIf) {
+            const conditionField = field.showIf.field;
+            const conditionValue = field.showIf.value;
+            const notEquals = field.showIf.notEquals;
+            const includes = field.showIf.includes;
+            if (
+              conditionValue !== undefined &&
+              validation.values[conditionField] !== conditionValue
+            )
+              return null;
+            if (
+              notEquals !== undefined &&
+              validation.values[conditionField] === notEquals
+            )
+              return null;
+            if (
+              includes !== undefined &&
+              (!Array.isArray(validation.values[conditionField]) ||
+                !validation.values[conditionField].includes(includes))
+            )
+              return null;
+          }
+
+          if (field.type === "empty") {
+            return <Col key={i + "empty"} xs={12} lg={6} />;
+          }
+          if (field.type === "group") {
+            return (
+              <Col key={i + "group"} xs={12}>
+                <Row>
+                  <Col xs={12} lg={6}>
+                    {field.left.map((f, li) => (
+                      <div key={li} className="mb-3">
+                        {!f.labelHidden && (
+                          <Label className="form-label">
+                            {f.label}
+                            {f.required && (
+                              <span className="text-danger ms-1">*</span>
+                            )}
+                          </Label>
+                        )}
+                        <div className="d-flex flex-wrap gap-2">
+                          {(f.options || []).map((opt, idx) => {
+                            const value =
+                              typeof opt === "string" ? opt : opt.value;
+                            const label =
+                              typeof opt === "string"
+                                ? capitalizeWords(opt)
+                                : opt.label;
+                            return (
+                              <div
+                                key={idx}
+                                className="d-flex align-items-center px-2 py-1"
+                                style={{ cursor: "pointer", minWidth: "120px" }}
+                              >
+                                <Input
+                                  type="radio"
+                                  name={f.name}
+                                  value={value}
+                                  onChange={validation.handleChange}
+                                  checked={validation.values[f.name] === value}
+                                  onClick={() => {
+                                    if (validation.values[f.name] === value)
+                                      validation.setFieldValue(f.name, "");
+                                  }}
+                                  style={{
+                                    width: "14px",
+                                    height: "14px",
+                                    cursor: "pointer",
+                                  }}
+                                />
+                                <Label
+                                  className="mb-0 ms-1"
+                                  style={{
+                                    fontSize: "0.85rem",
+                                    fontWeight: 500,
+                                    cursor: "pointer",
+                                    marginTop: "1.5px",
+                                  }}
+                                >
+                                  {label}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </Col>
+                  <Col xs={12} lg={6}>
+                    {field.right.map((f, ri) => (
+                      <div key={ri} className="mb-3">
+                        {!f.labelHidden && (
+                          <Label className="form-label">
+                            {f.label}
+                            {f.required && (
+                              <span className="text-danger ms-1">*</span>
+                            )}
+                          </Label>
+                        )}
+                        <div className="d-flex flex-wrap gap-2">
+                          {(f.options || []).map((opt, idx) => {
+                            const value =
+                              typeof opt === "string" ? opt : opt.value;
+                            const label =
+                              typeof opt === "string"
+                                ? capitalizeWords(opt)
+                                : opt.label;
+                            return (
+                              <div
+                                key={idx}
+                                className="d-flex align-items-center px-2 py-1"
+                                style={{ cursor: "pointer", minWidth: "120px" }}
+                              >
+                                <Input
+                                  type="radio"
+                                  name={f.name}
+                                  value={value}
+                                  onChange={validation.handleChange}
+                                  checked={validation.values[f.name] === value}
+                                  onClick={() => {
+                                    if (validation.values[f.name] === value)
+                                      validation.setFieldValue(f.name, "");
+                                  }}
+                                  style={{
+                                    width: "14px",
+                                    height: "14px",
+                                    cursor: "pointer",
+                                  }}
+                                />
+                                <Label
+                                  className="mb-0 ms-1"
+                                  style={{
+                                    fontSize: "0.85rem",
+                                    fontWeight: 500,
+                                    cursor: "pointer",
+                                    marginTop: "1.5px",
+                                  }}
+                                >
+                                  {label}
+                                </Label>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    ))}
+                  </Col>
+                </Row>
+              </Col>
+            );
+          }
+
+          if (field.type === "header") {
+            const isFirst = i === 0;
+
+            return (
+              <Col xs={12} key={i + field.label} className="mt-3 mb-2">
+                <div className="d-flex align-items-center">
+                  <h6 className="fw-bold mb-0 me-2">{field.label}</h6>
+                  {!isFirst && (
+                    <div
+                      style={{
+                        height: "1px",
+                        background: "#dcdcdc",
+                        flex: 1,
+                      }}
+                    />
+                  )}
+                </div>
+              </Col>
+            );
+          }
           return (
-            <Col key={i + field} xs={12} lg={6}>
+            <Col key={i + field} xs={12} lg={field.fullWidth ? 12 : 6}>
               <div className="mb-3">
-                <Label htmlFor={field.name} className="form-label">
-                  {field.label}
-                </Label>
+                {!field.labelHidden && (
+                  <Label htmlFor={field.name} className="form-label">
+                    {field.label}
+                    {field.required && (
+                      <span className="text-danger ms-1">*</span>
+                    )}
+                  </Label>
+                )}
                 {field.type === "select" ? (
                   <>
                     <Input
@@ -29,39 +212,151 @@ const RenderFields = ({ fields, validation }) => {
                           : false
                       }
                     >
-                      <option value="" selected disabled hidden>
+                      <option value="" disabled hidden>
                         Choose here
                       </option>
-                      {(field.options || []).map((option, idx) => (
-                        <option key={idx} value={option}>
-                          {option}
-                        </option>
-                      ))}
+
+                      {(field.options || []).map((opt, idx) => {
+                        const value = typeof opt === "string" ? opt : opt.value;
+                        const label = typeof opt === "string" ? opt : opt.label;
+
+                        return (
+                          <option key={idx} value={value}>
+                            {label}
+                          </option>
+                        );
+                      })}
                     </Input>
                   </>
+                ) : field.type === "select2" ? (
+                  <>
+                    <Select
+                      name={field.name}
+                      options={field.options || []}
+                      isMulti={field.isMulti || false}
+                      value={
+                        field.isMulti
+                          ? (field.options || []).filter((opt) =>
+                              (validation.values[field.name] || []).includes(
+                                opt.value,
+                              ),
+                            )
+                          : (field.options || []).find(
+                              (opt) =>
+                                opt.value === validation.values[field.name],
+                            ) || null
+                      }
+                      onChange={(selected) => {
+                        if (field.isMulti) {
+                          validation.setFieldValue(
+                            field.name,
+                            selected ? selected.map((item) => item.value) : [],
+                          );
+                        } else {
+                          validation.setFieldValue(
+                            field.name,
+                            selected ? selected.value : "",
+                          );
+                        }
+                        validation.setFieldTouched(field.name, true);
+                      }}
+                      onBlur={() =>
+                        validation.setFieldTouched(field.name, true)
+                      }
+                      classNamePrefix="react-select"
+                      styles={{
+                        control: (base) => ({
+                          ...base,
+                          height: "auto",
+                          alignItems: "flex-start",
+                        }),
+                        valueContainer: (base) => ({
+                          ...base,
+                          padding: "6px 8px",
+                          height: "auto",
+                          flexWrap: "wrap",
+                        }),
+                      }}
+                    />
+                    {validation.touched[field.name] &&
+                      validation.errors[field.name] && (
+                        <div className="text-danger mt-1">
+                          {validation.errors[field.name]}
+                        </div>
+                      )}
+                  </>
+                ) : field.type === "checkboxWithText" ? (
+                  <div className="d-flex flex-column gap-2">
+                    {(field.options || []).map((opt, idx) => {
+                      const value = typeof opt === "string" ? opt : opt.value;
+                      const textName =
+                        typeof opt === "string" ? null : opt.textName;
+                      const isChecked =
+                        Array.isArray(validation.values[field.name]) &&
+                        validation.values[field.name].includes(value);
+                      return (
+                        <div key={idx}>
+                          <div className="d-flex align-items-center mb-1">
+                            <Input
+                              className="me-2 mt-0"
+                              type="checkbox"
+                              name={field.name}
+                              value={value}
+                              onChange={validation.handleChange}
+                              checked={isChecked}
+                            />
+                            <Label className="form-label fs-6 mb-0">
+                              {value.charAt(0).toUpperCase() + value.slice(1)}
+                            </Label>
+                          </div>
+                          {isChecked && textName && (
+                            <Input
+                              name={textName}
+                              className="form-control ms-4"
+                              placeholder={`Enter ${value} details`}
+                              type="text"
+                              onChange={validation.handleChange}
+                              onBlur={validation.handleBlur}
+                              value={validation.values[textName] || ""}
+                              style={{ width: "80%" }}
+                            />
+                          )}
+                        </div>
+                      );
+                    })}
+                    {validation.touched[field.name] &&
+                      validation.errors[field.name] && (
+                        <div
+                          className="text-danger mt-1"
+                          style={{ fontSize: "0.875em" }}
+                        >
+                          {validation.errors[field.name]}
+                        </div>
+                      )}
+                  </div>
                 ) : field.type === "checkbox" ? (
                   <>
                     <div className="d-flex flex-wrap">
                       {(field.options || []).map((item, idx) => {
                         return (
                           <React.Fragment key={idx}>
-                            <div className="">
-                              <div
-                                // key={item[field.value]}
-                                className="d-flex me-3 mb-2 align-items-center"
-                              >
+                            <div>
+                              <div className="d-flex me-3 mb-2 align-items-center">
                                 <Input
                                   className="me-2 mt-0"
                                   type={field.type}
                                   name={field.name}
                                   value={item}
                                   onChange={validation.handleChange}
-                                  checked={validation.values[
-                                    field.name
-                                  ].includes(item)}
+                                  checked={
+                                    Array.isArray(
+                                      validation.values[field.name],
+                                    ) &&
+                                    validation.values[field.name].includes(item)
+                                  }
                                 />
-                                <Label className="form-label fs-9 mb-0">
-                                  {item}
+                                <Label className="form-label fs-6 mb-0">
+                                  {item.charAt(0).toUpperCase() + item.slice(1)}
                                 </Label>
                               </div>
                             </div>
@@ -69,13 +364,66 @@ const RenderFields = ({ fields, validation }) => {
                         );
                       })}
                       {validation.touched[field.name] &&
-                      validation.errors[field.name] ? (
-                        <FormFeedback type="invalid" className="d-block">
-                          {validation.errors[field.name]}
-                        </FormFeedback>
-                      ) : null}
+                        validation.errors[field.name] && (
+                          <div
+                            className="text-danger mt-1"
+                            style={{ fontSize: "0.875em" }}
+                          >
+                            {validation.errors[field.name]}
+                          </div>
+                        )}
                     </div>
                   </>
+                ) : field.type === "radio" ? (
+                  <div className="d-flex flex-wrap gap-2">
+                    {(field.options || []).map((opt, idx) => {
+                      const value = typeof opt === "string" ? opt : opt.value;
+                      const label =
+                        typeof opt === "string"
+                          ? capitalizeWords(opt)
+                          : opt.label;
+
+                      return (
+                        <div
+                          key={idx}
+                          className="d-flex align-items-center px-2 py-1"
+                          style={{
+                            cursor: "pointer",
+                            minWidth: "120px",
+                          }}
+                        >
+                          <Input
+                            type="radio"
+                            name={field.name}
+                            value={value}
+                            onChange={validation.handleChange}
+                            checked={validation.values[field.name] === value}
+                            onClick={() => {
+                              if (validation.values[field.name] === value) {
+                                validation.setFieldValue(field.name, "");
+                              }
+                            }}
+                            style={{
+                              width: "14px",
+                              height: "14px",
+                              cursor: "pointer",
+                            }}
+                          />
+                          <Label
+                            className="mb-0 ms-1"
+                            style={{
+                              fontSize: "0.85rem",
+                              fontWeight: 500,
+                              cursor: "pointer",
+                              marginTop: "1.5px",
+                            }}
+                          >
+                            {label}
+                          </Label>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
                   <Input
                     name={field.name}

@@ -21,7 +21,6 @@ const styles = StyleSheet.create({
 });
 
 const DoctorSignature = ({ doctor }) => {
-  console.log(doctor);
   const renderImage = (src, width) => {
     if (!src) return null;
     return <Image src={src} style={styles.image} />;

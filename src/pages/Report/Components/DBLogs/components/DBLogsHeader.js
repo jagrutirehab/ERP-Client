@@ -3,8 +3,8 @@ import { CardHeader, Button } from "reactstrap";
 
 const DBLogsHeader = ({ onRefresh, onToggleFilters, showFilters, loading }) => {
   return (
-    <CardHeader className="d-flex justify-content-between align-items-center">
-      <div>
+    <CardHeader className="d-flex flex-wrap gap-2 justify-content-between align-items-center">
+      <div className="">
         <h5 className="mb-0">
           <i className="fas fa-chart-line mr-2"></i>
           Activity Logs

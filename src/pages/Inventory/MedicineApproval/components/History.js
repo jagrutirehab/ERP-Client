@@ -14,6 +14,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const dispatch = useDispatch();
     const { medicineApprovals, loading } = useSelector((state) => state.Pharmacy);
     const user = useSelector((state) => state.User);
+    const centerList = useSelector((state) => state.Center.data);
     const handleAuthError = useAuthError();
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
@@ -32,15 +33,23 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             : []
         ),
         ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
+            centerList?.map(c => ({
+                value: c._id,
+                label: c.title,
+            })) || []
         )
     ];
+
+
+    useEffect(() => {
+        if (
+            selectedCenter !== "ALL" &&
+            !user?.centerAccess?.includes(selectedCenter)
+        ) {
+            setSelectedCenter("ALL");
+            setPage(1);
+        }
+    }, [selectedCenter, user?.centerAccess]);
 
 
     const selectedCenterOption = centerOptions.find(
@@ -103,7 +112,6 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             name: <div>Center</div>,
             selector: (row) => capitalizeWords(row?.center?.title || "-"),
             wrap: true,
-            width:"10%"
         },
         {
             name: <div>Medicines</div>,
@@ -128,21 +136,18 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                 </span>
                             </div>
                             {index !== row.medicineCounts.length - 1 && (
-                                <div
-                                    style={{
-                                        width: "100%",
-                                        height: "1px",
-                                        backgroundColor: "#e5e5e5",
-                                        margin: "4px 0"
-                                    }}
-                                ></div>
+                                <div className="border-bottom border-black my-md-2 my-1"></div>
                             )}
                         </div>
                     ))}
                 </div>
             ),
-            wrap: true,
-            width: "35%",
+            style: {
+                whiteSpace: "normal",
+                wordBreak: "break-word",
+            },
+            minWidth: "200px",
+            grow: 4,
         },
         {
             name: <div>Prescription Date</div>,
@@ -188,7 +193,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             name: <div>Remarks</div>,
             selector: (row) => <ExpandableText text={capitalizeWords(row.remarks) ?? "-"} />,
             wrap: true,
-            width: "20%",
+            minWidth: "200px"
         }
     ];
 
@@ -237,6 +242,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                 { value: 10, label: "10" },
                                 { value: 20, label: "20" },
                                 { value: 30, label: "30" },
+                                { value: 40, label: "40" },
                                 { value: 50, label: "50" },
                             ]}
                             classNamePrefix="react-select"
@@ -279,6 +285,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                 { value: 10, label: "10" },
                                 { value: 20, label: "20" },
                                 { value: 30, label: "30" },
+                                { value: 40, label: "40" },
                                 { value: 50, label: "50" },
                             ]}
                             classNamePrefix="react-select"

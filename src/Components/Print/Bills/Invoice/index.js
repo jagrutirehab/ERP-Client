@@ -17,7 +17,9 @@ const styles = StyleSheet.create({
   },
 });
 
+
 const Invoice = ({ bill, center, patient }) => {
+  
   return (
     <React.Fragment>
       <Document>

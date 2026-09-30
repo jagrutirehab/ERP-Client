@@ -10,12 +10,14 @@ import Views from "./Views";
 import { connect, useDispatch } from "react-redux";
 import {
   fetchBillsAddmissions,
-  fetchChartsAddmissions,
+  // fetchChartsAddmissions,
   resetOpdPatientBills,
-  resetOpdPatientCharts,
+  // resetOpdPatientCharts,
   fetchPatientById,
 } from "../../store/actions";
+import { clearCharts } from "../../store/features/chart/chartSlice";
 import RenderWhen from "../../Components/Common/RenderWhen";
+import { getChartsAddmissions } from "../../helpers/backend_helper";
 
 const Main = ({ patient, deletePatient, setDeletePatient }) => {
   const dispatch = useDispatch();
@@ -28,6 +30,15 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
       if (!id || id === "*") return;
 
       try {
+        // state.Chart.data is a shared slice that many screens (IPD, BioData,
+        // AdmissionSummary, Print, AdmissionForms, and others) read admissions
+        // from, several by index (e.g. addmissionsCharts[0]). It's populated
+        // by upserting, never by removing, so without this it would keep
+        // every admission from every patient viewed this session, and those
+        // index-based reads would silently pick up a stale, wrong patient's
+        // admission. Clearing here, before any fetch for the new patient
+        // starts, keeps it scoped to whichever patient is currently open.
+        dispatch(clearCharts());
         // Fetch fresh patient data
         dispatch(fetchPatientById(id));
       } catch (err) {
@@ -39,15 +50,23 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
     fetchPatientData();
   }, [dispatch, id]);
 
+  // Claude changes starts
+
+  // Keyed on the admission ids themselves (not the whole `patient` object)
+  // so unrelated patient field updates don't re-trigger this fetch and race
+  // with an in-flight one.
+  const addmissionsKey = patient?.addmissions?.join(",") ?? "";
+
+  // console.log("addmissionsKey:", addmissionsKey);
+  // console.log("patient.addmissions:", patient?.addmissions);
   useEffect(() => {
-    if (patient?.addmissions?.length) {
-      dispatch(fetchChartsAddmissions(patient.addmissions));
+    if (!patient) return;
+    if (patient.addmissions?.length) {
       dispatch(fetchBillsAddmissions(patient.addmissions));
     } else {
-      dispatch(resetOpdPatientCharts());
       dispatch(resetOpdPatientBills());
     }
-  }, [dispatch, patient]);
+  }, [dispatch, patient?._id, addmissionsKey]);
 
   return (
     <React.Fragment>

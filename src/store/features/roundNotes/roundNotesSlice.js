@@ -56,11 +56,11 @@ export const fetchRoundNotes = createAsyncThunk(
         setAlert({
           type: "error",
           message: error.message || "Failed to load round notes",
-        })
+        }),
       );
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const fetchPatientRoundNotes = createAsyncThunk(
@@ -79,11 +79,11 @@ export const fetchPatientRoundNotes = createAsyncThunk(
         setAlert({
           type: "error",
           message: error.message || "Failed to load patient round notes",
-        })
+        }),
       );
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const fetchRoundNoteStaff = createAsyncThunk(
@@ -97,11 +97,11 @@ export const fetchRoundNoteStaff = createAsyncThunk(
         setAlert({
           type: "error",
           message: error.message || "Failed to load staff members",
-        })
+        }),
       );
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const createRoundNote = createAsyncThunk(
@@ -113,7 +113,7 @@ export const createRoundNote = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Round note saved successfully",
-        })
+        }),
       );
       return response;
     } catch (error) {
@@ -121,11 +121,11 @@ export const createRoundNote = createAsyncThunk(
         setAlert({
           type: "error",
           message: error.message || "Failed to create round note",
-        })
+        }),
       );
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const updateRoundNoteEntry = createAsyncThunk(
@@ -137,7 +137,7 @@ export const updateRoundNoteEntry = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Round note updated successfully",
-        })
+        }),
       );
       return response;
     } catch (error) {
@@ -145,11 +145,11 @@ export const updateRoundNoteEntry = createAsyncThunk(
         setAlert({
           type: "error",
           message: error.message || "Failed to update round note",
-        })
+        }),
       );
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 export const removeRoundNoteEntry = createAsyncThunk(
@@ -161,7 +161,7 @@ export const removeRoundNoteEntry = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Round note deleted successfully",
-        })
+        }),
       );
       return response;
     } catch (error) {
@@ -169,11 +169,11 @@ export const removeRoundNoteEntry = createAsyncThunk(
         setAlert({
           type: "error",
           message: error.message || "Failed to delete round note",
-        })
+        }),
       );
       return rejectWithValue(error.message);
     }
-  }
+  },
 );
 
 const roundNotesSlice = createSlice({

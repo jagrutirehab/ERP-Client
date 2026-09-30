@@ -18,6 +18,7 @@ import { connect, useDispatch, useSelector } from "react-redux";
 import { fetchCenters, searchPatient, viewPatient } from "../store/actions";
 import Highlighter from "react-highlight-words";
 import RenderWhen from "../Components/Common/RenderWhen";
+import { useDebounce } from "../Components/Hooks/useDebounce";
 import PatientPlaceholder from "../Components/Common/PatientPlaceholder";
 import SimpleBar from "simplebar-react";
 
@@ -33,6 +34,9 @@ const Header = ({
 }) => {
   const dispatch = useDispatch();
   const [value, setValue] = useState("");
+  // Debounce the query so the search API fires once the user pauses typing
+  // instead of on every keystroke.
+  const debouncedValue = useDebounce(value.trim(), 300);
   const { loading: globalLoader, dataLoader } = useSelector(
     (state) => state.User
   );
@@ -142,8 +146,11 @@ const Header = ({
   }, [dispatch, user]);
 
   useEffect(() => {
-    if (value) dispatch(searchPatient({ name: value, centerAccess }));
-  }, [value, dispatch, centerAccess]);
+    // Require at least 2 characters: a single-letter query matches almost
+    // every patient and is never a useful search.
+    if (debouncedValue.length >= 2)
+      dispatch(searchPatient({ name: debouncedValue, centerAccess }));
+  }, [debouncedValue, dispatch, centerAccess]);
 
   return (
     <React.Fragment>

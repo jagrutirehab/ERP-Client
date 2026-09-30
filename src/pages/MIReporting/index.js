@@ -1,0 +1,350 @@
+import React, { useEffect } from "react";
+import { Container } from "reactstrap";
+import { Route, Routes, useNavigate } from "react-router-dom";
+
+//redux
+import { connect } from "react-redux";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+
+// Components
+import Sidebar from "./Sidebar";
+import CenterLeadsMoM from "./CenterLeadsMoM";
+import CenterLeadsMTD from "./CenterLeadsMTD";
+import OwnerLeadsMoM from "./OwnerLeadsMoM";
+import OwnerLeadsMTD from "./OwnerLeadsMTD";
+import CityQuality from "./CityQuality";
+import OwnerQuality from "./OwnerQuality";
+
+import CityVisitDate from "./VisitDate/CityVisitDate";
+import OwnerVisitDate from "./VisitDate/OwnerVisitDate";
+import CityVisitedDate from "./VisitedDate/CityVisitedDate";
+import OwnerVisitedDate from "./VisitedDate/OwnerVisitedDate";
+import CityLeadStatus from "./LeadStatus/CityLeadStatus";
+import OwnerLeadStatus from "./LeadStatus/OwnerLeadStatus";
+import RefundAmountMOM from "./RefundAmountMOM";
+import RoundNotesDOD from "./RoundNotesDOD";
+import ClinicalNotesDOD from "./ClinicalNotesDOD";
+import CounsellingSessionsPatients from "./CounsellingSessionsPatients";
+import VitalSignsDOD from "./VitalSignsDOD";
+import PatientDocs from "./PatientDocs";
+import OpdPatientDocs from "./OpdPatientDocs";
+import DailyInvoices from "./DailyInvoices";
+import CounsellingSessions from "./CounsellingSessions";
+import CounsellingRecording from "./CounsellingRecording";
+import DailyDashboard from "./DailyDashboard";
+import DocsCompliance from "./DocsCompliance";
+import DueAmount from "./DueAmount";
+import Attendance from "./Attendance";
+import NursesDOD from "./NursesDOD";
+import CenterWiseMOM from "./CenterWiseMOM";
+import CashPerCenter from "./CashPerCenter";
+import WriteOFFAmount from "./WriteOFFAmount";
+import AuditForms from "./AuditForms";
+import MetricsReport from "./MetricsReport";
+import OPDCharges from "./OPDCharges";
+import CentralExpenses from "./CentralExpenses";
+import DoctorPsychologistStayRange from "./DoctorPsychologistStayRange";
+import NursesDashboardDOD from "./NursesDashboardDOD";
+import Occupancy from "./Occupancy";
+import Incident from "./Incident";
+import Readmission from "./Readmission";
+
+const MiReporting = () => {
+  const navigate = useNavigate();
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+  const hasHubspotReportingPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    null,
+    "READ"
+  );
+
+  useEffect(() => {
+    if (permissionLoader) return;
+    // if (!hasHubspotReportingPermission) {
+    //   navigate("/unauthorized");
+    //   return;
+    // }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ permissionLoader]);
+
+  const hasHubspotCenterLeadsPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_CENTER_LEADS_COUNT",
+    "READ"
+  );
+  const hasHubspotOwnerLeadsPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_OWNER_LEADS_COUNT",
+    "READ"
+  );
+  const hasHubspotCityQualityPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_CITY_QUALITY_BREAKDOWN",
+    "READ"
+  );
+  const hasHubspotOwnerQualityPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_OWNER_QUALITY_BREAKDOWN",
+    "READ"
+  );
+  const hasHubspotCityVisitPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_CITY_VISIT_DATE",
+    "READ"
+  );
+  const hasHubspotOwnerVisitPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_OWNER_VISIT_DATE",
+    "READ"
+  );
+  const hasHubspotCityVisitedPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_CITY_VISITED_DATE",
+    "READ"
+  );
+  const hasHubspotOwnerVisitedPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_OWNER_VISITED_DATE",
+    "READ"
+  );
+  const hasHubspotCityLeadStatusPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_CITY_LEAD_STATUS",
+    "READ"
+  );
+  const hasHubspotOwnerLeadStatusPermission = hasPermission(
+    "HUBSPOT_REPORTING",
+    "HUBSPOT_OWNER_LEAD_STATUS",
+    "READ"
+  );
+
+  const hasMISPermission = hasPermission(
+    "MIS_REPORTS",
+    "MIS_REPORTS_PERMISSION",
+    "READ"
+  );
+
+  return (
+    <React.Fragment>
+      <div className="page-content" style={{ overflowX: "clip", overflowY: "visible" }}>
+        <div className="">
+          <Container fluid>
+            <div className="chat-wrapper d-lg-flex gap-1 mx-n4 my-n4 mb-n5 p-1" style={{ alignItems: "flex-start", overflowY: "visible" }}>
+              <Sidebar />
+              <Routes>
+                {hasHubspotCenterLeadsPermission && (
+                  <Route
+                    path="/center-leads-mom"
+                    element={<CenterLeadsMoM />}
+                  />
+                )}
+                {hasHubspotCenterLeadsPermission && (
+                  <Route
+                    path="/center-leads-mtd"
+                    element={<CenterLeadsMTD />}
+                  />
+                )}
+                {hasHubspotOwnerLeadsPermission && (
+                  <Route path="/owner-leads-mom" element={<OwnerLeadsMoM />} />
+                )}
+                {hasHubspotOwnerLeadsPermission && (
+                  <Route path="/owner-leads-mtd" element={<OwnerLeadsMTD />} />
+                )}
+                {hasHubspotCityQualityPermission && (
+                  <Route path="/city-quality" element={<CityQuality />} />
+                )}
+                {hasHubspotOwnerQualityPermission && (
+                  <Route path="/owner-quality" element={<OwnerQuality />} />
+                )}
+                {hasHubspotCityVisitPermission && (
+                  <Route path="/city-visit-date" element={<CityVisitDate />} />
+                )}
+                {hasHubspotOwnerVisitPermission && (
+                  <Route
+                    path="/owner-visit-date"
+                    element={<OwnerVisitDate />}
+                  />
+                )}
+                {hasHubspotCityVisitedPermission && (
+                  <Route
+                    path="/city-visited-date"
+                    element={<CityVisitedDate />}
+                  />
+                )}
+                {hasHubspotOwnerVisitedPermission && (
+                  <Route
+                    path="/owner-visited-date"
+                    element={<OwnerVisitedDate />}
+                  />
+                )}
+                {hasHubspotCityLeadStatusPermission && (
+                  <Route
+                    path="/city-lead-status"
+                    element={<CityLeadStatus />}
+                  />
+                )}
+                {hasHubspotOwnerLeadStatusPermission && (
+                  <Route
+                    path="/owner-lead-status"
+                    element={<OwnerLeadStatus />}
+                  />
+                )}
+                {hasHubspotReportingPermission && (
+                  <Route
+                    path="/center-wise-mom"
+                    element={<CenterWiseMOM />}
+                  />
+                )}
+
+                {hasMISPermission&&<Route
+                    path="/refund-amount"
+                    element={<RefundAmountMOM />}
+                  />}
+
+                   {hasMISPermission&&<Route
+                    path="/round-notes"
+                    element={<RoundNotesDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/clinical-notes"
+                    element={<ClinicalNotesDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/counselling-sessions-patients"
+                    element={<CounsellingSessionsPatients />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/vital-signs"
+                    element={<VitalSignsDOD />}
+                  />}
+
+
+                  {hasMISPermission&&<Route
+                    path="/patient-docs"
+                    element={<PatientDocs />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/opd-patient-docs"
+                    element={<OpdPatientDocs />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/daily-invoices"
+                    element={<DailyInvoices />}
+                  />}
+
+
+                  {hasMISPermission&&<Route
+                    path="/counselling-sessions"
+                    element={<CounsellingSessions />}
+                  />}
+                  
+                   {hasMISPermission&&<Route
+                    path="/counselling-recording"
+                    element={<CounsellingRecording />}
+                  />}
+                  
+
+                  {hasMISPermission&&<Route
+                    path="/daily-dashboard"
+                    element={<DailyDashboard />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/docs-compliance"
+                    element={<DocsCompliance />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/due-amount"
+                    element={<DueAmount />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/attendance"
+                    element={<Attendance />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/nurses-dod"
+                    element={<NursesDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/cash-per-center"
+                    element={<CashPerCenter />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/write-off-amount"
+                    element={<WriteOFFAmount />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/forms-data"
+                    element={<AuditForms />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/metrics-report"
+                    element={<MetricsReport />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/opd-charges"
+                    element={<OPDCharges />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/central-expenses"
+                    element={<CentralExpenses />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/doctor-psychologist-stay-range"
+                    element={<DoctorPsychologistStayRange />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/nurses-dashboard-dod"
+                    element={<NursesDashboardDOD />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/occupancy"
+                    element={<Occupancy />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/incident"
+                    element={<Incident />}
+                  />}
+
+                  {hasMISPermission&&<Route
+                    path="/readmission"
+                    element={<Readmission />}
+                  />}
+
+
+                  
+              </Routes>
+            </div>
+          </Container>
+        </div>
+      </div>
+    </React.Fragment>
+  );
+};
+
+const mapStateToProps = (state) => ({});
+
+// export default connect(mapStateToProps)(Hu§§bspotReporting);
+export default MiReporting;

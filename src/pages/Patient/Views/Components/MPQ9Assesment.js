@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import {
   Dropdown,
   DropdownItem,
@@ -18,9 +19,11 @@ import {
   mpq9Questions,
   getInterpretationAndRecommendations,
 } from "./QuestionData/MPQ-9Questions";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 const MPQ9Assessment = () => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
   const fileInputRef = useRef(null);
 
   const [answers, setAnswers] = useState({});
@@ -71,7 +74,7 @@ const MPQ9Assessment = () => {
     setModalMessage("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!selectedDoctor.id || selectedDoctor.id === -1) {
@@ -114,10 +117,16 @@ const MPQ9Assessment = () => {
       Array.from(files).forEach((file) => formData.append("files", file));
     }
 
-    dispatch(createMPQTest(formData));
-    openModal(
-      "Test submitted! The results are now available on the next page."
-    );
+    try {
+      await dispatch(createMPQTest(formData)).unwrap();
+      openModal(
+        "Test submitted! The results are now available on the next page."
+      );
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to submit assessment");
+      }
+    }
   };
 
   return (

@@ -7,6 +7,7 @@ import {
   OPD,
   IPD,
   DEPOSIT,
+  WRITE_OFF
 } from "../../constants/patient";
 
 //bills
@@ -16,6 +17,7 @@ import OPDInvoice from "./OPD/Inovice";
 import Receipt from "./Receipt";
 import RenderWhen from "../../Common/RenderWhen";
 import Deposit from "./Deposit";
+import WriteOffInvoice from "./WriteOff/WriteOffInvoice";
 
 const Bills = ({ bill, patient, center, doctor, admission }) => {
   return (
@@ -35,7 +37,7 @@ const Bills = ({ bill, patient, center, doctor, admission }) => {
         }
       >
         {bill.invoice?.invoiceList?.length > 0 &&
-        bill.invoice?.invoiceList[0].category ? (
+          bill.invoice?.invoiceList[0].category ? (
           <NewTemplete
             bill={bill}
             patient={patient}
@@ -45,6 +47,15 @@ const Bills = ({ bill, patient, center, doctor, admission }) => {
         ) : (
           <Invoice bill={bill} patient={patient} center={center} />
         )}
+      </RenderWhen>
+
+      <RenderWhen isTrue={bill.bill === WRITE_OFF && bill.type === IPD}>
+        <WriteOffInvoice
+          bill={bill}
+          patient={patient}
+          center={center}
+          admission={admission}
+        />
       </RenderWhen>
 
       <RenderWhen isTrue={bill.bill === ADVANCE_PAYMENT && bill.type === IPD}>

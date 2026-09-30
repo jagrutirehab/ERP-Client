@@ -89,7 +89,7 @@ const Booking = ({
             new Date(d.endDate),
             new Date(d.startDate)
           )} minutes`,
-          phoneNumber: d?.patient?.dialCode + d?.patient?.mobile,
+          // phoneNumber: d?.patient?.dialCode + d?.patient?.mobile,
           paymentStatus:
             d?.transactionId?.payment_Status || d?.bill
               ? "Completed"
@@ -184,10 +184,10 @@ const Booking = ({
       name: "Gender",
       selector: (row) => row.patient?.gender,
     },
-    {
-      name: "Phone No",
-      selector: (row) => row.patient?.dialCode + row.patient?.mobile || "",
-    },
+    // {
+    //   name: "Phone No",
+    //   selector: (row) => row.patient?.dialCode + row.patient?.mobile || "",
+    // },
     {
       name: "Booking Price",
       selector: (row) =>
@@ -223,7 +223,7 @@ const Booking = ({
     },
     { label: "UID", key: "patient.id.value" },
     { label: "Gender", key: "patient.gender" },
-    { label: "Phone No", key: "phoneNumber" },
+    // { label: "Phone No", key: "phoneNumber" },
     {
       label: "Doctor",
       key: "doctorName",

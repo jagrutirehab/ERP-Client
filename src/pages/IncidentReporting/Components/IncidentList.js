@@ -21,6 +21,7 @@ import { useDispatch } from "react-redux";
 import { deleteIncidentAction } from "../../../store/features/incident/incidentSlice";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 import { capitalizeWords } from "../../../utils/toCapitalize";
+import CenterDropdown from "../../Report/Components/Doctor/components/CenterDropDown";
 
 const IncidentList = ({
   incidents,
@@ -32,6 +33,9 @@ const IncidentList = ({
   onRefresh,
   pagination = { total: 0, page: 1, limit: 10, totalPages: 0 },
   showStatusFilter = true,
+  centerOptions = [],
+  selectedCentersIds = [],
+  setSelectedCentersIds,
 }) => {
   const dispatch = useDispatch();
 
@@ -63,27 +67,27 @@ const IncidentList = ({
   const hasIncidentDeletePermission = hasPermission(
     "INCIDENT_REPORTING",
     null,
-    "DELETE"
+    "DELETE",
   );
   const hasIncidentRaisePermission = hasPermission(
     "INCIDENT_REPORTING",
     "RAISE_INCIDENT",
-    "WRITE"
+    "WRITE",
   );
   const hasIncidentInvestigatePermission = hasPermission(
     "INCIDENT_REPORTING",
     "INVESTIGATE_INCIDENT",
-    "WRITE"
+    "WRITE",
   );
   const hasIncidentApprovePermission = hasPermission(
     "INCIDENT_REPORTING",
     "APPROVE_INCIDENT",
-    "WRITE"
+    "WRITE",
   );
   const hasIncidentClosePermission = hasPermission(
     "INCIDENT_REPORTING",
     "CLOSE_INCIDENT",
-    "WRITE"
+    "WRITE",
   );
 
   // (hasIncidentRaisePermission ||
@@ -145,7 +149,7 @@ const IncidentList = ({
     const from = (current - 1) * (filters.limit || 10) + 1;
     const to = Math.min(
       current * (filters.limit || 10),
-      pagination?.total || incidents.length
+      pagination?.total || incidents.length,
     );
 
     return (
@@ -242,7 +246,7 @@ const IncidentList = ({
             />
           </Col>
           {showStatusFilter && (
-            <Col md={3}>
+            <Col md={2}>
               <Input
                 type="select"
                 value={filters.status}
@@ -260,7 +264,7 @@ const IncidentList = ({
               </Input>
             </Col>
           )}
-          <Col md={3}>
+          <Col md={2}>
             <Input
               type="select"
               value={filters.incidentType}
@@ -276,6 +280,14 @@ const IncidentList = ({
               <option value="Patient">Patient-related</option>
               <option value="Non-Patient">Non-patient</option>
             </Input>
+          </Col>
+          <Col md={2}>
+            <CenterDropdown
+              options={centerOptions}
+              value={selectedCentersIds}
+              onChange={setSelectedCentersIds}
+              className="topbar-head-dropdown ms-1"
+            />
           </Col>
           {/* <Col md={2}>
             <Input
@@ -319,6 +331,7 @@ const IncidentList = ({
                     <th>#S.No</th>
                     <th>Title</th>
                     <th>Type</th>
+                    <th>Center</th>
                     <th>Patient</th>
                     <th>Reporter</th>
                     <th>Status</th>
@@ -336,6 +349,11 @@ const IncidentList = ({
                         <strong>{capitalizeWords(incident.title)}</strong>
                       </td>
                       <td>{getTypeBadge(incident.incidentType)}</td>
+                      <td>
+                        {capitalizeWords(
+                          incident.center?.title || incident.center?.name || "",
+                        ) || <span className="text-muted">N/A</span>}
+                      </td>
                       <td>
                         {capitalizeWords(incident.patient?.name || "") || (
                           <span className="text-muted">N/A</span>
@@ -361,7 +379,7 @@ const IncidentList = ({
                       <td>
                         {format(
                           new Date(incident.occurrenceDate),
-                          "MMM dd, yyyy"
+                          "MMM dd, yyyy",
                         )}
                       </td>
                       <td>
@@ -439,6 +457,9 @@ IncidentList.propTypes = {
   onRefresh: PropTypes.func.isRequired,
   pagination: PropTypes.object,
   showStatusFilter: PropTypes.bool,
+  centerOptions: PropTypes.array,
+  selectedCentersIds: PropTypes.array,
+  setSelectedCentersIds: PropTypes.func,
 };
 
 export default IncidentList;

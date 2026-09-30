@@ -4,24 +4,33 @@ import pages from "../Components/constants/pages";
 
 const Navdata = () => {
   const userPages = useSelector(
-    (state) => state.User.user?.pageAccess?.pages || []
+    (state) => state.User.user?.pageAccess?.pages || [],
   );
 
   const dynamicPages = userPages?.map((pg) => {
     const pageIndex = pages?.findIndex((r) => r.label === pg.name);
     const page = pages[pageIndex];
-    return page;
+    if (!page) return page;
+    return page.displayLabel ? { ...page, label: page.displayLabel } : page;
   });
+
+  const filteredDynamicPages = dynamicPages?.filter(
+    (page) => page && page.id !== "hrms",
+  );
 
   const sortPages = (routes) => {
     const sortOrder = [
+      "centerDashboard",
       "nurse",
       "emergency",
       "lead",
       "booking",
       "intern",
       "patient",
+      "alert",
+      "referral",
       "roundnotes",
+      "mireporting",
       "users",
       "cash",
       "centralpayment",
@@ -29,7 +38,19 @@ const Navdata = () => {
       "setting",
       "recyclebin",
       "pharmacy",
+      "masterdata",
+      "training",
+      "utilities",
       "guidelines",
+      "hr",
+      "audit",
+      "issues",
+      "marketing",
+      "recordings",
+      // "hrms",
+      "webcamstats",
+      "tally",
+      "sop-configs"
     ];
 
     routes?.sort((a, b) => {
@@ -51,6 +72,27 @@ const Navdata = () => {
     return routes;
   };
 
+  const staticPages = [
+    {
+      id: "issues",
+      label: "Issues",
+      link: "/issues",
+      icon: "bx bx-error-circle",
+    },
+    {
+      id: "recordings",
+      label: "Recordings",
+      link: "/recordings",
+      icon: "bx bx-microphone",
+    },
+  ];
+
+  const existingIds = filteredDynamicPages.map((p) => p.id);
+
+  const safeStaticPages = staticPages.filter(
+    (p) => !existingIds.includes(p.id),
+  );
+
   const menuItems = [
     {
       label: "Menu",
@@ -62,8 +104,12 @@ const Navdata = () => {
       icon: "bx bx-layer",
       link: "/centers",
     },
-    ...sortPages(dynamicPages),
+    ...sortPages(filteredDynamicPages),
+    // pages.find((p) => p.id === "issues"),
+    // pages.find((p) => p.id === "recordings"),
+    // ...safeStaticPages,
   ];
+
 
   return <React.Fragment>{menuItems}</React.Fragment>;
 };

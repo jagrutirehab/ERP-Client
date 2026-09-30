@@ -37,6 +37,9 @@ import Recyclebin from "./features/recyclebin/recyclebinSlice";
 // lead
 import Lead from "./features/lead/leadSlice";
 
+// referral
+import Referral from "./features/referral/referralSlice";
+
 // booking
 import Booking from "./features/booking/bookingSlice";
 
@@ -96,6 +99,15 @@ import Pharmacy from "./features/pharmacy/pharmacySlice";
 import RoundNotes from "./features/roundNotes/roundNotesSlice";
 import MIReporting from "./features/miReporting/miReportingSlice";
 
+// HR
+import HR from "./features/HR/hrSlice";
+
+// HRMS
+import HRMS from "./features/HRMS/hrmsSlice";
+
+// Center Dashboard
+import CenterDashboard from "./features/centerDashboard/centerDashboardSlice";
+
 const rootReducer = combineReducers({
   // ** public **
   User,
@@ -107,6 +119,7 @@ const rootReducer = combineReducers({
   Recyclebin,
   Setting,
   Lead,
+  Referral,
   Booking,
   Medicine,
   // layout
@@ -132,7 +145,10 @@ const rootReducer = combineReducers({
   Incident,
   Pharmacy,
   RoundNotes,
+  HR,
   MIReporting,
+  HRMS,
+  CenterDashboard,
 });
 
 export default rootReducer;

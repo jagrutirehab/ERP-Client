@@ -23,10 +23,10 @@ const generalHeaders = [
   { label: "UID", key: "uid" },
   { label: "Gender", key: "gender" },
   { label: "Referred By", key: "referredBy" },
-  { label: "Phone No", key: "phoneNumber" },
+  // { label: "Phone No", key: "phoneNumber" },
   { label: "Age", key: "age" },
   { label: "Guardian", key: "guardianName" },
-  { label: "Guardian Number", key: "guardianPhoneNumber" },
+  // { label: "Guardian Number", key: "guardianPhoneNumber" },
   { label: "Addmission Date", key: "addmissionDate" },
 ];
 
@@ -60,7 +60,7 @@ const Doctor = ({ centers, centerAccess }) => {
 
   const [selectedCenters, setSelectedCenters] = useState(centerOptions);
   const [selectedCentersIds, setSelectedCentersIds] = useState(
-    centerOptions.map((c) => c._id)
+    centerOptions.map((c) => c._id),
   );
 
   useEffect(() => {
@@ -95,7 +95,9 @@ const Doctor = ({ centers, centerAccess }) => {
         role: capitalizeWords(data.role),
         patientName: capitalizeWords(data.patientName),
         guardianName: capitalizeWords(data.guardianName),
-        referredBy: capitalizeWords(data.referredBy),
+        referredBy: capitalizeWords(
+          data.referredBy?.doctorName || data.referredBy,
+        ),
         age: data.dateOfBirth
           ? `${differenceInYears(new Date(), new Date(data.dateOfBirth))} years`
           : "",
@@ -189,10 +191,11 @@ const Doctor = ({ centers, centerAccess }) => {
     { name: "Gender", selector: (row) => row.gender || "-" },
     {
       name: "Referred By",
-      selector: (row) => capitalizeWords(row.referredBy) || "-",
+      selector: (row) =>
+        capitalizeWords(row.referredBy?.doctorName || row.referredBy) || "-",
       wrap: true,
     },
-    { name: "Phone No", selector: (row) => row.phoneNumber || "-", wrap: true },
+    // { name: "Phone No", selector: (row) => row.phoneNumber || "-", wrap: true },
     {
       name: "Age",
       selector: (row) =>
@@ -205,11 +208,11 @@ const Doctor = ({ centers, centerAccess }) => {
       selector: (row) => capitalizeWords(row.guardianName) || "-",
       wrap: true,
     },
-    {
-      name: "Guardian Number",
-      selector: (row) => row.guardianPhoneNumber || "-",
-      wrap: true,
-    },
+    // {
+    //   name: "Guardian Number",
+    //   selector: (row) => row.guardianPhoneNumber || "-",
+    //   wrap: true,
+    // },
     {
       name: "Admission Date",
       selector: (row) =>
@@ -264,8 +267,8 @@ const Doctor = ({ centers, centerAccess }) => {
             </h6>
           </div>
           <Header reportDate={reportDate} setReportDate={setReportDate} />
-          <div className="d-flex justify-content-between align-items-center mt-3">
-            <div className="d-flex gap-2 align-items-center">
+          <div className="d-flex flex-wrap justify-content-between align-items-center mt-3">
+            <div className="d-flex flex-wrap gap-2 align-items-center">
               <Input
                 type="select"
                 value={limit}
@@ -313,7 +316,7 @@ const Doctor = ({ centers, centerAccess }) => {
                 onChange={(ids) => {
                   setSelectedCentersIds(ids);
                   setSelectedCenters(
-                    centerOptions.filter((c) => ids.includes(c._id))
+                    centerOptions.filter((c) => ids.includes(c._id)),
                   );
                 }}
               />

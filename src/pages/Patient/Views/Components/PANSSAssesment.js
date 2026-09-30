@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import {
     Dropdown,
     DropdownItem,
@@ -15,9 +16,11 @@ import {
 import { fetchDoctors } from "../../../../store/actions";
 
 import { calculateScores, getInterpretationAndRecommendations, panssQuestions } from "./QuestionData/PANSSQuestions";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 const PANSSAssessment = () => {
     const dispatch = useDispatch();
+    const handleAuthError = useAuthError();
     const fileInputRef = useRef(null);
 
     const [answers, setAnswers] = useState({});
@@ -68,7 +71,7 @@ const PANSSAssessment = () => {
         setModalMessage("");
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!selectedDoctor.id || selectedDoctor.id === -1) {
@@ -112,10 +115,16 @@ const PANSSAssessment = () => {
             Array.from(files).forEach((file) => formData.append("files", file));
         }
 
-        dispatch(createPANSSTest(formData));
-        openModal(
-            "Test submitted! The results are now available on the next page."
-        );
+        try {
+            await dispatch(createPANSSTest(formData)).unwrap();
+            openModal(
+                "Test submitted! The results are now available on the next page."
+            );
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to submit assessment");
+            }
+        }
     };
 
     return (

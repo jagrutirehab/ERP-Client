@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState as useReactState } from "react";
 import PropTypes from "prop-types";
 import {
   Col,
@@ -6,10 +6,14 @@ import {
   DropdownMenu,
   DropdownItem,
   UncontrolledDropdown,
+  Input,
+  Label,
 } from "reactstrap";
+import { APIClient } from "../../../helpers/api_helper";
+import { toast } from "react-toastify";
 
 //framer motion
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 import { format } from "date-fns";
 import RenderWhen from "../../../Components/Common/RenderWhen";
@@ -17,13 +21,27 @@ import {
   ADVANCE_PAYMENT,
   INVOICE,
   IPD,
+  WRITE_OFF,
+  DETAIL_ADMISSION,
 } from "../../../Components/constants/patient";
 import { connect, useDispatch } from "react-redux";
-import { createEditBill } from "../../../store/actions";
+import {
+  createEditBill,
+  fetchCharts,
+  fetchGeneralCharts,
+  fetchChartsAddmissions,
+} from "../../../store/actions";
+import {
+  validateChart,
+  validateAISummary,
+  validateAIExpirySummary,
+} from "../../../helpers/backend_helper";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
+import ValidateConfirmationModal from "../ChartForm/Components/ValidateConfirmationModal";
 
 const Wrapper = ({
   item,
+  data,
   children,
   editItem,
   deleteItem,
@@ -31,18 +49,126 @@ const Wrapper = ({
   name,
   toggleDateModal,
   hideDropDown = false,
+  hideEdit = false,
   showId = true,
   showPrint = true,
   disableEdit = false,
   disableDelete = false,
+  addAdditionalDetails,
   patient,
   itemId,
   extraOptions,
   clinicalTest,
+  geminiResponseIsVerified,
+  geminiResponseGeneratedBy,
+  validatorId,
+  doctorValidatorId,
+  user,
+  additionalDiagnosis,
+  additionalDiagnosisLoading,
+  currentAddmissionId,
 }) => {
   const dispatch = useDispatch();
+  const [showRelatives, setShowRelatives] = React.useState(
+    item?.showToRelatives || false,
+  );
+  const [copied, setCopied] = useReactState(false);
+  const [additionalOpen, setAdditionalOpen] = useReactState(true);
   const chart = item?.chart;
   const bill = item?.bill;
+
+  const handleCopyId = async () => {
+    try {
+      await navigator.clipboard.writeText(item?._id);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1500);
+    } catch {
+      toast.error("Failed to copy ID");
+    }
+  };
+
+  const needsValidation =
+    chart && item.needsValidation && !item.doctorValidatorId;
+  const needsAIValidation =
+    !!item.geminiResponseGeneratedBy && !item.validatorId;
+  const canPrint =
+    showPrint &&
+    (!item.needsValidation || !!item.doctorValidatorId) &&
+    (!item.geminiResponseGeneratedBy || !!item.validatorId);
+
+  const [isModalOpen, setIsModalOpen] = React.useState(false);
+  const [pendingAction, setPendingAction] = React.useState(null); // 'doctor' | 'ai'
+  const [loading, setLoading] = React.useState(false);
+
+  const openModal = (action) => {
+    setPendingAction(action);
+    setIsModalOpen(true);
+  };
+
+  const closeModal = () => {
+    setIsModalOpen(false);
+    setPendingAction(null);
+  };
+
+  const refreshCharts = () => {
+    if (item.type === "GENERAL") {
+      dispatch(fetchGeneralCharts({ patient: item.patient, type: "GENERAL" }));
+    } else if (item.type === "OPD") {
+      dispatch(fetchGeneralCharts({ patient: item.patient, type: "OPD" }));
+    } else {
+      dispatch(
+        fetchCharts({ addmissionId: item.addmission, chartType: "All" }),
+      );
+      if (item.addmission) {
+        dispatch(fetchChartsAddmissions([item.addmission]));
+      }
+    }
+  };
+
+  const handleConfirm = async () => {
+    setLoading(true);
+    try {
+      if (pendingAction === "ai") {
+        const summaryId =
+          item.chart === "EXPIRY_SUMMARY"
+            ? item.expirySummary?._id
+            : item.dischargeSummary?._id;
+        if (item.chart === "EXPIRY_SUMMARY") {
+          await validateAIExpirySummary({ summary: summaryId });
+        } else {
+          await validateAISummary({ summary: summaryId });
+        }
+        toast.success("AI content validated successfully");
+      } else {
+        await validateChart(item._id);
+        toast.success("Chart validated successfully");
+      }
+      refreshCharts();
+    } catch (err) {
+      toast.error(err.message || "Failed to validate");
+    } finally {
+      setLoading(false);
+      closeModal();
+    }
+  };
+
+  const handleToggleRelatives = async (e) => {
+    e.stopPropagation();
+    const newValue = e.target.checked;
+    setShowRelatives(newValue);
+    try {
+      const api = new APIClient();
+      await api.update(`/chart/${item._id}/toggle-relatives`, {
+        showToRelatives: newValue,
+      });
+      toast.success("Chart visibility updated");
+    } catch (error) {
+      setShowRelatives(!newValue);
+      toast.error("Failed to update chart visibility");
+    }
+  };
+
+  console.log("item", item);
 
   const chartName = chart
     ? chart
@@ -51,12 +177,23 @@ const Wrapper = ({
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ")
     : bill
-    ? bill
-        .toLowerCase()
-        .split("_")
-        .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(" ")
-    : "";
+      ? bill
+          .toLowerCase()
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ")
+      : "";
+
+  const chartDiagnosis = Array.isArray(additionalDiagnosis)
+    ? additionalDiagnosis.find((d) => String(d.chart_id) === String(item._id))
+    : null;
+
+  const isDetailAdmissionValidated =
+    chart === DETAIL_ADMISSION && !!item.doctorValidatorId;
+
+  console.log("chartDiagnosis:", chartDiagnosis);
+  console.log("item._id:", item._id);
+  console.log("additionalDiagnosis array:", additionalDiagnosis);
 
   return (
     <motion.div
@@ -78,14 +215,121 @@ const Wrapper = ({
               {" "}
               <h6 className="fs-md-12 fs-xs-9 text-info">{itemId}</h6>
             </RenderWhen>
-            <h5 className="display-6 fs-14 text-start">{chartName}</h5>
+            {user?.email === "owais@gmail.com" && (
+              <button
+                type="button"
+                onClick={handleCopyId}
+                title="Copy ID"
+                style={{
+                  background: "none",
+                  border: "none",
+                  cursor: "pointer",
+                  padding: "2px 4px",
+                  display: "flex",
+                  alignItems: "center",
+                }}
+              >
+                <i
+                  className={`ri-${copied ? "check" : "file-copy"}-line fs-6 ${
+                    copied ? "text-success" : "text-muted"
+                  }`}
+                />
+              </button>
+            )}
+            <h5 className="display-6 fs-14 text-start d-flex align-items-center gap-2">
+              {/* {chartName === "Mental Examination" ? "Clinical Note" : chartName} */}
+              {chartName === "Mental Examination"
+                ? "Clinical Note"
+                : chartName === "Psycho Diagnostic Form"
+                  ? "Psycho Diagnostic Report"
+                  : chartName === "Nurse Sos Procedure"
+                    ? "Nurse Procedure"
+                    : chartName}
+
+              {geminiResponseGeneratedBy && (
+                <span
+                  className="rounded-circle d-inline-flex align-items-center justify-content-center bg-success text-white"
+                  style={{
+                    width: "18px",
+                    height: "18px",
+                    fontSize: "10px",
+                  }}
+                >
+                  AI
+                </span>
+              )}
+
+              {needsAIValidation && (
+                <span
+                  className="badge badge-soft-info d-inline-flex align-items-center py-1 px-2 ms-2"
+                  style={{ fontSize: "11px" }}
+                >
+                  <i className="ri-robot-line me-1"></i> AI-Summary Validation
+                  Pending
+                </span>
+              )}
+              {needsValidation && !needsAIValidation && (
+                <span
+                  className="badge badge-soft-warning d-inline-flex align-items-center py-1 px-2 ms-2"
+                  style={{ fontSize: "11px" }}
+                >
+                  <i className="ri-time-line me-1"></i> Pending Validation By
+                  Doctor
+                </span>
+              )}
+            </h5>
+            <RenderWhen isTrue={!bill && chart && item.type === "IPD"}>
+              <div className="form-check form-switch ms-3 d-flex align-items-center">
+                <Input
+                  type="checkbox"
+                  role="switch"
+                  id={`switch-relatives-${item?._id}`}
+                  checked={showRelatives}
+                  onChange={handleToggleRelatives}
+                />
+                <Label
+                  className="form-check-label fs-xs-11 ms-2 mb-0"
+                  htmlFor={`switch-relatives-${item?._id}`}
+                >
+                  Show to relatives
+                </Label>
+              </div>
+            </RenderWhen>
           </div>
-          <div className="d-flex justify-content-between ">
+          <div className="d-flex justify-content-between flex-wrap gap-2">
             <div>
+              {validatorId && (
+                <div className="d-flex align-items-center">
+                  <span className="fs-xs-9">AI-Summary Validated By:</span>
+                  <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
+                    {validatorId?.name}
+                  </h6>
+                </div>
+              )}
+              {doctorValidatorId && (
+                <div className="d-flex align-items-center">
+                  <span className="fs-xs-9">Doctor Validated By:</span>
+                  <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
+                    {doctorValidatorId?.name}
+                  </h6>
+                </div>
+              )}
+              {geminiResponseGeneratedBy && (
+                <div className="d-flex align-items-center">
+                  <span className="fs-xs-9">Ai-Summary Generated By:</span>
+                  <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
+                    {geminiResponseGeneratedBy?.name}
+                  </h6>
+                </div>
+              )}
               <div className="d-flex align-items-center">
                 <span className="fs-xs-9">Author:</span>
                 <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
-                  {item?.author?.name}
+                  {item?.fromNurse === true ? (
+                    <span className="badge bg-success">System Generated</span>
+                  ) : (
+                    item?.author?.name
+                  )}
                 </h6>
               </div>
               <div className="d-flex align-items-center">
@@ -94,9 +338,124 @@ const Wrapper = ({
                   {item?.author?.role}
                 </h6>
               </div>
+              {chart === DETAIL_ADMISSION &&
+                (additionalDiagnosisLoading && !!currentAddmissionId ? (
+                  <div className="mt-2 placeholder-glow">
+                    <span className="placeholder rounded col-6"></span>
+                  </div>
+                ) : chartDiagnosis?.code && chartDiagnosis?.summary ? (
+                  <div
+                    className="mt-2 rounded border w-100"
+                    style={{ borderColor: "#dee2e6", backgroundColor: "#fff" }}
+                  >
+                    {/* Accordion Header */}
+                    <div
+                      className="d-flex align-items-center justify-content-between px-2 py-1"
+                      style={{ cursor: "pointer" }}
+                      onClick={() => setAdditionalOpen((prev) => !prev)}
+                    >
+                      <div className="d-flex align-items-center gap-1">
+                        <i className="ri-stethoscope-line text-muted fs-xs-9"></i>
+                        <span className="fw-semibold text-muted fs-xs-12 fs-md-11">
+                          Additional Details
+                        </span>
+                      </div>
+                      <motion.i
+                        className="ri-arrow-down-s-line text-muted"
+                        animate={{ rotate: additionalOpen ? 180 : 0 }}
+                        transition={{ duration: 0.3 }}
+                      />
+                    </div>
+
+                    {/* Animated Accordion Body */}
+                    <AnimatePresence initial={false}>
+                      {additionalOpen && (
+                        <motion.div
+                          key="additional-body"
+                          initial={{ height: 0, opacity: 0 }}
+                          animate={{ height: "auto", opacity: 1 }}
+                          exit={{ height: 0, opacity: 0 }}
+                          transition={{ duration: 0.3, ease: "easeInOut" }}
+                          style={{ overflow: "hidden" }}
+                        >
+                          <div className="px-2 pb-2 d-flex flex-column gap-1">
+                            <div>
+                              <span className="fs-xs-12 fw-semibold me-1">
+                                Final Diagnosis:
+                              </span>
+                              <span
+                                className="badge bg-soft-primary text-primary fs-xs-11"
+                                style={{
+                                  whiteSpace: "normal",
+                                  textAlign: "left",
+                                }}
+                              >
+                                {chartDiagnosis.code}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="fs-xs-12 fw-semibold me-1">
+                                Summary:
+                              </span>
+                              <span
+                                className="fs-xs-12 text-muted"
+                                style={{ wordBreak: "break-word" }}
+                              >
+                                {chartDiagnosis.summary}
+                              </span>
+                            </div>
+                            {chartDiagnosis?.createdAt && (
+                              <div>
+                                <span className="fs-xs-12 fw-semibold me-1">
+                                  Posted At:
+                                </span>
+                                <span className="fs-xs-12 text-muted">
+                                  {format(
+                                    new Date(chartDiagnosis.createdAt),
+                                    "dd MMM yyyy hh:mm a",
+                                  )}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                ) : null)}
             </div>
-            <div className="d-flex ">
+
+            {/* <div>
+              <div className="d-flex align-items-center">
+                <span className="fs-xs-9">From :</span>
+                <h6 className="fs-xs-9 display-6 fs-6 mb-0 ms-2">
+                  {data?.fromDate &&
+                    format(new Date(data?.fromDate), "dd MMM yyyy") || "--"}
+                </h6>
+              </div>
+              <div className="d-flex align-items-center">
+                <span className="fs-xs-9">To :</span>
+                <h6 className="fs-xs-9 display-6 fs-6 mb-0 ms-2">
+                  {data?.toDate &&
+                    format(new Date(data?.toDate), "dd MMM yyyy") || "--"}
+                </h6>
+              </div>
+            </div> */}
+
+            <div className="d-flex ms-auto">
               <div>
+                <div className="d-flex align-items-start">
+                  <span className="fs-xs-9">
+                    Created at:{" "}
+                    <span className="font-semi-bold">
+                      {item?.createdAt &&
+                        format(
+                          new Date(item?.createdAt),
+                          "dd MMMM yyyy hh:mm a",
+                        )}
+                    </span>
+                  </span>
+                </div>
                 <div className="d-flex align-items-start">
                   <span className="fs-xs-9">
                     On:{" "}
@@ -121,16 +480,33 @@ const Wrapper = ({
                   className="col text-end"
                 >
                   {!hideDropDown && (
-                      <DropdownToggle
-                        tag="a"
-                        id="dropdownMenuLink14"
-                        role="button"
-                      >
-                        <i className="bx bx-dots-vertical-rounded fs-4"></i>
-                      </DropdownToggle>
-                    )}
+                    <DropdownToggle
+                      tag="a"
+                      id="dropdownMenuLink14"
+                      role="button"
+                    >
+                      <i className="bx bx-dots-vertical-rounded fs-4"></i>
+                    </DropdownToggle>
+                  )}
                   <DropdownMenu>
-                    <RenderWhen isTrue={showPrint}>
+                    {needsAIValidation && (
+                      <DropdownItem onClick={() => openModal("ai")} href="#">
+                        <i className="ri-robot-line align-bottom text-info me-2"></i>{" "}
+                        Validate AI Summary
+                      </DropdownItem>
+                    )}
+                    {needsValidation &&
+                      !needsAIValidation &&
+                      user?.role === "DOCTOR" && (
+                        <DropdownItem
+                          onClick={() => openModal("doctor")}
+                          href="#"
+                        >
+                          <i className="ri-checkbox-circle-line align-bottom text-success me-2"></i>{" "}
+                          Validate
+                        </DropdownItem>
+                      )}
+                    <RenderWhen isTrue={canPrint}>
                       <DropdownItem
                         onClick={() => printItem(item, patient)}
                         href="#"
@@ -139,12 +515,17 @@ const Wrapper = ({
                         Print
                       </DropdownItem>
                     </RenderWhen>
-                    {disableEdit ? (
+                    {hideEdit ||
+                    (disableEdit && user.email !== "owais@gmail.com") ||
+                    item?.bill === WRITE_OFF ||
+                    isDetailAdmissionValidated ? (
                       ""
                     ) : (
                       <CheckPermission permission={"edit"} subAccess={name}>
                         <DropdownItem
-                          disabled={disableEdit}
+                          disabled={
+                            disableEdit && user.email !== "owais@gmail.com"
+                          }
                           onClick={() => {
                             editItem(item, patient);
                           }}
@@ -155,7 +536,6 @@ const Wrapper = ({
                         </DropdownItem>
                       </CheckPermission>
                     )}
-
                     {disableEdit ? (
                       ""
                     ) : (
@@ -172,18 +552,31 @@ const Wrapper = ({
                       </CheckPermission>
                     )}
 
+                    {chart === DETAIL_ADMISSION &&
+                      addAdditionalDetails &&
+                      isDetailAdmissionValidated && (
+                        <DropdownItem
+                          onClick={() => addAdditionalDetails(item)}
+                          href="#"
+                        >
+                          <i className="ri-add-line align-bottom text-primary me-2"></i>
+                          Add Additional Details
+                        </DropdownItem>
+                      )}
                     <RenderWhen
                       isTrue={item?.bill === INVOICE && item.type === IPD}
                     >
                       <DropdownItem
-                        disabled={disableDelete}
+                        disabled={
+                          disableDelete && user.email !== "owais@gmail.com"
+                        }
                         onClick={() => {
                           dispatch(
                             createEditBill({
                               bill: ADVANCE_PAYMENT,
                               isOpen: false,
                               paymentAgainstBillNo: itemId,
-                            })
+                            }),
                           );
                           toggleDateModal();
                         }}
@@ -212,6 +605,12 @@ const Wrapper = ({
           </div>
         </div>
       </Col>
+      <ValidateConfirmationModal
+        isOpen={isModalOpen}
+        toggle={closeModal}
+        loading={loading}
+        onConfirm={handleConfirm}
+      />
     </motion.div>
   );
 };
@@ -228,6 +627,9 @@ Wrapper.propTypes = {
 
 const mapStateToProps = (state) => ({
   patient: state.Patient.patient,
+  user: state.User.user,
+  additionalDiagnosis: state.Chart.additionalDiagnosis, // ← add
+  additionalDiagnosisLoading: state.Chart.additionalDiagnosisLoading,
 });
 
 export default connect(mapStateToProps)(Wrapper);

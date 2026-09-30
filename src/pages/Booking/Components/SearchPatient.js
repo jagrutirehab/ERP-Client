@@ -69,7 +69,7 @@
 //   );
 // }
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
 import {
   Button,
@@ -96,18 +96,22 @@ const SearchPatient = ({
   editEvent,
   centerAccess,
   showNewTag = true,
+  setOPDPatient,
 }) => {
   const [filteredPatients, setFilteredPatients] = useState([]);
   const [isSearching, setIsSearching] = useState(false);
   const [dropdown, setDropdown] = useState(false);
-  const handleChange = (e) => {
-    const val = e.target.value;
-    setIsSearching(true);
-    // Include dropdownKey to identify which component made the search
-    socket.emit("search", { query: val, key: dropdownKey });
-  };
 
-  const debouncedOnChange = debounce(handleChange, 500);
+  const debouncedOnChange = useMemo(
+    () =>
+      debounce((val) => {
+        setIsSearching(true);
+        socket.emit("search", { query: val, key: dropdownKey });
+      }, 500),
+    [dropdownKey],
+  );
+
+  useEffect(() => () => debouncedOnChange.cancel(), [debouncedOnChange]);
 
   useEffect(() => {
     const handleSearchResults = (data) => {
@@ -134,10 +138,6 @@ const SearchPatient = ({
   const isNewPatient = !validation.values.patient;
   const isClearAvai = validation.values.patient;
 
-  console.log("---------------------------");
-  console.log({ values: validation.values });
-  console.log("---------------------------");
-
   return (
     <React.Fragment>
       <div>
@@ -147,13 +147,18 @@ const SearchPatient = ({
           toggle={() => setDropdown(false)}
           direction="down"
         >
-          <DropdownToggle className="p-0 w-100 position-relative" color="light">
+          <DropdownToggle
+            tag="div"
+            className="p-0 w-100 position-relative"
+            color="light"
+          >
             <Input
               disabled={disabled}
-              value={validation.values?.patientName}
+              value={validation.values?.patientName || ""}
               onChange={(e) => {
-                validation.setFieldValue("patientName", e.target.value);
-                debouncedOnChange(e);
+                const val = e.target.value;
+                validation.setFieldValue("patientName", val);
+                debouncedOnChange(val);
               }}
               onKeyDown={(e) => {
                 if (e.key === "Enter") {
@@ -218,11 +223,15 @@ const SearchPatient = ({
                     "phoneNumber",
                     item.phoneNumber.includes("+91")
                       ? item.phoneNumber
-                      : "+91" + item.phoneNumber
+                      : "+91" + item.phoneNumber,
                   );
                   validation.setFieldValue("gender", item.gender);
                   if (centerAccess.includes(item.center?._id))
                     validation.setFieldValue("center", item.center?._id);
+
+                  if (setOPDPatient) {
+                    setOPDPatient(!item.isAdmit);
+                  }
                 }}
               >
                 <span>{item?.name}</span>

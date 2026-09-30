@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Form, Button } from "reactstrap";
 import { set } from "date-fns";
@@ -16,11 +16,19 @@ import {
   DRAFT_INVOICE,
   INVOICE,
   REFUND,
+  WRITE_OFF,
 } from "../../../Components/constants/patient";
+import WriteOffModal from "./WriteOffModal";
 
 //redux
 import { connect, useDispatch, useSelector } from "react-redux";
-import { createEditBill, setBillDate } from "../../../store/actions";
+import {
+  createEditBill,
+  fetchBills,
+  setBillDate,
+} from "../../../store/actions";
+import { postWriteOff } from "../../../helpers/backend_helper";
+import { toast } from "react-toastify";
 
 const BillDate = ({
   isOpen,
@@ -29,15 +37,110 @@ const BillDate = ({
   editBillData,
   patient,
   admission,
+  adjustedPayable,
 }) => {
   const dispatch = useDispatch();
+  const [showWriteOff, setShowWriteOff] = useState(false);
+  const [loading, setLoading] = useState(false);
   const PatientCenter = useSelector(
-    (state) => state.Patient.patient.center._id
+    (state) => state.Patient.patient.center._id,
   );
+  const billingAdmissions = useSelector((state) => state.Bill.data);
+
+  const user = useSelector((state) => state?.User?.user);
+
+  // const latestBillingAdmission = billingAdmissions?.reduce(
+  //   (latest, current) =>
+  //     new Date(current.addmissionDate) > new Date(latest.addmissionDate)
+  //       ? current
+  //       : latest
+  // );
+  const latestBillingAdmission =
+    Array.isArray(billingAdmissions) && billingAdmissions.length > 0
+      ? billingAdmissions?.reduce((latest, current) =>
+          new Date(current.addmissionDate) > new Date(latest.addmissionDate)
+            ? current
+            : latest,
+        )
+      : null;
+
+  console.log("latestBillingAdmission", latestBillingAdmission);
+  console.log("admission", admission);
+
+  const specialEmails = [
+    "rijutarafder000@gmail.com",
+    "owais@gmail.com",
+    "bishal@gmail.com",
+    "hemanthshinde@gmail.com",
+    "surjeet.parida@gmail.com",
+    "sarang.padulkar@jagrutirehab.org",
+  ];
+
+  const isSpecialUser = specialEmails.includes(user?.email);
+  const isCurrentAdmissionDischarged =
+    latestBillingAdmission?.dischargeDate &&
+    (latestBillingAdmission?._id === admission ||
+      latestBillingAdmission?.addmissionId === admission);
+  const canShowSpecialButtons = isSpecialUser && isCurrentAdmissionDischarged;
+  const shouldShowWriteOff = isCurrentAdmissionDischarged;
+  const isNormalUserAndDischarged =
+    !isSpecialUser && isCurrentAdmissionDischarged;
+
+  const paymentCenters = [
+    "651f8abfed3d16334ae5a908",
+    "65b0143a5f1da510dc3094cb",
+  ];
+
+  const isPaymentCenter = paymentCenters.includes(PatientCenter);
+
+  const MALAD_EAST_CENTER_IDS = ["65b0143a5f1da510dc3094cb","65b0143a5f1da510dc3094cb"];
+  const isMaladEastAdvancePayment =
+    MALAD_EAST_CENTER_IDS.includes(PatientCenter) &&
+    editBillData?.bill === ADVANCE_PAYMENT;
+
+  const isGurgaonAdvancePayment =
+    (patient?.center?._id === "694e565ed6e6dd32a39c9815" ||
+      patient?.center?.title === "Gurgaon") &&
+    editBillData?.bill === ADVANCE_PAYMENT;
 
   useEffect(() => {
-    if (isOpen) dispatch(setBillDate(new Date().toISOString()));
+    if (isOpen) {
+      const initialDate = new Date();
+      dispatch(setBillDate(initialDate.toISOString()));
+    }
   }, [dispatch, isOpen]);
+
+  console.log({ billDate, editBillData, patient, admission });
+
+  console.log("patient1 data : ", { patient: patient, admission: admission });
+
+  const handleWriteOffSubmit = async (data) => {
+    if (!latestBillingAdmission?._id) return;
+    try {
+      const payload = {
+        center:
+          latestBillingAdmission?.center?._id || latestBillingAdmission?.center,
+        patient: patient?._id,
+        addmission:
+          latestBillingAdmission?.addmissionId || latestBillingAdmission?._id,
+        amount: data?.amount,
+        reason: data?.reason,
+      };
+      console.log("payload", payload);
+      const response = await postWriteOff(payload);
+      console.log("response", response);
+      toast.success(response?.message || "Write off added!");
+      setShowWriteOff(false);
+      toggle();
+      const admissionId =
+        latestBillingAdmission?._id || latestBillingAdmission?.addmissionId;
+      if (admissionId) {
+        await dispatch(fetchBills(admissionId));
+      }
+    } catch (error) {
+      toast.error("Error Adding WRITE OFF!");
+    }
+  };
 
   return (
     <React.Fragment>
@@ -55,7 +158,7 @@ const BillDate = ({
             <div className="d-flex justify-content-center align-items-center">
               <span>
                 <Flatpicker
-                  name="dateOfAdmission"
+                  name="date"
                   value={billDate || ""}
                   onChange={([e]) => {
                     const concat = set(new Date(billDate), {
@@ -67,23 +170,40 @@ const BillDate = ({
                   }}
                   options={{
                     dateFormat: "d M, Y",
-                    maxDate: new Date(
-                      new Date().setMonth(new Date().getMonth() + 1)
-                    ),
-                    // enable: [
-                    //   function (date) {
-                    //     return date.getDate() === new Date().getDate();
-                    //   },
-                    // ],
+                    disableMobile: true,
+                    maxDate: isMaladEastAdvancePayment
+                      ? new Date()
+                      : editBillData.bill
+                        ? new Date()
+                        : new Date(
+                            new Date().setMonth(new Date().getMonth() + 1),
+                          ),
+                    ...(isMaladEastAdvancePayment && {
+                      minDate: new Date(
+                        new Date().setDate(new Date().getDate() - 1),
+                      ),
+                    }),
+                    ...(isGurgaonAdvancePayment && {
+                      enable: [
+                        function (date) {
+                          const today = new Date();
+                          today.setHours(0, 0, 0, 0);
+                          const yesterday = new Date(today);
+                          yesterday.setDate(yesterday.getDate() - 1);
+                          return date >= yesterday;
+                        },
+                      ],
+                    }),
                   }}
-                  className="form-control shadow-none bg-light"
+                  className="form-control shadow-none bg-white"
+                  // className={`form-control shadow-none bg-light ${(patient.center?._id === "694e565ed6e6dd32a39c9815" || patient.center.title === "Gurgaon") && editBillData.bill === ADVANCE_PAYMENT ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>
               <span className="ms-3 me-3">at</span>
               <span>
                 <Flatpicker
-                  name="dateOfAdmission"
+                  name="time"
                   value={billDate || ""}
                   onChange={([e]) => {
                     const concat = set(new Date(billDate), {
@@ -99,9 +219,11 @@ const BillDate = ({
                     noCalendar: true,
                     dateFormat: "G:i:S K",
                     time_24hr: false,
+                    disableMobile: true,
                     // defaultDate: moment().format('LT'),
                   }}
-                  className="form-control shadow-none bg-light"
+                  // className={`form-control shadow-none bg-light ${(patient.center?._id === "694e565ed6e6dd32a39c9815" || patient.center.title === "Gurgaon") && editBillData.bill === ADVANCE_PAYMENT ? "disabled text-muted" : "bg-white"}`}
+                  className="form-control shadow-none bg-white"
                   id="dateOfAdmission"
                 />
               </span>
@@ -116,7 +238,7 @@ const BillDate = ({
           </Form>
         </div>
         <div className="d-flex justify-content-end gap-3">
-          <Button
+          {/* <Button
             outline
             disabled={
               PatientCenter === "65b0143a5f1da510dc3094cb"
@@ -145,17 +267,72 @@ const BillDate = ({
           >
             {PatientCenter === "65b0143a5f1da510dc3094cb"
               ? "Payment"
-              : "Advance Payment"}
-            {/* Advance Payment */}
-            {/* Payment */}
+              : "Advance Payment"} */}
+          {/* Advance Payment */}
+          {/* Payment */}
+          {/* </Button> */}
+          {/* <Button
+            outline
+            disabled={
+              isPaymentCenter
+                ? editBillData.bill === null ||
+                  editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT
+                : editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT
+            }
+            size="sm"
+            onClick={() => {
+              dispatch(
+                createEditBill({
+                  ...editBillData,
+                  bill: ADVANCE_PAYMENT,
+                  isOpen: true,
+                  admission,
+                }),
+              );
+              toggle();
+            }}
+          >
+            {isPaymentCenter ? "Payment" : "Advance Payment"}
+          </Button> */}
+          <Button
+            outline
+            disabled={
+              editBillData.bill === null ||
+              editBillData.bill === INVOICE ||
+              editBillData.bill === REFUND ||
+              editBillData.bill === DRAFT_INVOICE ||
+              editBillData.bill === DEPOSIT
+            }
+            size="sm"
+            onClick={() => {
+              dispatch(
+                createEditBill({
+                  ...editBillData,
+                  bill: ADVANCE_PAYMENT,
+                  isOpen: true,
+                  admission,
+                }),
+              );
+              toggle();
+            }}
+          >
+            Payment
           </Button>
           <Button
             outline
             disabled={
-              editBillData.bill === INVOICE ||
-              editBillData.bill === REFUND ||
-              editBillData.bill === DRAFT_INVOICE ||
-              editBillData.bill === ADVANCE_PAYMENT
+              isNormalUserAndDischarged || // Block if normal user + discharged
+              (!canShowSpecialButtons &&
+                (editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === ADVANCE_PAYMENT))
             }
             size="sm"
             onClick={() => {
@@ -165,7 +342,7 @@ const BillDate = ({
                   bill: DEPOSIT,
                   isOpen: true,
                   admission,
-                })
+                }),
               );
               toggle();
             }}
@@ -175,9 +352,11 @@ const BillDate = ({
           <Button
             outline
             disabled={
-              editBillData.bill === ADVANCE_PAYMENT ||
-              editBillData.bill === DRAFT_INVOICE ||
-              editBillData.bill === DEPOSIT
+              isNormalUserAndDischarged || // Block if normal user + discharged
+              (!canShowSpecialButtons &&
+                (editBillData.bill === ADVANCE_PAYMENT ||
+                  editBillData.bill === DRAFT_INVOICE ||
+                  editBillData.bill === DEPOSIT))
             }
             size="sm"
             onClick={() => {
@@ -188,20 +367,22 @@ const BillDate = ({
                   bill: INVOICE,
                   isOpen: true,
                   admission,
-                })
+                }),
               );
               toggle();
             }}
           >
-            Inovice
+            Invoice
           </Button>
           <Button
             outline
             disabled={
-              editBillData.bill === ADVANCE_PAYMENT ||
-              editBillData.bill === INVOICE ||
-              editBillData.bill === REFUND ||
-              editBillData.bill === DEPOSIT
+              isNormalUserAndDischarged || // Block if normal user + discharged
+              (!canShowSpecialButtons &&
+                (editBillData.bill === ADVANCE_PAYMENT ||
+                  editBillData.bill === INVOICE ||
+                  editBillData.bill === REFUND ||
+                  editBillData.bill === DEPOSIT))
             }
             size="sm"
             onClick={() => {
@@ -212,15 +393,27 @@ const BillDate = ({
                   bill: DRAFT_INVOICE,
                   isOpen: true,
                   admission,
-                })
+                }),
               );
               toggle();
             }}
           >
-            Inovice Draft
+            Invoice Draft
           </Button>
+          {shouldShowWriteOff && adjustedPayable > 0 && (
+            <Button outline size="sm" onClick={() => setShowWriteOff(true)}>
+              Write Off
+            </Button>
+          )}
         </div>
       </CustomModal>
+
+      <WriteOffModal
+        isOpen={showWriteOff}
+        toggle={() => setShowWriteOff(false)}
+        onSubmit={handleWriteOffSubmit}
+        adjustedPayable={adjustedPayable}
+      />
     </React.Fragment>
   );
 };

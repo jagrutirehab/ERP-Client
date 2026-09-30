@@ -25,6 +25,9 @@ const Main = () => {
     navigate("/unauthorized");
     return null;
   }
+
+  document.title="Cash Dashboard";
+
   return <Views />;
 };
 

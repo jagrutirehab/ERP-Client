@@ -31,11 +31,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 2,
   },
   sn: { width: "8%", textAlign: "center" },
-  desc: { width: "40%" },
+  desc: { width: "30%" },
   qty: { width: "10%", textAlign: "center" },
   uom: { width: "10%", textAlign: "center" },
-  rate: { width: "15%", textAlign: "center" },
-  amt: { width: "17%", textAlign: "right" },
+  rate: { width: "13%", textAlign: "center" },
+  amt: { width: "14%", textAlign: "right" },
   categoryTitle: {
     fontFamily: "Roboto",
     fontWeight: "bold",
@@ -82,6 +82,7 @@ const styles = StyleSheet.create({
     paddingVertical: 2,
     marginTop: 4,
   },
+  duration: { width: "20%", textAlign: "center" },
 });
 
 const transformInvoiceList = (invoiceList = []) => {
@@ -106,15 +107,23 @@ const transformInvoiceList = (invoiceList = []) => {
 };
 
 const Table = ({ bill }) => {
+  console.log("bill from Main", bill);
+  const totalItemDiscount =
+    bill?.invoice?.invoiceList?.reduce(
+      (sum, item) => sum + (Number(item?.discount) || 0),
+      0,
+    ) || 0;
+
+  const totalAdditonalDiscount =
+    (Number(bill?.invoice?.totalDiscount) || 0) - totalItemDiscount;
   let serial = 1;
 
-
   const data = transformInvoiceList(bill?.invoice?.invoiceList || []);
+  console.log("bill.type", bill.type);
   const payable =
     bill.type === OPD
-      ? addComma(bill.invoice?.payable ?? 0)
-      : addComma(parseFloat(bill.invoice?.calculatedPayable ?? 0).toFixed(2));
-
+      ? (bill.invoice?.payable ?? 0)
+      : Number(bill.invoice?.calculatedPayable ?? 0);
   // const data = [
   //   {
   //     category: "Room Charges",
@@ -156,6 +165,10 @@ const Table = ({ bill }) => {
   //   },
   // ];
 
+  const hasDuration = (bill?.invoice?.invoiceList || []).some(
+    (item) => item.fromDate && item.toDate
+  );
+
   const renderRows = () => {
     const rows = [];
     let grandTotal = 0;
@@ -164,13 +177,14 @@ const Table = ({ bill }) => {
       rows.push(
         <Text key={section.category} style={styles.categoryTitle}>
           {section.category}
-        </Text>
+        </Text>,
       );
 
       let subTotal = 0;
       section.items.forEach((item, idx) => {
         const amt = item.unit * item.cost;
-        subTotal += amt;
+        const discount = Number(item?.discount) || 0;
+        subTotal += amt - discount;
         rows.push(
           <View style={{ paddingBottom: 5 }} key={item.slot}>
             <View style={styles.row}>
@@ -182,10 +196,23 @@ const Table = ({ bill }) => {
               <Text style={[styles.cell, styles.uom]}>
                 {item.unitOfMeasurement?.toUpperCase() || ""}
               </Text>
+              {hasDuration && (
+                <Text style={[styles.cell, styles.duration]}>
+                  {item?.fromDate && item?.toDate
+                    ? `${new Date(item.fromDate).toLocaleDateString("en-GB")} - ${new Date(
+                      item?.toDate
+                    ).toLocaleDateString("en-GB")}`
+                    : "-"}
+                </Text>
+              )}
+
               <Text style={[styles.cell, styles.rate]}>
                 {addComma(item.cost || 0)}
               </Text>
               <Text style={[styles.cell, styles.amt]}>{addComma(amt)}</Text>
+              <Text style={[styles.cell, styles.amt]}>
+                {addComma(Number(item?.discount) || 0)}
+              </Text>
             </View>
             <View style={styles.row}>
               <Text style={[styles.cell, styles.sn]}></Text>
@@ -193,7 +220,8 @@ const Table = ({ bill }) => {
                 {item.comments || ""}
               </Text>
             </View>
-          </View>
+
+          </View>,
         );
       });
 
@@ -201,7 +229,7 @@ const Table = ({ bill }) => {
         <View style={styles.subTotalRow} key={`${section.category}-subtotal`}>
           <Text style={styles.subTotalLabel}>Sub Total:</Text>
           <Text style={styles.subTotalValue}>{addComma(subTotal)}</Text>
-        </View>
+        </View>,
       );
 
       grandTotal += subTotal;
@@ -232,8 +260,12 @@ const Table = ({ bill }) => {
         <Text style={[styles.cell, styles.desc]}>Description</Text>
         <Text style={[styles.cell, styles.qty]}>Qty</Text>
         <Text style={[styles.cell, styles.uom]}>UOM</Text>
+        {hasDuration && (
+          <Text style={[styles.cell, styles.duration]}>Duration</Text>
+        )}
         <Text style={[styles.cell, styles.rate]}>Rate</Text>
         <Text style={[styles.cell, styles.amt]}>Amount</Text>
+        <Text style={[styles.cell, styles.amt]}>Discount</Text>
       </View>
 
       {/* Line Items */}
@@ -248,9 +280,15 @@ const Table = ({ bill }) => {
       </View>
 
       <View style={[styles.summaryRow]}>
+        <Text style={styles.summaryLabel}>Addtional Discount:</Text>
+        <Text style={styles.summaryValue}>
+          ₹{addComma(totalAdditonalDiscount || 0)}
+        </Text>
+      </View>
+      <View style={[styles.summaryRow]}>
         <Text style={styles.summaryLabel}>Bill Amount:</Text>
         <Text style={styles.summaryValue}>
-          ₹{addComma(bill.invoice?.grandTotal || 0)}
+          ₹{addComma(bill.invoice?.payable || 0)}
         </Text>
       </View>
       <View style={styles.summaryRow}>

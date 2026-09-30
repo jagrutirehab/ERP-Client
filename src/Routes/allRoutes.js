@@ -4,36 +4,54 @@ import DashboardEcommerce from "../pages/DashboardEcommerce";
 import Patient from "../pages/Patient";
 import MyMeetingUI from "../pages/Meeting/MeetingPage.jsx";
 import Intern from "../pages/Intern/index.js";
+import SopConfigs from "../pages/SopConfigs/index.js";
+import { element } from "prop-types";
 const Login = React.lazy(() => import("../pages/Authentication/Login"));
-const ForgetPasswordPage = React.lazy(() =>
-  import("../pages/Authentication/ForgetPassword")
+const ForgetPasswordPage = React.lazy(
+  () => import("../pages/Authentication/ForgetPassword"),
 );
 const Logout = React.lazy(() => import("../pages/Authentication/Logout"));
 const Register = React.lazy(() => import("../pages/User"));
 const Setting = React.lazy(() => import("../pages/Setting"));
 const Notification = React.lazy(() => import("../pages/Notification"));
 const Recyclebin = React.lazy(() => import("../pages/Recyclebin"));
-const UserProfile = React.lazy(() =>
-  import("../pages/Authentication/user-profile")
+const UserProfile = React.lazy(
+  () => import("../pages/Authentication/user-profile"),
 );
 const Center = React.lazy(() => import("../pages/Center"));
 const Nurse = React.lazy(() => import("../pages/Nurse"));
-const EmergencyDashboad = React.lazy(() =>
-  import("../pages/DashboardEmergency")
+const EmergencyDashboad = React.lazy(
+  () => import("../pages/DashboardEmergency"),
 );
 const CashManagement = React.lazy(() => import("../pages/CashManagement"));
 const CentralPayment = React.lazy(() => import("../pages/CentralPayment"));
 const Booking = React.lazy(() => import("../pages/Booking"));
 const Medicine = React.lazy(() => import("../pages/Medicine"));
 const Lead = React.lazy(() => import("../pages/Lead"));
+const WebCamStats = React.lazy(() => import("../pages/WebCamStats"));
 const Report = React.lazy(() => import("../pages/Report"));
 const Pharmacy = React.lazy(() => import("../pages/Inventory"));
 const Guidelines = React.lazy(() => import("../pages/Guidelines"));
-const IncidentReporting = React.lazy(() =>
-  import("../pages/IncidentReporting")
+const IncidentReporting = React.lazy(
+  () => import("../pages/IncidentReporting"),
 );
 const RoundNotes = React.lazy(() => import("../pages/RoundNotes"));
-
+const HR = React.lazy(() => import("../pages/HR"));
+const Audit = React.lazy(() => import("../pages/Audit"));
+const MiReporting = React.lazy(() => import("../pages/MIReporting/index.js"));
+const HRMS = React.lazy(() => import("../pages/HRMS"));
+const Referral = React.lazy(() => import("../pages/Referral"));
+const Tally = React.lazy(() => import("../pages/Tally"));
+const Issues = React.lazy(() => import("../pages/Issues"));
+const Recordings = React.lazy(() => import("../pages/Recordings"));
+const SOP = React.lazy(() => import("../pages/SopConfigs"));
+const Trainings = React.lazy(() => import("../pages/Trainings"));
+const Utilities = React.lazy(() => import("../pages/Utilities"));
+const AlertPage = React.lazy(() => import("../pages/Alerts"));
+const Marketing = React.lazy(() => import("../pages/Marketing"));
+const DoctorVisits = React.lazy(() => import("../pages/DoctorVisits/DoctorVisits"));
+const MasterData = React.lazy(() => import("../pages/MasterData"));
+const CenterDashboard = React.lazy(() => import("../pages/CenterDashboard"));
 const allElements = [
   { element: Register, label: "User" },
   { element: Center, label: "Center" },
@@ -52,14 +70,34 @@ const allElements = [
   { element: Pharmacy, label: "Pharmacy" },
   { element: Guidelines, label: "Guidelines" },
   { element: IncidentReporting, label: "Incident Reporting" },
+  { element: MiReporting, label: "Hubspot Reporting" },
+  { element: HR, label: "HR" },
+  { element: HRMS, label: "HRMS" },
+  { element: WebCamStats, label: "Web Cam Stats" },
+  { element: Referral, label: "Referral" },
+  { element: Tally, label: "Tally" },
+  { element: Issues, label: "Issues" },
+  { element: Recordings, label: "Recordings" },
+  { element: SOP, label: "SOP-configs" },
+  { element: Trainings, label: "Trainings" },
+  { element: Utilities, label: "Utilities" },
+  { element: AlertPage, label: "Alert" },
+  { element: Marketing, label: "Marketing" },
+  { element: MasterData, label: "Vendor Management" },
+  { element: CenterDashboard, label: "Center Dashboard" },
 ];
 
+console.log("SOP:", SOP);
+console.log("Recordings:", Recordings);
+console.log("HR:", HR);
+// console.log("Recordings lazy:", Recordings);
 const authProtectedRoutes = [
   { path: "/dashboard", component: DashboardEcommerce },
   { path: "/index", component: DashboardEcommerce },
   { path: "/profile", component: UserProfile },
   { path: "/user/*", component: Register },
   { path: "/patient/*", component: Patient },
+  { path: "/alert", component: AlertPage },
   { path: "/setting/*", component: Setting },
   { path: "/recyclebin/*", component: Recyclebin },
   { path: "/medicine", component: Medicine },
@@ -74,6 +112,24 @@ const authProtectedRoutes = [
   { path: "/guidelines/*", component: Guidelines },
   { path: "/incident-reporting/*", component: IncidentReporting },
   { path: "/round-notes", component: RoundNotes },
+  { path: "/hr/*", component: HR },
+  { path: "/audit", component: Audit },
+  { path: "/issues/*", component: Issues },
+  { path: "/recordings/*", component: Recordings },
+  { path: "/mi-reporting", component: MiReporting },
+  { path: "/mi-reporting/*", component: MiReporting },
+  { path: "/hrms/*", component: HRMS },
+  { path: "/webcamstats/*", component: WebCamStats },
+  { path: "/contacts", component: Referral },
+  { path: "/referral", component: () => <Navigate to="/contacts" replace /> },
+  { path: "/tally", component: Tally },
+  { path: "/sop-configs/*", component: SOP },
+  { path: "/trainings/*", component: Trainings },
+  { path: "/utilities/*", component: Utilities },
+  { path: "/marketing/*", component: Marketing },
+  { path: "/vendor-management/*", component: MasterData },
+  { path: "/doctor-visits", component: DoctorVisits },
+  { path: "/center-dashboard", component: CenterDashboard },
   {
     path: "/",
     exact: true,

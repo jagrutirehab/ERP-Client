@@ -3,6 +3,10 @@ import PropTypes from "prop-types";
 import { Input, Label, Button, Form } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import Payment from "./Components/Payment";
+import {
+  rowsMissingEvidence,
+  evidenceErrorMessage,
+} from "./Components/evidenceRequired";
 
 //data
 import {
@@ -22,6 +26,7 @@ import { connect, useDispatch } from "react-redux";
 import {
   addDeposit,
   createEditBill,
+  fetchPaymentAccounts,
   updateDeposit,
 } from "../../../store/actions";
 
@@ -68,6 +73,12 @@ const Deposit = ({
 
   const editData = editBillData?.deposit;
 
+  // Recomputed each render so the message and the disabled Save button clear the
+  // moment a file is attached, without any extra state to keep in sync.
+  const evidenceError = evidenceErrorMessage(
+    rowsMissingEvidence(paymentModes, existingTransactionProof),
+  );
+
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -80,8 +91,8 @@ const Deposit = ({
       paymentAgainstBillNo: editData
         ? editData.paymentAgainstBillNo
         : paymentAgainstBillNo
-        ? paymentAgainstBillNo
-        : "",
+          ? paymentAgainstBillNo
+          : "",
       remarks: editData ? editData.remarks : "",
       date: billDate,
       type,
@@ -91,6 +102,15 @@ const Deposit = ({
       totalAmount: Yup.number().moreThan(0),
     }),
     onSubmit: (values) => {
+      // Enforced here as well as on the disabled button: `paymentModes` lives in
+      // local state, so Formik/Yup never sees it, and the form can still be
+      // submitted by pressing Enter in any field.
+      if (rowsMissingEvidence(paymentModes, existingTransactionProof).length)
+        return;
+
+      const evidenceEntries = collectEvidenceFiles(paymentModes);
+      const cleanPaymentModes = stripEvidenceFiles(paymentModes);
+
       if (editData) {
         dispatch(
           updateDeposit({
@@ -121,6 +141,19 @@ const Deposit = ({
       setPaymentModes(deposit?.paymentModes);
     }
   }, [editBillData]);
+
+  useEffect(() => {
+    if (patient.center._id) {
+      dispatch(
+        fetchPaymentAccounts({
+          centerIds: [patient.center._id],
+          page: 1,
+          limit: 1000,
+        })
+        // fetchPaymentAccounts({ centerIds: userCenters, page: 1, limit: 1000 })
+      );
+    }
+  }, [dispatch, patient.center._id]);
 
   return (
     <React.Fragment>
@@ -191,6 +224,9 @@ const Deposit = ({
             />
           </div>
           <div className="mt-3">
+            {evidenceError ? (
+              <p className="text-danger small text-end mb-2">{evidenceError}</p>
+            ) : null}
             <div className="d-flex gap-3 justify-content-end">
               <Button
                 onClick={() => {
@@ -205,7 +241,7 @@ const Deposit = ({
               >
                 Cancel
               </Button>
-              <Button size="sm" type="submit">
+              <Button size="sm" type="submit" disabled={!!evidenceError}>
                 Save
                 {/* {chart ? "Update" : "Save"} */}
               </Button>

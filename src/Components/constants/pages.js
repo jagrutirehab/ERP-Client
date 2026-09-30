@@ -7,6 +7,13 @@ const pages = [
     icon: "ri-delete-bin-6-line",
   },
   {
+    id: "centerDashboard",
+    label: "Center Dashboard",
+    name: "Center Dashboard",
+    link: "/center-dashboard",
+    icon: "bx bx-broadcast",
+  },
+  {
     id: "nurse",
     label: "Nurse",
     name: "Nurse",
@@ -20,6 +27,19 @@ const pages = [
     link: "/emergency",
     icon: "bx bxs-error",
   },
+  {
+    id: "doctorvisits",
+    label: "Doctor Visits",
+    name: "Doctor Visits",
+    link: "/doctor-visits",
+    icon: "bx bx-user-voice",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+
   {
     id: "centralpayment",
     label: "Central Payment",
@@ -202,13 +222,53 @@ const pages = [
       {
         name: "Timeline",
       },
+      {
+        name: "Belongings",
+        permissions: {
+          create: true,
+          edit: true,
+          delete: true,
+        },
+      },
     ],
+  },
+  {
+    id: "alert",
+    label: "Alert",
+    name: "Alert",
+    link: "/alert",
+    icon: "bx bx-bell",
+  },
+  {
+    id: "referral",
+    label: "Referral",
+    displayLabel: "Contacts",
+    name: "Referral",
+    link: "/contacts",
+    icon: "bx bx-share-alt",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
   },
   {
     id: "roundnotes",
     label: "Round Notes",
     name: "Round Notes",
     link: "/round-notes",
+    icon: "ri-sticky-note-line",
+    permissions: {
+      create: true,
+      edit: true,
+      delete: true,
+    },
+  },
+  {
+    id: "mireporting",
+    label: "Mi Reporting",
+    name: "Mi Reporting",
+    link: "/mi-reporting",
     icon: "ri-sticky-note-line",
     permissions: {
       create: true,
@@ -255,11 +315,116 @@ const pages = [
     icon: "bx bx-book",
   },
   {
+    id: "masterdata",
+    label: "Vendor Management",
+    name: "Vendor Management",
+    link: "/vendor-management",
+    icon: "bx bx-purchase-tag-alt",
+  },
+  {
+    id: "tranings",
+    label: "Trainings",
+    name: "Trainings",
+    link: "/trainings",
+    icon: "bx bx-book-reader",
+  },
+  {
+    id: "utilities",
+    label: "Utilities",
+    name: "Utilities",
+    link: "/utilities",
+    icon: "bx bx-receipt",
+  },
+  {
     id: "guidelines",
     label: "Guidelines",
     name: "Guidelines",
     link: "/guidelines",
     icon: "bx bx-book-open",
+  },
+  {
+    id: "hr",
+    label: "HR",
+    name: "HR",
+    link: "/hr",
+    icon: "bx bx-body",
+  },
+  {
+    id: "audit",
+    label: "Audit",
+    name: "Audit",
+    link: "/audit",
+    icon: "bx bx-clipboard",
+  },
+  {
+    id: "issues",
+    label: "Issues",
+    name: "Issues",
+    link: "/issues",
+    icon: "bx bx-error-circle",
+  },
+  {
+    id: "marketing",
+    label: "Marketing",
+    name: "Marketing",
+    link: "/marketing",
+    icon: "bx bx-map-pin",
+  },
+  {
+    id: "recordings",
+    label: "Recordings",
+    name: "Recordings",
+    link: "/recordings",
+    icon: "bx bx-microphone",
+  },
+  // {
+  //   id: "hrms",
+  //   label: "HRMS",
+  //   name: "HRMS",
+  //   link: "/hrms",
+  //   icon: "bx bx-group",
+  // },
+  {
+    id: "webcamstats",
+    label: "Web Cam Stats",
+    name: "Web Cam Stats",
+    link: "/webcamstats",
+    icon: "bx bx-group",
+  },
+  {
+    id: "tally",
+    label: "Tally",
+    name: "Tally",
+    link: "/tally",
+    icon: "bx bx-transfer",
+  },
+  {
+    id: "sopconfigs",
+    label: "SOP-configs",
+    name: "SOP-configs",
+    link: "/sop-configs",
+    icon: "bx bx-transfer",
+  },
+];
+
+export const WebcamStats = [
+  {
+    id: "webcamstats-dashboard",
+    label: "Dashboard",
+    link: "/webcamstats/dashboard",
+    icon: "bx bx-home",
+  },
+  {
+    id: "webcamstats-stats",
+    label: "Stats",
+    link: "/webcamstats/stats",
+    icon: "bx bx-home",
+  },
+  {
+    id: "webcamstats-apikeys",
+    label: "API Keys",
+    link: "/webcamstats/apikeys",
+    icon: "bx bx-home",
   },
 ];
 
@@ -274,13 +439,19 @@ export const Pharmacy = [
     id: "pharmacymanagement",
     label: "Inventory",
     link: "/pharmacy/management",
-    icon: "bx bx-building-house",
+    icon: "bx bx-package",
   },
   {
     id: "givenmedicines",
     label: "Medicine Given",
     link: "/pharmacy/given-med",
-    icon: "bx bx-building-house",
+    icon: "bx bx-capsule",
+  },
+  {
+    id: "nurseGivenMedicines",
+    label: "Nurse Given Medicine",
+    link: "/pharmacy/nurse-given-med",
+    icon: "bx bx-capsule",
   },
   {
     id: "medicineaApproval",
@@ -288,12 +459,119 @@ export const Pharmacy = [
     link: "/pharmacy/approval",
     icon: "bx bx-checkbox-checked",
   },
-  // {
-  //   id: "audit",
-  //   label: "Audit",
-  //   link: "/pharmacy/audit",
-  //   icon: "bx bx-fingerprint",
-  // },
+  {
+    id: "audit",
+    label: "Audit",
+    link: "/pharmacy/audit",
+    icon: "bx bx-fingerprint",
+  },
+  {
+    id: "requisition",
+    label: "Requisition",
+    icon: "bx bx-notepad",
+    isAccordion: true,
+    children: [
+      {
+        id: "internal-transfer",
+        label: "Internal Transfer",
+        link: "/pharmacy/requisition/internal-transfer",
+        icon: "bx bx-transfer",
+      },
+      {
+        id: "sareyaan-orders",
+        label: "Sareyaan Orders",
+        link: "/pharmacy/requisition/sareyaan-orders",
+        icon: "bx bx-store-alt",
+      },
+      {
+        id: "medicine-requisition",
+        label: "Medicine Requisition",
+        link: "/pharmacy/requisition/medicine-requisition",
+        icon: "bx bx-capsule",
+      },
+    ],
+  },
+  {
+    id: "stockSummary",
+    label: "Stock Summary",
+    link: "/pharmacy/stock-summary",
+    icon: "bx bx-box",
+  },
+  {
+    id: "billUploadDashboard",
+    label: "Bill Upload History",
+    link: "/pharmacy/bill-upload-dashboard",
+    icon: "bx bx-history",
+  },
+  {
+    id: "sareyaanInventory",
+    label: "Sareyaan Inventory",
+    link: "/pharmacy/sareyaan-inventory",
+    icon: "bx bx-package",
+  },
+];
+
+export const MIReporting = [
+  {
+    id: "center-leads-mom",
+    label: "Center Leads (MoM)",
+    link: "/mi-reporting/center-leads-mom",
+    icon: "bx bx-bar-chart-alt-2",
+  },
+  {
+    id: "center-leads-mtd",
+    label: "Center Leads (MTD)",
+    link: "/mi-reporting/center-leads-mtd",
+    icon: "bx bx-line-chart",
+  },
+  {
+    id: "owner-leads-mom",
+    label: "Owner Leads (MoM)",
+    link: "/mi-reporting/owner-leads-mom",
+    icon: "bx bx-bar-chart-square",
+  },
+  {
+    id: "owner-leads-mtd",
+    label: "Owner Leads (MTD)",
+    link: "/mi-reporting/owner-leads-mtd",
+    icon: "bx bx-trending-up",
+  },
+  {
+    id: "city-quality",
+    label: "City Quality Breakdown",
+    link: "/mi-reporting/city-quality",
+    icon: "bx bx-map",
+  },
+  {
+    id: "owner-quality",
+    label: "Owner Quality Breakdown",
+    link: "/mi-reporting/owner-quality",
+    icon: "bx bx-user-check",
+  },
+  {
+    id: "city-visit-date",
+    label: "City Visit Date",
+    link: "/mi-reporting/city-visit-date",
+    icon: "bx bx-calendar",
+  },
+  {
+    id: "owner-visit-date",
+    label: "Owner Visit Date",
+    link: "/mi-reporting/owner-visit-date",
+    icon: "bx bx-calendar-check",
+  },
+  {
+    id: "city-visited-date",
+    label: "City Visited Date",
+    link: "/mi-reporting/city-visited-date",
+    icon: "bx bx-calendar-event",
+  },
+  {
+    id: "owner-visited-date",
+    label: "Owner Visited Date",
+    link: "/mi-reporting/owner-visited-date",
+    icon: "bx bx-calendar-star",
+  },
 ];
 
 export const setting = [
@@ -351,6 +629,30 @@ export const setting = [
     link: "/setting/symptoms",
     icon: "bx bx-health",
   },
+  {
+    id: "hrconfigs",
+    label: "HR-Configurations",
+    link: "/setting/hr/configs",
+    icon: "bx bx-health",
+  },
+  {
+    id: "documentinputconfig",
+    label: "Document Configuration",
+    link: "/setting/document/input/configs",
+    icon: "bx bx-health",
+  },
+  {
+    id: "centerfloorconfig",
+    label: "Center Floor Configuration",
+    link: "/setting/center/floor/configs",
+    icon: "bx bx-building-house",
+  },
+  {
+    id: "centerfallbackmanager",
+    label: "Centre Fallback Manager",
+    link: "/setting/center/fallback/manager",
+    icon: "bx bx-user-pin",
+  },
 ];
 
 export const recyclebin = [
@@ -396,6 +698,928 @@ export const recyclebin = [
     link: "/recyclebin/intern",
     icon: "bx bx-capsule",
   },
+];
+
+export const HR = [
+  // {
+  //   id: "hr-dashboard",
+  //   label: "Dashboard",
+  //   link: "/hr/dashboard",
+  //   icon: "bx bx-home",
+  // },
+  {
+    id: "my-pending-approvals",
+    label: "My Pending Approvals",
+    icon: "bx bx-grid-alt",
+    link: "/hr/my-pending-approvals",
+  },
+  {
+    id: "hr-dashboard",
+    label: "HR",
+    icon: "bx bx-home",
+    isAccordion: true,
+    children: [
+      {
+        id: "leave-balance-dashboard",
+        label: "Leave Balance",
+        link: "/hr/leave-balance/dashboard",
+        icon: "bx bx-layer",
+      },
+      {
+        id: "regularization-dashboard",
+        label: "Regularizations",
+        link: "/hr/regularization/dashboard",
+        icon: "bx bx-reset",
+      },
+      {
+        id: "all-leave-history",
+        label: "All Leave History",
+        link: "/hr/all/leave/history",
+        icon: "bx bx-list-ul",
+      },
+      {
+        id: "all-regularizations",
+        label: "All Regularizations",
+        link: "/hr/all/regularizations",
+        icon: "bx bx-reset",
+      },
+      {
+        id: "create-regularization",
+        label: "Create Regularization",
+        link: "/hr/create/regularization",
+        icon: "bx bx-plus-circle",
+      },
+      {
+        id: "comp-off-history",
+        label: "Comp Off History",
+        link: "/hr/all/compOffs",
+        icon: "bx bx-history",
+      },
+      {
+        id: "cancellations-history",
+        label: "Cancellations History",
+        link: "/hr/all/cancellations/req",
+        icon: "bx bx-layer",
+      },
+      {
+        id: "transfer-manager-approval",
+        label: "Transfer Manager Approvals",
+        icon: "bx bx-line-chart",
+        link: "/hr/transfer/manager/approvals",
+      },
+      {
+        id: "employee-documents",
+        label: "Employee Documents",
+        icon: "bx bx-file",
+        link: "/hr/employee/docs",
+      },
+    ],
+  },
+  {
+    id: "attendance",
+    label: "Attendance",
+    link: "/hr/attendance",
+    icon: "bx bx-time-five",
+    isAccordion: true,
+    children: [
+      // {
+      //   id: "main-attendance-dashboard",
+      //   label: "Dashboard",
+      //   link: "/hr/main/dashboard",
+      //   icon: "bx bx-grid-alt",
+      // },
+      {
+        id: "attendance-log",
+        label: "Attendance Log",
+        link: "/hr/attendance/logs",
+        icon: "bx bx-list-ul",
+      },
+      {
+        id: "monthly-attendance",
+        label: "Monthly Attendance",
+        link: "/hr/attendance/monthly",
+        icon: "bx bx-calendar",
+      },
+      {
+        id: "attendance-metrics",
+        label: "Attendance Metrics",
+        link: "/hr/attendance/metrics",
+        icon: "bx bx-stats",
+      },
+      {
+        id: "reporting-metrics",
+        label: "Attendance Metrics - Direct Reportings",
+        link: "/hr/reporting/metrics",
+        icon: "bx bx-stats",
+      },
+      {
+        id: "my-attendance",
+        label: "My Attendance",
+        link: "/hr/attendance/self",
+        icon: "bx bx-calendar-check",
+      },
+      {
+        id: "my-regularizations",
+        label: "My Regularizations",
+        link: "/hr/attendance/my/regularizations",
+        icon: "bx bx-time",
+      },
+      {
+        id: "regularizations-requests",
+        label: "Regularizations Requests",
+        link: "/hr/attendance/regularizations/requests",
+        icon: "bx bx-reset",
+      },
+    ],
+  },
+  {
+    id: "master-employee",
+    label: "Master Employee",
+    link: "/hr/employee",
+    icon: "bx bx-group",
+  },
+  {
+    id: "new-joinings",
+    label: "New Joinings",
+    icon: "bx  bx-arrow-from-left",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-new-joining",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/new-joinings/add",
+      },
+      {
+        id: "new-joining-approval",
+        label: "Joining Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/new-joinings/approval",
+      },
+      {
+        id: "new-joining-biometric",
+        label: "Biometric Approvals",
+        icon: "bx bx-fingerprint",
+        link: "/hr/new-joinings/biometric/approval",
+      },
+      {
+        id: "new-joining-it",
+        label: "IT Approvals",
+        icon: "bx bx-chip",
+        link: "/hr/new-joinings/it",
+      },
+    ],
+  },
+  {
+    id: "exit-employees",
+    label: "Exit Employees",
+    icon: "bx bx-arrow-to-left",
+    link: "/hr/exit-employees",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-exit-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/exit-employees/add",
+      },
+      {
+        id: "exit-approval",
+        label: "Exit Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/exit-employees/approval",
+      },
+      {
+        id: "exit-biometric",
+        label: "Biometric Approvals",
+        icon: "bx bx-fingerprint",
+        link: "/hr/exit-employees/biometric/approval",
+      },
+      {
+        id: "exit-fnf-approval",
+        label: "FNF Approvals",
+        icon: "bx bx-briefcase",
+        link: "/hr/exit-employees/fnf",
+      },
+      {
+        id: "exit-it-approval",
+        label: "IT Approvals",
+        icon: "bx bx-chip",
+        link: "/hr/exit-employees/it",
+      },
+    ],
+  },
+  {
+    id: "salary-advance",
+    label: "Salary Advance",
+    link: "/hr/salary-advance",
+    icon: "bx bx-rupee",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-salary-advance-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/salary-advance/add",
+      },
+      {
+        id: "salary-advance-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/salary-advance/approval",
+      },
+    ],
+  },
+  {
+    id: "transfer-employees",
+    label: "Transfer Employees",
+    icon: "bx bx-slider-alt",
+    link: "/hr/transfer-employees",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-transfer-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/transfer-employees/add",
+      },
+      {
+        id: "transfer-approval",
+        label: "All Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/transfer-employees/approval",
+      },
+      {
+        id: "transfer-current-location-approval",
+        label: "Outgoing Approvals",
+        icon: "bx bx-arrow-to-left",
+        link: "/hr/transfer-employees/outgoing",
+      },
+      {
+        id: "transfer-transferred-location-approval",
+        label: "Incoming Approvals",
+        icon: "bx bx-arrow-to-right",
+        link: "/hr/transfer-employees/incoming",
+      },
+      {
+        id: "transfer-it-approval",
+        label: "IT Approvals",
+        icon: "bx bx-chip",
+        link: "/hr/transfer-employees/it",
+      },
+    ],
+  },
+  {
+    id: "biometric-addition-request",
+    label: "Biometric",
+    icon: "bx bx-fingerprint",
+    link: "/hr/biometric",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-biometric-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/biometric/add",
+      },
+      {
+        id: "get-biometric-addition-requests",
+        label: "Get Biometric Addition Requests",
+        icon: "bx bx-user-plus",
+        link: "/hr/biometric/addition/requests",
+      },
+      // {
+      //   id: "get-biometric-my-requests",
+      //   label: "Get My Biometric Requests",
+      //   icon: "bx bx-plus",
+      //   link: "/hr/biometric/my/requests",
+      // },
+    ],
+  },
+  {
+    id: "hiring",
+    label: "Hiring",
+    icon: "bx bx-badge",
+    link: "/hr/hiring",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-hiring-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/hiring/add",
+      },
+      {
+        id: "hiring-approval",
+        label: "Hiring Status and Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/hiring/approval",
+      },
+      {
+        id: "my-hiring-status",
+        label: "My Hiring Status",
+        icon: "bx bx-list-ul",
+        link: "/hr/hiring/management",
+      },
+    ],
+  },
+  {
+    id: "third-party-manpower",
+    label: "Third Party Manpower",
+    icon: "bx bx-user-voice",
+    link: "/hr/tpm",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-tpm-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/tpm/add",
+      },
+      {
+        id: "tpm-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/tpm/approval",
+      },
+    ],
+  },
+  {
+    id: "employee-reporting",
+    label: "Employee Reporting & Roaster",
+    link: "/hr/attendance",
+    icon: "bx bx-git-branch",
+    isAccordion: true,
+    children: [
+      {
+        id: "assign-manager",
+        label: "Assign Manager",
+        link: "/hr/reporting/assign",
+        icon: "bx bx-user-plus",
+      },
+      {
+        id: "manage-employee-reporting",
+        label: "Manage",
+        link: "/hr/reporting/manage",
+        icon: "bx bx-list-check",
+      },
+      {
+        id: "assign-rotational-shift",
+        label: "Assign Shift",
+        link: "/hr/reporting/shift-roster/assign",
+        icon: "bx bx-calendar-plus",
+      },
+      {
+        id: "shift-roster",
+        label: "Shift Roster",
+        link: "/hr/reporting/shift-roster/list",
+        icon: "bx bx-calendar",
+      },
+    ],
+  },
+  {
+    id: "leaves",
+    label: "Leaves",
+    link: "/hr/leaves",
+    icon: "bx bx-calendar",
+    isAccordion: true,
+    children: [
+      {
+        id: "apply-leave",
+        label: "Apply Leave",
+        link: "/hr/leaves/apply",
+        icon: "bx bx-edit",
+      },
+      {
+        id: "leave-history",
+        label: "Leave History",
+        link: "/hr/leaves/history",
+        icon: "bx bx-history",
+      },
+      {
+        id: "manage-leaves",
+        label: "Manage Leaves",
+        link: "/hr/leaves/manage",
+        icon: "bx bx-slider",
+      },
+      {
+        id: "my-leaves",
+        label: "My Leaves",
+        link: "/hr/leaves/my/leaves",
+        icon: "bx bx-calendar",
+      },
+      {
+        id: "my-comp-off",
+        label: "Raised Comp-Off's",
+        link: "/hr/leaves/my/compOffs",
+        icon: "bx bx-send",
+      },
+      {
+        id: "my-balance-leaves",
+        label: "Balance Leaves",
+        link: "/hr/leaves/my/balance/leaves",
+        icon: "bx bx-layer",
+      },
+      {
+        id: "festive-leaves",
+        label: "Festive Leaves List",
+        link: "/hr/leaves/festive/leaves",
+        icon: "bx bx-party",
+      },
+      {
+        id: "cancellations-requests",
+        label: "Cancellations Requests",
+        link: "/hr/leaves/get/cancellations",
+        icon: "bx bx-x-circle",
+      },
+      {
+        id: "comp-off-requests",
+        label: "Comp-Off Addition Requests",
+        link: "/hr/leaves/get/comp-offs",
+        icon: "bx bx-calendar-check",
+      },
+    ],
+  },
+  {
+    id: "policies",
+    label: "Policies",
+    link: "/hr/policies",
+    icon: "bx bx-notepad",
+    isAccordion: true,
+    children: [
+      {
+        id: "policy",
+        label: "Policies",
+        link: "/hr/policies",
+        icon: "bx bx-spreadsheet",
+      },
+    ],
+  },
+  {
+    id: "incentives",
+    label: "Incentives",
+    icon: "bx bx-gift",
+    link: "/hr/incentives",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-incentives-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/incentives/add",
+      },
+      {
+        id: "incentives-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/incentives/approval",
+      },
+    ],
+  },
+
+  {
+    id: "payslips",
+    label: "Pay Slip",
+    icon: "bx bx-wallet", // changed
+    link: "/hr/pay-slip",
+    isAccordion: true,
+    children: [
+      {
+        id: "employee-pay-slip",
+        label: "Employees Pay Slip",
+        icon: "bx bx-group", // changed
+        link: "/hr/pay-slip/employees",
+      },
+      {
+        id: "my-pay-slip",
+        label: "My Pay Slip",
+        icon: "bx bx-user-check", // changed
+        link: "/hr/pay-slip/my",
+      },
+      {
+        id: "my-salary-data",
+        label: "My Salary Data",
+        icon: "bx bx-user-check",
+        link: "/hr/my/salary/data",
+      },
+      {
+        id: "my-salary-forms",
+        label: "My Salary and Forms",
+        icon: "bx bx-folder-open",
+        link: "/hr/my/forms",
+      },
+    ],
+  },
+  {
+    id: "employeeform",
+    label: "Employee Forms",
+    icon: "bx bx-file",
+    link: "/hr/employee",
+    isAccordion: true,
+    children: [
+      {
+        id: "uploademployeeform",
+        label: "Upload Employee Form",
+        icon: "bx bx-upload",
+        link: "/hr/upload/employee/form",
+      },
+      {
+        id: "employeeforms",
+        label: "Employee Forms",
+        icon: "bx bx-file",
+        link: "/hr/employee/forms",
+      },
+    ],
+  },
+  {
+    id: "salary",
+    label: "Salary",
+    icon: "bx bx-bar-chart-alt-2",
+    link: "/hr/salary",
+  },
+  {
+    id: "finance",
+    label: "Finance",
+    icon: "bx bx-line-chart",
+    link: "/hr/finance",
+  },
+];
+
+export const HRMS = [
+  // {
+  //   id: "attendance",
+  //   label: "Attendance",
+  //   link: "/hrms/attendance",
+  //   icon: "bx bx-time-five",
+  //   isAccordion: true,
+  //   children: [
+  //     {
+  //       id: "attendance-log",
+  //       label: "Attendance Log",
+  //       link: "/hrms/attendance/logs",
+  //       icon: "bx bx-list-ul",
+  //     },
+  //     {
+  //       id: "attendance-metrics",
+  //       label: "Attendance Metrics",
+  //       link: "/hrms/attendance/metrics",
+  //       icon: "bx bx-stats",
+  //     },
+  //     {
+  //       id: "my-attendance",
+  //       label: "My Attendance",
+  //       link: "/hrms/attendance/self",
+  //       icon: "bx bx-calendar-check",
+  //     },
+  //   ]
+  // },
+  // {
+  //   id: "employee-reporting",
+  //   label: "Employee Reporting",
+  //   link: "/hrms/attendance",
+  //   icon: "bx bx-git-branch",
+  //   isAccordion: true,
+  //   children: [
+  //     {
+  //       id: "assign-manager",
+  //       label: "Assign Manager",
+  //       link: "/hrms/reporting/assign",
+  //       icon: "bx bx-user-plus",
+  //     },
+  //     {
+  //       id: "manage-employee-reporting",
+  //       label: "Manage",
+  //       link: "/hrms/reporting/manage",
+  //       icon: "bx bx-list-check",
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: "leaves",
+  //   label: "Leaves",
+  //   link: "/hrms/leaves",
+  //   icon: "bx bx-calendar",
+  //   isAccordion: true,
+  //   children: [
+  //     {
+  //       id: "apply-leave",
+  //       label: "Apply Leave",
+  //       link: "/hrms/leaves/apply",
+  //       icon: "bx bx-edit",
+  //     },
+  //     {
+  //       id: "leave-history",
+  //       label: "Leave History",
+  //       link: "/hrms/leaves/history",
+  //       icon: "bx bx-history",
+  //     },
+  //     {
+  //       id: "manage-leaves",
+  //       label: "Manage Leaves",
+  //       link: "/hrms/leaves/manage",
+  //       icon: "bx bx-history",
+  //     },
+  //     {
+  //       id: "my-leaves",
+  //       label: "My Leaves",
+  //       link: "/hrms/leaves/my/leaves",
+  //       icon: "bx bx-history",
+  //     },
+  //   ],
+  // },
+  // {
+  //   id: "policies",
+  //   label: "Policies",
+  //   link: "/hrms/policies",
+  //   icon: "bx bx-calendar",
+  //   isAccordion: true,
+  //   children: [
+  //     {
+  //       id: "policy",
+  //       label: "Policies",
+  //       link: "/hrms/policies",
+  //       icon: "bx bx-history",
+  //     },
+  //   ],
+  // },
+];
+
+export const ISSUES = [
+  // {
+  //   id: "tickets-dashboard",
+  //   label: "Tickets Dashboard",
+  //   icon: "bx bx-bar-chart-alt-2",
+  //   link: "/issues/dashboard",
+  // },
+  {
+    id: "raise-ticket",
+    label: "Raise Ticket",
+    icon: "bx bx-message-square-add",
+    link: "/issues/raise/ticket",
+  },
+  {
+    id: "tech-issues",
+    label: "Technical",
+    link: "/issues/tech",
+    icon: "bx bx-chip",
+  },
+  // {
+  //   id: "purchase-issues",
+  //   label: "Purchase",
+  //   link: "/issues/purchase",
+  //   icon: "bx bx-category",
+  // },
+  // {
+  //   id: "review-submissions",
+  //   label: "Review Submissions",
+  //   link: "/issues/review-submissions",
+  //   icon: "bx bx-check-shield",
+  // },
+
+  {
+    id: "hr-issues",
+    label: "HR Tickets",
+    icon: "bx bx-task",
+    link: "/issues/hr/issues",
+  },
+
+  {
+    id: "maintenance-issues",
+    label: "Maintenance Tickets",
+    icon: "bx bx-wrench",
+    link: "/issues/maintenance/issues",
+  },
+  {
+    id: "complaint-issues",
+    label: "Complaint Tickets",
+    icon: "bx bx-flag",
+    link: "/issues/complaint/issues",
+  },
+  {
+    id: "operational-issues",
+    label: "Operational Issues",
+    icon: "bx bx-briefcase",
+    link: "/issues/operational/issues",
+  },
+
+  {
+    id: "my-issues",
+    label: "My Assigned Tickets",
+    icon: "bx bx-user-circle",
+    link: "/issues/my/issues",
+  },
+  {
+    id: "my-raised-tickets",
+    label: "My Raised Tickets",
+    icon: "bx bx-user-check",
+    link: "/issues/my/raised/tickets",
+  },
+  {
+    id: "finance-tickets",
+    label: "Finance Tickets",
+    icon: "bx bx-rupee",
+    link: "/issues/my/finance/tickets",
+  },
+  {
+    id: "finance-tickets-approval",
+    label: "Finance Tickets Approval",
+    icon: "bx bx-receipt",
+    link: "/issues/finance/payslips/tickets",
+  },
+];
+
+export const MARKETING = [
+  {
+    id: "visit-log-add",
+    label: "Add Visit Log",
+    icon: "bx bx-plus-circle",
+    link: "/marketing/visit-log/add",
+  },
+  {
+    id: "visit-log-list",
+    label: "All Visit Logs",
+    icon: "bx bx-list-ul",
+    link: "/marketing/visit-log/list",
+  },
+  {
+    id: "agent-report",
+    label: "Agent Report",
+    icon: "bx bx-bar-chart-alt-2",
+    link: "/marketing/reports/agent",
+  },
+  {
+    id: "doctor-directory-export",
+    label: "Doctor Report",
+    icon: "ri-file-excel-2-line",
+    link: "/marketing/doctors/export",
+  },
+];
+
+export const RECORDINGS = [
+  {
+    id: "call-recordings",
+    label: "Call Recordings",
+    link: "/recordings/call",
+    icon: "bx bx-phone",
+  },
+  {
+    id: "call-recordings-overview",
+    label: "Call Recordings Overview",
+    link: "/recordings/call/overview",
+    icon: "bx bx-analyse",
+  },
+  {
+    id: "feedback-recordings",
+    label: "Feedback Recordings",
+    link: "/recordings/feedback",
+    icon: "bx bx-comment-detail",
+  },
+  {
+    id: "feedback-recordings-overview",
+    label: "Feedback Recordings Overview",
+    link: "/recordings/feedback/overview",
+    icon: "bx bx-analyse",
+  },
+];
+
+export const SOP_CONFIGS = [
+  {
+    id: "sopconfigs-create",
+    label: "Configure SOP",
+    icon: "bx bx-slider-alt",
+    isAccordion: true,
+    children: [
+      {
+        id: "sopconfigs-create-new",
+        label: "Create New",
+        link: "/sop-configs/save",
+        icon: "bx bx-plus-circle",
+      },
+      {
+        id: "sopconfigs-manage",
+        label: "Manage SOPs",
+        link: "/sop-configs/manage",
+        icon: "bx bx-list-ul",
+      },
+    ],
+  },
+  {
+    // Flat, not a second accordion: the sidebar's flat branch highlights on
+    // pathname.startsWith(link), so /baseline-package/save/:id keeps this item
+    // lit. One nav entry, three routes, no extra chrome.
+    id: "sopconfigs-baseline-package",
+    label: "Baseline Package",
+    link: "/sop-configs/baseline-package",
+    icon: "bx bx-test-tube",
+  },
+  {
+    id: "sopconfigs-guide",
+    label: "How-to Guide",
+    link: "/sop-configs/guide",
+    icon: "bx bx-book-open",
+  },
+];
+export const TRAININGS = [
+  {
+    id: "upload-trainings",
+    label: "Upload Trainings",
+    link: "/trainings/upload",
+    icon: "bx bx-cloud-upload",
+  },
+  {
+    id: "view-trainings",
+    label: "View Trainings",
+    link: "/trainings/view",
+    icon: "bx bx-slideshow",
+  },
+  {
+    id: "all-trainings",
+    label: "All Trainings",
+    link: "/trainings/all",
+    icon: "bx bx-collection",
+  },
+  {
+    id: "training-history",
+    label: "Training History",
+    link: "/trainings/history",
+    icon: "bx bx-time-five",
+  },
+  {
+    id: "create-training-record",
+    label: "Create Trainer Record",
+    link: "/trainings/create/record",
+    icon: "bx bx-edit-alt",
+  },
+  {
+    id: "training-records",
+    label: "Trainer Records",
+    link: "/trainings/get/record",
+    icon: "bx bx-spreadsheet",
+  },
+];
+export const UTILITIES = [
+  {
+    id: "upload-bill",
+    label: "Upload Electricity Bill",
+    link: "/utilities/upload-bill",
+    icon: "bx bx-cloud-upload",
+  },
+  {
+    id: "reports",
+    label: "Reports",
+    link: "/utilities/reports",
+    icon: "bx bxs-report",
+  },
+];
+export const MASTER_DATA = [
+  {
+    id: "masterdata-vendor",
+    label: "Vendors",
+    link: "/vendor-management/vendor",
+    icon: "bx bx-store",
+  },
+  {
+    id: "masterdata-item",
+    label: "Items",
+    link: "/vendor-management/item",
+    icon: "bx bx-package",
+  },
+  // {
+  //   id: "masterdata-customer",
+  //   label: "Customers",
+  //   link: "/master-data/customer",
+  //   icon: "bx bx-user",
+  // },
+  {
+    id: "masterdata-uom",
+    label: "Unit of Measurements",
+    link: "/vendor-management/uom",
+    icon: "bx bx-ruler",
+  },
+  {
+    id: "masterdata-payment-term",
+    label: "Payment Terms",
+    link: "/vendor-management/payment-term",
+    icon: "bx bx-credit-card",
+  },
+  // {
+  //   id: "masterdata-delivery-partner",
+  //   label: "Delivery Partners",
+  //   link: "/master-data/delivery-partner",
+  //   icon: "bx bx-car",
+  // },
+  // {
+  //   id: "masterdata-asset-category",
+  //   label: "Asset Categories",
+  //   link: "/master-data/asset-category",
+  //   icon: "bx bx-category",
+  // },
+  // {
+  //   id: "masterdata-department",
+  //   label: "Departments",
+  //   link: "/master-data/department",
+  //   icon: "bx bx-building",
+  // },
 ];
 
 export default pages;

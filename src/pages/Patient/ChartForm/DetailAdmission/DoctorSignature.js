@@ -1,61 +1,98 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import RenderFields from "../../../../Components/Common/RenderFields";
-import { Button } from "reactstrap";
+import { getICDCodes } from "../../../../helpers/backend_helper";
+import NextButton from "./NextButton";
 
-const fields = [
-  {
-    label: "Provisional Diagnosis",
-    name: "provisionaldiagnosis",
-    type: "text",
-  },
-  {
-    label: "Final Diagnosis",
-    name: "diagnosis",
-    type: "text",
-  },
-  {
-    label: "Managment Plan: (INDOOR / Out Patient)",
-    name: "managmentPlan",
-    type: "text",
-  },
-  {
-    label: "Investigations",
-    name: "investigation",
-    type: "checkbox",
-    options: ["CBC", "BSL", "LFT", "RFT", "HIV", "TFT", "VIT B-12", "VIT D3"],
-  },
-  {
-    label: "Special Test",
-    name: "specialTest",
-    type: "text",
-  },
-  {
-    label: "Psychological Testing",
-    name: "treatment",
-    type: "text",
-  },
-];
+const DoctorSignature = ({ validation, setFormStep, step }) => {
+  const [icdOptions, setIcdOptions] = useState([]);
+  const [attempted, setAttempted] = useState(false);
 
-const DoctorSignature = ({ validation, closeForm }) => {
+  const validate = () => {
+    setAttempted(true);
+    const provisionalMissing =
+      !Array.isArray(validation.values.provisionaldiagnosis) ||
+      validation.values.provisionaldiagnosis.length === 0;
+    const managmentPlanMissing = !validation.values.managmentPlan;
+    return !provisionalMissing && !managmentPlanMissing;
+  };
+
+  useEffect(() => {
+    const loadICD = async () => {
+      try {
+        const res = await getICDCodes();
+        console.log("res", res);
+
+        const formatted = res?.map((icd) => ({
+          value: icd._id,
+          label: `${icd.code} - ${icd.text}`,
+        }));
+
+        setIcdOptions(formatted);
+      } catch (err) {
+        console.log(err);
+      }
+    };
+
+    loadICD();
+  }, []);
+
+  const fields = [
+    {
+      label: "Provisional Diagnosis",
+      name: "provisionaldiagnosis",
+      type: "select2",
+      isMulti: true,
+      options: icdOptions,
+      required: true,
+    },
+    {
+      label: "Final Diagnosis",
+      name: "diagnosis",
+      type: "select2",
+      isMulti: true,
+      options: icdOptions,
+      required: false,
+    },
+    {
+      label: "Managment Plan: (INDOOR / Out Patient)",
+      name: "managmentPlan",
+      type: "select",
+      options: ["INDOOR", "Out Patient"],
+      required: true,
+    },
+    {
+      label: "Investigations",
+      name: "investigation",
+      type: "checkbox",
+      options: ["CBC", "BSL", "LFT", "RFT", "HIV", "TFT", "VIT B-12", "VIT D3"],
+    },
+    {
+      label: "Special Test",
+      name: "specialTest",
+      type: "text",
+    },
+    {
+      label: "Psychological Testing",
+      name: "treatment",
+      type: "text",
+    },
+  ];
+
   return (
-    <React.Fragment>
-      <div>
-        <RenderFields fields={fields} validation={validation} />
-      </div>
-      <div className="mt-3">
-        <div className="d-flex gap-3 justify-content-end">
-          <Button onClick={closeForm} size="sm" color="danger" type="button">
-            Cancel
-          </Button>
-          <Button size="sm" type="submit">
-            Save
-          </Button>
-        </div>
-      </div>
-    </React.Fragment>
+    <>
+      <RenderFields fields={fields} validation={validation} />
+      {attempted && (
+        <p className="text-danger small">
+          Please fill in all required fields before continuing.
+        </p>
+      )}
+      <NextButton
+        setFormStep={setFormStep}
+        step={step}
+        onBeforeNext={validate}
+      />
+    </>
   );
 };
-
-DoctorSignature.propTypes = {};
 
 export default DoctorSignature;

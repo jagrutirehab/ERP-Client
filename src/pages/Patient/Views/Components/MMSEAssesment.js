@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import {
   Dropdown,
   DropdownItem,
@@ -21,9 +22,11 @@ import {
 import jsPDF from "jspdf";
 import "svg2pdf.js";
 import { AlertTriangle } from "lucide-react";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 const MMSEAssessment = () => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
   const fileInputRef = useRef(null);
   const svgRef = useRef(null);
   const readingTextRef = useRef(null);
@@ -216,7 +219,7 @@ const MMSEAssessment = () => {
     setPdfType("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!selectedPsychologist.id || selectedPsychologist.id === -1) {
@@ -273,10 +276,16 @@ const MMSEAssessment = () => {
       Array.from(files).forEach((file) => formData.append("file", file));
     }
 
-    dispatch(createMMSETest(formData));
-    openModal(
-      "Test submitted! The results are now available on the next page."
-    );
+    try {
+      await dispatch(createMMSETest(formData)).unwrap();
+      openModal(
+        "Test submitted! The results are now available on the next page."
+      );
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to submit assessment");
+      }
+    }
   };
 
   const sectionKeyMap = {

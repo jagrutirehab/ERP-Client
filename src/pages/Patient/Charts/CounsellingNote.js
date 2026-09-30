@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import FileCard from "../../../Components/Common/FileCard";
 import { Col, Row } from "reactstrap";
@@ -15,30 +15,104 @@ const CounsellingNote = ({ data }) => {
     setFileModal({ img, isOpen: true });
   };
 
+  const normalizeGeminiResponse = (response) => {
+    try {
+      if (!response || typeof response !== "string") {
+        return null;
+      }
+
+      let cleaned = response.trim();
+
+      if (cleaned.toLowerCase().startsWith("api error")) {
+        return null;
+      }
+
+      cleaned = cleaned
+        .replace(/^#{1,6}\s?/gm, "")
+
+        .replace(/^\s*[\*\-]\s+/gm, "• ")
+
+        .replace(/\*\*/g, "")
+        .replace(/\*/g, "")
+
+        .replace(/[ \t]+/g, " ")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
+      return cleaned;
+
+    } catch (error) {
+      console.error("Error normalizing Gemini response:", error);
+      return null;
+    }
+  };
+
+
+
   return (
     <React.Fragment>
       <div>
+        {data?.objective && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Objective of The session:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.objective}</p>
+          </div>
+        )}
+        {data?.shortTermGoals && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Short term goals:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.shortTermGoals}</p>
+          </div>
+        )}
+        {data?.longTermGoals && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Long term goals:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.longTermGoals}</p>
+          </div>
+        )}
+        {data?.notes && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Notes:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.notes}</p>
+          </div>
+        )}
+        {data?.homework && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Homework/Task assigned:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.homework}</p>
+          </div>
+        )}
+        {data?.reviewPreviousTask && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Review of previous task:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">
+              {data.reviewPreviousTask}
+            </p>
+          </div>
+        )}
         {data?.conclusion && (
           <div className="d-flex">
             <h6 className="fs-xs-10 fs-md-14">Conclusion:-</h6>
             <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.conclusion}</p>
           </div>
         )}
-        {data?.endGoalAchieved && (
-          <div className="d-flex">
-            <h6 className="fs-xs-10 fs-md-14">End Goal Achieved:-</h6>
-            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.endGoalAchieved}</p>
-          </div>
-        )}
         {data?.nextEndGoal && (
           <div className="d-flex">
-            <h6 className="fs-xs-10 fs-md-14">Next End Goal:-</h6>
+            <h6 className="fs-xs-10 fs-md-14">Goal for next session:-</h6>
             <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.nextEndGoal}</p>
           </div>
         )}
+        {/* Previos schema field for previos data */}
+        {data?.endGoalAchieved && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">End goal achieved:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.endGoalAchieved}</p>
+          </div>
+        )}
+        {/* Previos schema field for previos data */}
         {data?.nextSessionDate && (
           <div className="d-flex">
-            <h6 className="fs-xs-10 fs-md-14">Next Session Date:-</h6>
+            <h6 className="fs-xs-10 fs-md-14">Next session date:-</h6>
             <p className="fs-xs-9 fs-md-12 mb-0 ms-2">
               {format(new Date(data.nextSessionDate), "dd MMM yyyy")}
             </p>
@@ -56,6 +130,42 @@ const CounsellingNote = ({ data }) => {
             </Row>
           </div>
         )}
+        {data?.audioFile?.map((audio, index) => {
+          const cleaned = normalizeGeminiResponse(audio?.geminiResponse);
+
+          return (
+            <div key={audio._id || index} className="mb-3">
+              <audio controls style={{ width: "100%" }}>
+                <source src={audio.url} type={audio.type} />
+              </audio>
+
+              {audio?.isProcessing && (
+                <div className="mt-3 text-center">
+                  <p className="text-warning fw-semibold">
+                    Audio processing is in progress. It can take up to 10 minutes.
+                  </p>
+                </div>
+              )}
+
+              {!audio.isProcessing && cleaned && (
+                <div className="mt-3">
+
+                  {/* Label */}
+                  <h6 className="fw-semibold mb-2">Detail Overview : </h6>
+
+                  {/* Content */}
+                  <div
+                    className="text-muted"
+                    style={{ whiteSpace: "pre-line" }}
+                  >
+                    {cleaned}
+                  </div>
+
+                </div>
+              )}
+            </div>
+          );
+        })}
         <PreviewFile
           file={fileModal.img}
           isOpen={fileModal.isOpen}

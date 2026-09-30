@@ -2,6 +2,7 @@ import React from "react";
 import RenderFields from "../../../../Components/Common/RenderFields";
 import NextButton from "./NextButton";
 
+// old
 const fields = [
   {
     label: "Appearance & Behavior",

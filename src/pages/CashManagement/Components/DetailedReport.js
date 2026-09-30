@@ -22,6 +22,8 @@ import { capitalizeWords } from "../../../utils/toCapitalize";
 import PropTypes from "prop-types";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
+import { getDetailedCashReport } from "../../../helpers/backend_helper";
+import { summaryOptions } from "../../../Components/constants/cash";
 
 const DetailedReport = ({
   centers,
@@ -37,6 +39,7 @@ const DetailedReport = ({
 
   const centerOptions = centers
     ?.filter((c) => centerAccess.includes(c._id))
+    .filter((c) => c.title?.toLowerCase() !== "online")
     .map((c) => ({
       _id: c._id,
       title: c.title,
@@ -45,6 +48,7 @@ const DetailedReport = ({
   const [selectedCentersIds, setSelectedCentersIds] = useState([]);
   const [selectedCenters, setSelectedCenters] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [isExcelGenerating, setIsExcelGenerating] = useState(false);
 
   useEffect(() => {
     if (centerOptions && centerOptions.length > 0 && !isInitialized) {
@@ -82,6 +86,11 @@ const DetailedReport = ({
 
   const columns = [
     {
+      name: "ID",
+      selector: (row) => row.id,
+      wrap: true,
+    },
+    {
       name: "Date",
       selector: (row) => format(new Date(row.date), "d MMM yyyy hh:mm a"),
       wrap: true,
@@ -90,6 +99,13 @@ const DetailedReport = ({
       name: "Center",
       selector: (row) =>
         capitalizeWords(row.center?.title || row.center || "-"),
+      wrap: true,
+    },
+    {
+      name: "Name",
+      selector: (row) => (row.name && row.name !== "-")
+        ? `${capitalizeWords(row.name)}${(row.patientId && row.patientId !== "-") ? ` (${row.patientId})` : ""}`
+        : "-",
       wrap: true,
     },
     {
@@ -137,6 +153,12 @@ const DetailedReport = ({
               DEPOSIT-OLIVE
             </Badge>
           )
+        } else if (row.transactionCategory === "INFLOW") {
+          return (
+            <Badge color="success" style={badgeStyle}>
+              CASH INFLOW
+            </Badge>
+          )
         }
         else {
           return "-";
@@ -162,7 +184,6 @@ const DetailedReport = ({
     },
     {
       name: "Amount",
-
       cell: (row) => (
         <span>
           ₹
@@ -175,8 +196,18 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: "Bank Account",
+      selector: (row) => row.bankAccount,
+      wrap: true,
+      minWidth: "150px"
+    },
+    {
       name: "Summary",
-      selector: (row) => <ExpandableText text={capitalizeWords(row.summary)} />,
+      selector: (row) => {
+        if (!row.summary) return "-";
+        const option = summaryOptions.find(opt => opt.value === row.summary);
+        return option ? capitalizeWords(option.label) : capitalizeWords(row.summary);
+      },
       wrap: true,
     },
     {
@@ -201,6 +232,7 @@ const DetailedReport = ({
               centers: selectedCentersIds,
               startDate: reportDate.start.toISOString(),
               endDate: reportDate.end.toISOString(),
+              tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
             })
           ).unwrap();
         } catch (error) {
@@ -222,6 +254,44 @@ const DetailedReport = ({
     activeTab,
     roles,
   ]);
+
+  const getDetailedReportXlsx = async () => {
+    setIsExcelGenerating(true);
+    try {
+      const res = await getDetailedCashReport({
+        page,
+        limit,
+        transactionType: selectedTransactionType,
+        centers: selectedCentersIds,
+        startDate: reportDate.start.toISOString(),
+        endDate: reportDate.end.toISOString(),
+        exportExcel: true,
+        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      });
+
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+
+      link.href = url;
+      link.download = "detailed-report.xlsx";
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to download report");
+      }
+    } finally {
+      setIsExcelGenerating(false);
+    }
+  };
+
 
   const handleFilterChange = (filterType, value) => {
     setPage(1);
@@ -254,6 +324,7 @@ const DetailedReport = ({
               ))}
             </Input>
           </div>
+
           <div style={{ minWidth: "150px", maxWidth: "200px" }}>
             <Input
               type="select"
@@ -266,15 +337,18 @@ const DetailedReport = ({
               <option value="BASEBALANCE">Base Balances</option>
               <option value="BANKDEPOSIT">Bank Deposits</option>
               <option value="SPENDING">Spendings</option>
+              <option value="INFLOW">Cash Inflow</option>
               <option value="IPD">IPD Payments</option>
               <option value="DEPOSIT-OLIVE">Deposit-Olive payments</option>
               <option value="OPD">OPD Payments</option>
               <option value="INTERN">Intern Payments</option>
             </Input>
           </div>
+
           <div style={{ minWidth: "150px" }}>
             <Header reportDate={reportDate} setReportDate={handleDateChange} />
           </div>
+
           <div style={{ minWidth: "200px", maxWidth: "250px" }}>
             <CenterDropdown
               options={centerOptions}
@@ -288,7 +362,18 @@ const DetailedReport = ({
               }}
             />
           </div>
+
+          <div className="ms-auto">
+            <Button
+              onClick={getDetailedReportXlsx}
+              disabled={isExcelGenerating}
+              className="d-flex align-items-center gap-1">
+              {isExcelGenerating ? <Spinner size="sm" /> : <i className="ri-file-excel-2-line" />}
+              Export Excel
+            </Button>
+          </div>
         </div>
+
       </div>
 
       <Card className="mt-4">

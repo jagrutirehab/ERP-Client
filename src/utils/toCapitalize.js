@@ -1,5 +1,5 @@
 export function capitalizeWords(str) {
-  if (!str) return "";
+  if (typeof str !== "string" || !str) return "";
   return str
     .split(" ")
     .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())

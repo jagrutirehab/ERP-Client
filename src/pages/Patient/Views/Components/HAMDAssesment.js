@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { fetchDoctors } from "../../../../store/actions";
 import {
   Dropdown,
@@ -14,10 +15,12 @@ import {
   setTestPageOpen,
 } from "../../../../store/features/clinicalTest/clinicalTestSlice";
 import { calculateScores, getInterpretationAndRecommendations, hamdQuestions } from "./QuestionData/HAM-DQuestions";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 
 const HAMDAssesment = () => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
   const fileInputRef = useRef(null);
 
   const [answers, setAnswers] = useState({});
@@ -69,7 +72,7 @@ const HAMDAssesment = () => {
     setModalMessage("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!selectedDoctor.id || selectedDoctor.id === -1) {
@@ -108,10 +111,16 @@ const HAMDAssesment = () => {
       Array.from(files).forEach((file) => formData.append("files", file));
     }
 
-    dispatch(createHAMDTest(formData));
-    openModal(
-      "Test submitted! The results are now available on the next page."
-    );
+    try {
+      await dispatch(createHAMDTest(formData)).unwrap();
+      openModal(
+        "Test submitted! The results are now available on the next page."
+      );
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to submit assessment");
+      }
+    }
   };
 
   return (

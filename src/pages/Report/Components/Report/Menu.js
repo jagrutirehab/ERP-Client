@@ -52,33 +52,40 @@ const Menu = ({
       billType === INTERN ? data?.filter((row) => row.intern) : data;
     return filteredData?.map((row) => ({
       ...row,
+      patient: {
+        ...row.patient,
+        referredBy:
+          row.patient?.referredBy?.doctorName || row.patient?.referredBy,
+      },
       name: row.intern ? row.intern.name : row.patient?.name || "",
       date: row.date ? format(new Date(row.date), "dd MMM yyyy") : "",
-      uid:
-        row.patient?.id
-          ? `${row.patient.id.prefix}${row.patient.id.value}`
-          : "",
-      invoiceNumber:
-        row.key
-          ? `${row.key.prefix}${row.key.patientId}-${row.key.value}`
-          : "",
+      updatedAt: row.updatedAt
+        ? format(new Date(row.updatedAt), "dd MMM yyyy")
+        : "",
+      uid: row.patient?.id
+        ? `${row.patient.id.prefix}${row.patient.id.value}`
+        : "",
+      invoiceNumber: row.key
+        ? `${row.key.prefix}${row.key.patientId}-${row.key.value}`
+        : "",
       dateOfAddmission: row.patient?.addmission?.addmissionDate
         ? format(new Date(row.patient.addmission.addmissionDate), "dd MMM yyyy")
         : "",
       dateOfDischarge: row.patient?.addmission?.dischargeDate
         ? format(new Date(row.patient.addmission.dischargeDate), "dd MMM yyyy")
         : "",
-        type:
-   billType === ALL_TRANSACTIONS
-     ? row.type && row.type.trim() !== "" 
-       ? row.type 
-       : "INTERN"
-     : row.type || "",
+      type:
+        billType === ALL_TRANSACTIONS
+          ? row.type && row.type.trim() !== ""
+            ? row.type
+            : "INTERN"
+          : row.type || "",
       invoice: {
         payable:
           row.intern && row.receipt
             ? row.receipt.totalAmount || 0
             : row.invoice?.payable || row.receiptInvoice?.payable || 0,
+        refund: row.invoice?.refund || 0,
       },
       advancePayment: {
         totalAmount:
@@ -145,6 +152,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeadersAddmissionDischargeDate,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -177,11 +188,19 @@ const Menu = ({
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
         ];
+      else if (billType === OPD_BILL)
+        resultantHeaders = [
+          ...opdBillHeaders,
+          patientsReferrel
+            ? { label: "Referred By", key: "patient.referredBy" }
+            : null,
+        ];
       else if (billType === INTERN)
         resultantHeaders = [
           { label: "Patient/Intern", key: "name" },
           { label: "Center", key: "center.title" },
           { label: "Date", key: "date" },
+          { label: "Updated At", key: "updatedAt" },
           { label: "UID", key: "uid" },
           { label: "Invoice No", key: "invoiceNumber" },
           { label: "Invoiced Amount", key: "invoice.payable" },
@@ -202,6 +221,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeadersAddmissionDischargeDate,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -226,11 +249,19 @@ const Menu = ({
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
         ];
+      else if (billType === OPD_BILL)
+        resultantHeaders = [
+          ...opdBillHeaders,
+          patientsReferrel
+            ? { label: "Referred By", key: "patient.referredBy" }
+            : null,
+        ];
       else if (billType === INTERN)
         resultantHeaders = [
           { label: "Patient/Intern", key: "name" },
           { label: "Center", key: "center.title" },
           { label: "Date", key: "date" },
+          { label: "Updated At", key: "updatedAt" },
           { label: "UID", key: "uid" },
           { label: "Invoice No", key: "invoiceNumber" },
           { label: "Invoiced Amount", key: "invoice.payable" },
@@ -269,6 +300,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeaders,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -293,6 +328,7 @@ const Menu = ({
           { label: "Patient/Intern", key: "name" },
           { label: "Center", key: "center.title" },
           { label: "Date", key: "date" },
+          { label: "Updated At", key: "updatedAt" },
           { label: "UID", key: "uid" },
           { label: "Invoice No", key: "invoiceNumber" },
           { label: "Invoiced Amount", key: "invoice.payable" },
@@ -322,6 +358,10 @@ const Menu = ({
     else if (billType === INVOICE)
       resultantHeaders = [
         ...payableAmountHeaders,
+        {
+          label: "Refund Amount (₹Dr)",
+          key: "invoice.refund",
+        },
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,
@@ -345,6 +385,7 @@ const Menu = ({
         { label: "Patient/Intern", key: "name" },
         { label: "Center", key: "center.title" },
         { label: "Date", key: "date" },
+        { label: "Updated At", key: "updatedAt" },
         // { label: "UID", key: "uid" },
         // { label: "Invoice No", key: "invoiceNumber" },
         // { label: "Invoiced Amount", key: "invoice.payable" },
@@ -374,7 +415,7 @@ const Menu = ({
           <form>
             <Row>
               <Col xs={12} md={3} className="mb-3 mb-md-0">
-                <div className="d-flex">
+                {/* <div className="d-flex">
                   <Input
                     id="selectfilter"
                     name="address"
@@ -393,10 +434,10 @@ const Menu = ({
                       </option>
                     ))}
                   </Input>
-                </div>
+                </div> */}
               </Col>
               <Col xs={12} md={3}>
-                <SearchPatient setPatient={setPatient} patient={patient} />
+                {/* <SearchPatient setPatient={setPatient} patient={patient} /> */}
               </Col>
               <Col xs={12} md={6}>
                 <div className="d-flex justify-content-start justify-content-md-end mt-3 mt-md-0">
@@ -417,10 +458,20 @@ const Menu = ({
                     <i className="ri-printer-line"></i>
                   </Button>
                   <CSVLink
-                    data={documents() || []}
+                    // data={(documents() || [])}
+                    data={(() => {
+                      console.log({ documents: documents() });
+
+                      return documents() || [];
+                    })()}
                     title="CSV Download"
                     filename={"reports.csv"}
-                    headers={headers()}
+                    // headers={headers()}
+                    headers={(() => {
+                      console.log({ headers: headers() });
+
+                      return headers();
+                    })()}
                     className="btn btn-info px-2 ms-3"
                   >
                     <i className="ri-file-paper-2-line text-light text-decoration-none"></i>

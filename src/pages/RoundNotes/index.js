@@ -45,6 +45,8 @@ import { useForm, Controller } from "react-hook-form";
 import RoundNoteForm, { CarryForwardStrip } from "./RoundNoteForm";
 import RoundNoteCard from "./RoundCard";
 import { usePermissions } from "../../Components/Hooks/useRoles";
+import { getRoundNoteStaff } from "../../helpers/backend_helper";
+import CenterDropdown from "../Report/Components/Doctor/components/CenterDropDown";
 
 const RoundNotes = () => {
   const dispatch = useDispatch();
@@ -65,8 +67,22 @@ const RoundNotes = () => {
   const [limit, setLimit] = useState(10);
   const [searchTerm, setSearchTerm] = useState(filters.search || "");
   const [patientOption, setPatientOption] = useState(null);
+  const [selectedStaffOptions, setSelectedStaffOptions] = useState([]);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, note: null });
-  const centerAccess = useSelector((state) => state.Center.data);
+  const centers = useSelector((state) => state.Center.data);
+  const centerAccess = useSelector((state) => state.User?.centerAccess);
+  const [centerOptions, setCenterOptions] = useState(
+    centers
+      ?.filter((c) => centerAccess.includes(c._id))
+      .map((c) => ({
+        _id: c._id,
+        title: c.title,
+      })),
+  );
+  const [centerIds, setCenterIds] = useState(
+    [],
+    // centerOptions?.map((c) => c._id) || [],
+  );
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -84,14 +100,24 @@ const RoundNotes = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, hasIncidentPermission, permissionLoader]);
 
-  const staffOptions = useMemo(
-    () =>
-      staff.map((member) => ({
-        label: `${member.name} (${member.role})`,
-        value: member._id,
-      })),
-    [staff]
-  );
+  useEffect(() => {
+    if (centerAccess?.length) {
+      setCenterIds(centerAccess);
+    }
+  }, [centerAccess]);
+
+  useEffect(() => {
+    setCenterOptions(
+      centers
+        ?.filter((c) => centerAccess.includes(c._id))
+        .map((c) => ({
+          _id: c._id,
+          title: c.title,
+        })),
+    );
+  }, [centerAccess, centers]);
+
+  console.log({ centerAccess });
 
   const loadPatientOptions = useCallback(async (inputValue) => {
     if (!inputValue) return [];
@@ -109,7 +135,7 @@ const RoundNotes = () => {
       label: `${patient.name} (${patient.patientId || ""})`,
       value: patient._id,
     }),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -141,8 +167,16 @@ const RoundNotes = () => {
   }, [filters.patientId, formatPatientFilterOption, patientOption]);
 
   useEffect(() => {
-    dispatch(fetchRoundNoteStaff());
-  }, [dispatch]);
+    if (centerAccess?.length > 0 && !filters.center) {
+      dispatch(
+        setRoundNotesFilters({
+          center: centerAccess.map((c) => c._id),
+        }),
+      );
+    }
+  }, [centerAccess, filters.center, dispatch]);
+
+  console.log({ centerAccess });
 
   const queryPayload = useMemo(() => {
     const payload = {
@@ -155,10 +189,10 @@ const RoundNotes = () => {
 
     if (filters.patientId) payload.patientId = filters.patientId;
     if (filters.staffIds?.length) payload.staffIds = filters.staffIds;
-    if (filters.center?.length) payload.center = filters.center;
+    if (centerIds?.length) payload.center = centerIds;
 
     return payload;
-  }, [filters, page, limit]);
+  }, [filters, page, limit, centerIds]);
 
   useEffect(() => {
     dispatch(fetchRoundNotes(queryPayload));
@@ -190,7 +224,7 @@ const RoundNotes = () => {
         setRoundNotesFilters({
           startDate: moment(start).format("YYYY-MM-DD"),
           endDate: moment(end).format("YYYY-MM-DD"),
-        })
+        }),
       );
       setPage(1);
     }
@@ -199,19 +233,11 @@ const RoundNotes = () => {
   };
 
   const handleStaffChange = (options) => {
+    setSelectedStaffOptions(options || []);
     dispatch(
       setRoundNotesFilters({
         staffIds: options?.map((option) => option.value) || [],
-      })
-    );
-    setPage(1);
-  };
-
-  const handleCenterChange = (options) => {
-    dispatch(
-      setRoundNotesFilters({
-        center: options?.map((option) => option.value) || [],
-      })
+      }),
     );
     setPage(1);
   };
@@ -221,7 +247,7 @@ const RoundNotes = () => {
     dispatch(
       setRoundNotesFilters({
         patientId: option?.value || null,
-      })
+      }),
     );
     setPage(1);
     if (option?.value) {
@@ -232,7 +258,7 @@ const RoundNotes = () => {
   const handleDrawerSubmit = async (payload) => {
     if (drawer.mode === "edit" && drawer.data?._id) {
       await dispatch(
-        updateRoundNoteEntry({ id: drawer.data._id, data: payload })
+        updateRoundNoteEntry({ id: drawer.data._id, data: payload }),
       ).unwrap();
     } else {
       await dispatch(createRoundNote(payload)).unwrap();
@@ -268,14 +294,14 @@ const RoundNotes = () => {
       updateRoundNoteEntry({
         id: note._id,
         data: { carryForward: false, carryForwardStatus: "closed" },
-      })
+      }),
     ).unwrap();
     dispatch(fetchRoundNotes(queryPayload));
   };
 
   const totalPages = pagination.totalPages || 1;
 
-  console.log({ list });
+  console.log({ filters: filters });
 
   return (
     <div className="page-content">
@@ -292,7 +318,9 @@ const RoundNotes = () => {
                     setSearchTerm("");
                     setPatientOption(null);
                     setPage(1);
+                    setSelectedStaffOptions([]);
                     dispatch(resetRoundNotesFilters());
+                    setCenterIds(centerAccess);
                     // setRoundNotesFilters({
                     //   startDate: null,
                     //   endDate: null,
@@ -305,26 +333,18 @@ const RoundNotes = () => {
               <Form className="d-flex flex-column gap-3">
                 <FormGroup>
                   <Label>Center</Label>
-                  <Select
-                    isMulti
-                    options={centerAccess.map((c) => ({
-                      label: c.title,
-                      value: c._id,
-                    }))}
-                    value={centerAccess
-                      .map((c) => ({ label: c.title, value: c._id }))
-                      .filter((option) =>
-                        filters.center?.includes(option.value)
-                      )}
-                    onChange={handleCenterChange}
-                    classNamePrefix="select2"
+                  <CenterDropdown
+                    options={centerOptions}
+                    value={centerIds || []}
+                    onChange={setCenterIds}
+                    className="w-100 border rounded bg-white"
                   />
                 </FormGroup>
                 <FormGroup>
-                  <Label>Search notes</Label>
+                  <Label>Search</Label>
                   <Input
                     type="text"
-                    placeholder="Search text..."
+                    placeholder="Search note, floor, patient name or UID..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                   />
@@ -359,15 +379,31 @@ const RoundNotes = () => {
                 </FormGroup> */}
                 <FormGroup>
                   <Label>Round taken by</Label>
-                  <Select
+                  <AsyncSelect
                     isMulti
-                    isLoading={staffLoading}
-                    options={staffOptions}
-                    value={staffOptions.filter((option) =>
-                      filters.staffIds?.includes(option.value)
-                    )}
+                    loadOptions={async (inputValue) => {
+                      if (!inputValue) return [];
+                      const selectedCenterIds =
+                        filters.center?.length > 0
+                          ? filters.center
+                          : centerAccess.map((c) => c._id);
+
+                      const response = await getRoundNoteStaff({
+                        search: inputValue,
+                        centerAccess: JSON.stringify(selectedCenterIds),
+                      });
+                      return response.data.map((member) => ({
+                        label: `${member.name} (${member.role})`,
+                        value: member._id,
+                      }));
+                    }}
                     onChange={handleStaffChange}
                     classNamePrefix="select2"
+                    value={selectedStaffOptions}
+                    placeholder="Type to search staff..."
+                    noOptionsMessage={({ inputValue }) =>
+                      inputValue ? "No staff found" : "Type to search..."
+                    }
                   />
                 </FormGroup>
               </Form>
@@ -392,7 +428,7 @@ const RoundNotes = () => {
                       mode: "create",
                       data: null,
                       carryForwardSource: null,
-                    })
+                    }),
                   )
                 }
               >
@@ -415,7 +451,7 @@ const RoundNotes = () => {
                       mode: "create",
                       data: null,
                       carryForwardSource: note,
-                    })
+                    }),
                   )
                 }
                 onCloseCarryForward={handleCarryForwardClose}
@@ -438,7 +474,7 @@ const RoundNotes = () => {
                           mode: "edit",
                           data: current,
                           carryForwardSource: null,
-                        })
+                        }),
                       )
                     }
                     onDelete={handleDelete}
@@ -449,7 +485,7 @@ const RoundNotes = () => {
                           mode: "create",
                           data: null,
                           carryForwardSource: current,
-                        })
+                        }),
                       )
                     }
                     onCloseCarryForward={handleCarryForwardClose}
@@ -478,19 +514,31 @@ const RoundNotes = () => {
               </Input>
             </div>
             <Pagination className="mb-0">
+              {/* <PaginationItem disabled={page === 1}>
+                <PaginationLink first onClick={() => setPage(1)} />
+              </PaginationItem> */}
               <PaginationItem disabled={page === 1}>
                 <PaginationLink
                   previous
                   onClick={() => setPage((prev) => Math.max(prev - 1, 1))}
                 />
               </PaginationItem>
-              {Array.from({ length: totalPages }).map((_, index) => (
-                <PaginationItem key={index} active={index + 1 === page}>
-                  <PaginationLink onClick={() => setPage(index + 1)}>
-                    {index + 1}
-                  </PaginationLink>
-                </PaginationItem>
-              ))}
+              {(() => {
+                const maxButtons = 5;
+                const start = Math.max(1, page - Math.floor(maxButtons / 2));
+                const end = Math.min(totalPages, start + maxButtons - 1);
+                const pages = [];
+                for (let p = start; p <= end; p++) {
+                  pages.push(p);
+                }
+                return pages.map((p) => (
+                  <PaginationItem key={p} active={p === page}>
+                    <PaginationLink onClick={() => setPage(p)}>
+                      {p}
+                    </PaginationLink>
+                  </PaginationItem>
+                ));
+              })()}
               <PaginationItem disabled={page >= totalPages}>
                 <PaginationLink
                   next
@@ -499,6 +547,9 @@ const RoundNotes = () => {
                   }
                 />
               </PaginationItem>
+              {/* <PaginationItem disabled={page >= totalPages}>
+                <PaginationLink last onClick={() => setPage(totalPages)} />
+              </PaginationItem> */}
             </Pagination>
           </div>
         </Col>
@@ -508,8 +559,9 @@ const RoundNotes = () => {
         isOpen={drawer.isOpen}
         mode={drawer.mode}
         data={drawer.data}
+        staffLoading={staffLoading}
+        setCenterIds={() => {}}
         carryForwardSource={drawer.carryForwardSource}
-        staffOptions={staffOptions}
         floors={floors}
         onClose={() =>
           dispatch(
@@ -517,7 +569,7 @@ const RoundNotes = () => {
               isOpen: false,
               data: null,
               carryForwardSource: null,
-            })
+            }),
           )
         }
         onSubmit={handleDrawerSubmit}

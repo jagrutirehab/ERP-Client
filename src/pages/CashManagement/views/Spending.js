@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import {
@@ -17,8 +17,11 @@ import {
 import { Share, History, Receipt } from "lucide-react";
 import { connect, useDispatch } from "react-redux";
 import PropTypes from "prop-types";
+import Select from "react-select";
+import AsyncSelect from "react-select/async";
 import FileUpload from "../Components/FileUpload";
 import ItemCard from "../Components/ItemCard";
+import { summaryOptions } from "../../../Components/constants/cash";
 import {
   addSpending,
   getLastSpendings,
@@ -27,6 +30,8 @@ import { toast } from "react-toastify";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { getSearchPatients } from "../../../helpers/backend_helper";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 
 const Spending = ({ centers, centerAccess, spendings, loading }) => {
   const dispatch = useDispatch();
@@ -34,6 +39,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
   const centerOptions = centers
     ?.filter((c) => centerAccess.includes(c._id))
+    .filter((c) => c.title?.toLowerCase() !== "online")
     .map((c) => ({
       _id: c._id,
       title: c.title,
@@ -52,9 +58,14 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
   const validationSchema = Yup.object({
     center: Yup.string().required("Center is required"),
-    summary: Yup.string()
+    summary: Yup.object()
       .required("Summary is required")
-      .min(2, "Summary must be at least 2 characters"),
+      .nullable(),
+    patientId: Yup.mixed().when("summary", {
+      is: (val) => val?.value === "PATIENT_REFUND",
+      then: (schema) => schema.required("Please select a patient"),
+      otherwise: (schema) => schema.notRequired(),
+    }),
     amount: Yup.number()
       .required("Amount is required")
       .positive("Amount must be positive")
@@ -78,10 +89,14 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       }),
   });
 
+  const patientSearchTimerRef = useRef(null);
+
+
   const formik = useFormik({
     initialValues: {
       center: "",
-      summary: "",
+      summary: null,
+      patientId: null,
       amount: 0,
       comments: "",
       attachment: null,
@@ -91,7 +106,10 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       const formData = new FormData();
       formData.append("center", values.center);
       formData.append("amount", Number(values.amount));
-      formData.append("summary", values.summary);
+      formData.append("summary", values.summary.value);
+      if (values.summary?.value === "PATIENT_REFUND" && values.patientId?.value) {
+        formData.append("patientId", values.patientId.value);
+      }
       if (values.comments) {
         formData.append("comments", values.comments);
       }
@@ -111,6 +129,36 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
       setAttachment(null);
     },
   });
+
+  const loadPatients = async (inputValue) => {
+    if (!inputValue) return [];
+    try {
+      const res = await getSearchPatients({
+        name: inputValue,
+        centerAccess: formik.values.center ? [formik.values.center] : [],
+      });
+      return (res?.payload || []).map((p) => ({
+        value: p._id,
+        label: `${p.name} (${p.id?.prefix || ""}${p.id?.value || ""})`,
+      }));
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to search patients");
+      }
+      return [];
+    }
+  };
+
+  const debouncedLoadPatients = useCallback(
+    (inputValue, callback) => {
+      if (patientSearchTimerRef.current) clearTimeout(patientSearchTimerRef.current);
+      patientSearchTimerRef.current = setTimeout(() => {
+        loadPatients(inputValue).then(callback);
+      }, 300);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [formik.values.center]
+  );
 
   useEffect(() => {
     formik.setFieldValue("attachment", attachment);
@@ -132,18 +180,20 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
     formik.handleSubmit(e);
   };
 
-  useEffect(() => {
+  const fetchSpendings = async (refetch = false) => {
     if (!hasReadPermission) return;
-    const fetchSpendings = async () => {
-      try {
-        await dispatch(getLastSpendings({ page: 1, limit: 10, centers: centerAccess })).unwrap();
-      } catch (error) {
-        if (!handleAuthError(error)) {
-          toast.error(error.message || "Failed to fetch spendings.");
-        }
+    try {
+      await dispatch(getLastSpendings({ page: 1, limit: 10, centers: centerAccess, refetch })).unwrap();
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to fetch spendings.");
       }
     }
+  }
+
+  useEffect(() => {
     fetchSpendings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerAccess, dispatch, roles]);
 
   if (!hasCreatePermission && !hasReadPermission) {
@@ -176,7 +226,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                 <Form onSubmit={handleSubmit}>
                   <FormGroup>
                     <Label for="center" className="fw-medium">
-                      Center *
+                      Center <span className="text-danger">*</span>
                     </Label>
                     <Input
                       type="select"
@@ -208,31 +258,67 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                   </FormGroup>
                   <FormGroup>
                     <Label for="summary" className="fw-medium">
-                      Summary *
+                      Summary <span className="text-danger">*</span>
                     </Label>
-                    <Input
-                      type="text"
+                    <Select
                       id="summary"
                       name="summary"
+                      options={summaryOptions}
                       value={formik.values.summary}
-                      onChange={formik.handleChange}
-                      onBlur={formik.handleBlur}
-                      placeholder="e.g., Office Supplies, Client Meeting, Equipment Purchase"
-                      className={`form-control ${formik.touched.summary && formik.errors.summary
-                        ? "is-invalid"
-                        : ""
-                        }`}
+                      onChange={(option) => {
+                        formik.setFieldValue("summary", option);
+                        if (option?.value !== "PATIENT_REFUND") {
+                          formik.setFieldValue("patientId", null);
+                          formik.setFieldTouched("patientId", false, false);
+                        }
+                      }}
+                      onBlur={() => formik.setFieldTouched("summary", true)}
+                      classNamePrefix="react-select"
+                      placeholder="Select summary"
+                      isClearable
                     />
                     {formik.touched.summary && formik.errors.summary && (
-                      <div className="invalid-feedback d-block">
-                        <i className="fas fa-exclamation-circle me-1"></i>
+                      <div className="text-danger small mt-1">
                         {formik.errors.summary}
                       </div>
                     )}
                   </FormGroup>
+                  {formik.values.summary?.value === "PATIENT_REFUND" && (
+                    <FormGroup>
+                      <Label className="fw-medium">
+                        Select Patient <span className="text-danger">*</span>
+                      </Label>
+                      <AsyncSelect
+                        key={formik.values.center}
+                        cacheOptions={false}
+                        defaultOptions={false}
+                        loadOptions={debouncedLoadPatients}
+                        placeholder="Search by name or patient UID"
+                        value={formik.values.patientId}
+                        onChange={(option) => formik.setFieldValue("patientId", option)}
+                        onBlur={() => formik.setFieldTouched("patientId", true)}
+                        classNamePrefix="react-select"
+                        className={
+                          formik.touched.patientId && formik.errors.patientId
+                            ? "react-select is-invalid"
+                            : "react-select"
+                        }
+                        noOptionsMessage={({ inputValue }) =>
+                          inputValue ? "No patient found" : "Search by name or patient UID"
+                        }
+                      />
+                      {formik.touched.patientId && formik.errors.patientId && (
+                        <div className="invalid-feedback d-block">
+                          {formik.errors.patientId}
+                        </div>
+                      )}
+                    </FormGroup>
+                  )}
+                  <FormGroup className="d-none">
+                  </FormGroup>
                   <FormGroup>
                     <Label for="amount" className="fw-medium">
-                      Amount *
+                      Amount <span className="text-danger">*</span>
                     </Label>
                     <Input
                       type="text"
@@ -283,7 +369,7 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
 
                   <FormGroup>
                     <Label className="fw-medium">
-                      Attachment (Receipt/Invoice) *
+                      Attachment (Receipt/Invoice) <span className="text-danger">*</span>
                     </Label>
                     <FileUpload
                       setAttachment={handleAttachmentChange}
@@ -330,6 +416,10 @@ const Spending = ({ centers, centerAccess, spendings, loading }) => {
                   <History size={18} className="me-2 text-primary" />
                   Last 10 Spendings
                 </h5>
+                <RefreshButton
+                  loading={!!loading}
+                  onRefresh={() => fetchSpendings(true)}
+                />
               </CardHeader>
               <CardBody className="p-0">
                 <div

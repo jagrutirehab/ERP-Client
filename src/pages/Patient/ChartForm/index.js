@@ -9,10 +9,19 @@ import {
   COUNSELLING_NOTE,
   DETAIL_ADMISSION,
   DISCHARGE_SUMMARY,
+  EXPIRY_SUMMARY,
   LAB_REPORT,
   PRESCRIPTION,
   RELATIVE_VISIT,
+  OUTPASS,
   VITAL_SIGN,
+  MENTAL_EXAMINATION,
+  PSYCHO_DIAGNOSTIC_FORM,
+  INPUT_OUTPUT,
+  NURSE_SOS_PROCEDURE,
+  INJURY_MARKS,
+  ECT_SESSION,
+  ADMISSION_TYPE,
 } from "../../../Components/constants/patient";
 
 //forms
@@ -20,16 +29,27 @@ import Prescription from "./Prescription";
 import ClinicalNote from "./ClinicalNote";
 import LabReport from "./LabReport";
 import DischargeSummary from "./DischargeSummary";
+import ExpirySummary from "./ExpirySummary";
 import VitalSign from "./VitalSign";
 import { createEditChart } from "../../../store/actions";
 import RelativeVisit from "./RelativeVisit";
+import Outpass from "./Outpass";
 import DetailAdmission from "./DetailAdmission";
 import CounsellingNote from "./CounsellingNote";
+import MentalExamination from "./MentalExamination";
+import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
+import InputOutput from "./InputOutput";
+import NurseSosProcedure from "./NurseSosProcedure";
+import InjuryMarks from "./InjuryMarks";
+import EctSession from "./EctSession";
+import AdmissionType from "./AdmissionType";
 
 const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const dispatch = useDispatch();
   const toggleForm = () => {
     dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+    localStorage.removeItem("ai_discharge_summary");
+    localStorage.removeItem("ai_expiry_summary");
   };
 
   const isPrescription = chart.chart === PRESCRIPTION;
@@ -38,24 +58,53 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const isVitalSigns = chart.chart === VITAL_SIGN;
   const isLabReports = chart.chart === LAB_REPORT;
   const isRelativeVisit = chart.chart === RELATIVE_VISIT;
+  const isOutpass = chart.chart === OUTPASS;
   const isDischargeSummary = chart.chart === DISCHARGE_SUMMARY;
+  const isExpirySummary = chart.chart === EXPIRY_SUMMARY;
   const isDetailAdmission = chart.chart === DETAIL_ADMISSION;
+  const isMentalExamination = chart.chart === MENTAL_EXAMINATION;
+  const isPsychoDiagnosticForm = chart.chart === PSYCHO_DIAGNOSTIC_FORM;
+  const isInputOutput = chart.chart === INPUT_OUTPUT;
+  const isNurseSosProcedure = chart.chart === NURSE_SOS_PROCEDURE;
+  const isInjuryMarks = chart.chart === INJURY_MARKS;
+  const isEctSession = chart.chart === ECT_SESSION;
+  const isAdmissionType = chart.chart === ADMISSION_TYPE;
 
   const title = isPrescription
     ? "Prescription"
     : isClinicalNotes
-    ? "Clinical Notes"
-    : isCounsellingNotes
-    ? "Counselling Notes"
-    : isVitalSigns
-    ? "Vital Signs"
-    : isLabReports
-    ? "Lab Report"
-    : isDischargeSummary
-    ? "Discharge Summary"
-    : isRelativeVisit
-    ? "Relative Visit"
-    : "Detail Admission";
+      ? "Clinical Notes"
+      : isCounsellingNotes
+        ? "Counselling Notes"
+        : isVitalSigns
+          ? "Vital Signs"
+          : isLabReports
+            ? "Lab Report"
+            : isDischargeSummary
+              ? "Discharge Summary"
+              : isExpirySummary
+                ? "Expiry Summary"
+                : isRelativeVisit
+                  ? "Relative Visit"
+                  : isOutpass
+                    ? "Outpass"
+                    : isMentalExamination
+                      ? "Clinical Notes"
+                      : isPsychoDiagnosticForm
+                        ? "Psycho Diagnostic Report"
+                        : isInputOutput
+                          ? "Input - Output"
+                          : isNurseSosProcedure
+                            ? "Nurse Procedure"
+                            : isInjuryMarks
+                              ? "Patient Injury Marks"
+                              : isEctSession
+                                ? "ECT Session"
+                                : isAdmissionType
+                                  ? "Admission Type"
+                                  : "Detail Admission";
+
+  // console.log({ type });
 
   return (
     <React.Fragment>
@@ -79,8 +128,19 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isVitalSigns && <VitalSign {...rest} />}
         {isLabReports && <LabReport {...rest} />}
         {isRelativeVisit && <RelativeVisit {...rest} />}
+        {isOutpass && <Outpass {...rest} />}
         {isDischargeSummary && <DischargeSummary {...rest} />}
-        {isDetailAdmission && <DetailAdmission {...rest} />}
+        {isExpirySummary && <ExpirySummary {...rest} />}
+        {isDetailAdmission && (
+          <DetailAdmission {...rest} closeForm={toggleForm} />
+        )}
+        {isMentalExamination && <MentalExamination {...rest} />}
+        {isPsychoDiagnosticForm && <PsychoDiagnosticForm {...rest} />}
+        {isInputOutput && <InputOutput {...rest} />}
+        {isNurseSosProcedure && <NurseSosProcedure {...rest} />}
+        {isInjuryMarks && <InjuryMarks {...rest} />}
+        {isEctSession && <EctSession {...rest} />}
+        {isAdmissionType && <AdmissionType {...rest} />}
       </CustomModal>
     </React.Fragment>
   );

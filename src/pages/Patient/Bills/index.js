@@ -9,6 +9,7 @@ import {
   INVOICE,
   OPD,
   REFUND,
+  WRITE_OFF,
 } from "../../../Components/constants/patient";
 import AdvancePayment from "./AdvancePayment";
 import Invoice from "./Invoice";
@@ -25,6 +26,7 @@ import RenderWhen from "../../../Components/Common/RenderWhen";
 import Deposit from "./Deposit";
 import { differenceInDays } from "date-fns";
 import { setBillingStatus } from "../../../store/features/patient/patientSlice";
+import WriteOffPayment from "./WriteOffPayment";
 
 const superUser = [
   // "rijutarafder000@gmail.com",
@@ -70,17 +72,12 @@ const Bills = ({
         center: dpstToAdvance.deposit?.center?._id,
         addmission: dpstToAdvance.deposit?.addmission,
         paymentModes: dpstToAdvance.deposit?.deposit?.paymentModes,
-      })
+      }),
     );
     setDepositToAdvance({
       deposit: null,
       isOpen: false,
     });
-  };
-
-  const editBill = (bill) => {
-    dispatch(createEditBill({ data: bill, bill: bill.bill, isOpen: false }));
-    toggleDateModal();
   };
 
   let calcAdvance = 0;
@@ -89,6 +86,10 @@ const Bills = ({
   let totalDeposit = 0;
   let totalAdvance = 0;
   let totalPayable = 0;
+
+  // const sortedData = (_.cloneDeep(data) || []).sort(
+  //   (a, b) => new Date(a.date) - new Date(b.date),
+  // );
 
   const newBills = (_.cloneDeep(data) || []).map((item, idx) => {
     if (item.bill === ADVANCE_PAYMENT) {
@@ -107,7 +108,21 @@ const Bills = ({
         adReserve = 0;
       }
       totalAdvance += item.advancePayment.totalAmount;
-    } else if (
+    }
+    // Write off
+    else if (item.bill === WRITE_OFF) {
+      const writeOffAmount = parseFloat(item.writeOff?.amount || 0);
+
+      if (previousPayable > 0) {
+        previousPayable -= writeOffAmount;
+
+        if (previousPayable < 0) {
+          previousPayable = 0;
+        }
+      }
+    }
+    // Write off
+    else if (
       (item.bill === INVOICE || item.bill === REFUND) &&
       item.type !== OPD
     ) {
@@ -169,6 +184,8 @@ const Bills = ({
     return item;
   });
 
+  console.log("newBillsnewBills", newBills);
+
   useEffect(() => {
     if (
       newBills?.length > 0 &&
@@ -185,18 +202,18 @@ const Bills = ({
             totalPayable,
             totalAdvance,
             totalDeposit,
-          })
+          }),
         );
       } else if (bill.bill === DEPOSIT) {
         if (adReserve <= 0 && previousPayable <= 0) {
           dispatch(
             setTotalAmount({
               calculatedPayable: 0,
-              calculatedAdvance: totalAdvance,
+              calculatedAdvance: calcAdvance,
               totalPayable,
               totalAdvance,
               totalDeposit,
-            })
+            }),
           );
         } else if (adReserve <= 0) {
           dispatch(
@@ -206,7 +223,7 @@ const Bills = ({
               totalPayable,
               totalAdvance,
               totalDeposit,
-            })
+            }),
           );
         } else {
           dispatch(
@@ -216,7 +233,7 @@ const Bills = ({
               totalPayable,
               totalAdvance,
               totalDeposit,
-            })
+            }),
           );
         }
       } else if (bill.bill === REFUND) {
@@ -227,7 +244,17 @@ const Bills = ({
             totalPayable,
             totalAdvance,
             totalDeposit,
-          })
+          }),
+        );
+      } else if (bill.bill === WRITE_OFF) {
+        dispatch(
+          setTotalAmount({
+            calculatedPayable: previousPayable,
+            calculatedAdvance: calcAdvance,
+            totalPayable,
+            totalAdvance,
+            totalDeposit,
+          }),
         );
       } else {
         dispatch(
@@ -237,7 +264,7 @@ const Bills = ({
             totalPayable,
             totalAdvance,
             totalDeposit,
-          })
+          }),
         );
       }
     } else if (!patient.addmissions?.includes(addmission?.addmissionId))
@@ -252,13 +279,29 @@ const Bills = ({
     });
   };
 
+  const latestBill = (newBills || [])
+    .filter((item) => item.bill === INVOICE || item.bill === REFUND)
+    .sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt))[0];
+
+  const editBill = (bill) => {
+    const isLatest = bill?._id === latestBill?._id;
+    console.log("Bill", bill);
+    console.log("bill._id", bill?._id);
+    console.log("latestBill?._id", latestBill?._id);
+
+    dispatch(
+      createEditBill({ data: bill, bill: bill.bill, isOpen: false, isLatest }),
+    );
+    toggleDateModal();
+  };
+
   const deleteBill = async () => {
     const response = await dispatch(removeBill(bill.bill._id)).unwrap();
     dispatch(
       setBillingStatus({
         patientId: patient._id,
         billingStatus: response.billingStatus,
-      })
+      }),
     );
     setBill({
       bill: null,
@@ -275,7 +318,7 @@ const Bills = ({
 
   const printBill = (chart, patient) => {
     dispatch(
-      togglePrint({ data: chart, modal: true, patient, admission: addmission })
+      togglePrint({ data: chart, modal: true, patient, admission: addmission }),
     );
   };
 
@@ -288,10 +331,29 @@ const Bills = ({
           <Row className="timeline-right">
             {(newBills || [])
               .sort((a, b) => new Date(b.date) - new Date(a.date))
+              // .sort((a, b) => {
+              //   const isAWriteOffEdited =
+              //     a.bill === WRITE_OFF &&
+              //     new Date(a.updatedAt).getTime() !== new Date(a.createdAt).getTime();
+
+              //   const isBWriteOffEdited =
+              //     b.bill === WRITE_OFF &&
+              //     new Date(b.updatedAt).getTime() !== new Date(b.createdAt).getTime();
+
+              //   // If A is recently edited WRITE_OFF → move to top
+              //   if (isAWriteOffEdited && !isBWriteOffEdited) return -1;
+
+              //   // If B is recently edited WRITE_OFF → move to top
+              //   if (!isAWriteOffEdited && isBWriteOffEdited) return 1;
+
+              //   // Otherwise normal date sorting
+              //   return new Date(b.date) - new Date(a.date);
+              // })
               .map((bill) => {
                 return (
                   <Wrapper
                     key={bill._id}
+                    data={bill?.invoice}
                     item={bill}
                     name="Billing"
                     editItem={editBill}
@@ -315,24 +377,29 @@ const Bills = ({
                       (bill.bill === ADVANCE_PAYMENT ||
                         bill.bill === DEPOSIT) &&
                       // || bill.bill === INVOICE
-                      user?.email !== "rijutarafder000@gmail.com" &&
+                      // user?.email !== "rijutarafder000@gmail.com" &&
                       user?.email !== "surjeet.parida@gmail.com" &&
-                      user?.email !== "hemanthshinde@gmail.com" &&
-                      user?.email !== "vikas@jagrutirehab.org" &&
-                      user?.email !== "bishal@gmail.com"
-                        ? true
+                      user?.email !== "hemanthshinde@gmail.com"
+                        ? // user?.email !== "vikas@jagrutirehab.org" &&
+                          // user?.email !== "bishal@gmail.com"
+                          true
                         : bill.bill === INVOICE &&
-                          superUser.includes(user.email)
-                        ? false
-                        : bill.bill === INVOICE &&
-                          differenceInDays(newDate, new Date(bill.createdAt)) >
-                            30
-                        ? true
-                        : false
+                            superUser.includes(user.email)
+                          ? false
+                          : bill.bill === INVOICE &&
+                              differenceInDays(
+                                newDate,
+                                new Date(bill.createdAt),
+                              ) > 30
+                            ? true
+                            : false
                     }
                     itemId={`${bill?.id?.prefix}${bill?.id?.patientId}-${bill?.id?.value}`}
                     disableDelete={addmission?.dischargeDate ? true : false}
                   >
+                    <RenderWhen isTrue={bill.bill === WRITE_OFF}>
+                      <WriteOffPayment data={bill?.writeOffInvoice} />
+                    </RenderWhen>
                     <RenderWhen isTrue={bill.bill === ADVANCE_PAYMENT}>
                       <AdvancePayment data={bill?.advancePayment} />
                     </RenderWhen>

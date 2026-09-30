@@ -211,6 +211,25 @@ const bookingSlice = createSlice({
         state.patient.appointments[findIndexInPatientAppointments].bill =
           payload.bill;
     },
+    setEventPsychoDiagnostic: (state, { payload }) => {
+      const findIndex = state.data?.findIndex(
+        (_) => _._id === payload.appointment
+      );
+      if (findIndex >= 0) {
+        state.data[findIndex].psychoDiagnosticForm = payload.psychoDiagnosticForm;
+        if (state.event?.data) {
+          state.event.data.psychoDiagnosticForm = payload.psychoDiagnosticForm;
+        }
+      }
+      const findIndexInPatientAppointments =
+        state.patient.appointments?.findIndex(
+          (_) => _._id === payload.appointment
+        );
+      if (findIndexInPatientAppointments >= 0)
+        state.patient.appointments[
+          findIndexInPatientAppointments
+        ].psychoDiagnosticForm = payload.psychoDiagnosticForm;
+    },
     removeEventBill: (state, { payload }) => {
       const findIndex = state.patient.appointments?.findIndex(
         (_) => _.bill?._id === payload._id
@@ -350,6 +369,7 @@ export const {
   setEventDate,
   setEventChart,
   setEventBill,
+  setEventPsychoDiagnostic,
   removeEventBill,
   removeEventChart,
 } = bookingSlice.actions;

@@ -3,6 +3,7 @@ import "bootstrap/dist/css/bootstrap.min.css";
 import "./assets/scss/themes.scss";
 import Route from "./Routes";
 import { connect } from "react-redux";
+import "react-toastify/dist/ReactToastify.css";
 
 function App() {
   return (

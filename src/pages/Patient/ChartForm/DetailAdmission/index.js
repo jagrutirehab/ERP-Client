@@ -9,6 +9,7 @@ import { useFormik } from "formik";
 import convertToFormData from "../../../../utils/convertToFormData";
 // import DetailAdmissionForm from "./DetailAdmissionForm";
 import DetailHistoryForm from "./DetailHistoryForm";
+import SpecialRequirementsForm from "./SpecialRequirementsForm";
 import MentalExamination from "./MentalExamination";
 import PhysicalExamination from "./PhysicalExamination";
 import DoctorSignature from "./DoctorSignature";
@@ -23,16 +24,23 @@ import FileCard from "../../../../Components/Common/FileCard";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import DeleteModal from "../../../../Components/Common/DeleteModal";
 import ChiefComplaintsForm from "./ChiefComplaintsForm";
+import MentalExaminationV2 from "./MentalExaminationV2";
+// import PatientTypeFields from "./PatientTypeFields";
+import PatientTypeFields, {
+  validatePatientTypeFields,
+} from "./PatientTypeFields";
 // import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
 // const CONSET_FILES = "CONSENT_FILES";
 const DETAIL_ADMISSION = "DETAIL_ADMISSION";
 const DETAIL_HISTORY = "DETAIL_HISTORY";
+const SPECIAL_REQUIREMENTS = "SPECIAL_REQUIREMENTS";
 const CHIEF_COMPLAINTS = "CHIEF_COMPLAINTS";
 // const PROVISIONAL_DIAGNOSIS = "PROVISIONAL_DIAGNOSIS";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
-const PHYSICAL_EXAMINATION = "PHYSICAL_EXAMINATION";
+// const PHYSICAL_EXAMINATION = "PHYSICAL_EXAMINATION";
 const DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE";
+const PATIENT_TYPE_FIELDS = "PATIENT_TYPE_FIELDS";
 
 const UploadedFiles = ({ id, chartId, files }) => {
   const dispatch = useDispatch();
@@ -56,7 +64,7 @@ const UploadedFiles = ({ id, chartId, files }) => {
         id,
         chartId,
         fileId: deleteFile.img._id,
-      })
+      }),
     );
     setDeleteFile({ img: null, isOpen: false });
   };
@@ -118,12 +126,63 @@ const DetailAdmission = ({
   chartDate,
   editChartData,
   type,
+  closeForm,
+  // data,
 }) => {
   const dispatch = useDispatch();
   const [consentFiles, setConsentFiles] = useState();
   const [formStep, setFormStep] = useState(CHIEF_COMPLAINTS);
+  const [patientTypeSubmitAttempted, setPatientTypeSubmitAttempted] =
+    useState(false);
+  // console.log("editChartData", editChartData);
 
   const detailAdmissionForm = editChartData?.detailAdmission;
+  const isOldMentalExamination = Boolean(
+    detailAdmissionForm?.mentalExamination,
+  );
+
+  // bridge stored Boolean (true/false/undefined) <-> Yes/No radio value
+  const triToYesNo = (v) => (v === true ? "yes" : v === false ? "no" : "");
+
+  console.log("detailAdmissionForm", detailAdmissionForm);
+  console.log(
+    "negativeHistory from DB:",
+    detailAdmissionForm?.detailHistory?.negativeHistory,
+  );
+  console.log(
+    "developmentDelayDetails from DB:",
+    detailAdmissionForm?.detailHistory?.developmentDelayDetails,
+  );
+
+  const isEdit = Boolean(editChartData?._id);
+  const draftKey = `detailAdmissionDraft_${patient?._id || "new"}`;
+
+  const hasExistingDiagnosis =
+    isEdit && detailAdmissionForm?.doctorSignature?.diagnosis?.length > 0;
+
+  console.log("hasExistingDiagnosis", hasExistingDiagnosis);
+
+  const hasExistingProDiagnosis =
+    isEdit &&
+    detailAdmissionForm?.doctorSignature?.provisionaldiagnosis?.length > 0;
+
+  console.log("hasExistingProDiagnosis", hasExistingProDiagnosis);
+
+  const savedDraft = useMemo(() => {
+    if (isEdit) return null;
+    try {
+      const d = localStorage.getItem(draftKey);
+      return d ? JSON.parse(d) : null;
+    } catch {
+      return null;
+    }
+  }, [draftKey, isEdit]);
+
+  console.log(
+    "INVESTIGATION FROM API:",
+    detailAdmissionForm?.doctorSignature?.investigation,
+  );
+
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
     enableReinitialize: true,
@@ -134,8 +193,8 @@ const DetailAdmission = ({
       center: center
         ? center
         : patient?.center?._id
-        ? patient.center._id
-        : patient?.center,
+          ? patient.center._id
+          : patient?.center,
       addmission: patient?.addmission?._id,
       //detail addmission form
       age: detailAdmissionForm ? detailAdmissionForm.detailAdmission?.age : "",
@@ -163,15 +222,24 @@ const DetailAdmission = ({
       referral: detailAdmissionForm
         ? detailAdmissionForm.detailAdmission?.referral
         : "",
-      provisionalDiagnosis: detailAdmissionForm
-        ? detailAdmissionForm.detailAdmission?.provisionalDiagnosis
-        : "",
-      revisedDiagnosis: detailAdmissionForm
-        ? detailAdmissionForm.detailAdmission?.revisedDiagnosis
-        : "",
+      provisionaldiagnosis: Array.isArray(
+        detailAdmissionForm?.doctorSignature?.provisionaldiagnosis,
+      )
+        ? detailAdmissionForm.doctorSignature.provisionaldiagnosis.map(
+            (d) => d.code_id,
+          )
+        : [],
+
+      diagnosis: Array.isArray(detailAdmissionForm?.doctorSignature?.diagnosis)
+        ? detailAdmissionForm.doctorSignature.diagnosis.map((d) => d.code_id)
+        : [],
+
       //detail history
       informant: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.informant
+        ? detailAdmissionForm.ChiefComplaints?.informant
+        : "",
+      informantName: detailAdmissionForm
+        ? detailAdmissionForm.ChiefComplaints?.informantName
         : "",
       counsellor: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.counsellor
@@ -180,22 +248,57 @@ const DetailAdmission = ({
       //   ? detailAdmissionForm.detailHistory?.referredby
       //   : "",
       reliable: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.reliable
+        ? detailAdmissionForm.ChiefComplaints?.reliable
         : "Reliable",
       adequate: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.adequate
+        ? detailAdmissionForm.ChiefComplaints?.adequate
         : "Adequate",
-      history: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.history
-        : "",
       negativeHistory: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.negativeHistory
+        ? (() => {
+            const val = detailAdmissionForm.detailHistory?.negativeHistory;
+            if (!val) return [];
+            if (Array.isArray(val)) {
+              return val
+                .flatMap((item) =>
+                  typeof item === "string"
+                    ? item.split(",").map((s) => s.trim())
+                    : item,
+                )
+                .filter(Boolean);
+            }
+            return [];
+          })()
+        : [],
+      negativeHistoryOther: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.negativeHistoryOther
+        : "",
+      developmentDelay: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelay
+        : "",
+      developmentDelayDetails: detailAdmissionForm
+        ? Array.isArray(
+            detailAdmissionForm.detailHistory?.developmentDelayDetails,
+          )
+          ? detailAdmissionForm.detailHistory?.developmentDelayDetails
+          : []
+        : [],
+      developmentDelaySittingDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelaySittingDetails ||
+          ""
+        : "",
+      developmentDelayStandingDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelayStandingDetails ||
+          ""
+        : "",
+      developmentDelaySpeechDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory?.developmentDelaySpeechDetails || ""
+        : "",
+      developmentDelayToiletTrainingDetails: detailAdmissionForm
+        ? detailAdmissionForm.detailHistory
+            ?.developmentDelayToiletTrainingDetails || ""
         : "",
       pastHistory: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.pastHistory
-        : "",
-      developmentHistory: detailAdmissionForm
-        ? detailAdmissionForm.detailHistory?.developmentHistory
         : "",
       occupationHistory: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.occupationHistory
@@ -212,6 +315,30 @@ const DetailAdmission = ({
       socialSupport: detailAdmissionForm
         ? detailAdmissionForm.detailHistory?.socialSupport
         : "",
+
+      // special requirements (Yes/No radios -> stored as Boolean; "" = not answered)
+      physiotherapy: triToYesNo(
+        detailAdmissionForm?.specialRequirements?.physiotherapy,
+      ),
+      walking: triToYesNo(detailAdmissionForm?.specialRequirements?.walking),
+      homeMedicines: triToYesNo(
+        detailAdmissionForm?.specialRequirements?.homeMedicines,
+      ),
+      exercise: triToYesNo(detailAdmissionForm?.specialRequirements?.exercise),
+      foodRequirement: triToYesNo(
+        detailAdmissionForm?.specialRequirements?.foodRequirement,
+      ),
+      externalDoctorVisits: triToYesNo(
+        detailAdmissionForm?.specialRequirements?.externalDoctorVisits,
+      ),
+      extraCareTaker: triToYesNo(
+        detailAdmissionForm?.specialRequirements?.extraCareTaker,
+      ),
+      specialRequirementsDetails: detailAdmissionForm
+        ? detailAdmissionForm.specialRequirements?.specialRequirementsDetails ||
+          ""
+        : "",
+
       // ChiefComplaints
 
       line1: detailAdmissionForm
@@ -233,39 +360,210 @@ const DetailAdmission = ({
       //   : "",
 
       //mental status examination
-      appearance: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.appearance
-        : "",
-      ecc: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.ecc
-        : "",
-      speech: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.speech
-        : "",
-      mood: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.mood
-        : "",
-      effect: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.effect
-        : "",
-      thinking: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.thinking
-        : "",
-      perception: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.perception
-        : "",
-      memory: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.memory
-        : "",
-      abstractThinking: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.abstractThinking
-        : "",
-      socialJudgment: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.socialJudgment
-        : "",
-      insight: detailAdmissionForm
-        ? detailAdmissionForm.mentalExamination?.insight
-        : "",
+      ...(isOldMentalExamination
+        ? {
+            appearance: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.appearance
+              : "",
+            ecc: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.ecc
+              : "",
+            speech: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.speech
+              : "",
+            mood: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.mood
+              : "",
+            effect: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.effect
+              : "",
+            thinking: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.thinking
+              : "",
+            perception: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.perception
+              : "",
+            memory: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.memory
+              : "",
+            abstractThinking: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.abstractThinking
+              : "",
+            socialJudgment: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.socialJudgment
+              : "",
+            insight: detailAdmissionForm
+              ? detailAdmissionForm.mentalExamination?.insight
+              : "",
+          }
+        : {}),
+
+      ...(!isOldMentalExamination
+        ? {
+            // grooming:
+            //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+            //     ?.grooming || "",
+            // eyeContact:
+            //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+            //     ?.eyeContact || "",
+            // psychomotorActivity:
+            //   detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+            //     ?.psychomotorActivity || "",
+
+            // rate:
+            //   detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
+            // volume:
+            //   detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
+
+            // affect:
+            //   detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
+            // affectNotes:
+            //   detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
+            // subjective:
+            //   detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
+
+            // delusions:
+            //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusions || "",
+            // delusionNotes:
+            //   detailAdmissionForm?.mentalExaminationV2?.thought?.delusionNotes || "",
+            // content:
+            //   detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
+
+            // perception:
+            //   detailAdmissionForm?.mentalExaminationV2?.perception || "",
+            // orientation:
+            //   detailAdmissionForm?.mentalExaminationV2?.cognition?.orientation || "",
+            // memory:
+            //   detailAdmissionForm?.mentalExaminationV2?.cognition?.memory || "",
+
+            // grade:
+            //   detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
+            // judgment:
+            //   detailAdmissionForm?.mentalExaminationV2?.judgment || "",
+            // remarks:
+            //   detailAdmissionForm?.mentalExaminationV2?.remarks || "",
+            grooming:
+              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+                ?.grooming || "",
+            generalAppearance:
+              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+                ?.generalAppearance || "",
+            surroundingTouch:
+              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+                ?.surroundingTouch || "",
+            eyeContact:
+              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+                ?.eyeContact || "",
+            psychomotorActivity:
+              detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+                ?.psychomotorActivity || "",
+
+            rate: detailAdmissionForm?.mentalExaminationV2?.speech?.rate || "",
+            tone: detailAdmissionForm?.mentalExaminationV2?.speech?.tone || "",
+            volume:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.volume || "",
+            reactionTime:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.reactionTime ||
+              "",
+            productivity:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.productivity ||
+              "",
+            speed:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.speed || "",
+            relevance:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.relevance || "",
+            coherence:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.coherence || "",
+            goalDirection:
+              detailAdmissionForm?.mentalExaminationV2?.speech?.goalDirection ||
+              "",
+
+            affect:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.affect || "",
+            affectNotes:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.affectNotes || "",
+            subjective:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.subjective || "",
+            objective:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.objective || "",
+            lability:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.lability || "",
+            appropriateness1:
+              detailAdmissionForm?.mentalExaminationV2?.mood?.appropriateness ||
+              "",
+
+            quality:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2?.quality || "",
+            intensity:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2?.intensity ||
+              "",
+            mobility:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2?.mobility ||
+              "",
+            range:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2?.range || "",
+            reactivity:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2?.reactivity ||
+              "",
+            communicability:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2
+                ?.communicability || "",
+            diurnalVariation:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2
+                ?.diurnalVariation || "",
+            appropriateness2:
+              detailAdmissionForm?.mentalExaminationV2?.affectV2
+                ?.appropriateness || "",
+
+            delusions:
+              detailAdmissionForm?.mentalExaminationV2?.thought?.delusions ||
+              "",
+            delusionNotes:
+              detailAdmissionForm?.mentalExaminationV2?.thought
+                ?.delusionNotes || "",
+            content:
+              detailAdmissionForm?.mentalExaminationV2?.thought?.content || "",
+            process:
+              detailAdmissionForm?.mentalExaminationV2?.thought?.process || "",
+
+            perception:
+              detailAdmissionForm?.mentalExaminationV2?.perception || "",
+            perceptionNotes:
+              detailAdmissionForm?.mentalExaminationV2?.perceptionNotes || "",
+
+            orientationTime:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.orientationTime || "",
+            orientationPlace:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.orientationPlace || "",
+            orientationPerson:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.orientationPerson || "",
+            immediateMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.immediateMemory || "",
+            recentMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.recentMemory || "",
+            remoteMemory:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.remoteMemory || "",
+            attention:
+              detailAdmissionForm?.mentalExaminationV2?.cognition?.attention ||
+              "",
+            concentration:
+              detailAdmissionForm?.mentalExaminationV2?.cognition
+                ?.concentration || "",
+
+            grade:
+              detailAdmissionForm?.mentalExaminationV2?.insight?.grade || "",
+
+            judgment: detailAdmissionForm?.mentalExaminationV2?.judgment || "",
+
+            remarks: detailAdmissionForm?.mentalExaminationV2?.remarks || "",
+          }
+        : {}),
       //physical status examination
       // generalExamination: detailAdmissionForm
       //   ? detailAdmissionForm.physicalExamination?.generalExamination
@@ -292,17 +590,53 @@ const DetailAdmission = ({
         ? detailAdmissionForm.physicalExamination?.formulation
         : "",
       //diagnosis & doctor signature
-      provisionaldiagnosis: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.provisionaldiagnosis
-        : "",
-      diagnosis: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.diagnosis
-        : "",
-      managmentPlan: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.managmentPlan
-        : "",
+      provisionaldiagnosis: Array.isArray(
+        detailAdmissionForm?.doctorSignature?.provisionaldiagnosis,
+      )
+        ? detailAdmissionForm.doctorSignature.provisionaldiagnosis.map(
+            (d) => d.code_id,
+          )
+        : [],
+
+      diagnosis: Array.isArray(detailAdmissionForm?.doctorSignature?.diagnosis)
+        ? detailAdmissionForm.doctorSignature.diagnosis.map((d) => d.code_id)
+        : [],
+
+      managmentPlan: (() => {
+        const val = detailAdmissionForm?.doctorSignature?.managmentPlan;
+        if (!val) return "";
+        if (val === "INDOOR" || val.toLowerCase().includes("indoor"))
+          return "INDOOR";
+        if (val === "Out Patient" || val.toLowerCase().includes("out"))
+          return "Out Patient";
+        return val;
+      })(),
+      // investigation: detailAdmissionForm
+      //   ? detailAdmissionForm.doctorSignature?.investigation
+      //   : [],
       investigation: detailAdmissionForm
-        ? detailAdmissionForm.doctorSignature?.investigation
+        ? (() => {
+            const data = detailAdmissionForm.doctorSignature?.investigation;
+
+            if (!data) return [];
+
+            let result = [];
+
+            if (Array.isArray(data)) {
+              data.forEach((item) => {
+                if (typeof item === "string") {
+                  // handle "RFT,HIV"
+                  if (item.includes(",")) {
+                    result.push(...item.split(","));
+                  } else {
+                    result.push(item);
+                  }
+                }
+              });
+            }
+
+            return result.map((i) => i.trim());
+          })()
         : [],
       specialTest: detailAdmissionForm
         ? detailAdmissionForm.doctorSignature?.specialTest
@@ -310,17 +644,212 @@ const DetailAdmission = ({
       treatment: detailAdmissionForm
         ? detailAdmissionForm.doctorSignature?.treatment
         : "",
+      patientType: detailAdmissionForm?.patientType || "",
+      addictionFields: JSON.stringify(
+        detailAdmissionForm?.addictionFields || {},
+      ),
+      psychiatricFields: JSON.stringify(
+        detailAdmissionForm?.psychiatricFields || {},
+      ),
+      geriatricFields: JSON.stringify(
+        detailAdmissionForm?.geriatricFields || {},
+      ),
+      rapport:
+        detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
+          ?.rapport || "",
+      congruence:
+        detailAdmissionForm?.mentalExaminationV2?.affectV2?.congruence || "",
+      formOfThought:
+        detailAdmissionForm?.mentalExaminationV2?.thought?.formOfThought || "",
       chart: DETAIL_ADMISSION,
       date: chartDate,
       type,
+      ...(!isEdit && savedDraft ? savedDraft : {}),
     },
+
     validationSchema: Yup.object({
       patient: Yup.string().required("Patient is required"),
       center: Yup.string().required("Center is required"),
       chart: Yup.string().required("Chart is required"),
+
+      provisionaldiagnosis: Yup.array()
+        .of(Yup.string())
+        .nullable()
+        .test(
+          "required-if-edit-provisional",
+          "Please Re-Enter Provisional Diagnosis",
+          function (value) {
+            const isEdit = Boolean(editChartData?._id);
+
+            const existing =
+              detailAdmissionForm?.doctorSignature?.provisionaldiagnosis;
+
+            const hasValidCodeObject =
+              isEdit &&
+              Array.isArray(existing) &&
+              existing.some(
+                (item) =>
+                  item &&
+                  typeof item === "object" &&
+                  item.code?.trim() &&
+                  item.code_id?.trim(),
+              );
+
+            if (hasValidCodeObject) return true;
+
+            const hasExisting =
+              isEdit &&
+              Array.isArray(existing) &&
+              existing.filter(Boolean).length > 0;
+
+            if (!hasExisting) return true;
+
+            return Array.isArray(value) && value.filter(Boolean).length > 0;
+          },
+        ),
+
+      diagnosis: Yup.array()
+        .of(Yup.string())
+        .nullable()
+        .test(
+          "required-if-edit",
+          "Please Re-Enter Final Diagnosis",
+          function (value) {
+            const isEdit = Boolean(editChartData?._id);
+
+            const existingDiagnosis =
+              detailAdmissionForm?.doctorSignature?.diagnosis;
+
+            const hasValidCodeObject =
+              isEdit &&
+              Array.isArray(existingDiagnosis) &&
+              existingDiagnosis.some(
+                (item) =>
+                  item &&
+                  typeof item === "object" &&
+                  item.code?.trim() &&
+                  item.code_id?.trim(),
+              );
+
+            if (hasValidCodeObject) return true;
+
+            const hasExisting =
+              isEdit &&
+              Array.isArray(existingDiagnosis) &&
+              existingDiagnosis.filter(Boolean).length > 0;
+
+            if (!hasExisting) return true;
+
+            return Array.isArray(value) && value.filter(Boolean).length > 0;
+          },
+        ),
+
+      // .test(
+      //   "no-overlap",
+      //   "Final Diagnosis cannot be the same as Provisional Diagnosis",
+      //   function (value) {
+
+      //     const provisional = this.parent.provisionaldiagnosis;
+
+      //     const finalArr = Array.isArray(value)
+      //       ? value.filter(Boolean)
+      //       : [];
+
+      //     const provisionalArr = Array.isArray(provisional)
+      //       ? provisional.filter(Boolean)
+      //       : [];
+
+      //     if (finalArr.length === 0 || provisionalArr.length === 0) {
+      //       return true;
+      //     }
+
+      //     const hasOverlap = finalArr.some(v =>
+      //       provisionalArr.includes(v)
+      //     );
+
+      //     return !hasOverlap;
+      //   }
+      // ),
     }),
     onSubmit: (values) => {
       /* appending */
+      const { isValid } = validatePatientTypeFields(values);
+      if (!isValid) {
+        setPatientTypeSubmitAttempted(true);
+        setFormStep(PATIENT_TYPE_FIELDS);
+        return;
+      }
+      const informantNameRequired =
+        values.informant && values.informant !== "Self";
+
+      const chiefComplaintsMissing =
+        !values.informant ||
+        !values.reliable ||
+        !values.adequate ||
+        !values.line1 ||
+        !values.line2 ||
+        (informantNameRequired && !values.informantName);
+
+      if (chiefComplaintsMissing) {
+        setFormStep(CHIEF_COMPLAINTS);
+        return;
+      }
+      const detailHistoryMissing =
+        !Array.isArray(values.negativeHistory) ||
+        values.negativeHistory.length === 0 ||
+        !values.developmentDelay ||
+        !values.personality;
+
+      if (detailHistoryMissing) {
+        setFormStep(DETAIL_HISTORY);
+        return;
+      }
+      if (!isOldMentalExamination) {
+        const mseFields = [
+          "generalAppearance",
+          "psychomotorActivity",
+          "eyeContact",
+          "rapport",
+          "rate",
+          "volume",
+          "relevance",
+          "coherence",
+          "quality",
+          "reactivity",
+          "mobility",
+          "congruence",
+          "delusions",
+          "formOfThought",
+          "perception",
+          "orientationTime",
+          "orientationPlace",
+          "orientationPerson",
+          "immediateMemory",
+          "recentMemory",
+          "remoteMemory",
+          "grade",
+          "judgment",
+        ];
+        const mseMissing = mseFields.some((f) => !values[f]);
+        if (mseMissing) {
+          setFormStep(MENTAL_EXAMINATION);
+          return;
+        }
+      }
+      //
+      const diagnosisMissing =
+        !Array.isArray(values.provisionaldiagnosis) ||
+        values.provisionaldiagnosis.length === 0 ||
+        !values.managmentPlan;
+
+      if (diagnosisMissing) {
+        setFormStep(DOCTOR_SIGNATURE);
+        return;
+      }
+
+      if (values.delusions === "none") {
+        values.delusionNotes = "";
+      }
       const formData = convertToFormData(values);
       consentFiles?.forEach((file) => formData.append("file", file.file));
       /* appending */
@@ -331,11 +860,13 @@ const DetailAdmission = ({
         dispatch(updateDetailAdmission(formData));
       } else if (type === "GENERAL") {
         dispatch(addGeneralDetailAdmission(formData));
+        localStorage.removeItem(draftKey);
       } else {
-        // for (let [key, value] of formData.entries()) {
-        //   console.log(key, value);
-        // }
+        for (let [key, value] of formData.entries()) {
+          console.log(key, value);
+        }
         dispatch(addDetailAdmission(formData));
+        localStorage.removeItem(draftKey);
       }
     },
   });
@@ -345,8 +876,100 @@ const DetailAdmission = ({
       validation.resetForm();
       setConsentFiles([]);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, detailAdmissionForm]);
+
+  // AUTOFILL
+  // useEffect(() => {
+  //   if (!detailAdmissionForm) {
+  //     const psychiatricData = {
+  //       historyOfPresentIllness: {
+  //         onsetAge: "25",
+  //         modeOfOnset: "Acute (< 2 weeks)",
+  //         precipitatingFactors: ["Psychosocial stressor"],
+  //         onsetDurationProgress: "Test onset description",
+  //       },
+  //       symptomDomains: {
+  //         affective: ["Depressed mood"],
+  //         psychotic: ["None"],
+  //         cognitive: ["None"],
+  //         behavioural: ["None"],
+  //         somaticNeurovegetative: ["None"],
+  //         suicidalitySelfHarm: ["None"],
+  //       },
+  //       functionalImpact: {
+  //         workOccupationalFunctioning: "Intact",
+  //         socialInterpersonalFunctioning: "Intact",
+  //         gafScore: 70,
+  //         gafSeverity: "Mild (61-100)",
+  //       },
+  //       pastIllness: {
+  //         hasPastPsychiatricEpisode: "No",
+  //         totalHospitalisations: "0",
+  //         previousDiagnoses: ["None"],
+  //         substanceUseHistory: "No",
+  //       },
+  //       pastTreatment: {
+  //         ect: "Never",
+  //         psychotherapyType: ["Never"],
+  //       },
+  //       suicidalSelfHarmHistory: {
+  //         homicidalIdeationViolence: "None",
+  //       },
+  //       psychosocialSupport: {
+  //         familySupport: "Supportive / cohesive",
+  //       },
+  //     };
+
+  //     validation.setValues({
+  //       ...validation.values,
+  //       // Chief Complaints
+  //       informant: "Self",
+  //       reliable: "Reliable",
+  //       adequate: "Adequate",
+  //       line1: "Test Complaint 1",
+  //       line2: "Test Complaint 2",
+  //       // Patient Type
+  //       patientType: "psychiatric",
+  //       psychiatricFields: JSON.stringify(psychiatricData),
+  //       addictionFields: JSON.stringify({}),
+  //       geriatricFields: JSON.stringify({}),
+  //       // Other History
+  //       negativeHistory: ["Head Injury"],
+  //       developmentDelay: "No",
+  //       personality: "Test pre-morbid personality",
+  //       // MSE
+  //       generalAppearance: "kempt",
+  //       eyeContact: "normal",
+  //       psychomotorActivity: "normal",
+  //       rapport: "established_with_ease",
+  //       rate: "normal",
+  //       tone: "normal",
+  //       volume: "normal/audible",
+  //       relevance: "relevant",
+  //       coherence: "coherent",
+  //       goalDirection: "goal_directed",
+  //       subjective: "Normal mood",
+  //       quality: "euthymic",
+  //       reactivity: "present",
+  //       mobility: "intact",
+  //       congruence: "congruent_to_mood",
+  //       delusions: "none",
+  //       formOfThought: "normal",
+  //       perception: "normal",
+  //       orientationTime: "Intact",
+  //       orientationPlace: "Intact",
+  //       orientationPerson: "Intact",
+  //       immediateMemory: "Intact",
+  //       recentMemory: "Intact",
+  //       remoteMemory: "Intact",
+  //       grade: "grade_1-_complete_denial_of_illness",
+  //       judgment: "intact",
+  //       // Diagnosis
+  //       managmentPlan: "INDOOR",
+  //     });
+  //   }
+  // }, []);
+  // AUTOFILL
 
   const consentUploadedFiles = useMemo(() => {
     return (
@@ -360,12 +983,17 @@ const DetailAdmission = ({
     );
   }, [editChartData, detailAdmissionForm]);
 
+  useEffect(() => {
+    if (isEdit) return; // don't overwrite real data with a draft
+    localStorage.setItem(draftKey, JSON.stringify(validation.values));
+  }, [validation.values]);
+
   return (
     <React.Fragment>
       {" "}
       <div>
         <Row className="mt-3">
-          <div className="arrow-buttons d-flex gap-4">
+          <div className="arrow-buttons d-flex gap-3">
             {/* <Button
               className=""
               outline={formStep !== CONSET_FILES}
@@ -378,6 +1006,12 @@ const DetailAdmission = ({
               onClick={() => setFormStep(CHIEF_COMPLAINTS)}
             >
               Chief Complaints
+            </Button>
+            <Button
+              outline={formStep !== PATIENT_TYPE_FIELDS}
+              onClick={() => setFormStep(PATIENT_TYPE_FIELDS)}
+            >
+              Patient Type Assessment
             </Button>
             {/* <Button
               outline={formStep !== PROVISIONAL_DIAGNOSIS}
@@ -395,7 +1029,7 @@ const DetailAdmission = ({
               outline={formStep !== DETAIL_HISTORY}
               onClick={() => setFormStep(DETAIL_HISTORY)}
             >
-              Detail History
+              Other History
             </Button>
             <Button
               outline={formStep !== MENTAL_EXAMINATION}
@@ -403,21 +1037,29 @@ const DetailAdmission = ({
             >
               Mental Status Examination
             </Button>
-            <Button
+            {/* <Button
               outline={formStep !== PHYSICAL_EXAMINATION}
               onClick={() => setFormStep(PHYSICAL_EXAMINATION)}
             >
               Physical Status Examination
-            </Button>
+            </Button> */}
             <Button
               outline={formStep !== DOCTOR_SIGNATURE}
               onClick={() => setFormStep(DOCTOR_SIGNATURE)}
             >
               Diagnosis & Plan
             </Button>
+            <Button
+              outline={formStep !== SPECIAL_REQUIREMENTS}
+              onClick={() => setFormStep(SPECIAL_REQUIREMENTS)}
+            >
+              Special Requirements
+            </Button>
           </div>
           <div className="mt-4">
             <Form
+              // key={detailAdmissionForm?._id || "new"}
+              key="detail-admission-form"
               onSubmit={(e) => {
                 e.preventDefault();
                 validation.handleSubmit();
@@ -443,7 +1085,7 @@ const DetailAdmission = ({
                 <ChiefComplaintsForm
                   validation={validation}
                   setFormStep={setFormStep}
-                  step={DETAIL_HISTORY}
+                  step={PATIENT_TYPE_FIELDS}
                 />
               )}
 
@@ -463,6 +1105,15 @@ const DetailAdmission = ({
                 />
               )} */}
 
+              {formStep === PATIENT_TYPE_FIELDS && (
+                <PatientTypeFields
+                  validation={validation}
+                  setFormStep={setFormStep}
+                  step={DETAIL_HISTORY}
+                  forceShowErrors={patientTypeSubmitAttempted}
+                />
+              )}
+
               {formStep === DETAIL_HISTORY && (
                 <DetailHistoryForm
                   validation={validation}
@@ -471,26 +1122,45 @@ const DetailAdmission = ({
                 />
               )}
 
-              {formStep === MENTAL_EXAMINATION && (
-                <MentalExamination
-                  validation={validation}
-                  setFormStep={setFormStep}
-                  step={PHYSICAL_EXAMINATION}
-                />
-              )}
+              {formStep === MENTAL_EXAMINATION &&
+                (isOldMentalExamination ? (
+                  <MentalExamination
+                    validation={validation}
+                    setFormStep={setFormStep}
+                    step={DOCTOR_SIGNATURE}
+                    mode="old"
+                  />
+                ) : (
+                  <MentalExaminationV2
+                    validation={validation}
+                    setFormStep={setFormStep}
+                    step={DOCTOR_SIGNATURE}
+                    mode="new"
+                  />
+                ))}
 
-              {formStep === PHYSICAL_EXAMINATION && (
+              {/* {formStep === PHYSICAL_EXAMINATION && (
                 <PhysicalExamination
                   validation={validation}
                   setFormStep={setFormStep}
                   step={DOCTOR_SIGNATURE}
                 />
-              )}
+              )} */}
 
               {formStep === DOCTOR_SIGNATURE && (
                 <DoctorSignature
                   validation={validation}
                   setFormStep={setFormStep}
+                  step={SPECIAL_REQUIREMENTS}
+                />
+              )}
+
+              {formStep === SPECIAL_REQUIREMENTS && (
+                <SpecialRequirementsForm
+                  validation={validation}
+                  closeForm={closeForm}
+                  editChartData={editChartData}
+                  author={author}
                 />
               )}
             </Form>
@@ -508,6 +1178,7 @@ const mapStateToProps = (state) => ({
   center: state.Chart.chartForm?.center,
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm?.data,
+  // data: state.Chart.data,
 });
 
 export default connect(mapStateToProps)(DetailAdmission);

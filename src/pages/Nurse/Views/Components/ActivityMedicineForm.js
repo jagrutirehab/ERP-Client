@@ -13,12 +13,16 @@ import { Formik, Form } from "formik";
 import * as Yup from "yup";
 import { useParams } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { markTomorrowActivityMedicines } from "../../../../store/features/nurse/nurseSlice";
+import {
+  getNextDayMedicineBoxFillingActivities,
+  markTomorrowActivityMedicines,
+} from "../../../../store/features/nurse/nurseSlice";
 import { connect } from "react-redux";
 import Placeholder from "../../../Patient/Views/Components/Placeholder";
 import moment from "moment";
 import { toast } from "react-toastify";
-import { CheckCheck, CheckCircle, XCircle } from "lucide-react";
+import { CheckCircle, XCircle } from "lucide-react";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 // const medicineSchema = Yup.object().shape({
 //   medicines: Yup.array().of(
@@ -94,7 +98,7 @@ import { CheckCheck, CheckCircle, XCircle } from "lucide-react";
 //                   {Array.isArray(meds) && meds.length > 0 ? (
 //                     meds.map((med) => (
 //                       <div
-//                         key={`${timeSlot}-${med.medicineIndex}`}
+//                         key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
 //                         className="border rounded-lg p-3 bg-white shadow-sm"
 //                       >
 //                         <div className="d-flex justify-content-between align-items-start">
@@ -232,7 +236,7 @@ import { CheckCheck, CheckCircle, XCircle } from "lucide-react";
 
 //                                 return (
 //                                   <div
-//                                     key={`${timeSlot}-${med.medicineIndex}`}
+//                                     key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
 //                                     className="border rounded-lg p-3 bg-white shadow-sm d-flex justify-content-between align-items-center"
 //                                   >
 //                                     <div>
@@ -376,9 +380,13 @@ import { CheckCheck, CheckCircle, XCircle } from "lucide-react";
 export const medicineSchema = Yup.object().shape({
   medicines: Yup.array().of(
     Yup.object().shape({
-      medicineIndex: Yup.number().required(),
+      medicineIndex: Yup.number().nullable(),
+      medicineId: Yup.string().nullable(),
+      prescriptionId: Yup.string().nullable(),
       slot: Yup.string().oneOf(["morning", "evening", "night"]).required(),
-      status: Yup.string().oneOf(["completed", "missed"]).required(),
+      status: Yup.string()
+        .oneOf(["completed", "missed", "retrieved", "pending"])
+        .required(),
     })
   ),
 });
@@ -395,6 +403,11 @@ const ActivityMedicineForm = ({
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
+  const writable = hasPermission("NURSE", "TOMORROW_ACTIVITY", "WRITE");
+
   const toggleModal = () => setModalOpen(!modalOpen);
 
   const tomorrowDate = moment().add(1, "days").format("MMMM D, YYYY");
@@ -402,6 +415,7 @@ const ActivityMedicineForm = ({
   if (
     !medicineLoading &&
     !medicineBoxFillingActivities?.medicines &&
+    !medicineBoxFillingActivities?.retrievals &&
     !medicineBoxFillingActivities.completed
   ) {
     return (
@@ -425,11 +439,7 @@ const ActivityMedicineForm = ({
     );
   }
 
-  if (
-    !medicineLoading &&
-    medicineBoxFillingActivities?.medicines &&
-    medicineBoxFillingActivities.completed
-  ) {
+  if (!medicineLoading && medicineBoxFillingActivities.completed) {
     return (
       <div className="pt-4 ps-3">
         <div className="d-flex justify-content-between align-items-center mb-3">
@@ -440,9 +450,10 @@ const ActivityMedicineForm = ({
           </Badge>
         </div>
 
-        <Row className="gap-3">
-          {Object.entries(medicineBoxFillingActivities.medicines).map(
-            ([timeSlot, meds]) => (
+        {medicineBoxFillingActivities?.medicines ? (
+          <Row className="gap-3">
+            {Object.entries(medicineBoxFillingActivities.medicines).map(
+              ([timeSlot, meds]) => (
               <div
                 key={timeSlot}
                 style={{ flex: "1 1 30%", minWidth: "250px" }}
@@ -452,7 +463,7 @@ const ActivityMedicineForm = ({
                   {Array.isArray(meds) && meds.length > 0 ? (
                     meds.map((med) => (
                       <div
-                        key={`${timeSlot}-${med.medicineIndex}`}
+                        key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
                         className="border rounded-lg p-3 bg-white shadow-sm"
                       >
                         <div className="d-flex justify-content-between align-items-start">
@@ -484,9 +495,8 @@ const ActivityMedicineForm = ({
                             </small>
                           </div>
                           <div
-                            className={`${
-                              med.marked ? "text-success" : "text-danger"
-                            }`}
+                            className={`${med.marked ? "text-success" : "text-danger"
+                              }`}
                           >
                             {med.marked ? (
                               <CheckCircle size={20} />
@@ -502,9 +512,12 @@ const ActivityMedicineForm = ({
                   )}
                 </div>
               </div>
-            )
-          )}
-        </Row>
+              )
+            )}
+          </Row>
+        ) : (
+          <p className="text-muted mb-0">All required medicine activities are complete.</p>
+        )}
       </div>
     );
   }
@@ -518,11 +531,35 @@ const ActivityMedicineForm = ({
   ) {
     Object.entries(medicineBoxFillingActivities.medicines).forEach(
       ([slot, meds]) => {
-        meds.forEach((med) => {
+        meds.filter((med) => !med.marked).forEach((med) => {
           initialValues.medicines.push({
+            prescriptionId: med.prescriptionId,
+            medicineId: med.medicineId,
             medicineIndex: med.medicineIndex,
             slot,
-            status: "missed",
+            status: med.missed ? "missed" : "pending",
+          });
+        });
+      }
+    );
+  }
+
+  if (
+    !medicineLoading &&
+    !medicineBoxFillingActivities?.completed &&
+    medicineBoxFillingActivities?.retrievals
+  ) {
+    Object.entries(medicineBoxFillingActivities.retrievals).forEach(
+      ([slot, meds]) => {
+        meds.forEach((med) => {
+          initialValues.medicines.push({
+            historyId: med.historyId,
+            prescriptionId: med.prescriptionId,
+            medicineId: med.medicineId,
+            medicineIndex: med.medicineIndex,
+            slot,
+            status: "pending",
+            needsRemoval: true,
           });
         });
       }
@@ -538,43 +575,91 @@ const ActivityMedicineForm = ({
           patientId: id,
         })
       ).unwrap();
-      setSubmissionSuccess(true);
-      toast.success("Medicines marked successfully!");
+      await dispatch(getNextDayMedicineBoxFillingActivities(id)).unwrap();
+      setSubmissionSuccess(false);
+      toast.success("Medicine activities updated successfully!");
 
       if (fromModal) {
         toggleModal();
       }
     } catch (error) {
-      console.error(error);
-      toast.error("Failed to mark medicines. Please try again.");
+      toast.error(error.message || "Failed to mark medicines. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleSubmit = (values) => {
-    const missed = values.medicines.filter((m) => m.status === "missed");
+    const pendingNormalMedicines = values.medicines.filter(
+      (m) => !m.historyId && m.status === "pending"
+    );
+    const hasCompletedNormalMedicine = values.medicines.some(
+      (m) => !m.historyId && m.status === "completed"
+    );
+    const pendingRetrievals = values.medicines.filter(
+      (m) => m.historyId && m.status !== "retrieved"
+    );
+    const selectedActions = values.medicines.filter((m) =>
+      m.historyId ? m.status === "retrieved" : m.status === "completed"
+    );
 
-    if (missed.length > 0) {
-      setMissedCount(missed.length);
-      setSubmissionValues(values);
+    // Block until every previously-marked medicine has been retrieved.
+    if (pendingRetrievals.length > 0) {
+      toast.error(
+        `Please retrieve ${pendingRetrievals.length} previously marked medicine${pendingRetrievals.length > 1 ? "s" : ""} before marking tomorrow's activities.`
+      );
+      return;
+    }
+
+    if (pendingNormalMedicines.length > 0 && hasCompletedNormalMedicine) {
+      setMissedCount(pendingNormalMedicines.length);
+      setSubmissionValues({
+        medicines: values.medicines.map((medicine) =>
+          !medicine.historyId && medicine.status === "pending"
+            ? { ...medicine, status: "missed" }
+            : medicine
+        ),
+      });
       setModalOpen(true);
     } else {
-      submitMedicines(values, false);
+      submitMedicines({ medicines: selectedActions }, false);
     }
   };
 
   const handleSelectAll = (values, setFieldValue) => {
-    const allCompleted = values.medicines.every(
-      (m) => m.status === "completed"
+    const normalMedicines = values.medicines.filter(
+      (m) => !m.historyId && m.status !== "missed"
     );
-    values.medicines.forEach((m, idx) =>
-      setFieldValue(
-        `medicines[${idx}].status`,
-        allCompleted ? "missed" : "completed"
-      )
-    );
+    const retrievalMedicines = values.medicines.filter((m) => m.historyId);
+
+    const allNormalDone =
+      normalMedicines.length === 0 ||
+      normalMedicines.every((m) => m.status === "completed");
+    const allRetrievalsDone =
+      retrievalMedicines.length === 0 ||
+      retrievalMedicines.every((m) => m.status === "retrieved");
+    const allSelected = allNormalDone && allRetrievalsDone;
+
+    values.medicines.forEach((m, idx) => {
+      if (m.status === "missed") return;
+      if (m.historyId) {
+        setFieldValue(
+          `medicines[${idx}].status`,
+          allSelected ? "pending" : "retrieved"
+        );
+      } else {
+        setFieldValue(
+          `medicines[${idx}].status`,
+          allSelected ? "pending" : "completed"
+        );
+      }
+    });
   };
+
+  const hasActionToSubmit = (values) =>
+    values.medicines.some((m) =>
+      m.historyId ? m.status === "retrieved" : m.status === "completed"
+    );
 
   const handleModalConfirm = () => {
     if (submissionValues) {
@@ -600,8 +685,11 @@ const ActivityMedicineForm = ({
               <Placeholder />
             ) : (
               <>
-                <Row className="gap-3">
-                  {Object.entries(medicineBoxFillingActivities.medicines).map(
+                {medicineBoxFillingActivities?.medicines && (
+                  <>
+                    <h6 className="mb-3 text-primary">Medicines To Mark</h6>
+                    <Row className="gap-3">
+                    {Object.entries(medicineBoxFillingActivities.medicines).map(
                     ([timeSlot, meds]) => (
                       <div
                         key={timeSlot}
@@ -613,13 +701,16 @@ const ActivityMedicineForm = ({
                             meds.map((med, idx) => {
                               const medicineIndex = values.medicines.findIndex(
                                 (m) =>
-                                  m.medicineIndex === med.medicineIndex &&
+                                  (med.medicineId
+                                    ? String(m.medicineId) ===
+                                      String(med.medicineId)
+                                    : m.medicineIndex === med.medicineIndex) &&
                                   m.slot === timeSlot
                               );
 
                               return (
                                 <div
-                                  key={`${timeSlot}-${med.medicineIndex}`}
+                                  key={`${timeSlot}-${med.medicineId || med.medicineIndex}`}
                                   className="border rounded-lg p-3 bg-white shadow-sm d-flex justify-content-between align-items-center"
                                 >
                                   <div>
@@ -674,17 +765,76 @@ const ActivityMedicineForm = ({
                                           <path d="M20 6L9 17l-5-5" />
                                         </svg>
                                       </div>
+                                    ) : med.marked ? (
+                                      <div
+                                        title="Already completed"
+                                        style={{
+                                          width: "28px",
+                                          height: "28px",
+                                          borderRadius: "50%",
+                                          border: "2px solid #198754",
+                                          cursor: "not-allowed",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          backgroundColor: "#198754",
+                                        }}
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="white"
+                                          strokeWidth="3"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        >
+                                          <path d="M20 6L9 17l-5-5" />
+                                        </svg>
+                                      </div>
+                                    ) : med.missed ? (
+                                      <div
+                                        title="Already recorded as missed for today"
+                                        style={{
+                                          width: "28px",
+                                          height: "28px",
+                                          borderRadius: "50%",
+                                          border: "2px solid #dc3545",
+                                          cursor: "not-allowed",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          backgroundColor: "#dc3545",
+                                        }}
+                                      >
+                                        <svg
+                                          xmlns="http://www.w3.org/2000/svg"
+                                          width="16"
+                                          height="16"
+                                          viewBox="0 0 24 24"
+                                          fill="none"
+                                          stroke="white"
+                                          strokeWidth="3"
+                                          strokeLinecap="round"
+                                          strokeLinejoin="round"
+                                        >
+                                          <path d="M18 6L6 18M6 6l12 12" />
+                                        </svg>
+                                      </div>
                                     ) : (
                                       <div
                                         className="tick-input"
                                         onClick={() => {
+                                          if (!writable) return;
                                           const currentStatus =
                                             values.medicines[medicineIndex]
                                               ?.status;
                                           setFieldValue(
                                             `medicines[${medicineIndex}].status`,
                                             currentStatus === "completed"
-                                              ? "missed"
+                                              ? "pending"
                                               : "completed"
                                           );
                                         }}
@@ -693,7 +843,7 @@ const ActivityMedicineForm = ({
                                           height: "28px",
                                           borderRadius: "50%",
                                           border: "2px solid #dee2e6",
-                                          cursor: "pointer",
+                                          cursor: writable ? "pointer" : "not-allowed",
                                           display: "flex",
                                           alignItems: "center",
                                           justifyContent: "center",
@@ -707,20 +857,20 @@ const ActivityMedicineForm = ({
                                       >
                                         {values.medicines[medicineIndex]
                                           ?.status === "completed" && (
-                                          <svg
-                                            xmlns="http://www.w3.org/2000/svg"
-                                            width="16"
-                                            height="16"
-                                            viewBox="0 0 24 24"
-                                            fill="none"
-                                            stroke="white"
-                                            strokeWidth="3"
-                                            strokeLinecap="round"
-                                            strokeLinejoin="round"
-                                          >
-                                            <path d="M20 6L9 17l-5-5" />
-                                          </svg>
-                                        )}
+                                            <svg
+                                              xmlns="http://www.w3.org/2000/svg"
+                                              width="16"
+                                              height="16"
+                                              viewBox="0 0 24 24"
+                                              fill="none"
+                                              stroke="white"
+                                              strokeWidth="3"
+                                              strokeLinecap="round"
+                                              strokeLinejoin="round"
+                                            >
+                                              <path d="M20 6L9 17l-5-5" />
+                                            </svg>
+                                          )}
                                       </div>
                                     )}
                                   </div>
@@ -736,45 +886,178 @@ const ActivityMedicineForm = ({
                       </div>
                     )
                   )}
-                </Row>
-
-                {!Object.values(medicineBoxFillingActivities?.medicines).every(
-                  (slotMeds) => slotMeds.length === 0
-                ) && (
-                  <div className="d-flex justify-content-end mt-3 gap-2">
-                    <Button
-                      color="info"
-                      size="sm"
-                      onClick={() => handleSelectAll(values, setFieldValue)}
-                    >
-                      {values.medicines.every((m) => m.status === "completed")
-                        ? "Unselect All"
-                        : "Select All"}
-                    </Button>
-
-                    <Button
-                      color="primary"
-                      type="button"
-                      onClick={handleSubmit}
-                      disabled={
-                        submissionSuccess ||
-                        isSubmitting ||
-                        !values.medicines.some((m) => m.status === "completed")
-                      }
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Spinner size="sm" className="me-2" />
-                          Submitting...
-                        </>
-                      ) : submissionSuccess ? (
-                        "Submitted"
-                      ) : (
-                        "Submit"
-                      )}
-                    </Button>
-                  </div>
+                    </Row>
+                  </>
                 )}
+
+                {medicineBoxFillingActivities?.retrievals &&
+                  Object.values(medicineBoxFillingActivities.retrievals).some(
+                    (slotMeds) => slotMeds.length > 0
+                  ) && (
+                    <div className="mt-4">
+                      <h6 className="mb-3 text-danger">
+                        Medicines To Remove (Mark this after removing it from the box)
+                      </h6>
+                      <Row className="gap-3">
+                        {Object.entries(
+                          medicineBoxFillingActivities.retrievals
+                        ).map(([timeSlot, meds]) => (
+                          <div
+                            key={`remove-${timeSlot}`}
+                            style={{ flex: "1 1 30%", minWidth: "250px" }}
+                          >
+                            <h6 className="text-capitalize mb-3">{timeSlot}</h6>
+                            <div className="d-flex flex-column gap-3">
+                              {Array.isArray(meds) && meds.length > 0 ? (
+                                meds.map((med) => {
+                                  const medicineIndex = values.medicines.findIndex(
+                                    (m) =>
+                                      m.historyId === med.historyId &&
+                                      m.slot === timeSlot
+                                  );
+
+                                  return (
+                                    <div
+                                      key={`${timeSlot}-${med.historyId}`}
+                                      className="border rounded-lg p-3 bg-white shadow-sm d-flex justify-content-between align-items-center"
+                                    >
+                                      <div>
+                                        <h6 className="fw-bold text-dark mb-1">
+                                          {med.medicineName}
+                                        </h6>
+                                        <small className="text-muted d-flex flex-wrap align-items-center gap-2">
+                                          <span>
+                                            <strong>Dosage:</strong> x{med.dosage}
+                                          </span>
+                                          <span>
+                                            <strong>Intake:</strong> {med.intake}
+                                          </span>
+                                          <span>
+                                            <strong>Time:</strong>
+                                            <Badge
+                                              color="light"
+                                              className="ms-1 border text-danger"
+                                              style={{
+                                                fontSize: "0.6rem",
+                                                fontWeight: "600",
+                                                padding: "0.15rem 0.4rem",
+                                              }}
+                                            >
+                                              {timeSlot.toUpperCase()}
+                                            </Badge>
+                                          </span>
+                                        </small>
+                                      </div>
+                                      <div
+                                        className="tick-input"
+                                        onClick={() => {
+                                          if (!writable) return;
+                                          const currentStatus =
+                                            values.medicines[medicineIndex]?.status;
+                                          setFieldValue(
+                                            `medicines[${medicineIndex}].status`,
+                                            currentStatus === "retrieved"
+                                              ? "pending"
+                                              : "retrieved"
+                                          );
+                                        }}
+                                        style={{
+                                          width: "28px",
+                                          height: "28px",
+                                          borderRadius: "50%",
+                                          border: "2px solid #dee2e6",
+                                          cursor: writable ? "pointer" : "not-allowed",
+                                          display: "flex",
+                                          alignItems: "center",
+                                          justifyContent: "center",
+                                          backgroundColor:
+                                            values.medicines[medicineIndex]
+                                              ?.status === "retrieved"
+                                              ? "#dc3545"
+                                              : "white",
+                                          transition: "all 0.2s ease",
+                                        }}
+                                      >
+                                        {values.medicines[medicineIndex]?.status ===
+                                          "retrieved" && (
+                                          <svg
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            width="16"
+                                            height="16"
+                                            viewBox="0 0 24 24"
+                                            fill="none"
+                                            stroke="white"
+                                            strokeWidth="3"
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                          >
+                                            <path d="M20 6L9 17l-5-5" />
+                                          </svg>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              ) : (
+                                <p className="text-muted">
+                                  No medicines to remove for {timeSlot}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </Row>
+                    </div>
+                  )}
+
+                {writable &&
+                  ((medicineBoxFillingActivities?.medicines &&
+                  !Object.values(medicineBoxFillingActivities.medicines).every(
+                    (slotMeds) => slotMeds.length === 0
+                  )) ||
+                  (medicineBoxFillingActivities?.retrievals &&
+                    !Object.values(medicineBoxFillingActivities.retrievals).every(
+                      (slotMeds) => slotMeds.length === 0
+                    ))) && (
+                    <div className="d-flex justify-content-end mt-3 gap-2">
+                      <Button
+                        color="info"
+                        size="sm"
+                        onClick={() => handleSelectAll(values, setFieldValue)}
+                        disabled={
+                          !values.medicines.some((m) => !m.historyId)
+                        }
+                      >
+                        {values.medicines
+                          .filter((m) => !m.historyId && m.status !== "missed")
+                          .every((m) => m.status === "completed")
+                          ? "Unselect All"
+                          : "Select All"}
+                      </Button>
+
+                      <Button
+                        color="primary"
+                        type="button"
+                        onClick={handleSubmit}
+                        disabled={
+                          submissionSuccess ||
+                          isSubmitting ||
+                          !hasActionToSubmit(values)
+                        }
+                      >
+                        {isSubmitting ? (
+                          <>
+                            <Spinner size="sm" className="me-2" />
+                            Submitting...
+                          </>
+                        ) : submissionSuccess ? (
+                          "Submitted"
+                        ) : (
+                          "Submit"
+                        )}
+                      </Button>
+                    </div>
+                  )}
 
                 <Modal isOpen={modalOpen} toggle={toggleModal}>
                   <ModalHeader toggle={toggleModal}>

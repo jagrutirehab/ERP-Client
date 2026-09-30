@@ -1,8 +1,19 @@
 import React, { useEffect, useState, useRef } from "react";
 import PropTypes from "prop-types";
-import { Form, Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
+import {
+  Form,
+  Row,
+  Col,
+  Label,
+  Input,
+  FormFeedback,
+  Button,
+  Spinner,
+} from "reactstrap";
 import { isValidPhoneNumber } from "react-phone-number-input";
+import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
+import Select from "react-select";
 import { format } from "date-fns";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -16,8 +27,10 @@ import {
   fetchDoctors,
   fetchPatientId,
   removeAadhaarCard,
+  removePassportCard,
   togglePatientForm,
   updatePatient,
+  fetchReferrals,
 } from "../../store/actions";
 import Cropper from "react-cropper";
 import "cropperjs/dist/cropper.css";
@@ -36,6 +49,8 @@ const AddPatient = ({
   counsellors,
   doctorLoading,
   generatedPatientId,
+  referrals,
+  referralsLoading,
 }) => {
   const dispatch = useDispatch();
   const [fields, setFields] = useState(addPatientFields);
@@ -43,6 +58,9 @@ const AddPatient = ({
   const [imageToCrop, setImageToCrop] = useState(null);
   const [isCropModalOpen, setIsCropModalOpen] = useState(false);
   const cropperRef = useRef(null);
+  const [isOtherReferral, setIsOtherReferral] = useState(false);
+  const [selectedReferral, setSelectedReferral] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
 
   const editData = patient.data;
   const leadData = patient.leadData;
@@ -50,17 +68,35 @@ const AddPatient = ({
   const phoneNumber = editData
     ? editData.phoneNumber
     : leadData
-    ? leadData.patient.phoneNumber
-    : "";
+      ? leadData.patient.phoneNumber
+      : "";
   const email = editData
     ? editData.email
     : leadData
-    ? leadData.patient.email
-    : "";
-
+      ? leadData.patient.email
+      : "";
   const dateOfBirth = editData?.dateOfBirth
     ? format(new Date(editData.dateOfBirth), "yyyy-MM-dd")
-    : "";
+    : leadData?.patient?.age
+      ? (() => {
+          const today = new Date();
+          const birthYear = today.getFullYear() - leadData.patient.age;
+          return format(
+            new Date(birthYear, today.getMonth(), today.getDate()),
+            "yyyy-MM-dd",
+          );
+        })()
+      : "";
+  const gender = editData
+    ? editData.gender
+    : leadData
+      ? leadData.patient.gender
+      : "";
+  const center = editData
+    ? editData.center?._id
+    : leadData
+      ? leadData.location?.[0]?._id
+      : "";
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -68,9 +104,10 @@ const AddPatient = ({
       author: user?._id,
       editor: user?._id,
       id: editData?.id ? editData.id.value : generatedPatientId?.value,
-      center: editData ? editData.center?._id : "",
+      center,
       profilePicture: editData ? editData?.profilePicture : "",
       aadhaarCard: "",
+      passportCard: "",
       aadhaarCardNumber: editData ? editData.aadhaarCardNumber : "",
       name,
       phoneNumber,
@@ -83,17 +120,29 @@ const AddPatient = ({
       doctor: editData ? editData.doctor?._id : "",
       psychologist: editData ? editData.psychologist?._id : "",
       provisionalDiagnosis: editData ? editData.provisionalDiagnosis : "",
-      gender: editData ? editData.gender : "",
+      gender,
       guardianName: editData ? editData.guardianName : "",
       guardianRelation: editData ? editData.guardianRelation : "",
       guardianPhoneNumber: editData ? editData.guardianPhoneNumber : "",
       dateOfAddmission: editData?.dateOfAddmission
         ? format(new Date(editData.dateOfAddmission), "yyyy-MM-dd")
         : "",
-      referredBy: editData ? editData.referredBy : "",
+      referredBy: editData?.referredBy?.doctorName
+        ? editData.referredBy.doctorName
+        : leadData?.refferedBy || "",
+      referralPhoneNumber: editData?.referredBy?.mobileNumber || "",
+      referralType: editData?.referredBy?.speciality || "",
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
       socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
       areatype: editData ? editData.areatype : "",
+      socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
+      areatype: editData ? editData.areatype : "",
+      education: editData ? editData.education : "",
+      occupation: editData ? editData.occupation : "",
+      occupationDetail: editData ? editData.occupationDetail : "",
+      languagesKnown: editData ? editData.languagesKnown || [] : [],
+      nationality: editData ? editData.nationality || "Indian" : "Indian",
+      passportNumber: editData ? editData.passportNumber || "" : "",
     },
     validationSchema: Yup.object({
       id: Yup.string()
@@ -104,55 +153,113 @@ const AddPatient = ({
       aadhaarCardNumber: Yup.string()
         .nullable()
         .notRequired()
-        .matches(
-          /^$|^[0-9]{12}$/,
-          "Aadhaar Card Number must be exactly 12 digits"
-        ),
+        .when("nationality", {
+          is: "Indian",
+          then: (schema) =>
+            schema.matches(
+              /^$|^[0-9]{12}$/,
+              "Aadhaar Card Number must be exactly 12 digits",
+            ),
+        }),
+      passportNumber: Yup.string()
+        .nullable()
+        .notRequired()
+        .when("nationality", {
+          is: "Foreigner",
+          then: (schema) =>
+            schema.required(
+              "Passport Number is required for foreign nationals",
+            ),
+        }),
       phoneNumber: Yup.string()
         .required("Please Enter Phone Number")
         .test("is-valid-phone", "Invalid phone number", function (value) {
           return isValidPhoneNumber(value || "");
         }),
-      dateOfBirth: Yup.string().required("Please Select Date of Birth"),
+      dateOfBirth: Yup.string()
+        .required("Please Select Date of Birth")
+        .test("no-future", "Future dates are not allowed", (value) => {
+          if (!value) return true;
+          return new Date(value) <= new Date();
+        })
+        .test("min-age", "Patient must be at least 2 years old", (value) => {
+          if (!value) return true;
+          const minAgeDate = new Date();
+          minAgeDate.setFullYear(minAgeDate.getFullYear() - 2);
+          return new Date(value) <= minAgeDate;
+        }),
       address: Yup.string().required("Please Enter Patient Address"),
       gender: Yup.string().required("Please Select Gender"),
       guardianName: Yup.string().required("Please Enter Guardian Name"),
       guardianRelation: Yup.string().required("Please Enter Guardian Relation"),
-      guardianPhoneNumber: Yup.string().required(
-        "Please Enter Guardian Phone Number"
-      ),
+      guardianPhoneNumber: Yup.string()
+        .required("Please Enter Guardian Phone Number")
+        .test(
+          "is-valid-guardian-phone",
+          "Invalid phone number",
+          function (value) {
+            return isValidPhoneNumber(value || "");
+          },
+        ),
+      referralPhoneNumber: Yup.string()
+        .nullable()
+        .notRequired()
+        .test(
+          "is-valid-referral-phone",
+          "Invalid phone number",
+          function (value) {
+            if (!value) return true; // optional
+            return isValidPhoneNumber(value);
+          },
+        ),
     }),
 
-    onSubmit: (values) => {
+    onSubmit: async (values) => {
       const formData = convertToFormDataPatient(values);
       if (values.aadhaarCard?.file instanceof Blob) {
         formData.append("aadhaarCard", values.aadhaarCard.file);
       }
+      if (values.passportCard?.file instanceof Blob) {
+        formData.append("passportCard", values.passportCard.file);
+      }
       if (values.profilePicture instanceof Blob) {
         formData.append("profilePicture", values.profilePicture);
       }
-      if (editData) {
-        formData.append("editId", editData?._id);
-        if (!(values.profilePicture instanceof Blob))
-          formData.delete("profilePicture");
-        if (!(values.aadhaarCard?.file instanceof Blob))
-          formData.delete("aadhaarCard");
-        dispatch(updatePatient(formData));
+
+      try {
+        setSubmitting(true);
+        if (editData) {
+          formData.append("editId", editData?._id);
+          if (!(values.profilePicture instanceof Blob))
+            formData.delete("profilePicture");
+          if (!(values.aadhaarCard?.file instanceof Blob))
+            formData.delete("aadhaarCard");
+          if (!(values.passportCard?.file instanceof Blob))
+            formData.delete("passportCard");
+          await dispatch(updatePatient(formData)).unwrap();
+        } else if (leadData) {
+          formData.append("lead", leadData._id);
+          formData.append("leadOrigin", leadData.leadOrigin);
+          formData.append("leadQuery", JSON.stringify(leadData.leadQuery));
+          formData.append(
+            "centerAccess",
+            JSON.stringify(leadData.centerAccess),
+          );
+          formData.append("grouped", JSON.stringify(leadData.grouped));
+          formData.append("date", JSON.stringify(leadData.date));
+          await dispatch(addLeadPatient(formData)).unwrap();
+        } else {
+          await dispatch(addPatient(formData)).unwrap();
+        }
         dispatch(
-          togglePatientForm({ data: null, leadData: null, isOpen: false })
+          togglePatientForm({ data: null, leadData: null, isOpen: false }),
         );
-      } else if (leadData) {
-        formData.append("lead", leadData._id);
-        formData.append("leadOrigin", leadData.leadOrigin);
-        dispatch(addLeadPatient(formData));
-        dispatch(
-          togglePatientForm({ data: null, leadData: null, isOpen: false })
-        );
-      } else {
-        dispatch(addPatient(formData));
-        dispatch(
-          togglePatientForm({ data: null, leadData: null, isOpen: false })
-        );
+      } catch {
+        // Error alert already shown by the thunk — modal stays open
+      } finally {
+        setSelectedReferral(null);
+        validation.resetForm();
+        setSubmitting(false);
       }
     },
   });
@@ -174,13 +281,80 @@ const AddPatient = ({
   };
 
   useEffect(() => {
-    if (!editData) validation.resetForm();
+    if (!editData) {
+      validation.resetForm();
+      referralInitialized.current = false;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editData]);
 
   useEffect(() => {
     if (patient?.isOpen) dispatch(fetchPatientId());
   }, [dispatch, patient]);
+
+  useEffect(() => {
+    dispatch(fetchReferrals());
+  }, [dispatch]);
+
+  const referralInitialized = useRef(false);
+  useEffect(() => {
+    // Only run once when editData and referrals are both available
+    if (!editData?.referredBy || !referrals?.length) return;
+    if (referralInitialized.current) return;
+    referralInitialized.current = true;
+
+    const doctorName =
+      typeof editData.referredBy === "string"
+        ? editData.referredBy
+        : editData.referredBy?.doctorName || "";
+    const speciality = editData.referredBy?.speciality || "";
+
+    // Check if it matches an approved referral from the DB first
+    const referralMatch = referrals.find(
+      (ref) =>
+        ref._id === editData.referredBy.id || ref.doctorName === doctorName,
+    );
+
+    if (referralMatch) {
+      // Approved DB referral — just select it from the list
+      setSelectedReferral({
+        value: referralMatch._id,
+        label: referralMatch.doctorName,
+      });
+      setIsOtherReferral(false);
+      validation.setFieldValue("referredBy", referralMatch._id);
+      validation.setFieldValue("referralType", "");
+    } else {
+      // Not in DB — check if speciality matches a static option
+      const STATIC_OPTIONS = [
+        { value: "psychiatrist", label: "Psychiatrist" },
+        { value: "doctor", label: "Doctor" },
+        { value: "online", label: "Online" },
+        { value: "other", label: "Other" },
+      ];
+      const staticMatch = STATIC_OPTIONS.find(
+        (opt) => opt.value === speciality,
+      );
+
+      if (staticMatch) {
+        // Pending static option — pre-select it and show name + phone
+        setSelectedReferral(staticMatch);
+        setIsOtherReferral(true);
+        validation.setFieldValue("referredBy", doctorName);
+        validation.setFieldValue(
+          "referralPhoneNumber",
+          editData.referredBy?.mobileNumber || "",
+        );
+        validation.setFieldValue("referralType", staticMatch.value);
+      } else if (doctorName) {
+        // Legacy data without speciality — treat as "Other"
+        setSelectedReferral({ value: "other", label: "Other" });
+        setIsOtherReferral(true);
+        validation.setFieldValue("referredBy", doctorName);
+        validation.setFieldValue("referralType", "other");
+      }
+    }
+  }, [editData, referrals]);
 
   useEffect(() => {
     if (validation.values.center)
@@ -193,8 +367,8 @@ const AddPatient = ({
         l.name === "doctor"
           ? { ...l, options: doctors }
           : l.name === "psychologist"
-          ? { ...l, options: counsellors || [] }
-          : l
+            ? { ...l, options: counsellors || [] }
+            : l,
       );
       setFields(flds);
     }
@@ -203,19 +377,11 @@ const AddPatient = ({
 
   useEffect(() => {
     const fls = [...fields].map((l) =>
-      l.name === "name" ? { ...l, disabled: !!editData } : l
+      l.name === "name" ? { ...l, disabled: !!editData } : l,
     );
     setFields(fls);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editData]);
-
-  useEffect(() => {
-    if (patient?.submitSuccess) {
-      dispatch(
-        togglePatientForm({ data: null, leadData: null, isOpen: false })
-      );
-    }
-  }, [dispatch, patient?.submitSuccess]);
 
   const toggleCropModal = () => setIsCropModalOpen(!isCropModalOpen);
 
@@ -348,10 +514,22 @@ const AddPatient = ({
           {editData?.aadhaarCard?.url && (
             <Col xs={12} style={{ marginBottom: "1.5rem" }}>
               <UploadedFiles
-                title="Patient Files"
+                title="Aadhaar Card"
                 files={[editData.aadhaarCard]}
                 deleteFilePermanently={() =>
                   dispatch(removeAadhaarCard({ id: editData._id }))
+                }
+              />
+            </Col>
+          )}
+          {/* Passport Files */}
+          {editData?.passportCard?.url && (
+            <Col xs={12} style={{ marginBottom: "1.5rem" }}>
+              <UploadedFiles
+                title="Passport"
+                files={[editData.passportCard]}
+                deleteFilePermanently={() =>
+                  dispatch(removePassportCard({ id: editData._id }))
                 }
               />
             </Col>
@@ -419,38 +597,151 @@ const AddPatient = ({
                     color: "#374151",
                   }}
                 >
-                  Referred By <span style={{ color: "#ef4444" }}>*</span>
+                  Referred By
                 </Label>
 
-                <Input
-                  name="referredBy"
-                  className="form-control"
-                  placeholder="Enter referred by"
-                  type="text"
-                  onChange={(e) =>
-                    handleChange
-                      ? handleChange(e, "text")
-                      : validation.handleChange(e)
-                  }
-                  onBlur={validation.handleBlur}
-                  value={validation.values["referredBy"] || ""}
-                  invalid={
-                    validation.touched["referredBy"] &&
-                    validation.errors["referredBy"]
-                  }
-                  style={{
-                    width: "100%",
-                    padding: "0.5rem 0.75rem",
-                    borderRadius: "0.375rem",
-                    fontSize: "1rem",
-                    textTransform: "capitalize",
+                <Select
+                  value={selectedReferral}
+                  onChange={(option) => {
+                    setSelectedReferral(option);
+                    const staticValues = [
+                      "other",
+                      "doctor",
+                      "psychiatrist",
+                      "online",
+                    ];
+                    if (option && staticValues.includes(option.value)) {
+                      setIsOtherReferral(true);
+                      validation.setFieldValue("referredBy", "");
+                      validation.setFieldValue("referralPhoneNumber", "");
+                      validation.setFieldValue("referralType", option.value);
+                    } else {
+                      setIsOtherReferral(false);
+                      validation.setFieldValue(
+                        "referredBy",
+                        option?.value || "",
+                      );
+                      validation.setFieldValue("referralPhoneNumber", "");
+                      validation.setFieldValue("referralType", "");
+                    }
+                  }}
+                  onBlur={() => validation.setFieldTouched("referredBy", true)}
+                  options={[
+                    ...(referrals || []).map((ref) => ({
+                      value: ref._id,
+                      label: ref.doctorName,
+                    })),
+                    { value: "psychiatrist", label: "Psychiatrist" },
+                    { value: "doctor", label: "Doctor" },
+                    { value: "online", label: "Online" },
+                    { value: "other", label: "Other" },
+                  ]}
+                  placeholder="Select or search for a referral doctor"
+                  isClearable
+                  isLoading={referralsLoading}
+                  styles={{
+                    control: (provided, state) => ({
+                      ...provided,
+                      borderColor:
+                        validation.touched.referredBy &&
+                        validation.errors.referredBy
+                          ? "#dc3545"
+                          : "#ced4da",
+                      boxShadow: state.isFocused
+                        ? validation.touched.referredBy &&
+                          validation.errors.referredBy
+                          ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
+                          : "0 0 0 0.2rem rgba(13, 110, 253, 0.25)"
+                        : "none",
+                      "&:hover": {
+                        borderColor:
+                          validation.touched.referredBy &&
+                          validation.errors.referredBy
+                            ? "#dc3545"
+                            : "#86b7fe",
+                      },
+                    }),
+                    menu: (provided) => ({
+                      ...provided,
+                      zIndex: 9999,
+                    }),
                   }}
                 />
 
-                {validation.touched["referredBy"] &&
-                  validation.errors["referredBy"] && (
+                {isOtherReferral && (
+                  <>
+                    <Input
+                      name="referredBy"
+                      className="form-control mt-2"
+                      placeholder="Enter doctor name"
+                      type="text"
+                      onChange={validation.handleChange}
+                      onBlur={validation.handleBlur}
+                      value={validation.values.referredBy || ""}
+                      invalid={
+                        validation.touched.referredBy &&
+                        validation.errors.referredBy
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "0.5rem 0.75rem",
+                        borderRadius: "0.375rem",
+                        fontSize: "1rem",
+                      }}
+                    />
+                    <div className="mt-2">
+                      <PhoneInputWithCountrySelect
+                        placeholder="Referral phone number (optional)"
+                        name="referralPhoneNumber"
+                        value={validation.values.referralPhoneNumber}
+                        onChange={(value) =>
+                          validation.setFieldValue(
+                            "referralPhoneNumber",
+                            value || "",
+                          )
+                        }
+                        onBlur={() =>
+                          validation.setFieldTouched(
+                            "referralPhoneNumber",
+                            true,
+                          )
+                        }
+                        defaultCountry="IN"
+                        limitMaxLength={true}
+                        style={{
+                          width: "100%",
+                          height: "42px",
+                          padding: "0.5rem 0.75rem",
+                          border: `1px solid ${
+                            validation.touched.referralPhoneNumber &&
+                            validation.errors.referralPhoneNumber
+                              ? "#dc3545"
+                              : "#ced4da"
+                          }`,
+                          borderRadius: "0.375rem",
+                          fontSize: "1rem",
+                        }}
+                      />
+                      {validation.touched.referralPhoneNumber &&
+                        validation.errors.referralPhoneNumber && (
+                          <div
+                            style={{
+                              color: "#dc3545",
+                              fontSize: "0.875rem",
+                              marginTop: "0.25rem",
+                            }}
+                          >
+                            {validation.errors.referralPhoneNumber}
+                          </div>
+                        )}
+                    </div>
+                  </>
+                )}
+
+                {validation.touched.referredBy &&
+                  validation.errors.referredBy && (
                     <FormFeedback type="invalid" className="d-block">
-                      {validation.errors["referredBy"]}
+                      {validation.errors.referredBy}
                     </FormFeedback>
                   )}
               </Col>
@@ -473,6 +764,209 @@ const AddPatient = ({
                 doctorLoading={doctorLoading}
                 handleChange={handleChange}
               />
+            </Row>
+          </Col>
+
+          {/* Nationality & Identity Section */}
+          <Col xs={12} style={{ marginBottom: "1.5rem" }}>
+            <Row
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+                gap: "1.5rem",
+              }}
+            >
+              {/* Nationality Toggle */}
+              <div className="mb-3">
+                <Label
+                  className="form-label"
+                  style={{
+                    fontWeight: "500",
+                    color: "#374151",
+                    marginBottom: "0.5rem",
+                  }}
+                >
+                  Nationality <span className="text-danger">*</span>
+                </Label>
+                <div className="d-flex gap-3">
+                  {["Indian", "Foreigner"].map((opt) => (
+                    <div
+                      key={opt}
+                      onClick={() => {
+                        validation.setFieldValue("nationality", opt);
+                        if (opt === "Indian") {
+                          validation.setFieldValue("passportNumber", "");
+                          validation.setFieldValue("passportCard", "");
+                        } else {
+                          validation.setFieldValue("aadhaarCardNumber", "");
+                          validation.setFieldValue("aadhaarCard", "");
+                        }
+                      }}
+                      style={{
+                        flex: 1,
+                        padding: "0.625rem 1rem",
+                        borderRadius: "0.5rem",
+                        border: `2px solid ${validation.values.nationality === opt ? "#405189" : "#d1d5db"}`,
+                        backgroundColor:
+                          validation.values.nationality === opt
+                            ? "#f0f3ff"
+                            : "#fff",
+                        color:
+                          validation.values.nationality === opt
+                            ? "#405189"
+                            : "#6b7280",
+                        fontWeight:
+                          validation.values.nationality === opt ? "600" : "400",
+                        textAlign: "center",
+                        cursor: "pointer",
+                        transition: "all 0.2s ease",
+                        userSelect: "none",
+                      }}
+                    >
+                      {opt === "Indian" ? "🇮🇳 Indian" : "🌐 Foreigner"}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Conditional: Aadhaar or Passport */}
+              {validation.values.nationality === "Indian" ? (
+                <div className="mb-3">
+                  <Label
+                    htmlFor="aadhaarCardNumber"
+                    className="form-label"
+                    style={{ fontWeight: "500", color: "#374151" }}
+                  >
+                    Aadhaar Card Number
+                  </Label>
+                  <Input
+                    type="text"
+                    name="aadhaarCardNumber"
+                    id="aadhaarCardNumber"
+                    placeholder="Enter 12-digit Aadhaar number"
+                    maxLength={12}
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.aadhaarCardNumber || ""}
+                    invalid={
+                      validation.touched.aadhaarCardNumber &&
+                      validation.errors.aadhaarCardNumber
+                        ? true
+                        : false
+                    }
+                    className="form-control"
+                  />
+                  {validation.touched.aadhaarCardNumber &&
+                    validation.errors.aadhaarCardNumber && (
+                      <FormFeedback type="invalid">
+                        {validation.errors.aadhaarCardNumber}
+                      </FormFeedback>
+                    )}
+                  <Label
+                    htmlFor="aadhaarCardFile"
+                    className="form-label"
+                    style={{
+                      fontWeight: "500",
+                      color: "#374151",
+                      marginTop: "0.75rem",
+                    }}
+                  >
+                    Upload Aadhaar Card
+                  </Label>
+                  <Input
+                    type="file"
+                    name="aadhaarCardFile"
+                    id="aadhaarCardFile"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      validation.setFieldValue(
+                        "aadhaarCard",
+                        file ? { file } : "",
+                      );
+                    }}
+                    className="form-control"
+                  />
+                </div>
+              ) : validation.values.nationality === "Foreigner" ? (
+                <div className="mb-3">
+                  <Label
+                    htmlFor="passportNumber"
+                    className="form-label"
+                    style={{ fontWeight: "500", color: "#374151" }}
+                  >
+                    International Passport Number{" "}
+                    <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    type="text"
+                    name="passportNumber"
+                    id="passportNumber"
+                    placeholder="Enter passport number"
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values.passportNumber || ""}
+                    invalid={
+                      validation.touched.passportNumber &&
+                      validation.errors.passportNumber
+                        ? true
+                        : false
+                    }
+                    className="form-control"
+                  />
+                  {validation.touched.passportNumber &&
+                    validation.errors.passportNumber && (
+                      <FormFeedback type="invalid">
+                        {validation.errors.passportNumber}
+                      </FormFeedback>
+                    )}
+                  <Label
+                    htmlFor="passportCardFile"
+                    className="form-label"
+                    style={{
+                      fontWeight: "500",
+                      color: "#374151",
+                      marginTop: "0.75rem",
+                    }}
+                  >
+                    Upload Passport
+                  </Label>
+                  <Input
+                    type="file"
+                    name="passportCardFile"
+                    id="passportCardFile"
+                    accept="image/*,application/pdf"
+                    onChange={(e) => {
+                      const file = e.target.files[0];
+                      validation.setFieldValue(
+                        "passportCard",
+                        file ? { file } : "",
+                      );
+                    }}
+                    className="form-control"
+                  />
+                  <div
+                    style={{
+                      marginTop: "0.5rem",
+                      padding: "0.625rem 0.875rem",
+                      backgroundColor: "#fff3cd",
+                      border: "1px solid #ffc107",
+                      borderRadius: "0.375rem",
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                      fontSize: "0.8125rem",
+                      color: "#856404",
+                    }}
+                  >
+                    <i
+                      className="ri-information-line"
+                      style={{ fontSize: "1rem", flexShrink: 0 }}
+                    />
+                    <span>Inform FRR office</span>
+                  </div>
+                </div>
+              ) : null}
             </Row>
           </Col>
 
@@ -507,7 +1001,8 @@ const AddPatient = ({
             <div
               style={{
                 display: "grid",
-                gridTemplateColumns: "repeat(auto-fit, minmax(340px, 1fr))",
+                gridTemplateColumns:
+                  "repeat(auto-fit, minmax(min(340px, 100%), 1fr))",
                 gap: "2rem",
                 marginBottom: "2.5rem",
               }}
@@ -525,40 +1020,71 @@ const AddPatient = ({
                     {f.label}
                     {f.required && <span className="text-danger">*</span>}
                   </Label>
-                  <Input
-                    type={f.type}
-                    name={f.name}
-                    onChange={validation.handleChange}
-                    onBlur={validation.handleBlur}
-                    value={validation.values[f.name] || ""}
-                    className={
-                      validation.touched[f.name] && validation.errors[f.name]
-                        ? "is-invalid"
-                        : ""
-                    }
-                    style={{
-                      width: "100%",
-                      padding: "0.625rem 0.75rem",
-                      fontSize: "1rem",
-                      fontWeight: "400",
-                      border: `1px solid ${
+                  {f.type === "phoneNumber" ? (
+                    <PhoneInputWithCountrySelect
+                      placeholder="Enter phone number"
+                      name={f.name}
+                      value={validation.values[f.name]}
+                      onChange={(value) =>
+                        validation.setFieldValue(f.name, value || "")
+                      }
+                      onBlur={() => validation.setFieldTouched(f.name, true)}
+                      defaultCountry="IN"
+                      limitMaxLength={true}
+                      style={{
+                        width: "100%",
+                        height: "42px",
+                        padding: "0.5rem 0.75rem",
+                        border: `1px solid ${
+                          validation.touched[f.name] &&
+                          validation.errors[f.name]
+                            ? "#ef4444"
+                            : "#d1d5db"
+                        }`,
+                        borderRadius: "0.375rem",
+                        fontSize: "1rem",
+                      }}
+                    />
+                  ) : (
+                    <Input
+                      type={f.type}
+                      name={f.name}
+                      onChange={validation.handleChange}
+                      onBlur={validation.handleBlur}
+                      value={validation.values[f.name] || ""}
+                      className={
                         validation.touched[f.name] && validation.errors[f.name]
-                          ? "#ef4444"
-                          : "#d1d5db"
-                      }`,
-                      borderRadius: "0.375rem",
-                      outline: "none",
-                      boxShadow:
-                        validation.touched[f.name] && validation.errors[f.name]
-                          ? "0 0 0 2px rgba(239, 68, 68, 0.3)"
-                          : "0 0 0 2px rgba(96, 165, 250, 0.3)",
-                      transition:
-                        "border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out",
-                    }}
-                    disabled={f.name === "dateOfAddmission" && !!editData}
-                  />
+                          ? "is-invalid"
+                          : ""
+                      }
+                      style={{
+                        width: "100%",
+                        padding: "0.625rem 0.75rem",
+                        fontSize: "1rem",
+                        fontWeight: "400",
+                        border: `1px solid ${
+                          validation.touched[f.name] &&
+                          validation.errors[f.name]
+                            ? "#ef4444"
+                            : "#d1d5db"
+                        }`,
+                        borderRadius: "0.375rem",
+                        outline: "none",
+                        boxShadow:
+                          validation.touched[f.name] &&
+                          validation.errors[f.name]
+                            ? "0 0 0 2px rgba(239, 68, 68, 0.3)"
+                            : "0 0 0 2px rgba(96, 165, 250, 0.3)",
+                        transition:
+                          "border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out",
+                      }}
+                      disabled={f.name === "dateOfAddmission" && !!editData}
+                    />
+                  )}
                   {validation.touched[f.name] && validation.errors[f.name] && (
                     <FormFeedback
+                      type="invalid"
+                      className="d-block"
                       style={{
                         color: "#ef4444",
                         fontSize: "0.875rem",
@@ -590,6 +1116,7 @@ const AddPatient = ({
                 onClick={cancelForm}
                 size="sm"
                 color="danger"
+                disabled={submitting}
                 style={{
                   padding: "0.5rem 1.5rem", // px-6 py-2
                   borderRadius: "0.375rem", // rounded-md
@@ -613,6 +1140,7 @@ const AddPatient = ({
                 type="submit"
                 size="sm"
                 color="primary"
+                disabled={submitting}
                 style={{
                   padding: "0.5rem 1.5rem", // px-6 py-2
                   borderRadius: "0.375rem", // rounded-md
@@ -630,7 +1158,13 @@ const AddPatient = ({
                   (e.currentTarget.style.backgroundColor = "#2563eb")
                 }
               >
-                {editData ? "Update" : "Save"}
+                {submitting ? (
+                  <Spinner size="sm" color="light" />
+                ) : editData ? (
+                  "Update"
+                ) : (
+                  "Save"
+                )}
               </Button>
             </div>
           </Col>
@@ -716,6 +1250,8 @@ const mapStateToProps = (state) => ({
   doctors: state.User.doctor,
   counsellors: state.User.counsellors,
   generatedPatientId: state.Patient.generatedPatientId,
+  referrals: state.Referral.data,
+  referralsLoading: state.Referral.loading,
 });
 
 AddPatient.propTypes = {

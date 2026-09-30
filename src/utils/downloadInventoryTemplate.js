@@ -8,13 +8,10 @@ export const downloadInventoryTemplate = async (type = "TEMPLATE") => {
         const sheet = workbook.addWorksheet("Pharmacy Inventory");
 
         const headers = [
-            "Code",
             "Medicine Name",
             "Strength",
             "Unit",
             "Stock",
-            "Cost Price",
-            "Value",
             "MRP",
             "Purchase Price",
             "Sales Price",

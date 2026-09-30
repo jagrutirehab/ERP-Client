@@ -18,6 +18,7 @@ import { changeUserAccess } from "../../store/actions";
 const WebAppsDropdown = ({ centers, centerAccess }) => {
   const dispatch = useDispatch();
   const [access, setAccess] = useState(centerAccess);
+  const allowedCenterIds = (centers || []).map((c) => c._id);
   const [isWebAppDropdown, setIsWebAppDropdown] = useState(false);
   const [ctrlCmdPressed, setCtrlCmdPressed] = useState(false);
   const toggleWebAppDropdown = () => {
@@ -70,7 +71,7 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
   //   if (!ctrlCmdPressed) dispatch(changeUserAccess(access));
   // }, [dispatch, access, ctrlCmdPressed]);
 
-  console.log({ centerAccess });
+  // console.log({ centerAccess });
 
   return (
     <React.Fragment>
@@ -105,9 +106,8 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
                 {/* {access?.length === centerAccess?.length ? ( */}
                 <button
                   onClick={() => {
-                    const cns = centers.map((cn) => cn._id);
-                    setAccess(cns);
-                    dispatch(changeUserAccess(cns));
+                    setAccess(allowedCenterIds);
+                    dispatch(changeUserAccess(allowedCenterIds));
                   }}
                   id="select-all"
                   className="btn btn-light btn-sm m-0 fw-semibold fs-15"
@@ -162,7 +162,6 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
                 <button
                   onClick={() => {
                     setAccess([]);
-                    dispatch(changeUserAccess([]));
                   }}
                   id="un-select-all"
                   className="btn btn-light btn-sm m-0 fw-semibold fs-15"
@@ -279,7 +278,11 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
                       htmlFor={center.title + center._id}
                     >
                       <img className="avatar-sm" src={Hospital} alt="Rehab" />
-                      <span className="fs-10">{center["title"] || ""}</span>
+                      <span className="fs-10"
+                        style={{
+                          wordBreak: "break-word",
+                          whiteSpace: "normal",
+                        }}>{center["title"] || ""}</span>
                     </label>
                   </div>
                 </Col>

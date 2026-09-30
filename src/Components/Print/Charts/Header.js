@@ -78,7 +78,7 @@ const Header = ({ chart, center, patient, doctor, admission }) => {
         >
           <View style={styles.col6}>
             <Text style={{ fontFamily: "Roboto", fontSize: "15px" }}>
-              {center.name || "JAGRUTI REHABILITATION CENTRE"}
+              {center?.name || "JAGRUTI REHABILITATION CENTRE"}
             </Text>
           </View>
           <View style={styles.col6}>
@@ -213,10 +213,10 @@ const Header = ({ chart, center, patient, doctor, admission }) => {
                 Address: {patient?.address || ""}
               </Text>
             )}
-            {patient.gender && (
-              <Text style={styles.paddingTop3}>{patient.gender},</Text>
+            {patient?.gender && (
+              <Text style={styles.paddingTop3}>{patient?.gender},</Text>
             )}
-            {patient.dateOfBirth && (
+            {patient?.dateOfBirth && (
               <Text style={{ ...styles.paddingTop3 }}>{age()}</Text>
             )}
           </View>

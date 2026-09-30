@@ -82,7 +82,12 @@ const PaymentMode = ({ styles, bill }) => {
             {bill.receiptInvoice?.paymentModes?.map((vl) => (
               <View style={{ ...styles.row }}>
                 <View
-                  style={{ ...styles.col7, ...styles.row, marginBottom: "5px" }}
+                  style={{
+                    ...styles.col7,
+                    ...styles.row,
+                    alignItems: "flex-end",
+                    marginBottom: "5px",
+                  }}
                 >
                   {/* <Text
                     style={{

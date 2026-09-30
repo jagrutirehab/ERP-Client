@@ -57,6 +57,7 @@ const styles = StyleSheet.create({
 
 const printFooter = ({ center, bill }) => {
   let invoice = bill?.invoice;
+
   let amountChargable = invoice?.calculatedPayable ?? 0.0;
 
   if (bill.invoice.refund > 0) amountChargable = invoice.refund;

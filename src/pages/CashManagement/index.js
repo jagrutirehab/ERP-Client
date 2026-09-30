@@ -9,7 +9,7 @@ const CashManagement = () => {
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <BreadCrumb title="Cash Management" pageTitle="Cash Managemnet" />
+          <BreadCrumb title="Cash" pageTitle="Cash" />
           <Routes>
             <Route path="/" element={<Main />} />
           </Routes>

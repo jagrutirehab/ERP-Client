@@ -1,204 +1,51 @@
 import React from "react";
 import { View, Text } from "@react-pdf/renderer";
+import { MSE_FIELDS } from "./MSE_FIELDS";
 
-const MseAtDischarge = (props) => {
+const safeStyles = (styles) =>
+  new Proxy(styles ?? {}, {
+    get(target, key) {
+      return target[key] ?? {};
+    },
+  });
+
+const toDisplayText = (value) => {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value.trim();
+  if (Array.isArray(value)) return value.filter(Boolean).join(", ").trim();
+  if (typeof value === "object") return "";
+  return String(value).trim();
+};
+
+const MseAtDischarge = ({ data, styles }) => {
+  const s = safeStyles(styles);
+  const mse = data?.mseDischarge ?? {};
+
+  if (!Array.isArray(MSE_FIELDS) || !MSE_FIELDS.length) return null;
+
+  const fields = MSE_FIELDS.map(({ key, label }) => ({
+    key,
+    label,
+    value: toDisplayText(mse[key]),
+  })).filter((field) => field.value);
+
+  if (!fields.length) return null;
+
   return (
-    <React.Fragment>
-      {(props?.data.mseDischarge?.appearance ||
-        props?.data.mseDischarge?.ecc ||
-        props?.data.mseDischarge?.speech ||
-        props?.data.mseDischarge?.mood ||
-        props?.data.mseDischarge?.affect ||
-        props?.data.mseDischarge?.thoughts ||
-        props?.data.mseDischarge?.perception ||
-        props?.data.mseDischarge?.memory ||
-        props?.data.mseDischarge?.abstractThinking ||
-        props?.data.mseDischarge?.socialJudgment ||
-        props?.data.mseDischarge?.insight) && (
-        <View style={props?.styles.marginBottom}>
-          {/* wrap={false} */}
-          <Text style={props?.styles.fontSize13}>
-            Patient Condition on Discharge: (MSE at Discharge)
-          </Text>
-          {props?.data.mseDischarge?.appearance && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Appearance and Behavior-</Text>
-              </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.appearance || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseDischarge?.ecc && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>ECC / RAPPORT-</Text>
-              </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.ecc || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseDischarge?.speech && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Speech-</Text>
-              </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.speech || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseDischarge?.mood && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Mood-</Text>
-              </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.mood || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseDischarge?.affect && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Affect-</Text>
-              </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.affect || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseDischarge?.thoughts && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Thoughts-</Text>
-              </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.thoughts || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseDischarge?.perception && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Perception-</Text>
-              </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.perception || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseDischarge?.memory && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row, marginTop:2 }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Memory-</Text>
-              </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.memory || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseDischarge?.abstractThinking && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Abstract Thinking-</Text>
-              </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.abstractThinking || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseDischarge?.socialJudgment && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Social Judgment-</Text>
-              </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.socialJudgment || ""}
-              </Text>
-            </View>
-          )}
-          {props?.data.mseDischarge?.insight && (
-            <View
-              style={{
-                ...props?.styles.checkBlock,
-                ...props?.styles.paddingLeft5,
-              }}
-            >
-              <View style={{ ...props?.styles.w30, ...props?.styles.row }}>
-                <Text style={props?.styles.blackCircle}></Text>
-                <Text>Insight-</Text>
-              </View>
-              <Text style={{ ...props?.styles.w70 }}>
-                {props?.data.mseDischarge?.insight || ""}
-              </Text>
-            </View>
-          )}
+    <View style={{ ...s.marginBottom, marginTop: 20 }}>
+      <Text style={s.fontSize13}>
+        Patient Condition on Discharge: (MSE at Discharge)
+      </Text>
+      {fields.map(({ key, label, value }) => (
+        <View key={key} style={{ ...s.checkBlock, ...s.paddingLeft5 }}>
+          <View style={{ ...s.w30, ...s.row }}>
+            <Text style={s.blackCircle}>{""}</Text>
+            <Text style={s.fontSize11}>{`${label}-`}</Text>
+          </View>
+          <Text style={{ ...s.w70, ...s.fontSize11 }}>{value}</Text>
         </View>
-      )}
-    </React.Fragment>
+      ))}
+    </View>
   );
 };
 

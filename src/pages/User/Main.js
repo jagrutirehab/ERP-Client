@@ -6,6 +6,7 @@ import {
   Row,
   Col,
   Input,
+  FormGroup,
   DropdownToggle,
   DropdownMenu,
   DropdownItem,
@@ -31,6 +32,7 @@ import {
   removeUser,
   setUserForm,
   suspendStaff,
+  toggleAppLogin,
 } from "../../store/actions";
 import {
   setData,
@@ -85,6 +87,7 @@ const Main = ({ user, form, centerAccess }) => {
   const userDataa = useSelector((state) => state.User.data || []);
   const [query, setQuery] = useState("");
   const [selectedFilter, setSelectedFilter] = useState("");
+  const [sortFilter, setSortFilter] = useState("");
   const [userData, setUserData] = useState(null);
   const [passwordModal, setPasswordModal] = useState(false);
   const [deleteModal, setDeleteModal] = useState(false);
@@ -92,6 +95,7 @@ const Main = ({ user, form, centerAccess }) => {
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
+  const [appLoginUpdatingId, setAppLoginUpdatingId] = useState(null);
   const limit = 12;
 
   const {
@@ -109,6 +113,10 @@ const Main = ({ user, form, centerAccess }) => {
   }, [dispatch, user, token]);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedFilter, sortFilter, query]);
+
+  useEffect(() => {
     if (!centers || centers.length === 0 || !token) return;
     if (!hasUserPermission) return;
     const handler = setTimeout(() => {
@@ -122,6 +130,7 @@ const Main = ({ user, form, centerAccess }) => {
             role: selectedFilter,
             token,
             centerAccess,
+            sortBy: sortFilter
           });
           let users = response?.data?.data || [];
           if (
@@ -167,7 +176,7 @@ const Main = ({ user, form, centerAccess }) => {
 
     return () => clearTimeout(handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query, currentPage, token, centerAccess, centers, roles, selectedFilter]);
+  }, [query, currentPage, token, centerAccess, centers, roles, selectedFilter, sortFilter]);
 
   document.title = "Users | Your App Name";
 
@@ -227,6 +236,25 @@ const Main = ({ user, form, centerAccess }) => {
     }
   };
 
+  // App Login ON => the user can sign in on the mobile app only, never on the
+  // dashboard. Toggling it also ends the user's current session.
+  const handleAppLoginToggle = async (item) => {
+    setAppLoginUpdatingId(item._id);
+    try {
+      await dispatch(
+        toggleAppLogin({
+          id: item._id,
+          appLogin: !item.appLogin,
+          token,
+        })
+      ).unwrap();
+    } catch (error) {
+      handleAuthError(error);
+    } finally {
+      setAppLoginUpdatingId(null);
+    }
+  };
+
   const shortName = (name = "") =>
     name
       .split(" ")
@@ -262,24 +290,35 @@ const Main = ({ user, form, centerAccess }) => {
       <Card>
         <CardBody>
           <Row className="g-3 align-items-center">
-            <Col md={4}>
-              <div className="search-box position-relative">
-                <div style={{ display: "flex", gap: "10px" }}>
-                  <Input
-                    type="text"
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    className="form-control"
-                    placeholder="Search by name or email..."
-                  />
-                  <i className="ri-search-line search-icon" />
+            <Col md={6}>
+              <div className="search-box">
+                <div className="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+
+                  <div className="position-relative flex-grow-1" style={{ minWidth: "200px" }}>
+                    <Input
+                      type="text"
+                      value={query}
+                      onChange={(e) => setQuery(e.target.value)}
+                      className="form-control"
+                      placeholder="Search by name or email..."
+                    />
+                    <i className="ri-search-line search-icon" />
+
+                    <RenderWhen isTrue={dataLoader}>
+                      <Spinner
+                        size="sm"
+                        color="success"
+                        className="position-absolute end-0 top-50 translate-middle-y me-2"
+                      />
+                    </RenderWhen>
+                  </div>
 
                   <Input
                     type="select"
                     value={selectedFilter}
                     onChange={(e) => setSelectedFilter(e.target.value)}
                     className="form-select"
-                    style={{ border: "1px solid black" }}
+                    style={{ flex: 1, minWidth: "170px", border: "1px solid black" }}
                   >
                     <option value="">Please Select Role</option>
                     {authRoles.map((role) => (
@@ -288,17 +327,24 @@ const Main = ({ user, form, centerAccess }) => {
                       </option>
                     ))}
                   </Input>
+
+                  <Input
+                    type="select"
+                    value={sortFilter}
+                    onChange={(e) => setSortFilter(e.target.value)}
+                    className="form-select"
+                    style={{ flex: 1, minWidth: "160px", border: "1px solid black" }}
+                  >
+                    <option value="">Sort by Latest</option>
+                    <option value="STATUS">Sort by Status</option>
+                  </Input>
+
                 </div>
-                <RenderWhen isTrue={dataLoader}>
-                  <Spinner
-                    className="position-absolute end-0 top-50 translate-middle-y me-2"
-                    color="success"
-                    size="sm"
-                  />
-                </RenderWhen>
               </div>
             </Col>
-            <Col md={8} className="text-sm-end">
+
+
+            <Col md={6} className="text-sm-end">
               <CheckPermission
                 accessRolePermission={roles?.permissions}
                 permission="create"
@@ -419,7 +465,7 @@ const Main = ({ user, form, centerAccess }) => {
                           </CheckPermission>
                           <CheckPermission
                             accessRolePermission={roles?.permissions}
-                            permission="delete"
+                            permission="edit"
                             subAccess="SUSPENDUSER"
                           >
                             <DropdownItem
@@ -473,6 +519,34 @@ const Main = ({ user, form, centerAccess }) => {
                     <p className="text-muted mb-1">Assigned Centers</p>
                     <UserCenterList centers={item?.centerAccess || []} />
                   </div>
+                  <CheckPermission
+                    accessRolePermission={roles?.permissions}
+                    permission="edit"
+                  >
+                    <div className="mb-4">
+                      <div className="d-flex align-items-center justify-content-between">
+                        <p className="text-muted mb-0">App Login</p>
+                        <FormGroup
+                          switch
+                          className="form-switch-md form-switch-solid form-switch-success mb-0 pe-1"
+                        >
+                          <Input
+                            type="switch"
+                            role="switch"
+                            id={`appLogin-${item._id}`}
+                            checked={!!item.appLogin}
+                            disabled={appLoginUpdatingId === item._id}
+                            onChange={() => handleAppLoginToggle(item)}
+                          />
+                        </FormGroup>
+                      </div>
+                      <small className="text-muted d-block mt-1">
+                        {item.appLogin
+                          ? "Mobile app only — dashboard login blocked."
+                          : "Can log in on the dashboard and the app."}
+                      </small>
+                    </div>
+                  </CheckPermission>
                 </div>
                 <div className="d-flex align-items-center justify-content-between">
                   <div>

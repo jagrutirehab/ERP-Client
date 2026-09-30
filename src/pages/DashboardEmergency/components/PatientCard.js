@@ -6,16 +6,101 @@ import {
   Badge,
   CardFooter,
   Button,
+  UncontrolledTooltip,
+  Row,
+  Col,
 } from "reactstrap";
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import userDummayImage from "../../../assets/images/users/user-dummy-img.jpg";
 import { Link } from "react-router-dom";
+import { format, isValid } from "date-fns";
+import Divider from "../../../Components/Common/Divider";
 
 const statusColors = {
   suicidal: { color: "danger", border: "#ffcdd2" },
   runaway: { color: "warning", border: "#ffe0b2" },
   serious: { color: "primary", border: "#fff9c4" },
   aggresive: { color: "secondary", border: "#bbdefb" },
+};
+
+const sopStatusConfig = {
+  yes: { bg: "#9AD872", label: "Yes" },
+  no: { bg: "#FF8383", label: "No" },
+  partial: { bg: "#ffd043", label: "Pending Signed" },
+  na: { bg: "#6c757d", label: "N/A" },
+};
+
+const sopItems = {
+  labTest: { label: "Lab Test", tooltip: "Within 1st 24 hours of admission" },
+  prescription: {
+    label: "Prescription",
+    tooltip: "Within 1st 2 hours of admission",
+  },
+  vitalSign: { label: "Vital", tooltip: "Submitted every day" },
+  detailAdmission: {
+    label: "Detail History",
+    tooltip: "Within 1st 24 hours of admission",
+  },
+  admissionForm: {
+    label: "Admission Form",
+    tooltip: "Signed copies within 1st 24 hours of admission",
+  },
+  consentForm: {
+    label: "Consent Form",
+    tooltip: "Signed copies within 1st 24 hours of admission",
+  },
+  counsellingNote: {
+    label: "Counselling Note",
+    tooltip: "Submitted every day",
+  },
+  familyUpdate: { label: "Family Update", tooltip: "Submitted every day" },
+  clinicalNote: { label: "Clinical Note", tooltip: "Submitted every 24 hours" },
+};
+
+const formatSopDate = (dateStr) => {
+  if (!dateStr) return null;
+  const d = new Date(dateStr);
+  if (!isValid(d)) return null;
+  return format(d, "d MMM h:mma").toLowerCase();
+};
+
+const SopIndicator = ({ id, label, tooltip, status, date }) => {
+  const config = sopStatusConfig[status] || sopStatusConfig.na;
+  const tooltipId = `sop-${id}`;
+  const formattedDate = formatSopDate(date);
+
+  return (
+    <>
+      <div
+        id={tooltipId}
+        className="d-flex flex-column mb-2 justify-content-between align-items-start"
+        style={{ minWidth: 100, cursor: "default" }}
+      >
+        <div className="d-flex align-items-center gap-1">
+          <span
+            className="rounded-circle d-inline-block"
+            style={{
+              width: 8,
+              height: 8,
+              backgroundColor: config.bg,
+              flexShrink: 0,
+            }}
+          ></span>
+          <span className="fw-medium text-dark">
+            {/* style={{ fontSize: "0.90rem" }} */}
+            {label}
+          </span>
+        </div>
+        <span className="text-muted" style={{ paddingLeft: 14 }}>
+          {formattedDate || "Not yet"}
+        </span>
+      </div>
+      <UncontrolledTooltip target={tooltipId} placement="top">
+        {tooltip}: {config.label}
+        {formattedDate ? ` (${formattedDate})` : ""}
+      </UncontrolledTooltip>
+    </>
+  );
 };
 
 const toTitleCase = (text) =>
@@ -30,10 +115,10 @@ const PatientCard = ({ patient }) => {
 
   return (
     <Card
-      className="position-relative shadow-sm border-1 w-100 h-100"
+      className="position-relative shadow-sm border-1 w-100 h-"
       style={{
         borderTop: `4px solid ${border}`,
-        minHeight: "200px",
+        minHeight: "180px",
       }}
     >
       <div className="position-absolute top-0 end-0 d-flex">
@@ -48,12 +133,12 @@ const PatientCard = ({ patient }) => {
           {toTitleCase(
             patient.patientType === "serious"
               ? "Medically Serious"
-              : patient.patientType
+              : patient.patientType,
           )}
         </Badge>
       </div>
 
-      <CardBody className="d-flex flex-column h-100 mt-2">
+      <CardBody className="d-flex flex-column flex-grow-0 mt-2">
         <CardTitle
           tag="h5"
           className="mb-2 fw-semibold d-flex align-items-center gap-2"
@@ -82,6 +167,30 @@ const PatientCard = ({ patient }) => {
             <span className="ms-2 text-muted">({patient.uid})</span>
           </span>
         </CardTitle>
+
+        <div className="mb-2">
+          <div className="d-flex align-items-center mb-1 text-body-secondary small">
+            <span className="me-2">🏥</span>
+            <strong className="me-1">Center:</strong>
+            <span>{patient.center?.title || "N/A"}</span>
+          </div>
+          <div className="d-flex align-items-center mb-1 text-body-secondary small">
+            <span className="me-2">🩺</span>
+            <strong className="me-1">Doctor:</strong>
+            <span>
+              {patient.doctor?.name ? toTitleCase(patient.doctor.name) : "N/A"}
+            </span>
+          </div>
+          <div className="d-flex align-items-center mb-2 text-body-secondary small">
+            <span className="me-2">🧠</span>
+            <strong className="me-1">Psychologist:</strong>
+            <span>
+              {patient.psychologist?.name
+                ? toTitleCase(patient.psychologist.name)
+                : "N/A"}
+            </span>
+          </div>
+        </div>
 
         {patient?.vitals ? (
           <>
@@ -164,6 +273,30 @@ const PatientCard = ({ patient }) => {
               </span>
             </div>
           </>
+        )}
+
+        <div
+          style={{ height: "1px", backgroundColor: "#dddee0ff" }}
+          className="w-100"
+        />
+
+        {patient.sopCompliance && (
+          <div className="rounded my-2 bg-whit">
+            <Row className="">
+              {Object.entries(sopItems).map(([key, { label, tooltip }]) => (
+                <Col xs={6}>
+                  <SopIndicator
+                    key={key}
+                    id={`${patient.patientId}-${key}`}
+                    label={label}
+                    tooltip={tooltip}
+                    status={patient.sopCompliance[key]?.status}
+                    date={patient.sopCompliance[key]?.date}
+                  />
+                </Col>
+              ))}
+            </Row>
+          </div>
         )}
       </CardBody>
 

@@ -27,11 +27,13 @@ const Index = () => {
     userRoutes: state.User?.user?.pageAccess?.pages,
   }));
 
-  const userDynamicRoutes = (userRoutes || []).map((routeLabel) => {
-    const pageInfoIndex = pages.findIndex((pg) => pg.label === routeLabel.name);
+  const userDynamicRoutes = (userRoutes || [])?.map((routeLabel) => {
+    const pageInfoIndex = pages?.findIndex(
+      (pg) => pg.label === routeLabel.name,
+    );
     const pageInfo = pages[pageInfoIndex];
     const elementIndex = allElements.findIndex(
-      (el) => el.label === routeLabel.name
+      (el) => el.label === routeLabel.name,
     );
 
     return {
@@ -42,13 +44,15 @@ const Index = () => {
   });
   const userAuthRoutes = [...authProtectedRoutes, ...userDynamicRoutes];
 
+  // console.log("Dynamic Routes:", userDynamicRoutes);
+
   return (
     <React.Fragment>
       <Alerts />
       <LoaderModule />
       <Suspense fallback={<Loader />}>
         <Routes>
-          {publicRoutes.map((route) => {
+          {publicRoutes?.map((route) => {
             return (
               <Route
                 key={route.path}
@@ -62,7 +66,7 @@ const Index = () => {
             );
           })}
 
-          {userAuthRoutes.map((route) => {
+          {userAuthRoutes?.map((route) => {
             return (
               <Route
                 key={route.path}

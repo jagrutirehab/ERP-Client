@@ -15,8 +15,12 @@ import {
   DOCTOR_ANALYTICS,
   CENTER_BEDS_ANALYTICS,
   MI_REPORTING,
+  ADMISSION_FORMS,
+  REPORT_UPDATED,
+  ADVANCE_PAYMENT_DEPOSIT,
 } from "../../Components/constants/report";
 import Dashboard from "./Components/Dashboard";
+import AdvancePaymentDeposit from "./Components/AdvancePaymentDeposit";
 import ReportAnalytics from "./Components/Report";
 import Finance from "./Components/Finance";
 import Patient from "./Components/Patient";
@@ -29,106 +33,72 @@ import Booking from "./Components/Booking";
 import Doctor from "./Components/Doctor";
 import CenterBedsAnalytics from "./Components/CenterBeds";
 import MIReporting from "./Components/MIReporting";
+import AdmissionForms from "./Components/AdmissionForms";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import RenderWhen from "../../Components/Common/RenderWhen";
+
+const NAV_ITEMS = [
+  { key: DASHBOARD, label: "Dashboard" },
+  { key: REPORT, label: "Report" },
+  { key: REPORT_UPDATED, label: "Report (Updated Date)" },
+  { key: FINANACE, label: "Finance" },
+  { key: ADVANCE_PAYMENT_DEPOSIT, label: "Advance Payments (Deposit)" },
+  { key: ADMISSION_FORMS, label: "Admission" },
+  { key: PATIENT_ANALYTICS, label: "Patient Analytics" },
+  { key: DOCTOR_ANALYTICS, label: "Doctor Analytics" },
+  { key: DB_LOGS, label: "DB Logs" },
+  { key: LEAD_ANALYTICS, label: "Lead Analytics" },
+  { key: OPD_ANALYTICS, label: "OPD Analytics" },
+  { key: BOOKING, label: "Booking" },
+  { key: CENTER_BEDS_ANALYTICS, label: "Center Beds" },
+];
 
 const Report = ({}) => {
   const [view, setView] = useState(REPORT);
 
   const handleView = (v) => setView(v);
 
-  const microUser = localStorage.getItem("micrologin");
-  const token = microUser ? JSON.parse(microUser).token : null;
-
-  const { loading: permissionLoader, hasPermission } = usePermissions(token);
-  const hasMiReportingPermission = hasPermission("MI_REPORTING", null, "READ");
-
   return (
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
           <BreadCrumb title={"Report"} pageTitle={"Report"} />
-          <ButtonGroup>
-            {" "}
-            <Button
-              outline={view !== DASHBOARD}
-              onClick={() => handleView(DASHBOARD)}
-            >
-              Dashboard
-            </Button>{" "}
-            <Button
-              outline={view !== REPORT}
-              onClick={() => handleView(REPORT)}
-            >
-              Report
-            </Button>{" "}
-            <Button
-              outline={view !== FINANACE}
-              onClick={() => handleView(FINANACE)}
-            >
-              Finance
-            </Button>
-            <Button
-              outline={view !== PATIENT_ANALYTICS}
-              onClick={() => handleView(PATIENT_ANALYTICS)}
-            >
-              Patient Analytics
-            </Button>
-            <Button
-              outline={view !== DOCTOR_ANALYTICS}
-              onClick={() => handleView(DOCTOR_ANALYTICS)}
-            >
-              Doctor Analytics
-            </Button>
-            <Button
-              outline={view !== DB_LOGS}
-              onClick={() => handleView(DB_LOGS)}
-            >
-              DB Logs
-            </Button>
-            <Button
-              outline={view !== LEAD_ANALYTICS}
-              onClick={() => handleView(LEAD_ANALYTICS)}
-            >
-              Lead Analytics
-            </Button>
-            <Button
-              outline={view !== OPD_ANALYTICS}
-              onClick={() => handleView(OPD_ANALYTICS)}
-            >
-              OPD Analytics
-            </Button>
-            <Button
-              outline={view !== BOOKING}
-              onClick={() => handleView(BOOKING)}
-            >
-              Booking
-            </Button>
-            <Button
-              outline={view !== CENTER_BEDS_ANALYTICS}
-              onClick={() => handleView(CENTER_BEDS_ANALYTICS)}
-            >
-              Center Beds Analytics
-            </Button>
-            <RenderWhen isTrue={hasMiReportingPermission}>
+          {/* Desktop: original ButtonGroup look */}
+          <ButtonGroup className="d-none d-lg-flex mb-3">
+            {NAV_ITEMS.map(({ key, label }) => (
               <Button
-                outline={view !== MI_REPORTING}
-                onClick={() => handleView(MI_REPORTING)}
+                key={key}
+                color="primary"
+                outline={view !== key}
+                onClick={() => handleView(key)}
               >
-                MI Reporting
+                {label}
               </Button>
-            </RenderWhen>
-            {/* <Button
-              outline={view !== HUBSPOT_CONTACTS}
-              onClick={() => handleView(HUBSPOT_CONTACTS)}
-            >
-              Hubspot Contacts
-            </Button> */}
+            ))}
           </ButtonGroup>
+
+          {/* Mobile: wrapped pill buttons */}
+          <div className="d-flex d-lg-none flex-wrap gap-2 mb-3">
+            {NAV_ITEMS.map(({ key, label }) => (
+              <Button
+                key={key}
+                size="sm"
+                color="primary"
+                outline={view !== key}
+                className="rounded-pill"
+                onClick={() => handleView(key)}
+              >
+                {label}
+              </Button>
+            ))}
+          </div>
           <div>
             {view === DASHBOARD && <Dashboard view={view} />}
             {view === REPORT && <ReportAnalytics view={view} />}
+            {view === REPORT_UPDATED && <ReportAnalytics view={view} />}
             {view === FINANACE && <Finance view={view} />}
+            {view === ADVANCE_PAYMENT_DEPOSIT && <AdvancePaymentDeposit view={view} />}
+            {view === ADMISSION_FORMS && <AdmissionForms view={view} />}
             {view === PATIENT_ANALYTICS && <Patient view={view} />}
             {view === DOCTOR_ANALYTICS && <Doctor view={view} />}
             {view === LEAD_ANALYTICS && <Lead view={view} />}
@@ -138,9 +108,6 @@ const Report = ({}) => {
             {view === BOOKING && <Booking view={view} />}
             {view === CENTER_BEDS_ANALYTICS && (
               <CenterBedsAnalytics view={view} />
-            )}
-            {view === MI_REPORTING && hasMiReportingPermission && (
-              <MIReporting view={view} />
             )}
           </div>
         </Container>

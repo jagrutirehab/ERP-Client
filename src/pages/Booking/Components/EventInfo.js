@@ -13,8 +13,11 @@ import {
 import {
   CLINICAL_NOTE,
   INVOICE,
+  IPD,
+  MENTAL_EXAMINATION,
   OPD,
   PRESCRIPTION,
+  PSYCHO_DIAGNOSTIC_FORM,
 } from "../../../Components/constants/patient";
 import MeetingComponent from "../../Meeting/Components";
 import { Link } from "react-router-dom";
@@ -31,6 +34,12 @@ const EventInfo = ({
   const meetingId = data?.meetingId;
   const doctorName = data?.doctor?.name;
   const userType = "doctor";
+
+  // Check if patient is admitted if so then make the prescription IPD and it should go to admission and appointment
+  const isAdmit = data?.patient?.isAdmit && !data?.patient?.isDischarge;
+
+  console.log({ isAdmit });
+
   return (
     <React.Fragment>
       <div>
@@ -114,10 +123,21 @@ const EventInfo = ({
               {data?.patient?.gender && <span>{data.patient.gender}</span>}
             </div>
             <div className="font-size-14">
-              {data?.patient?.address && <div>Address: {capitalizeWords(data.patient.address)}</div>}
+              {data?.patient?.address && (
+                <div>Address: {capitalizeWords(data.patient.address)}</div>
+              )}
             </div>
             <div className="font-size-14">
-              {data?.patient?.dateOfBirth && <div>Age: {differenceInYears(new Date(), new Date(data.patient.dateOfBirth))} years</div>}
+              {data?.patient?.dateOfBirth && (
+                <div>
+                  Age:{" "}
+                  {differenceInYears(
+                    new Date(),
+                    new Date(data.patient.dateOfBirth)
+                  )}{" "}
+                  years
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -194,17 +214,19 @@ const EventInfo = ({
             </div>
           </div>
         )}
-        <div className="d-flex justify-content-end mt-3">
-          {data?.chart && data?.doctor?.role === "COUNSELLOR" ? (
+        <div className="d-flex flex-wrap justify-content-end gap-2 mt-3">
+          {data?.chart &&
+          (data?.doctor?.role === "COUNSELLOR" ||
+            data?.doctor?.role === "PSW") ? (
             <>
               <button
                 onClick={(e) => {
                   setAppointment(data);
                   dispatch(
                     createEditChart({
-                      chart: CLINICAL_NOTE,
+                      chart: isAdmit ? MENTAL_EXAMINATION : CLINICAL_NOTE,
                       isOpen: true,
-                      type: OPD,
+                      type: isAdmit ? IPD : OPD,
                       data: data.chart,
                       patient: data.patient,
                       doctor: data.doctor,
@@ -216,7 +238,7 @@ const EventInfo = ({
                 }}
                 disabled={data?.isCancelled}
                 // style={{ pointerEvents: 'auto' }}
-                className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                className="btn btn-primary btn-sm text-nowrap fs-10"
               >
                 Edit Note
               </button>
@@ -238,21 +260,22 @@ const EventInfo = ({
                 }}
                 disabled={data?.isCancelled}
                 // style={{ pointerEvents: 'auto' }}
-                className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                className="btn btn-primary btn-sm text-nowrap fs-10"
               >
                 View Note
               </button>
             </>
-          ) : data?.doctor?.role === "COUNSELLOR" ? (
+          ) : data?.doctor?.role === "COUNSELLOR" ||
+            data?.doctor?.role === "PSW" ? (
             <button
               onClick={(e) => {
                 // setAppointment(data);
                 dispatch(setChartDate(new Date().toISOString()));
                 dispatch(
                   createEditChart({
-                    chart: CLINICAL_NOTE,
+                    chart: isAdmit ? MENTAL_EXAMINATION : CLINICAL_NOTE,
                     isOpen: true,
-                    type: OPD,
+                    type: isAdmit ? IPD : OPD,
                     patient: data.patient,
                     appointment: data,
                     shouldPrintAfterSave: true,
@@ -262,7 +285,7 @@ const EventInfo = ({
               }}
               disabled={data?.isCancelled}
               // style={{ pointerEvents: 'auto' }}
-              className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+              className="btn btn-primary btn-sm text-nowrap fs-10"
             >
               Create Note
             </button>
@@ -278,7 +301,7 @@ const EventInfo = ({
                     createEditChart({
                       chart: PRESCRIPTION,
                       isOpen: true,
-                      type: OPD,
+                      type: isAdmit ? IPD : OPD,
                       data: data.chart,
                       patient: data.patient,
                       center: data.center?._id,
@@ -294,7 +317,7 @@ const EventInfo = ({
                 }}
                 disabled={data?.isCancelled}
                 // style={{ pointerEvents: 'auto' }}
-                className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                className="btn btn-primary btn-sm text-nowrap fs-10"
               >
                 Edit Prescription
               </button>
@@ -316,7 +339,7 @@ const EventInfo = ({
                 }}
                 disabled={data?.isCancelled}
                 // style={{ pointerEvents: 'auto' }}
-                className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+                className="btn btn-primary btn-sm text-nowrap fs-10"
               >
                 View Prescription
               </button>
@@ -330,7 +353,7 @@ const EventInfo = ({
                   createEditChart({
                     chart: PRESCRIPTION,
                     isOpen: true,
-                    type: OPD,
+                    type: isAdmit ? IPD : OPD,
                     patient: data.patient,
                     center: data.center?._id,
                     appointment: data,
@@ -341,10 +364,95 @@ const EventInfo = ({
               }}
               disabled={data?.isCancelled}
               // style={{ pointerEvents: 'auto' }}
-              className="btn btn-primary btn-sm me-2 text-nowrap fs-10"
+              className="btn btn-primary btn-sm text-nowrap fs-10"
             >
               Create Prescription
             </button>
+          ) : (
+            ""
+          )}
+          {data?.doctor?.role === "DOCTOR" ||
+          data?.doctor?.role === "COUNSELLOR" ||
+          data?.doctor?.role === "PSW" ? (
+            data?.psychoDiagnosticForm ? (
+              <>
+                <button
+                  onClick={() => {
+                    setAppointment(data);
+                    dispatch(
+                      setChartDate(
+                        data.psychoDiagnosticForm?.date ||
+                          new Date().toISOString()
+                      )
+                    );
+                    dispatch(
+                      createEditChart({
+                        chart: PSYCHO_DIAGNOSTIC_FORM,
+                        isOpen: true,
+                        type: isAdmit ? IPD : OPD,
+                        data: data.psychoDiagnosticForm,
+                        patient: data.patient,
+                        center: data.center?._id,
+                        doctor: {
+                          ...data.doctor,
+                          profilePicture: null,
+                        },
+                        appointment: data,
+                        shouldPrintAfterSave: true,
+                        populatePreviousAppointment: false,
+                      })
+                    );
+                  }}
+                  disabled={data?.isCancelled}
+                  className="btn btn-primary btn-sm text-nowrap fs-10"
+                >
+                  Edit Psycho Report
+                </button>
+                <button
+                  onClick={() => {
+                    setAppointment(data);
+                    dispatch(
+                      togglePrint({
+                        data: data.psychoDiagnosticForm,
+                        modal: true,
+                        patient: data.patient,
+                        center: data.center,
+                        doctor: {
+                          ...data.doctor,
+                          profilePicture: null,
+                        },
+                      })
+                    );
+                  }}
+                  disabled={data?.isCancelled}
+                  className="btn btn-primary btn-sm text-nowrap fs-10"
+                >
+                  View Psycho Report
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => {
+                  dispatch(setChartDate(new Date().toISOString()));
+                  dispatch(
+                    createEditChart({
+                      chart: PSYCHO_DIAGNOSTIC_FORM,
+                      isOpen: true,
+                      type: isAdmit ? IPD : OPD,
+                      patient: data.patient,
+                      center: data.center?._id,
+                      appointment: data,
+                      shouldPrintAfterSave: true,
+                      populatePreviousAppointment: false,
+                    })
+                  );
+                }}
+                disabled={data?.isCancelled}
+                className="btn btn-primary btn-sm text-nowrap fs-10"
+              >
+                Create Psycho Report
+              </button>
+            )
           ) : (
             ""
           )}
@@ -386,7 +494,10 @@ const EventInfo = ({
                   })
                 );
               }}
-              disabled={data?.isCancelled}
+              disabled={
+                data?.isCancelled ||
+                (data?.patient?.isAdmit && !data?.patient?.isDischarge)
+              }
               className="btn btn-primary btn-sm text-nowrap fs-10"
             >
               Collect Payment

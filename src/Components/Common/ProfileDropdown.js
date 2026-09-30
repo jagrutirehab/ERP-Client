@@ -37,13 +37,18 @@ const ProfileDropdown = ({ user }) => {
   const toggleProfileDropdown = () => {
     setIsProfileDropdown(!isProfileDropdown);
   };
-;
+  ;
 
   const handleLogout = async () => {
     try {
       // if (!token) return;
       await dispatch(logoutUser(token)).unwrap();
-      localStorage.clear();
+      // localStorage.clear();
+      Object.keys(localStorage).forEach((key) => {
+        if (!key.startsWith("detailAdmissionDraft_")) {
+          localStorage.removeItem(key);
+        }
+      });
       sessionStorage.clear();
       resetRolesCache();
     } catch (error) {

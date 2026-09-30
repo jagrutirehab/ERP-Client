@@ -1,61 +1,254 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { Input, Button, Row, Col, Label } from "reactstrap";
 import { categoryUnitOptions } from "../../../../Components/constants/patient";
+import { clearFilters } from "../../../../store/features/report/dbLogSlice";
+import FromDateModal from "./FromDateModal";
 
-const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
-  const getValues = (e) => {
-    const prop = e.target.name;
-    const value =
-      prop === "category" ? e.target.value.toLowerCase() : e.target.value;
-    const idx = e.target.id;
+const isRowEmpty = (item) => {
+  return (
+    !item.category &&
+    !item.slot &&
+    (!item.cost || Number(item.cost) === 0) &&
+    !item.unitOfMeasurement
+  );
+};
+
+const InvoiceTable = ({
+  invoiceList,
+  setInvoiceList,
+  center,
+  isEdit,
+  type,
+  validation,
+  setShowModal,
+  setSelectedIndex,
+}) => {
+  const [cost, setCost] = useState(0);
+  // const [discount, setDiscount] = useState("");
+  // const [type, setType] = useState("₹");
+
+  const isDraft = type === "draft";
+  console.log("isEdit", isEdit);
+  console.log("isDraft", isDraft);
+
+  const calculateFinalTotal = (unit, cost, discount) => {
+    const total = Number(unit || 0) * Number(cost || 0);
+
+    if (!total) return 0;
+    if (!discount) return total;
+
+    const final = total - Number(discount);
+
+    return final < 0 ? 0 : final;
+  };
+
+  const handleCostChange = (e, idx, item) => {
+    const value = e.target.value;
+    const newCost = value === "" ? "" : Number(value);
 
     const newInvoiceList = [...invoiceList];
-    const item = newInvoiceList[idx];
+    const updatedItem = { ...item };
 
-    if (
-      prop === "unitOfMeasurement" ||
-      prop === "discountUnit" ||
-      prop === "discount" ||
-      prop === "comments" ||
-      prop === "category"
-    ) {
-      if (prop === "category") {
-        const unitOptions = getUnitOptions(value);
-        newInvoiceList[idx] = {
-          ...item,
-          [prop]: value,
-          unitOfMeasurement:
-            unitOptions.length === 1 ? unitOptions[0].value : "",
-        };
-      } else {
-        newInvoiceList[idx] = {
-          ...item,
-          [prop]: value,
-        };
-      }
-    } else if (prop === "unit" || prop === "cost") {
-      newInvoiceList[idx] = {
-        ...item,
-        [prop]: parseInt(value),
-      };
-    }
+    const updatedCenters = (item.centers || []).map((c) =>
+      String(c.center._id) === String(center._id) ? { ...c, cost: newCost } : c,
+    );
 
+    updatedItem.cost = newCost;
+    updatedItem.centers = updatedCenters;
+
+    updatedItem.discount = "";
+    updatedItem.discountValue = "";
+
+    const newTotal = Number(updatedItem.unit || 0) * Number(newCost || 0);
+
+    // if (updatedItem.discountType === "%" && updatedItem.discountValue) {
+    //   const total = Number(updatedItem.unit || 0) * Number(newCost || 0);
+    //   updatedItem.discount = (total * Number(updatedItem.discountValue)) / 100;
+    // }
+
+    updatedItem.afterDiscount = calculateFinalTotal(
+      updatedItem.unit,
+      updatedItem.cost,
+      updatedItem.discount,
+    );
+
+    newInvoiceList[idx] = updatedItem;
     setInvoiceList(newInvoiceList);
   };
 
-  const deleteForm = (idx) => {
-    const list = [...invoiceList];
-    list.splice(idx, 1);
-    setInvoiceList(list);
-  };
+  const getValues = (e) => {
+    const prop = e.target.name;
+    console.log("prop", prop);
+    const value =
+      prop === "category" ? e.target.value.toLowerCase() : e.target.value;
+    const idx = parseInt(e.target.id);
 
+    const newInvoiceList = [...invoiceList];
+
+    const item = JSON.parse(JSON.stringify(newInvoiceList[idx]));
+
+    if (prop === "unitOfMeasurement") {
+      item.unitOfMeasurement = value;
+
+      console.log("item", item);
+
+      const matchingPriceObj = (item.availablePrices || []).find(
+        (p) => String(p.unit).toLowerCase() === String(value).toLowerCase(),
+      );
+      //  && !isEdit
+      if (matchingPriceObj) {
+        const newPrice = Number(matchingPriceObj.price);
+        item.cost = newPrice;
+
+        if (item.centers) {
+          item.centers = item.centers.map((c) =>
+            String(c.center?._id || c.center) === String(center._id)
+              ? { ...c, cost: newPrice }
+              : c,
+          );
+        }
+        item.discount = "";
+        item.discountValue = "";
+      }
+    } else if (prop === "category") {
+      const unitOptions = getUnitOptions(value);
+      item.category = value;
+      item.unitOfMeasurement =
+        unitOptions.length === 1 ? unitOptions[0].value : "";
+      if (value !== "room charges") {
+        item.fromDate = "";
+        item.toDate = "";
+      }
+    } else if (prop === "unit") {
+      item.unit = value;
+      item.discount = "";
+      item.discountValue = "";
+    } else {
+      item[prop] = value;
+    }
+
+    newInvoiceList[idx] = item;
+    setInvoiceList(newInvoiceList);
+  };
+  const deleteForm = (idx) => {
+    setInvoiceList((prevList) => prevList.filter((_, i) => i !== idx));
+  };
   const getUnitOptions = (category) => {
     return (
       categoryUnitOptions[category?.toLowerCase()] ||
       categoryUnitOptions.default
     );
   };
+
+  // console.log("getUnitOptions", getUnitOptions());
+  // console.log("invoiceList", invoiceList);
+
+  const handleDateChange = (idx, field, value) => {
+    const newInvoiceList = [...invoiceList];
+    newInvoiceList[idx][field] = value;
+    setInvoiceList(newInvoiceList);
+  };
+
+  // useEffect(() => {
+  //   if (isEdit) return;
+
+  //   if (!invoiceList || invoiceList.length === 0) return;
+
+  //   let hasChanged = false;
+
+  //   const updatedList = invoiceList.map((item) => {
+  //     if (!item.availablePrices || item.availablePrices.length === 0)
+  //       return item;
+
+  //     const matchingPriceObj = item.availablePrices.find(
+  //       (p) =>
+  //         String(p.unit).toLowerCase() ===
+  //         String(item.unitOfMeasurement).toLowerCase(),
+  //     );
+
+  //     if (
+  //       matchingPriceObj &&
+  //       Number(item.cost) !== Number(matchingPriceObj.price)
+  //     ) {
+  //       hasChanged = true;
+  //       return {
+  //         ...item,
+  //         cost: Number(matchingPriceObj.price),
+  //       };
+  //     }
+
+  //     return item;
+  //   });
+
+  //   if (hasChanged) {
+  //     setInvoiceList(updatedList);
+  //   }
+  // }, [invoiceList, isEdit]);
+
+  useEffect(() => {
+    if (!invoiceList || invoiceList.length === 0) return;
+
+    const index = invoiceList.findIndex(
+      (item) =>
+        item?.category?.toLowerCase() === "room charges" &&
+        item?.isNew === true &&
+        !item?.fromDate,
+    );
+
+    if (index !== -1) {
+      setSelectedIndex(index);
+      setShowModal(true);
+    }
+  }, [invoiceList]);
+
+  const calculateToDate = (fromDate, unit, quantity) => {
+    if (!fromDate || !unit || !quantity) return "";
+
+    const start = new Date(fromDate);
+    let result = new Date(start);
+
+    if (unit.toLowerCase() === "days") {
+      result.setDate(start.getDate() + Number(quantity) - 1);
+    } else if (unit.toLowerCase() === "month") {
+      result.setMonth(start.getMonth() + Number(quantity));
+      result.setDate(result.getDate() - 1);
+    }
+
+    return result.toISOString().split("T")[0];
+  };
+
+  useEffect(() => {
+    let hasChange = false;
+
+    const updatedList = invoiceList.map((item) => {
+      if (
+        item?.category?.toLowerCase() === "room charges" &&
+        item?.fromDate &&
+        item?.unit &&
+        item?.unitOfMeasurement
+      ) {
+        const newToDate = calculateToDate(
+          item.fromDate,
+          item.unitOfMeasurement,
+          item.unit,
+        );
+
+        if (item.toDate !== newToDate) {
+          hasChange = true;
+          return {
+            ...item,
+            toDate: newToDate,
+          };
+        }
+      }
+      return item;
+    });
+
+    if (hasChange) {
+      setInvoiceList(updatedList);
+    }
+  }, [invoiceList]);
 
   return (
     <React.Fragment>
@@ -65,290 +258,857 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
             <Col className="font-semi-bold treatment-head" md={2}>
               Treatments
             </Col>
-            <Col className="font-semi-bold unit-head" md={2}>
+            <Col className="font-semi-bold unit-head" md={1}>
               Quantity
             </Col>
-            <Col className="font-semi-bold cost-head" md={2}>
-              Cost
+            <Col className="font-semi-bold cost-head" md={1}>
+              Price
+            </Col>
+            <Col className="font-semi-bold cost-head" md={1}>
+              Unit
             </Col>
             <Col className="font-semi-bold cost-head" md={2}>
-              Unit of Measurement
+              Discount
             </Col>
-            <Col className="font-semi-bold total-head" md={3}>
+            <Col className="font-semi-bold total-head" md={1}>
+              Net Total
+            </Col>
+            {/* <Col className="font-semi-bold total-head" md={2}>
               Total
-            </Col>
+            </Col> */}
           </Row>
         </div>
         <div>
-          {(invoiceList || []).map((item, idx) => {
-            const totalValue =
-              item.unit && item.cost
-                ? parseInt(item.unit) * parseInt(item.cost)
-                : 0;
-            const unitCostTotal = totalValue;
-            const unitOptions = getUnitOptions(item.category);
-            if (
-              item.category &&
-              unitOptions.length === 1 &&
-              !item.unitOfMeasurement
-            ) {
-              const newList = [...invoiceList];
-              newList[idx] = {
-                ...item,
-                unitOfMeasurement: unitOptions[0].value,
-              };
-              setInvoiceList(newList);
-            }
+          {(invoiceList || [])
+            .map((item, idx) => ({ item, idx }))
+            .filter(({ item }) => !isRowEmpty(item))
+            .map(({ item, idx }) => {
+              console.log("itemo", item);
 
-            return (
-              <React.Fragment key={item.id + item.slot}>
-                <div className="d-md-none card shadow-sm mb-3 mt-2">
-                  <div className="card-body">
-                    <div className="mb-3">
-                      <div className="d-flex justify-content-between align-items-center">
-                        <span className="text-primary text-capitalize fw-bold">{item.slot}</span>
-                        <Button
-                          onClick={() => deleteForm(idx)}
-                          color="danger"
-                          size="sm"
-                          className="ms-2"
-                        >
-                          <i className="ri-close-circle-line font-size-16"></i>
-                        </Button>
+              const totalValue =
+                item.unit && item.cost
+                  ? parseInt(item.unit) * parseInt(item.cost)
+                  : 0;
+
+              const selectedPrice =
+                (item.availablePrices || []).find(
+                  (p) =>
+                    String(p.unit).toLowerCase() ===
+                    String(item.unitOfMeasurement).toLowerCase(),
+                )?.price ?? 0;
+
+              // let finalTotal = totalValue;
+
+              // if (discount) {
+              //   if (type === "₹") {
+              //     finalTotal = totalValue - Number(discount);
+              //   } else {
+              //     finalTotal = totalValue - (totalValue * Number(discount)) / 100;
+              //   }
+              // }
+
+              const unitCostTotal = totalValue;
+
+              const unitOptions =
+                item?.availablePrices?.length > 0
+                  ? item?.availablePrices.map((u) => ({
+                      label: u?.unit,
+                      value: u.unit,
+                      price: u.price,
+                    }))
+                  : getUnitOptions(item.category);
+              // const unitOptions = getUnitOptions(item.category);
+              // console.log("unitOptions", unitOptions);
+
+              return (
+                <React.Fragment
+                  key={
+                    item?.id ? item.id : `row-${idx}-${item.slot || "empty"}`
+                  }
+                >
+                  {/* Mobile Layout */}
+                  <div className="d-md-none card shadow-sm mb-3 mt-2">
+                    <div className="card-body">
+                      <div className="mb-3">
+                        <div className="d-flex justify-content-between align-items-center">
+                          <span className="text-primary text-capitalize fw-bold">
+                            {item.slot}
+                          </span>
+                          <Button
+                            onClick={() => deleteForm(idx)}
+                            color="danger"
+                            size="sm"
+                            className="ms-2"
+                          >
+                            <i className="ri-close-circle-line font-size-16"></i>
+                          </Button>
+                        </div>
                       </div>
-                    </div>
 
-                    <Row className="g-2 mb-3">
-                      <Col xs={6}>
-                        <div className="mb-2">
-                          <Label size="sm" className="fw-bold text-muted">Quantity</Label>
-                          <Input
-                            bsSize="sm"
-                            id={idx}
-                            slot={item}
-                            min={1}
-                            type="number"
-                            name="unit"
-                            value={item.unit || ""}
-                            onChange={(e) => {
-                              const value = Number(e.target.value);
-                              if (value >= 0 || e.target.value === "") {
-                                getValues(e);
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.which === 38 || e.which === 40) {
-                                e.preventDefault();
-                              }
-                            }}
-                          />
-                        </div>
-                      </Col>
-                      <Col xs={6}>
-                        <div className="mb-2">
-                          <Label size="sm" className="fw-bold text-muted">Cost</Label>
-                          <Input
-                            bsSize="sm"
-                            id={idx}
-                            slot={item}
-                            type="number"
-                            name="cost"
-                            min={1}
-                            value={item.cost || ""}
-                            onChange={(e) => {
-                              const value = Number(e.target.value);
-                              if (value >= 0 || e.target.value === "") {
-                                getValues(e);
-                              }
-                            }}
-                            onKeyDown={(e) => {
-                              if (e.which === 38 || e.which === 40) {
-                                e.preventDefault();
-                              }
-                            }}
-                          />
-                        </div>
-                      </Col>
-                    </Row>
-
-                    <Row className="g-2 mb-3">
-                      <Col xs={7}>
-                        <div className="mb-2">
-                          <Label size="sm" className="fw-bold text-muted">Unit of Measurement</Label>
-                          {unitOptions.length === 1 ? (
-                            <div className="d-flex align-items-center border rounded p-1 bg-light">
-                              <span className="text-muted small">
-                                {unitOptions[0].label}
-                              </span>
-                            </div>
-                          ) : (
+                      <Row className="g-2 mb-3">
+                        <Col xs={6}>
+                          <div className="mb-2">
+                            <Label size="sm" className="fw-bold text-muted">
+                              Quantity
+                            </Label>
                             <Input
                               bsSize="sm"
                               id={idx}
-                              required
-                              type="select"
-                              name="unitOfMeasurement"
-                              value={item.unitOfMeasurement || ""}
-                              onChange={getValues}
-                            >
-                              <option value="">Select Unit</option>
-                              {unitOptions.map((option) => (
-                                <option key={option.value} value={option.value}>
-                                  {option.label}
-                                </option>
-                              ))}
-                            </Input>
-                          )}
-                        </div>
-                      </Col>
+                              min={1}
+                              type="number"
+                              name="unit"
+                              value={item.unit || ""}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                const value = Number(e.target.value);
+                                if (!/^[1-9]\d*$|^$/.test(val)) return;
+                                if (value >= 0 || e.target.value === "") {
+                                  getValues(e);
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.which === 38 || e.which === 40) {
+                                  e.preventDefault();
+                                }
+                                if (
+                                  e.key === "." ||
+                                  e.key === "e" ||
+                                  e.key === "-"
+                                ) {
+                                  e.preventDefault();
+                                }
+                              }}
+                            />
+                          </div>
+                        </Col>
+                        <Col xs={6}>
+                          <div className="mb-2">
+                            <Label size="sm" className="fw-bold text-muted">
+                              Price
+                            </Label>
+                            <Input
+                              bsSize="sm"
+                              id={idx}
+                              type="number"
+                              name="cost"
+                              min={1}
+                              value={item.cost || ""}
+                              onChange={(e) => {
+                                const value = Number(e.target.value);
+                                if (value >= 0 || e.target.value === "") {
+                                  handleCostChange(e, idx, item);
+                                }
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.which === 38 || e.which === 40) {
+                                  e.preventDefault();
+                                }
+                              }}
+                              disabled={selectedPrice > 0}
+                              //
+                            />
+                          </div>
+                        </Col>
+                      </Row>
+
+                      <Row className="g-2 mb-3">
+                        <Col xs={7}>
+                          <div className="mb-2">
+                            <Label size="sm" className="fw-bold text-muted">
+                              Unit of Measurement
+                            </Label>
+                            {unitOptions.length === 1 ? (
+                              <div className="d-flex align-items-center border rounded p-1 bg-light">
+                                <span className="text-muted small">
+                                  {unitOptions[0].label}
+                                </span>
+                              </div>
+                            ) : (
+                              <Input
+                                bsSize="sm"
+                                id={idx}
+                                required
+                                type="select"
+                                name="unitOfMeasurement"
+                                value={item.unitOfMeasurement || ""}
+                                onChange={getValues}
+                              >
+                                {/* <option value="">Select Unit</option> */}
+                                {unitOptions.map((option) => (
+                                  <option
+                                    key={option.value}
+                                    value={option.value}
+                                  >
+                                    {option.label}
+                                  </option>
+                                ))}
+                              </Input>
+                            )}
+                          </div>
+                        </Col>
+
+                        <Col xs={12}>
+                          <div className="mb-2">
+                            <Label size="sm" className="fw-bold text-muted">
+                              Discount
+                            </Label>
+
+                            <Row className="g-0">
+                              <Col xs="8">
+                                <Input
+                                  bsSize="sm"
+                                  type="number"
+                                  value={
+                                    item.discountType === "%"
+                                      ? item.discount && item.unit && item.cost
+                                        ? Math.round(
+                                            (Number(item.discount) /
+                                              (Number(item.unit) *
+                                                Number(item.cost))) *
+                                              100,
+                                          )
+                                        : ""
+                                      : item.discount || ""
+                                  }
+                                  onChange={(e) => {
+                                    let val = e.target.value;
+                                    const newInvoiceList = [...invoiceList];
+                                    const updatedItem = { ...item };
+                                    const total =
+                                      Number(updatedItem.unit || 0) *
+                                      Number(updatedItem.cost || 0);
+
+                                    if (val !== "") {
+                                      val = Number(val);
+
+                                      if (updatedItem.discountType === "%") {
+                                        if (val > 100) val = 100;
+                                        if (val < 0) val = 0;
+                                      } else {
+                                        if (val > total) val = total;
+                                        if (val < 0) val = 0;
+                                      }
+                                    }
+
+                                    updatedItem.discount = val;
+                                    updatedItem.discountValue = val;
+
+                                    if (updatedItem.discountType === "%") {
+                                      updatedItem.discount =
+                                        (total * Number(val || 0)) / 100;
+                                    } else {
+                                      updatedItem.discount = val;
+                                    }
+
+                                    updatedItem.afterDiscount =
+                                      calculateFinalTotal(
+                                        updatedItem.unit,
+                                        updatedItem.cost,
+                                        updatedItem.discount,
+                                        updatedItem.discountType,
+                                      );
+
+                                    newInvoiceList[idx] = updatedItem;
+                                    setInvoiceList(newInvoiceList);
+                                  }}
+                                />
+                              </Col>
+
+                              <Col xs="4">
+                                <Input
+                                  bsSize="sm"
+                                  type="select"
+                                  value={item.discountType || "₹"}
+                                  onChange={(e) => {
+                                    const newInvoiceList = [...invoiceList];
+                                    const updatedItem = { ...item };
+
+                                    updatedItem.discountType = e.target.value;
+
+                                    updatedItem.discount = "";
+
+                                    updatedItem.afterDiscount =
+                                      calculateFinalTotal(
+                                        updatedItem.unit,
+                                        updatedItem.cost,
+                                        updatedItem.discount,
+                                        updatedItem.discountType,
+                                      );
+
+                                    newInvoiceList[idx] = updatedItem;
+                                    setInvoiceList(newInvoiceList);
+                                  }}
+                                >
+                                  <option value="₹">₹</option>
+                                  <option value="%">%</option>
+                                </Input>
+                              </Col>
+                            </Row>
+                          </div>
+                        </Col>
+                        {/* 
                       <Col xs={5}>
                         <div className="mb-2">
-                          <Label size="sm" className="fw-bold text-muted">Total</Label>
+                          <Label size="sm" className="fw-bold text-muted">
+                            Total
+                          </Label>
                           <div className="border rounded px-2 py-1 bg-primary text-white text-center">
-                            <span className="fw-bold">{totalValue?.toFixed(2) || 0}</span>
+                            <span className="fw-bold">
+                              {totalValue?.toFixed(2) || 0}
+                            </span>
                           </div>
                         </div>
+                      </Col> */}
+
+                        {item.category?.toLowerCase() === "room charges" && (
+                          <div className="mb-3">
+                            <Label size="sm" className="fw-bold text-muted">
+                              Stay Duration
+                            </Label>
+
+                            <div className="d-flex align-items-center gap-1">
+                              <Input
+                                bsSize="sm"
+                                type="date"
+                                style={{ width: "120px", padding: "2px 4px" }}
+                                value={item.fromDate || ""}
+                                disabled={isEdit}
+                                onChange={(e) => {
+                                  handleDateChange(
+                                    idx,
+                                    "fromDate",
+                                    e.target.value,
+                                  );
+                                  validation.setFieldValue(
+                                    `invoiceList[${idx}].fromDate`,
+                                    e.target.value,
+                                  );
+                                }}
+                                onBlur={() =>
+                                  validation.setFieldTouched(
+                                    `invoiceList[${idx}].fromDate`,
+                                    true,
+                                  )
+                                }
+                                invalid={
+                                  validation.touched.invoiceList?.[idx]
+                                    ?.fromDate &&
+                                  validation.errors.invoiceList?.[idx]?.fromDate
+                                }
+                              />
+
+                              {validation.touched.invoiceList?.[idx]
+                                ?.fromDate &&
+                                validation.errors.invoiceList?.[idx]
+                                  ?.fromDate && (
+                                  <div
+                                    className="text-danger"
+                                    style={{ fontSize: "12px" }}
+                                  >
+                                    {
+                                      validation.errors.invoiceList[idx]
+                                        .fromDate
+                                    }
+                                  </div>
+                                )}
+
+                              <span className="small">→</span>
+
+                              <Input
+                                bsSize="sm"
+                                type="date"
+                                style={{ width: "120px", padding: "2px 4px" }}
+                                value={item.toDate || ""}
+                                disabled
+                                onChange={(e) => {
+                                  handleDateChange(
+                                    idx,
+                                    "toDate",
+                                    e.target.value,
+                                  );
+                                  validation.setFieldValue(
+                                    `invoiceList[${idx}].toDate`,
+                                    e.target.value,
+                                  );
+                                }}
+                                onBlur={() =>
+                                  validation.setFieldTouched(
+                                    `invoiceList[${idx}].toDate`,
+                                    true,
+                                  )
+                                }
+                                invalid={
+                                  validation.touched.invoiceList?.[idx]
+                                    ?.toDate &&
+                                  validation.errors.invoiceList?.[idx]?.toDate
+                                }
+                              />
+
+                              {validation.touched.invoiceList?.[idx]?.toDate &&
+                                validation.errors.invoiceList?.[idx]
+                                  ?.toDate && (
+                                  <div
+                                    className="text-danger"
+                                    style={{ fontSize: "12px" }}
+                                  >
+                                    {validation.errors.invoiceList[idx].toDate}
+                                  </div>
+                                )}
+                            </div>
+                          </div>
+                        )}
+
+                        <Col xs={2} md={2}>
+                          <p className="total-cost text-success font-size-14 text-center">
+                            {/* {item.afterDiscount?.toFixed(2) ||
+                              (item.unit && item.cost
+                                ? (item.unit * item.cost).toFixed(2)
+                                : "0.00")} */}
+                            {(() => {
+                              const total =
+                                Number(item.unit || 0) * Number(item.cost || 0);
+
+                              return calculateFinalTotal(
+                                item.unit,
+                                item.cost,
+                                item.discount,
+                                item.discountType,
+                              ).toFixed(2);
+
+                              // return item.afterDiscount
+                              //   ? Number(item.afterDiscount).toFixed(2)
+                              //   : total.toFixed(2);
+                            })()}
+                          </p>
+                        </Col>
+                      </Row>
+
+                      {Number(item.discount) > 0 && (
+                        <div className="mb-2">
+                          <Label size="sm" className="fw-bold text-muted">
+                            Discount Reason
+                          </Label>
+
+                          <Input
+                            id={idx}
+                            type="textarea"
+                            name={`invoiceList[${idx}].discountReason`}
+                            rows="2"
+                            placeholder="Discount Reason"
+                            value={
+                              validation.values.invoiceList?.[idx]
+                                ?.discountReason || ""
+                            }
+                            onChange={(e) => {
+                              const value = e.target.value;
+
+                              const newList = [...invoiceList];
+                              newList[idx].discountReason = value;
+                              setInvoiceList(newList);
+
+                              validation.handleChange(e);
+                            }}
+                            onBlur={validation.handleBlur}
+                            invalid={
+                              (validation.touched.invoiceList?.[idx]
+                                ?.discountReason ||
+                                validation.submitCount > 0) &&
+                              validation.errors.invoiceList?.[idx]
+                                ?.discountReason
+                            }
+                          />
+
+                          {(validation.touched.invoiceList?.[idx]
+                            ?.discountReason ||
+                            validation.submitCount > 0) &&
+                            validation.errors.invoiceList?.[idx]
+                              ?.discountReason && (
+                              <div
+                                className="text-danger"
+                                style={{ fontSize: "12px" }}
+                              >
+                                {
+                                  validation.errors.invoiceList[idx]
+                                    .discountReason
+                                }
+                              </div>
+                            )}
+                        </div>
+                      )}
+
+                      <div className="mb-2">
+                        <Label size="sm" className="fw-bold text-muted">
+                          Remarks
+                        </Label>
+                        <Input
+                          id={idx}
+                          type="textarea"
+                          name="comments"
+                          rows="2"
+                          placeholder="Add remarks..."
+                          value={item.comments || ""}
+                          onChange={getValues}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Desktop Layout */}
+                  <Row className="mt-3 mb-3 d-none d-md-flex">
+                    <Col className="text-primary text-capitalize" lg={2} md={2}>
+                      <span>{item.slot}</span>
+                    </Col>
+                    <Col xs={2} md={1}>
+                      <Input
+                        bsSize="sm"
+                        id={idx}
+                        min={1}
+                        style={{ height: "9px" }}
+                        type="number"
+                        name="unit"
+                        value={item.unit || ""}
+                        onChange={(e) => {
+                          const value = Number(e.target.value);
+                          const val = e.target.value;
+                          if (!/^[1-9]\d*$|^$/.test(val)) return;
+                          if (value >= 0 || e.target.value === "") {
+                            getValues(e);
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.which === 38 || e.which === 40) {
+                            e.preventDefault();
+                          }
+                          if (e.key === "." || e.key === "e" || e.key === "-") {
+                            e.preventDefault();
+                          }
+                        }}
+                      />
+                    </Col>
+                    <Col xs={2} md={1}>
+                      <Input
+                        bsSize="sm"
+                        style={{ height: "9px" }}
+                        id={idx}
+                        type="number"
+                        name="cost"
+                        value={item.cost !== undefined ? item.cost : ""}
+                        onChange={(e) => handleCostChange(e, idx, item)}
+                        onKeyDown={(e) => {
+                          if (e.which === 38 || e.which === 40) {
+                            e.preventDefault();
+                          }
+                        }}
+                        disabled={selectedPrice > 0}
+                      />
+                      <div className="d-flex align-items-center">
+                        <span className="text-muted">₹</span>
+                        <p className="mb-0 ms-2 text-muted unit-cost-total">
+                          {unitCostTotal || 0}
+                        </p>
+                      </div>
+                    </Col>
+                    <Col xs={2} md={1}>
+                      {unitOptions.length === 1 ? (
+                        <div
+                          className="d-flex align-items-center"
+                          style={{ height: "27px" }}
+                        >
+                          <span className="text-muted">
+                            {unitOptions[0].label}
+                          </span>
+                        </div>
+                      ) : (
+                        <Input
+                          bsSize="sm"
+                          id={idx}
+                          required
+                          type="select"
+                          name="unitOfMeasurement"
+                          value={item.unitOfMeasurement || ""}
+                          onChange={getValues}
+                        >
+                          {/* <option value="">Select Unit</option> */}
+                          {unitOptions.map((option) => (
+                            <option key={option.value} value={option.value}>
+                              {option.label}
+                            </option>
+                          ))}
+                        </Input>
+                      )}
+                    </Col>
+
+                    <Col xs={2} md={2}>
+                      <div className="d-flex align-items-stretch">
+                        <Input
+                          bsSize="sm"
+                          type="number"
+                          value={
+                            item.discountType === "%"
+                              ? item.discount && item.unit && item.cost
+                                ? Math.round(
+                                    (Number(item.discount) /
+                                      (Number(item.unit) * Number(item.cost))) *
+                                      100,
+                                  )
+                                : ""
+                              : item.discount || ""
+                          }
+                          onChange={(e) => {
+                            let val = e.target.value;
+                            const newInvoiceList = [...invoiceList];
+                            const updatedItem = { ...item };
+
+                            const total =
+                              Number(updatedItem.unit || 0) *
+                              Number(updatedItem.cost || 0);
+
+                            if (val !== "") {
+                              val = Number(val);
+
+                              if (updatedItem.discountType === "%") {
+                                if (val > 100) val = 100;
+                                if (val < 0) val = 0;
+                              } else {
+                                if (val > total) val = total;
+                                if (val < 0) val = 0;
+                              }
+                            }
+
+                            if (!total) {
+                              updatedItem.discount = "";
+                            } else if (updatedItem.discountType === "%") {
+                              updatedItem.discount =
+                                val === "" ? "" : (total * Number(val)) / 100;
+                            } else {
+                              updatedItem.discount =
+                                val === "" ? "" : Number(val);
+                            }
+
+                            updatedItem.discountValue = val;
+
+                            if (updatedItem.discountType === "%") {
+                              updatedItem.discount =
+                                (total * Number(val || 0)) / 100;
+                            } else {
+                              updatedItem.discount = val;
+                            }
+
+                            updatedItem.afterDiscount = calculateFinalTotal(
+                              updatedItem.unit,
+                              updatedItem.cost,
+                              updatedItem.discount,
+                            );
+
+                            newInvoiceList[idx] = updatedItem;
+                            setInvoiceList(newInvoiceList);
+                          }}
+                        />
+
+                        <Input
+                          bsSize="sm"
+                          type="select"
+                          value={item.discountType || "₹"}
+                          onChange={(e) => {
+                            const newInvoiceList = [...invoiceList];
+                            const updatedItem = { ...item };
+
+                            updatedItem.discountType = e.target.value;
+
+                            updatedItem.discount = "";
+
+                            updatedItem.afterDiscount = calculateFinalTotal(
+                              updatedItem.unit,
+                              updatedItem.cost,
+                              updatedItem.discount,
+                              updatedItem.discountType,
+                            );
+
+                            newInvoiceList[idx] = updatedItem;
+                            setInvoiceList(newInvoiceList);
+                          }}
+                        >
+                          <option value="₹">₹</option>
+                          <option value="%">%</option>
+                        </Input>
+                      </div>
+                    </Col>
+
+                    {/* <Col xs={3} md={1}>
+                    <p className="total-cost me-5 text-center font-size-14 text-primary">
+                      {totalValue?.toFixed(2) || 0}
+                    </p>
+                  </Col> */}
+
+                    <Col xs={2} md={1}>
+                      <p className="total-cost text-success font-size-14 text-left">
+                        {/* {item.afterDiscount?.toFixed(2) ||
+                          (item.unit && item.cost
+                            ? (item.unit * item.cost).toFixed(2)
+                            : "0.00")} */}
+                        {(() => {
+                          const total =
+                            Number(item.unit || 0) * Number(item.cost || 0);
+
+                          return calculateFinalTotal(
+                            item.unit,
+                            item.cost,
+                            item.discount,
+                            item.discountType,
+                          ).toFixed(2);
+
+                          // return item.afterDiscount
+                          //   ? Number(item.afterDiscount).toFixed(2)
+                          //   : total.toFixed(2);
+                        })()}
+                      </p>
+                    </Col>
+
+                    {item.category?.toLowerCase() === "room charges" && (
+                      <Col xs={3} md={3}>
+                        {/* Row for inputs */}
+                        <div className="d-flex gap-1 align-items-center">
+                          <Input
+                            bsSize="sm"
+                            type="date"
+                            style={{ width: "120px", padding: "2px 4px" }}
+                            value={item.fromDate || ""}
+                            disabled={isEdit && item.isNew === false}
+                            onChange={(e) => {
+                              handleDateChange(idx, "fromDate", e.target.value);
+                              validation.setFieldValue(
+                                `invoiceList[${idx}].fromDate`,
+                                e.target.value,
+                              );
+                            }}
+                            onBlur={() =>
+                              validation.setFieldTouched(
+                                `invoiceList[${idx}].fromDate`,
+                                true,
+                              )
+                            }
+                            invalid={
+                              validation.touched.invoiceList?.[idx]?.fromDate &&
+                              validation.errors.invoiceList?.[idx]?.fromDate
+                            }
+                          />
+
+                          <span style={{ fontSize: "15px" }}>to</span>
+
+                          <Input
+                            bsSize="sm"
+                            type="date"
+                            style={{ width: "120px", padding: "2px 4px" }}
+                            value={item.toDate || ""}
+                            disabled
+                            onChange={(e) => {
+                              handleDateChange(idx, "toDate", e.target.value);
+                              validation.setFieldValue(
+                                `invoiceList[${idx}].toDate`,
+                                e.target.value,
+                              );
+                            }}
+                            onBlur={() =>
+                              validation.setFieldTouched(
+                                `invoiceList[${idx}].toDate`,
+                                true,
+                              )
+                            }
+                            invalid={
+                              validation.touched.invoiceList?.[idx]?.toDate &&
+                              validation.errors.invoiceList?.[idx]?.toDate
+                            }
+                          />
+                        </div>
+
+                        {(validation?.touched?.invoiceList?.[idx]?.fromDate &&
+                          validation?.errors?.invoiceList?.[idx]?.fromDate) ||
+                        (validation?.touched?.invoiceList?.[idx]?.toDate &&
+                          validation?.errors?.invoiceList?.[idx]?.toDate) ? (
+                          <div
+                            className="text-danger mt-1"
+                            style={{ fontSize: "12px" }}
+                          >
+                            {validation?.errors?.invoiceList?.[idx]?.fromDate ||
+                              validation?.errors?.invoiceList?.[idx]?.toDate}
+                          </div>
+                        ) : null}
                       </Col>
-                    </Row>
+                    )}
 
+                    <Col xs={1}>
+                      <Button
+                        onClick={() => deleteForm(idx)}
+                        color="danger"
+                        size="sm"
+                      >
+                        <i className="ri-close-circle-line font-size-20"></i>
+                      </Button>
+                    </Col>
 
-                    <div className="mb-2">
-                      <Label size="sm" className="fw-bold text-muted">Remarks</Label>
+                    {Number(item.discount) > 0 && (
+                      <Col xs={12} className="mb-2">
+                        <Input
+                          id={idx}
+                          type="textarea"
+                          name={`invoiceList[${idx}].discountReason`}
+                          rows="2"
+                          placeholder="Discount Reason"
+                          value={
+                            validation.values.invoiceList?.[idx]
+                              ?.discountReason || ""
+                          }
+                          onChange={(e) => {
+                            const value = e.target.value;
+
+                            const newList = [...invoiceList];
+                            newList[idx].discountReason = value;
+                            setInvoiceList(newList);
+
+                            validation.handleChange(e);
+                          }}
+                          onBlur={validation.handleBlur}
+                          invalid={
+                            (validation.touched.invoiceList?.[idx]
+                              ?.discountReason ||
+                              validation.submitCount > 0) &&
+                            validation.errors.invoiceList?.[idx]?.discountReason
+                          }
+                        />
+
+                        {(validation.touched.invoiceList?.[idx]
+                          ?.discountReason ||
+                          validation.submitCount > 0) &&
+                          validation.errors.invoiceList?.[idx]
+                            ?.discountReason && (
+                            <div
+                              className="text-danger"
+                              style={{ fontSize: "12px" }}
+                            >
+                              {
+                                validation.errors.invoiceList[idx]
+                                  .discountReason
+                              }
+                            </div>
+                          )}
+                      </Col>
+                    )}
+
+                    <Col xs={12}>
                       <Input
                         id={idx}
                         type="textarea"
                         name="comments"
                         rows="2"
-                        placeholder="Add remarks..."
+                        placeholder="Remarks"
                         value={item.comments || ""}
                         onChange={getValues}
                       />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Desktop Layout */}
-                <Row className="mt-3 mb-3 d-none d-md-flex">
-                  <Col className="text-primary text-capitalize" lg={2}>
-                    <span>{item.slot}</span>
-                  </Col>
-                  <Col xs={2} md={2}>
-                    <Input
-                      bsSize="sm"
-                      id={idx}
-                      slot={item}
-                      min={1}
-                      style={{ height: "9px" }}
-                      type="number"
-                      name="unit"
-                      size={"1"}
-                      value={item.unit || ""}
-                      onChange={(e) => {
-                        const value = Number(e.target.value);
-                        if (value >= 0 || e.target.value === "") {
-                          getValues(e);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.which === 38 || e.which === 40) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                  </Col>
-                  <Col xs={2} md={2}>
-                    <Input
-                      bsSize="sm"
-                      style={{ height: "9px" }}
-                      id={idx}
-                      slot={item}
-                      type="number"
-                      name="cost"
-                      min={1}
-                      size={"1"}
-                      value={item.cost || ""}
-                      onChange={(e) => {
-                        const value = Number(e.target.value);
-                        if (value >= 0 || e.target.value === "") {
-                          getValues(e);
-                        }
-                      }}
-                      onKeyDown={(e) => {
-                        if (e.which === 38 || e.which === 40) {
-                          e.preventDefault();
-                        }
-                      }}
-                    />
-                    <div className="d-flex align-items-center">
-                      <span className="text-muted">₹</span>
-                      <p className="mb-0 ms-2 text-muted unit-cost-total">
-                        {unitCostTotal || 0}
-                      </p>
-                    </div>
-                  </Col>
-                  <Col xs={2} md={2}>
-                    {unitOptions.length === 1 ? (
-                      <div
-                        className="d-flex align-items-center"
-                        style={{ height: "27px" }}
-                      >
-                        <span className="text-muted">
-                          {unitOptions[0].label}
-                        </span>
-                      </div>
-                    ) : (
-                      <Input
-                        bsSize="sm"
-                        id={idx}
-                        required
-                        size={"1"}
-                        type="select"
-                        name="unitOfMeasurement"
-                        value={item.unitOfMeasurement || ""}
-                        onChange={getValues}
-                      >
-                        <option value="">Select Unit</option>
-                        {unitOptions.map((option) => (
-                          <option key={option.value} value={option.value}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </Input>
-                    )}
-                  </Col>
-                  <Col xs={3} md={1}>
-                    <p className="total-cost me-5 text-center font-size-14 text-primary">
-                      {totalValue?.toFixed(2) || 0}
-                    </p>
-                  </Col>
-                  <Col xs={1}>
-                    <Button
-                      onClick={() => deleteForm(idx)}
-                      color="danger"
-                      size="sm"
-                    >
-                      <i
-                        className="ri-close-circle-line font-size-20"
-                        style={{ cursor: "pointer" }}
-                      ></i>
-                    </Button>
-                  </Col>
-                  <Col xs={12}>
-                    <Input
-                      id={idx}
-                      type="textarea"
-                      name="comments"
-                      aria-rowspan={6}
-                      rows="2"
-                      placeholder="Remarks"
-                      value={item.comments || ""}
-                      onChange={getValues}
-                    />
-                  </Col>
-                </Row>
-              </React.Fragment>
-            );
-          })}
+                    </Col>
+                  </Row>
+                </React.Fragment>
+              );
+            })}
         </div>
       </div>
     </React.Fragment>
@@ -358,6 +1118,7 @@ const InvoiceTable = ({ invoiceList, setInvoiceList }) => {
 InvoiceTable.propTypes = {
   invoiceList: PropTypes.array,
   setInvoiceList: PropTypes.func,
+  center: PropTypes.object,
 };
 
 export default InvoiceTable;

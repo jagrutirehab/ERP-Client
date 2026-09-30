@@ -18,12 +18,32 @@ import { RotateCw } from "lucide-react";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { getSummaryReport } from "../../../store/features/centralPayment/centralPaymentSlice";
+import { formatCurrency } from "../../../utils/formatCurrency";
 
-const formatCurrency = (amount) =>
-  amount.toLocaleString("en-IN", {
-    style: "currency",
-    currency: "INR",
-  });
+
+const AmountRow = ({ label, total, payable }) => (
+  <ListGroupItem className="bg-white py-1">
+    <div className="fw-medium mb-2">{label}:</div>
+
+    <div className="d-flex justify-content-between align-items-end">
+      <div>
+        <div className="fw-semibold">
+          {formatCurrency(total)}
+        </div>
+        <i className="text-muted">Total</i>
+      </div>
+
+      <div className="text-end">
+        <div className="fw-semibold">
+          {formatCurrency(payable)}
+        </div>
+        <i className="text-muted">
+          Payable (TDS deducted)
+        </i>
+      </div>
+    </div>
+  </ListGroupItem>
+);
 
 const SummaryReport = ({
   centerAccess,
@@ -58,13 +78,15 @@ const SummaryReport = ({
 
   const handleRefresh = async () => {
     try {
-      await dispatch(getSummaryReport({ centers: centerAccess, refetch: true })).unwrap();
+      await dispatch(
+        getSummaryReport({ centers: centerAccess, refetch: true })
+      ).unwrap();
     } catch (error) {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch summary report.");
       }
     }
-  }
+  };
 
   return (
     <TabPane tabId="summary">
@@ -99,40 +121,43 @@ const SummaryReport = ({
           <div className="text-center py-5">
             <Spinner color="primary" />
           </div>
-        ) : !summaryReport?.data || !Array.isArray(summaryReport.data) || summaryReport.data.length === 0 ? (
+        ) : !summaryReport?.data ||
+          !Array.isArray(summaryReport.data) ||
+          summaryReport.data.length === 0 ? (
           <div className="text-center py-5 text-muted">
             No spending data available for your centers.
           </div>
         ) : (
           summaryReport?.data?.map((data) => (
             <Col key={data._id} xs="12" md="6" xl="4" className="mb-4">
-              <Card className="shadow-sm h-100 hover-shadow bg-white">
+              <Card className="shadow-sm h-100">
                 <CardBody>
                   <CardTitle tag="h5" className="fw-bold mb-3">
                     {data.title}
                   </CardTitle>
+
                   <ListGroup flush>
-                    <ListGroupItem className="d-flex justify-content-between align-items-center bg-white">
-                      <span className="fw-medium">Approved & Paid:</span>
-                      <span className="fw-semibold">{formatCurrency(data.approvedAndPaid)}</span>
-                    </ListGroupItem>
+                    <AmountRow
+                      label="Approved & Paid"
+                      total={data.approvedAndPaid_total}
+                      payable={data.approvedAndPaid_final}
+                    />
 
-                    <ListGroupItem className="d-flex justify-content-between align-items-center bg-white">
-                      <span className="fw-medium">Approved, Payment Pending:</span>
-                      <span className="fw-semibold">
-                        {formatCurrency(data.approvedAwaitingPayment)}
-                      </span>
-                    </ListGroupItem>
+                    <AmountRow
+                      label="Approved, Payment Pending"
+                      total={data.approvedAwaitingPayment_total}
+                      payable={data.approvedAwaitingPayment_final}
+                    />
 
-                    <ListGroupItem className="d-flex justify-content-between align-items-center bg-white">
-                      <span className="fw-medium">Awaiting Approval:</span>
-                      <span className="fw-semibold">
-                        {formatCurrency(data.awaitingApproval)}
-                      </span>
-                    </ListGroupItem>
+                    <AmountRow
+                      label="Awaiting Approval"
+                      total={data.awaitingApproval_total}
+                      payable={data.awaitingApproval_final}
+                    />
                   </ListGroup>
                 </CardBody>
               </Card>
+
             </Col>
           ))
         )}
@@ -140,10 +165,10 @@ const SummaryReport = ({
       <style>
         {`
         @keyframes spin {
-          0% { transform: rotate(0deg); }
-          100% { transform: rotate(360deg); }
+          from { transform: rotate(0deg); }
+          to { transform: rotate(360deg); }
         }
-      `}
+        `}
       </style>
     </TabPane>
   );

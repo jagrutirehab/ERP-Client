@@ -7,6 +7,13 @@ import {
   postCSVMedicine,
   postMedicine,
   validateDuplicateMedicine,
+  getMedicineRequisitions,
+  createMedicineRequisition,
+  getMedicineRequisitionById,
+  editMedicineRequisition as editMedicineRequisitionApi,
+  approveMedicineRequisition as approveMedicineRequisitionApi,
+  rejectMedicineRequisition as rejectMedicineRequisitionApi,
+  deleteMedicineRequisition as deleteMedicineRequisitionApi,
 } from "../../../helpers/backend_helper";
 import { setAlert } from "../alert/alertSlice";
 
@@ -23,11 +30,11 @@ export const addMedicine = createAsyncThunk(
   "postMedicine",
   async (data, { rejectWithValue, dispatch }) => {
     try {
-      const response = await postMedicine(data);
+      await postMedicine(data);
       dispatch(
         setAlert({ type: "success", message: "Medicine Saved Successfully" })
       );
-      return response;
+      return null;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("something went wrong");
@@ -110,6 +117,95 @@ export const removeMedicine = createAsyncThunk(
   }
 );
 
+export const fetchMedicineRequisitions = createAsyncThunk(
+  "medicine/fetchMedicineRequisitions",
+  async (params, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getMedicineRequisitions(params);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const submitMedicineRequisition = createAsyncThunk(
+  "medicine/submitMedicineRequisition",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await createMedicineRequisition(data);
+      dispatch(setAlert({ type: "success", message: "Medicine Requisition created successfully" }));
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const fetchMedicineRequisitionById = createAsyncThunk(
+  "medicine/fetchMedicineRequisitionById",
+  async (id, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await getMedicineRequisitionById(id);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const editMedicineRequisition = createAsyncThunk(
+  "medicine/editMedicineRequisition",
+  async ({ id, ...data }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editMedicineRequisitionApi(id, data);
+      dispatch(setAlert({ type: "success", message: "Medicine Requisition updated successfully" }));
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const approveMedicineRequisition = createAsyncThunk(
+  "medicine/approveMedicineRequisition",
+  async ({ id, ...data }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await approveMedicineRequisitionApi(id, data);
+      dispatch(setAlert({ type: "success", message: "Medicine Requisition approved successfully" }));
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const rejectMedicineRequisition = createAsyncThunk(
+  "medicine/rejectMedicineRequisition",
+  async ({ id, ...data }, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await rejectMedicineRequisitionApi(id, data);
+      dispatch(setAlert({ type: "success", message: "Medicine Requisition rejected successfully" }));
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const removeMedicineRequisition = createAsyncThunk(
+  "medicine/removeMedicineRequisition",
+  async (id, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await deleteMedicineRequisitionApi(id);
+      dispatch(setAlert({ type: "success", message: "Medicine Requisition deleted successfully" }));
+      return id;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
 const medicineSlice = createSlice({
   name: "medicine",
   initialState,
@@ -126,9 +222,8 @@ const medicineSlice = createSlice({
       .addCase(addMedicine.pending, (state) => {
         state.loading = true;
       })
-      .addCase(addMedicine.fulfilled, (state, { payload }) => {
+      .addCase(addMedicine.fulfilled, (state) => {
         state.loading = false;
-        state.data = payload.payload;
       })
       .addCase(addMedicine.rejected, (state) => {
         state.loading = false;
@@ -140,8 +235,8 @@ const medicineSlice = createSlice({
       })
       .addCase(addCSVMedicine.fulfilled, (state, { payload }) => {
         state.loading = false;
-        if (payload.payload?.length)
-          localStorage.setItem("medicines", JSON.stringify(payload.payload));
+        // if (payload.payload?.length)
+        //   localStorage.setItem("medicines", JSON.stringify(payload.payload));
         state.data = payload.payload;
       })
       .addCase(addCSVMedicine.rejected, (state) => {
@@ -159,7 +254,7 @@ const medicineSlice = createSlice({
         const totalCount = action.payload?.pagination?.total || 0;
         const totalPages = action.payload?.pagination?.totalPages || 1;
 
-        localStorage.setItem("medicines", JSON.stringify(medicines));
+        // localStorage.setItem("medicines", JSON.stringify(medicines));
 
         state.data = medicines;
         state.totalCount = totalCount;
@@ -195,6 +290,79 @@ const medicineSlice = createSlice({
         state.data[findMedicineIndex] = payload.payload;
       })
       .addCase(updateMedicine.rejected, (state, action) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(fetchMedicineRequisitions.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchMedicineRequisitions.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload?.data || payload || [];
+        state.totalCount = payload?.totalCount || payload?.total || 0;
+        state.totalPages =
+          payload?.totalPages ||
+          payload?.pages ||
+          Math.max(1, Math.ceil((payload?.total || 0) / (payload?.limit || 10)));
+      })
+      .addCase(fetchMedicineRequisitions.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(submitMedicineRequisition.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(submitMedicineRequisition.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(submitMedicineRequisition.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(editMedicineRequisition.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(editMedicineRequisition.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(editMedicineRequisition.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(approveMedicineRequisition.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(approveMedicineRequisition.fulfilled, (state, { payload }) => {
+        state.loading = false;
+      })
+      .addCase(approveMedicineRequisition.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(rejectMedicineRequisition.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(rejectMedicineRequisition.fulfilled, (state, { payload }) => {
+        state.loading = false;
+      })
+      .addCase(rejectMedicineRequisition.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(removeMedicineRequisition.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removeMedicineRequisition.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = state.data.filter((req) => req._id !== payload);
+      })
+      .addCase(removeMedicineRequisition.rejected, (state) => {
         state.loading = false;
       });
   },

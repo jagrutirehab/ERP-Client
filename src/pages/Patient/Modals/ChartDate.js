@@ -19,14 +19,26 @@ import CustomModal from "../../../Components/Common/Modal";
 //data
 import {
   DISCHARGE_SUMMARY,
+  EXPIRY_SUMMARY,
+  OUTPASS,
+  ADMISSION_TYPE,
   PRESCRIPTION,
   records,
   testRecord,
+  COUNSELLING_NOTE,
+  DETAIL_ADMISSION,
+  VITAL_SIGN,
+  ROUND_NOTE,
 } from "../../../Components/constants/patient";
 
 //redux
-import { connect, useDispatch } from "react-redux";
-import { createEditChart, setChartDate } from "../../../store/actions";
+import { connect, useDispatch, useSelector } from "react-redux";
+import {
+  createEditChart,
+  fetchCharts,
+  fetchChartsAddmissions,
+  setChartDate,
+} from "../../../store/actions";
 import {
   setTestName,
   setTestPageOpen,
@@ -39,11 +51,17 @@ const ChartDate = ({
   chartDate,
   editChartData,
   patient,
+  user,
 }) => {
   const dispatch = useDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const toggle2 = () => setDropdownOpen((prevState) => !prevState);
   const [selectedTest, setSelectedTest] = useState("Add test");
+  const charts = useSelector(
+    (state) =>
+      state.Chart.data?.find((el) => el._id === patient?.addmission?._id)
+        ?.charts,
+  );
 
   useEffect(() => {
     if (isOpen) {
@@ -51,6 +69,44 @@ const ChartDate = ({
       dispatch(setChartDate(d.toISOString()));
     }
   }, [dispatch, isOpen]);
+
+  useEffect(() => {
+    if (patient?.addmission?._id) {
+      dispatch(fetchChartsAddmissions([patient.addmission._id]));
+      dispatch(fetchCharts(patient.addmission._id));
+    }
+  }, [patient?.addmission?._id, dispatch]);
+
+  const latestOutpass = charts
+    ?.filter((c) => c?.chart === "OUTPASS")
+    ?.reduce((latest, current) => {
+      if (!latest) return current;
+      return new Date(current?.createdAt) > new Date(latest?.createdAt)
+        ? current
+        : latest;
+    }, null);
+
+  const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+
+  const toISTDateString = (dateInput) => {
+    if (!dateInput) return null;
+    const date = new Date(dateInput);
+    if (isNaN(date.getTime())) return null;
+    const shifted = new Date(date.getTime() + IST_OFFSET_MS);
+    return shifted.toISOString().slice(0, 10);
+  };
+
+  const fromDate = latestOutpass?.outpass?.fromDate;
+  const toDate = latestOutpass?.outpass?.toDate;
+
+  const todayIST = toISTDateString(new Date());
+  const fromIST = toISTDateString(fromDate);
+  const toIST = toISTDateString(toDate);
+
+  const isOnOutpass =
+    fromIST && toIST ? todayIST >= fromIST && todayIST <= toIST : false;
+
+  console.log({ todayIST, fromIST, toIST, isOnOutpass });
 
   return (
     <React.Fragment>
@@ -70,7 +126,14 @@ const ChartDate = ({
               <span>
                 <Flatpicker
                   name="dateOfAdmission"
-                  disabled={type === "CLINICTEST" ? true : false}
+                  disabled={
+                    type === "CLINICTEST" ||
+                      ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
+                        patient.center.title === "Gurgaon") &&
+                        type !== "GENERAL")
+                      ? true
+                      : false
+                  }
                   value={chartDate || ""}
                   onChange={([e]) => {
                     const concat = set(new Date(chartDate), {
@@ -88,7 +151,8 @@ const ChartDate = ({
                     //   },
                     // ],
                   }}
-                  className="form-control shadow-none bg-light "
+                  // className={`form-control shadow-none bg-white`}
+                  className={`form-control shadow-none ${patient.center?._id === "694e565ed6e6dd32a39c9815" || (patient.center.title === "Gurgaon" && type !== "GENERAL") ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>
@@ -97,7 +161,14 @@ const ChartDate = ({
                 <Flatpicker
                   name="dateOfAdmission"
                   value={chartDate || ""}
-                  disabled={type === "CLINICTEST" ? true : false}
+                  disabled={
+                    type === "CLINICTEST" ||
+                      ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
+                        patient.center.title === "Gurgaon") &&
+                        type !== "GENERAL")
+                      ? true
+                      : false
+                  }
                   onChange={([e]) => {
                     const concat = set(new Date(chartDate), {
                       hours: e.getHours(),
@@ -114,7 +185,9 @@ const ChartDate = ({
                     time_24hr: false,
                     // defaultDate: moment().format('LT'),
                   }}
-                  className="form-control shadow-none bg-light"
+                  // className={`form-control shadow-none bg-white`}
+                  className={`form-control shadow-none
+                    ${patient.center?._id === "694e565ed6e6dd32a39c9815" || (patient.center.title === "Gurgaon" && type !== "GENERAL") ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>
@@ -137,42 +210,90 @@ const ChartDate = ({
               toggle={toggle2}
               direction={"down"}
             >
-              <DropdownToggle caret={true} outline color="primary">
-                Add Records
-              </DropdownToggle>
-              <DropdownMenu flip={false} color="warning">
-                {(records || []).map((item, idx) => {
-                  return (
-                    <DropdownItem
-                      disabled={
-                        editChartData.data &&
-                        editChartData.data.chart !== item.category
-                          ? true
-                          : type === "GENERAL" &&
-                            item.category === DISCHARGE_SUMMARY
-                          ? true
-                          : false
-                      }
-                      key={idx + item.category}
-                      onClick={() => {
-                        dispatch(
-                          createEditChart({
-                            ...editChartData,
-                            chart: item.category,
-                            patient,
-                            isOpen: true,
-                            ...(item.category === PRESCRIPTION && {
-                              populatePreviousAppointment: true,
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  width: "100%",
+                  border: "2px",
+                }}
+              >
+                <span className="text-danger">
+                  {isOnOutpass && !editChartData.data
+                    ? "Patient is on Outpass. Chart creation is disabled."
+                    : null}
+                </span>
+                <DropdownToggle caret={true} outline color="primary">
+                  Add Records
+                </DropdownToggle>
+              </div>
+              <DropdownMenu
+                style={{ maxHeight: "350px" }}
+                className="overflow-auto"
+                flip={false}
+                color="warning"
+              >
+                {(records || [])
+                  .filter((item) => {
+                    // Round-note charts are auto-generated from Round Notes —
+                    // never offered as a manually creatable chart type.
+                    if (item.category === ROUND_NOTE) return false;
+                    if (user?.role === "NURSE") {
+                      return ![
+                        PRESCRIPTION,
+                        COUNSELLING_NOTE,
+                        DETAIL_ADMISSION,
+                      ].includes(item.category);
+                    }
+                    if (["PSYCHOLOGIST", "MSW", "PSW"].includes(user?.role)) {
+                      return ![PRESCRIPTION, VITAL_SIGN].includes(
+                        item.category,
+                      );
+                    }
+                    return true;
+                  })
+                  .map((item, idx) => {
+                    return (
+                      <DropdownItem
+                        disabled={
+                          editChartData.data &&
+                            editChartData.data.chart !== item.category
+                            ? true
+                            : type === "GENERAL" &&
+                              (item.category === DISCHARGE_SUMMARY ||
+                                item.category === EXPIRY_SUMMARY ||
+                                item.category === OUTPASS ||
+                                // Admission type only means something for an
+                                // admitted patient.
+                                item.category === ADMISSION_TYPE)
+                              ? true
+                              : !editChartData.data && isOnOutpass
+                                ? true
+                                : false
+                        }
+                        key={idx + item.category}
+                        onClick={() => {
+                          dispatch(
+                            createEditChart({
+                              ...editChartData,
+                              chart: item.category,
+                              patient,
+                              isOpen: true,
+                              type,
+                              ...(item.category === PRESCRIPTION && {
+                                populatePreviousAppointment: true,
+                              }),
                             }),
-                          })
-                        );
-                        toggle();
-                      }}
-                    >
-                      {item.name}
-                    </DropdownItem>
-                  );
-                })}
+                          );
+                          toggle();
+                        }}
+                      >
+                        {/* Records */}
+                        {item.name}
+                      </DropdownItem>
+                    );
+                  })}
               </DropdownMenu>
             </Dropdown>
           ) : (
@@ -231,6 +352,7 @@ const mapStateToProps = (state) => ({
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm,
   patient: state.Patient.patient,
+  user: state.User.user,
 });
 
 export default connect(mapStateToProps)(ChartDate);

@@ -152,6 +152,8 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       localArea: centerData ? centerData.localArea : "",
       numberOfBeds: centerData ? centerData.numberOfBeds : "",
       websiteListing: centerData ? !!centerData.websiteListing : false,
+      globalAccess: centerData ? !!centerData.globalAccess : false,
+      apiKey: centerData ? centerData.apiKey : "",
     },
     validationSchema: Yup.object({
       title: Yup.string()
@@ -186,6 +188,11 @@ const CenterForm = ({ author, isOpen, centerData }) => {
         "websiteListing",
         values.websiteListing ? "true" : "false"
       );
+      formData.append(
+        "globalAccess",
+        values.globalAccess ? "true" : "false"
+      );
+      formData.append("apiKey", values.apiKey);
       // if (cropLogo) formData.append("logo", dataURLtoBlob(cropLogo));
       if (cropLogo) formData.append("logo", cropLogo);
 
@@ -200,17 +207,17 @@ const CenterForm = ({ author, isOpen, centerData }) => {
     },
   });
 
-  console.log({ validation });
+  // console.log({ validation });
 
   const fieldsArray = Object.keys(validation.values).filter(
-    (key) => !["state", "websiteListing"].includes(key)
+    (key) => !["state", "websiteListing", "globalAccess"].includes(key)
   );
   function getFieldLabel(field) {
     const words = field.replace(/([A-Z])/g, " $1").trim();
     return words.charAt(0).toUpperCase() + words.slice(1);
   }
 
-  console.log({ fieldsArray });
+  // console.log({ fieldsArray });
 
   const closeForm = () => {
     validation.resetForm();
@@ -303,10 +310,10 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                   setLogo={setLogo}
                   setCropLogo={setCrop}
 
-                  // maxHeight={150}
-                  // maxWidth={150}
-                  // minHeight={150}
-                  // minWidth={150}
+                // maxHeight={150}
+                // maxWidth={150}
+                // minHeight={150}
+                // minWidth={150}
                 />
                 {/* </RenderWhen> */}
               </Col>
@@ -512,6 +519,30 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                     htmlFor="websiteListing"
                   >
                     Website Listing
+                  </Label>
+                </FormGroup>
+              </Col>
+              <Col xs={12} className="mb-3">
+                <FormGroup switch>
+                  <Input
+                    type="switch"
+                    role="switch"
+                    id="globalAccess"
+                    name="globalAccess"
+                    checked={validation.values.globalAccess}
+                    onChange={(event) =>
+                      validation.setFieldValue(
+                        "globalAccess",
+                        event.target.checked
+                      )
+                    }
+                  />
+                  <Label
+                    check
+                    className="form-check-label ms-2"
+                    htmlFor="globalAccess"
+                  >
+                    Global Access
                   </Label>
                 </FormGroup>
               </Col>

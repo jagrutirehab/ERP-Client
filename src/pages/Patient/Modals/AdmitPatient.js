@@ -1,6 +1,19 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { Button, Col, Form, FormFeedback, Input, Label, Row } from "reactstrap";
+import {
+  Button,
+  Col,
+  Form,
+  FormFeedback,
+  Input,
+  Label,
+  Row,
+  Spinner,
+} from "reactstrap";
+import Select from "react-select";
+import { isValidPhoneNumber } from "react-phone-number-input";
+import PhoneInputWithCountrySelect from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -14,6 +27,7 @@ import {
   admitDischargePatient,
   editAdmission,
   fetchDoctors,
+  fetchReferrals,
 } from "../../../store/actions";
 import {
   ADMIT_PATIENT,
@@ -24,6 +38,19 @@ import Divider from "../../../Components/Common/Divider";
 import { format } from "date-fns";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { getICDCodes } from "../../../helpers/backend_helper";
+
+// Ahmedabad is closed to new admissions — they must go to Ahmedabad-2 instead.
+// Matched on the exact trimmed title rather than an _id so the block holds in
+// staging/dev where the ids differ, and compared with === (not includes) so
+// "Ahmedabad-2" itself is never caught by its own block rule.
+const BLOCKED_CENTER_TITLE = "Ahmedabad";
+const BLOCKED_CENTER_ALTERNATIVE = "Ahmedabad-2";
+
+const isBlockedCenterTitle = (title) =>
+  String(title ?? "")
+    .trim()
+    .toLowerCase() === BLOCKED_CENTER_TITLE.toLowerCase();
 
 const AdmitPatient = ({
   isOpen,
@@ -33,9 +60,15 @@ const AdmitPatient = ({
   doctors,
   counsellors,
   doctorLoading,
+  referrals,
+  referralsLoading,
 }) => {
   const dispatch = useDispatch();
   const [step, setStep] = useState(1);
+  const [isOtherReferral, setIsOtherReferral] = useState(false);
+  const [selectedReferral, setSelectedReferral] = useState(null);
+  const [icdOptions, setIcdOptions] = useState([]);
+  const [submitting, setSubmitting] = useState(false);
 
   const toggle = () =>
     dispatch(admitDischargePatient({ data: null, isOpen: "" }));
@@ -54,12 +87,19 @@ const AdmitPatient = ({
       email: patient ? patient.email : "",
       dateOfBirth,
       gender: patient ? patient.gender : "",
+      aadhaarCardNumber: patient ? patient.aadhaarCardNumber : "",
+      passportNumber: patient ? patient.passportNumber || "" : "",
       address: patient ? patient.address : "",
+      nationality: patient ? patient.nationality || "Indian" : "Indian",
       //guardian
       guardianName: patient ? patient.guardianName : "",
       guardianRelation: patient ? patient.guardianRelation : "",
       guardianPhoneNumber: patient ? patient.guardianPhoneNumber : "",
-      referredBy: patient ? patient.referredBy : "",
+      referredBy: patient
+        ? patient.referredBy?.doctorName || patient.referredBy
+        : "",
+      referralPhoneNumber: patient?.referredBy?.mobileNumber || "",
+      referralType: patient?.referredBy?.speciality || "",
       ipdFileNumber: patient ? patient.ipdFileNumber : "",
 
       //admission
@@ -70,7 +110,7 @@ const AdmitPatient = ({
       }),
       psychologist: data ? data.psychologist?._id : "",
       doctor: data ? data.doctor?._id : "",
-      provisionalDiagnosis: data ? data.provisionalDiagnosis : "",
+      provisional_diagnosis: [],
       Ipdnum: data ? data.Ipdnum : "",
     },
     validationSchema: Yup.object({
@@ -84,46 +124,172 @@ const AdmitPatient = ({
       //   ),
       // aadhaarCard: Yup.string().required("Please select Aadhaar Card"),
       name: Yup.string().required("Please select Name"),
-      phoneNumber: Yup.string().required("Please select Phone Number"),
+      phoneNumber: Yup.string()
+        .required("Please select Phone Number")
+        .test("is-valid-phone", "Invalid phone number", function (value) {
+          return isValidPhoneNumber(value || "");
+        }),
       email: Yup.string()
         .email("Please enter a valid email")
         .nullable()
         .notRequired(),
       dateOfBirth: Yup.string().required("Please select Date of birth"),
       gender: Yup.string().required("Please select Gender"),
+      aadhaarCardNumber: Yup.string()
+        .nullable()
+        .notRequired()
+        .when("nationality", {
+          is: "Indian",
+          then: (schema) =>
+            schema
+              .required("Aadhaar Card Number is required")
+              .matches(
+                /^[0-9]{12}$/,
+                "Aadhaar Card Number must be exactly 12 digits",
+              ),
+        }),
+      passportNumber: Yup.string()
+        .nullable()
+        .notRequired()
+        .when("nationality", {
+          is: "Foreigner",
+          then: (schema) =>
+            schema.required("Passport Number is required for foreign nationals"),
+        }),
       address: Yup.string().required("Please select Address"),
-      //patient guardian
+      nationality: Yup.string().required("Please select Nationality"),
       guardianName: Yup.string().required("Please select Guardian Name"),
       guardianRelation: Yup.string().required(
-        "Please select Guardian Relation"
+        "Please select Guardian Relation",
       ),
-      guardianPhoneNumber: Yup.string().required(
-        "Please select Guardian Phone Number"
-      ),
+      guardianPhoneNumber: Yup.string()
+        .required("Please select Guardian Phone Number")
+        .test(
+          "is-valid-guardian-phone",
+          "Invalid phone number",
+          function (value) {
+            return isValidPhoneNumber(value || "");
+          },
+        ),
       referredBy: Yup.string().required("Please select Referred By"),
+      referralPhoneNumber: Yup.string()
+        .nullable()
+        .notRequired()
+        .test(
+          "is-valid-referral-phone",
+          "Invalid phone number",
+          function (value) {
+            if (!value) return true;
+            return isValidPhoneNumber(value);
+          },
+        ),
       // ipdFileNumber: Yup.string().required("Please select Ipd File Number"),
       //admission
       addmissionDate: Yup.date().required("Please select addmission date"),
       center: Yup.string().required("Please select center"),
       psychologist: Yup.string().required("Please select Psychologist"),
       doctor: Yup.string().required("Please select Doctor"),
-      provisionalDiagnosis: Yup.string().required(
-        "Please select Provisional Diagnosis"
-      ),
+      provisional_diagnosis: Yup.array()
+        .min(1, "Please select at least one Provisional Diagnosis")
+        .required("Please select Provisional Diagnosis"),
       Ipdnum: Yup.string().required("Please Wait for Ipd file number"),
     }),
-    onSubmit: (values) => {
-      if (data) dispatch(editAdmission(values));
-      else dispatch(admitIpdPatient(values));
-
-      validation.resetForm();
-      toggle();
+    onSubmit: async (values) => {
+      try {
+        setSubmitting(true);
+        if (data) {
+          await dispatch(editAdmission(values)).unwrap();
+        } else {
+          await dispatch(admitIpdPatient(values)).unwrap();
+        }
+        validation.resetForm();
+        toggle();
+      } catch {
+        // Error alert already shown by the thunk — modal stays open
+      } finally {
+        setSubmitting(false);
+      }
     },
   });
 
   useEffect(() => {
     setStep(1);
+    referralInitialized.current = false;
   }, [isOpen]);
+
+  useEffect(() => {
+    dispatch(fetchReferrals());
+  }, [dispatch]);
+
+  const referralInitialized = useRef(false);
+  useEffect(() => {
+    // Only run once when patient and referrals are both available
+    if (!patient?.referredBy || !referrals?.length) return;
+    if (referralInitialized.current) return;
+    referralInitialized.current = true;
+
+    const doctorName =
+      typeof patient.referredBy === "string"
+        ? patient.referredBy
+        : patient.referredBy?.doctorName || "";
+    const speciality = patient.referredBy?.speciality || "";
+
+    // Check if speciality matches a static option (priority check)
+    const STATIC_OPTIONS = [
+      { value: "psychiatrist", label: "Psychiatrist" },
+      { value: "doctor", label: "Doctor" },
+      { value: "online", label: "Online" },
+      { value: "other", label: "Other" },
+    ];
+    const staticMatch = STATIC_OPTIONS.find((opt) => opt.value === speciality);
+
+    const referralMatch = referrals.find(
+      (ref) =>
+        ref._id === patient.referredBy.id || ref.doctorName === doctorName,
+    );
+
+    if (referralMatch) {
+      // Approved DB referral — just select it from the list
+      setSelectedReferral({
+        value: referralMatch._id,
+        label: referralMatch.doctorName,
+      });
+      setIsOtherReferral(false);
+      validation.setFieldValue("referredBy", referralMatch._id);
+      validation.setFieldValue("referralType", "");
+    } else if (staticMatch) {
+      // Saved via a static option — pre-select it and show name + phone
+      setSelectedReferral(staticMatch);
+      setIsOtherReferral(true);
+      validation.setFieldValue("referredBy", doctorName);
+      validation.setFieldValue(
+        "referralPhoneNumber",
+        patient.referredBy?.mobileNumber || "",
+      );
+      validation.setFieldValue("referralType", staticMatch.value);
+    } else {
+      // Check if it matches an existing referral from the DB
+      const referralMatch = referrals.find(
+        (ref) =>
+          ref._id === patient.referredBy.id || ref.doctorName === doctorName,
+      );
+
+      if (referralMatch) {
+        setSelectedReferral({
+          value: referralMatch._id,
+          label: referralMatch.doctorName,
+        });
+        setIsOtherReferral(false);
+        validation.setFieldValue("referredBy", referralMatch._id);
+      } else if (doctorName) {
+        // Legacy data without speciality — treat as "Other"
+        setSelectedReferral({ value: "other", label: "Other" });
+        setIsOtherReferral(true);
+        validation.setFieldValue("referredBy", doctorName);
+        validation.setFieldValue("referralType", "other");
+      }
+    }
+  }, [patient, referrals]);
 
   const handleChange = (e, fieldType) => {
     if (fieldType === "file") {
@@ -143,6 +309,14 @@ const AdmitPatient = ({
       dispatch(fetchDoctors({ center: validation.values.center }));
   }, [dispatch, validation.values.center]);
 
+  // True when the currently-selected centre is the blocked one. Resolved from
+  // the centres list rather than the stored id so it survives an id change.
+  const isBlockedCenterSelected = (centers || []).some(
+    (c) =>
+      String(c?._id) === String(validation.values.center) &&
+      isBlockedCenterTitle(c?.title),
+  );
+
   const createIpdfile = async (id) => {
     try {
       const { data } = await axios.post(
@@ -152,7 +326,7 @@ const AdmitPatient = ({
           headers: {
             "Content-Type": "application/json",
           },
-        }
+        },
       );
       if (data?.Ipdnum) {
         validation.setFieldValue("Ipdnum", data.Ipdnum);
@@ -174,17 +348,6 @@ const AdmitPatient = ({
   }, [patient, step]);
 
   const patientFields = [
-    // {
-    //   label: "Aadhaar Card Number",
-    //   name: "aadhaarCardNumber",
-    //   type: "text",
-    // },
-    // {
-    //   label: "Aadhaar Card",
-    //   name: "aadhaarCard",
-    //   type: "file",
-    //   accept: "image/*",
-    // },
     {
       label: "Name",
       name: "name",
@@ -205,6 +368,7 @@ const AdmitPatient = ({
       label: "Date of Birth",
       name: "dateOfBirth",
       type: "date",
+      required: true
     },
     {
       label: "Gender",
@@ -216,6 +380,7 @@ const AdmitPatient = ({
       label: "Address",
       name: "address",
       type: "text",
+      required: true
     },
   ];
 
@@ -235,13 +400,7 @@ const AdmitPatient = ({
     {
       label: "Phone Number",
       name: "guardianPhoneNumber",
-      type: "text",
-      required: true,
-    },
-    {
-      label: "Referred By",
-      name: "referredBy",
-      type: "text",
+      type: "phoneNumber",
       required: true,
     },
     // {
@@ -252,11 +411,32 @@ const AdmitPatient = ({
     // },
   ];
 
+  const loadIcds = async () => {
+    try {
+      const response = await getICDCodes();
+
+      const formatted = response.map((item) => ({
+        value: item._id,
+        label: `${item.code} - ${item.text}`,
+      }));
+
+      setIcdOptions(formatted);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+  useEffect(() => {
+    loadIcds();
+  }, []);
+
   const admissionFields = [
     {
       label: "Provisional Diagnosis",
-      name: "provisionalDiagnosis",
-      type: "text",
+      name: "provisional_diagnosis",
+      type: "select",
+      options: icdOptions,
+      isMulti: true,
+      required: true,
     },
     {
       label: "Doctor",
@@ -281,6 +461,115 @@ const AdmitPatient = ({
           doctorLoading={doctorLoading}
           handleChange={handleChange}
         />
+        {/* Nationality & Identity Section */}
+        <Col xs={12} lg={4}>
+          <div className="mb-3">
+            <Label className="form-label">
+              Nationality <span className="text-danger">*</span>
+            </Label>
+            <div className="d-flex gap-2">
+              {["Indian", "Foreigner"].map((opt) => (
+                <div
+                  key={opt}
+                  onClick={() => {
+                    validation.setFieldValue("nationality", opt);
+                    if (opt === "Indian") {
+                      validation.setFieldValue("passportNumber", "");
+                    } else {
+                      validation.setFieldValue("aadhaarCardNumber", "");
+                    }
+                  }}
+                  style={{
+                    flex: 1,
+                    padding: "0.5rem 0.75rem",
+                    borderRadius: "0.5rem",
+                    border: `2px solid ${validation.values.nationality === opt ? "#405189" : "#d1d5db"}`,
+                    backgroundColor: validation.values.nationality === opt ? "#f0f3ff" : "#fff",
+                    color: validation.values.nationality === opt ? "#405189" : "#6b7280",
+                    fontWeight: validation.values.nationality === opt ? "600" : "400",
+                    textAlign: "center",
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    userSelect: "none",
+                    fontSize: "0.875rem",
+                  }}
+                >
+                  {opt === "Indian" ? "🇮🇳 Indian" : "🌐 Foreigner"}
+                </div>
+              ))}
+            </div>
+            {validation.touched.nationality && validation.errors.nationality && (
+              <div style={{ color: "#dc3545", fontSize: "0.875rem", marginTop: "0.25rem" }}>
+                {validation.errors.nationality}
+              </div>
+            )}
+          </div>
+        </Col>
+        <Col xs={12} lg={4}>
+          {validation.values.nationality === "Indian" ? (
+            <div className="mb-3">
+              <Label htmlFor="aadhaarCardNumber" className="form-label">
+                Aadhaar Card Number <span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="text"
+                name="aadhaarCardNumber"
+                id="aadhaarCardNumber"
+                placeholder="Enter 12-digit Aadhaar number"
+                maxLength={12}
+                onChange={validation.handleChange}
+                onBlur={validation.handleBlur}
+                value={validation.values.aadhaarCardNumber || ""}
+                invalid={validation.touched.aadhaarCardNumber && validation.errors.aadhaarCardNumber ? true : false}
+                className="form-control"
+              />
+              {validation.touched.aadhaarCardNumber && validation.errors.aadhaarCardNumber && (
+                <FormFeedback type="invalid">
+                  {validation.errors.aadhaarCardNumber}
+                </FormFeedback>
+              )}
+            </div>
+          ) : validation.values.nationality === "Foreigner" ? (
+            <div className="mb-3">
+              <Label htmlFor="passportNumber" className="form-label">
+                International Passport Number <span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="text"
+                name="passportNumber"
+                id="passportNumber"
+                placeholder="Enter passport number"
+                onChange={validation.handleChange}
+                onBlur={validation.handleBlur}
+                value={validation.values.passportNumber || ""}
+                invalid={validation.touched.passportNumber && validation.errors.passportNumber ? true : false}
+                className="form-control"
+              />
+              {validation.touched.passportNumber && validation.errors.passportNumber && (
+                <FormFeedback type="invalid">
+                  {validation.errors.passportNumber}
+                </FormFeedback>
+              )}
+              <div
+                style={{
+                  marginTop: "0.5rem",
+                  padding: "0.5rem 0.75rem",
+                  backgroundColor: "#fff3cd",
+                  border: "1px solid #ffc107",
+                  borderRadius: "0.375rem",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "0.5rem",
+                  fontSize: "0.8125rem",
+                  color: "#856404",
+                }}
+              >
+                <i className="ri-information-line" style={{ fontSize: "1rem", flexShrink: 0 }} />
+                <span>Inform FRR office</span>
+              </div>
+            </div>
+          ) : null}
+        </Col>
         <Col xs={12}>
           <div className="d-flex gap-3 align-items-center">
             <h6 className="display-6 fs-4">Guardian</h6>
@@ -294,41 +583,206 @@ const AdmitPatient = ({
                 {f.label}
                 {f.required && <span className="text-danger">*</span>}
               </Label>
-              <Input
-                type={f.type}
-                name={f.name}
-                onChange={validation.handleChange}
-                onBlur={validation.handleBlur}
-                value={validation.values[f.name] || ""}
-                invalid={
-                  validation.touched[f.name] && validation.errors[f.name]
-                    ? true
-                    : false
-                }
-                className="form-control"
-                placeholder=""
-                id={f.name}
-              />
+              {f.type === "phoneNumber" ? (
+                <PhoneInputWithCountrySelect
+                  placeholder="Enter phone number"
+                  name={f.name}
+                  value={validation.values[f.name]}
+                  onChange={(value) =>
+                    validation.setFieldValue(f.name, value || "")
+                  }
+                  onBlur={() => validation.setFieldTouched(f.name, true)}
+                  defaultCountry="IN"
+                  limitMaxLength={true}
+                  style={{
+                    width: "100%",
+                    height: "42px",
+                    padding: "0.5rem 0.75rem",
+                    border: `1px solid ${validation.touched[f.name] && validation.errors[f.name]
+                      ? "#dc3545"
+                      : "#ced4da"
+                      }`,
+                    borderRadius: "0.375rem",
+                    fontSize: "1rem",
+                  }}
+                />
+              ) : (
+                <Input
+                  type={f.type}
+                  name={f.name}
+                  onChange={validation.handleChange}
+                  onBlur={validation.handleBlur}
+                  value={validation.values[f.name] || ""}
+                  invalid={
+                    validation.touched[f.name] && validation.errors[f.name]
+                      ? true
+                      : false
+                  }
+                  className="form-control"
+                  placeholder=""
+                  id={f.name}
+                />
+              )}
               {validation.touched[f.name] && validation.errors[f.name] ? (
-                <FormFeedback type="invalid">
+                <FormFeedback type="invalid" className="d-block">
                   <div>{validation.errors[f.name]}</div>
                 </FormFeedback>
               ) : null}
             </div>
           </Col>
         ))}
+        <Col xs={12} lg={4}>
+          <div className="mb-3">
+            <Label htmlFor="referredBy" className="form-label">
+              Referred By <span className="text-danger">*</span>
+            </Label>
+
+            <Select
+              value={selectedReferral}
+              onChange={(option) => {
+                setSelectedReferral(option);
+                const staticValues = [
+                  "other",
+                  "doctor",
+                  "psychiatrist",
+                  "online",
+                ];
+                if (option && staticValues.includes(option.value)) {
+                  setIsOtherReferral(true);
+                  validation.setFieldValue("referredBy", "");
+                  validation.setFieldValue("referralPhoneNumber", "");
+                  validation.setFieldValue("referralType", option.value);
+                } else {
+                  setIsOtherReferral(false);
+                  validation.setFieldValue("referredBy", option?.value || "");
+                  validation.setFieldValue("referralPhoneNumber", "");
+                  validation.setFieldValue("referralType", "");
+                }
+              }}
+              onBlur={() => validation.setFieldTouched("referredBy", true)}
+              options={[
+                ...(referrals || []).map((ref) => ({
+                  value: ref._id,
+                  label: ref.doctorName,
+                })),
+                { value: "psychiatrist", label: "Psychiatrist" },
+                { value: "doctor", label: "Doctor" },
+                { value: "online", label: "Online" },
+                { value: "other", label: "Other" },
+              ]}
+              placeholder="Select or search for a referral doctor"
+              isClearable
+              isLoading={referralsLoading}
+              styles={{
+                control: (provided, state) => ({
+                  ...provided,
+                  borderColor:
+                    validation.touched.referredBy &&
+                      validation.errors.referredBy
+                      ? "#dc3545"
+                      : "#ced4da",
+                  boxShadow: state.isFocused
+                    ? validation.touched.referredBy &&
+                      validation.errors.referredBy
+                      ? "0 0 0 0.2rem rgba(220, 53, 69, 0.25)"
+                      : "0 0 0 0.2rem rgba(13, 110, 253, 0.25)"
+                    : "none",
+                  "&:hover": {
+                    borderColor:
+                      validation.touched.referredBy &&
+                        validation.errors.referredBy
+                        ? "#dc3545"
+                        : "#86b7fe",
+                  },
+                }),
+                menu: (provided) => ({
+                  ...provided,
+                  zIndex: 9999,
+                }),
+              }}
+            />
+
+            {isOtherReferral && (
+              <>
+                <Input
+                  name="referredBy"
+                  className="form-control mt-2"
+                  placeholder="Enter doctor name"
+                  type="text"
+                  onChange={validation.handleChange}
+                  onBlur={validation.handleBlur}
+                  value={validation.values.referredBy || ""}
+                  invalid={
+                    validation.touched.referredBy &&
+                    validation.errors.referredBy
+                  }
+                />
+                <div className="mt-2">
+                  <PhoneInputWithCountrySelect
+                    placeholder="Referral phone number (optional)"
+                    name="referralPhoneNumber"
+                    value={validation.values.referralPhoneNumber}
+                    onChange={(value) =>
+                      validation.setFieldValue(
+                        "referralPhoneNumber",
+                        value || "",
+                      )
+                    }
+                    onBlur={() =>
+                      validation.setFieldTouched("referralPhoneNumber", true)
+                    }
+                    defaultCountry="IN"
+                    limitMaxLength={true}
+                    style={{
+                      width: "100%",
+                      height: "42px",
+                      padding: "0.5rem 0.75rem",
+                      border: `1px solid ${validation.touched.referralPhoneNumber &&
+                        validation.errors.referralPhoneNumber
+                        ? "#dc3545"
+                        : "#ced4da"
+                        }`,
+                      borderRadius: "0.375rem",
+                      fontSize: "1rem",
+                    }}
+                  />
+                  {validation.touched.referralPhoneNumber &&
+                    validation.errors.referralPhoneNumber && (
+                      <div
+                        style={{
+                          color: "#dc3545",
+                          fontSize: "0.875rem",
+                          marginTop: "0.25rem",
+                        }}
+                      >
+                        {validation.errors.referralPhoneNumber}
+                      </div>
+                    )}
+                </div>
+              </>
+            )}
+
+            {validation.touched.referredBy && validation.errors.referredBy && (
+              <FormFeedback type="invalid" className="d-block">
+                {validation.errors.referredBy}
+              </FormFeedback>
+            )}
+          </div>
+        </Col>
       </Row>
       <div className="d-flex justify-content-end mt-3">
         <Button
           onClick={() => {
             // Get all required fields from step 1 (excluding email)
             const step1Fields = [
-              ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
+              ...patientFields.filter((f) => f.name !== "email"),
               ...patientGuardianFields.filter(
-                (f) => f.name !== "ipdFileNumber"
+                (f) => f.name !== "ipdFileNumber",
               ),
-              // ...patientGuardianFields,
             ].map((f) => f.name);
+
+            // Also touch nationality (custom Select field)
+            validation.setFieldTouched("nationality", true);
 
             // Touch all fields to trigger validation
             step1Fields.forEach((field) => {
@@ -337,17 +791,24 @@ const AdmitPatient = ({
 
             // Check if there are any validation errors
             const step1Errors = step1Fields.filter(
-              (field) => validation.errors[field]
+              (field) => validation.errors[field],
             );
+
+            // Check nationality error separately
+            const nationalityMissing = !validation.values.nationality;
 
             // Check if any required fields are empty (excluding email)
             const emptyFields = step1Fields.filter(
               (field) =>
                 !validation.values[field] ||
-                validation.values[field].toString().trim() === ""
+                validation.values[field].toString().trim() === "",
             );
 
-            if (step1Errors.length > 0 || emptyFields.length > 0) {
+            if (
+              step1Errors.length > 0 ||
+              emptyFields.length > 0 ||
+              nationalityMissing
+            ) {
               return; // Don't proceed to next step
             }
 
@@ -418,6 +879,15 @@ const AdmitPatient = ({
             {validation.touched.center && validation.errors.center ? (
               <FormFeedback>{validation.errors.center}</FormFeedback>
             ) : null}
+            {/* Rendered outside FormFeedback because the select is not
+                `invalid` here — Formik's own validation passes, this is a
+                separate business rule. FormFeedback only shows when the
+                sibling input carries .is-invalid. */}
+            {isBlockedCenterSelected ? (
+              <div className="text-danger small mt-1">
+                {`Cannot admit to ${BLOCKED_CENTER_TITLE}. Please admit to ${BLOCKED_CENTER_ALTERNATIVE} instead.`}
+              </div>
+            ) : null}
           </div>
         </Col>
         <Col xs={12} md={6}>
@@ -434,7 +904,7 @@ const AdmitPatient = ({
                   now.getHours(),
                   now.getMinutes(),
                   now.getSeconds(),
-                  now.getMilliseconds()
+                  now.getMilliseconds(),
                 );
                 const event = { target: { name: "addmissionDate", value: e } };
                 validation.handleChange(event);
@@ -443,17 +913,11 @@ const AdmitPatient = ({
                 dateFormat: "d M, Y h:i K",
                 enableTime: true,
                 time_24hr: false,
-                // enable: [
-                //   (date) =>
-                //     patient?.addmission?.dischargeDate
-                //       ? date > new Date(patient?.addmission?.dischargeDate)
-                //       : true,
-                // ],
               }}
               className="form-control shadow-none bg-light"
             />
             {validation.touched.addmissionDate &&
-            validation.errors.addmissionDate ? (
+              validation.errors.addmissionDate ? (
               <FormFeedback className="d-block" type="invalid">
                 {validation.errors.addmissionDate}
               </FormFeedback>
@@ -475,24 +939,18 @@ const AdmitPatient = ({
                     now.getHours(),
                     now.getMinutes(),
                     now.getSeconds(),
-                    now.getMilliseconds()
+                    now.getMilliseconds(),
                   );
                   const event = { target: { name: "dischargeDate", value: e } };
                   validation.handleChange(event);
                 }}
                 options={{
                   dateFormat: "d M, Y",
-                  // enable: [
-                  //   (date) =>
-                  //     patient?.addmission?.dischargeDate
-                  //       ? date > new Date(patient?.addmission?.dischargeDate)
-                  //       : true,
-                  // ],
                 }}
                 className="form-control shadow-none bg-light"
               />
               {validation.touched.dischargeDate &&
-              validation.errors.dischargeDate ? (
+                validation.errors.dischargeDate ? (
                 <FormFeedback className="d-block" type="invalid">
                   {validation.errors.dischargeDate}
                 </FormFeedback>
@@ -509,23 +967,31 @@ const AdmitPatient = ({
         />
       </Row>
       <div className="d-flex justify-content-between mt-3">
-        <Button size="sm" color="secondary" onClick={() => setStep(1)}>
+        <Button
+          size="sm"
+          color="secondary"
+          disabled={submitting}
+          onClick={() => setStep(1)}
+        >
           Back
         </Button>
         <Button
           size="sm"
           type="submit"
+          disabled={submitting || isBlockedCenterSelected}
           onClick={(e) => {
             e.preventDefault();
 
             // First validate step 1 fields
             const step1Fields = [
-              ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
+              ...patientFields.filter((f) => f.name !== "email"),
               ...patientGuardianFields.filter(
-                (f) => f.name !== "ipdFileNumber"
+                (f) => f.name !== "ipdFileNumber",
               ),
-              // ...patientGuardianFields,
             ].map((f) => f.name);
+
+            // Touch nationality (custom Select, tracked separately)
+            validation.setFieldTouched("nationality", true);
 
             // Touch all step 1 fields
             step1Fields.forEach((field) => {
@@ -534,13 +1000,14 @@ const AdmitPatient = ({
 
             // Check step 1 validation
             const step1Errors = step1Fields.filter(
-              (field) => validation.errors[field]
+              (field) => validation.errors[field],
             );
             const step1EmptyFields = step1Fields.filter(
               (field) =>
                 !validation.values[field] ||
-                validation.values[field].toString().trim() === ""
+                validation.values[field].toString().trim() === "",
             );
+            const nationalityMissing = !validation.values.nationality;
 
             // Then validate step 2 fields
             const step2Fields = [
@@ -556,18 +1023,19 @@ const AdmitPatient = ({
 
             // Check step 2 validation
             const step2Errors = step2Fields.filter(
-              (field) => validation.errors[field]
+              (field) => validation.errors[field],
             );
             const step2EmptyFields = step2Fields.filter(
               (field) =>
                 !validation.values[field] ||
-                validation.values[field].toString().trim() === ""
+                validation.values[field].toString().trim() === "",
             );
 
             // If there are any errors or empty fields, don't submit
             if (
               step1Errors.length > 0 ||
               step1EmptyFields.length > 0 ||
+              nationalityMissing ||
               step2Errors.length > 0 ||
               step2EmptyFields.length > 0
             ) {
@@ -578,7 +1046,7 @@ const AdmitPatient = ({
             validation.handleSubmit();
           }}
         >
-          Save
+          {submitting ? <Spinner size="sm" /> : "Save"}
         </Button>
       </div>
     </>
@@ -608,12 +1076,14 @@ const AdmitPatient = ({
             if (step === 1) {
               // Get all required fields from step 1
               const step1Fields = [
-                ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
+                ...patientFields.filter((f) => f.name !== "email"),
                 ...patientGuardianFields.filter(
-                  (f) => f.name !== "ipdFileNumber"
+                  (f) => f.name !== "ipdFileNumber",
                 ),
-                // ...patientGuardianFields,
               ].map((f) => f.name);
+
+              // Touch nationality (custom Select, tracked separately)
+              validation.setFieldTouched("nationality", true);
 
               // Touch all fields to trigger validation
               step1Fields.forEach((field) => {
@@ -622,17 +1092,23 @@ const AdmitPatient = ({
 
               // Check if there are any validation errors
               const step1Errors = step1Fields.filter(
-                (field) => validation.errors[field]
+                (field) => validation.errors[field],
               );
+
+              const nationalityMissing = !validation.values.nationality;
 
               // Check if any required fields are empty
               const emptyFields = step1Fields.filter(
                 (field) =>
                   !validation.values[field] ||
-                  validation.values[field].toString().trim() === ""
+                  validation.values[field].toString().trim() === "",
               );
 
-              if (step1Errors.length > 0 || emptyFields.length > 0) {
+              if (
+                step1Errors.length > 0 ||
+                emptyFields.length > 0 ||
+                nationalityMissing
+              ) {
                 return; // Don't proceed to step 2
               }
             }
@@ -644,23 +1120,23 @@ const AdmitPatient = ({
             (() => {
               // Check if step 1 is incomplete (excluding email)
               const step1Fields = [
-                ...patientFields.filter((f) => f.name !== "email"), // Exclude email from required fields
+                ...patientFields.filter((f) => f.name !== "email"),
                 ...patientGuardianFields.filter(
-                  (f) => f.name !== "ipdFileNumber"
+                  (f) => f.name !== "ipdFileNumber",
                 ),
-                // ...patientGuardianFields,
               ].map((f) => f.name);
 
               const hasErrors = step1Fields.some(
-                (field) => validation.errors[field]
+                (field) => validation.errors[field],
               );
               const hasEmptyFields = step1Fields.some(
                 (field) =>
                   !validation.values[field] ||
-                  validation.values[field].toString().trim() === ""
+                  validation.values[field].toString().trim() === "",
               );
+              const nationalityMissing = !validation.values.nationality;
 
-              return hasErrors || hasEmptyFields;
+              return hasErrors || hasEmptyFields || nationalityMissing;
             })()
           }
         >
@@ -671,6 +1147,10 @@ const AdmitPatient = ({
       <Form
         onSubmit={(e) => {
           e.preventDefault();
+          // Also guarded here, not just on the button: pressing Enter in any
+          // field submits the form directly and would otherwise bypass the
+          // disabled submit button.
+          if (isBlockedCenterSelected) return;
           validation.handleSubmit();
         }}
         className="needs-validation"
@@ -695,6 +1175,8 @@ const mapStateToProps = (state) => ({
   doctorLoading: state.User.doctorLoading,
   doctors: state.User.doctor,
   counsellors: state.User.counsellors,
+  referrals: state.Referral.data,
+  referralsLoading: state.Referral.loading,
 });
 
 export default connect(mapStateToProps)(AdmitPatient);
