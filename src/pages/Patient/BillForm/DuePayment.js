@@ -6,6 +6,10 @@ import { useFormik } from "formik";
 import InvoiceTable from "./Components/InvoiceTable";
 import InvoiceFooter from "./Components/InvoiceFooter";
 import SubmitForm from "./Components/SubmitForm";
+import {
+  rowsMissingEvidence,
+  evidenceErrorMessage,
+} from "./Components/evidenceRequired";
 import { connect, useDispatch, useSelector } from "react-redux";
 import {
   addInvoice,
@@ -51,6 +55,13 @@ const DuePayment = ({
       ? editBillData.receiptInvoice
       : editBillData.invoice
     : null;
+  const existingTransactionProof = editData?.transactionProof;
+
+  // Recomputed each render so the message and the disabled Save button clear the
+  // moment a file is attached, without any extra state to keep in sync.
+  const evidenceError = evidenceErrorMessage(
+    rowsMissingEvidence(paymentModes, existingTransactionProof),
+  );
   // getProceduresByid
   const advpayment = useSelector((state) => state.Bill.calculatedAdvance);
 
@@ -181,6 +192,15 @@ const DuePayment = ({
     }),
 
     onSubmit: async (values) => {
+      // Enforced here as well as on the disabled button: `paymentModes` lives in
+      // local state, so Formik/Yup never sees it, and the form can still be
+      // submitted by pressing Enter in any field.
+      if (rowsMissingEvidence(paymentModes, existingTransactionProof).length)
+        return;
+
+      const evidenceEntries = collectEvidenceFiles(paymentModes);
+      const cleanPaymentModes = stripEvidenceFiles(paymentModes);
+
       if (editData) {
         const response = await dispatch(
           updateInvoice({
@@ -734,10 +754,14 @@ const DuePayment = ({
             isLatest={isLatest}
             {...rest}
           />
+          {evidenceError ? (
+            <p className="text-danger small text-end mb-2">{evidenceError}</p>
+          ) : null}
           <SubmitForm
             {...rest}
             enteredRefundAmount={validation.values.refund}
             bill={invoiceType}
+            disabled={!!evidenceError}
           />
 
           <FromDateModal
