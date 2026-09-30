@@ -41,7 +41,7 @@ const DnrConsentFormModal = ({
 
   const buildPdf = async () => {
     const pdf = new jsPDF("p", "pt", "a4");
-    await captureSection(formRef, pdf, true, 1.5);
+    await captureSection(formRef, pdf, true, 1.0);
     return pdf;
   };
 
