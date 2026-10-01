@@ -75,6 +75,8 @@ const PosPayments = ({ centers, centerAccess }) => {
   const canView = hasPermission("POS_PAYMENTS", "POS_MONITOR", "READ");
   // Refunds send money back, so they are a separate grant from merely looking.
   const canRefund = hasPermission("POS_PAYMENTS", "POS_REFUND", "WRITE");
+  // Billing writes to the patient's billing, so it is its own grant too.
+  const canBill = hasPermission("POS_PAYMENTS", "POS_BILL", "WRITE");
 
   useEffect(() => {
     if (permissionLoader) return;
@@ -404,6 +406,7 @@ const PosPayments = ({ centers, centerAccess }) => {
                       : "No POS charges yet."
                   }
                   showRefund={canRefund}
+                  showBill={canBill}
                   onRefund={setRefundTarget}
                   onCreateBill={createBill}
                   totalRows={total}
