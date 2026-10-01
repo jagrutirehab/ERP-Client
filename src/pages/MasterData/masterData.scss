@@ -1,44 +1,202 @@
-.master-data-sidebar-col {
-  width: 250px;
-}
+// =========================================================
+// Master Data — Layout shell
+// =========================================================
 
-.master-data-sidebar-col .chat-leftsidebar {
-  width: 100%;
-  margin-top: 0 !important;
-}
-
-.master-data-sidebar-col .chat-room-list {
-  overflow-x: hidden !important;
-}
-
-.master-data-sidebar-col .ps__rail-x {
-  display: none !important;
-}
-
-@media (max-width: 991.98px) {
-  .master-data-sidebar-col {
-    width: 100%;
-  }
-}
 .master-data-shell {
   display: flex;
   background: #fff;
   height: calc(100vh - 70px);
+  border-top: 1px solid #edeff3;
 }
 
 .master-data-sidebar-col {
+  width: 250px;
   height: 100%;
   flex-shrink: 0;
   overflow: hidden;
+  background: #fafbfc;
+  border-right: 1px solid #edeff3;
+
+  .chat-leftsidebar {
+    width: 100%;
+    margin-top: 0 !important;
+  }
+
+  .chat-room-list {
+    overflow-x: hidden !important;
+    padding: 4px 10px 20px;
+  }
+
+  .ps__rail-x {
+    display: none !important;
+  }
+
+  // ---------- Top-level items ----------
+  ul.chat-user-list {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  ul.chat-user-list > li {
+    margin-bottom: 0 !important;
+
+    > a,
+    > div[role="button"] {
+      padding: 10px 12px !important;
+      border-radius: 10px;
+      transition:
+        background-color 0.15s ease,
+        color 0.15s ease;
+      color: #475467;
+
+      &:hover {
+        background: #f1f2f6;
+      }
+    }
+
+    &.active > a,
+    &.active > div[role="button"] {
+      background: #eef2ff;
+
+      p {
+        color: #4338ca;
+        font-weight: 700;
+      }
+
+      i.fs-4 {
+        color: #4f46e5;
+      }
+    }
+  }
+
+  // ---------- Icon box ----------
+  .avatar-xxs {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #fff;
+    border: 1px solid #edeff3;
+    flex-shrink: 0;
+
+    i {
+      font-size: 16px !important;
+      color: #667085;
+    }
+  }
+
+  // ---------- Label text ----------
+  p.font-semi-bold {
+    font-size: 13.5px !important;
+    font-weight: 600;
+    color: inherit;
+    margin: 0;
+  }
+
+  // ---------- Chevron ----------
+  .bx-chevron-up,
+  .bx-chevron-down {
+    font-size: 16px;
+    color: #98a2b3;
+  }
+
+  // ---------- Sub-menu ----------
+  ul.ps-4 {
+    padding-left: 14px !important;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    border-left: 2px solid #edeff3;
+    margin-left: 16px;
+
+    li {
+      margin-bottom: 0 !important;
+
+      a {
+        padding: 8px 10px !important;
+        border-radius: 8px;
+        color: #667085;
+        transition:
+          background-color 0.15s ease,
+          color 0.15s ease;
+
+        &:hover {
+          background: #f1f2f6;
+          color: #344054;
+        }
+      }
+
+      &.active a {
+        background: #eef2ff;
+
+        p {
+          color: #4338ca;
+          font-weight: 700;
+        }
+
+        i {
+          color: #4f46e5;
+        }
+      }
+
+      .avatar-xxs {
+        width: 26px;
+        height: 26px;
+        border-radius: 7px;
+        background: transparent;
+        border: none;
+
+        i {
+          font-size: 14px !important;
+        }
+      }
+
+      p.fs-14 {
+        font-size: 13px !important;
+      }
+    }
+  }
+
+  // ---------- Section divider labels ----------
+  li[style*="uppercase"] {
+    margin-top: 10px !important;
+    margin-bottom: 2px !important;
+  }
 }
+
+// ---------- Hamburger button spacing ----------
+.master-data-sidebar-col .ps-3.pe-3.pt-3 {
+  padding: 16px 14px 8px !important;
+  border-bottom: 1px solid #edeff3;
+  margin-bottom: 8px !important;
+}
+
+// =========================================================
+// Content area
+// =========================================================
 
 .master-data-content-col {
   flex-grow: 1;
+  min-width: 0;
   height: 100%;
   overflow-y: auto;
+  background: #fff;
+  padding: 0;
 }
 
-/* Mobile/tablet: stack sidebar above content instead of squeezing side by side */
+.master-data-content-col > div {
+  min-height: 100%;
+}
+
+// =========================================================
+// Mobile / tablet
+// =========================================================
+
 @media (max-width: 991.98px) {
   .master-data-shell {
     flex-direction: column;
@@ -50,10 +208,20 @@
     width: 100%;
     max-height: 60vh;
     overflow-y: auto;
+    border-right: none;
+
+    .chat-room-list {
+      padding: 4px 8px 14px;
+    }
+
+    ul.ps-4 {
+      margin-left: 12px;
+    }
   }
 
   .master-data-content-col {
     height: auto;
     overflow-y: visible;
+    border-top: 1px solid #edeff3;
   }
 }

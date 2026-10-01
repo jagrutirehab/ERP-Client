@@ -9,27 +9,15 @@ import "./uom.scss";
 
 const tableCustomStyles = {
   headRow: {
-    style: {
-      backgroundColor: "#fff",
-      borderBottom: "1px solid #edeff3",
-      minHeight: "44px",
-    },
+    style: { backgroundColor: "#fff", borderBottom: "1px solid #edeff3", minHeight: "44px" },
   },
-  headCells: {
-    style: {
-      fontSize: "13px",
-      fontWeight: 600,
-      color: "#475569",
-    },
-  },
+  headCells: { style: { fontSize: "13px", fontWeight: 600, color: "#475569" } },
   rows: {
     style: {
       minHeight: "56px",
       fontSize: "14px",
       color: "#101828",
-      "&:not(:last-of-type)": {
-        borderBottomColor: "#edeff3",
-      },
+      "&:not(:last-of-type)": { borderBottomColor: "#edeff3" },
     },
     highlightOnHoverStyle: {
       backgroundColor: "#fafbfc",
@@ -37,13 +25,7 @@ const tableCustomStyles = {
       outline: "none",
     },
   },
-  pagination: {
-    style: {
-      borderTopColor: "#edeff3",
-      fontSize: "13px",
-      color: "#667085",
-    },
-  },
+  pagination: { style: { borderTopColor: "#edeff3", fontSize: "13px", color: "#667085" } },
 };
 
 const StatusPill = ({ status }) => (
@@ -59,29 +41,33 @@ const UOMList = ({ onAdd, onEdit }) => {
   const canCreate = hasPermission("MASTERDATA", "UOM", "WRITE");
   const canEdit = hasPermission("MASTERDATA", "UOM", "WRITE");
   const canDelete = hasPermission("MASTERDATA", "UOM", "DELETE");
+
   const [uoms, setUoms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [refreshFlag, setRefreshFlag] = useState(0);
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
+
+  // Typing rukne ke 400ms baad hi search hoga
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
   useEffect(() => {
     let cancelled = false;
     const fetchUoms = async () => {
       setLoading(true);
       try {
-        const res = await getUoms({ search });
+        const res = await getUoms({ search: debouncedSearch });
         if (cancelled) return;
         setUoms(res?.data || []);
       } catch (error) {
         if (cancelled) return;
         if (!handleAuthError(error)) {
-          toast.error(
-            error?.response?.data?.message ||
-              error?.message ||
-              "Couldn't load units. Please try again.",
-          );
+          toast.error(error?.response?.data?.message || error?.message || "Couldn't load units.");
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -91,7 +77,7 @@ const UOMList = ({ onAdd, onEdit }) => {
     return () => {
       cancelled = true;
     };
-  }, [search, refreshFlag]);
+  }, [debouncedSearch, refreshFlag]);
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
@@ -103,11 +89,7 @@ const UOMList = ({ onAdd, onEdit }) => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't delete unit. Please try again.",
-        );
+        toast.error(error?.response?.data?.message || error?.message || "Couldn't delete unit.");
       }
     } finally {
       setDeleting(false);
@@ -128,9 +110,7 @@ const UOMList = ({ onAdd, onEdit }) => {
     },
     {
       name: "Description",
-      cell: (row) => (
-        <span className="uom-cell-muted">{row.description || "—"}</span>
-      ),
+      cell: (row) => <span className="uom-cell-muted">{row.description || "—"}</span>,
     },
     {
       name: "Status",
@@ -142,30 +122,18 @@ const UOMList = ({ onAdd, onEdit }) => {
       width: "120px",
       right: true,
       cell: (row) => (
-        <div className="uom-row-actions">
+        <div className="d-flex gap-2">
           {canEdit && (
-            <button
-              type="button"
-              className="uom-icon-btn"
-              title="Edit"
-              onClick={() => onEdit(row)}
-            >
+            <Button size="sm" color="light" title="Edit" onClick={() => onEdit(row)}>
               <i className="bx bx-edit-alt"></i>
-            </button>
+            </Button>
           )}
           {canDelete && (
-            <button
-              type="button"
-              className="uom-icon-btn is-danger"
-              title="Delete"
-              onClick={() => setDeleteTarget(row)}
-            >
-              <i className="bx bx-trash"></i>
-            </button>
+            <Button size="sm" color="light" title="Delete" onClick={() => setDeleteTarget(row)}>
+              <i className="bx bx-trash text-danger"></i>
+            </Button>
           )}
-          {!canEdit && !canDelete && (
-            <span className="text-muted small">—</span>
-          )}
+          {!canEdit && !canDelete && <span className="text-muted small">—</span>}
         </div>
       ),
     },
@@ -173,25 +141,29 @@ const UOMList = ({ onAdd, onEdit }) => {
 
   return (
     <div className="uom-page">
+      {/* Title + subtitle */}
       <div className="uom-list-header">
         <div>
           <h4>Unit of Measurements</h4>
-          {/* <p>Manage measurement units used across your item catalog</p> */}
+          <p>Manage measurement units used across your item catalog</p>
+        </div>
+      </div>
+
+      {/* Search + Add button same row mein */}
+      <div className="uom-toolbar">
+        <div className="uom-search-wrap mb-0">
+          <i className="bx bx-search"></i>
+          <Input
+            placeholder="Search units..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
         {canCreate && (
           <Button color="primary" onClick={onAdd}>
-            <i className="bx bx-plus me-1"></i> Add unit
+            <i className="bx bx-plus me-1"></i> Add Unit
           </Button>
         )}
-      </div>
-
-      <div className="uom-search-wrap mb-3">
-        <i className="bx bx-search"></i>
-        <Input
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
       </div>
 
       <div className="uom-table-card">
@@ -203,11 +175,7 @@ const UOMList = ({ onAdd, onEdit }) => {
           progressComponent={
             <div className="w-100 p-3">
               {[1, 2, 3].map((i) => (
-                <div
-                  key={i}
-                  className="uom-skeleton mb-2"
-                  style={{ height: 44 }}
-                />
+                <div key={i} className="uom-skeleton mb-2" style={{ height: 44 }} />
               ))}
             </div>
           }
@@ -216,19 +184,13 @@ const UOMList = ({ onAdd, onEdit }) => {
           noDataComponent={
             <div className="uom-empty-state">
               <p className="uom-empty-title">No units found</p>
-              <p className="uom-empty-sub">
-                Try adjusting your search, or add your first unit.
-              </p>
+              <p className="uom-empty-sub">Try adjusting your search, or add your first unit.</p>
             </div>
           }
         />
       </div>
 
-      <Modal
-        isOpen={!!deleteTarget}
-        toggle={() => setDeleteTarget(null)}
-        centered
-      >
+      <Modal isOpen={!!deleteTarget} toggle={() => setDeleteTarget(null)} centered>
         <ModalBody className="p-4">
           <h5 className="mb-2">Delete this unit?</h5>
           <p className="text-muted mb-4">
@@ -240,11 +202,7 @@ const UOMList = ({ onAdd, onEdit }) => {
             will be permanently deleted. This cannot be undone.
           </p>
           <div className="d-flex justify-content-end gap-2">
-            <Button
-              color="light"
-              onClick={() => setDeleteTarget(null)}
-              disabled={deleting}
-            >
+            <Button color="light" onClick={() => setDeleteTarget(null)} disabled={deleting}>
               Cancel
             </Button>
             <Button color="danger" onClick={confirmDelete} disabled={deleting}>

@@ -1617,16 +1617,42 @@ export const UTILITIES = [
 ];
 export const MASTER_DATA = [
   {
-    id: "masterdata-vendor",
-    label: "Vendors",
-    link: "/vendor-management/vendor",
-    icon: "bx bx-store",
-  },
-  {
-    id: "masterdata-item",
-    label: "Items",
-    link: "/vendor-management/item",
-    icon: "bx bx-package",
+    id: "masterdata-core",
+    label: "Master Data",
+    icon: "bx bx-data",
+    isAccordion: true,
+    children: [
+      {
+        id: "masterdata-vendor",
+        label: "Vendors",
+        link: "/vendor-management/vendor",
+        icon: "bx bx-store",
+      },
+      {
+        id: "masterdata-item",
+        label: "Items",
+        link: "/vendor-management/item",
+        icon: "bx bx-package",
+      },
+      {
+        id: "masterdata-uom",
+        label: "Unit of Measurements",
+        link: "/vendor-management/uom",
+        icon: "bx bx-ruler",
+      },
+      {
+        id: "masterdata-payment-term",
+        label: "Payment Terms",
+        link: "/vendor-management/payment-term",
+        icon: "bx bx-credit-card",
+      },
+      {
+        id: "masterdata-department",
+        label: "Departments",
+        link: "/vendor-management/department",
+        icon: "bx bx-building",
+      },
+    ],
   },
   // {
   //   id: "masterdata-customer",
@@ -1634,24 +1660,6 @@ export const MASTER_DATA = [
   //   link: "/master-data/customer",
   //   icon: "bx bx-user",
   // },
-  {
-    id: "masterdata-uom",
-    label: "Unit of Measurements",
-    link: "/vendor-management/uom",
-    icon: "bx bx-ruler",
-  },
-  {
-    id: "masterdata-payment-term",
-    label: "Payment Terms",
-    link: "/vendor-management/payment-term",
-    icon: "bx bx-credit-card",
-  },
-  {
-    id: "masterdata-department",
-    label: "Departments",
-    link: "/vendor-management/department",
-    icon: "bx bx-building",
-  },
   // {
   //   id: "masterdata-delivery-partner",
   //   label: "Delivery Partners",
