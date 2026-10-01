@@ -1816,14 +1816,14 @@ export const MASTER_DATA = [
         link: "/vendor-management/cwip",
       },
       {
-        id: "asset-fixed-register",
-        label: "Fixed Assets Register",
-        link: "/vendor-management/fixed-asset",
-      },
-      {
         id: "asset-capitalization",
         label: "Asset Capitalization",
         link: "/vendor-management/asset-capitalization",
+      },
+      {
+        id: "asset-fixed-register",
+        label: "Fixed Assets Register",
+        link: "/vendor-management/fixed-asset",
       },
       {
         id: "asset-transfer",

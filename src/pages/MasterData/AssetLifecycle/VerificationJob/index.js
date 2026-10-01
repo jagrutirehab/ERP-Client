@@ -383,7 +383,7 @@ const VerificationJob = () => {
             </Col>
           </Row>
 
-          <div className="form-check form-switch mb-3">
+          {/* <div className="form-check form-switch mb-3">
             <input
               className="form-check-input"
               type="checkbox"
@@ -394,7 +394,7 @@ const VerificationJob = () => {
             <label className="form-check-label" htmlFor="geoRestrictSwitch">
               Geo Restrict
             </label>
-          </div>
+          </div> */}
 
           <Label>Remarks</Label>
           <Input
