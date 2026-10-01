@@ -2289,8 +2289,14 @@ export const getExpiredStockDetails = (id, params = {}) => {
   });
 };
 
-export const removeExpiredStock = (data) => {
-  return api.create(`${url.PHARMACY_EXPIRED_STOCK}/remove`, data, {
+export const discardExpiredStock = (data) => {
+  return api.create(`${url.PHARMACY_EXPIRED_STOCK}/discard`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const discardAllExpiredStock = (data) => {
+  return api.create(`${url.PHARMACY_EXPIRED_STOCK}/discard-all`, data, {
     headers: { "X-No-Cookie-Token": "true" },
   });
 };

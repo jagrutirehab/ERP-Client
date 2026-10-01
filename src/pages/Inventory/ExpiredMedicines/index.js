@@ -8,6 +8,7 @@ import {
   Nav,
   NavItem,
   NavLink,
+  Button,
   Spinner,
 } from "reactstrap";
 import Select from "react-select";
@@ -20,11 +21,12 @@ import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import DataTableComponent from "../../../Components/Common/DataTable";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 import ExpiredStockDetailModal from "../Components/ExpiredStockDetailModal";
-import ExpiredStockApprovalModal from "../Components/ExpiredStockApprovalModal";
+import ExpiredStockDiscardModal from "../Components/ExpiredStockDiscardModal";
+import ExpiredStockBulkDiscardModal from "../Components/ExpiredStockBulkDiscardModal";
 import {
   fetchExpiredStock,
   fetchExpiredStockHistory,
-  removeExpiredStock,
+  discardExpiredStock,
 } from "../../../store/features/pharmacy/pharmacySlice";
 import {
   getExpiredStockColumns,
@@ -61,6 +63,7 @@ const ExpiredMedicines = () => {
 
   const [confirmRow, setConfirmRow] = useState(null);
   const [detailRow, setDetailRow] = useState(null);
+  const [bulkOpen, setBulkOpen] = useState(false);
   const [remarks, setRemarks] = useState("");
 
   const centerOptions = useMemo(
@@ -78,6 +81,13 @@ const ExpiredMedicines = () => {
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === selectedCenter) || centerOptions[0];
 
+  const activeCenters =
+    selectedCenter === "ALL"
+      ? user?.centerAccess || []
+      : !user?.centerAccess?.length
+        ? []
+        : [selectedCenter];
+
   // A batch is listed once per center, so neither the batch id nor the PHR id
   // is unique across rows — the table needs a composite key.
   const rows = useMemo(
@@ -93,19 +103,10 @@ const ExpiredMedicines = () => {
   );
 
   const loadData = (targetPage = page, tab = activeTab) => {
-    const centers =
-      selectedCenter === "ALL"
-        ? user?.centerAccess
-        : !user?.centerAccess?.length
-          ? []
-          : [selectedCenter];
-
-    if (!centers?.length) return;
-
     const params = {
       page: targetPage,
       limit,
-      centers,
+      centers: activeCenters,
       search: searchQuery || undefined,
     };
 
@@ -130,7 +131,7 @@ const ExpiredMedicines = () => {
     setPage(1);
     loadData(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeTab, selectedCenter, limit, user?.centerAccess?.join(",")]);
+  }, [activeTab, selectedCenter, limit, activeCenters.join(",")]);
 
   useEffect(() => {
     loadData(page);
@@ -156,28 +157,28 @@ const ExpiredMedicines = () => {
     setConfirmRow(row);
   };
 
-  const submitRemoval = async () => {
+  const submitDiscard = async () => {
     if (!confirmRow) return;
 
     try {
       const result = await dispatch(
-        removeExpiredStock({
+        discardExpiredStock({
           center: String(confirmRow.centerId),
           pharmacyIds: [confirmRow._id],
           remarks: remarks.trim(),
         })
       ).unwrap();
 
-      const removedCount = result?.data?.removed?.length || 0;
+      const discardedCount = result?.data?.discarded?.length || 0;
 
-      if (removedCount > 0) {
+      if (discardedCount > 0) {
         toast.success(
-          `Stock cleared for ${confirmRow.medicineName || confirmRow.id}`
+          `Stock discarded for ${confirmRow.medicineName || confirmRow.id}`
         );
       } else {
         toast.warning(
           result?.data?.skipped?.[0]?.reason ||
-          "Nothing was removed — this batch is no longer eligible"
+          "Nothing was discarded — this batch is no longer eligible"
         );
       }
 
@@ -185,16 +186,37 @@ const ExpiredMedicines = () => {
       loadData(page);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.message || "Failed to remove expired stock");
+        toast.error(error?.message || "Failed to discard expired stock");
       }
     }
+  };
+
+  // The modal owns the chunked discard loop itself (it already knows the
+  // preview total), and calls this once the whole run — every chunk — is
+  // done.
+  const handleBulkDiscardComplete = ({ discardedTotal, skippedTotal, error }) => {
+    if (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to discard expired stock");
+      }
+    } else if (discardedTotal > 0) {
+      toast.success(`Discarded ${discardedTotal} batch(es)`);
+    } else if (skippedTotal > 0) {
+      toast.warning("Nothing was discarded — the selected batches are no longer eligible");
+    } else {
+      toast.info("Nothing was discarded — no eligible expired stock found");
+    }
+
+    setBulkOpen(false);
+    setPage(1);
+    loadData(1);
   };
 
   const columns =
     activeTab === "EXPIRED"
       ? getExpiredStockColumns({
         openDetail: (row) => setDetailRow(row),
-        handleApprove: openConfirm,
+        handleDiscard: openConfirm,
         hasWritePermission,
       })
       : getExpiredStockHistoryColumns();
@@ -216,11 +238,27 @@ const ExpiredMedicines = () => {
     <React.Fragment>
       <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
         <div className="d-flex flex-column h-100">
-          <div className="mb-3">
-            <h5 className="mb-1 fw-semibold">Expired Medicines</h5>
-            <p className="text-muted mb-0 fs-13">
-              Review expired batches still holding stock and clear them after approval
-            </p>
+          <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-3">
+            <div>
+              <h5 className="mb-1 fw-semibold">Expired Medicines</h5>
+              <p className="text-muted mb-0 fs-13">
+                Review expired batches still holding stock and discard them
+              </p>
+            </div>
+            {activeTab === "EXPIRED" && hasWritePermission && (
+              <Button
+                color="danger"
+                onClick={() => {
+                  setRemarks("");
+                  setBulkOpen(true);
+                }}
+                disabled={!activeCenters.length}
+                className="text-white d-flex align-items-center gap-1 justify-content-center"
+              >
+                <i className="bx bx-trash fs-5" />
+                <span>Discard All</span>
+              </Button>
+            )}
           </div>
 
           <Nav tabs className="flex-wrap mb-0" style={{ borderBottom: "1px solid #dee2e6" }}>
@@ -306,7 +344,7 @@ const ExpiredMedicines = () => {
                   noDataComponent={
                     activeTab === "EXPIRED"
                       ? "No expired stock at the selected center"
-                      : "No removals recorded yet"
+                      : "No discards recorded yet"
                   }
                 />
               </div>
@@ -319,18 +357,29 @@ const ExpiredMedicines = () => {
         isOpen={!!detailRow}
         toggle={() => setDetailRow(null)}
         row={detailRow}
-        handleApprove={openConfirm}
+        handleDiscard={openConfirm}
         hasWritePermission={hasWritePermission}
       />
 
-      <ExpiredStockApprovalModal
+      <ExpiredStockDiscardModal
         isOpen={!!confirmRow}
         row={confirmRow}
         remarks={remarks}
         setRemarks={setRemarks}
         closeModal={() => setConfirmRow(null)}
-        submitApproval={submitRemoval}
+        submitDiscard={submitDiscard}
         loading={submitLoading}
+      />
+
+      <ExpiredStockBulkDiscardModal
+        isOpen={bulkOpen}
+        closeModal={() => setBulkOpen(false)}
+        centers={activeCenters}
+        centerLabel={selectedCenterOption?.label || "the selected center"}
+        isAllCenters={selectedCenter === "ALL"}
+        remarks={remarks}
+        setRemarks={setRemarks}
+        onComplete={handleBulkDiscardComplete}
       />
     </React.Fragment>
   );

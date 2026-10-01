@@ -564,11 +564,11 @@ const InventoryManagement = () => {
               ) : (
                 ""
               )}
-              {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
+              {/* {hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE") ? (
                 <Button size="sm" onClick={handleGiveMedicine}>Give Medicine</Button>
               ) : (
                 ""
-              )}
+              )} */}
               {!showCentralMedicine && (
                 <Button size="sm" onClick={() => setModalOpenFailedMedicineList(true)}>
                   View Failed Medicines

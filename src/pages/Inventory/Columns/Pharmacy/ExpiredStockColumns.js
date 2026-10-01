@@ -50,7 +50,7 @@ const batchCell = (phrId, batch) => (
 
 export const getExpiredStockColumns = ({
   openDetail,
-  handleApprove,
+  handleDiscard,
   hasWritePermission,
 } = {}) => [
   {
@@ -97,7 +97,7 @@ export const getExpiredStockColumns = ({
     wrap: true,
   },
   {
-    name: <div>Stock to Remove</div>,
+    name: <div>Stock to Discard</div>,
     selector: (row) => row.stock,
     sortable: true,
     cell: (row) => (
@@ -118,9 +118,9 @@ export const getExpiredStockColumns = ({
             className="btn btn-sm btn-success text-white"
             onClick={(e) => {
               e.stopPropagation();
-              if (handleApprove) handleApprove(row);
+              if (handleDiscard) handleDiscard(row);
             }}
-            title="Approve removal — sets this batch's stock to 0 at this center"
+            title="Discard — removes this batch from the center's inventory"
           >
             <i className="bx bx-check" />
           </button>
@@ -147,7 +147,7 @@ export const getExpiredStockColumns = ({
 
 export const getExpiredStockHistoryColumns = () => [
   {
-    name: <div>Removed On</div>,
+    name: <div>Discarded On</div>,
     selector: (row) => row.removedAt,
     sortable: true,
     cell: (row) => (
@@ -197,7 +197,7 @@ export const getExpiredStockHistoryColumns = () => [
     wrap: true,
   },
   {
-    name: <div>Qty Removed</div>,
+    name: <div>Qty Discarded</div>,
     selector: (row) => row.removedQty,
     cell: (row) => (
       <span className="fw-bold text-danger">
@@ -208,7 +208,7 @@ export const getExpiredStockHistoryColumns = () => [
     minWidth: "120px",
   },
   {
-    name: <div>Removed By</div>,
+    name: <div>Discarded By</div>,
     selector: (row) => row.removedBy?.name,
     cell: (row) => capitalizeWords(row.removedBy?.name) || "—",
     wrap: true,

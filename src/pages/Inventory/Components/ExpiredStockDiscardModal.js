@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Modal,
   ModalHeader,
@@ -10,24 +10,29 @@ import {
 } from "reactstrap";
 import moment from "moment";
 
-const ExpiredStockApprovalModal = ({
+const ExpiredStockDiscardModal = ({
   isOpen,
   row,
   remarks,
   setRemarks,
   closeModal,
-  submitApproval,
+  submitDiscard,
   loading,
 }) => {
-  // expiryDate is stored at UTC midnight of the labelled day, so read it in
-  // UTC — local formatting would shift it a day west of GMT.
+  const [acknowledged, setAcknowledged] = useState(false);
+
+
+  useEffect(() => {
+    if (isOpen) setAcknowledged(false);
+  }, [isOpen, row?._id]);
+
   const expiry = row?.expiryDate
     ? moment.utc(row.expiryDate).format("DD MMM YYYY")
     : row?.Expiry || "—";
 
   return (
     <Modal isOpen={isOpen} toggle={closeModal} centered size="xl">
-      <ModalHeader toggle={closeModal}>Approve Stock Removal</ModalHeader>
+      <ModalHeader toggle={closeModal}>Discard Expired Stock</ModalHeader>
       <ModalBody>
         <div
           className="d-flex align-items-start gap-2 p-3 mb-3"
@@ -39,8 +44,9 @@ const ExpiredStockApprovalModal = ({
         >
           <i className="bx bx-error-circle fs-5 text-danger" />
           <div style={{ fontSize: 13 }}>
-            This will set stock to <strong>0</strong> for this batch at{" "}
-            <strong>{row?.center?.title}</strong>.
+            This will remove this batch from{" "}
+            <strong>{row?.center?.title}</strong>'s inventory. If this is the
+            only center stocking it, the batch will be deleted entirely.
             <div className="text-muted mt-1" style={{ fontSize: 12 }}>
               This cannot be undone.
             </div>
@@ -61,7 +67,7 @@ const ExpiredStockApprovalModal = ({
               {row.id} · Batch {row.Batch || "—"} · Expired {expiry}
             </div>
             <div className="mt-2">
-              Stock to remove:{" "}
+              Stock to discard:{" "}
               <span className="fw-bold text-danger">
                 {row.stock} {row.medicine?.baseUnit || ""}
               </span>
@@ -79,6 +85,24 @@ const ExpiredStockApprovalModal = ({
             onChange={(e) => setRemarks(e.target.value)}
           />
         </div>
+
+        <div className="form-check mt-3">
+          <input
+            className="form-check-input"
+            type="checkbox"
+            id="discard-ack"
+            checked={acknowledged}
+            onChange={(e) => setAcknowledged(e.target.checked)}
+          />
+          <label
+            className="form-check-label fw-semibold"
+            htmlFor="discard-ack"
+            style={{ fontSize: 13 }}
+          >
+            I acknowledge that this expired stock has been physically discarded
+            and should be cleared from inventory.
+          </label>
+        </div>
       </ModalBody>
       <ModalFooter>
         <Button color="light" onClick={closeModal} disabled={loading}>
@@ -87,14 +111,14 @@ const ExpiredStockApprovalModal = ({
         <Button
           color="success"
           className="text-white"
-          onClick={submitApproval}
-          disabled={loading}
+          onClick={submitDiscard}
+          disabled={loading || !acknowledged}
         >
-          {loading ? <Spinner size="sm" /> : "Approve & Remove"}
+          {loading ? <Spinner size="sm" /> : "Discard"}
         </Button>
       </ModalFooter>
     </Modal>
   );
 };
 
-export default ExpiredStockApprovalModal;
+export default ExpiredStockDiscardModal;

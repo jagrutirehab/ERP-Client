@@ -31,7 +31,7 @@ const ExpiredStockDetailModal = ({
   isOpen,
   toggle,
   row,
-  handleApprove,
+  handleDiscard,
   hasWritePermission,
 }) => {
   const dispatch = useDispatch();
@@ -205,11 +205,11 @@ const ExpiredStockDetailModal = ({
             className="text-white"
             onClick={() => {
               toggle();
-              if (handleApprove) handleApprove(row);
+              if (handleDiscard) handleDiscard(row);
             }}
           >
             <i className="bx bx-check me-1" />
-            Approve Removal
+            Discard
           </Button>
         )}
       </ModalFooter>

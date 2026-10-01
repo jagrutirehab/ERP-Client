@@ -25,7 +25,7 @@ import {
     getPharmacyReturns as getPharmacyReturnsApi,
     getExpiredStock as getExpiredStockApi,
     getExpiredStockHistory as getExpiredStockHistoryApi,
-    removeExpiredStock as removeExpiredStockApi,
+    discardExpiredStock as discardExpiredStockApi,
     getExpiredStockDetails as getExpiredStockDetailsApi,
 } from "../../../helpers/backend_helper";
 
@@ -360,11 +360,11 @@ export const fetchExpiredStockDetails = createAsyncThunk(
     }
 );
 
-export const removeExpiredStock = createAsyncThunk(
-    "pharmacy/removeExpiredStock",
+export const discardExpiredStock = createAsyncThunk(
+    "pharmacy/discardExpiredStock",
     async (data, { rejectWithValue }) => {
         try {
-            const response = await removeExpiredStockApi(data);
+            const response = await discardExpiredStockApi(data);
             return response;
         } catch (error) {
             return rejectWithValue(error);
@@ -391,13 +391,13 @@ export const pharmacySlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
-            .addCase(removeExpiredStock.pending, (state) => {
+            .addCase(discardExpiredStock.pending, (state) => {
                 state.submitLoading = true;
             })
-            .addCase(removeExpiredStock.fulfilled, (state) => {
+            .addCase(discardExpiredStock.fulfilled, (state) => {
                 state.submitLoading = false;
             })
-            .addCase(removeExpiredStock.rejected, (state) => {
+            .addCase(discardExpiredStock.rejected, (state) => {
                 state.submitLoading = false;
             });
 
