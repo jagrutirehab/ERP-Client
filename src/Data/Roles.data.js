@@ -173,6 +173,9 @@ export const permissionList = [
       // Refunds move money back to the customer — kept separate so it can be
       // granted to finance without giving it to every cashier.
       { name: "POS_REFUND", label: "Refund POS Payments" },
+      // "Bill it" raises the bill for a charge the terminal already took.
+      // Separate from viewing, since it writes to the patient's billing.
+      { name: "POS_BILL", label: "Bill POS Payments" },
     ],
   },
   {
