@@ -62,6 +62,7 @@ const PosTransactionTable = ({
   emptyText,
   onRefund,
   showRefund,
+  showBill,
   onCreateBill,
   totalRows,
   page,
@@ -222,7 +223,7 @@ const PosTransactionTable = ({
             {/* The terminal took this money and nothing recorded it — most
                 often an ERP crash mid-transaction. Raising the deposit here
                 is the recovery, and needs no re-charge. */}
-            {!row.consumed && (
+            {showBill && !row.consumed && (
               <Button
                 size="sm"
                 color="primary"
@@ -282,6 +283,7 @@ PosTransactionTable.propTypes = {
   emptyText: PropTypes.string,
   onRefund: PropTypes.func,
   showRefund: PropTypes.bool,
+  showBill: PropTypes.bool,
   onCreateBill: PropTypes.func,
   totalRows: PropTypes.number,
   page: PropTypes.number,
