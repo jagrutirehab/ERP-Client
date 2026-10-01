@@ -142,11 +142,10 @@ const InternalTransfer = ({ isSareyaanPage = false }) => {
         "DELETE"
     );
 
-    const SPECIAL_ORDER_CENTER_IDS = ["6673daaeccb7e3e7f6eab071"];
     const filteredCenters = (centerList || []).filter((c) => {
         if (!user?.centerAccess?.includes(c._id)) return false;
-        if (isSareyaanPage) return true;
-        return !SPECIAL_ORDER_CENTER_IDS.includes(c._id);
+        const isSareyaanCenter = (c.title || "").toLowerCase().startsWith("sareyaan");
+        return isSareyaanPage ? isSareyaanCenter : !isSareyaanCenter;
     });
 
     const allUserCenterIds = filteredCenters.map((c) => c._id).join(",");

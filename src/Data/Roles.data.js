@@ -220,6 +220,10 @@ export const permissionList = [
         label: "Requisition: Raise Medicine Requisition",
       },
       { name: "INVENTORY_STOCK_SUMMARY", label: "Inventory Stock Summary" },
+      {
+        name: "EXPIRED_MEDICINE_REMOVAL",
+        label: "Expired Medicine Removal",
+      },
       { name: "BILL_UPLOAD_DASHBOARD", label: "Bill Upload Dashboard" },
       { name: "SAREYAAN_INVENTORY", label: "Sareyaan Inventory" },
     ],

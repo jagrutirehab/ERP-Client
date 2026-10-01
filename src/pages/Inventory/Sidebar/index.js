@@ -24,6 +24,7 @@ const Sidebar = () => {
   const hasUserPermission10 = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "READ");
   const hasUserPermission11 = hasPermission("PHARMACY", "BILL_UPLOAD_DASHBOARD", "READ");
   const hasUserPermission12 = hasPermission("PHARMACY", "SAREYAAN_INVENTORY", "READ");
+  const hasUserPermission15 = hasPermission("PHARMACY", "EXPIRED_MEDICINE_REMOVAL", "READ");
 
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
@@ -95,6 +96,10 @@ const Sidebar = () => {
     }
 
     if (page.id === "sareyaanInventory" && !hasUserPermission12) {
+      return false;
+    }
+
+    if (page.id === "expiredMedicines" && !hasUserPermission15) {
       return false;
     }
 

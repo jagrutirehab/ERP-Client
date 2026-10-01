@@ -18,9 +18,6 @@ import { sareyaanInventoryColumns } from "../Columns/Pharmacy/SareyaanInventoryC
 import SareyaanUploadModal from "./SareyaanUploadModal";
 import DateRangeFilter from "../../../Components/Common/DateRangeFilter";
 
-const SAREYAAN_CENTER_ID = process.env.REACT_APP_ENV === "production" ? "69c5311b0a5aee96ac8d5b8c" : "69df2e66732bc118687e38d9";
-const SAREYAAN_CENTER_LABEL = "Sareyaan Pharma";
-
 const SareyaanInventory = () => {
     const navigate = useNavigate();
     const dispatch = useDispatch();
@@ -38,10 +35,7 @@ const SareyaanInventory = () => {
 
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(10);
-    const [selectedCenter, setSelectedCenter] = useState({
-        value: SAREYAAN_CENTER_ID,
-        label: SAREYAAN_CENTER_LABEL,
-    });
+    const [selectedCenter, setSelectedCenter] = useState(null);
     const [reportDate, setReportDate] = useState(() => {
         const now = new Date();
         return {
@@ -65,21 +59,27 @@ const SareyaanInventory = () => {
         setPreviewOpen(!previewOpen);
     };
 
-    const centerOptions = useMemo(() => {
-        // Resolve a friendlier label for the Sareyaan center if it's available
-        // in userCenters; otherwise fall back to the hardcoded label.
-        const sareyaanCenter = user?.userCenters?.find(
-            (c) => String(c._id || c.id) === SAREYAAN_CENTER_ID
-        );
-        return [
-            {
-                value: SAREYAAN_CENTER_ID,
-                label: sareyaanCenter?.title || SAREYAAN_CENTER_LABEL,
-            },
-        ];
-    }, [user?.userCenters]);
+    const sareyaanCenters = useMemo(
+        () =>
+            (user?.userCenters || []).filter((c) =>
+                (c.title || "").toLowerCase().startsWith("sareyaan")
+            ),
+        [user?.userCenters]
+    );
 
-    // Keep the selected option's label in sync with whatever userCenters resolves to.
+    const centerOptions = useMemo(() => {
+        return [
+            ...(sareyaanCenters.length > 1
+                ? [{ value: "", label: "All Sareyaan Centers" }]
+                : []),
+            ...sareyaanCenters.map((c) => ({
+                value: c._id || c.id,
+                label: c.title,
+            })),
+        ];
+    }, [sareyaanCenters]);
+
+    // Keep the selected option in sync with whatever centerOptions resolves to.
     useEffect(() => {
         if (centerOptions[0]) setSelectedCenter(centerOptions[0]);
     }, [centerOptions]);
@@ -91,7 +91,7 @@ const SareyaanInventory = () => {
         if (selectedCenter && selectedCenter.value !== "") {
             centers = [selectedCenter.value];
         } else {
-            centers = user?.centerAccess || [];
+            centers = sareyaanCenters.map((c) => c._id || c.id);
         }
 
         const params = {
@@ -194,7 +194,7 @@ const SareyaanInventory = () => {
                                 }}
                                 placeholder="Filter Centers..."
                                 classNamePrefix="react-select"
-                                isDisabled
+                                isDisabled={sareyaanCenters.length <= 1}
                             />
                         </div>
                         <DateRangeFilter

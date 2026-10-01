@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
   Modal,
@@ -11,10 +11,12 @@ import {
   FormGroup,
   Progress,
 } from "reactstrap";
+import Select from "react-select";
 import * as XLSX from "xlsx";
 import DataTable from "react-data-table-component";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
+import { useSelector } from "react-redux";
 import {
   initSareyaanImport,
   processSareyaanImportChunk,
@@ -62,10 +64,12 @@ const mapHeadersToFields = (headers) => {
 };
 
 const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
+  const user = useSelector((state) => state.User);
   const [excelData, setExcelData] = useState([]);
   const [columns, setColumns] = useState([]);
   const [headers, setHeaders] = useState([]);
   const [selectedFile, setSelectedFile] = useState(null);
+  const [selectedCenter, setSelectedCenter] = useState(null);
   const [uploadStage, setUploadStage] = useState(""); // "uploading-file" | "importing"
   const [uploading, setUploading] = useState(false);
   const [progress, setProgress] = useState({ done: 0, total: 0 });
@@ -76,12 +80,21 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
   const targetRef = useRef(0);
   const totalRef = useRef(0);
 
+  const centerOptions = useMemo(
+    () =>
+      (user?.userCenters || [])
+        .filter((c) => (c.title || "").toLowerCase().startsWith("sareyaan"))
+        .map((c) => ({ value: c._id || c.id, label: c.title })),
+    [user?.userCenters]
+  );
+
   useEffect(() => {
     if (!isOpen) {
       setExcelData([]);
       setColumns([]);
       setHeaders([]);
       setSelectedFile(null);
+      setSelectedCenter(null);
       setUploadStage("");
       setUploading(false);
       setUploadStage("");
@@ -92,6 +105,14 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
       totalRef.current = 0;
     }
   }, [isOpen]);
+
+  // Auto-select when the user only has access to a single Sareyaan center.
+  useEffect(() => {
+    if (isOpen && centerOptions.length === 1 && !selectedCenter) {
+      setSelectedCenter(centerOptions[0]);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen, centerOptions]);
 
   useEffect(() => {
     if (!uploading) return undefined;
@@ -229,6 +250,11 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
   const handleSubmit = async () => {
     if (!excelData.length) return;
 
+    if (!selectedCenter?.value) {
+      toast.error("Please select a Sareyaan center before uploading.");
+      return;
+    }
+
     const mapping = mapHeadersToFields(headers);
     const missing = REQUIRED_FIELDS.filter(
       (f) => !Object.values(mapping).includes(f)
@@ -287,6 +313,7 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
       const initRes = await initSareyaanImport({
         fileUrl,
         totalRows: apiRows.length,
+        centerId: selectedCenter.value,
       });
       const importId = initRes?.data?.importId;
       if (!importId) throw new Error("Failed to initialize import");
@@ -347,6 +374,20 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
         New Sareyaan Inventory Import
       </ModalHeader>
       <ModalBody>
+        <FormGroup className="mb-4">
+          <Label for="sareyaan-center">Sareyaan Center</Label>
+          <Select
+            inputId="sareyaan-center"
+            classNamePrefix="react-select"
+            options={centerOptions}
+            value={selectedCenter}
+            onChange={setSelectedCenter}
+            placeholder="Select the center this stock belongs to…"
+            isClearable
+            isDisabled={uploading}
+          />
+        </FormGroup>
+
         <FormGroup className="mb-4">
           <Label for="sareyaan-excel">Select Sareyaan Inventory Excel File</Label>
           <Input
@@ -435,7 +476,7 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
           color="primary"
           className="text-white"
           onClick={handleSubmit}
-          disabled={excelData.length === 0 || uploading}
+          disabled={excelData.length === 0 || !selectedCenter?.value || uploading}
         >
           {uploading ? "Uploading…" : "Upload"}
         </Button>

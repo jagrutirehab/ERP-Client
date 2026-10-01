@@ -513,6 +513,9 @@ export const PHARMACY_BATCHES_BY_MEDICINES = "/pharmacy/batches-by-medicines";
 export const PHARMACY_MEDICINE_REQUISITION =
   "/pharmacy/requisition/medicine-requisition";
 
+// PHARMACY EXPIRED STOCK
+export const PHARMACY_EXPIRED_STOCK = "/pharmacy/expired-stock";
+
 // INVENTORY STOCK SUMMARY
 export const PHARMACY_CONSOLIDATED = "/pharmacy/consolidated";
 

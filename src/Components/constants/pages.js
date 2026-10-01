@@ -530,6 +530,12 @@ export const Pharmacy = [
     icon: "bx bx-box",
   },
   {
+    id: "expiredMedicines",
+    label: "Expired Medicines",
+    link: "/pharmacy/expired-medicines",
+    icon: "bx bx-calendar-x",
+  },
+  {
     id: "billUploadDashboard",
     label: "Bill Upload History",
     link: "/pharmacy/bill-upload-dashboard",

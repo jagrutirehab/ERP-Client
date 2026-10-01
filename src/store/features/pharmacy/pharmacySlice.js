@@ -23,6 +23,10 @@ import {
     approvePilotApproval as approvePilotApprovalApi,
     returnMedicine as returnMedicineApi,
     getPharmacyReturns as getPharmacyReturnsApi,
+    getExpiredStock as getExpiredStockApi,
+    getExpiredStockHistory as getExpiredStockHistoryApi,
+    removeExpiredStock as removeExpiredStockApi,
+    getExpiredStockDetails as getExpiredStockDetailsApi,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -319,6 +323,55 @@ export const getNurseGivenMedicines = createAsyncThunk("pharmacy/getNurseGivenMe
 //     }
 // );
 
+export const fetchExpiredStock = createAsyncThunk(
+    "pharmacy/fetchExpiredStock",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await getExpiredStockApi(params);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const fetchExpiredStockHistory = createAsyncThunk(
+    "pharmacy/fetchExpiredStockHistory",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await getExpiredStockHistoryApi(params);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+// Fetched only when a row's detail modal opens, so the list payload stays small.
+export const fetchExpiredStockDetails = createAsyncThunk(
+    "pharmacy/fetchExpiredStockDetails",
+    async ({ id, center }, { rejectWithValue }) => {
+        try {
+            const response = await getExpiredStockDetailsApi(id, { center });
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const removeExpiredStock = createAsyncThunk(
+    "pharmacy/removeExpiredStock",
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await removeExpiredStockApi(data);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
 export const pharmacySlice = createSlice({
     name: "Pharmacy",
     initialState,
@@ -337,6 +390,17 @@ export const pharmacySlice = createSlice({
         },
     },
     extraReducers: (builder) => {
+        builder
+            .addCase(removeExpiredStock.pending, (state) => {
+                state.submitLoading = true;
+            })
+            .addCase(removeExpiredStock.fulfilled, (state) => {
+                state.submitLoading = false;
+            })
+            .addCase(removeExpiredStock.rejected, (state) => {
+                state.submitLoading = false;
+            });
+
         builder
             .addCase(getMedicineApprovals.pending, (state) => {
                 state.loading = true;
@@ -592,6 +656,34 @@ export const pharmacySlice = createSlice({
             .addCase(fetchSareyaanInventoryImports.rejected, (state) => {
                 state.loading = false;
             });
+
+        builder
+            .addMatcher(
+                (action) =>
+                    action.type === fetchExpiredStock.pending.type ||
+                    action.type === fetchExpiredStockHistory.pending.type,
+                (state) => {
+                    state.loading = true;
+                }
+            )
+            .addMatcher(
+                (action) =>
+                    action.type === fetchExpiredStock.fulfilled.type ||
+                    action.type === fetchExpiredStockHistory.fulfilled.type,
+                (state, { payload }) => {
+                    state.loading = false;
+                    state.data = payload?.data || [];
+                    state.pagination = { totalDocs: payload?.total || 0 };
+                }
+            )
+            .addMatcher(
+                (action) =>
+                    action.type === fetchExpiredStock.rejected.type ||
+                    action.type === fetchExpiredStockHistory.rejected.type,
+                (state) => {
+                    state.loading = false;
+                }
+            );
     }
 });
 

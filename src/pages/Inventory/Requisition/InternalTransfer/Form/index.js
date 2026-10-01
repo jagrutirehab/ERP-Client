@@ -75,13 +75,6 @@ const stockPill = (n) =>
                 : pill("#f8d7da", "#721c24");
 
 
-const SPECIAL_ORDER_CENTERS = [
-    {
-        id: process.env.REACT_APP_ENV === "production" ? "69c5311b0a5aee96ac8d5b8c" : "69df2e66732bc118687e38d9",
-        label: "Sareyaan Pharma",
-        question: "Do you want to order from Saareyan?",
-    },
-];
 const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "internal" }) => {
     const isSareyaanOrder = transferType === "sareyaan";
     const isEdit = mode === "edit";
@@ -91,7 +84,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const handleAuthError = useAuthError();
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
-    const user = useSelector((state) => state.User);
     const centerList = useSelector((state) => state.Center.data);
     const { submitLoading } = useSelector((state) => state.Pharmacy);
 
@@ -113,12 +105,17 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const [centerMedicinesSearch, setCenterMedicinesSearch] = useState("");
     const [debouncedCenterSearch, setDebouncedCenterSearch] = useState("");
 
+    const isSareyaanCenter = (c) => (c?.title || "").toLowerCase().startsWith("sareyaan");
+    const sareyaanCenters = (centerList || []).filter(isSareyaanCenter);
+
     // Auto-set Sareyaan as fulfilling center when creating a sareyaan order
     useEffect(() => {
         if (!isSareyaanOrder || isEdit) return;
-        const sareyaan = SPECIAL_ORDER_CENTERS[0];
-        setFulfillingCenter({ value: sareyaan.id, label: sareyaan.label });
-    }, [isSareyaanOrder, isEdit]);
+        const sareyaan = sareyaanCenters[0];
+        if (!sareyaan) return;
+        setFulfillingCenter({ value: sareyaan._id, label: sareyaan.title });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSareyaanOrder, isEdit, sareyaanCenters[0]?._id]);
 
 
     const medicineSearchRef = useRef(null);
@@ -126,22 +123,18 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const [medicineKey, setMedicineKey] = useState(0);
 
     const requisingCenterOptions = (centerList || [])
-        .filter((c) => !SPECIAL_ORDER_CENTERS.some((special) => special.id === c._id))
+        .filter((c) => !isSareyaanCenter(c))
         .map((c) => ({ value: c._id, label: c.title || "Unknown Center" }));
 
-    const fulfillingCenterOptions = (centerList || [])
-        .filter((c) => {
-            if (isSareyaanOrder) return SPECIAL_ORDER_CENTERS.some((special) => special.id === c._id);
-            return !SPECIAL_ORDER_CENTERS.some((special) => special.id === c._id);
-        })
-        .map((c) => ({
-            value: c._id,
-            label: c.title || "Unknown Center",
-        }));
+    const fulfillingCenterOptions = isSareyaanOrder
+        ? sareyaanCenters.map((c) => ({ value: c._id, label: c.title || "Unknown Center" }))
+        : (centerList || [])
+            .filter((c) => !isSareyaanCenter(c))
+            .map((c) => ({ value: c._id, label: c.title || "Unknown Center" }));
 
     // Is the fulfilling center locked to a Sareyaan-type center?
-    const isSpecialFulfillingLocked = isSareyaanOrder || SPECIAL_ORDER_CENTERS.some(
-        (c) => c.id === fulfillingCenter?.value
+    const isSpecialFulfillingLocked = isSareyaanOrder || sareyaanCenters.some(
+        (c) => c._id === fulfillingCenter?.value
     );
 
     const hasWritePermission = hasPermission(
@@ -616,7 +609,13 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                     }}
                                     placeholder="Center that supplies stock…"
                                     isClearable
-                                    isDisabled={isEdit ? true : isSpecialFulfillingLocked}
+                                    isDisabled={
+                                        isEdit
+                                            ? true
+                                            : isSareyaanOrder
+                                                ? sareyaanCenters.length <= 1
+                                                : isSpecialFulfillingLocked
+                                    }
                                 />
                                 <small className="text-muted d-block mt-1" style={{ fontSize: 11 }}>
                                     <i className="bx bx-package me-1" />
