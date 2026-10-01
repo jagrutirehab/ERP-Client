@@ -20,6 +20,7 @@ import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { getStockByMedicineIds } from "../../../../../helpers/backend_helper";
+import { fetchAllCenters } from "../../../../../store/features/center/centerSlice";
 import {
     submitInternalTransferRequisition,
     editInternalTransferRequisition,
@@ -85,6 +86,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const centerList = useSelector((state) => state.Center.data);
+    const allCenterList = useSelector((state) => state.Center.allCenters);
     const { submitLoading } = useSelector((state) => state.Pharmacy);
 
     const microUser = localStorage.getItem("micrologin");
@@ -97,16 +99,21 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const [fulfillingCenter, setFulfillingCenter] = useState(null);
     const [items, setItems] = useState([]);
 
-    const [centerMedicines, setCenterMedicines] = useState([]);
-    const [centerMedicinesLoading, setCenterMedicinesLoading] = useState(false);
-    const [centerMedicinesPage, setCenterMedicinesPage] = useState(1);
-    const [centerMedicinesPageSize, setCenterMedicinesPageSize] = useState(10);
-    const [centerMedicinesTotalPages, setCenterMedicinesTotalPages] = useState(1);
-    const [centerMedicinesSearch, setCenterMedicinesSearch] = useState("");
-    const [debouncedCenterSearch, setDebouncedCenterSearch] = useState("");
+    // const [centerMedicines, setCenterMedicines] = useState([]);
+    // const [centerMedicinesLoading, setCenterMedicinesLoading] = useState(false);
+    // const [centerMedicinesPage, setCenterMedicinesPage] = useState(1);
+    // const [centerMedicinesPageSize, setCenterMedicinesPageSize] = useState(10);
+    // const [centerMedicinesTotalPages, setCenterMedicinesTotalPages] = useState(1);
+    // const [centerMedicinesSearch, setCenterMedicinesSearch] = useState("");
+    // const [debouncedCenterSearch, setDebouncedCenterSearch] = useState("");
 
     const isSareyaanCenter = (c) => (c?.title || "").toLowerCase().startsWith("sareyaan");
-    const sareyaanCenters = (centerList || []).filter(isSareyaanCenter);
+    const sareyaanCenters = (allCenterList || []).filter(isSareyaanCenter);
+
+    useEffect(() => {
+        dispatch(fetchAllCenters());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Auto-set Sareyaan as fulfilling center when creating a sareyaan order
     useEffect(() => {
@@ -128,7 +135,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
 
     const fulfillingCenterOptions = isSareyaanOrder
         ? sareyaanCenters.map((c) => ({ value: c._id, label: c.title || "Unknown Center" }))
-        : (centerList || [])
+        : (allCenterList || [])
             .filter((c) => !isSareyaanCenter(c))
             .map((c) => ({ value: c._id, label: c.title || "Unknown Center" }));
 
