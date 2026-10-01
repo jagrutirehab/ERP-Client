@@ -38,6 +38,7 @@ const PaymentMode = ({
   posContext,
   readOnly,
   chargeBlockedReason,
+  payable,
 }) => {
   const [posRowIdx, setPosRowIdx] = React.useState(null);
   const [posTerminal, setPosTerminal] = React.useState(null);
@@ -72,6 +73,20 @@ const PaymentMode = ({
   const posEnabled = !!posTerminal?.enabled;
   const posUnavailableReason =
     posContext && posTerminal && !posAvailable ? posTerminal.reason : null;
+
+  // Check whether the total tendered amount matches the payable amount.
+  // When it doesn't, "Charge on POS" must be blocked so the terminal never
+  // collects an amount that the bill cannot reconcile.
+  const tenderedTotal = (paymentModes || []).reduce(
+    (sum, mode) => sum + (Number(mode.amount) || 0),
+    0,
+  );
+  const payableNum = Number(payable) || 0;
+  const amountMismatch =
+    payableNum > 0 && tenderedTotal !== payableNum;
+  const mismatchReason = amountMismatch
+    ? `Payment total (₹${tenderedTotal}) must equal Payable (₹${payableNum})`
+    : null;
 
   const pineLabsAccount = findPineLabsAccount(paymentAccounts);
 
@@ -399,14 +414,17 @@ const PaymentMode = ({
                         // could never be saved against.
                         disabled={
                           !!chargeBlockedReason ||
+                          !!mismatchReason ||
                           !(Number(val.amount) >= POS_MIN_AMOUNT)
                         }
                         title={
                           chargeBlockedReason
                             ? chargeBlockedReason
-                            : Number(val.amount) >= POS_MIN_AMOUNT
-                              ? "Send this amount to the POS terminal"
-                              : `POS payments must be at least ₹${POS_MIN_AMOUNT}`
+                            : mismatchReason
+                              ? mismatchReason
+                              : Number(val.amount) >= POS_MIN_AMOUNT
+                                ? "Send this amount to the POS terminal"
+                                : `POS payments must be at least ₹${POS_MIN_AMOUNT}`
                         }
                         onClick={() => setPosRowIdx(idx)}
                       >
@@ -443,6 +461,12 @@ const PaymentMode = ({
               )}
             </div>
           ))}
+          {amountMismatch && (
+            <div className="text-danger fs-11 mt-1">
+              <i className="ri-error-warning-line me-1"></i>
+              {mismatchReason}
+            </div>
+          )}
           {validation.touched.paymentModes && validation.errors.paymentModes ? (
             <FormFeedback type="invalid" className="d-block">
               {validation.errors.paymentModes}
@@ -478,6 +502,9 @@ PaymentMode.propTypes = {
   readOnly: PropTypes.bool,
   // Set to stop a charge being sent at all, with the reason shown on hover.
   chargeBlockedReason: PropTypes.string,
+  // Total payable amount — "Charge on POS" is disabled when the tendered
+  // amount doesn't equal this value.
+  payable: PropTypes.number,
   // Supply to enable "Charge on POS" on card/UPI rows.
   posContext: PropTypes.shape({
     center: PropTypes.string,
