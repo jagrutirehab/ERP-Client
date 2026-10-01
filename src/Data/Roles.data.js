@@ -359,6 +359,15 @@ export const permissionList = [
     ],
   },
   {
+    key: "MIS_MASTER",
+    label: "MIS Master",
+    subModules: [
+      { name: "REPORTS", label: "Reports" },
+      { name: "RUN_SCRIPTS", label: "Run Scripts" },
+      { name: "RUN_HISTORY", label: "Run History" },
+    ],
+  },
+  {
     key: "HR",
     label: "HR",
     subModules: [
