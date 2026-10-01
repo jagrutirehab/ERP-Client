@@ -68,9 +68,13 @@ const ExpiredStockDiscardModal = ({
             </div>
             <div className="mt-2">
               Stock to discard:{" "}
-              <span className="fw-bold text-danger">
-                {row.stock} {row.medicine?.baseUnit || ""}
-              </span>
+              {row.stock > 0 ? (
+                <span className="fw-bold text-danger">
+                  {row.stock} {row.medicine?.baseUnit || ""}
+                </span>
+              ) : (
+                <span className="text-muted">Empty — already at 0</span>
+              )}
             </div>
           </div>
         )}

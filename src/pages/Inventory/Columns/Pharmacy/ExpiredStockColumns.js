@@ -100,11 +100,16 @@ export const getExpiredStockColumns = ({
     name: <div>Stock to Discard</div>,
     selector: (row) => row.stock,
     sortable: true,
-    cell: (row) => (
-      <span className="fw-bold text-danger">
-        {row.stock} {row.medicine?.baseUnit || ""}
-      </span>
-    ),
+    cell: (row) =>
+      row.stock > 0 ? (
+        <span className="fw-bold text-danger">
+          {row.stock} {row.medicine?.baseUnit || ""}
+        </span>
+      ) : (
+        <span className="text-muted" title="Already at 0 — just needs removing from this center's record">
+          Empty
+        </span>
+      ),
     center: true,
     minWidth: "130px",
   },

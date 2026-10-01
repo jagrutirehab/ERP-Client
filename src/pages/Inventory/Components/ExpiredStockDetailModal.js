@@ -111,8 +111,8 @@ const ExpiredStockDetailModal = ({
                 </Col>
                 <Col md={6} className="text-md-end mt-2 mt-md-0">
                   <div className="text-muted small mb-1">Stock at this center</div>
-                  <div className="fw-bold text-danger fs-5">
-                    {data.centerStock} {med?.baseUnit || ""}
+                  <div className={`fw-bold fs-5 ${data.centerStock > 0 ? "text-danger" : "text-muted"}`}>
+                    {data.centerStock > 0 ? `${data.centerStock} ${med?.baseUnit || ""}` : "Empty"}
                   </div>
                 </Col>
               </Row>
@@ -199,7 +199,7 @@ const ExpiredStockDetailModal = ({
         <Button color="light" onClick={toggle}>
           Close
         </Button>
-        {hasWritePermission && data && data.centerStock > 0 && (
+        {hasWritePermission && data && (
           <Button
             color="success"
             className="text-white"

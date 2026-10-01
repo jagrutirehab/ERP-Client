@@ -321,9 +321,9 @@ const ExpiredStockBulkDiscardModal = ({
                       <td style={{ fontSize: 12 }}>{r.center?.title || "—"}</td>
                       <td
                         style={{ fontSize: 12 }}
-                        className="fw-bold text-danger text-nowrap"
+                        className={`fw-bold text-nowrap ${r.stock > 0 ? "text-danger" : "text-muted"}`}
                       >
-                        {r.stock} {r.medicine?.baseUnit || ""}
+                        {r.stock > 0 ? `${r.stock} ${r.medicine?.baseUnit || ""}` : "Empty"}
                       </td>
                     </tr>
                   ))}
