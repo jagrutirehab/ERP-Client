@@ -177,7 +177,27 @@ export const getExpiredStockHistoryColumns = () => [
   },
   {
     name: <div>PHR ID / Batch</div>,
-    cell: (row) => batchCell(row.batch?.id, row.batch?.Batch),
+    cell: (row) => (
+      <div className="d-flex flex-column py-1" style={{ gap: 3 }}>
+        {batchCell(row.batch?.id, row.batch?.Batch)}
+        {row.batchDeleted && (
+          <span
+            style={{
+              borderRadius: 20,
+              padding: "1px 8px",
+              fontSize: 10,
+              fontWeight: 700,
+              background: "#f8d7da",
+              color: "#721c24",
+              width: "fit-content",
+            }}
+            title="This removal emptied the batch's last center — the batch record was deleted"
+          >
+            Batch fully removed
+          </span>
+        )}
+      </div>
+    ),
     wrap: true,
     minWidth: "150px",
   },
