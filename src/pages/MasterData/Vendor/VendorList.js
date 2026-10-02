@@ -12,8 +12,6 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import "./vendor.scss";
 
-// react-data-table-component renders inline styles, not classes,
-// so the visual tokens are mirrored here to match vendor.scss
 const tableCustomStyles = {
   headRow: {
     style: {
@@ -29,14 +27,19 @@ const tableCustomStyles = {
       textTransform: "uppercase",
       letterSpacing: "0.05em",
       color: "#64748b",
+      whiteSpace: "nowrap",
     },
   },
   rows: {
     style: {
       minHeight: "60px",
       fontSize: "13.5px",
-      transition: "background-color 0.15s ease",
-      "&:hover": { backgroundColor: "#f8fafc" },
+      "&:not(:last-of-type)": { borderBottomColor: "#edeff3" },
+    },
+    highlightOnHoverStyle: {
+      backgroundColor: "#f8fafc",
+      borderBottomColor: "#edeff3",
+      outline: "none",
     },
   },
   pagination: {
@@ -55,10 +58,12 @@ const VendorList = ({ onAdd, onEdit }) => {
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "VENDOR", "WRITE");
   const canEdit = hasPermission("MASTERDATA", "VENDOR", "WRITE");
-const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
+  const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
+
   const [vendors, setVendors] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -68,6 +73,12 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
   const [overviewVendor, setOverviewVendor] = useState(null);
   const [showAccountNo, setShowAccountNo] = useState(false);
   const [approvalSaving, setApprovalSaving] = useState(false);
+
+  // Typing rukne ke 400ms baad hi search hoga
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
   const handleApprovalStatusChange = async (newStatus) => {
     if (!overviewVendor) return;
@@ -95,7 +106,11 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
     const fetchVendors = async () => {
       setLoading(true);
       try {
-        const res = await getVendors({ page, limit: perPage, search });
+        const res = await getVendors({
+          page,
+          limit: perPage,
+          search: debouncedSearch,
+        });
         if (cancelled) return;
         setVendors(res?.data || []);
         setTotalRows(res?.pagination?.total || 0);
@@ -116,7 +131,7 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
     return () => {
       cancelled = true;
     };
-  }, [page, perPage, search, refreshFlag]);
+  }, [page, perPage, debouncedSearch, refreshFlag]);
 
   const handleStatusChange = async (id, status) => {
     try {
@@ -131,6 +146,32 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
           error?.response?.data?.message ||
             error?.message ||
             "Couldn't update status. Please try again.",
+        );
+      }
+    }
+  };
+
+  // Draft/Incomplete/Rejected → Submit, Pending → Approve (aur activate bhi)
+  const handleQuickAction = async (row) => {
+    try {
+      if (
+        row.approvalStatus === "incomplete" ||
+        row.approvalStatus === "rejected"
+      ) {
+        await updateVendorApprovalStatus(row._id, "pending");
+        toast.success("Vendor submitted for approval");
+      } else if (row.approvalStatus === "pending") {
+        await updateVendorApprovalStatus(row._id, "approved");
+        await updateVendorStatus(row._id, "active");
+        toast.success("Vendor approved and activated");
+      }
+      setRefreshFlag((f) => f + 1);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't update vendor",
         );
       }
     }
@@ -162,151 +203,111 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
     row?.gstRegistrations?.[0]?.gstin ||
     "";
 
+  const getStatusPill = (row) => {
+    if (row.approvalStatus === "approved") {
+      return <span className="vendor-status-pill status-active">Active</span>;
+    }
+    if (row.approvalStatus === "pending") {
+      return (
+        <span className="vendor-status-pill status-inactive">Pending</span>
+      );
+    }
+    return <span className="vendor-status-pill status-draft">Draft</span>;
+  };
+
+  // Page pe koi Draft/Pending vendor hai tabhi Submit/Approve button aayega
+  const hasQuickAction =
+    canChangeStatus && vendors.some((v) => v.approvalStatus !== "approved");
+  const actionsWidth = hasQuickAction ? "230px" : "150px";
+  
   const columns = [
     {
       name: "Vendor Code",
       selector: (row) => row.vendorCode,
       sortable: true,
-      width: "130px",
+      minWidth: "130px",
+      maxWidth: "150px",
+      hide: 600,
       cell: (row) => (
-        <span className="small text-monospace fw-semibold text-dark">
-          {row.vendorCode || "—"}
-        </span>
+        <span className="vendor-cell-code">{row.vendorCode || "—"}</span>
       ),
     },
     {
       name: "Legal Name",
       selector: (row) => row.legalName,
       sortable: true,
-      minWidth: "180px",
+      grow: 2,
+      minWidth: "200px",
       cell: (row) => (
         <span
-          className="fw-semibold text-dark text-truncate d-inline-block"
-          style={{ maxWidth: 220 }}
+          className="vendor-cell-name"
+          title={row.legalName || row.tradeName || ""}
         >
           {row.legalName || row.tradeName || "—"}
         </span>
       ),
     },
     {
-      name: "Alias",
-      selector: (row) => row.alias,
-      hide: "sm",
-      cell: (row) => (
-        <span className="small text-secondary">{row.alias || "—"}</span>
-      ),
-    },
-    {
       name: "Vendor Type",
       selector: (row) => row.vendorType,
       sortable: true,
-      hide: "md",
+      minWidth: "130px",
+      hide: 1150,
       cell: (row) => (
-        <span className="text-capitalize small text-secondary">
+        <span className="vendor-cell-muted text-capitalize">
           {(row.vendorType || "—").replace(/_/g, " ")}
         </span>
       ),
     },
     {
-      name: "Supply Type",
-      selector: (row) => row.supplyType,
-      hide: "md",
-      cell: (row) => (
-        <span className="text-capitalize small text-secondary">
-          {(row.supplyType || "—").replace(/_/g, " ")}
-        </span>
-      ),
-    },
-    {
       name: "PAN",
-      hide: "lg",
-      cell: (row) => (
-        <span className="small text-monospace text-dark">{row.pan || "—"}</span>
-      ),
-    },
-    {
-      name: "GSTIN",
-      hide: "lg",
-      cell: (row) => (
-        <span className="small text-monospace fw-medium text-dark">
-          {primaryGstin(row) || "—"}
-        </span>
-      ),
+      minWidth: "130px",
+      hide: 1800,
+      cell: (row) => <span className="vendor-cell-code">{row.pan || "—"}</span>,
     },
     {
       name: "Contact Person",
       selector: (row) => row.primaryContact?.name,
-      hide: "md",
+      minWidth: "160px",
+      hide: 1366,
       cell: (row) => (
-        <span className="small text-dark">
+        <span className="vendor-cell-text">
           {row.primaryContact?.name || "—"}
         </span>
       ),
     },
     {
       name: "Phone",
-      hide: "lg",
+      minWidth: "130px",
+      hide: 1600,
       cell: (row) => (
-        <span className="small text-secondary">
+        <span className="vendor-cell-muted">
           {row.primaryContact?.phone || "—"}
         </span>
       ),
     },
     {
-      name: "Email",
-      hide: "lg",
-      minWidth: "180px",
-      cell: (row) => (
-        <span
-          className="small text-secondary text-truncate d-inline-block"
-          style={{ maxWidth: 200 }}
-        >
-          {row.primaryContact?.email || "—"}
-        </span>
-      ),
-    },
-    {
-      name: "Bank Mismatch",
-      hide: "lg",
-      width: "140px",
-      cell: (row) =>
-        row.bankDetails?.nameMismatch ? (
-          <span className="vendor-status-pill status-blacklisted">Yes</span>
-        ) : (
-          <span className="small text-secondary">No</span>
-        ),
-    },
-    {
-      name: "KYB Verified",
-      hide: "lg",
-      width: "130px",
-      cell: (row) =>
-        row.kybVerified ? (
-          <span className="vendor-status-pill status-active">Yes</span>
-        ) : (
-          <span className="small text-secondary">No</span>
-        ),
-    },
-        {
-      name: "Approval Status",
-      width: "140px",
-      cell: (row) => {
-        const isVerified = row.approvalStatus === "approved";
-        return (
-          <span
-            className={`vendor-status-pill ${isVerified ? "status-active" : "status-inactive"}`}
-          >
-            {isVerified ? "Verified" : "Unverified"}
-          </span>
-        );
-      },
+      name: "Status",
+      minWidth: "120px",
+      maxWidth: "140px",
+      cell: (row) => getStatusPill(row),
     },
     {
       name: "Actions",
-      width: "130px",
+      minWidth: actionsWidth,
+      maxWidth: actionsWidth,
       right: true,
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="vendor-row-actions align-items-center">
+          {canChangeStatus && row.approvalStatus !== "approved" && (
+            <Button
+              size="sm"
+              color={row.approvalStatus === "pending" ? "success" : "primary"}
+              onClick={() => handleQuickAction(row)}
+            >
+              {row.approvalStatus === "pending" ? "Approve" : "Submit"}
+            </Button>
+          )}
           <button
             type="button"
             className="vendor-icon-btn"
@@ -345,21 +346,18 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
 
   return (
     <div className="vendor-page">
+      {/* Title + subtitle */}
       <div className="vendor-list-header">
         <div>
-          <h4 className="mb-1">Vendors</h4>
-          <p className="text-muted mb-0 small">
+          <h4>Vendors</h4>
+          <p>
             Manage onboarding, legal records, and status for every supplier.
           </p>
         </div>
-        {canCreate && (
-          <Button color="primary" className="px-3" onClick={onAdd}>
-            <i className="bx bx-plus me-1"></i> Add vendor
-          </Button>
-        )}
       </div>
 
-      <div className="d-flex justify-content-between align-items-center mb-3">
+      {/* Search + Add button same row mein */}
+      <div className="vendor-toolbar">
         <div className="vendor-search-wrap">
           <i className="bx bx-search"></i>
           <Input
@@ -371,9 +369,14 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
             }}
           />
         </div>
+        {canCreate && (
+          <Button color="primary" onClick={onAdd}>
+            <i className="bx bx-plus me-1"></i> Add Vendor
+          </Button>
+        )}
       </div>
 
-      <div className="card border-0 shadow-sm rounded-3 overflow-hidden">
+      <div className="vendor-table-card">
         <DataTable
           columns={columns}
           data={vendors}
@@ -400,7 +403,6 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
             setPage(1);
           }}
           highlightOnHover
-          pointerOnHover
           responsive
           noDataComponent={
             search ? (
@@ -418,7 +420,7 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
                 <i className="bx bx-store"></i>
                 <p className="mb-1 fw-semibold text-dark">No vendors yet</p>
                 <p className="mb-0 small text-muted">
-                  Click "Add vendor" to onboard your first supplier.
+                  Click "Add Vendor" to onboard your first supplier.
                 </p>
               </div>
             )
@@ -460,7 +462,6 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
         </ModalBody>
       </Modal>
 
-      {/* Overview modal */}
       {/* Overview modal */}
       <Modal
         isOpen={!!overviewVendor}
@@ -509,38 +510,14 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
                       {overviewVendor.legalName || overviewVendor.tradeName}
                     </h5>
 
-                    <div className="d-flex gap-2 flex-wrap mb-3">
+                    <div className="d-flex gap-2 flex-wrap justify-content-center mb-3">
                       <span className="vendor-overview-chip">
                         {(overviewVendor.vendorType || "—").replace(/_/g, " ")}
                       </span>
-                      {canChangeStatus ? (
-                        <select
-                          className={`vendor-overview-status-select status-${overviewVendor.status}`}
-                          value={overviewVendor.status}
-                          onChange={(e) =>
-                            handleStatusChange(
-                              overviewVendor._id,
-                              e.target.value,
-                            )
-                          }
-                        >
-                          <option value="draft">Draft</option>
-                          <option value="active">Active</option>
-                          <option value="inactive">Inactive</option>
-                          <option value="blacklisted">Blacklisted</option>
-                        </select>
-                      ) : (
-                        <span
-                          className={`vendor-status-pill status-${overviewVendor.status}`}
-                        >
-                          {overviewVendor.status}
-                        </span>
-                      )}
-                      <span className="vendor-overview-approval-chip">
-                        <i className="bx bx-check-circle"></i>{" "}
-                        {overviewVendor.approvalStatus === "approved"
-                          ? "Verified"
-                          : "Unverified"}
+                      <span
+                        className={`vendor-status-pill status-${overviewVendor.status}`}
+                      >
+                        {overviewVendor.status}
                       </span>
                     </div>
 
@@ -684,16 +661,6 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
                         <div className="vendor-overview-value">
                           {overviewVendor.cin || "—"}
                         </div>
-                      </div>
-                      <div className="vendor-overview-span-3">
-                        <span
-                          className={`vendor-overview-flag ${overviewVendor.bankDetails?.verified ? "is-yes" : "is-no"}`}
-                        >
-                          <i className="bx bx-shield"></i>{" "}
-                          {overviewVendor.bankDetails?.verified
-                            ? "Verified"
-                            : "Unverified"}
-                        </span>
                       </div>
                     </div>
                   </div>
@@ -876,18 +843,6 @@ const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
                         <div className="vendor-overview-value">
                           {overviewVendor.bankDetails?.ifsc || "—"}
                         </div>
-                      </div>
-                      <div>
-                        <div className="vendor-overview-label">
-                          Bank Mismatch
-                        </div>
-                        <span
-                          className={`vendor-overview-flag ${overviewVendor.bankDetails?.nameMismatch ? "is-yes" : "is-no"}`}
-                        >
-                          {overviewVendor.bankDetails?.nameMismatch
-                            ? "Yes"
-                            : "No"}
-                        </span>
                       </div>
                       <div>
                         <div className="vendor-overview-label">UPI ID</div>

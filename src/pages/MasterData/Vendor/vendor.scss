@@ -643,25 +643,78 @@
   letter-spacing: 0.01em;
 }
 
-.vendor-page td .text-secondary.small {
-  color: var(--v-faint) !important;
+// ---------- Vendor list: header, toolbar, table ----------
+
+.vendor-page .vendor-list-header {
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--v-border);
+
+  p {
+    margin: 4px 0 0;
+    color: var(--v-muted);
+  }
+}
+
+.vendor-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.vendor-table-card {
+  background: var(--v-surface);
+  border: 1px solid var(--v-border);
+  border-radius: 14px;
+  box-shadow: var(--v-shadow-sm);
+  overflow: hidden;
 }
 
 .vendor-page .rdt_TableCol,
-.vendor-page .rdt_TableCol_Sortable,
-.vendor-page .rdt_TableCol div {
-  white-space: normal !important;
-  overflow: visible !important;
-  text-overflow: unset !important;
+.vendor-page .rdt_TableCol_Sortable {
+  white-space: nowrap;
 }
 
-.vendor-page .rdt_TableCol div {
-  line-height: 1.3;
+.vendor-cell-code {
+  font-family: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--v-ink);
 }
 
-.vendor-page .rdt_TableHeadRow {
-  min-height: 52px !important;
-  align-items: center;
+.vendor-cell-name {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  font-weight: 600;
+  color: var(--v-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.vendor-cell-text {
+  font-size: 13px;
+  color: var(--v-ink);
+}
+
+.vendor-cell-muted {
+  font-size: 13px;
+  color: var(--v-muted);
+}
+
+@media (max-width: 768px) {
+  .vendor-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .btn {
+      width: 100%;
+    }
+  }
 }
 
 // ---------- Icon-only action buttons ----------
@@ -1448,5 +1501,14 @@
 @supports (padding: max(0px)) {
   .vendor-form-footer {
     padding-bottom: max(var(--v-sp-4), env(safe-area-inset-bottom));
+  }
+}
+
+.vendor-row-actions {
+  flex-wrap: nowrap;
+
+  .btn {
+    white-space: nowrap;
+    flex-shrink: 0;
   }
 }

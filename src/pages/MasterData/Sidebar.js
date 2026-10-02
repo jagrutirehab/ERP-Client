@@ -3,10 +3,30 @@ import "react-perfect-scrollbar/dist/css/styles.css";
 import { Link, useLocation } from "react-router-dom";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { MASTER_DATA } from "../../Components/constants/pages";
+import { usePermissions } from "../../Components/Hooks/useRoles.js";
 
 const Sidebar = () => {
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const { hasPermission } = usePermissions(token);
+
+  // A page with no permissionModule is always visible (e.g. dividers, dashboards).
+  // Otherwise it only shows if the user has at least READ on that module.
+  const canSeePage = (page) =>
+    !page.permissionModule || hasPermission("MASTERDATA", page.permissionModule, "READ");
+
+  const visibleMasterData = (MASTER_DATA || [])
+    .filter(canSeePage)
+    .map((page) => {
+      if (!page.children) return page;
+      const visibleChildren = page.children.filter(
+        (child) => child.isDivider || canSeePage(child),
+      );
+      return { ...page, children: visibleChildren };
+    })
+    // Hide an accordion group entirely if every one of its children got filtered out
+    .filter((page) => !page.children || page.children.some((c) => !c.isDivider));
 
   const toggleSection = (id) => {
     setOpenSection((prev) => (prev === id ? "" : id));
@@ -48,7 +68,7 @@ const Sidebar = () => {
             className="list-unstyled chat-list chat-user-list users-list"
             id="vendor-sidebar-user-list"
           >
-            {(MASTER_DATA || []).map((page) => {
+            {visibleMasterData.map((page) => {
               const children = page.children || [];
               const hasChildren = page.isAccordion && children.length > 0;
 
@@ -118,7 +138,7 @@ const Sidebar = () => {
                   </div>
 
                   {isOpen && (
-                                        <ul className="list-unstyled ps-4">
+                    <ul className="list-unstyled ps-4">
                       {children.map((child) => {
                         if (child.isDivider) {
                           return (

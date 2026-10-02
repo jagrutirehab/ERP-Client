@@ -2239,7 +2239,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
           </div>
         </div>
 
-        {vendorId && canChangeStatus && (
+        {/* {vendorId && canChangeStatus && (
           <div
             className="vendor-approval-workflow"
             style={{ gridTemplateColumns: "1fr" }}
@@ -2322,7 +2322,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                 )}
             </div>
           </div>
-        )}
+        )} */}
 
         <div className="vendor-form-footer">
           <div>

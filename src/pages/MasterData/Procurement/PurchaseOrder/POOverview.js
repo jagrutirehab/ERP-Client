@@ -3,7 +3,8 @@ import { Row, Col, Button, Badge } from "reactstrap";
 import { getPOById } from "../../../../helpers/backend_helper";
 import "../../UnitOfMeasurement/uom.scss";
 
-const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
+const money = (n) =>
+  `₹${Number(n || 0).toLocaleString("en-IN", { minimumFractionDigits: 2 })}`;
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
 
 const PO_TYPE_LABELS = {
@@ -44,7 +45,10 @@ const POOverview = ({ poId, onBack }) => {
     return <div className="p-4 text-muted">Loading purchase order...</div>;
   }
 
-  const totalQty = po.lineItems.reduce((sum, li) => sum + (li.quantity || 0), 0);
+  const totalQty = po.lineItems.reduce(
+    (sum, li) => sum + (li.quantity || 0),
+    0,
+  );
 
   return (
     <div className="uom-page">
@@ -53,7 +57,10 @@ const POOverview = ({ poId, onBack }) => {
         <div>
           <h4>
             {po.poNumber}{" "}
-            <Badge color={po.status === "approved" ? "success" : "secondary"} className="ms-2">
+            <Badge
+              color={po.status === "approved" ? "success" : "secondary"}
+              className="ms-2"
+            >
               {po.status === "approved" ? "Approved" : "Draft"}
             </Badge>{" "}
             <Badge color="light" className="text-dark border ms-1">
@@ -81,7 +88,9 @@ const POOverview = ({ poId, onBack }) => {
         <Col md={3}>
           <div className="uom-table-card p-3 h-100">
             <div className="text-muted small">Delivery Date</div>
-            <div className="fs-5 fw-semibold">{dateFmt(po.expectedDeliveryDate)}</div>
+            <div className="fs-5 fw-semibold">
+              {dateFmt(po.expectedDeliveryDate)}
+            </div>
             <div className="text-muted small">Ordered {dateFmt(po.poDate)}</div>
           </div>
         </Col>
@@ -95,9 +104,15 @@ const POOverview = ({ poId, onBack }) => {
         <Col md={3}>
           <div className="uom-table-card p-3 h-100">
             <div className="text-muted small">Payment Terms</div>
-            <div className="fs-6 fw-semibold">{po.paymentTermId?.name || po.paymentTermId?.description || "—"}</div>
+            <div className="fs-6 fw-semibold">
+              {po.paymentTermId?.name || po.paymentTermId?.description || "—"}
+            </div>
             <div className="text-muted small">
-              {po.poType === "direct" ? "Direct — no PR" : po.poType === "contract_based" ? "Contract-based" : "Linked to PR"}
+              {po.poType === "direct"
+                ? "Direct — no PR"
+                : po.poType === "contract_based"
+                  ? "Contract-based"
+                  : "Linked to PR"}
             </div>
           </div>
         </Col>
@@ -107,18 +122,54 @@ const POOverview = ({ poId, onBack }) => {
         <Col md={7}>
           <SectionCard icon="bx-purchase-tag" title="Order & Commercial">
             <Row>
-              <Col md={6}><Field label="PO Number" value={po.poNumber} /></Col>
-              <Col md={6}><Field label="PO Type" value={PO_TYPE_LABELS[po.poType]} /></Col>
-              <Col md={6}><Field label="PO Date" value={dateFmt(po.poDate)} /></Col>
-              <Col md={6}><Field label="Delivery Date" value={dateFmt(po.expectedDeliveryDate)} /></Col>
-              <Col md={6}><Field label="Vendor" value={po.vendorId?.tradeName || po.vendorId?.legalName} /></Col>
-              <Col md={6}><Field label="Currency" value={po.currency} /></Col>
-              <Col md={6}><Field label="Criticality" value={po.criticality} /></Col>
-              <Col md={6}><Field label="Linked PR" value={po.prId?.prNumber || "—"} /></Col>
-              <Col md={6}><Field label="Contract Ref" value={po.contractRef || "—"} /></Col>
-              <Col md={6}><Field label="Project Ref" value={po.projectRef || "—"} /></Col>
-              <Col md={6}><Field label="Department" value={po.departmentId?.name || "—"} /></Col>
-              <Col md={6}><Field label="Budget (FY)" value={po.budgetId?.fiscalYear || "—"} /></Col>
+              <Col md={6}>
+                <Field label="PO Number" value={po.poNumber} />
+              </Col>
+              <Col md={6}>
+                <Field label="PO Type" value={PO_TYPE_LABELS[po.poType]} />
+              </Col>
+              <Col md={6}>
+                <Field label="PO Date" value={dateFmt(po.poDate)} />
+              </Col>
+              <Col md={6}>
+                <Field
+                  label="Delivery Date"
+                  value={dateFmt(po.expectedDeliveryDate)}
+                />
+              </Col>
+              <Col md={6}>
+                <Field
+                  label="Vendor"
+                  value={po.vendorId?.tradeName || po.vendorId?.legalName}
+                />
+              </Col>
+              <Col md={6}>
+                <Field label="Currency" value={po.currency} />
+              </Col>
+              <Col md={6}>
+                <Field label="Criticality" value={po.criticality} />
+              </Col>
+              <Col md={6}>
+                <Field label="Linked PR" value={po.prId?.prNumber || "—"} />
+              </Col>
+              <Col md={6}>
+                <Field label="Contract Ref" value={po.contractRef || "—"} />
+              </Col>
+              <Col md={6}>
+                <Field label="Project Ref" value={po.projectRef || "—"} />
+              </Col>
+              <Col md={6}>
+                <Field
+                  label="Department"
+                  value={po.departmentId?.name || "—"}
+                />
+              </Col>
+              <Col md={6}>
+                <Field
+                  label="Budget (FY)"
+                  value={po.budgetId?.fiscalYear || "—"}
+                />
+              </Col>
             </Row>
           </SectionCard>
 
@@ -126,7 +177,10 @@ const POOverview = ({ poId, onBack }) => {
             <Field label="Site" value={po.deliverySiteId?.title || "—"} />
           </SectionCard>
 
-          <SectionCard icon="bx-list-ul" title={`Line Items (${po.lineItems.length})`}>
+          <SectionCard
+            icon="bx-list-ul"
+            title={`Line Items (${po.lineItems.length})`}
+          >
             <div style={{ overflowX: "auto" }}>
               <table className="table mb-0">
                 <thead>
@@ -182,10 +236,19 @@ const POOverview = ({ poId, onBack }) => {
           <SectionCard icon="bx-store" title="Vendor Details">
             {po.vendorId ? (
               <>
-                <Field label="Name" value={po.vendorId.tradeName || po.vendorId.legalName} />
+                <Field
+                  label="Name"
+                  value={po.vendorId.tradeName || po.vendorId.legalName}
+                />
                 <Field label="Type" value={po.vendorId.vendorType} />
-                <Field label="Contact Person" value={po.vendorId.primaryContact?.name} />
-                <Field label="Phone" value={po.vendorId.primaryContact?.phone} />
+                <Field
+                  label="Contact Person"
+                  value={po.vendorId.primaryContact?.name}
+                />
+                <Field
+                  label="Phone"
+                  value={po.vendorId.primaryContact?.phone}
+                />
                 <Field label="Bank" value={po.vendorId.bankDetails?.bankName} />
               </>
             ) : (
@@ -194,17 +257,25 @@ const POOverview = ({ poId, onBack }) => {
           </SectionCard>
 
           <SectionCard icon="bx-check-shield" title="Approval">
-            <Field label="Status" value={po.status === "approved" ? "Approved" : "Pending Approval"} />
+            <Field
+              label="Status"
+              value={po.status === "approved" ? "Approved" : "Pending Approval"}
+            />
             {po.status === "approved" && (
               <>
-                <Field label="Approved By" value={po.approvedBy || "—"} />
+                <Field
+                  label="Approved By"
+                  value={po.approvedBy?.name || po.approvedBy?.email || "—"}
+                />
                 <Field label="Approved At" value={dateFmt(po.approvedAt)} />
               </>
             )}
           </SectionCard>
 
           <SectionCard icon="bx-truck" title="Fulfillment">
-            <div className="text-muted small">Not started — no deliveries recorded yet.</div>
+            <div className="text-muted small">
+              Not started — no deliveries recorded yet.
+            </div>
           </SectionCard>
         </Col>
       </Row>
