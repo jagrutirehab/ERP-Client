@@ -91,6 +91,16 @@ const PutawayList = ({ onAdd }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
+  const filteredPendingGRNs = pendingGRNs.filter((row) => {
+    if (!search.trim()) return true;
+    const term = search.toLowerCase();
+    return (
+      row.grnNumber?.toLowerCase().includes(term) ||
+      row.poId?.poNumber?.toLowerCase().includes(term) ||
+      row.poId?.deliverySiteId?.title?.toLowerCase().includes(term)
+    );
+  });
+
   const doneToday = putaways.filter((p) => {
     const created = new Date(p.createdAt);
     const now = new Date();
@@ -231,7 +241,7 @@ const PutawayList = ({ onAdd }) => {
         {tab === "pending" ? (
           <DataTable
             columns={pendingColumns}
-            data={pendingGRNs}
+            data={filteredPendingGRNs}
             customStyles={tableCustomStyles}
             progressPending={loading}
             pagination

@@ -225,3 +225,32 @@
     border-top: 1px solid #edeff3;
   }
 }
+
+
+// Sidebar hamesha content ke upar rahe
+.master-data-sidebar-col {
+  position: relative;
+  z-index: 2;
+}
+
+.master-data-content-col {
+  position: relative;
+  z-index: 1;
+}
+
+// Sirf tab lagega jab content area mein 404 page dikh raha ho —
+// baaki pages pe koi asar nahi
+.master-data-content-col:has(.auth-page-wrapper) {
+  transform: translateZ(0); // fixed/absolute layers ko isi box ke andar rakhta hai
+  overflow: hidden;
+
+  .auth-page-wrapper {
+    position: relative !important;
+    min-height: 100% !important;
+    height: 100%;
+  }
+
+  .min-vh-100 {
+    min-height: 100% !important;
+  }
+}

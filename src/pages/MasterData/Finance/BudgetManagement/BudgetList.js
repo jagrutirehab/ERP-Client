@@ -15,7 +15,11 @@ import "../../UnitOfMeasurement/uom.scss";
 
 const tableCustomStyles = {
   headRow: {
-    style: { backgroundColor: "#fff", borderBottom: "1px solid #edeff3", minHeight: "44px" },
+    style: {
+      backgroundColor: "#fff",
+      borderBottom: "1px solid #edeff3",
+      minHeight: "44px",
+    },
   },
   headCells: { style: { fontSize: "13px", fontWeight: 600, color: "#475569" } },
   rows: {
@@ -31,7 +35,9 @@ const tableCustomStyles = {
       outline: "none",
     },
   },
-  pagination: { style: { borderTopColor: "#edeff3", fontSize: "13px", color: "#667085" } },
+  pagination: {
+    style: { borderTopColor: "#edeff3", fontSize: "13px", color: "#667085" },
+  },
 };
 
 const StatusPill = ({ status }) => {
@@ -45,7 +51,8 @@ const StatusPill = ({ status }) => {
           : "status-inactive";
   return (
     <span className={`uom-status-pill ${cls}`}>
-      <span className="dot"></span> {status.charAt(0).toUpperCase() + status.slice(1)}
+      <span className="dot"></span>{" "}
+      {status.charAt(0).toUpperCase() + status.slice(1)}
     </span>
   );
 };
@@ -58,8 +65,8 @@ const BudgetList = ({ onAdd, onEdit }) => {
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "BUDGET", "WRITE");
   const canEdit = hasPermission("MASTERDATA", "BUDGET", "WRITE");
-  const canApprove = hasPermission("MASTERDATA", "BUDGET", "DELETE");
-  const canDelete = hasPermission("MASTERDATA", "BUDGET", "DELETE");
+  const canApprove = hasPermission("MASTERDATA", "BUDGET", "WRITE");
+  const canDelete = hasPermission("MASTERDATA", "BUDGET", "WRITE");
 
   const [budgets, setBudgets] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -91,7 +98,11 @@ const BudgetList = ({ onAdd, onEdit }) => {
       } catch (error) {
         if (cancelled) return;
         if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Couldn't load budgets.");
+          toast.error(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Couldn't load budgets.",
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -103,7 +114,10 @@ const BudgetList = ({ onAdd, onEdit }) => {
     };
   }, [search, filter, refreshFlag]);
 
-  const totalBudgeted = budgets.reduce((sum, b) => sum + (b.requestedAmount || 0), 0);
+  const totalBudgeted = budgets.reduce(
+    (sum, b) => sum + (b.requestedAmount || 0),
+    0,
+  );
   const totalApproved = budgets
     .filter((b) => b.status === "approved")
     .reduce((sum, b) => sum + (b.approvedAmount || 0), 0);
@@ -115,7 +129,11 @@ const BudgetList = ({ onAdd, onEdit }) => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't submit budget.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't submit budget.",
+        );
       }
     }
   };
@@ -130,7 +148,11 @@ const BudgetList = ({ onAdd, onEdit }) => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't delete budget.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't delete budget.",
+        );
       }
     } finally {
       setDeleting(false);
@@ -152,7 +174,11 @@ const BudgetList = ({ onAdd, onEdit }) => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't approve budget.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't approve budget.",
+        );
       }
     } finally {
       setApproving(false);
@@ -174,7 +200,11 @@ const BudgetList = ({ onAdd, onEdit }) => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't reject budget.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't reject budget.",
+        );
       }
     } finally {
       setRejecting(false);
@@ -182,28 +212,43 @@ const BudgetList = ({ onAdd, onEdit }) => {
   };
 
   const columns = [
-    { name: "Fiscal Year", selector: (row) => row.fiscalYear, sortable: true, width: "120px" },
+    {
+      name: "Fiscal Year",
+      selector: (row) => row.fiscalYear,
+      sortable: true,
+      width: "120px",
+    },
     {
       name: "Scope",
       cell: (row) => (
         <span className="uom-cell-muted">
-          {row.budgetType === "global" ? "Global" : row.departmentId?.name || "—"}
+          {row.budgetType === "global"
+            ? "Global"
+            : row.departmentId?.name || "—"}
         </span>
       ),
     },
     {
       name: "Budget Head",
-      cell: (row) => <span className="uom-cell-muted">{row.departmentBudgetHeadId?.name || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">
+          {row.departmentBudgetHeadId?.name || "—"}
+        </span>
+      ),
     },
     {
       name: "Requested",
-      cell: (row) => <span className="uom-cell-primary">{money(row.requestedAmount)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-primary">{money(row.requestedAmount)}</span>
+      ),
     },
     {
       name: "Approved",
       cell: (row) =>
         row.status === "approved" ? (
-          <span className="uom-status-pill status-active">{money(row.approvedAmount)}</span>
+          <span className="uom-status-pill status-active">
+            {money(row.approvedAmount)}
+          </span>
         ) : (
           <span className="uom-cell-muted">—</span>
         ),
@@ -225,22 +270,39 @@ const BudgetList = ({ onAdd, onEdit }) => {
             </Button>
           )}
           {row.status === "draft" && canEdit && (
-            <Button size="sm" color="primary" onClick={() => handleSubmitForReview(row._id)}>
+            <Button
+              size="sm"
+              color="primary"
+              onClick={() => handleSubmitForReview(row._id)}
+            >
               Submit
             </Button>
           )}
           {row.status === "submitted" && canApprove && (
             <>
-              <Button size="sm" color="success" onClick={() => openApprove(row)}>
+              <Button
+                size="sm"
+                color="success"
+                onClick={() => openApprove(row)}
+              >
                 Approve
               </Button>
-              <Button size="sm" color="danger" outline onClick={() => setRejectTarget(row)}>
+              <Button
+                size="sm"
+                color="danger"
+                outline
+                onClick={() => setRejectTarget(row)}
+              >
                 Reject
               </Button>
             </>
           )}
-                    {canDelete && (
-            <Button size="sm" color="light" onClick={() => setDeleteTarget(row)}>
+          {canDelete && (
+            <Button
+              size="sm"
+              color="light"
+              onClick={() => setDeleteTarget(row)}
+            >
               <i className="bx bx-trash text-danger"></i>
             </Button>
           )}
@@ -255,7 +317,9 @@ const BudgetList = ({ onAdd, onEdit }) => {
         <div className="uom-table-card p-3" style={{ flex: 1, minWidth: 220 }}>
           <div className="text-muted small">Total Budgeted</div>
           <div className="fs-4 fw-bold">{money(totalBudgeted)}</div>
-          <div className="text-muted small">Requested across listed budgets</div>
+          <div className="text-muted small">
+            Requested across listed budgets
+          </div>
         </div>
         <div className="uom-table-card p-3" style={{ flex: 1, minWidth: 220 }}>
           <div className="text-muted small">Total Approved</div>
@@ -310,27 +374,38 @@ const BudgetList = ({ onAdd, onEdit }) => {
           noDataComponent={
             <div className="uom-empty-state">
               <p className="uom-empty-title">No budgets found</p>
-              <p className="uom-empty-sub">Try adjusting your search, or create your first budget.</p>
+              <p className="uom-empty-sub">
+                Try adjusting your search, or create your first budget.
+              </p>
             </div>
           }
         />
       </div>
 
       {/* Delete confirmation */}
-            <Modal isOpen={!!deleteTarget} toggle={() => setDeleteTarget(null)} centered>
+      <Modal
+        isOpen={!!deleteTarget}
+        toggle={() => setDeleteTarget(null)}
+        centered
+      >
         <ModalBody className="p-4">
           <h5 className="mb-2">Delete this budget?</h5>
           <p className="text-muted mb-4">
-            {deleteTarget && <strong>{deleteTarget.fiscalYear}</strong>} will be permanently deleted.
+            {deleteTarget && <strong>{deleteTarget.fiscalYear}</strong>} will be
+            permanently deleted.
             {deleteTarget?.status === "approved" && (
               <span className="d-block text-danger mt-2">
-                ⚠️ This budget is already approved and may be linked to active PRs/POs. Deleting it can
-                affect procurement records.
+                ⚠️ This budget is already approved and may be linked to active
+                PRs/POs. Deleting it can affect procurement records.
               </span>
             )}
           </p>
           <div className="d-flex justify-content-end gap-2">
-            <Button color="light" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+            <Button
+              color="light"
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleting}
+            >
               Cancel
             </Button>
             <Button color="danger" onClick={confirmDelete} disabled={deleting}>
@@ -341,7 +416,11 @@ const BudgetList = ({ onAdd, onEdit }) => {
       </Modal>
 
       {/* Approve modal */}
-      <Modal isOpen={!!approveTarget} toggle={() => setApproveTarget(null)} centered>
+      <Modal
+        isOpen={!!approveTarget}
+        toggle={() => setApproveTarget(null)}
+        centered
+      >
         <ModalBody className="p-4">
           <h5 className="mb-3">Approve Budget</h5>
           <p className="text-muted mb-2">
@@ -356,10 +435,18 @@ const BudgetList = ({ onAdd, onEdit }) => {
             onChange={(e) => setApprovedAmountInput(e.target.value)}
           />
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button color="light" onClick={() => setApproveTarget(null)} disabled={approving}>
+            <Button
+              color="light"
+              onClick={() => setApproveTarget(null)}
+              disabled={approving}
+            >
               Cancel
             </Button>
-            <Button color="success" onClick={confirmApprove} disabled={approving}>
+            <Button
+              color="success"
+              onClick={confirmApprove}
+              disabled={approving}
+            >
               {approving ? "Approving..." : "Approve"}
             </Button>
           </div>
@@ -367,7 +454,11 @@ const BudgetList = ({ onAdd, onEdit }) => {
       </Modal>
 
       {/* Reject modal */}
-      <Modal isOpen={!!rejectTarget} toggle={() => setRejectTarget(null)} centered>
+      <Modal
+        isOpen={!!rejectTarget}
+        toggle={() => setRejectTarget(null)}
+        centered
+      >
         <ModalBody className="p-4">
           <h5 className="mb-3">Reject Budget</h5>
           <Label>Reason for rejection</Label>
@@ -379,7 +470,11 @@ const BudgetList = ({ onAdd, onEdit }) => {
             placeholder="Explain why this budget is being rejected"
           />
           <div className="d-flex justify-content-end gap-2 mt-4">
-            <Button color="light" onClick={() => setRejectTarget(null)} disabled={rejecting}>
+            <Button
+              color="light"
+              onClick={() => setRejectTarget(null)}
+              disabled={rejecting}
+            >
               Cancel
             </Button>
             <Button color="danger" onClick={confirmReject} disabled={rejecting}>
