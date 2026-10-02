@@ -24,6 +24,7 @@ import PropTypes from "prop-types";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_blue.css";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useFormDraft } from "../../../../hooks/useFormDraft";
 import {
   createDepartment,
   deleteEmployeeDocumentFile,
@@ -1010,6 +1011,7 @@ const EmployeeForm = ({
         } else {
           await postEmployee(formData);
           toast.success("Employee added successfully");
+          clearDraft();
         }
 
         if (view === "PAGE") {
@@ -1038,12 +1040,29 @@ const EmployeeForm = ({
     isSubmitting,
     handleChange,
     setFieldValue,
+    setValues,
     setTouched,
     setFieldTouched,
     validateForm,
     touched,
     isValid,
   } = form;
+
+  const draftKey = `employeeFormDraft_${mode}`;
+  const draftEnabled = !isEdit && (mode === "MASTER" || mode === "NEW_JOINING");
+  const { savedDraft, clearDraft } = useFormDraft(draftKey, values, {
+    enabled: draftEnabled,
+    exclude: ["eCode", "adharOld", "panOld", "offerLetterOld", "incrementLetterOld"],
+  });
+
+  const draftAppliedRef = useRef(false);
+  useEffect(() => {
+    if (draftEnabled && savedDraft && !draftAppliedRef.current) {
+      draftAppliedRef.current = true;
+      setValues({ ...values, ...savedDraft }, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftEnabled, savedDraft]);
 
   // Contractual / consultant / intern / apprentice / consultant-session use the
   // simplified finance section (In Hand Salary, Annual CTC, Payment Type) and
