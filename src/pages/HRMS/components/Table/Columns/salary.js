@@ -289,6 +289,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         selector: row => formatCurrency(row?.earned?.adjustments?.REIMBURSEMENT),
         wrap: true,
         center: true,
+        minWidth: "140px",
         style: earnedCellStyle,
     },
     {
@@ -339,7 +340,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
     {
         name: <div>Voluntary PF</div>,
-        selector: row => formatCurrency(row?.earned?.voluntaryPF),
+        selector: row => formatCurrency((row?.earned?.voluntaryPF || 0) + (row?.earned?.adjustments?.VOLUNTARY_PF || 0)),
         wrap: true,
         center: true,
         style: employeeDeductionStyle,
@@ -367,7 +368,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
     {
         name: <div>PT Arrear</div>,
-        selector: row => formatCurrency(row?.earned?.PTArrears),
+        selector: row => formatCurrency((row?.earned?.PTArrears || 0) + (row?.earned?.adjustments?.PT_ARREAR || 0)),
         wrap: true,
         center: true,
         style: employeeDeductionStyle,
@@ -395,28 +396,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
     {
         name: <div>Other Deductions</div>,
-        selector: row => formatCurrency(row?.earned?.otherDeductions),
-        wrap: true,
-        center: true,
-        style: employeeDeductionStyle,
-    },
-    {
-        name: <div>PT Arrear (Adj.)</div>,
-        selector: row => formatCurrency(row?.earned?.adjustments?.PT_ARREAR),
-        wrap: true,
-        center: true,
-        style: employeeDeductionStyle,
-    },
-    {
-        name: <div>Voluntary PF (Adj.)</div>,
-        selector: row => formatCurrency(row?.earned?.adjustments?.VOLUNTARY_PF),
-        wrap: true,
-        center: true,
-        style: employeeDeductionStyle,
-    },
-    {
-        name: <div>Other Deduction (Adj.)</div>,
-        selector: row => formatCurrency(row?.earned?.adjustments?.OTHER_DEDUCTION),
+        selector: row => formatCurrency((row?.earned?.otherDeductions || 0) + (row?.earned?.adjustments?.OTHER_DEDUCTION || 0)),
         wrap: true,
         center: true,
         style: employeeDeductionStyle,
