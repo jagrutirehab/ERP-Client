@@ -17,6 +17,7 @@ import {
   getITApprovals,
   getMonthlyAttendance,
   getPayrolls,
+  getPayrollAdjustments,
   getRegularizationsByEmployee,
   getTPMs,
   payrollAction,
@@ -163,6 +164,18 @@ export const fetchIncentives = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await getIncentives(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const fetchPayrollAdjustments = createAsyncThunk(
+  "hr/getPayrollAdjustments",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getPayrollAdjustments(data);
       return response;
     } catch (error) {
       return rejectWithValue(error);
@@ -459,6 +472,19 @@ export const hrSlice = createSlice({
         state.pagination = payload.pagination;
       })
       .addCase(fetchIncentives.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(fetchPayrollAdjustments.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchPayrollAdjustments.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchPayrollAdjustments.rejected, (state) => {
         state.loading = false;
       });
 

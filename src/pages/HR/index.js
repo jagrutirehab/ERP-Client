@@ -40,6 +40,8 @@ import MyRegularizations from "../HRMS/Attendance/Regularization/myRegularizatio
 import GetRegularizationsRequest from "../HRMS/Attendance/Regularization/getRequest";
 import AddIncentivesRequest from "./Incentives/AddRequest";
 import IncentivesApproval from "./Incentives/Approvals";
+import AddPayrollAdjustmentRequest from "./PayrollAdjustments/AddRequest";
+import PayrollAdjustmentsApproval from "./PayrollAdjustments/Approvals";
 import MainDashboard from "../HRMS/Attendance/MainDashboard";
 import HiringManagement from "./Hiring/HiringManagement";
 import Salary from "./Salary";
@@ -254,6 +256,14 @@ const HR = () => {
                 <Route
                   path={`/incentives/approval`}
                   element={<IncentivesApproval />}
+                />
+                <Route
+                  path={`/payroll-adjustments/add`}
+                  element={<AddPayrollAdjustmentRequest />}
+                />
+                <Route
+                  path={`/payroll-adjustments/approval`}
+                  element={<PayrollAdjustmentsApproval />}
                 />
                 <Route path={`/salary`} element={<Salary />} />
                 <Route

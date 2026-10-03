@@ -661,6 +661,9 @@ export const TPM_ACTION = "/hr/tpm/action";
 export const INCENTIVES = "/hr/incentives";
 export const INCENTIVES_ACTION = "/hr/incentives/action";
 
+export const PAYROLL_ADJUSTMENTS = "/hr/payroll-adjustments";
+export const PAYROLL_ADJUSTMENTS_ACTION = "/hr/payroll-adjustments/action";
+
 export const GENERATE_PAYROLL = "/hr/payroll/generate";
 export const GET_PAYROLLS = "/hr/payroll";
 export const EXPORT_PAYROLLS_XLSX = "/hr/payroll/xlsx";

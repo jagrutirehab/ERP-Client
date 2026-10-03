@@ -163,6 +163,11 @@ const dmTotal = (value) => {
   return f !== null ? `Rs. ${f}` : "Rs. 0";
 };
 
+const num = (v) => Number(v) || 0;
+
+const withAdjustment = (base, adjustment) =>
+  num(adjustment) > 0 ? num(base) + num(adjustment) : base;
+
 const monthYearLabel = (row) =>
   row?.month && row?.year ? `${row.month} ${row.year}` : "--";
 
@@ -215,7 +220,129 @@ const TRow = ({ label, value }) => (
 
 // ─── PayslipPdf ───────────────────────────────────────────────────────────────
 
-const PayslipPdf = ({ row }) => {
+// ─── Shared pieces (used by all payslip formats) ─────────────────────────────
+
+const PayslipHeader = ({ row }) => (
+  <View style={styles.outerBox}>
+    <View style={styles.logoWrap}>
+      <JagrutiLogo style={styles.logoImage} />
+    </View>
+    <View style={styles.titleBar}>
+      <Text style={styles.tTitle}>
+        {row?.center?.title || "Jagruti Rehab Centre"}
+      </Text>
+    </View>
+    <View style={styles.subTitle}>
+      <Text style={styles.tSubTitle}>
+        Payslip for the month of {monthYearLabel(row)}
+      </Text>
+    </View>
+  </View>
+);
+
+const PayslipInfo = ({ row }) => {
+const infoRows = [
+  [
+    "Employee Name",              row?.employeeName,
+    "Date of Joining",            row?.joiningDate,
+  ],
+  [
+    "Employee Code",              row?.employeeCode,
+    "LOP Days",                   row?.lopDays             ?? "--",
+  ],
+  [
+    "Designation",                normalizeUnderscores(row?.designation),
+    "Working Days Attended",      row?.workingDaysAttended ?? "--",
+  ],
+  [
+    "Department",                 row?.department,
+    "Payable Days",               row?.payableDays         ?? "--",
+  ],
+  [
+    "Position",                   row?.position?.toUpperCase(),
+    "PF Number",                  row?.pfNumber,
+  ],
+  [
+    "PAN",                        row?.pan,
+    "UAN No.",                    row?.uanNo,
+  ],
+  [
+    "Beneficiary Account Number", row?.accountNumber,
+    "",                           "",
+  ],
+];
+
+  return (
+      <View style={styles.infoBox}>
+        {infoRows.map((item, idx) => (
+          <View
+            key={idx}
+            style={[
+              styles.infoRow,
+              idx === infoRows.length - 1 ? { borderBottom: 0 } : null,
+            ]}
+            wrap={false}
+          >
+            <View style={styles.cellLabel}>
+              <Text style={styles.tBold}>{dv(item[0])}</Text>
+            </View>
+            <View style={styles.cellValue}>
+              <Text style={styles.tNormal}>{dv(item[1])}</Text>
+            </View>
+            <View style={styles.cellLabelRight}>
+              <Text style={styles.tBold}>{item[2] ? dv(item[2]) : ""}</Text>
+            </View>
+            <View style={styles.cellValueRight}>
+              <Text style={styles.tNormal}>{item[2] ? dv(item[3]) : ""}</Text>
+            </View>
+          </View>
+        ))}
+      </View>
+  );
+};
+
+const PayslipFooter = ({
+  netLabel = "Net Pay (E-D)",
+  wordsLabel = "Amount in Words",
+  noteLabel = "Note :",
+  wordsPrefix = "",
+  netPay,
+}) => (
+  <View style={styles.footerBox}>
+    <View style={styles.footerRow} wrap={false}>
+      <View style={styles.footerLabelCell}>
+        <Text style={[styles.tSmall, styles.tBold]}>{netLabel}</Text>
+      </View>
+      <View style={styles.footerValueCell}>
+        <Text style={[styles.tSmall, styles.tBold]}>{dmTotal(netPay)}</Text>
+      </View>
+    </View>
+
+    <View style={styles.footerRow} wrap={false}>
+      <View style={styles.footerLabelCell}>
+        <Text style={[styles.tSmall, styles.tBold]}>{wordsLabel}</Text>
+      </View>
+      <View style={styles.footerValueCell}>
+        <Text style={styles.tSmall}>{wordsPrefix}{numberToWordsIndian(netPay)}</Text>
+      </View>
+    </View>
+
+    <View style={styles.footerRow} wrap={false}>
+      <View style={styles.footerLabelCell}>
+        <Text style={[styles.tSmall, styles.tBold]}>{noteLabel}</Text>
+      </View>
+      <View style={styles.footerValueCell}>
+        <Text style={[styles.tSmall, styles.tItalic]}>
+          This payslip is computer generated, hence no signature is required.
+        </Text>
+      </View>
+    </View>
+  </View>
+);
+
+
+const StandardPayslip = ({ row }) => {
+  const adjustments = row?.adjustments || {};
 
   // ── Earnings ──────────────────────────────────────────────────────────────
   // All fields are now top-level on `row` (flattened by backend).
@@ -232,7 +359,12 @@ const PayslipPdf = ({ row }) => {
     { label: "Notice Pay out",              value: row?.noticePay           ?? null },
     { label: "Gratuity",                    value: null           ?? null },
     { label: "Other Variable",              value: row?.otherVariable1      ?? null },
-    { label: "",                            value: undefined },
+    ...[
+      { label: "Arrear", value: adjustments.arrear },
+      { label: "Reimbursement", value: adjustments.reimbursement },
+      { label: "Variable Pay", value: adjustments.variablePay },
+      { label: "Other Earnings", value: adjustments.otherEarnings },
+    ].filter((r) => num(r.value) > 0),
   ];
 
   // ── Deductions ────────────────────────────────────────────────────────────
@@ -240,16 +372,22 @@ const PayslipPdf = ({ row }) => {
   const deductionRows = [
     { label: "PF Employee",    value: row?.pfEmployee     ?? null },
     // { label: "PF Employer", value: row?.pfEmployer     ?? null }, // PF Employer hidden from payslip
-    { label: "Voluntary PF",   value: row?.voluntaryPF    ?? null },
+    { label: "Voluntary PF",   value: withAdjustment(row?.voluntaryPF ?? null, adjustments.voluntaryPF) },
     { label: "PF Arrear",      value: row?.pfArrear       ?? null },
     { label: "Member ESIC",    value: row?.esicEmployee   ?? null },
     { label: "LWF",            value: row?.LWFEmployee    ?? null },
     { label: "PT",             value: row?.PT             ?? null },
-    { label: "PT Arrear",      value: row?.PTArrears      ?? null },
+    { label: "PT Arrear",      value: withAdjustment(row?.PTArrears ?? null, adjustments.ptArrear) },
     { label: "Salary Advance", value: row?.advanceSalary  ?? null },
     { label: "TDS",            value: row?.TDSAmount      ?? null },
     { label: "Insurance",      value: row?.insurance      ?? null },
-    { label: "Other Deductions", value: row?.otherDeductions ?? null },
+    { label: "Other Deductions", value: withAdjustment(row?.otherDeductions ?? null, adjustments.otherDeduction) },
+  ];
+
+  const rowCount = Math.max(earningsRows.length, deductionRows.length);
+  const padRows = (rows) => [
+    ...rows,
+    ...Array.from({ length: rowCount - rows.length }, () => ({ label: "", value: undefined })),
   ];
 
   // ── Totals ─────────────────────────────────────────────────────────────────
@@ -268,83 +406,14 @@ const PayslipPdf = ({ row }) => {
   const pfEmployerVal = Number(row?.pfEmployer) || 0;
   const totalPF = pfEmployeeVal + pfEmployerVal;
 
-  const infoRows = [
-    [
-      "Employee Name",              row?.employeeName,
-      "Date of Joining",            row?.joiningDate,
-    ],
-    [
-      "Employee Code",              row?.employeeCode,
-      "LOP Days",                   row?.lopDays             ?? "--",
-    ],
-    [
-      "Designation",                normalizeUnderscores(row?.designation),
-      "Working Days Attended",      row?.workingDaysAttended ?? "--",
-    ],
-    [
-      "Department",                 row?.department,
-      "Payable Days",               row?.payableDays         ?? "--",
-    ],
-    [
-      "Position",                   row?.position?.toUpperCase(),
-      "PF Number",                  row?.pfNumber,
-    ],
-    [
-      "PAN",                        row?.pan,
-      "UAN No.",                    row?.uanNo,
-    ],
-    [
-      "Beneficiary Account Number", row?.accountNumber,
-      "",                           "",
-    ],
-  ];
-
   return (
     <Document>
       <Page size="A4" orientation="portrait" style={styles.page}>
         <View style={styles.sheet}>
 
-          <View style={styles.outerBox}>
-            <View style={styles.logoWrap}>
-              <JagrutiLogo style={styles.logoImage} />
-            </View>
-            <View style={styles.titleBar}>
-              <Text style={styles.tTitle}>
-                {row?.center?.title || "Jagruti Rehab Centre"}
-              </Text>
-            </View>
-            <View style={styles.subTitle}>
-              <Text style={styles.tSubTitle}>
-                Payslip for the month of {monthYearLabel(row)}
-              </Text>
-            </View>
-          </View>
+          <PayslipHeader row={row} />
 
-          <View style={styles.infoBox}>
-            {infoRows.map((item, idx) => (
-              <View
-                key={idx}
-                style={[
-                  styles.infoRow,
-                  idx === infoRows.length - 1 ? { borderBottom: 0 } : null,
-                ]}
-                wrap={false}
-              >
-                <View style={styles.cellLabel}>
-                  <Text style={styles.tBold}>{dv(item[0])}</Text>
-                </View>
-                <View style={styles.cellValue}>
-                  <Text style={styles.tNormal}>{dv(item[1])}</Text>
-                </View>
-                <View style={styles.cellLabelRight}>
-                  <Text style={styles.tBold}>{item[2] ? dv(item[2]) : ""}</Text>
-                </View>
-                <View style={styles.cellValueRight}>
-                  <Text style={styles.tNormal}>{item[2] ? dv(item[3]) : ""}</Text>
-                </View>
-              </View>
-            ))}
-          </View>
+          <PayslipInfo row={row} />
 
           {/* ── Earnings & Deductions side by side ─────────────────────── */}
           <View style={styles.sectionWrap}>
@@ -362,7 +431,7 @@ const PayslipPdf = ({ row }) => {
                   <Text style={styles.tHeaderR}>Amount</Text>
                 </View>
               </View>
-              {earningsRows.map((r, i) => (
+              {padRows(earningsRows).map((r, i) => (
                 <TRow key={i} label={r.label} value={r.value} />
               ))}
               <View style={styles.totalRow} wrap={false}>
@@ -388,7 +457,7 @@ const PayslipPdf = ({ row }) => {
                   <Text style={styles.tHeaderR}>Amount</Text>
                 </View>
               </View>
-              {deductionRows.map((r, i) => (
+              {padRows(deductionRows).map((r, i) => (
                 <TRow key={i} label={r.label} value={r.value} />
               ))}
               <View style={styles.totalRow} wrap={false}>
@@ -402,37 +471,7 @@ const PayslipPdf = ({ row }) => {
             </View>
           </View>
 
-          {/* ── Footer ─────────────────────────────────────────────────── */}
-          <View style={styles.footerBox}>
-            <View style={styles.footerRow} wrap={false}>
-              <View style={styles.footerLabelCell}>
-                <Text style={[styles.tSmall, styles.tBold]}>Net Pay (E-D)</Text>
-              </View>
-              <View style={styles.footerValueCell}>
-                <Text style={[styles.tSmall, styles.tBold]}>{dmTotal(netPay)}</Text>
-              </View>
-            </View>
-
-            <View style={styles.footerRow} wrap={false}>
-              <View style={styles.footerLabelCell}>
-                <Text style={[styles.tSmall, styles.tBold]}>Amount in Words</Text>
-              </View>
-              <View style={styles.footerValueCell}>
-                <Text style={styles.tSmall}>{numberToWordsIndian(netPay)}</Text>
-              </View>
-            </View>
-
-            <View style={styles.footerRow} wrap={false}>
-              <View style={styles.footerLabelCell}>
-                <Text style={[styles.tSmall, styles.tBold]}>Note :</Text>
-              </View>
-              <View style={styles.footerValueCell}>
-                <Text style={[styles.tSmall, styles.tItalic]}>
-                  This payslip is computer generated, hence no signature is required.
-                </Text>
-              </View>
-            </View>
-          </View>
+          <PayslipFooter netPay={netPay} />
 
           {/* ── PF Breakup ─────────────────────────────────────────────── */}
           {hasPF && (
@@ -469,6 +508,173 @@ const PayslipPdf = ({ row }) => {
       </Page>
     </Document>
   );
+};
+
+
+// ─── Consultant / Intern formats ──────────────────────────────────────────────
+
+const TableHalf = ({ title, rows, totalLabel, total, last }) => (
+  <View style={last ? styles.halfLast : styles.half}>
+    <View style={styles.sectionTitleCell}>
+      <Text style={styles.tSection}>{title}</Text>
+    </View>
+    <View style={styles.tableHeader} wrap={false}>
+      <View style={styles.thParticulars}>
+        <Text style={styles.tHeader}>Particulars</Text>
+      </View>
+      <View style={styles.thAmount}>
+        <Text style={styles.tHeaderR}>Amount</Text>
+      </View>
+    </View>
+    {rows.map((r, i) => (
+      <TRow key={i} label={r.label} value={r.value} />
+    ))}
+    <View style={styles.totalRow} wrap={false}>
+      <View style={styles.totalLabelCell}>
+        <Text style={styles.tTotal}>{totalLabel}</Text>
+      </View>
+      <View style={styles.totalValueCell}>
+        <Text style={[styles.tTotal, styles.tRight]}>{dmTotal(total)}</Text>
+      </View>
+    </View>
+  </View>
+);
+
+const SimplifiedPayslip = ({ row, cfg }) => {
+  const adjustments = row?.adjustments || {};
+  const incentives = num(row?.incentives);
+  const arrear = num(adjustments.arrear);
+  const reimbursement = num(adjustments.reimbursement);
+  const variablePay = num(adjustments.variablePay);
+  const otherEarnings = num(adjustments.otherEarnings);
+  const gross = num(row?.grossSalary);
+  const totalD = num(row?.totalDeductions);
+  const netPay =
+    row?.inHandSalary != null && Number.isFinite(Number(row.inHandSalary))
+      ? Number(row.inHandSalary)
+      : gross - totalD;
+
+  const derivedFee = Math.max(
+    gross - incentives - arrear - reimbursement - variablePay - otherEarnings,
+    0
+  );
+  const fee =
+    cfg.useStoredFee && num(row?.consultantFee) > 0
+      ? num(row.consultantFee)
+      : derivedFee;
+
+  const earningsRows = [
+    { label: cfg.feeLabel, value: fee },
+    { label: cfg.incentiveLabel, value: incentives },
+    { label: "Reimbursement (if any)", value: reimbursement },
+    { label: cfg.arrearLabel, value: arrear },
+    ...(variablePay > 0 ? [{ label: "Variable Pay", value: variablePay }] : []),
+    ...(otherEarnings > 0 ? [{ label: "Other Earnings", value: otherEarnings }] : []),
+  ];
+
+  const deductionValues = {
+    TDSAmount: num(row?.TDSAmount),
+    advanceSalary: num(row?.advanceSalary),
+    PTArrears: num(row?.PTArrears) + num(adjustments.ptArrear),
+    voluntaryPF: num(row?.voluntaryPF) + num(adjustments.voluntaryPF),
+    otherDeductions: num(row?.otherDeductions) + num(adjustments.otherDeduction),
+    insurance: num(row?.insurance),
+  };
+  const deductionRows = cfg.deductionFields.map(([label, key]) => ({
+    label,
+    value: deductionValues[key],
+  }));
+
+  const rowCount = Math.max(earningsRows.length, deductionRows.length) + 1;
+  const pad = (rows) => [
+    ...rows,
+    ...Array.from({ length: rowCount - rows.length }, () => ({ label: "", value: undefined })),
+  ];
+
+  return (
+    <Document>
+      <Page size="A4" orientation="portrait" style={styles.page}>
+        <View style={styles.sheet}>
+          <PayslipHeader row={row} />
+          <PayslipInfo row={row} />
+
+          <View style={styles.sectionWrap}>
+            <TableHalf
+              title="Earnings"
+              rows={pad(earningsRows)}
+              totalLabel={cfg.earningsTotalLabel}
+              total={gross}
+            />
+            <TableHalf
+              title="Deductions"
+              rows={pad(deductionRows)}
+              totalLabel="Total Deductions"
+              total={totalD}
+              last
+            />
+          </View>
+
+          <PayslipFooter
+            netLabel={cfg.netLabel}
+            wordsLabel="Amount in Words:"
+            noteLabel="Note:"
+            wordsPrefix="Rupees "
+            netPay={netPay}
+          />
+        </View>
+      </Page>
+    </Document>
+  );
+};
+
+const CONSULTANT_CFG = {
+  feeLabel: "Consultant / Professional Fee",
+  incentiveLabel: "Incentive",
+  arrearLabel: "Arrear (if any)",
+  earningsTotalLabel: "Gross Payment",
+  useStoredFee: true,
+  deductionFields: [
+    ["TDS", "TDSAmount"],
+    ["Advance Recovery", "advanceSalary"],
+    ["PT Arrear", "PTArrears"],
+    ["Voluntary PF", "voluntaryPF"],
+    ["Other Recovery", "otherDeductions"],
+    ["Insurance", "insurance"],
+  ],
+  netLabel: "Net Amount Payable:",
+};
+
+const INTERN_CFG = {
+  feeLabel: "Monthly Compensation",
+  incentiveLabel: "Incentives",
+  arrearLabel: "Arrears (if any)",
+  earningsTotalLabel: "Total Earnings",
+  useStoredFee: false,
+  deductionFields: [
+    ["Advance Recovery", "advanceSalary"],
+    ["PT Arrear", "PTArrears"],
+    ["Voluntary PF", "voluntaryPF"],
+    ["Other Recoveries", "otherDeductions"],
+    ["Insurance", "insurance"],
+  ],
+  netLabel: "Net Stipend Payable:",
+};
+
+const ConsultantPayslip = ({ row }) => <SimplifiedPayslip row={row} cfg={CONSULTANT_CFG} />;
+const InternPayslip = ({ row }) => <SimplifiedPayslip row={row} cfg={INTERN_CFG} />;
+
+// ─── Format selection by employment type ─────────────────────────────────────
+
+const PayslipPdf = ({ row }) => {
+  switch ((row?.employmentType || "").trim().toUpperCase()) {
+    case "CONSULTANT":
+      return <ConsultantPayslip row={row} />;
+    case "INTERN":
+      return <InternPayslip row={row} />;
+    default:
+      // FULL_TIME, CONSULTANT_SESSION, CONTRACTUAL, etc. keep the existing layout
+      return <StandardPayslip row={row} />;
+  }
 };
 
 export default PayslipPdf;

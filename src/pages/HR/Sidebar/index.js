@@ -267,6 +267,16 @@ const Sidebar = () => {
     "INCENTIVES_APPROVAL",
     "READ",
   );
+  const hasPayrollAdjustmentsAddRequestPermission = hasPermission(
+    "HR",
+    "PAYROLL_ADJUSTMENTS_ADD_REQUEST",
+    "READ",
+  );
+  const hasPayrollAdjustmentsApprovalPermission = hasPermission(
+    "HR",
+    "PAYROLL_ADJUSTMENTS_APPROVAL",
+    "READ",
+  );
   const hasSalaryPermission = hasPermission("HR", "SALARY", "READ");
   const hasMyPendingApprovalsPermission = hasPermission(
     "HR",
@@ -671,6 +681,23 @@ const Sidebar = () => {
         return page.children.length > 0;
       }
 
+      if (page.id === "payroll-adjustments") {
+        page.children = page.children.filter((child) => {
+          if (
+            child.id === "add-payroll-adjustments-request" &&
+            !hasPayrollAdjustmentsAddRequestPermission
+          )
+            return false;
+          if (
+            child.id === "payroll-adjustments-approval" &&
+            !hasPayrollAdjustmentsApprovalPermission
+          )
+            return false;
+          return true;
+        });
+        return page.children.length > 0;
+      }
+
       if (page.id === "payslips") {
         page.children = page.children.filter((child) => {
           if (child.id === "my-pay-slip" && !hasMyPayslipsPermission)
@@ -767,6 +794,8 @@ const Sidebar = () => {
     hasMainDashboardPermission,
     hasIncentivesAddRequestPermission,
     hasIncentivesApprovalPermission,
+    hasPayrollAdjustmentsAddRequestPermission,
+    hasPayrollAdjustmentsApprovalPermission,
     hasSalaryPermission,
     hasMyPendingApprovalsPermission,
     hasFinancePermission,
