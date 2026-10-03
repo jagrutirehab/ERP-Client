@@ -153,11 +153,11 @@ const TrainingRecordDetail = () => {
                                 </div>
 
                                 <Collapse isOpen={!!openRoles[entry?.position]}>
-                                    <div style={{ padding: 16 }}>
+                                    <div style={{ padding: 16, overflowX: "auto" }}>
                                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                                             <thead>
                                                 <tr>
-                                                    {["#", "Name", "Employee Code", "Department", "Designation"].map((h) => (
+                                                    {["#", "Name", "eCode", "Position", "Department", "Designation"].map((h) => (
                                                         <th key={h} style={{ padding: "9px 12px", background: "#f8fafc", color: "#6b7280", fontWeight: 600, textAlign: "left", borderBottom: "1px solid #e5e7eb", whiteSpace: "nowrap" }}>
                                                             {h}
                                                         </th>
@@ -168,10 +168,11 @@ const TrainingRecordDetail = () => {
                                                 {entry?.presents?.map((p, i) => (
                                                     <tr key={p?.employee?._id || i} style={{ borderBottom: "1px solid #f1f5f9" }}>
                                                         <td style={{ padding: "9px 12px", color: "#9ca3af" }}>{i + 1}</td>
-                                                        <td style={{ padding: "9px 12px", fontWeight: 600, color: "#111827" }}>{p?.employee?.name || "—"}</td>
+                                                        <td style={{ padding: "9px 12px", fontWeight: 600, color: "#111827" }}>{p?.employee?.name || <span className="text-muted fw-normal">Employee not found</span>}</td>
                                                         <td style={{ padding: "9px 12px", color: "#6b7280" }}>{p?.employee?.eCode || "—"}</td>
+                                                        <td style={{ padding: "9px 12px", color: "#374151" }}>{entry?.positionName || "—"}</td>
                                                         <td style={{ padding: "9px 12px" }}><RoleBadge role={p?.employee?.department?.department || "—"} /></td>
-                                                        <td style={{ padding: "9px 12px" }}><RoleBadge role={p?.employee?.designation?.name || "—"} /></td>
+                                                        <td style={{ padding: "9px 12px" }}><RoleBadge role={p?.employee?.designation?.name?.replace(/_/g, " ") || "—"} /></td>
                                                     </tr>
                                                 ))}
                                             </tbody>

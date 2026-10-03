@@ -1,12 +1,12 @@
 const SelectedBadge = ({ user, role, onRemove }) => (
     <span
         className="badge d-inline-flex align-items-center gap-1 me-1 mb-1 px-2 py-1"
-        style={{ background: "var(--vz-primary)", fontSize: 11, borderRadius: 20, fontWeight: 500 }}
+        style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", fontSize: 11, borderRadius: 20, fontWeight: 500 }}
     >
         {user.name}
         <button
             type="button"
-            className="btn-close btn-close-white"
+            className="btn-close"
             style={{ fontSize: 8, lineHeight: 1 }}
             onClick={() => onRemove(role, user._id)}
         />
