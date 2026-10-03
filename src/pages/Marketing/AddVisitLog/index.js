@@ -374,7 +374,7 @@ const AddVisitLog = () => {
 
         setDraftId(draft._id);
         validation.setValues({
-          center: draft.center || "",
+          center: draft.center?._id || draft.center || "",
           areaLocality: draft.areaLocality || "",
           doctorName: draft.doctor?.name || "",
           clinicName: draft.doctor?.clinicName || "",
