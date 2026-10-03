@@ -219,6 +219,10 @@ export const renderStatusBadge = (stage) => {
       text: "Incentive",
       color: "success",
     },
+    PAYROLL_ADJUSTMENT: {
+      text: "Payroll Adjustment",
+      color: "info",
+    },
     NEW_JOINING: {
       text: "New Joining",
       color: "secondary",

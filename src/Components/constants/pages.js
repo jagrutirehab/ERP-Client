@@ -1226,6 +1226,27 @@ export const HR = [
       },
     ],
   },
+  {
+    id: "payroll-adjustments",
+    label: "Payroll Adjustments",
+    icon: "bx bx-slider-alt",
+    link: "/hr/payroll-adjustments",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-payroll-adjustments-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/payroll-adjustments/add",
+      },
+      {
+        id: "payroll-adjustments-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/payroll-adjustments/approval",
+      },
+    ],
+  },
 
   {
     id: "payslips",

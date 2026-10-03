@@ -253,6 +253,7 @@ export const myDashboardTypeOptions = [
     { value: "REGULARIZATION", label: "Regularization" },
     { value: "ADVANCE_SALARY", label: "Advance Salary" },
     { value: "INCENTIVE", label: "Incentive" },
+    { value: "PAYROLL_ADJUSTMENT", label: "Payroll Adjustment" },
     { value: "NEW_JOINING", label: "New Joining" },
     { value: "EXIT_EMPLOYEE", label: "Exit Employee" },
     { value: "TRANSFER_OUTGOING", label: "Transfer Outgoing" },

@@ -4084,6 +4084,51 @@ export const getIncentives = (params = {}) => {
   });
 };
 
+export const postPayrollAdjustments = (data) => {
+  return api.create(url.PAYROLL_ADJUSTMENTS, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const editPayrollAdjustments = (id, data) => {
+  return api.update(`${url.PAYROLL_ADJUSTMENTS}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const deletePayrollAdjustments = (id) => {
+  return api.delete(`${url.PAYROLL_ADJUSTMENTS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const payrollAdjustmentsAction = (id, data) => {
+  return api.update(`${url.PAYROLL_ADJUSTMENTS_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getPayrollAdjustments = (params = {}) => {
+  return api.get(url.PAYROLL_ADJUSTMENTS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
 export const generatePayroll = (data) => {
   return api.create(url.GENERATE_PAYROLL, data, {
     headers: {

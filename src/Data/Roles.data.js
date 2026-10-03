@@ -502,6 +502,8 @@ export const permissionList = [
       // Incentives
       { name: "INCENTIVES_ADD_REQUEST", label: "Incentives Add Request" },
       { name: "INCENTIVES_APPROVAL", label: "Incentives Approval" },
+      { name: "PAYROLL_ADJUSTMENTS_ADD_REQUEST", label: "Payroll Adjustments Add Request" },
+      { name: "PAYROLL_ADJUSTMENTS_APPROVAL", label: "Payroll Adjustments Approval" },
       // Salary
       { name: "SALARY", label: "Salary" },
       // My Pending Approvals
