@@ -17,6 +17,7 @@ import MedicineRequisitionAddRequest from "./Requisition/MedicineRequisition/Add
 import MedicineRequisitionEditRequest from "./Requisition/MedicineRequisition/EditRequest";
 import StockSummary from "./StockSummary";
 import ExpiredMedicines from "./ExpiredMedicines";
+import InventoryHealthReport from "./InventoryHealthReport";
 import OCRBillImport from "./OCRBillImport/OCRBillImport";
 import BillUploadDashboard from "./BillUploadDashboard/BillUploadDashboard";
 import { usePermissions } from "../../Components/Hooks/useRoles";
@@ -73,6 +74,7 @@ const Pharmacy = () => {
                 <Route path={`/requisition/medicine-requisition/edit/:id`} element={<MedicineRequisitionEditRequest />} />
                 <Route path={`/stock-summary`} element={<StockSummary />} />
                 <Route path={`/expired-medicines`} element={<ExpiredMedicines />} />
+                <Route path={`/reports/inventory-health`} element={<InventoryHealthReport />} />
                 <Route path={`/ocr-bill-import`} element={<OCRBillImport />} />
                 <Route path={`/bill-upload-dashboard`} element={<BillUploadDashboard />} />
                 <Route path={`/sareyaan-inventory`} element={<SareyaanInventory />} />

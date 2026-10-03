@@ -456,6 +456,12 @@ export const Pharmacy = [
     icon: "bx bx-home",
   },
   {
+    id: "inventoryHealthReport",
+    label: "Health Report",
+    link: "/pharmacy/reports/inventory-health",
+    icon: "bx bx-pulse",
+  },
+  {
     id: "pharmacymanagement",
     label: "Inventory",
     link: "/pharmacy/management",

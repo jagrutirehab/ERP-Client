@@ -395,6 +395,13 @@ const OCRBillImport = () => {
       const baseUnitQty = qty * factor;
       const baseUnitQtyDisplay = qty === 0 ? "—" : baseUnitQty.toFixed(2);
 
+      // Once the user manually edits Purchase Price, that value is final —
+      // it must stop being overwritten by the auto-discount recompute on
+      // every subsequent render (e.g. when quantity changes).
+      const displayedPurchasePrice = formData.purchasePriceEdited
+        ? parseFloat(formData.purchasePrice) || 0
+        : purchasePrice;
+
       return {
         idx,
         medId: selectedMedicine?._id?.slice(-6) || selectedMedicine?.id,
@@ -410,8 +417,8 @@ const OCRBillImport = () => {
         qty,
         purchaseUnit,
         baseUnitQtyDisplay,
-        purchasePrice,
-        discountedPrice: purchasePrice,
+        purchasePrice: displayedPurchasePrice,
+        discountedPrice: displayedPurchasePrice,
         medicineDiscount,
         mrp: formData.mrp || "",
       };
@@ -1590,6 +1597,9 @@ const OCRBillImport = () => {
         [idx]: {
           ...prev[idx],
           [field]: value,
+          // Manually editing Purchase Price makes it final — stop
+          // auto-recomputing it from unitPrice/quantity/discount from here on.
+          ...(field === "purchasePrice" ? { purchasePriceEdited: true } : {}),
         },
       };
 

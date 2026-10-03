@@ -381,7 +381,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                                 Receive
                             </button>
                         )}
-                        {row.status === "DISPATCHED" && (
+                        {["DISPATCHED", "PARTIALLY_RECEIVED", "FULFILLED"].includes(row.status) && (
                             <button
                                 type="button"
                                 className="btn btn-sm btn-outline-danger"

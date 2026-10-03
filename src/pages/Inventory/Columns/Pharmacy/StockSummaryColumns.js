@@ -28,7 +28,7 @@ export const getStockSummaryColumns = () => [
         selector: (row) => row.medicine?.genericName,
         cell: (row) => <span>{row.medicine?.genericName?.toUpperCase() || "-"}</span>,
         sortable: true,
-        minWidth: "100px",
+        minWidth: "150px",
         wrap: true,
     },
     {

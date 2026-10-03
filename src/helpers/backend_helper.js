@@ -2301,6 +2301,17 @@ export const discardAllExpiredStock = (data) => {
   });
 };
 
+// PHARMACY INVENTORY HEALTH REPORT
+export const getInventoryHealthReport = (params = {}) => {
+  return api.get(url.PHARMACY_INVENTORY_HEALTH_REPORT, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, { arrayFormat: "repeat", skipNulls: true }),
+    responseType: params.exportExcel ? "blob" : "json",
+  });
+};
+
 // PHARMACY REQUISITION - INTERNAL TRANSFER
 export const getInternalTransferRequisitions = (params = {}) => {
   return api.get(url.PHARMACY_INTERNAL_TRANSFER, {

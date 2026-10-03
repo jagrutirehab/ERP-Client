@@ -27,6 +27,7 @@ import {
     getExpiredStockHistory as getExpiredStockHistoryApi,
     discardExpiredStock as discardExpiredStockApi,
     getExpiredStockDetails as getExpiredStockDetailsApi,
+    getInventoryHealthReport as getInventoryHealthReportApi,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -49,6 +50,18 @@ const initialState = {
     auditHistory: {
         data: [],
         pagination: {}
+    },
+    inventoryHealthReport: {
+        loading: false,
+        data: [],
+        pagination: {},
+        summary: {
+            totalLoss: 0,
+            totalVariance: 0,
+            pendingExpiredBatches: 0,
+            totalDiscarded: 0,
+            overdueInTransitQty: 0,
+        },
     },
     internalTransfer: {
         loading: false,
@@ -340,6 +353,18 @@ export const fetchExpiredStockHistory = createAsyncThunk(
     async (params, { rejectWithValue }) => {
         try {
             const response = await getExpiredStockHistoryApi(params);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const fetchInventoryHealthReport = createAsyncThunk(
+    "pharmacy/fetchInventoryHealthReport",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await getInventoryHealthReportApi(params);
             return response;
         } catch (error) {
             return rejectWithValue(error);
@@ -655,6 +680,26 @@ export const pharmacySlice = createSlice({
             })
             .addCase(fetchSareyaanInventoryImports.rejected, (state) => {
                 state.loading = false;
+            });
+
+        builder
+            .addCase(fetchInventoryHealthReport.pending, (state) => {
+                state.inventoryHealthReport.loading = true;
+            })
+            .addCase(fetchInventoryHealthReport.fulfilled, (state, { payload }) => {
+                state.inventoryHealthReport.loading = false;
+                state.inventoryHealthReport.data = payload?.data || [];
+                state.inventoryHealthReport.pagination = { totalDocs: payload?.total || 0 };
+                state.inventoryHealthReport.summary = payload?.summary || {
+                    totalLoss: 0,
+                    totalVariance: 0,
+                    pendingExpiredBatches: 0,
+                    totalDiscarded: 0,
+                    overdueInTransitQty: 0,
+                };
+            })
+            .addCase(fetchInventoryHealthReport.rejected, (state) => {
+                state.inventoryHealthReport.loading = false;
             });
 
         builder

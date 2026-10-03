@@ -197,7 +197,11 @@ export const permissionList = [
     label: "Pharmacy",
     subModules: [
       { name: "DASHBOARD", label: "Dashboard" },
-      { name: "PHARMACYMANAGEMENT", label: "Pharmacy Management" },
+       {
+        name: "INVENTORY_HEALTH_REPORT",
+        label: "Inventory Health Report",
+      },
+      { name: "PHARMACYMANAGEMENT", label: "Inventory Management" },
       { name: "GIVENMEDICINES", label: "Given Medicine" },
       { name: "NURSEGIVENMEDICINES", label: "Nurse Given Medicine" },
       { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
