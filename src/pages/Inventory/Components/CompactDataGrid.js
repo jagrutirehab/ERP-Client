@@ -102,7 +102,7 @@ const CompactDataGrid = ({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={columns.length} className="text-center py-4">
+                <td colSpan={columns.length} className="text-start py-2 px-2">
                   <Spinner size="sm" className="text-primary" />
                 </td>
               </tr>
