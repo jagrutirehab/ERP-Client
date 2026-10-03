@@ -4768,17 +4768,24 @@ export const getTrainingHistoryDetail = (params) =>
   api.get(url.GET_TRAINING_HISTORY, { params });
 
 export const createTrainerRecord = (data) => {
-  return api.create(url.CREATE_TRAINER_RECORD, data);
+  return api.create(url.CREATE_TRAINER_RECORD, data, {
+    headers: { "Content-Type": undefined },
+  });
 };
 export const getUsersByRoles = (params) => {
   return axios.get(url.GET_USER_BY_ROLE, { params });
+};
+export const getEmployeesByPosition = (params) => {
+  return axios.get(url.GET_EMPLOYEES_BY_POSITION, { params });
 };
 export const getTrainerRecords = (params) =>
   axios.get(url.GET_TRAINERS, { params });
 export const getTrainerRecordById = (id) =>
   axios.get(`${url.GET_TRAINER_BY_ID}/${id}`);
 export const editTrainerRecord = (id, data) =>
-  axios.patch(`${url.EDIT_TRAINER}/${id}`, data);
+  axios.patch(`${url.EDIT_TRAINER}/${id}`, data, {
+    headers: { "Content-Type": undefined },
+  });
 export const deleteTrainerRecord = (id) =>
   axios.patch(`${url.DELETE_RECORD}/${id}`, {});
 export const getRolesDisctinct = () => api.get(url.GET_DISCTINCT_ROLES);
