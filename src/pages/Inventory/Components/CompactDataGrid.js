@@ -51,7 +51,7 @@ const CompactDataGrid = ({
   keyField = "id",
   noDataComponent = "No records found",
   rowsPerPageOptions = [10, 25, 50, 100],
-  minBodyHeight = 420,
+  minBodyHeight = 160,
 }) => {
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
