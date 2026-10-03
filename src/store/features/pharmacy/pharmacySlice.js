@@ -60,8 +60,14 @@ const initialState = {
             totalVariance: 0,
             pendingExpiredBatches: 0,
             totalDiscarded: 0,
-            overdueInTransitQty: 0,
+            inTransitQty: 0,
         },
+    },
+    inventoryHealthDetailed: {
+        loading: false,
+        data: [],
+        pagination: {},
+        maxEventCounts: { transfers: 0, audits: 0, discards: 0 },
     },
     internalTransfer: {
         loading: false,
@@ -365,6 +371,18 @@ export const fetchInventoryHealthReport = createAsyncThunk(
     async (params, { rejectWithValue }) => {
         try {
             const response = await getInventoryHealthReportApi(params);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const fetchInventoryHealthDetailed = createAsyncThunk(
+    "pharmacy/fetchInventoryHealthDetailed",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await getInventoryHealthReportApi({ ...params, includeHistory: "true" });
             return response;
         } catch (error) {
             return rejectWithValue(error);
@@ -695,11 +713,26 @@ export const pharmacySlice = createSlice({
                     totalVariance: 0,
                     pendingExpiredBatches: 0,
                     totalDiscarded: 0,
-                    overdueInTransitQty: 0,
+                    inTransitQty: 0,
                 };
             })
             .addCase(fetchInventoryHealthReport.rejected, (state) => {
                 state.inventoryHealthReport.loading = false;
+            });
+
+        builder
+            .addCase(fetchInventoryHealthDetailed.pending, (state) => {
+                state.inventoryHealthDetailed.loading = true;
+            })
+            .addCase(fetchInventoryHealthDetailed.fulfilled, (state, { payload }) => {
+                state.inventoryHealthDetailed.loading = false;
+                state.inventoryHealthDetailed.data = payload?.data || [];
+                state.inventoryHealthDetailed.pagination = { totalDocs: payload?.total || 0 };
+                state.inventoryHealthDetailed.maxEventCounts =
+                    payload?.maxEventCounts || { transfers: 0, audits: 0, discards: 0 };
+            })
+            .addCase(fetchInventoryHealthDetailed.rejected, (state) => {
+                state.inventoryHealthDetailed.loading = false;
             });
 
         builder

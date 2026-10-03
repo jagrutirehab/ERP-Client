@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef } from "react";
 import { display } from "../../../utils/display";
 import {
   Search,
-  Table as TableIcon,
+  LayoutGrid,
   BarChart3,
   MoreHorizontal,
 } from "lucide-react";
@@ -28,14 +28,8 @@ import {
 import AddinventoryMedicine from "../AddinventoryMedicine";
 import { Button } from "../Components/Button";
 import Select from "react-select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "../Components/Table";
+import CompactDataGrid from "../Components/CompactDataGrid";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 import { AnalyticsView } from "../views/AnalyticView";
 import { StatusBadge } from "../Components/StatusBadge";
 import BulkImportModal from "../Components/BulkImportModal";
@@ -217,30 +211,6 @@ const InventoryManagement = () => {
     toast.success(`Imported rows successfully.`);
   };
 
-  const getPageRange = (total, current, maxButtons = 7) => {
-    if (total <= maxButtons)
-      return Array.from({ length: total }, (_, i) => i + 1);
-
-    const sideButtons = Math.floor((maxButtons - 3) / 2);
-    let start = Math.max(2, current - sideButtons);
-    let end = Math.min(total - 1, current + sideButtons);
-    if (current - 1 <= sideButtons) {
-      start = 2;
-      end = Math.min(total - 1, maxButtons - 2);
-    }
-    if (total - current <= sideButtons) {
-      end = total - 1;
-      start = Math.max(2, total - (maxButtons - 3));
-    }
-
-    const range = [1];
-    if (start > 2) range.push("...");
-    for (let i = start; i <= end; i++) range.push(i);
-    if (end < total - 1) range.push("...");
-    range.push(total);
-    return range;
-  };
-
   // Fetch inventory medicines
   async function fetchInventoryMedicines({
     page = currentPage,
@@ -357,12 +327,6 @@ const InventoryManagement = () => {
   };
 
 
-  const handlePageSizeChange = (e) => {
-    const newSize = parseInt(e.target.value, 10);
-    setPageSize(newSize);
-    setCurrentPage(1);
-  };
-
   // useEffect(() => {
   //   dispatch(fetchCenters({ centerIds: user?.centerAccess }));
   // }, [dispatch, user?.centerAccess]);
@@ -459,6 +423,204 @@ const InventoryManagement = () => {
       setPrintLoading(false);
     }
   };
+
+  const fmtDate = (d) =>
+    d
+      ? new Date(d).toLocaleDateString("en-GB", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+        })
+      : "-";
+
+  const conversionLabel = (baseUnit, purchaseUnit, conversion) =>
+    baseUnit && purchaseUnit && conversion?.baseQuantity && conversion?.purchaseQuantity
+      ? `${conversion.purchaseQuantity} ${normalizeUnderscores(purchaseUnit)} = ${conversion.baseQuantity} ${normalizeUnderscores(baseUnit)}`
+      : "-";
+
+  // Columns for the Master Medicine List grid (CompactDataGrid shape —
+  // key/header/align/minWidth/render — not the old custom Table component).
+  const centralMedicineColumns = [
+    { key: "id", header: "ID", minWidth: 90, render: (m) => display(m?.id) },
+    {
+      key: "name",
+      header: "Name",
+      minWidth: 160,
+      render: (m) => <span className="fw-bold text-primary">{display(m?.name)}</span>,
+    },
+    { key: "genericName", header: "Generic Name", minWidth: 140, render: (m) => m?.genericName?.toUpperCase() || "-" },
+    { key: "form", header: "Form", minWidth: 100, render: (m) => normalizeUnderscores(m?.form) },
+    { key: "baseUnit", header: "Base Unit", minWidth: 100, render: (m) => normalizeUnderscores(m?.baseUnit) },
+    { key: "purchaseUnit", header: "Purchase Unit", minWidth: 110, render: (m) => normalizeUnderscores(m?.purchaseUnit) },
+    {
+      key: "conversion",
+      header: "Conversion",
+      minWidth: 160,
+      render: (m) => conversionLabel(m?.baseUnit, m?.purchaseUnit, m?.conversion),
+    },
+    { key: "category", header: "Category", minWidth: 110, render: (m) => normalizeUnderscores(m?.category) },
+    { key: "storageType", header: "Storage Type", minWidth: 110, render: (m) => normalizeUnderscores(m?.storageType) },
+    { key: "scheduleType", header: "Schedule Type", minWidth: 110, render: (m) => normalizeUnderscores(m?.scheduleType) },
+    { key: "type", header: "Type", minWidth: 90, render: (m) => normalizeUnderscores(m?.type) },
+    { key: "strength", header: "Strength", minWidth: 90, render: (m) => display(m?.strength) },
+    { key: "unit", header: "Unit", minWidth: 80, render: (m) => display(m?.unit) },
+    { key: "expiry", header: "Expiry", minWidth: 100, render: (m) => fmtDate(m?.Expiry) },
+    { key: "instruction", header: "Instruction", minWidth: 140, render: (m) => capitalizeWords(m?.instruction) },
+    { key: "composition", header: "Composition", minWidth: 140, render: (m) => capitalizeWords(m?.composition) },
+    { key: "quantity", header: "Quantity", align: "right", minWidth: 90, render: (m) => display(m?.quantity) },
+    { key: "unitPrice", header: "Unit Price", align: "right", minWidth: 100, render: (m) => formatCurrency(m?.unitPrice) },
+    { key: "controlledDrug", header: "Controlled Drug", minWidth: 110, render: (m) => (m?.isControlledDrug ? "Yes" : "No") },
+  ];
+
+  // Per-row expandable "Centre / Available stock" list — kept from the
+  // original table as-is (DOM toggle, not React state) since it's unrelated
+  // to the table component swap.
+  const centerStockCell = (med) => {
+    const centers = med?.centers || [];
+    const initialCount = 2;
+    const hiddenCount = centers.length - initialCount;
+    const containerId = `center-stock-container-${med._id}`;
+
+    const toggleCenters = (e) => {
+      e.preventDefault();
+      const container = document.getElementById(containerId);
+      if (!container) return;
+
+      const hiddenItems = container.querySelectorAll(".hidden-center-item");
+      const button = e.target;
+      const isExpanded = button.getAttribute("data-expanded") === "true";
+
+      if (isExpanded) {
+        hiddenItems.forEach((item) => (item.style.display = "none"));
+        button.innerText = `View all (+${hiddenCount})`;
+        button.setAttribute("data-expanded", "false");
+      } else {
+        hiddenItems.forEach((item) => (item.style.display = "flex"));
+        button.innerText = "View less";
+        button.setAttribute("data-expanded", "true");
+      }
+    };
+
+    return (
+      <div style={{ whiteSpace: "normal", minWidth: "180px", padding: "4px 0" }} id={containerId}>
+        {centers.length > 0 ? (
+          <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
+            {centers.map((item, index) => {
+              const isHidden = index >= initialCount;
+              return (
+                <li
+                  key={index}
+                  className={isHidden ? "hidden-center-item" : ""}
+                  style={{
+                    display: isHidden ? "none" : "flex",
+                    justifyContent: "space-between",
+                    borderBottom: index < centers.length - 1 ? "1px solid #eee" : "none",
+                    padding: "2px 0",
+                  }}
+                >
+                  <span style={{ fontWeight: 600, color: "#007bff" }}>{display(item?.centerId?.title)}</span>
+                  <span style={{ fontWeight: 500, marginLeft: "10px" }}>{display(item?.stock)}</span>
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          "-"
+        )}
+
+        {hiddenCount > 0 && (
+          <button
+            onClick={toggleCenters}
+            data-expanded="false"
+            style={{
+              background: "none",
+              border: "none",
+              color: "#007bff",
+              cursor: "pointer",
+              padding: "2px 0",
+              marginTop: "4px",
+              fontSize: "0.85rem",
+            }}
+          >
+            {`View all (+${hiddenCount})`}
+          </button>
+        )}
+      </div>
+    );
+  };
+
+  // Columns for the Pharmacy Inventory grid (CompactDataGrid shape).
+  const pharmacyInventoryColumns = [
+    { key: "id", header: "ID", minWidth: 90, render: (m) => display(m?.id) },
+    { key: "medicineId", header: "Medicine ID", minWidth: 100, render: (m) => display(m?.medicineId?.id) },
+    {
+      key: "barcode",
+      header: "Bar Code",
+      minWidth: 130,
+      render: (m) => (
+        <div style={{ transform: "scale(0.9)", transformOrigin: "left center" }}>
+          {m?.id || m?.code ? (
+            <Barcode value={String(m?.id || m?.code)} height={30} fontSize={10} displayValue={true} />
+          ) : (
+            "-"
+          )}
+        </div>
+      ),
+    },
+    { key: "code", header: "Code", minWidth: 90, render: (m) => display(m?.code) },
+    {
+      key: "medicineName",
+      header: "Medicine Name",
+      minWidth: 160,
+      render: (m) => <span className="fw-bold text-primary">{display(m?.medicineName)}</span>,
+    },
+    { key: "genericName", header: "Generic Name", minWidth: 140, render: (m) => m?.medicineId?.genericName?.toUpperCase() || "-" },
+    { key: "form", header: "Form", minWidth: 100, render: (m) => normalizeUnderscores(m?.medicineId?.form) },
+    { key: "baseUnit", header: "Base Unit", minWidth: 100, render: (m) => normalizeUnderscores(m?.medicineId?.baseUnit) },
+    { key: "purchaseUnit", header: "Purchase Unit", minWidth: 110, render: (m) => normalizeUnderscores(m?.medicineId?.purchaseUnit) },
+    {
+      key: "conversion",
+      header: "Conversion",
+      minWidth: 160,
+      render: (m) => conversionLabel(m?.medicineId?.baseUnit, m?.medicineId?.purchaseUnit, m?.medicineId?.conversion),
+    },
+    { key: "category", header: "Category", minWidth: 110, render: (m) => normalizeUnderscores(m?.medicineId?.category) },
+    { key: "storageType", header: "Storage Type", minWidth: 110, render: (m) => normalizeUnderscores(m?.medicineId?.storageType) },
+    { key: "scheduleType", header: "Schedule Type", minWidth: 110, render: (m) => normalizeUnderscores(m?.medicineId?.scheduleType) },
+    { key: "type", header: "Type", minWidth: 90, render: (m) => normalizeUnderscores(m?.medicineId?.type) },
+    { key: "strength", header: "Strength", minWidth: 90, render: (m) => display(m?.Strength) },
+    { key: "centerStock", header: "Centre / Available stock", minWidth: 190, render: centerStockCell },
+    { key: "unit", header: "Unit", minWidth: 80, render: (m) => display(m?.unitType || m?.unit) },
+    { key: "mrp", header: "M.R.P", align: "right", minWidth: 90, render: (m) => display(m?.mrp) },
+    { key: "purchasePrice", header: "Purchase Price", align: "right", minWidth: 110, render: (m) => display(m?.purchasePrice) },
+    { key: "salesPrice", header: "Sales Price", align: "right", minWidth: 100, render: (m) => display(m?.SalesPrice) },
+    { key: "expiryDate", header: "Expiry Date", minWidth: 100, render: (m) => fmtDate(m?.Expiry) },
+    { key: "batch", header: "Batch", minWidth: 100, render: (m) => display(m?.Batch) },
+    { key: "company", header: "Company", minWidth: 120, render: (m) => display(m?.company) },
+    { key: "manufacturer", header: "Manufacturer", minWidth: 130, render: (m) => display(m?.manufacturer) },
+    { key: "rackNum", header: "Rack Number", minWidth: 100, render: (m) => display(m?.RackNum) },
+    { key: "status", header: "Status", minWidth: 110, render: (m) => <StatusBadge status={m.Status} /> },
+    { key: "controlledDrug", header: "Controlled Drug", minWidth: 110, render: (m) => (m?.medicineId?.isControlledDrug ? "Yes" : "No") },
+    ...(hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE")
+      ? [
+          {
+            key: "actions",
+            header: "Actions",
+            minWidth: 70,
+            render: (m) => (
+              <Dropdown isOpen={!!dropdownOpen[m._id]} toggle={() => toggleDropdown(m._id)}>
+                <DropdownToggle tag="button" className="btn btn-ghost p-1">
+                  <MoreHorizontal className="h-4 w-4" />
+                </DropdownToggle>
+                <DropdownMenu end>
+                  <DropdownItem onClick={() => handleEdit(m)}>Edit</DropdownItem>
+                </DropdownMenu>
+              </Dropdown>
+            ),
+          },
+        ]
+      : []),
+  ];
 
   return (
     <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
@@ -578,8 +740,8 @@ const InventoryManagement = () => {
           )}
         </div>
 
-        {/* Search + filters */}
-        <div className="d-flex flex-wrap align-items-center gap-2 mb-4">
+        {/* Search + filters, with refresh/view-switch on the same row */}
+        <div className="d-flex flex-wrap align-items-center gap-2 mb-2">
           <div style={{ flex: "1 1 240px", maxWidth: isMobile ? "100%" : "290px" }}>
             <div className="position-relative w-100">
               <Search
@@ -653,589 +815,93 @@ const InventoryManagement = () => {
               </div>
             </>
           )}
-        </div>
 
-
-
-        {/* View Switch */}
-        <div className="d-flex justify-content-between align-items-center mb-3">
-          <div>
-            <div className="d-flex align-items-center gap-2">
-              <label className="mb-0 small text-muted">Show</label>
-              <select
-                className="form-select form-select-sm"
-                style={{ width: "88px" }}
-                value={pageSize}
-                onChange={handlePageSizeChange}
-              >
-                <option value={10}>10</option>
-                <option value={25}>25</option>
-                <option value={50}>50</option>
-              </select>
-            </div>
-          </div>
-
-          {!showCentralMedicine && (
-            <div className="d-flex">
-              <div className="btn-group bg-white shadow-sm rounded-lg p-1">
+          {/* Refresh + view-switch, same row as filters — page-size control
+              now lives in CompactDataGrid's own footer */}
+          <div className="d-flex align-items-center gap-2 ms-auto">
+            <RefreshButton
+              loading={showCentralMedicine ? centralMedicineLoading : loading}
+              onRefresh={() =>
+                showCentralMedicine
+                  ? dispatch(fetchMedicines({ page: currentPage, limit: pageSize, search: debouncedSearch }))
+                  : fetchInventoryMedicines({
+                      page: currentPage,
+                      limit: pageSize,
+                      q: debouncedSearch,
+                      fillter: qfilter,
+                      centers,
+                    })
+              }
+            />
+            {!showCentralMedicine && (
+              <div className="btn-group bg-white shadow-sm rounded p-1 view-switch-toggle">
+                <style>{`
+                  .view-switch-toggle .btn-outline-primary:hover {
+                    background-color: #eef3ff;
+                    color: #0d6efd;
+                    border-color: #cfe0ff;
+                  }
+                `}</style>
                 <Button
                   variant={view === "table" ? "default" : "outline"}
-                  size="icon"
+                  size="icon-sm"
+                  title="Table view"
                   onClick={() => setView("table")}
                 >
-                  <TableIcon className="h-5 w-5" />
+                  <LayoutGrid className="h-4 w-4" />
                 </Button>
                 <Button
                   variant={view === "analytics" ? "default" : "outline"}
-                  size="icon"
+                  size="icon-sm"
+                  title="Analytics view"
                   onClick={() => setView("analytics")}
                 >
-                  <BarChart3 className="h-5 w-5" />
+                  <BarChart3 className="h-4 w-4" />
                 </Button>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Table View */}
         {view === "table" && (
-          <>
+          <div className="position-relative" style={{ minHeight: "500px" }}>
             {showCentralMedicine ? (
-              <div
-                className="overflow-auto mb-2"
-                style={{ WebkitOverflowScrolling: "touch", maxHeight: "55vh" }}
-              >
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead noWrap>ID</TableHead>
-                      <TableHead noWrap>Name</TableHead>
-                      {/* <TableHead noWrap>Brand Name</TableHead> */}
-                      <TableHead noWrap>Generic Name</TableHead>
-                      <TableHead noWrap>Form</TableHead>
-                      <TableHead noWrap>Base Unit</TableHead>
-                      <TableHead noWrap>Purchase Unit</TableHead>
-                      <TableHead noWrap>Conversion</TableHead>
-                      <TableHead noWrap>Category</TableHead>
-                      <TableHead noWrap>Storage Type</TableHead>
-                      <TableHead noWrap>Schedule Type</TableHead>
-                      <TableHead noWrap>Type</TableHead>
-                      <TableHead noWrap>Strength</TableHead>
-                      <TableHead noWrap>Unit</TableHead>
-                      <TableHead noWrap>Expiry</TableHead>
-                      <TableHead noWrap>Instruction</TableHead>
-                      <TableHead noWrap>Composition</TableHead>
-                      <TableHead noWrap>Quantity</TableHead>
-                      <TableHead noWrap>Unit Price</TableHead>
-                      <TableHead noWrap>Controlled Drug</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  {centralMedicineLoading ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        width: "100%",
-                        minHeight: "200px",
-                        fontSize: "1.1rem",
-                        fontWeight: 500,
-                        color: "#666",
-                      }}
-                    >
-                      Loading...
-                    </div>
-                  ) : centralMedicines?.length === 0 ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        width: "100%",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        height: "100%",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          width: "100%",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          height: "100%",
-                        }}
-                      >
-                        No records found
-                      </div>
-                    </div>
-                  ) : (
-                    <TableBody>
-                      {centralMedicines.map((med) => (
-                        <TableRow key={med._id}>
-                          <TableCell noWrap>{display(med?.id)}</TableCell>
-                          <TableCell
-                            noWrap
-                            className="font-weight-bold text-primary"
-                          >
-                            {display(med?.name)}
-                          </TableCell>
-                          {/* <TableCell noWrap>{med?.brandName?.toUpperCase() || "-"}</TableCell> */}
-                          <TableCell noWrap>{med?.genericName?.toUpperCase() || "-"}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.form)}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.baseUnit)}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.purchaseUnit)}</TableCell>
-                          <TableCell noWrap>
-                            {med?.baseUnit && med?.purchaseUnit && med?.conversion?.baseQuantity && med?.conversion?.purchaseQuantity
-                              ? `${med.conversion.purchaseQuantity} ${normalizeUnderscores(med.purchaseUnit)} = ${med.conversion.baseQuantity} ${normalizeUnderscores(med.baseUnit)}`
-                              : "-"}
-                          </TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.category)}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.storageType)}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.scheduleType)}</TableCell>
-                          <TableCell noWrap>
-                            {normalizeUnderscores(med?.type)}
-                          </TableCell>
-                          <TableCell noWrap>
-                            {display(med?.strength)}
-                          </TableCell>
-                          <TableCell noWrap>
-                            {display(med?.unit)}
-                          </TableCell>
-                          <TableCell noWrap>
-                            {med?.Expiry
-                              ? new Date(med.Expiry).toLocaleDateString("en-GB", {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                })
-                              : "-"}
-                          </TableCell>
-                          <TableCell noWrap>
-                            {capitalizeWords(med?.instruction)}
-                          </TableCell>
-                          <TableCell noWrap>
-                            {capitalizeWords(med?.composition)}
-                          </TableCell>
-                          <TableCell noWrap>
-                            {display(med?.quantity)}
-                          </TableCell>
-                          <TableCell noWrap>
-                            {formatCurrency(med?.unitPrice)}
-                          </TableCell>
-                          <TableCell noWrap>
-                            {med?.isControlledDrug ? "Yes" : "No"}
-                          </TableCell>
-
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  )}
-                </Table>
-              </div>
+              <CompactDataGrid
+                columns={centralMedicineColumns}
+                data={centralMedicines || []}
+                loading={centralMedicineLoading}
+                page={currentPage}
+                setPage={goToPage}
+                limit={pageSize}
+                setLimit={(n) => {
+                  setPageSize(n);
+                  setCurrentPage(1);
+                }}
+                total={centralMedicineTotalCount || 0}
+                keyField="_id"
+                noDataComponent="No records found"
+                rowsPerPageOptions={[10, 25, 50]}
+              />
             ) : (
-              <div
-                className="overflow-auto mb-2"
-                style={{ WebkitOverflowScrolling: "touch", maxHeight: "55vh" }}
-              >
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead noWrap>ID</TableHead>
-                      <TableHead noWrap>Medicine ID</TableHead>
-                      <TableHead noWrap>Bar Code</TableHead>
-                      <TableHead noWrap>Code</TableHead>
-                      <TableHead noWrap>Medicine Name</TableHead>
-                      {/* <TableHead noWrap>Brand Name</TableHead> */}
-                      <TableHead noWrap>Generic Name</TableHead>
-                      <TableHead noWrap>Form</TableHead>
-                      <TableHead noWrap>Base Unit</TableHead>
-                      <TableHead noWrap>Purchase Unit</TableHead>
-                      <TableHead noWrap>Conversion</TableHead>
-                      <TableHead noWrap>Category</TableHead>
-                      <TableHead noWrap>Storage Type</TableHead>
-                      <TableHead noWrap>Schedule Type</TableHead>
-                      <TableHead noWrap>Type</TableHead>
-                      <TableHead noWrap>Strength</TableHead>
-                      <TableHead noWrap>Centre / Available stock</TableHead>
-                      <TableHead noWrap>Unit</TableHead>
-                      {/* <TableHead noWrap>Current Stock</TableHead> */}
-                      {/* <TableHead noWrap>Cost Price</TableHead>
-                      <TableHead noWrap>Value</TableHead> */}
-                      <TableHead noWrap>M.R.P</TableHead>
-                      <TableHead noWrap>Purchase Price</TableHead>
-                      <TableHead noWrap>Sales Price</TableHead>
-                      <TableHead noWrap>Expiry Date</TableHead>
-                      <TableHead noWrap>Batch</TableHead>
-                      <TableHead noWrap>Company</TableHead>
-                      <TableHead noWrap>Manufacturer</TableHead>
-                      <TableHead noWrap>Rack Number</TableHead>
-                      <TableHead noWrap>Status</TableHead>
-                      <TableHead noWrap>Controlled Drug</TableHead>
-                      {hasPermission(
-                        "PHARMACY",
-                        "PHARMACYMANAGEMENT",
-                        "WRITE"
-                      ) ? (
-                        <TableHead noWrap>Actions</TableHead>
-                      ) : (
-                        ""
-                      )}
-                    </TableRow>
-                  </TableHeader>
-
-                  {loading ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        width: "100%",
-                        minHeight: "200px",
-                        fontSize: "1.1rem",
-                        fontWeight: 500,
-                        color: "#666",
-                      }}
-                    >
-                      Loading...
-                    </div>
-                  ) : medicines.length === 0 ? (
-                    <div
-                      style={{
-                        display: "flex",
-                        width: "100%",
-                        justifyContent: "center",
-                        alignItems: "center",
-                        height: "100%",
-                      }}
-                    >
-                      <div
-                        style={{
-                          display: "flex",
-                          width: "100%",
-                          justifyContent: "center",
-                          alignItems: "center",
-                          height: "100%",
-                        }}
-                      >
-                        No records found
-                      </div>
-                    </div>
-                  ) : (
-                    <TableBody>
-                      {medicines.map((med) => (
-                        <TableRow key={med._id}>
-                          <TableCell noWrap>{display(med?.id)}</TableCell>
-                          <TableCell noWrap>{display(med?.medicineId?.id)}</TableCell>
-                          <TableCell noWrap>
-                            <div
-                              style={{
-                                transform: "scale(0.9)",
-                                transformOrigin: "left center",
-                              }}
-                            >
-                              {med?.id || med?.code ? (
-                                <Barcode
-                                  value={String(med?.id || med?.code)}
-                                  height={30}
-                                  fontSize={10}
-                                  displayValue={true}
-                                />
-                              ) : (
-                                "-"
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell noWrap>{display(med?.code)}</TableCell>
-                          <TableCell
-                            noWrap
-                            className="font-weight-bold text-primary"
-                          >
-                            {display(med?.medicineName)}
-                          </TableCell>
-                          {/* <TableCell noWrap>{med?.medicineId?.brandName?.toUpperCase() || "-"}</TableCell> */}
-                          <TableCell noWrap>{med?.medicineId?.genericName?.toUpperCase() || "-"}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.form)}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.baseUnit)}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.purchaseUnit)}</TableCell>
-                          <TableCell noWrap>
-                            {med?.medicineId?.baseUnit && med?.medicineId?.purchaseUnit && med?.medicineId?.conversion?.baseQuantity && med?.medicineId?.conversion?.purchaseQuantity
-                              ? `${med.medicineId.conversion.purchaseQuantity} ${normalizeUnderscores(med.medicineId.purchaseUnit)} = ${med.medicineId.conversion.baseQuantity} ${normalizeUnderscores(med.medicineId.baseUnit)}`
-                              : "-"}
-                          </TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.category)}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.storageType)}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.scheduleType)}</TableCell>
-                          <TableCell noWrap>{normalizeUnderscores(med?.medicineId?.type)}</TableCell>
-                          <TableCell noWrap>
-                            {display(med?.Strength || med?.Strength)}
-                          </TableCell>
-                          <TableCell noWrap>
-                            {(() => {
-                              const centers = med?.centers || [];
-                              const initialCount = 2;
-                              const hiddenCount = centers.length - initialCount;
-                              const containerId = `center-stock-container-${med._id}`;
-
-                              const toggleCenters = (e) => {
-                                e.preventDefault();
-                                const container =
-                                  document.getElementById(containerId);
-                                if (!container) return;
-
-                                const hiddenItems = container.querySelectorAll(
-                                  ".hidden-center-item"
-                                );
-                                const button = e.target;
-                                const isExpanded =
-                                  button.getAttribute("data-expanded") === "true";
-
-                                if (isExpanded) {
-                                  hiddenItems.forEach(
-                                    (item) => (item.style.display = "none")
-                                  );
-                                  button.innerText = `View all (+${hiddenCount})`;
-                                  button.setAttribute("data-expanded", "false");
-                                } else {
-                                  hiddenItems.forEach(
-                                    (item) => (item.style.display = "flex")
-                                  );
-                                  button.innerText = "View less";
-                                  button.setAttribute("data-expanded", "true");
-                                }
-                              };
-
-                              return (
-                                <div
-                                  style={{
-                                    whiteSpace: "normal",
-                                    minWidth: "180px",
-                                    padding: "4px 0",
-                                  }}
-                                  id={containerId}
-                                >
-                                  {centers.length > 0 ? (
-                                    <ul
-                                      style={{
-                                        listStyle: "none",
-                                        padding: 0,
-                                        margin: 0,
-                                      }}
-                                    >
-                                      {centers.map((item, index) => {
-                                        const isHidden = index >= initialCount;
-                                        return (
-                                          <li
-                                            key={index}
-                                            className={
-                                              isHidden ? "hidden-center-item" : ""
-                                            }
-                                            style={{
-                                              display: isHidden ? "none" : "flex",
-                                              justifyContent: "space-between",
-                                              borderBottom:
-                                                index < centers.length - 1
-                                                  ? "1px solid #eee"
-                                                  : "none",
-                                              padding: "2px 0",
-                                            }}
-                                          >
-                                            <span
-                                              style={{
-                                                fontWeight: 600,
-                                                color: "#007bff",
-                                              }}
-                                            >
-                                              {display(item?.centerId?.title)}
-                                            </span>
-                                            <span
-                                              style={{
-                                                fontWeight: 500,
-                                                marginLeft: "10px",
-                                              }}
-                                            >
-                                              {display(item?.stock)}
-                                            </span>
-                                          </li>
-                                        );
-                                      })}
-                                    </ul>
-                                  ) : (
-                                    "-"
-                                  )}
-
-                                  {hiddenCount > 0 && (
-                                    <button
-                                      onClick={toggleCenters}
-                                      data-expanded="false"
-                                      style={{
-                                        background: "none",
-                                        border: "none",
-                                        color: "#007bff",
-                                        cursor: "pointer",
-                                        padding: "2px 0",
-                                        marginTop: "4px",
-                                        fontSize: "0.85rem",
-                                      }}
-                                    >
-                                      {`View all (+${hiddenCount})`}
-                                    </button>
-                                  )}
-                                </div>
-                              );
-                            })()}
-                          </TableCell>
-                          <TableCell noWrap>
-                            {display(med?.unitType || med?.unit)}
-                          </TableCell>
-                          {/* <TableCell noWrap>{display(med?.stock)}</TableCell> */}
-                          {/* <TableCell noWrap>{display(med?.costprice)}</TableCell>
-                          <TableCell noWrap>{display(med?.value)}</TableCell> */}
-                          <TableCell noWrap>{display(med?.mrp)}</TableCell>
-                          <TableCell noWrap>
-                            {display(med?.purchasePrice)}
-                          </TableCell>
-                          <TableCell noWrap>{display(med?.SalesPrice)}</TableCell>
-                          <TableCell noWrap>
-                            {med?.Expiry
-                              ? new Date(med.Expiry).toLocaleDateString("en-GB", {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                })
-                              : "-"}
-                          </TableCell>
-                          <TableCell noWrap>
-                            {display(med?.Batch)}
-                          </TableCell>
-                          <TableCell noWrap>{display(med?.company)}</TableCell>
-                          <TableCell noWrap>
-                            {display(med?.manufacturer)}
-                          </TableCell>
-                          <TableCell noWrap>{display(med?.RackNum)}</TableCell>
-                          <TableCell noWrap>
-                            <StatusBadge status={med.Status} />
-                          </TableCell>
-                          <TableCell noWrap>
-                            {med?.medicineId?.isControlledDrug ? "Yes" : "No"}
-                          </TableCell>
-                          {hasPermission(
-                            "PHARMACY",
-                            "PHARMACYMANAGEMENT",
-                            "WRITE"
-                          ) ? (
-                            <TableCell noWrap>
-                              <Dropdown
-                                isOpen={!!dropdownOpen[med._id]}
-                                toggle={() => toggleDropdown(med._id)}
-                              >
-                                <DropdownToggle
-                                  tag="button"
-                                  className="btn btn-ghost p-1"
-                                >
-                                  <MoreHorizontal className="h-4 w-4" />
-                                </DropdownToggle>
-                                <DropdownMenu end>
-                                  <DropdownItem onClick={() => handleEdit(med)}>
-                                    Edit
-                                  </DropdownItem>
-                                </DropdownMenu>
-                              </Dropdown>
-                            </TableCell>
-                          ) : (
-                            ""
-                          )}
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  )}
-                </Table>
-              </div>
+              <CompactDataGrid
+                columns={pharmacyInventoryColumns}
+                data={medicines}
+                loading={loading}
+                page={currentPage}
+                setPage={goToPage}
+                limit={pageSize}
+                setLimit={(n) => {
+                  setPageSize(n);
+                  setCurrentPage(1);
+                }}
+                total={totalItems}
+                keyField="_id"
+                noDataComponent="No records found"
+                rowsPerPageOptions={[10, 25, 50]}
+              />
             )}
-            <div className="d-flex justify-content-between align-items-center">
-              <div className="small text-muted">
-                {showCentralMedicine ? (
-                  <>
-                    Showing{" "}
-                    {centralMedicineTotalCount === 0
-                      ? 0
-                      : (currentPage - 1) * pageSize + 1}{" "}
-                    to{" "}
-                    {Math.min(currentPage * pageSize, centralMedicineTotalCount)} of{" "}
-                    {centralMedicineTotalCount} entries
-                  </>
-                ) : (
-                  <>
-                    Showing{" "}
-                    {totalItems === 0 ? 0 : (currentPage - 1) * pageSize + 1} to{" "}
-                    {Math.min(currentPage * pageSize, totalItems)} of {totalItems} entries
-                  </>
-                )}
-              </div>
-
-              <nav>
-                <ul className="pagination mb-0">
-                  {/* Previous Button */}
-                  <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
-                    <button
-                      className="page-link"
-                      onClick={() => goToPage(Math.max(1, currentPage - 1))}
-                      disabled={currentPage === 1}
-                    >
-                      Previous
-                    </button>
-                  </li>
-
-                  {/* Page Numbers */}
-                  {getPageRange(
-                    showCentralMedicine ? centralMedicineTotalPages : totalPages,
-                    currentPage,
-                    7
-                  ).map((p, idx) => (
-                    <li
-                      key={`${p}-${idx}`}
-                      className={`page-item ${p === currentPage ? "active" : ""
-                        } ${p === "..." ? "disabled" : ""}`}
-                    >
-                      {p === "..." ? (
-                        <span className="page-link">...</span>
-                      ) : (
-                        <button className="page-link" onClick={() => goToPage(p)}>
-                          {p}
-                        </button>
-                      )}
-                    </li>
-                  ))}
-
-                  {/* Next Button */}
-                  <li
-                    className={`page-item ${currentPage ===
-                      (showCentralMedicine ? centralMedicineTotalPages : totalPages)
-                      ? "disabled"
-                      : ""
-                      }`}
-                  >
-                    <button
-                      className="page-link"
-                      onClick={() =>
-                        goToPage(
-                          Math.min(
-                            showCentralMedicine ? centralMedicineTotalPages : totalPages,
-                            currentPage + 1
-                          )
-                        )
-                      }
-                      disabled={
-                        currentPage ===
-                        (showCentralMedicine ? centralMedicineTotalPages : totalPages)
-                      }
-                    >
-                      Next
-                    </button>
-                  </li>
-                </ul>
-              </nav>
-            </div>
-
-          </>
+          </div>
         )}
 
         {/* Analytics View */}

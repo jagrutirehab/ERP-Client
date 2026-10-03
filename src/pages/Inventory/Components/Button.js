@@ -12,6 +12,7 @@ export const Button = ({ children, variant = "default", size = "md", onClick, di
     md: "btn-md px-4 py-2",
     sm: "btn-sm px-3 py-1",
     icon: "p-2",
+    "icon-sm": "p-1",
   };
   return (
     <button
