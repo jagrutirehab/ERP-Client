@@ -8,6 +8,7 @@ import { deleteTrainerRecord, getTrainerRecords } from "../../../helpers/backend
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import EditTrainerModal from "../Components/EditTrainerModal";
 import DeleteTrainerModal from "../Components/DeleteTrainerModal";
+import AttachmentList from "../Components/AttachmentList";
 import { usePermissions } from '../../../Components/Hooks/useRoles'
 
 const LIMIT = 5;
@@ -56,6 +57,7 @@ const TrainingCard = ({ record, onEdit, onDelete }) => {
                         <span><i className="ri-group-line me-1" />{totalAttendees} attendees</span>
                         <span><i className="ri-user-line me-1" />by {record?.author?.name || "—"}</span>
                     </div>
+                    <AttachmentList files={record?.files} />
                 </div>
 
                 <div className="px-3 py-2 d-flex align-items-center justify-content-between" style={{ background: '#f9fafb', borderTop: '1px solid #f1f5f9' }}>

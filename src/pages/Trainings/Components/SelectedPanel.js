@@ -19,6 +19,7 @@ const SelectedPanel = ({
     activeRecordIdx,
     onRemoveUser,
     onSwitchRecord,
+    positionNames = {},
 }) => {
     const totalSelectedInRecord = Object.values(activeRecord.selectedUsers).reduce(
         (sum, arr) => sum + arr.length,
@@ -45,7 +46,7 @@ const SelectedPanel = ({
                     <i className="ri-group-line fs-2 d-block mb-2 opacity-25" />
                     No attendees selected yet.
                     <br />
-                    Pick users from the left panel.
+                    Pick employees from the left panel.
                 </div>
             ) : (
                 <div
@@ -61,7 +62,7 @@ const SelectedPanel = ({
                                         className="fw-semibold"
                                         style={{ fontSize: 12, color: "var(--vz-primary)" }}
                                     >
-                                        {role}
+                                        {positionNames[role] || role}
                                     </span>
                                     <span
                                         className="badge bg-soft-primary text-primary"
@@ -116,7 +117,7 @@ const SelectedPanel = ({
                                             <span className="text-muted"> — {rec.trainerName}</span>
                                         )}
                                     </span>
-                                    <span className="badge bg-secondary">{count} users</span>
+                                    <span className="badge bg-secondary">{count} employees</span>
                                 </div>
                             );
                         })}
