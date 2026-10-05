@@ -15,6 +15,7 @@ import {
   Spinner,
 } from "reactstrap";
 import Select from "react-select";
+import AsyncSelect from "react-select/async";
 import DataTable from "react-data-table-component";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
@@ -32,6 +33,50 @@ import {
 } from "../../../helpers/backend_helper";
 import FileUpload from "../../CashManagement/Components/FileUpload";
 import { normalizeUnderscores } from "../../../utils/normalizeUnderscore";
+
+// Typeahead for a missed medicine: type -> pick -> parent adds it to that row's match list.
+const MissedMedicineSearch = ({ onPick }) => {
+  const timer = useRef(null);
+  const loadOptions = (input) =>
+    new Promise((resolve) => {
+      clearTimeout(timer.current);
+      if (!input || input.trim().length < 2) return resolve([]);
+      timer.current = setTimeout(async () => {
+        try {
+          const res = await getMatchingMedicines({ extractedName: input.trim(), typeahead: true });
+          const list = Array.isArray(res?.data) ? res.data : [];
+          resolve(list.map((m) => ({ value: m._id, label: formatMedicineLabel(m), data: m })));
+        } catch (e) {
+          resolve([]);
+        }
+      }, 300);
+    });
+
+  return (
+    <AsyncSelect
+      cacheOptions
+      defaultOptions={false}
+      loadOptions={loadOptions}
+      onChange={(opt) => opt && onPick(opt.data)}
+      value={null}
+      placeholder="Search medicine by name or ID..."
+      noOptionsMessage={({ inputValue }) =>
+        inputValue && inputValue.trim().length >= 2 ? "No medicines found" : "Type at least 2 letters"
+      }
+      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+      menuPosition="fixed"
+      styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+    />
+  );
+};
+
+// Dropdown label: "<id> | <type> <name> <strength> (baseunit: <baseUnit>)"
+const formatMedicineLabel = (m) => {
+  if (!m) return "";
+  const main = [m.type, m.name, m.strength].filter(Boolean).join(" ");
+  const unit = m.baseUnit || m.unit;
+  return `${m.id ? `${m.id} | ` : ""}${main}${unit ? ` (baseunit: ${unit})` : ""}`;
+};
 
 const OCRBillImport = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
@@ -236,12 +281,9 @@ const OCRBillImport = () => {
   const newMedicinesColumns = useMemo(() => [
     {
       name: <div>Medicine</div>,
-      width: "200px",
+      width: "320px",
       cell: (row) => (
-        <div>
-          <small><strong>{row.name}</strong></small><br />
-          <small className="text-muted">{row.strength}</small>
-        </div>
+        <span style={{ whiteSpace: "normal", lineHeight: 1.4, fontSize: "0.85rem", fontWeight: 500, color: "#111827" }}>{row.label}</span>
       ),
     },
     {
@@ -300,38 +342,35 @@ const OCRBillImport = () => {
   const existingMedicinesColumns = useMemo(() => [
     {
       name: <div>Medicine</div>,
-      width: "200px",
+      width: "300px",
       cell: (row) => (
-        <div>
-          <small><strong>{row.name}</strong></small><br />
-          <small className="text-muted">{row.strength}</small>
+        <span style={{ whiteSpace: "normal", lineHeight: 1.4, fontSize: "0.85rem", fontWeight: 500, color: "#111827" }}>{row.label}</span>
+      ),
+    },
+    {
+      name: <div>Inventory Record</div>,
+      width: "150px",
+      cell: (row) => (
+        <div style={{ lineHeight: 1.35 }}>
+          <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#111827" }}>{row.pharmId || "N/A"}</div>
+          <small className="text-muted d-block">
+            Batch {row.batchNumber || "—"}
+          </small>
+          <small className="text-muted d-block">Exp {row.expiryDate || "—"}</small>
         </div>
       ),
     },
     {
-      name: <div>Med ID</div>,
-      width: "100px",
-      cell: (row) => <small className="text-muted">{row.medId}</small>,
-    },
-    {
-      name: <div>Pharmacy ID</div>,
-      width: "120px",
-      cell: (row) => <small className="text-muted" title={row.pharmId || "N/A"}>{row.pharmId || "N/A"}</small>,
-    },
-    {
-      name: <div>Batch</div>,
-      width: "100px",
-      cell: (row) => <small>{row.batchNumber}</small>,
-    },
-    {
-      name: <div>Expiry</div>,
-      width: "110px",
-      cell: (row) => <small>{row.expiryDate}</small>,
-    },
-    {
-      name: <div>Stock</div>,
-      width: "90px",
-      cell: (row) => <Badge color="info" className="px-2" style={{ fontSize: "0.75rem" }}>{row.centerStock || 0} {row.baseUnit}</Badge>,
+      name: <div>Current Stock</div>,
+      width: "140px",
+      cell: (row) => (
+        <div style={{ lineHeight: 1.35 }}>
+          <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#111827" }}>
+            {row.centerStock || 0} {row.baseUnit}
+          </div>
+          <small className="text-muted d-block">this center</small>
+        </div>
+      ),
     },
     {
       name: <div>Add Qty*</div>,
@@ -344,25 +383,46 @@ const OCRBillImport = () => {
       ),
     },
     {
-      name: <div>In Base Unit</div>,
+      name: <div>Adding (Base Unit)</div>,
       width: "130px",
       cell: (row) => (
-        <div>
-          <small className="text-muted d-block">
-            = {row.qty === 0 ? "—" : `${row.baseUnitQtyDisplay} ${row.baseUnit}`}
-          </small>
+        <small className="text-muted">
+          {row.qty === 0 ? "—" : `+ ${row.baseUnitQtyDisplay} ${row.baseUnit}`}
+        </small>
+      ),
+    },
+    {
+      name: <div>Stock After</div>,
+      width: "130px",
+      cell: (row) => (
+        <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#111827" }}>
+          {row.qty === 0 ? "—" : `${row.stockAfter} ${row.baseUnit}`}
         </div>
       ),
     },
     {
       name: <div>Purchase Price</div>,
-      width: "90px",
-      cell: (row) => <Input type="number" bsSize="sm" value={row.purchasePrice || ""} onChange={(e) => handleFormChange(row.idx, "purchasePrice", e.target.value)} placeholder="0" step="0.01" style={{ fontSize: "0.85rem", width: "100%" }} />,
+      width: "120px",
+      cell: (row) => (
+        <div>
+          <Input type="number" bsSize="sm" value={row.purchasePrice || ""} onChange={(e) => handleFormChange(row.idx, "purchasePrice", e.target.value)} placeholder="0" step="0.01" style={{ fontSize: "0.85rem", width: "100%" }} />
+          {row.existingPurchasePrice !== null && row.existingPurchasePrice !== undefined && (
+            <small className="text-muted d-block mt-1">In inventory: {row.existingPurchasePrice}</small>
+          )}
+        </div>
+      ),
     },
     {
       name: <div>MRP</div>,
-      width: "90px",
-      cell: (row) => <Input type="number" bsSize="sm" value={row.mrp || ""} onChange={(e) => handleFormChange(row.idx, "mrp", e.target.value)} placeholder="0" step="0.01" style={{ fontSize: "0.85rem", width: "100%" }} />,
+      width: "120px",
+      cell: (row) => (
+        <div>
+          <Input type="number" bsSize="sm" value={row.mrp || ""} onChange={(e) => handleFormChange(row.idx, "mrp", e.target.value)} placeholder="0" step="0.01" style={{ fontSize: "0.85rem", width: "100%" }} />
+          {row.existingMrp !== null && row.existingMrp !== undefined && (
+            <small className="text-muted d-block mt-1">In inventory: {row.existingMrp}</small>
+          )}
+        </div>
+      ),
     },
   ], []);
 
@@ -405,7 +465,11 @@ const OCRBillImport = () => {
       return {
         idx,
         medId: selectedMedicine?._id?.slice(-6) || selectedMedicine?.id,
-        pharmId: pharmacyStatus?.data?.pharmacyId?.slice(-6) || "N/A",
+        pharmId: pharmacyStatus?.data?.pharmacyId || "N/A",
+        existingPurchasePrice: pharmacyStatus?.data?.purchasePrice ?? null,
+        existingMrp: pharmacyStatus?.data?.mrp ?? null,
+        stockAfter: Math.round(((Number(pharmacyStatus?.data?.centerStock) || 0) + baseUnitQty) * 100) / 100,
+        label: formatMedicineLabel(selectedMedicine),
         name: selectedMedicine?.name,
         strength: selectedMedicine?.strength,
         form: selectedMedicine?.form,
@@ -1103,6 +1167,15 @@ const OCRBillImport = () => {
     } finally {
       setErrorSearchLoading((prev) => ({ ...prev, [idx]: false }));
     }
+  };
+
+  // Typeahead pick: make sure the medicine is in this row's match list, then select it
+  const handleSearchPick = (idx, med) => {
+    setErrorMatchingMedicinesMap((prev) => {
+      const cur = prev[idx] || [];
+      return cur.some((m) => m._id === med._id) ? prev : { ...prev, [idx]: [med, ...cur] };
+    });
+    setSelectedErrorMedicineIds((prev) => ({ ...prev, [idx]: med._id }));
   };
 
   // Convert error medicine to extracted medicine when matched
@@ -2323,65 +2396,82 @@ const OCRBillImport = () => {
             <Card
               style={{
                 width: "90%",
-                maxWidth: "500px",
+                maxWidth: "440px",
                 textAlign: "center",
-                border: "none",
-                borderRadius: "12px",
-                boxShadow: "0 15px 50px rgba(0,0,0,0.4)",
+                border: "1px solid #e5e7eb",
+                borderRadius: "10px",
+                boxShadow: "0 12px 40px rgba(0,0,0,0.18)",
                 backgroundColor: "#ffffff",
               }}
             >
-              <CardBody className="p-5">
-                <div className="mb-4">
-                  <Spinner
-                    color="primary"
-                    style={{
-                      width: "70px",
-                      height: "70px",
-                      marginBottom: "20px",
-                    }}
-                  />
-                </div>
+              <CardBody style={{ padding: "2rem 2rem 1.5rem" }}>
+                {(() => {
+                  const stages = [
+                    { key: "uploading", label: "Uploading bill" },
+                    { key: "extracting", label: "Extracting and matching medicines" },
+                  ];
+                  const activeIdx = Math.max(0, stages.findIndex((x) => x.key === processingStatus));
+                  const copy = {
+                    uploading: ["Uploading bill", "Preparing your document for processing."],
+                    extracting: ["Extracting medicine details", "This can take a minute or two for longer bills."],
+                    matching: ["Matching medicines", "Comparing the extracted names with your medicine master."],
+                  }[stages[activeIdx].key];
+                  return (
+                    <>
+                      <Spinner
+                        style={{ width: "2.25rem", height: "2.25rem", borderWidth: "3px", color: "#475569" }}
+                      />
+                      <h5 className="mt-3 mb-1" style={{ color: "#111827", fontWeight: 600 }}>{copy[0]}</h5>
+                      <p className="mb-4" style={{ color: "#6b7280", fontSize: "0.9rem" }}>{copy[1]}</p>
 
-                {processingStatus === "uploading" && (
-                  <>
-                    <h4 className="font-weight-bold mb-3" style={{ color: "#333" }}>
-                      Uploading Bill
-                    </h4>
-                    <p className="text-muted" style={{ fontSize: "16px" }}>
-                      Preparing your document for processing...
-                    </p>
-                  </>
-                )}
+                      <div
+                        className="text-start mx-auto"
+                        style={{ maxWidth: "320px", borderTop: "1px solid #eef0f3", paddingTop: "1rem" }}
+                      >
+                        {stages.map((st, i) => {
+                          const done = i < activeIdx;
+                          const active = i === activeIdx;
+                          return (
+                            <div
+                              key={st.key}
+                              className="d-flex align-items-center"
+                              style={{
+                                gap: "0.65rem",
+                                padding: "0.3rem 0",
+                                fontSize: "0.875rem",
+                                color: done || active ? "#111827" : "#9ca3af",
+                                fontWeight: active ? 600 : 400,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  width: 18,
+                                  height: 18,
+                                  borderRadius: "50%",
+                                  flex: "0 0 18px",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "0.65rem",
+                                  color: done ? "#fff" : "#6b7280",
+                                  background: done ? "#475569" : "#fff",
+                                  border: done ? "1px solid #475569" : active ? "2px solid #475569" : "1px solid #d1d5db",
+                                }}
+                              >
+                                {done ? "\u2713" : ""}
+                              </span>
+                              {st.label}
+                            </div>
+                          );
+                        })}
+                      </div>
 
-                {processingStatus === "extracting" && (
-                  <>
-                    <div className="text-center mx-auto py-5" style={{ maxWidth: "420px" }}>
-
-                      <h4 className="fw-semibold text-dark mb-3">
-                        Extracting Medicine Details
-                      </h4>
-                      <p className="text-muted small mb-2">
-                        This may take a minute or two
+                      <p className="mb-0 mt-4" style={{ color: "#6b7280", fontSize: "0.78rem" }}>
+                        Please keep this page open until it finishes.
                       </p>
-
-                      <small className="text-danger">
-                        Please do not close or refresh the page
-                      </small>
-                    </div>
-                  </>
-                )}
-
-                {processingStatus === "matching" && (
-                  <>
-                    <h4 className="font-weight-bold mb-3" style={{ color: "#333" }}>
-                      Matching Medicines
-                    </h4>
-                    <p className="text-muted" style={{ fontSize: "16px" }}>
-                      Finding matching medicines from your master database...
-                    </p>
-                  </>
-                )}
+                    </>
+                  );
+                })()}
               </CardBody>
             </Card>
           </div>
@@ -2536,11 +2626,11 @@ const OCRBillImport = () => {
           )}
 
           {errorMedicines.length > 0 && extractedMedicines.length > 0 && (
-            <Card className="border-warning mb-4">
-              <CardHeader className="bg-light border-warning">
+            <Card className="mb-4 shadow-sm" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+              <CardHeader style={{ background: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
                 <Row className="align-items-center">
                   <Col>
-                    <h6 className="mb-0 text-warning font-weight-bold">Missing Medicines ({errorMedicines.length})</h6>
+                    <h6 className="mb-0 font-weight-bold">Missing Medicines ({errorMedicines.length})</h6>
                   </Col>
                   <Col xs="auto">
                     <Button
@@ -2555,35 +2645,42 @@ const OCRBillImport = () => {
               </CardHeader>
               <CardBody className="p-0">
                 <style>{`
-                  .error-medicine-table td {
-                    padding: 0.35rem 0.5rem !important;
-                    vertical-align: middle;
-                    height: 38px;
-                  }
-                  .error-medicine-table input {
-                    font-size: 0.85rem;
-                    padding: 0.25rem 0.4rem !important;
-                    border: 1px solid #e0e0e0 !important;
-                    border-radius: 3px;
-                  }
-                  .error-medicine-table input:focus {
-                    border-color: #ffc107 !important;
-                    background-color: #fffbf0;
-                    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.1) !important;
-                  }
-                  .error-medicine-table tbody tr:hover {
-                    background-color: #fffbf0;
-                  }
-                  .error-medicine-table tbody tr:nth-child(even) {
-                    background-color: #fffdf5;
-                  }
-                  .error-medicine-table th {
-                    font-size: 0.85rem;
-                    padding: 0.5rem 0.5rem !important;
-                    font-weight: 600;
-                    border-bottom: 2px solid #dee2e6;
-                  }
-                `}</style>
+                .error-medicine-table { border-collapse: separate; border-spacing: 0; }
+                .error-medicine-table thead th {
+                  position: sticky; top: 0; z-index: 1;
+                  background: #f8f9fb;
+                  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+                  color: #6b7280;
+                  padding: 0.65rem 0.6rem !important;
+                  border-bottom: 1px solid #e5e7eb !important;
+                  white-space: nowrap;
+                }
+                .error-medicine-table td {
+                  padding: 0.45rem 0.6rem !important;
+                  vertical-align: middle;
+                  border-top: 0 !important;
+                  border-bottom: 1px solid #eef0f3 !important;
+                }
+                .error-medicine-table tbody tr { transition: background-color .12s ease; }
+                .error-medicine-table tbody tr:hover { background-color: #f8fafc; }
+                .error-medicine-table input.form-control {
+                  font-size: 0.85rem;
+                  padding: 0.3rem 0.5rem !important;
+                  border: 1px solid #cbd5e1 !important;
+                  background-color: #fff;
+                  border-radius: 6px;
+                  transition: border-color .12s ease, background-color .12s ease, box-shadow .12s ease;
+                }
+                .error-medicine-table input.form-control:hover { border-color: #94a3b8 !important; }
+                .error-medicine-table input.form-control:focus {
+                  border-color: #64748b !important;
+                  background-color: #fff;
+                  box-shadow: 0 0 0 3px rgba(100,116,139, 0.18) !important;
+                }
+                .error-medicine-table input[type="number"] { text-align: right; font-variant-numeric: tabular-nums; }
+                .error-medicine-table input[type="checkbox"] { width: 1rem; height: 1rem; cursor: pointer; }
+                
+              `}</style>
                 <div className="table-responsive">
                   <table className="table table-sm mb-0 error-medicine-table">
                     <thead className="bg-light">
@@ -2743,18 +2840,20 @@ const OCRBillImport = () => {
                               </div>
                             </td>
                           </tr>
-                          {errorMatchingMedicinesMap[idx] && errorMatchingMedicinesMap[idx].length > 0 && (
-                            <tr key={`${idx}-matches`} style={{ backgroundColor: "#fffbf0" }}>
+                          {(
+                            <tr key={`${idx}-matches`} style={{ backgroundColor: "#f8f9fb" }}>
                               <td colSpan={8} style={{ padding: "0.5rem 1rem" }}>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
-                                  <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#856404" }}>
+                                  {errorMatchingMedicinesMap[idx]?.length > 0 && (
+                                  <>
+                                  <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b5563" }}>
                                     Select match:
                                   </span>
                                   <div style={{ minWidth: "280px", flex: 1 }}>
                                     <Select
                                       options={errorMatchingMedicinesMap[idx].map((m) => ({
                                         value: m._id || m.id,
-                                        label: `${m.name || ""}${m.strength ? ` — ${m.strength}` : ""}${[m.form, m.baseUnit || m.unit].filter(Boolean).length ? ` (${[m.form, m.baseUnit || m.unit].filter(Boolean).join(", ")})` : ""}`,
+                                        label: formatMedicineLabel(m),
                                       }))}
                                       value={
                                         selectedErrorMedicineIds[idx]
@@ -2764,7 +2863,7 @@ const OCRBillImport = () => {
                                                 const m = errorMatchingMedicinesMap[idx].find(
                                                   (x) => (x._id || x.id) === selectedErrorMedicineIds[idx]
                                                 );
-                                                return m ? `${m.name}${m.strength ? ` — ${m.strength}` : ""}` : "";
+                                                return formatMedicineLabel(m);
                                               })(),
                                             }
                                           : null
@@ -2783,6 +2882,11 @@ const OCRBillImport = () => {
                                         menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                       }}
                                     />
+                                  </div>
+                                  </>
+                                  )}
+                                  <div style={{ minWidth: "280px", flex: 1 }}>
+                                    <MissedMedicineSearch onPick={(med) => handleSearchPick(idx, med)} />
                                   </div>
                                   <Button
                                     color="success"
@@ -2821,7 +2925,7 @@ const OCRBillImport = () => {
                   <CardHeader className="bg-light border-warning">
                     <Row className="align-items-center">
                       <Col>
-                        <h6 className="mb-0 text-warning font-weight-bold">Missing Medicines Found ({errorMedicines.length})</h6>
+                        <h6 className="mb-0 font-weight-bold">Missing Medicines Found ({errorMedicines.length})</h6>
                       </Col>
                       <Col xs="auto">
                         <Button
@@ -2836,35 +2940,42 @@ const OCRBillImport = () => {
                   </CardHeader>
                   <CardBody className="p-0">
                     <style>{`
-                      .error-medicine-table-no-extracted td {
-                        padding: 0.35rem 0.5rem !important;
-                        vertical-align: middle;
-                        height: 38px;
-                      }
-                      .error-medicine-table-no-extracted input {
-                        font-size: 0.85rem;
-                        padding: 0.25rem 0.4rem !important;
-                        border: 1px solid #e0e0e0 !important;
-                        border-radius: 3px;
-                      }
-                      .error-medicine-table-no-extracted input:focus {
-                        border-color: #ffc107 !important;
-                        background-color: #fffbf0;
-                        box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.1) !important;
-                      }
-                      .error-medicine-table-no-extracted tbody tr:hover {
-                        background-color: #fffbf0;
-                      }
-                      .error-medicine-table-no-extracted tbody tr:nth-child(even) {
-                        background-color: #fffdf5;
-                      }
-                      .error-medicine-table-no-extracted th {
-                        font-size: 0.85rem;
-                        padding: 0.5rem 0.5rem !important;
-                        font-weight: 600;
-                        border-bottom: 2px solid #dee2e6;
-                      }
-                    `}</style>
+                .error-medicine-table-no-extracted { border-collapse: separate; border-spacing: 0; }
+                .error-medicine-table-no-extracted thead th {
+                  position: sticky; top: 0; z-index: 1;
+                  background: #f8f9fb;
+                  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+                  color: #6b7280;
+                  padding: 0.65rem 0.6rem !important;
+                  border-bottom: 1px solid #e5e7eb !important;
+                  white-space: nowrap;
+                }
+                .error-medicine-table-no-extracted td {
+                  padding: 0.45rem 0.6rem !important;
+                  vertical-align: middle;
+                  border-top: 0 !important;
+                  border-bottom: 1px solid #eef0f3 !important;
+                }
+                .error-medicine-table-no-extracted tbody tr { transition: background-color .12s ease; }
+                .error-medicine-table-no-extracted tbody tr:hover { background-color: #f8fafc; }
+                .error-medicine-table-no-extracted input.form-control {
+                  font-size: 0.85rem;
+                  padding: 0.3rem 0.5rem !important;
+                  border: 1px solid #cbd5e1 !important;
+                  background-color: #fff;
+                  border-radius: 6px;
+                  transition: border-color .12s ease, background-color .12s ease, box-shadow .12s ease;
+                }
+                .error-medicine-table-no-extracted input.form-control:hover { border-color: #94a3b8 !important; }
+                .error-medicine-table-no-extracted input.form-control:focus {
+                  border-color: #64748b !important;
+                  background-color: #fff;
+                  box-shadow: 0 0 0 3px rgba(100,116,139, 0.18) !important;
+                }
+                .error-medicine-table-no-extracted input[type="number"] { text-align: right; font-variant-numeric: tabular-nums; }
+                .error-medicine-table-no-extracted input[type="checkbox"] { width: 1rem; height: 1rem; cursor: pointer; }
+                
+              `}</style>
                     <div className="table-responsive">
                       <table className="table table-sm mb-0 error-medicine-table-no-extracted">
                         <thead className="bg-light">
@@ -3017,18 +3128,20 @@ const OCRBillImport = () => {
                                   </div>
                                 </td>
                               </tr>
-                              {errorMatchingMedicinesMap[idx] && errorMatchingMedicinesMap[idx].length > 0 && (
-                                <tr key={`${idx}-matches`} style={{ backgroundColor: "#fffbf0" }}>
+                              {(
+                                <tr key={`${idx}-matches`} style={{ backgroundColor: "#f8f9fb" }}>
                                   <td colSpan={8} style={{ padding: "0.5rem 1rem" }}>
                                     <div className="d-flex align-items-center gap-2 flex-wrap">
-                                      <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#856404" }}>
+                                      {errorMatchingMedicinesMap[idx]?.length > 0 && (
+                                      <>
+                                      <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b5563" }}>
                                         Select match:
                                       </span>
                                       <div style={{ minWidth: "280px", flex: 1 }}>
                                         <Select
                                           options={errorMatchingMedicinesMap[idx].map((m) => ({
                                             value: m._id || m.id,
-                                            label: `${m.name || ""}${m.strength ? ` — ${m.strength}` : ""}${[m.form, m.baseUnit || m.unit].filter(Boolean).length ? ` (${[m.form, m.baseUnit || m.unit].filter(Boolean).join(", ")})` : ""}`,
+                                            label: formatMedicineLabel(m),
                                           }))}
                                           value={
                                             selectedErrorMedicineIds[idx]
@@ -3038,7 +3151,7 @@ const OCRBillImport = () => {
                                                     const m = errorMatchingMedicinesMap[idx].find(
                                                       (x) => (x._id || x.id) === selectedErrorMedicineIds[idx]
                                                     );
-                                                    return m ? `${m.name}${m.strength ? ` — ${m.strength}` : ""}` : "";
+                                                    return formatMedicineLabel(m);
                                                   })(),
                                                 }
                                               : null
@@ -3057,6 +3170,11 @@ const OCRBillImport = () => {
                                             menuPortal: (base) => ({ ...base, zIndex: 9999 }),
                                           }}
                                         />
+                                      </div>
+                                      </>
+                                      )}
+                                      <div style={{ minWidth: "280px", flex: 1 }}>
+                                        <MissedMedicineSearch onPick={(med) => handleSearchPick(idx, med)} />
                                       </div>
                                       <Button
                                         color="success"
@@ -3087,64 +3205,77 @@ const OCRBillImport = () => {
           {extractedMedicines.length > 0 && (
             <Row className="mb-3 g-2">
               <Col xs="auto">
-                <Badge color="secondary" className="px-3 py-2">
-                  {extractedMedicines.length} medicines
-                </Badge>
+                <div style={{ minWidth: 140, padding: "0.5rem 0.9rem", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6 }}>
+                  <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>Medicines</div>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 600, color: "#111827", fontVariantNumeric: "tabular-nums" }}>{extractedMedicines.length}</div>
+                </div>
               </Col>
               <Col xs="auto">
-                <Badge color="secondary" className="px-3 py-2">
-                  {billTotal.toFixed(2)} total
-                </Badge>
+                <div style={{ minWidth: 140, padding: "0.5rem 0.9rem", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6 }}>
+                  <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>Bill total</div>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 600, color: "#111827", fontVariantNumeric: "tabular-nums" }}>₹{billTotal.toFixed(2)}</div>
+                </div>
               </Col>
               {errorMedicines.length > 0 && (
-                <Col xs="auto">
-                  <Badge color="secondary" className="px-3 py-2">
-                    {errorMedicines.length} missing from master
-                  </Badge>
-                </Col>
+              <Col xs="auto">
+                <div style={{ minWidth: 140, padding: "0.5rem 0.9rem", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6 }}>
+                  <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>Missing from master</div>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 600, color: "#111827", fontVariantNumeric: "tabular-nums" }}>{errorMedicines.length}</div>
+                </div>
+              </Col>
               )}
             </Row>
           )}
 
           {/* Compact Table View for Quick Bulk Entry - Only show if medicines were extracted */}
           {extractedMedicines.length > 0 && (
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="bg-light border-0">
+          <Card className="shadow-sm" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+            <CardHeader className="bg-white" style={{ borderBottom: "1px solid #eef0f3", padding: "0.9rem 1.1rem" }}>
               <h6 className="mb-0 font-weight-bold">
                 Extracted Medicines ({extractedMedicines.filter((_, idx) => matchingMedicinesMap[idx]?.length > 0).length} with matches)
               </h6>
-              <small className="text-muted">Use Tab to move between cells • Type to edit inline</small>
+              <small className="text-muted d-block mt-1">Tick the rows to import. Use Tab to move between cells, type to edit inline.</small>
             </CardHeader>
             <CardBody className="p-0">
               <style>{`
+                .medicine-table { border-collapse: separate; border-spacing: 0; }
+                .medicine-table thead th {
+                  position: sticky; top: 0; z-index: 1;
+                  background: #f8f9fb;
+                  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+                  color: #6b7280;
+                  padding: 0.65rem 0.6rem !important;
+                  border-bottom: 1px solid #e5e7eb !important;
+                  white-space: nowrap;
+                }
                 .medicine-table td {
-                  padding: 0.35rem 0.5rem !important;
+                  padding: 0.45rem 0.6rem !important;
                   vertical-align: middle;
-                  height: 38px;
+                  border-top: 0 !important;
+                  border-bottom: 1px solid #eef0f3 !important;
                 }
-                .medicine-table input {
+                .medicine-table tbody tr { transition: background-color .12s ease; }
+                .medicine-table tbody tr:hover { background-color: #f8fafc; }
+                .medicine-table input.form-control {
                   font-size: 0.85rem;
-                  padding: 0.25rem 0.4rem !important;
-                  border: 1px solid #e0e0e0 !important;
-                  border-radius: 3px;
+                  padding: 0.3rem 0.5rem !important;
+                  border: 1px solid #cbd5e1 !important;
+                  background-color: #fff;
+                  border-radius: 6px;
+                  transition: border-color .12s ease, background-color .12s ease, box-shadow .12s ease;
                 }
-                .medicine-table input:focus {
-                  border-color: #007bff !important;
-                  background-color: #f0f7ff;
-                  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1) !important;
+                .medicine-table input.form-control:hover { border-color: #94a3b8 !important; }
+                .medicine-table input.form-control:focus {
+                  border-color: #64748b !important;
+                  background-color: #fff;
+                  box-shadow: 0 0 0 3px rgba(100,116,139, 0.18) !important;
                 }
-                .medicine-table tbody tr:hover {
-                  background-color: #f9f9f9;
-                }
-                .medicine-table tbody tr:nth-child(even) {
-                  background-color: #f5f5f5;
-                }
-                .medicine-table th {
-                  font-size: 0.85rem;
-                  padding: 0.5rem 0.5rem !important;
-                  font-weight: 600;
-                  border-bottom: 2px solid #dee2e6;
-                }
+                .medicine-table input[type="number"] { text-align: right; font-variant-numeric: tabular-nums; }
+                .medicine-table input[type="checkbox"] { width: 1rem; height: 1rem; cursor: pointer; }
+                .medicine-table tbody tr.row-checked { background-color: #fafbfc; }
+                .medicine-table tbody tr.row-unchecked td { opacity: 0.55; }
+                .medicine-table tbody tr.row-unchecked:hover td { opacity: 1; }
+                .medicine-table input[type="date"] { min-width: 128px; }
               `}</style>
               <div className="table-responsive">
                 <table className="table table-sm mb-0 medicine-table">
@@ -3168,15 +3299,15 @@ const OCRBillImport = () => {
                           title="Select all"
                         />
                       </th>
-                      <th style={{ width: "15%" }}>Matched Medicine</th>
-                      <th style={{ width: "15%" }}>Medicine Name</th>
-                      <th style={{ width: "10%" }}>Strength</th>
-                      <th style={{ width: "8%" }}>Qty</th>
-                      <th style={{ width: "12%" }}>Batch</th>
-                      <th style={{ width: "12%" }}>Expiry</th>
-                      <th style={{ width: "9%" }}>Unit Price</th>
-                      <th style={{ width: "9%" }}>Total</th>
-                      <th style={{ width: "5%" }}></th>
+                      <th style={{ width: "24%" }}>Matched Medicine</th>
+                      <th style={{ width: "16%" }}>Medicine Name</th>
+                      <th style={{ width: "9%" }}>Strength</th>
+                      <th style={{ width: "7%", textAlign: "right" }}>Qty</th>
+                      <th style={{ width: "11%" }}>Batch</th>
+                      <th style={{ width: "11%" }}>Expiry</th>
+                      <th style={{ width: "8%", textAlign: "right" }}>Unit Price</th>
+                      <th style={{ width: "8%", textAlign: "right" }}>Total</th>
+                      <th style={{ width: "3%" }}></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -3186,7 +3317,7 @@ const OCRBillImport = () => {
                         return null;
                       }
                       return (
-                      <tr key={idx}>
+                      <tr key={idx} className={checkedMedicines[idx] ? "row-checked" : "row-unchecked"}>
                         <td>
                           <Input
                             type="checkbox"
@@ -3210,16 +3341,14 @@ const OCRBillImport = () => {
                             <Select
                               options={matchingMedicinesMap[idx]?.map((m) => ({
                                 value: m._id,
-                                label: `${m.id || m._id} | ${m.name} ${m.strength || ""} | ${m.baseUnit || ""} | ${m.form || ""}`.trim(),
+                                label: formatMedicineLabel(m),
                                 data: m,
                               })) || []}
                               value={
                                 selectedMedicineIds[idx]
                                   ? {
                                     value: selectedMedicineIds[idx],
-                                    label: matchingMedicinesMap[idx]?.find(
-                                      (m) => m._id === selectedMedicineIds[idx]
-                                    )?.id || selectedMedicineIds[idx],
+                                    label: formatMedicineLabel(matchingMedicinesMap[idx]?.find((m) => m._id === selectedMedicineIds[idx])) || selectedMedicineIds[idx],
                                   }
                                   : null
                               }
@@ -3365,7 +3494,7 @@ const OCRBillImport = () => {
                           />
                         </td>
                         <td className="text-center">
-                          <Badge color="info" style={{ fontSize: "0.75rem" }} title="Extracted by OCR">
+                          <Badge color="light" className="text-muted border" style={{ fontSize: "0.75rem", fontWeight: 500 }} title="Extracted by OCR">
                             ✓
                           </Badge>
                         </td>
@@ -3531,16 +3660,16 @@ const OCRBillImport = () => {
                               <Select
                                 options={(matchingMedicinesMap[idx] || []).map((m) => ({
                                   value: m._id,
-                                  label: `${m.name}${m.strength ? ` - ${m.strength}` : ""} (${m.form}, ${m.baseUnit})`,
+                                  label: formatMedicineLabel(m),
                                 }))}
                                 value={
                                   selectedMedicineIds[idx]
                                     ? {
                                       value: selectedMedicineIds[idx],
                                       label:
-                                        matchingMedicinesMap[idx]?.find(
-                                          (m) => m._id === selectedMedicineIds[idx]
-                                        )?.name || "Selected",
+                                        formatMedicineLabel(
+                                          matchingMedicinesMap[idx]?.find((m) => m._id === selectedMedicineIds[idx])
+                                        ) || "Selected",
                                     }
                                     : null
                                 }
@@ -3607,76 +3736,76 @@ const OCRBillImport = () => {
         style={isMobile ? { width: "100%" } : { width: "78%" }}
       >
         <div className="px-3 pt-3">
-          <h5 className="mb-1 text-primary text-uppercase font-weight-bold">
+          <h5 className="mb-1 font-weight-bold" style={{ color: "#111827" }}>
             Step 2 of 2: Confirm & Submit
           </h5>
           <small className="text-muted">
             Review pharmacy status • Fill inventory details • Submit
           </small>
         </div>
-        <hr className="mb-4 border-secondary" />
+        <hr className="mb-4" style={{ borderColor: "#e5e7eb" }} />
 
         <div className="content-wrapper">
           {/* BILL SUMMARY */}
-          <Card className="border-0 shadow-sm mb-4 bg-light">
-            <CardHeader className="bg-light border-0 pb-2">
-              <h6 className="mb-0 font-weight-bold">📄 Bill Summary</h6>
+          <Card className="shadow-sm mb-4" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+            <CardHeader style={{ background: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
+              <h6 className="mb-0 font-weight-bold">Bill Summary</h6>
             </CardHeader>
             <CardBody className="p-3">
               <Row>
                 {billNumber && (
                   <Col md="2" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>Bill #</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>Bill #</strong>
                     </small>
                     <div className="font-weight-bold small">{billNumber}</div>
                   </Col>
                 )}
                 {billSupplier && (
                   <Col md="2" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>Supplier</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>Supplier</strong>
                     </small>
                     <div className="font-weight-bold small">{billSupplier}</div>
                   </Col>
                 )}
                 {billGrossAmount > 0 && (
                   <Col md="2" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>Gross</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>Gross</strong>
                     </small>
                     <div className="font-weight-bold small">₹ {billGrossAmount.toFixed(2)}</div>
                   </Col>
                 )}
                 {billDiscountPercentage > 0 && (
                   <Col md="1" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>Disc %</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>Disc %</strong>
                     </small>
                     <div className="font-weight-bold small">{billDiscountPercentage.toFixed(0)}%</div>
                   </Col>
                 )}
                 {billDiscountAmount > 0 && (
                   <Col md="2" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>Discount</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>Discount</strong>
                     </small>
                     <div className="font-weight-bold small">— ₹ {billDiscountAmount.toFixed(2)}</div>
                   </Col>
                 )}
                 {billFinalAmount > 0 && (
                   <Col md="2" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>After Disc</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>After Disc</strong>
                     </small>
-                    <div className="font-weight-bold text-info small">₹ {billFinalAmount.toFixed(2)}</div>
+                    <div className="font-weight-bold small" style={{ color: "#111827" }}>₹ {billFinalAmount.toFixed(2)}</div>
                   </Col>
                 )}
                 <Col md={billGrossAmount > 0 ? "2" : "3"} sm="6" className="mb-2">
-                  <small className="text-muted d-block">
-                    <strong>Total</strong>
+                  <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                    <strong style={{ fontWeight: 700 }}>Total</strong>
                   </small>
-                  <div className="font-weight-bold text-success small">₹ {billTotal.toFixed(2)}</div>
+                  <div className="font-weight-bold small" style={{ color: "#111827", fontSize: "0.95rem" }}>₹ {billTotal.toFixed(2)}</div>
                 </Col>
               </Row>
             </CardBody>
@@ -3685,23 +3814,26 @@ const OCRBillImport = () => {
           <style>{`
             .react-data-table-component input {
               font-size: 0.85rem;
-              padding: 0.25rem 0.4rem !important;
-              border: 1px solid #e0e0e0 !important;
-              border-radius: 3px;
+              padding: 0.3rem 0.5rem !important;
+              border: 1px solid #cbd5e1 !important;
+              background-color: #fff;
+              border-radius: 6px;
               min-width: 80px;
+              transition: border-color .12s ease, box-shadow .12s ease;
             }
+            .react-data-table-component input:hover { border-color: #94a3b8 !important; }
             .react-data-table-component input:focus {
-              border-color: #007bff !important;
-              background-color: #f0f7ff;
-              box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1) !important;
+              border-color: #64748b !important;
+              box-shadow: 0 0 0 3px rgba(100,116,139, 0.18) !important;
             }
+            .react-data-table-component input::placeholder { color: #9ca3af; }
           `}</style>
 
           {/* SECTION 1: NEW MEDICINES TO ADD */}
           {newMedicines.length > 0 && (
             <div style={{ marginBottom: "30px" }}>
-              <h6 className="mb-3 text-dark font-weight-bold">📝 New Medicines ({newMedicines.length})</h6>
-              <Card className="border-0 shadow-sm">
+              <h6 className="mb-2 font-weight-bold" style={{ color: "#111827" }}>New Medicines ({newMedicines.length})</h6>
+              <Card className="shadow-sm" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
                 <CardBody className="p-0" style={{ overflowX: "auto" }}>
                   <DataTable
                     columns={newMedicinesColumns}
@@ -3712,21 +3844,24 @@ const OCRBillImport = () => {
                     pointerOnHover
                     striped
                     customStyles={{
-                      table: { style: { fontSize: "0.85rem", minWidth: "1100px" } },
+                      table: { style: { fontSize: "0.85rem", minWidth: "1220px" } },
                       headRow: {
                         style: {
-                          backgroundColor: "#f8f9fa",
-                          fontWeight: 600,
+                          backgroundColor: "#f8f9fb",
+                          fontWeight: 700,
                           padding: "8px 4px",
-                          borderBottom: "2px solid #dee2e6",
-                          fontSize: "0.8rem"
+                          borderBottom: "1px solid #e5e7eb",
+                          fontSize: "0.72rem",
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                          color: "#6b7280"
                         }
                       },
                       rows: {
                         style: {
                           minHeight: "40px",
                           padding: "6px 4px",
-                          "&:hover": { backgroundColor: "#f8f9fa" }
+                          "&:hover": { backgroundColor: "#f8fafc" }
                         }
                       },
                       cells: { style: { padding: "6px 8px" } },
@@ -3740,8 +3875,8 @@ const OCRBillImport = () => {
           {/* SECTION 2: EXISTING MEDICINES */}
           {existingMedicines.length > 0 && (
             <div style={{ marginBottom: "30px" }}>
-              <h6 className="mb-3 text-dark font-weight-bold">📦 Existing Medicines ({existingMedicines.length})</h6>
-              <Card className="border-0 shadow-sm">
+              <h6 className="mb-2 font-weight-bold" style={{ color: "#111827" }}>Existing Medicines ({existingMedicines.length})</h6>
+              <Card className="shadow-sm" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
                 <CardBody className="p-0" style={{ overflowX: "auto" }}>
                   <DataTable
                     columns={existingMedicinesColumns}
@@ -3752,21 +3887,24 @@ const OCRBillImport = () => {
                     pointerOnHover
                     striped
                     customStyles={{
-                      table: { style: { fontSize: "0.85rem", minWidth: "1150px" } },
+                      table: { style: { fontSize: "0.85rem", minWidth: "1300px" } },
                       headRow: {
                         style: {
-                          backgroundColor: "#f8f9fa",
-                          fontWeight: 600,
+                          backgroundColor: "#f8f9fb",
+                          fontWeight: 700,
                           padding: "8px 4px",
-                          borderBottom: "2px solid #dee2e6",
-                          fontSize: "0.8rem"
+                          borderBottom: "1px solid #e5e7eb",
+                          fontSize: "0.72rem",
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                          color: "#6b7280"
                         }
                       },
                       rows: {
                         style: {
                           minHeight: "40px",
                           padding: "6px 4px",
-                          "&:hover": { backgroundColor: "#f8f9fa" }
+                          "&:hover": { backgroundColor: "#f8fafc" }
                         }
                       },
                       cells: { style: { padding: "6px 8px" } },
@@ -3782,8 +3920,6 @@ const OCRBillImport = () => {
               No medicines to process.
             </Alert>
           )}
-
-          {error && <Alert color="danger">{error}</Alert>}
 
           {error && <Alert color="danger" className="mt-3">{error}</Alert>}
 

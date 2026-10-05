@@ -423,9 +423,9 @@ const InventoryHealthReport = () => {
             })}
           </Nav>
 
-          <Card className="flex-grow-1 shadow-sm border-0 mb-0" style={{ borderRadius: "0 0 8px 8px" }}>
-            <CardBody className="p-0 d-flex flex-column h-100">
-              <div className="flex-grow-1 position-relative" style={{ minHeight: "500px" }}>
+          <Card className="shadow-sm border-0 mb-0" style={{ borderRadius: "0 0 8px 8px" }}>
+            <CardBody className="p-0">
+              <div className="position-relative">
                 {activeTab === "SUMMARY" ? (
                   <CompactDataGrid
                     columns={columns}

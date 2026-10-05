@@ -70,7 +70,7 @@ const CompactDataGrid = ({
           style={{
             borderCollapse: "collapse",
             width: "100%",
-            fontSize: 11,
+            fontSize: 12,
             lineHeight: 1.3,
           }}
         >
@@ -102,7 +102,7 @@ const CompactDataGrid = ({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={columns.length} className="text-center py-4">
+                <td colSpan={columns.length} className="text-start py-2" style={{ paddingLeft: 20 }}>
                   <Spinner size="sm" className="text-primary" />
                 </td>
               </tr>

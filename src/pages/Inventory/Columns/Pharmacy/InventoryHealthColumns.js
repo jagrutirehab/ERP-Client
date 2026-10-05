@@ -501,7 +501,7 @@ export const getInventoryHealthDetailedGridColumns = (
     header: `Transfer ${i + 1}`,
     align: "right",
     minWidth: 100,
-    render: (row) => transferDetailCell(row.transferHistory?.[i], row.baseUnit),
+    render: (row) => transferDetailCell(row.transferHistory?.[i], row.transferHistory?.[i]?.baseUnit || row.baseUnit),
   }));
 
   const auditColumns = Array.from({ length: maxAudits }, (_, i) => ({

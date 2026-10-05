@@ -1,231 +1,162 @@
-import { ListGroup, ListGroupItem, Button } from "reactstrap";
+import { useState } from "react";
 import { normalizeUnderscores } from "../../../../utils/normalizeUnderscore";
 import { display } from "../../../../utils/display";
 
-export const getStockSummaryColumns = () => [
-    {
-        name: <div>Medicine ID</div>,
-        selector: (row) => row.medicine?.id,
-        cell: (row) => <span>{display(row.medicine?.id)}</span>,
-        sortable: true,
-        minWidth: "120px",
-        wrap: true,
-    },
-    {
-        name: <div>Medicine Name</div>,
-        selector: (row) => row.medicineName,
-        cell: (row) => (
-            <span className="font-weight-bold text-primary">
-                {display(row.medicineName)}
-            </span>
-        ),
-        sortable: true,
-        minWidth: "120px",
-        wrap: true,
-    },
-    {
-        name: <div>Generic Name</div>,
-        selector: (row) => row.medicine?.genericName,
-        cell: (row) => <span>{row.medicine?.genericName?.toUpperCase() || "-"}</span>,
-        sortable: true,
-        minWidth: "150px",
-        wrap: true,
-    },
-    {
-        name: <div>Type</div>,
-        selector: (row) => row.medicine?.type,
-        cell: (row) => <span>{normalizeUnderscores(row.medicine?.type)}</span>,
-        sortable: true,
-        minWidth: "100px",
-        wrap: true,
-    },
-    {
-        name: <div>Strength</div>,
-        selector: (row) => row.medicine?.strength,
-        cell: (row) => <span>{display(row.medicine?.strength)}</span>,
-        sortable: true,
-        minWidth: "100px",
-        wrap: true,
-    },
-    {
-        name: <div>Base Unit</div>,
-        selector: (row) => row.medicine?.baseUnit,
-        cell: (row) => <span>{normalizeUnderscores(row.medicine?.baseUnit)}</span>,
-        sortable: true,
-        minWidth: "100px",
-        wrap: true,
-    },
-    {
-        name: <div>Total Stock</div>,
-        selector: (row) => row.totalStock,
-        cell: (row) => (
-            <span>
-                {row.totalStock || 0}
-            </span>
-        ),
-        sortable: true,
-        minWidth: "100px",
-        wrap: true,
-    },
-    {
-        name: <div>Total Reserved</div>,
-        selector: (row) => row.totalReservedQty,
-        cell: (row) => (
-            <span>
-                {row.totalReservedQty ? `-${row.totalReservedQty}` : 0}
-            </span>
-        ),
-        sortable: true,
-        minWidth: "120px",
-        wrap: true,
-    },
-    {
-        name: <div>Total In-Transit</div>,
-        selector: (row) => row.totalInTransitQty,
-        cell: (row) => (
-            <span>
-                {row.totalInTransitQty ? `+${row.totalInTransitQty}` : 0}
-            </span>
-        ),
-        sortable: true,
-        minWidth: "120px",
-        wrap: true,
-    },
-    {
-        name: <div>Total Requested</div>,
-        selector: (row) => row.totalRequestedQty,
-        cell: (row) => (
-            <span>
-                {row.totalRequestedQty || 0}
-            </span>
-        ),
-        sortable: true,
-        minWidth: "120px",
-        wrap: true,
-    },
-    {
-        name: (
-            <div className="d-flex align-items-center w-100 fw-bold" style={{ fontSize: "0.75rem", gap: "12px", paddingRight: "20px" }}>
-                <span className="flex-grow-1 text-nowrap">Center</span>
-                <span className="text-end text-nowrap" style={{ width: "60px", flexShrink: 0 }}>Total</span>
-                <span className="text-end text-nowrap" style={{ width: "80px", flexShrink: 0 }}>Requested</span>
-                <span className="text-end text-nowrap" style={{ width: "80px", flexShrink: 0 }}>Reserved</span>
-                <span className="text-end text-nowrap" style={{ width: "100px", flexShrink: 0 }}>In-Transit</span>
-            </div>
-        ),
-        selector: (row) => row.centers,
-        width: "650px",
-        minWidth: "650px",
-        grow: 3,
-        wrap: false,
-        cell: (row) => {
-            const centers = row.centers || [];
-            const initialCount = 2;
-            const hiddenCount = centers.length - initialCount;
-            const containerId = `center-stock-container-${row._id}`;
+const CENTER_PREVIEW_COUNT = 2;
 
-            const toggleCenters = (e) => {
-                e.preventDefault();
-                const container = document.getElementById(containerId);
-                if (!container) return;
+const CenterStockList = ({ centers = [] }) => {
+    const [expanded, setExpanded] = useState(false);
+    if (centers.length === 0) return "-";
 
-                const hiddenItems = container.querySelectorAll(".hidden-center-item");
-                const button = e.target;
-                const isExpanded = button.getAttribute("data-expanded") === "true";
+    const hiddenCount = centers.length - CENTER_PREVIEW_COUNT;
+    const visible = expanded ? centers : centers.slice(0, CENTER_PREVIEW_COUNT);
 
-                if (isExpanded) {
-                    hiddenItems.forEach((item) => {
-                        item.classList.add("d-none");
-                        item.classList.remove("d-flex");
-                    });
-                    button.innerText = `View all (+${hiddenCount})`;
-                    button.setAttribute("data-expanded", "false");
-                } else {
-                    hiddenItems.forEach((item) => {
-                        item.classList.remove("d-none");
-                        item.classList.add("d-flex");
-                    });
-                    button.innerText = "View less";
-                    button.setAttribute("data-expanded", "true");
-                }
-            };
-
-            return (
-                <div
-                    style={{ width: "100%", paddingRight: "20px", whiteSpace: "normal", display: "flex", flexDirection: "column" }}
-                    className="py-1"
-                    id={containerId}
+    return (
+        <div>
+            <table style={{ borderCollapse: "collapse", width: "100%", tableLayout: "fixed" }}>
+                <colgroup>
+                    <col />
+                    <col style={{ width: 60 }} />
+                    <col style={{ width: 70 }} />
+                    <col style={{ width: 70 }} />
+                    <col style={{ width: 80 }} />
+                </colgroup>
+                <tbody>
+                    {visible.map((item, index) => (
+                        <tr key={index}>
+                            <td className="fw-semibold text-primary pe-2" style={{ fontSize: 11 }}>
+                                {display(item?.centerInfo?.title)}
+                            </td>
+                            <td className="text-end fw-bold" style={{ fontSize: 11 }}>
+                                {display(item?.stock)}
+                            </td>
+                            <td className="text-end" style={{ fontSize: 11 }}>
+                                {item?.requestedQty || 0}
+                            </td>
+                            <td className="text-end" style={{ fontSize: 11 }}>
+                                {item?.reservedQty ? `-${item.reservedQty}` : 0}
+                            </td>
+                            <td className="text-end" style={{ fontSize: 11 }}>
+                                {item?.inTransitQty ? `+${item.inTransitQty}` : 0}
+                            </td>
+                        </tr>
+                    ))}
+                </tbody>
+            </table>
+            {hiddenCount > 0 && (
+                <button
+                    type="button"
+                    className="btn btn-link p-0 text-primary text-decoration-none"
+                    style={{ fontSize: 11 }}
+                    onClick={() => setExpanded((prev) => !prev)}
                 >
-                    {centers.length > 0 ? (
-                        <>
-                            <ListGroup flush className="p-0 m-0 border-0 bg-transparent">
-                                {centers.map((item, index) => {
-                                    const isHidden = index >= initialCount;
-                                    return (
-                                        <ListGroupItem
-                                            key={index}
-                                            className={`border-0 ${index < centers.length - 1 ? 'border-bottom' : ''} ${isHidden ? "hidden-center-item d-none" : ""} bg-transparent`}
-                                            style={{
-                                                display: isHidden ? "none" : "flex",
-                                                alignItems: "center",
-                                                gap: "12px",
-                                                padding: "6px 0",
-                                                margin: 0
-                                            }}
-                                        >
-                                            <span className="flex-grow-1 fw-semibold text-primary" style={{ fontSize: "0.85rem", minWidth: "150px" }}>
-                                                {display(item?.centerInfo?.title)}
-                                            </span>
-                                            <span className="text-end fw-medium" style={{ width: "60px", fontSize: "0.85rem", whiteSpace: "nowrap", flexShrink: 0 }}>
-                                                {display(item?.stock)}
-                                            </span>
-                                            <span className="text-end fw-medium" style={{ width: "80px", fontSize: "0.85rem", whiteSpace: "nowrap", flexShrink: 0 }}>
-                                                {item?.requestedQty || 0}
-                                            </span>
-                                            <span className="text-end fw-medium" style={{ width: "80px", fontSize: "0.85rem", whiteSpace: "nowrap", flexShrink: 0 }}>
-                                                {item?.reservedQty ? `-${item.reservedQty}` : 0}
-                                            </span>
-                                            <span className="text-end fw-medium" style={{ width: "100px", fontSize: "0.85rem", whiteSpace: "nowrap", flexShrink: 0 }}>
-                                                {item?.inTransitQty ? `+${item.inTransitQty}` : 0}
-                                            </span>
-                                        </ListGroupItem>
-                                    );
-                                })}
-                            </ListGroup>
-                        </>
-                    ) : (
-                        "-"
-                    )}
+                    {expanded ? "View less" : `View all (+${hiddenCount})`}
+                </button>
+            )}
+        </div>
+    );
+};
 
-                    {hiddenCount > 0 && (
-                        <Button
-                            color="link"
-                            className="p-0 mt-1 text-primary shadow-none fw-medium text-decoration-none"
-                            style={{ fontSize: "0.8rem" }}
-                            onClick={toggleCenters}
-                            data-expanded="false"
-                        >
-                            {`View all (+${hiddenCount})`}
-                        </Button>
-                    )}
-                </div>
-            );
-        },
+export const getStockSummaryGridColumns = () => [
+    {
+        key: "medicineId",
+        header: "Medicine ID",
+        minWidth: 100,
+        render: (row) => display(row.medicine?.id),
     },
     {
-        name: <div>Form</div>,
-        selector: (row) => row.medicine?.form,
-        cell: (row) => <span>{normalizeUnderscores(row.medicine?.form)}</span>,
-        sortable: true,
-        minWidth: "120px",
-        wrap: true,
+        key: "medicineName",
+        header: "Medicine Name",
+        minWidth: 160,
+        render: (row) => <span className="fw-bold text-primary">{display(row.medicineName)}</span>,
     },
     {
-        name: <div>Category</div>,
-        selector: (row) => row.medicine?.category,
-        cell: (row) => <span>{normalizeUnderscores(row.medicine?.category)}</span>,
-        sortable: true,
-        minWidth: "120px",
-        wrap: true,
+        key: "genericName",
+        header: "Generic Name",
+        minWidth: 140,
+        render: (row) => row.medicine?.genericName?.toUpperCase() || "-",
+    },
+    {
+        key: "type",
+        header: "Type",
+        minWidth: 90,
+        render: (row) => normalizeUnderscores(row.medicine?.type),
+    },
+    {
+        key: "strength",
+        header: "Strength",
+        minWidth: 90,
+        render: (row) => display(row.medicine?.strength),
+    },
+    {
+        key: "baseUnit",
+        header: "Base Unit",
+        minWidth: 90,
+        render: (row) => normalizeUnderscores(row.medicine?.baseUnit),
+    },
+    {
+        key: "totalStock",
+        header: "Total Stock",
+        align: "right",
+        minWidth: 90,
+        render: (row) => row.totalStock || 0,
+    },
+    {
+        key: "totalReserved",
+        header: "Total Reserved",
+        align: "right",
+        minWidth: 100,
+        render: (row) => (row.totalReservedQty ? `-${row.totalReservedQty}` : 0),
+    },
+    {
+        key: "totalInTransit",
+        header: "Total In-Transit",
+        align: "right",
+        minWidth: 100,
+        render: (row) => (row.totalInTransitQty ? `+${row.totalInTransitQty}` : 0),
+    },
+    {
+        key: "totalRequested",
+        header: "Total Requested",
+        align: "right",
+        minWidth: 100,
+        render: (row) => row.totalRequestedQty || 0,
+    },
+    {
+        key: "centers",
+        header: (
+            <table style={{ borderCollapse: "collapse", width: "100%", tableLayout: "fixed" }}>
+                <colgroup>
+                    <col />
+                    <col style={{ width: 60 }} />
+                    <col style={{ width: 70 }} />
+                    <col style={{ width: 70 }} />
+                    <col style={{ width: 80 }} />
+                </colgroup>
+                <tbody>
+                    <tr>
+                        <td style={{ fontWeight: 700 }}>Center</td>
+                        <td className="text-end" style={{ fontWeight: 700 }}>Total</td>
+                        <td className="text-end" style={{ fontWeight: 700 }}>Requested</td>
+                        <td className="text-end" style={{ fontWeight: 700 }}>Reserved</td>
+                        <td className="text-end" style={{ fontWeight: 700 }}>In-Transit</td>
+                    </tr>
+                </tbody>
+            </table>
+        ),
+        minWidth: 380,
+        render: (row) => <CenterStockList centers={row.centers} />,
+    },
+    {
+        key: "form",
+        header: "Form",
+        minWidth: 100,
+        render: (row) => normalizeUnderscores(row.medicine?.form),
+    },
+    {
+        key: "category",
+        header: "Category",
+        minWidth: 110,
+        render: (row) => normalizeUnderscores(row.medicine?.category),
     },
 ];
