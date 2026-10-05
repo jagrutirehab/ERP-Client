@@ -1,7 +1,7 @@
 import React, { useRef } from "react";
 import PropTypes from "prop-types";
 import { Button, Label } from "reactstrap";
-import { Paperclip, X } from "lucide-react";
+import { Camera, Paperclip, X } from "lucide-react";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "application/pdf"];
@@ -106,8 +106,16 @@ const PaymentModeEvidence = ({
         </Button>
 
         {isMobile && (
-          <Button type="button" onClick={openCamera}>
-            📷 Take Photo
+          <Button
+            type="button"
+            outline
+            size="sm"
+            color={required ? "danger" : "primary"}
+            onClick={openCamera}
+            className="d-inline-flex align-items-center gap-1"
+          >
+            <Camera size={14} />
+            Take Photo
           </Button>
         )}
 
