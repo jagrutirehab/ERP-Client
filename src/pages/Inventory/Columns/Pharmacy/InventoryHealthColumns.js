@@ -470,7 +470,7 @@ const moneyColumns = [
   { key: "mrp", header: "MRP", align: "right", minWidth: 80, render: (row) => formatCurrency(row.mrp) },
   { key: "lossAtMrp", header: "Loss @ MRP", align: "right", minWidth: 100, render: (row) => lossCell(row.lossAtMrp) },
   { key: "purchasePrice", header: "Purchase Price", align: "right", minWidth: 100, render: (row) => formatCurrency(row.purchasePrice) },
-  { key: "lossAtPurchase", header: "Loss @ Purchase", align: "right", minWidth: 110, render: (row) => lossCell(row.lossAtPurchase) },
+  { key: "lossAtPurchase", header: "Loss @ Purchase Price", align: "right", minWidth: 110, render: (row) => lossCell(row.lossAtPurchase) },
 ];
 
 export const getInventoryHealthSummaryGridColumns = () => [
