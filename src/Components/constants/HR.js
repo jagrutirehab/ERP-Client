@@ -44,8 +44,8 @@
 // ];
 
 export const payrollOptions = [
-    { value: "ON_ROLL", label: "On Roll" },
     { value: "OFF_ROLL", label: "Off Roll" },
+    { value: "ON_ROLL", label: "On Roll" },
 ];
 
 export const statusOptions = [
@@ -55,8 +55,8 @@ export const statusOptions = [
 ];
 
 export const employeeGenderOptions = [
-    { value: "MALE", label: "Male" },
     { value: "FEMALE", label: "Female" },
+    { value: "MALE", label: "Male" },
     { value: "OTHER", label: "Other" },
 ];
 
@@ -78,12 +78,12 @@ export const TPMOptions = [
 ];
 
 export const employmentOptions = [
-    { label: "Contract", value: "CONTRACTUAL" },
-    { label: "Consultant", value: "CONSULTANT" },
     { label: "Apprentice", value: "APPRENTICE" },
-    { label: "Intern", value: "INTERN" },
+    { label: "Consultant", value: "CONSULTANT" },
     { label: "Consultant Session", value: "CONSULTANT_SESSION" },
+    { label: "Contract", value: "CONTRACTUAL" },
     { label: "FTE", value: "FULL_TIME" },
+    { label: "Intern", value: "INTERN" },
 ];
 
 export const SIMPLIFIED_FINANCE_TYPES = [
@@ -137,38 +137,38 @@ export const paymentTypeOptions = [
 ];
 
 export const employmentStatus = [
+    { label: "Permanent", value: "PERMANENT" },
     { label: "Probation", value: "PROBATION" },
     { label: "Training", value: "TRAINING" },
-    { label: "Permanent", value: "PERMANENT" },
 ];
 
 export const newEmploymentOptions = [
-    { label: "Part Time", value: "PART_TIME" },
     { label: "Full Time", value: "FULL_TIME" },
+    { label: "Part Time", value: "PART_TIME" },
 ];
 
 export const presentUnitOptions = [
-    { label: "Per Week", value: "WEEK" },
     { label: "Per Month", value: "MONTH" },
     { label: "Per Session", value: "SESSION" },
+    { label: "Per Week", value: "WEEK" },
     { label: "Sessions", value: "SESSIONS" },
 ];
 
 export const filterEmploymentOptions = [
-    { label: "FTE", value: "FULL_TIME" },
-    { label: "Contractual", value: "CONTRACTUAL" },
-    { label: "Intern", value: "INTERN" },
-    { label: "Consultant", value: "CONSULTANT" },
-    { label: "Vendor", value: "VENDOR" },
     { label: "Apprentice", value: "APPRENTICE" },
+    { label: "Consultant", value: "CONSULTANT" },
     { label: "Consultant Session", value: "CONSULTANT_SESSION" },
+    { label: "Contractual", value: "CONTRACTUAL" },
+    { label: "FTE", value: "FULL_TIME" },
+    { label: "Intern", value: "INTERN" },
+    { label: "Vendor", value: "VENDOR" },
 ];
 
 export const categoryOptions = [
     { label: "Consultant", value: "CONSULTANT" },
-    { label: "Non Aadhaar", value: "NON_AADHAAR" },
-    { label: "Intern", value: "INTERN" },
     { label: "Form 11", value: "FORM11" },
+    { label: "Intern", value: "INTERN" },
+    { label: "Non Aadhaar", value: "NON_AADHAAR" },
     { label: "PF", value: "PF" },
 ];
 
@@ -207,26 +207,26 @@ export const RELAXED_EMPLOYEE_REQUIRED_FIELDS = [
 ];
 
 export const employeeGroupOptions = [
-    { label: "PF Included", value: "PF_INCLUDED" },
-    { label: "PF Excluded", value: "PF_EXCLUDED" }
+    { label: "PF Excluded", value: "PF_EXCLUDED" },
+    { label: "PF Included", value: "PF_INCLUDED" }
 ];
 
 export const accountOptions = [
-    { label: "TALOJA PVT LTD AC", value: "TALOJA_PVT_LTD_AC" },
-    { label: "SAREYAAN PHARMA AC", value: "SAREYAAN_PHARMA_AC" },
-    { label: "KOPARKHAIRANE PVT LTD AC", value: "KOPARKHAIRANE_PVT_LTD_AC" },
-    { label: "TMH PVT LTD AC", value: "TMH_PVT_LTD_AC" },
-    { label: "MALAD EAST PVT LTD AC", value: "MALAD_EAST_PVT_LTD_AC" },
-    { label: "PUNE PVT LTD AC", value: "PUNE_PVT_LTD_AC" },
-    { label: "THANE PVT LTD AC", value: "THANE_PVT_LTD_AC" },
-    { label: "NOIDA PVT LTD AC", value: "NOIDA_PVT_LTD_AC" },
-    { label: "AROHA PVT LTD AC", value: "AROHA_PVT_LTD_AC" },
-    { label: "GURGAON PVT LTD AC", value: "GURGAON_PVT_LTD_AC" },
-    { label: "CHENNAI PVT LTD AC", value: "CHENNAI_PVT_LTD_AC" },
     { label: "AHMEDABAD PVT LTD AC", value: "AHMEDABAD_PVT_LTD_AC" },
+    { label: "AROHA PVT LTD AC", value: "AROHA_PVT_LTD_AC" },
     { label: "BANGALORE PVT LTD AC", value: "BANGALORE_PVT_LTD_AC" },
-    { label: "TALOJA PVT LTD ADMIN", value: "TALOJA_PVT_LTD_ADMIN" },
+    { label: "CHENNAI PVT LTD AC", value: "CHENNAI_PVT_LTD_AC" },
+    { label: "GURGAON PVT LTD AC", value: "GURGAON_PVT_LTD_AC" },
+    { label: "KOPARKHAIRANE PVT LTD AC", value: "KOPARKHAIRANE_PVT_LTD_AC" },
+    { label: "MALAD EAST PVT LTD AC", value: "MALAD_EAST_PVT_LTD_AC" },
     { label: "MALAD WEST PVT LTD AC", value: "MALAD_WEST_PVT_LTD_AC" },
+    { label: "NOIDA PVT LTD AC", value: "NOIDA_PVT_LTD_AC" },
+    { label: "PUNE PVT LTD AC", value: "PUNE_PVT_LTD_AC" },
+    { label: "SAREYAAN PHARMA AC", value: "SAREYAAN_PHARMA_AC" },
+    { label: "TALOJA PVT LTD AC", value: "TALOJA_PVT_LTD_AC" },
+    { label: "TALOJA PVT LTD ADMIN", value: "TALOJA_PVT_LTD_ADMIN" },
+    { label: "THANE PVT LTD AC", value: "THANE_PVT_LTD_AC" },
+    { label: "TMH PVT LTD AC", value: "TMH_PVT_LTD_AC" },
 ];
 
 export const legends = [

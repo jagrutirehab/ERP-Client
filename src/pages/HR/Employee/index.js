@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { Button, CardBody, Input, Spinner } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
@@ -78,6 +78,14 @@ const Employee = () => {
 
   const { designations, designationLoading } = useSelector((state) => state.HR);
 
+  const sortedDesignations = useMemo(
+    () =>
+      [...designations].sort((a, b) =>
+        (a.label || "").localeCompare(b.label || ""),
+      ),
+    [designations],
+  );
+
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
   const microUser = localStorage.getItem("micrologin");
@@ -124,10 +132,9 @@ const Employee = () => {
         ]);
 
         setDepartmentOptions(
-          (deptRes?.data || []).map((d) => ({
-            label: d.department,
-            value: d._id,
-          })),
+          (deptRes?.data || [])
+            .map((d) => ({ label: d.department, value: d._id }))
+            .sort((a, b) => (a.label || "").localeCompare(b.label || "")),
         );
 
         const rawData = posRes?.data || [];
@@ -141,6 +148,9 @@ const Employee = () => {
               department: p.department?.department,
               departmentId: p.department?._id,
             })),
+        );
+        mappedPositions.sort((a, b) =>
+          (a.label || "").localeCompare(b.label || ""),
         );
 
         setPositionOptions(mappedPositions);
@@ -826,7 +836,9 @@ const Employee = () => {
                 setSelectedCenters(options ? options.map((o) => o.value) : []);
                 setPage(1);
               }}
-              options={centerOptions.filter((opt) => opt.value !== "ALL")}
+              options={centerOptions
+                .filter((opt) => opt.value !== "ALL")
+                .sort((a, b) => (a.label || "").localeCompare(b.label || ""))}
               placeholder="All Centers"
               classNamePrefix="react-select"
               isMulti
@@ -895,7 +907,7 @@ const Employee = () => {
                 setSelectedDesignation(options || []);
                 setPage(1);
               }}
-              options={designations}
+              options={sortedDesignations}
               placeholder="Filter by Designation"
               classNamePrefix="react-select"
               isMulti

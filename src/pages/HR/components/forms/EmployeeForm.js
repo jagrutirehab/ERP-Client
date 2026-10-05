@@ -815,6 +815,22 @@ const EmployeeForm = ({
     }))
     .sort((a, b) => (a.label || "").localeCompare(b.label || ""));
 
+  const sortedDesignationOptions = useMemo(
+    () =>
+      [...designationOptions].sort((a, b) =>
+        (a.label || "").localeCompare(b.label || ""),
+      ),
+    [designationOptions],
+  );
+
+  const sortedDepartmentOptions = useMemo(
+    () =>
+      [...departmentOptions].sort((a, b) =>
+        (a.label || "").localeCompare(b.label || ""),
+      ),
+    [departmentOptions],
+  );
+
   useEffect(() => {
     const loadDesignations = async () => {
       try {
@@ -1810,7 +1826,7 @@ const EmployeeForm = ({
                 designationLoading
                 // || creatingDesignation
               }
-              options={designationOptions}
+              options={sortedDesignationOptions}
               value={
                 designationOptions.find(
                   (opt) => opt.value === values.designation,
@@ -2136,7 +2152,7 @@ const EmployeeForm = ({
               isClearable
               isSearchable
               isDisabled={true}
-              options={departmentOptions}
+              options={sortedDepartmentOptions}
               value={
                 departmentOptions.find(
                   (opt) => opt.value === values.department,
@@ -4147,7 +4163,7 @@ const EmployeeForm = ({
                 designationLoading
                 // || creatingDesignation
               }
-              options={designationOptions}
+              options={sortedDesignationOptions}
               value={
                 designationOptions.find(
                   (opt) => opt.value === values.designation,
@@ -4473,7 +4489,7 @@ const EmployeeForm = ({
               isClearable
               isSearchable
               isDisabled={true}
-              options={departmentOptions}
+              options={sortedDepartmentOptions}
               value={
                 departmentOptions.find(
                   (opt) => opt.value === values.department,
