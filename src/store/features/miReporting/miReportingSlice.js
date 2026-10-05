@@ -27,6 +27,7 @@ import {
   getDailyDashboard,
   getDocsCompliance,
   getDueAmount,
+  getMissingInvoices,
   getMIAttendance,
   getCenterWiseMOM,
   getCampaignWiseMOM,
@@ -85,6 +86,7 @@ const initialState = {
   dailyDashboard:[],
   docsCompliance: [],
   dueAmount: [],
+  missingInvoices: [],
   miAttendance: [],
   nursesDOD: [],
   centerWiseMOM: [],
@@ -751,6 +753,18 @@ export const fetchDueAmount = createAsyncThunk(
   }
 );
 
+export const fetchMissingInvoices = createAsyncThunk(
+  "miReporting/fetchMissingInvoices",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getMissingInvoices(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to fetch Missing Invoices");
+    }
+  }
+);
+
 export const fetchMIAttendance = createAsyncThunk(
   "miReporting/fetchMIAttendance",
   async (data, { rejectWithValue }) => {
@@ -1217,6 +1231,20 @@ const miReportingSlice = createSlice({
         state.dueAmount = action.payload.payload || [];
       })
       .addCase(fetchDueAmount.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      //Missing Invoices
+      .addCase(fetchMissingInvoices.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMissingInvoices.fulfilled, (state, action) => {
+        state.loading = false;
+        state.missingInvoices = action.payload.payload || [];
+      })
+      .addCase(fetchMissingInvoices.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

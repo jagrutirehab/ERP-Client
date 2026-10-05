@@ -580,6 +580,7 @@ export const GET_COUNSELLING_RECORDING =
 export const GET_DAILY_DASHBOARD = "/mi-reporting/daily-dashboard";
 export const GET_DOCS_COMPLIANCE = "/mi-reporting/docs-compliance";
 export const GET_DUE_AMOUNT = "/mi-reporting/get-due-amount";
+export const GET_MISSING_INVOICES = "/mi-reporting/missing-invoices";
 export const GET_MI_ATTENDANCE = "/mi-reporting/get-attendance";
 export const GET_CASH_PER_CENTER = "/mi-reporting/cash-per-center";
 export const GET_WRITE_OFF_AMOUNT = "/mi-reporting/write-off-amount";

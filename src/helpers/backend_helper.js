@@ -2649,6 +2649,14 @@ export const getDueAmount = (data) => {
   });
 };
 
+export const getMissingInvoices = (data) => {
+  return api.get(url.GET_MISSING_INVOICES, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
 export const getCashPerCenter = (data) => {
   return api.get(url.GET_CASH_PER_CENTER, {
     params: {
