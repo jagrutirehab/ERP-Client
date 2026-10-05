@@ -2,6 +2,7 @@ import React, { useRef } from "react";
 import PropTypes from "prop-types";
 import { Button, Label } from "reactstrap";
 import { Paperclip, X } from "lucide-react";
+import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 
 const ALLOWED_TYPES = ["image/png", "image/jpeg", "application/pdf"];
 const MAX_SIZE = 100 * 1024 * 1024; // 100 MB
@@ -16,6 +17,8 @@ const PaymentModeEvidence = ({
   required,
 }) => {
   const inputRef = useRef(null);
+  const cameraRef = useRef(null);
+  const isMobile = useMediaQuery("(max-width: 1366px)");
   const fileList = Array.isArray(files) ? files : [];
   const urlList = Array.isArray(existingUrls) ? existingUrls : [];
 
@@ -32,7 +35,18 @@ const PaymentModeEvidence = ({
     onAddFiles(validFiles);
   };
 
+  const handleCameraCapture = (e) => {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = "";
+    if (!file) return;
+    if (!file.type.startsWith("image/")) return;
+    if (file.size > MAX_SIZE) return;
+
+    onAddFiles([file]);
+  };
+
   const openPicker = () => inputRef.current?.click();
+  const openCamera = () => cameraRef.current?.click();
 
   return (
     // Capped width + wrap keeps the button, existing-evidence links and picked-file
@@ -45,6 +59,22 @@ const PaymentModeEvidence = ({
         multiple
         accept=".png,.jpg,.jpeg,.pdf"
         onChange={handleFileChange}
+        style={{
+          position: "absolute",
+          opacity: 0,
+          width: "1px",
+          height: "1px",
+          overflow: "hidden",
+          pointerEvents: "none",
+        }}
+      />
+
+      <input
+        ref={cameraRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        onChange={handleCameraCapture}
         style={{
           position: "absolute",
           opacity: 0,
@@ -74,6 +104,12 @@ const PaymentModeEvidence = ({
           <Paperclip size={14} />
           Upload
         </Button>
+
+        {isMobile && (
+          <Button type="button" onClick={openCamera}>
+            📷 Take Photo
+          </Button>
+        )}
 
         {urlList.map((url, i) => (
           <a
