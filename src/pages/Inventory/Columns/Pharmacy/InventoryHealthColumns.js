@@ -1,6 +1,7 @@
 import React from "react";
 import moment from "moment";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
+import { formatCurrency } from "../../../../utils/formatCurrency";
 
 const pill = (bg, color) => ({
   borderRadius: 20,
@@ -454,20 +455,30 @@ const compactDiscardedExpiryCell = (row) => {
   return (
     <span>
       <span className="fw-bold text-dark">{row.discardedQty}</span>
-      {compactSub(unitLabel(row.baseUnit))}
-      {compactSub(`${row.discardCount} removal${row.discardCount === 1 ? "" : "s"}`)}
+      {compactSub(`${unitLabel(row.baseUnit)} removed`)}
     </span>
   );
 };
 
-// Column definitions for CompactDataGrid (key/header/align/render) — the
-// Summary tab, same metrics as getInventoryHealthColumns, but one line per
-// cell instead of a value+pill stack so more rows fit on screen at once.
+const lossCell = (value) => (
+  <span className={`fw-bold ${value < 0 ? "text-danger" : value > 0 ? "text-success" : ""}`}>
+    {formatCurrency(value)}
+  </span>
+);
+
+const moneyColumns = [
+  { key: "mrp", header: "MRP", align: "right", minWidth: 80, render: (row) => formatCurrency(row.mrp) },
+  { key: "lossAtMrp", header: "Loss @ MRP", align: "right", minWidth: 100, render: (row) => lossCell(row.lossAtMrp) },
+  { key: "purchasePrice", header: "Purchase Price", align: "right", minWidth: 100, render: (row) => formatCurrency(row.purchasePrice) },
+  { key: "lossAtPurchase", header: "Loss @ Purchase", align: "right", minWidth: 110, render: (row) => lossCell(row.lossAtPurchase) },
+];
+
 export const getInventoryHealthSummaryGridColumns = () => [
   { key: "medicine", header: "Medicine", minWidth: 170, render: compactMedicineCell },
   { key: "batch", header: "PHR / Batch", minWidth: 100, render: compactBatchCell },
   { key: "center", header: "Center", minWidth: 90, render: (row) => row.center || "—" },
   { key: "net", header: "Net", align: "right", minWidth: 70, render: compactNetCell },
+  ...moneyColumns,
   { key: "inTransit", header: "In Transit", align: "right", minWidth: 90, render: compactInTransitCell },
   { key: "transitLoss", header: "Transit Loss", align: "right", minWidth: 95, render: compactTransitLossCell },
   { key: "variance", header: "Variance", align: "right", minWidth: 90, render: compactVarianceCell },
@@ -494,6 +505,7 @@ export const getInventoryHealthDetailedGridColumns = (
     { key: "medicine", header: "Medicine", minWidth: 170, render: compactMedicineCell },
     { key: "batch", header: "PHR / Batch", minWidth: 100, render: compactBatchCell },
     { key: "center", header: "Center", minWidth: 90, render: (row) => row.center || "—" },
+    ...moneyColumns,
   ];
 
   const transferColumns = Array.from({ length: maxTransfers }, (_, i) => ({
@@ -512,13 +524,9 @@ export const getInventoryHealthDetailedGridColumns = (
     render: (row) => auditDetailCell(row.auditHistory?.[i], row.baseUnit),
   }));
 
-  // Pending expiry is current state, not a logged event like a transfer/
-  // audit/discard — there's no history array to pivot, so it's one column
-  // here just like Summary, not a Pending-1/2... series. Placed right before
-  // the Discard N columns: pending leads into what was actually discarded.
   const pendingExpiryColumn = {
     key: "expired",
-    header: "Expired (Pending)",
+    header: "Expired (Discard Pending)",
     align: "right",
     minWidth: 100,
     render: compactPendingExpiryCell,
