@@ -486,15 +486,6 @@ export const getInventoryHealthSummaryGridColumns = () => [
   { key: "discarded", header: "Discarded", align: "right", minWidth: 85, render: compactDiscardedExpiryCell },
 ];
 
-// Column definitions for CompactDataGrid (key/header/align/render), not
-// react-data-table-component's shape — same rows as the Summary tab, but
-// every individual transfer/audit/discard gets its own narrow column
-// (T1, T2, A1...) instead of one summed total. Column count comes from the
-// backend's maxEventCounts (computed over the WHOLE filtered result set),
-// not from whichever rows happen to be on the current page — a page's rows
-// are sorted by combined severity, not by event count, so the busiest row
-// for any one event type can easily land on a different page than page 1,
-// and deriving counts per-page would silently drop columns for it.
 export const getInventoryHealthDetailedGridColumns = (
   maxEventCounts = { transfers: 0, audits: 0, discards: 0 }
 ) => {
