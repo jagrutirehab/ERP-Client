@@ -1,7 +1,17 @@
 import DataTable from "react-data-table-component";
 import { Badge, Button, Spinner } from "reactstrap";
-import { SEVERITY_COLOR, SEVERITY_HEX, PHASE_META } from "./alertConstants";
-import { timeAgo } from "./alertUtils";
+import {
+  SEVERITY_COLOR,
+  SEVERITY_HEX,
+  PHASE_META,
+  ALERT_SOURCE_META,
+} from "./alertConstants";
+import {
+  timeAgo,
+  isRuleSourced,
+  alertSourceLabel,
+  isResolutionNote,
+} from "./alertUtils";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { setTotalAmount, viewPatient } from "../../../store/actions";
@@ -121,13 +131,25 @@ const AlertsList = ({
       ),
     },
     {
-      name: "SOP",
+      name: "Source",
       width: "150px",
       cell: (row) => (
         <div {...RC}>
           <div {...RC} className={row.isRead ? "text-muted" : "fw-semibold"}>
-            {row.rule?.ruleName || "(deleted rule)"}
+            {alertSourceLabel(row)}
           </div>
+          {/* Only badge the exceptions — a rule-sourced alert is the norm and
+              labelling every row would be noise. Every element in a custom cell
+              needs {...RC} or row clicks are silently dropped. */}
+          {!isRuleSourced(row) && (
+            <Badge
+              {...RC}
+              color={ALERT_SOURCE_META[row.source]?.color || "secondary"}
+              className="mt-1"
+            >
+              {ALERT_SOURCE_META[row.source]?.label || row.source}
+            </Badge>
+          )}
         </div>
       ),
     },
@@ -275,39 +297,55 @@ const AlertsList = ({
                   marginBottom: 6,
                 }}
               >
-                {notes.map((n, i) => (
-                  <div
-                    key={i}
-                    style={{
-                      background: "#f8f9fa",
-                      border: "1px solid #e9ecef",
-                      borderRadius: 6,
-                      padding: "5px 8px",
-                      marginBottom: 4,
-                      fontSize: "0.72rem",
-                      lineHeight: 1.4,
-                    }}
-                  >
-                    <div style={{ color: "#212529", wordBreak: "break-word" }}>
-                      {n.text}
-                    </div>
-                    <div style={{ color: "#6c757d", marginTop: 2 }}>
-                      <i className="bx bx-user me-1" style={{ fontSize: "0.65rem" }} />
-                      {n.addedByName || "Unknown"}
-                      {n.addedAt && (
-                        <>
-                          {" · "}
-                          {new Date(n.addedAt).toLocaleDateString("en-PK", {
-                            day: "numeric",
-                            month: "short",
-                            hour: "2-digit",
-                            minute: "2-digit",
-                          })}
-                        </>
+                {notes.map((n, i) => {
+                  // Notes predating the `kind` field have no value at all, so
+                  // ordinary is "not RESOLUTION" — never "=== NOTE".
+                  const isRes = isResolutionNote(n);
+                  return (
+                    <div
+                      key={i}
+                      style={{
+                        background: isRes ? "rgba(25, 135, 84, 0.08)" : "#f8f9fa",
+                        border: `1px solid ${isRes ? "rgba(25, 135, 84, 0.35)" : "#e9ecef"}`,
+                        borderRadius: 6,
+                        padding: "5px 8px",
+                        marginBottom: 4,
+                        fontSize: "0.72rem",
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {isRes && (
+                        <Badge
+                          {...RC}
+                          color="success"
+                          className="mb-1"
+                          style={{ fontSize: "0.6rem" }}
+                        >
+                          <i className="bx bx-check-circle me-1" />
+                          Resolution
+                        </Badge>
                       )}
+                      <div style={{ color: "#212529", wordBreak: "break-word" }}>
+                        {n.text}
+                      </div>
+                      <div style={{ color: "#6c757d", marginTop: 2 }}>
+                        <i className="bx bx-user me-1" style={{ fontSize: "0.65rem" }} />
+                        {n.addedByName || "Unknown"}
+                        {n.addedAt && (
+                          <>
+                            {" · "}
+                            {new Date(n.addedAt).toLocaleDateString("en-IN", {
+                              day: "numeric",
+                              month: "short",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                            })}
+                          </>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 

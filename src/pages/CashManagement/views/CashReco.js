@@ -54,7 +54,7 @@ import RefreshButton from "../../../Components/Common/RefreshButton";
 import DeleteModal from "../../../Components/Common/DeleteModal";
 import CenterDropdown from "../../Report/Components/Doctor/components/CenterDropDown";
 import DateRangeFilter from "../../../Components/Common/DateRangeFilter";
-import { endOfDay, startOfDay, subDays } from "date-fns";
+import { endOfDay, startOfDay } from "date-fns";
 import DenominationEditor, {
   emptyDenominationRows,
   denominationTotal,
@@ -131,7 +131,7 @@ const CashReco = ({ centers, centerAccess, cashRecos }) => {
   const [centersInitialized, setCentersInitialized] = useState(false);
   const [page, setPage] = useState(1);
   const [reportDate, setReportDate] = useState({
-    start: startOfDay(subDays(new Date(), 29)),
+    start: startOfDay(new Date()),
     end: endOfDay(new Date()),
   });
   const [search, setSearch] = useState("");

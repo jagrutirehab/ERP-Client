@@ -7,7 +7,8 @@ import { endOfDay, format, startOfDay } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import { downloadAuditFailedMedicines, getAuditDetails } from "../../../../helpers/backend_helper";
-import { appendAuditList, getAudits } from "../../../../store/features/pharmacy/pharmacySlice";
+// import { appendAuditList, getAudits } from "../../../../store/features/pharmacy/pharmacySlice";
+import { getAudits } from "../../../../store/features/pharmacy/pharmacySlice";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import "react-perfect-scrollbar/dist/css/styles.css";
@@ -75,10 +76,12 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         ...(user?.centerAccess?.length > 1
             ? [{ value: "ALL", label: "All Centers" }]
             : []),
-        ...(centerList?.map((c) => ({
-            value: c._id,
-            label: c.title,
-        })) || []),
+        ...(centerList
+            ?.filter((c) => user?.centerAccess?.includes(c._id))
+            ?.map((c) => ({
+                value: c._id,
+                label: c.title,
+            })) || []),
     ];
 
     const selectedCenterOption =
@@ -208,15 +211,15 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
     const safe = (v) => (v == null || v === "" ? "-" : v);
 
     const columns = [
+        { name: <div>Pharmacy ID</div>, selector: (r) => safe(r.pharmacyId), width: "120px", center: true, wrap: true },
+        { name: <div>Medicine ID</div>, selector: (r) => safe(r.medicineId), width: "120px", center: true, wrap: true },
         { name: <div>Code</div>, selector: (r) => safe(r.code), width: "200px", center: true, wrap: true },
         { name: <div>Name</div>, selector: (r) => safe(r.medicineName), width: "200px", center: true, wrap: true },
-        { name: <div>Unit</div>, selector: (r) => safe(r.unitType), width: "80px", center: true, wrap: true },
         { name: <div>Strength</div>, selector: (r) => safe(r.strength), width: "100px", center: true, wrap: true },
+        { name: <div>Base Unit</div>, selector: (r) => safe(r.baseUnit), width: "100px", center: true, wrap: true },
         { name: <div>Batch</div>, selector: (r) => safe(r.batch), width: "130px", center: true, wrap: true },
         { name: <div>Expiry</div>, selector: (r) => safe(r.expiry), width: "120px", center: true, wrap: true },
         { name: <div>MRP</div>, selector: (r) => safe(r.mrp), width: "80px", center: true, wrap: true },
-        { name: <div>Purchase Price</div>, selector: (r) => safe(r.purchasePrice), width: "90px", center: true, wrap: true },
-        { name: <div>Selling Price</div>, selector: (r) => safe(r.salesPrice), width: "90px", center: true, wrap: true },
         { name: <div>Old Stock</div>, selector: (r) => safe(r.oldStock), width: "70px", center: true, wrap: true },
         { name: <div>New Stock</div>, selector: (r) => safe(r.newStock), width: "70px", center: true, wrap: true },
         {

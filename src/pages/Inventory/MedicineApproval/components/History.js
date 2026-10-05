@@ -1,14 +1,21 @@
 import { useEffect, useState } from "react";
-import DataTable from "react-data-table-component";
-import { Badge, Input, Spinner } from "reactstrap";
-import { format } from "date-fns";
+import DataTableComponent from "../../../../Components/Common/DataTable";
+import { Input } from "reactstrap";
+import { format, startOfDay, endOfDay } from "date-fns";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getMedicineApprovals } from "../../../../store/features/pharmacy/pharmacySlice";
 import { toast } from "react-toastify";
 import { ExpandableText } from "../../../../Components/Common/ExpandableText";
 import Select from "react-select";
+import { Button } from "reactstrap";
+import { Pill } from "lucide-react";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
+import ApproveMedicinesModal from "./ApproveMedicinesModal";
+import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
+import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
+import RefreshButton from "../../../../Components/Common/RefreshButton";
+import DateRangeFilter from "../../../../Components/Common/DateRangeFilter";
 
 const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const dispatch = useDispatch();
@@ -21,6 +28,27 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [reportDate, setReportDate] = useState({
+        start: startOfDay(new Date()),
+        end: endOfDay(new Date()),
+    });
+    const [approveModalApprovalId, setApproveModalApprovalId] = useState(null);
+    const [approveModalCenterId, setApproveModalCenterId] = useState(null);
+    const [viewPrescriptionModal, setViewPrescriptionModal] = useState(false);
+    const [viewPrescriptionPatient, setViewPrescriptionPatient] = useState(null);
+
+    const openApproveModal = (approvalId, centerId) => {
+        setApproveModalApprovalId(approvalId);
+        setApproveModalCenterId(centerId);
+    };
+
+    const openViewPrescription = (row) => {
+        setViewPrescriptionPatient({
+            prescriptionId: row.prescriptionId,
+            patient: { name: row.patient?.name },
+        });
+        setViewPrescriptionModal(true);
+    };
 
 
     const centerOptions = [
@@ -33,10 +61,12 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             : []
         ),
         ...(
-            centerList?.map(c => ({
-                value: c._id,
-                label: c.title,
-            })) || []
+            centerList
+                ?.filter(c => user?.centerAccess?.includes(c._id))
+                ?.map(c => ({
+                    value: c._id,
+                    label: c.title,
+                })) || []
         )
     ];
 
@@ -67,41 +97,46 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
         return () => clearTimeout(handler);
     }, [search]);
 
+    const fetchMedicineApprovals = async () => {
+        try {
+            const centers =
+                selectedCenter === "ALL"
+                    ? user?.centerAccess
+                    : [selectedCenter];
+
+            await dispatch(
+                getMedicineApprovals({
+                    page,
+                    limit,
+                    type: activeTab,
+                    centers,
+                    status: "HISTORY",
+                    ...search.trim() !== "" && { search: debouncedSearch },
+                    ...(reportDate.start && reportDate.end && {
+                        startDate: reportDate.start.toISOString(),
+                        endDate: reportDate.end.toISOString(),
+                        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    }),
+                })
+            ).unwrap();
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to fetch medicine approvals.");
+            }
+        }
+    };
+
     useEffect(() => {
         if (activeSubTab !== "HISTORY" || !hasUserPermission) return;
-        const fetchMedicineApprovals = async () => {
-            try {
-                const centers =
-                    selectedCenter === "ALL"
-                        ? user?.centerAccess
-                        : [selectedCenter];
-
-                await dispatch(
-                    getMedicineApprovals({
-                        page,
-                        limit,
-                        type: activeTab,
-                        centers,
-                        status: "HISTORY",
-                        ...search.trim() !== "" && { search: debouncedSearch }
-                    })
-                ).unwrap();
-            } catch (error) {
-                if (!handleAuthError(error)) {
-                    toast.error(error.message || "Failed to fetch medicine approvals.");
-                }
-            }
-        };
-
         fetchMedicineApprovals();
-
-    }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, user.centerAccess])
+    }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, reportDate, user.centerAccess])
 
     const columns = [
         {
             name: <div>Patient Name</div>,
             selector: (row) => capitalizeWords(row.patient?.name || "-"),
-            wrap: true
+            wrap: true,
+            minWidth: "100px"
         },
         {
             name: <div>Patient UID</div>,
@@ -112,42 +147,7 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             name: <div>Center</div>,
             selector: (row) => capitalizeWords(row?.center?.title || "-"),
             wrap: true,
-        },
-        {
-            name: <div>Medicines</div>,
-            cell: (row) => (
-                <div style={{ lineHeight: "1.6", width: "100%" }}>
-                    {row.medicineCounts?.map((medicine, index) => (
-                        <div key={medicine._id} style={{ width: "100%" }}>
-                            <div
-                                className="d-flex justify-content-between mb-1"
-                                style={{ gap: "12px" }}
-                            >
-                                <span className="fw-semibold">
-                                    {medicine.medicineName}
-                                </span>
-
-                                <span
-                                    className="fw-semibold text-end"
-                                    style={{ minWidth: "90px" }}
-                                >
-                                    <div>Dispensed: {medicine.dispensedCount}</div>
-                                    <div>Total: {medicine.totalQuantity}</div>
-                                </span>
-                            </div>
-                            {index !== row.medicineCounts.length - 1 && (
-                                <div className="border-bottom border-black my-md-2 my-1"></div>
-                            )}
-                        </div>
-                    ))}
-                </div>
-            ),
-            style: {
-                whiteSpace: "normal",
-                wordBreak: "break-word",
-            },
-            minWidth: "200px",
-            grow: 4,
+            minWidth: "100px"
         },
         {
             name: <div>Prescription Date</div>,
@@ -158,6 +158,43 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             wrap: true,
         },
         {
+            name: <div>Status</div>,
+            cell: (row) => renderStatusBadge(row.approvalStatus),
+            center: true,
+            wrap: true
+        },
+        {
+            name: <div>Prescription</div>,
+            cell: (row) => (
+                <Button
+                    color="primary"
+                    size="sm"
+                    className="text-white"
+                    disabled={!row.prescriptionId}
+                    onClick={() => openViewPrescription(row)}
+                >
+                    View
+                </Button>
+            ),
+            center: true,
+        },
+        {
+            name: <div>Medicines</div>,
+            cell: (row) => (
+                <Button
+                    color="primary"
+                    size="sm"
+                    className="d-flex align-items-center justify-content-center text-white"
+                    style={{ minWidth: "95px", fontSize: "12px" }}
+                    onClick={() => openApproveModal(row._id, row.center?._id)}
+                >
+                    <Pill size={14} className="me-1" />
+                    Medicines
+                </Button>
+            ),
+            center: true,
+        },
+        {
             name: <div>Approval Date</div>,
             selector: (row) =>
                 row?.approvedAt
@@ -166,60 +203,12 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             wrap: true,
         },
         {
-            name: <div>Status</div>,
-            cell: (row) => (
-                <Badge
-                    color={
-                        row.approvalStatus === "APPROVED"
-                            ? "success"
-                            : row.approvalStatus === "REJECTED"
-                                ? "danger"
-                                : "secondary"
-                    }
-                    style={{
-                        minWidth: "90px",
-                        textAlign: "center",
-                        fontSize: "12px",
-                        padding: "5px 8px",
-                    }}
-                >
-                    {row.approvalStatus}
-                </Badge>
-            ),
-            center: true,
-            wrap: true
-        },
-        {
             name: <div>Remarks</div>,
             selector: (row) => <ExpandableText text={capitalizeWords(row.remarks) ?? "-"} />,
             wrap: true,
             minWidth: "200px"
         }
     ];
-
-    const getPageRange = (total, current, maxButtons = 7) => {
-        if (total <= maxButtons)
-            return Array.from({ length: total }, (_, i) => i + 1);
-
-        const sideButtons = Math.floor((maxButtons - 3) / 2);
-        let start = Math.max(2, current - sideButtons);
-        let end = Math.min(total - 1, current + sideButtons);
-        if (current - 1 <= sideButtons) {
-            start = 2;
-            end = Math.min(total - 1, maxButtons - 2);
-        }
-        if (total - current <= sideButtons) {
-            end = total - 1;
-            start = Math.max(2, total - (maxButtons - 3));
-        }
-
-        const range = [1];
-        if (start > 2) range.push("...");
-        for (let i = start; i <= end; i++) range.push(i);
-        if (end < total - 1) range.push("...");
-        range.push(total);
-        return range;
-    };
 
     const historyData = medicineApprovals?.data || [];
     const pagination = medicineApprovals?.pagination || {};
@@ -231,23 +220,6 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
 
                 {/*  DESKTOP VIEW */}
                 <div className="d-none d-md-flex flex-row align-items-center gap-3">
-                    <div style={{ width: "110px" }}>
-                        <Select
-                            value={{ value: limit, label: limit }}
-                            onChange={(option) => {
-                                setLimit(option.value);
-                                setPage(1);
-                            }}
-                            options={[
-                                { value: 10, label: "10" },
-                                { value: 20, label: "20" },
-                                { value: 30, label: "30" },
-                                { value: 40, label: "40" },
-                                { value: 50, label: "50" },
-                            ]}
-                            classNamePrefix="react-select"
-                        />
-                    </div>
                     <div style={{ width: "200px" }}>
                         <Select
                             value={selectedCenterOption}
@@ -269,28 +241,21 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
                     <div style={{ flexGrow: 1 }}></div>
+                    <RefreshButton loading={loading} onRefresh={fetchMedicineApprovals} />
                 </div>
 
                 {/*  MOBILE VIEW */}
                 <div className="d-flex d-md-none flex-column gap-3">
-                    <div style={{ width: "100%" }}>
-                        <Select
-                            value={{ value: limit, label: limit }}
-                            onChange={(option) => {
-                                setLimit(option.value);
-                                setPage(1);
-                            }}
-                            options={[
-                                { value: 10, label: "10" },
-                                { value: 20, label: "20" },
-                                { value: 30, label: "30" },
-                                { value: 40, label: "40" },
-                                { value: 50, label: "50" },
-                            ]}
-                            classNamePrefix="react-select"
-                        />
-                    </div>
                     <div style={{ width: "100%" }}>
                         <Select
                             value={selectedCenterOption}
@@ -303,13 +268,23 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
                             classNamePrefix="react-select"
                         />
                     </div>
-                    <div style={{ width: "100%" }}>
+                    <div className="d-flex align-items-center gap-2">
                         <Input
                             type="text"
                             className="form-control"
                             placeholder="Search by patient name or UID..."
                             value={search}
                             onChange={(e) => setSearch(e.target.value)}
+                        />
+                        <RefreshButton loading={loading} onRefresh={fetchMedicineApprovals} />
+                    </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
                         />
                     </div>
 
@@ -318,112 +293,35 @@ const History = ({ activeTab, activeSubTab, hasUserPermission }) => {
             </div>
 
 
-            <div style={{ width: "100%", overflowX: "visible", overflowY: "visible" }}>
-                <div
-                    style={{
-                        minWidth: "100%",
-                        overflow: "visible"
-                    }}
-                >
-                    <DataTable
-                        columns={columns}
-                        data={historyData}
-                        progressPending={loading}
-                        progressComponent={<Spinner className="text-primary" />}
-                        highlightOnHover
-                        striped
-                        responsive
-                        fixedHeader
-                        fixedHeaderScrollHeight="400px"
-                        customStyles={{
-                            table: {
-                                style: {
-                                    minHeight: "350px",
-                                },
-                            },
-                            rows: {
-                                style: {
-                                    minHeight: "72px",
-                                    borderBottom: "1px solid #f1f1f1",
-                                },
-                            },
-                            headCells: {
-                                style: {
-                                    fontWeight: "600",
-                                    backgroundColor: "#f8f9fa",
-                                    borderBottom: "2px solid #e9ecef",
-                                },
-                            },
-                            cells: {
-                                style: {
-                                    paddingTop: "10px",
-                                    paddingBottom: "10px",
-                                },
-                            },
-                        }}
-                    />
-                </div>
-            </div>
+            <DataTableComponent
+                columns={columns}
+                data={historyData}
+                loading={loading}
+                pagination={pagination}
+                limit={limit}
+                page={page}
+                setPage={setPage}
+                setLimit={(rows) => {
+                    setLimit(rows);
+                    setPage(1);
+                }}
+                paginationRowsPerPageOptions={[10, 20, 30, 40, 50]}
+            />
 
-            {!loading && pagination.totalDocs > 0 && <div className="d-flex justify-content-between align-items-center mt-3">
-                <div className="small text-muted">
-                    <>
-                        Showing {(page - 1) * limit + 1} to{" "}
-                        {Math.min(page * limit, pagination.totalDocs)} of{" "}
-                        {pagination.totalDocs} entries
-                    </>
+            <ApproveMedicinesModal
+                isOpen={!!approveModalApprovalId}
+                onClose={() => openApproveModal(null, null)}
+                approvalId={approveModalApprovalId}
+                centerId={approveModalCenterId}
+                readOnly
+            />
 
-                </div>
-
-                <nav>
-                    <ul className="pagination mb-0">
-                        <li className={`page-item ${page === 1 ? "disabled" : ""}`}>
-                            <button
-                                className="page-link"
-                                onClick={() => setPage(Math.max(1, page - 1))}
-                                disabled={page === 1}
-                            >
-                                Previous
-                            </button>
-                        </li>
-
-                        {getPageRange(pagination.totalPages || 1, page, 7).map((p, idx) => (
-                            <li
-                                key={idx}
-                                className={`page-item ${p === page ? "active" : ""} ${p === "..." ? "disabled" : ""
-                                    }`}
-                            >
-                                {p === "..." ? (
-                                    <span className="page-link">...</span>
-                                ) : (
-                                    <button className="page-link" onClick={() => setPage(p)}>
-                                        {p}
-                                    </button>
-                                )}
-                            </li>
-                        ))}
-
-                        <li
-                            className={`page-item ${page === pagination.totalPages || pagination.totalDocs === 0
-                                ? "disabled"
-                                : ""
-                                }`}
-                        >
-                            <button
-                                className="page-link"
-                                onClick={() =>
-                                    setPage(Math.min(pagination.totalPages, page + 1))
-                                }
-                                disabled={
-                                    page === pagination.totalPages || pagination.totalDocs === 0
-                                }
-                            >
-                                Next
-                            </button>
-                        </li>
-                    </ul>
-                </nav>
-            </div>}
+            <DetailedPrescriptionModal
+                patient={viewPrescriptionPatient}
+                modal={viewPrescriptionModal}
+                setModal={setViewPrescriptionModal}
+                readOnly
+            />
         </div>
     );
 };

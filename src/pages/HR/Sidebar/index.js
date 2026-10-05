@@ -1,9 +1,10 @@
 import React, { useState, useRef, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
 import { Link, useLocation } from "react-router-dom";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { HR } from "../../../Components/constants/pages";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
-import { Menu, X } from "lucide-react";
+import { Menu, X, ChevronLeft, ChevronRight } from "lucide-react";
 
 // ── Persist sidebar state outside the component so remounts on navigation
 // don't reset it. sessionStorage is the secondary source of truth for
@@ -266,6 +267,16 @@ const Sidebar = () => {
     "INCENTIVES_APPROVAL",
     "READ",
   );
+  const hasPayrollAdjustmentsAddRequestPermission = hasPermission(
+    "HR",
+    "PAYROLL_ADJUSTMENTS_ADD_REQUEST",
+    "READ",
+  );
+  const hasPayrollAdjustmentsApprovalPermission = hasPermission(
+    "HR",
+    "PAYROLL_ADJUSTMENTS_APPROVAL",
+    "READ",
+  );
   const hasSalaryPermission = hasPermission("HR", "SALARY", "READ");
   const hasMyPendingApprovalsPermission = hasPermission(
     "HR",
@@ -276,6 +287,11 @@ const Sidebar = () => {
   const hasLeaveBalanceDashboardPermission = hasPermission(
     "HR",
     "LEAVE_BALANCE_DASHBOARD",
+    "READ",
+  );
+  const hasReporteesLeaveBalancePermission = hasPermission(
+    "HR",
+    "REPORTEES_LEAVE_BALANCE",
     "READ",
   );
   const hasAllLeaveHistoryPerm = hasPermission(
@@ -340,11 +356,37 @@ const Sidebar = () => {
   // Uses a module-level cache so React Router remounts don't reset the value.
   const [isSidebarOpen, setIsSidebarOpen] = useState(getSidebarInitialState);
 
+  // ── Collapsed (icon-only) state — desktop only ──────────────────────────
+  const [collapsed, setCollapsed] = useState(false);
+
   const accordionRefs = useRef({});
+  const triggerRefs = useRef({});
+  const flyoutRef = useRef(null);
 
   const toggleSection = (id) => {
     setOpenSection((prev) => (prev === id ? "" : id));
   };
+
+  // Collapsed-sidebar flyout: close it when clicking outside, or on scroll
+  // (its fixed position would otherwise go stale as the list scrolls).
+  useEffect(() => {
+    if (!collapsed || !openSection) return;
+
+    const handleClickOutside = (e) => {
+      const trigger = triggerRefs.current[openSection];
+      if (flyoutRef.current?.contains(e.target)) return;
+      if (trigger?.contains(e.target)) return;
+      setOpenSection("");
+    };
+    const closeOnScroll = () => setOpenSection("");
+
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("scroll", closeOnScroll, true);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("scroll", closeOnScroll, true);
+    };
+  }, [collapsed, openSection]);
 
   // Keep cache + sessionStorage in sync whenever the state changes
   useEffect(() => {
@@ -475,6 +517,11 @@ const Sidebar = () => {
             return false;
           if (child.id === "my-leaves" && !hasMyLeavesPermission) return false;
           if (child.id === "my-balance-leaves" && !hasBalancePermission)
+            return false;
+          if (
+            child.id === "reportees-leave-balance" &&
+            !hasReporteesLeaveBalancePermission
+          )
             return false;
           if (child.id === "festive-leaves" && !hasFestiveLeavesPermission)
             return false;
@@ -634,6 +681,23 @@ const Sidebar = () => {
         return page.children.length > 0;
       }
 
+      if (page.id === "payroll-adjustments") {
+        page.children = page.children.filter((child) => {
+          if (
+            child.id === "add-payroll-adjustments-request" &&
+            !hasPayrollAdjustmentsAddRequestPermission
+          )
+            return false;
+          if (
+            child.id === "payroll-adjustments-approval" &&
+            !hasPayrollAdjustmentsApprovalPermission
+          )
+            return false;
+          return true;
+        });
+        return page.children.length > 0;
+      }
+
       if (page.id === "payslips") {
         page.children = page.children.filter((child) => {
           if (child.id === "my-pay-slip" && !hasMyPayslipsPermission)
@@ -730,10 +794,13 @@ const Sidebar = () => {
     hasMainDashboardPermission,
     hasIncentivesAddRequestPermission,
     hasIncentivesApprovalPermission,
+    hasPayrollAdjustmentsAddRequestPermission,
+    hasPayrollAdjustmentsApprovalPermission,
     hasSalaryPermission,
     hasMyPendingApprovalsPermission,
     hasFinancePermission,
     hasLeaveBalanceDashboardPermission,
+    hasReporteesLeaveBalancePermission,
     hasAllLeaveHistoryPerm,
     hasRegularizationDashboardPermission,
     hasTransferApprovalsPermission,
@@ -791,20 +858,84 @@ const Sidebar = () => {
           color: #0d6efd !important;
         }
         li.parent-active ul li { background: transparent !important; }
+
+        .chat-leftsidebar {
+          transition: min-width 0.25s ease, max-width 0.25s ease;
+        }
+        .chat-leftsidebar.sidebar-collapsed {
+          min-width: 80px !important;
+          max-width: 80px !important;
+        }
+        .chat-leftsidebar.sidebar-collapsed .sidebar-label,
+        .chat-leftsidebar.sidebar-collapsed .sidebar-title,
+        .chat-leftsidebar.sidebar-collapsed .accordion-chevron,
+        .chat-leftsidebar.sidebar-collapsed .accordion-wrap {
+          display: none !important;
+        }
+        .chat-leftsidebar.sidebar-collapsed li > a,
+        .chat-leftsidebar.sidebar-collapsed li > div {
+          justify-content: center;
+          padding-left: 24px !important;
+          padding-right: 24px !important;
+        }
+        .chat-leftsidebar.sidebar-collapsed li i {
+          margin-right: 0 !important;
+        }
+
+        /* Accordion children render as a flyout beside the icon (via a
+           portal, so it escapes PerfectScrollbar's clipping) instead of
+           expanding the whole sidebar, so parent items with children stay
+           icon-only while collapsed. */
+        .sidebar-flyout {
+          position: fixed;
+          min-width: 220px;
+          max-width: 260px;
+          max-height: 70vh;
+          overflow-y: auto;
+          background: var(--vz-card-bg, #fff);
+          border-radius: 6px;
+          box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
+          padding: 6px 0;
+          z-index: 1060;
+        }
+        .sidebar-flyout ul {
+          margin-left: 0 !important;
+        }
+        .sidebar-collapse-toggle {
+          border: none;
+          background: transparent;
+          cursor: pointer;
+          color: inherit;
+        }
       `}</style>
 
-      <div className="chat-leftsidebar" style={{ minWidth: "0px" }}>
+      <div
+        className={`chat-leftsidebar${collapsed ? " sidebar-collapsed" : ""}`}
+        style={{ minWidth: "0px" }}
+      >
         <div className="d-flex justify-content-between align-items-center px-3 py-2 border-bottom">
-          <h5 className="mb-0">Human Resources</h5>
+          <h5 className="mb-0 sidebar-title">Human Resources</h5>
 
-          {/* Mobile toggle — only shown on small screens */}
-          <button
-            className="btn btn-outline-secondary d-md-none"
-            onClick={() => setIsSidebarOpen((prev) => !prev)}
-            aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
-          >
-            {isSidebarOpen ? <X size={22} /> : <Menu size={22} />}
-          </button>
+          <div className="d-flex align-items-center gap-1">
+            {/* Desktop collapse toggle */}
+            <button
+              className="d-none d-md-inline-flex align-items-center sidebar-collapse-toggle"
+              onClick={() => setCollapsed((prev) => !prev)}
+              aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+              title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+            >
+              {collapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+            </button>
+
+            {/* Mobile toggle — only shown on small screens */}
+            <button
+              className="btn btn-outline-secondary d-md-none"
+              onClick={() => setIsSidebarOpen((prev) => !prev)}
+              aria-label={isSidebarOpen ? "Close sidebar" : "Open sidebar"}
+            >
+              {isSidebarOpen ? <X size={22} /> : <Menu size={22} />}
+            </button>
+          </div>
         </div>
 
         {/*
@@ -829,9 +960,10 @@ const Sidebar = () => {
                       <Link
                         className="d-flex align-items-center py-2"
                         to={page.link}
+                        title={collapsed ? page.label : undefined}
                       >
                         <i className={`${page.icon} fs-4 me-2`} />
-                        <span className="fs-15">{page.label}</span>
+                        <span className="fs-15 sidebar-label">{page.label}</span>
                       </Link>
                     </li>
                   );
@@ -849,20 +981,28 @@ const Sidebar = () => {
                     location.pathname.startsWith(child.link + "/"),
                 );
 
+                const isFlyoutOpen = collapsed && openSection === page.id;
+                const triggerEl = triggerRefs.current[page.id];
+                const triggerRect = isFlyoutOpen
+                  ? triggerEl?.getBoundingClientRect()
+                  : null;
+
                 return (
                   <li
                     key={page.id}
                     className={`mb-1 ${isParentActive ? "parent-active" : ""}`}
                   >
                     <div
+                      ref={(el) => (triggerRefs.current[page.id] = el)}
                       onClick={() => toggleSection(page.id)}
                       className="d-flex align-items-center py-2 ps-4"
                       style={{ cursor: "pointer" }}
+                      title={collapsed ? page.label : undefined}
                     >
                       <i className={`${page.icon} fs-4 me-2`} />
-                      <span className="fs-15">{page.label}</span>
+                      <span className="fs-15 sidebar-label">{page.label}</span>
                       <span
-                        className="ms-auto fs-12"
+                        className="ms-auto fs-12 accordion-chevron"
                         style={{
                           transform:
                             openSection === page.id
@@ -874,6 +1014,48 @@ const Sidebar = () => {
                         ▼
                       </span>
                     </div>
+
+                    {triggerRect &&
+                      createPortal(
+                        <div
+                          ref={flyoutRef}
+                          className="sidebar-flyout"
+                          style={{
+                            top: triggerRect.top,
+                            left: triggerRect.right + 6,
+                          }}
+                        >
+                          <ul className="list-unstyled mt-0">
+                            {page.children.map((child) => {
+                              const isChildActive =
+                                currentUrl === child.link ||
+                                location.pathname === child.link ||
+                                location.pathname.startsWith(
+                                  child.link + "/",
+                                );
+
+                              return (
+                                <li
+                                  key={child.id}
+                                  className={isChildActive ? "active" : ""}
+                                >
+                                  <Link
+                                    className="d-flex py-1 px-3"
+                                    to={child.link}
+                                    onClick={() => setOpenSection("")}
+                                  >
+                                    <i className={`${child.icon} fs-5 me-2`} />
+                                    <span className="fs-14">
+                                      {child.label}
+                                    </span>
+                                  </Link>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>,
+                        document.body,
+                      )}
 
                     <div
                       ref={contentRef}

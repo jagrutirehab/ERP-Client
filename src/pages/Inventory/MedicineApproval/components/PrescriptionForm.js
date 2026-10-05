@@ -5,7 +5,7 @@ import MedicineChart from "../../../Patient/Tables/MedicineChart";
 import Divider from "../../../../Components/Common/Divider";
 import CheckPermission from "../../../../Components/HOC/CheckPermission";
 
-const PrescriptionForm = ({ data, startDate, onDispenseChanges, onRemarks, roles }) => {
+const PrescriptionForm = ({ data, startDate, onDispenseChanges, onRemarks, roles, readOnly }) => {
     const [medicines, setMedicines] = useState(data?.medicines || []);
     const [updatedDispenseData, setUpdatedDispenseData] = useState([]);
     const [remarks, setRemarks] = useState("");
@@ -117,6 +117,7 @@ const PrescriptionForm = ({ data, startDate, onDispenseChanges, onRemarks, roles
                         medicines={medicines}
                         handleDispensedCountChange={handleDispensedCountChange}
                         isPharmacy={true}
+                        readOnly={readOnly}
                     />
                     <div className="d-block text-center mt-3 mb-3">
                         <Divider />
@@ -147,30 +148,32 @@ const PrescriptionForm = ({ data, startDate, onDispenseChanges, onRemarks, roles
                     </div>
                 )}
 
-                <CheckPermission accessRolePermission={roles?.permissions} permission={"create"} subAccess={"MEDICINEAPPROVAL"}>
-                    <div className="mt-4">
-                        <div className="d-flex justify-content-between mb-2">
-                            <p className="fs-xs-9 font-size-14 mb-0">
-                                <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
-                                    Remarks:-
-                                </span>
-                            </p>
+                {!readOnly && (
+                    <CheckPermission accessRolePermission={roles?.permissions} permission={"create"} subAccess={"MEDICINEAPPROVAL"}>
+                        <div className="mt-4">
+                            <div className="d-flex justify-content-between mb-2">
+                                <p className="fs-xs-9 font-size-14 mb-0">
+                                    <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
+                                        Remarks:-
+                                    </span>
+                                </p>
+                            </div>
+                            <textarea
+                                className="form-control"
+                                rows="3"
+                                placeholder="Add any remarks or comments here..."
+                                value={remarks}
+                                onChange={(e) => setRemarks(e.target.value)}
+                                style={{
+                                    fontSize: "14px",
+                                    border: "1px solid #dee2e6",
+                                    borderRadius: "0.375rem",
+                                    padding: "0.75rem"
+                                }}
+                            />
                         </div>
-                        <textarea
-                            className="form-control"
-                            rows="3"
-                            placeholder="Add any remarks or comments here..."
-                            value={remarks}
-                            onChange={(e) => setRemarks(e.target.value)}
-                            style={{
-                                fontSize: "14px",
-                                border: "1px solid #dee2e6",
-                                borderRadius: "0.375rem",
-                                padding: "0.75rem"
-                            }}
-                        />
-                    </div>
-                </CheckPermission>
+                    </CheckPermission>
+                )}
             </div>
         </React.Fragment>
     );
@@ -180,6 +183,7 @@ PrescriptionForm.propTypes = {
     data: PropTypes.object.isRequired,
     startDate: PropTypes.string,
     endDate: PropTypes.string,
+    readOnly: PropTypes.bool,
 };
 
 export default PrescriptionForm;

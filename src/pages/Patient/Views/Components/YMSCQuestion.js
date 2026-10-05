@@ -31,6 +31,7 @@ const YMSCQuestion = () => {
     const clinicalTestLoading = useSelector((state) => state.ClinicalTest?.isLoading);
 
     const [center, setCenters] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [scores, setScores] = useState({});
     const [currentPage, setCurrentPage] = useState('assessment');
 
@@ -325,6 +326,7 @@ const YMSCQuestion = () => {
         formData.append("observation", observation);
         // formData.append("evidence", evidenceDetails);
 
+        setIsLoading(true);
         try {
             await dispatch(createYMRSTest(formData)).unwrap();
             setAttempTotalQuestion(true);
@@ -334,6 +336,8 @@ const YMSCQuestion = () => {
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to submit assessment");
             }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -598,9 +602,9 @@ const YMSCQuestion = () => {
 
 
                             <div className="d-flex justify-content-end bg-light p-4 rounded border border-primary">
-                                <button type="submit" className="btn btn-success fw-bold px-4 py-2 shadow-sm">
+                                <button type="submit" className="btn btn-success fw-bold px-4 py-2 shadow-sm" disabled={isLoading}>
                                     <i className="fas fa-check-circle me-2"></i>
-                                    Submit Test
+                                    {isLoading ? "Saving..." : "Submit Test"}
                                 </button>
                             </div>
                         </form>

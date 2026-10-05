@@ -4,16 +4,11 @@ import { Form, Row, Col, Button } from "reactstrap";
 import { format } from "date-fns";
 
 // Formik Validation
-import * as Yup from "yup";
 import { useFormik } from "formik";
 
 import {
   ADMISSION_TYPE,
   admissionTypeFields,
-  admissionTypeBranchFields,
-  INDEPENDENT_ADMISSION,
-  SUPPORTIVE_ADMISSION,
-  EMERGENCY_ADMISSION,
 } from "../../../Components/constants/patient";
 import RenderFields from "../../../Components/Common/RenderFields";
 import { connect, useDispatch } from "react-redux";
@@ -25,12 +20,14 @@ import {
 import {
   admissionTypeLabel,
   getAdmissionTypeDetailParts,
-  getLatestAdmissionTypeChart,
+  getCurrentAdmissionType,
+  ADMISSION_TYPE_SOURCE_LABEL,
 } from "../../../utils/admissionType";
-
-// Every field that belongs to some branch. Anything not in the current branch is
-// cleared before saving.
-const ALL_BRANCH_FIELDS = Object.values(admissionTypeBranchFields).flat();
+import {
+  admissionTypeValidationSchema,
+  clearInactiveBranchFields,
+  stripInactiveBranchFields,
+} from "../../../utils/admissionTypeForm";
 
 // The form's own view of the descriptor. Two local overrides, deliberately NOT
 // pushed into the shared `admissionTypeFields` constant:
@@ -45,30 +42,6 @@ const FORM_FIELDS = admissionTypeFields.map((field) =>
     : { ...field, fullWidth: true },
 );
 
-const validationSchema = Yup.object({
-  admissionType: Yup.string().required("Admission type is required"),
-  adultationType: Yup.string().when("admissionType", {
-    is: INDEPENDENT_ADMISSION,
-    then: (schema) => schema.required("Adultation type is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  supportType: Yup.string().when("admissionType", {
-    is: SUPPORTIVE_ADMISSION,
-    then: (schema) => schema.required("Support type is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  emergencyType: Yup.string().when("admissionType", {
-    is: EMERGENCY_ADMISSION,
-    then: (schema) => schema.required("Emergency type is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-  emergencyRestraint: Yup.string().when("admissionType", {
-    is: EMERGENCY_ADMISSION,
-    then: (schema) => schema.required("Restraint is required"),
-    otherwise: (schema) => schema.notRequired(),
-  }),
-});
-
 const AdmissionType = ({
   author,
   patient,
@@ -76,37 +49,24 @@ const AdmissionType = ({
   editChartData,
   shouldPrintAfterSave = false,
   type,
-  addmissionsCharts,
 }) => {
   const dispatch = useDispatch();
 
   const editChart = editChartData?.admissionType;
 
-  // The admission type as it stands today — the most recent Admission Type chart
-  // on this admission. Matched by admission id rather than by index: state.Chart.data
-  // is a shared slice holding admissions for every patient visited this session.
-  const currentAdmissionType = useMemo(() => {
-    const admissionId = patient?.addmission?._id;
-    if (!admissionId) return null;
-
-    const charts =
-      (addmissionsCharts || []).find((a) => a._id === admissionId)?.charts || [];
-
-    // While editing, the chart being edited is the thing being changed — showing
-    // it as "current" would be circular, so compare against the one before it.
-    const pool = editChartData
-      ? charts.filter((c) => c?._id !== editChartData._id)
-      : charts;
-
-    const latest = getLatestAdmissionTypeChart(pool);
-    if (!latest?.admissionType) return null;
-
-    return {
-      data: latest.admissionType,
-      date: latest.date || latest.createdAt || null,
-    };
+  // The admission type as it stands today, read from the admission's own
+  // timeline rather than from the charts. The timeline is written by BOTH the
+  // Admission Form and the Admission Type chart, so this is the only source
+  // that shows a type recorded through the form — which creates no chart, and
+  // used to leave this panel reading "Nil".
+  //
+  // The patient slice patches `admissionTypeHistory` in place when a chart is
+  // saved, edited or deleted, so this stays live without refetching the patient.
+  const currentAdmissionType = useMemo(
+    () => getCurrentAdmissionType(patient?.addmission, editChartData?._id),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [addmissionsCharts, patient?.addmission?._id, editChartData?._id]);
+    [patient?.addmission?.admissionTypeHistory, editChartData?._id],
+  );
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -126,18 +86,14 @@ const AdmissionType = ({
       date: chartDate,
       shouldPrintAfterSave,
     },
-    validationSchema,
+    validationSchema: admissionTypeValidationSchema,
     onSubmit: (values) => {
       closeForm();
 
       // Belt and braces: the effect below already clears the other branches as
       // the user switches, but strip them again here so a stale value can never
       // reach the server.
-      const keep = admissionTypeBranchFields[values.admissionType] || [];
-      const cleaned = { ...values };
-      ALL_BRANCH_FIELDS.forEach((field) => {
-        if (!keep.includes(field)) cleaned[field] = "";
-      });
+      const cleaned = stripInactiveBranchFields(values);
 
       if (editChart) {
         dispatch(
@@ -160,13 +116,7 @@ const AdmissionType = ({
   // value. Without this, choosing Independent > Adult and then switching to
   // Emergency would still submit adultationType: "ADULT".
   useEffect(() => {
-    const keep = admissionTypeBranchFields[admissionType] || [];
-    ALL_BRANCH_FIELDS.forEach((field) => {
-      if (!keep.includes(field) && validation.values[field]) {
-        validation.setFieldValue(field, "");
-        validation.setFieldTouched(field, false);
-      }
-    });
+    clearInactiveBranchFields(validation);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [admissionType]);
 
@@ -235,6 +185,18 @@ const AdmissionType = ({
                     >
                       Recorded{" "}
                       {format(new Date(currentAdmissionType.date), "dd MMM yyyy")}
+                      {ADMISSION_TYPE_SOURCE_LABEL[
+                        currentAdmissionType.source
+                      ] && (
+                        <>
+                          {" · "}
+                          {
+                            ADMISSION_TYPE_SOURCE_LABEL[
+                              currentAdmissionType.source
+                            ]
+                          }
+                        </>
+                      )}
                     </div>
                   )}
                 </React.Fragment>
@@ -276,9 +238,6 @@ AdmissionType.propTypes = {
   chartDate: PropTypes.any,
   editChartData: PropTypes.object,
   type: PropTypes.string,
-  // Raw state.Chart.data — admissions for every patient visited this session.
-  // Scoped to the current admission inside the component.
-  addmissionsCharts: PropTypes.array,
 };
 
 const mapStateToProps = (state) => ({
@@ -287,7 +246,6 @@ const mapStateToProps = (state) => ({
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm?.data,
   shouldPrintAfterSave: state.Chart.chartForm.shouldPrintAfterSave,
-  addmissionsCharts: state.Chart.data,
 });
 
 export default connect(mapStateToProps)(AdmissionType);

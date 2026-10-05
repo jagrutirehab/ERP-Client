@@ -1,13 +1,15 @@
-    import React, { useEffect, useMemo, useRef, useState } from "react";
-    import { Link } from "react-router-dom";
-    import { useDispatch, useSelector, shallowEqual } from "react-redux";
-    import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col, Input } from "reactstrap";
-    import { CSVLink } from "react-csv";
-    import { fetchClinicalNotesDOD } from "../../../store/features/miReporting/miReportingSlice";
-    import Select from "react-select";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "react-router-dom";
+import { useDispatch, useSelector, shallowEqual } from "react-redux";
+import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col, Input } from "reactstrap";
+import { CSVLink } from "react-csv";
+import { fetchClinicalNotesDOD } from "../../../store/features/miReporting/miReportingSlice";
+import Select from "react-select";
 
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const pad2 = (n) => String(n).padStart(2, "0");
 
-    const ClinicalNotesDOD = () => {
+const ClinicalNotesDOD = () => {
     const dispatch = useDispatch();
     const clinicalNotesDOD = useSelector((state) => state.MIReporting.clinicalNotesDOD);
     const loading = useSelector((state) => state.MIReporting.loading);
@@ -26,7 +28,7 @@
     // console.log(clinicalNotesDOD)
 
     useEffect(() => {
-        dispatch(fetchClinicalNotesDOD({ centerAccess  }));
+        dispatch(fetchClinicalNotesDOD({ centerAccess }));
     }, [dispatch, centerAccess]);
     // console.log(clinicalNotesDOD)
 
@@ -42,6 +44,7 @@
 
 
     const data = useMemo(() => clinicalNotesDOD?.data || [], [clinicalNotesDOD]);
+    const centerDailyTotals = useMemo(() => clinicalNotesDOD?.center_daily_totals || [], [clinicalNotesDOD]);
 
 
     const filteredData = useMemo(() => {
@@ -54,7 +57,7 @@
         });
     }, [data, selectedCenter, selectedPsychologist, searchTerm]);
 
-    
+
     const prepareCsvData = () => {
         setCsvLoading(true);
 
@@ -112,35 +115,35 @@
         if (!psychologistOptions.some((o) => o.value === selectedPsychologist)) {
             setSelectedPsychologist("ALL");
         }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [psychologistOptions]);
 
 
 
-    const labels=[
-            "Patient UID",
-            "Patient Name",
-             "MTD",
-            "Center Name",
-            "Ad. Date",
-            "Psychologist Name",
-            "Assigned Pt.",
-            "Last Outpass",
+    const labels = [
+        "Patient UID",
+        "Patient Name",
+        "MTD",
+        "Center Name",
+        "Ad. Date",
+        "Psychologist Name",
+        "Assigned Pt.",
+        "Last Outpass",
 
 
-            ]
+    ]
 
     const fixedColWidths = [80, 130, 55, 90, 90, 60];
 
-    const labelsMapping={
-            "Psychologist Name":"psychologist_name",
-            "Center Name":"center_name",
-             "Patient Name":"patient",
-             "Patient UID":"patient_id",
-            "Assigned Pt.":"assigned_patients",
-            "MTD":"total",
-            "Ad. Date":"admission_date",
-            "Last Outpass":"last_outpass",
+    const labelsMapping = {
+        "Psychologist Name": "psychologist_name",
+        "Center Name": "center_name",
+        "Patient Name": "patient",
+        "Patient UID": "patient_id",
+        "Assigned Pt.": "assigned_patients",
+        "MTD": "total",
+        "Ad. Date": "admission_date",
+        "Last Outpass": "last_outpass",
 
 
     }
@@ -151,11 +154,11 @@
     const last30Days = useMemo(() => {
         const days = [];
         const today = new Date();
-        for (let i =1; i < 60; i++) {
+        for (let i = 1; i < 60; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
-            const key =d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
-            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).replace(/ /g, "-");
+            const key = `${pad2(d.getDate())}-${MONTH_ABBR[d.getMonth()]}-${d.getFullYear()}`;
+            const label = `${pad2(d.getDate())}-${MONTH_ABBR[d.getMonth()]}`;
             days.push({ key, label });
         }
         return days;
@@ -168,6 +171,26 @@
         });
         return totals;
     }, [filteredData, last30Days]);
+
+    const keyToIso = (key) => {
+        const [day, mon, year] = key.split("-");
+        const monthIdx = MONTH_ABBR.indexOf(mon);
+        return `${year}-${pad2(monthIdx + 1)}-${pad2(Number(day))}`;
+    };
+
+    const dateCompliance = useMemo(() => {
+        const pct = {};
+        last30Days.forEach(({ key }) => {
+            const isoDate = keyToIso(key);
+            const rows = centerDailyTotals.filter((row) => (
+                row.date === isoDate && (selectedCenter === "ALL" || row.center_name === selectedCenter)
+            ));
+            const resultCount = rows.reduce((sum, row) => sum + (Number(row.result_count) || 0), 0);
+            const shouldBeCount = rows.reduce((sum, row) => sum + (Number(row.should_be_count) || 0), 0);
+            pct[key] = shouldBeCount > 0 ? Math.round((resultCount / shouldBeCount) * 100) : 0;
+        });
+        return pct;
+    }, [centerDailyTotals, last30Days, selectedCenter]);
 
     const currentMonthDays = useMemo(() => {
         const now = new Date();
@@ -200,239 +223,271 @@
 
     return (
         <div
-        className="w-100 mt-4 mt-sm-0"
-        style={{
-            flex: 1,
-            width: "100%",
-            maxWidth: "100%",
-            minWidth: 0,
-        }}
-        >       
-         <div className="row">
-            <div className="col-12">
-            <div className="p-3 pb-0">
-                <div className="row align-items-center">
-                <div className="col-sm-6 col-8" >
-                    <div className="d-flex align-items-center">
-                    <div className="flex-grow-1 overflow-hidden">
-                        <div className="d-flex align-items-center">
-                        <div className="flex-shrink-0 chat-user-img online user-own-img align-self-center me-3 ms-0">
-                            <i className="bx bx-bar-chart-alt-2 fs-1"></i>
+            className="w-100 mt-4 mt-sm-0"
+            style={{
+                flex: 1,
+                width: "100%",
+                maxWidth: "100%",
+                minWidth: 0,
+            }}
+        >
+            <div className="row">
+                <div className="col-12">
+                    <div className="p-3 pb-0">
+                        <div className="row align-items-center">
+                            <div className="col-sm-6 col-8" >
+                                <div className="d-flex align-items-center">
+                                    <div className="flex-grow-1 overflow-hidden">
+                                        <div className="d-flex align-items-center">
+                                            <div className="flex-shrink-0 chat-user-img online user-own-img align-self-center me-3 ms-0">
+                                                <i className="bx bx-bar-chart-alt-2 fs-1"></i>
+                                            </div>
+                                            <div className="flex-grow-1 overflow-hidden">
+                                                <h6 className="text-truncate mb-0 fs-18">
+                                                    Clinical Notes DOD
+                                                </h6>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="col-sm-6 col-4">
+                                <div className="d-flex justify-content-end">
+                                    <Button
+                                        color="info"
+                                        onClick={prepareCsvData}
+                                        disabled={
+                                            csvLoading ||
+                                            loading ||
+                                            !clinicalNotesDOD ||
+                                            clinicalNotesDOD.length === 0
+                                        }
+                                        className="w-auto"
+                                    >
+                                        {csvLoading ? "Preparing CSV..." : "Export CSV"}
+                                    </Button>
+                                    <CSVLink
+                                        data={csvData || []}
+                                        filename={`clinical-notes-dod-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
+                                        className="d-none"
+                                        ref={csvRef}
+                                    />
+                                </div>
+                            </div>
                         </div>
-                        <div className="flex-grow-1 overflow-hidden">
-                            <h6 className="text-truncate mb-0 fs-18">
-                            Clnical Notes DOD
-                            </h6>
-                        </div>
-                        </div>
                     </div>
-                    </div>
-                </div>
-                
-                <div className="col-sm-6 col-4">
-                    <div className="d-flex justify-content-end">
-                    <Button
-                        color="info"
-                        onClick={prepareCsvData}
-                        disabled={
-                        csvLoading ||
-                        loading ||
-                        !clinicalNotesDOD ||
-                        clinicalNotesDOD.length === 0
-                        }
-                        className="w-auto"
-                    >
-                        {csvLoading ? "Preparing CSV..." : "Export CSV"}
-                    </Button>
-                    <CSVLink
-                        data={csvData || []}
-                        filename={`clinical-notes-dod-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
-                        className="d-none"
-                        ref={csvRef}
-                    />
-                    </div>
-                </div>
-                </div>
-            </div>
 
-            <div className="p-3 p-lg-4 pt-1">
-                <Row className="g-2 align-items-center mb-4">
-                    <Col md={2}>
-                        <Select
-                            value={centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]}
-                            onChange={(opt) => setSelectedCenter(opt.value)}
-                            options={centerOptions}
-                            placeholder="Center..."
-                        />
-                    </Col>
-                    <Col md={2}>
-                        <Select
-                            value={psychologistOptions.find((o) => o.value === selectedPsychologist) || psychologistOptions[0]}
-                            onChange={(opt) => setSelectedPsychologist(opt.value)}
-                            options={psychologistOptions}
-                            placeholder="Psychologist..."
-                        />
-                    </Col>
-                    <Col md={2}>
-                        <Input
-                            type="text"
-                            placeholder="Search Patient Name or UID..."
-                            value={searchInput}
-                            onChange={(e) => setSearchInput(e.target.value)}
-                        />
-                    </Col>
-                </Row>
-                <Card>
-                <CardBody>
-                    {(loading || isSearching) && (
-                    <div className="text-center py-5">
-                        <Spinner color="primary" />
-                        <p className="mt-2 text-muted">{isSearching ? "Searching..." : "Loading data..."}</p>
-                    </div>
-                    )}
+                    <div className="p-3 p-lg-4 pt-1">
+                        <Row className="g-2 align-items-center mb-4">
+                            <Col md={2}>
+                                <Select
+                                    value={centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]}
+                                    onChange={(opt) => setSelectedCenter(opt.value)}
+                                    options={centerOptions}
+                                    placeholder="Center..."
+                                />
+                            </Col>
+                            <Col md={2}>
+                                <Select
+                                    value={psychologistOptions.find((o) => o.value === selectedPsychologist) || psychologistOptions[0]}
+                                    onChange={(opt) => setSelectedPsychologist(opt.value)}
+                                    options={psychologistOptions}
+                                    placeholder="Psychologist..."
+                                />
+                            </Col>
+                            <Col md={2}>
+                                <Input
+                                    type="text"
+                                    placeholder="Search Patient Name or UID..."
+                                    value={searchInput}
+                                    onChange={(e) => setSearchInput(e.target.value)}
+                                />
+                            </Col>
+                        </Row>
+                        <Card>
+                            <CardBody>
+                                {(loading || isSearching) && (
+                                    <div className="text-center py-5">
+                                        <Spinner color="primary" />
+                                        <p className="mt-2 text-muted">{isSearching ? "Searching..." : "Loading data..."}</p>
+                                    </div>
+                                )}
 
-                    {error && !loading && !isSearching && <Alert color="danger">{error}</Alert>}
+                                {error && !loading && !isSearching && <Alert color="danger">{error}</Alert>}
 
-                    {!loading && !isSearching && !error && (
-                        <>
-                    <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
-                        <Table
-                            className="mb-0 w-100"
-                            style={{
-                                borderCollapse: "separate",
-                                borderSpacing: 0,
-                                fontSize: "0.68rem",
-                            }}
-                        >
-                            <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
-                                <tr>
-                                    {labels.map((label, i) => (
-                                        <th
-                                            key={label}
-                                            className="text-center fw-bold px-1 py-1"
-                                            style={{
-                                                border: "1px solid #cfd8e3",
-                                                background: "#004d00",
-                                                color: "white",
-                                                whiteSpace: "nowrap",
-                                                minWidth: fixedColWidths[i],
-                                                ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
-                                            }}
-                                        >
-                                            {i === labels.length - 1 ? "Total (Single Day)" : i === adDateColIdx ? "Pt. Count" : i === psychologistNameColIdx ? `${filteredData.length}` : ""}
-                                        </th>
-                                    ))}
-                                    {last30Days.map(({ key }) => (
-                                        <th
-                                            key={key}
-                                            className="text-center fw-bold px-1 py-1"
-                                            style={{
-                                                border: "1px solid #cfd8e3",
-                                                background: "#004d00",
-                                                color: "white",
-                                                whiteSpace: "nowrap",
-                                            }}
-                                        >
-                                            {dateTotals[key] || ""}
-                                        </th>
-                                    ))}
-                                </tr>
-                                <tr>
-                                    {labels.map((label, i) => (
-                                        <th
-                                            key={label}
-                                            className="text-center fw-bold px-1 py-1"
-                                            style={{
-                                                border: "1px solid #cfd8e3",
-                                                background: "green",
-                                                color: "white",
-                                                whiteSpace: label==="Center Name"?"wrap":"nowrap",
-                                                minWidth: fixedColWidths[i],
-                                                ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
-                                            }}
-                                        >
-                                            {label}
-                                        </th>
-                                    ))}
-                                    {last30Days.map(({ key, label }) => (
-                                        <th
-                                            key={key}
-                                            className="text-center fw-bold px-1 py-1"
-                                            style={{
-                                                border: "1px solid #cfd8e3",
-                                                background: "green",
-                                                color: "white",
-                                                whiteSpace: "nowrap",
-                                            }}
-                                        >
-                                            {label}
-                                        </th>
-                                    ))}
-                                </tr>
-                            </thead>
-
-                            <tbody>
-                                {filteredData.map((patient, idx) => (
-                                    <tr key={patient?.patient_id ?? idx}>
-                                        {labels.map((label, i) => (
-                                            <td
-                                                key={label}
-                                                className="text-center px-1 py-1"
+                                {!loading && !isSearching && !error && (
+                                    <>
+                                        <div className="shadow-sm bg-white" style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "70vh" }}>
+                                            <Table
+                                                className="mb-0 w-100"
                                                 style={{
-                                                    border: "1px solid #d6dde8",
-                                                    background: idx % 2 === 0 ? "#f8fafc" : "#fff",
-                                                    whiteSpace: "nowrap",
-                                                    ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
-                                                    minWidth: fixedColWidths[i],
+                                                    borderCollapse: "separate",
+                                                    borderSpacing: 0,
+                                                    fontSize: "0.68rem",
                                                 }}
                                             >
-                                                {label === "MTD"
-                                                    ? patientMonthTotals[patient.patient_id] ?? 0
-                                                    : (label === "Patient Name" || label === "Patient UID")
-                                                        ? (
-                                                            <Link to={`/patient/${patient.patient_mongo_id}`} className="text-dark" target="_blank" rel="noopener noreferrer">
-                                                                {label === "Patient Name"
-                                                                    ? (patient[labelsMapping[label]] ?? "").slice(0, 20)
-                                                                    : patient[labelsMapping[label]]}
-                                                            </Link>
-                                                        )
-                                                        : label === "Psychologist Name"
-                                                            ? (patient[labelsMapping[label]] ?? "").slice(0, 20)
-                                                            : patient[labelsMapping[label]]}
-                                            </td>
-                                        ))}
-                                        {last30Days.map(({ key,label }) => (
-                                            <td
-                                                key={key}
-                                                className="text-center px-1 py-1"
-                                                style={{
-                                                    border: "1px solid #d6dde8",
-                                                    background: idx % 2 === 0 ? "#f8fafc" : "#fff",
-                                                    whiteSpace: "nowrap",
-                                                }}
-                                            >
-                                                {patient[key] ?? 0}
-                                            </td>
-                                        ))}
+                                                <thead style={{ position: "sticky", top: 0, zIndex: 10 }}>
+                                                    <tr>
+                                                        {labels.map((label, i) => (
+                                                            <th
+                                                                key={label}
+                                                                className="text-center fw-bold px-1 py-1"
+                                                                style={{
+                                                                    border: "1px solid #cfd8e3",
+                                                                    background: "#00694d",
+                                                                    color: "white",
+                                                                    whiteSpace: "nowrap",
+                                                                    minWidth: fixedColWidths[i],
+                                                                    ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
+                                                                }}
+                                                            >
+                                                                {i === labels.length - 1 ? "Compliance %" : ""}
+                                                            </th>
+                                                        ))}
+                                                        {last30Days.map(({ key }) => (
+                                                            <th
+                                                                key={key}
+                                                                className="text-center fw-bold px-1 py-1"
+                                                                style={{
+                                                                    border: "1px solid #cfd8e3",
+                                                                    background: "#00694d",
+                                                                    color: "white",
+                                                                    whiteSpace: "nowrap",
+                                                                }}
+                                                            >
+                                                                {`${dateCompliance[key] ?? 0}%`}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                    <tr>
+                                                        {labels.map((label, i) => (
+                                                            <th
+                                                                key={label}
+                                                                className="text-center fw-bold px-1 py-1"
+                                                                style={{
+                                                                    border: "1px solid #cfd8e3",
+                                                                    background: "#004d00",
+                                                                    color: "white",
+                                                                    whiteSpace: "nowrap",
+                                                                    minWidth: fixedColWidths[i],
+                                                                    ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
+                                                                }}
+                                                            >
+                                                                {i === labels.length - 1 ? "Total (Single Day)" : i === adDateColIdx ? "Pt. Count" : i === psychologistNameColIdx ? `${filteredData.length}` : ""}
+                                                            </th>
+                                                        ))}
+                                                        {last30Days.map(({ key }) => (
+                                                            <th
+                                                                key={key}
+                                                                className="text-center fw-bold px-1 py-1"
+                                                                style={{
+                                                                    border: "1px solid #cfd8e3",
+                                                                    background: "#004d00",
+                                                                    color: "white",
+                                                                    whiteSpace: "nowrap",
+                                                                }}
+                                                            >
+                                                                {dateTotals[key] || ""}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                    <tr>
+                                                        {labels.map((label, i) => (
+                                                            <th
+                                                                key={label}
+                                                                className="text-center fw-bold px-1 py-1"
+                                                                style={{
+                                                                    border: "1px solid #cfd8e3",
+                                                                    background: "green",
+                                                                    color: "white",
+                                                                    whiteSpace: label === "Center Name" ? "wrap" : "nowrap",
+                                                                    minWidth: fixedColWidths[i],
+                                                                    ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
+                                                                }}
+                                                            >
+                                                                {label}
+                                                            </th>
+                                                        ))}
+                                                        {last30Days.map(({ key, label }) => (
+                                                            <th
+                                                                key={key}
+                                                                className="text-center fw-bold px-1 py-1"
+                                                                style={{
+                                                                    border: "1px solid #cfd8e3",
+                                                                    background: "green",
+                                                                    color: "white",
+                                                                    whiteSpace: "nowrap",
+                                                                }}
+                                                            >
+                                                                {label}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                </thead>
+
+                                                <tbody>
+                                                    {filteredData.map((patient, idx) => (
+                                                        <tr key={patient?.patient_id ?? idx}>
+                                                            {labels.map((label, i) => (
+                                                                <td
+                                                                    key={label}
+                                                                    className="text-center px-1 py-1"
+                                                                    style={{
+                                                                        border: "1px solid #d6dde8",
+                                                                        background: idx % 2 === 0 ? "#f8fafc" : "#fff",
+                                                                        whiteSpace: "nowrap",
+                                                                        ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 3 }),
+                                                                        minWidth: fixedColWidths[i],
+                                                                    }}
+                                                                >
+                                                                    {label === "MTD"
+                                                                        ? patientMonthTotals[patient.patient_id] ?? 0
+                                                                        : (label === "Patient Name" || label === "Patient UID")
+                                                                            ? (
+                                                                                <Link to={`/patient/${patient.patient_mongo_id}`} className="text-dark" target="_blank" rel="noopener noreferrer">
+                                                                                    {label === "Patient Name"
+                                                                                        ? (patient[labelsMapping[label]] ?? "").slice(0, 20)
+                                                                                        : patient[labelsMapping[label]]}
+                                                                                </Link>
+                                                                            )
+                                                                            : label === "Psychologist Name"
+                                                                                ? (patient[labelsMapping[label]] ?? "").slice(0, 20)
+                                                                                : patient[labelsMapping[label]]}
+                                                                </td>
+                                                            ))}
+                                                            {last30Days.map(({ key, label }) => (
+                                                                <td
+                                                                    key={key}
+                                                                    className="text-center px-1 py-1"
+                                                                    style={{
+                                                                        border: "1px solid #d6dde8",
+                                                                        background: idx % 2 === 0 ? "#f8fafc" : "#fff",
+                                                                        whiteSpace: "nowrap",
+                                                                    }}
+                                                                >
+                                                                    {patient[key] ?? 0}
+                                                                </td>
+                                                            ))}
 
 
 
 
 
-                                    </tr>
-                                ))}
-                            </tbody>
-                            </Table>
-                        </div>
-                    </>
-                    )}
-                </CardBody>
-                </Card>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </Table>
+                                        </div>
+                                    </>
+                                )}
+                            </CardBody>
+                        </Card>
+                    </div>
+                </div>
             </div>
-            </div>
-        </div>
         </div>
     );
-    };
+};
 
-    export default ClinicalNotesDOD;
+export default ClinicalNotesDOD;

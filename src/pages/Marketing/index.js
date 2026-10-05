@@ -10,6 +10,7 @@ import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import Logout from "../Authentication/Logout.js";
 import DoctorDirectoryExport from "./DoctorDirectoryExport";
+import MyDrafts from "./MyDrafts";
 const Marketing = () => {
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission, loading } = usePermissions(token);
@@ -42,13 +43,14 @@ const Marketing = () => {
     "EXPORT_DOCTOR_DIRECTORY",
     "READ",
   );
-
+  const canViewDrafts = hasPermission("MARKETING", "VIEW_MY_DRAFTS", "READ");
   if (
     !canViewAdd &&
     !canViewList &&
     !canViewReport &&
     !canViewProfile &&
-    !canViewDoctorExport
+    !canViewDoctorExport &&
+    !canViewDrafts
   ) {
     return <Basic404 />;
   }
@@ -81,6 +83,9 @@ const Marketing = () => {
                     path="doctors/export"
                     element={<DoctorDirectoryExport />}
                   />
+                )}
+                {canViewDrafts && (
+                  <Route path="drafts" element={<MyDrafts />} />
                 )}
                 <Route index element={null} />
                 <Route path="*" element={<Logout />} />

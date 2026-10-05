@@ -25,7 +25,6 @@ import {
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { getMedicineRequisitionColumns } from "../../Columns/Pharmacy/MedicineRequisitionColumns";
-import CheckPermission from "../../../../Components/HOC/CheckPermission";
 import Select from "react-select";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
 import DeleteModal from "../../../../Components/Common/DeleteModal";
@@ -44,7 +43,7 @@ const MedicineRequisition = () => {
   const handleAuthError = useAuthError();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { hasPermission, roles, loading: permissionLoader } = usePermissions(token);
+  const { hasPermission, loading: permissionLoader } = usePermissions(token);
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
   const {
@@ -67,6 +66,7 @@ const MedicineRequisition = () => {
   const hasWritePermission = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "WRITE");
   const hasReadPermission = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "READ");
   const hasDeletePermission = hasPermission("PHARMACY", "REQUISITION_MEDICINE_REQUISITION", "DELETE");
+  const hasRaisePermission = hasPermission("PHARMACY", "RAISE_MEDICINE_REQUISITION", "WRITE");
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const centerOptions = [
@@ -79,10 +79,12 @@ const MedicineRequisition = () => {
         },
       ]
       : []),
-    ...(centerList?.map((c) => ({
-      value: c._id,
-      label: c.title,
-    })) || []),
+    ...(centerList
+      ?.filter((c) => user?.centerAccess?.includes(c._id))
+      ?.map((c) => ({
+        value: c._id,
+        label: c.title,
+      })) || []),
   ];
 
   const selectedCenterOption =
@@ -126,9 +128,16 @@ const MedicineRequisition = () => {
   useEffect(() => {
     loadRequisitions(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, selectedCenter, user?.centerAccess]);
+  }, [statusFilter, selectedCenter, user?.centerAccess?.join(",")]);
+
+  const isFirstSearchRun = useRef(true);
 
   useEffect(() => {
+    // The mount fetch is already done by the effect above; only debounce real search changes.
+    if (isFirstSearchRun.current) {
+      isFirstSearchRun.current = false;
+      return;
+    }
     const handler = setTimeout(() => {
       loadRequisitions(1);
     }, 500);
@@ -244,11 +253,7 @@ const MedicineRequisition = () => {
                 Manage and review new medicine proposals for the master medicine
               </p>
             </div>
-            <CheckPermission
-              accessRolePermission={roles?.permissions}
-              permission={"create"}
-              subAccess={"REQUISITION_MEDICINE_REQUISITION"}
-            >
+            {hasRaisePermission && (
               <div className="d-flex gap-2 flex-wrap justify-content-end">
                 <Button
                   color="primary"
@@ -259,7 +264,7 @@ const MedicineRequisition = () => {
                   <span>New Requisition</span>
                 </Button>
               </div>
-            </CheckPermission>
+            )}
           </div>
 
           {/* Status Tabs */}

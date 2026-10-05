@@ -20,6 +20,7 @@ import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { getStockByMedicineIds } from "../../../../../helpers/backend_helper";
+import { fetchAllCenters } from "../../../../../store/features/center/centerSlice";
 import {
     submitInternalTransferRequisition,
     editInternalTransferRequisition,
@@ -75,13 +76,6 @@ const stockPill = (n) =>
                 : pill("#f8d7da", "#721c24");
 
 
-const SPECIAL_ORDER_CENTERS = [
-    {
-        id: process.env.REACT_APP_ENV === "production" ? "69c5311b0a5aee96ac8d5b8c" : "69df2e66732bc118687e38d9",
-        label: "Sareyaan Pharma",
-        question: "Do you want to order from Saareyan?",
-    },
-];
 const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "internal" }) => {
     const isSareyaanOrder = transferType === "sareyaan";
     const isEdit = mode === "edit";
@@ -91,8 +85,8 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const handleAuthError = useAuthError();
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
-    const user = useSelector((state) => state.User);
     const centerList = useSelector((state) => state.Center.data);
+    const allCenterList = useSelector((state) => state.Center.allCenters);
     const { submitLoading } = useSelector((state) => state.Pharmacy);
 
     const microUser = localStorage.getItem("micrologin");
@@ -105,20 +99,30 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const [fulfillingCenter, setFulfillingCenter] = useState(null);
     const [items, setItems] = useState([]);
 
-    const [centerMedicines, setCenterMedicines] = useState([]);
-    const [centerMedicinesLoading, setCenterMedicinesLoading] = useState(false);
-    const [centerMedicinesPage, setCenterMedicinesPage] = useState(1);
-    const [centerMedicinesPageSize, setCenterMedicinesPageSize] = useState(10);
-    const [centerMedicinesTotalPages, setCenterMedicinesTotalPages] = useState(1);
-    const [centerMedicinesSearch, setCenterMedicinesSearch] = useState("");
-    const [debouncedCenterSearch, setDebouncedCenterSearch] = useState("");
+    // const [centerMedicines, setCenterMedicines] = useState([]);
+    // const [centerMedicinesLoading, setCenterMedicinesLoading] = useState(false);
+    // const [centerMedicinesPage, setCenterMedicinesPage] = useState(1);
+    // const [centerMedicinesPageSize, setCenterMedicinesPageSize] = useState(10);
+    // const [centerMedicinesTotalPages, setCenterMedicinesTotalPages] = useState(1);
+    // const [centerMedicinesSearch, setCenterMedicinesSearch] = useState("");
+    // const [debouncedCenterSearch, setDebouncedCenterSearch] = useState("");
+
+    const isSareyaanCenter = (c) => (c?.title || "").toLowerCase().startsWith("sareyaan");
+    const sareyaanCenters = (allCenterList || []).filter(isSareyaanCenter);
+
+    useEffect(() => {
+        dispatch(fetchAllCenters());
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     // Auto-set Sareyaan as fulfilling center when creating a sareyaan order
     useEffect(() => {
         if (!isSareyaanOrder || isEdit) return;
-        const sareyaan = SPECIAL_ORDER_CENTERS[0];
-        setFulfillingCenter({ value: sareyaan.id, label: sareyaan.label });
-    }, [isSareyaanOrder, isEdit]);
+        const sareyaan = sareyaanCenters[0];
+        if (!sareyaan) return;
+        setFulfillingCenter({ value: sareyaan._id, label: sareyaan.title });
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [isSareyaanOrder, isEdit, sareyaanCenters[0]?._id]);
 
 
     const medicineSearchRef = useRef(null);
@@ -126,22 +130,17 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const [medicineKey, setMedicineKey] = useState(0);
 
     const requisingCenterOptions = (centerList || [])
-        .filter((c) => !SPECIAL_ORDER_CENTERS.some((special) => special.id === c._id))
         .map((c) => ({ value: c._id, label: c.title || "Unknown Center" }));
 
-    const fulfillingCenterOptions = (centerList || [])
-        .filter((c) => {
-            if (isSareyaanOrder) return SPECIAL_ORDER_CENTERS.some((special) => special.id === c._id);
-            return !SPECIAL_ORDER_CENTERS.some((special) => special.id === c._id);
-        })
-        .map((c) => ({
-            value: c._id,
-            label: c.title || "Unknown Center",
-        }));
+    const fulfillingCenterOptions = isSareyaanOrder
+        ? sareyaanCenters.map((c) => ({ value: c._id, label: c.title || "Unknown Center" }))
+        : (allCenterList || [])
+            .filter((c) => !isSareyaanCenter(c))
+            .map((c) => ({ value: c._id, label: c.title || "Unknown Center" }));
 
     // Is the fulfilling center locked to a Sareyaan-type center?
-    const isSpecialFulfillingLocked = isSareyaanOrder || SPECIAL_ORDER_CENTERS.some(
-        (c) => c.id === fulfillingCenter?.value
+    const isSpecialFulfillingLocked = isSareyaanOrder || sareyaanCenters.some(
+        (c) => c._id === fulfillingCenter?.value
     );
 
     const hasWritePermission = hasPermission(
@@ -496,7 +495,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                 Only PENDING requisitions can be edited
                             </>
                         ) : (
-                            isSareyaanOrder ? "Order stock from Sareyaan Pharma" : "Request stock transfer from one center to another"
+                            isSareyaanOrder ? "Order stock from a Sareyaan center" : "Request stock transfer from one center to another"
                         )}
                     </p>
                 </div>
@@ -538,9 +537,11 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                     style={{ background: "#e8f5e9", border: "1px solid #a5d6a7", borderRadius: 10 }}>
                     <i className="bx bx-store fs-4 text-success" />
                     <div>
-                        <p className="mb-0 fw-semibold" style={{ fontSize: 14 }}>Sareyaan Pharma Order</p>
+                        <p className="mb-0 fw-semibold" style={{ fontSize: 14 }}>Sareyaan Order</p>
                         <p className="mb-0 text-muted" style={{ fontSize: 12 }}>
-                            Fulfilling center is set to <strong>Sareyaan Pharma</strong>. Select your requesting center and add medicines.
+                            {sareyaanCenters.length > 1
+                                ? <>Select the <strong>Sareyaan</strong> center that will fulfill this order, then select your requesting center and add medicines.</>
+                                : <>Fulfilling center is set to <strong>{sareyaanCenters[0]?.title || "Sareyaan Pharma"}</strong>. Select your requesting center and add medicines.</>}
                         </p>
                     </div>
                 </div>
@@ -616,7 +617,13 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                     }}
                                     placeholder="Center that supplies stock…"
                                     isClearable
-                                    isDisabled={isEdit ? true : isSpecialFulfillingLocked}
+                                    isDisabled={
+                                        isEdit
+                                            ? true
+                                            : isSareyaanOrder
+                                                ? sareyaanCenters.length <= 1
+                                                : isSpecialFulfillingLocked
+                                    }
                                 />
                                 <small className="text-muted d-block mt-1" style={{ fontSize: 11 }}>
                                     <i className="bx bx-package me-1" />

@@ -11,7 +11,15 @@ import EmergencyAdmissionForm from "./EmergencyAdmissionForm";
 import SeriousnessConsent from "./SeriousnessConsent";
 import MediactionConcent from "./MediactionConcent";
 import DischargeIndependentAdult from "./DischargeIndependentAdult";
+import DischargeVoluntaryAdult from "./DischargeVoluntaryAdult";
 import DischargeIndependentMinor from "./DischargeIndependentMinor";
+import DischargeWithHighSupport from "./DischargeWithHighSupport";
+import DischargeWithHighSupport2 from "./DischargeWithHighSupport2";
+import DischargeAMA from "./DischargeAMA";
+import DischargeEmergencyTransfer from "./DischargeEmergencyTransfer";
+import DischargeAbsconding from "./DischargeAbsconding";
+import DischargeInterFacility from "./DischargeInterFacility";
+import DischargeDeath from "./DischargeDeath";
 // import IndipendentOpinion1 from "./IndipendentOpinion1";
 // import IndipendentOpinion2 from "./IndipendentOpinion2";
 // import IndipendentOpinion3 from "./IndipendentOpinion3";
@@ -30,6 +38,7 @@ import {
 import { useState, useRef, useEffect, useMemo } from "react";
 import AdmissionformModal from "../../Modals/Admissionform.modal";
 import { connect, useDispatch, useSelector } from "react-redux";
+import { submitAdmissionForm } from "../../../../store/features/patient/patientSlice";
 import PropTypes from "prop-types";
 import jsPDF from "jspdf";
 import { captureSection } from "./captureSection";
@@ -49,7 +58,11 @@ import DishchargeformModal from "../../Modals/Dishchargeform.modal";
 import ConsentformModal from "../../Modals/Consentform.modal";
 import UndertakingDischargeForm from "./UndertakingDischargeForm";
 import AudioVideoConsentForm from "./AudioVideoConsentForm";
-import { uploadECTConsentSignedCopy } from "../../../../helpers/backend_helper";
+import {
+  uploadECTConsentSignedCopy,
+  uploadDNRForm,
+} from "../../../../helpers/backend_helper";
+import MHRBEmailUploadModal from "../../Modals/MHRBEmailUploadModal";
 import {
   admissionBelongsToPatient,
   scopeAdmissionsToPatient,
@@ -61,6 +74,7 @@ import {
 const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   const dispatch = useDispatch();
   const formType = useSelector((state) => state.Chart?.chartForm?.chart);
+  const finalDiagnosis = useSelector((state) => state.Chart.finalDiagnosis);
 
   // `state.Chart.data` can hold admissions belonging to any patient visited this
   // session, so scope every read to the patient actually on screen rather than
@@ -89,6 +103,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   const toggleModal4 = () => setDateModal4(!dateModal4);
   const [openform3, setOpenform3] = useState(false);
   const [openform4, setOpenform4] = useState(false);
+  const [mhrbModalOpen, setMhrbModalOpen] = useState(false);
+  const [mhrbTargetAdmissionId, setMhrbTargetAdmissionId] = useState(null);
   const [addmissionId, setAddmissionId] = useState();
   const [admissiontype, setAdmissiontype] = useState("");
   const [adultationype, setAdultationtype] = useState("");
@@ -105,6 +121,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     semiprivate: "",
     advDeposit: "",
   });
+  const [emergencyDischargeType, setEmergencyDischargeType] = useState("");
 
   const fileInputRef = useRef(null);
   const consentFileInputRef = useRef(null);
@@ -112,6 +129,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   const undertakingDischargeFileInputRef = useRef(null);
   const capacityAssessmentFileInputRef = useRef(null);
   const ectConsentFileInputRef = useRef(null);
+  const dnrFileInputRef = useRef(null);
   // const page1Ref = useRef(null);
   // const page2Ref = useRef(null);
   const seriousnessRef = useRef(null);
@@ -127,8 +145,11 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   // const indipendentref2 = useRef(null);
   // const indipendentref3 = useRef(null);
   const dischargeRefAdult = useRef(null);
+  const dischargeRefVoluntary = useRef(null);
   const dischargeRefMinor = useRef(null);
   const dischargeRefUndertaking = useRef(null);
+  const dischargeRefSupport = useRef(null);
+  const dischargeRefEmergency = useRef(null);
 
   const [open, setOpen] = useState(addmissionsCharts?.length > 0 ? "0" : null);
   const toggleAccordian = (id) => {
@@ -214,6 +235,24 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, patient?._id, addmissionId]);
 
+  // Pre-fill the consent form's Ward/Room and Bed from the admission's own
+  // root-level fields (set on the main Admission Form) whenever the selected
+  // admission changes. These are only defaults — details.ward/bed stay plain
+  // local state the user can freely overwrite before submitting the consent
+  // form, and editing them here never writes back to the admission record.
+  useEffect(() => {
+    if (!admissionBelongsToPatient(addmissionId, patient)) return;
+    const currentAddmission = addmissionsCharts.find(
+      (a) => a._id === addmissionId,
+    );
+    if (!currentAddmission) return;
+    setDetails((prev) => ({
+      ...prev,
+      ward: currentAddmission.ward || "",
+      bed: currentAddmission.bed || "",
+    }));
+  }, [addmissionId, addmissionsCharts]);
+
   const { register, handleSubmit, setValue, reset, watch } = useForm();
 
   // Belt and braces for the write paths. The scoping above should already make a
@@ -228,7 +267,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     return null;
   };
 
-  const [isGenerating, setIsGenerating] = useState(false);
   const [isGenerating2, setIsGenerating2] = useState(false);
   const [pdfUrl, setPdfUrl] = useState(null);
   const [pdfUrl2, setPdfUrl2] = useState(null);
@@ -247,29 +285,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     };
   }, [pdfUrl]);
 
-  const handlePrintConsent = async () => {
-    setIsGenerating(true);
-    try {
-      const pdf = new jsPDF("p", "pt", "a4");
-      await captureSection(admission1Ref, pdf, true);
-      await captureSection(admission2Ref, pdf);
-
-      await captureSection(seriousnessRef, pdf);
-      await captureSection(medicationRef, pdf);
-      await captureSection(audioVideoRef, pdf);
-
-      const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-      if (pdfUrl2) URL.revokeObjectURL(pdfUrl2);
-      setPdfUrl2(url);
-      setPreviewModal2(true);
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const handleDownloadConsent = () => {
     if (!pdfUrl2) return;
     const link = document.createElement("a");
@@ -278,55 +293,12 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     link.click();
   };
 
-  const handlePrintDischarge = async () => {
-    setIsGenerating(true);
-    try {
-      const pdf = new jsPDF("p", "pt", "a4");
-      if (dischargeRefAdult.current)
-        await captureSection(dischargeRefAdult, pdf, true);
-      if (dischargeRefMinor.current)
-        await captureSection(dischargeRefMinor, pdf, true);
-      if (dischargeRefUndertaking.current)
-        await captureSection(dischargeRefUndertaking, pdf, true);
-      const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-      if (pdfUrl3) URL.revokeObjectURL(pdfUrl3);
-      setPdfUrl3(url);
-      setPreviewModal3(true);
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-    } finally {
-      setIsGenerating(false);
-    }
-  };
-
   const handleDownloadDischarge = () => {
     if (!pdfUrl3) return;
     const link = document.createElement("a");
     link.href = pdfUrl3;
     link.download = `${patient?.id?.value}-${patient?.name}-Discharge-form.pdf`;
     link.click();
-  };
-
-  const handlePrintAdmission = async () => {
-    setIsGenerating(true);
-    try {
-      const pdf = new jsPDF("p", "pt", "a4");
-      if (adultRef.current) await captureSection(adultRef, pdf, true);
-      if (minorRef.current) await captureSection(minorRef, pdf, true);
-      if (supportRef.current) await captureSection(supportRef, pdf, true);
-      if (emergencyRef.current) await captureSection(emergencyRef, pdf, true);
-      const blob = pdf.output("blob");
-      const url = URL.createObjectURL(blob);
-      if (pdfUrl) URL.revokeObjectURL(pdfUrl);
-      // setPdfUrl(blob);
-      setPdfUrl(url);
-      setPreviewModal(true);
-    } catch (err) {
-      console.error("PDF generation failed:", err);
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
   const handleDownloadAdmission = () => {
@@ -350,6 +322,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     setSupporttype("");
     setEmergencyType("");
     setEmergencyRestraint("");
+    setEmergencyDischargeType("");
     setDetails({
       IPDnum: "",
       bed: "",
@@ -392,13 +365,36 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (admissiontype === "EMERGENCY_ADMISSION" && emergencyRestraint)
         formData.append("emergencyRestraint", emergencyRestraint);
 
-      await axios.patch(`/patient/admission-submit/${targetId}`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      // Through the slice, not a bare axios call: the response carries the
+      // admission's refreshed type timeline and the reducer patches it into
+      // state, so the topbar and summary card update without a refetch.
+      await dispatch(
+        submitAdmissionForm({ admissionId: targetId, formData }),
+      ).unwrap();
+
+      // Saved — now show the PDF, reusing the very blob just uploaded so the
+      // printed copy and the stored copy cannot differ. This is also why it
+      // happens HERE rather than by calling a print handler afterwards: the
+      // reset block below unmounts the form and nulls adultRef / minorRef /
+      // supportRef / emergencyRef, so a capture at that point would produce an
+      // empty PDF.
+      try {
+        const url = URL.createObjectURL(pdfBlob);
+        if (pdfUrl) URL.revokeObjectURL(pdfUrl);
+        setPdfUrl(url);
+        setPreviewModal(true);
+      } catch (previewError) {
+        // The form IS saved — never report that as a failure. It can be
+        // downloaded from the forms list instead.
+        console.error("PDF preview failed:", previewError);
+        toast.warn("Form submitted, but the PDF preview could not be opened");
+      }
 
       toast.success("Admission form submitted successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       reset();
       setOpenform(false);
       setAdmissiontype("");
@@ -460,6 +456,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         },
       });
       toast.success("Signed PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
@@ -490,6 +490,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         },
       });
       toast.success("Signed PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
@@ -528,17 +532,32 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (details.advDeposit)
         formData.append("refundableDeposit", details.advDeposit);
 
-      await axios.patch(
-        `/patient/consent-submit-file/${targetId}`,
-        formData,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
+      await axios.patch(`/patient/consent-submit-file/${targetId}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
         },
-      );
+      });
+
+      // Saved — now show the PDF, reusing the very blob just uploaded so the
+      // printed copy and the stored copy cannot differ. This has to happen
+      // before the resets below: closing the modal unmounts the sections, so a
+      // capture taken afterwards would rasterise nothing.
+      try {
+        const url = URL.createObjectURL(pdfBlob);
+        if (pdfUrl2) URL.revokeObjectURL(pdfUrl2);
+        setPdfUrl2(url);
+        setPreviewModal2(true);
+      } catch (previewError) {
+        // The form IS saved — never turn that into a failure.
+        console.error("PDF preview failed:", previewError);
+        toast.warn("Form submitted, but the PDF preview could not be opened");
+      }
 
       toast.success("Consent form submitted successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setOpenform4(false);
       setAdmissiontype("");
       setAdultationtype("");
@@ -577,6 +596,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Signed PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
@@ -603,6 +626,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
       toast.success("Signed PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
@@ -620,10 +647,17 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
 
       if (dischargeRefAdult.current)
         await captureSection(dischargeRefAdult, pdf, true);
+      if (dischargeRefVoluntary.current)
+        await captureSection(dischargeRefVoluntary, pdf, true);
       if (dischargeRefMinor.current)
         await captureSection(dischargeRefMinor, pdf, true);
       if (dischargeRefUndertaking.current)
         await captureSection(dischargeRefUndertaking, pdf, true);
+
+      if (dischargeRefSupport.current)
+        await captureSection(dischargeRefSupport, pdf, true);
+      if (dischargeRefEmergency.current)
+        await captureSection(dischargeRefEmergency, pdf, true);
 
       const pdfBlob = pdf.output("blob");
       const formData = new FormData();
@@ -649,7 +683,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (admissiontype) formData.append("dischargeType", admissiontype);
       if (admissiontype === "INDEPENDENT_ADMISSION" && adultationype)
         formData.append("adultationType", adultationype);
-
+      if (admissiontype === "SUPPORTIVE_ADMISSION" && supporttype)
+        formData.append("supportType", supporttype);
+      if (admissiontype === "EMERGENCY_DISCHARGE" && emergencyDischargeType)
+        formData.append("emergencyDischargeType", emergencyDischargeType);
       // ---------------------------
       // SELECT API BASED ON CONDITION
       // ---------------------------
@@ -662,12 +699,31 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      toast.success("Consent form submitted successfully!");
+      // Same as the admission and consent forms: the preview comes from the
+      // blob that was just uploaded, and must open before the resets close the
+      // modal and unmount the sections it was captured from.
+      try {
+        const url = URL.createObjectURL(pdfBlob);
+        if (pdfUrl3) URL.revokeObjectURL(pdfUrl3);
+        setPdfUrl3(url);
+        setPreviewModal3(true);
+      } catch (previewError) {
+        console.error("PDF preview failed:", previewError);
+        toast.warn("Form submitted, but the PDF preview could not be opened");
+      }
+
+      toast.success("Discharge form submitted successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
       setOpenform3(false);
       setAdmissiontype("");
       setAdultationtype("");
+      setSupporttype("");
+      setEmergencyDischargeType("");
     } catch (error) {
-      toast.error("Failed to submit Consent form");
+      toast.error("Failed to submit Discharge form");
     } finally {
       setIsGenerating2(false);
     }
@@ -675,7 +731,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
 
   useEffect(() => {
     dispatch(fetchPatientById(patient?._id));
-  }, [dispatch, isGenerating2, isGenerating]);
+  }, [dispatch, isGenerating2]);
 
   useEffect(() => {
     if (formType === "ADMISSION FORM") {
@@ -753,6 +809,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       });
 
       toast.success("Capacity Assessment PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
     } catch (err) {
       toast.error("Upload failed");
     } finally {
@@ -793,6 +853,9 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
 
       toast.success("ECT Consent PDF uploaded successfully!");
       dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
     } catch (err) {
       toast.error("Upload failed");
     } finally {
@@ -800,6 +863,79 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       // Allow re-selecting the same file after a failure.
       e.target.value = "";
     }
+  };
+
+  const handleDNRUploadClick = () => {
+    dnrFileInputRef.current.click();
+  };
+
+  const handleFileChangeDNR = async (e) => {
+    const file = e.target.files[0];
+    const targetId = resolveTargetAddmission();
+    if (!targetId) {
+      e.target.value = "";
+      return;
+    }
+    setIsGenerating2(true);
+
+    if (!file) {
+      setIsGenerating2(false);
+      return;
+    }
+
+    if (file.type !== "application/pdf") {
+      toast.warning("Please upload a PDF file.");
+      setIsGenerating2(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("dnrFormURL", file);
+      formData.append("id", targetId);
+
+      await uploadDNRForm(formData);
+
+      toast.success("Do Not Resuscitate Form PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
+    } catch (err) {
+      toast.error("Upload failed");
+    } finally {
+      setIsGenerating2(false);
+      // Allow re-selecting the same file after a failure.
+      e.target.value = "";
+    }
+  };
+
+  const getDischargeFormLabel = (file) => {
+    const type = file?.dischargeType;
+    const adult = file?.adultationType;
+    const support = file?.supportType;
+    const emergency = file?.emergencyDischargeType;
+
+    if (type === "INDEPENDENT_ADMISSION" && adult === "ADULT")
+      return "Independent (Adult)";
+    if (type === "INDEPENDENT_ADMISSION" && adult === "MINOR")
+      return "Independent (Minor)";
+    if (type === "SUPPORTIVE_ADMISSION" && support === "UPTO30DAYS")
+      return "Supportive (≤30 Days)";
+    if (type === "SUPPORTIVE_ADMISSION" && support === "BEYOND30DAYS")
+      return "Supportive (>30 Days)";
+    if (type === "DISCHARGE_UNDERTAKING") return "Discharge Undertaking";
+    if (type === "EMERGENCY_DISCHARGE" && emergency === "AMA")
+      return "Emergency - AMA";
+    if (type === "EMERGENCY_DISCHARGE" && emergency === "EMERGENCY_TRANSFER")
+      return "Emergency - Hospital Transfer";
+    if (type === "EMERGENCY_DISCHARGE" && emergency === "ABSCONDING")
+      return "Emergency - Absconding";
+    if (type === "EMERGENCY_DISCHARGE" && emergency === "INTER_FACILITY")
+      return "Emergency - Inter-Facility";
+    if (type === "EMERGENCY_DISCHARGE" && emergency === "DEATH")
+      return "Emergency - Death Declaration";
+    return "Discharge Form";
   };
 
   return (
@@ -925,6 +1061,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -933,6 +1070,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   color="primary"
                                   className="mr-10"
                                   disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "44px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1015,6 +1153,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -1023,6 +1162,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   color="primary"
                                   className="mr-10"
                                   disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "44px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1101,6 +1241,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -1110,6 +1251,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   className="mr-10"
                                   disabled={isGenerating2}
                                   label="patient-discharge-form"
+                                  style={{ width: "100%", minHeight: "44px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1145,7 +1287,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Draft Discharge Form{" "}
+                                            Download Draft Discharge Form —{" "}
+                                            {getDischargeFormLabel(file)}{" "}
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
@@ -1197,6 +1340,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -1207,6 +1351,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   color="primary"
                                   className="mr-10"
                                   disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "44px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1296,6 +1441,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -1304,6 +1450,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   color="primary"
                                   className="mr-10"
                                   disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "44px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1389,6 +1536,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   justifyContent: "center",
                                   alignItems: "center",
                                   gap: "30px",
+                                  width: "100%",
                                 }}
                               >
                                 <Button
@@ -1397,6 +1545,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   color="primary"
                                   className="mr-10"
                                   disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "60px" }}
                                 >
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
@@ -1465,6 +1614,157 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                         </div>
                                       ),
                                     )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* MHRB email form */}
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                  width: "100%",
+                                }}
+                              >
+                                <Button
+                                  onClick={() => {
+                                    const targetId = resolveTargetAddmission();
+                                    if (targetId) {
+                                      setMhrbTargetAdmissionId(targetId);
+                                      setMhrbModalOpen(true);
+                                    }
+                                  }}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "60px" }}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "MHRB Email Upload"
+                                  )}
+                                </Button>
+
+                                {test?.mhrbEmailFormURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.mhrbEmailFormURL.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-success btn-sm"
+                                          >
+                                            Download MHRB Email File{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* DNR (Do Not Resuscitate) form */}
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                  width: "100%",
+                                }}
+                              >
+                                <Button
+                                  onClick={handleDNRUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "60px" }}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Upload Signed Copy Of Do Not Resuscitate Form"
+                                  )}
+                                </Button>
+
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={dnrFileInputRef}
+                                  style={{ display: "none" }}
+                                  onChange={handleFileChangeDNR}
+                                />
+
+                                {test?.dnrFormRaw?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.dnrFormRaw.map((form, index) => (
+                                      <div key={index} className="mt-2">
+                                        <a
+                                          href={form?.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="btn btn-outline-primary btn-sm"
+                                        >
+                                          Download Draft Do Not Resuscitate
+                                          Form {index + 1}{" "}
+                                          {form?.uploadedAt
+                                            ? `(${new Date(form.uploadedAt).toLocaleDateString()})`
+                                            : ""}
+                                        </a>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                                {test?.dnrFormURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.dnrFormURL.map((file, index) => (
+                                      <div key={index} className="mt-2">
+                                        <a
+                                          href={file?.url}
+                                          target="_blank"
+                                          rel="noopener noreferrer"
+                                          className="btn btn-outline-success btn-sm"
+                                        >
+                                          Download Signed Do Not Resuscitate
+                                          Form {index + 1}{" "}
+                                          {file?.uploadedAt
+                                            ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
+                                            : ""}
+                                        </a>
+                                      </div>
+                                    ))}
                                   </div>
                                 )}
                               </div>
@@ -1618,21 +1918,21 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                 </div>
               </div> */}
               <div style={{ textAlign: "center", margin: "20px" }}>
+                {/* Submitting is the only way to get the printed form — the
+                    standalone Print PDF button was removed so a signed paper
+                    copy can't exist without a record of it in the system. The
+                    preview opens from onSubmitAdmission on success. */}
                 <Button
                   color="secondary"
                   type="submit"
                   className="me-2"
                   disabled={isGenerating2}
                 >
-                  {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
-                </Button>
-                <Button
-                  type="button"
-                  color="primary"
-                  onClick={handlePrintAdmission}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
+                  {isGenerating2 ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    "Submit and Print PDF"
+                  )}
                 </Button>
                 <Button
                   style={{ marginLeft: "8px" }}
@@ -1706,21 +2006,21 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
               </div>
 
               <div style={{ textAlign: "center", margin: "20px" }}>
+                {/* Submitting is the only way to get the printed form — the
+                    standalone Print PDF button was removed so a signed paper
+                    copy can't exist without a record of it in the system. The
+                    preview opens from onSubmitConsent on success. */}
                 <Button
                   color="secondary"
                   type="submit"
                   className="me-2"
                   disabled={isGenerating2}
                 >
-                  {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
-                </Button>
-                <Button
-                  type="button"
-                  color="primary"
-                  onClick={handlePrintConsent}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
+                  {isGenerating2 ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    "Submit and Print PDF"
+                  )}
                 </Button>
                 <Button
                   style={{ marginLeft: "8px" }}
@@ -1769,6 +2069,18 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                     />
                   </div>
                 )}{" "}
+              {/* Voluntary Adult — Section 86 */}
+              {admissiontype === "INDEPENDENT_ADMISSION" &&
+                adultationype === "VOLUNTARY_ADULT" && (
+                  <div ref={dischargeRefVoluntary}>
+                    <DischargeVoluntaryAdult
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
+                    />
+                  </div>
+                )}
               {/* for minor */}{" "}
               {admissiontype === "INDEPENDENT_ADMISSION" &&
                 adultationype === "MINOR" && (
@@ -1790,22 +2102,105 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                   />
                 </div>
               )}
+              {admissiontype === "SUPPORTIVE_ADMISSION" &&
+                supporttype === "UPTO30DAYS" && (
+                  <div ref={dischargeRefSupport}>
+                    <DischargeWithHighSupport
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
+                    />
+                  </div>
+                )}
+              {/* Supportive Discharge — Section 90 >30 days */}
+              {admissiontype === "SUPPORTIVE_ADMISSION" &&
+                supporttype === "BEYOND30DAYS" && (
+                  <div ref={dischargeRefSupport}>
+                    <DischargeWithHighSupport2
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
+                    />
+                  </div>
+                )}
+              {/* Emergency Discharge — AMA */}
+              {admissiontype === "EMERGENCY_DISCHARGE" &&
+                emergencyDischargeType === "AMA" && (
+                  <div ref={dischargeRefEmergency}>
+                    <DischargeAMA
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
+                    />
+                  </div>
+                )}
+              {/* Emergency Discharge — Emergency Hospital Transfer */}
+              {admissiontype === "EMERGENCY_DISCHARGE" &&
+                emergencyDischargeType === "EMERGENCY_TRANSFER" && (
+                  <div ref={dischargeRefEmergency}>
+                    <DischargeEmergencyTransfer
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                      chartData={chartData}
+                      setValue={setValue}
+                    />
+                  </div>
+                )}
+              {/* Emergency Discharge — Absconding */}
+              {admissiontype === "EMERGENCY_DISCHARGE" &&
+                emergencyDischargeType === "ABSCONDING" && (
+                  <div ref={dischargeRefEmergency}>
+                    <DischargeAbsconding
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                    />
+                  </div>
+                )}
+              {/* Emergency Discharge — Inter-Facility Transfer */}
+              {admissiontype === "EMERGENCY_DISCHARGE" &&
+                emergencyDischargeType === "INTER_FACILITY" && (
+                  <div ref={dischargeRefEmergency}>
+                    <DischargeInterFacility
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                      chartData={chartData}
+                      setValue={setValue}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
+                    />
+                  </div>
+                )}
+              {/* Emergency Discharge — Death / Expiry Declaration */}
+              {admissiontype === "EMERGENCY_DISCHARGE" &&
+                emergencyDischargeType === "DEATH" && (
+                  <div ref={dischargeRefEmergency}>
+                    <DischargeDeath
+                      register={register}
+                      admissions={admissions[0]}
+                      patient={patient}
+                      finalDiagnosis={finalDiagnosis?.code || ""}
+                    />
+                  </div>
+                )}
               <div style={{ textAlign: "center", margin: "20px" }}>
+                {/* One action only — see the consent form above. The modal
+                    header's own toggle is how this form is closed. */}
                 <Button
                   color="secondary"
                   type="submit"
                   className="me-2"
                   disabled={isGenerating2}
                 >
-                  {isGenerating2 ? <Spinner size="sm" /> : "Submit"}
-                </Button>
-                <Button
-                  type="button"
-                  color="primary"
-                  onClick={handlePrintDischarge}
-                  disabled={isGenerating}
-                >
-                  {isGenerating ? <Spinner size="sm" /> : "Print PDF"}
+                  {isGenerating2 ? (
+                    <Spinner size="sm" />
+                  ) : (
+                    "Submit and Print PDF"
+                  )}
                 </Button>
               </div>
             </form>
@@ -1968,6 +2363,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         adultationype={adultationype}
         setAdultationtype={setAdultationtype}
         supporttype={supporttype}
+        emergencyDischargeType={emergencyDischargeType}
+        setEmergencyDischargeType={setEmergencyDischargeType}
         setSupporttype={setSupporttype}
         setOpenform3={setOpenform3}
         openform3={openform3}
@@ -1981,6 +2378,14 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         setDetails={setDetails}
         setOpenform={setOpenform4}
         openform={openform4}
+      />
+
+      <MHRBEmailUploadModal
+        isOpen={mhrbModalOpen}
+        toggle={() => setMhrbModalOpen(false)}
+        addmissionId={mhrbTargetAdmissionId}
+        patient={patient}
+        dispatch={dispatch}
       />
     </>
   );

@@ -9,6 +9,7 @@ export {
   updateUserWeeklySchedule,
   updateUserPassword,
   suspendStaff,
+  toggleAppLogin,
   // fetchUsers,
   removeUser,
   updateUser,
@@ -165,6 +166,7 @@ export {
   fetchAllPatients,
   fetchPatientById,
   editAdmissionAssignment,
+  editAdmissionWardBed,
 } from "./features/patient/patientSlice";
 
 // timeline

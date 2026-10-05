@@ -1,12 +1,12 @@
 const SelectedBadge = ({ user, role, onRemove }) => (
     <span
         className="badge d-inline-flex align-items-center gap-1 me-1 mb-1 px-2 py-1"
-        style={{ background: "var(--vz-primary)", fontSize: 11, borderRadius: 20, fontWeight: 500 }}
+        style={{ background: "#eff6ff", color: "#1d4ed8", border: "1px solid #bfdbfe", fontSize: 11, borderRadius: 20, fontWeight: 500 }}
     >
         {user.name}
         <button
             type="button"
-            className="btn-close btn-close-white"
+            className="btn-close"
             style={{ fontSize: 8, lineHeight: 1 }}
             onClick={() => onRemove(role, user._id)}
         />
@@ -19,6 +19,7 @@ const SelectedPanel = ({
     activeRecordIdx,
     onRemoveUser,
     onSwitchRecord,
+    positionNames = {},
 }) => {
     const totalSelectedInRecord = Object.values(activeRecord.selectedUsers).reduce(
         (sum, arr) => sum + arr.length,
@@ -45,7 +46,7 @@ const SelectedPanel = ({
                     <i className="ri-group-line fs-2 d-block mb-2 opacity-25" />
                     No attendees selected yet.
                     <br />
-                    Pick users from the left panel.
+                    Pick employees from the left panel.
                 </div>
             ) : (
                 <div
@@ -61,7 +62,7 @@ const SelectedPanel = ({
                                         className="fw-semibold"
                                         style={{ fontSize: 12, color: "var(--vz-primary)" }}
                                     >
-                                        {role}
+                                        {positionNames[role] || role}
                                     </span>
                                     <span
                                         className="badge bg-soft-primary text-primary"
@@ -116,7 +117,7 @@ const SelectedPanel = ({
                                             <span className="text-muted"> — {rec.trainerName}</span>
                                         )}
                                     </span>
-                                    <span className="badge bg-secondary">{count} users</span>
+                                    <span className="badge bg-secondary">{count} employees</span>
                                 </div>
                             );
                         })}

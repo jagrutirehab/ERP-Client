@@ -4,19 +4,18 @@ import {
     CardBody,
     CardTitle,
     Badge,
-    Row,
-    Col,
     Input
 } from "reactstrap";
 import { UserRound, Calendar } from "lucide-react";
 import { toast } from "react-toastify";
-import { format } from "date-fns";
+import { format, startOfDay, endOfDay } from "date-fns";
 import Select from "react-select";
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getPendingApprovalsByPatient } from "../../../../store/features/pharmacy/pharmacySlice";
-import DetailedPrescriptionModal from "../../Components/DetailedPrescriptionModal";
+import ApproveMedicinesModal from "./ApproveMedicinesModal";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
+import DateRangeFilter from "../../../../Components/Common/DateRangeFilter";
 
 const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const [modal, setModal] = useState(false);
@@ -31,6 +30,10 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [reportDate, setReportDate] = useState({
+        start: startOfDay(new Date()),
+        end: endOfDay(new Date()),
+    });
 
     const centerOptions = [
         ...(user?.centerAccess?.length > 1
@@ -42,10 +45,12 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
             : []
         ),
         ...(
-            centerList?.map(c => ({
-                value: c._id,
-                label: c.title,
-            })) || []
+            centerList
+                ?.filter(c => user?.centerAccess?.includes(c._id))
+                ?.map(c => ({
+                    value: c._id,
+                    label: c.title,
+                })) || []
         )
     ];
 
@@ -76,34 +81,38 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
         return () => clearTimeout(handler);
     }, [search]);
 
+    const fetchMedicineApprovals = async () => {
+        try {
+            const centers =
+                selectedCenter === "ALL"
+                    ? user?.centerAccess
+                    : [selectedCenter];
+
+            await dispatch(
+                getPendingApprovalsByPatient({
+                    page,
+                    limit,
+                    type: activeTab,
+                    centers,
+                    ...search.trim() !== "" && { search: debouncedSearch },
+                    ...(reportDate.start && reportDate.end && {
+                        startDate: reportDate.start.toISOString(),
+                        endDate: reportDate.end.toISOString(),
+                        tz: Intl.DateTimeFormat().resolvedOptions().timeZone,
+                    }),
+                })
+            ).unwrap();
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to fetch medicine approvals.");
+            }
+        }
+    };
+
     useEffect(() => {
         if (activeSubTab !== "DETAILED" || !hasUserPermission) return;
-        const fetchMedicineApprovals = async () => {
-            try {
-                const centers =
-                    selectedCenter === "ALL"
-                        ? user?.centerAccess
-                        : [selectedCenter];
-
-                await dispatch(
-                    getPendingApprovalsByPatient({
-                        page,
-                        limit,
-                        type: activeTab,
-                        centers,
-                        ...search.trim() !== "" && { search: debouncedSearch }
-                    })
-                ).unwrap();
-            } catch (error) {
-                if (!handleAuthError(error)) {
-                    toast.error(error.message || "Failed to fetch medicine approvals.");
-                }
-            }
-        };
-
         fetchMedicineApprovals();
-
-    }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, user.centerAccess]);
+    }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, reportDate, user.centerAccess]);
 
 
     const handleCardClick = (patient) => {
@@ -181,6 +190,15 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
                     <div style={{ flexGrow: 1 }}></div>
                 </div>
 
@@ -223,6 +241,15 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <div style={{ width: "100%", maxWidth: "320px" }}>
+                        <DateRangeFilter
+                            reportDate={reportDate}
+                            setReportDate={(d) => {
+                                setReportDate(d);
+                                setPage(1);
+                            }}
+                        />
+                    </div>
 
                 </div>
 
@@ -230,13 +257,20 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
 
 
             {loading && <LoaderSkeleton />}
-            <Row className="g-3 mb-4">
+            <div
+                className="mb-4"
+                style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+                    gap: "1.5rem",
+                }}
+            >
                 {!loading && patientData.length === 0 ? (
                     <div className="d-flex justify-content-center align-items-center py-5 w-100">
                         There is no records to display
                     </div>
                 ) : !loading && patientData.map((patient) => (
-                    <Col xs={12} sm={6} lg={4} key={patient._id} className="d-flex">
+                    <div key={patient._id} className="d-flex">
                         <Card
                             className="cursor-pointer w-100 transition-all"
                             style={{
@@ -275,6 +309,12 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
 
                                         <small className="text-muted">Patient ID: {patient?.patientId?.prefix} {patient?.patientId?.value}</small>
                                     </div>
+
+                                    {patient?.approvalStatus === "PARTIALLY_PENDING" && (
+                                        <Badge color="info" pill className="flex-shrink-0 align-self-start">
+                                            Partially Pending
+                                        </Badge>
+                                    )}
 
                                     {patient?.centerName && (
                                         <Badge
@@ -316,9 +356,9 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                                 </div>
                             </CardBody>
                         </Card>
-                    </Col>
+                    </div>
                 ))}
-            </Row>
+            </div>
 
             {!loading && pagination.totalPages > 1 && <div className="d-flex justify-content-between align-items-center mt-3 mb-4">
                 <div className="small text-muted">
@@ -380,27 +420,38 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
                 </nav>
             </div>}
 
-            <DetailedPrescriptionModal patient={selectedPatient} modal={modal} setModal={setModal} />
+            <ApproveMedicinesModal
+                isOpen={modal && !!selectedPatient?._id}
+                onClose={() => setModal(false)}
+                approvalId={selectedPatient?._id}
+                centerId={selectedPatient?.centerId}
+                onDone={fetchMedicineApprovals}
+            />
         </div>
     );
 };
 
 
 const LoaderSkeleton = () => (
-    <Row className="g-3">
+    <div
+        style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
+            gap: "1.5rem",
+        }}
+    >
         {[...Array(9)].map((_, index) => (
-            <Col xs={12} sm={6} lg={4} key={index}>
-                <div
-                    style={{
-                        background: "#f1f5f9",
-                        height: "180px",
-                        borderRadius: "8px",
-                        animation: "pulse 1.5s infinite",
-                    }}
-                />
-            </Col>
+            <div
+                key={index}
+                style={{
+                    background: "#f1f5f9",
+                    height: "180px",
+                    borderRadius: "8px",
+                    animation: "pulse 1.5s infinite",
+                }}
+            />
         ))}
-    </Row>
+    </div>
 );
 
 

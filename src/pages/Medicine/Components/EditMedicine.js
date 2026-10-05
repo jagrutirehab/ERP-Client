@@ -41,11 +41,15 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
 
   const [dupError, setDupError] = useState("");
 
-  const checkDuplicate = async (name, strength, id) => {
-    if (!name || !strength) return;
+  // Duplicate = same name + strength + unit/base unit already in the master (excluding this one).
+  const checkDuplicate = async (name, strength, baseUnit) => {
+    if (!name || !baseUnit) {
+      setDupError("");
+      return;
+    }
 
     try {
-      const response = await dispatch(duplicateMedicineValidator({name, strength, id:data?._id})).unwrap();
+      const response = await dispatch(duplicateMedicineValidator({ name, strength, baseUnit, id: data?._id })).unwrap();
 
       if (response.exists) {
         setDupError(response.message);
@@ -90,7 +94,7 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
     }),
     onSubmit: (values) => {
       if (dupError) {
-        toast.errror("Fix duplicate strength before saving");
+        toast.error("Fix duplicate medicine before saving");
         return;
       }
 
@@ -144,9 +148,7 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
             <Input
               onChange={(e) => {
                 validation.handleChange(e);
-                if (validation.values.strength) {
-                  debouncedCheck(e.target.value, validation.values.strength, validation.values.id);
-                }
+                debouncedCheck(e.target.value, validation.values.strength, validation.values.baseUnit);
               }}
               name="name"
               onBlur={validation.handleBlur}
@@ -179,6 +181,7 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
                 const val = selected ? selected.value : "";
                 validation.setFieldValue("baseUnit", val);
                 validation.setFieldValue("unit", val);
+                debouncedCheck(validation.values.name, validation.values.strength, val);
               }}
               onBlur={() => validation.setFieldTouched("baseUnit", true)}
               value={validation.values.baseUnit ? { value: validation.values.baseUnit, label: normalizeLabel(validation.values.baseUnit) } : null}
@@ -233,7 +236,7 @@ const EditMedicine = ({ updateMedicine, setUpdateMedicine }) => {
             <Input
               onChange={(e) => {
                 validation.handleChange(e);
-                debouncedCheck(validation.values.name, e.target.value, validation.values.id);
+                debouncedCheck(validation.values.name, e.target.value, validation.values.baseUnit);
               }}
               name="strength"
               onBlur={validation.handleBlur}

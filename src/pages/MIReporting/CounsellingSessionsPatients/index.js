@@ -27,6 +27,7 @@ const CounsellingSessionsPatients = () => {
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [selectedPsychologist, setSelectedPsychologist] = useState("ALL");
     const [searchInput, setSearchInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [isSearching, setIsSearching] = useState(false);
@@ -54,10 +55,11 @@ const CounsellingSessionsPatients = () => {
         const term = searchTerm.trim().toLowerCase();
         return data.filter(item => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
+            if (selectedPsychologist !== "ALL" && item?.psychologist_name !== selectedPsychologist) return false;
             if (term && !(item?.patient_name || "").toLowerCase().includes(term) && !(item?.patient_id || "").toLowerCase().includes(term)) return false;
             return true;
         });
-    }, [data, selectedCenter, searchTerm]);
+    }, [data, selectedCenter, selectedPsychologist, searchTerm]);
 
     const centerOptions = useMemo(() => [
         { value: "ALL", label: "All Centers" },
@@ -67,22 +69,44 @@ const CounsellingSessionsPatients = () => {
         })),
     ], [data]);
 
+    const psychologistOptions = useMemo(() => [
+        { value: "ALL", label: "All Psychologists" },
+        ...[...new Set(
+            data
+                .filter((item) => selectedCenter === "ALL" || item?.center_name === selectedCenter)
+                .map((item) => item.psychologist_name)
+        )].filter(Boolean).sort().map((psychologist) => ({
+            value: psychologist,
+            label: psychologist,
+        })),
+    ], [data, selectedCenter]);
+
+    useEffect(() => {
+        if (selectedPsychologist === "ALL") return;
+        if (!psychologistOptions.some((o) => o.value === selectedPsychologist)) {
+            setSelectedPsychologist("ALL");
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [psychologistOptions]);
+
     const labels = [
         "Patient UID",
         "Patient Name",
-        "MTD",
+        "Actual",
+        "Should Be",
         "Center Name",
         "Ad. Date",
         "Psychologist Name",
         "Last Outpass",
     ];
 
-    const fixedColWidths = [80, 130, 55, 90, 90, 60];
+    const fixedColWidths = [80, 130, 60, 70, 90, 90, 60];
 
     const labelsMapping = {
         "Patient UID": "patient_id",
         "Patient Name": "patient_name",
-        "MTD": "current_month_total",
+        "Actual": "result_count",
+        "Should Be": "should_be_count",
         "Center Name": "center_name",
         "Ad. Date": "admission_date",
         "Psychologist Name": "psychologist_name",
@@ -203,6 +227,14 @@ const CounsellingSessionsPatients = () => {
                                     onChange={(opt) => setSelectedCenter(opt.value)}
                                     options={centerOptions}
                                     placeholder="Center..."
+                                />
+                            </Col>
+                            <Col md={2}>
+                                <Select
+                                    value={psychologistOptions.find((o) => o.value === selectedPsychologist) || psychologistOptions[0]}
+                                    onChange={(opt) => setSelectedPsychologist(opt.value)}
+                                    options={psychologistOptions}
+                                    placeholder="Psychologist..."
                                 />
                             </Col>
                             <Col md={2}>
@@ -341,7 +373,7 @@ const CounsellingSessionsPatients = () => {
                                                                         whiteSpace: "nowrap",
                                                                     }}
                                                                 >
-                                                                    {patient?.wow_data?.[week] ?? 0}
+                                                                    {patient?.wow_data?.[week]??0}
                                                                 </td>
                                                             ))}
                                                         </tr>

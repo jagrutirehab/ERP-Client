@@ -433,9 +433,13 @@ export const MyRaisedTicketsColumns = (
             name: <div className="text-center">Notes</div>,
             width: "160px",
             cell: (row) => {
-              const note =
-                row?.notes?.filter((d) => d?.status === activeTab)?.[0]?.note ||
-                "-";
+              const relevantNote =
+                !activeTab || activeTab === "all"
+                  ? [...(row?.notes || [])].sort(
+                      (a, b) => new Date(b?.changedOn) - new Date(a?.changedOn),
+                    )?.[0]
+                  : row?.notes?.filter((d) => d?.status === activeTab)?.[0];
+              const note = relevantNote?.note || "-";
 
               return (
                 <div
@@ -452,11 +456,16 @@ export const MyRaisedTicketsColumns = (
           },
           {
             name: <div className="text-center">Action on</div>,
-            selector: (row) =>
-              normalizeDates(
-                row?.notes?.filter((d) => d?.status === activeTab)?.[0]
-                  ?.changedOn,
-              ) || "-",
+            selector: (row) => {
+              const relevantNote =
+                !activeTab || activeTab === "all"
+                  ? [...(row?.notes || [])].sort(
+                      (a, b) => new Date(b?.changedOn) - new Date(a?.changedOn),
+                    )?.[0]
+                  : row?.notes?.filter((d) => d?.status === activeTab)?.[0];
+
+              return normalizeDates(relevantNote?.changedOn) || "-";
+            },
             width: "180px",
           },
         ]

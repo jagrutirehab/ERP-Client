@@ -4,6 +4,7 @@ import {
   getEmployeePayslips,
   getMyPayslips,
   getAllEmployeeLeaveBalance,
+  getReporteesLeaveBalance,
   getAllEmployeeRegularizations,
   getApprovalInbox,
   getDesignations,
@@ -16,6 +17,7 @@ import {
   getITApprovals,
   getMonthlyAttendance,
   getPayrolls,
+  getPayrollAdjustments,
   getRegularizationsByEmployee,
   getTPMs,
   payrollAction,
@@ -34,6 +36,7 @@ const initialState = {
   designationLoading: false,
   myPayslips: { data: [], pagination: null, loading: false },
   employeePayslips: { data: [], pagination: null, loading: false },
+  reporteesLeaveBalance: { data: [], pagination: {}, loading: false },
 };
 
 export const getMasterEmployees = createAsyncThunk(
@@ -168,6 +171,18 @@ export const fetchIncentives = createAsyncThunk(
   },
 );
 
+export const fetchPayrollAdjustments = createAsyncThunk(
+  "hr/getPayrollAdjustments",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getPayrollAdjustments(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
 export const fetchPayrolls = createAsyncThunk(
   "hr/getPayrolls",
   async (data, { rejectWithValue }) => {
@@ -245,6 +260,18 @@ export const fetchAllEmployeeLeaveBalance = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await getAllEmployeeLeaveBalance(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const fetchReporteesLeaveBalance = createAsyncThunk(
+  "hr/getReporteesLeaveBalance",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getReporteesLeaveBalance(data);
       return response;
     } catch (error) {
       return rejectWithValue(error);
@@ -449,6 +476,19 @@ export const hrSlice = createSlice({
       });
 
     builder
+      .addCase(fetchPayrollAdjustments.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchPayrollAdjustments.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.data = payload.data;
+        state.pagination = payload.pagination;
+      })
+      .addCase(fetchPayrollAdjustments.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
       .addCase(fetchPayrolls.pending, (state) => {
         state.loading = true;
       })
@@ -505,6 +545,17 @@ export const hrSlice = createSlice({
       })
       .addCase(fetchEmployeePayslips.rejected, (state) => {
         state.employeePayslips.loading = false;
+      })
+      .addCase(fetchReporteesLeaveBalance.pending, (state) => {
+        state.reporteesLeaveBalance.loading = true;
+      })
+      .addCase(fetchReporteesLeaveBalance.fulfilled, (state, { payload }) => {
+        state.reporteesLeaveBalance.loading = false;
+        state.reporteesLeaveBalance.data = payload.data;
+        state.reporteesLeaveBalance.pagination = payload.pagination;
+      })
+      .addCase(fetchReporteesLeaveBalance.rejected, (state) => {
+        state.reporteesLeaveBalance.loading = false;
       });
 
     builder

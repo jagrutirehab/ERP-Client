@@ -4,16 +4,103 @@ import { Container, Spinner } from "reactstrap";
 import Sidebar from "./Sidebar";
 import Vendor from "./Vendor";
 import Items from "./Items";
+import UnitOfMeasurement from "./UnitOfMeasurement";
+import PaymentTerm from "./PaymentTerm";
+import DepartmentMaster from "./DepartmentMaster";
+import AssetCategory from "./AssetCategory";
+import BudgetManagement from "./Finance/BudgetManagement";
+import PurchaseRequisition from "./Procurement/PurchaseRequisition";
+import PurchaseOrder from "./Procurement/PurchaseOrder";
+import RFQModule from "./Procurement/RFQ";
+import Contract from "./Contract";
+import DeliveryIntimation from "./Procurement/DeliveryIntimation";
+import GoodsReceiptNote from "./Inventory/GRN";
+import StorageLocation from "./Inventory/StorageLocation";
+import Putaway from "./Inventory/Putaway";
+import Stock from "./Inventory/Stock";
+import InventoryTransfer from "./Inventory/InventoryTransfer";
+import MoveOrder from "./Inventory/MoveOrder";
+import CycleCount from "./Inventory/CycleCount";
+import StockAdjustment from "./Inventory/StockAdjustment";
+import ReorderRule from "./Inventory/ReorderRule";
+import MaterialIssue from "./Inventory/MaterialIssue";
+import MaterialReturn from "./Inventory/MaterialReturn";
+import CapitalizationRequest from "./AssetLifecycle/CapitalizationRequest";
+import CWIP from "./AssetLifecycle/CWIP";
+import AssetCapitalization from "./AssetLifecycle/AssetCapitalization";
+import FixedAssetRegister from "./AssetLifecycle/FixedAssetRegister";
+import MaintenanceRequest from "./AssetLifecycle/MaintenanceRequest";
+import WorkOrder from "./AssetLifecycle/WorkOrder";
+import AssetWriteOffRequest from "./AssetLifecycle/AssetWriteOff";
+import TaskTemplate from "./AssetLifecycle/TaskTemplate";
+import PMSchedule from "./AssetLifecycle/PMSchedule";
+import MaintenanceJob from "./AssetLifecycle/MaintenanceJob";
+import VerificationJob from "./AssetLifecycle/VerificationJob";
+import PhysicalVerification from "./AssetLifecycle/PhysicalVerification";
+import AssetTag from "./AssetLifecycle/AssetTag";
+import LocationStock from "./Inventory/LocationStock";
+import AssetTransferRequest from "./AssetLifecycle/AssetTransfer";
+import VendorInvoice from "./Finance/VendorInvoice";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import "./masterData.scss";
 
+const getToken = () => {
+  try {
+    return JSON.parse(localStorage.getItem("micrologin"))?.token;
+  } catch {
+    return undefined;
+  }
+};
+
+const ROUTES = [
+  { path: "vendor/*", perm: "VENDOR", element: <Vendor /> },
+  { path: "item/*", perm: "ITEM_MASTER", element: <Items /> },
+  { path: "uom/*", perm: "UOM", element: <UnitOfMeasurement /> },
+  { path: "payment-term/*", perm: "PAYMENT_TERM", element: <PaymentTerm /> }, 
+  { path: "department/*", perm: "DEPARTMENT", element: <DepartmentMaster /> },
+  { path: "asset-category/level/:level/*", perm: "ASSET_CATEGORY", element: <AssetCategory /> },
+  { path: "budget/*", perm: "BUDGET", element: <BudgetManagement /> },
+  { path: "purchase-requisition/*", perm: "PR", element: <PurchaseRequisition /> },
+  { path: "rfq/*", perm: "RFQ", element: <RFQModule /> },
+  { path: "po/*", perm: "PO", element: <PurchaseOrder /> },
+  { path: "contract/*", perm: "CONTRACT", element: <Contract /> },
+  { path: "delivery-intimation/*", perm: "DELIVERY_INTIMATION", element: <DeliveryIntimation /> },
+  { path: "grn/*", perm: "GRN", element: <GoodsReceiptNote /> },
+  { path: "vendor-invoice/*", perm: "VENDOR_INVOICE", element: <VendorInvoice /> },
+  { path: "storage-location/*", perm: "STORAGE_LOCATION", element: <StorageLocation /> },
+  { path: "putaway/*", perm: "PUTAWAY", element: <Putaway /> },
+  { path: "stock/*", perm: "STOCK", element: <Stock /> },
+  { path: "location-stock/*", perm: "PUTAWAY", element: <LocationStock /> }, 
+  { path: "inventory-transfer/*", perm: "INVENTORY_TRANSFER", element: <InventoryTransfer /> },
+  { path: "move-order/*", perm: "MOVE_ORDER", element: <MoveOrder /> },
+  { path: "cycle-count/*", perm: "CYCLE_COUNT", element: <CycleCount /> },
+  { path: "stock-adjustment/*", perm: "STOCK_ADJUSTMENT", element: <StockAdjustment /> },
+  { path: "reorder-rule/*", perm: "REORDER_RULE", element: <ReorderRule /> },
+  { path: "material-issue/*", perm: "MATERIAL_ISSUE", element: <MaterialIssue /> },
+  { path: "material-return/*", perm: "MATERIAL_RETURN", element: <MaterialReturn /> },
+  { path: "capitalization-request/*", perm: "CAPITALIZATION_REQUEST", element: <CapitalizationRequest /> },
+  { path: "asset-capitalization/*", perm: "ASSET_CAPITALIZATION", element: <AssetCapitalization /> },
+  { path: "cwip/*", perm: "CWIP", element: <CWIP /> },
+  { path: "fixed-asset/*", perm: "FIXED_ASSET", element: <FixedAssetRegister /> },
+  { path: "maintenance-request/*", perm: "MAINTENANCE_REQUEST", element: <MaintenanceRequest /> },
+  { path: "work-order/*", perm: "WORK_ORDER", element: <WorkOrder /> },
+  { path: "asset-transfer/*", perm: "ASSET_TRANSFER", element: <AssetTransferRequest /> },
+  { path: "asset-writeoff/*", perm: "ASSET_WRITEOFF", element: <AssetWriteOffRequest /> },
+  { path: "task-template/*", perm: "TASK_TEMPLATE", element: <TaskTemplate /> },
+  { path: "pm-schedule/*", perm: "PM_SCHEDULE", element: <PMSchedule /> },
+  { path: "maintenance-job/*", perm: "MAINTENANCE_JOB", element: <MaintenanceJob /> },
+  { path: "verification-job/*", perm: "VERIFICATION_JOB", element: <VerificationJob /> },
+  { path: "physical-verification/*", perm: "PHYSICAL_VERIFICATION", element: <PhysicalVerification /> },
+  { path: "asset-tag/*", perm: "ASSET_TAG", element: <AssetTag /> },
+];
+
 const MasterData = () => {
-  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const token = getToken();
   const { hasPermission, loading } = usePermissions(token);
 
   useEffect(() => {
-    document.title = "Vendor Management | Jagruti Rehab";
+    document.title = "Vendor | Jagruti Rehab";
   }, []);
 
   if (loading) {
@@ -27,9 +114,9 @@ const MasterData = () => {
     );
   }
 
-  const canViewVendor = hasPermission("MASTERDATA", "VENDOR_VIEW", "READ");
+  const canView = (perm) => hasPermission("MASTERDATA", perm, "READ");
 
-  if (!canViewVendor) {
+  if (!ROUTES.some((r) => canView(r.perm))) {
     return <Basic404 />;
   }
 
@@ -43,8 +130,14 @@ const MasterData = () => {
           <div className="master-data-content-col">
             <Routes>
               <Route path="/" element={null} />
-              <Route path="vendor/*" element={<Vendor />} />
-              <Route path="item/*" element={<Items />} />
+              {ROUTES.map(({ path, perm, element }) => (
+                <Route
+                  key={path}
+                  path={path}
+                  element={canView(perm) ? element : <Basic404 />}
+                />
+              ))}
+              <Route path="*" element={<Basic404 />} />
             </Routes>
           </div>
         </div>

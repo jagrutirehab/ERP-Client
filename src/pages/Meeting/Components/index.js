@@ -8,6 +8,7 @@ function MeetingComponent({ meetingId, name, userType }) {
         }
         try {
             const data = await generateToken(meetingId, name, userType);
+
             if (data?.token) {
                 // Open the meeting page in a new tab with the token as a query parameter
                 const meetingUrl = `/meeting?authToken=${encodeURIComponent(data.token)}`;

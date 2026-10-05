@@ -6,9 +6,18 @@ import { CSVLink } from "react-csv";
 import { fetchMIAttendance } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
 
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const pad2 = (n) => String(n).padStart(2, "0");
+
 const MONTH_OPTIONS = [
     { value: "CURRENT", label: "Current Month" },
     { value: "LAST", label: "Last Month" },
+];
+
+const EMPLOYEE_TYPE_OPTIONS = [
+    { value: "ALL", label: "All Employees" },
+    { value: "company", label: "Company" },
+    { value: "third_party", label: "Third Party" },
 ];
 
 const Attendance = () => {
@@ -20,6 +29,7 @@ const Attendance = () => {
 
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [selectedMonth, setSelectedMonth] = useState("CURRENT");
+    const [selectedEmployeeType, setSelectedEmployeeType] = useState("ALL");
     const [searchInput, setSearchInput] = useState("");
     const [searchTerm, setSearchTerm] = useState("");
     const [isSearching, setIsSearching] = useState(false);
@@ -47,6 +57,7 @@ const Attendance = () => {
         const term = searchTerm.trim().toLowerCase();
         return data.filter((item) => {
             if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
+            if (selectedEmployeeType !== "ALL" && item?.employee_type !== selectedEmployeeType) return false;
             if (selectedMonth === "CURRENT" && item?.exited_last_month) return false;
             if (term) {
                 const ecode = (item?.ecode || "").toLowerCase();
@@ -55,7 +66,7 @@ const Attendance = () => {
             }
             return true;
         });
-    }, [data, selectedCenter, selectedMonth, searchTerm]);
+    }, [data, selectedCenter, selectedEmployeeType, selectedMonth, searchTerm]);
 
     const last60Days = useMemo(() => {
         const days = [];
@@ -63,8 +74,8 @@ const Attendance = () => {
         for (let i = 1; i <= 60; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
-            const key = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
-            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).replace(/ /g, "-");
+            const key = `${pad2(d.getDate())}-${MONTH_ABBR[d.getMonth()]}-${d.getFullYear()}`;
+            const label = `${pad2(d.getDate())}-${MONTH_ABBR[d.getMonth()]}`;
             days.push({ key, label });
         }
         return days;
@@ -194,6 +205,14 @@ const Attendance = () => {
                                     onChange={(opt) => setSelectedMonth(opt.value)}
                                     options={MONTH_OPTIONS}
                                     placeholder="Month..."
+                                />
+                            </Col>
+                            <Col md={2}>
+                                <Select
+                                    value={EMPLOYEE_TYPE_OPTIONS.find((o) => o.value === selectedEmployeeType) || EMPLOYEE_TYPE_OPTIONS[0]}
+                                    onChange={(opt) => setSelectedEmployeeType(opt.value)}
+                                    options={EMPLOYEE_TYPE_OPTIONS}
+                                    placeholder="Employee Type..."
                                 />
                             </Col>
                             <Col md={2}>

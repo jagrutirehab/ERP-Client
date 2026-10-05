@@ -1,5 +1,6 @@
 export const REPORTS_VIEW = "REPORTS";
 export const SPENDING_VIEW = "SPENDING";
+export const ACCOUNTING_APPROVAL_VIEW = "ACCOUNTING_APPROVAL";
 export const FINANCE_APPROVAL_VIEW = "FINANCE_APPROVAL";
 export const APPROVAL_VIEW = "APPROVAL";
 export const PAYMENT_PROCESSING_VIEW = "PAYMENT_PROCESSING";
@@ -8,6 +9,7 @@ export const categoryOptions = [
   { value: "AA_SESSION", label: "AA SESSION" },
   { value: "AMBULANCE_CHARGES", label: "AMBULANCE CHARGES" },
   { value: "AMC", label: "AMC" },
+  { value: "ASSETS", label: "ASSETS" },
   { value: "BARBER_CHARGES", label: "BARBER CHARGES" },
   { value: "BEDS", label: "BEDS" },
   { value: "BMW_BILL", label: "BMW BILL" },
@@ -15,6 +17,7 @@ export const categoryOptions = [
   { value: "CHICKEN_MUTTON", label: "CHICKEN / MUTTON" },
   { value: "CIVIL_WORK", label: "CIVIL WORK" },
   { value: "CONSULTANT_FEES", label: "CONSULTANT FEES" },
+  { value: "CONSUMABLES", label: "CONSUMABLES" },
   { value: "COURIER", label: "COURIER" },
   { value: "DIAPERS", label: "DIAPERS" },
   { value: "ECG", label: "ECG" },
@@ -49,6 +52,7 @@ export const categoryOptions = [
   { value: "REPAIR_MAINTENANCE", label: "REPAIR & MAINTENANCE" },
   { value: "REIMBURSEMENT", label: "REIMBURSEMENT" },
   { value: "SALARY_ADVANCE", label: "SALARY ADVANCE" },
+  { value: "SETUP_COST", label: "SETUP COST" },
   { value: "STAFF_REFERRAL_PAYMENT", label: "STAFF REFERRAL PAYMENT" },
   { value: "SUBSCRIPTION_RECHARGE", label: "SUBSCRIPTION / RECHARGE" },
   { value: "THIRD_PARTY_MANPOWER", label: "THIRD PARTY MAN POWER" },
@@ -63,66 +67,66 @@ export const categoryOptions = [
 export const tallyBankAccounts = [
   {
     value: "HDFC Bank Ltd. A/c No. 50200062589316",
-    label: "HDFC Bank Ltd. A/c No. 50200062589316"
+    label: "HDFC Bank Ltd. A/c No. 50200062589316",
   },
   {
     value: "HDFC Bank Ltd. A/c No. 50200075783148",
-    label: "HDFC Bank Ltd. A/c No. 50200075783148"
+    label: "HDFC Bank Ltd. A/c No. 50200075783148",
   },
   {
     value: "HDFC Bank Ltd. A/c No. 50200075819168",
-    label: "HDFC Bank Ltd. A/c No. 50200075819168"
+    label: "HDFC Bank Ltd. A/c No. 50200075819168",
   },
   {
     value: "HDFC Bank Ltd. A/c No. 50200075878457",
-    label: "HDFC Bank Ltd. A/c No. 50200075878457"
+    label: "HDFC Bank Ltd. A/c No. 50200075878457",
   },
   {
     value: "HDFC Bank Ltd. A/c No. 50200084303252",
-    label: "HDFC Bank Ltd. A/c No. 50200084303252"
+    label: "HDFC Bank Ltd. A/c No. 50200084303252",
   },
   {
     value: "HDFC Bank Ltd. A/c No. 50200084304087",
-    label: "HDFC Bank Ltd. A/c No. 50200084304087"
+    label: "HDFC Bank Ltd. A/c No. 50200084304087",
   },
   {
     value: "HDFC Bank Ltd. A/c No. 50200095551698",
-    label: "HDFC Bank Ltd. A/c No. 50200095551698"
+    label: "HDFC Bank Ltd. A/c No. 50200095551698",
   },
   {
     value: "HDFC Bank Ltd. A/c No. 50200095551709",
-    label: "HDFC Bank Ltd. A/c No. 50200095551709"
+    label: "HDFC Bank Ltd. A/c No. 50200095551709",
   },
   {
     value: "HDFC Bank Ltd. A/c No. 50200095551712",
-    label: "HDFC Bank Ltd. A/c No. 50200095551712"
+    label: "HDFC Bank Ltd. A/c No. 50200095551712",
   },
   {
     value: "HDFC Bank Ltd. A/c No. 50200095551889",
-    label: "HDFC Bank Ltd. A/c No. 50200095551889"
+    label: "HDFC Bank Ltd. A/c No. 50200095551889",
   },
   {
     value: "HDFC Bank A/c - 50200041620478",
-    label: "HDFC Bank A/c - 50200041620478"
+    label: "HDFC Bank A/c - 50200041620478",
   },
   {
     value: "ICICI Bank 98601536483 A/c",
-    label: "ICICI Bank 98601536483 A/c"
+    label: "ICICI Bank 98601536483 A/c",
   },
   {
     value: "HDFC Bank (CA-50200057792757) A/c",
-    label: "HDFC Bank (CA-50200057792757) A/c"
+    label: "HDFC Bank (CA-50200057792757) A/c",
   },
   {
     value: "HDFC Bank - 50100046293125 A/c",
-    label: "HDFC Bank - 50100046293125 A/c"
+    label: "HDFC Bank - 50100046293125 A/c",
   },
   {
     value: "HDFC Bank - 50200054518072",
-    label: "HDFC Bank - 50200054518072"
+    label: "HDFC Bank - 50200054518072",
   },
   {
     value: "HDFC Bank - 50200005112131",
-    label: "HDFC Bank - 50200005112131"
-  }
+    label: "HDFC Bank - 50200005112131",
+  },
 ];

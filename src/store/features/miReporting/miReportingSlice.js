@@ -27,6 +27,7 @@ import {
   getDailyDashboard,
   getDocsCompliance,
   getDueAmount,
+  getMissingInvoices,
   getMIAttendance,
   getCenterWiseMOM,
   getCampaignWiseMOM,
@@ -41,9 +42,16 @@ import {
   getAdmissionDischargeDaily,
   getOpdChargesMonthly,
   getDoctorOpdChargesMonthly,
+  getDoctorOpdChargesDetail,
   getCentralExpensesMonthly,
   getDoctorPsychologistStayRange,
   getNursesDailyActivity,
+  getIncidentStatusMonthly,
+  getReadmissionMonthly,
+  getAttritionMonthly,
+  getAssignedData,
+  getCashRecoCompliance,
+
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -78,6 +86,7 @@ const initialState = {
   dailyDashboard:[],
   docsCompliance: [],
   dueAmount: [],
+  missingInvoices: [],
   miAttendance: [],
   nursesDOD: [],
   centerWiseMOM: [],
@@ -94,9 +103,16 @@ const initialState = {
   counsellingSessionsPatientsDOD: [],
   opdChargesMonthly: [],
   doctorOpdChargesMonthly: [],
+  doctorOpdChargesDetail: [],
   centralExpensesMonthly: [],
   doctorPsychologistStayRange: [],
   nursesDailyActivity: [],
+  incidentStatusMonthly: [],
+  readmissionMonthly: [],
+  attritionMonthly: [],
+  assignedData: [],
+  cashRecoCompliance: [],
+
   loading: false,
   error: null,
 };
@@ -481,6 +497,20 @@ export const fetchDoctorOpdChargesMonthly = createAsyncThunk(
   }
 );
 
+export const fetchDoctorOpdChargesDetail = createAsyncThunk(
+  "miReporting/fetchDoctorOpdChargesDetail",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getDoctorOpdChargesDetail(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch doctor opd charges detail"
+      );
+    }
+  }
+);
+
 
 export const fetchMetricsReport = createAsyncThunk(
   "miReporting/fetchMetricsReport",
@@ -723,6 +753,18 @@ export const fetchDueAmount = createAsyncThunk(
   }
 );
 
+export const fetchMissingInvoices = createAsyncThunk(
+  "miReporting/fetchMissingInvoices",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getMissingInvoices(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to fetch Missing Invoices");
+    }
+  }
+);
+
 export const fetchMIAttendance = createAsyncThunk(
   "miReporting/fetchMIAttendance",
   async (data, { rejectWithValue }) => {
@@ -762,11 +804,79 @@ export const fetchDailyDashboard = createAsyncThunk(
   }
 );
 
+export const fetchIncidentStatusMonthly = createAsyncThunk(
+  "miReporting/fetchIncidentStatusMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getIncidentStatusMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Incident Status Monthly"
+      );
+    }
+  }
+);
+
+export const fetchReadmissionMonthly = createAsyncThunk(
+  "miReporting/fetchReadmissionMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getReadmissionMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Readmission Monthly"
+      );
+    }
+  }
+);
 
 
 
 
 
+export const fetchAttritionMonthly = createAsyncThunk(
+  "miReporting/fetchAttritionMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getAttritionMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Attrition Monthly"
+      );
+    }
+  }
+);
+
+export const fetchAssignedData = createAsyncThunk(
+  "miReporting/fetchAssignedData",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getAssignedData(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Assigned Data"
+      );
+    }
+  }
+);
+
+export const fetchCashRecoCompliance = createAsyncThunk(
+  "miReporting/fetchCashRecoCompliance",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getCashRecoCompliance(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Cash Reco Compliance"
+      );
+    }
+  }
+);
 
 
 
@@ -1125,6 +1235,20 @@ const miReportingSlice = createSlice({
         state.error = action.payload;
       })
 
+      //Missing Invoices
+      .addCase(fetchMissingInvoices.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMissingInvoices.fulfilled, (state, action) => {
+        state.loading = false;
+        state.missingInvoices = action.payload.payload || [];
+      })
+      .addCase(fetchMissingInvoices.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       //MI Attendance
       .addCase(fetchMIAttendance.pending, (state) => {
         state.loading = true;
@@ -1335,6 +1459,19 @@ const miReportingSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      // Doctor OPD Charges Detail
+      .addCase(fetchDoctorOpdChargesDetail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDoctorOpdChargesDetail.fulfilled, (state, action) => {
+        state.loading = false;
+        state.doctorOpdChargesDetail = action.payload.payload || [];
+      })
+      .addCase(fetchDoctorOpdChargesDetail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       // Central Expenses Monthly
       .addCase(fetchCentralExpensesMonthly.pending, (state) => {
         state.loading = true;
@@ -1373,8 +1510,73 @@ const miReportingSlice = createSlice({
       .addCase(fetchNursesDailyActivity.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
+      // Incident Status Monthly
+      .addCase(fetchIncidentStatusMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchIncidentStatusMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.incidentStatusMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchIncidentStatusMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Readmission Monthly
+      .addCase(fetchReadmissionMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchReadmissionMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.readmissionMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchReadmissionMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
 
+       // Attrition Monthly
+      .addCase(fetchAttritionMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAttritionMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.attritionMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchAttritionMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Assigned Data
+      .addCase(fetchAssignedData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAssignedData.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assignedData = action.payload.payload || [];
+      })
+      .addCase(fetchAssignedData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Cash Reco Compliance
+      .addCase(fetchCashRecoCompliance.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCashRecoCompliance.fulfilled, (state, action) => {
+        state.loading = false;
+        state.cashRecoCompliance = action.payload.payload || [];
+      })
+      .addCase(fetchCashRecoCompliance.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
 
   },
 });

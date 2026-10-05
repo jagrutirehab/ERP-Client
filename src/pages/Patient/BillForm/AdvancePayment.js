@@ -1,8 +1,13 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Input, Label, Button, Form } from "reactstrap";
+import { Input, Label, Button, Form, Alert } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import Payment from "./Components/Payment";
+import {
+  evaluateEvidenceGuard,
+  evaluatePosGuards,
+  usePosTerminal,
+} from "./Components/billGuards";
 
 // data
 import {
@@ -26,6 +31,40 @@ import {
 } from "../../../store/actions";
 import { setBillingStatus } from "../../../store/features/patient/patientSlice";
 
+// Each paymentModes row may carry a transient `evidenceFiles` array (Files, never sent as-is).
+// Strip it before the array goes out as JSON, and collect it separately for FormData —
+// one entry per file, with the mode repeated so the backend can pair them positionally.
+const stripEvidenceFiles = (modes) =>
+  (modes || []).map(({ evidenceFiles, ...rest }) => rest);
+
+const collectEvidenceFiles = (modes) =>
+  (modes || []).flatMap((mode) =>
+    (mode.evidenceFiles || []).map((file) => ({ file, mode: mode.paymentMode }))
+  );
+
+// IDs of Pine Labs charges already approved on the terminal. The server
+// re-reads each one from its own record before it will bill them, so sending
+// the id is enough — the tender details are never trusted from here.
+const collectPosTransactionIds = (modes) =>
+  (modes || []).map((mode) => mode.posTransaction).filter(Boolean);
+
+const buildTransactionProofFormData = (payload, evidenceEntries) => {
+  const formData = new FormData();
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    // Only these two are structured; everything else (dates included) must go
+    // across as its plain string form.
+    const isJsonField = key === "paymentModes" || key === "posTransactionIds";
+    formData.append(key, isJsonField ? JSON.stringify(value) : value);
+  });
+  evidenceEntries.forEach(({ file }) => formData.append("transactionProof", file));
+  formData.append(
+    "transactionProofModes",
+    JSON.stringify(evidenceEntries.map((entry) => entry.mode))
+  );
+  return formData;
+};
+
 const AdvancePayment = ({
   toggleForm,
   author,
@@ -36,6 +75,8 @@ const AdvancePayment = ({
   type,
   admission,
   paymentAccounts,
+  posPrefill,
+  onCloseLockChange,
 }) => {
   console.log(admission, "admission");
 
@@ -74,7 +115,61 @@ const AdvancePayment = ({
     setTotalAmount(amount);
   }, [paymentModes]);
 
+  // Opened from the POS dashboard to bill a payment the terminal already took.
+  // The tender is rebuilt from Pine Labs' own response and locked — the whole
+  // point is that nothing here is retyped, so the receipt matches the money.
+  const isPosRecovery = !!posPrefill && !editBillData;
+
+  useEffect(() => {
+    if (!isPosRecovery) return;
+    const result = posPrefill.result || {};
+    setPaymentModes([
+      {
+        amount: posPrefill.amount,
+        paymentMode: result.paymentMode || posPrefill.requestedMode,
+        transactionId: result.rrn || result.transactionId || "",
+        cardNumber: String(result.cardNumber || "").replace(/\D/g, "").slice(-4),
+        // The account picked when the charge was sent. Empty on older charges,
+        // which then fall back to the Pine Labs default.
+        bankAccount: posPrefill.bankAccount || "",
+        posTransaction: posPrefill._id,
+        posApprovalCode: result.approvalCode,
+        posReferenceId: posPrefill.plutusTransactionReferenceId,
+        posPayerVpa: result.upiPayerVpa,
+      },
+    ]);
+  }, [isPosRecovery, posPrefill]);
+
   const editData = editBillData?.advancePayment;
+  const existingTransactionProof = editData?.transactionProof;
+
+  // Guards: a card/UPI row on a POS centre must carry an approved charge
+  // before the bill may be saved, and once one is approved the form cannot be
+  // abandoned — the money is already gone.
+  const { posAvailable } = usePosTerminal(patient?.center?._id);
+  const posGuard = evaluatePosGuards(paymentModes, {
+    posAvailable,
+    tenderKey: "paymentMode",
+    readOnly: isPosRecovery,
+  });
+  // Evidence is required for every non-cash tender that was not collected on
+  // a terminal — see billGuards.js.
+  const evidenceGuard = evaluateEvidenceGuard(paymentModes, {
+    tenderKey: "paymentMode",
+    existingTransactionProof,
+    readOnly: isPosRecovery,
+  });
+
+  const blockSave = posGuard.blockSave || evidenceGuard.blockSave;
+  const saveReason = posGuard.saveReason || evidenceGuard.saveReason;
+  const { blockCancel, cancelReason } = posGuard;
+
+  // Hide the modal's ✕ while Cancel is blocked; release it on unmount.
+  useEffect(() => {
+    onCloseLockChange?.(blockCancel);
+  }, [blockCancel, onCloseLockChange]);
+  useEffect(() => () => onCloseLockChange?.(false), [onCloseLockChange]);
+
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -85,10 +180,18 @@ const AdvancePayment = ({
       addmission: admission || patient.addmission._id,
       paymentAgainstBillNo: editData
         ? editData.paymentAgainstBillNo
-        : paymentAgainstBillNo
-          ? paymentAgainstBillNo
+        : paymentAgainstBillNo ||
+          (isPosRecovery ? posPrefill.paymentAgainstBillNo : "") ||
+          "",
+      remarks: editData
+        ? editData.remarks
+        : isPosRecovery
+          ? `Recovered from POS payment ${posPrefill.transactionNumber} — collected ${new Date(
+              posPrefill.createdAt,
+            ).toLocaleString()}${
+              posPrefill.result?.rrn ? `, RRN ${posPrefill.result.rrn}` : ""
+            }`
           : "",
-      remarks: editData ? editData.remarks : "",
       date: billDate,
       type,
       bill: ADVANCE_PAYMENT,
@@ -97,15 +200,23 @@ const AdvancePayment = ({
       totalAmount: Yup.number().moreThan(0),
     }),
     onSubmit: async (values) => {
+      const evidenceEntries = collectEvidenceFiles(paymentModes);
+      const cleanPaymentModes = stripEvidenceFiles(paymentModes);
+
       if (editData) {
+        const payload = {
+          id: editBillData._id,
+          billId: editData._id,
+          totalAmount: totalAmount,
+          paymentModes: cleanPaymentModes,
+          ...values,
+        };
         const response = await dispatch(
-          updateAdvancePayment({
-            id: editBillData._id,
-            billId: editData._id,
-            totalAmount: totalAmount,
-            paymentModes: paymentModes,
-            ...values,
-          }),
+          updateAdvancePayment(
+            evidenceEntries.length > 0
+              ? buildTransactionProofFormData(payload, evidenceEntries)
+              : payload
+          ),
         ).unwrap();
         dispatch(
           setBillingStatus({
@@ -114,12 +225,19 @@ const AdvancePayment = ({
           }),
         );
       } else {
+        const posTransactionIds = collectPosTransactionIds(paymentModes);
+        const payload = {
+          totalAmount: totalAmount,
+          paymentModes: cleanPaymentModes,
+          ...(posTransactionIds.length ? { posTransactionIds } : {}),
+          ...values,
+        };
         const response = await dispatch(
-          addAdvancePayment({
-            totalAmount: totalAmount,
-            paymentModes: paymentModes,
-            ...values,
-          }),
+          addAdvancePayment(
+            evidenceEntries.length > 0
+              ? buildTransactionProofFormData(payload, evidenceEntries)
+              : payload
+          ),
         ).unwrap();
         dispatch(
           setBillingStatus({
@@ -166,6 +284,19 @@ const AdvancePayment = ({
           className="needs-validation"
           action="#"
         >
+          {isPosRecovery && (
+            <Alert color="info" className="fs-12 py-2">
+              <i className="ri-bank-card-line me-1"></i>
+              Billing a payment the terminal already took on{" "}
+              <strong>
+                {new Date(posPrefill.createdAt).toLocaleString()}
+              </strong>
+              {posPrefill.result?.rrn ? ` (RRN ${posPrefill.result.rrn})` : ""}.
+              The tender is locked to what Pine Labs reported — nobody is
+              charged again. Press Save to record it.
+            </Alert>
+          )}
+
           <div className="d-flex flex-wrap gap-5">
             <div>
               <Label>
@@ -173,7 +304,7 @@ const AdvancePayment = ({
               </Label>
               <p className="text-info mb-0 fs-5">{totalAmount || 0}</p>
             </div>
-            <div>
+            <div className={isPosRecovery ? "d-none" : ""}>
               <Label>
                 Mode Of Payment <span className="text-danger">*</span>
               </Label>
@@ -198,6 +329,27 @@ const AdvancePayment = ({
             <Payment
               paymentModes={paymentModes}
               setPaymentModes={setPaymentModes}
+              existingTransactionProof={existingTransactionProof}
+              readOnly={isPosRecovery}
+              // Enables "Charge on POS" on card/UPI rows when this centre has
+              // a Pine Labs machine configured. Editing an existing bill does
+              // not re-charge, and neither does billing a charge that already
+              // happened, so neither offers the action.
+              posContext={
+                editData
+                  ? undefined
+                  : {
+                      center: patient.center._id,
+                      patient: patient._id,
+                      addmission: admission || patient.addmission?._id,
+                      purpose: "ADVANCE_PAYMENT",
+                      billType: type,
+                      // Carried so a recovered charge reopens against the same
+                      // invoice the cashier was paying.
+                      paymentAgainstBillNo:
+                        validation.values.paymentAgainstBillNo || undefined,
+                    }
+              }
             />
           </div>
 
@@ -225,6 +377,12 @@ const AdvancePayment = ({
           </div>
 
           <div className="mt-3">
+            {(saveReason || cancelReason) && (
+              <div className="text-danger fs-11 text-end mb-2">
+                <i className="ri-error-warning-line me-1"></i>
+                {saveReason || cancelReason}
+              </div>
+            )}
             <div className="d-flex gap-3 justify-content-end">
               <Button
                 onClick={() => {
@@ -236,10 +394,17 @@ const AdvancePayment = ({
                 size="sm"
                 color="danger"
                 type="button"
+                disabled={blockCancel}
+                title={cancelReason || undefined}
               >
                 Cancel
               </Button>
-              <Button size="sm" type="submit">
+              <Button
+                size="sm"
+                type="submit"
+                disabled={blockSave}
+                title={saveReason || undefined}
+              >
                 Save
               </Button>
             </div>
@@ -267,6 +432,7 @@ const mapStateToProps = (state) => ({
   editBillData: state.Bill.billForm.data,
   admission: state.Bill.billForm.admission,
   paymentAgainstBillNo: state.Bill.billForm.paymentAgainstBillNo,
+  posPrefill: state.Bill.billForm.posPrefill,
   paymentAccounts: state.Setting.paymentAccounts,
 });
 

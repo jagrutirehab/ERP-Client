@@ -37,6 +37,8 @@ export const DELETE_CENTER_LOGO = "/center";
 export const RESTORE_CENTER = "/center/restore";
 export const DELETE_CENTER = "/center";
 export const DELETE_CENTER_PERMANENTLY = "/center/delete-permanently";
+export const GET_CENTERS_FALLBACK_MANAGERS = "/center/fallback-managers";
+export const SET_FALLBACK_CENTRE_MANAGER = "/center/fallback-manager";
 
 //BOOKING
 export const GET_APPOINTMENTS = "/booking";
@@ -89,6 +91,12 @@ export const SEARCH_PATIENTS = "/patient/search";
 export const SEARCH_PATIENTS_PHONE_NUMBER = "/patient/search/phone-number";
 export const ADMIT_PATIENT = "/patient/admit";
 export const EDIT_ADMISSION = "/patient/admit/update";
+export const SET_RAMSAY_APPLICABLE = "/patient/admission/ramsay-applicable";
+export const SET_BASELINE_INVESTIGATION_STATUS =
+  "/patient/admission/baseline-investigation";
+export const SET_ADMISSION_TYPE_DIRECT = "/patient/admission/admission-type";
+export const UPDATE_ADMISSION_WARD_BED = "/patient/admission/ward-bed";
+export const SUBMIT_ADMISSION_FORM = "/patient/admission-submit";
 export const DISCHARGE_PATIENT = "/patient/discharge";
 export const UNDISCHARGE_PATIENT = "/patient/un-discharge";
 export const SWITCH_PATIENT_CENTER = "/patient/center";
@@ -125,6 +133,9 @@ export const POST_PRESCRIPTION = "/chart/prescription";
 export const EDIT_PRESCRIPTION = "/chart/prescription";
 export const POST_GENERAL_PRESCRIPTION = "/chart/prescription/general";
 export const EDIT_GENERAL_PRESCRIPTION = "/chart/prescription/general";
+export const GET_CURRENT_MEDICINES = "/chart/prescription/current-medicines";
+export const UPDATE_MEDICINE_ENTRY = "/chart/prescription";
+export const CARRY_FORWARD = "/chart/prescription/carry-forward";
 export const POST_VITAL_SIGN = "/chart/vital-sign";
 export const EDIT_VITAL_SIGN = "/chart/vital-sign";
 export const POST_GENERAL_VITAL_SIGN = "/chart/vital-sign/general";
@@ -213,6 +224,15 @@ export const EDIT_ADVANCE_PAYMENT = "/bill/advance-payment";
 export const DELETE_BILL = "/bill";
 export const POST_RESTORE_BILL = "/bill/restore";
 export const DELETE_BILL_PERMANENTLY = "/bill/delete-permanently";
+
+// Pine Labs POS terminal (card / UPI collected on the machine)
+export const GET_POS_TERMINAL = "/pos/pine-labs/terminal";
+export const POST_POS_INITIATE = "/pos/pine-labs/initiate";
+export const GET_POS_STATUS = "/pos/pine-labs/status";
+export const POST_POS_CANCEL = "/pos/pine-labs/cancel";
+export const GET_POS_PENDING = "/pos/pine-labs/pending";
+export const GET_POS_TRANSACTIONS = "/pos/pine-labs/transactions";
+export const POST_POS_REFUND = "/pos/pine-labs/refund";
 
 // Write Off
 export const GET_WRITE_OFF = "/bill/get/write/off";
@@ -370,6 +390,11 @@ export const GET_NURSE_GIVEN_MEDICINES = "/nurse/medicine-records";
 export const GET_NURSE_GIVEN_MEDICINE_DETAILS =
   "/nurse/medicine-record-details";
 export const GET_PRESCRIPTION_HISTORY = "/nurse/prescription-history";
+export const GET_DAILY_MEDICATION_RECORD = "/nurse/daily-medication-record";
+export const GET_TODAY_MEDICINES_TO_GIVE = "/nurse/today-medicines";
+export const MARK_TODAY_MEDICINE_GIVEN = "/nurse/today-medicines/mark";
+export const MARK_TODAY_MEDICINES_GIVEN_BULK = "/nurse/today-medicines/mark-bulk";
+export const GET_TODAY_GIVEN_MEDICINE_HISTORY = "/nurse/today-medicines/history";
 
 // alerts
 export const GET_ALERTS_BY_PATIENT = "/alerts/nurse";
@@ -429,6 +454,7 @@ export const USER = "/user";
 export const GET_USER_BY_EMAIL = "/user/email";
 export const MOVE_TO_BIN = "/user/move-recyclebin";
 export const ACTIVATE_DEACTIVATE_USER = "/user/deactive";
+export const TOGGLE_APP_LOGIN = "/user/app-login";
 export const CHANGE_USER_PASSWORD = "/user/change-password";
 export const EDIT_SELF = "/user/edit-self";
 export const USER_ACTIVITY = "/activity";
@@ -459,6 +485,12 @@ export const GET_PENDING_PATIENT_APPROVALS =
 export const GET_DETAILED_PRESCRIPTION =
   "/pharmacy/approvals/detailed-prescription";
 
+// PHARMACY MEDICINE APPROVAL — pilot (Noida) patient-scoped flow
+export const GET_APPROVAL_MEDICINES = "/pharmacy/approvals";
+export const APPROVE_PILOT_APPROVAL = "/pharmacy/approvals";
+export const RETURN_MEDICINE = "/pharmacy/approvals";
+export const GET_PHARMACY_RETURNS = "/pharmacy/returns";
+
 // PHARMACY AUDIT
 export const DOWNLOAD_AUDIT_TEMPLATE = "/pharmacy/audit/template";
 export const AUDITS = "/pharmacy/audit";
@@ -472,12 +504,20 @@ export const PHARMACY_INTERNAL_TRANSFER =
   "/pharmacy/requisition/internal-transfer";
 export const PHARMACY_MEDICINE_SEARCH = "/pharmacy/search";
 export const PHARMACY_STOCK_BY_IDS = "/pharmacy/stock-by-ids";
+export const PHARMACY_AVAILABLE_MEDICINES = "/pharmacy/available-medicines";
+export const PHARMACY_ALTERNATIVE_MEDICINES = "/pharmacy/alternative-medicines";
 export const PHARMACY_STOCK_BY_MEDICINES = "/pharmacy/stock-by-medicines";
 export const PHARMACY_BATCHES_BY_MEDICINES = "/pharmacy/batches-by-medicines";
 
 // PHARMACY REQUISITION - MEDICINE REQUISITION
 export const PHARMACY_MEDICINE_REQUISITION =
   "/pharmacy/requisition/medicine-requisition";
+
+// PHARMACY EXPIRED STOCK
+export const PHARMACY_EXPIRED_STOCK = "/pharmacy/expired-stock";
+
+// PHARMACY INVENTORY HEALTH REPORT (transit loss / variance / expiry)
+export const PHARMACY_INVENTORY_HEALTH_REPORT = "/pharmacy/reports/inventory-health";
 
 // INVENTORY STOCK SUMMARY
 export const PHARMACY_CONSOLIDATED = "/pharmacy/consolidated";
@@ -540,6 +580,7 @@ export const GET_COUNSELLING_RECORDING =
 export const GET_DAILY_DASHBOARD = "/mi-reporting/daily-dashboard";
 export const GET_DOCS_COMPLIANCE = "/mi-reporting/docs-compliance";
 export const GET_DUE_AMOUNT = "/mi-reporting/get-due-amount";
+export const GET_MISSING_INVOICES = "/mi-reporting/missing-invoices";
 export const GET_MI_ATTENDANCE = "/mi-reporting/get-attendance";
 export const GET_CASH_PER_CENTER = "/mi-reporting/cash-per-center";
 export const GET_WRITE_OFF_AMOUNT = "/mi-reporting/write-off-amount";
@@ -551,6 +592,8 @@ export const GET_METRICS_REPORT = "/mi-reporting/metrics-report";
 export const GET_OPD_CHARGES_MONTHLY = "/mi-reporting/opd-charges-monthly";
 export const GET_DOCTOR_OPD_CHARGES_MONTHLY =
   "/mi-reporting/doctor-opd-charges-monthly";
+export const GET_DOCTOR_OPD_CHARGES_DETAIL =
+  "/mi-reporting/doctor-opd-charges-detail";
 export const GET_CENTRAL_EXPENSES_MONTHLY =
   "/mi-reporting/central-expenses-monthly";
 export const GET_DOCTOR_PSYCHOLOGIST_STAY_RANGE =
@@ -559,6 +602,15 @@ export const GET_NURSES_DAILY_ACTIVITY = "/mi-reporting/nurses-daily-activity";
 export const GET_OCCUPANCY_MONTHLY = "/mi-reporting/occupancy-monthly";
 export const GET_ADMISSION_DISCHARGE_DAILY =
   "/mi-reporting/admission-discharge-daily";
+export const GET_INCIDENT_STATUS_MONTHLY =
+  "/mi-reporting/incident-status-monthly";
+export const GET_READMISSION_MONTHLY = "/mi-reporting/readmission-monthly";
+export const GET_ATTRITION_MONTHLY = "/mi-reporting/attrition-monthly";
+export const GET_ASSIGNED_DATA = "/mi-reporting/assigned-data";
+export const GET_CASH_RECO_COMPLIANCE = "/mi-reporting/cash-reco-compliance";
+
+// CENTER DASHBOARD
+export const GET_CENTER_DASHBOARD_LIVE = "/center-dashboard/live";
 
 // HR
 export const GET_EMPLOYEE_ID = "/hr/employee-id";
@@ -609,6 +661,9 @@ export const TPM_ACTION = "/hr/tpm/action";
 
 export const INCENTIVES = "/hr/incentives";
 export const INCENTIVES_ACTION = "/hr/incentives/action";
+
+export const PAYROLL_ADJUSTMENTS = "/hr/payroll-adjustments";
+export const PAYROLL_ADJUSTMENTS_ACTION = "/hr/payroll-adjustments/action";
 
 export const GENERATE_PAYROLL = "/hr/payroll/generate";
 export const GET_PAYROLLS = "/hr/payroll";
@@ -675,6 +730,7 @@ export const GET_CANCELLATION_REQUEST = "/hrms/leave/get/cancellations";
 export const ACTION_ON_CANCELLATION_REQUEST = "/hrms/leave/cancellation";
 export const GET_ALL_EMPLOYEE_LEAVE_BALANCE =
   "/hrms/leaves/balance/all-employees";
+export const GET_REPORTEES_LEAVE_BALANCE = "/hrms/leaves/balance/reportees";
 
 export const REQUEST_REGULARIZATION = "/hrms/request/regularization";
 export const GET_MY_REGULARIZATION = "/hrms/get/my/regularizations";
@@ -712,8 +768,21 @@ export const SUBMIT_ASSESSMENT_FROM =
 export const SUBMIT_ECT_CONSENT_FORM = "/patient/ect-consent-submit-file";
 export const UPLOAD_ECT_CONSENT_FORM = "/patient/ect-consent-upload-file";
 
+// MHRB EMAIL FORM
+export const UPLOAD_MHRB_EMAIL_FORM = "/patient/mhrb-email-upload-file";
+
+// DNR FORM
+export const DNR_FORM_FILLED = "/patient/dnr-form-filled";
+export const UPLOAD_DNR_FORM = "/patient/dnr-upload-file";
+
 // upload file
 export const UPLOAD_FILE = "/upload";
+
+// UTILITIES
+export const UPLOAD_UTILITY_BILL = "/utilities/upload-bill";
+export const GET_UTILITY_BILLS = "/utilities/bills";
+export const UPDATE_UTILITY_BILL = (id) => `/utilities/bills/${id}`;
+export const DELETE_UTILITY_BILL = (id) => `/utilities/bills/${id}`;
 
 // TALLY
 export const POST_TALLY_SEND = "/tally/send";
@@ -751,6 +820,7 @@ export const GET_RECORDING_BY_ID = "/ozonetel/get";
 export const GENERATE_OVERVIEW_RECORDING = "/ozonetel/generate-overview-by-id";
 export const BULK_GENERATE_OVERVIEW_RECORDING =
   "/ozonetel/generate-bulk-overview";
+export const BULK_OVERVIEW_STATUS = "/ozonetel/bulk-overview/status";
 export const UPLOAD_XLSX_FILE = "/ozonetel/upload/file";
 export const GET_CALL_RECORDING_OVERVIEW = "/ozonetel/get/call/overviews";
 
@@ -783,6 +853,7 @@ export const RESOLVE_SOP_ALERT = "/sop/alerts";
 
 export const SOP_RULES = "/sop/rules";
 export const SOP_SUGGESTED_MEDICINES = "/sop/suggested-medicines";
+export const SOP_BASELINE_PACKAGE = "/sop/baseline-package";
 
 // trainings
 
@@ -795,6 +866,7 @@ export const GET_TRAINING_BY_ID = "/trainings";
 export const GET_TRAINING_HISTORY = "/trainings/history";
 export const CREATE_TRAINER_RECORD = "/trainings/create/trainers";
 export const GET_USER_BY_ROLE = "/trainings/get/users/by/role";
+export const GET_EMPLOYEES_BY_POSITION = "/trainings/get/employees/by/position";
 export const GET_TRAINERS = "/trainings/get/trainers";
 export const GET_TRAINER_BY_ID = "/trainings/get/trainer";
 export const EDIT_TRAINER = "/trainings/edit";
@@ -839,12 +911,36 @@ export const VENDOR_BASE = "/master/vendor";
 export const GET_ITEM_TYPES = "/master/item-type";
 export const ITEM_TYPE_BASE = "/master/item-type";
 
-export const GET_ITEM_CATEGORIES = "/master/item-category";
-export const ITEM_CATEGORY_BASE = "/master/item-category";
 export const ITEM_MASTER_BASE = "/master/item";
 export const GET_ITEM_MASTERS = ITEM_MASTER_BASE;
 export const GET_UOMS = "/master/uom";
 export const UOM_BASE = "/master/uom";
+export const ASSET_CATEGORY_BASE = "/master/asset-category";
+
+export const PAYMENT_TERM_BASE = "/master/payment-term";
+
+export const PR_DEPARTMENT_BASE = "/master/pr-department";
+export const PR_SUB_DEPARTMENT_BASE = "/master/pr-sub-department";
+export const BUDGET_BASE = "/master/budget";
+export const USER_LOOKUP_BASE = "/master/user-lookup";
+export const PR_BASE = "/master/pr";
+export const RFQ_BASE = "/master/rfq";
+export const PO_BASE = "/master/po";
+export const CONTRACT_BASE = "/master/contract";
+export const DI_BASE = "/master/delivery-intimation";
+export const DI_BASE_POS = "/master/delivery-intimation/pos";
+export const GRN_BASE = "/master/grn";
+export const GRN_BASE_DI = "/master/grn/pending-di";
+export const GRN_BASE_PO = "/master/grn/pending-po";
+export const VI_BASE = "/master/vendor-invoice";
+export const VI_BASE_GRN = "/master/vendor-invoice/pending-grn";
+export const STORAGE_LOCATION_BASE = "/master/storage-location";
+export const PUTAWAY_BASE = "/master/putaway";
+export const PUTAWAY_BASE_GRN = "/master/putaway/pending-grn";
+export const MATERIAL_ISSUE_BASE = "/master/stock/material-issue";
+export const MATERIAL_RETURN_BASE = "/master/stock/material-return";
+export const STOCK_BALANCE_BASE = "/master/stock/balances";
+export const STOCK_LEDGER_BASE = "/master/stock/ledger";
 
 export const CONFIGURATION_DOCS = "/hr/doc/configuration";
 

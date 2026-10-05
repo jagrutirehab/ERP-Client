@@ -17,6 +17,10 @@ import {
   SEVERITY_THRESHOLD_OPTIONS,
   ANY_LAB_TEST_OPTION,
   RELATIVE_DAY_OPERATORS,
+  CHANGE_DIRECTION_OPTIONS,
+  CHANGE_COMPARATOR_OPTIONS,
+  CHANGE_UNIT_OPTIONS,
+  CHANGE_PERIOD_UNIT_OPTIONS,
 } from "../../../Components/constants/sopConstants";
 import { getICDCodes, sopGetLabTests } from "../../../helpers/backend_helper";
 
@@ -26,8 +30,11 @@ let _labTestsPromise = null;
 const loadLabTests = () => {
   if (!_labTestsPromise) {
     _labTestsPromise = sopGetLabTests()
-      .then((res) => res?.data || res || { tests: [], severityThresholds: [] })
-      .catch(() => ({ tests: [], severityThresholds: [] }));
+      .then(
+        (res) =>
+          res?.data || res || { tests: [], panels: [], severityThresholds: [] },
+      )
+      .catch(() => ({ tests: [], panels: [], severityThresholds: [] }));
   }
   return _labTestsPromise;
 };
@@ -52,6 +59,7 @@ const ConditionRow = ({
   const [icdOptions, setIcdOptions] = useState([]);
   const [isLoadingIcd, setIsLoadingIcd] = useState(false);
   const [labTests, setLabTests] = useState([]);
+  const [labPanels, setLabPanels] = useState([]);
 
   const fieldOptions = modelFieldsCache[condition.model?.value] || [];
   const selectedField = fieldOptions.find((f) => f.value === condition.field);
@@ -65,6 +73,7 @@ const ConditionRow = ({
   const isBoolean = fieldType === "Boolean";
   const isFlaggedItems = fieldType === "FlaggedItemArray";
   const isConsecutiveLow = condition.operator?.value === "CONSECUTIVE_LOW";
+  const isChangeOverPeriod = condition.operator?.value === "CHANGE_OVER_PERIOD";
   const isDelayed = condition.triggerType?.value === "DELAYED";
   const isFrequency = condition.schedule?.period?.value === "FREQUENCY";
   const hasEnum =
@@ -95,6 +104,7 @@ const ConditionRow = ({
     loadLabTests().then((data) => {
       if (cancelled) return;
       setLabTests(Array.isArray(data?.tests) ? data.tests : []);
+      setLabPanels(Array.isArray(data?.panels) ? data.panels : []);
     });
     return () => {
       cancelled = true;
@@ -109,7 +119,11 @@ const ConditionRow = ({
       setIcdOptions(
         dataArray.map((i) => ({
           value: i._id,
-          label: `${i.text} - ${i.code}`,
+          // Code first, then the name — matching how the diagnosis is picked
+          // everywhere else (AdmitPatient, DoctorSignature, Prescription), so
+          // the same diagnosis reads the same way when authoring a rule as it
+          // does on the admission. The code is the part users search by.
+          label: `${i.code} - ${i.text}`,
         })),
       );
     } catch (err) {
@@ -135,7 +149,10 @@ const ConditionRow = ({
     onChange(idx, "field", newField);
     onChange(idx, "value", []);
     if (newType === "FlaggedItemArray") {
-      onChange(idx, "operator", { value: "ARRAY_ANY_MATCHES", label: "ARRAY ANY MATCHES" });
+      onChange(idx, "operator", {
+        value: "ARRAY_ANY_MATCHES",
+        label: "ARRAY ANY MATCHES",
+      });
       onChange(idx, "arrayMatch", {
         keyField: "canonicalName",
         keyValue: "",
@@ -154,6 +171,9 @@ const ConditionRow = ({
       );
       onChange(idx, "arrayMatch", null);
     }
+    // A field change always resets the operator above, so the trend side-car
+    // can never still apply — clear it, mirroring arrayMatch.
+    onChange(idx, "changeMatch", null);
     if (ICD_FIELDS.has(newField)) fetchIcd();
   };
   // FlaggedItemArray supports two modes, set via arrayMatch.comparator:
@@ -161,44 +181,97 @@ const ConditionRow = ({
   //   GREATER_THAN / LESS_THAN / *_OR_EQUAL / BETWEEN — Test + numeric ULN
   //     multiplier (or other numeric compareField) + threshold value(s).
   // The mode toggle drives which sub-editor renders.
+  // Labels are basis-agnostic — what the number means (× ULN, × LLN or an
+  // absolute value) is chosen separately in COMPARE_BASIS_OPTIONS below.
   const MODE_OPTIONS = [
     { value: "SEVERITY", label: "By severity" },
-    { value: "GREATER_THAN", label: "ULN multiplier  >" },
-    { value: "GREATER_THAN_OR_EQUAL", label: "ULN multiplier  ≥" },
-    { value: "LESS_THAN", label: "ULN multiplier  <" },
-    { value: "LESS_THAN_OR_EQUAL", label: "ULN multiplier  ≤" },
-    { value: "BETWEEN", label: "ULN multiplier  between" },
+    { value: "GREATER_THAN", label: "Numeric  >" },
+    { value: "GREATER_THAN_OR_EQUAL", label: "Numeric  ≥" },
+    { value: "LESS_THAN", label: "Numeric  <" },
+    { value: "LESS_THAN_OR_EQUAL", label: "Numeric  ≤" },
+    { value: "BETWEEN", label: "Numeric  between (low ≤ x ≤ high)" },
+    {
+      value: "BETWEEN_EXCLUSIVE_LOW",
+      label: "Numeric  band (low < x ≤ high)",
+    },
   ];
+
+  // What the threshold is measured against. Tiering tables written as "× ULN"
+  // use the default; eGFR and other DOWN_ONLY tests have no ULN at all and are
+  // authored either against their lower limit or as a plain absolute value.
+  const COMPARE_BASIS_OPTIONS = [
+    { value: "ulnMultiplier", label: "× ULN (upper limit)", bound: "uln" },
+    { value: "llnMultiplier", label: "× LLN (lower limit)", bound: "lln" },
+    { value: "numericValue", label: "Absolute value", bound: null },
+  ];
+
+  const BAND_COMPARATORS = new Set(["BETWEEN", "BETWEEN_EXCLUSIVE_LOW"]);
 
   const renderFlaggedItemsEditor = () => {
     const comparator = condition.arrayMatch?.comparator || "SEVERITY";
     const isSeverityMode = comparator === "SEVERITY";
 
+    const compareField =
+      condition.arrayMatch?.compareField ||
+      (isSeverityMode ? "severity" : "ulnMultiplier");
+    const basis =
+      COMPARE_BASIS_OPTIONS.find((b) => b.value === compareField) ||
+      COMPARE_BASIS_OPTIONS[0];
+
     // Test options:
     //   Severity mode keeps the wildcard ("Any test").
-    //   Numeric modes only allow catalogue entries that carry a ULN — a
-    //   per-test multiplier comparison against a test with uln=null is
-    //   meaningless. Sodium/eGFR etc. should use numericValue + GREATER_THAN
-    //   on an explicit threshold instead (left for future UI; the API
-    //   already supports it via compareField:"numericValue").
+    //   Numeric modes only offer tests for which the chosen basis exists — a
+    //   "× ULN" comparison against a test with uln=null can never match, so
+    //   offering it would just produce a silently dead rule. "Absolute value"
+    //   needs no bound, so every test qualifies there. This is what makes eGFR
+    //   (uln=null, lln=60) authorable: pick × LLN or Absolute value.
     const testsForMode = isSeverityMode
       ? labTests
-      : labTests.filter((t) => t.uln != null);
+      : labTests.filter((t) => !basis.bound || t[basis.bound] != null);
     const testOpts = [
       ...(isSeverityMode ? [ANY_LAB_TEST_OPTION] : []),
       ...testsForMode.map((t) => ({
         value: t.id,
         label: t.display || t.id,
         uln: t.uln,
+        lln: t.lln,
         unit: t.unit,
       })),
     ];
 
-    const selectedTest =
-      testOpts.find((o) => o.value === condition.arrayMatch?.keyValue) || null;
+    // keyValue is one id, "*", or a list of ids (a panel). Normalise to an array
+    // so the multi-select works for every shape, including rules authored before
+    // panels existed.
+    const keyValueArr = Array.isArray(condition.arrayMatch?.keyValue)
+      ? condition.arrayMatch.keyValue
+      : condition.arrayMatch?.keyValue
+        ? [condition.arrayMatch.keyValue]
+        : [];
+    const isWildcardSelected = keyValueArr[0] === ANY_LAB_TEST_OPTION.value;
+    const selectedTests = isWildcardSelected
+      ? [ANY_LAB_TEST_OPTION]
+      : testOpts.filter((o) => keyValueArr.includes(o.value));
+    // The × ULN hint only means something for a single test — each test has its
+    // own ULN, so there is no one figure to show for a panel.
+    const selectedTest = selectedTests.length === 1 ? selectedTests[0] : null;
+
+    // Panels fill the selection in one click; they are not stored, so switching
+    // panel just replaces the ids.
+    const panelOpts = labPanels.map((p) => ({
+      value: p.id,
+      label: p.display,
+      tests: p.tests,
+    }));
+    const activePanel =
+      panelOpts.find(
+        (p) =>
+          p.tests.length === keyValueArr.length &&
+          p.tests.every((t) => keyValueArr.includes(t)),
+      ) || null;
     const selectedSeverity =
-      SEVERITY_THRESHOLD_OPTIONS.find((o) => o.value === condition.value?.[0]) ||
-      null;
+      SEVERITY_THRESHOLD_OPTIONS.find(
+        (o) => o.value === condition.value?.[0],
+      ) || null;
     const selectedMode =
       MODE_OPTIONS.find((o) => o.value === comparator) || MODE_OPTIONS[0];
 
@@ -211,35 +284,78 @@ const ConditionRow = ({
       onChange(idx, "arrayMatch", {
         keyField: "canonicalName",
         keyValue: "",
-        compareField: isNextSeverity ? "severity" : "ulnMultiplier",
+        // Switching between two numeric modes keeps the chosen basis; only a
+        // move to or from severity mode forces it.
+        compareField: isNextSeverity
+          ? "severity"
+          : isSeverityMode
+            ? "ulnMultiplier"
+            : compareField,
         comparator: nextComparator,
       });
       onChange(idx, "value", []);
     };
 
-    const handleTestChange = (s) =>
+    // Changing the basis can invalidate the selected test (eGFR has no ULN),
+    // so clear the selection rather than leave a rule the server will reject.
+    const handleBasisChange = (next) => {
       onChange(idx, "arrayMatch", {
-        ...(condition.arrayMatch || {
-          keyField: "canonicalName",
-          compareField: isSeverityMode ? "severity" : "ulnMultiplier",
-          comparator,
-        }),
-        keyValue: s?.value || "",
+        keyField: "canonicalName",
+        keyValue: "",
+        compareField: next?.value || "ulnMultiplier",
+        comparator,
+      });
+      onChange(idx, "value", []);
+    };
+
+    const baseArrayMatch = () =>
+      condition.arrayMatch || {
+        keyField: "canonicalName",
+        compareField: isSeverityMode ? "severity" : "ulnMultiplier",
+        comparator,
+      };
+
+    // Stores a bare string for a single test (and for "*"), an array for a
+    // panel — so a one-test condition round-trips exactly as it always has.
+    const setKeyValue = (ids) =>
+      onChange(idx, "arrayMatch", {
+        ...baseArrayMatch(),
+        keyValue: ids.length === 1 ? ids[0] : ids,
       });
 
-    // Derived hint for numeric mode: "3 × 40 IU/L = 120 IU/L" so the
-    // rule author can sanity-check the threshold in real-world units.
+    const handleTestChange = (selection) => {
+      const picked = Array.isArray(selection) ? selection : [];
+      // "Any test" is exclusive — it already means every test.
+      const wildcard = picked.find((p) => p.value === ANY_LAB_TEST_OPTION.value);
+      setKeyValue(wildcard ? [wildcard.value] : picked.map((p) => p.value));
+    };
+
+    const handlePanelChange = (p) => setKeyValue(p?.tests ? [...p.tests] : []);
+
+    // Derived hint for numeric mode: "3 × 40 IU/L = 120 IU/L" so the rule
+    // author can sanity-check the threshold in real-world units. Only shown
+    // for a multiplier basis on a single test — an absolute value is already in
+    // real units, and a panel has no single bound to multiply by.
     const hint = (() => {
-      if (isSeverityMode || !selectedTest?.uln) return null;
+      if (isSeverityMode || !selectedTest) return null;
+      const bound = basis.bound ? selectedTest[basis.bound] : null;
+      if (!bound) return null;
+      const label = basis.bound.toUpperCase();
       const a = Number(condition.value?.[0]);
-      if (comparator === "BETWEEN") {
+      if (BAND_COMPARATORS.has(comparator)) {
         const b = Number(condition.value?.[1]);
         if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
-        return `≈ ${(a * selectedTest.uln).toFixed(2)} – ${(b * selectedTest.uln).toFixed(2)} ${selectedTest.unit}`;
+        return `≈ ${(a * bound).toFixed(2)} – ${(b * bound).toFixed(2)} ${selectedTest.unit}`;
       }
       if (!Number.isFinite(a)) return null;
-      return `≈ ${(a * selectedTest.uln).toFixed(2)} ${selectedTest.unit}  (ULN = ${selectedTest.uln} ${selectedTest.unit})`;
+      return `≈ ${(a * bound).toFixed(2)} ${selectedTest.unit}  (${label} = ${bound} ${selectedTest.unit})`;
     })();
+
+    // Placeholder wording follows the basis: "× ULN", "× LLN" or the test's
+    // own unit when comparing an absolute value.
+    const unitHint = basis.bound
+      ? `× ${basis.bound.toUpperCase()}`
+      : selectedTest?.unit || "value";
 
     return (
       <div>
@@ -250,20 +366,49 @@ const ConditionRow = ({
           isDisabled={isDisabled}
           placeholder="Mode..."
         />
+        {!isSeverityMode && (
+          <div className="mt-1">
+            <Select
+              options={COMPARE_BASIS_OPTIONS}
+              value={basis}
+              onChange={handleBasisChange}
+              isDisabled={isDisabled}
+              placeholder="Compare against..."
+            />
+          </div>
+        )}
+        {panelOpts.length > 0 && (
+          <div className="mt-1">
+            <Select
+              options={panelOpts}
+              value={activePanel}
+              onChange={handlePanelChange}
+              isDisabled={isDisabled}
+              isClearable
+              placeholder="Or pick a panel..."
+            />
+          </div>
+        )}
         <div className="mt-1">
           <Select
+            isMulti
             options={testOpts}
-            value={selectedTest}
+            value={selectedTests}
             onChange={handleTestChange}
             isDisabled={isDisabled || testOpts.length === 0}
             placeholder={
               testOpts.length === 0
                 ? "Loading tests..."
                 : isSeverityMode
-                  ? "Select test..."
-                  : "Select test (× ULN)..."
+                  ? "Select test(s)..."
+                  : `Select test(s) (${unitHint})...`
             }
           />
+          {selectedTests.length > 1 && (
+            <small className="text-muted">
+              Fires when <strong>any</strong> of these breaches the threshold.
+            </small>
+          )}
         </div>
         {isSeverityMode ? (
           <div className="mt-1">
@@ -275,14 +420,14 @@ const ConditionRow = ({
               placeholder="Severity ≥ ..."
             />
           </div>
-        ) : comparator === "BETWEEN" ? (
+        ) : BAND_COMPARATORS.has(comparator) ? (
           <Row className="g-1 mt-1">
             <Col xs={6}>
               <Input
                 type="number"
                 step="0.1"
                 min="0"
-                placeholder="low × ULN"
+                placeholder={`low ${unitHint}`}
                 value={condition.value?.[0] ?? ""}
                 onChange={(e) =>
                   onChange(idx, "value", [
@@ -298,7 +443,7 @@ const ConditionRow = ({
                 type="number"
                 step="0.1"
                 min="0"
-                placeholder="high × ULN"
+                placeholder={`high ${unitHint}`}
                 value={condition.value?.[1] ?? ""}
                 onChange={(e) =>
                   onChange(idx, "value", [
@@ -316,7 +461,7 @@ const ConditionRow = ({
               type="number"
               step="0.1"
               min="0"
-              placeholder="× ULN (e.g. 3)"
+              placeholder={`${unitHint} (e.g. 3)`}
               value={condition.value?.[0] ?? ""}
               onChange={(e) => onChange(idx, "value", [e.target.value])}
               disabled={isDisabled}
@@ -371,7 +516,9 @@ const ConditionRow = ({
                   placeholder="From day"
                   value={band.fromDay ?? ""}
                   onChange={(e) =>
-                    updateBand({ fromDay: e.target.value.replace(/[^\d]/g, "") })
+                    updateBand({
+                      fromDay: e.target.value.replace(/[^\d]/g, ""),
+                    })
                   }
                   disabled={isDisabled}
                 />
@@ -493,6 +640,134 @@ const ConditionRow = ({
       );
     }
 
+    // CHANGE_OVER_PERIOD: direction + comparator + unit + period length, then
+    // one or two positive thresholds. Thresholds are always entered positive —
+    // the direction carries the sign server-side.
+    if (isChangeOverPeriod) {
+      const cm = condition.changeMatch || {};
+      const patch = (next) => onChange(idx, "changeMatch", { ...cm, ...next });
+
+      const pick = (options, value, fallbackIdx = 0) =>
+        options.find((o) => o.value === value) || options[fallbackIdx];
+
+      const comparator = cm.comparator || "GREATER_THAN_OR_EQUAL";
+      const isBetween = comparator === "BETWEEN";
+
+      return (
+        <div>
+          <Row className="g-1">
+            <Col xs={5}>
+              <Select
+                options={CHANGE_DIRECTION_OPTIONS}
+                value={pick(CHANGE_DIRECTION_OPTIONS, cm.direction)}
+                onChange={(o) => patch({ direction: o?.value || "EITHER" })}
+                isDisabled={isDisabled}
+              />
+            </Col>
+            <Col xs={7}>
+              <Select
+                options={CHANGE_COMPARATOR_OPTIONS}
+                value={pick(CHANGE_COMPARATOR_OPTIONS, comparator)}
+                onChange={(o) => {
+                  // Clear the operands so a stale high value can't survive a
+                  // BETWEEN -> single-operand switch.
+                  patch({ comparator: o?.value || "GREATER_THAN_OR_EQUAL" });
+                  onChange(idx, "value", []);
+                }}
+                isDisabled={isDisabled}
+              />
+            </Col>
+          </Row>
+
+          {isBetween ? (
+            <Row className="g-1 mt-1">
+              <Col xs={6}>
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="low"
+                  value={condition.value?.[0] ?? ""}
+                  onChange={(e) =>
+                    onChange(idx, "value", [
+                      e.target.value,
+                      condition.value?.[1] ?? "",
+                    ])
+                  }
+                  disabled={isDisabled}
+                />
+              </Col>
+              <Col xs={6}>
+                <Input
+                  type="number"
+                  min="0"
+                  step="any"
+                  placeholder="high"
+                  value={condition.value?.[1] ?? ""}
+                  onChange={(e) =>
+                    onChange(idx, "value", [
+                      condition.value?.[0] ?? "",
+                      e.target.value,
+                    ])
+                  }
+                  disabled={isDisabled}
+                />
+              </Col>
+            </Row>
+          ) : (
+            <div className="mt-1">
+              <Input
+                type="number"
+                min="0"
+                step="any"
+                placeholder="Amount (e.g. 5)"
+                value={condition.value?.[0] ?? ""}
+                onChange={(e) => onChange(idx, "value", [e.target.value])}
+                disabled={isDisabled}
+              />
+            </div>
+          )}
+
+          <Row className="g-1 mt-1">
+            <Col xs={5}>
+              <Select
+                options={CHANGE_UNIT_OPTIONS}
+                value={pick(CHANGE_UNIT_OPTIONS, cm.unit)}
+                onChange={(o) => patch({ unit: o?.value || "ABSOLUTE" })}
+                isDisabled={isDisabled}
+              />
+            </Col>
+            <Col xs={3}>
+              <Input
+                type="number"
+                min="1"
+                step="1"
+                placeholder="every"
+                value={cm.periodCount ?? ""}
+                onChange={(e) =>
+                  patch({ periodCount: e.target.value.replace(/[^\d]/g, "") })
+                }
+                disabled={isDisabled}
+              />
+            </Col>
+            <Col xs={4}>
+              <Select
+                options={CHANGE_PERIOD_UNIT_OPTIONS}
+                value={pick(CHANGE_PERIOD_UNIT_OPTIONS, cm.periodUnit, 2)}
+                onChange={(o) => patch({ periodUnit: o?.value || "MONTH" })}
+                isDisabled={isDisabled}
+              />
+            </Col>
+          </Row>
+
+          <small className="text-muted d-block mt-1">
+            Periods run from the admission date. Each period compares its first
+            and last reading and alerts separately.
+          </small>
+        </div>
+      );
+    }
+
     // Relative-date operators (e.g. OLDER_THAN_DAYS) take a plain number of
     // days, not a date. Stored as a single-element array to match the other
     // numeric value editors.
@@ -552,7 +827,7 @@ const ConditionRow = ({
             Array.isArray(condition.value) && condition.value.length === 2
               ? { value: "Both", label: "Both" }
               : GENDER_OPTIONS.find((o) => o.value === condition.value?.[0]) ||
-              null
+                null
           }
           onChange={(s) => {
             if (!s) return onChange(idx, "value", []);
@@ -651,7 +926,27 @@ const ConditionRow = ({
               filteredOps.find((o) => o.value === condition.operator?.value) ||
               null
             }
-            onChange={(v) => onChange(idx, "operator", v)}
+            onChange={(v) => {
+              onChange(idx, "operator", v);
+              // Seed the trend side-car when switching to CHANGE_OVER_PERIOD,
+              // clear it when switching away, so a stale direction can't ride
+              // along on an unrelated operator.
+              onChange(
+                idx,
+                "changeMatch",
+                v?.value === "CHANGE_OVER_PERIOD"
+                  ? {
+                      direction: condition.changeMatch?.direction || "EITHER",
+                      comparator:
+                        condition.changeMatch?.comparator ||
+                        "GREATER_THAN_OR_EQUAL",
+                      unit: condition.changeMatch?.unit || "ABSOLUTE",
+                      periodUnit: condition.changeMatch?.periodUnit || "MONTH",
+                      periodCount: condition.changeMatch?.periodCount || 1,
+                    }
+                  : null,
+              );
+            }}
             isDisabled={isDisabled || isFieldExists}
           />
         </Col>

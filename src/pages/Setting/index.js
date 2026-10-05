@@ -15,6 +15,7 @@ import Symptom from "./Symptom";
 import HrConfigurations from "./HRConfigs";
 import DocumentConfig from "./DocumentConfig";
 import CenterFloorConfig from "./CenterFloorConfig";
+import CenterFallbackManager from "./CenterFallbackManager";
 
 const index = (props) => {
   return (
@@ -42,6 +43,10 @@ const index = (props) => {
               <Route
                 path={`/center/floor/configs`}
                 element={<CenterFloorConfig />}
+              />
+               <Route
+                path={`/center/fallback/manager`}
+                element={<CenterFallbackManager />}
               />
             </Routes>
           </div>

@@ -70,6 +70,42 @@ export const OPERATOR_OPTIONS = [
   // Streak-based operator for discontinuation rules. Fires when the last N
   // assessments all score below the threshold.
   { value: "CONSECUTIVE_LOW", label: "Consecutive low (discontinue)" },
+  // Trend operator. Splits the admission into successive periods counted from
+  // the admission date and compares the first and last reading in each.
+  { value: "CHANGE_OVER_PERIOD", label: "Changed over period (trend)" },
+];
+
+// --- CHANGE_OVER_PERIOD side-car options -------------------------------------
+// The threshold is always entered as a positive number; `direction` carries the
+// sign and `comparator` is applied to the magnitude of the change.
+
+export const CHANGE_DIRECTION_OPTIONS = [
+  { value: "EITHER", label: "Changed" },
+  { value: "GAIN", label: "Increased" },
+  { value: "LOSS", label: "Decreased" },
+];
+
+export const CHANGE_COMPARATOR_OPTIONS = [
+  { value: "GREATER_THAN_OR_EQUAL", label: "by at least (\u2265)" },
+  { value: "GREATER_THAN", label: "by more than (>)" },
+  { value: "LESS_THAN_OR_EQUAL", label: "by at most (\u2264)" },
+  { value: "LESS_THAN", label: "by less than (<)" },
+  { value: "BETWEEN", label: "by between" },
+];
+
+// ABSOLUTE compares the raw change (kg for weight); PERCENT compares it against
+// the period's first reading.
+export const CHANGE_UNIT_OPTIONS = [
+  { value: "ABSOLUTE", label: "kg / units" },
+  { value: "PERCENT", label: "%" },
+];
+
+// Period length unit. Mirrors PER_DAYS on the server ({ DAY:1, WEEK:7,
+// MONTH:30 }) — keep the two in step.
+export const CHANGE_PERIOD_UNIT_OPTIONS = [
+  { value: "DAY", label: "day(s)" },
+  { value: "WEEK", label: "week(s)" },
+  { value: "MONTH", label: "month(s)" },
 ];
 
 // Operators whose value editor is a plain number of days against a Date field.
@@ -84,6 +120,7 @@ export const OPERATORS_BY_TYPE = {
     "EQUALS",
     "NOT_EQUALS",
     "CONSECUTIVE_LOW",
+    "CHANGE_OVER_PERIOD",
   ],
   Date: [
     "GREATER_THAN",
@@ -101,6 +138,17 @@ export const OPERATORS_BY_TYPE = {
   // field. Only one operator is meaningful here and the value editor is a
   // bespoke "test name + severity threshold" pair handled in ConditionRow.
   FlaggedItemArray: ["ARRAY_ANY_MATCHES"],
+  // Synthetic type for Addmission.patientCategory — a derived patient-group
+  // filter (ADDICTION / PSYCHIATRY) the server resolves from the patient's ICD
+  // codes. The value is a category id, so only equality applies; the dropdown
+  // itself comes from the field's `options` metadata, not from here.
+  PatientCategory: ["EQUALS", "NOT_EQUALS"],
+  // Synthetic type for Addmission.admissionSupportType — the admission form's
+  // supported-admission window (up to 30 days / beyond 30 days), resolved by the
+  // server from the newest uploaded form. EXISTS/NOT_EXISTS are kept so a rule
+  // can target admissions whose form type was never recorded. The dropdown comes
+  // from the field's `options` metadata, not from here.
+  AdmissionSupportType: ["EQUALS", "NOT_EQUALS", "EXISTS", "NOT_EXISTS"],
 };
 
 // Severity threshold dropdown for LabReport flagged-items conditions.
@@ -143,16 +191,16 @@ export const BOOLEAN_OPTIONS = [
 //   - FREQUENCY  : "N documents per period over a day-range" — a `bands` table
 //                  (e.g. 2/week between admission day 5–30).
 export const PERIOD_OPTIONS = [
-  { value: "DEADLINE",   label: "Deadline (one-time)" },
+  { value: "DEADLINE", label: "Deadline (one-time)" },
   { value: "CONTINUOUS", label: "Continuous (every N hours)" },
-  { value: "DAYS",       label: "Days (specific days)" },
-  { value: "FREQUENCY",  label: "Frequency (N per period)" },
+  { value: "DAYS", label: "Days (specific days)" },
+  { value: "FREQUENCY", label: "Frequency (N per period)" },
 ];
 
 // FREQUENCY band period unit.
 export const PER_OPTIONS = [
-  { value: "DAY",   label: "per day" },
-  { value: "WEEK",  label: "per week" },
+  { value: "DAY", label: "per day" },
+  { value: "WEEK", label: "per week" },
   { value: "MONTH", label: "per month" },
 ];
 
@@ -174,12 +222,12 @@ export const emptyConditionItem = () => ({
   deadlineHours: "",
   value: [],
   schedule: {
-    period: PERIOD_OPTIONS[0],   // "Days" default
-    days: [],                     // e.g. [1, 3, 7] — day numbers since admission
-    daysOnwards: false,           // DAYS only: due every day after the max listed day
-    intervalHours: "",            // optional integer (every N hours)
-    graceHours: 0,                // tolerance window in hours
-    bands: [],                    // FREQUENCY only: [{ fromDay, toDay, times, per, onwards }]
+    period: PERIOD_OPTIONS[0], // "Days" default
+    days: [], // e.g. [1, 3, 7] — day numbers since admission
+    daysOnwards: false, // DAYS only: due every day after the max listed day
+    intervalHours: "", // optional integer (every N hours)
+    graceHours: 0, // tolerance window in hours
+    bands: [], // FREQUENCY only: [{ fromDay, toDay, times, per, onwards }]
   },
   // Populated only when operator is ARRAY_ANY_MATCHES (today: LabReport
   // flagged-items conditions).
@@ -187,6 +235,9 @@ export const emptyConditionItem = () => ({
   // Populated only when operator is CONSECUTIVE_LOW (discontinuation rules).
   // count = how many consecutive assessments must score below the threshold.
   consecutiveMatch: null,
+  // Populated only when operator is CHANGE_OVER_PERIOD —
+  // { direction, comparator, unit, periodUnit, periodCount }.
+  changeMatch: null,
   // Optional discontinue-gate for DELAYED cadence ("missing assessment")
   // conditions — { count, criteria: [{ field, threshold }] }. Null = off.
   // When the last `count` assessments all score below the thresholds, the
@@ -232,36 +283,122 @@ export const BLOOD_GROUP_OPTIONS = [
 // ─── Suggested Medicines ──────────────────────────────────────────────────
 
 export const MEDICINE_CATEGORY_OPTIONS = [
-  { value: "WITHDRAWAL",  label: "Withdrawal (CDZ, antiepileptics)" },
-  { value: "GENERAL",     label: "General (Thiamine, B-Plex, antacids)" },
-  { value: "HEPATIC",     label: "Hepatic (Udiliv, Rifagut, Lornit)" },
+  { value: "WITHDRAWAL", label: "Withdrawal (CDZ, antiepileptics)" },
+  { value: "GENERAL", label: "General (Thiamine, B-Plex, antacids)" },
+  { value: "HEPATIC", label: "Hepatic (Udiliv, Rifagut, Lornit)" },
   { value: "MAINTENANCE", label: "Maintenance (Acamprosate, Topiramate)" },
-  { value: "DISCHARGE",   label: "Discharge prescription" },
-  { value: "SOS",         label: "SOS / PRN" },
-  { value: "OTHER",       label: "Other" },
+  { value: "DISCHARGE", label: "Discharge prescription" },
+  { value: "SOS", label: "SOS / PRN" },
+  { value: "OTHER", label: "Other" },
 ];
 
 export const MEDICINE_PRIORITY_OPTIONS = [
-  { value: "ROUTINE",   label: "Routine" },
-  { value: "HIGH",      label: "High" },
-  { value: "URGENT",    label: "Urgent" },
+  { value: "ROUTINE", label: "Routine" },
+  { value: "HIGH", label: "High" },
+  { value: "URGENT", label: "Urgent" },
   { value: "EMERGENCY", label: "Emergency" },
 ];
 
 export const MEDICINE_INTAKE_OPTIONS = [
   { value: "Before food", label: "Before food" },
-  { value: "After food",  label: "After food" },
+  { value: "After food", label: "After food" },
 ];
 
 export const emptySuggestedMedicine = () => ({
-  id: Date.now() + Math.random(),                  // local-only UI key
-  medicine: null,                                  // { value, label, snapshot? }
+  id: Date.now() + Math.random(), // local-only UI key
+  medicine: null, // { value, label, snapshot? }
   medicineSnapshot: { name: "", type: "", strength: "", unit: "" },
   dosageAndFrequency: { morning: "", evening: "", night: "", unit: "tab" },
-  applicableDays: [],                              // [] = throughout admission
+  applicableDays: [], // [] = throughout admission
   instructions: "",
-  intake: MEDICINE_INTAKE_OPTIONS[1],               // After food default
+  intake: MEDICINE_INTAKE_OPTIONS[1], // After food default
   priority: MEDICINE_PRIORITY_OPTIONS[0],
   category: MEDICINE_CATEGORY_OPTIONS[0],
   rationale: "",
+});
+
+// ─── Baseline Investigation Package ───────────────────────────────────────
+// The admission-time lab package and its escalation ladder. Lives here rather
+// than under pages/SopConfigs/ so the patient views can import the status
+// metadata without reaching across the page tree.
+
+export const BASELINE_STATUS = {
+  PENDING: "PENDING",
+  COMPLETED: "COMPLETED",
+  WAIVED: "WAIVED",
+};
+
+// Shared by the IPD control, the SOP overview strip and the config preview, so
+// one status can't render three different ways.
+//
+// WAIVED reads as "Not Applicable" rather than "Waived": to a nurse the
+// question is whether the package applies to this patient, not whether someone
+// exercised a waiver.
+export const BASELINE_STATUS_META = {
+  PENDING: { label: "Pending", color: "warning", icon: "bx bx-time-five" },
+  COMPLETED: {
+    label: "Completed",
+    color: "success",
+    icon: "bx bx-check-circle",
+  },
+  WAIVED: {
+    label: "Not Applicable",
+    color: "secondary",
+    icon: "bx bx-minus-circle",
+  },
+};
+
+// The 24/48/72/96h policy from the Governance SOP, used to seed a new ladder.
+// The ladder is variable-length rather than fixed at four: the persisted shape
+// is an array, the server validates it regardless, and "max alerts per
+// admission" is DERIVED from ladder length — which the form shows live, so the
+// relationship stays visible rather than hidden behind a fixed set of rows.
+export const BASELINE_TIER_SEED = [
+  { key: "T1", hours: 24, severity: "LOW" },
+  { key: "T2", hours: 48, severity: "MEDIUM" },
+  { key: "T3", hours: 72, severity: "HIGH" },
+  { key: "T4", hours: 96, severity: "CRITICAL" },
+];
+
+export const BASELINE_TIER_KEYS = ["T1", "T2", "T3", "T4"];
+
+// Starting point only — curate against the actual formulary before go-live.
+// Note these are SUBSTRINGS matched against the prescribed name plus the drug
+// master's genericName/composition. A brand like LITHOSUN is NOT matched by
+// "LITHIUM" on name alone; it relies on the master carrying the generic.
+export const BASELINE_DRUG_PATTERN_SUGGESTIONS = [
+  "VALPRO",
+  "DIVALPROEX",
+  "LITHIUM",
+  "CLOZAP",
+];
+
+export const emptyBaselineTier = (seed = {}) => ({
+  id: Date.now() + Math.random(), // local-only UI key
+  key: seed.key || "",
+  hours: seed.hours ?? "",
+  severity:
+    SEVERITY_OPTIONS.find((o) => o.value === seed.severity) ||
+    SEVERITY_OPTIONS[0],
+  message: "",
+  actionGuidance: "",
+  referenceSection: seed.key || "",
+  // Reused, NOT redeclared — this makes a tier's routing payload byte-identical
+  // to a target block's, which is why RoutingCard needs no adaptation at all.
+  ...emptyRouting(),
+});
+
+export const emptyBaselinePackageForm = () => ({
+  name: "",
+  description: "",
+  centers: [],
+  // Defaults to today. The server requires it and gates admissionDate on it —
+  // it is the floor that stops a newly activated package firing against every
+  // existing admission at once.
+  effectiveFrom: new Date().toISOString().slice(0, 10),
+  tests: [],
+  escalationEnabled: true,
+  drugPatterns: [],
+  escalationNote: "",
+  tiers: BASELINE_TIER_SEED.map(emptyBaselineTier),
 });

@@ -58,7 +58,7 @@
 
 import React, { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
-import { Button, Col, Container, Row, Spinner } from "reactstrap"
+import { Button, ButtonGroup, Col, Container, Row, Spinner } from "reactstrap"
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { getApprovals } from "../../../store/features/centralPayment/centralPaymentSlice";
@@ -74,6 +74,7 @@ const ApprovalDashboard = ({ centerAccess, centers, loading, approvals }) => {
   const handleAuthError = useAuthError();
   const [page, setPage] = useState(1);
   const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState("");
   const limit = 12;
 
   const microUser = localStorage.getItem("micrologin");
@@ -127,7 +128,8 @@ const ApprovalDashboard = ({ centerAccess, centers, loading, approvals }) => {
           page,
           limit,
           centers: centers,
-          approvalStatus: "PENDING"
+          approvalStatus: "PENDING",
+          ...(paymentTypeFilter && { initialPaymentStatus: paymentTypeFilter })
         })).unwrap();
       } catch (error) {
         if (!handleAuthError(error)) {
@@ -137,7 +139,7 @@ const ApprovalDashboard = ({ centerAccess, centers, loading, approvals }) => {
     }
 
     fetchPendingApprovals();
-  }, [centerAccess, selectedCenter, dispatch, page, limit]);
+  }, [centerAccess, selectedCenter, dispatch, page, limit, paymentTypeFilter]);
 
 
 
@@ -157,17 +159,54 @@ const ApprovalDashboard = ({ centerAccess, centers, loading, approvals }) => {
         <Container fluid>
           <div className="mb-5">
             <Row className="mb-3 align-items-center justify-content-between">
-              <Col lg="2" md="6" sm="12">
-                <Select
-                  value={selectedCenterOption}
-                  onChange={(option) => {
-                    setSelectedCenter(option?.value);
-                    setPage(1);
-                  }}
-                  options={centerOptions}
-                  placeholder="All Centers"
-                  classNamePrefix="react-select"
-                />
+              <Col lg="6" md="12" sm="12" className="d-flex flex-wrap gap-2">
+                <div style={{ minWidth: 200 }}>
+                  <Select
+                    value={selectedCenterOption}
+                    onChange={(option) => {
+                      setSelectedCenter(option?.value);
+                      setPage(1);
+                    }}
+                    options={centerOptions}
+                    placeholder="All Centers"
+                    classNamePrefix="react-select"
+                  />
+                </div>
+                <ButtonGroup>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "" ? "primary" : "secondary"}
+                    outline={paymentTypeFilter !== ""}
+                    onClick={() => {
+                      setPaymentTypeFilter("");
+                      setPage(1);
+                    }}
+                  >
+                    All
+                  </Button>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "COMPLETED" ? "success" : "secondary"}
+                    outline={paymentTypeFilter !== "COMPLETED"}
+                    onClick={() => {
+                      setPaymentTypeFilter("COMPLETED");
+                      setPage(1);
+                    }}
+                  >
+                    Paid
+                  </Button>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "PENDING" ? "warning" : "secondary"}
+                    outline={paymentTypeFilter !== "PENDING"}
+                    onClick={() => {
+                      setPaymentTypeFilter("PENDING");
+                      setPage(1);
+                    }}
+                  >
+                    To Be Paid
+                  </Button>
+                </ButtonGroup>
               </Col>
               <Col xs="auto" className="d-flex align-items-center">
                 <span className="text-muted me-1">Total Balance:</span>

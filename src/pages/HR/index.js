@@ -40,6 +40,8 @@ import MyRegularizations from "../HRMS/Attendance/Regularization/myRegularizatio
 import GetRegularizationsRequest from "../HRMS/Attendance/Regularization/getRequest";
 import AddIncentivesRequest from "./Incentives/AddRequest";
 import IncentivesApproval from "./Incentives/Approvals";
+import AddPayrollAdjustmentRequest from "./PayrollAdjustments/AddRequest";
+import PayrollAdjustmentsApproval from "./PayrollAdjustments/Approvals";
 import MainDashboard from "../HRMS/Attendance/MainDashboard";
 import HiringManagement from "./Hiring/HiringManagement";
 import Salary from "./Salary";
@@ -51,6 +53,7 @@ import ShiftRoaster from "./ShiftRoaster";
 import AssignShift from "./ShiftRoaster/AssignShift";
 import CancellationRequestsPage from "../HRMS/Leaves/CancellationRequests";
 import EmployeeLeaveBalanceDashboard from "./Dashboard/EmployeeLeaveBalance";
+import ReporteesLeaveBalance from "./Dashboard/ReporteesLeaveBalance";
 import EmployeeRegularizationDetails from "./Dashboard/EmployeeRegularizationDetails";
 import EmployeeRegularizationSummaryDashboard from "./Dashboard/EmployeeRegularizationSummary";
 import AllLeaveHistory from "./Dashboard/AllLeaveHistory";
@@ -243,12 +246,24 @@ const HR = () => {
                   element={<RaisedCompOffsRequest />}
                 />
                 <Route
+                  path={`/leaves/reportees/balance`}
+                  element={<ReporteesLeaveBalance />}
+                />
+                <Route
                   path={`/incentives/add`}
                   element={<AddIncentivesRequest />}
                 />
                 <Route
                   path={`/incentives/approval`}
                   element={<IncentivesApproval />}
+                />
+                <Route
+                  path={`/payroll-adjustments/add`}
+                  element={<AddPayrollAdjustmentRequest />}
+                />
+                <Route
+                  path={`/payroll-adjustments/approval`}
+                  element={<PayrollAdjustmentsApproval />}
                 />
                 <Route path={`/salary`} element={<Salary />} />
                 <Route

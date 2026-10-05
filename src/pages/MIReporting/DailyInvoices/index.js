@@ -3,11 +3,11 @@
     import { useDispatch, useSelector, shallowEqual } from "react-redux";
     import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col } from "reactstrap";
     import { CSVLink } from "react-csv";
-    import {  fetchDailyInvoices, fetchOpdPatientDocs } from "../../../store/features/miReporting/miReportingSlice";
+    import {  fetchDailyInvoices } from "../../../store/features/miReporting/miReportingSlice";
     import Select from "react-select";
     import Flatpickr from "react-flatpickr";
     import "flatpickr/dist/themes/material_green.css";
-    import { startOfDay, endOfDay } from "date-fns";
+    import { startOfDay, endOfDay, addDays } from "date-fns";
 
 
 const STATUS_OPTIONS = [
@@ -29,8 +29,8 @@ const DailyInvoices = () => {
     )
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [selectedStatus, setSelectedStatus] = useState("ALL");
-    const [dateFrom, setDateFrom] = useState(null);
-    const [dateTo, setDateTo] = useState(null);
+    const [dateFrom, setDateFrom] = useState(() => new Date());
+    const [dateTo, setDateTo] = useState(() => addDays(new Date(), 2));
     const [csvData, setCsvData] = useState([]);
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();

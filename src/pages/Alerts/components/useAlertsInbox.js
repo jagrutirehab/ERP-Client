@@ -29,6 +29,10 @@ const initialFilters = () => ({
   readState: "all",     // all | unread | read
   phase: "all",         // all | IMMEDIATE | DELAYED
   resolvedState: "all", // all | resolved | unresolved
+  // all | SOP_RULE | BASELINE_INVESTIGATION. What produced the alert. Needed
+  // because a baseline-package alert has no `rule`, so it can never be reached
+  // through the SOP-name dropdown above.
+  source: "all",
   severity: [],         // array of LOW/MEDIUM/HIGH/CRITICAL
 });
 
@@ -57,9 +61,16 @@ const buildServerParams = (filters, page, pageSize) => {
   if (filters.phase && filters.phase !== "all") out.phase = filters.phase;
   if (filters.resolvedState && filters.resolvedState !== "all")
     out.resolvedState = filters.resolvedState;
+  if (filters.source && filters.source !== "all") out.source = filters.source;
 
   return out;
 };
+
+// Exported so the CSV export builds its params from the SAME translator. These
+// were two near-duplicate functions, which meant a filter added to one was
+// silently ignored by the other — the downloaded file then disagreed with what
+// the user was looking at.
+export { buildServerParams };
 
 /**
  * Inbox state for the Alerts page. Every filter lives on the server now
@@ -192,22 +203,31 @@ export const useAlertsInbox = () => {
     }
   }, [load, debouncedFilters, page, pageSize]);
 
-  // Resolve an alert with a free-text note. On success the server returns the
-  // resolution snapshot; we patch the row in place (and flip it read, mirroring
-  // the server) so the UI updates without a refetch. Throws on failure so the
-  // caller can keep the modal open and surface the error.
-  const resolveAlert = useCallback(async (id) => {
-    const res = await resolveSopAlert(id);
+  // Resolve an alert. `text` is mandatory — the server 400s without it.
+  //
+  // The response carries both the resolution snapshot AND the new note (stored
+  // tagged as kind "RESOLUTION"), so the row is patched with both and the notes
+  // column updates in place without a refetch. Also flips the row read,
+  // mirroring the server's $addToSet. Throws on failure so the caller can keep
+  // the modal open and surface the error.
+  const resolveAlert = useCallback(async (id, text) => {
+    const res = await resolveSopAlert(id, text);
     const resolution = res?.resolution || {
       resolved: true,
       resolvedAt: new Date().toISOString(),
     };
+    const newNote = res?.note;
     let wasUnread = false;
     setAlerts((prev) =>
       prev.map((a) => {
         if (a._id !== id) return a;
         if (!a.isRead) wasUnread = true;
-        return { ...a, resolution, isRead: true };
+        return {
+          ...a,
+          resolution,
+          isRead: true,
+          notes: newNote ? [...(a.notes || []), newNote] : a.notes,
+        };
       }),
     );
     if (wasUnread) setTotalUnread((u) => Math.max(0, u - 1));

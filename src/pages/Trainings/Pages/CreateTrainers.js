@@ -359,12 +359,13 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Spinner } from "reactstrap";
 import { toast } from "react-toastify";
-import { getUsersByRoles, createTrainerRecord, getRolesDisctinct } from "../../../helpers/backend_helper";
-import { buildPayload, emptyRecord } from "../Helpers/Helper";
+import { getEmployeesByPosition, createTrainerRecord, getPositions } from "../../../helpers/backend_helper";
+import { buildCreateFormData, emptyRecord, flattenPositions } from "../Helpers/Helper";
 import RecordTab from "../Components/RecordTab";
 import SessionForm from "../Components/SessionForm";
 import UserSelector from "../Components/UserSelector";
 import SelectedPanel from "../Components/SelectedPanel";
+import AttachmentPicker from "../Components/AttachmentPicker";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const LIMIT = 10;
@@ -373,10 +374,10 @@ const CreateTrainers = () => {
     const raw = localStorage.getItem("authUser");
     const user = JSON.parse(raw);
 
-    const [allRoles, setAllRoles] = useState([]);
-    const [usersByRole, setUsersByRole] = useState({});
+    const [allPositions, setAllPositions] = useState([]);
+    const [employeesByPosition, setEmployeesByPosition] = useState({});
     const [submitting, setSubmitting] = useState(false);
-    const [activeRole, setActiveRole] = useState({ id: "", name: "" });
+    const [activePosition, setActivePosition] = useState({ id: "", name: "" });
     const [search, setSearch] = useState("");
     const [records, setRecords] = useState([emptyRecord(user?.data?.name)]);
     const [activeRecordIdx, setActiveRecordIdx] = useState(0);
@@ -390,79 +391,80 @@ const CreateTrainers = () => {
     const activeRecord = records[activeRecordIdx] || emptyRecord(user?.data?.name);
     const getCenterIds = () => (activeRecord.center || []).join(",");
 
-    const fetchUsers = useCallback(async ({ roleName, page, search: searchTerm, centers, append = false }) => {
-        if (!roleName) return;
-        setUsersByRole((prev) => ({
+    const fetchUsers = useCallback(async ({ positionId, page, search: searchTerm, centers, append = false }) => {
+        if (!positionId) return;
+        setEmployeesByPosition((prev) => ({
             ...prev,
-            [roleName]: { ...(prev[roleName] || {}), loading: true },
+            [positionId]: { ...(prev[positionId] || {}), loading: true },
         }));
         try {
-            const response = await getUsersByRoles({
-                role: roleName,
+            const response = await getEmployeesByPosition({
+                position: positionId,
                 search: searchTerm,
                 page,
                 limit: LIMIT,
                 ...(centers && { centers }),
             });
-            const newUsers = response?.users || [];
+            const newUsers = response?.employees || [];
             const total = response?.total || 0;
-            setUsersByRole((prev) => ({
+            setEmployeesByPosition((prev) => ({
                 ...prev,
-                [roleName]: {
-                    users: append ? [...(prev[roleName]?.users || []), ...newUsers] : newUsers,
+                [positionId]: {
+                    users: append ? [...(prev[positionId]?.users || []), ...newUsers] : newUsers,
                     page,
                     total,
-                    hasMore: newUsers.length === LIMIT,
+                    hasMore: !!response?.hasMore,
                     loading: false,
                 },
             }));
         } catch (err) {
             console.error("Users fetch failed", err);
-            setUsersByRole((prev) => ({ ...prev, [roleName]: { ...(prev[roleName] || {}), loading: false } }));
+            setEmployeesByPosition((prev) => ({ ...prev, [positionId]: { ...(prev[positionId] || {}), loading: false } }));
         }
     }, []);
 
     const loadMore = useCallback(() => {
-        const state = usersByRole[activeRole.name];
+        const state = employeesByPosition[activePosition.id];
         if (!state || state.loading || !state.hasMore) return;
-        fetchUsers({ roleName: activeRole.name, page: state.page + 1, search, centers: getCenterIds(), append: true });
-    }, [activeRole, usersByRole, search, activeRecord.center, fetchUsers]);
+        fetchUsers({ positionId: activePosition.id, page: state.page + 1, search, centers: getCenterIds(), append: true });
+    }, [activePosition, employeesByPosition, search, activeRecord.center, fetchUsers]);
 
-    const getRoles = async () => {
+    const loadPositions = async () => {
         try {
-            const response = await getRolesDisctinct();
-            if (response?.data?.length) {
-                setAllRoles(response.data);
-                setActiveRole({ id: response.data[0].name, name: response.data[0].name });
+            const response = await getPositions();
+            const positions = flattenPositions(response?.data);
+            if (positions.length) {
+                setAllPositions(positions);
+                setActivePosition({ id: positions[0]._id, name: positions[0].name });
             }
         } catch (err) {
-            console.error("Roles fetch failed", err);
+            console.error("Positions fetch failed", err);
         }
     };
 
-    useEffect(() => { getRoles(); }, []);
+    useEffect(() => { loadPositions(); }, []);
 
     useEffect(() => {
-        if (!activeRole.id) return;
-        fetchUsers({ roleName: activeRole.name, page: 1, search: "", centers: getCenterIds(), append: false });
-    }, [activeRole.id]);
+        if (!activePosition.id) return;
+        fetchUsers({ positionId: activePosition.id, page: 1, search: "", centers: getCenterIds(), append: false });
+    }, [activePosition.id]);
 
     useEffect(() => {
-        if (!activeRole.id) return;
+        if (!activePosition.id) return;
         clearTimeout(searchTimeout.current);
         searchTimeout.current = setTimeout(() => {
-            fetchUsers({ roleName: activeRole.name, page: 1, search, centers: getCenterIds(), append: false });
+            fetchUsers({ positionId: activePosition.id, page: 1, search, centers: getCenterIds(), append: false });
         }, 400);
         return () => clearTimeout(searchTimeout.current);
     }, [search]);
 
     useEffect(() => {
-        if (!activeRole.id) return;
-        fetchUsers({ roleName: activeRole.name, page: 1, search, centers: getCenterIds(), append: false });
+        if (!activePosition.id) return;
+        fetchUsers({ positionId: activePosition.id, page: 1, search, centers: getCenterIds(), append: false });
     }, [activeRecord.center]);
 
-    const handleRoleChange = (role) => {
-        setActiveRole({ id: role.name, name: role.name });
+    const handlePositionChange = (role) => {
+        setActivePosition({ id: role._id, name: role.name });
         setSearch("");
     };
 
@@ -474,7 +476,7 @@ const CreateTrainers = () => {
             const filteredUsers = {};
             Object.entries(r.selectedUsers).forEach(([role, users]) => {
                 filteredUsers[role] = users.filter(u =>
-                    (u.centerAccess || []).some(c => newCenters.includes(c.toString()))
+                    newCenters.includes(String(u.currentLocation))
                 );
             });
             return { ...r, center: newCenters, selectedUsers: filteredUsers };
@@ -495,15 +497,15 @@ const CreateTrainers = () => {
         setRecords((prev) =>
             prev.map((record, i) => {
                 if (i !== activeRecordIdx) return record;
-                const roleUsers = record.selectedUsers[activeRole.name] || [];
-                const exists = roleUsers.some((u) => u._id === employee._id);
+                const positionEmployees = record.selectedUsers[activePosition.id] || [];
+                const exists = positionEmployees.some((u) => u._id === employee._id);
                 return {
                     ...record,
                     selectedUsers: {
                         ...record.selectedUsers,
-                        [activeRole.name]: exists
-                            ? roleUsers.filter((u) => u._id !== employee._id)
-                            : [...roleUsers, employee],
+                        [activePosition.id]: exists
+                            ? positionEmployees.filter((u) => u._id !== employee._id)
+                            : [...positionEmployees, employee],
                     },
                 };
             })
@@ -525,21 +527,21 @@ const CreateTrainers = () => {
         );
 
     const selectAllLoaded = () => {
-        const loaded = usersByRole[activeRole.name]?.users || [];
+        const loaded = employeesByPosition[activePosition.id]?.users || [];
         setRecords((prev) =>
             prev.map((record, i) => {
                 if (i !== activeRecordIdx) return record;
-                return { ...record, selectedUsers: { ...record.selectedUsers, [activeRole.name]: loaded } };
+                return { ...record, selectedUsers: { ...record.selectedUsers, [activePosition.id]: loaded } };
             })
         );
     };
 
-    const clearRoleSelection = () =>
+    const clearPositionSelection = () =>
         setRecords((prev) =>
             prev.map((record, i) => {
                 if (i !== activeRecordIdx) return record;
                 const updated = { ...record.selectedUsers };
-                delete updated[activeRole.name];
+                delete updated[activePosition.id];
                 return { ...record, selectedUsers: updated };
             })
         );
@@ -553,11 +555,12 @@ const CreateTrainers = () => {
             if (!records[i].from) { toast.error(`Record ${i + 1}: From date is required`); setActiveRecordIdx(i); return; }
             if (!records[i].to) { toast.error(`Record ${i + 1}: To date is required`); setActiveRecordIdx(i); return; }
         }
-        const payload = buildPayload(records);
+        const positionNameById = Object.fromEntries(allPositions.map((p) => [p._id, p.name]));
+        const formData = buildCreateFormData(records, positionNameById);
         setSubmitting(true);
         try {
-            await createTrainerRecord(payload.length === 1 ? payload[0] : payload);
-            toast.success(`${payload.length} trainer record(s) saved successfully!`);
+            await createTrainerRecord(formData);
+            toast.success(`${records.length} trainer record(s) saved successfully!`);
             setRecords([emptyRecord(user?.data?.name)]);
             setActiveRecordIdx(0);
         } catch (err) {
@@ -567,8 +570,8 @@ const CreateTrainers = () => {
         }
     };
 
-    const activeRoleState = usersByRole[activeRole.name] || { users: [], total: 0, hasMore: false, loading: false };
-    const selectedInActiveRole = activeRecord.selectedUsers[activeRole.name] || [];
+    const activePositionState = employeesByPosition[activePosition.id] || { users: [], total: 0, hasMore: false, loading: false };
+    const selectedInActivePosition = activeRecord.selectedUsers[activePosition.id] || [];
 
     const isFormValid = records.every((r) =>
         r.trainingName.trim() &&
@@ -619,16 +622,16 @@ const CreateTrainers = () => {
                             <div className="col-lg-7">
                                 <SessionForm record={activeRecord} recordIdx={activeRecordIdx} onUpdate={updateRecord} />
                                 <UserSelector
-                                    allRoles={allRoles}
-                                    activeRole={activeRole}
-                                    onRoleChange={handleRoleChange}
-                                    roleState={activeRoleState}
-                                    selectedInActiveRole={selectedInActiveRole}
+                                    allPositions={allPositions}
+                                    activePosition={activePosition}
+                                    onPositionChange={handlePositionChange}
+                                    positionState={activePositionState}
+                                    selectedInActivePosition={selectedInActivePosition}
                                     search={search}
                                     onSearchChange={setSearch}
                                     onToggleUser={toggleUser}
                                     onSelectAll={selectAllLoaded}
-                                    onClearRole={clearRoleSelection}
+                                    onClearPosition={clearPositionSelection}
                                     activeRecord={activeRecord}
                                     onLoadMore={loadMore}
                                 />
@@ -640,6 +643,12 @@ const CreateTrainers = () => {
                                     activeRecordIdx={activeRecordIdx}
                                     onRemoveUser={removeSelectedUser}
                                     onSwitchRecord={setActiveRecordIdx}
+                                    positionNames={Object.fromEntries(allPositions.map((p) => [p._id, p.name]))}
+                                />
+                                <AttachmentPicker
+                                    newFiles={activeRecord.files || []}
+                                    onAddFiles={(added) => updateRecord(activeRecordIdx, "files", [...(activeRecord.files || []), ...added])}
+                                    onRemoveNew={(i) => updateRecord(activeRecordIdx, "files", (activeRecord.files || []).filter((_, idx) => idx !== i))}
                                 />
                             </div>
                         </div>

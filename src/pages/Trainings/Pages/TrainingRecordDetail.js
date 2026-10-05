@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { CardBody, Collapse, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
 import { getTrainerRecordById } from "../../../helpers/backend_helper";
+import AttachmentList from "../Components/AttachmentList";
 
 const formatDate = (d) =>
   d
@@ -37,7 +38,7 @@ const TrainingRecordDetail = () => {
                 const res = await getTrainerRecordById(id);
                 setData(res?.data);
                 if (res?.data?.attendanceData?.length) {
-                    setOpenRoles({ [res.data.attendanceData[0]?.role]: true });
+                    setOpenRoles({ [res.data.attendanceData[0]?.position]: true });
                 }
             } catch {
                 toast.error("Failed to load record");
@@ -112,41 +113,51 @@ const TrainingRecordDetail = () => {
                         </div>
                     )}
 
+                    {data?.files?.length > 0 && (
+                        <div className="mb-4 p-3 rounded-3 border" style={{ background: "#f8fafc" }}>
+                            <div className="d-flex align-items-center gap-2 mb-1">
+                                <i className="ri-attachment-2 text-primary" style={{ fontSize: 14 }} />
+                                <span className="text-muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>Attachments</span>
+                            </div>
+                            <AttachmentList files={data.files} />
+                        </div>
+                    )}
+
                     <p className="fw-semibold small text-muted mb-3" style={{ textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                        Attendees by Role
+                        Attendees by Position
                     </p>
 
                     {!data?.attendanceData?.length ? (
                         <p className="text-muted text-center py-4" style={{ fontSize: 13 }}>No attendance data</p>
                     ) : (
                         data.attendanceData.map((entry) => (
-                            <div key={entry?.role} style={{ border: "1px solid #e5e7eb", borderRadius: 10, marginBottom: 10, overflow: "hidden" }}>
+                            <div key={entry?.position} style={{ border: "1px solid #e5e7eb", borderRadius: 10, marginBottom: 10, overflow: "hidden" }}>
                                 <div
-                                    onClick={() => toggleRole(entry?.role)}
+                                    onClick={() => toggleRole(entry?.position)}
                                     style={{
                                         padding: "14px 18px",
-                                        background: openRoles[entry?.role] ? "#eff6ff" : "#f9fafb",
+                                        background: openRoles[entry?.position] ? "#eff6ff" : "#f9fafb",
                                         display: "flex", alignItems: "center", justifyContent: "space-between",
                                         cursor: "pointer",
-                                        borderBottom: openRoles[entry?.role] ? "1px solid #bfdbfe" : "none",
+                                        borderBottom: openRoles[entry?.position] ? "1px solid #bfdbfe" : "none",
                                     }}
                                 >
                                     <div className="d-flex align-items-center gap-3">
                                         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6", display: "inline-block", flexShrink: 0 }} />
-                                        <span className="fw-semibold" style={{ fontSize: 14, color: "#1d4ed8" }}>{entry?.role}</span>
+                                        <span className="fw-semibold" style={{ fontSize: 14, color: "#1d4ed8" }}>{entry?.positionName}</span>
                                         <span className="badge bg-primary" style={{ fontSize: 10 }}>
                                             {entry?.presents?.length || 0}
                                         </span>
                                     </div>
-                                    <i className={`ri-arrow-${openRoles[entry?.role] ? "up" : "down"}-s-line text-muted`} />
+                                    <i className={`ri-arrow-${openRoles[entry?.position] ? "up" : "down"}-s-line text-muted`} />
                                 </div>
 
-                                <Collapse isOpen={!!openRoles[entry?.role]}>
-                                    <div style={{ padding: 16 }}>
+                                <Collapse isOpen={!!openRoles[entry?.position]}>
+                                    <div style={{ padding: 16, overflowX: "auto" }}>
                                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                                             <thead>
                                                 <tr>
-                                                    {["#", "Name", "Email", "Access Role", "Role"].map((h) => (
+                                                    {["#", "Name", "eCode", "Position", "Department", "Designation"].map((h) => (
                                                         <th key={h} style={{ padding: "9px 12px", background: "#f8fafc", color: "#6b7280", fontWeight: 600, textAlign: "left", borderBottom: "1px solid #e5e7eb", whiteSpace: "nowrap" }}>
                                                             {h}
                                                         </th>
@@ -155,12 +166,13 @@ const TrainingRecordDetail = () => {
                                             </thead>
                                             <tbody>
                                                 {entry?.presents?.map((p, i) => (
-                                                    <tr key={p?.user?._id || i} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                                                    <tr key={p?.employee?._id || i} style={{ borderBottom: "1px solid #f1f5f9" }}>
                                                         <td style={{ padding: "9px 12px", color: "#9ca3af" }}>{i + 1}</td>
-                                                        <td style={{ padding: "9px 12px", fontWeight: 600, color: "#111827" }}>{p?.user?.name || "—"}</td>
-                                                        <td style={{ padding: "9px 12px", color: "#6b7280" }}>{p?.user?.email || "—"}</td>
-                                                        <td style={{ padding: "9px 12px" }}><RoleBadge role={p?.user?.accessRole || "—"} /></td>
-                                                        <td style={{ padding: "9px 12px" }}><RoleBadge role={p?.user?.role || "—"} /></td>
+                                                        <td style={{ padding: "9px 12px", fontWeight: 600, color: "#111827" }}>{p?.employee?.name || <span className="text-muted fw-normal">Employee not found</span>}</td>
+                                                        <td style={{ padding: "9px 12px", color: "#6b7280" }}>{p?.employee?.eCode || "—"}</td>
+                                                        <td style={{ padding: "9px 12px", color: "#374151" }}>{entry?.positionName || "—"}</td>
+                                                        <td style={{ padding: "9px 12px" }}><RoleBadge role={p?.employee?.department?.department || "—"} /></td>
+                                                        <td style={{ padding: "9px 12px" }}><RoleBadge role={p?.employee?.designation?.name?.replace(/_/g, " ") || "—"} /></td>
                                                     </tr>
                                                 ))}
                                             </tbody>

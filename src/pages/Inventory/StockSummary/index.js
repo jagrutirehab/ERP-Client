@@ -1,16 +1,16 @@
-import { useEffect, useState, useMemo } from "react";
+import { useEffect, useState } from "react";
 import { Search } from "lucide-react";
 import { CardBody } from "reactstrap";
 import Select from "react-select";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
-import DataTable from "../../../Components/Common/DataTable";
+import CompactDataGrid from "../Components/CompactDataGrid";
 import RefreshButton from "../../../Components/Common/RefreshButton";
 import { useDispatch, useSelector } from "react-redux";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { getStockSummaryColumns } from "../Columns/Pharmacy/StockSummaryColumns";
+import { getStockSummaryGridColumns } from "../Columns/Pharmacy/StockSummaryColumns";
 import { fetchPharmacyConsolidated } from "../../../store/features/pharmacy/pharmacySlice";
 
 const StockSummary = () => {
@@ -31,7 +31,8 @@ const StockSummary = () => {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [selectedCenter, setSelectedCenter] = useState("ALL");
 
-    const totalItems = pagination?.total || 0;   
+    const totalItems = pagination?.total || 0;
+    const stockSummaryColumns = getStockSummaryGridColumns();
 
     const centerOptions = [
         ...(user?.userCenters?.length > 1 ? [{ value: "ALL", label: "All Centers" }] : []),
@@ -86,8 +87,11 @@ const StockSummary = () => {
     return (
         <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
             <div className="content-wrapper">
-                <div className="text-center text-md-left mb-3">
-                    <h4 className="font-weight-bold text-primary text-uppercase">Stock Summary</h4>
+                <div className="mb-3">
+                    <h5 className="mb-1 fw-semibold">Stock Summary</h5>
+                    <p className="text-muted mb-0 fs-13">
+                        View current medicine stock levels across centers
+                    </p>
                 </div>
 
                 <div className="d-flex flex-wrap gap-2 align-items-center justify-content-between mb-4">
@@ -148,18 +152,19 @@ const StockSummary = () => {
                     <RefreshButton loading={loading} onRefresh={fetchStockSummary} />
                 </div>
 
-                <div className="border rounded shadow-sm overflow-hidden bg-white">
-                    <DataTable
-                        columns={getStockSummaryColumns()}
-                        data={data}
-                        loading={loading}
-                        pagination={{ totalDocs: totalItems }}
-                        limit={pageSize}
-                        setLimit={setPageSize}
-                        page={currentPage}
-                        setPage={setCurrentPage}
-                    />
-                </div>
+                <CompactDataGrid
+                    columns={stockSummaryColumns}
+                    data={data || []}
+                    loading={loading}
+                    page={currentPage}
+                    setPage={setCurrentPage}
+                    limit={pageSize}
+                    setLimit={setPageSize}
+                    total={totalItems}
+                    keyField="_id"
+                    noDataComponent="No stock records found"
+                    rowsPerPageOptions={[10, 25, 50]}
+                />
             </div>
 
             <style jsx>{`

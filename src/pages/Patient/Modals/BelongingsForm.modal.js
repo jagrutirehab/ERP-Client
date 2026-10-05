@@ -155,6 +155,9 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                 imageName: typeof itm.attachments?.[0] === "string"
                                     ? "attachment"
                                     : itm.attachments?.[0]?.name || null,
+                                compressedImage: typeof itm.attachments?.[0] === "string"
+                                    ? itm.attachments[0]
+                                    : itm.attachments?.[0]?.compressedUrl || itm.attachments?.[0]?.url || null,
                                 originalAttachments: itm.attachments || [],
                                 isCustom: !itm.belongingItem?._id,
                                 handedOverTo: itm.handedOverTo || "",
@@ -316,7 +319,15 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
             const res = await uploadFile(fd);
             setSelectedItems((prev) =>
                 prev.map((item, i) =>
-                    i === idx ? { ...item, image: res.url, imageName: res.fileName || file.name, uploading: false } : item
+                    i === idx
+                        ? {
+                            ...item,
+                            image: res.url,
+                            compressedImage: res.compressedUrl || res.url,
+                            imageName: res.fileName || file.name,
+                            uploading: false,
+                        }
+                        : item
                 )
             );
             setIsDirty(true);
@@ -334,7 +345,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
 
     const removeImage = (idx) => {
         setSelectedItems((prev) =>
-            prev.map((item, i) => (i === idx ? { ...item, image: null, imageName: null } : item))
+            prev.map((item, i) => (i === idx ? { ...item, image: null, compressedImage: null, imageName: null } : item))
         );
         setIsDirty(true);
     };
@@ -397,7 +408,11 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                     ? (item.originalAttachments?.length > 0 &&
                         (item.originalAttachments[0]?.url === item.image || item.originalAttachments[0] === item.image)
                         ? item.originalAttachments
-                        : [{ url: item.image, name: item.imageName || "attachment" }])
+                        : [{
+                            url: item.image,
+                            compressedUrl: item.compressedImage || item.image,
+                            name: item.imageName || "attachment",
+                        }])
                     : [],
                 remarks: item.remarks || "",
                 handedOverTo: item.handedOverTo || "",
@@ -874,12 +889,12 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                                                         ) : item.image ? (
                                                             <div className="d-flex align-items-center gap-1">
                                                                 <img
-                                                                    src={item.image}
+                                                                    src={item.compressedImage || item.image}
                                                                     alt={item.name}
                                                                     style={{ width: 35, height: 35, objectFit: "cover", borderRadius: 4, cursor: "pointer" }}
                                                                     onClick={() => {
                                                                         setPreviewFile({
-                                                                            url: item.image,
+                                                                            url: item.compressedImage || item.image,
                                                                             type: "image/png",
                                                                             originalName: item.name || "Attachment",
                                                                         });

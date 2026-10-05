@@ -12,5 +12,6 @@ module.exports = {
     API_URL: process.env.REACT_APP_API_URL || "",
     AUTH_SERVICE_URL: process.env.REACT_APP_AUTH_SERVICE_URL || "",
     CCTV_SERVICE_URL: process.env.REACT_APP_CCTV_SERVICE_URL || "",
+    REPORTS_MAKER_BASE_URL: process.env.REACT_APP_REPORTS_MAKER_BASE_URL || "",
   },
 };

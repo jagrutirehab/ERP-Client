@@ -1,4 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
+import { endOfDay, startOfDay } from "date-fns";
+import Header from "../../Report/Components/Header";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 import { display } from "../../../utils/display";
 // import { Search } from "lucide-react";
 import {
@@ -15,7 +18,7 @@ import axios from "axios";
 import { useSelector, useDispatch } from "react-redux";
 import { fetchCenters } from "../../../store/actions";
 import { Button } from "../Components/Button";
-import { CardBody, Modal, ModalBody, ModalHeader } from "reactstrap";
+import { Card, CardBody, Col, Input, Modal, ModalBody, ModalHeader, Row } from "reactstrap";
 import GiveMedicine from "../GiveMedicine";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
@@ -34,6 +37,12 @@ const GivenMedicine = () => {
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [modalOpengive, setModalOpengive] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [reportDate, setReportDate] = useState({
+    start: startOfDay(new Date()),
+    end: endOfDay(new Date()),
+  });
 
   // Pagination
   const [currentPage, setCurrentPage] = useState(1);
@@ -54,7 +63,7 @@ const GivenMedicine = () => {
       : []
     ),
     ...(
-      centerList?.map(c => ({
+      centerList?.filter(c => user?.centerAccess?.includes(c._id))?.map(c => ({
         value: c._id,
         label: c.title,
       })) || []
@@ -126,7 +135,9 @@ const GivenMedicine = () => {
         page,
         limit,
         search: q || undefined,
-        centers
+        centers,
+        startDate: reportDate?.start?.toISOString(),
+        endDate: reportDate?.end?.toISOString(),
       };
       // if (center) {
       //   params.center = center;
@@ -150,14 +161,13 @@ const GivenMedicine = () => {
       setTotalPages(Number(body.pages ?? 1));
       setCurrentPage(Number(body.page ?? page));
     } catch (err) {
-      console.log(err)
       const cancelled =
         err?.name === "CanceledError" ||
         err?.name === "AbortError" ||
         err?.code === "ERR_CANCELED";
-      if (!cancelled || !handleAuthError(err)) {
-        return;
-        // toast.error("Failed to fetch records");
+      if (cancelled) return;
+      if (!handleAuthError(err)) {
+        toast.error(err?.response?.data?.message || err?.message || "Failed to fetch records");
       }
     } finally {
       setLoading(false);
@@ -165,13 +175,22 @@ const GivenMedicine = () => {
   };
 
   useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedSearch(search);
+      setCurrentPage(1);
+    }, 500);
+    return () => clearTimeout(t);
+  }, [search]);
+
+  useEffect(() => {
     fetchGivenMedicines({
       page: currentPage,
       limit: pageSize,
       centers,
+      q: debouncedSearch,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentPage, pageSize, selectedCenter, user?.centerAccess]);
+  }, [currentPage, pageSize, selectedCenter, user?.centerAccess, reportDate, debouncedSearch]);
 
   const handlePageSizeChange = (e) => {
     const newSize = parseInt(e.target.value, 10);
@@ -192,14 +211,30 @@ const GivenMedicine = () => {
   return (
     <CardBody className="p-3 bg-white" style={isMobile ? { width: "100%" } : { width: "78%" }}>
       <div className="content-wrapper">
-        <div className="text-center text-md-left mb-3">
-          <h4 className="font-weight-bold text-primary text-uppercase">
-            Given Medicine
-          </h4>
+        <div className="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 mb-3">
+          <div>
+            <h5 className="mb-1 fw-semibold">Given Medicine</h5>
+            <p className="text-muted mb-0 fs-13">
+              Medicines given to patients from pharmacy and medicine boxes filled by nurses
+            </p>
+          </div>
+          <div className="d-flex gap-2 flex-wrap justify-content-end align-items-center">
+            {hasPermission("PHARMACY", "GIVENMEDICINES", "WRITE") && (
+              <Button onClick={handleGiveMedicine}>Give Medicine</Button>
+            )}
+            <RefreshButton
+              loading={loading}
+              onRefresh={() =>
+                fetchGivenMedicines({ page: currentPage, limit: pageSize, centers })
+              }
+            />
+          </div>
         </div>
 
-        <div className="d-flex flex-wrap gap-3 align-items-center justify-content-between mb-4">
-          <div style={{ minWidth: "220px" }}>
+        <Card className="mb-3 shadow-sm border-0">
+          <CardBody className="py-3">
+            <Row className="g-2 align-items-center">
+              <Col md={4} lg={3}>
             {/* <Select
               placeholder="All Centers"
               value={selectedCenter}
@@ -225,24 +260,35 @@ const GivenMedicine = () => {
               className="react-select-container"
               classNamePrefix="react-select"
             />
-          </div>
-          <div className="w-100 w-md-auto" style={{ maxWidth: "140px" }}>
-            <div className="position-relative w-100">
-              {hasPermission("PHARMACY", "GIVENMEDICINES", "WRITE") ? (
-                <Button onClick={handleGiveMedicine}>Give Medicine</Button>
-              ) : (
-                ""
-              )}
-            </div>
-          </div>
-        </div>
+              </Col>
+              <Col md={4} lg={3}>
+                <Input
+                  type="text"
+                  className="form-control"
+                  placeholder="Search by patient name or UID..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                />
+              </Col>
+              <Col md={4} lg={6}>
+                <Header
+                  reportDate={reportDate}
+                  setReportDate={(newDate) => {
+                    setReportDate(newDate);
+                    setCurrentPage(1);
+                  }}
+                />
+              </Col>
+            </Row>
+          </CardBody>
+        </Card>
 
         {/* Table */}
         <div className="overflow-auto mb-2" style={{ maxHeight: "65vh" }}>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Date</TableHead>
+                <TableHead>Marked At</TableHead>
                 <TableHead>Patient</TableHead>
                 <TableHead>Center</TableHead>
                 <TableHead>Given By</TableHead>
@@ -283,11 +329,10 @@ const GivenMedicine = () => {
                         .replace(/am|pm/g, (match) => match.toUpperCase())}
                     </TableCell>
                     <TableCell>
-                      {display(
-                        item?.patientId?.name
-                          ? item.patientId.name.toUpperCase()
-                          : "Unassigned"
-                      )}
+                      {item?.patientId?.name
+                        ? `${item.patientId.name.toUpperCase()}${item.patientId.uid ? ` (${item.patientId.uid})` : ""
+                        }`
+                        : display("Unassigned")}
                     </TableCell>
                     <TableCell>
                       {display(item?.centerInfo?.title || "-")}
@@ -380,6 +425,7 @@ const GivenMedicine = () => {
           size="xl"
           scrollable
           backdrop="static"
+          fullscreen="sm"
         >
           <ModalHeader toggle={() => setModalOpengive(false)}>
             {"Give Medicine"}

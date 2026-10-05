@@ -36,6 +36,11 @@ const PaymentForm = ({ toggle, centers, userCenters }) => {
     },
   });
 
+  const allCenterIds = (centers || []).map((cen) => cen._id);
+  const isAllSelected =
+    validation.values.centers?.length === allCenterIds.length &&
+    allCenterIds.length > 0;
+
   return (
     <React.Fragment>
       <div>
@@ -51,7 +56,23 @@ const PaymentForm = ({ toggle, centers, userCenters }) => {
         >
           <Row className="ps-3 pe-3">
             <Col xs={12}>
-              <Label>Centers</Label>
+              <div className="d-flex justify-content-between align-items-center mb-2">
+                <Label className="mb-0">Centers</Label>
+                <Button
+                  size="sm"
+                  type="button"
+                  outline
+                  color={isAllSelected ? "danger" : "primary"}
+                  onClick={() =>
+                    validation.setFieldValue(
+                      "centers",
+                      isAllSelected ? [] : allCenterIds
+                    )
+                  }
+                >
+                  {isAllSelected ? "Unselect All" : "Select All"}
+                </Button>
+              </div>
               <div className="d-flex flex-wrap gap-3">
                 {(centers || []).map((cen) => (
                   <div>

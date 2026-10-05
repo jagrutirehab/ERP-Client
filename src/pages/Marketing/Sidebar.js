@@ -61,7 +61,7 @@ const Sidebar = () => {
     "EXPORT_DOCTOR_DIRECTORY",
     "READ",
   );
-
+  const canViewDrafts = hasPermission("MARKETING", "VIEW_MY_DRAFTS", "READ");
   const MarketingPages = [
     canViewAdd
       ? {
@@ -101,6 +101,14 @@ const Sidebar = () => {
           label: "Doctor Report",
           link: "/marketing/doctors/export",
           icon: "ri-file-excel-2-line",
+        }
+      : null,
+    canViewDrafts
+      ? {
+          id: "my-drafts",
+          label: "My Drafts",
+          link: "/marketing/drafts",
+          icon: "bx bx-file-blank",
         }
       : null,
   ].filter(Boolean);

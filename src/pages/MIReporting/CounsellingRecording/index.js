@@ -6,6 +6,8 @@
     import Select from "react-select";
     import "flatpickr/dist/themes/material_green.css";
 
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const pad2 = (n) => String(n).padStart(2, "0");
 
 const CounsellingRecording = () => {
     const dispatch = useDispatch();
@@ -121,8 +123,8 @@ const CounsellingRecording = () => {
         for (let i =1; i < 60; i++) {
             const d = new Date(today);
             d.setDate(today.getDate() - i);
-            const key =d.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-");
-            const label = d.toLocaleDateString("en-GB", { day: "2-digit", month: "short" }).replace(/ /g, "-");
+            const key = `${pad2(d.getDate())}-${MONTH_ABBR[d.getMonth()]}-${d.getFullYear()}`;
+            const label = `${pad2(d.getDate())}-${MONTH_ABBR[d.getMonth()]}`;
             days.push({ key, label });
         }
         return days;

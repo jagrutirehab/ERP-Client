@@ -48,8 +48,11 @@ const AuditDashboard = () => {
       style={isMobile ? { width: "100%" } : { width: "78%" }}
     >
       <div className="content-wrapper">
-        <div className="text-center text-md-left">
-          <h1 className="display-6 fw-bold text-primary">AUDIT DASHBOARD</h1>
+        <div className="mb-3">
+          <h5 className="mb-1 fw-semibold">Audit Dashboard</h5>
+          <p className="text-muted mb-0 fs-13">
+            Track and manage pharmacy stock audits across centers
+          </p>
         </div>
         <Nav tabs className="mb-3">
           <NavItem>

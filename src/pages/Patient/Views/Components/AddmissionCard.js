@@ -13,7 +13,10 @@ const formatDate = (isoDateStr) => {
   return format(date, "dd MMMM yyyy");
 };
 
-const AddmissionCard = ({ data, children }) => {
+const AddmissionCard = ({ data, children, user }) => {
+
+
+
   return (
     <React.Fragment>
       <Col xs={12}>
@@ -41,16 +44,16 @@ const AddmissionCard = ({ data, children }) => {
                 </h6>
               </div>
             )}
-            {/* {data.provisional_diagnosis?.length > 0 && (
+            {data.provisional_diagnosis?.length > 0 && user?.email === "vikas10040.yadav@gmail.com" && (
               <div className="d-flex align-items-center my-1">
                 <span>Provisional Diagnosis:</span>
                 <h6 className="display-6 fs-12 mb-0 ms-2">
                   {data.provisional_diagnosis.map((diagnosis, index) => (
-                    <span key={index}>{diagnosis.code}. </span>
+                    <span key={index}>{diagnosis.code}.</span>
                   ))}
                 </h6>
               </div>
-            )} */}
+            )}
           </div>
 
           <RenderWhen isTrue={data.addmissionDate && data.dischargeDate}>
@@ -80,6 +83,7 @@ AddmissionCard.propTypes = {
 
 const mapStateToProps = (state) => ({
   // loading: state.Bill.billLoading,
+  user: state.User.user,
 });
 
 export default connect(mapStateToProps)(AddmissionCard);

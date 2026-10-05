@@ -2,7 +2,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useFormik } from "formik";
 import * as Yup from "yup";
-import { Button, Row, Col, Label, Input, Spinner } from "reactstrap";
+import {
+  Button,
+  Row,
+  Col,
+  Label,
+  Input,
+  Spinner,
+  TabContent,
+  TabPane,
+} from "reactstrap";
 import Select from "react-select";
 import CreatableSelect from "react-select/creatable";
 import AsyncSelect from "react-select/async";
@@ -15,6 +24,7 @@ import PropTypes from "prop-types";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_blue.css";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useFormDraft } from "../../../../hooks/useFormDraft";
 import {
   createDepartment,
   deleteEmployeeDocumentFile,
@@ -48,6 +58,7 @@ import {
   paymentTypeOptions,
   isSimplifiedFinanceType,
   isConsultantFinanceType,
+  isPfApplicable,
   categoryOptions,
 } from "../../../../Components/constants/HR";
 import {
@@ -87,8 +98,103 @@ const RELAXED_EMPLOYEE_FORM_USERS = [
   "67a4983f102397b0c939f937",
   "68f8f38cbfb5c1f785102465",
   "696e176dea1a23b429717267",
-  "6874c5a2788d8c2bb3c8e724"
+  "6874c5a2788d8c2bb3c8e724",
+  "6a1fc53e9375ba0ce835157d"
 ];
+
+// Tab restructuring is UI-only: these arrays only decide (a) tab labels/order
+// and (b) which fields to check when the user clicks "Next" on a tab. They do
+// not affect the Yup validationSchema, which stays exactly as before.
+const FORM_TABS = [
+  { key: "personal", label: "Personal Details", shortLabel: "Personal" },
+  {
+    key: "employment",
+    label: "Employment / Professional",
+    shortLabel: "Employment",
+  },
+  {
+    key: "statutory",
+    label: "Statutory / Compliance",
+    shortLabel: "Statutory",
+  },
+  { key: "bank", label: "Bank Details", shortLabel: "Bank" },
+  { key: "documents", label: "Documents", shortLabel: "Documents" },
+  { key: "finance", label: "Finance / Payroll", shortLabel: "Finance" },
+];
+
+const TAB_FIELDS = {
+  personal: [
+    "name",
+    "state",
+    "gender",
+    "dateOfBirth",
+    "father",
+    "mobile",
+    "officialEmail",
+    "email",
+  ],
+  employment: [
+    "eCode",
+    "designation",
+    "employmentType",
+    "newEmploymentType",
+    "minimumWorkHours",
+    "minimumPresentDays",
+    "minimumPresentUnit",
+    "employmentStatus",
+    "category",
+    "position",
+    "department",
+    "firstLocation",
+    "transferredFrom",
+    "currentLocation",
+    "payrollType",
+    "joinningDate",
+    "exitDate",
+    "status",
+    "biometricId",
+    "users",
+  ],
+  statutory: [
+    "pfApplicable",
+    "uanNo",
+    "pfNo",
+    "esicIpCode",
+    "adharNo",
+    "adharOld",
+    "pan",
+    "panOld",
+  ],
+  bank: ["bankName", "accountNo", "accountName", "IFSCCode"],
+  documents: ["offerLetterOld"],
+  finance: [
+    "annualCTC",
+    "annualInsurance",
+    "TDSRate",
+    "annualInHandSalary",
+    "paymentType",
+    "employeeGroups",
+    "account",
+    "minimumWages",
+    "isIncrement",
+    "incrementIssued",
+    "incrementApplicable",
+    "incrementLetterOld",
+    "shortWages",
+    "grossSalary",
+    "basicAmount",
+    "basicPercentage",
+    "HRAAmount",
+    "HRAPercentage",
+    "SPLAllowance",
+    "conveyanceAllowance",
+    "statutoryBonus",
+    "insurance",
+    "variable",
+    "reimbursement",
+    "debitStatementNarration",
+  ],
+};
 
 const isRelaxedEmployeeFormUser = () => {
   try {
@@ -97,6 +203,12 @@ const isRelaxedEmployeeFormUser = () => {
   } catch {
     return false;
   }
+};
+
+const getMaxDOB = () => {
+  const maxDOB = new Date();
+  maxDOB.setFullYear(maxDOB.getFullYear() - 18);
+  return maxDOB;
 };
 
 const relaxedOverrides = {
@@ -134,9 +246,9 @@ const relaxedOverrides = {
       excludeEmptyString: true,
     })
     .test(
-      "dob-in-past",
-      "Date of birth must be in the past",
-      (value) => !value || new Date(value) < new Date(),
+      "dob-18-plus",
+      "Employee must be at least 18 years old",
+      (value) => !value || new Date(value) <= getMaxDOB(),
     ),
   mobile: Yup.string()
     .notRequired()
@@ -194,9 +306,12 @@ const baseValidationSchema = (mode, isEdit) =>
       .required("Date of birth is required")
       .matches(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format (YYYY-MM-DD)")
       .test(
-        "dob-in-past",
-        "Date of birth must be in the past",
-        (value) => value && new Date(value) < new Date(),
+        "dob-18-plus",
+        "Employee must be at least 18 years old",
+        (value) => {
+          if (!value) return false;
+          return new Date(value) <= getMaxDOB();
+        },
       ),
     exitDate: Yup.string()
       .nullable()
@@ -421,7 +536,7 @@ const baseValidationSchema = (mode, isEdit) =>
         otherwise: (schema) => schema.notRequired(),
       }),
     minimumPresentUnit: Yup.string()
-      .oneOf(["WEEK", "MONTH", "SESSION"], "Select a valid unit")
+      .oneOf(["WEEK", "MONTH", "SESSION", "SESSIONS"], "Select a valid unit")
       .when("newEmploymentType", {
         is: "PART_TIME",
         then: (schema) =>
@@ -622,6 +737,10 @@ const EmployeeForm = ({
   const token = microUser ? JSON.parse(microUser).token : null;
   const isEdit = !!initialData?._id;
   const relaxedValidation = useMemo(() => isRelaxedEmployeeFormUser(), []);
+  // Tabbed Add Employee wizard applies to Master + New Joining (Add & Edit)
+  // only; Exit/Transfer keep the original single-page layout untouched.
+  const tabsEnabled = mode === "MASTER" || mode === "NEW_JOINING";
+  const [activeTab, setActiveTab] = useState(FORM_TABS[0].key);
   const [eCodeLoader, setECodeLoader] = useState(false);
   const [linking, setLinking] = useState(false);
   // const [creatingDesignation, setCreatingDesignation] = useState(false);
@@ -695,6 +814,22 @@ const EmployeeForm = ({
       address: c.address,
     }))
     .sort((a, b) => (a.label || "").localeCompare(b.label || ""));
+
+  const sortedDesignationOptions = useMemo(
+    () =>
+      [...designationOptions].sort((a, b) =>
+        (a.label || "").localeCompare(b.label || ""),
+      ),
+    [designationOptions],
+  );
+
+  const sortedDepartmentOptions = useMemo(
+    () =>
+      [...departmentOptions].sort((a, b) =>
+        (a.label || "").localeCompare(b.label || ""),
+      ),
+    [departmentOptions],
+  );
 
   useEffect(() => {
     const loadDesignations = async () => {
@@ -892,6 +1027,7 @@ const EmployeeForm = ({
         } else {
           await postEmployee(formData);
           toast.success("Employee added successfully");
+          clearDraft();
         }
 
         if (view === "PAGE") {
@@ -920,11 +1056,29 @@ const EmployeeForm = ({
     isSubmitting,
     handleChange,
     setFieldValue,
+    setValues,
     setTouched,
     setFieldTouched,
+    validateForm,
     touched,
     isValid,
   } = form;
+
+  const draftKey = `employeeFormDraft_${mode}`;
+  const draftEnabled = !isEdit && (mode === "MASTER" || mode === "NEW_JOINING");
+  const { savedDraft, clearDraft } = useFormDraft(draftKey, values, {
+    enabled: draftEnabled,
+    exclude: ["eCode", "adharOld", "panOld", "offerLetterOld", "incrementLetterOld"],
+  });
+
+  const draftAppliedRef = useRef(false);
+  useEffect(() => {
+    if (draftEnabled && savedDraft && !draftAppliedRef.current) {
+      draftAppliedRef.current = true;
+      setValues({ ...values, ...savedDraft }, false);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftEnabled, savedDraft]);
 
   // Contractual / consultant / intern / apprentice / consultant-session use the
   // simplified finance section (In Hand Salary, Annual CTC, Payment Type) and
@@ -972,6 +1126,39 @@ const EmployeeForm = ({
       },
       false,
     );
+  };
+
+  const activeTabIndex = FORM_TABS.findIndex((tab) => tab.key === activeTab);
+
+  // Does this tab have a currently-visible validation error? Uses the same
+  // touched+errors check errorText() already uses per field, just scanning a
+  // whole tab's field list instead of one field.
+  const tabHasErrors = (tabKey) =>
+    (TAB_FIELDS[tabKey] || []).some((field) => touched[field] && errors[field]);
+
+  // "Next" only checks the fields that belong to the tab being left — it does
+  // not run/change the overall Yup validationSchema, just reads its result.
+  const handleNextTab = async () => {
+    const fieldsToCheck = TAB_FIELDS[activeTab] || [];
+    const formErrors = await validateForm();
+    const touchedUpdates = {};
+    fieldsToCheck.forEach((field) => {
+      touchedUpdates[field] = true;
+    });
+    setTouched({ ...touched, ...touchedUpdates }, false);
+
+    const hasBlockingErrors = fieldsToCheck.some((field) => formErrors[field]);
+    if (hasBlockingErrors) return;
+
+    if (activeTabIndex < FORM_TABS.length - 1) {
+      setActiveTab(FORM_TABS[activeTabIndex + 1].key);
+    }
+  };
+
+  const handlePrevTab = () => {
+    if (activeTabIndex > 0) {
+      setActiveTab(FORM_TABS[activeTabIndex - 1].key);
+    }
   };
 
   const handleFileUpload = async ({ file, path, urlField, fileField }) => {
@@ -1298,9 +1485,7 @@ const EmployeeForm = ({
     const payroll = calculatePayroll({
       ...values,
       ...annualToMonthly(values),
-      pfApplicable:
-        values.newEmploymentType === "FULL_TIME" &&
-        values.category !== "FORM11",
+      pfApplicable: isPfApplicable(values),
       currentLocation: selectedCenter
         ? { title: selectedCenter.title, address: selectedCenter.address }
         : null,
@@ -1545,6 +1730,8 @@ const EmployeeForm = ({
   return (
     <>
       <div>
+        {!tabsEnabled ? (
+        <>
         <Row className="g-3 mx-2">
           {/* EMPLOYEE CODE */}
           {mode !== "NEW_JOINING" && (
@@ -1639,7 +1826,7 @@ const EmployeeForm = ({
                 designationLoading
                 // || creatingDesignation
               }
-              options={designationOptions}
+              options={sortedDesignationOptions}
               value={
                 designationOptions.find(
                   (opt) => opt.value === values.designation,
@@ -1784,7 +1971,9 @@ const EmployeeForm = ({
           {values.newEmploymentType === "PART_TIME" && (
             <Col md={6}>
               <Label htmlFor="minimumPresentDays">
-                Minimum Presence
+                {values.minimumPresentUnit === "SESSIONS"
+                  ? "Number of Sessions"
+                  : "Minimum Presence"}
                 {values.minimumPresentUnit !== "SESSION" && (
                   <span className="text-danger"> *</span>
                 )}
@@ -1801,7 +1990,11 @@ const EmployeeForm = ({
                       value={values.minimumPresentDays}
                       onChange={handleChange}
                       onBlur={() => setFieldTouched("minimumPresentDays", true)}
-                      placeholder="Enter number of days"
+                      placeholder={
+                        values.minimumPresentUnit === "SESSIONS"
+                          ? "Enter number of sessions"
+                          : "Enter number of days"
+                      }
                       invalid={
                         touched.minimumPresentDays &&
                         !!errors.minimumPresentDays
@@ -1842,6 +2035,14 @@ const EmployeeForm = ({
                   Requirement is measured per session — set the hours in Minimum
                   Work Hours above.
                 </div>
+              ) : values.minimumPresentUnit === "SESSIONS" ? (
+                values.minimumPresentDays !== "" && (
+                  <div className="text-muted small mt-1">
+                    = {values.minimumPresentDays} session
+                    {Number(values.minimumPresentDays) === 1 ? "" : "s"} per
+                    month
+                  </div>
+                )
               ) : (
                 values.minimumPresentDays !== "" &&
                 values.minimumPresentUnit && (
@@ -1951,7 +2152,7 @@ const EmployeeForm = ({
               isClearable
               isSearchable
               isDisabled={true}
-              options={departmentOptions}
+              options={sortedDepartmentOptions}
               value={
                 departmentOptions.find(
                   (opt) => opt.value === values.department,
@@ -2148,11 +2349,13 @@ const EmployeeForm = ({
               id="dob"
               name="dateOfBirth"
               value={values.dateOfBirth}
-              onChange={([date]) => {
-                setFieldValue(
+              onChange={async ([date]) => {
+                await setFieldValue(
                   "dateOfBirth",
                   date ? format(date, "yyyy-MM-dd") : "",
                 );
+                await setFieldTouched("dateOfBirth", true, false);
+                await validateForm();
               }}
               options={{
                 dateFormat: "Y-m-d",
@@ -3573,7 +3776,7 @@ const EmployeeForm = ({
                 {monthlyHintFrom("deductions")}
               </Col>
 
-              {/* IN HAND SALARY */}
+              {/* DUPLICATE - WRONG VALUE (no LWF correction)
               <Col md={6}>
                 <Label htmlFor="inHandSalary">In Hand Salary (Yearly)</Label>
                 <Input
@@ -3585,6 +3788,7 @@ const EmployeeForm = ({
                 />
                 {monthlyHintFrom("inHandSalary")}
               </Col>
+              */}
 
               {/* GRATUITY */}
               <Col md={6}>
@@ -3685,6 +3889,2231 @@ const EmployeeForm = ({
             test
           </Button>  */}
         </div>
+        </>
+        ) : (
+        <>
+
+          <div className="mx-2">
+            <h6 className="fw-semibold mb-2">
+              {FORM_TABS[activeTabIndex]?.label}
+            </h6>
+            <div className="arrow-buttons d-flex gap-3 flex-wrap mb-3">
+              {FORM_TABS.map((tab, idx) => (
+                <Button
+                  key={tab.key}
+                  outline={activeTab !== tab.key}
+                  onClick={() => setActiveTab(tab.key)}
+                >
+                  {tab.shortLabel}
+                  {tabHasErrors(tab.key) && (
+                    <span
+                      className="ms-1 text-danger"
+                      title="This step has validation errors"
+                    >
+                      &#9679;
+                    </span>
+                  )}
+                </Button>
+              ))}
+            </div>
+          </div>
+
+          <TabContent
+            activeTab={activeTab}
+            style={{ maxHeight: "60vh", overflowY: "auto", paddingRight: "4px" }}
+          >
+              <TabPane tabId="personal">
+        <Row className="g-3 mx-2">
+          <Col md={6}>
+            <Label htmlFor="name">
+              Employee Name <span className="text-danger">*</span>
+            </Label>
+            <Input
+              name="name"
+              id="name"
+              value={values.name}
+              onChange={handleChange}
+              invalid={touched.name && errors.name}
+              onBlur={() => setFieldTouched("name", true)}
+            />
+            {errorText("name")}
+          </Col>
+          {/* STATE */}
+          <Col md={6}>
+            <Label htmlFor="state">
+              State <span className="text-danger">*</span>
+            </Label>
+
+            <Input
+              name="state"
+              id="state"
+              value={values.state}
+              onChange={handleChange}
+              invalid={touched.state && errors.state}
+              onBlur={() => setFieldTouched("state", true)}
+            />
+
+            {errorText("state")}
+          </Col>
+          {/* GENDER */}
+          <Col md={6}>
+            <Label htmlFor="gender">
+              Gender <span className="text-danger">*</span>
+            </Label>
+            <Select
+              inputId="gender"
+              options={employeeGenderOptions}
+              value={
+                employeeGenderOptions.find(
+                  (opt) => opt.value === values.gender,
+                ) || null
+              }
+              onChange={(opt) => setFieldValue("gender", opt.value)}
+              onBlur={() => setFieldTouched("gender", true)}
+            />
+            {errorText("gender")}
+          </Col>
+          {/* DOB */}
+          <Col md={6}>
+            <Label htmlFor="dob">
+              Date of Birth <span className="text-danger">*</span>
+            </Label>
+            <Flatpickr
+              className={`form-control ${touched.dateOfBirth && errors.dateOfBirth ? "is-invalid" : ""}`}
+              id="dob"
+              name="dateOfBirth"
+              value={values.dateOfBirth}
+              onChange={async ([date]) => {
+                await setFieldValue(
+                  "dateOfBirth",
+                  date ? format(date, "yyyy-MM-dd") : "",
+                );
+                await setFieldTouched("dateOfBirth", true, false);
+                await validateForm();
+              }}
+              options={{
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+              }}
+            />
+            {errorText("dateOfBirth")}
+          </Col>
+          {/* FATHER NAME */}
+          <Col md={6}>
+            <Label htmlFor="father">
+              Father's Name <span className="text-danger">*</span>
+            </Label>
+            <Input
+              id="father"
+              name="father"
+              value={values.father}
+              onChange={handleChange}
+              invalid={touched.father && errors.father}
+              onBlur={() => setFieldTouched("father", true)}
+            />
+            {errorText("father")}
+          </Col>
+          {/* MOBILE */}
+          <Col md={6}>
+            <Label htmlFor="mobile">
+              Mobile No <span className="text-danger">*</span>
+            </Label>
+
+            <PhoneInputWithCountrySelect
+              name="mobile"
+              id="mobile"
+              min="10"
+              value={values.mobile}
+              onChange={(value) =>
+                handleChange({
+                  target: {
+                    name: "mobile",
+                    value: value,
+                  },
+                })
+              }
+              limitMaxLength={true}
+              defaultCountry="IN"
+              className="w-100"
+              style={{
+                width: "100%",
+                height: "42px",
+                padding: "0.5rem 0.75rem",
+                border: "1px solid #d1d5db",
+                borderRadius: "0.375rem",
+                fontSize: "1rem",
+              }}
+              onBlur={() => setFieldTouched("mobile", true)}
+            />
+
+            {errorText("mobile")}
+          </Col>
+          {/* OFFICIAL EMAIL */}
+          <Col md={6}>
+            <Label htmlFor="officialEmail">Official Email</Label>
+            <Input
+              id="officialEmail"
+              type="email"
+              name="officialEmail"
+              value={values.officialEmail}
+              onChange={handleChange}
+            />
+          </Col>
+          {/* EMAIL */}
+          <Col md={6}>
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              name="email"
+              value={values.email}
+              onChange={handleChange}
+            />
+          </Col>
+          {/* MONTHLY CTC — input removed; kept for reference
+          <Col md={6}>
+            <Label htmlFor="monthlyCTC">Monthly CTC</Label>
+            <Input
+              id="monthlyCTC"
+              type="number"
+              name="monthlyCTC"
+              value={values.monthlyCTC}
+              onChange={handleChange}
+            />
+          </Col>
+          */}
+        </Row>
+              </TabPane>
+              <TabPane tabId="employment">
+        <Row className="g-3 mx-2">
+          {/* EMPLOYEE CODE */}
+          {mode !== "NEW_JOINING" && (
+            <Col md={6}>
+              <Label htmlFor="eCode">ECode</Label>
+
+              <div className="position-relative">
+                <Input
+                  name="eCode"
+                  id="eCode"
+                  disabled
+                  value={values.eCode}
+                  onChange={handleChange}
+                  invalid={touched.eCode && errors.eCode}
+                  style={{ paddingRight: eCodeLoader ? "2.5rem" : undefined }}
+                />
+
+                {eCodeLoader && (
+                  <Spinner
+                    size="sm"
+                    color="primary"
+                    className="position-absolute"
+                    style={{
+                      right: "10px",
+                      top: "35%",
+                    }}
+                  />
+                )}
+              </div>
+
+              {errorText("eCode")}
+            </Col>
+          )}
+          {/* DEPARTMENT
+          <Col md={6}>
+            <Label htmlFor="department">
+              Department <span className="text-danger">*</span>
+            </Label>
+            <CreatableSelect
+              inputId="department"
+              placeholder="Auto-filled from position"
+              isClearable
+              isSearchable
+              isDisabled={!!values.position}
+              options={departmentOptions}
+              value={
+                departmentOptions.find(
+                  (opt) => opt.value === values.department,
+                ) || null
+              }
+              onChange={(option) => {
+                form.setFieldValue("department", option ? option.value : "");
+              }}
+              onBlur={() => setFieldTouched("department", true)}
+              onCreateOption={(inputValue) => {
+                handleCreateDepartment(inputValue);
+              }}
+            />
+            {errorText("department")}
+          </Col> */}
+          {/* DESIGNATION */}
+          <Col md={6}>
+            <Label htmlFor="designation">
+              Designation <span className="text-danger">*</span>
+            </Label>
+            <Select
+              inputId="designation"
+              placeholder="Select designation"
+              isClearable
+              isDisabled={
+                designationLoading
+                // ||
+                // (mode === "NEW_JOINING" && !hasCreatePermission)
+              }
+              isLoading={
+                designationLoading
+                // || creatingDesignation
+              }
+              options={sortedDesignationOptions}
+              value={
+                designationOptions.find(
+                  (opt) => opt.value === values.designation,
+                ) || null
+              }
+              onChange={(option) =>
+                form.setFieldValue("designation", option ? option.value : "")
+              }
+              onBlur={() => setFieldTouched("designation", true)}
+              // onCreateOption={handleCreateDesignation}
+            />
+
+            {errorText("designation")}
+          </Col>
+          {/* EMPLOYEE TYPE */}
+          <Col md={6}>
+            <Label htmlFor="employmentType">
+              Employee Type <span className="text-danger">*</span>
+            </Label>
+
+            <Select
+              inputId="employmentType"
+              placeholder="Select Employee Type"
+              options={employmentOptions}
+              value={selectedEmploymentOption}
+              onChange={(opt) =>
+                form.setFieldValue("employmentType", opt ? opt.value : "")
+              }
+              onBlur={() => setFieldTouched("employmentType", true)}
+              isDisabled={
+                isEdit &&
+                initialData?.employmentType?.trim().toUpperCase() === "VENDOR"
+              }
+            />
+
+            {errorText("employmentType")}
+          </Col>
+          {/* EMPLOYEMENT TYPE */}
+          <Col md={6}>
+            <Label htmlFor="newEmploymentType">
+              Employment Type
+              {/* <span className="text-danger">*</span> */}
+            </Label>
+            <Select
+              inputId="newEmploymentType"
+              placeholder="Select Employement Type"
+              options={newEmploymentOptions}
+              value={
+                newEmploymentOptions.find(
+                  (opt) => opt.value === values.newEmploymentType,
+                ) || null
+              }
+              onChange={(opt) =>
+                form.setFieldValue("newEmploymentType", opt ? opt.value : "")
+              }
+              onBlur={() => setFieldTouched("newEmploymentType", true)}
+              isClearable
+            />
+            {errorText("newEmploymentType")}
+          </Col>
+          {/* MINIMUM WORK HOURS — visible only for Part Time */}
+          {values.newEmploymentType === "PART_TIME" && (
+            <Col md={6}>
+              <Label htmlFor="minimumWorkHours">
+                Minimum Work Hours
+                {values.minimumPresentUnit === "SESSION" &&
+                  " (per session)"}{" "}
+                <span className="text-danger">*</span>
+              </Label>
+              {(() => {
+                const isEmpty =
+                  values.minimumWorkHours === "" ||
+                  values.minimumWorkHours == null;
+                const totalMinutes = isEmpty
+                  ? 0
+                  : Number(values.minimumWorkHours);
+                const hoursPart = Math.floor(totalMinutes / 60);
+                const minutesPart = totalMinutes % 60;
+                const invalid =
+                  touched.minimumWorkHours && !!errors.minimumWorkHours;
+                return (
+                  <div
+                    className="d-flex align-items-center"
+                    style={{ gap: "8px" }}
+                  >
+                    <Input
+                      id="minimumWorkHours"
+                      type="number"
+                      min={0}
+                      max={24}
+                      step={1}
+                      value={isEmpty ? "" : hoursPart}
+                      onChange={(e) => {
+                        const h =
+                          e.target.value === ""
+                            ? 0
+                            : parseInt(e.target.value, 10) || 0;
+                        setFieldValue("minimumWorkHours", h * 60 + minutesPart);
+                      }}
+                      onBlur={() => setFieldTouched("minimumWorkHours", true)}
+                      placeholder="HH"
+                      invalid={invalid}
+                      style={{ width: "80px" }}
+                    />
+                    <span className="fw-bold">:</span>
+                    <Input
+                      id="minimumWorkMinutes"
+                      type="number"
+                      min={0}
+                      max={59}
+                      step={1}
+                      value={isEmpty ? "" : minutesPart}
+                      onChange={(e) => {
+                        let m =
+                          e.target.value === ""
+                            ? 0
+                            : parseInt(e.target.value, 10) || 0;
+                        if (m > 59) m = 59;
+                        if (m < 0) m = 0;
+                        setFieldValue("minimumWorkHours", hoursPart * 60 + m);
+                      }}
+                      onBlur={() => setFieldTouched("minimumWorkHours", true)}
+                      placeholder="MM"
+                      invalid={invalid}
+                      style={{ width: "80px" }}
+                    />
+                    <span className="text-muted small">hours : minutes</span>
+                  </div>
+                );
+              })()}
+              {values.minimumWorkHours !== "" &&
+                values.minimumWorkHours != null && (
+                  <div className="text-muted small mt-1">
+                    = {minutesToHHMM(values.minimumWorkHours)} hours (
+                    {Math.round(Number(values.minimumWorkHours))} minutes)
+                  </div>
+                )}
+              {errorText("minimumWorkHours")}
+            </Col>
+          )}
+          {/* MINIMUM PRESENT DAYS — visible only for Part Time */}
+          {values.newEmploymentType === "PART_TIME" && (
+            <Col md={6}>
+              <Label htmlFor="minimumPresentDays">
+                {values.minimumPresentUnit === "SESSIONS"
+                  ? "Number of Sessions"
+                  : "Minimum Presence"}
+                {values.minimumPresentUnit !== "SESSION" && (
+                  <span className="text-danger"> *</span>
+                )}
+              </Label>
+              <div className="d-flex" style={{ gap: "8px" }}>
+                {values.minimumPresentUnit !== "SESSION" && (
+                  <div style={{ flex: 1 }}>
+                    <Input
+                      id="minimumPresentDays"
+                      type="number"
+                      name="minimumPresentDays"
+                      min={0}
+                      max={values.minimumPresentUnit === "WEEK" ? 7 : 31}
+                      value={values.minimumPresentDays}
+                      onChange={handleChange}
+                      onBlur={() => setFieldTouched("minimumPresentDays", true)}
+                      placeholder={
+                        values.minimumPresentUnit === "SESSIONS"
+                          ? "Enter number of sessions"
+                          : "Enter number of days"
+                      }
+                      invalid={
+                        touched.minimumPresentDays &&
+                        !!errors.minimumPresentDays
+                      }
+                    />
+                  </div>
+                )}
+                <div
+                  style={{
+                    width:
+                      values.minimumPresentUnit === "SESSION"
+                        ? "100%"
+                        : "160px",
+                  }}
+                >
+                  <Select
+                    inputId="minimumPresentUnit"
+                    placeholder="Select unit"
+                    options={presentUnitOptions}
+                    value={
+                      presentUnitOptions.find(
+                        (opt) => opt.value === values.minimumPresentUnit,
+                      ) || null
+                    }
+                    onChange={(opt) =>
+                      form.setFieldValue(
+                        "minimumPresentUnit",
+                        opt ? opt.value : "",
+                      )
+                    }
+                    onBlur={() => setFieldTouched("minimumPresentUnit", true)}
+                    isClearable
+                  />
+                </div>
+              </div>
+              {values.minimumPresentUnit === "SESSION" ? (
+                <div className="text-muted small mt-1">
+                  Requirement is measured per session — set the hours in Minimum
+                  Work Hours above.
+                </div>
+              ) : values.minimumPresentUnit === "SESSIONS" ? (
+                values.minimumPresentDays !== "" && (
+                  <div className="text-muted small mt-1">
+                    = {values.minimumPresentDays} session
+                    {Number(values.minimumPresentDays) === 1 ? "" : "s"} per
+                    month
+                  </div>
+                )
+              ) : (
+                values.minimumPresentDays !== "" &&
+                values.minimumPresentUnit && (
+                  <div className="text-muted small mt-1">
+                    = {values.minimumPresentDays} day
+                    {Number(values.minimumPresentDays) === 1
+                      ? ""
+                      : "s"} per{" "}
+                    {values.minimumPresentUnit === "WEEK" ? "week" : "month"}
+                  </div>
+                )
+              )}
+              {errorText("minimumPresentDays")}
+              {errorText("minimumPresentUnit")}
+            </Col>
+          )}
+          {/* EMPLOYMENT STATUS */}
+          <Col md={6}>
+            <Label htmlFor="employmentStatus">
+              Employment Status
+              {/* <span className="text-danger">*</span> */}
+            </Label>
+            <Select
+              inputId="employmentStatus"
+              placeholder="Select Employment Status"
+              options={employmentStatus}
+              value={
+                employmentStatus.find(
+                  (opt) => opt.value === values.employmentStatus,
+                ) || null
+              }
+              onChange={(opt) =>
+                form.setFieldValue("employmentStatus", opt ? opt.value : "")
+              }
+              onBlur={() => setFieldTouched("employmentStatus", true)}
+              isClearable
+            />
+            {errorText("employmentStatus")}
+          </Col>
+          {/* CATEGORY */}
+          <Col md={6}>
+            <Label htmlFor="category">Category</Label>
+            <Select
+              inputId="category"
+              placeholder="Select Category"
+              options={categoryOptions}
+              value={
+                categoryOptions.find((opt) => opt.value === values.category) ||
+                null
+              }
+              onChange={(opt) => {
+                const category = opt ? opt.value : "";
+                form.setFieldValue("category", category);
+                // Consultant / Form 11 are never on PF — pick "NO" for the user.
+                if (NON_PF_CATEGORIES.includes(category)) {
+                  form.setFieldValue("pfApplicable", false);
+                }
+              }}
+              onBlur={() => setFieldTouched("category", true)}
+              isClearable
+            />
+            {errorText("category")}
+          </Col>
+          {/* POSITION */}
+          <Col md={6}>
+            <Label htmlFor="position">
+              Position <span className="text-danger">*</span>
+            </Label>
+            <Select
+              inputId="position"
+              placeholder="Select Position"
+              options={positionOptions}
+              value={
+                positionOptions.find(
+                  (opt) =>
+                    opt.value?.toString() === values.position?.toString(),
+                ) ||
+                (!positionCorrectedRef.current
+                  ? positionOptions.find(
+                      (opt) => opt.label === initialData?.position?.name,
+                    )
+                  : null) ||
+                null
+              }
+              onChange={(opt) => {
+                form.setFieldValue("position", opt ? opt.value : "");
+                if (opt?.departmentId) {
+                  form.setFieldValue("department", opt.departmentId);
+                  form.setFieldTouched("department", true, false);
+                } else {
+                  form.setFieldValue("department", "");
+                }
+              }}
+              onBlur={() => setFieldTouched("position", true)}
+              isClearable
+            />
+            {errorText("position")}
+          </Col>
+          {/* DEPARTMENT */}
+          <Col md={6}>
+            <Label htmlFor="department">
+              Department <span className="text-danger">*</span>
+            </Label>
+            <CreatableSelect
+              inputId="department"
+              placeholder="Select Position"
+              isClearable
+              isSearchable
+              isDisabled={true}
+              options={sortedDepartmentOptions}
+              value={
+                departmentOptions.find(
+                  (opt) => opt.value === values.department,
+                ) || null
+              }
+              onChange={(option) => {
+                form.setFieldValue("department", option ? option.value : "");
+              }}
+              onBlur={() => setFieldTouched("department", true)}
+              onCreateOption={(inputValue) => {
+                handleCreateDepartment(inputValue);
+              }}
+            />
+            {errorText("department")}
+          </Col>
+          {/* FIRST LOCATION */}
+          <Col md={6}>
+            <Label htmlFor="firstLocation">
+              First Location <span className="text-danger">*</span>
+            </Label>
+            <Select
+              inputId="firstLocation"
+              options={centerOptions}
+              value={
+                values.firstLocation
+                  ? centerOptions.find((o) => o.value === values.firstLocation)
+                  : null
+              }
+              onChange={(opt) => setFieldValue("firstLocation", opt.value)}
+              onBlur={() => setFieldTouched("firstLocation", true)}
+            />
+            {errorText("firstLocation")}
+          </Col>
+          {/* TRANSFERRED FROM */}
+          {mode !== "NEW_JOINING" && (
+            <Col md={6}>
+              <Label htmlFor="transferredFrom">Transferred From</Label>
+              <Select
+                inputId="transferredFrom"
+                options={centerOptions}
+                value={
+                  values.transferredFrom
+                    ? centerOptions.find(
+                        (o) => o.value === values.transferredFrom,
+                      )
+                    : null
+                }
+                onChange={(opt) => setFieldValue("transferredFrom", opt.value)}
+              />
+            </Col>
+          )}
+          {/* CURRENT LOCATION */}
+          <Col md={6}>
+            <Label htmlFor="currentLocation">
+              Current Location <span className="text-danger">*</span>
+            </Label>
+            <Select
+              inputId="currentLocation"
+              options={centerOptions}
+              value={
+                values.currentLocation
+                  ? centerOptions.find(
+                      (o) => o.value === values.currentLocation,
+                    )
+                  : null
+              }
+              onChange={(opt) => setFieldValue("currentLocation", opt.value)}
+              onBlur={() => setFieldTouched("currentLocation", true)}
+            />
+            {errorText("currentLocation")}
+          </Col>
+          {/* PAYROLL */}
+          <Col md={6}>
+            <Label htmlFor="payroll">
+              Payroll <span className="text-danger">*</span>
+            </Label>
+            <Select
+              inputId="payroll"
+              options={payrollOptions}
+              value={
+                payrollOptions.find(
+                  (opt) => opt.value === values.payrollType,
+                ) || null
+              }
+              onChange={(opt) => setFieldValue("payrollType", opt.value)}
+              onBlur={() => setFieldTouched("payrollType", true)}
+            />
+            {errorText("payrollType")}
+          </Col>
+          {/* DATE OF JOINING */}
+          <Col md={6}>
+            <Label htmlFor="joinningDate">
+              Date of Joining <span className="text-danger">*</span>
+            </Label>
+            <Flatpickr
+              className={`form-control ${touched.joinningDate && errors.joinningDate ? "is-invalid" : ""}`}
+              id="joinningDate"
+              name="joinningDate"
+              value={values.joinningDate}
+              onChange={([date]) => {
+                setFieldValue(
+                  "joinningDate",
+                  date ? format(date, "yyyy-MM-dd") : "",
+                );
+              }}
+              options={{
+                dateFormat: "Y-m-d",
+                maxDate: "today",
+              }}
+            />
+            {errorText("joinningDate")}
+          </Col>
+          {/* EXIT DATE */}
+          <Col md={6}>
+            <Label htmlFor="exitDate">Last Working Day</Label>
+            <Flatpickr
+              className={`form-control ${touched.exitDate && errors.exitDate ? "is-invalid" : ""}`}
+              id="exitDate"
+              name="exitDate"
+              value={values.exitDate}
+              onChange={([date]) => {
+                setFieldValue(
+                  "exitDate",
+                  date ? format(date, "yyyy-MM-dd") : "",
+                );
+              }}
+              options={{
+                dateFormat: "Y-m-d",
+              }}
+            />
+          </Col>
+          {/* STATUS */}
+          {mode !== "NEW_JOINING" && (
+            <Col md={6}>
+              <Label htmlFor="status">
+                Status <span className="text-danger">*</span>
+              </Label>
+              <Select
+                inputId="status"
+                options={statusOptions}
+                value={
+                  statusOptions.find((opt) => opt.value === values.status) ||
+                  null
+                }
+                onChange={(opt) => setFieldValue("status", opt.value)}
+                isDisabled={isEdit && initialData?.status === "FNF_CLOSED"}
+                onBlur={() => setFieldTouched("status", true)}
+              />
+              {errorText("status")}
+            </Col>
+          )}
+          {/* BIOMETRIC ID */}
+          {mode !== "NEW_JOINING" && (
+            <Col md={6}>
+              <Label htmlFor="biometricId">Biometric ID</Label>
+              <Input
+                id="biometricId"
+                type="number"
+                name="biometricId"
+                value={values.biometricId}
+                onChange={handleChange}
+              />
+            </Col>
+          )}
+          {/* LINK USERS */}
+          {mode !== "NEW_JOINING" && (
+            <Col md={12}>
+              <Label htmlFor="users">Link With Associated Users</Label>
+              <div className="d-flex flex-column flex-md-row gap-2 align-items-stretch">
+                <div className="flex-grow-1">
+                  <AsyncSelect
+                    inputId="users"
+                    isMulti
+                    defaultOptions
+                    loadOptions={loadUserOptions}
+                    placeholder="Search and select users..."
+                    value={values.users}
+                    onChange={(selectedOptions) =>
+                      setFieldValue("users", selectedOptions || [])
+                    }
+                  />
+                </div>
+                <div className="d-flex align-items-stretch">
+                  <Button
+                    color="primary"
+                    className="text-white w-100 w-md-auto"
+                    onClick={handleLinkUsers}
+                    disabled={linking}
+                  >
+                    {linking ? <Spinner size="sm" /> : "Link"}
+                  </Button>
+                </div>
+              </div>
+            </Col>
+          )}
+        </Row>
+              </TabPane>
+              <TabPane tabId="statutory">
+        <Row className="g-3 mx-2">
+          {/* PF APPLICABLE */}
+          <Col md={6}>
+            <Label htmlFor="pfApplicable">
+              PF Available <span className="text-danger">*</span>
+            </Label>
+            <Select
+              inputId="pfApplicable"
+              options={[
+                { value: true, label: "YES" },
+                { value: false, label: "NO" },
+              ]}
+              value={
+                values.pfApplicable === true
+                  ? { value: true, label: "YES" }
+                  : values.pfApplicable === false
+                    ? { value: false, label: "NO" }
+                    : null
+              }
+              onChange={(opt) => setFieldValue("pfApplicable", opt.value)}
+              onBlur={() => setFieldTouched("pfApplicable", true)}
+              isDisabled={NON_PF_CATEGORIES.includes(values.category)}
+            />
+            {errorText("pfApplicable")}
+          </Col>
+          {/* UAN NO */}
+          <Col md={6}>
+            <Label htmlFor="uanNo">
+              UAN No{" "}
+              {values.pfApplicable === true && (
+                <span className="text-danger">*</span>
+              )}
+            </Label>
+            <Input
+              id="uanNo"
+              name="uanNo"
+              value={values.uanNo}
+              onChange={handleChange}
+              invalid={touched.uanNo && !!errors.uanNo}
+              onBlur={() => setFieldTouched("uanNo", true)}
+            />
+            {errorText("uanNo")}
+          </Col>
+          {/* PF NO */}
+          <Col md={6}>
+            <Label htmlFor="pfNo">PF No</Label>
+            <Input
+              id="pfNo"
+              name="pfNo"
+              value={values.pfNo}
+              onChange={handleChange}
+              // invalid={touched.pfNo && !!errors.pfNo}
+              onBlur={() => setFieldTouched("pfNo", true)}
+            />
+            {/* {errorText("pfNo")} */}
+          </Col>
+          {/* ESIC */}
+          <Col md={6}>
+            <Label htmlFor="esicIpCode">ESIC IP Code</Label>
+            <Input
+              id="esicIpCode"
+              name="esicIpCode"
+              value={values.esicIpCode}
+              onChange={handleChange}
+            />
+          </Col>
+          {/* AADHAAR NO*/}
+          <Col md={6}>
+            <Label htmlFor="adharNo">
+              Aadhaar No{" "}
+              {!isNonAadhaar && <span className="text-danger">*</span>}
+            </Label>
+            <Input
+              id="adharNo"
+              name="adharNo"
+              value={values.adharNo}
+              onChange={handleChange}
+              invalid={touched.adharNo && errors.adharNo}
+              onBlur={() => setFieldTouched("adharNo", true)}
+            />
+            {errorText("adharNo")}
+          </Col>
+          {/* ADHAAR FILE */}
+          <Col md={6}>
+            <Label>
+              Aadhaar File{" "}
+              {!isNonAadhaar && <span className="text-danger">*</span>}
+            </Label>
+
+            <input
+              type="file"
+              hidden
+              ref={adharFileRef}
+              accept="image/*,application/pdf"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+
+                await handleFileUpload({
+                  file,
+                  path: "EMPLOYEE_ADHAR",
+                  urlField: "adharOld",
+                  fileField: "adharFile",
+                });
+              }}
+            />
+
+            {values.adharOld ? (
+              <div className="d-flex gap-2 mt-2">
+                <Button
+                  size="sm"
+                  color="info"
+                  onClick={() =>
+                    handleFilePreview(
+                      {
+                        url: values.adharOld,
+                        originalName: "Aadhaar",
+                      },
+                      "adharOld",
+                    )
+                  }
+                  disabled={uploading.adharFile}
+                >
+                  {getFileActionLabel(
+                    {
+                      url: values.adharOld,
+                      originalName: "Aadhaar",
+                    },
+                    "adharOld",
+                  )}
+                </Button>
+
+                <Button
+                  size="sm"
+                  onClick={() => adharFileRef.current.click()}
+                  disabled={uploading.adharFile}
+                >
+                  {uploading.adharFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload new file"
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <div className="d-block">
+                <Button
+                  size="sm"
+                  onClick={() => adharFileRef.current.click()}
+                  disabled={uploading.adharFile}
+                >
+                  {uploading.adharFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload file"
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {errorText("adharOld")}
+          </Col>
+          {/* PAN NO*/}
+          <Col md={6}>
+            <Label htmlFor="pan">
+              PAN No{!isNonAadhaar && <span className="text-danger">*</span>}
+            </Label>
+
+            <Input
+              id="pan"
+              name="pan"
+              value={values.pan}
+              onChange={(e) => {
+                setFieldValue("pan", e.target.value.toUpperCase());
+              }}
+              invalid={touched.pan && errors.pan}
+              onBlur={() => setFieldTouched("pan", true)}
+            />
+            {errorText("pan")}
+          </Col>
+          {/* PAN FILE */}
+          <Col md={6}>
+            <Label>
+              PAN File{" "}
+              {!isNonAadhaar && <span className="text-danger">*</span>}
+            </Label>
+
+            <input
+              type="file"
+              hidden
+              ref={panFileRef}
+              accept="image/*,application/pdf"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+
+                await handleFileUpload({
+                  file,
+                  path: "EMPLOYEE_PAN",
+                  urlField: "panOld",
+                  fileField: "panFile",
+                });
+              }}
+            />
+
+            {values.panOld ? (
+              <div className="d-flex gap-2 mt-2">
+                <Button
+                  size="sm"
+                  color="info"
+                  onClick={() =>
+                    handleFilePreview(
+                      {
+                        url: values.panOld,
+                        originalName: "Pan",
+                      },
+                      "panOld",
+                    )
+                  }
+                  disabled={uploading.panFile}
+                >
+                  {getFileActionLabel(
+                    {
+                      url: values.panOld,
+                      originalName: "Pan",
+                    },
+                    "panOld",
+                  )}
+                </Button>
+
+                <Button
+                  size="sm"
+                  onClick={() => panFileRef.current.click()}
+                  disabled={uploading.panFile}
+                >
+                  {uploading.panFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload New file"
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <div className="d-block">
+                <Button
+                  size="sm"
+                  onClick={() => panFileRef.current.click()}
+                  disabled={uploading.panFile}
+                >
+                  {uploading.panFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload file"
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {errorText("panOld")}
+          </Col>
+        </Row>
+              </TabPane>
+              <TabPane tabId="bank">
+        <Row className="g-3 mx-2">
+          {/* BANK NAME */}
+          <Col md={6}>
+            <Label htmlFor="bankName">
+              Bank Name <span className="text-danger">*</span>
+            </Label>
+            <Input
+              id="bankName"
+              name="bankName"
+              value={values.bankName}
+              onChange={handleChange}
+              invalid={touched.bankName && errors.bankName}
+              onBlur={() => setFieldTouched("bankName", true)}
+            />
+            {errorText("bankName")}
+          </Col>
+          {/* BANK ACCOUNT */}
+          <Col md={6}>
+            <Label htmlFor="accountNo">
+              Bank Account No <span className="text-danger">*</span>
+            </Label>
+            <Input
+              id="accountNo"
+              name="accountNo"
+              value={values.accountNo}
+              onChange={handleChange}
+              invalid={touched.accountNo && errors.accountNo}
+              onBlur={() => setFieldTouched("accountNo", true)}
+            />
+            {errorText("accountNo")}
+          </Col>
+          {/* BENIFICIARY NAME */}
+          <Col md={6}>
+            <Label htmlFor="accountHolderName">
+              Account Holder's Name <span className="text-danger">*</span>
+            </Label>
+            <Input
+              id="accountHolderName"
+              name="accountName"
+              value={values.accountName}
+              onChange={handleChange}
+              invalid={touched.accountName && errors.accountName}
+              onBlur={() => setFieldTouched("accountName", true)}
+            />
+            {errorText("accountName")}
+          </Col>
+          {/* IFSC */}
+          <Col md={6}>
+            <Label htmlFor="IFSCCode">
+              IFSC Code <span className="text-danger">*</span>
+            </Label>
+            <Input
+              id="IFSCCode"
+              name="IFSCCode"
+              value={values.IFSCCode}
+              onChange={handleChange}
+              invalid={touched.IFSCCode && errors.IFSCCode}
+              onBlur={() => setFieldTouched("IFSCCode", true)}
+            />
+            {errorText("IFSCCode")}
+          </Col>
+        </Row>
+              </TabPane>
+              <TabPane tabId="documents">
+        <Row className="g-3 mx-2">
+          {/* OFFER LETTER FILE */}
+          <Col md={6}>
+            <Label>
+              Offer Letter <span className="text-danger">*</span>
+            </Label>
+
+            <input
+              type="file"
+              hidden
+              ref={offerLetterRef}
+              accept="image/*,application/pdf"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (!file) return;
+
+                await handleFileUpload({
+                  file,
+                  path: "EMPLOYEE_OFFER_LETTER",
+                  urlField: "offerLetterOld",
+                  fileField: "offerLetterFile",
+                });
+              }}
+            />
+
+            {values.offerLetterOld ? (
+              <div className="d-flex gap-2 mt-2">
+                <Button
+                  size="sm"
+                  color="info"
+                  onClick={() =>
+                    handleFilePreview(
+                      {
+                        url: values.offerLetterOld,
+                        originalName: "Offerletter",
+                      },
+                      "offerLetterOld",
+                    )
+                  }
+                  disabled={uploading.offerLetterFile}
+                >
+                  {getFileActionLabel(
+                    {
+                      url: values.offerLetterOld,
+                      originalName: "Offerletter",
+                    },
+                    "offerLetterOld",
+                  )}
+                </Button>
+
+                <Button
+                  size="sm"
+                  onClick={() => offerLetterRef.current.click()}
+                  disabled={uploading.offerLetterFile}
+                >
+                  {uploading.offerLetterFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload New file"
+                  )}
+                </Button>
+              </div>
+            ) : (
+              <div className="d-block">
+                <Button
+                  size="sm"
+                  onClick={() => offerLetterRef.current.click()}
+                  disabled={uploading.offerLetterFile}
+                >
+                  {uploading.offerLetterFile ? (
+                    <>
+                      <Spinner size="sm" className="me-1" /> Uploading
+                    </>
+                  ) : (
+                    "Upload file"
+                  )}
+                </Button>
+              </div>
+            )}
+
+            {errorText("offerLetterOld")}
+          </Col>
+        </Row>
+
+        <Col xs={12} className="mt-4">
+          <h5 className="fw-semibold mb-1">Other Documents</h5>
+          <hr className="mt-0" />
+          {missingMandatoryDocs.length > 0 && (
+            <p className="text-danger small mb-2">
+              Please upload: {missingMandatoryDocs.join(", ")}
+            </p>
+          )}
+        </Col>
+
+        <Row className="g-3 mx-2">
+          {positionDocFields.length > 0 ? (
+            positionDocsLoading ? (
+              <Col xs={12}>
+                <Spinner size="sm" className="me-2" /> Loading required
+                documents...
+              </Col>
+            ) : (
+              positionDocFields.map((doc) => {
+                const files = positionDocFiles[doc.document] || [];
+                const existingFiles = doc.files || [];
+                const isSatisfied = existingFiles.length > 0;
+
+                return (
+                  <Col md={6} key={doc.document}>
+                    <Label
+                      className="d-block text-truncate"
+                      style={{ maxWidth: "100%" }}
+                      title={doc.docName}
+                    >
+                      {doc.docName}
+                      {doc.markMandatory && !isSatisfied && (
+                        <span className="text-danger ms-1">*</span>
+                      )}
+                    </Label>
+
+                    {doc.legacy && (
+                      <p className="text-muted small mb-2">
+                        <i className="ri-information-line me-1" />
+                        Retained from a previous position assignment.
+                      </p>
+                    )}
+
+                    {existingFiles.length > 0 && (
+                      <div className="d-flex flex-column gap-2 mb-2">
+                        {existingFiles.map((file, index) => (
+                          <div
+                            key={file._id || index}
+                            className="d-flex align-items-center justify-content-between border rounded px-2 py-1"
+                          >
+                            <span
+                              className="text-truncate small"
+                              style={{ maxWidth: 180 }}
+                            >
+                              {file.fileName}
+                            </span>
+                            <div className="d-flex gap-1">
+                              <Button
+                                size="sm"
+                                color="info"
+                                onClick={() =>
+                                  handleFilePreview(
+                                    {
+                                      url: file.fileUrl,
+                                      originalName: file.fileName,
+                                    },
+                                    `positionDoc.${doc.document}.${file._id || index}`,
+                                  )
+                                }
+                              >
+                                {getFileActionLabel(
+                                  {
+                                    url: file.fileUrl,
+                                    originalName: file.fileName,
+                                  },
+                                  `positionDoc.${doc.document}.${file._id || index}`,
+                                )}
+                              </Button>
+                              {!doc.legacy && (
+                                <Button
+                                  size="sm"
+                                  color="outline-danger"
+                                  onClick={() =>
+                                    openDeleteExistingFile(doc.document, file)
+                                  }
+                                >
+                                  <i className="ri-close-line" />
+                                </Button>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+
+                    {!doc.legacy && (
+                      <>
+                        <input
+                          type="file"
+                          hidden
+                          ref={(el) =>
+                            (positionDocFileRefs.current[doc.document] = el)
+                          }
+                          accept="image/*,application/pdf,.doc,.docx,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            e.target.value = "";
+                            if (!file) return;
+                            handlePositionDocSelect(doc.document, file);
+                          }}
+                        />
+
+                        {files.length > 0 && (
+                          <div className="d-flex flex-column gap-2 mb-2">
+                            {files.map((file, index) => (
+                              <div
+                                key={index}
+                                className="d-flex align-items-center justify-content-between border rounded px-2 py-1"
+                              >
+                                <span
+                                  className="text-truncate small"
+                                  style={{ maxWidth: 220 }}
+                                >
+                                  {file.name}
+                                </span>
+                                <Button
+                                  size="sm"
+                                  color="outline-danger"
+                                  onClick={() =>
+                                    handlePositionDocRemove(doc.document, index)
+                                  }
+                                >
+                                  Remove
+                                </Button>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+
+                        <Button
+                          size="sm"
+                          onClick={() =>
+                            positionDocFileRefs.current[doc.document]?.click()
+                          }
+                        >
+                          {files.length > 0 || existingFiles.length > 0
+                            ? "Upload Another File"
+                            : "Upload File"}
+                        </Button>
+                      </>
+                    )}
+                  </Col>
+                );
+              })
+            )
+          ) : (
+            <Col xs={12}>
+              <p className="text-muted small mb-0">
+                {isEdit
+                  ? "No additional documents configured for this position."
+                  : "Save the employee first, then required documents can be uploaded."}
+              </p>
+            </Col>
+          )}
+        </Row>
+              </TabPane>
+              <TabPane tabId="finance">        <Col xs={12} className="mt-4">
+          <h5 className="fw-semibold mb-1">Finance Details</h5>
+          <hr className="mt-0" />
+        </Col>
+
+        <Row className="g-3 mx-2">
+          {simplified && (
+            <>
+              {/* ANNUAL CTC */}
+              <Col md={6}>
+                <Label htmlFor="annualCTC">
+                  {perSession ? "CTC (Per Session)" : "Annual CTC"}{" "}
+                  <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="annualCTC"
+                  type="number"
+                  name="annualCTC"
+                  min={0}
+                  value={values.annualCTC}
+                  onChange={handleChange}
+                  onBlur={() => setFieldTouched("annualCTC", true)}
+                  invalid={touched.annualCTC && !!errors.annualCTC}
+                />
+                {errorText("annualCTC")}
+                {!perSession && (
+                  <div className="text-muted small mt-1">
+                    Monthly ≈ ₹
+                    {Math.round(
+                      (Number(values.annualCTC) || 0) / 12,
+                    ).toLocaleString("en-IN")}
+                  </div>
+                )}
+              </Col>
+
+              {/* INSURANCE — all non-FTE types */}
+              <Col md={6}>
+                <Label htmlFor="annualInsurance">
+                  Insurance {perSession ? "(Per Session)" : "(Yearly)"}
+                </Label>
+                <Input
+                  id="annualInsurance"
+                  type="number"
+                  name="annualInsurance"
+                  min={0}
+                  value={values.annualInsurance}
+                  onChange={handleChange}
+                  onBlur={() => setFieldTouched("annualInsurance", true)}
+                  invalid={touched.annualInsurance && !!errors.annualInsurance}
+                />
+                {errorText("annualInsurance")}
+                {!perSession && (
+                  <div className="text-muted small mt-1">
+                    Monthly ≈ ₹
+                    {Math.round(
+                      (Number(values.annualInsurance) || 0) / 12,
+                    ).toLocaleString("en-IN")}
+                  </div>
+                )}
+              </Col>
+
+              {/* TDS RATE — consultants only */}
+              {consultant && (
+                <Col md={6}>
+                  <Label htmlFor="TDSRate">
+                    TDS Rate (%) <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    id="TDSRate"
+                    type="number"
+                    name="TDSRate"
+                    min={0}
+                    max={100}
+                    value={values.TDSRate}
+                    disabled
+                    onChange={handleChange}
+                    onBlur={() => setFieldTouched("TDSRate", true)}
+                    invalid={touched.TDSRate && !!errors.TDSRate}
+                  />
+                  {errorText("TDSRate")}
+                  <div className="text-muted small mt-1">
+                    TDS {perSession ? "(Per Session)" : "(Yearly)"} ≈ ₹
+                    {consultantTdsAmount.toLocaleString("en-IN")}
+                    {!perSession && (
+                      <>
+                        {" "}
+                        · Monthly ≈ ₹
+                        {Math.round(consultantTdsAmount / 12).toLocaleString(
+                          "en-IN",
+                        )}
+                      </>
+                    )}
+                  </div>
+                </Col>
+              )}
+
+              {/* IN HAND SALARY (Yearly entry, monthly preview) */}
+              <Col md={6}>
+                <Label htmlFor="annualInHandSalary">
+                  In Hand Salary {perSession ? "(Per Session)" : "(Yearly)"}{" "}
+                  <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="annualInHandSalary"
+                  type="number"
+                  name="annualInHandSalary"
+                  min={0}
+                  value={values.annualInHandSalary}
+                  disabled
+                  onChange={handleChange}
+                  onBlur={() => setFieldTouched("annualInHandSalary", true)}
+                  invalid={
+                    touched.annualInHandSalary && !!errors.annualInHandSalary
+                  }
+                />
+                {errorText("annualInHandSalary")}
+                {!perSession && (
+                  <div className="text-muted small mt-1">
+                    Monthly ≈ ₹
+                    {Math.round(
+                      (Number(values.annualInHandSalary) || 0) / 12,
+                    ).toLocaleString("en-IN")}
+                  </div>
+                )}
+                <div className="text-muted small">
+                  Auto-calculated as Annual CTC{consultant ? " − TDS" : ""} −
+                  Insurance.
+                </div>
+              </Col>
+
+              {/* PAYMENT TYPE */}
+              <Col md={6}>
+                <Label htmlFor="paymentType">
+                  Payment Type <span className="text-danger">*</span>
+                </Label>
+                <Select
+                  inputId="paymentType"
+                  options={paymentTypeOptions}
+                  value={
+                    paymentTypeOptions.find(
+                      (opt) => opt.value === values.paymentType,
+                    ) || null
+                  }
+                  onChange={(opt) =>
+                    setFieldValue("paymentType", opt ? opt.value : "")
+                  }
+                  onBlur={() => setFieldTouched("paymentType", true)}
+                />
+                {errorText("paymentType")}
+              </Col>
+            </>
+          )}
+
+          {!simplified && (
+            <>
+              {/* EMPLOYEE GROUPS */}
+              <Col md={6}>
+                <Label htmlFor="employeeGroups">
+                  Employee Group <span className="text-danger">*</span>
+                </Label>
+                <Select
+                  inputId="employeeGroups"
+                  options={employeeGroupOptions}
+                  value={
+                    employeeGroupOptions.find(
+                      (opt) => opt.value === values.employeeGroups,
+                    ) || null
+                  }
+                  onChange={(opt) =>
+                    setFieldValue("employeeGroups", opt ? opt.value : "")
+                  }
+                  onBlur={() => setFieldTouched("employeeGroups", true)}
+                />
+                {errorText("employeeGroups")}
+              </Col>
+
+              {/* ACCOUNT */}
+              <Col md={6}>
+                <Label htmlFor="account">Account</Label>
+                <Select
+                  inputId="account"
+                  options={accountOptions}
+                  value={
+                    accountOptions.find(
+                      (opt) => opt.value === values.account,
+                    ) || null
+                  }
+                  onChange={(opt) =>
+                    setFieldValue("account", opt ? opt.value : "")
+                  }
+                  onBlur={() => setFieldTouched("account", true)}
+                />
+                {errorText("account")}
+              </Col>
+
+              {/* MINIMUM WAGES */}
+              <Col md={6}>
+                <Label htmlFor="minimumWages">Minimum Wages (Monthly)</Label>
+                <Input
+                  id="minimumWages"
+                  type="number"
+                  name="minimumWages"
+                  value={values.minimumWages}
+                  onChange={handleChange}
+                />
+              </Col>
+
+              {/* IS IT AN INCREMENT? — only when editing an existing employee */}
+              {mode === "MASTER" && isEdit && (
+                <Col md={6}>
+                  <Label htmlFor="isIncrement">Is it an increment?</Label>
+                  <Select
+                    inputId="isIncrement"
+                    options={[
+                      { label: "No", value: "NO" },
+                      { label: "Yes", value: "YES" },
+                    ]}
+                    value={{
+                      label: values.isIncrement === "YES" ? "Yes" : "No",
+                      value: values.isIncrement,
+                    }}
+                    onChange={(opt) =>
+                      setFieldValue("isIncrement", opt ? opt.value : "NO")
+                    }
+                  />
+                </Col>
+              )}
+
+              {mode === "MASTER" && isEdit && values.isIncrement === "YES" && (
+                <Col md={6}>
+                  <Label htmlFor="incrementIssued">
+                    Increment Issued Date <span className="text-danger">*</span>
+                  </Label>
+                  <Flatpickr
+                    className={`form-control ${errors.incrementIssued ? "is-invalid" : ""}`}
+                    id="incrementIssued"
+                    name="incrementIssued"
+                    value={values.incrementIssued}
+                    onChange={([date]) => {
+                      setFieldValue(
+                        "incrementIssued",
+                        date ? format(date, "yyyy-MM-dd") : "",
+                      );
+                    }}
+                    options={{ dateFormat: "Y-m-d" }}
+                  />
+                  {errorText("incrementIssued")}
+                </Col>
+              )}
+
+              {/* INCREMENT APPLICABLE DATE */}
+              {mode === "MASTER" && isEdit && values.isIncrement === "YES" && (
+                <Col md={6}>
+                  <Label htmlFor="incrementApplicable">
+                    Increment Applicable Date{" "}
+                    <span className="text-danger">*</span>
+                  </Label>
+                  <Flatpickr
+                    className={`form-control ${errors.incrementApplicable ? "is-invalid" : ""}`}
+                    id="incrementApplicable"
+                    name="incrementApplicable"
+                    value={values.incrementApplicable}
+                    onChange={([date]) => {
+                      setFieldValue(
+                        "incrementApplicable",
+                        date ? format(date, "yyyy-MM-dd") : "",
+                      );
+                    }}
+                    options={{ dateFormat: "Y-m-d" }}
+                  />
+                  {errorText("incrementApplicable")}
+                </Col>
+              )}
+
+              {/* INCREMENT LETTER FILE */}
+              {mode === "MASTER" && isEdit && values.isIncrement === "YES" && (
+                <Col md={6}>
+                  <Label>Increment Letter</Label>
+
+                  <input
+                    type="file"
+                    hidden
+                    ref={incrementLetterRef}
+                    accept="image/*,application/pdf"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      e.target.value = "";
+                      if (!file) return;
+                      await handleFileUpload({
+                        file,
+                        path: "EMPLOYEE_INCREMENT_LETTER",
+                        urlField: "incrementLetterOld",
+                        fileField: "incrementLetterFile",
+                      });
+                    }}
+                  />
+
+                  {values.incrementLetterOld ? (
+                    <div className="d-flex gap-2 mt-2">
+                      <Button
+                        size="sm"
+                        color="info"
+                        onClick={() =>
+                          handleFilePreview(
+                            {
+                              url: values.incrementLetterOld,
+                              originalName: "IncrementLetter",
+                            },
+                            "incrementLetterOld",
+                          )
+                        }
+                        disabled={uploading.incrementLetterFile}
+                      >
+                        {getFileActionLabel(
+                          {
+                            url: values.incrementLetterOld,
+                            originalName: "IncrementLetter",
+                          },
+                          "incrementLetterOld",
+                        )}
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => incrementLetterRef.current.click()}
+                        disabled={uploading.incrementLetterFile}
+                      >
+                        {uploading.incrementLetterFile ? (
+                          <>
+                            <Spinner size="sm" className="me-1" /> Uploading
+                          </>
+                        ) : (
+                          "Upload New File"
+                        )}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="d-block">
+                      <Button
+                        size="sm"
+                        onClick={() => incrementLetterRef.current.click()}
+                        disabled={uploading.incrementLetterFile}
+                      >
+                        {uploading.incrementLetterFile ? (
+                          <>
+                            <Spinner size="sm" className="me-1" /> Uploading
+                          </>
+                        ) : (
+                          "Upload File"
+                        )}
+                      </Button>
+                    </div>
+                  )}
+                </Col>
+              )}
+
+              {/* Short WAGES */}
+              <Col md={6}>
+                <Label htmlFor="shortWages">Short Wages (Monthly)</Label>
+                <Input
+                  disabled
+                  id="shortWages"
+                  type="number"
+                  name="shortWages"
+                  value={values.shortWages}
+                />
+              </Col>
+
+              {/* GROSS SALARY */}
+              <Col md={6}>
+                <Label htmlFor="grossSalary">
+                  Gross Salary (Yearly) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  disabled
+                  id="grossSalary"
+                  type="number"
+                  name="grossSalary"
+                  value={values.grossSalary}
+                />
+                {errorText("grossSalary")}
+                {monthlyHint("grossSalary")}
+              </Col>
+
+              {/* BASIC AMOUNT */}
+              <Col md={6}>
+                <Label htmlFor="basicAmount">
+                  Basic Amount (Yearly) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="basicAmount"
+                  type="number"
+                  name="basicAmount"
+                  value={values.basicAmount}
+                  onChange={handleChange}
+                />
+                {errorText("basicAmount")}
+                {monthlyHint("basicAmount")}
+              </Col>
+
+              {/* BASIC PERCENTAGE */}
+              <Col md={6}>
+                <Label htmlFor="basicPercentage">Basic Percentage</Label>
+                <Input
+                  disabled
+                  id="basicPercentage"
+                  type="number"
+                  name="basicPercentage"
+                  value={values.basicPercentage}
+                  onChange={handleChange}
+                />
+                {errorText("basicPercentage")}
+              </Col>
+
+              {/* HRA */}
+              <Col md={6}>
+                <Label htmlFor="HRA">
+                  HRA (Yearly) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="HRA"
+                  type="number"
+                  name="HRAAmount"
+                  value={values.HRAAmount}
+                  onChange={handleChange}
+                />
+                {monthlyHint("HRAAmount")}
+              </Col>
+
+              {/* HRA PERCENTAGE */}
+              <Col md={6}>
+                <Label htmlFor="HRAPercentage">HRA Percentage</Label>
+                <Input
+                  disabled
+                  id="HRAPercentage"
+                  type="number"
+                  name="HRAPercentage"
+                  value={values.HRAPercentage}
+                  onChange={handleChange}
+                />
+                {errorText("HRAPercentage")}
+              </Col>
+
+              {/* SPECIAL ALLOWANCE */}
+              <Col md={6}>
+                <Label htmlFor="SPLAllowance">
+                  SPL Allowance (Yearly) <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  name="SPLAllowance"
+                  type="number"
+                  value={values.SPLAllowance}
+                  onChange={(e) => {
+                    setManual((prev) => ({
+                      ...prev,
+                      SPLAllowance: true,
+                    }));
+                    handleChange(e);
+                  }}
+                />
+                {monthlyHint("SPLAllowance")}
+              </Col>
+
+              {/* CONVEYANCE ALLOWANCE */}
+              <Col md={6}>
+                <Label htmlFor="conveyanceAllowance">
+                  Conveyance Allowance (Yearly){" "}
+                  <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="conveyanceAllowance"
+                  type="number"
+                  name="conveyanceAllowance"
+                  value={values.conveyanceAllowance}
+                  onChange={handleChange}
+                />
+                {monthlyHint("conveyanceAllowance")}
+              </Col>
+
+              {/* STATUTORY BONUS */}
+              <Col md={6}>
+                <Label htmlFor="statutoryBonus">
+                  Statutory Bonus (Yearly){" "}
+                  <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  id="statutoryBonus"
+                  type="number"
+                  name="statutoryBonus"
+                  value={values.statutoryBonus}
+                  onChange={handleChange}
+                />
+                {monthlyHint("statutoryBonus")}
+              </Col>
+
+              {/* INSURANCE */}
+              <Col md={6}>
+                <Label htmlFor="insurance">Insurance (Yearly)</Label>
+                <Input
+                  id="insurance"
+                  type="number"
+                  name="insurance"
+                  value={values.insurance}
+                  onChange={handleChange}
+                />
+                {monthlyHint("insurance")}
+              </Col>
+
+              {/* VARIABLE */}
+              <Col md={6}>
+                <Label htmlFor="variable">Variable (Yearly)</Label>
+                <Input
+                  id="variable"
+                  type="number"
+                  name="variable"
+                  value={values.variable}
+                  onChange={handleChange}
+                />
+                <div className="text-muted small mt-1">Added to yearly CTC</div>
+              </Col>
+
+              {/* REIMBURSEMENT */}
+              <Col md={6}>
+                <Label htmlFor="reimbursement">Reimbursement (Yearly)</Label>
+                <Input
+                  id="reimbursement"
+                  type="number"
+                  name="reimbursement"
+                  value={values.reimbursement}
+                  onChange={handleChange}
+                />
+                <div className="text-muted small mt-1">Added to yearly CTC</div>
+              </Col>
+
+              {/* LWF EMPLOYEE — auto-calculated from state */}
+              <Col md={6}>
+                <Label htmlFor="LWFEmployee">LWF Employee (Yearly)</Label>
+                <Input
+                  id="LWFEmployee"
+                  type="number"
+                  name="LWFEmployee"
+                  value={values.LWFEmployee}
+                  readOnly
+                  disabled
+                />
+                {lwfScheduleText(lwfState) ? (
+                  <div className="text-muted small mt-1">
+                    Charged {lwfScheduleText(lwfState)}
+                  </div>
+                ) : (
+                  <div className="text-muted small mt-1">
+                    No LWF for this state
+                  </div>
+                )}
+              </Col>
+
+              {/* LWF EMPLOYER — auto-calculated from state */}
+              <Col md={6}>
+                <Label htmlFor="LWFEmployer">LWF Employer (Yearly)</Label>
+                <Input
+                  id="LWFEmployer"
+                  type="number"
+                  name="LWFEmployer"
+                  value={values.LWFEmployer}
+                  readOnly
+                  disabled
+                />
+                {lwfScheduleText(lwfState) ? (
+                  <div className="text-muted small mt-1">
+                    Charged {lwfScheduleText(lwfState)}
+                  </div>
+                ) : (
+                  <div className="text-muted small mt-1">
+                    No LWF for this state
+                  </div>
+                )}
+              </Col>
+
+              {/* ESIC SALARY */}
+              <Col md={6}>
+                <Label htmlFor="ESICSalary">ESIC Salary (Yearly)</Label>
+                <Input
+                  disabled
+                  id="ESICSalary"
+                  type="number"
+                  name="ESICSalary"
+                  value={yearlyValue("ESICSalary")}
+                />
+                {monthlyHintFrom("ESICSalary")}
+              </Col>
+
+              {/* ESIC EMPLOYEE */}
+              <Col md={6}>
+                <Label htmlFor="ESICEmployee">ESIC Employee (Yearly)</Label>
+                <Input
+                  disabled
+                  id="ESICEmployee"
+                  type="number"
+                  name="ESICEmployee"
+                  value={yearlyValue("ESICEmployee")}
+                />
+                {monthlyHintFrom("ESICEmployee")}
+              </Col>
+
+              {/* ESIC EMPLOYER */}
+              <Col md={6}>
+                <Label htmlFor="ESICEmployer">ESIC Employer (Yearly)</Label>
+                <Input
+                  disabled
+                  id="ESICEmployer"
+                  type="number"
+                  name="ESICEmployer"
+                  value={yearlyValue("ESICEmployer")}
+                />
+                {monthlyHintFrom("ESICEmployer")}
+              </Col>
+
+              {/* TDS RATE */}
+              <Col md={6}>
+                <Label htmlFor="TDSRate">TDS Rate</Label>
+                <Input
+                  id="TDSRate"
+                  type="number"
+                  name="TDSRate"
+                  value={values.TDSRate}
+                  onChange={handleChange}
+                />
+              </Col>
+
+              {/* PT */}
+              <Col md={6}>
+                <Label htmlFor="PT">PT (Yearly)</Label>
+                <Input disabled id="PT" type="number" value={ptYearly} />
+                <div className="text-muted small mt-1">
+                  Monthly ≈ ₹{ptMonthly.toLocaleString("en-IN")}
+                </div>
+              </Col>
+
+              {/* IN HAND SALARY */}
+              <Col md={6}>
+                <Label htmlFor="inHandSalary">In Hand Salary (Yearly)</Label>
+                <Input
+                  disabled
+                  id="inHandSalary"
+                  type="number"
+                  name="inHandSalary"
+                  value={inHandYearly}
+                />
+                {monthlyHintFrom("inHandSalary")}
+              </Col>
+
+              {/* PF AMOUNT */}
+              <Col md={6}>
+                <Label htmlFor="PFAmount">PF Amount (Yearly)</Label>
+                <Input
+                  disabled
+                  id="PFAmount"
+                  type="number"
+                  name="PFAmount"
+                  value={yearlyValue("PFAmount")}
+                />
+                {monthlyHintFrom("PFAmount")}
+              </Col>
+
+              {/* PF EMPLOYEE */}
+              <Col md={6}>
+                <Label htmlFor="PFEmployee">
+                  PF Employee Contribution (Yearly)
+                </Label>
+                <Input
+                  disabled
+                  id="PFEmployee"
+                  type="number"
+                  name="PFEmployee"
+                  value={yearlyValue("PFEmployee")}
+                />
+                {monthlyHintFrom("PFEmployee")}
+              </Col>
+
+              {/* PF EMPLOYER */}
+              <Col md={6}>
+                <Label htmlFor="PFEmployer">
+                  PF Employer Contribution (Yearly)
+                </Label>
+                <Input
+                  disabled
+                  id="PFEmployer"
+                  type="number"
+                  name="PFEmployer"
+                  value={yearlyValue("PFEmployer")}
+                />
+                {monthlyHintFrom("PFEmployer")}
+              </Col>
+
+              {/* TOTAL DEDUCTIONS */}
+              <Col md={6}>
+                <Label htmlFor="deductions">Total Deductions (Yearly)</Label>
+                <Input
+                  disabled
+                  id="deductions"
+                  type="number"
+                  name="deductions"
+                  value={deductionsYearly}
+                />
+                {monthlyHintFrom("deductions")}
+              </Col>
+
+              {/* DUPLICATE - WRONG VALUE (no LWF correction)
+              <Col md={6}>
+                <Label htmlFor="inHandSalary">In Hand Salary (Yearly)</Label>
+                <Input
+                  disabled
+                  id="inHandSalary"
+                  type="number"
+                  name="inHandSalary"
+                  value={yearlyValue("inHandSalary")}
+                />
+                {monthlyHintFrom("inHandSalary")}
+              </Col>
+              */}
+
+              {/* GRATUITY */}
+              <Col md={6}>
+                <Label htmlFor="gratuity">Gratuity (Yearly)</Label>
+                <Input
+                  disabled
+                  id="gratuity"
+                  type="number"
+                  name="gratuity"
+                  value={yearlyValue("gratuity")}
+                />
+                {monthlyHintFrom("gratuity")}
+              </Col>
+
+              {/* TOTAL COST TO COMPANY */}
+              <Col md={6}>
+                <Label htmlFor="totalCostToCompany">
+                  Total Cost To Company (Yearly)
+                </Label>
+                <Input
+                  disabled
+                  id="totalCostToCompany"
+                  type="number"
+                  name="totalCostToCompany"
+                  value={ctcYearly}
+                />
+                {monthlyHintFrom("totalCostToCompany")}
+              </Col>
+
+              {/* DEBIT STATEMENT NARRATION */}
+              <Col md={6}>
+                <Label htmlFor="debitStatementNarration">
+                  Debit Statement Narration
+                </Label>
+
+                <Input
+                  id="debitStatementNarration"
+                  name="debitStatementNarration"
+                  value={values.debitStatementNarration}
+                  onChange={(e) =>
+                    handleChange({
+                      target: {
+                        name: "debitStatementNarration",
+                        value: e.target.value.toUpperCase(),
+                      },
+                    })
+                  }
+                  onBlur={() =>
+                    setFieldTouched("debitStatementNarration", true)
+                  }
+                  invalid={
+                    touched.debitStatementNarration &&
+                    !!errors.debitStatementNarration
+                  }
+                />
+                {errorText("debitStatementNarration")}
+              </Col>
+            </>
+          )}
+        </Row>
+              </TabPane>
+          </TabContent>
+
+          <div className="d-flex gap-2 justify-content-between my-3 mx-3">
+            <div>
+              {activeTabIndex > 0 && (
+                <Button
+                  color="secondary"
+                  className="text-white"
+                  onClick={handlePrevTab}
+                >
+                  Previous
+                </Button>
+              )}
+            </div>
+            <div className="d-flex gap-2">
+              {view === "MODAL" && (
+                <Button
+                  color="secondary"
+                  className="text-white"
+                  onClick={onCancel}
+                  disabled={form.isSubmitting}
+                >
+                  Cancel
+                </Button>
+              )}
+              {activeTabIndex < FORM_TABS.length - 1 && (
+                <Button color="primary" className="text-white" onClick={handleNextTab}>
+                  Next
+                </Button>
+              )}
+              {activeTabIndex === FORM_TABS.length - 1 &&
+                (mode !== "NEW_JOINING" || view !== "PAGE" || hasCreatePermission) && (
+                <Button
+                  color="primary"
+                  className="text-white"
+                  onClick={form.handleSubmit}
+                  disabled={
+                    isSubmitting ||
+                    !isValid ||
+                    (isEdit && !initialData?._id) ||
+                    missingMandatoryDocs.length > 0
+                  }
+                >
+                  {isSubmitting ? (
+                    <Spinner size="sm" />
+                  ) : initialData ? (
+                    "Update Employee"
+                  ) : (
+                    "Save Employee"
+                  )}
+                </Button>
+              )}
+            </div>
+          </div>
+
+        </>
+        )}
       </div>
       <PreviewFile
         file={previewFile}

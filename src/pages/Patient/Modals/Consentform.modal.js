@@ -120,14 +120,14 @@ const ConsentFormModal = ({
           </div>
 
           <div className="mt-3">
-            <Label className="text-muted mb-1">Ward / Room</Label>
+            <Label className="text-muted mb-1">Floor / Ward / Room</Label>
             <Input
               type="text"
               value={details?.ward}
               onChange={(e) =>
                 setDetails((prev) => ({ ...prev, ward: e.target.value }))
               }
-              placeholder="Enter Ward / Room"
+              placeholder="Enter Floor / Ward / Room"
             />
           </div>
           <div className="mt-3">

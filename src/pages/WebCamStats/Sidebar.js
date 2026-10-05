@@ -34,6 +34,11 @@ const Sidebar = () => {
     if (page.id === "webcamstats-dashboard" && !hasDashboardPermission) {
       return false;
     }
+    // Reuses the DASHBOARD permission rather than a new key: a key that does
+    // not exist in the roles DB would hide the page from everyone.
+    if (page.id === "webcamstats-health" && !hasDashboardPermission) {
+      return false;
+    }
     if (page.id === "webcamstats-stats" && !hasStatsPermission) {
       return false;
     }

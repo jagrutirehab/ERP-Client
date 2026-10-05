@@ -19,6 +19,15 @@ import {
     getPharmacyConsolidated,
     getMatchingMedicines,
     getSareyaanInventoryImports,
+    getApprovalMedicines as getApprovalMedicinesApi,
+    approvePilotApproval as approvePilotApprovalApi,
+    returnMedicine as returnMedicineApi,
+    getPharmacyReturns as getPharmacyReturnsApi,
+    getExpiredStock as getExpiredStockApi,
+    getExpiredStockHistory as getExpiredStockHistoryApi,
+    discardExpiredStock as discardExpiredStockApi,
+    getExpiredStockDetails as getExpiredStockDetailsApi,
+    getInventoryHealthReport as getInventoryHealthReportApi,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -29,9 +38,36 @@ const initialState = {
     pendingPatients: [],
     detailedPrescription: {},
     pendingAudits: [],
+    approvalMedicines: {
+        loading: false,
+        data: null,
+    },
+    pharmacyReturns: {
+        loading: false,
+        data: [],
+        pagination: {},
+    },
     auditHistory: {
         data: [],
         pagination: {}
+    },
+    inventoryHealthReport: {
+        loading: false,
+        data: [],
+        pagination: {},
+        summary: {
+            totalLoss: 0,
+            totalVariance: 0,
+            pendingExpiredBatches: 0,
+            totalDiscarded: 0,
+            inTransitQty: 0,
+        },
+    },
+    inventoryHealthDetailed: {
+        loading: false,
+        data: [],
+        pagination: {},
+        maxEventCounts: { transfers: 0, audits: 0, discards: 0 },
     },
     internalTransfer: {
         loading: false,
@@ -63,6 +99,54 @@ export const updateApprovalStatus = createAsyncThunk("pharmacy/updateMedicineApp
         return rejectWithValue(error);
     }
 });
+
+export const fetchApprovalMedicines = createAsyncThunk(
+    "pharmacy/fetchApprovalMedicines",
+    async ({ approvalId, view }, { rejectWithValue }) => {
+        try {
+            const response = await getApprovalMedicinesApi(approvalId, { ...(view && { view }) });
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const submitPilotApproval = createAsyncThunk(
+    "pharmacy/submitPilotApproval",
+    async ({ approvalId, ...data }, { rejectWithValue }) => {
+        try {
+            const response = await approvePilotApprovalApi(approvalId, data);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const returnMedicine = createAsyncThunk(
+    "pharmacy/returnMedicine",
+    async ({ approvalId, ...data }, { rejectWithValue }) => {
+        try {
+            const response = await returnMedicineApi(approvalId, data);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const getPharmacyReturns = createAsyncThunk(
+    "pharmacy/getPharmacyReturns",
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await getPharmacyReturnsApi(data);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
 
 export const getPendingApprovalsByPatient = createAsyncThunk("pharmacy/getPendingPatientApprovals", async (data, { rejectWithValue }) => {
     try {
@@ -258,12 +342,88 @@ export const getNurseGivenMedicines = createAsyncThunk("pharmacy/getNurseGivenMe
 //     }
 // );
 
+export const fetchExpiredStock = createAsyncThunk(
+    "pharmacy/fetchExpiredStock",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await getExpiredStockApi(params);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const fetchExpiredStockHistory = createAsyncThunk(
+    "pharmacy/fetchExpiredStockHistory",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await getExpiredStockHistoryApi(params);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const fetchInventoryHealthReport = createAsyncThunk(
+    "pharmacy/fetchInventoryHealthReport",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await getInventoryHealthReportApi(params);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const fetchInventoryHealthDetailed = createAsyncThunk(
+    "pharmacy/fetchInventoryHealthDetailed",
+    async (params, { rejectWithValue }) => {
+        try {
+            const response = await getInventoryHealthReportApi({ ...params, includeHistory: "true" });
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+// Fetched only when a row's detail modal opens, so the list payload stays small.
+export const fetchExpiredStockDetails = createAsyncThunk(
+    "pharmacy/fetchExpiredStockDetails",
+    async ({ id, center }, { rejectWithValue }) => {
+        try {
+            const response = await getExpiredStockDetailsApi(id, { center });
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const discardExpiredStock = createAsyncThunk(
+    "pharmacy/discardExpiredStock",
+    async (data, { rejectWithValue }) => {
+        try {
+            const response = await discardExpiredStockApi(data);
+            return response;
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
 export const pharmacySlice = createSlice({
     name: "Pharmacy",
     initialState,
     reducers: {
         clearMedicineApprovals: (state) => {
             state.medicineApprovals = []
+        },
+        clearApprovalMedicines: (state) => {
+            state.approvalMedicines = initialState.approvalMedicines;
         },
         clearAuditHistory: (state) => {
             state.auditHistory = initialState.auditHistory
@@ -274,6 +434,17 @@ export const pharmacySlice = createSlice({
     },
     extraReducers: (builder) => {
         builder
+            .addCase(discardExpiredStock.pending, (state) => {
+                state.submitLoading = true;
+            })
+            .addCase(discardExpiredStock.fulfilled, (state) => {
+                state.submitLoading = false;
+            })
+            .addCase(discardExpiredStock.rejected, (state) => {
+                state.submitLoading = false;
+            });
+
+        builder
             .addCase(getMedicineApprovals.pending, (state) => {
                 state.loading = true;
             })
@@ -283,6 +454,18 @@ export const pharmacySlice = createSlice({
             })
             .addCase(getMedicineApprovals.rejected, (state) => {
                 state.loading = false;
+            });
+        builder
+            .addCase(getPharmacyReturns.pending, (state) => {
+                state.pharmacyReturns.loading = true;
+            })
+            .addCase(getPharmacyReturns.fulfilled, (state, { payload }) => {
+                state.pharmacyReturns.data = payload?.data || [];
+                state.pharmacyReturns.pagination = payload?.pagination || {};
+                state.pharmacyReturns.loading = false;
+            })
+            .addCase(getPharmacyReturns.rejected, (state) => {
+                state.pharmacyReturns.loading = false;
             });
         builder
             .addCase(updateApprovalStatus.fulfilled, (state, { payload }) => {
@@ -297,6 +480,18 @@ export const pharmacySlice = createSlice({
                     state.pendingPatients.data = state.pendingPatients.data.filter((data) => data._id !== payload._id);
                 }
             });
+        builder
+            .addCase(fetchApprovalMedicines.pending, (state) => {
+                state.approvalMedicines.loading = true;
+            })
+            .addCase(fetchApprovalMedicines.fulfilled, (state, { payload }) => {
+                state.approvalMedicines.loading = false;
+                state.approvalMedicines.data = payload?.data || null;
+            })
+            .addCase(fetchApprovalMedicines.rejected, (state) => {
+                state.approvalMedicines.loading = false;
+            });
+
         builder
             .addCase(getPendingApprovalsByPatient.pending, (state) => {
                 state.loading = true
@@ -504,9 +699,72 @@ export const pharmacySlice = createSlice({
             .addCase(fetchSareyaanInventoryImports.rejected, (state) => {
                 state.loading = false;
             });
+
+        builder
+            .addCase(fetchInventoryHealthReport.pending, (state) => {
+                state.inventoryHealthReport.loading = true;
+            })
+            .addCase(fetchInventoryHealthReport.fulfilled, (state, { payload }) => {
+                state.inventoryHealthReport.loading = false;
+                state.inventoryHealthReport.data = payload?.data || [];
+                state.inventoryHealthReport.pagination = { totalDocs: payload?.total || 0 };
+                state.inventoryHealthReport.summary = payload?.summary || {
+                    totalLoss: 0,
+                    totalVariance: 0,
+                    pendingExpiredBatches: 0,
+                    totalDiscarded: 0,
+                    inTransitQty: 0,
+                };
+            })
+            .addCase(fetchInventoryHealthReport.rejected, (state) => {
+                state.inventoryHealthReport.loading = false;
+            });
+
+        builder
+            .addCase(fetchInventoryHealthDetailed.pending, (state) => {
+                state.inventoryHealthDetailed.loading = true;
+            })
+            .addCase(fetchInventoryHealthDetailed.fulfilled, (state, { payload }) => {
+                state.inventoryHealthDetailed.loading = false;
+                state.inventoryHealthDetailed.data = payload?.data || [];
+                state.inventoryHealthDetailed.pagination = { totalDocs: payload?.total || 0 };
+                state.inventoryHealthDetailed.maxEventCounts =
+                    payload?.maxEventCounts || { transfers: 0, audits: 0, discards: 0 };
+            })
+            .addCase(fetchInventoryHealthDetailed.rejected, (state) => {
+                state.inventoryHealthDetailed.loading = false;
+            });
+
+        builder
+            .addMatcher(
+                (action) =>
+                    action.type === fetchExpiredStock.pending.type ||
+                    action.type === fetchExpiredStockHistory.pending.type,
+                (state) => {
+                    state.loading = true;
+                }
+            )
+            .addMatcher(
+                (action) =>
+                    action.type === fetchExpiredStock.fulfilled.type ||
+                    action.type === fetchExpiredStockHistory.fulfilled.type,
+                (state, { payload }) => {
+                    state.loading = false;
+                    state.data = payload?.data || [];
+                    state.pagination = { totalDocs: payload?.total || 0 };
+                }
+            )
+            .addMatcher(
+                (action) =>
+                    action.type === fetchExpiredStock.rejected.type ||
+                    action.type === fetchExpiredStockHistory.rejected.type,
+                (state) => {
+                    state.loading = false;
+                }
+            );
     }
 });
 
-export const { clearMedicineApprovals, clearAuditHistory, clearInternalTransfer } = pharmacySlice.actions;
+export const { clearMedicineApprovals, clearAuditHistory, clearInternalTransfer, clearApprovalMedicines } = pharmacySlice.actions;
 
 export default pharmacySlice.reducer;

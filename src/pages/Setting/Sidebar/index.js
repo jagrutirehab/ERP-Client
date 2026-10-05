@@ -45,6 +45,11 @@ const Sidebar = () => {
     "CENTERFLOORCONFIG",
     "READ",
   );
+  const hasCenterFallbackPerm = hasPermission(
+    "SETTING",
+    "CENTERFALLBACKMANAGER",
+    "READ",
+  );
 
   const filteredSettings = (setting || []).filter((page) => {
     if (page.id === "roles" && !hasUserPermission) return false;
@@ -59,6 +64,7 @@ const Sidebar = () => {
     if (page.id === "symptoms" && !hasSymptomsPerm) return false;
     if (page.id === "documentinputconfig" && !hasDocumentPerm) return false;
     if (page.id === "centerfloorconfig" && !hasCenterFloorPerm) return false;
+    if (page.id === "centerfallbackmanager" && !hasCenterFallbackPerm)return false;
     return true;
   });
 

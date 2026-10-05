@@ -235,8 +235,8 @@ const medicineSlice = createSlice({
       })
       .addCase(addCSVMedicine.fulfilled, (state, { payload }) => {
         state.loading = false;
-        if (payload.payload?.length)
-          localStorage.setItem("medicines", JSON.stringify(payload.payload));
+        // if (payload.payload?.length)
+        //   localStorage.setItem("medicines", JSON.stringify(payload.payload));
         state.data = payload.payload;
       })
       .addCase(addCSVMedicine.rejected, (state) => {
@@ -254,7 +254,7 @@ const medicineSlice = createSlice({
         const totalCount = action.payload?.pagination?.total || 0;
         const totalPages = action.payload?.pagination?.totalPages || 1;
 
-        localStorage.setItem("medicines", JSON.stringify(medicines));
+        // localStorage.setItem("medicines", JSON.stringify(medicines));
 
         state.data = medicines;
         state.totalCount = totalCount;

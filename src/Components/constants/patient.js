@@ -27,10 +27,12 @@ const NURSE_SOS_PROCEDURE = "NURSE_SOS_PROCEDURE";
 const INJURY_MARKS = "INJURY_MARKS";
 const ECT_SESSION = "ECT_SESSION";
 const ADMISSION_TYPE = "ADMISSION_TYPE";
+const MEDICINE_GIVEN = "MEDICINE_GIVEN";
 //Chart Bill Types
 const OPD = "OPD";
 const IPD = "IPD";
 const CLINIC_TEST = "CLINICTEST";
+const CURRENT_MEDICINES = "CURRENT_MEDICINES";
 export const GENERAL = "GENERAL";
 export const NOTES = "NOTES";
 //Admit Discharge
@@ -130,9 +132,13 @@ const records = [
     name: "ECT Session",
     category: ECT_SESSION,
   },
+  // {
+  //   name: "Admission Type",
+  //   category: ADMISSION_TYPE,
+  // },
   {
-    name: "Admission Type",
-    category: ADMISSION_TYPE,
+    name: "Medicine Given",
+    category: MEDICINE_GIVEN,
   },
 ];
 
@@ -611,6 +617,14 @@ const Forms = [
     name: "ECT Consent Form",
     category: "ECT CONSENT FORM",
   },
+  {
+    name: "MHRB Email Upload",
+    category: "MHRB EMAIL FORM",
+  },
+  {
+    name: "Do Not Resuscitate Form",
+    category: "DNR FORM",
+  },
 ];
 const testRecord = [
   { name: "YMRS" },
@@ -775,14 +789,41 @@ const inputOutputColumns = [
 
 // Activity types for the Nurse - SOS Procedure chart
 const nurseSosActivityTypes = [
-  "Injection",
-  "IV Fluids",
-  "Dressing",
-  "Medicine",
+  "100 ml ns infusion",
+  "blood collection",
+  "bp monitoring",
   "BSL",
-  "X-Ray",
+  "bsl fasting",
+  "bsl pp",
+  "bsl random",
+  "ceftriaxone 1 gm iv",
+  "dns infusion",
+  "Dressing",
+  "ect preparation pre/post/nursing",
+  "ecg recording",
   "ECG",
+  "foley's catheter insertion",
+  "im injection",
+  "Injection",
+  "iv cannula (intracath)",
+  "iv injection",
+  "IV Fluids",
+  "Medicine",
+  "nebulization",
+  "nebulization with monitoring",
+  "ns infusion",
+  "oxygen administration",
+  "oxygen mask application",
+  "pulse oximetry monitoring",
+  "restraint application & monitoring",
+  "rl infusion",
+  "rt feeding",
+  "ryle's tube (rt) insertion",
+  "temperature monitoring",
   "Urine Drug Tests",
+  "urinary catheter care",
+  "wound dressing",
+  "X-Ray",
   "Other",
 ];
 
@@ -2357,6 +2398,15 @@ const timelineFilters = [
     label: "Clinical_test",
     name: "PATIENT_CLINICAL_TEST",
   },
+  // Appointment logs. Every appointment controller (add, addwebsite, edit,
+  // cancel, deletePermanently, editPatientAppointment) writes its log with
+  // `relation: BOOKING`, but the patient timeline endpoint matches on
+  // `relation: { $in: filter }` — so without an entry here the client never
+  // asks for them and they were silently dropped from the timeline.
+  {
+    label: "Appointment",
+    name: "BOOKING",
+  },
 ];
 
 const InternTimelineFilter = [
@@ -3046,6 +3096,7 @@ export {
   INJURY_MARKS,
   ECT_SESSION,
   ADMISSION_TYPE,
+  MEDICINE_GIVEN,
   //PATIENT BILLS
   INVOICE,
   ADVANCE_PAYMENT,
@@ -3055,6 +3106,7 @@ export {
   OPD,
   IPD,
   CLINIC_TEST,
+  CURRENT_MEDICINES,
   //PATIENT ADVANCE PAYMENT OPTIONS
   CASH,
   CARD,

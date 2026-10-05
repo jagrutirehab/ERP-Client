@@ -225,6 +225,9 @@ const InvoiceFooter = (props) => {
                           e.preventDefault();
                         }
                       }}
+                      // Locked when only recording a charge already taken —
+                      // the total must stay equal to the money collected.
+                      disabled={props.readOnly}
                     />
                     <span className="input-group-text p-0 bg-light">
                       <Input
@@ -241,6 +244,7 @@ const InvoiceFooter = (props) => {
                             unit: e.target.value,
                           })
                         }
+                        disabled={props.readOnly}
                       >
                         <option>₹</option>
                         <option>%</option>
@@ -289,6 +293,10 @@ const InvoiceFooter = (props) => {
                     setPaymentModes={props.setPaymentModes}
                     payable={props.payable}
                     validation={props.validation}
+                    existingTransactionProof={props.existingTransactionProof}
+                    posContext={props.posContext}
+                    readOnly={props.readOnly}
+                    chargeBlockedReason={props.chargeBlockedReason}
                   />
                 </Col>
               </RenderWhen>

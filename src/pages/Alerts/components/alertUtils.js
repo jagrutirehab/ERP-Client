@@ -18,3 +18,34 @@ export const dateLabel = (date) => {
   if (dayStart === todayStart - 86400000) return "Yesterday";
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
 };
+
+// An alert with no `source` predates the field and is rule-sourced.
+export const isRuleSourced = (a) => !a?.source || a.source === "SOP_RULE";
+
+/**
+ * What to show in the alert's "Source" column.
+ *
+ * The "(deleted rule)" fallback survives, but only for alerts that genuinely
+ * ARE rule-sourced and lost their rule. A baseline-package alert never had one,
+ * so showing "(deleted rule)" for it would be factually wrong — nothing was
+ * deleted. The server already falls `rule.ruleName` back to `sourceLabel`; this
+ * covers the case where it didn't.
+ */
+export const alertSourceLabel = (a) =>
+  a?.rule?.ruleName || a?.sourceLabel || (isRuleSourced(a) ? "(deleted rule)" : "—");
+
+/* ── Resolution notes ──────────────────────────────────────────────────────
+ * Resolving an alert requires a note; it is stored as a normal notes[] entry
+ * tagged kind "RESOLUTION" rather than on `resolution`, so there is one copy of
+ * the text and it appears in the notes column without extra merge logic.
+ *
+ * ⚠️ Notes written before `kind` existed carry no value at all, so "is this an
+ * ordinary note?" is asked as `!== "RESOLUTION"`. Testing `=== "NOTE"` would
+ * misclassify every historical note.
+ */
+export const isResolutionNote = (n) => n?.kind === "RESOLUTION";
+
+// The resolution note for an alert, or null. Alerts resolved before this
+// feature have none — callers must handle that.
+export const resolutionNote = (a) =>
+  (a?.notes || []).find(isResolutionNote) || null;

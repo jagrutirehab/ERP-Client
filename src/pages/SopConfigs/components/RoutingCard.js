@@ -20,6 +20,34 @@ import {
 
 const isECodeLike = (str) => /^[a-zA-Z]{1,3}\d+$/i.test(str);
 
+// Module-scoped one-shot fetch for the role list.
+//
+// The per-instance `rolesFetchedRef` below only defeats StrictMode's double
+// mount — it does nothing across instances, and this component is rendered once
+// per target block AND once per baseline-package tier. A 3-block rule already
+// cost 3 identical requests; a 4-tier ladder would add 4 more. The role list is
+// small, global and effectively static for the life of the page, so fetch it
+// once and share the promise.
+let _rolesPromise = null;
+const loadRoles = () => {
+  if (!_rolesPromise) {
+    _rolesPromise = sopGetRoles().then((response) => {
+      const list =
+        (Array.isArray(response) && response) ||
+        response?.data?.data ||
+        response?.data ||
+        [];
+      return Array.isArray(list) ? list : [];
+    });
+    // Don't cache a rejection — a transient failure would otherwise leave every
+    // future instance permanently empty.
+    _rolesPromise.catch(() => {
+      _rolesPromise = null;
+    });
+  }
+  return _rolesPromise;
+};
+
 const RoutingCard = ({
   selectedRoles,
   onRoleToggle,
@@ -31,6 +59,10 @@ const RoutingCard = ({
   idPrefix = "",
   routingError,
   isSubmitting,
+  // Defaults to the original hardcoded text, so every existing caller is
+  // unaffected. Overridden where several of these stack and need telling apart
+  // — e.g. one per tier in the baseline package ladder.
+  title = "Routing — Who Gets Notified",
 }) => {
   const doctorId = `notifyAdmissionDoctor-${idPrefix}`;
   const psychId = `notifyAdmissionPsychologist-${idPrefix}`;
@@ -47,18 +79,16 @@ const RoutingCard = ({
 
     const fetchRoles = async () => {
       try {
-        const response = await sopGetRoles();
-        const list =
-          (Array.isArray(response) && response) ||
-          response?.data?.data ||
-          response?.data ||
-          [];
-        if (alive) setRoles(Array.isArray(list) ? list : []);
+        const list = await loadRoles();
+        if (alive) setRoles(list);
       } catch (err) {
+        // The response interceptor rejects with the unwrapped body, so the
+        // message is on err.message; the `.response.data` branch is a dead path
+        // kept only so a non-interceptor error still reads sensibly.
         if (alive)
           setRolesError(
-            err?.response?.data?.message ||
-              err?.message ||
+            err?.message ||
+              err?.response?.data?.message ||
               "Failed to load roles",
           );
       } finally {
@@ -106,7 +136,7 @@ const RoutingCard = ({
   return (
     <Card className="mb-4">
       <CardHeader className="fw-semibold">
-        Routing — Who Gets Notified
+        {title}
         {routingError && (
           <Badge color="danger" pill className="ms-2">
             Required

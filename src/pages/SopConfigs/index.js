@@ -6,6 +6,8 @@ import SOPsidebar from "./Sidebar";
 import SaveRule from "./pages/SaveRule";
 import ManageRules from "./pages/ManageRules";
 import SopGuide from "./pages/SopGuide";
+import ManageBaselinePackages from "./pages/ManageBaselinePackages";
+import SaveBaselinePackage from "./pages/SaveBaselinePackage";
 
 const SOPindex = () => {
     const navigate = useNavigate();
@@ -51,6 +53,12 @@ const SOPindex = () => {
                                             <Route path="save" element={<SaveRule />} />
                                             <Route path="save/:id" element={<SaveRule />} />
                                             <Route path="manage" element={<ManageRules />} />
+                                            {/* Baseline investigation package. No change needed in
+                                                Routes/allRoutes.js — the /sop-configs/* splat already
+                                                covers every child route. */}
+                                            <Route path="baseline-package" element={<ManageBaselinePackages />} />
+                                            <Route path="baseline-package/save" element={<SaveBaselinePackage />} />
+                                            <Route path="baseline-package/save/:id" element={<SaveBaselinePackage />} />
                                             <Route path="guide" element={<SopGuide />} />
                                         </Routes>
                                     </div>

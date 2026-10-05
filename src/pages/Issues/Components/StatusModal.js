@@ -101,12 +101,15 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
   //     toggle();
   // };
 
-  // const isTechAssign = activeTab === "new" && issue?.issueType === "TECH";
-const isTechAssign =
-  activeTab === "new" &&
-  (issue?.issueType === "TECH" ||
-    issue?.issueType === "MAINTENANCE" ||
-    issue?.issueType === "COMPLAINT");
+  // Assign vs Change Status is decided by which button opened this modal
+  // (handleAssign never sets nextStatus, handleAction always does) —
+  // not by activeTab/type, since both buttons can be visible on the same tab.
+  const isTechAssign =
+    issue?.nextStatus == null &&
+    (issue?.issueType === "TECH" ||
+      issue?.issueType === "MAINTENANCE" ||
+      issue?.issueType === "COMPLAINT" ||
+      issue?.issueType === "OPERATIONAL");
   const handleSubmit = () => {
     if (isTechAssign) {
       onAssign({
@@ -129,7 +132,7 @@ const isTechAssign =
     toggle();
   };
   const statusOptions = [
-    { value: "assigned", label: "Assigned" },
+    // { value: "assigned", label: "Assigned" },
     { value: "in_progress", label: "In Progress" },
     { value: "on_hold", label: "On Hold" },
     { value: "pending_user", label: "Pending User" },
@@ -154,7 +157,7 @@ const isTechAssign =
               isLoading={loadingEmployees}
               isClearable
               onInputChange={(value, { action }) => {
-                if (action === "input-change" && activeTab === "new") {
+                if (action === "input-change" && isTechAssign) {
                   debouncedFetchEmployees(value);
                 }
               }}

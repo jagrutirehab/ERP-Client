@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar";
 import { Routes, Route } from "react-router-dom";
 import Dashboard from "./Dashboard";
 import Apikeys from "./Apikeys";
+import Health from "./Health";
 
 const Webcamstats = () => {
   return (
@@ -16,6 +17,7 @@ const Webcamstats = () => {
               <Sidebar />
               <Routes>
                 <Route path={`/dashboard`} element={<Dashboard />} />
+                <Route path={`/health`} element={<Health />} />
                 <Route path={`/stats`} element={<Stats />} />
                 <Route path={`/apikeys`} element={<Apikeys />} />
               </Routes>

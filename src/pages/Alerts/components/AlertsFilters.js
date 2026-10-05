@@ -30,6 +30,15 @@ const RESOLVED_STATES = [
   { k: "resolved", label: "Resolved" },
 ];
 
+// What produced the alert. This is the ONLY way to isolate baseline-package
+// alerts: they carry no `rule`, so the SOP-name dropdown above can never reach
+// them.
+const SOURCE_STATES = [
+  { k: "all", label: "All" },
+  { k: "SOP_RULE", label: "SOP Rules" },
+  { k: "BASELINE_INVESTIGATION", label: "Baseline Package" },
+];
+
 const AlertsFilters = ({
   total,
   serverFilters,
@@ -72,6 +81,7 @@ const AlertsFilters = ({
     serverFilters.readState !== "all" ||
     serverFilters.phase !== "all" ||
     serverFilters.resolvedState !== "all" ||
+    serverFilters.source !== "all" ||
     serverFilters.severity?.length > 0;
 
   // ── Loaders for the AsyncSelect dropdowns ──
@@ -214,6 +224,21 @@ const AlertsFilters = ({
               outline={serverFilters.phase !== k}
               size="sm"
               onClick={() => onServerFilterChange("phase", k)}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+
+        <div className="d-flex gap-1 align-items-center">
+          <small className="text-muted me-1">Source:</small>
+          {SOURCE_STATES.map(({ k, label }) => (
+            <Button
+              key={k}
+              color={serverFilters.source === k ? "primary" : "secondary"}
+              outline={serverFilters.source !== k}
+              size="sm"
+              onClick={() => onServerFilterChange("source", k)}
             >
               {label}
             </Button>

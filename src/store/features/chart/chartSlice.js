@@ -1,5 +1,8 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
+  setRamsayApplicable as setRamsayApplicableApi,
+  setBaselineInvestigationStatus as setBaselineInvestigationStatusApi,
+  setAdmissionTypeDirect as setAdmissionTypeDirectApi,
   deleteChart,
   deleteClinicalNoteFile,
   deleteCounsellingNoteFile,
@@ -90,6 +93,7 @@ const initialState = {
     chart: null,
     isOpen: false,
   },
+  chartsStale: false,
   patientLatestOPDPrescription: null,
   patientLatestMentalExamination: null,
   patientLatestEctSession: null,
@@ -231,8 +235,8 @@ export const addPrescription = createAsyncThunk(
         dispatch(viewPatient(patient));
         dispatch(togglePrint({ modal: true, data: payload, patient, doctor }));
       }
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return response;
@@ -299,8 +303,8 @@ export const updatePrescription = createAsyncThunk(
           );
       }
 
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -375,7 +379,120 @@ export const updateVitalSign = createAsyncThunk(
   },
 );
 
+// Ramsay applicability, toggled from the IPD admission card.
+//
+// Lives in THIS slice, not patientSlice, because IPD.js renders admissions from
+// `state.Chart.data` — patching anywhere else leaves the checkbox showing the
+// old value until the next fetch. (That is exactly the flaw the Patient Category
+// dropdown next to it has: assignEmergencyPatientType writes to
+// state.Patient.patient.addmission, which IPD.js never reads.)
+export const setAdmissionRamsayApplicable = createAsyncThunk(
+  "setRamsayApplicable",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      return await setRamsayApplicableApi(data);
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error.message || "Failed to update Ramsay applicability");
+    }
+  },
+);
+
+// Baseline investigation package status. In THIS slice for the same reason as
+// the Ramsay toggle above: IPD.js renders from `state.Chart.data`, so the
+// control only holds its new value if the timeline is patched there.
+export const setAdmissionBaselineInvestigationStatus = createAsyncThunk(
+  "setBaselineInvestigationStatus",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      return await setBaselineInvestigationStatusApi(data);
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(
+        error.message || "Failed to update baseline investigation status",
+      );
+    }
+  },
+);
+
+// Records an admission type directly on an admission that has none — the stays
+// the backfill script can't reach, because it derives history from the very
+// chart/form records these lack. Create-only; the server refuses if a history
+// already exists.
+//
+// In THIS slice for the same reason as the Ramsay toggle: IPD.js renders from
+// `state.Chart.data`, so the "Set Admission Type" button only disappears if the
+// timeline is patched there.
+export const setAdmissionTypeDirect = createAsyncThunk(
+  "setAdmissionTypeDirect",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      return await setAdmissionTypeDirectApi(data);
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(
+        error.message || "Failed to record the admission type",
+      );
+    }
+  },
+);
+
 // Admission Type — IPD only, so there is no addGeneral counterpart.
+// Keeps the admission's type timeline current in the form's copy of the patient.
+//
+// `chartForm.patient` is a snapshot taken when the form opened, and the Admission
+// Type form reads `addmission.admissionTypeHistory` from it to show the current
+// type. Without this, saving/editing/deleting an Admission Type chart would leave
+// that snapshot stale and the panel would keep showing the previous value until a
+// full page reload. The server returns the fresh array on those three responses.
+// The admission's type timeline lives in TWO places in this slice, and every
+// writer has to refresh both or one of them silently goes stale:
+//
+//   state.data[i]                  — the IPD admission cards. Drives whether the
+//                                    "Set Admission Type" button still shows.
+//   state.chartForm.patient        — the snapshot the Admission Type chart form
+//                                    took when it opened; its "current type"
+//                                    panel reads from it.
+//
+// (The third copy, state.Patient.patient.addmission, belongs to patientSlice and
+// is patched there — it feeds the topbar and the header summary card.)
+//
+// Two response envelopes are in play: the chart endpoints put the array at the
+// top level, the direct setter and the form return it under `data`. Normalise
+// rather than making each case unpack its own.
+const readAdmissionTypeUpdate = (payload) => ({
+  admissionId: payload?.addmission ?? payload?.data?._id ?? null,
+  history: Array.isArray(payload?.admissionTypeHistory)
+    ? payload.admissionTypeHistory
+    : Array.isArray(payload?.data?.admissionTypeHistory)
+      ? payload.data.admissionTypeHistory
+      : null,
+});
+
+const syncAdmissionTypeHistory = (state, payload) => {
+  const { admissionId, history } = readAdmissionTypeUpdate(payload);
+  if (!history) return;
+
+  // The IPD card list.
+  if (admissionId) {
+    const idx = state.data.findIndex(
+      (el) => String(el._id) === String(admissionId),
+    );
+    if (idx !== -1) state.data[idx].admissionTypeHistory = history;
+  }
+
+  // The open chart form's snapshot — only when it is about that admission.
+  const formPatient = state.chartForm?.patient;
+  if (!formPatient?.addmission) return;
+  if (
+    admissionId &&
+    String(formPatient.addmission._id) !== String(admissionId)
+  ) {
+    return;
+  }
+  formPatient.addmission.admissionTypeHistory = history;
+};
+
 export const addAdmissionType = createAsyncThunk(
   "postAdmissionType",
   async (data, { rejectWithValue, dispatch }) => {
@@ -1033,8 +1150,8 @@ export const addDischargeSummary = createAsyncThunk(
         }),
       );
 
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
       // dispatch(fetchCharts(response?.addmission));
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -1058,8 +1175,8 @@ export const updateDischargeSummary = createAsyncThunk(
         }),
       );
 
-      if (response.medicines?.length)
-        localStorage.setItem("medicines", JSON.stringify(response.medicines));
+      // if (response.medicines?.length)
+      //   localStorage.setItem("medicines", JSON.stringify(response.medicines));
       dispatch(setMedicines(response.medicines));
 
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
@@ -1634,6 +1751,21 @@ export const chartSlice = createSlice({
     setChartDate: (state, { payload }) => {
       state.chartDate = payload;
     },
+    // Superseded by the server-side carry-forward endpoints (see
+    // controllers/chart/prescription/carryForward.controller.js).
+    // toggleCarryForwardChart: (state, { payload }) => {
+    //   const idx = state.carryForwardCharts.findIndex(
+    //     (c) => String(c._id) === String(payload._id),
+    //   );
+    //   if (idx >= 0) state.carryForwardCharts.splice(idx, 1);
+    //   else state.carryForwardCharts.push(payload);
+    // },
+    // clearCarryForwardCharts: (state) => {
+    //   state.carryForwardCharts = [];
+    // },
+    markChartsStale: (state) => {
+      state.chartsStale = true;
+    },
     setChartAdmission: (state, { payload }) => {
       const index = state.data?.findIndex((d) => d._id === payload._id);
       state.data[index] = payload;
@@ -1746,6 +1878,7 @@ export const chartSlice = createSlice({
       })
       .addCase(fetchCharts.fulfilled, (state, { payload }) => {
         state.chartLoading = false;
+        state.chartsStale = false;
         const findIndex = state.data.findIndex(
           (el) => el._id === payload.addmission,
         );
@@ -1934,8 +2067,43 @@ export const chartSlice = createSlice({
       .addCase(addAdmissionType.pending, (state) => {
         state.loading = true;
       })
+      .addCase(setAdmissionTypeDirect.fulfilled, (state, { payload }) => {
+        syncAdmissionTypeHistory(state, payload);
+      })
+      .addCase(setAdmissionRamsayApplicable.fulfilled, (state, { payload }) => {
+        // IPD.js reads this array, so patch it here or the checkbox reverts on
+        // the next render.
+        const id = payload?.data?._id;
+        if (!id) return;
+        const idx = state.data.findIndex((el) => String(el._id) === String(id));
+        if (idx === -1) return;
+        state.data[idx].isRamsayApplicable = payload.data.isRamsayApplicable;
+      })
+      .addCase(
+        setAdmissionBaselineInvestigationStatus.fulfilled,
+        (state, { payload }) => {
+          // Same reason as the Ramsay case above — IPD.js reads this array, so
+          // patch it here or the control reverts on the next render.
+          //
+          // `baselineInvestigationStatus` is a mongoose VIRTUAL derived from
+          // `baselineInvestigationHistory`. Both are patched, and the key must
+          // match the virtual's name exactly: patch one name while the UI reads
+          // another and the control silently snaps back with no error anywhere.
+          const id = payload?.data?._id;
+          if (!id) return;
+          const idx = state.data.findIndex(
+            (el) => String(el._id) === String(id),
+          );
+          if (idx === -1) return;
+          state.data[idx].baselineInvestigationStatus =
+            payload.data.baselineInvestigationStatus;
+          state.data[idx].baselineInvestigationHistory =
+            payload.data.baselineInvestigationHistory || [];
+        },
+      )
       .addCase(addAdmissionType.fulfilled, (state, { payload }) => {
         state.loading = false;
+        syncAdmissionTypeHistory(state, payload);
         // IPD only, so the admission always exists — guard the lookup anyway
         // rather than writing to state.data[-1].
         const findIndex = state.data.findIndex(
@@ -1959,6 +2127,7 @@ export const chartSlice = createSlice({
       })
       .addCase(updateAdmissionType.fulfilled, (state, { payload }) => {
         state.loading = false;
+        syncAdmissionTypeHistory(state, payload);
         const findIndex = state.data.findIndex(
           (el) => el._id === payload?.payload?.addmission,
         );
@@ -2729,6 +2898,9 @@ export const chartSlice = createSlice({
         state.loading = true;
       })
       .addCase(removeChart.fulfilled, (state, { payload }) => {
+        // Only carries admissionTypeHistory for Admission Type charts; the
+        // helper no-ops for every other chart kind.
+        syncAdmissionTypeHistory(state, payload);
         state.loading = false;
         if (payload.payload.type === "GENERAL") {
           state.charts = state.charts.filter(
@@ -3129,6 +3301,18 @@ export const chartSlice = createSlice({
       .addCase(removeInjuryMarksFile.rejected, (state) => {
         state.loading = false;
       });
+
+    // The Admission Form submit also rewrites the timeline, but its thunk
+    // lives in patientSlice — and patientSlice already imports from this file,
+    // so importing it back would create a cycle. Match on the action type
+    // instead; it is the `createAsyncThunk` prefix of `submitAdmissionForm`
+    // in store/features/patient/patientSlice.js.
+    builder.addMatcher(
+      (action) => action.type === "submitAdmissionForm/fulfilled",
+      (state, { payload }) => {
+        syncAdmissionTypeHistory(state, payload);
+      },
+    );
   },
 });
 
@@ -3141,6 +3325,7 @@ export const {
   setPtLatestOPDPrescription,
   clearCharts,
   setPtLatestEctSession,
+  markChartsStale,
 } = chartSlice.actions;
 
 export default chartSlice.reducer;

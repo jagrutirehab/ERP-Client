@@ -49,6 +49,7 @@ const Wrapper = ({
   name,
   toggleDateModal,
   hideDropDown = false,
+  hideEdit = false,
   showId = true,
   showPrint = true,
   disableEdit = false,
@@ -167,20 +168,20 @@ const Wrapper = ({
     }
   };
 
-  console.log("additionalDiagnosis", additionalDiagnosis);
+  console.log("item", item);
 
   const chartName = chart
     ? chart
-      .toLowerCase()
-      .split("_")
-      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(" ")
-    : bill
-      ? bill
         .toLowerCase()
         .split("_")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
         .join(" ")
+    : bill
+      ? bill
+          .toLowerCase()
+          .split("_")
+          .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(" ")
       : "";
 
   const chartDiagnosis = Array.isArray(additionalDiagnosis)
@@ -201,11 +202,11 @@ const Wrapper = ({
       }}
       // onCli
       transition={{ duration: 0.5 }}
-    // transition={{
-    //   layout: {
-    //     duration: 1.5,
-    //   },
-    // }}
+      // transition={{
+      //   layout: {
+      //     duration: 1.5,
+      //   },
+      // }}
     >
       <Col xs={12}>
         <div className="px-3 bg-white timeline-date border border-dark py-2">
@@ -229,8 +230,9 @@ const Wrapper = ({
                 }}
               >
                 <i
-                  className={`ri-${copied ? "check" : "file-copy"}-line fs-6 ${copied ? "text-success" : "text-muted"
-                    }`}
+                  className={`ri-${copied ? "check" : "file-copy"}-line fs-6 ${
+                    copied ? "text-success" : "text-muted"
+                  }`}
                 />
               </button>
             )}
@@ -323,7 +325,11 @@ const Wrapper = ({
               <div className="d-flex align-items-center">
                 <span className="fs-xs-9">Author:</span>
                 <h6 className="fs-xs-11 display-6 fs-6 mb-0 ms-2">
-                  {item?.author?.name}
+                  {item?.fromNurse === true ? (
+                    <span className="badge bg-success">System Generated</span>
+                  ) : (
+                    item?.author?.name
+                  )}
                 </h6>
               </div>
               <div className="d-flex align-items-center">
@@ -509,14 +515,17 @@ const Wrapper = ({
                         Print
                       </DropdownItem>
                     </RenderWhen>
-                    {(disableEdit && user.email !== "owais@gmail.com") ||
-                      item?.bill === WRITE_OFF ||
-                      isDetailAdmissionValidated ? (
+                    {hideEdit ||
+                    (disableEdit && user.email !== "owais@gmail.com") ||
+                    item?.bill === WRITE_OFF ||
+                    isDetailAdmissionValidated ? (
                       ""
                     ) : (
                       <CheckPermission permission={"edit"} subAccess={name}>
                         <DropdownItem
-                          disabled={disableEdit && user.email !== "owais@gmail.com"}
+                          disabled={
+                            disableEdit && user.email !== "owais@gmail.com"
+                          }
                           onClick={() => {
                             editItem(item, patient);
                           }}
@@ -558,7 +567,9 @@ const Wrapper = ({
                       isTrue={item?.bill === INVOICE && item.type === IPD}
                     >
                       <DropdownItem
-                        disabled={disableDelete}
+                        disabled={
+                          disableDelete && user.email !== "owais@gmail.com"
+                        }
                         onClick={() => {
                           dispatch(
                             createEditBill({

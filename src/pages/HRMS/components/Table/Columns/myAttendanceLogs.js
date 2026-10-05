@@ -170,51 +170,48 @@ export const myAttendanceLogsColumns = ({
     },
     wrap: true,
   },
-  ...(type !== "directreporting"
-    ? [
-        {
-          name: <div className="text-center">Action</div>,
-          cell: (row) =>
-            !loading && (
-              <div className="d-flex gap-1 justify-content-center">
-                {canShowRegularizeButton(row) && (
-                  <Button
-                    size="sm"
-                    color="primary"
-                    className="text-white"
-                    onClick={() => {
-                      setSelectedRow(row);
-                      setRegularizeModalOpen(true);
-                    }}
-                  >
-                    Regularize
-                  </Button>
-                )}
-                {
-                  // row?.leave?.status !== "approved" &&
-                  hasMyRegularizationPermission &&
-                  !isSelf &&
-                  canShowLeaveButton(row, joinningDate, exitDate) && (
-                    <Button
-                      size="sm"
-                      color="primary"
-                      className="text-white"
-                      onClick={() => {
-                        setSelectedRow(row);
-                        setLeaveModalOpen(true);
-                      }}
-                    >
-                      Leave
-                    </Button>
-                  )
-                }
-              </div>
-            ),
-          wrap: true,
-          minWidth: "220px",
-        },
-      ]
-    : []),
+  {
+    name: <div className="text-center">Action</div>,
+    cell: (row) =>
+      !loading && (
+        <div className="d-flex gap-1 justify-content-center">
+          {canShowRegularizeButton(row) && (
+            <Button
+              size="sm"
+              color="primary"
+              className="text-white"
+              onClick={() => {
+                setSelectedRow(row);
+                setRegularizeModalOpen(true);
+              }}
+            >
+              Regularize
+            </Button>
+          )}
+          {
+            // row?.leave?.status !== "approved" &&
+            hasMyRegularizationPermission &&
+            !isSelf &&
+            type !== "directreporting" &&
+            canShowLeaveButton(row, joinningDate, exitDate) && (
+              <Button
+                size="sm"
+                color="primary"
+                className="text-white"
+                onClick={() => {
+                  setSelectedRow(row);
+                  setLeaveModalOpen(true);
+                }}
+              >
+                Leave
+              </Button>
+            )
+          }
+        </div>
+      ),
+    wrap: true,
+    minWidth: "220px",
+  },
 
   ...(hasUserAllViewPermission
     ? [

@@ -9,7 +9,7 @@ import {
   Label,
   Spinner
 } from "reactstrap";
-import FileUpload from "./FileUpload";
+import FileUpload from "../../../Components/Common/FileUpload";
 
 const UploadModal = ({ isOpen, toggle, onUpload, loading }) => {
   const [files, setFiles] = useState([]);

@@ -21,16 +21,24 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { Menu } from "lucide-react";
+import Flatpicker from "react-flatpickr";
+import { capitalizeWords } from "../../../utils/toCapitalize";
+import "flatpickr/dist/themes/material_green.css";
 import {
   getMedicineFrequencyLabel,
   getMedicineFrequencyPreset,
   normalizeMedicineFrequency,
 } from "../../../helpers/prescriptionFrequency";
+import { getMedicineEndDate, getDaysBetween, drugIdentity } from "../../../helpers/currentMedicines";
+import { toast } from "react-toastify";
+import { isPilotCenterRow } from "../../../helpers/pilotCenter";
+import PrescriptionPharmacyStock from "./PrescriptionPharmacyStock";
+import { getAvailableMedicineIds } from "../../../helpers/backend_helper";
 
 
-const SortableMedicine = ({ index, children }) => {
+const SortableMedicine = ({ index, locked, children }) => {
   const { attributes, listeners, setNodeRef, transform, transition } =
-    useSortable({ id: index });
+    useSortable({ id: index, disabled: locked });
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -38,22 +46,86 @@ const SortableMedicine = ({ index, children }) => {
   };
 
   return (
-    <div ref={setNodeRef} style={style} className="d-flex align-items-center gap-2">
-      <span {...listeners} {...attributes} style={{ cursor: "grab", marginRight: 6, fontSize: window.innerWidth < 768 ? 14 : 20, touchAction: "none" }}>
+    <div
+      ref={setNodeRef}
+      style={{
+        ...style,
+        opacity: locked ? 0.75 : 1,
+      }}
+      className="d-flex align-items-center gap-2"
+    >
+      <span
+        {...(locked ? {} : { ...listeners, ...attributes })}
+        style={{
+          cursor: locked ? "not-allowed" : "grab",
+          marginRight: 6,
+          fontSize: window.innerWidth < 768 ? 14 : 20,
+          touchAction: "none",
+          visibility: locked ? "hidden" : "visible",
+        }}
+      >
         <Menu />
       </span>
-      {children}
+      <div
+        className="d-flex align-items-center gap-2 flex-grow-1"
+        style={locked ? { pointerEvents: "none", userSelect: "none" } : undefined}
+      >
+        {children}
+      </div>
     </div>
   );
 };
 
 
-const Medicine = ({ medicines, setMedicines, isNew }) => {
+const Medicine = ({
+  medicines,
+  setMedicines,
+  isNew,
+  showDates = false,
+  centerId,
+}) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 }
     })
   );
+
+  const isPilotCenter = isPilotCenterRow(centerId);
+
+  const medicinesRef = React.useRef(medicines);
+  React.useEffect(() => {
+    medicinesRef.current = medicines;
+  }, [medicines]);
+
+  // In-stock status per "centerId:medicineId" (true / false, null if the check
+  // failed, absent while pending). One small request covers every medicine on
+  // the form that hasn't been checked yet, instead of one request per row.
+  const [stockStatus, setStockStatus] = React.useState({});
+  const stockRequested = React.useRef(new Set());
+  React.useEffect(() => {
+    if (!isPilotCenter || !centerId) return;
+
+    const ids = [
+      ...new Set(
+        (medicines || []).map((m) => m.medicine?._id).filter(Boolean).map(String)
+      ),
+    ].filter((id) => !stockRequested.current.has(`${centerId}:${id}`));
+    if (!ids.length) return;
+    ids.forEach((id) => stockRequested.current.add(`${centerId}:${id}`));
+
+    const record = (available) =>
+      setStockStatus((prev) => {
+        const next = { ...prev };
+        ids.forEach((id) => {
+          next[`${centerId}:${id}`] = available ? available.has(id) : null;
+        });
+        return next;
+      });
+
+    getAvailableMedicineIds(ids, centerId)
+      .then((res) => record(new Set((res?.data || []).map(String))))
+      .catch(() => record(null));
+  }, [medicines, centerId, isPilotCenter]);
 
   const handleChange = (e) => {
     const prop = e.target.name;
@@ -95,6 +167,44 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
     } else {
       drugsTable[index][prop] = value;
     }
+
+    // Editing duration/unit directly drives the To date off the From date.
+    if (prop === "duration" || prop === "unit") {
+      drugsTable[index].endDate = getMedicineEndDate(
+        drugsTable[index].startDate,
+        drugsTable[index],
+      );
+    }
+
+    setMedicines(drugsTable);
+  };
+
+  // From/To dates and duration stay in sync in both directions: editing the
+  // date range recomputes duration (in days) from the gap between them;
+  // editing duration/unit (above) recomputes the To date instead.
+  const handleStartDateChange = (idx, date) => {
+    const drugsTable = [...medicinesRef.current];
+    drugsTable[idx] = { ...drugsTable[idx] };
+    drugsTable[idx].startDate = date;
+    if (drugsTable[idx].endDate) {
+      drugsTable[idx].duration = String(getDaysBetween(date, drugsTable[idx].endDate));
+      drugsTable[idx].unit = "Day (s)";
+    } else {
+      drugsTable[idx].endDate = getMedicineEndDate(date, drugsTable[idx]);
+    }
+    medicinesRef.current = drugsTable;
+    setMedicines(drugsTable);
+  };
+
+  const handleEndDateChange = (idx, date) => {
+    const drugsTable = [...medicinesRef.current];
+    drugsTable[idx] = { ...drugsTable[idx] };
+    drugsTable[idx].endDate = date;
+    drugsTable[idx].duration = String(
+      getDaysBetween(drugsTable[idx].startDate, date),
+    );
+    drugsTable[idx].unit = "Day (s)";
+    medicinesRef.current = drugsTable;
     setMedicines(drugsTable);
   };
 
@@ -105,7 +215,10 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
   };
 
   const bulkEditMedDuration = (duration) => {
-    const meds = [...medicines]?.map((med) => ({ ...med, duration }));
+    const meds = [...medicines]?.map((med) => {
+      const updated = { ...med, duration };
+      return { ...updated, endDate: getMedicineEndDate(med.startDate, updated) };
+    });
     setMedicines(meds);
   };
 
@@ -116,6 +229,32 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
       frequency: normalizedFrequency,
     }));
     setMedicines(meds);
+  };
+
+  // Swaps the drug on an existing row (dosage, duration etc. stay as the
+  // doctor set them) — used when the original isn't in stock.
+  const replaceMedicine = (idx, med) => {
+    const nextIdentity = drugIdentity(med);
+    const duplicate = medicines.some(
+      (m, i) => i !== idx && drugIdentity(m.medicine) === nextIdentity,
+    );
+    if (duplicate) {
+      toast.error("This medicine is already on the prescription");
+      return;
+    }
+    const drugsTable = [...medicines];
+    drugsTable[idx] = {
+      ...drugsTable[idx],
+      medicine: {
+        _id: med._id,
+        name: med.name,
+        isNew: false,
+        type: med.type || "TAB",
+        strength: med.strength || "",
+        unit: med.unit || "MG",
+      },
+    };
+    setMedicines(drugsTable);
   };
 
   const handleMedicineSub = (name, idx, value) => {
@@ -167,7 +306,12 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
               strategy={verticalListSortingStrategy}
             >
               {(medicines || []).map((medicine, idx) => (
-                <SortableMedicine key={idx} index={idx}>
+                <div
+                  key={idx}
+                  className="pb-2 mb-2"
+                  style={{ borderBottom: "1px solid #6c757d" }}
+                >
+                <SortableMedicine index={idx} locked={medicine.locked}>
                   <Col xs={2} className="">
                     <span className="font-semi-bold text-uppercase d-flex">
                       <span
@@ -308,7 +452,7 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                     </span>
                   </Col>
                   {/* <Col xs={3} className="">
-                  
+
                     <div className="d-flex flex-nowrap align-items-center justify-content-center">
                       <Input
                         bsSize={"sm"}
@@ -479,6 +623,24 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                         <option>Year (s)</option>
                       </Input>
                     </div>
+                    {showDates && (
+                      <div className="d-flex flex-column mt-2">
+                        <Flatpicker
+                          value={medicine.startDate || ""}
+                          onChange={([date]) => handleStartDateChange(idx, date)}
+                          options={{ dateFormat: "d M, Y" }}
+                          className="form-control form-control-sm bg-white mb-1"
+                          placeholder="From"
+                        />
+                        <Flatpicker
+                          value={medicine.endDate || ""}
+                          onChange={([date]) => handleEndDateChange(idx, date)}
+                          options={{ dateFormat: "d M, Y" }}
+                          className="form-control form-control-sm bg-white"
+                          placeholder="To"
+                        />
+                      </div>
+                    )}
                   </Col>
                   <Col xs={2} className="">
                     <div>
@@ -551,12 +713,40 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
                     </div>
                   </Col>
                   <Col xs={1}>
-                    <i
-                      onClick={() => removeDrug(idx)}
-                      className="btn text-black btn-sm btn-outline-danger ri-delete-bin-6-line"
-                    ></i>
+                    {medicine.locked ? (
+                      // Carried forward from another doctor's prescription —
+                      // it stays theirs, so it is shown under their name and
+                      // cannot be edited or removed here.
+                      <span
+                        className="badge bg-secondary text-wrap"
+                        style={{ fontSize: "10px" }}
+                        title="Prescribed by another user — read only"
+                      >
+                        {capitalizeWords(
+                          medicine.prescribedByUser?.name || medicine.author?.name,
+                        ) || "Locked"}
+                      </span>
+                    ) : (
+                      <i
+                        onClick={() => removeDrug(idx)}
+                        className="btn text-black btn-sm btn-outline-danger ri-delete-bin-6-line"
+                      ></i>
+                    )}
                   </Col>
                 </SortableMedicine>
+                {isPilotCenter && !medicine.locked && (
+                  <Row className="mt-1">
+                    <Col xs={12}>
+                      <PrescriptionPharmacyStock
+                        medicine={medicine}
+                        centerId={centerId}
+                        available={stockStatus[`${centerId}:${medicine.medicine?._id}`]}
+                        onReplace={(med) => replaceMedicine(idx, med)}
+                      />
+                    </Col>
+                  </Row>
+                )}
+                </div>
               ))}
             </SortableContext>
           </DndContext>
@@ -569,6 +759,8 @@ const Medicine = ({ medicines, setMedicines, isNew }) => {
 Medicine.propTypes = {
   medicines: PropTypes.array,
   setMedicines: PropTypes.func,
+  showDates: PropTypes.bool,
+  centerId: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({

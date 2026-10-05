@@ -28,6 +28,7 @@ const METRICS = [
     { label: "Form-3 Psychologist Training Pointers (Monthly)", key: "form_3",             compliance: true },
     { label: "Form-4 MSW/New Joinee Training (Monthly)",        key: "form_4",             compliance: true },
     { label: "Frisiking (Monthly)",                             key: "frisking",           compliance: true },
+    { label: "Multidisciplinary Meeting(Monthly)",              key: "multidisciplinary_meeting",           compliance: true },
     { label: "Cash Per Center Remaining",                       key: "cash_remaining",     compliance: false },
     { label: "Due Amount",                                      key: "due_amount",         compliance: false },
 ];

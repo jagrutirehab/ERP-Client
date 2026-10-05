@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { Row } from "reactstrap";
+import { DropdownItem, Row } from "reactstrap";
 import Wrapper from "../Components/Wrapper";
 import {
   CLINICAL_NOTE,
@@ -21,6 +21,7 @@ import {
   INJURY_MARKS,
   ECT_SESSION,
   ADMISSION_TYPE,
+  MEDICINE_GIVEN,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -54,8 +55,16 @@ import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
 import AdmissionType from "./AdmissionType";
+import MedicineGiven from "./MedicineGiven";
 import { io } from "socket.io-client";
-import { getCharts } from "../../../helpers/backend_helper";
+import {
+  getCharts,
+  getCarryForward,
+  toggleCarryForward,
+} from "../../../helpers/backend_helper";
+import { getCurrentUserId } from "../../../helpers/currentMedicines";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
+import { toast } from "react-toastify";
 import { api } from "../../../config";
 import PsychoDiagnosticForm from "./PsychoDiagnosticForm";
 import AdditionalDetailsModal from "./Components/AdditionalDetailsModal";
@@ -64,11 +73,39 @@ const Charts = ({
   addmission,
   charts,
   toggleDateModal,
+  setChartType,
   currentAddmissionId,
   isPatientDischarged,
+  chartForm,
 }) => {
   const dispatch = useDispatch();
   const [, forceUpdate] = useState(0);
+  // Prescriptions the current user has staged for carry-forward, loaded from
+  // the server rather than kept in redux — so the selection survives a page
+  // reload and stays private to this user, instead of resetting on refresh
+  // and being visible to every doctor viewing the patient.
+  const [carryForwardCharts, setCarryForwardCharts] = useState([]);
+  const patientIdForCarryForward = charts?.[0]?.patient;
+
+  useEffect(() => {
+    if (!patientIdForCarryForward) return;
+    getCarryForward(patientIdForCarryForward)
+      .then((res) => setCarryForwardCharts(res?.payload || []))
+      .catch(() => setCarryForwardCharts([]));
+  }, [patientIdForCarryForward]);
+
+  const wasChartFormOpen = useRef(false);
+  useEffect(() => {
+    const isOpenNow = !!chartForm?.isOpen;
+    const justClosed = wasChartFormOpen.current && !isOpenNow;
+    wasChartFormOpen.current = isOpenNow;
+
+    if (justClosed && patientIdForCarryForward) {
+      getCarryForward(patientIdForCarryForward)
+        .then((res) => setCarryForwardCharts(res?.payload || []))
+        .catch(() => {});
+    }
+  }, [chartForm?.isOpen, patientIdForCarryForward]);
 
   const [chart, setChart] = useState({
     chart: null,
@@ -203,6 +240,24 @@ const Charts = ({
     dispatch(createEditChart({ data: chart, chart: null, isOpen: false }));
   };
 
+  const isStagedForCarryForward = (chart) =>
+    (carryForwardCharts || []).some((c) => String(c._id) === String(chart._id));
+
+  const carryForwardChart = (chart) => {
+    toggleCarryForward(chart.patient, chart._id)
+      .then((res) => {
+        setCarryForwardCharts(res?.payload || []);
+        toast.success(
+          res?.staged
+            ? "Added to carry forward — open Create new Chart to use it"
+            : "Removed from carry forward",
+        );
+      })
+      .catch((err) =>
+        toast.error(err?.message || "Failed to update carry forward"),
+      );
+  };
+
   const getChart = (chart) => {
     setChart({
       chart,
@@ -314,8 +369,21 @@ const Charts = ({
                   }
                   // Round-note charts are auto-generated read-only snapshots —
                   // they are edited/removed only from the Round Notes screen.
+                  // disableEdit={
+                  //   chart.chart === ROUND_NOTE ||
+                  //   (addmission?.dischargeDate ? true : false) ||
+                  //   isPatientDischarged ||
+                  //   (currentAddmissionId
+                  //     ? chart.addmission !== currentAddmissionId
+                  //     : false)
+                  // }
+                  // disableDelete={
+                  //   chart.chart === ROUND_NOTE ||
+                  //   (addmission?.dischargeDate ? true : false)
+                  // }
                   disableEdit={
                     chart.chart === ROUND_NOTE ||
+                    chart.chart === MEDICINE_GIVEN ||
                     (addmission?.dischargeDate ? true : false) ||
                     isPatientDischarged ||
                     (currentAddmissionId
@@ -324,7 +392,9 @@ const Charts = ({
                   }
                   disableDelete={
                     chart.chart === ROUND_NOTE ||
-                    (addmission?.dischargeDate ? true : false)
+                    chart.chart === MEDICINE_GIVEN ||
+                    (addmission?.dischargeDate ? true : false) ||
+                    isPatientDischarged
                   }
                   itemId={`${chart?.id?.prefix}${chart?.id?.patientId}-${chart?.id?.value}`}
                   geminiResponseGeneratedBy={chart?.geminiResponseGeneratedBy}
@@ -332,9 +402,50 @@ const Charts = ({
                   validatorId={chart?.validatorId}
                   doctorValidatorId={chart?.doctorValidatorId}
                   currentAddmissionId={currentAddmissionId}
+                  hideEdit={
+                    chart.chart === PRESCRIPTION &&
+                    (String(chart.author?._id || chart.author) !==
+                      String(getCurrentUserId()) ||
+                      Date.now() - new Date(chart.createdAt).getTime() >
+                        1 * 60 * 60 * 1000)
+                  }
+                  extraOptions={(item) =>
+                    !isPatientDischarged &&
+                    item?.chart === PRESCRIPTION &&
+                    ["IPD", "OPD", "GENERAL"].includes(item?.type) &&
+                    (item?.prescription?.medicines || []).some(
+                      (med) => med.status !== "discontinued",
+                    ) ? (
+                      <CheckPermission permission={"edit"} subAccess="Charting">
+                      <DropdownItem
+                        onClick={() => carryForwardChart(item)}
+                        href="#"
+                      >
+                        {isStagedForCarryForward(item) ? (
+                          <>
+                            <i className="ri-check-line align-bottom text-success me-2"></i>{" "}
+                            Remove from Carry Forward
+                          </>
+                        ) : (
+                          <>
+                            <i className="ri-file-copy-line align-bottom text-muted me-2"></i>{" "}
+                            Add to Carry Forward
+                          </>
+                        )}
+                      </DropdownItem>
+                      </CheckPermission>
+                    ) : null
+                  }
                 >
                   {chart.chart === PRESCRIPTION && (
-                    <Prescription data={chart?.prescription} />
+                    <Prescription
+                      data={chart?.prescription}
+                      baseDate={chart?.date || chart?.createdAt}
+                      showDates={["IPD", "OPD", "GENERAL"].includes(chart?.type)}
+                      showOwner={["IPD", "OPD", "GENERAL"].includes(chart?.type)}
+                      currentUserId={getCurrentUserId()}
+                      fallbackPrescriber={chart?.author}
+                    />
                   )}
                   {chart.chart === RELATIVE_VISIT && (
                     <RelativeVisit data={chart?.relativeVisit} />
@@ -394,6 +505,9 @@ const Charts = ({
                   {chart.chart === ADMISSION_TYPE && (
                     <AdmissionType data={chart.admissionType} />
                   )}
+                  {chart.chart === MEDICINE_GIVEN && (
+                    <MedicineGiven data={chart.nurseGivenMedicine} />
+                  )}
                 </Wrapper>
               );
             })}
@@ -421,6 +535,7 @@ Charts.propTypes = {
 
 const mapStateToProps = (state) => ({
   // charts: state.Chart.data,
+  chartForm: state.Chart.chartForm,
 });
 
 export default connect(mapStateToProps)(Charts);

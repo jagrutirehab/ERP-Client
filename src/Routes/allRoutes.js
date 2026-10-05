@@ -42,14 +42,18 @@ const MiReporting = React.lazy(() => import("../pages/MIReporting/index.js"));
 const HRMS = React.lazy(() => import("../pages/HRMS"));
 const Referral = React.lazy(() => import("../pages/Referral"));
 const Tally = React.lazy(() => import("../pages/Tally"));
+const PosPayments = React.lazy(() => import("../pages/PosPayments"));
 const Issues = React.lazy(() => import("../pages/Issues"));
 const Recordings = React.lazy(() => import("../pages/Recordings"));
 const SOP = React.lazy(() => import("../pages/SopConfigs"));
 const Trainings = React.lazy(() => import("../pages/Trainings"));
+const Utilities = React.lazy(() => import("../pages/Utilities"));
 const AlertPage = React.lazy(() => import("../pages/Alerts"));
 const Marketing = React.lazy(() => import("../pages/Marketing"));
 const DoctorVisits = React.lazy(() => import("../pages/DoctorVisits/DoctorVisits"));
 const MasterData = React.lazy(() => import("../pages/MasterData"));
+const CenterDashboard = React.lazy(() => import("../pages/CenterDashboard"));
+const MISMaster = React.lazy(() => import("../pages/MISMaster"));
 const allElements = [
   { element: Register, label: "User" },
   { element: Center, label: "Center" },
@@ -74,13 +78,17 @@ const allElements = [
   { element: WebCamStats, label: "Web Cam Stats" },
   { element: Referral, label: "Referral" },
   { element: Tally, label: "Tally" },
+  { element: PosPayments, label: "POS Payments" },
   { element: Issues, label: "Issues" },
   { element: Recordings, label: "Recordings" },
   { element: SOP, label: "SOP-configs" },
   { element: Trainings, label: "Trainings" },
+  { element: Utilities, label: "Utilities" },
   { element: AlertPage, label: "Alert" },
   { element: Marketing, label: "Marketing" },
   { element: MasterData, label: "Vendor Management" },
+  { element: CenterDashboard, label: "Center Dashboard" },
+  { element: MISMaster, label: "MIS Master" },
 ];
 
 console.log("SOP:", SOP);
@@ -119,11 +127,15 @@ const authProtectedRoutes = [
   { path: "/contacts", component: Referral },
   { path: "/referral", component: () => <Navigate to="/contacts" replace /> },
   { path: "/tally", component: Tally },
+  { path: "/pos-payments", component: PosPayments },
   { path: "/sop-configs/*", component: SOP },
   { path: "/trainings/*", component: Trainings },
+  { path: "/utilities/*", component: Utilities },
   { path: "/marketing/*", component: Marketing },
   { path: "/vendor-management/*", component: MasterData },
   { path: "/doctor-visits", component: DoctorVisits },
+  { path: "/center-dashboard", component: CenterDashboard },
+  { path: "/mis-master", component: MISMaster },
   {
     path: "/",
     exact: true,

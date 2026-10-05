@@ -64,7 +64,7 @@ const EventInfo = ({
               </button>
             </>
           )}
-          {!data?.isCancelled && (
+          {/* {!data?.isCancelled && (
             <button
               onClick={() => {
                 toggleCancelEvent(data._id);
@@ -74,11 +74,11 @@ const EventInfo = ({
             >
               <i className="ri-close-circle-line text-danger"></i>
             </button>
-          )}
+          )} */}
           {data?.isCancelled && (
             <div className="text-muted me-2 text-warning">Cancelled</div>
           )}
-          {data?.isCancelled && (
+          {/* {data?.isCancelled && (
             <button
               onClick={() => {
                 toggleDeleteEvent(data._id);
@@ -88,7 +88,7 @@ const EventInfo = ({
             >
               <i className="ri-delete-bin-6-line fs-8"></i>
             </button>
-          )}
+          )} */}
         </div>
         <div className="patient?-profile">
           <img

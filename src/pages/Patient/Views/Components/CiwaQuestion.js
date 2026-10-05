@@ -55,6 +55,7 @@ const CiwaQuestions = () => {
   );
 
   const [center, setCenters] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchPatientData = async () => {
@@ -410,6 +411,7 @@ const CiwaQuestions = () => {
       }
     }
 
+    setIsLoading(true);
     try {
       await dispatch(createCiwaTest(formData)).unwrap();
       openModal(
@@ -419,6 +421,8 @@ const CiwaQuestions = () => {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to submit assessment");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -657,9 +661,10 @@ const CiwaQuestions = () => {
                   type="submit"
                   className="btn btn-success fw-bold px-4 py-2 shadow-sm"
                   style={{ transition: "transform 0.3s ease-in-out" }}
+                  disabled={isLoading}
                 >
                   <i className="fas fa-check-circle me-2"></i>
-                  Submit Test
+                  {isLoading ? "Saving..." : "Submit Test"}
                 </button>
               </div>
             </form>

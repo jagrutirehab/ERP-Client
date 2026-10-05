@@ -49,6 +49,8 @@ const METRICS = [
     { label: "Form-2 Patient Care Training",  key: "form_2",      description: "Percentage of patient care training forms filled.(2 in a month)" },
     { label: "Form-3 Psychologist Training Pointers", key: "form_3", description: "Percentage of psychologist training forms filled.(2 in a month)" },
     { label: "Form-4 MSW/New Joinee Training", key: "form_4",     description: "Percentage of new joinee training forms filled.(4 in a month)" },
+    { label: "Multidisciplinary Meeting(Monthly)",              key: "multidisciplinary_meeting",       description: "Percentage of multidisciplinary meeting done.(4 in a month)"    },
+
 ];
 
 const DocsCompliance = () => {
@@ -61,6 +63,7 @@ const DocsCompliance = () => {
     const [selectedCenter, setSelectedCenter] = useState("Total");
     const [compliance, setCompliance] = useState(true);
     const [selectedMetric, setSelectedMetric] = useState(METRICS[0].key);
+    const [chartMetric, setChartMetric] = useState("ALL");
     const data = useMemo(() => docsCompliance?.data || [], [docsCompliance]);
 
     useEffect(() => {
@@ -163,6 +166,7 @@ const DocsCompliance = () => {
     }, [months, data, selectedCenter, compliance]);
 
     const metricOptions = METRICS.map((m) => ({ value: m.key, label: m.label }));
+    const chartMetricOptions = [{ value: "ALL", label: "All Metrics" }, ...metricOptions];
 
 const getCenterCellValue = (row, metricKey) => {
         const entry = row[metricKey] || {};
@@ -192,39 +196,6 @@ const getCenterCellValue = (row, metricKey) => {
         if (!row) return "";
         return getCenterCellValue(row, selectedMetric);
     };
-
-    const getCenterCellNumericValue = (row, metricKey) => {
-        const entry = row[metricKey] || {};
-        const actual = entry.result_count ?? null;
-        const shouldBe = entry.should_be_count ?? null;
-        if (actual == null) return 0;
-        if (compliance) {
-            if (!shouldBe) return 0;
-            return Math.round((actual / shouldBe) * 100);
-        }
-        return actual;
-    };
-
-    const getCenterMonthNumericValue = (centerName, month) => {
-        const rows = data.find((d) => d.month === month)?.rows || [];
-        const row = rows.find((r) => r.center_name === centerName);
-        if (!row) return 0;
-        return getCenterCellNumericValue(row, selectedMetric);
-    };
-
-    const centerChartData = useMemo(() => {
-        return months
-            .slice()
-            .reverse()
-            .map((month) => {
-                const row = { month: formatMonth(month) };
-                centerNames.forEach((name) => {
-                    row[name] = getCenterMonthNumericValue(name, formatMonth(month));
-                });
-                return row;
-            });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [months, centerNames, data, selectedMetric, compliance]);
 
     const headerStyle = {
         border: "1px solid #cfd8e3",
@@ -310,20 +281,28 @@ const getCenterCellValue = (row, metricKey) => {
                                                 {METRICS.map(({ label, key, description }, idx) => (
                                                     <tr key={key}>
                                                         <td
-                                                            id={description ? `docs-metric-info-${key}` : undefined}
                                                             className="px-1 py-1 fw-semibold"
                                                             style={{ ...cellStyle(idx), whiteSpace: "normal", wordBreak: "break-word" }}
                                                         >
-                                                            {label}
-                                                            {description && (
-                                                                <UncontrolledTooltip
-                                                                    target={`docs-metric-info-${key}`}
-                                                                    placement="right"
-                                                                    trigger="hover"
-                                                                >
-                                                                    {description}
-                                                                </UncontrolledTooltip>
-                                                            )}
+                                                            <span className="d-inline-flex align-items-center gap-1">
+                                                                {label}
+                                                                {description && (
+                                                                    <>
+                                                                        <i
+                                                                            id={`docs-metric-info-${key}`}
+                                                                            className="bx bx-info-circle text-muted"
+                                                                            style={{ cursor: "pointer", fontSize: "0.85rem" }}
+                                                                        ></i>
+                                                                        <UncontrolledTooltip
+                                                                            target={`docs-metric-info-${key}`}
+                                                                            placement="right"
+                                                                            trigger="legacy"
+                                                                        >
+                                                                            {description}
+                                                                        </UncontrolledTooltip>
+                                                                    </>
+                                                                )}
+                                                            </span>
                                                         </td>
                                                         {months.map((month) => (
                                                             <td key={month} className="text-center px-1 py-1" style={cellStyle(idx)}>
@@ -343,7 +322,15 @@ const getCenterCellValue = (row, metricKey) => {
                     <Col lg={6}>
                         <Card className="shadow-sm h-100" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
                             <CardBody>
+                                <Select
+                                    value={chartMetricOptions.find((o) => o.value === chartMetric) || chartMetricOptions[0]}
+                                    onChange={(opt) => setChartMetric(opt.value)}
+                                    options={chartMetricOptions}
+                                    placeholder="Data..."
+                                    styles={{ container: (b) => ({ ...b, minWidth: 200, marginBottom: 12 }) }}
+                                />
                                 <h6 className="mb-3">
+                                    {chartMetric !== "ALL" && `${chartMetricOptions.find((o) => o.value === chartMetric)?.label} - `}
                                     {compliance ? "Compliance % Trend" : "Count Trend"}
                                 </h6>
                                 {!loading && !error && (
@@ -360,7 +347,7 @@ const getCenterCellValue = (row, metricKey) => {
                                                     formatter={(value) => (compliance ? `${value}%` : value)}
                                                 />
                                                 <Legend wrapperStyle={{ fontSize: 11 }} />
-                                                {METRICS.map(({ label }, idx) => (
+                                                {METRICS.filter(({ key }) => chartMetric === "ALL" || key === chartMetric).map(({ label }, idx) => (
                                                     <Line
                                                         key={label}
                                                         type="monotone"
@@ -429,44 +416,6 @@ const getCenterCellValue = (row, metricKey) => {
                                                 ))}
                                             </tbody>
                                         </Table>
-                                    </div>
-                                )}
-                            </CardBody>
-                        </Card>
-                    </Col>
-
-                    <Col lg={6}>
-                        <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
-                            <CardBody>
-                                <h6 className="mb-3">
-                                    {metricOptions.find((o) => o.value === selectedMetric)?.label} - {compliance ? "Compliance % Trend" : "Count Trend"} by Center
-                                </h6>
-                                {!loading && !error && (
-                                    <div style={{ width: "100%", height: 420 }}>
-                                        <ResponsiveContainer>
-                                            <LineChart data={centerChartData} margin={{ top: 5, right: 10, left: 0, bottom: 5 }}>
-                                                <CartesianGrid strokeDasharray="3 3" />
-                                                <XAxis dataKey="month" tick={{ fontSize: 11 }} />
-                                                <YAxis tick={{ fontSize: 11 }} />
-                                                <Tooltip
-                                                    contentStyle={{ backgroundColor: "#000", opacity: 1, color: "#fff" }}
-                                                    itemStyle={{ color: "#fff" }}
-                                                    labelStyle={{ color: "#fff" }}
-                                                    formatter={(value) => (compliance ? `${value}%` : value)}
-                                                />
-                                                <Legend wrapperStyle={{ fontSize: 11 }} />
-                                                {centerNames.map((name, idx) => (
-                                                    <Line
-                                                        key={name}
-                                                        type="monotone"
-                                                        dataKey={name}
-                                                        stroke={COLORS[idx % COLORS.length]}
-                                                        strokeWidth={2}
-                                                        dot={{ r: 2 }}
-                                                    />
-                                                ))}
-                                            </LineChart>
-                                        </ResponsiveContainer>
                                     </div>
                                 )}
                             </CardBody>

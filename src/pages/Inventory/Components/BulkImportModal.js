@@ -333,6 +333,11 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   };
 
   const handleImport = async ({ chunkSize = 50 } = {}) => {
+    if (!selectedCenters.length) {
+      toast.error("Please select at least one center before importing.");
+      return;
+    }
+
     const mappedData = buildMappedObjects();
     const totalItemsLocal = mappedData.length;
     if (!totalItemsLocal) {
@@ -683,7 +688,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
                   display: "block",
                 }}
               >
-                Select Centers (click to open)
+                Select Centers (click to open) <span className="text-danger">*</span>
               </label>
 
               <div
@@ -1214,7 +1219,8 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
 
               <Button
                 onClick={() => handleImport({ chunkSize: 50 })}
-                disabled={uploading || uploadedData.length === 0}
+                disabled={uploading || uploadedData.length === 0 || selectedCenters.length === 0}
+                title={selectedCenters.length === 0 ? "Select at least one center to import" : undefined}
               >
                 {uploading ? "Uploading..." : "Import Data"}
               </Button>

@@ -35,14 +35,14 @@ import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 
 const REQUIRED_HEADERS = [
+    "PharmacyId",
+    "MedicineId",
     "Center",
     "Code",
     "MedicineName",
     "Strength",
-    "UnitType",
+    "BaseUnit",
     "MRP",
-    "PurchasePrice",
-    "SalesPrice",
     "Company",
     "Manufacturer",
     "RackNum",
@@ -100,10 +100,12 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
             : []
         ),
         ...(
-            centerList?.map(c => ({
-                value: c._id,
-                label: c.title,
-            })) || []
+            centerList
+                ?.filter(c => user?.centerAccess?.includes(c._id))
+                ?.map(c => ({
+                    value: c._id,
+                    label: c.title,
+                })) || []
         )
     ];
 
@@ -320,7 +322,7 @@ const PendingAudits = ({ activeTab, hasUserPermission, roles }) => {
             const data = await file.arrayBuffer();
             const workbook = XLSX.read(data);
             const sheet = workbook.Sheets[workbook.SheetNames[0]];
-            const rows = XLSX.utils.sheet_to_json(sheet);
+            const rows = XLSX.utils.sheet_to_json(sheet, { defval: "" });
 
             if (rows.length === 0) {
                 toast.error("Excel file is empty");

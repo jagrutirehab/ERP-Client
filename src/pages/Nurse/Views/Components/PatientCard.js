@@ -31,7 +31,7 @@ const toTitleCase = (text) => {
   return text.toLowerCase().replace(/\b\w/g, (char) => char.toUpperCase());
 };
 
-const PatientCard = ({ patient, toggleAlertsModal }) => {
+const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [showAllMedicines, setShowAllMedicines] = useState(false);
@@ -64,6 +64,8 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
           if (doses[i] > 0) {
             return [
               {
+                prescriptionId: med.prescriptionId,
+                medicineId: med.medicineId,
                 medicineIndex: med.medicineIndex,
                 slot,
                 status: "pending",
@@ -75,6 +77,8 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
       }),
       ...medicinesToRemove.map((med) => ({
         historyId: med.historyId,
+        prescriptionId: med.prescriptionId,
+        medicineId: med.medicineId,
         medicineIndex: med.medicineIndex,
         slot: med.slot,
         status: "pending",
@@ -220,19 +224,21 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
               enableReinitialize
             >
               {({ values, setFieldValue }) => {
-                const getSlotIndexes = (medicineIndex) =>
+                const getSlotIndexes = (target) =>
                   values.medicines
-                    .map((med, i) =>
-                      med.medicineIndex === medicineIndex && !med.historyId
-                        ? i
-                        : -1
-                    )
+                    .map((med, i) => {
+                      if (med.historyId) return -1;
+                      const same = target?.medicineId
+                        ? String(med.medicineId) === String(target.medicineId)
+                        : med.medicineIndex === target?.medicineIndex;
+                      return same ? i : -1;
+                    })
                     .filter((i) => i !== -1);
 
                 const allTakeNowCompleted =
                   medicinesToTakeNow.length === 0 ||
                   medicinesToTakeNow.every((med) =>
-                    getSlotIndexes(med.medicineIndex).every(
+                    getSlotIndexes(med).every(
                       (i) => values.medicines[i].status === "completed"
                     )
                   );
@@ -283,9 +289,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                                 ? medicinesToTakeNow
                                 : medicinesToTakeNow.slice(0, 2)
                               ).map((medicine, idx) => {
-                                const slotIndexes = getSlotIndexes(
-                                  medicine.medicineIndex
-                                );
+                                const slotIndexes = getSlotIndexes(medicine);
                                 const allSlotsCompleted = slotIndexes.every(
                                   (i) =>
                                     values.medicines[i].status === "completed"
@@ -303,6 +307,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                                       <Field
                                         type="checkbox"
                                         checked={allSlotsCompleted}
+                                        disabled={!writable}
                                         onChange={(e) =>
                                           slotIndexes.forEach((i) =>
                                             setFieldValue(
@@ -353,6 +358,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                                           values.medicines[actionIndex]?.status ===
                                           "retrieved"
                                         }
+                                        disabled={!writable}
                                         onChange={(e) =>
                                           setFieldValue(
                                             `medicines[${actionIndex}].status`,
@@ -376,7 +382,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                             </>
                           )}
 
-                          {(medicinesToRemove.length > 0 ||
+                          {writable && (medicinesToRemove.length > 0 ||
                             (medicinesToTakeNow.length > 0 &&
                               (medicinesToTakeNow.length <= 2 ||
                                 showAllMedicines))) && (
@@ -392,9 +398,7 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                                     onChange={(e) => {
                                       const checked = e.target.checked;
                                       medicinesToTakeNow.forEach((med) =>
-                                        getSlotIndexes(
-                                          med.medicineIndex
-                                        ).forEach((i) =>
+                                        getSlotIndexes(med).forEach((i) =>
                                           setFieldValue(
                                             `medicines[${i}].status`,
                                             checked
@@ -418,30 +422,32 @@ const PatientCard = ({ patient, toggleAlertsModal }) => {
                               </>
                             )}
 
-                          <div className="d-flex justify-content-end mt-3">
-                            <Button
-                              disabled={
-                                !values.medicines.some(
-                                  (med) =>
-                                    med.status === "completed" ||
-                                    med.status === "retrieved"
-                                ) ||
-                                values.medicines.some(
-                                  (med) =>
-                                    med.historyId && med.status !== "retrieved"
-                                ) ||
-                                isSubmitting
-                              }
-                              onClick={(e) => e.stopPropagation()}
-                              type="submit"
-                              size="sm"
-                            >
-                              {isSubmitting && (
-                                <Spinner size="sm" className="me-2" />
-                              )}
-                              Submit
-                            </Button>
-                          </div>
+                          {writable && (
+                            <div className="d-flex justify-content-end mt-3">
+                              <Button
+                                disabled={
+                                  !values.medicines.some(
+                                    (med) =>
+                                      med.status === "completed" ||
+                                      med.status === "retrieved"
+                                  ) ||
+                                  values.medicines.some(
+                                    (med) =>
+                                      med.historyId && med.status !== "retrieved"
+                                  ) ||
+                                  isSubmitting
+                                }
+                                onClick={(e) => e.stopPropagation()}
+                                type="submit"
+                                size="sm"
+                              >
+                                {isSubmitting && (
+                                  <Spinner size="sm" className="me-2" />
+                                )}
+                                Submit
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>

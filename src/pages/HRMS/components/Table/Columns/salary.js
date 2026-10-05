@@ -43,7 +43,7 @@ const employerDeductionStyle = {
 const isSimplifiedEmployee = (row) =>
     (row?.employee?.employmentType || "").trim().toUpperCase() !== "FULL_TIME";
 
-export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, onReject, hasEditPermission, approvalStatusFilter }) => [
+export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, onReject, hasEditPermission, approvalStatusFilter, hasManuallyProcessedForMonth }) => [
     {
         name: <div>ECode</div>,
         selector: row => row?.employee?.eCode || "-",
@@ -264,8 +264,44 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         style: earnedCellStyle,
     },
     {
+        name: <div>Consultant Fee</div>,
+        selector: row => formatCurrency(row?.earned?.consultantFee),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
+    {
         name: <div>Incentive</div>,
         selector: row => formatCurrency(row?.earned?.incentives),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
+    {
+        name: <div>Arrear</div>,
+        selector: row => formatCurrency(row?.earned?.adjustments?.ARREAR),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
+    {
+        name: <div>Reimbursement</div>,
+        selector: row => formatCurrency(row?.earned?.adjustments?.REIMBURSEMENT),
+        wrap: true,
+        center: true,
+        minWidth: "140px",
+        style: earnedCellStyle,
+    },
+    {
+        name: <div>Variable Pay (Adj.)</div>,
+        selector: row => formatCurrency(row?.earned?.adjustments?.VARIABLE_PAY),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
+    {
+        name: <div>Other Earnings</div>,
+        selector: row => formatCurrency(row?.earned?.adjustments?.OTHER_EARNINGS),
         wrap: true,
         center: true,
         style: earnedCellStyle,
@@ -303,6 +339,13 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         style: employeeDeductionStyle,
     },
     {
+        name: <div>Voluntary PF</div>,
+        selector: row => formatCurrency((row?.earned?.voluntaryPF || 0) + (row?.earned?.adjustments?.VOLUNTARY_PF || 0)),
+        wrap: true,
+        center: true,
+        style: employeeDeductionStyle,
+    },
+    {
         name: <div>ESIC Employee</div>,
         selector: row => formatCurrency(row?.earned?.ESICEmployee),
         wrap: true,
@@ -319,6 +362,13 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     {
         name: <div>PT</div>,
         selector: row => formatCurrency(row?.earned?.PT),
+        wrap: true,
+        center: true,
+        style: employeeDeductionStyle,
+    },
+    {
+        name: <div>PT Arrear</div>,
+        selector: row => formatCurrency((row?.earned?.PTArrears || 0) + (row?.earned?.adjustments?.PT_ARREAR || 0)),
         wrap: true,
         center: true,
         style: employeeDeductionStyle,
@@ -346,7 +396,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
     {
         name: <div>Other Deductions</div>,
-        selector: row => formatCurrency(row?.earned?.otherDeductions),
+        selector: row => formatCurrency((row?.earned?.otherDeductions || 0) + (row?.earned?.adjustments?.OTHER_DEDUCTION || 0)),
         wrap: true,
         center: true,
         style: employeeDeductionStyle,
@@ -496,7 +546,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
             name: <div>Action</div>,
             cell: row => (
                 <div className="d-flex gap-1 align-items-center">
-                    {row.approvalStatus !== "PENDING" ? (
+                    {row.approvalStatus !== "PENDING" || hasManuallyProcessedForMonth ? (
                         <i className="text-muted" style={{ fontSize: "12px" }}>Action not permitted</i>
                     ) : (
                         <>
@@ -541,7 +591,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
             minWidth: "180px"
         },
     ] : []),
-    ...((approvalStatusFilter === "ALL" || approvalStatusFilter === "APPROVED" || approvalStatusFilter === "REJECTED") ? [
+    ...((approvalStatusFilter === "ALL" || approvalStatusFilter === "APPROVED" || approvalStatusFilter === "REJECTED" || approvalStatusFilter === "MANNUALLY_PROCESSED") ? [
         {
             name: <div>Approved By</div>,
             selector: (row) => (

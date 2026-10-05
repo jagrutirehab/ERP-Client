@@ -154,6 +154,24 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       websiteListing: centerData ? !!centerData.websiteListing : false,
       globalAccess: centerData ? !!centerData.globalAccess : false,
       apiKey: centerData ? centerData.apiKey : "",
+      // Pine Labs POS for this centre. Merchant and store identify the centre;
+      // each physical machine is a row in pineLabsTerminals, told apart by its
+      // Client ID. The security token is never sent back by the API, so it
+      // starts blank on edit and is only written when the user types a new one.
+      pineLabsEnabled: centerData ? !!centerData.pineLabs?.enabled : false,
+      pineLabsMerchantId: centerData ? centerData.pineLabs?.merchantId || "" : "",
+      pineLabsSecurityToken: "",
+      pineLabsStoreId: centerData ? centerData.pineLabs?.storeId || "" : "",
+      pineLabsTerminals: centerData?.pineLabs?.terminals?.length
+        ? centerData.pineLabs.terminals.map((t) => ({
+            _id: t._id,
+            label: t.label || "",
+            clientId: t.clientId || "",
+            isDefault: !!t.isDefault,
+            active: t.active !== false,
+            autoCancelDurationInMinutes: t.autoCancelDurationInMinutes ?? 5,
+          }))
+        : [],
     },
     validationSchema: Yup.object({
       title: Yup.string()
@@ -193,6 +211,18 @@ const CenterForm = ({ author, isOpen, centerData }) => {
         values.globalAccess ? "true" : "false"
       );
       formData.append("apiKey", values.apiKey);
+      // Sent as JSON; the centre controller writes each key individually so a
+      // blank security token leaves the stored one alone.
+      formData.append(
+        "pineLabs",
+        JSON.stringify({
+          enabled: values.pineLabsEnabled,
+          merchantId: values.pineLabsMerchantId,
+          securityToken: values.pineLabsSecurityToken,
+          storeId: values.pineLabsStoreId,
+          terminals: values.pineLabsTerminals,
+        })
+      );
       // if (cropLogo) formData.append("logo", dataURLtoBlob(cropLogo));
       if (cropLogo) formData.append("logo", cropLogo);
 
@@ -209,9 +239,54 @@ const CenterForm = ({ author, isOpen, centerData }) => {
 
   // console.log({ validation });
 
+  // Pine Labs fields get their own labelled block below rather than the
+  // auto-generated grid.
   const fieldsArray = Object.keys(validation.values).filter(
-    (key) => !["state", "websiteListing", "globalAccess"].includes(key)
+    (key) =>
+      !["state", "websiteListing", "globalAccess"].includes(key) &&
+      !key.startsWith("pineLabs")
   );
+
+  // --- Pine Labs POS machines ---
+  const terminalsValue = validation.values.pineLabsTerminals || [];
+
+  const setTerminals = (next) =>
+    validation.setFieldValue("pineLabsTerminals", next);
+
+  const updateTerminal = (idx, patch) => {
+    const next = [...terminalsValue];
+    next[idx] = { ...next[idx], ...patch };
+    setTerminals(next);
+  };
+
+  const addTerminal = () =>
+    setTerminals([
+      ...terminalsValue,
+      {
+        label: "",
+        clientId: "",
+        // The first machine added is the default; later ones are not.
+        isDefault: terminalsValue.length === 0,
+        active: true,
+        autoCancelDurationInMinutes: 5,
+      },
+    ]);
+
+  const removeTerminal = (idx) => {
+    const next = terminalsValue.filter((_, i) => i !== idx);
+    // Never leave the centre without a default to fall back on.
+    const needsDefault = next.length && !next.some((t) => t.isDefault);
+    setTerminals(
+      needsDefault
+        ? next.map((t, i) => (i === 0 ? { ...t, isDefault: true } : t))
+        : next
+    );
+  };
+
+  const setDefaultTerminal = (idx) =>
+    setTerminals(
+      terminalsValue.map((t, i) => ({ ...t, isDefault: i === idx }))
+    );
   function getFieldLabel(field) {
     const words = field.replace(/([A-Z])/g, " $1").trim();
     return words.charAt(0).toUpperCase() + words.slice(1);
@@ -546,6 +621,241 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                   </Label>
                 </FormGroup>
               </Col>
+
+              <Col xs={12}>
+                <hr className="mt-1" />
+                <h6 className="mb-1">Pine Labs POS Terminal</h6>
+                <p className="text-muted fs-12">
+                  Lets this centre charge card and UPI payments straight to its
+                  POS machine. Credentials come from your Pine Labs onboarding
+                  pack.
+                </p>
+              </Col>
+
+              <Col xs={12} className="mb-3">
+                <FormGroup switch>
+                  <Input
+                    type="switch"
+                    role="switch"
+                    id="pineLabsEnabled"
+                    name="pineLabsEnabled"
+                    checked={validation.values.pineLabsEnabled}
+                    onChange={(event) =>
+                      validation.setFieldValue(
+                        "pineLabsEnabled",
+                        event.target.checked
+                      )
+                    }
+                  />
+                  <Label
+                    check
+                    className="form-check-label ms-2"
+                    htmlFor="pineLabsEnabled"
+                  >
+                    Enable POS payments for this centre
+                  </Label>
+                </FormGroup>
+              </Col>
+
+              {validation.values.pineLabsEnabled && (
+                <>
+                  <Col xs={12} lg={6}>
+                    <div className="mb-3">
+                      <Label htmlFor="pineLabsMerchantId" className="form-label">
+                        Merchant ID
+                      </Label>
+                      <Input
+                        id="pineLabsMerchantId"
+                        name="pineLabsMerchantId"
+                        className="form-control"
+                        placeholder="From your Pine Labs onboarding pack"
+                        type="text"
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        value={validation.values.pineLabsMerchantId || ""}
+                      />
+                    </div>
+                  </Col>
+
+                  <Col xs={12} lg={6}>
+                    <div className="mb-3">
+                      <Label
+                        htmlFor="pineLabsSecurityToken"
+                        className="form-label"
+                      >
+                        Security Token
+                      </Label>
+                      <Input
+                        id="pineLabsSecurityToken"
+                        name="pineLabsSecurityToken"
+                        className="form-control"
+                        placeholder={
+                          centerData
+                            ? "Leave blank to keep the saved token"
+                            : "UUID from Pine Labs"
+                        }
+                        type="password"
+                        autoComplete="new-password"
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        value={validation.values.pineLabsSecurityToken || ""}
+                      />
+                    </div>
+                  </Col>
+
+                  <Col xs={12} lg={6}>
+                    <div className="mb-3">
+                      <Label htmlFor="pineLabsStoreId" className="form-label">
+                        Store ID
+                      </Label>
+                      <Input
+                        id="pineLabsStoreId"
+                        name="pineLabsStoreId"
+                        className="form-control"
+                        placeholder="Enter Store ID"
+                        type="text"
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        value={validation.values.pineLabsStoreId || ""}
+                      />
+                    </div>
+                  </Col>
+
+                  <Col xs={12}>
+                    <Label className="form-label mb-1">POS Machines</Label>
+                    <p className="text-muted fs-12">
+                      One row per physical machine at this centre. The Client ID
+                      is the terminal serial — it is what sends a charge to one
+                      counter rather than another. The default is pre-selected
+                      for cashiers.
+                    </p>
+
+                    {(validation.values.pineLabsTerminals || []).map(
+                      (terminal, idx) => (
+                        <Row
+                          key={terminal._id || idx}
+                          className="align-items-end g-2 mb-2"
+                        >
+                          <Col xs={12} md={4}>
+                            <Label className="form-label fs-12">
+                              Machine Name
+                            </Label>
+                            <Input
+                              bsSize="sm"
+                              type="text"
+                              placeholder="e.g. Reception counter"
+                              value={terminal.label}
+                              onChange={(e) =>
+                                updateTerminal(idx, { label: e.target.value })
+                              }
+                            />
+                          </Col>
+
+                          <Col xs={12} md={4}>
+                            <Label className="form-label fs-12">Client ID</Label>
+                            <Input
+                              bsSize="sm"
+                              type="text"
+                              placeholder="Terminal serial"
+                              value={terminal.clientId}
+                              onChange={(e) =>
+                                updateTerminal(idx, { clientId: e.target.value })
+                              }
+                            />
+                          </Col>
+
+                          <Col xs={6} md={2}>
+                            <Label className="form-label fs-12">
+                              Auto-cancel
+                            </Label>
+                            <Input
+                              bsSize="sm"
+                              type="number"
+                              min={1}
+                              placeholder="min"
+                              title="Minutes before Pine Labs cancels an unattended charge"
+                              value={terminal.autoCancelDurationInMinutes ?? 5}
+                              onChange={(e) =>
+                                updateTerminal(idx, {
+                                  autoCancelDurationInMinutes: e.target.value,
+                                })
+                              }
+                            />
+                          </Col>
+
+                          <Col xs="auto">
+                            <FormGroup check className="mb-2">
+                              <Input
+                                type="radio"
+                                name="pineLabsDefaultTerminal"
+                                id={`pineLabsDefault-${idx}`}
+                                checked={!!terminal.isDefault}
+                                onChange={() => setDefaultTerminal(idx)}
+                              />
+                              <Label
+                                check
+                                className="fs-12"
+                                htmlFor={`pineLabsDefault-${idx}`}
+                              >
+                                Default
+                              </Label>
+                            </FormGroup>
+                          </Col>
+
+                          <Col xs="auto">
+                            <FormGroup switch className="mb-2">
+                              <Input
+                                type="switch"
+                                role="switch"
+                                id={`pineLabsActive-${idx}`}
+                                checked={terminal.active !== false}
+                                onChange={(e) =>
+                                  updateTerminal(idx, {
+                                    active: e.target.checked,
+                                  })
+                                }
+                              />
+                              <Label
+                                check
+                                className="fs-12 ms-1"
+                                htmlFor={`pineLabsActive-${idx}`}
+                              >
+                                In use
+                              </Label>
+                            </FormGroup>
+                          </Col>
+
+                          <Col xs="auto">
+                            <Button
+                              size="sm"
+                              outline
+                              color="danger"
+                              type="button"
+                              className="mb-2"
+                              onClick={() => removeTerminal(idx)}
+                              title="Remove this machine"
+                            >
+                              <i className="ri-close-circle-line"></i>
+                            </Button>
+                          </Col>
+                        </Row>
+                      )
+                    )}
+
+                    <Button
+                      size="sm"
+                      outline
+                      color="primary"
+                      type="button"
+                      className="mt-1 mb-3"
+                      onClick={addTerminal}
+                    >
+                      <i className="ri-add-line me-1"></i>
+                      Add machine
+                    </Button>
+                  </Col>
+                </>
+              )}
               {/* 
               <Col xs={12} lg={6}>
                 <div className="mb-3">
