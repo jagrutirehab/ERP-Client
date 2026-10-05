@@ -496,7 +496,7 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                                 Only PENDING requisitions can be edited
                             </>
                         ) : (
-                            isSareyaanOrder ? "Order stock from Sareyaan Pharma" : "Request stock transfer from one center to another"
+                            isSareyaanOrder ? "Order stock from a Sareyaan center" : "Request stock transfer from one center to another"
                         )}
                     </p>
                 </div>
@@ -538,9 +538,11 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
                     style={{ background: "#e8f5e9", border: "1px solid #a5d6a7", borderRadius: 10 }}>
                     <i className="bx bx-store fs-4 text-success" />
                     <div>
-                        <p className="mb-0 fw-semibold" style={{ fontSize: 14 }}>Sareyaan Pharma Order</p>
+                        <p className="mb-0 fw-semibold" style={{ fontSize: 14 }}>Sareyaan Order</p>
                         <p className="mb-0 text-muted" style={{ fontSize: 12 }}>
-                            Fulfilling center is set to <strong>Sareyaan Pharma</strong>. Select your requesting center and add medicines.
+                            {sareyaanCenters.length > 1
+                                ? <>Select the <strong>Sareyaan</strong> center that will fulfill this order, then select your requesting center and add medicines.</>
+                                : <>Fulfilling center is set to <strong>{sareyaanCenters[0]?.title || "Sareyaan Pharma"}</strong>. Select your requesting center and add medicines.</>}
                         </p>
                     </div>
                 </div>
