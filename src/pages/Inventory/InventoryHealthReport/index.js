@@ -23,7 +23,7 @@ import {
 } from "../Columns/Pharmacy/InventoryHealthColumns";
 
 const ISSUE_TYPE_OPTIONS = [
-  { value: "TRANSIT_LOSS", label: "Transit Loss" },
+  { value: "TRANSIT_LOSS", label: "Transit" },
   { value: "VARIANCE", label: "Variance" },
   { value: "EXPIRY", label: "Expiry" },
 ];
@@ -33,8 +33,6 @@ const TABS = [
   { value: "DETAILED", label: "Detailed" },
 ];
 
-// Shrinks react-select's default control height/padding/font so it matches
-// the compact Input/Button sizing used in the rest of this filter bar.
 const compactSelectStyles = {
   control: (base) => ({ ...base, minHeight: 31, fontSize: 12 }),
   valueContainer: (base) => ({ ...base, padding: "0 6px" }),
@@ -67,10 +65,7 @@ const InventoryHealthReport = () => {
   const { loading, data, pagination, summary } = useSelector(
     (state) => state.Pharmacy.inventoryHealthReport
   );
-  // Kept separate from inventoryHealthReport — this is the only fetch that
-  // asks for transferHistory/auditHistory/discardHistory, so it's loaded
-  // lazily (only once the Detailed tab is actually opened) rather than
-  // paying for that heavier payload on every Summary-tab load.
+
   const {
     loading: detailedLoading,
     data: detailedData,
@@ -116,11 +111,9 @@ const InventoryHealthReport = () => {
     centerOptions.find((opt) => opt.value === selectedCenter) || centerOptions[0];
 
   const activeCenters =
-    selectedCenter === "ALL"
+    selectedCenter === "ALL" || !user?.centerAccess?.includes(selectedCenter)
       ? user?.centerAccess || []
-      : !user?.centerAccess?.length
-        ? []
-        : [selectedCenter];
+      : [selectedCenter];
 
   // A batch is listed once per center, so the pharmacy id alone isn't unique.
   const rows = useMemo(
@@ -133,9 +126,6 @@ const InventoryHealthReport = () => {
     [detailedData]
   );
 
-  // Shared by the live fetch and the export — export must read the exact
-  // same center/date/issues/search filters currently applied on screen, not
-  // a second, independently-typed set.
   const buildFilterParams = () => ({
     centers: activeCenters,
     from: reportDate.start?.toISOString(),
@@ -179,9 +169,6 @@ const InventoryHealthReport = () => {
       });
   };
 
-  // Mirrors whichever tab is active — Detailed asks for the same
-  // transferHistory/auditHistory/discardHistory the grid itself uses, so the
-  // exported sheet gets the same Transfer N/Audit N/Discard N columns.
   const handleExport = async () => {
     const isDetailed = activeTab === "DETAILED";
     setExporting(true);
@@ -218,9 +205,6 @@ const InventoryHealthReport = () => {
     }
   }, [user?.centerAccess, selectedCenter]);
 
-  // Default view on first mount only — after that, nothing re-fetches until
-  // the button is clicked, except pagination/page-size on an already-loaded
-  // result set.
   useEffect(() => {
     setPage(1);
     loadData(1, limit);
@@ -239,15 +223,12 @@ const InventoryHealthReport = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [detailedPage, detailedLimit]);
 
-  // Both tabs share the same filters, but only Summary is loaded eagerly —
-  // Detailed is fetched the first time that tab is opened, and refreshed
-  // alongside Summary afterward so "View Report" never leaves it stale.
   const handleViewReport = () => {
-    setPage(1);
-    loadData(1, limit);
+    if (page === 1) loadData(1, limit);
+    else setPage(1);
     if (activeTab === "DETAILED" || hasLoadedDetailedOnce) {
-      setDetailedPage(1);
-      loadDetailed(1, detailedLimit);
+      if (detailedPage === 1) loadDetailed(1, detailedLimit);
+      else setDetailedPage(1);
     }
   };
 
@@ -257,15 +238,6 @@ const InventoryHealthReport = () => {
       loadDetailed(1, detailedLimit);
     }
   };
-
-  // Enter anywhere on this page re-runs the report with whatever filters are
-  // currently set — including inside the date picker's popup, which flatpickr
-  // renders straight to document.body outside React's tree, so a React
-  // onKeyDown on the filter bar never sees those keydowns. A page-level
-  // native listener on `document` catches it regardless of where focus is.
-  // The ref always points at the latest handleViewReport (a new function
-  // every render, closing over current filters) so the listener itself only
-  // needs to be attached once.
   const handleViewReportRef = useRef(handleViewReport);
   handleViewReportRef.current = handleViewReport;
 
@@ -277,12 +249,15 @@ const InventoryHealthReport = () => {
     return () => document.removeEventListener("keydown", onKeyDown);
   }, []);
 
+  const centerScopeKey = JSON.stringify(activeCenters);
+  const lastCenterScopeKey = useRef(centerScopeKey);
+  useEffect(() => {
+    if (lastCenterScopeKey.current === centerScopeKey) return;
+    lastCenterScopeKey.current = centerScopeKey;
+    handleViewReportRef.current();
+  }, [centerScopeKey]);
+
   const columns = useMemo(() => getInventoryHealthSummaryGridColumns(), []);
-  // Column count comes from the whole filtered result set (maxEventCounts,
-  // from the backend), not from the rows on the current page — see
-  // getInventoryHealthDetailedGridColumns for why per-page counts would be
-  // unreliable (a page sorted by severity can easily have zero of some event
-  // type even though other pages have plenty).
   const detailedColumns = useMemo(
     () => getInventoryHealthDetailedGridColumns(maxEventCounts),
     [maxEventCounts]
@@ -315,7 +290,7 @@ const InventoryHealthReport = () => {
                 tone={summary?.totalVariance < 0 ? "text-danger" : summary?.totalVariance > 0 ? "text-success" : ""}
               />
               <SummaryStat
-                label="Discard Pending"
+                label="Expired"
                 value={summary?.pendingExpiredBatches || 0}
                 tone="text-danger"
               />
