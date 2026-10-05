@@ -51,7 +51,7 @@ const CompactDataGrid = ({
   keyField = "id",
   noDataComponent = "No records found",
   rowsPerPageOptions = [10, 25, 50, 100],
-  minBodyHeight = 420,
+  minBodyHeight = 160,
 }) => {
   const totalPages = Math.max(1, Math.ceil(total / limit));
 
@@ -102,7 +102,7 @@ const CompactDataGrid = ({
           <tbody>
             {loading ? (
               <tr>
-                <td colSpan={columns.length} className="text-start py-2" style={{ paddingLeft: 20 }}>
+                <td colSpan={columns.length} className="text-start py-2 px-2">
                   <Spinner size="sm" className="text-primary" />
                 </td>
               </tr>
