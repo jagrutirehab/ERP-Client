@@ -2653,6 +2653,7 @@ export const getMissingInvoices = (data) => {
   return api.get(url.GET_MISSING_INVOICES, {
     params: {
       centerIds: data?.centerAccess,
+      month: data?.month,
     },
   });
 };
