@@ -128,8 +128,9 @@ const InventoryHealthReport = () => {
 
   const buildFilterParams = () => ({
     centers: activeCenters,
-    from: reportDate.start?.toISOString(),
-    to: reportDate.end?.toISOString(),
+    from: moment(reportDate.start).format("YYYY-MM-DD"),
+    to: moment(reportDate.end).format("YYYY-MM-DD"),
+    tz: "Asia/Kolkata",
     onlyIssues: onlyIssues ? "true" : undefined,
     issueTypes: issueTypes.length ? issueTypes.map((t) => t.value) : undefined,
     search: search.trim() || undefined,
@@ -291,7 +292,7 @@ const InventoryHealthReport = () => {
               />
               <SummaryStat
                 label="Expired"
-                value={summary?.pendingExpiredBatches || 0}
+                value={summary?.pendingExpiredQty || 0}
                 tone="text-danger"
               />
               <SummaryStat label="Discarded" value={summary?.totalDiscarded || 0} />
@@ -359,7 +360,14 @@ const InventoryHealthReport = () => {
                   <Button size="sm" color="primary" onClick={handleViewReport} disabled={loading} className="text-white">
                     {loading ? "Loading..." : "View Report"}
                   </Button>
-                  <RefreshButton onRefresh={() => loadData(page, limit)} loading={loading} />
+                  <RefreshButton
+                    onRefresh={() =>
+                      activeTab === "DETAILED"
+                        ? loadDetailed(detailedPage, detailedLimit)
+                        : loadData(page, limit)
+                    }
+                    loading={activeTab === "DETAILED" ? detailedLoading : loading}
+                  />
                 </div>
               </div>
             </CardBody>
