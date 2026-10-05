@@ -130,7 +130,6 @@ const InternalTransferForm = ({ mode = "add", requisitionId, transferType = "int
     const [medicineKey, setMedicineKey] = useState(0);
 
     const requisingCenterOptions = (centerList || [])
-        .filter((c) => isSareyaanOrder || !isSareyaanCenter(c))
         .map((c) => ({ value: c._id, label: c.title || "Unknown Center" }));
 
     const fulfillingCenterOptions = isSareyaanOrder
