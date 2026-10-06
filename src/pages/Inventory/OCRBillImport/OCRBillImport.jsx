@@ -513,6 +513,10 @@ const OCRBillImport = () => {
     [existingMedicines, medicineFormData, billDiscountAmount, billDiscountPercentage, billGrossAmount]
   );
 
+  // A row can only be imported when a medicine is selected for it.
+  const isRowTicked = (i) => !!(checkedMedicines[i] && selectedMedicineIds[i]);
+  const tickableIndices = (list) => list.filter((i) => selectedMedicineIds[i]);
+
   const requestedMissingRef = useRef(new Set());
   useEffect(() => {
     errorMedicines.forEach((med, idx) => {
@@ -2107,7 +2111,8 @@ const OCRBillImport = () => {
           const matches = await fetchMatchingMedicines(error.extractedName, error.extractedStrength, { strict: false });
           if (matches && matches.length > 0) {
             // Found matches! Add to extracted medicines
-            const nextIdx = Object.keys(matchingMedicinesMap).length + newMatches.length;
+            // Row index = where this line will sit in extractedMedicines (see startIdx below)
+            const nextIdx = extractedMedicines.length + newMatches.length;
             newMatchingMap[nextIdx] = matches;
             newMatches.push({
               _tempId: error._tempId, // Stable ID — used to look up the original extracted medicine
@@ -2180,8 +2185,13 @@ const OCRBillImport = () => {
         }
 
         if (originalMedicine || newMatch.name) {
+          // Saved values (incl. edits made in the missing table) win over the original extraction
+          const errorMedForId = originalErrorMedicine || fallbackErrorMedicine;
+          const savedErr = errorMedForId || {};
+          const pick = (k) => (savedErr[k] != null && savedErr[k] !== "" ? savedErr[k] : originalMedicine?.[k]);
+
           // Ensure expiryDate is in YYYY-MM-DD format for date input
-          let formattedExpiryDate = originalMedicine?.expiryDate || "";
+          let formattedExpiryDate = pick("expiryDate") || "";
           if (formattedExpiryDate && typeof formattedExpiryDate === "string") {
             // If it's already in YYYY-MM-DD, keep it; otherwise try to parse it
             if (!/^\d{4}-\d{2}-\d{2}$/.test(formattedExpiryDate)) {
@@ -2224,30 +2234,29 @@ const OCRBillImport = () => {
               }
 
               if (parsed && !isNaN(parsed.getTime())) {
-                formattedExpiryDate = parsed.toISOString().split('T')[0];
+                // local date parts - toISOString() shifts the date back a day east of UTC
+                formattedExpiryDate = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
               } else {
                 formattedExpiryDate = "";
               }
             }
           }
 
-          // Use first matched medicine's strength from database
-          const firstMatch = newMatch.matches?.[0];
-          const matchedStrength = firstMatch?.strength || newMatch.strength || "";
+          // Keep what the bill said; the master medicine is chosen in the dropdown
+          const matchedStrength = newMatch.strength || "";
 
           // Create a new medicine entry with the structure expected by extract step
-          const errorMedForId = originalErrorMedicine || fallbackErrorMedicine;
           updatedExtractedMedicines.push({
             _tempId: errorMedForId?._tempId, // Preserve ID for tracking across workflow
             medicineId: null, // Will be selected from dropdown
             ocrExtracted: {
               name: newMatch.name,
               strength: matchedStrength,
-              batchNumber: originalMedicine?.batchNumber || null,
-              quantity: originalMedicine?.quantity || 0,
-              unitPrice: originalMedicine?.unitPrice || null,
-              totalPrice: originalMedicine?.totalPrice || null,
-              expiryDate: originalMedicine?.expiryDate || null,
+              batchNumber: pick("batchNumber") || null,
+              quantity: pick("quantity") || 0,
+              unitPrice: pick("unitPrice") || null,
+              totalPrice: pick("totalPrice") || null,
+              expiryDate: formattedExpiryDate || null,
               confidence: originalMedicine?.confidence || 0,
             },
             masterData: {},
@@ -2259,11 +2268,11 @@ const OCRBillImport = () => {
           newFormDataEntries[startIdx] = {
             medicineName: newMatch.name,
             strength: matchedStrength,
-            quantity: originalMedicine?.quantity || 0,
-            batchNumber: originalMedicine?.batchNumber || null,
+            quantity: pick("quantity") || 0,
+            batchNumber: pick("batchNumber") || null,
             expiryDate: formattedExpiryDate,
-            unitPrice: originalMedicine?.unitPrice || null,
-            totalPrice: originalMedicine?.totalPrice || null,
+            unitPrice: pick("unitPrice") || null,
+            totalPrice: pick("totalPrice") || null,
           };
 
           // Don't auto-select on retry - let user manually verify strength match
@@ -2285,15 +2294,17 @@ const OCRBillImport = () => {
       setMatchingMedicinesMap(newMatchingMap);
 
       // Update the error medicines to remove the newly matched ones
-      const retryNames = newMatches.map(m => m.name);
-      const updatedErrors = errorMedicines.filter(e => !retryNames.includes(e.extractedName));
-      setErrorMedicines(updatedErrors);
+      const isMoved = (e) =>
+        newMatches.some((m) => (m._tempId && e._tempId ? m._tempId === e._tempId : m.name === e.extractedName));
+      const updatedErrors = errorsToRetry.filter((e) => !isMoved(e));
+      setErrorMedicines(addIdsToMedicines(updatedErrors));
 
-      // Update database to mark retried medicines as processed
+      // Replace the saved error list, so moved lines are no longer missing in the database
       try {
         await updateBillErrors({
           billImportId: billImportIdParam,
           errors: updatedErrors,
+          replace: true,
         });
       } catch (updateErr) {
         console.error("Failed to update bill errors in database:", updateErr);
@@ -2913,20 +2924,17 @@ const OCRBillImport = () => {
                             </td>
                           </tr>
                           {(
-                            <tr key={`${idx}-matches`} style={{ backgroundColor: "#f8f9fb" }}>
-                              <td colSpan={8} style={{ padding: "0.5rem 1rem" }}>
-                                <div className="d-flex align-items-center gap-2 flex-wrap">
-                                  <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b5563" }}>
-                                    Match to:
-                                  </span>
-                                  <div style={{ minWidth: "280px", flex: 1 }}>
-                                    <MissedMedicineSearch
+                            <tr key={`${idx}-matches`} style={{ backgroundColor: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
+                              <td style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b5563", verticalAlign: "middle" }}>Match to:</td>
+                                <td colSpan={6} style={{ verticalAlign: "middle" }}>
+                                  <MissedMedicineSearch
                                       candidates={errorMatchingMedicinesMap[idx]}
                                       selectedId={selectedErrorMedicineIds[idx]}
                                       onPick={(med) => handleSearchPick(idx, med)}
                                       onClear={() => setSelectedErrorMedicineIds((prev) => ({ ...prev, [idx]: null }))}
                                     />
-                                  </div>
+                                </td>
+                                <td style={{ textAlign: "right", verticalAlign: "middle" }}>
                                   <Button
                                     color="success"
                                     size="sm"
@@ -2936,8 +2944,7 @@ const OCRBillImport = () => {
                                   >
                                     Move to Extracted
                                   </Button>
-                                </div>
-                              </td>
+                                </td>
                             </tr>
                           )}
                           </React.Fragment>
@@ -3170,21 +3177,18 @@ const OCRBillImport = () => {
                                 </td>
                               </tr>
                               {(
-                                <tr key={`${idx}-matches`} style={{ backgroundColor: "#f8f9fb" }}>
-                                  <td colSpan={8} style={{ padding: "0.5rem 1rem" }}>
-                                    <div className="d-flex align-items-center gap-2 flex-wrap">
-                                      <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b5563" }}>
-                                        Match to:
-                                      </span>
-                                      <div style={{ minWidth: "280px", flex: 1 }}>
-                                        <MissedMedicineSearch
+                                <tr key={`${idx}-matches`} style={{ backgroundColor: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
+                                  <td style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b5563", verticalAlign: "middle" }}>Match to:</td>
+                                <td colSpan={6} style={{ verticalAlign: "middle" }}>
+                                  <MissedMedicineSearch
                                           candidates={errorMatchingMedicinesMap[idx]}
                                           selectedId={selectedErrorMedicineIds[idx]}
                                           onPick={(med) => handleSearchPick(idx, med)}
                                           onClear={() => setSelectedErrorMedicineIds((prev) => ({ ...prev, [idx]: null }))}
                                         />
-                                      </div>
-                                      <Button
+                                </td>
+                                <td style={{ textAlign: "right", verticalAlign: "middle" }}>
+                                  <Button
                                         color="success"
                                         size="sm"
                                         disabled={!selectedErrorMedicineIds[idx]}
@@ -3193,8 +3197,7 @@ const OCRBillImport = () => {
                                       >
                                         Move to Extracted
                                       </Button>
-                                    </div>
-                                  </td>
+                                </td>
                                 </tr>
                               )}
                               </React.Fragment>
@@ -3292,14 +3295,21 @@ const OCRBillImport = () => {
                       <th style={{ width: "3%" }}>
                         <Input
                           type="checkbox"
-                          checked={Object.keys(checkedMedicines).length === extractedMedicines.length}
+                          disabled={tickableIndices(extractedMedicines.map((_, i) => i)).length === 0}
+                          checked={
+                            tickableIndices(extractedMedicines.map((_, i) => i)).length > 0 &&
+                            tickableIndices(extractedMedicines.map((_, i) => i)).every((i) => isRowTicked(i))
+                          }
                           onChange={(e) => {
                             if (e.target.checked) {
                               const allChecked = {};
-                              extractedMedicines.forEach((_, i) => {
+                              tickableIndices(extractedMedicines.map((_, i) => i)).forEach((i) => {
                                 allChecked[i] = true;
                               });
                               setCheckedMedicines(allChecked);
+                              if (tickableIndices(extractedMedicines.map((_, i) => i)).length < extractedMedicines.length) {
+                                toast.info("Rows without a selected medicine were not ticked.");
+                              }
                             } else {
                               setCheckedMedicines({});
                             }
@@ -3325,13 +3335,18 @@ const OCRBillImport = () => {
                         return null;
                       }
                       return (
-                      <tr key={idx} className={checkedMedicines[idx] ? "row-checked" : "row-unchecked"}>
+                      <tr key={idx} className={isRowTicked(idx) ? "row-checked" : "row-unchecked"}>
                         <td>
                           <Input
                             type="checkbox"
-                            checked={!!checkedMedicines[idx]}
+                            disabled={!selectedMedicineIds[idx]}
+                            checked={isRowTicked(idx)}
                             onChange={(e) => {
                               if (e.target.checked) {
+                                if (!selectedMedicineIds[idx]) {
+                                  toast.warning("Select a medicine for this row before ticking it.");
+                                  return;
+                                }
                                 setCheckedMedicines({
                                   ...checkedMedicines,
                                   [idx]: true,
@@ -3529,7 +3544,7 @@ const OCRBillImport = () => {
             <Button
               color="primary"
               onClick={handleProceedFromExtraction}
-              disabled={confirmationLoading || extractedMedicines.length === 0 || Object.keys(checkedMedicines).length === 0}
+              disabled={confirmationLoading || extractedMedicines.every((_, i) => !isRowTicked(i))}
             >
               {confirmationLoading ? (
                 <>
