@@ -118,7 +118,18 @@ export const billUploadDashboardColumns = ({
                 name: "Actions",
                 cell: (row) => (
                     <div className="d-flex gap-1 flex-wrap">
-                        {(row.errors?.length > 0) && (
+                        {/* Never submitted: reopen the whole bill (matched + missing medicines) */}
+                        {row.status === "PENDING" && (
+                            <Button
+                                size="sm"
+                                color="primary"
+                                className="text-white"
+                                onClick={() => navigate("/pharmacy/ocr-bill-import", { state: { resumeBillId: row._id } })}
+                            >
+                                Resume
+                            </Button>
+                        )}
+                        {row.status !== "PENDING" && (row.errors?.length > 0) && (
                             <Button
                                 size="sm"
                                 color="primary"

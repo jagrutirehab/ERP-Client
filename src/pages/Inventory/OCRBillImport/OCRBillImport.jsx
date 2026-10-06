@@ -34,18 +34,23 @@ import {
 import FileUpload from "../../CashManagement/Components/FileUpload";
 import { normalizeUnderscores } from "../../../utils/normalizeUnderscore";
 
-// Typeahead for a missed medicine: type -> pick -> parent adds it to that row's match list.
-const MissedMedicineSearch = ({ onPick }) => {
+// One control for a missed medicine: the auto-found matches are the default options,
+// typing searches the whole master. Picking sets the selection for that row.
+const MissedMedicineSearch = ({ candidates, selectedId, onPick, onClear }) => {
   const timer = useRef(null);
+  const toOption = (m) => ({ value: m._id || m.id, label: formatMedicineLabel(m), data: m });
+  const defaults = (candidates || []).map(toOption);
+  const selected = selectedId ? defaults.find((o) => o.value === selectedId) || null : null;
+
   const loadOptions = (input) =>
     new Promise((resolve) => {
       clearTimeout(timer.current);
-      if (!input || input.trim().length < 2) return resolve([]);
+      if (!input || input.trim().length < 2) return resolve(defaults);
       timer.current = setTimeout(async () => {
         try {
           const res = await getMatchingMedicines({ extractedName: input.trim(), typeahead: true });
           const list = Array.isArray(res?.data) ? res.data : [];
-          resolve(list.map((m) => ({ value: m._id, label: formatMedicineLabel(m), data: m })));
+          resolve(list.map(toOption));
         } catch (e) {
           resolve([]);
         }
@@ -54,12 +59,13 @@ const MissedMedicineSearch = ({ onPick }) => {
 
   return (
     <AsyncSelect
-      cacheOptions
-      defaultOptions={false}
+      key={defaults.map((o) => o.value).join(",")}
+      defaultOptions={defaults}
       loadOptions={loadOptions}
-      onChange={(opt) => opt && onPick(opt.data)}
-      value={null}
-      placeholder="Search medicine by name or ID..."
+      value={selected}
+      onChange={(opt) => (opt ? onPick(opt.data) : onClear())}
+      isClearable
+      placeholder="Search or pick the correct medicine..."
       noOptionsMessage={({ inputValue }) =>
         inputValue && inputValue.trim().length >= 2 ? "No medicines found" : "Type at least 2 letters"
       }
@@ -312,19 +318,17 @@ const OCRBillImport = () => {
       cell: (row) => (
         <div>
           <Input type="number" bsSize="sm" value={row.quantity || ""} onChange={(e) => handleFormChange(row.idx, "quantity", e.target.value)} placeholder="0" style={{ fontSize: "0.85rem", width: "100%" }} />
-          <small className="text-muted d-block mt-1">{row.purchaseUnit}</small>
+          <small className="text-muted d-block mt-1">{row.baseUnit}</small>
         </div>
       ),
     },
     {
-      name: <div>In Base Unit</div>,
+      name: <div>Packs (price unit)</div>,
       width: "130px",
       cell: (row) => (
-        <div>
-          <small className="text-muted d-block">
-            = {row.qty === 0 ? "—" : `${row.baseUnitQtyDisplay} ${row.baseUnit}`}
-          </small>
-        </div>
+        <small className="text-muted">
+          {row.qty === 0 ? "—" : `${row.packQtyDisplay} ${row.purchaseUnit}`}
+        </small>
       ),
     },
     {
@@ -378,16 +382,16 @@ const OCRBillImport = () => {
       cell: (row) => (
         <div>
           <Input type="number" bsSize="sm" value={row.quantity || ""} onChange={(e) => handleFormChange(row.idx, "quantity", e.target.value)} placeholder="0" style={{ fontSize: "0.85rem", width: "100%" }} />
-          <small className="text-muted d-block mt-1">{row.purchaseUnit}</small>
+          <small className="text-muted d-block mt-1">{row.baseUnit}</small>
         </div>
       ),
     },
     {
-      name: <div>Adding (Base Unit)</div>,
+      name: <div>Packs (price unit)</div>,
       width: "130px",
       cell: (row) => (
         <small className="text-muted">
-          {row.qty === 0 ? "—" : `+ ${row.baseUnitQtyDisplay} ${row.baseUnit}`}
+          {row.qty === 0 ? "—" : `${row.packQtyDisplay} ${row.purchaseUnit}`}
         </small>
       ),
     },
@@ -429,12 +433,21 @@ const OCRBillImport = () => {
   // Build the per-row display data for new + existing tables.
   // Both pull discount from the single helper so what the user sees is
   // exactly what will be persisted (no more display/save divergence).
+  // Quantity is entered/stored in the BASE unit; price is per PURCHASE unit.
+  // factor = base units per purchase unit, so packs = baseQty / factor.
+  const getConversionFactor = (medicine) => {
+    const conv = medicine?.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
+    return (conv.baseQuantity || 1) / (conv.purchaseQuantity || 1);
+  };
+
   const buildRowDisplay = (collection) => {
-    const lines = collection.map(({ idx }) => {
+    const lines = collection.map(({ idx, result }) => {
       const fd = medicineFormData[idx] || {};
+      const factor = getConversionFactor(result?.selectedMedicine) || 1;
       return {
         unitPrice: parseFloat(fd.unitPrice) || 0,
-        quantity: parseFloat(fd.quantity) || 0,
+        // line total = price per pack x number of packs
+        quantity: (parseFloat(fd.quantity) || 0) / factor,
       };
     });
     const discounts = computeDiscountedPrices(lines, billDiscountAmount, billDiscountPercentage, billGrossAmount);
@@ -450,10 +463,9 @@ const OCRBillImport = () => {
       };
 
       const purchaseUnit = selectedMedicine?.purchaseUnit || selectedMedicine?.baseUnit || "unit";
-      const conv = selectedMedicine?.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
-      const factor = (conv.baseQuantity || 1) / (conv.purchaseQuantity || 1);
-      const baseUnitQty = qty * factor;
-      const baseUnitQtyDisplay = qty === 0 ? "—" : baseUnitQty.toFixed(2);
+      const factor = getConversionFactor(selectedMedicine) || 1;
+      const baseUnitQty = qty;
+      const packQtyDisplay = qty === 0 ? "—" : String(Math.round((qty / factor) * 100) / 100);
 
       // Once the user manually edits Purchase Price, that value is final —
       // it must stop being overwritten by the auto-discount recompute on
@@ -480,7 +492,7 @@ const OCRBillImport = () => {
         quantity: formData.quantity || "",
         qty,
         purchaseUnit,
-        baseUnitQtyDisplay,
+        packQtyDisplay,
         purchasePrice: displayedPurchasePrice,
         discountedPrice: displayedPurchasePrice,
         medicineDiscount,
@@ -686,7 +698,9 @@ const OCRBillImport = () => {
   };
 
   // Get matching medicines for user confirmation
-  const fetchMatchingMedicines = async (extractedName, extractedStrength) => {
+  // strict (default): strength must match - used for bill lines in the review table.
+  // strict: false: name only - used for missing medicines (search, edit, retry).
+  const fetchMatchingMedicines = async (extractedName, extractedStrength, { strict = true } = {}) => {
     if (!extractedName || extractedName.trim() === "") {
       console.warn("⚠️ fetchMatchingMedicines: Empty name provided");
       return [];
@@ -701,7 +715,8 @@ const OCRBillImport = () => {
 
       const apiCall = getMatchingMedicines({
         extractedName: extractedName.trim(),
-        extractedStrength: extractedStrength?.trim() || "",
+        extractedStrength: strict ? extractedStrength?.trim() || "" : "",
+        strictStrength: strict,
       });
 
       // Race between API call and timeout
@@ -1089,7 +1104,7 @@ const OCRBillImport = () => {
 
           if (medicineName && medicineName.trim() !== "") {
             console.log(`Refetching matches for error idx ${idx}: "${medicineName}" ${strength}`);
-            const matches = await fetchMatchingMedicines(medicineName, strength);
+            const matches = await fetchMatchingMedicines(medicineName, strength, { strict: false });
             setErrorMatchingMedicinesMap((prevMap) => ({
               ...prevMap,
               [idx]: matches,
@@ -1147,7 +1162,7 @@ const OCRBillImport = () => {
 
     setErrorSearchLoading((prev) => ({ ...prev, [idx]: true }));
     try {
-      const matches = await fetchMatchingMedicines(name, strength);
+      const matches = await fetchMatchingMedicines(name, strength, { strict: false });
       setErrorMatchingMedicinesMap((prev) => ({ ...prev, [idx]: matches || [] }));
       // Clear any prior selection for this row since the match list changed
       setSelectedErrorMedicineIds((prev) => {
@@ -1236,8 +1251,9 @@ const OCRBillImport = () => {
     setExtractedFormData(prev => ({
       ...prev,
       [newIdx]: {
-        medicineName: selectedMed.name,
-        strength: selectedMed.strength || "",
+        // Keep what the bill said; the matched master medicine is shown in the dropdown
+        medicineName: formData.extractedName || selectedMed.name,
+        strength: formData.extractedStrength ?? (selectedMed.strength || ""),
         quantity: formData.quantity || 0,
         batchNumber: formData.batchNumber || "",
         expiryDate: formData.expiryDate || "",
@@ -1310,7 +1326,8 @@ const OCRBillImport = () => {
     try {
       const matches = await fetchMatchingMedicines(
         editingMissingMedicineData.extractedName,
-        editingMissingMedicineData.extractedStrength
+        editingMissingMedicineData.extractedStrength,
+        { strict: false }
       );
       setEditingMissingMatches(matches || []);
       if (!matches || matches.length === 0) {
@@ -1865,8 +1882,43 @@ const OCRBillImport = () => {
       setBillFinalAmount(calculatedFinalAmount);
       setBillTotal(meta.totalAmount || 0);
 
-      // Transform medicines from flat structure to nested structure expected by component
-      const transformedMedicines = addIdsToMedicines((billData.extractedData?.medicines || []).map((med) => ({
+      // Everything extracted from the bill that has NOT been added to inventory yet.
+      // Already-processed lines are skipped (matched by _tempId, then name+strength).
+      const processedTempIds = new Set(
+        (billData.processedItems || []).map((item) => item._tempId).filter(Boolean)
+      );
+      const processedNameStrength = new Set(
+        (billData.processedItems || []).map((item) => {
+          const name = (item.pharmacyId?.medicineName || "").toLowerCase().trim();
+          const strength = (item.pharmacyId?.Strength || "").toLowerCase().trim();
+          return name ? `${name}|${strength}` : null;
+        }).filter(Boolean)
+      );
+      const isProcessedLine = (m) =>
+        (m._tempId && processedTempIds.has(m._tempId)) ||
+        processedNameStrength.has(`${(m.name || "").toLowerCase().trim()}|${(m.strength || "").toLowerCase().trim()}`);
+
+      const pendingLines = addIdsToMedicines(
+        (billData.extractedData?.medicines || []).filter((m) => !isProcessedLine(m))
+      );
+
+      // Look every pending line up again (the master / matcher may have changed since upload)
+      const matchesByTempId = {};
+      for (const med of pendingLines) {
+        try {
+          matchesByTempId[med._tempId] = (await fetchMatchingMedicines(med.name, med.strength)) || [];
+        } catch (err) {
+          console.error(`  Error fetching matches for "${med.name}":`, err);
+          matchesByTempId[med._tempId] = [];
+        }
+      }
+
+      const withMatches = pendingLines.filter((m) => matchesByTempId[m._tempId].length > 0);
+      const withoutMatches = pendingLines.filter((m) => matchesByTempId[m._tempId].length === 0);
+
+      // Matched lines go to the review table (same shape as a fresh extraction)
+      const transformedMedicines = withMatches.map((med) => ({
+        _tempId: med._tempId,
         medicineId: null, // Will be selected from matching medicines
         ocrExtracted: {
           name: med.name || "",
@@ -1881,11 +1933,11 @@ const OCRBillImport = () => {
         masterData: {},
         matchingMedicines: [],
         strengthWarning: false,
-      })));
+      }));
       setExtractedMedicines(transformedMedicines);
 
-      // Rebuild extractedFormData
       const initialData = {};
+      const matchingMap = {};
       transformedMedicines.forEach((med, idx) => {
         initialData[idx] = {
           medicineName: med.ocrExtracted.name || "",
@@ -1896,34 +1948,42 @@ const OCRBillImport = () => {
           unitPrice: med.ocrExtracted.unitPrice || "",
           totalPrice: med.ocrExtracted.totalPrice || "",
         };
+        matchingMap[idx] = matchesByTempId[med._tempId];
       });
       setExtractedFormData(initialData);
-
-      // Fetch matching medicines
-      const medicinesCount = billData.extractedData?.medicines?.length || 0;
-      console.log(`  🔄 Fetching matches for ${medicinesCount} medicines...`);
-      const matchingMap = {};
-
-      for (let idx = 0; idx < medicinesCount; idx++) {
-        const med = billData.extractedData?.medicines[idx];
-        console.log(`    [${idx}] Fetching matches for "${med.name}" strength="${med.strength || ""}"`);
-        try {
-          const matches = await fetchMatchingMedicines(med.name, med.strength);
-          console.log(`    [${idx}] Got ${matches ? matches.length : 0} matches`);
-          matchingMap[idx] = matches || [];
-        } catch (err) {
-          console.error(`    [${idx}] ❌ Error fetching matches:`, err);
-          matchingMap[idx] = [];
-        }
-      }
-      console.log("  ✅ All medicines processed. Final matchingMap:", matchingMap);
       setMatchingMedicinesMap(matchingMap);
+      setCheckedMedicines({});
+      setSelectedMedicineIds({});
+
+      // Unmatched lines stay in the missing list. Keep the saved error entry when there
+      // is one (it carries the user's edits); otherwise build it from the extracted line.
+      const savedErrorsById = new Map((billData.errors || []).filter((e) => e._tempId).map((e) => [e._tempId, e]));
+      const missingList = withoutMatches.map((med) => {
+        const saved = savedErrorsById.get(med._tempId) || {};
+        return {
+          ...saved,
+          _tempId: med._tempId,
+          extractedName: saved.extractedName ?? med.name ?? "",
+          extractedStrength: saved.extractedStrength ?? med.strength ?? "",
+          quantity: med.quantity || 0,
+          batchNumber: med.batchNumber || null,
+          expiryDate: med.expiryDate || null,
+          unitPrice: med.unitPrice || null,
+          totalPrice: med.totalPrice || null,
+          reason: saved.reason || "No matching medicine found in master database",
+        };
+      });
+      // Saved errors that are not part of extractedData (legacy records without _tempId)
+      (billData.errors || []).forEach((e) => {
+        const inPending = e._tempId && pendingLines.some((m) => m._tempId === e._tempId);
+        if (!inPending && !(e._tempId && processedTempIds.has(e._tempId))) missingList.push(e);
+      });
+      setErrorMedicines(addIdsToMedicines(missingList));
       setIsResuming(false);
 
       // Show notification about missing medicines
-      if (billData.errors && billData.errors.length > 0) {
-        setError(`You have ${billData.errors.length} missing medicine(s) from previous attempt. You can edit their names/strength and search again below.`);
-        toast.info(`${billData.errors.length} missing medicine(s) - Edit and search again!`);
+      if (missingList.length > 0) {
+        toast.info(`${missingList.length} missing medicine(s) - Edit and search again!`);
       }
 
       setStep("extract");
@@ -1965,6 +2025,8 @@ const OCRBillImport = () => {
       setBillGrossAmount(meta.grossAmount || 0);
       setBillDiscountPercentage(meta.discountPercentage || 0);
       setBillDiscountAmount(meta.discountAmount || 0);
+      // Same rule as a fresh extraction / resume: final = gross - discount
+      setBillFinalAmount((meta.grossAmount || 0) - (meta.discountAmount || 0));
       setBillTotal(meta.totalAmount || 0);
 
       // Filter out medicines that are already processed (added to inventory).
@@ -2032,7 +2094,7 @@ const OCRBillImport = () => {
       console.log(`🔄 Retrying ${errorsToRetry.length} missing medicines...`);
       for (const error of errorsToRetry) {
         try {
-          const matches = await fetchMatchingMedicines(error.extractedName, error.extractedStrength);
+          const matches = await fetchMatchingMedicines(error.extractedName, error.extractedStrength, { strict: false });
           if (matches && matches.length > 0) {
             // Found matches! Add to extracted medicines
             const nextIdx = Object.keys(matchingMedicinesMap).length + newMatches.length;
@@ -2844,49 +2906,16 @@ const OCRBillImport = () => {
                             <tr key={`${idx}-matches`} style={{ backgroundColor: "#f8f9fb" }}>
                               <td colSpan={8} style={{ padding: "0.5rem 1rem" }}>
                                 <div className="d-flex align-items-center gap-2 flex-wrap">
-                                  {errorMatchingMedicinesMap[idx]?.length > 0 && (
-                                  <>
                                   <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b5563" }}>
-                                    Select match:
+                                    Match to:
                                   </span>
                                   <div style={{ minWidth: "280px", flex: 1 }}>
-                                    <Select
-                                      options={errorMatchingMedicinesMap[idx].map((m) => ({
-                                        value: m._id || m.id,
-                                        label: formatMedicineLabel(m),
-                                      }))}
-                                      value={
-                                        selectedErrorMedicineIds[idx]
-                                          ? {
-                                              value: selectedErrorMedicineIds[idx],
-                                              label: (() => {
-                                                const m = errorMatchingMedicinesMap[idx].find(
-                                                  (x) => (x._id || x.id) === selectedErrorMedicineIds[idx]
-                                                );
-                                                return formatMedicineLabel(m);
-                                              })(),
-                                            }
-                                          : null
-                                      }
-                                      onChange={(opt) => {
-                                        setSelectedErrorMedicineIds((prev) => ({
-                                          ...prev,
-                                          [idx]: opt?.value || null,
-                                        }));
-                                      }}
-                                      placeholder="Pick the correct medicine..."
-                                      isClearable
-                                      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                                      menuPosition="fixed"
-                                      styles={{
-                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                                      }}
+                                    <MissedMedicineSearch
+                                      candidates={errorMatchingMedicinesMap[idx]}
+                                      selectedId={selectedErrorMedicineIds[idx]}
+                                      onPick={(med) => handleSearchPick(idx, med)}
+                                      onClear={() => setSelectedErrorMedicineIds((prev) => ({ ...prev, [idx]: null }))}
                                     />
-                                  </div>
-                                  </>
-                                  )}
-                                  <div style={{ minWidth: "280px", flex: 1 }}>
-                                    <MissedMedicineSearch onPick={(med) => handleSearchPick(idx, med)} />
                                   </div>
                                   <Button
                                     color="success"
@@ -2913,16 +2942,18 @@ const OCRBillImport = () => {
 
           {extractedMedicines.length === 0 && (
             <div className="text-center py-5">
-              <Alert color="warning" className="mb-4">
-                <h5 className="font-weight-bold">No Medicines Extracted</h5>
-                <p className="mb-0">
-                  No medicines were found in the bill. Please try uploading a different bill.
-                </p>
-              </Alert>
+              {errorMedicines.length === 0 && (
+                <Alert color="warning" className="mb-4">
+                  <h5 className="font-weight-bold">No Medicines Extracted</h5>
+                  <p className="mb-0">
+                    No medicines were found in the bill. Please try uploading a different bill.
+                  </p>
+                </Alert>
+              )}
 
               {errorMedicines.length > 0 && (
-                <Card className="border-warning mt-4">
-                  <CardHeader className="bg-light border-warning">
+                <Card className="mt-4 shadow-sm" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+                  <CardHeader style={{ background: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
                     <Row className="align-items-center">
                       <Col>
                         <h6 className="mb-0 font-weight-bold">Missing Medicines Found ({errorMedicines.length})</h6>
@@ -3132,49 +3163,16 @@ const OCRBillImport = () => {
                                 <tr key={`${idx}-matches`} style={{ backgroundColor: "#f8f9fb" }}>
                                   <td colSpan={8} style={{ padding: "0.5rem 1rem" }}>
                                     <div className="d-flex align-items-center gap-2 flex-wrap">
-                                      {errorMatchingMedicinesMap[idx]?.length > 0 && (
-                                      <>
                                       <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b5563" }}>
-                                        Select match:
+                                        Match to:
                                       </span>
                                       <div style={{ minWidth: "280px", flex: 1 }}>
-                                        <Select
-                                          options={errorMatchingMedicinesMap[idx].map((m) => ({
-                                            value: m._id || m.id,
-                                            label: formatMedicineLabel(m),
-                                          }))}
-                                          value={
-                                            selectedErrorMedicineIds[idx]
-                                              ? {
-                                                  value: selectedErrorMedicineIds[idx],
-                                                  label: (() => {
-                                                    const m = errorMatchingMedicinesMap[idx].find(
-                                                      (x) => (x._id || x.id) === selectedErrorMedicineIds[idx]
-                                                    );
-                                                    return formatMedicineLabel(m);
-                                                  })(),
-                                                }
-                                              : null
-                                          }
-                                          onChange={(opt) => {
-                                            setSelectedErrorMedicineIds((prev) => ({
-                                              ...prev,
-                                              [idx]: opt?.value || null,
-                                            }));
-                                          }}
-                                          placeholder="Pick the correct medicine..."
-                                          isClearable
-                                          menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                                          menuPosition="fixed"
-                                          styles={{
-                                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                                          }}
+                                        <MissedMedicineSearch
+                                          candidates={errorMatchingMedicinesMap[idx]}
+                                          selectedId={selectedErrorMedicineIds[idx]}
+                                          onPick={(med) => handleSearchPick(idx, med)}
+                                          onClear={() => setSelectedErrorMedicineIds((prev) => ({ ...prev, [idx]: null }))}
                                         />
-                                      </div>
-                                      </>
-                                      )}
-                                      <div style={{ minWidth: "280px", flex: 1 }}>
-                                        <MissedMedicineSearch onPick={(med) => handleSearchPick(idx, med)} />
                                       </div>
                                       <Button
                                         color="success"
@@ -4043,284 +4041,176 @@ const OCRBillImport = () => {
         className="p-3 bg-white"
         style={isMobile ? { width: "100%" } : { width: "78%" }}
       >
-        <div className="px-3 pt-3">
-          <h5 className="mb-1 text-success text-uppercase font-weight-bold">
-            Bill Processing Complete!
-          </h5>
-          <small className="text-muted">
-            Your pharmacy inventory has been updated successfully
-          </small>
+        <div className="px-3 pt-3 d-flex align-items-center" style={{ gap: "0.85rem" }}>
+          <span
+            style={{
+              width: 36,
+              height: 36,
+              flex: "0 0 36px",
+              borderRadius: "50%",
+              background: "#111827",
+              color: "#fff",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1rem",
+            }}
+          >
+            {"\u2713"}
+          </span>
+          <div>
+            <h5 className="mb-0 font-weight-bold" style={{ color: "#111827" }}>
+              Bill processed
+            </h5>
+            <small className="text-muted">
+              {[billNumber && `Bill ${billNumber}`, billSupplier].filter(Boolean).join(" \u00b7 ") ||
+                "Your inventory has been updated"}
+            </small>
+          </div>
         </div>
-        <hr className="mb-4 border-secondary" />
+        <hr className="mb-4" style={{ borderColor: "#e5e7eb" }} />
 
         <div className="content-wrapper">
+          <style>{`
+            .result-table { margin-bottom: 0; }
+            .result-table thead th {
+              background: #f8f9fb;
+              font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+              color: #6b7280; padding: 0.65rem 0.9rem !important;
+              border-bottom: 1px solid #e5e7eb !important; border-top: 0 !important; white-space: nowrap;
+            }
+            .result-table td {
+              padding: 0.7rem 0.9rem !important; vertical-align: middle;
+              border-top: 0 !important; border-bottom: 1px solid #eef0f3 !important;
+              font-size: 0.875rem; color: #111827;
+            }
+            .result-table tbody tr:last-child td { border-bottom: 0 !important; }
+            .result-table tbody tr:hover { background: #f8fafc; }
+          `}</style>
 
-          <Row className="mb-4">
-            <Col md="6">
-              <Card className="border-0 shadow-sm text-center">
-                <CardBody>
-                  <h5 className="text-primary">Medicines Processed</h5>
-                  <h2 className="font-weight-bold text-primary">
-                    {successResult?.updatedItems?.length || 0}
-                  </h2>
-                </CardBody>
-              </Card>
-            </Col>
-            {successResult?.errors?.length > 0 && (
-              <Col md="6">
-                <Card className="border-0 shadow-sm text-center">
-                  <CardBody>
-                    <h5 className="text-danger">Errors</h5>
-                    <h2 className="font-weight-bold text-danger">
-                      {successResult.errors.length}
-                    </h2>
-                  </CardBody>
-                </Card>
-              </Col>
-            )}
-          </Row>
+          {(() => {
+            const addedCount = successResult?.updatedItems?.length || 0;
+            const failedCount = successResult?.errors?.length || 0;
+            const tiles = [
+              { label: "Added to inventory", value: addedCount },
+              ...((successResult?.requisitions || []).length > 0
+                ? [{ label: "Requisitions raised", value: successResult.requisitions.length }]
+                : []),
+              ...(failedCount > 0 ? [{ label: "Failed", value: failedCount }] : []),
+            ];
+            return (
+              <Row className="mb-4 g-2">
+                {tiles.map((t) => (
+                  <Col xs="auto" key={t.label}>
+                    <div style={{ minWidth: 150, padding: "0.5rem 0.9rem", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6 }}>
+                      <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>{t.label}</div>
+                      <div style={{ fontSize: "1.25rem", fontWeight: 600, color: "#111827", fontVariantNumeric: "tabular-nums" }}>{t.value}</div>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+            );
+          })()}
 
           {successResult.updatedItems.length > 0 && (
-            <Card className="border-0 shadow-sm mb-4 border-success border-start border-5">
-              <CardHeader className="bg-light border-0">
-                <h6 className="mb-0 font-weight-bold">✓ Medicines Added to Inventory ({successResult.updatedItems.length})</h6>
+            <Card className="shadow-sm mb-4" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+              <CardHeader style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "0.85rem 1rem" }}>
+                <h6 className="mb-0 font-weight-bold">Added to inventory ({successResult.updatedItems.length})</h6>
               </CardHeader>
               <CardBody className="p-0">
-                {successResult.updatedItems.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="border-bottom p-3"
-                    style={{
-                      backgroundColor:
-                        idx % 2 === 0 ? "#f8f9fa" : "transparent",
-                    }}
-                  >
-                    <Row className="align-items-start">
-                      <Col md="6">
-                        <div className="mb-2">
-                          <h6 className="mb-1 font-weight-bold">
-                            {item.medicineName} {item.strength ? `(${item.strength})` : ""}
-                          </h6>
-                          <small className="text-muted d-block">
-                            <strong>Batch:</strong> {item.batchNumber}
-                          </small>
-                          <small className="text-muted d-block">
-                            <strong>Expiry:</strong> {item.expiryDate || "—"}
-                          </small>
-                        </div>
-                      </Col>
-                      <Col md="6">
-                        <div className="text-md-end">
-                          <div className="mb-2">
-                            <Badge color="success" className="px-3 py-2 me-2">
-                              Qty: {item.quantity} {item.baseUnit || "units"}
-                            </Badge>
-                          </div>
-                          <div>
-                            <small className="text-muted">
-                              <strong>Pharmacy ID:</strong> {item.pharmacyId}
-                            </small>
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
+                <div className="table-responsive">
+                  <table className="table result-table">
+                    <thead>
+                      <tr>
+                        <th>Medicine</th>
+                        <th>Batch</th>
+                        <th>Expiry</th>
+                        <th style={{ textAlign: "right" }}>Qty added</th>
+                        <th>Inventory ID</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {successResult.updatedItems.map((item, idx) => (
+                        <tr key={idx}>
+                          <td style={{ fontWeight: 500 }}>
+                            {item.medicineMaster
+                              ? formatMedicineLabel(item.medicineMaster)
+                              : [item.medicineName, item.medicineStrength || item.strength].filter(Boolean).join(" ")}
+                          </td>
+                          <td>{item.batchNumber || "\u2014"}</td>
+                          <td>{item.expiryDate || "\u2014"}</td>
+                          <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                            <strong>{item.quantity}</strong>{" "}
+                            <span className="text-muted">{item.baseUnit || "units"}</span>
+                          </td>
+                          <td className="text-muted">{item.pharmacyId}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </CardBody>
             </Card>
           )}
 
-          {(successResult.pendingErrors || [])?.length > 0 && (
-            <Card className="border-0 shadow-sm mb-4 border-warning border-start border-5">
-              <CardHeader className="bg-light border-0">
-                <h6 className="mb-0 font-weight-bold">Missing Medicines ({(successResult.pendingErrors || []).length})</h6>
-                <small className="text-muted">These medicines need to be retried or edited</small>
+          {(successResult.requisitions || []).length > 0 && (
+            <Card className="shadow-sm mb-4" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+              <CardHeader style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "0.85rem 1rem" }}>
+                <h6 className="mb-0 font-weight-bold">Requisitions raised ({successResult.requisitions.length})</h6>
+                <small className="text-muted">These medicines are not in the master yet. They stay missing on this bill and can be retried from Bill Upload History.</small>
               </CardHeader>
               <CardBody className="p-0">
-                {(successResult.pendingErrors || []).map((medicine, idx) => (
-                  <div
-                    key={idx}
-                    className="border-bottom p-3"
-                    style={{
-                      backgroundColor:
-                        idx % 2 === 0 ? "#fffbf0" : "transparent",
-                    }}
-                  >
-                    <Row className="align-items-start">
-                      <Col md="6">
-                        <div className="mb-2">
-                          <h6 className="mb-1 font-weight-bold">
-                            {medicine.extractedName} {medicine.extractedStrength ? `(${medicine.extractedStrength})` : ""}
-                          </h6>
-                          <small className="text-muted d-block">
-                            <strong>Batch:</strong> {medicine.batchNumber || "—"}
-                          </small>
-                          <small className="text-muted d-block">
-                            <strong>Expiry:</strong> {medicine.expiryDate || "—"}
-                          </small>
-                          <small className="text-muted d-block">
-                            <strong>Qty:</strong> {medicine.quantity || 0}
-                          </small>
-                        </div>
-                      </Col>
-                      <Col md="6">
-                        <div className="text-md-end">
-                          <Badge color="warning" className="px-3 py-2 mb-2 d-inline-block">
-                            Price: ₹{medicine.unitPrice || "0"}
-                          </Badge>
-                          <div className="mt-2">
-                            <small className="text-danger d-block">
-                              <strong>Reason:</strong>
-                            </small>
-                            <small className="text-danger">
-                              {medicine.reason || "Not matched in master database"}
-                            </small>
-                          </div>
-                          <div className="mt-3">
-                            <Button
-                              color="warning"
-                              size="sm"
-                              onClick={() => handleEditMissingMedicine(medicine, idx)}
-                              outline
-                            >
-                              Edit & Search
-                            </Button>
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
+                <div className="table-responsive">
+                  <table className="table result-table">
+                    <thead>
+                      <tr>
+                        <th>Requisition ID</th>
+                        <th>Medicine</th>
+                        <th style={{ textAlign: "right" }}>Qty on bill</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {successResult.requisitions.map((r, idx) => (
+                        <tr key={idx}>
+                          <td style={{ fontWeight: 600 }}>{r.requisitionNumber}</td>
+                          <td style={{ fontWeight: 500 }}>{[r.name, r.strength].filter(Boolean).join(" ")}</td>
+                          <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{r.quantity || "\u2014"}</td>
+                          <td className="text-muted">{r.reused ? "Pending (already raised)" : "Pending"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </CardBody>
             </Card>
           )}
 
           {successResult.errors?.length > 0 && (
-            <Card className="border-0 shadow-sm mb-4 border-danger border-start border-5">
-              <CardBody>
-                <h6 className="mb-3 text-danger">Failed Medicines ({successResult.errors.length})</h6>
-                <Alert color="danger" className="mb-3">
-                  {successResult.errors.map((err, idx) => (
-                    <div key={idx} className="mb-2">
-                      {err.error}
-                    </div>
-                  ))}
-                </Alert>
-                {successResult.errors?.length > 0 && (
-                  <Button
-                    color="danger"
-                    size="sm"
-                    onClick={() => downloadFailedMedicinesExcel(successResult.errors)}
-                    outline
-                  >
-                    Download Failed Medicines Excel
-                  </Button>
-                )}
-              </CardBody>
-            </Card>
-          )}
-
-          {/* Edit Missing Medicine Modal */}
-          {editingMissingMedicineIdx !== null && (
-            <Card className="border-0 shadow-lg mb-4 bg-light">
-              <CardHeader className="bg-primary text-white">
-                <h6 className="mb-0">Edit & Search Medicine</h6>
+            <Card className="shadow-sm mb-4" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+              <CardHeader style={{ background: "#f8f9fb", borderBottom: "1px solid #e5e7eb", padding: "0.85rem 1rem" }}>
+                <h6 className="mb-0 font-weight-bold">Failed ({successResult.errors.length})</h6>
               </CardHeader>
               <CardBody>
-                <Form>
-                  <Row>
-                    <Col md="6">
-                      <FormGroup>
-                        <Label><strong>Medicine Name</strong></Label>
-                        <Input
-                          type="text"
-                          value={editingMissingMedicineData.extractedName || ""}
-                          onChange={(e) =>
-                            setEditingMissingMedicineData({
-                              ...editingMissingMedicineData,
-                              extractedName: e.target.value,
-                            })
-                          }
-                          placeholder="Medicine name"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col md="6">
-                      <FormGroup>
-                        <Label><strong>Strength</strong></Label>
-                        <Input
-                          type="text"
-                          value={editingMissingMedicineData.extractedStrength || ""}
-                          onChange={(e) =>
-                            setEditingMissingMedicineData({
-                              ...editingMissingMedicineData,
-                              extractedStrength: e.target.value,
-                            })
-                          }
-                          placeholder="Strength"
-                        />
-                      </FormGroup>
-                    </Col>
-                  </Row>
-
-                  <div className="d-flex gap-2 justify-content-between">
-                    <Button
-                      color="secondary"
-                      onClick={() => setEditingMissingMedicineIdx(null)}
-                      outline
-                    >
-                      Close
-                    </Button>
-                    <Button
-                      color="primary"
-                      onClick={handleSearchMissingMedicine}
-                      disabled={editingMissingLoading}
-                    >
-                      {editingMissingLoading ? (
-                        <>
-                          <Spinner size="sm" className="me-2" />
-                          Searching...
-                        </>
-                      ) : (
-                        "Search Again"
-                      )}
-                    </Button>
-                  </div>
-                </Form>
-
-                {editingMissingMatches.length > 0 && (
-                  <div className="mt-4">
-                    <h6 className="mb-3">Found Matches:</h6>
-                    <div className="bg-white p-3 rounded" style={{ maxHeight: "300px", overflowY: "auto" }}>
-                      {editingMissingMatches.map((match, idx) => (
-                        <div key={idx} className="d-flex justify-content-between align-items-center p-2 border-bottom">
-                          <div>
-                            <strong>{match.id || match._id}</strong><br />
-                            <small className="text-muted">{match.name} {match.strength || ""}</small>
-                          </div>
-                          <Button
-                            color="success"
-                            size="sm"
-                            onClick={() => {
-                              // User can now select this medicine
-                              // This would update the error medicine with the selected match
-                              toast.success(`Selected: ${match.name}`);
-                              setEditingMissingMedicineIdx(null);
-                            }}
-                          >
-                            Select
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <ul className="mb-3 ps-3" style={{ fontSize: "0.875rem", color: "#b91c1c" }}>
+                  {successResult.errors.map((err, idx) => (
+                    <li key={idx} className="mb-1">{err.error}</li>
+                  ))}
+                </ul>
+                <Button
+                  color="secondary"
+                  size="sm"
+                  onClick={() => downloadFailedMedicinesExcel(successResult.errors)}
+                  outline
+                >
+                  Download failed medicines (Excel)
+                </Button>
               </CardBody>
             </Card>
           )}
 
-          <div className="d-flex gap-3 justify-content-center mt-4">
-            <Button color="primary" onClick={handleStartNew} size="lg">
+          <div className="d-flex justify-content-end mt-4">
+            <Button color="primary" onClick={handleStartNew}>
               Process Another Bill
             </Button>
           </div>
