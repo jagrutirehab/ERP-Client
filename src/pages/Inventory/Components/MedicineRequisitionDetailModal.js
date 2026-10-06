@@ -39,10 +39,41 @@ const MedicineRequisitionDetailModal = ({
 
   if (!isOpen) return null;
 
-  const DataRow = ({ label, value }) => (
+  // Requester's/approver's saved value wins; if it is blank, show the AI suggestion and tag it.
+  const field = (key) => {
+    const saved = data?.proposedMedicine?.[key];
+    const suggested = data?.aiSuggestions?.[key];
+    if (saved) return { value: saved, isAi: false };
+    if (suggested) return { value: suggested, isAi: true };
+    return { value: "", isAi: false };
+  };
+
+  const AiTag = () => (
+    <span
+      title="Suggested by AI (Gemini). Verify before approving."
+      style={{
+        marginLeft: 6,
+        fontSize: 10,
+        fontWeight: 600,
+        color: "#1d4ed8",
+        background: "#eff6ff",
+        border: "1px solid #bfdbfe",
+        borderRadius: 4,
+        padding: "1px 6px",
+        verticalAlign: "middle",
+      }}
+    >
+      AI
+    </span>
+  );
+
+  const DataRow = ({ label, value, isAi }) => (
     <div className="d-flex justify-content-between py-2 border-bottom border-light">
       <span className="text-muted fs-13">{label}</span>
-      <span className="fw-medium text-dark fs-13 text-end ps-3">{value || "—"}</span>
+      <span className="fw-medium text-dark fs-13 text-end ps-3">
+        {value || "—"}
+        {isAi && value && <AiTag />}
+      </span>
     </div>
   );
 
@@ -84,19 +115,23 @@ const MedicineRequisitionDetailModal = ({
             <Row className="gx-5">
               <Col md={6}>
                 <DataRow label="Medicine Name" value={data.proposedMedicine?.name} />
-                <DataRow label="Generic Name" value={data.proposedMedicine?.genericName} />
+                <DataRow label="Generic Name" value={field("genericName").value} isAi={field("genericName").isAi} />
                 <DataRow label="Type" value={normalizeUnderscores(data.proposedMedicine?.type || "")} />
-                <DataRow label="Form" value={normalizeUnderscores(data.proposedMedicine?.form || "")} />
+                <DataRow label="Form" value={normalizeUnderscores(field("form").value || "")} isAi={field("form").isAi} />
                 <DataRow label="Strength" value={data.proposedMedicine?.strength} />
               </Col>
               <Col md={6}>
                 <DataRow label="Schedule" value={normalizeUnderscores(data.proposedMedicine?.scheduleType)} />
-                <DataRow label="Category" value={normalizeUnderscores(data.proposedMedicine?.category)} />
-                <DataRow label="Storage" value={normalizeUnderscores(data.proposedMedicine?.storageType)} />
+                <DataRow label="Category" value={normalizeUnderscores(field("category").value)} isAi={field("category").isAi} />
+                <DataRow label="Storage" value={normalizeUnderscores(field("storageType").value)} isAi={field("storageType").isAi} />
                 <DataRow label="Unit Price" value={data.proposedMedicine?.unitPrice ? `₹${data.proposedMedicine?.unitPrice}` : "—"} />
                 <DataRow
                   label="Conversion"
-                  value={`${data.proposedMedicine?.conversion?.purchaseQuantity || 1} ${normalizeUnderscores(data.proposedMedicine?.purchaseUnit)} = ${data.proposedMedicine?.conversion?.baseQuantity || 1} ${normalizeUnderscores(data.proposedMedicine?.baseUnit)}`}
+                  value={
+                    data.proposedMedicine?.conversion?.purchaseQuantity && data.proposedMedicine?.conversion?.baseQuantity
+                      ? `${data.proposedMedicine.conversion.purchaseQuantity} ${normalizeUnderscores(data.proposedMedicine?.purchaseUnit)} = ${data.proposedMedicine.conversion.baseQuantity} ${normalizeUnderscores(data.proposedMedicine?.baseUnit)}`
+                      : ""
+                  }
                 />
               </Col>
             </Row>
@@ -104,10 +139,13 @@ const MedicineRequisitionDetailModal = ({
             <div className="mt-4 pt-2">
               <Row className="g-4">
                 <Col md={6}>
-                  <div className="text-muted small mb-1 fw-bold text-uppercase" style={{ fontSize: '10px' }}>Composition</div>
+                  <div className="text-muted small mb-1 fw-bold text-uppercase" style={{ fontSize: '10px' }}>
+                    Composition
+                    {field("composition").isAi && field("composition").value && <AiTag />}
+                  </div>
                   <div className="fs-13 text-dark fw-medium">
                     <ExpandableText
-                      text={capitalizeWords(data.proposedMedicine?.composition || "")}
+                      text={capitalizeWords(field("composition").value || "")}
                       limit={100}
                     />
                   </div>

@@ -57,6 +57,10 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
   const navigate = useNavigate();
   const [duplicateError, setDuplicateError] = useState("");
 
+  // Requester's values win; where they are empty, the AI suggestion pre-fills the field.
+  const aiSuggested = initialData?.aiSuggestions || {};
+  const pickProposed = (key) => initialData?.proposedMedicine?.[key] || aiSuggested[key] || "";
+
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
@@ -96,19 +100,19 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
     initialValues: {
       requestingCenter: initialData?.requestingCenter?._id || requisingCenterOptions[0]?.value || "",
       medicineName: initialData?.proposedMedicine?.name || "",
-      genericName: initialData?.proposedMedicine?.genericName || "",
-      form: initialData?.proposedMedicine?.form || "",
+      genericName: pickProposed("genericName"),
+      form: pickProposed("form"),
       baseUnit: initialData?.proposedMedicine?.baseUnit || "",
       purchaseUnit: initialData?.proposedMedicine?.purchaseUnit || "",
       baseQuantity: initialData?.proposedMedicine?.conversion?.baseQuantity || "",
       purchaseQuantity: initialData?.proposedMedicine?.conversion?.purchaseQuantity || "",
-      category: initialData?.proposedMedicine?.category || "",
-      storageType: initialData?.proposedMedicine?.storageType || "",
+      category: pickProposed("category"),
+      storageType: pickProposed("storageType"),
       scheduleType: initialData?.proposedMedicine?.scheduleType || "",
       type: initialData?.proposedMedicine?.type || "",
       strength: initialData?.proposedMedicine?.strength || "",
       instruction: initialData?.proposedMedicine?.instruction || "",
-      composition: initialData?.proposedMedicine?.composition || "",
+      composition: pickProposed("composition"),
       unitPrice: initialData?.proposedMedicine?.unitPrice || "",
       isControlledDrug: initialData?.proposedMedicine?.isControlledDrug || false,
       justification: initialData?.justification || "",
@@ -164,6 +168,29 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
   });
 
   const { values, errors, touched, handleChange, handleBlur, setFieldValue } = formik;
+
+  // A field keeps the AI tag only while its value is still the AI suggestion.
+  // Once the user changes it, the tag goes away.
+  const isAiField = (field) => !!aiSuggested[field] && values[field] === aiSuggested[field];
+  const aiTag = (field) =>
+    isAiField(field) ? (
+      <span
+        title="Suggested by AI (Gemini). Verify before approving."
+        style={{
+          marginLeft: 6,
+          fontSize: 10,
+          fontWeight: 600,
+          color: "#1d4ed8",
+          background: "#eff6ff",
+          border: "1px solid #bfdbfe",
+          borderRadius: 4,
+          padding: "1px 6px",
+          verticalAlign: "middle",
+        }}
+      >
+        Suggested by AI
+      </span>
+    ) : null;
 
   const errorText = (field) => {
     return touched[field] && errors[field] ? (
@@ -283,6 +310,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
                 <Col md={6}>
                     <Label htmlFor="genericName" className="fs-13 text-muted mb-1">
                         Generic Name <span className="text-danger">*</span>
+                        {aiTag("genericName")}
                     </Label>
                     <Input
                         id="genericName"
@@ -304,6 +332,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
                     <Col key={name} md={4}>
                         <Label className="fs-13 text-muted mb-1">
                             {label} {required && <span className="text-danger">*</span>}
+                            {aiTag(name)}
                         </Label>
                         <Select
                             name={name}
@@ -374,6 +403,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
                     <Col key={name} md={4}>
                         <Label className="fs-13 text-muted mb-1">
                             {label} {required && <span className="text-danger">*</span>}
+                            {aiTag(name)}
                         </Label>
                         <Select
                             name={name}
@@ -422,7 +452,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
 
                 {/* Composition & Instruction */}
                 <Col md={6}>
-                    <Label htmlFor="composition" className="fs-13 text-muted mb-1">Composition</Label>
+                    <Label htmlFor="composition" className="fs-13 text-muted mb-1">Composition{aiTag("composition")}</Label>
                     <Input id="composition" name="composition" type="textarea" rows={3} value={values.composition} onChange={handleChange} />
                 </Col>
                 <Col md={6}>

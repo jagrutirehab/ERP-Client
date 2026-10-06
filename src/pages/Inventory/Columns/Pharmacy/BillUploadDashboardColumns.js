@@ -11,14 +11,14 @@ export const billUploadDashboardColumns = ({
 }) => [
         {
             name: "Bill #",
-            selector: (row) => row.extractedData?.billMetadata?.billNumber|| "-",
-            cell: (row) => <div className="text-truncate">{row.extractedData?.billMetadata?.billNumber|| "-"}</div>,
+            selector: (row) => row.extractedData?.billMetadata?.billNumber || "-",
+            cell: (row) => <div className="text-truncate">{row.extractedData?.billMetadata?.billNumber || "-"}</div>,
             wrap: true,
             minWidth: "120px",
         },
         {
             name: "Supplier",
-            selector: (row) =>row.extractedData?.billMetadata?.supplier || "-",
+            selector: (row) => row.extractedData?.billMetadata?.supplier || "-",
             cell: (row) => <div>{row.extractedData?.billMetadata?.supplier || "-"}</div>,
             wrap: true,
             minWidth: "120px",
@@ -44,8 +44,8 @@ export const billUploadDashboardColumns = ({
             name: "Uploaded By",
             selector: (row) => row.uploadedBy?.name || "-",
             cell: (row) => <div className="text-truncate">{row.uploadedBy?.name || "-"}</div>,
+            minWidth: "140px",
             wrap: true,
-            minWidth: "120px",
         },
         {
             name: "Date",
@@ -189,4 +189,4 @@ export const billUploadDashboardColumns = ({
             wrap: true,
             minWidth: "120px",
         },
-];
+    ];

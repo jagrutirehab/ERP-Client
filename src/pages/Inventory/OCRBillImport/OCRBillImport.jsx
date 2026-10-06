@@ -81,7 +81,7 @@ const formatMedicineLabel = (m) => {
   if (!m) return "";
   const main = [m.type, m.name, m.strength].filter(Boolean).join(" ");
   const unit = m.baseUnit || m.unit;
-  return `${m.id ? `${m.id} | ` : ""}${main}${unit ? ` (baseunit: ${unit})` : ""}`;
+  return `${m.id ? `${m.id} | ` : ""}${main}${unit ? ` (Baseunit: ${unit})` : ""}`;
 };
 
 const OCRBillImport = () => {
@@ -102,6 +102,9 @@ const OCRBillImport = () => {
   const [loading, setLoading] = useState(false);
   const [processingStatus, setProcessingStatus] = useState(null); // "uploading", "extracting", "matching"
   const [rechecking, setRechecking] = useState(false);
+  // True once the user has hand-edited a value on the confirm screen. Submit stays
+  // disabled until "Review Again" re-checks the stock for the edited values.
+  const [editedSinceReview, setEditedSinceReview] = useState(false);
   const [error, setError] = useState(null);
   const [selectedCenter, setSelectedCenter] = useState(null);
 
@@ -1550,6 +1553,7 @@ const OCRBillImport = () => {
 
       setPharmacyCheckResults(results);
       initializeMedicineFormData(results);
+      setEditedSinceReview(false);
       setStep("confirm");
     } catch (err) {
       console.error("Error in pharmacy check:", err);
@@ -1622,6 +1626,7 @@ const OCRBillImport = () => {
 
           results[idx_num] = {
             medicineId,
+            _tempId: extractedMedicines[idx_num]?._tempId,
             selectedMedicine,
             extractedData,
             pharmacyStatus: {
@@ -1633,6 +1638,7 @@ const OCRBillImport = () => {
           console.error(`Error checking medicine ${idx}:`, err);
           results[idx_num] = {
             medicineId,
+            _tempId: extractedMedicines[idx_num]?._tempId,
             selectedMedicine,
             extractedData,
             pharmacyStatus: { exists: false },
@@ -1642,6 +1648,7 @@ const OCRBillImport = () => {
 
       setPharmacyCheckResults(results);
       initializeMedicineFormData(results);
+      setEditedSinceReview(false);
       setStep("confirm");
     } catch (err) {
       console.error("Error in pharmacy check:", err);
@@ -1695,6 +1702,7 @@ const OCRBillImport = () => {
   };
 
   const handleFormChange = (idx, field, value) => {
+    setEditedSinceReview(true);
     setMedicineFormData((prev) => {
       const updated = {
         ...prev,
@@ -2108,7 +2116,9 @@ const OCRBillImport = () => {
       console.log(`🔄 Retrying ${errorsToRetry.length} missing medicines...`);
       for (const error of errorsToRetry) {
         try {
-          const matches = await fetchMatchingMedicines(error.extractedName, error.extractedStrength, { strict: false });
+          // Move a line into the review table only when a master medicine matches its
+          // strength too (same rule as a fresh extraction). Otherwise it stays missing.
+          const matches = await fetchMatchingMedicines(error.extractedName, error.extractedStrength);
           if (matches && matches.length > 0) {
             // Found matches! Add to extracted medicines
             // Row index = where this line will sit in extractedMedicines (see startIdx below)
@@ -2502,7 +2512,7 @@ const OCRBillImport = () => {
                   return (
                     <>
                       <Spinner
-                        style={{ width: "2.25rem", height: "2.25rem", borderWidth: "3px", color: "#475569" }}
+                        style={{ width: "2.25rem", height: "2.25rem", borderWidth: "3px", color: "#475569", animationDuration: "0.35s" }}
                       />
                       <h5 className="mt-3 mb-1" style={{ color: "#111827", fontWeight: 600 }}>{copy[0]}</h5>
                       <p className="mb-4" style={{ color: "#6b7280", fontSize: "0.9rem" }}>{copy[1]}</p>
@@ -3946,6 +3956,12 @@ const OCRBillImport = () => {
 
           {error && <Alert color="danger" className="mt-3">{error}</Alert>}
 
+          {editedSinceReview && (
+            <Alert color="warning" className="mt-3 mb-0 py-2" style={{ fontSize: 13 }}>
+              You changed values on this screen. Click <strong>Review Again</strong> to re-check stock before you can submit.
+            </Alert>
+          )}
+
           <div className="d-flex gap-2 justify-content-end mt-4">
             <Button
               color="secondary"
@@ -3982,6 +3998,7 @@ const OCRBillImport = () => {
 
                       results[idx_num] = {
                         medicineId: selectedMedicine._id || selectedMedicine.id,
+                        _tempId: result._tempId,
                         selectedMedicine,
                         extractedData: result.extractedData,
                         pharmacyStatus: { exists: checkResult.exists, data: checkResult.data },
@@ -3992,6 +4009,7 @@ const OCRBillImport = () => {
                   }
 
                   setPharmacyCheckResults(results);
+                  setEditedSinceReview(false);
                   toast.success("Pharmacy check completed. Review the results above.");
                 } catch (err) {
                   console.error("Recheck error:", err);
@@ -4021,7 +4039,8 @@ const OCRBillImport = () => {
                 }
                 handleFinalSubmission();
               }}
-              disabled={loading}
+              disabled={loading || editedSinceReview}
+              title={editedSinceReview ? "Click Review Again first" : undefined}
             >
               {loading ? (
                 <>
