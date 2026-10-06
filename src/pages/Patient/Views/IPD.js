@@ -32,10 +32,14 @@ import {
 } from "../../../Components/constants/patient";
 import { toast } from "react-toastify";
 import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
-import { setAdmissionRamsayApplicable } from "../../../store/features/chart/chartSlice";
+import {
+  setAdmissionRamsayApplicable,
+  setAdmissionPsychologicalTestStatus,
+} from "../../../store/features/chart/chartSlice";
 import SetAdmissionTypeModal from "./Components/SetAdmissionTypeModal";
 import BaselinePackageControl from "./Components/BaselinePackageControl";
 import BaselinePackageStatusModal from "./Components/BaselinePackageStatusModal";
+import PsychologicalTestsControl from "./Components/PsychologicalTestsControl";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 
@@ -144,6 +148,22 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
       );
     } catch (error) {
       toast.warn(error.message);
+    }
+  };
+
+  // Resolves true/false and never rejects, so the control can keep its panel
+  // open on failure. Don't read error.message here: the thunk rejects with a
+  // STRING (so .unwrap() throws a string) and has already shown the server's
+  // message via setAlert.
+  const handlePsychTestStatusChange = async (admissionId, body) => {
+    try {
+      const res = await dispatch(
+        setAdmissionPsychologicalTestStatus({ admissionId, ...body }),
+      ).unwrap();
+      toast.success(res?.message || "Psychological tests updated");
+      return true;
+    } catch {
+      return false;
     }
   };
 
@@ -432,6 +452,21 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     onRequestChange={(admissionId, nextStatus) =>
                       setBaselineTarget({ admissionId, nextStatus })
                     }
+                  />
+                </div>
+
+                {/* Psychological tests applicability — its own w-100 line below
+                    Baseline. Not Applicable stops the clinical-test "not
+                    recorded" reminders for this admission; score alerts still
+                    fire. Keyed by admission because the cards are keyed by
+                    index: without it an open reason panel would follow the
+                    card POSITION to a different admission when the list
+                    changes. */}
+                <div className="d-flex align-items-center gap-1 w-100">
+                  <PsychologicalTestsControl
+                    key={addmission._id}
+                    addmission={addmission}
+                    onSubmit={handlePsychTestStatusChange}
                   />
                 </div>
               </div>
