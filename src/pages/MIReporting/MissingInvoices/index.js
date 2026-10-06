@@ -6,6 +6,9 @@ import { CSVLink } from "react-csv";
 import Select from "react-select";
 import { fetchMissingInvoices } from "../../../store/features/miReporting/miReportingSlice";
 
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const formatMonthYear = (date) => `${MONTH_ABBR[date.getMonth()]} ${date.getFullYear()}`;
+
 const formatDate = (val) => {
   if (!val) return "";
   const d = new Date(val);
@@ -41,13 +44,13 @@ const MissingInvoices = () => {
     const end = new Date(now.getFullYear(), now.getMonth(), 1);
     const start = new Date(2020, 0, 1);
     for (let d = new Date(end); d >= start; d.setMonth(d.getMonth() - 1)) {
-      const label = d.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
+      const label = formatMonthYear(d);
       opts.push({ value: label, label });
     }
     return opts;
   }, []);
 
-  const currentMonthLabel = useMemo(() => new Date().toLocaleDateString("en-GB", { month: "short", year: "numeric" }), []);
+  const currentMonthLabel = useMemo(() => formatMonthYear(new Date()), []);
   const [selectedMonth, setSelectedMonth] = useState(currentMonthLabel);
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [csvData, setCsvData] = useState([]);
