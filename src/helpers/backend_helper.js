@@ -434,6 +434,8 @@ export const setRamsayApplicable = (data) =>
   api.update(url.SET_RAMSAY_APPLICABLE, data);
 export const setBaselineInvestigationStatus = (data) =>
   api.update(url.SET_BASELINE_INVESTIGATION_STATUS, data);
+export const setPsychologicalTestStatus = (data) =>
+  api.update(url.SET_PSYCHOLOGICAL_TEST_STATUS, data);
 export const setAdmissionTypeDirect = (data) =>
   api.update(url.SET_ADMISSION_TYPE_DIRECT, data);
 export const submitAdmissionForm = ({ admissionId, formData }) =>

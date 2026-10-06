@@ -348,6 +348,31 @@ export const BASELINE_STATUS_META = {
   },
 };
 
+// Psychological Tests "Not Applicable" — mirrors the server's
+// src/constants/psychologicalTests.js. The status values and reason CODES must
+// match the server exactly; the server stores the code and rejects anything else.
+export const PSYCH_TEST_STATUS = {
+  APPLICABLE: "APPLICABLE",
+  NOT_APPLICABLE: "NOT_APPLICABLE",
+};
+
+// The two reasons a clinician may choose, in the order shown. The server stores
+// the `value`; the `label` is what the card displays afterwards.
+export const PSYCH_TEST_NA_REASONS = [
+  {
+    value: "NOT_RELEVANT_TO_DIAGNOSIS",
+    label: "The psychological tests are not relevant to the diagnosis.",
+  },
+  {
+    value: "FAMILY_DECLINED",
+    label:
+      "The family has refused to pay the additional charges or has declined testing.",
+  },
+];
+
+// Matches the server's cap on the free-text reason a Reopen requires.
+export const PSYCH_TEST_REASON_MAX = 500;
+
 // The 24/48/72/96h policy from the Governance SOP, used to seed a new ladder.
 // The ladder is variable-length rather than fixed at four: the persisted shape
 // is an array, the server validates it regardless, and "max alerts per
