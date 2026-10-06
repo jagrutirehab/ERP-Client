@@ -62,18 +62,18 @@ const MissingInvoices = () => {
   }, [dispatch, centerAccess, selectedMonth]);
 
   const data = useMemo(() => missingInvoices?.data || [], [missingInvoices]);
-  const monthTotals = useMemo(() => missingInvoices?.monthly_totals?.[0] || null, [missingInvoices]);
 
-  const centerMissingCounts = useMemo(() => {
-    const counts = {};
-    data.forEach((item) => {
-      const center = item?.center_name || "Unknown";
-      counts[center] = (counts[center] || 0) + 1;
-    });
-    return Object.entries(counts)
-      .map(([center_name, missing_count]) => ({ center_name, missing_count }))
-      .sort((a, b) => b.missing_count - a.missing_count);
-  }, [data]);
+  const centerTotals = useMemo(() => (
+    [...(missingInvoices?.monthly_totals || [])].sort((a, b) => (a.center_name || "").localeCompare(b.center_name || ""))
+  ), [missingInvoices]);
+
+  const aggregateTotals = useMemo(() => (
+    centerTotals.reduce((acc, row) => ({
+      should_be_count: acc.should_be_count + (Number(row.should_be_count) || 0),
+      result_count: acc.result_count + (Number(row.result_count) || 0),
+      missing_count: acc.missing_count + (Number(row.missing_count) || 0),
+    }), { should_be_count: 0, result_count: 0, missing_count: 0 })
+  ), [centerTotals]);
 
   const centerOptions = useMemo(() => [
     { value: "ALL", label: "All Centers" },
@@ -97,9 +97,9 @@ const MissingInvoices = () => {
     }, 100);
   };
 
-  const shouldBe = Number(monthTotals?.should_be_count) || 0;
-  const result = Number(monthTotals?.result_count) || 0;
-  const missingCount = Number(monthTotals?.missing_count) || 0;
+  const shouldBe = aggregateTotals.should_be_count;
+  const result = aggregateTotals.result_count;
+  const missingCount = aggregateTotals.missing_count;
   const compliancePct = shouldBe > 0 ? Math.round((result / shouldBe) * 100) : 0;
 
   document.title = "Missing Invoices";
@@ -193,7 +193,7 @@ const MissingInvoices = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {!monthTotals ? (
+                          {centerTotals.length === 0 ? (
                             <tr>
                               <td colSpan={5} className="text-center py-4 text-muted">No data available for {selectedMonth}</td>
                             </tr>
@@ -206,15 +206,21 @@ const MissingInvoices = () => {
                                 <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", color: missingCount > 0 ? "#dc3545" : "inherit", fontWeight: 600 }}>{missingCount}</td>
                                 <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{compliancePct}%</td>
                               </tr>
-                              {centerMissingCounts.map((row, idx) => (
-                                <tr key={row.center_name} style={{ background: idx % 2 === 0 ? "#f8fafc" : "#fff" }}>
-                                  <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{row.center_name}</td>
-                                  <td className="text-center px-2 py-1 text-muted" style={{ border: "1px solid #d6dde8" }}>—</td>
-                                  <td className="text-center px-2 py-1 text-muted" style={{ border: "1px solid #d6dde8" }}>—</td>
-                                  <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", color: row.missing_count > 0 ? "#dc3545" : "inherit", fontWeight: 600 }}>{row.missing_count}</td>
-                                  <td className="text-center px-2 py-1 text-muted" style={{ border: "1px solid #d6dde8" }}>—</td>
-                                </tr>
-                              ))}
+                              {centerTotals.map((row, idx) => {
+                                const rowShouldBe = Number(row.should_be_count) || 0;
+                                const rowResult = Number(row.result_count) || 0;
+                                const rowMissing = Number(row.missing_count) || 0;
+                                const rowCompliancePct = rowShouldBe > 0 ? Math.round((rowResult / rowShouldBe) * 100) : 0;
+                                return (
+                                  <tr key={row.center_name ?? idx} style={{ background: idx % 2 === 0 ? "#f8fafc" : "#fff" }}>
+                                    <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{row.center_name}</td>
+                                    <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{rowShouldBe}</td>
+                                    <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{rowResult}</td>
+                                    <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", color: rowMissing > 0 ? "#dc3545" : "inherit", fontWeight: 600 }}>{rowMissing}</td>
+                                    <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{rowCompliancePct}%</td>
+                                  </tr>
+                                );
+                              })}
                             </>
                           )}
                         </tbody>
