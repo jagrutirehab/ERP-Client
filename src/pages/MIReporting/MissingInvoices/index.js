@@ -64,6 +64,17 @@ const MissingInvoices = () => {
   const data = useMemo(() => missingInvoices?.data || [], [missingInvoices]);
   const monthTotals = useMemo(() => missingInvoices?.monthly_totals?.[0] || null, [missingInvoices]);
 
+  const centerMissingCounts = useMemo(() => {
+    const counts = {};
+    data.forEach((item) => {
+      const center = item?.center_name || "Unknown";
+      counts[center] = (counts[center] || 0) + 1;
+    });
+    return Object.entries(counts)
+      .map(([center_name, missing_count]) => ({ center_name, missing_count }))
+      .sort((a, b) => b.missing_count - a.missing_count);
+  }, [data]);
+
   const centerOptions = useMemo(() => [
     { value: "ALL", label: "All Centers" },
     ...[...new Set(data.map((item) => item.center_name))].filter(Boolean).sort().map((center) => ({
@@ -165,12 +176,12 @@ const MissingInvoices = () => {
               <>
                 <Card className="mb-4">
                   <CardBody>
-                    <h6 className="mb-3">Totals — All Centers — {selectedMonth}</h6>
+                    <h6 className="mb-3">Totals — {selectedMonth}</h6>
                     <div style={{ overflowX: "auto" }}>
                       <Table className="mb-0 w-100" style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.78rem" }}>
                         <thead>
                           <tr>
-                            {["Should Be Count", "Result Count", "Missing Count", "Compliance %"].map((label) => (
+                            {["Center", "Should Be Count", "Result Count", "Missing Count", "Compliance %"].map((label) => (
                               <th
                                 key={label}
                                 className="text-center fw-bold px-2 py-1"
@@ -184,15 +195,27 @@ const MissingInvoices = () => {
                         <tbody>
                           {!monthTotals ? (
                             <tr>
-                              <td colSpan={4} className="text-center py-4 text-muted">No data available for {selectedMonth}</td>
+                              <td colSpan={5} className="text-center py-4 text-muted">No data available for {selectedMonth}</td>
                             </tr>
                           ) : (
-                            <tr>
-                              <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{shouldBe}</td>
-                              <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{result}</td>
-                              <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", color: missingCount > 0 ? "#dc3545" : "inherit", fontWeight: 600 }}>{missingCount}</td>
-                              <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{compliancePct}%</td>
-                            </tr>
+                            <>
+                              <tr style={{ background: "#eef6ee" }}>
+                                <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", fontWeight: 700 }}>All Centers</td>
+                                <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{shouldBe}</td>
+                                <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{result}</td>
+                                <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", color: missingCount > 0 ? "#dc3545" : "inherit", fontWeight: 600 }}>{missingCount}</td>
+                                <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{compliancePct}%</td>
+                              </tr>
+                              {centerMissingCounts.map((row, idx) => (
+                                <tr key={row.center_name} style={{ background: idx % 2 === 0 ? "#f8fafc" : "#fff" }}>
+                                  <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{row.center_name}</td>
+                                  <td className="text-center px-2 py-1 text-muted" style={{ border: "1px solid #d6dde8" }}>—</td>
+                                  <td className="text-center px-2 py-1 text-muted" style={{ border: "1px solid #d6dde8" }}>—</td>
+                                  <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", color: row.missing_count > 0 ? "#dc3545" : "inherit", fontWeight: 600 }}>{row.missing_count}</td>
+                                  <td className="text-center px-2 py-1 text-muted" style={{ border: "1px solid #d6dde8" }}>—</td>
+                                </tr>
+                              ))}
+                            </>
                           )}
                         </tbody>
                       </Table>
