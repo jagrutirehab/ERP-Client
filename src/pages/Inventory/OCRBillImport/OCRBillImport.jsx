@@ -513,6 +513,21 @@ const OCRBillImport = () => {
     [existingMedicines, medicineFormData, billDiscountAmount, billDiscountPercentage, billGrossAmount]
   );
 
+  const requestedMissingRef = useRef(new Set());
+  useEffect(() => {
+    errorMedicines.forEach((med, idx) => {
+      const key = med._tempId || `${idx}-${med.extractedName}`;
+      if (!med.extractedName || requestedMissingRef.current.has(key)) return;
+      requestedMissingRef.current.add(key);
+      fetchMatchingMedicines(med.extractedName, "", { strict: false }).then((matches) => {
+        setErrorMatchingMedicinesMap((prev) =>
+          prev[idx] !== undefined ? prev : { ...prev, [idx]: matches || [] }
+        );
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errorMedicines]);
+
   if (permissionLoader) {
     return (
       <CardBody
@@ -719,15 +734,9 @@ const OCRBillImport = () => {
         strictStrength: strict,
       });
 
-      // Race between API call and timeout
       const result = await Promise.race([apiCall, timeoutPromise]);
-      console.log(`✅ API Response received for "${extractedName}":`, result);
 
-      // Axios interceptor already unwraps response.data, so result is { success: true, data: [...] }
-      // Extract the medicines array from the response
-      // NOTE: API already filters by strict strength matching, so no frontend filtering needed
       const medicinesArray = result?.data || [];
-      console.log(`   Total matches found: ${Array.isArray(medicinesArray) ? medicinesArray.length : 'ERROR - not an array'}`);
       if (Array.isArray(medicinesArray) && medicinesArray.length > 0) {
         console.log(`   Sample match:`, medicinesArray[0]);
       }
@@ -738,6 +747,7 @@ const OCRBillImport = () => {
       return [];
     }
   };
+
 
 
   // ============================================
