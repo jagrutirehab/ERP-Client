@@ -1189,6 +1189,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       <option value="">Select supply type</option>
                       <option value="goods">Goods</option>
                       <option value="service_supply">Service Supply</option>
+                      <option value="both">Both (Goods & Service)</option>
                     </Input>
                     <FormFeedback>{validation.errors.supplyType}</FormFeedback>
                   </Col>

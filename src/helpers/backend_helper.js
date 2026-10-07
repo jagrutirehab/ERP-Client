@@ -5698,10 +5698,10 @@ export const recordVendorQuote = (rfqId, vendorQuoteId, data) => {
     { headers: { "X-No-Cookie-Token": "true" } },
   );
 };
-export const closeRFQ = (id) => {
+export const closeRFQ = (id, data = {}) => {
   return axios.patch(
     `${url.RFQ_BASE}/${id}/close`,
-    {},
+    data,
     { headers: { "X-No-Cookie-Token": "true" } },
   );
 };

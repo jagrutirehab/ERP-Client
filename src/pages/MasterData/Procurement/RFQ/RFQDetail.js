@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col, Label, Input, Button, Modal, ModalBody } from "reactstrap";
+import { Label, Input, Button, Modal, ModalBody } from "reactstrap";
 import { toast } from "react-toastify";
 import {
   getRFQById,
@@ -12,6 +12,8 @@ import "../../UnitOfMeasurement/uom.scss";
 
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
+const vendorName = (vq) => vq?.vendorId?.tradeName || vq?.vendorId?.legalName || "—";
+
 const RFQDetail = ({ rfqId, onBack }) => {
   const handleAuthError = useAuthError();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
@@ -22,10 +24,15 @@ const RFQDetail = ({ rfqId, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [refreshFlag, setRefreshFlag] = useState(0);
 
-  const [quoteModalFor, setQuoteModalFor] = useState(null); // vendorQuote being edited
+  const [quoteModalFor, setQuoteModalFor] = useState(null);
   const [draftLines, setDraftLines] = useState([]);
   const [draftRemarks, setDraftRemarks] = useState("");
   const [saving, setSaving] = useState(false);
+
+  // Final vendor choice. Follows the lowest quote until the user picks one manually.
+  const [selectedVendorId, setSelectedVendorId] = useState("");
+  const [manualPick, setManualPick] = useState(false);
+  const [selectionReason, setSelectionReason] = useState("");
 
   const [closing, setClosing] = useState(false);
 
@@ -36,6 +43,20 @@ const RFQDetail = ({ rfqId, onBack }) => {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [rfqId, refreshFlag]);
+
+  useEffect(() => {
+    if (!rfq || rfq.status !== "draft") return;
+    const quoted = rfq.vendorQuotes.filter((vq) => vq.quotedAt);
+    if (quoted.length === 0) {
+      setSelectedVendorId("");
+      return;
+    }
+    const lowest = quoted.reduce((a, b) => (b.totalAmount < a.totalAmount ? b : a));
+    const stillValid = quoted.some((vq) => vq.vendorId?._id === selectedVendorId);
+    if (manualPick && stillValid) return;
+    setSelectedVendorId(lowest.vendorId?._id || "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rfq]);
 
   const openQuoteModal = (vendorQuote) => {
     setQuoteModalFor(vendorQuote);
@@ -80,10 +101,34 @@ const RFQDetail = ({ rfqId, onBack }) => {
     }
   };
 
+  if (loading || !rfq) {
+    return <div className="p-4 text-muted">Loading RFQ...</div>;
+  }
+
+  const quotedVendors = rfq.vendorQuotes.filter((vq) => vq.quotedAt);
+  const lowestAmount =
+    quotedVendors.length > 0 ? Math.min(...quotedVendors.map((vq) => vq.totalAmount)) : null;
+
+  const selectedQuote = quotedVendors.find((vq) => vq.vendorId?._id === selectedVendorId);
+  const isOverride = !!selectedQuote && selectedQuote.totalAmount !== lowestAmount;
+
+  const finalizedQuote = rfq.vendorQuotes.find((vq) => vq.vendorId?._id === rfq.selectedVendorId);
+
   const handleClose = async () => {
+    if (!selectedVendorId) {
+      toast.error("Record at least one vendor quote and select the final vendor");
+      return;
+    }
+    if (isOverride && !selectionReason.trim()) {
+      toast.error("Please give a reason for not choosing the lowest quote");
+      return;
+    }
     setClosing(true);
     try {
-      await closeRFQ(rfq._id);
+      await closeRFQ(rfq._id, {
+        selectedVendorId,
+        selectionReason: selectionReason.trim(),
+      });
       toast.success("RFQ closed");
       setRefreshFlag((f) => f + 1);
     } catch (error) {
@@ -94,14 +139,6 @@ const RFQDetail = ({ rfqId, onBack }) => {
       setClosing(false);
     }
   };
-
-  if (loading || !rfq) {
-    return <div className="p-4 text-muted">Loading RFQ...</div>;
-  }
-
-  const quotedVendors = rfq.vendorQuotes.filter((vq) => vq.quotedAt);
-  const lowestAmount =
-    quotedVendors.length > 0 ? Math.min(...quotedVendors.map((vq) => vq.totalAmount)) : null;
 
   return (
     <div className="uom-page">
@@ -117,7 +154,11 @@ const RFQDetail = ({ rfqId, onBack }) => {
             <i className="bx bx-arrow-back me-1"></i> Back
           </Button>
           {canEdit && rfq.status === "draft" && (
-            <Button color="dark" onClick={handleClose} disabled={closing}>
+            <Button
+              color="dark"
+              onClick={handleClose}
+              disabled={closing || quotedVendors.length === 0}
+            >
               {closing ? "Closing..." : "Close RFQ"}
             </Button>
           )}
@@ -137,12 +178,14 @@ const RFQDetail = ({ rfqId, onBack }) => {
       <h6 className="uom-form-section-title">Vendor Quotes — Comparative Statement</h6>
       <p className="text-muted small mb-3">
         Contact each vendor manually (phone/WhatsApp/email), then record their quote here.
+        {rfq.status === "draft" && " The lowest quote is selected by default. You can pick another vendor, but you will need to give a reason."}
       </p>
 
       <div className="uom-table-card mb-4" style={{ overflowX: "auto" }}>
         <table className="table mb-0">
           <thead>
             <tr>
+              <th style={{ width: 90 }}>Final</th>
               <th>Vendor</th>
               <th>Status</th>
               <th>Total Quote</th>
@@ -153,11 +196,28 @@ const RFQDetail = ({ rfqId, onBack }) => {
           <tbody>
             {rfq.vendorQuotes.map((vq) => {
               const isLowest = vq.quotedAt && vq.totalAmount === lowestAmount;
+              const isFinalized = rfq.status === "closed" && vq.vendorId?._id === rfq.selectedVendorId;
               return (
                 <tr key={vq._id} style={isLowest ? { background: "#ecfdf3" } : undefined}>
                   <td className="align-middle">
-                    {vq.vendorId?.tradeName || vq.vendorId?.legalName || "—"}
+                    {rfq.status === "draft" && vq.quotedAt ? (
+                      <Input
+                        type="radio"
+                        name="finalVendor"
+                        checked={selectedVendorId === vq.vendorId?._id}
+                        disabled={!canEdit}
+                        onChange={() => {
+                          setSelectedVendorId(vq.vendorId?._id);
+                          setManualPick(true);
+                        }}
+                      />
+                    ) : isFinalized ? (
+                      <span className="uom-status-pill status-active">Selected</span>
+                    ) : (
+                      "—"
+                    )}
                   </td>
+                  <td className="align-middle">{vendorName(vq)}</td>
                   <td className="align-middle">
                     {vq.quotedAt ? (
                       <span className="uom-status-pill status-active">Received</span>
@@ -192,11 +252,52 @@ const RFQDetail = ({ rfqId, onBack }) => {
         </table>
       </div>
 
+      {canEdit && rfq.status === "draft" && quotedVendors.length > 0 && (
+        <div className="uom-table-card p-3 mb-4">
+          <div className="fw-semibold small mb-1">Final vendor for this RFQ</div>
+          <div>
+            {vendorName(selectedQuote)} — <strong>{money(selectedQuote?.totalAmount)}</strong>
+            {!isOverride && (
+              <span className="uom-status-pill status-active ms-2">Lowest</span>
+            )}
+          </div>
+          {isOverride && (
+            <div className="mt-3">
+              <Label>
+                Reason for not choosing the lowest quote <span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="textarea"
+                rows={2}
+                value={selectionReason}
+                onChange={(e) => setSelectionReason(e.target.value)}
+                placeholder="e.g. Better warranty, faster delivery, past experience"
+              />
+            </div>
+          )}
+          <div className="text-muted small mt-2">
+            The Purchase Order will be created for this vendor only.
+          </div>
+        </div>
+      )}
+
+      {rfq.status === "closed" && finalizedQuote && (
+        <div className="uom-table-card p-3 mb-4">
+          <div className="fw-semibold small mb-1">Final vendor</div>
+          <div>
+            {vendorName(finalizedQuote)} — <strong>{money(finalizedQuote.totalAmount)}</strong>
+          </div>
+          {rfq.selectionReason && (
+            <div className="text-muted small mt-2">
+              Reason for not choosing the lowest quote: {rfq.selectionReason}
+            </div>
+          )}
+        </div>
+      )}
+
       <Modal isOpen={!!quoteModalFor} toggle={() => setQuoteModalFor(null)} centered size="lg">
         <ModalBody className="p-4">
-          <h5 className="mb-1">
-            Record Quote — {quoteModalFor?.vendorId?.tradeName || quoteModalFor?.vendorId?.legalName}
-          </h5>
+          <h5 className="mb-1">Record Quote — {vendorName(quoteModalFor)}</h5>
           <p className="text-muted small mb-3">
             Enter the rate this vendor gave you over phone/WhatsApp/email.
           </p>
