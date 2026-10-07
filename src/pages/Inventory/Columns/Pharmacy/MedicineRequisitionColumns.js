@@ -3,7 +3,7 @@ import moment from "moment";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import { ExpandableText } from "../../../../Components/Common/ExpandableText";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
-import { AI_FIELD_LABELS, getAiFilledFields } from "../../Components/aiFilledFields";
+import { getAiFilledFields, getAiFieldLabel } from "../../Components/aiFilledFields";
 
 export const getMedicineRequisitionColumns = ({
   openDetail,
@@ -95,7 +95,7 @@ export const getMedicineRequisitionColumns = ({
                   padding: "1px 6px",
                 }}
               >
-                AI filled: {getAiFilledFields(row).map((k) => AI_FIELD_LABELS[k]).join(", ")}
+                AI filled: {getAiFilledFields(row).map(getAiFieldLabel).join(", ")}
               </span>
             )}
           </div>

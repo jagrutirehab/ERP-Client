@@ -1039,6 +1039,45 @@ const OCRBillImport = () => {
   // STEP 1: Handle Extracted Data Changes
   // ============================================
 
+  const moveExtractedRowToMissing = (idx, formData, reason) => {
+    const med = extractedMedicines[idx];
+    if (!med) return;
+
+    const reindex = (map) => {
+      const next = {};
+      let cursor = 0;
+      extractedMedicines.forEach((_, i) => {
+        if (i === idx) return;
+        if (map[i] !== undefined) next[cursor] = map[i];
+        cursor++;
+      });
+      return next;
+    };
+
+    setExtractedMedicines((prev) => prev.filter((_, i) => i !== idx));
+    setExtractedFormData(reindex(extractedFormData));
+    setCheckedMedicines(reindex(checkedMedicines));
+    setSelectedMedicineIds(reindex(selectedMedicineIds));
+    setMatchingMedicinesMap(reindex(matchingMedicinesMap));
+
+    setErrorMedicines((prev) => [
+      ...prev,
+      {
+        _tempId: med._tempId,
+        extractedName: formData?.medicineName || "",
+        extractedStrength: formData?.strength || "",
+        quantity: formData?.quantity || med.ocrExtracted?.quantity || 0,
+        batchNumber: formData?.batchNumber || med.ocrExtracted?.batchNumber || null,
+        expiryDate: formData?.expiryDate || med.ocrExtracted?.expiryDate || null,
+        unitPrice: formData?.unitPrice || med.ocrExtracted?.unitPrice || null,
+        totalPrice: formData?.totalPrice || med.ocrExtracted?.totalPrice || null,
+        reason,
+      },
+    ]);
+
+    toast.warning(`"${formData?.medicineName || med.ocrExtracted?.name}" no longer matches any medicine — moved to Missing Medicines.`);
+  };
+
   const handleExtractedDataChange = (idx, field, value) => {
     setExtractedFormData((prev) => {
       const updated = {
@@ -1064,6 +1103,12 @@ const OCRBillImport = () => {
           if (medicineName && medicineName.trim() !== "") {
             console.log(`Refetching matches for idx ${idx}: "${medicineName}" ${strength}`);
             const matches = await fetchMatchingMedicines(medicineName, strength);
+
+            if (matches.length === 0) {
+              moveExtractedRowToMissing(idx, updated[idx], "No medicine matches this name and strength");
+              return;
+            }
+
             setMatchingMedicinesMap((prevMap) => ({
               ...prevMap,
               [idx]: matches,
@@ -1446,12 +1491,15 @@ const OCRBillImport = () => {
         const selectedMedicineId = selectedMedicineIds[idx_num];
         const medicine = extractedMedicines[idx_num];
 
+        const candidates = matchingMap[idx_num] || [];
+
         // Check if medicine is unchecked OR user didn't select a medicine from dropdown
         if (!isChecked || !selectedMedicineId) {
-          // Medicine is unchecked OR no dropdown selection - add to errors
-          const reason = !isChecked
-            ? "Not checked by user"
-            : "No medicine selected from dropdown";
+          // Candidates still exist - leave the row as-is in the Extracted table (unticked,
+          // dropdown still showing matches) instead of also cloning it into Missing, where
+          // it would show twice. Only genuinely matchless rows belong in Missing.
+          if (candidates.length > 0) continue;
+
           const editedData = extractedFormData[idx_num] || medicine.ocrExtracted;
           unselectedMedicines.push({
             _tempId: medicine._tempId, // Preserve ID for tracking
@@ -1462,19 +1510,24 @@ const OCRBillImport = () => {
             expiryDate: editedData?.expiryDate || medicine.ocrExtracted?.expiryDate || null,
             unitPrice: editedData?.unitPrice || medicine.ocrExtracted?.unitPrice || null,
             totalPrice: editedData?.totalPrice || medicine.ocrExtracted?.totalPrice || null,
-            reason: reason,
+            reason: "No medicine found matching this name and strength",
             action: "Edit & Retry from missing list",
           });
           continue;
         }
 
         // Find the medicine that user selected from dropdown
-        let selectedMedicine = matchingMap[idx_num]?.find(
+        let selectedMedicine = candidates.find(
           m => (m._id || m.id) === selectedMedicineId
         );
 
-        // Never drop a row silently: if the pick can't be resolved, send it back
-        // to the missing list so the user sees it and can select again.
+        // The previous pick fell out of the current candidate list (e.g. a re-search
+        // changed it), but OTHER candidates still exist - leave the row in Extracted so
+        // the user can re-pick, rather than cloning it into Missing too.
+        if (!selectedMedicine && candidates.length > 0) continue;
+
+        // Never drop a row silently: if there are truly no candidates, send it to the
+        // missing list so the user sees it and can search again.
         if (!selectedMedicine) {
           const editedData = extractedFormData[idx_num] || medicine.ocrExtracted;
           unselectedMedicines.push({
@@ -1486,7 +1539,7 @@ const OCRBillImport = () => {
             expiryDate: editedData?.expiryDate || medicine.ocrExtracted?.expiryDate || null,
             unitPrice: editedData?.unitPrice || medicine.ocrExtracted?.unitPrice || null,
             totalPrice: editedData?.totalPrice || medicine.ocrExtracted?.totalPrice || null,
-            reason: "Selected medicine could not be resolved — please search and select again",
+            reason: "No medicine found matching this name and strength",
             action: "Edit & Retry from missing list",
           });
           continue;
@@ -1500,6 +1553,9 @@ const OCRBillImport = () => {
           // whole submission. Falls back to raw unitPrice if somehow missing.
           const unitPrice = parseFloat(editedData?.unitPrice) || 0;
           const discountedPrice = discountByIdx[idx_num] ?? unitPrice;
+          // Same default the confirm screen gives MRP (see initializeMedicineFormData),
+          // so this check matches what will actually be saved if the user doesn't edit it.
+          const mrpGuess = unitPrice > 0 ? Math.round(unitPrice * 100) / 100 : "";
 
           try {
             const checkResult = await checkExistingMedicineInPharmacy({
@@ -1508,6 +1564,7 @@ const OCRBillImport = () => {
               batchNumber: editedData?.batchNumber,
               expiryDate: editedData?.expiryDate,
               purchasePrice: discountedPrice,
+              mrp: mrpGuess,
             });
 
             results[idx_num] = {
@@ -1614,6 +1671,10 @@ const OCRBillImport = () => {
           existingMedicinesData.find(m => m.idx === idx_num);
         const discountedPrice = medicineData?.discountedPrice ||
           parseFloat(extractedData.purchasePrice) || 0;
+        // Same default the confirm screen gives MRP (see initializeMedicineFormData),
+        // so this check matches what will actually be saved if the user doesn't edit it.
+        const unitPriceForMrp = parseFloat(extractedData.unitPrice) || 0;
+        const mrpGuess = unitPriceForMrp > 0 ? Math.round(unitPriceForMrp * 100) / 100 : "";
 
         try {
           const checkResult = await checkExistingMedicineInPharmacy({
@@ -1622,6 +1683,7 @@ const OCRBillImport = () => {
             batchNumber: extractedData.batchNumber,
             expiryDate: extractedData.expiryDate,
             purchasePrice: discountedPrice,
+            mrp: mrpGuess,
           });
 
           results[idx_num] = {
@@ -1792,10 +1854,40 @@ const OCRBillImport = () => {
         });
       });
 
+      // A row can still be sitting in extractedMedicines, never confirmed, without being in
+      // errorMedicines - e.g. it had matches but was never ticked/selected, so Review & Proceed
+      // deliberately left it alone rather than cloning it into Missing (see
+      // handleProceedToPharmacyCheckAuto). This is the last point before the bill leaves this
+      // session, so anything not actually confirmed here MUST be recorded now, or it's gone for
+      // good - not in medicineConfirmations, not in errorMedicines, not recoverable via Retry.
+      const confirmedTempIds = new Set(
+        Object.values(pharmacyCheckResults).map((r) => r._tempId).filter(Boolean)
+      );
+      const alreadyRecordedTempIds = new Set(errorMedicines.map((e) => e._tempId).filter(Boolean));
+      const leftoverExtracted = extractedMedicines.reduce((acc, med, idx) => {
+        if (!med._tempId) return acc;
+        if (confirmedTempIds.has(med._tempId) || alreadyRecordedTempIds.has(med._tempId)) return acc;
+        const editedData = extractedFormData[idx] || med.ocrExtracted;
+        acc.push({
+          _tempId: med._tempId,
+          extractedName: editedData?.medicineName || med.ocrExtracted?.name,
+          extractedStrength: editedData?.strength || med.ocrExtracted?.strength,
+          quantity: editedData?.quantity || med.ocrExtracted?.quantity || 0,
+          batchNumber: editedData?.batchNumber || med.ocrExtracted?.batchNumber || null,
+          expiryDate: editedData?.expiryDate || med.ocrExtracted?.expiryDate || null,
+          unitPrice: editedData?.unitPrice || med.ocrExtracted?.unitPrice || null,
+          totalPrice: editedData?.totalPrice || med.ocrExtracted?.totalPrice || null,
+          reason: "Not selected before submitting",
+          action: "Edit & Retry from missing list",
+        });
+        return acc;
+      }, []);
+      const errorsToSend = [...errorMedicines, ...leftoverExtracted];
+
       console.log(`\n📤 SENDING TO API:`);
       console.log(`   medicineConfirmations count: ${medicineConfirmations.length}`);
-      console.log(`   errorMedicines count: ${errorMedicines.length}`);
-      console.log(`   errorMedicines being passed:`, errorMedicines);
+      console.log(`   errorMedicines count: ${errorsToSend.length}`);
+      console.log(`   errorMedicines being passed:`, errorsToSend);
 
       const response = await confirmOCRMedicines({
         billImportId,
@@ -1809,7 +1901,7 @@ const OCRBillImport = () => {
           billTotal,
         },
         medicineConfirmations,
-        errorMedicines: errorMedicines, // Include all error medicines (unchecked + not found)
+        errorMedicines: errorsToSend, // Include all error medicines (unchecked + not found + never selected)
       });
 
       console.log("✅ Confirm response:", response);
@@ -1824,9 +1916,9 @@ const OCRBillImport = () => {
       // Remove successfully processed medicines from error list using temp IDs
       console.log("🔍 FILTERING LOGIC DEBUG (ID-BASED):");
       console.log(`   Processed temp IDs:`, processedTempIds);
-      console.log(`   Error medicines before filtering:`, errorMedicines);
+      console.log(`   Error medicines before filtering:`, errorsToSend);
 
-      const updatedErrorMedicines = errorMedicines.filter(error => {
+      const updatedErrorMedicines = errorsToSend.filter(error => {
         const wasProcessed = processedTempIds.includes(error._tempId);
 
         if (error._tempId) {
@@ -1837,8 +1929,8 @@ const OCRBillImport = () => {
         return !wasProcessed;
       });
 
-      if (updatedErrorMedicines.length < errorMedicines.length) {
-        const removed = errorMedicines.filter(e => !updatedErrorMedicines.includes(e));
+      if (updatedErrorMedicines.length < errorsToSend.length) {
+        const removed = errorsToSend.filter(e => !updatedErrorMedicines.includes(e));
         console.log(`🗑️ Removed ${removed.length} processed medicines from error list`);
         console.log(`   Removed: ${removed.map(e => `${e.extractedName} (${e.extractedStrength})`).join(", ")}`);
       } else {
@@ -3545,13 +3637,6 @@ const OCRBillImport = () => {
 
           <div className="d-flex gap-2 justify-content-end mt-4">
             <Button
-              color="secondary"
-              onClick={() => setStep("upload")}
-              outline
-            >
-              Upload Different Bill
-            </Button>
-            <Button
               color="primary"
               onClick={handleProceedFromExtraction}
               disabled={confirmationLoading || extractedMedicines.every((_, i) => !isRowTicked(i))}
@@ -3994,6 +4079,7 @@ const OCRBillImport = () => {
                         batchNumber: formData.batchNumber,
                         expiryDate: formData.expiryDate,
                         purchasePrice: purchasePrice,
+                        mrp: formData.mrp ? Number(formData.mrp) : "",
                       });
 
                       results[idx_num] = {

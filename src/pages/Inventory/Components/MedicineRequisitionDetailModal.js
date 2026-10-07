@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Modal, ModalHeader, ModalBody, Row, Col, Button, Spinner } from "reactstrap";
+import { Modal, ModalHeader, ModalBody, Row, Col, Button, Spinner, Input, Label, Alert } from "reactstrap";
 import moment from "moment";
 import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge";
 import { capitalizeWords } from "../../../utils/toCapitalize";
@@ -7,14 +7,23 @@ import { normalizeUnderscores } from "../../../utils/normalizeUnderscore";
 import { ExpandableText } from "../../../Components/Common/ExpandableText";
 import { useDispatch } from "react-redux";
 import { fetchMedicineRequisitionById } from "../../../store/features/medicine/medicineSlice";
+import { getAiFilledFields, getAiFieldLabel } from "./aiFilledFields";
 
+// Approve/Reject happen from inside this same modal - reviewMode switches it from a
+// read-only view into a remarks + confirm step, instead of popping a second, smaller
+// modal on top with the medicine details hidden behind it.
 const MedicineRequisitionDetailModal = ({
   isOpen,
   toggle,
   row,
-  handleApprove,
-  handleReject,
-  hasWritePermission
+  hasWritePermission,
+  reviewMode,
+  onStartReview,
+  onCancelReview,
+  reviewRemarks,
+  setReviewRemarks,
+  onSubmitReview,
+  reviewLoading,
 }) => {
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
@@ -116,23 +125,34 @@ const MedicineRequisitionDetailModal = ({
               <Col md={6}>
                 <DataRow label="Medicine Name" value={data.proposedMedicine?.name} />
                 <DataRow label="Generic Name" value={field("genericName").value} isAi={field("genericName").isAi} />
-                <DataRow label="Type" value={normalizeUnderscores(data.proposedMedicine?.type || "")} />
+                <DataRow label="Type" value={normalizeUnderscores(field("type").value || "")} isAi={field("type").isAi} />
                 <DataRow label="Form" value={normalizeUnderscores(field("form").value || "")} isAi={field("form").isAi} />
                 <DataRow label="Strength" value={data.proposedMedicine?.strength} />
               </Col>
               <Col md={6}>
-                <DataRow label="Schedule" value={normalizeUnderscores(data.proposedMedicine?.scheduleType)} />
+                <DataRow label="Schedule" value={normalizeUnderscores(field("scheduleType").value)} isAi={field("scheduleType").isAi} />
                 <DataRow label="Category" value={normalizeUnderscores(field("category").value)} isAi={field("category").isAi} />
                 <DataRow label="Storage" value={normalizeUnderscores(field("storageType").value)} isAi={field("storageType").isAi} />
                 <DataRow label="Unit Price" value={data.proposedMedicine?.unitPrice ? `₹${data.proposedMedicine?.unitPrice}` : "—"} />
-                <DataRow
-                  label="Conversion"
-                  value={
-                    data.proposedMedicine?.conversion?.purchaseQuantity && data.proposedMedicine?.conversion?.baseQuantity
-                      ? `${data.proposedMedicine.conversion.purchaseQuantity} ${normalizeUnderscores(data.proposedMedicine?.purchaseUnit)} = ${data.proposedMedicine.conversion.baseQuantity} ${normalizeUnderscores(data.proposedMedicine?.baseUnit)}`
-                      : ""
-                  }
-                />
+                {(() => {
+                  const savedConv = data.proposedMedicine?.conversion;
+                  const aiConv = data.aiSuggestions?.conversion;
+                  const savedConvComplete = savedConv?.purchaseQuantity && savedConv?.baseQuantity;
+                  const conv = savedConvComplete ? savedConv : aiConv;
+                  const pu = field("purchaseUnit");
+                  const bu = field("baseUnit");
+                  return (
+                    <DataRow
+                      label="Conversion"
+                      value={
+                        conv?.purchaseQuantity && conv?.baseQuantity
+                          ? `${conv.purchaseQuantity} ${normalizeUnderscores(pu.value)} = ${conv.baseQuantity} ${normalizeUnderscores(bu.value)}`
+                          : ""
+                      }
+                      isAi={!savedConvComplete && !!(aiConv?.purchaseQuantity && aiConv?.baseQuantity)}
+                    />
+                  );
+                })()}
               </Col>
             </Row>
 
@@ -171,6 +191,29 @@ const MedicineRequisitionDetailModal = ({
               </Row>
             </div>
 
+            {reviewMode && (
+              <div className="mt-4 pt-4 border-top">
+                {reviewMode === "approve" && getAiFilledFields(data).length > 0 && (
+                  <Alert color="warning" className="mb-3 py-2" style={{ fontSize: 13 }}>
+                    <strong>AI generated fields:</strong>{" "}
+                    {getAiFilledFields(data).map(getAiFieldLabel).join(", ")}.
+                    These were suggested by AI (Gemini). Please verify them carefully before approving.
+                  </Alert>
+                )}
+                <Label className="fs-13 text-muted mb-1">
+                  Remarks {reviewMode === "reject" && <span className="text-danger">*</span>}
+                  {reviewMode !== "reject" && <span className="text-muted"> (Optional)</span>}
+                </Label>
+                <Input
+                  type="textarea"
+                  rows={3}
+                  placeholder={reviewMode === "approve" ? "Add approval remarks..." : "Reason for rejection..."}
+                  value={reviewRemarks}
+                  onChange={(e) => setReviewRemarks(e.target.value)}
+                />
+              </div>
+            )}
+
             {data.status !== "PENDING" && data.review && (
               <div className="mt-4 pt-4 border-top">
                 <Row>
@@ -200,27 +243,42 @@ const MedicineRequisitionDetailModal = ({
         )}
       </ModalBody>
       <div className="modal-footer border-top-0 px-4 pb-4 gap-2">
-        {data?.status === "PENDING" && hasWritePermission && (
+        {data?.status === "PENDING" && hasWritePermission && !reviewMode && (
           <>
             <Button
               color="danger"
               className="px-4 text-white"
-              onClick={() => {
-                toggle();
-                handleReject(data);
-              }}
+              onClick={() => onStartReview("reject")}
             >
               Reject
             </Button>
             <Button
               color="success"
               className="px-4 text-white"
-              onClick={() => {
-                toggle();
-                handleApprove(data);
-              }}
+              onClick={() => onStartReview("approve")}
             >
               Approve
+            </Button>
+          </>
+        )}
+        {reviewMode && (
+          <>
+            <Button color="light" onClick={onCancelReview} disabled={reviewLoading}>
+              Cancel
+            </Button>
+            <Button
+              color={reviewMode === "approve" ? "success" : "danger"}
+              className="text-white"
+              onClick={onSubmitReview}
+              disabled={reviewLoading || (reviewMode === "reject" && !reviewRemarks.trim())}
+            >
+              {reviewLoading ? (
+                <Spinner size="sm" />
+              ) : reviewMode === "approve" ? (
+                "Confirm Approve"
+              ) : (
+                "Confirm Reject"
+              )}
             </Button>
           </>
         )}

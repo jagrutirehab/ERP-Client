@@ -102,14 +102,18 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
       medicineName: initialData?.proposedMedicine?.name || "",
       genericName: pickProposed("genericName"),
       form: pickProposed("form"),
-      baseUnit: initialData?.proposedMedicine?.baseUnit || "",
-      purchaseUnit: initialData?.proposedMedicine?.purchaseUnit || "",
-      baseQuantity: initialData?.proposedMedicine?.conversion?.baseQuantity || "",
-      purchaseQuantity: initialData?.proposedMedicine?.conversion?.purchaseQuantity || "",
+      baseUnit: pickProposed("baseUnit"),
+      purchaseUnit: pickProposed("purchaseUnit"),
+      baseQuantity:
+        initialData?.proposedMedicine?.conversion?.baseQuantity ||
+        aiSuggested.conversion?.baseQuantity || "",
+      purchaseQuantity:
+        initialData?.proposedMedicine?.conversion?.purchaseQuantity ||
+        aiSuggested.conversion?.purchaseQuantity || "",
       category: pickProposed("category"),
       storageType: pickProposed("storageType"),
-      scheduleType: initialData?.proposedMedicine?.scheduleType || "",
-      type: initialData?.proposedMedicine?.type || "",
+      scheduleType: pickProposed("scheduleType"),
+      type: pickProposed("type"),
       strength: initialData?.proposedMedicine?.strength || "",
       instruction: initialData?.proposedMedicine?.instruction || "",
       composition: pickProposed("composition"),
@@ -172,8 +176,15 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
   // A field keeps the AI tag only while its value is still the AI suggestion.
   // Once the user changes it, the tag goes away.
   const isAiField = (field) => !!aiSuggested[field] && values[field] === aiSuggested[field];
-  const aiTag = (field) =>
-    isAiField(field) ? (
+  // Conversion is nested on the suggestion (aiSuggested.conversion.{purchaseQuantity,baseQuantity})
+  // but flat on the form, so it needs its own check instead of isAiField.
+  const isAiConversion =
+    !!aiSuggested.conversion?.purchaseQuantity &&
+    !!aiSuggested.conversion?.baseQuantity &&
+    Number(values.purchaseQuantity) === aiSuggested.conversion.purchaseQuantity &&
+    Number(values.baseQuantity) === aiSuggested.conversion.baseQuantity;
+  const aiBadge = (isAi) =>
+    isAi ? (
       <span
         title="Suggested by AI (Gemini). Verify before approving."
         style={{
@@ -191,6 +202,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
         Suggested by AI
       </span>
     ) : null;
+  const aiTag = (field) => aiBadge(isAiField(field));
 
   const errorText = (field) => {
     return touched[field] && errors[field] ? (
@@ -355,7 +367,13 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
                 <Col md={12}>
                     <Label className="fs-13 text-muted mb-1">
                         Conversion <span className="text-danger">*</span>
+                        {aiBadge(isAiConversion)}
                     </Label>
+                    {isAiConversion && (
+                        <div className="small mb-1" style={{ color: "#6b7280" }}>
+                            This is AI's best guess at the typical pack size — please confirm it against the actual pack.
+                        </div>
+                    )}
                     <div className="d-flex align-items-start flex-column">
                         <div className="d-flex align-items-center gap-2">
                             <Input
@@ -422,6 +440,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showB
                 <Col md={4}>
                     <Label className="fs-13 text-muted mb-1">
                         Type <span className="text-danger">*</span>
+                        {aiTag("type")}
                     </Label>
                     <Select
                         name="type"

@@ -29,7 +29,6 @@ import Select from "react-select";
 import RefreshButton from "../../../../Components/Common/RefreshButton";
 import DeleteModal from "../../../../Components/Common/DeleteModal";
 import DetailModal from "../../Components/MedicineRequisitionDetailModal";
-import MedicineRequisitionReviewModal from "../../Components/MedicineRequisitionReviewModal";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
@@ -57,7 +56,7 @@ const MedicineRequisition = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("PENDING");
 
-  const [reviewModal, setReviewModal] = useState({ open: false, mode: null, row: null });
+  const [reviewMode, setReviewMode] = useState(null); // null | "approve" | "reject"
   const [reviewRemarks, setReviewRemarks] = useState("");
 
   const [detailModal, setDetailModal] = useState({ open: false, row: null });
@@ -155,21 +154,25 @@ const MedicineRequisition = () => {
     loadRequisitions(page);
   };
 
+  // Opens the detail modal straight into review mode (used by the table's Approve/Reject
+  // buttons) - same modal the "view" eye icon opens, just starting past the read-only step.
   const openReviewModal = (row, mode) => {
-    setReviewModal({ open: true, mode, row });
+    setDetailModal({ open: true, row });
+    setReviewMode(mode);
     setReviewRemarks("");
   };
 
-  const closeReviewModal = () => {
-    setReviewModal({ open: false, mode: null, row: null });
+  const closeDetailModal = () => {
+    setDetailModal({ open: false, row: null });
+    setReviewMode(null);
     setReviewRemarks("");
   };
 
   const submitReview = async () => {
-    const { mode, row } = reviewModal;
-    if (!mode || !row) return;
+    const row = detailModal.row;
+    if (!reviewMode || !row) return;
 
-    if (mode === "reject" && !reviewRemarks.trim()) {
+    if (reviewMode === "reject" && !reviewRemarks.trim()) {
       toast.error("Remarks are required for rejection");
       return;
     }
@@ -179,21 +182,16 @@ const MedicineRequisition = () => {
         remarks: reviewRemarks.trim(),
       };
 
-      let action;
-      if (mode === "approve") {
-        action = approveMedicineRequisition;
-      } else if (mode === "reject") {
-        action = rejectMedicineRequisition;
-      }
+      const action = reviewMode === "approve" ? approveMedicineRequisition : rejectMedicineRequisition;
 
       const result = await dispatch(action({ id: row._id, ...data })).unwrap();
       if (result) {
-        closeReviewModal();
+        closeDetailModal();
         loadRequisitions(1);
       }
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.message || `Failed to ${mode} requisition`);
+        toast.error(error?.message || `Failed to ${reviewMode} requisition`);
       }
     }
   };
@@ -214,7 +212,11 @@ const MedicineRequisition = () => {
   };
 
   const columns = getMedicineRequisitionColumns({
-    openDetail: (row) => setDetailModal({ open: true, row }),
+    openDetail: (row) => {
+      setDetailModal({ open: true, row });
+      setReviewMode(null);
+      setReviewRemarks("");
+    },
     handleEdit: (row) => navigate(`/pharmacy/requisition/medicine-requisition/edit/${row._id}`),
     handleApprove: (row) => openReviewModal(row, "approve"),
     handleReject: (row) => openReviewModal(row, "reject"),
@@ -359,26 +361,22 @@ const MedicineRequisition = () => {
         </div>
       </CardBody>
 
-      {/* Review Modal */}
-      <MedicineRequisitionReviewModal
-        isOpen={reviewModal.open}
-        mode={reviewModal.mode}
-        row={reviewModal.row}
-        reviewRemarks={reviewRemarks}
-        setReviewRemarks={setReviewRemarks}
-        closeModal={closeReviewModal}
-        submitReview={submitReview}
-        loading={loading}
-      />
-
-      {/* Detail Modal */}
+      {/* Detail Modal - also handles Approve/Reject in place via reviewMode */}
       <DetailModal
         isOpen={detailModal.open}
-        toggle={() => setDetailModal({ open: false, row: null })}
+        toggle={closeDetailModal}
         row={detailModal.row}
-        handleApprove={(row) => openReviewModal(row, "approve")}
-        handleReject={(row) => openReviewModal(row, "reject")}
         hasWritePermission={hasWritePermission}
+        reviewMode={reviewMode}
+        onStartReview={(mode) => {
+          setReviewMode(mode);
+          setReviewRemarks("");
+        }}
+        onCancelReview={closeDetailModal}
+        reviewRemarks={reviewRemarks}
+        setReviewRemarks={setReviewRemarks}
+        onSubmitReview={submitReview}
+        reviewLoading={loading}
       />
 
       {/* Delete Confirmation Modal */}
