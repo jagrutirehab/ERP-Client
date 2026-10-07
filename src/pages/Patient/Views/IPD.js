@@ -40,6 +40,7 @@ import SetAdmissionTypeModal from "./Components/SetAdmissionTypeModal";
 import BaselinePackageControl from "./Components/BaselinePackageControl";
 import BaselinePackageStatusModal from "./Components/BaselinePackageStatusModal";
 import PsychologicalTestsControl from "./Components/PsychologicalTestsControl";
+import PsychologicalTestsStatusModal from "./Components/PsychologicalTestsStatusModal";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 
@@ -71,6 +72,9 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   // null. Keyed by admission id for the same reason as admissionTypeFor, and
   // carries the target status because one modal serves all three transitions.
   const [baselineTarget, setBaselineTarget] = useState(null);
+  // { admissionId, nextStatus } for the open psychological-tests dialog, or
+  // null — the same shape as baselineTarget, for the same reasons.
+  const [psychTestTarget, setPsychTestTarget] = useState(null);
   const latestPatientIdRef = useRef();
 
   // `user.accessroles` is a bare ObjectId on the user document, so the role NAME
@@ -151,8 +155,8 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
     }
   };
 
-  // Resolves true/false and never rejects, so the control can keep its panel
-  // open on failure. Don't read error.message here: the thunk rejects with a
+  // Resolves true/false and never rejects, so the dialog can stay open on
+  // failure. Don't read error.message here: the thunk rejects with a
   // STRING (so .unwrap() throws a string) and has already shown the server's
   // message via setAlert.
   const handlePsychTestStatusChange = async (admissionId, body) => {
@@ -458,15 +462,14 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                 {/* Psychological tests applicability — its own w-100 line below
                     Baseline. Not Applicable stops the clinical-test "not
                     recorded" reminders for this admission; score alerts still
-                    fire. Keyed by admission because the cards are keyed by
-                    index: without it an open reason panel would follow the
-                    card POSITION to a different admission when the list
-                    changes. */}
+                    fire. The reason is collected in a dialog, as for
+                    Baseline. */}
                 <div className="d-flex align-items-center gap-1 w-100">
                   <PsychologicalTestsControl
-                    key={addmission._id}
                     addmission={addmission}
-                    onSubmit={handlePsychTestStatusChange}
+                    onRequestChange={(admissionId, nextStatus) =>
+                      setPsychTestTarget({ admissionId, nextStatus })
+                    }
                   />
                 </div>
               </div>
@@ -482,6 +485,14 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                 toggle={() => setBaselineTarget(null)}
                 addmission={addmission}
                 nextStatus={baselineTarget?.nextStatus}
+              />
+
+              <PsychologicalTestsStatusModal
+                isOpen={psychTestTarget?.admissionId === addmission._id}
+                toggle={() => setPsychTestTarget(null)}
+                addmission={addmission}
+                nextStatus={psychTestTarget?.nextStatus}
+                onSubmit={handlePsychTestStatusChange}
               />
 
               <div className="d-flex align-items-center gap-4">
