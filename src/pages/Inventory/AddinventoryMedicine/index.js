@@ -328,7 +328,7 @@ const AddinventoryMedicine = ({
     setValue("category", medicine.category || "");
     setValue("storageType", medicine.storageType || "");
     setValue("scheduleType", medicine.scheduleType || "");
-    setValue("unitType", medicine.unit || "");
+    setValue("unitType", medicine.unit || medicine.baseUnit || "");
     setValue("Strength", medicine.strength || "");
     setValue("purchasePrice", medicine.unitPrice || "");
 

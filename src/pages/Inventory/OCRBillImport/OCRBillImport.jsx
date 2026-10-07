@@ -1805,6 +1805,48 @@ const OCRBillImport = () => {
 
   // Consolidated: handleProceedToSummary removed - confirm step now includes summary
 
+  const handleSubmitAllForRequisition = async () => {
+    if (errorMedicines.length === 0) return;
+
+    setConfirmationLoading(true);
+    setError(null);
+
+    try {
+      const response = await confirmOCRMedicines({
+        billImportId,
+        billMetadata: {
+          billNumber,
+          billSupplier,
+          billGrossAmount,
+          billDiscountPercentage,
+          billDiscountAmount,
+          billFinalAmount,
+          billTotal,
+        },
+        medicineConfirmations: [],
+        errorMedicines: errorMedicines,
+      });
+
+      const result = response.data || response;
+      if (!result || !result.billImportId) {
+        throw new Error("Invalid response: missing billImportId");
+      }
+
+      setSuccessResult({
+        ...result,
+        pendingErrors: errorMedicines,
+      });
+      setStep("success");
+    } catch (err) {
+      console.error("Submit for requisition error:", err);
+      const errorMsg = err.response?.data?.message || err.message || "Failed to submit for requisition";
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setConfirmationLoading(false);
+    }
+  };
+
   // ============================================
   // Final Submission
   // ============================================
@@ -3636,20 +3678,39 @@ const OCRBillImport = () => {
           {error && <Alert color="danger" className="mt-3">{error}</Alert>}
 
           <div className="d-flex gap-2 justify-content-end mt-4">
-            <Button
-              color="primary"
-              onClick={handleProceedFromExtraction}
-              disabled={confirmationLoading || extractedMedicines.every((_, i) => !isRowTicked(i))}
-            >
-              {confirmationLoading ? (
-                <>
-                  <Spinner size="sm" className="me-2" />
-                  Processing...
-                </>
-              ) : (
-                "Review & Proceed"
-              )}
-            </Button>
+            {extractedMedicines.length === 0 && errorMedicines.length > 0 ? (
+              // Nothing was ever matched/selected - there's nothing to confirm, so the only
+              // way forward is to raise requisitions for everything in Missing.
+              <Button
+                color="primary"
+                onClick={handleSubmitAllForRequisition}
+                disabled={confirmationLoading}
+              >
+                {confirmationLoading ? (
+                  <>
+                    <Spinner size="sm" className="me-2" />
+                    Submitting...
+                  </>
+                ) : (
+                  `Submit for Requisition (${errorMedicines.length})`
+                )}
+              </Button>
+            ) : (
+              <Button
+                color="primary"
+                onClick={handleProceedFromExtraction}
+                disabled={confirmationLoading || extractedMedicines.every((_, i) => !isRowTicked(i))}
+              >
+                {confirmationLoading ? (
+                  <>
+                    <Spinner size="sm" className="me-2" />
+                    Processing...
+                  </>
+                ) : (
+                  "Review & Proceed"
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </CardBody>
