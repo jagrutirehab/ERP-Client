@@ -376,8 +376,21 @@ export const Issues = (
         },
         {
           name: <div className="text-center">Patient/Staff ID</div>,
-          selector: (row) => row?.operationalIssue?.patientOrStaffId || "-",
-          width: "160px",
+          width: "240px",
+          cell: (row) => (
+            <div
+              style={{
+                maxHeight: "80px",
+                overflowY: "auto",
+                paddingRight: "6px",
+                lineHeight: "1.4",
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+              }}
+            >
+              {row?.operationalIssue?.patientOrStaffId || "-"}
+            </div>
+          ),
         },
         {
           name: <div className="text-center">Images</div>,
