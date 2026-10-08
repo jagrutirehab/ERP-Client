@@ -21,6 +21,9 @@ import "../../UnitOfMeasurement/uom.scss";
 
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
+const budgetAvailable = (b) =>
+  b ? (b.approvedAmount || 0) - (b.consumedAmount || 0) : 0;
+
 const emptyLineItem = () => ({
   itemName: "",
   description: "",
@@ -107,6 +110,9 @@ const POForm = ({ onSaved, onCancel }) => {
         then: (schema) => schema.required("Budget is required"),
       }),
       deliverySiteId: Yup.string().required("Delivery site is required"),
+      expectedDeliveryDate: Yup.string().required(
+        "Expected delivery date is required",
+      ),
       justification: Yup.string().when("poType", {
         is: "direct",
         then: (schema) =>
@@ -138,6 +144,7 @@ const POForm = ({ onSaved, onCancel }) => {
           justification: true,
           lineItems: true,
           deliverySiteId: true,
+          expectedDeliveryDate: true,
         });
         toast.error("Please fill in all required fields");
         return;
@@ -146,14 +153,13 @@ const POForm = ({ onSaved, onCancel }) => {
       if (
         values.poType !== "pr_based" &&
         selectedBudget &&
-        netPayable > selectedBudget.approvedAmount
+        netPayable > budgetAvailable(selectedBudget)
       ) {
         toast.error(
-          `This PO (${money(netPayable)}) exceeds the approved budget (${money(selectedBudget.approvedAmount)}). Please reduce the amount or select a different budget.`,
+          `This PO (${money(netPayable)}) exceeds the available budget (${money(budgetAvailable(selectedBudget))}). Please reduce the amount or select a different budget.`,
         );
         return;
       }
-
       const payload = { ...values };
       if (values.poType === "pr_based") {
         delete payload.lineItems;
@@ -676,7 +682,8 @@ const POForm = ({ onSaved, onCancel }) => {
                 </option>
                 {budgets.map((b) => (
                   <option key={b._id} value={b._id}>
-                    {b.fiscalYear} — {money(b.approvedAmount)}
+                    {b.fiscalYear} — {money(budgetAvailable(b))} available of{" "}
+                    {money(b.approvedAmount)}
                     {b.budgetType === "global" ? " (Global)" : " (Department)"}
                   </option>
                 ))}
@@ -706,10 +713,16 @@ const POForm = ({ onSaved, onCancel }) => {
               </Input>
             </Col>
             <Col md={3} className="mb-4">
-              <Label>Expected Delivery</Label>
+              <Label>
+                Expected Delivery <span className="text-danger">*</span>
+              </Label>
               <Input
                 type="date"
                 value={v.expectedDeliveryDate}
+                invalid={
+                  validation.touched.expectedDeliveryDate &&
+                  !!validation.errors.expectedDeliveryDate
+                }
                 onChange={(e) =>
                   validation.setFieldValue(
                     "expectedDeliveryDate",
@@ -717,6 +730,9 @@ const POForm = ({ onSaved, onCancel }) => {
                   )
                 }
               />
+              <FormFeedback>
+                {validation.errors.expectedDeliveryDate}
+              </FormFeedback>
             </Col>
             <Col md={3} className="mb-4">
               <Label>
@@ -1007,19 +1023,23 @@ const POForm = ({ onSaved, onCancel }) => {
                       <span className="text-muted small">Budget Approved</span>
                       <span>{money(selectedBudget.approvedAmount)}</span>
                     </div>
+                    <div className="d-flex justify-content-between mb-1">
+                      <span className="text-muted small">Already Used</span>
+                      <span>{money(selectedBudget.consumedAmount)}</span>
+                    </div>
                     <div
                       className={`d-flex justify-content-between fw-semibold ${
-                        netPayable > selectedBudget.approvedAmount
+                        netPayable > budgetAvailable(selectedBudget)
                           ? "text-danger"
                           : "text-success"
                       }`}
                     >
-                      <span>Remaining</span>
+                      <span>Remaining after this PO</span>
                       <span>
-                        {money(selectedBudget.approvedAmount - netPayable)}
+                        {money(budgetAvailable(selectedBudget) - netPayable)}
                       </span>
                     </div>
-                    {netPayable > selectedBudget.approvedAmount && (
+                    {netPayable > budgetAvailable(selectedBudget) && (
                       <div
                         className="text-danger small mt-2 p-2"
                         style={{ background: "#fef3f2", borderRadius: 6 }}

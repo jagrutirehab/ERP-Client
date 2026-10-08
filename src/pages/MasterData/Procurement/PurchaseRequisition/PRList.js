@@ -198,10 +198,16 @@ const PRList = ({ onAdd, onEdit }) => {
       name: "Title",
       cell: (row) => <span className="uom-cell-primary">{row.prTitle}</span>,
     },
-    {
+        {
       name: "Department",
       cell: (row) => (
         <span className="uom-cell-muted">{row.departmentId?.name || "—"}</span>
+      ),
+    },
+    {
+      name: "Delivery Site",
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.deliverySiteId?.title || "—"}</span>
       ),
     },
     {

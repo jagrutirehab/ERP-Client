@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import DataTable from "react-data-table-component";
 import { Button, Input, Modal, ModalBody } from "reactstrap";
 import { toast } from "react-toastify";
-import { getWorkOrders, updateWorkOrder } from "../../../../helpers/backend_helper";
+import {
+  getWorkOrders,
+  updateWorkOrder,
+} from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
@@ -11,10 +14,30 @@ const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
 const dateTimeFmt = (d) => (d ? new Date(d).toLocaleString("en-IN") : "—");
 
 const STATUS_META = {
-  pending: { label: "Pending", cls: "status-draft", icon: "bx-time-five", color: "#f79009" },
-  in_progress: { label: "In Progress", cls: "status-active", icon: "bx-loader-circle", color: "#2e90fa" },
-  completed: { label: "Completed", cls: "status-active", icon: "bx-check-circle", color: "#12b76a" },
-  overdue: { label: "Overdue", cls: "status-blacklisted", icon: "bx-error-circle", color: "#f04438" },
+  pending: {
+    label: "Pending",
+    cls: "status-draft",
+    icon: "bx-time-five",
+    color: "#f79009",
+  },
+  in_progress: {
+    label: "In Progress",
+    cls: "status-active",
+    icon: "bx-loader-circle",
+    color: "#2e90fa",
+  },
+  completed: {
+    label: "Completed",
+    cls: "status-active",
+    icon: "bx-check-circle",
+    color: "#12b76a",
+  },
+  overdue: {
+    label: "Overdue",
+    cls: "status-blacklisted",
+    icon: "bx-error-circle",
+    color: "#f04438",
+  },
 };
 
 const PRIORITY_META = {
@@ -45,10 +68,19 @@ const SummaryCard = ({ label, value, sub, icon }) => (
 );
 
 const DetailRow = ({ icon, label, value }) => (
-  <div className="d-flex align-items-start gap-3 py-2" style={{ borderBottom: "1px solid #f1f3f5" }}>
+  <div
+    className="d-flex align-items-start gap-3 py-2"
+    style={{ borderBottom: "1px solid #f1f3f5" }}
+  >
     <div
       className="d-flex align-items-center justify-content-center"
-      style={{ width: 34, height: 34, borderRadius: 8, background: "#f5f6fa", flexShrink: 0 }}
+      style={{
+        width: 34,
+        height: 34,
+        borderRadius: 8,
+        background: "#f5f6fa",
+        flexShrink: 0,
+      }}
     >
       <i className={`bx ${icon} text-primary`}></i>
     </div>
@@ -70,7 +102,12 @@ const WorkOrder = () => {
   const canUpdate = hasPermission("MASTERDATA", "WORK_ORDER", "WRITE");
 
   const [workOrders, setWorkOrders] = useState([]);
-  const [stats, setStats] = useState({ total: 0, pending: 0, highPriority: 0, overdue: 0 });
+  const [stats, setStats] = useState({
+    total: 0,
+    pending: 0,
+    highPriority: 0,
+    overdue: 0,
+  });
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [refreshFlag, setRefreshFlag] = useState(0);
@@ -85,7 +122,9 @@ const WorkOrder = () => {
       .then((res) => {
         if (cancelled) return;
         setWorkOrders(res?.data || []);
-        setStats(res?.stats || { total: 0, pending: 0, highPriority: 0, overdue: 0 });
+        setStats(
+          res?.stats || { total: 0, pending: 0, highPriority: 0, overdue: 0 },
+        );
       })
       .catch(() => {})
       .finally(() => {
@@ -111,7 +150,11 @@ const WorkOrder = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't update.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't update.",
+        );
       }
     } finally {
       setUpdating(false);
@@ -119,15 +162,28 @@ const WorkOrder = () => {
   };
 
   const columns = [
-    { name: "Work Order #", selector: (row) => row.workOrderNumber, sortable: true, width: "160px" },
+    {
+      name: "Work Order #",
+      selector: (row) => row.workOrderNumber,
+      sortable: true,
+      width: "160px",
+    },
     {
       name: "Asset",
-      cell: (row) => <span className="uom-cell-primary">{row.assetId?.assetName || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-primary">
+          {row.assetId?.assetName || "—"}
+        </span>
+      ),
     },
     {
       name: "Type",
       width: "110px",
-      cell: (row) => <span className="uom-cell-muted text-capitalize">{row.maintenanceType}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted text-capitalize">
+          {row.maintenanceType}
+        </span>
+      ),
     },
     {
       name: "Priority",
@@ -142,12 +198,30 @@ const WorkOrder = () => {
     },
     {
       name: "Assigned To",
-      cell: (row) => <span className="uom-cell-muted">{row.assignedTo?.name || "Unassigned"}</span>,
+      cell: (row) =>
+        row.assignedVendorId ? (
+          <div className="py-1">
+            <span className="uom-cell-muted">
+              {row.assignedVendorId.tradeName || row.assignedVendorId.legalName}
+            </span>
+            <div className="small text-muted">Vendor</div>
+          </div>
+        ) : (
+          <span className="uom-cell-muted">
+            {row.assignedTo?.name || "Unassigned"}
+          </span>
+        ),
     },
-    { name: "Status", width: "130px", cell: (row) => <StatusPill status={row.status} /> },
+    {
+      name: "Status",
+      width: "130px",
+      cell: (row) => <StatusPill status={row.status} />,
+    },
     {
       name: "Scheduled",
-      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.scheduledDate)}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{dateFmt(row.scheduledDate)}</span>
+      ),
     },
     {
       name: "",
@@ -171,10 +245,30 @@ const WorkOrder = () => {
       </div>
 
       <div className="d-flex gap-3 mb-4 flex-wrap">
-        <SummaryCard icon="bx-list-ul" label="Total Work Orders" value={stats.total} sub="All work orders" />
-        <SummaryCard icon="bx-time-five" label="Pending Orders" value={stats.pending} sub="Awaiting action" />
-        <SummaryCard icon="bx-error" label="High Priority" value={stats.highPriority} sub="Critical attention" />
-        <SummaryCard icon="bx-calendar-x" label="Overdue" value={stats.overdue} sub="Behind schedule" />
+        <SummaryCard
+          icon="bx-list-ul"
+          label="Total Work Orders"
+          value={stats.total}
+          sub="All work orders"
+        />
+        <SummaryCard
+          icon="bx-time-five"
+          label="Pending Orders"
+          value={stats.pending}
+          sub="Awaiting action"
+        />
+        <SummaryCard
+          icon="bx-error"
+          label="High Priority"
+          value={stats.highPriority}
+          sub="Critical attention"
+        />
+        <SummaryCard
+          icon="bx-calendar-x"
+          label="Overdue"
+          value={stats.overdue}
+          sub="Behind schedule"
+        />
       </div>
 
       <div className="uom-search-wrap mb-3">
@@ -205,12 +299,20 @@ const WorkOrder = () => {
       </div>
 
       {/* Detail Modal — polished */}
-      <Modal isOpen={!!detailModal} toggle={() => setDetailModal(null)} centered size="md">
+      <Modal
+        isOpen={!!detailModal}
+        toggle={() => setDetailModal(null)}
+        centered
+        size="md"
+      >
         <ModalBody className="p-0">
           {detailModal && (
             <>
               {/* Header strip */}
-              <div className="p-4 pb-3" style={{ borderBottom: "1px solid #f1f3f5" }}>
+              <div
+                className="p-4 pb-3"
+                style={{ borderBottom: "1px solid #f1f3f5" }}
+              >
                 <div className="d-flex justify-content-between align-items-start">
                   <div>
                     <h5 className="mb-1">{detailModal.title}</h5>
@@ -236,9 +338,13 @@ const WorkOrder = () => {
                     </div>
                     <div
                       className="fw-bold text-capitalize"
-                      style={{ color: PRIORITY_META[detailModal.priority]?.color, fontSize: 18 }}
+                      style={{
+                        color: PRIORITY_META[detailModal.priority]?.color,
+                        fontSize: 18,
+                      }}
                     >
-                      {PRIORITY_META[detailModal.priority]?.label || detailModal.priority}
+                      {PRIORITY_META[detailModal.priority]?.label ||
+                        detailModal.priority}
                     </div>
                   </div>
                 </div>
@@ -255,14 +361,29 @@ const WorkOrder = () => {
                   icon="bx-wrench"
                   label="Maintenance Type"
                   value={
-                    <span className="text-capitalize">{detailModal.maintenanceType}</span>
+                    <span className="text-capitalize">
+                      {detailModal.maintenanceType}
+                    </span>
                   }
                 />
-                <DetailRow icon="bx-map-pin" label="Site" value={detailModal.centerId?.title || "—"} />
+                <DetailRow
+                  icon="bx-map-pin"
+                  label="Site"
+                  value={detailModal.centerId?.title || "—"}
+                />
                 <DetailRow
                   icon="bx-user"
-                  label="Assigned To"
-                  value={detailModal.assignedTo?.name || "Unassigned"}
+                  label={
+                    detailModal.assignedVendorId
+                      ? "Assigned To (Vendor)"
+                      : "Assigned To"
+                  }
+                  value={
+                    detailModal.assignedVendorId
+                      ? detailModal.assignedVendorId.tradeName ||
+                        detailModal.assignedVendorId.legalName
+                      : detailModal.assignedTo?.name || "Unassigned"
+                  }
                 />
                 <DetailRow
                   icon="bx-calendar"
@@ -276,13 +397,30 @@ const WorkOrder = () => {
                     value={dateTimeFmt(detailModal.completedAt)}
                   />
                 )}
-                <DetailRow icon="bx-note" label="Remarks" value={detailModal.remarks || "—"} />
+                <DetailRow
+                  icon="bx-note"
+                  label="Remarks"
+                  value={detailModal.remarks || "—"}
+                />
               </div>
 
               {/* Status changer */}
               {canUpdate && (
-                <div className="px-4 py-3 mt-2" style={{ background: "#fafbfc", borderTop: "1px solid #f1f3f5" }}>
-                  <div className="text-muted mb-2" style={{ fontSize: 12, fontWeight: 600, letterSpacing: 0.3 }}>
+                <div
+                  className="px-4 py-3 mt-2"
+                  style={{
+                    background: "#fafbfc",
+                    borderTop: "1px solid #f1f3f5",
+                  }}
+                >
+                  <div
+                    className="text-muted mb-2"
+                    style={{
+                      fontSize: 12,
+                      fontWeight: 600,
+                      letterSpacing: 0.3,
+                    }}
+                  >
                     UPDATE STATUS
                   </div>
                   <div className="d-flex gap-2 flex-wrap">
@@ -293,7 +431,11 @@ const WorkOrder = () => {
                         outline={detailModal.status !== key}
                         style={
                           detailModal.status === key
-                            ? { backgroundColor: meta.color, borderColor: meta.color, color: "#fff" }
+                            ? {
+                                backgroundColor: meta.color,
+                                borderColor: meta.color,
+                                color: "#fff",
+                              }
                             : { borderColor: meta.color, color: meta.color }
                         }
                         disabled={updating || detailModal.status === key}

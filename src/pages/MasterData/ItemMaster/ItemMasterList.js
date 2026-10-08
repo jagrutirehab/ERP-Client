@@ -15,7 +15,9 @@ import ImportItemsModal from "./ImportItemsModal";
 import "../shared/itemMasterForms.scss";
 
 const StatusPill = ({ status }) => (
-  <span className={`im-status-pill ${status === "active" ? "active" : "inactive"}`}>
+  <span
+    className={`im-status-pill ${status === "active" ? "active" : "inactive"}`}
+  >
     <span className="dot"></span> {status}
   </span>
 );
@@ -157,7 +159,9 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
     getUoms({})
       .then((res) => {
         const map = {};
-        (res?.data || []).forEach((u) => (map[u._id] = `${u.name} (${u.symbol})`));
+        (res?.data || []).forEach(
+          (u) => (map[u._id] = `${u.name} (${u.symbol})`),
+        );
         setUomMap(map);
       })
       .catch(() => {});
@@ -177,7 +181,11 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
       } catch (error) {
         if (cancelled) return;
         if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Failed to load items");
+          toast.error(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Failed to load items",
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -199,7 +207,11 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't delete item. Please try again.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't delete item. Please try again.",
+        );
       }
     } finally {
       setDeleting(false);
@@ -230,7 +242,10 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
       grow: 2,
       minWidth: "220px",
       cell: (row) => (
-        <span className="im-table-primary-cell im-cell-ellipsis" title={row.itemName}>
+        <span
+          className="im-table-primary-cell im-cell-ellipsis"
+          title={row.itemName}
+        >
           {row.itemName}
         </span>
       ),
@@ -251,14 +266,20 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
       selector: (row) => row.brand || "—",
       minWidth: "120px",
       hide: 1200,
-      cell: (row) => <span className="im-cell-text im-cell-ellipsis">{row.brand || "—"}</span>,
+      cell: (row) => (
+        <span className="im-cell-text im-cell-ellipsis">
+          {row.brand || "—"}
+        </span>
+      ),
     },
     {
       name: "Item Type",
       selector: (row) => typeMap[row.itemTypeId] || "—",
       minWidth: "120px",
       hide: 1366,
-      cell: (row) => <span className="im-cell-muted">{typeMap[row.itemTypeId] || "—"}</span>,
+      cell: (row) => (
+        <span className="im-cell-muted">{typeMap[row.itemTypeId] || "—"}</span>
+      ),
     },
     {
       name: "Status",
@@ -286,11 +307,21 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
       right: true,
       cell: (row) => (
         <div className="im-row-actions">
-          <button type="button" className="im-icon-btn" title="Overview" onClick={() => setOverviewItem(row)}>
+          <button
+            type="button"
+            className="im-icon-btn"
+            title="Overview"
+            onClick={() => setOverviewItem(row)}
+          >
             <i className="bx bx-show"></i>
           </button>
           {canEdit && (
-            <button type="button" className="im-icon-btn" title="Edit" onClick={() => onEdit(row)}>
+            <button
+              type="button"
+              className="im-icon-btn"
+              title="Edit"
+              onClick={() => onEdit(row)}
+            >
               <i className="bx bx-edit-alt"></i>
             </button>
           )}
@@ -348,7 +379,11 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
 
         <div className="im-list-actions">
           {canImport && (
-            <Button color="light" className="border" onClick={() => setImportOpen(true)}>
+            <Button
+              color="light"
+              className="border"
+              onClick={() => setImportOpen(true)}
+            >
               <i className="bx bx-upload me-1"></i> Import Items
             </Button>
           )}
@@ -393,19 +428,28 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
       </div>
 
       {/* Delete confirmation modal */}
-      <Modal isOpen={!!deleteTarget} toggle={() => setDeleteTarget(null)} centered>
+      <Modal
+        isOpen={!!deleteTarget}
+        toggle={() => setDeleteTarget(null)}
+        centered
+      >
         <ModalBody className="p-4">
           <h5 className="mb-2">Delete this item?</h5>
           <p className="text-muted mb-4">
             {deleteTarget && (
               <>
-                <strong>{deleteTarget.itemName}</strong> {deleteTarget.itemCode && `(${deleteTarget.itemCode})`}
+                <strong>{deleteTarget.itemName}</strong>{" "}
+                {deleteTarget.itemCode && `(${deleteTarget.itemCode})`}
               </>
             )}{" "}
             will be permanently deleted. This cannot be undone.
           </p>
           <div className="d-flex justify-content-end gap-2">
-            <Button color="light" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+            <Button
+              color="light"
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleting}
+            >
               Cancel
             </Button>
             <Button color="danger" onClick={confirmDelete} disabled={deleting}>
@@ -416,77 +460,149 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
       </Modal>
 
       {/* Overview modal */}
-      <Modal isOpen={!!overviewItem} toggle={() => setOverviewItem(null)} centered size="lg">
+      <Modal
+        isOpen={!!overviewItem}
+        toggle={() => setOverviewItem(null)}
+        centered
+        size="lg"
+      >
         <ModalBody className="p-4">
           {overviewItem && (
             <>
               <div className="im-overview-header">
                 <div className="im-overview-title">
                   <h5>{overviewItem.itemName}</h5>
-                  <span className="im-table-code">{overviewItem.itemCode || "—"}</span>
+                  <span className="im-table-code">
+                    {overviewItem.itemCode || "—"}
+                  </span>
                 </div>
                 <StatusPill status={overviewItem.status} />
               </div>
 
               <div className="im-overview-body">
                 <OverviewSection icon="bx-sitemap" title="Categorization">
-                  <OverviewField label="Item Type" value={typeMap[overviewItem.itemTypeId]} />
-                  <OverviewField label="Sub Type" value={overviewItem.subType} />
+                  <OverviewField
+                    label="Item Type"
+                    value={typeMap[overviewItem.itemTypeId]}
+                  />
+                  <OverviewField
+                    label="Sub Type"
+                    value={overviewItem.subType}
+                  />
                   <OverviewField
                     label="L1 Category"
-                    value={overviewItem.assetCategoryL1?.name || categoryMap[overviewItem.assetCategoryL1]}
+                    value={
+                      overviewItem.assetCategoryL1?.name ||
+                      categoryMap[overviewItem.assetCategoryL1]
+                    }
                   />
                   <OverviewField
                     label="L2 Category"
-                    value={overviewItem.assetCategoryL2?.name || categoryMap[overviewItem.assetCategoryL2]}
+                    value={
+                      overviewItem.assetCategoryL2?.name ||
+                      categoryMap[overviewItem.assetCategoryL2]
+                    }
                   />
                   <OverviewField
                     label="L3 Category"
-                    value={overviewItem.assetCategoryL3?.name || categoryMap[overviewItem.assetCategoryL3]}
+                    value={
+                      overviewItem.assetCategoryL3?.name ||
+                      categoryMap[overviewItem.assetCategoryL3]
+                    }
                   />
                   <OverviewField
                     label="L4 Category"
-                    value={overviewItem.assetCategoryL4?.name || categoryMap[overviewItem.assetCategoryL4]}
+                    value={
+                      overviewItem.assetCategoryL4?.name ||
+                      categoryMap[overviewItem.assetCategoryL4]
+                    }
                   />
                 </OverviewSection>
 
-                <OverviewSection icon="bx-purchase-tag" title="Description & Classification">
+                <OverviewSection
+                  icon="bx-purchase-tag"
+                  title="Description & Classification"
+                >
                   <OverviewField label="Brand" value={overviewItem.brand} />
-                  <OverviewField label="UOM" value={uomMap[overviewItem.uomId]} />
-                  <OverviewField label="Base Price" value={`₹${overviewItem.basePrice ?? 0}`} />
-                  <OverviewField label="Parent Item" value={overviewItem.parentItemId ? "Has parent" : "Standalone"} />
+                  <OverviewField
+                    label="UOM"
+                    value={
+                      overviewItem.uomId?.name
+                        ? `${overviewItem.uomId.name}${overviewItem.uomId.symbol ? ` (${overviewItem.uomId.symbol})` : ""}`
+                        : uomMap[overviewItem.uomId] || "—"
+                    }
+                  />{" "}
+                  <OverviewField
+                    label="Base Price"
+                    value={`₹${overviewItem.basePrice ?? 0}`}
+                  />
+                  <OverviewField
+                    label="Parent Item"
+                    value={
+                      overviewItem.parentItemId ? "Has parent" : "Standalone"
+                    }
+                  />
                   <OverviewField
                     label="Created At"
-                    value={overviewItem.createdAt ? new Date(overviewItem.createdAt).toLocaleDateString() : "—"}
+                    value={
+                      overviewItem.createdAt
+                        ? new Date(overviewItem.createdAt).toLocaleDateString()
+                        : "—"
+                    }
                   />
                   <OverviewField
                     label="Updated At"
-                    value={overviewItem.updatedAt ? new Date(overviewItem.updatedAt).toLocaleDateString() : "—"}
+                    value={
+                      overviewItem.updatedAt
+                        ? new Date(overviewItem.updatedAt).toLocaleDateString()
+                        : "—"
+                    }
                   />
                 </OverviewSection>
 
                 {overviewItem.longDescription && (
                   <div className="im-overview-desc-block">
-                    <div className="im-overview-label mb-2">Long Description</div>
-                    <p className="im-overview-desc-text">{overviewItem.longDescription}</p>
+                    <div className="im-overview-label mb-2">
+                      Long Description
+                    </div>
+                    <p className="im-overview-desc-text">
+                      {overviewItem.longDescription}
+                    </p>
                   </div>
                 )}
 
                 <OverviewSection icon="bx-layer" title="Stock Thresholds">
-                  <OverviewField label="Min Level" value={overviewItem.stockThresholds?.minLevel} />
-                  <OverviewField label="Max Level" value={overviewItem.stockThresholds?.maxLevel} />
-                  <OverviewField label="Safety Stock" value={overviewItem.stockThresholds?.safetyStock} />
+                  <OverviewField
+                    label="Min Level"
+                    value={overviewItem.stockThresholds?.minLevel}
+                  />
+                  <OverviewField
+                    label="Max Level"
+                    value={overviewItem.stockThresholds?.maxLevel}
+                  />
+                  <OverviewField
+                    label="Safety Stock"
+                    value={overviewItem.stockThresholds?.safetyStock}
+                  />
                 </OverviewSection>
 
                 <OverviewSection icon="bx-calendar-check" title="Planning">
-                  <OverviewField label="Reorder Qty" value={overviewItem.planning?.reorderQty} />
-                  <OverviewField label="Lead Time (Days)" value={overviewItem.planning?.leadTimeDays} />
+                  <OverviewField
+                    label="Reorder Qty"
+                    value={overviewItem.planning?.reorderQty}
+                  />
+                  <OverviewField
+                    label="Lead Time (Days)"
+                    value={overviewItem.planning?.leadTimeDays}
+                  />
                   <OverviewField
                     label="Inventory Class"
                     value={
-                      overviewItem.planning?.inventoryClass === "sales_inventory"
+                      overviewItem.planning?.inventoryClass ===
+                      "sales_inventory"
                         ? "Sales Inventory"
-                        : overviewItem.planning?.inventoryClass === "procurement_inventory"
+                        : overviewItem.planning?.inventoryClass ===
+                            "procurement_inventory"
                           ? "Procurement Inventory"
                           : "—"
                     }
@@ -495,34 +611,72 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
                     label="Allow Invoice w/o Stock"
                     value={yn(overviewItem.planning?.allowInvoiceWithoutStock)}
                   />
-                  <OverviewField label="Avg Daily Usage" value={overviewItem.usageMetrics?.avgDailyUsage} />
+                  <OverviewField
+                    label="Avg Daily Usage"
+                    value={overviewItem.usageMetrics?.avgDailyUsage}
+                  />
                 </OverviewSection>
 
                 <OverviewSection icon="bx-truck" title="Procurement Info">
-                  <OverviewField label="Manufacturer" value={overviewItem.procurementInfo?.manufacturerName} />
-                  <OverviewField label="MPN" value={overviewItem.procurementInfo?.mpn} />
-                  <OverviewField label="Country of Origin" value={overviewItem.procurementInfo?.countryOfOrigin} />
-                  <OverviewField label="HSN / SAC Code" value={overviewItem.hsnSacCode} />
+                  <OverviewField
+                    label="Manufacturer"
+                    value={overviewItem.procurementInfo?.manufacturerName}
+                  />
+                  <OverviewField
+                    label="MPN"
+                    value={overviewItem.procurementInfo?.mpn}
+                  />
+                  <OverviewField
+                    label="Country of Origin"
+                    value={overviewItem.procurementInfo?.countryOfOrigin}
+                  />
+                  <OverviewField
+                    label="HSN / SAC Code"
+                    value={overviewItem.hsnSacCode}
+                  />
                 </OverviewSection>
 
                 <OverviewSection icon="bx-shield-quarter" title="Controls">
-                  <OverviewField label="Taggable Asset" value={yn(overviewItem.controls?.taggableAsset)} />
-                  <OverviewField label="Serializable" value={yn(overviewItem.controls?.serializable)} />
-                  <OverviewField label="Batch Tracked" value={yn(overviewItem.controls?.batchTracked)} />
-                  <OverviewField label="Hazardous Material" value={yn(overviewItem.controls?.hazardousMaterial)} />
-                  <OverviewField label="Maintainable" value={yn(overviewItem.controls?.maintainable)} />
-                  <OverviewField label="Inspection Required" value={yn(overviewItem.controls?.inspectionRequired)} />
+                  <OverviewField
+                    label="Taggable Asset"
+                    value={yn(overviewItem.controls?.taggableAsset)}
+                  />
+                  <OverviewField
+                    label="Serializable"
+                    value={yn(overviewItem.controls?.serializable)}
+                  />
+                  <OverviewField
+                    label="Batch Tracked"
+                    value={yn(overviewItem.controls?.batchTracked)}
+                  />
+                  <OverviewField
+                    label="Hazardous Material"
+                    value={yn(overviewItem.controls?.hazardousMaterial)}
+                  />
+                  <OverviewField
+                    label="Maintainable"
+                    value={yn(overviewItem.controls?.maintainable)}
+                  />
+                  <OverviewField
+                    label="Inspection Required"
+                    value={yn(overviewItem.controls?.inspectionRequired)}
+                  />
                 </OverviewSection>
 
                 <OverviewSection icon="bx-purchase-tag" title="GL Accounts">
-                  <OverviewField label="Cost GL Account" value={overviewItem.glAccounts?.costGlAccount} />
+                  <OverviewField
+                    label="Cost GL Account"
+                    value={overviewItem.glAccounts?.costGlAccount}
+                  />
                   <OverviewField
                     label="Depreciation GL Account"
                     value={overviewItem.glAccounts?.depreciationGlAccount}
                   />
                   <OverviewField
                     label="Accum. Depreciation GL"
-                    value={overviewItem.glAccounts?.accumulatedDepreciationGlAccount}
+                    value={
+                      overviewItem.glAccounts?.accumulatedDepreciationGlAccount
+                    }
                   />
                 </OverviewSection>
 
@@ -536,7 +690,9 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
                         <div key={a._id} className="im-overview-attr-row">
                           <span className="im-overview-attr-key">{a.key}</span>
                           <span className="im-overview-attr-value">
-                            {a.dataType === "checkbox" ? yn(a.value === "true") : a.value || "—"}
+                            {a.dataType === "checkbox"
+                              ? yn(a.value === "true")
+                              : a.value || "—"}
                           </span>
                         </div>
                       ))}
@@ -551,7 +707,12 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
                     </div>
                     <div className="d-flex flex-wrap gap-2">
                       {overviewItem.productImages.map((img) => (
-                        <img key={img._id} src={img.url} alt="" className="im-image-thumb" />
+                        <img
+                          key={img._id}
+                          src={img.url}
+                          alt=""
+                          className="im-image-thumb"
+                        />
                       ))}
                     </div>
                   </div>

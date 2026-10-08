@@ -5779,11 +5779,9 @@ export const recordVendorQuote = (rfqId, vendorQuoteId, data) => {
   );
 };
 export const closeRFQ = (id, data = {}) => {
-  return axios.patch(
-    `${url.RFQ_BASE}/${id}/close`,
-    data,
-    { headers: { "X-No-Cookie-Token": "true" } },
-  );
+  return axios.patch(`${url.RFQ_BASE}/${id}/close`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
 };
 export const deleteRFQ = (id) => {
   return axios.delete(`${url.RFQ_BASE}/${id}`, {
@@ -6342,3 +6340,20 @@ export const uploadPhysicalVerificationImage = (id, imageType, formData) =>
       },
     },
   );
+export const getProcurementDashboard = () =>
+  axios.get("/master/po-dashboard", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const setPODelayReason = (id, data) =>
+  axios.patch(`/master/po/${id}/delay-reason`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const cancelPO = (id, data) =>
+  axios.patch(`/master/po/${id}/cancel`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const shortClosePO = (id, data) =>
+  axios.patch(`/master/po/${id}/short-close`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });

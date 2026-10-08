@@ -1737,6 +1737,12 @@ export const MASTER_DATA = [
     isAccordion: true,
     children: [
       {
+        id: "procurement-dashboard",
+        label: "Dashboard",
+        link: "/vendor-management/procurement-dashboard",
+        permissionModule: "PO",
+      },
+      {
         id: "procurement-pr",
         label: "Purchase Requisitions",
         link: "/vendor-management/purchase-requisition",
@@ -1790,7 +1796,7 @@ export const MASTER_DATA = [
         id: "inventory-location-stock",
         label: "Stock by Location",
         link: "/vendor-management/location-stock",
-        permissionModule: "STORAGE_LOCATION",
+        permissionModule: "PUTAWAY",
       },
       {
         id: "inventory-stock",

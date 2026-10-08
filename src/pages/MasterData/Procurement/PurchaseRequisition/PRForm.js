@@ -19,6 +19,10 @@ import "../../UnitOfMeasurement/uom.scss";
 
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
+// What is still free in a budget: approved minus what approved POs have already used
+const budgetAvailable = (b) =>
+  b ? (b.approvedAmount || 0) - (b.consumedAmount || 0) : 0;
+
 const emptyLineItem = () => ({
   itemId: "",
   itemCode: "",
@@ -142,9 +146,9 @@ const PRForm = ({ editingItem, onSaved, onCancel }) => {
         toast.error("Please fill in all required fields");
         return;
       }
-      if (selectedBudget && netPayable > selectedBudget.approvedAmount) {
+      if (selectedBudget && netPayable > budgetAvailable(selectedBudget)) {
         toast.error(
-          `This PR (${money(netPayable)}) exceeds the approved budget (${money(selectedBudget.approvedAmount)}). Please reduce the amount or select a different budget.`,
+          `This PR (${money(netPayable)}) exceeds the available budget (${money(budgetAvailable(selectedBudget))}). Please reduce the amount or select a different budget.`,
         );
         return;
       }
@@ -409,7 +413,8 @@ const PRForm = ({ editingItem, onSaved, onCancel }) => {
                 </option>
                 {budgets.map((b) => (
                   <option key={b._id} value={b._id}>
-                    {b.fiscalYear} — {money(b.approvedAmount)}
+                    {b.fiscalYear} — {money(budgetAvailable(b))} available of{" "}
+                    {money(b.approvedAmount)}
                     {b.budgetType === "global" ? " (Global)" : " (Department)"}
                   </option>
                 ))}
@@ -517,7 +522,7 @@ const PRForm = ({ editingItem, onSaved, onCancel }) => {
             <span className="text-danger">*</span>
           </h6>
           <div className="uom-table-card mb-3" style={{ overflowX: "auto" }}>
-            <table className="table mb-0" style={{ minWidth: 1050 }}>
+            <table className="table mb-0" style={{ minWidth: 1100 }}>
               <thead>
                 <tr>
                   <th style={{ minWidth: 220 }}>Item (Code / Name)</th>
@@ -527,7 +532,7 @@ const PRForm = ({ editingItem, onSaved, onCancel }) => {
                   <th style={{ width: 90 }}>HSN</th>
                   <th style={{ width: 80 }}>Qty</th>
                   <th style={{ width: 110 }}>UOM</th>
-                  <th style={{ width: 110 }}>Rate</th>
+                  <th style={{ width: 120 }}>Rate</th>
                   <th style={{ width: 90 }}>Tax %</th>
                   <th style={{ width: 120 }}>Amount</th>
                   <th style={{ width: 50 }}></th>
@@ -691,6 +696,7 @@ const PRForm = ({ editingItem, onSaved, onCancel }) => {
                         <Input
                           bsSize="sm"
                           type="select"
+                          style={{ minWidth: 90 }}
                           value={li.taxPercent}
                           onChange={(e) =>
                             updateLineItem(idx, "taxPercent", e.target.value)
@@ -764,28 +770,32 @@ const PRForm = ({ editingItem, onSaved, onCancel }) => {
                   <span>{money(selectedBudget.approvedAmount)}</span>
                 </div>
                 <div className="d-flex justify-content-between mb-1">
+                  <span className="text-muted small">Already Used</span>
+                  <span>{money(selectedBudget.consumedAmount)}</span>
+                </div>
+                <div className="d-flex justify-content-between mb-1">
                   <span className="text-muted small">This PR</span>
                   <span>{money(netPayable)}</span>
                 </div>
                 <div
                   className={`d-flex justify-content-between fw-semibold ${
-                    netPayable > selectedBudget.approvedAmount
+                    netPayable > budgetAvailable(selectedBudget)
                       ? "text-danger"
                       : "text-success"
                   }`}
                 >
-                  <span>Remaining</span>
+                  <span>Remaining after this PR</span>
                   <span>
-                    {money(selectedBudget.approvedAmount - netPayable)}
+                    {money(budgetAvailable(selectedBudget) - netPayable)}
                   </span>
                 </div>
-                {netPayable > selectedBudget.approvedAmount && (
+                {netPayable > budgetAvailable(selectedBudget) && (
                   <div
                     className="text-danger small mt-2 p-2"
                     style={{ background: "#fef3f2", borderRadius: 6 }}
                   >
                     <i className="bx bx-error-circle me-1"></i>
-                    Exceeds approved budget — additional approval required
+                    Exceeds available budget — additional approval required
                   </div>
                 )}
               </>

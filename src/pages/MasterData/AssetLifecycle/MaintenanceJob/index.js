@@ -9,12 +9,15 @@ import {
   getWorkOrders,
   getUserLookup,
   getAllCenters,
+  getVendors,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
+
+const vendorLabel = (v) => v?.tradeName || v?.legalName || "—";
 
 const STATUS_META = {
   assigned: { label: "Assigned", cls: "status-draft" },
@@ -49,10 +52,13 @@ const MaintenanceJob = () => {
   const [searchLoading, setSearchLoading] = useState(false);
   const debounceRef = React.useRef(null);
   const [centers, setCenters] = useState([]);
+  const [vendors, setVendors] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [workOrderId, setWorkOrderId] = useState("");
+  const [assigneeType, setAssigneeType] = useState("technician");
   const [technicianId, setTechnicianId] = useState("");
+  const [vendorId, setVendorId] = useState("");
   const [centerId, setCenterId] = useState("");
   const [selectedWOCenter, setSelectedWOCenter] = useState(null);
   const [scheduledDate, setScheduledDate] = useState("");
@@ -69,6 +75,16 @@ const MaintenanceJob = () => {
       .catch(() => {});
     getAllCenters()
       .then((res) => setCenters(res?.payload || res?.data || []))
+      .catch(() => {});
+    // Only active, approved vendors can take a repair job
+    getVendors({ limit: 200 })
+      .then((res) =>
+        setVendors(
+          (res?.data || []).filter(
+            (v) => v.status === "active" && v.approvalStatus === "approved",
+          ),
+        ),
+      )
       .catch(() => {});
   }, []);
 
@@ -131,8 +147,14 @@ const MaintenanceJob = () => {
 
   const openModal = () => {
     setWorkOrderId("");
+    setAssigneeType("technician");
     setTechnicianId("");
+    setTechnicianName("");
+    setTechnicianSearch("");
+    setTechnicians([]);
+    setVendorId("");
     setCenterId("");
+    setSelectedWOCenter(null);
     setScheduledDate("");
     setScheduledTime("");
     setRemarks("");
@@ -140,26 +162,36 @@ const MaintenanceJob = () => {
   };
 
   const handleSubmit = async () => {
+    const assigneeMissing =
+      assigneeType === "technician" ? !technicianId : !vendorId;
+
     if (
       !workOrderId ||
-      !technicianId ||
+      assigneeMissing ||
       !centerId ||
       !scheduledDate ||
       !scheduledTime
     ) {
-      return toast.error("Fill in Work Order, Technician, Site, Date and Time");
+      return toast.error(
+        `Fill in Work Order, ${assigneeType === "vendor" ? "Vendor" : "Technician"}, Site, Date and Time`,
+      );
     }
     setSubmitting(true);
     try {
       await createMaintenanceJob({
         workOrderId,
-        technicianId,
+        assigneeType,
+        ...(assigneeType === "technician" ? { technicianId } : { vendorId }),
         centerId,
         scheduledDate,
         scheduledTime,
         remarks,
       });
-      toast.success("Maintenance job created — technician assigned");
+      toast.success(
+        assigneeType === "vendor"
+          ? "Maintenance job created — vendor assigned"
+          : "Maintenance job created — technician assigned",
+      );
       setModalOpen(false);
       setRefreshFlag((f) => f + 1);
     } catch (error) {
@@ -211,10 +243,21 @@ const MaintenanceJob = () => {
       ),
     },
     {
-      name: "Technician",
-      cell: (row) => (
-        <span className="uom-cell-muted">{row.technicianId?.name || "—"}</span>
-      ),
+      name: "Assigned To",
+      cell: (row) =>
+        row.assigneeType === "vendor" ? (
+          <div className="py-1">
+            <span className="uom-cell-muted">{vendorLabel(row.vendorId)}</span>
+            <div className="small text-muted">Vendor</div>
+          </div>
+        ) : (
+          <div className="py-1">
+            <span className="uom-cell-muted">
+              {row.technicianId?.name || "—"}
+            </span>
+            <div className="small text-muted">Technician</div>
+          </div>
+        ),
     },
     {
       name: "Site",
@@ -252,7 +295,7 @@ const MaintenanceJob = () => {
       <div className="uom-list-header">
         <div>
           <h4>Maintenance Jobs</h4>
-          <p>Assign a work order to a field technician</p>
+          <p>Assign a work order to a field technician or an outside vendor</p>
         </div>
       </div>
 
@@ -286,7 +329,7 @@ const MaintenanceJob = () => {
         <ModalBody className="p-4">
           <h5 className="mb-1">New Maintenance Job</h5>
           <p className="text-muted small mb-3">
-            Assign a work order to a field technician
+            Assign a work order to a field technician or an outside vendor
           </p>
 
           <h6 className="fw-semibold mb-3">Assignment</h6>
@@ -311,48 +354,95 @@ const MaintenanceJob = () => {
               </option>
             ))}
           </Input>
+
           <Label>
-            Technician <span className="text-danger">*</span>
+            Assign to <span className="text-danger">*</span>
           </Label>
-          <div style={{ position: "relative" }} className="mb-3">
-            <Input
-              value={technicianSearch}
-              onChange={(e) => handleTechnicianSearch(e.target.value)}
-              placeholder="Type at least 2 letters to search..."
-            />
-            {searchLoading && (
-              <div className="text-muted small mt-1">Searching...</div>
-            )}
-            {showTechDropdown && technicians.length > 0 && (
-              <div
-                style={{
-                  position: "absolute",
-                  top: "100%",
-                  left: 0,
-                  right: 0,
-                  background: "#fff",
-                  border: "1px solid #eee",
-                  borderRadius: 6,
-                  zIndex: 10,
-                  maxHeight: 200,
-                  overflowY: "auto",
-                  boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
-                }}
-              >
-                {technicians.map((u) => (
-                  <div
-                    key={u._id}
-                    className="p-2"
-                    style={{ cursor: "pointer" }}
-                    onMouseDown={() => selectTechnician(u)}
-                  >
-                    {u.name}{" "}
-                    <span className="text-muted small">({u.email})</span>
-                  </div>
-                ))}
-              </div>
-            )}
+          <div className="d-flex gap-2 mb-3">
+            <Button
+              type="button"
+              color={assigneeType === "technician" ? "primary" : "light"}
+              onClick={() => setAssigneeType("technician")}
+            >
+              <i className="bx bx-user me-1"></i> Technician
+            </Button>
+            <Button
+              type="button"
+              color={assigneeType === "vendor" ? "primary" : "light"}
+              onClick={() => setAssigneeType("vendor")}
+            >
+              <i className="bx bx-store me-1"></i> Vendor
+            </Button>
           </div>
+
+          {assigneeType === "technician" ? (
+            <>
+              <Label>
+                Technician <span className="text-danger">*</span>
+              </Label>
+              <div style={{ position: "relative" }} className="mb-3">
+                <Input
+                  value={technicianSearch}
+                  onChange={(e) => handleTechnicianSearch(e.target.value)}
+                  placeholder="Type at least 2 letters to search..."
+                />
+                {searchLoading && (
+                  <div className="text-muted small mt-1">Searching...</div>
+                )}
+                {showTechDropdown && technicians.length > 0 && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: "100%",
+                      left: 0,
+                      right: 0,
+                      background: "#fff",
+                      border: "1px solid #eee",
+                      borderRadius: 6,
+                      zIndex: 10,
+                      maxHeight: 200,
+                      overflowY: "auto",
+                      boxShadow: "0 4px 12px rgba(0,0,0,0.08)",
+                    }}
+                  >
+                    {technicians.map((u) => (
+                      <div
+                        key={u._id}
+                        className="p-2"
+                        style={{ cursor: "pointer" }}
+                        onMouseDown={() => selectTechnician(u)}
+                      >
+                        {u.name}{" "}
+                        <span className="text-muted small">({u.email})</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <>
+              <Label>
+                Vendor <span className="text-danger">*</span>
+              </Label>
+              <Input
+                type="select"
+                className="mb-1"
+                value={vendorId}
+                onChange={(e) => setVendorId(e.target.value)}
+              >
+                <option value="">Select Vendor</option>
+                {vendors.map((v) => (
+                  <option key={v._id} value={v._id}>
+                    {vendorLabel(v)}
+                  </option>
+                ))}
+              </Input>
+              <div className="text-muted small mb-3">
+                Only active, approved vendors are listed.
+              </div>
+            </>
+          )}
 
           <Label>Site (auto-filled from Work Order)</Label>
           <Input
@@ -426,8 +516,14 @@ const MaintenanceJob = () => {
               </p>
 
               <div className="mb-2">
-                <span className="text-muted small">Technician: </span>
-                {detailModal.technicianId?.name}
+                <span className="text-muted small">
+                  {detailModal.assigneeType === "vendor"
+                    ? "Vendor: "
+                    : "Technician: "}
+                </span>
+                {detailModal.assigneeType === "vendor"
+                  ? vendorLabel(detailModal.vendorId)
+                  : detailModal.technicianId?.name}
               </div>
               <div className="mb-2">
                 <span className="text-muted small">Site: </span>

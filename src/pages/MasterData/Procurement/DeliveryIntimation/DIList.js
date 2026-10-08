@@ -8,6 +8,16 @@ import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
 const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
+const dateTimeFmt = (d) =>
+  d
+    ? new Date(d).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "—";
 
 const tableCustomStyles = {
   headRow: {
@@ -87,10 +97,12 @@ const DIList = ({ onAdd }) => {
     { name: "DI Number", selector: (row) => row.intimationNumber, sortable: true, width: "160px" },
     {
       name: "PO Number",
+      width: "160px",
       cell: (row) => <span className="uom-cell-muted">{row.poId?.poNumber || "—"}</span>,
     },
     {
       name: "Vendor",
+      minWidth: "170px",
       cell: (row) => (
         <span className="uom-cell-muted">
           {row.poId?.vendorId?.tradeName || row.poId?.vendorId?.legalName || "—"}
@@ -98,17 +110,57 @@ const DIList = ({ onAdd }) => {
       ),
     },
     {
+      name: "Site",
+      minWidth: "130px",
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.poId?.deliverySiteId?.title || "—"}</span>
+      ),
+    },
+    {
       name: "Invoice #",
+      minWidth: "140px",
       cell: (row) => <span className="uom-cell-muted">{row.invoiceNumber}</span>,
     },
     {
-      name: "Expected Delivery",
-      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.expectedDeliveryDate)}</span>,
+      name: "Qty (Intimated / Ordered)",
+      width: "170px",
+      cell: (row) => {
+        const intimated = (row.lineItems || []).reduce((s, li) => s + (li.intimatedQty || 0), 0);
+        const ordered = (row.lineItems || []).reduce((s, li) => s + (li.orderedQty || 0), 0);
+        return (
+          <span className="uom-cell-muted">
+            {intimated} / {ordered}
+          </span>
+        );
+      },
+    },
+    {
+      name: "Created By",
+      minWidth: "130px",
+      cell: (row) => (
+        <div className="py-1">
+          <span className="uom-cell-muted">{row.createdBy?.name || "—"}</span>
+          <div className="small text-muted">{dateTimeFmt(row.createdAt)}</div>
+        </div>
+      ),
     },
     {
       name: "Status",
       width: "120px",
       cell: (row) => <StatusPill status={row.status} />,
+    },
+    {
+      name: "Received",
+      minWidth: "170px",
+      cell: (row) =>
+        row.status === "received" ? (
+          <div className="py-1">
+            <span className="uom-cell-muted">{row.receivedBy?.name || "—"}</span>
+            <div className="small text-muted">{dateTimeFmt(row.receivedAt)}</div>
+          </div>
+        ) : (
+          <span className="uom-cell-muted">—</span>
+        ),
     },
     {
       name: "Actions",
@@ -150,7 +202,7 @@ const DIList = ({ onAdd }) => {
         )}
       </div>
 
-      <div className="uom-table-card">
+      <div className="uom-table-card" style={{ overflowX: "auto" }}>
         <DataTable
           columns={columns}
           data={dis}
