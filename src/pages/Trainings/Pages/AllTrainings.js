@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   CardBody,
   Spinner,
@@ -6,7 +7,6 @@ import {
   NavItem,
   NavLink,
   Card,
-  Collapse,
   Modal,
   ModalHeader,
   ModalBody,
@@ -18,23 +18,20 @@ import { toast } from "react-toastify";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import EditTrainingModal from "../Components/EditTrainingModal";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
-import { useSelector } from "react-redux";
-import Select from "react-select";
+import { getAudienceLabels } from "../Helpers/adminTrainingHelpers";
 
 const roleBadgeColors = ["#3b82f6", "#8b5cf6", "#f59e0b", "#ec4899", "#14b8a6"];
 
 const AllTrainings = () => {
+  const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width: 1000px)");
-  const user = useSelector((state) => state.User);
   const [trainings, setTrainings] = useState([]);
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState({});
   const [activeTab, setActiveTab] = useState("active");
-  const [openAccordions, setOpenAccordions] = useState({});
   const [editTraining, setEditTraining] = useState(null);
   const [fileModal, setFileModal] = useState({ open: false, file: null });
-  const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [appliedFrom, setAppliedFrom] = useState("");
@@ -55,30 +52,13 @@ const AllTrainings = () => {
   const canEdit = hasWritePermission || hasDeletePermission;
   const limit = 5;
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [{ value: "ALL", label: "All Centers" }]
-      : []),
-    ...(
-      user?.centerAccess?.map((cid) => {
-        const center = user?.userCenters?.find((c) => c._id === cid);
-        return { value: cid, label: center?.title || "Unknown Center" };
-      }) || []
-    ).sort((a, b) => a.label.localeCompare(b.label)),
-  ];
-
   const loadTrainings = async (pageNum = 1, tab = activeTab) => {
     try {
       setLoading(true);
-      let centers = [];
-      if (selectedCenter === "ALL") centers = user?.centerAccess || [];
-      else if (selectedCenter) centers = [selectedCenter];
-
       const response = await getAllTrainings({
         page: pageNum,
         limit,
         status: tab,
-        ...(centers.length && { centers: centers.join(",") }),
         ...(appliedFrom && { from: appliedFrom }),
         ...(appliedTo && { to: appliedTo }),
       });
@@ -94,7 +74,6 @@ const AllTrainings = () => {
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setPage(1);
-    setOpenAccordions({});
     loadTrainings(1, tab);
   };
 
@@ -115,29 +94,24 @@ const AllTrainings = () => {
     setAppliedTo("");
   };
 
-  const toggleAccordion = (id) =>
-    setOpenAccordions((prev) => ({ ...prev, [id]: !prev[id] }));
-
   useEffect(() => {
-    if (!user?.centerAccess) return;
     loadTrainings();
-  }, [selectedCenter, appliedFrom, appliedTo, user?.centerAccess]);
+  }, [appliedFrom, appliedTo]);
 
   const file = fileModal.file;
+  const isOfficeFile = /\.(docx?|pptx?)$/i.test(
+    file?.originalName || file?.name || "",
+  );
 
   return (
     <CardBody
       className="p-4 bg-white"
-      style={isMobile ? { width: "100%" } : { width: "78%" }}
+      style={{
+        width: isMobile ? "100%" : "78%",
+        height: "100vh",
+        overflowY: "auto",
+      }}
     >
-      <style>{`
-                .ack-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-                .ack-table th { padding: 10px 16px; background: #f8fafc; color: #6b7280; font-weight: 600; text-align: left; border-bottom: 1px solid #e5e7eb; }
-                .ack-table td { padding: 10px 16px; border-bottom: 1px solid #f1f5f9; color: #374151; }
-                .ack-table tr:last-child td { border-bottom: none; }
-                .ack-table tr:hover td { background: #f9fafb; }
-            `}</style>
-
       <div className="d-flex align-items-center justify-content-between mb-4">
         <h4 className="fw-bold mb-0" style={{ color: "#111827" }}>
           All Trainings
@@ -164,13 +138,6 @@ const AllTrainings = () => {
       </Nav>
 
       <div className="d-flex gap-2 flex-wrap mb-4">
-        <Select
-          options={centerOptions}
-          value={centerOptions?.find((c) => c.value === selectedCenter) || null}
-          onChange={(s) => setSelectedCenter(s?.value || "ALL")}
-          placeholder="Select Center"
-          styles={{ container: (base) => ({ ...base, width: 200 }) }}
-        />
         <input
           type="date"
           className="form-control"
@@ -252,9 +219,9 @@ const AllTrainings = () => {
                             Every {training.repeatFrequency}d
                           </span>
                         )}
-                        {training.roles?.map((role, idx) => (
+                        {getAudienceLabels(training).map((label, idx) => (
                           <span
-                            key={role}
+                            key={label}
                             style={{
                               padding: "2px 10px",
                               borderRadius: 20,
@@ -268,7 +235,7 @@ const AllTrainings = () => {
                               border: `1px solid ${roleBadgeColors[idx % roleBadgeColors.length]}30`,
                             }}
                           >
-                            {role}
+                            {label}
                           </span>
                         ))}
                       </div>
@@ -279,13 +246,29 @@ const AllTrainings = () => {
                         color="secondary"
                         outline
                         size="sm"
-                        onClick={() => toggleAccordion(training._id)}
+                        title="Open the attendee progress"
+                        onClick={() =>
+                          navigate(
+                            `/trainings/all/${training._id}?tab=progress`,
+                            {
+                              state: { from: "all" },
+                            },
+                          )
+                        }
                       >
                         <i className="ri-group-line me-1" />
-                        {training.acknowledgedBy?.length || 0}
-                        <i
-                          className={`ri-arrow-${openAccordions[training._id] ? "up" : "down"}-s-line ms-1`}
-                        />
+                        {training.acknowledgedBy?.length || 0} acknowledged
+                      </Button>
+                      <Button
+                        color="primary"
+                        size="sm"
+                        onClick={() =>
+                          navigate(`/trainings/all/${training._id}`, {
+                            state: { from: "all" },
+                          })
+                        }
+                      >
+                        <i className="ri-eye-line me-1" /> View details
                       </Button>
                       {canEdit && (
                         <Button
@@ -311,64 +294,6 @@ const AllTrainings = () => {
                       View File
                     </Button>
                   )}
-
-                  <Collapse isOpen={!!openAccordions[training?._id]}>
-                    <div
-                      className="mt-3"
-                      style={{ borderTop: "1px solid #f1f5f9", paddingTop: 12 }}
-                    >
-                      {training.acknowledgedBy?.length === 0 ? (
-                        <p className="text-muted small text-center py-3">
-                          No one has acknowledged this training yet.
-                        </p>
-                      ) : (
-                        <table className="ack-table">
-                          <thead>
-                            <tr>
-                              <th>Employee</th>
-                              <th>E-Code</th>
-                              <th>Email</th>
-                              <th>Center</th>
-                              <th>Acknowledged On</th>
-                            </tr>
-                          </thead>
-                          <tbody>
-                            {training?.acknowledgedBy?.map((ack) => (
-                              <tr key={ack._id}>
-                                <td>{ack.employee?.name || "—"}</td>
-                                <td style={{ color: "#6b7280" }}>
-                                  {ack.employee?.eCode || "—"}
-                                </td>
-                                <td style={{ color: "#6b7280" }}>
-                                  {ack.employee?.officialEmail ||
-                                    ack.employee?.email ||
-                                    "—"}
-                                </td>
-                                <td style={{ color: "#6b7280" }}>
-                                  {ack.employee?.currentLocation?.title || "—"}
-                                </td>
-                                <td
-                                  style={{ color: "#16a34a", fontWeight: 500 }}
-                                >
-                                  {ack.acknowledgedOn
-                                    ? new Date(
-                                        ack.acknowledgedOn,
-                                      ).toLocaleString("en-IN", {
-                                        day: "2-digit",
-                                        month: "short",
-                                        year: "numeric",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                      })
-                                    : "—"}
-                                </td>
-                              </tr>
-                            ))}
-                          </tbody>
-                        </table>
-                      )}
-                    </div>
-                  </Collapse>
                 </CardBody>
               </Card>
             );
@@ -433,12 +358,7 @@ const AllTrainings = () => {
               className="img-fluid"
             />
           )}
-          {((file?.originalName || file?.name)
-            ?.toLowerCase()
-            .endsWith(".doc") ||
-            (file?.originalName || file?.name)
-              ?.toLowerCase()
-              .endsWith(".docx")) && (
+          {isOfficeFile && (
             <iframe
               src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.url)}`}
               width="100%"
@@ -449,12 +369,7 @@ const AllTrainings = () => {
           )}
           {!file?.type?.startsWith("image/") &&
             file?.type !== "application/pdf" &&
-            !(file?.originalName || file?.name)
-              ?.toLowerCase()
-              .endsWith(".doc") &&
-            !(file?.originalName || file?.name)
-              ?.toLowerCase()
-              .endsWith(".docx") && (
+            !isOfficeFile && (
               <p className="text-muted text-center py-5">
                 Preview not available for this file type
               </p>

@@ -2,6 +2,7 @@ import axios from "axios";
 import { APIClient, AuthAPIClient } from "./api_helper";
 import * as url from "./url_helper";
 import qs from "qs";
+import { postKeepalive } from "./keepaliveRequest";
 
 const api = new APIClient();
 const userService = new AuthAPIClient();
@@ -4763,8 +4764,71 @@ export const getByRoles = (params) => {
   return axios.get(url.GET_BY_ROLES, { params: params });
 };
 
-export const acknowledgeTraining = (trainingId, score) =>
-  axios.patch(`${url.ACKNOWLEDGE_TRAINING}/${trainingId}/${score}`);
+export const acknowledgeTraining = (trainingId) =>
+  axios.patch(`${url.ACKNOWLEDGE_TRAINING}/${trainingId}`);
+
+export const getLearnState = (trainingId) =>
+  api.get(`${url.LEARN_TRAINING}/${trainingId}`);
+export const markChapterFileOpened = (trainingId, fileId, data) =>
+  axios.post(`${url.LEARN_TRAINING}/${trainingId}/files/${fileId}/open`, data);
+export const saveVideoPosition = (trainingId, mediaId, data) =>
+  postKeepalive(
+    `${url.LEARN_TRAINING}/${trainingId}/videos/${mediaId}/position`,
+    data,
+  );
+export const completeLearnVideo = (trainingId, mediaId, data) =>
+  axios.post(
+    `${url.LEARN_TRAINING}/${trainingId}/videos/${mediaId}/complete`,
+    data,
+  );
+export const completeChapter = (trainingId, chapterId) =>
+  axios.post(
+    `${url.LEARN_TRAINING}/${trainingId}/chapters/${chapterId}/complete`,
+    {},
+  );
+export const continueLesson = (trainingId, lessonId) =>
+  axios.post(
+    `${url.LEARN_TRAINING}/${trainingId}/lessons/${lessonId}/continue`,
+    {},
+  );
+export const startQuizAttempt = (trainingId, data) =>
+  axios.post(`${url.TRAINING_BASE}/${trainingId}/quiz/start`, data);
+export const submitQuizAttempt = (trainingId, data) =>
+  axios.post(`${url.TRAINING_BASE}/${trainingId}/quiz/submit`, data);
+
+export const uploadTrainingFile = (file, kind, fields, config = {}) => {
+  const formData = new FormData();
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) formData.append(key, value);
+  });
+  formData.append("file", file);
+
+  return axios.post(url.TRAINING_UPLOADS, formData, {
+    params: { kind, size: file.size, name: file.name },
+    headers: { "Content-Type": undefined },
+    timeout: 0,
+    ...config,
+  });
+};
+export const getTrainingUploadStatus = (uploadId) =>
+  api.get(`${url.TRAINING_UPLOADS}/${uploadId}`);
+export const getMyTrainingUploads = (params) =>
+  api.get(url.TRAINING_UPLOADS, { params });
+
+export const markOverviewRead = (trainingId) =>
+  axios.post(`${url.TRAINING_BASE}/${trainingId}/overview-read`, {});
+export const getMyTrainingProgress = (trainingId) =>
+  api.get(`${url.TRAINING_BASE}/${trainingId}/my-progress`);
+
+export const getTrainingAdminContent = (trainingId) =>
+  api.get(`${url.TRAINING_ADMIN}/${trainingId}/content`);
+export const getTrainingProgressReport = (trainingId, params) =>
+  api.get(`${url.TRAINING_ADMIN}/${trainingId}/progress`, { params });
+export const exportNotStartedCsv = (trainingId, params) =>
+  axios.get(`${url.TRAINING_ADMIN}/${trainingId}/progress`, {
+    params: { ...params, section: "not_started", format: "csv" },
+    responseType: "blob",
+  });
 export const getAllTrainings = (params) =>
   api.get(url.GET_ALL_TRAININGS, { params });
 

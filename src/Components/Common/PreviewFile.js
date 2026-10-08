@@ -38,6 +38,12 @@ const PreviewFile = ({
     file?.type === "application/msword" ||
     hasExt(/\.(docx|doc)$/i);
 
+  const isPpt =
+    file?.type ===
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+    file?.type === "application/vnd.ms-powerpoint" ||
+    hasExt(/\.(pptx|ppt)$/i);
+
   const isLocalExcel = isExcel && file?.fileObj;
 
   useEffect(() => {
@@ -200,7 +206,19 @@ const PreviewFile = ({
         </div>
       )}
 
-      {!isPdf && !isImage && !isExcel && !isWord && (
+      {isPpt && (
+        <div style={{ height: "80vh", width: "100%" }}>
+          <iframe
+            title="Presentation Preview"
+            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
+            width="100%"
+            height="100%"
+            style={{ border: "none" }}
+          />
+        </div>
+      )}
+
+      {!isPdf && !isImage && !isExcel && !isWord && !isPpt && (
         <p className="text-center text-muted py-5">
           Preview not supported for this file type
         </p>
