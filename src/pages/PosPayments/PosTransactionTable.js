@@ -124,22 +124,75 @@ const PosTransactionTable = ({
     },
     {
       name: "Mode",
-      width: "90px",
-      selector: (row) => row.result?.paymentMode || row.requestedMode || "—",
+      width: "115px",
+      cell: (row) => {
+        const mode = row.result?.paymentMode || row.requestedMode || "—";
+        const category = row.cardType
+          ? row.cardType === "CREDIT"
+            ? "Credit"
+            : "Debit"
+          : "";
+        const brand = row.result?.cardType || "";
+        const cardLabel =
+          category && brand
+            ? `${category} (${brand})`
+            : category
+            ? `${category} Card`
+            : brand;
+        return (
+          <div className="py-1">
+            <div className="fw-medium">{mode}</div>
+            {cardLabel && (
+              <div
+                className="text-muted fs-11"
+                title={`Card: ${cardLabel}`}
+              >
+                {cardLabel}
+              </div>
+            )}
+          </div>
+        );
+      },
     },
     {
       name: "Amount",
-      width: "110px",
+      minWidth: "140px",
       right: true,
-      cell: (row) => (
-        <span className="fw-semibold">
-          {isReversal(row) ? (
-            <span className="text-danger">−₹{row.amount}</span>
-          ) : (
-            <>₹{row.amount}</>
-          )}
-        </span>
-      ),
+      cell: (row) => {
+        if (isReversal(row)) {
+          return (
+            <span className="fw-semibold text-danger">−₹{row.amount}</span>
+          );
+        }
+
+        const hasSurcharge = (row.surchargeAmount || 0) > 0;
+        if (!hasSurcharge) {
+          return <span className="fw-semibold">₹{row.amount}</span>;
+        }
+
+        const base =
+          row.baseAmount != null
+            ? row.baseAmount
+            : row.amount - (row.surchargeAmount || 0);
+
+        return (
+          <div className="py-1 text-end">
+            <div className="text-muted fs-11">
+              Amount: ₹{base}
+            </div>
+            <div className="text-warning fs-11">
+              Surcharge
+              {row.surchargePercent
+                ? ` (${parseFloat(Number(row.surchargePercent).toFixed(2))}%)`
+                : ""}
+              : +₹{row.surchargeAmount}
+            </div>
+            <div className="fw-bold fs-13 text-dark">
+              Total: ₹{row.amount}
+            </div>
+          </div>
+        );
+      },
     },
     {
       name: "Status",
