@@ -5,6 +5,8 @@ import { getTrainingHistoryDetail } from '../../../helpers/backend_helper'
 import { toast } from 'react-toastify'
 import exportTrainingHistory from '../Components/exportTrainingHistory'
 import { getAudienceLabels } from '../Helpers/adminTrainingHelpers'
+import { useCenterFilter } from '../Helpers/centerFilter'
+import CenterSelect from '../Components/CenterSelect'
 
 const TrainingHistoryDetail = () => {
     const { id } = useParams()
@@ -18,12 +20,18 @@ const TrainingHistoryDetail = () => {
     const [appliedTo, setAppliedTo] = useState("")
     const [currentOpen, setCurrentOpen] = useState(true)
     const [openCycles, setOpenCycles] = useState({})
+    const [searchInput, setSearchInput] = useState('')
+    const [search, setSearch] = useState('')
+    const centerFilter = useCenterFilter()
+    const { cntrs } = centerFilter
 
     const loadData = async () => {
         try {
             setLoading(true)
             const response = await getTrainingHistoryDetail({
                 id,
+                cntrs,
+                ...(search && { search }),
                 ...(appliedFrom && { from: appliedFrom }),
                 ...(appliedTo && { to: appliedTo })
             })
@@ -36,8 +44,13 @@ const TrainingHistoryDetail = () => {
     }
 
     useEffect(() => {
+        const timer = setTimeout(() => setSearch(searchInput.trim()), 400)
+        return () => clearTimeout(timer)
+    }, [searchInput])
+
+    useEffect(() => {
         loadData()
-    }, [id, appliedFrom, appliedTo])
+    }, [id, cntrs, search, appliedFrom, appliedTo])
 
     const handleApplyFilter = () => {
         setAppliedFrom(from)
@@ -50,6 +63,12 @@ const TrainingHistoryDetail = () => {
         setAppliedFrom('')
         setAppliedTo('')
     }
+
+    const selectedCenterLabel = centerFilter.options.find(option => option.value === centerFilter.value)?.label
+    const filterLabel = [
+        centerFilter.value !== 'ALL' && centerFilter.value !== '' ? selectedCenterLabel : '',
+        search
+    ].filter(Boolean).join('_')
 
     const toggleCycle = (cycle) => setOpenCycles(prev => ({ ...prev, [cycle]: !prev[cycle] }))
 
@@ -140,7 +159,7 @@ const TrainingHistoryDetail = () => {
                     </span>
                 )}
                 {data && (
-                    <button className="btn btn-success btn-sm" onClick={() => exportTrainingHistory(data)}>
+                    <button className="btn btn-success btn-sm" onClick={() => exportTrainingHistory(data, filterLabel)}>
                         <i className="ri-file-excel-line me-1" />
                         Export Excel
                     </button>
@@ -150,6 +169,19 @@ const TrainingHistoryDetail = () => {
 
 
             <div className="d-flex gap-2 flex-wrap mb-4">
+                <CenterSelect
+                    options={centerFilter.options}
+                    value={centerFilter.value}
+                    onChange={centerFilter.onChange}
+                />
+                <input
+                    type="text"
+                    className="form-control"
+                    style={{ width: 200 }}
+                    placeholder="Name or e-code"
+                    value={searchInput}
+                    onChange={e => setSearchInput(e.target.value)}
+                />
                 <input
                     type="date"
                     className="form-control"

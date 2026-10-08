@@ -11,6 +11,9 @@ import PreviewFile from "../../../Components/Common/PreviewFile";
 import { getErrorMessage } from "../Helpers/learnHelpers";
 import { useAccordion } from "../Helpers/useAccordion";
 import { formatDate } from "../Helpers/adminTrainingHelpers";
+import { useCenterFilter } from "../Helpers/centerFilter";
+import CenterSelect from "../Components/CenterSelect";
+import ExportButton from "../Components/ExportButton";
 import CycleSelector from "../Components/AllTrainings/CycleSelector";
 import AttendeesTable from "../Components/AllTrainings/AttendeesTable";
 import LessonBlock from "../Components/AllTrainings/LessonBlock";
@@ -49,6 +52,8 @@ const TrainingAdminDetail = () => {
   const [summary, setSummary] = useState(null);
   const [previewFile, setPreviewFile] = useState(null);
   const [playingMedia, setPlayingMedia] = useState(null);
+  const centerFilter = useCenterFilter();
+  const { cntrs } = centerFilter;
 
   const cycles = content?.cycles || [];
   const currentCycle = content?.cycle;
@@ -93,6 +98,7 @@ const TrainingAdminDetail = () => {
         const response = await getTrainingProgressReport(id, {
           section: "started",
           ...(isPast && { cycle }),
+          cntrs,
           limit: 1,
         });
         setSummary(response?.data?.summary || null);
@@ -101,7 +107,7 @@ const TrainingAdminDetail = () => {
       }
     };
     loadSummary();
-  }, [id, cycle]);
+  }, [id, cycle, cntrs]);
 
   const changeTab = (key) =>
     setSearchParams(isPast ? { tab: key, cycle: String(cycle) } : { tab: key }, {
@@ -180,11 +186,24 @@ const TrainingAdminDetail = () => {
           />
         )}
         <SummaryChip label="Acknowledged" value={summary?.acknowledged} color="#15803d" />
-        {cycles.length > 1 && (
-          <div className="ms-auto">
+        <div className="ms-auto d-flex align-items-center gap-2 flex-wrap">
+          <CenterSelect
+            options={centerFilter.options}
+            value={centerFilter.value}
+            onChange={centerFilter.onChange}
+          />
+          {cycles.length > 1 && (
             <CycleSelector cycles={cycles} value={cycle} onChange={changeCycle} />
-          </div>
-        )}
+          )}
+          {hasAudience && (
+            <ExportButton
+              trainingId={id}
+              label="Export everyone"
+              params={{ section: "everyone", ...(isPast && { cycle }), cntrs }}
+              disabled={!summary?.audience}
+            />
+          )}
+        </div>
       </div>
 
       {isPast && (
@@ -248,6 +267,7 @@ const TrainingAdminDetail = () => {
           key={cycle}
           trainingId={id}
           cycle={isPast ? cycle : undefined}
+          cntrs={cntrs}
           onSummary={setSummary}
         />
       )}
@@ -257,6 +277,7 @@ const TrainingAdminDetail = () => {
           key={cycle}
           trainingId={id}
           cycle={isPast ? cycle : undefined}
+          cntrs={cntrs}
           isPast={isPast}
           onSummary={setSummary}
         />

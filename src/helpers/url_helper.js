@@ -865,6 +865,7 @@ export const ACKNOWLEDGE_TRAINING = "/trainings/acknowledge";
 export const LEARN_TRAINING = "/trainings/learn";
 export const TRAINING_BASE = "/trainings";
 export const TRAINING_UPLOADS = "/trainings/uploads";
+export const TRAINER_VIDEOS = "/trainings/trainer-videos";
 export const TRAINING_ADMIN = "/trainings/admin";
 export const GET_ALL_TRAININGS = "/trainings/get";
 export const EDIT_TRAINING = "/trainings/edit/training";

@@ -4810,6 +4810,22 @@ export const uploadTrainingFile = (file, kind, fields, config = {}) => {
     ...config,
   });
 };
+export const uploadTrainerVideo = (file, fields, config = {}) => {
+  const formData = new FormData();
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) formData.append(key, value);
+  });
+  formData.append("file", file);
+
+  return axios.post(url.TRAINER_VIDEOS, formData, {
+    params: { kind: "video", size: file.size, name: file.name },
+    headers: { "Content-Type": undefined },
+    timeout: 0,
+    ...config,
+  });
+};
+export const removeTrainerVideo = (recordId, videoId) =>
+  axios.delete(`${url.TRAINER_VIDEOS}/${recordId}/${videoId}`);
 export const getTrainingUploadStatus = (uploadId) =>
   api.get(`${url.TRAINING_UPLOADS}/${uploadId}`);
 export const getMyTrainingUploads = (params) =>
@@ -4824,9 +4840,9 @@ export const getTrainingAdminContent = (trainingId) =>
   api.get(`${url.TRAINING_ADMIN}/${trainingId}/content`);
 export const getTrainingProgressReport = (trainingId, params) =>
   api.get(`${url.TRAINING_ADMIN}/${trainingId}/progress`, { params });
-export const exportNotStartedCsv = (trainingId, params) =>
+export const exportProgressCsv = (trainingId, params) =>
   axios.get(`${url.TRAINING_ADMIN}/${trainingId}/progress`, {
-    params: { ...params, section: "not_started", format: "csv" },
+    params: { ...params, format: "csv" },
     responseType: "blob",
   });
 export const getAllTrainings = (params) =>
