@@ -503,9 +503,7 @@ const DuePayment = ({
                   unit: item.unit || 1,
                   unitOfMeasurement: item.unitOfMeasurement || "",
                   availablePrices: [],
-                  fromDate: item.fromDate
-                    ? new Date(item.fromDate).toISOString().split("T")[0]
-                    : "",
+                  fromDate: "",
                   toDate: item.toDate
                     ? new Date(item.toDate).toISOString().split("T")[0]
                     : "",
