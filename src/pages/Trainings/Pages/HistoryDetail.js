@@ -1,20 +1,17 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { CardBody, Spinner, Collapse } from 'reactstrap'
-import Select from 'react-select'
-import { useSelector } from 'react-redux'
 import { getTrainingHistoryDetail } from '../../../helpers/backend_helper'
 import { toast } from 'react-toastify'
 import exportTrainingHistory from '../Components/exportTrainingHistory'
+import { getAudienceLabels } from '../Helpers/adminTrainingHelpers'
 
 const TrainingHistoryDetail = () => {
     const { id } = useParams()
     const navigate = useNavigate()
-    const user = useSelector(state => state.User)
 
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
-    const [selectedCenter, setSelectedCenter] = useState("ALL")
     const [from, setFrom] = useState("")
     const [to, setTo] = useState("")
     const [appliedFrom, setAppliedFrom] = useState("")
@@ -22,24 +19,11 @@ const TrainingHistoryDetail = () => {
     const [currentOpen, setCurrentOpen] = useState(true)
     const [openCycles, setOpenCycles] = useState({})
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1 ? [{ value: "ALL", label: "All Centers" }] : []),
-        ...(user?.centerAccess?.map(cid => {
-            const center = user?.userCenters?.find(c => c._id === cid)
-            return { value: cid, label: center?.title || "Unknown Center" }
-        }) || [])
-    ]
-
     const loadData = async () => {
         try {
             setLoading(true)
-            let centers = []
-            if (selectedCenter === "ALL") centers = user?.centerAccess || []
-            else if (selectedCenter) centers = [selectedCenter]
-
             const response = await getTrainingHistoryDetail({
                 id,
-                ...(centers?.length && { centers: centers.join(',') }),
                 ...(appliedFrom && { from: appliedFrom }),
                 ...(appliedTo && { to: appliedTo })
             })
@@ -52,9 +36,8 @@ const TrainingHistoryDetail = () => {
     }
 
     useEffect(() => {
-        if (!user?.centerAccess) return
         loadData()
-    }, [id, selectedCenter, appliedFrom, appliedTo, user?.centerAccess])
+    }, [id, appliedFrom, appliedTo])
 
     const handleApplyFilter = () => {
         setAppliedFrom(from)
@@ -81,7 +64,7 @@ const TrainingHistoryDetail = () => {
             <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                 <thead>
                     <tr>
-                        {['#', 'Name', 'Email', 'Role', 'Center', 'Acknowledged On'].map(h => (
+                        {['#', 'Name', 'E-Code', 'Email', 'Position', 'Center', 'Acknowledged On'].map(h => (
                             <th key={h} style={{ padding: '9px 12px', background: '#f8fafc', color: '#6b7280', fontWeight: 600, textAlign: 'left', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap' }}>{h}</th>
                         ))}
                     </tr>
@@ -91,10 +74,11 @@ const TrainingHistoryDetail = () => {
                         <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                             <td style={{ padding: '9px 12px', color: '#9ca3af' }}>{i + 1}</td>
                             <td style={{ padding: '9px 12px', fontWeight: 600, color: '#111827' }}>{ack?.employee?.name || '—'}</td>
+                            <td style={{ padding: '9px 12px', color: '#6b7280' }}>{ack?.employee?.eCode || '—'}</td>
                             <td style={{ padding: '9px 12px', color: '#6b7280' }}>{ack?.employee?.email || '—'}</td>
                             <td style={{ padding: '9px 12px' }}>
                                 <span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: '#eff6ff', color: '#3b82f6', border: '1px solid #bfdbfe' }}>
-                                    {ack?.employee?.role || '—'}
+                                    {ack?.employee?.position || '—'}
                                 </span>
                             </td>
                             <td style={{ padding: '9px 12px', color: '#6b7280' }}>{ack?.employee?.center?.title || '—'}</td>
@@ -145,7 +129,7 @@ const TrainingHistoryDetail = () => {
                     <h5 className="fw-bold mb-0">{data?.trainingName || 'Training History'}</h5>
                     {data && (
                         <small className="text-muted">
-                            {data?.roles?.join(', ')}
+                            {getAudienceLabels(data).join(', ')}
                             {data?.repeatFrequency && ` · Repeats every ${data.repeatFrequency} day${data.repeatFrequency > 1 ? 's' : ''}`}
                         </small>
                     )}
@@ -166,13 +150,6 @@ const TrainingHistoryDetail = () => {
 
 
             <div className="d-flex gap-2 flex-wrap mb-4">
-                <Select
-                    options={centerOptions}
-                    value={centerOptions?.find(c => c.value === selectedCenter) || null}
-                    onChange={s => setSelectedCenter(s?.value || "ALL")}
-                    placeholder="Select Center"
-                    styles={{ container: base => ({ ...base, width: 200 }) }}
-                />
                 <input
                     type="date"
                     className="form-control"
