@@ -14,7 +14,7 @@ const itemLabels = {
   DETAIL_ADMISSION: "Detail History",
   MENTAL_EXAMINATION: "Clinical Note",
   DISCHARGE_SUMMARY: "Discharge Summary",
-  ADMISSION_FORM: "MHRB Form",
+  ADMISSION_FORM: "MHRB Admission",
   CONSENT_FORM: "Admission and Consent Form",
   BELONGING_FORM: "Belonging Form",
 };

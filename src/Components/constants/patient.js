@@ -599,12 +599,12 @@ const ectSessionSections = [
 const Forms = [
   // Group 1 — MHRB Related Forms
   {
-    name: "MHRB Form",
-    category: "ADMISSION FORM",
+    name: "Capacity Assessment Form",
+    category: "CAPACITY ASSESSMENT FORM",
   },
   {
-    name: "Admission and Consent Form",
-    category: "CONSENT FORM",
+    name: "MHRB Admission",
+    category: "ADMISSION FORM",
   },
   {
     name: "MHRB Discharge Form",
@@ -616,8 +616,8 @@ const Forms = [
   },
   // Group 2 — standalone (no section header in the dropdown)
   {
-    name: "Capacity Assessment Form",
-    category: "CAPACITY ASSESSMENT FORM",
+    name: "Admission and Consent Form",
+    category: "CONSENT FORM",
   },
   {
     name: "Undertaking Discharge Form",
