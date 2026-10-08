@@ -4,6 +4,8 @@ import { CardBody, Collapse, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
 import { getTrainerRecordById } from "../../../helpers/backend_helper";
 import AttachmentList from "../Components/AttachmentList";
+import TrainerVideoList from "../Components/TrainerVideoList";
+import { onTrainerVideoChange } from "../../../helpers/trainerVideoEvents";
 
 const formatDate = (d) =>
   d
@@ -30,6 +32,11 @@ const TrainingRecordDetail = () => {
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [openRoles, setOpenRoles] = useState({});
+    const [reloadKey, setReloadKey] = useState(0);
+
+    useEffect(() => onTrainerVideoChange((recordId) => {
+        if (!recordId || recordId === id) setReloadKey((key) => key + 1);
+    }), [id]);
 
     useEffect(() => {
         const fetch = async () => {
@@ -47,7 +54,7 @@ const TrainingRecordDetail = () => {
             }
         };
         fetch();
-    }, [id]);
+    }, [id, reloadKey]);
 
     const toggleRole = (role) =>
         setOpenRoles((prev) => ({ ...prev, [role]: !prev[role] }));
@@ -120,6 +127,16 @@ const TrainingRecordDetail = () => {
                                 <span className="text-muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>Attachments</span>
                             </div>
                             <AttachmentList files={data.files} />
+                        </div>
+                    )}
+
+                    {data?.videos?.length > 0 && (
+                        <div className="mb-4 p-3 rounded-3 border" style={{ background: "#f8fafc" }}>
+                            <div className="d-flex align-items-center gap-2 mb-1">
+                                <i className="ri-movie-line text-primary" style={{ fontSize: 14 }} />
+                                <span className="text-muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>Video</span>
+                            </div>
+                            <TrainerVideoList videos={data.videos} />
                         </div>
                     )}
 

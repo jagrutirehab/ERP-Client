@@ -10,6 +10,7 @@ export const emptyRecord = (defaultTrainerName = "") => ({
     to: "",
     selectedUsers: {},
     files: [],
+    video: null,
 });
 
 export const flattenPositions = (data) =>

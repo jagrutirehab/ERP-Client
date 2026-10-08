@@ -11,11 +11,12 @@ import {
   formatDateTime,
   formatRelative,
 } from "../../Helpers/adminTrainingHelpers";
+import ExportButton from "../ExportButton";
 import StageStatus from "./StageStatus";
 
 const PAGE_SIZE = 15;
 
-const AttendeesTable = ({ trainingId, cycle, isPast, onSummary }) => {
+const AttendeesTable = ({ trainingId, cycle, cntrs, isPast, onSummary }) => {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState("all");
@@ -26,7 +27,7 @@ const AttendeesTable = ({ trainingId, cycle, isPast, onSummary }) => {
   const [data, setData] = useState(null);
   const [loadedKey, setLoadedKey] = useState(null);
 
-  const requestKey = JSON.stringify([trainingId, cycle, search, status, appliedRange, page]);
+  const requestKey = JSON.stringify([trainingId, cycle, cntrs, search, status, appliedRange, page]);
   const loading = loadedKey !== requestKey;
 
   useEffect(() => {
@@ -38,6 +39,10 @@ const AttendeesTable = ({ trainingId, cycle, isPast, onSummary }) => {
   }, [searchInput]);
 
   useEffect(() => {
+    setPage(1);
+  }, [cntrs]);
+
+  useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
@@ -45,6 +50,7 @@ const AttendeesTable = ({ trainingId, cycle, isPast, onSummary }) => {
         const response = await getTrainingProgressReport(trainingId, {
           section: "started",
           ...(cycle && { cycle }),
+          cntrs,
           search,
           status,
           from: appliedRange.from || undefined,
@@ -68,7 +74,7 @@ const AttendeesTable = ({ trainingId, cycle, isPast, onSummary }) => {
     return () => {
       cancelled = true;
     };
-  }, [trainingId, cycle, search, status, appliedRange, page]);
+  }, [trainingId, cycle, cntrs, search, status, appliedRange, page]);
 
   const summary = data?.summary;
   const rows = data?.rows || [];
@@ -164,6 +170,26 @@ const AttendeesTable = ({ trainingId, cycle, isPast, onSummary }) => {
               </button>
             )}
           </div>
+        </div>
+        <div className="ms-auto d-flex align-items-center gap-3">
+          {pagination && (
+            <span className="text-muted small">
+              {pagination.totalRecords} employee{pagination.totalRecords !== 1 ? "s" : ""}
+            </span>
+          )}
+          <ExportButton
+            trainingId={trainingId}
+            params={{
+              section: "started",
+              ...(cycle && { cycle }),
+              cntrs,
+              search,
+              status,
+              from: appliedRange.from || undefined,
+              to: appliedRange.to || undefined,
+            }}
+            disabled={!pagination?.totalRecords}
+          />
         </div>
       </div>
 
