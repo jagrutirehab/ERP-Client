@@ -1090,7 +1090,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
                                   ) : (
-                                    "Upload Signed Copy Of MHRB Form"
+                                    "Upload Signed Copy Of MHRB Admission"
                                   )}
                                 </Button>
                                 {test?.addmissionfromRaw?.length > 0 && (
@@ -1109,7 +1109,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Draft MHRB Form{" "}
+                                            Download Draft MHRB Admission{" "}
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
@@ -1145,7 +1145,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Signed MHRB Form{" "}
+                                            Download Signed MHRB Admission{" "}
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
@@ -1829,7 +1829,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
             setEmergencyRestraint("");
           }}
         >
-          MHRB Form
+          MHRB Admission
         </ModalHeader>
         <ModalBody style={{ height: "80vh", overflow: "auto" }}>
           {openform === true ? (

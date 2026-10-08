@@ -46,8 +46,8 @@ const AdmissionChart = ({
   // Filtered by name rather than array position so this stays correct even
   // if Forms is reordered later.
   const MHRB_SECTION_NAMES = [
-    "MHRB Form",
-    "Admission and Consent Form",
+    "Capacity Assessment Form",
+    "MHRB Admission",
     "MHRB Discharge Form",
     "MHRB Email Upload",
   ];
@@ -199,29 +199,44 @@ const AdmissionChart = ({
                       position: "absolute",
                       top: 0,
                       left: "100%",
-                      minWidth: "220px",
-                      backgroundColor: "#fff",
-                      border: "1px solid rgba(0, 0, 0, 0.15)",
-                      borderRadius: "0.25rem",
-                      boxShadow: "0 0.5rem 1rem rgba(0, 0, 0, 0.175)",
-                      padding: "0.5rem 0",
+                      paddingLeft: "10px",
+                      marginLeft: "-10px",
                       zIndex: 1000,
+                      pointerEvents: "auto",
                     }}
                   >
-                    {mhrbSectionForms.map((item) => (
-                      <div
-                        key={item.category}
-                        style={{
-                          padding: "0.25rem 1.5rem",
-                          fontSize: "1rem",
-                          fontWeight: 400,
-                          color: "#212529",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {item.name}
-                      </div>
-                    ))}
+                    <div
+                      style={{
+                        minWidth: "220px",
+                        backgroundColor: "#fff",
+                        border: "1px solid rgba(0, 0, 0, 0.15)",
+                        borderRadius: "0.25rem",
+                        boxShadow: "0 0.5rem 1rem rgba(0, 0, 0, 0.175)",
+                        padding: "0.5rem 0",
+                      }}
+                    >
+                      {mhrbSectionForms.map((item) => (
+                        <div
+                          key={item.category}
+                          className="dropdown-item"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleFormSelect(item);
+                            toggle();
+                          }}
+                          style={{
+                            padding: "0.25rem 1.5rem",
+                            fontSize: "1rem",
+                            fontWeight: 400,
+                            color: "#212529",
+                            whiteSpace: "nowrap",
+                            cursor: "pointer",
+                          }}
+                        >
+                          {item.name}
+                        </div>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
