@@ -99,6 +99,7 @@ const PosPaymentModal = ({
   context,
   terminals,
   defaultTerminalId,
+  surchargePercent: surchargePercentProp,
   onApproved,
 }) => {
   const [posTransaction, setPosTransaction] = useState(null);
@@ -113,11 +114,12 @@ const PosPaymentModal = ({
   const [now, setNow] = useState(() => Date.now());
 
   const machines = terminals || [];
-  // With several machines the cashier confirms which counter before anything
-  // is sent — charging the wrong terminal means a customer at another desk is
-  // asked to pay. With one, there is nothing to choose, so it starts straight
-  // away.
-  const mustChoose = machines.length > 1;
+  const [cardType, setCardType] = useState("CREDIT");
+  const hasCardChoice =
+    paymentMode === "CARD" && (surchargePercentProp || 0) > 0;
+  // With several machines or a card choice, the cashier confirms before anything
+  // is sent.
+  const mustChoose = machines.length > 1 || hasCardChoice;
 
   const [terminalId, setTerminalId] = useState(
     () =>
@@ -161,6 +163,7 @@ const PosPaymentModal = ({
           invoiceSnapshot: context.invoiceSnapshot,
           amount,
           paymentMode,
+          cardType: paymentMode === "CARD" ? cardType : undefined,
           terminalId: chosenTerminalId || undefined,
         });
         if (!mountedRef.current) return;
@@ -173,7 +176,7 @@ const PosPaymentModal = ({
         if (mountedRef.current) setStarting(false);
       }
     },
-    [amount, paymentMode, bankAccount, context],
+    [amount, paymentMode, cardType, bankAccount, context],
   );
 
   // Kick off the charge once per open — unless the cashier still has a counter
@@ -322,13 +325,103 @@ const PosPaymentModal = ({
       </ModalHeader>
 
       <ModalBody>
-        <div className="d-flex justify-content-between align-items-baseline mb-3">
+        <div className="d-flex justify-content-between align-items-baseline mb-1">
           <span className="text-muted">Amount</span>
-          <span className="fs-4 fw-semibold">₹{amount}</span>
+          <span className="fs-4 fw-semibold">
+            {posTransaction && posTransaction.surchargeAmount > 0
+              ? `₹${posTransaction.amount}`
+              : (paymentMode === "CARD" && cardType === "CREDIT" && (surchargePercentProp || 0) > 0 && !posTransaction
+                  ? `₹${Math.round((amount + (amount * (surchargePercentProp || 0)) / 100) * 100) / 100}`
+                  : `₹${amount}`)}
+          </span>
         </div>
+        {/* Surcharge breakdown: show preview before charge or actual after */}
+        {(() => {
+          const hasSurcharge = posTransaction
+            ? posTransaction.surchargeAmount > 0
+            : paymentMode === "CARD" && cardType === "CREDIT" && (surchargePercentProp || 0) > 0;
+          if (!hasSurcharge) return null;
+          const base = posTransaction ? posTransaction.baseAmount : amount;
+          const rawPct = posTransaction
+            ? posTransaction.surchargePercent
+            : surchargePercentProp;
+          const pct = parseFloat(Number(rawPct || 0).toFixed(2));
+          const sc = posTransaction
+            ? posTransaction.surchargeAmount
+            : Math.round(amount * (surchargePercentProp || 0)) / 100;
+          return (
+            <div className="bg-warning bg-opacity-10 border border-warning rounded p-2 mb-3 fs-12">
+              <div className="d-flex justify-content-between">
+                <span>Base amount</span>
+                <span>₹{base}</span>
+              </div>
+              <div className="d-flex justify-content-between text-warning">
+                <span>Credit card surcharge ({pct}%)</span>
+                <span>+ ₹{sc}</span>
+              </div>
+              <hr className="my-1" />
+              <div className="d-flex justify-content-between fw-semibold">
+                <span>Total to charge</span>
+                <span>₹{Math.round((base + sc) * 100) / 100}</span>
+              </div>
+            </div>
+          );
+        })()}
+
+        {paymentMode === "CARD" && (
+          <div className="mb-3">
+            <Label className="text-muted fs-12 mb-1 d-block">Card Type</Label>
+            <div className="btn-group w-100" role="group">
+              <button
+                type="button"
+                className={`btn btn-sm ${
+                  (posTransaction?.cardType || cardType) === "CREDIT"
+                    ? "btn-primary"
+                    : "btn-outline-primary"
+                }`}
+                disabled={Boolean(posTransaction || starting)}
+                onClick={() => setCardType("CREDIT")}
+              >
+                <i className="ri-bank-card-line me-1"></i> Credit Card
+                {(surchargePercentProp || 0) > 0 && (
+                  <span className="badge bg-warning text-dark ms-1">
+                    +{parseFloat(Number(surchargePercentProp).toFixed(2))}%
+                  </span>
+                )}
+              </button>
+              <button
+                type="button"
+                className={`btn btn-sm ${
+                  (posTransaction?.cardType || cardType) === "DEBIT"
+                    ? "btn-primary"
+                    : "btn-outline-primary"
+                }`}
+                disabled={Boolean(posTransaction || starting)}
+                onClick={() => setCardType("DEBIT")}
+              >
+                <i className="ri-bank-card-2-line me-1"></i> Debit Card
+                <span className="badge bg-light text-muted ms-1">0%</span>
+              </button>
+            </div>
+            {cardType === "DEBIT" && !posTransaction && (
+              <div className="text-muted fs-11 mt-1">
+                <i className="ri-information-line me-1"></i>
+                No surcharge is applied to debit card payments.
+              </div>
+            )}
+          </div>
+        )}
+
         <div className="d-flex justify-content-between align-items-baseline mb-3">
           <span className="text-muted">Mode</span>
-          <span className="fw-semibold">{paymentMode}</span>
+          <span className="fw-semibold">
+            {paymentMode}
+            {posTransaction?.cardType && (
+              <span className="text-muted fs-12 ms-1">
+                ({posTransaction.cardType === "CREDIT" ? "Credit" : "Debit"})
+              </span>
+            )}
+          </span>
         </div>
 
         {awaitingChoice && (
@@ -419,10 +512,26 @@ const PosPaymentModal = ({
                     </dd>
                   </>
                 )}
+                {posTransaction.cardType && (
+                  <>
+                    <dt className="col-5 text-muted fw-normal">Card Category</dt>
+                    <dd className="col-7">
+                      {posTransaction.cardType === "CREDIT"
+                        ? "Credit Card"
+                        : "Debit Card"}
+                    </dd>
+                  </>
+                )}
                 {posTransaction.result.cardNumber && (
                   <>
                     <dt className="col-5 text-muted fw-normal">Card</dt>
                     <dd className="col-7">{posTransaction.result.cardNumber}</dd>
+                  </>
+                )}
+                {posTransaction.result.cardType && (
+                  <>
+                    <dt className="col-5 text-muted fw-normal">Card Type</dt>
+                    <dd className="col-7">{posTransaction.result.cardType}</dd>
                   </>
                 )}
                 {posTransaction.result.upiPayerVpa && (
@@ -530,6 +639,10 @@ PosPaymentModal.propTypes = {
     }),
   ),
   defaultTerminalId: PropTypes.string,
+  // Credit card surcharge rate configured on the centre (e.g. 2 for 2%).
+  // Shown as a preview before the charge is sent; the server computes the
+  // actual surcharge, so this is advisory only.
+  surchargePercent: PropTypes.number,
   onApproved: PropTypes.func.isRequired,
 };
 
