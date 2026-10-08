@@ -3,6 +3,7 @@ import moment from "moment";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import { ExpandableText } from "../../../../Components/Common/ExpandableText";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
+import { getAiFilledFields, getAiFieldLabel } from "../../Components/aiFilledFields";
 
 export const getMedicineRequisitionColumns = ({
   openDetail,
@@ -77,6 +78,24 @@ export const getMedicineRequisitionColumns = ({
             {med.genericName && (
               <span className="text-muted" style={{ fontSize: 11 }}>
                 {capitalizeWords(med.genericName)}
+              </span>
+            )}
+            {getAiFilledFields(row).length > 0 && (
+              <span
+                className="mt-1"
+                title="These values were suggested by AI (Gemini) and not changed since"
+                style={{
+                  alignSelf: "flex-start",
+                  fontSize: 10,
+                  fontWeight: 600,
+                  color: "#1d4ed8",
+                  background: "#eff6ff",
+                  border: "1px solid #bfdbfe",
+                  borderRadius: 4,
+                  padding: "1px 6px",
+                }}
+              >
+                AI filled: {getAiFilledFields(row).map(getAiFieldLabel).join(", ")}
               </span>
             )}
           </div>

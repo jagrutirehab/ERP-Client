@@ -218,7 +218,11 @@ const POForm = ({ onSaved, onCancel }) => {
     }
     const rfq = closedRFQs.find((r) => r._id === v.rfqId);
     setSelectedRFQ(rfq || null);
-    validation.setFieldValue("vendorId", "");
+    // The vendor was finalized when the RFQ was closed, so fill it in automatically
+    validation.setFieldValue(
+      "vendorId",
+      rfq?.selectedVendorId?._id || rfq?.selectedVendorId || "",
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [v.rfqId]);
 
@@ -438,7 +442,7 @@ const POForm = ({ onSaved, onCancel }) => {
                   <Input
                     type="select"
                     value={v.vendorId}
-                    disabled={!v.rfqId}
+                    disabled={!v.rfqId || !!selectedRFQ?.selectedVendorId}
                     onChange={(e) =>
                       validation.setFieldValue("vendorId", e.target.value)
                     }
@@ -461,6 +465,11 @@ const POForm = ({ onSaved, onCancel }) => {
                     ))}
                   </Input>
                   <FormFeedback>{validation.errors.vendorId}</FormFeedback>
+                  {selectedRFQ?.selectedVendorId && (
+                    <div className="text-muted small mt-1">
+                      Vendor was finalized when the RFQ was closed.
+                    </div>
+                  )}
                 </Col>
               </Row>
 

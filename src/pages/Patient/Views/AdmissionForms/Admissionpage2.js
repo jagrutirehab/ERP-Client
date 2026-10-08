@@ -1,7 +1,20 @@
 import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
+const HIGHER_ADMISSION_FEE_CENTERS = [
+  "Pune",
+  "Malad-West",
+  "Malad-East",
+  "Nashik",
+];
+
 const Admissionpage2 = ({ register, patient, details }) => {
+  const admissionFee = HIGHER_ADMISSION_FEE_CENTERS.includes(
+    patient?.center?.title,
+  )
+    ? 1200
+    : 1000;
+
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -161,8 +174,8 @@ const Admissionpage2 = ({ register, patient, details }) => {
             ...inputLine,
           }}
         />{" "}
-        and a non refundable admission fees of Rs. 1000/- at the time of
-        admission. Also, minimum 5 days of initial fees is compulsory. If
+        and a non refundable admission fees of Rs. {admissionFee}/- at the time
+        of admission. Also, minimum 5 days of initial fees is compulsory. If
         discharge is taken within 25 days of admission, then Daily Charges will
         be applicable.
       </div>

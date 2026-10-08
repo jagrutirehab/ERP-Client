@@ -6,14 +6,8 @@ import { CSVLink } from "react-csv";
 import Select from "react-select";
 import { fetchMissingInvoices } from "../../../store/features/miReporting/miReportingSlice";
 
-const MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-
-const parseMonth = (monthStr) => {
-  if (!monthStr) return new Date(0);
-  const [mon, year] = monthStr.split(" ");
-  const monthIdx = MONTHS.indexOf(mon);
-  return new Date(parseInt(year, 10), monthIdx, 1);
-};
+const MONTH_ABBR = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+const formatMonthYear = (date) => `${MONTH_ABBR[date.getMonth()]} ${date.getFullYear()}`;
 
 const formatDate = (val) => {
   if (!val) return "";
@@ -44,34 +38,42 @@ const MissingInvoices = () => {
   const error = useSelector((state) => state.MIReporting.error);
   const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
+  const monthOptions = useMemo(() => {
+    const opts = [];
+    const now = new Date();
+    const end = new Date(now.getFullYear(), now.getMonth(), 1);
+    const start = new Date(2020, 0, 1);
+    for (let d = new Date(end); d >= start; d.setMonth(d.getMonth() - 1)) {
+      const label = formatMonthYear(d);
+      opts.push({ value: label, label });
+    }
+    return opts;
+  }, []);
+
+  const currentMonthLabel = useMemo(() => formatMonthYear(new Date()), []);
+  const [selectedMonth, setSelectedMonth] = useState(currentMonthLabel);
   const [selectedCenter, setSelectedCenter] = useState("ALL");
-  const [selectedMonth, setSelectedMonth] = useState(null);
   const [csvData, setCsvData] = useState([]);
   const [csvLoading, setCsvLoading] = useState(false);
   const csvRef = useRef();
 
   useEffect(() => {
-    dispatch(fetchMissingInvoices({ centerAccess }));
-  }, [dispatch, centerAccess]);
+    dispatch(fetchMissingInvoices({ centerAccess, month: selectedMonth }));
+  }, [dispatch, centerAccess, selectedMonth]);
 
   const data = useMemo(() => missingInvoices?.data || [], [missingInvoices]);
-  const monthlyTotals = useMemo(() => missingInvoices?.monthly_totals || [], [missingInvoices]);
 
-  const sortedMonthlyTotals = useMemo(
-    () => [...monthlyTotals].sort((a, b) => parseMonth(b.month) - parseMonth(a.month)),
-    [monthlyTotals]
-  );
+  const centerTotals = useMemo(() => (
+    [...(missingInvoices?.monthly_totals || [])].sort((a, b) => (a.center_name || "").localeCompare(b.center_name || ""))
+  ), [missingInvoices]);
 
-  const monthOptions = useMemo(
-    () => sortedMonthlyTotals.map(({ month }) => ({ value: month, label: month })),
-    [sortedMonthlyTotals]
-  );
-
-  useEffect(() => {
-    if (!selectedMonth && monthOptions.length > 0) {
-      setSelectedMonth(monthOptions[0].value);
-    }
-  }, [monthOptions, selectedMonth]);
+  const aggregateTotals = useMemo(() => (
+    centerTotals.reduce((acc, row) => ({
+      should_be_count: acc.should_be_count + (Number(row.should_be_count) || 0),
+      result_count: acc.result_count + (Number(row.result_count) || 0),
+      missing_count: acc.missing_count + (Number(row.missing_count) || 0),
+    }), { should_be_count: 0, result_count: 0, missing_count: 0 })
+  ), [centerTotals]);
 
   const centerOptions = useMemo(() => [
     { value: "ALL", label: "All Centers" },
@@ -82,12 +84,8 @@ const MissingInvoices = () => {
   ], [data]);
 
   const filteredData = useMemo(() => (
-    data.filter((item) => {
-      if (selectedMonth && item?.month !== selectedMonth) return false;
-      if (selectedCenter !== "ALL" && item?.center_name !== selectedCenter) return false;
-      return true;
-    })
-  ), [data, selectedMonth, selectedCenter]);
+    selectedCenter === "ALL" ? data : data.filter((item) => item?.center_name === selectedCenter)
+  ), [data, selectedCenter]);
 
   const prepareCsvData = () => {
     setCsvLoading(true);
@@ -98,6 +96,11 @@ const MissingInvoices = () => {
       setCsvLoading(false);
     }, 100);
   };
+
+  const shouldBe = aggregateTotals.should_be_count;
+  const result = aggregateTotals.result_count;
+  const missingCount = aggregateTotals.missing_count;
+  const compliancePct = shouldBe > 0 ? Math.round((result / shouldBe) * 100) : 0;
 
   document.title = "Missing Invoices";
 
@@ -130,7 +133,7 @@ const MissingInvoices = () => {
                   </Button>
                   <CSVLink
                     data={csvData || []}
-                    filename={`missing-invoices-${selectedMonth || "all"}.csv`}
+                    filename={`missing-invoices-${selectedMonth}.csv`}
                     headers={labels}
                     className="d-none"
                     ref={csvRef}
@@ -141,6 +144,25 @@ const MissingInvoices = () => {
           </div>
 
           <div className="p-3 p-lg-4">
+            <Row className="g-2 align-items-center mb-3">
+              <Col md={2}>
+                <Select
+                  value={monthOptions.find((o) => o.value === selectedMonth) || null}
+                  onChange={(opt) => opt && setSelectedMonth(opt.value)}
+                  options={monthOptions}
+                  placeholder="Month..."
+                />
+              </Col>
+              <Col md={2}>
+                <Select
+                  value={centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]}
+                  onChange={(opt) => setSelectedCenter(opt.value)}
+                  options={centerOptions}
+                  placeholder="Center..."
+                />
+              </Col>
+            </Row>
+
             {loading && (
               <div className="text-center py-5">
                 <Spinner color="primary" />
@@ -154,12 +176,12 @@ const MissingInvoices = () => {
               <>
                 <Card className="mb-4">
                   <CardBody>
-                    <h6 className="mb-3">Monthly Totals</h6>
+                    <h6 className="mb-3">Totals — {selectedMonth}</h6>
                     <div style={{ overflowX: "auto" }}>
                       <Table className="mb-0 w-100" style={{ borderCollapse: "separate", borderSpacing: 0, fontSize: "0.78rem" }}>
                         <thead>
                           <tr>
-                            {["Month", "Should Be Count", "Result Count", "Missing Count", "Compliance %"].map((label) => (
+                            {["Center", "Should Be Count", "Result Count", "Missing Count", "Compliance %"].map((label) => (
                               <th
                                 key={label}
                                 className="text-center fw-bold px-2 py-1"
@@ -171,31 +193,35 @@ const MissingInvoices = () => {
                           </tr>
                         </thead>
                         <tbody>
-                          {sortedMonthlyTotals.length === 0 ? (
+                          {centerTotals.length === 0 ? (
                             <tr>
-                              <td colSpan={5} className="text-center py-4 text-muted">No data available</td>
+                              <td colSpan={5} className="text-center py-4 text-muted">No data available for {selectedMonth}</td>
                             </tr>
                           ) : (
-                            sortedMonthlyTotals.map((row, idx) => {
-                              const shouldBe = Number(row.should_be_count) || 0;
-                              const result = Number(row.result_count) || 0;
-                              const compliancePct = shouldBe > 0 ? Math.round((result / shouldBe) * 100) : 0;
-                              const isSelected = row.month === selectedMonth;
-                              return (
-                                <tr
-                                  key={row.month ?? idx}
-                                  role="button"
-                                  onClick={() => setSelectedMonth(row.month)}
-                                  style={{ cursor: "pointer", background: isSelected ? "#d8f3dc" : (idx % 2 === 0 ? "#f8fafc" : "#fff") }}
-                                >
-                                  <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", fontWeight: isSelected ? 700 : 400 }}>{row.month}</td>
-                                  <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{shouldBe}</td>
-                                  <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{result}</td>
-                                  <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", color: Number(row.missing_count) > 0 ? "#dc3545" : "inherit", fontWeight: 600 }}>{row.missing_count}</td>
-                                  <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{compliancePct}%</td>
-                                </tr>
-                              );
-                            })
+                            <>
+                              <tr style={{ background: "#eef6ee" }}>
+                                <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", fontWeight: 700 }}>All Centers</td>
+                                <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{shouldBe}</td>
+                                <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{result}</td>
+                                <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", color: missingCount > 0 ? "#dc3545" : "inherit", fontWeight: 600 }}>{missingCount}</td>
+                                <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{compliancePct}%</td>
+                              </tr>
+                              {centerTotals.map((row, idx) => {
+                                const rowShouldBe = Number(row.should_be_count) || 0;
+                                const rowResult = Number(row.result_count) || 0;
+                                const rowMissing = Number(row.missing_count) || 0;
+                                const rowCompliancePct = rowShouldBe > 0 ? Math.round((rowResult / rowShouldBe) * 100) : 0;
+                                return (
+                                  <tr key={row.center_name ?? idx} style={{ background: idx % 2 === 0 ? "#f8fafc" : "#fff" }}>
+                                    <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{row.center_name}</td>
+                                    <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{rowShouldBe}</td>
+                                    <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{rowResult}</td>
+                                    <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8", color: rowMissing > 0 ? "#dc3545" : "inherit", fontWeight: 600 }}>{rowMissing}</td>
+                                    <td className="text-center px-2 py-1" style={{ border: "1px solid #d6dde8" }}>{rowCompliancePct}%</td>
+                                  </tr>
+                                );
+                              })}
+                            </>
                           )}
                         </tbody>
                       </Table>
@@ -203,28 +229,9 @@ const MissingInvoices = () => {
                   </CardBody>
                 </Card>
 
-                <Row className="g-2 align-items-center mb-2">
-                  <Col md={2}>
-                    <Select
-                      value={monthOptions.find((o) => o.value === selectedMonth) || null}
-                      onChange={(opt) => setSelectedMonth(opt?.value || null)}
-                      options={monthOptions}
-                      placeholder="Month..."
-                    />
-                  </Col>
-                  <Col md={2}>
-                    <Select
-                      value={centerOptions.find((o) => o.value === selectedCenter) || centerOptions[0]}
-                      onChange={(opt) => setSelectedCenter(opt.value)}
-                      options={centerOptions}
-                      placeholder="Center..."
-                    />
-                  </Col>
-                </Row>
-
                 <Card>
                   <CardBody>
-                    <h6 className="mb-3">Missing Invoices{selectedMonth ? ` — ${selectedMonth}` : ""}</h6>
+                    <h6 className="mb-3">Missing Invoices — {selectedMonth}</h6>
                     <div
                       className="shadow-sm bg-white"
                       style={{ borderRadius: 12, border: "1px solid #cfd8e3", overflow: "auto", maxHeight: "calc(100vh - 420px)" }}

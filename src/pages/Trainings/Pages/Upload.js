@@ -1,29 +1,35 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useReducer, useState } from "react";
 import { CardBody, Spinner } from "reactstrap";
 import {
   createTrainings,
-  getRolesDisctinct,
+  getPositions,
 } from "../../../helpers/backend_helper";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
+import { enqueueTrainingUploads } from "../../../helpers/trainingUploader";
 import Questionary from "../Components/Questionary";
+import PositionsSelector from "../Components/UploadTraining/PositionsSelector";
+import OuterFileInput from "../Components/UploadTraining/OuterFileInput";
+import LessonsSection from "../Components/UploadTraining/LessonsSection";
+import { flattenPositions } from "../Helpers/Helper";
+import {
+  MIN_FINAL_EXAM_QUESTIONS,
+  buildTrainingFormData,
+  collectUploads,
+  countSelectedFiles,
+  emptyTraining,
+  isTrainingValid,
+  trainingReducer,
+} from "../Helpers/uploadTrainingForm";
 
 const Upload = () => {
-  const [forms, setForms] = useState([
-    {
-      id: 0,
-      trainingName: "",
-      roles: [],
-      repeatFrequency: "",
-      questionary: [],
-    },
-  ]);
-  const [files, setFiles] = useState({});
-  const [allRoles, setAllRoles] = useState([]);
+  const [training, dispatch] = useReducer(trainingReducer, emptyTraining());
+  const [allPositions, setAllPositions] = useState([]);
+  const [positionsLoading, setPositionsLoading] = useState(true);
   const [loading, setLoading] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 1000px)");
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const isMobile = useMediaQuery("(max-width: 1000px)");
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const hasWritePermission = hasPermission(
@@ -38,137 +44,52 @@ const Upload = () => {
   );
   const canEdit = hasWritePermission || hasDeletePermission;
 
-  const getRoles = async () => {
+  const loadPositions = async () => {
     try {
-      const response = await getRolesDisctinct();
-      if (response?.data) setAllRoles(response.data);
+      const response = await getPositions();
+      setAllPositions(flattenPositions(response?.data));
     } catch (error) {
-      console.log("FAILED", error);
+      toast.error(error?.response?.data?.message || "Failed to load positions");
+    } finally {
+      setPositionsLoading(false);
     }
   };
 
   useEffect(() => {
-    getRoles();
+    loadPositions();
   }, []);
 
-  const addForm = () => {
-    const newId = Math.max(...forms.map((f) => f.id), -1) + 1;
-    setForms([
-      ...forms,
-      {
-        id: newId,
-        trainingName: "",
-        roles: [],
-        repeatFrequency: "",
-        questionary: [],
-      },
-    ]);
-  };
-
-  const removeForm = (id) => {
-    setForms(forms.filter((f) => f.id !== id));
-    const newFiles = { ...files };
-    delete newFiles[id];
-    setFiles(newFiles);
-  };
-
-  const handleChange = (id, field, value) => {
-    setForms(forms.map((f) => (f.id === id ? { ...f, [field]: value } : f)));
-  };
-
-  const handleRoleChange = (id, roleName) => {
-    setForms(
-      forms.map((f) => {
-        if (f.id !== id) return f;
-        const updatedRoles = f.roles.includes(roleName)
-          ? f.roles.filter((r) => r !== roleName)
-          : [...f.roles, roleName];
-        return { ...f, roles: updatedRoles };
-      }),
-    );
-  };
-
-  const handleFile = (id, file) => {
-    setFiles({ ...files, [id]: file });
-  };
-
-  const handleQuestionaryChange = (id, questionary) => {
-    setForms(forms.map((f) => (f.id === id ? { ...f, questionary } : f)));
-  };
-
-  const isQuestionaryValid = (questionary) => {
-    if (questionary.length === 0) return true;
-    if (questionary.length < 10) return false;
-    return questionary.every(
-      (q) =>
-        q.question.trim() !== "" &&
-        q.options.length >= 2 &&
-        q.options.every((o) => o.text.trim() !== "") &&
-        q.options.some((o) => o.isCorrect),
-    );
-  };
-
-  const isFormValid = forms.every(
-    (form) =>
-      form.trainingName.trim() !== "" &&
-      form.roles.length > 0 &&
-      files[form.id] !== undefined &&
-      isQuestionaryValid(form.questionary),
-  );
-
-  const serializeQuestionary = (questionary) => {
-    return questionary.map((q) => ({
-      question: q.question,
-      allowMultiple: q.allowMultiple,
-      options: q.options.map((o) => ({
-        text: o.text,
-        isCorrect: o.isCorrect,
-      })),
-    }));
-  };
+  const setField = (field, value) =>
+    dispatch({ type: "SET_FIELD", field, value });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitted(true);
 
-    if (!isFormValid) return;
-
-    const formData = new FormData();
-
-    forms.forEach((form, index) => {
-      formData.append(`trainings[${index}][trainingName]`, form.trainingName);
-      formData.append(`trainings[${index}][roles]`, JSON.stringify(form.roles));
-      formData.append(
-        `trainings[${index}][repeatFrequency]`,
-        form.repeatFrequency || "",
-      );
-
-      if (form.questionary.length > 0) {
-        formData.append(
-          `trainings[${index}][questionary]`,
-          JSON.stringify(serializeQuestionary(form.questionary)),
-        );
-      }
-
-      if (files[form.id]) {
-        formData.append(`file_${index}`, files[form.id]);
-      }
-    });
+    if (!isTrainingValid(training)) {
+      toast.error("Please fix the highlighted fields before submitting.");
+      return;
+    }
 
     try {
       setLoading(true);
-      const response = await createTrainings(formData);
-      toast.success(response?.message || "Trainings created successfully!!");
-      setForms([
-        {
-          id: 0,
-          trainingName: "",
-          roles: [],
-          repeatFrequency: "",
-          questionary: [],
-        },
-      ]);
-      setFiles({});
+      const response = await createTrainings(buildTrainingFormData(training));
+      const uploads = collectUploads(training, response?.data?.[0]);
+      enqueueTrainingUploads(uploads);
+
+      if (uploads.length > 0) {
+        toast.success(
+          `Training created. Uploading ${uploads.length} file${uploads.length !== 1 ? "s" : ""} in the background.`,
+        );
+      } else {
+        toast.success(response?.message || "Training created successfully!!");
+      }
+      if (uploads.length < countSelectedFiles(training)) {
+        toast.warning(
+          "Some files could not be matched to their chapters. Add them again from the training.",
+        );
+      }
+      dispatch({ type: "RESET" });
       setIsSubmitted(false);
     } catch (error) {
       toast.error("Error: " + (error.response?.data?.message || error.message));
@@ -178,206 +99,106 @@ const Upload = () => {
   };
 
   return (
-    <>
-      <CardBody
-        className="p-3 bg-white"
-        style={isMobile ? { width: "100%" } : { width: "78%" }}
+    <CardBody
+      className="p-3 bg-white"
+      style={isMobile ? { width: "100%" } : { width: "78%" }}
+    >
+      <div className="text-center text-md-left mb-4">
+        <h1 className="display-6 fw-bold text-primary">UPLOAD TRAINING</h1>
+      </div>
+
+      <form
+        onSubmit={handleSubmit}
+        noValidate
+        style={{ maxHeight: "80vh", overflowY: "auto", overflowX: "hidden" }}
       >
-        <div className="text-center text-md-left mb-4">
-          <h1 className="display-6 fw-bold text-primary">UPLOAD TRAININGS</h1>
+        <div className="mb-4 p-3 border rounded">
+          <div className="mb-3">
+            <label className="form-label">Training Name</label>
+            <input
+              type="text"
+              className="form-control"
+              value={training.trainingName}
+              onChange={(e) => setField("trainingName", e.target.value)}
+            />
+            {isSubmitted && training.trainingName.trim() === "" && (
+              <small className="text-danger d-block mt-2">
+                Training Name is required
+              </small>
+            )}
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label">Description</label>
+            <textarea
+              className="form-control"
+              rows={3}
+              value={training.description}
+              onChange={(e) => setField("description", e.target.value)}
+            />
+          </div>
+
+          <PositionsSelector
+            allPositions={allPositions}
+            selectedPositions={training.positions}
+            onToggle={(position) => dispatch({ type: "TOGGLE_POSITION", position })}
+            onChange={(positions) => dispatch({ type: "SET_POSITIONS", positions })}
+            isSubmitted={isSubmitted}
+            loading={positionsLoading}
+          />
+
+          <LessonsSection
+            lessons={training.lessons}
+            isSubmitted={isSubmitted}
+            dispatch={dispatch}
+          />
+
+          <div className="mb-3">
+            <label className="form-label">Repeat Frequency (days)</label>
+            <input
+              type="text"
+              className="form-control"
+              value={training.repeatFrequency}
+              onChange={(e) => {
+                const val = e.target.value;
+                if (/^\d*$/.test(val) && (val === "" || parseInt(val) >= 1)) {
+                  setField("repeatFrequency", val);
+                }
+              }}
+            />
+          </div>
+
+          <OuterFileInput
+            file={training.file}
+            onChange={(file) => dispatch({ type: "SET_FILE", file })}
+            isSubmitted={isSubmitted}
+          />
+
+          <div className="mb-3">
+            <Questionary
+              title={
+                training.lessons.length > 0 ? "Final Exam" : "Questionnaire"
+              }
+              optional
+              minQuestions={MIN_FINAL_EXAM_QUESTIONS}
+              questionary={training.questionary}
+              onChange={(questionary) =>
+                dispatch({ type: "SET_QUESTIONARY", questionary })
+              }
+              isSubmitted={isSubmitted}
+            />
+          </div>
         </div>
 
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          style={{ maxHeight: "80vh", overflowY: "auto", overflowX: "hidden" }}
-        >
-          {forms.map((form) => (
-            <div key={form.id} className="mb-4 p-3 border rounded">
-              <h5>Training {form.id + 1}</h5>
-
-              <div className="mb-3">
-                <label className="form-label">Training Name</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={form.trainingName}
-                  onChange={(e) =>
-                    handleChange(form.id, "trainingName", e.target.value)
-                  }
-                />
-                {isSubmitted && form.trainingName.trim() === "" && (
-                  <small className="text-danger d-block mt-2">
-                    Training Name is required
-                  </small>
-                )}
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label">Select Roles</label>
-                <div
-                  className="border p-3 rounded"
-                  style={{ maxHeight: "200px", overflowY: "auto" }}
-                >
-                  <div className="form-check border-bottom pb-2 mb-2">
-                    <input
-                      className="form-check-input"
-                      type="checkbox"
-                      id={`select-all-${form.id}`}
-                      checked={form.roles.length === allRoles.length}
-                      onChange={() => {
-                        const allSelected =
-                          form.roles.length === allRoles.length;
-                        setForms(
-                          forms.map((f) =>
-                            f.id === form.id
-                              ? {
-                                  ...f,
-                                  roles: allSelected
-                                    ? []
-                                    : allRoles.map((r) => r.name),
-                                }
-                              : f,
-                          ),
-                        );
-                      }}
-                    />
-                    <label
-                      className="form-check-label fw-semibold"
-                      htmlFor={`select-all-${form.id}`}
-                    >
-                      Select All
-                    </label>
-                  </div>
-                  {allRoles.length > 0 ? (
-                    allRoles.map((role) => (
-                      <div key={role._id} className="form-check">
-                        <input
-                          className="form-check-input"
-                          type="checkbox"
-                          id={`role-${form.id}-${role._id}`}
-                          checked={form.roles.includes(role.name)}
-                          onChange={() => handleRoleChange(form.id, role.name)}
-                        />
-                        <label
-                          className="form-check-label"
-                          htmlFor={`role-${form.id}-${role._id}`}
-                        >
-                          {role.name}
-                        </label>
-                      </div>
-                    ))
-                  ) : (
-                    <small className="text-muted">No roles available</small>
-                  )}
-                </div>
-                {isSubmitted && form.roles.length === 0 && (
-                  <small className="text-danger d-block mt-2">
-                    Select at least one role
-                  </small>
-                )}
-                {form.roles.length > 0 && (
-                  <small className="text-success d-block mt-2">
-                    Selected: {form.roles.join(", ")}
-                  </small>
-                )}
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label">Repeat Frequency (days)</label>
-                <input
-                  type="text"
-                  className="form-control"
-                  value={form.repeatFrequency}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (
-                      /^\d*$/.test(val) &&
-                      (val === "" || parseInt(val) >= 1)
-                    ) {
-                      handleChange(form.id, "repeatFrequency", val);
-                    }
-                  }}
-                />
-              </div>
-
-              <div className="mb-3">
-                <label className="form-label">File *</label>
-                <input
-                  type="file"
-                  className="form-control"
-                  accept="image/*, application/pdf, .doc, .docx"
-                  onChange={(e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-                    const isImage = file.type.startsWith("image/");
-                    const isPDF = file.type === "application/pdf";
-                    const isDoc =
-                      file.name.toLowerCase().endsWith(".doc") ||
-                      file.name.toLowerCase().endsWith(".docx");
-                    if (!isImage && !isPDF && !isDoc) {
-                      toast.error(
-                        "Invalid file type! Only Images, PDFs, and Word docs are allowed.",
-                      );
-                      e.target.value = "";
-                      return;
-                    }
-                    handleFile(form.id, file);
-                  }}
-                />
-                {files[form.id] ? (
-                  <small className="d-block mt-2 text-success">
-                    ✓ {files[form.id].name} (
-                    {(files[form.id].size / 1024).toFixed(2)} KB)
-                  </small>
-                ) : isSubmitted ? (
-                  <small className="d-block mt-2 text-danger">
-                    No file selected
-                  </small>
-                ) : null}
-              </div>
-
-              <div className="mb-3">
-                <Questionary
-                  questionary={form.questionary}
-                  onChange={(q) => handleQuestionaryChange(form.id, q)}
-                  isSubmitted={isSubmitted}
-                />
-              </div>
-
-              {forms.length > 1 && (
-                <button
-                  type="button"
-                  className="btn btn-outline-danger btn-sm"
-                  onClick={() => removeForm(form.id)}
-                >
-                  Remove
-                </button>
-              )}
-            </div>
-          ))}
-
-          {canEdit && (
-            <div className="d-flex gap-2 mb-4">
-              <button
-                type="button"
-                className="btn btn-outline-primary"
-                onClick={addForm}
-              >
-                + Add Training
-              </button>
-              <button
-                type="submit"
-                className="btn btn-primary"
-                disabled={loading || !isFormValid}
-              >
-                {loading ? <Spinner size="sm" /> : "Submit"}
-              </button>
-            </div>
-          )}
-        </form>
-      </CardBody>
-    </>
+        {canEdit && (
+          <div className="d-flex gap-2 mb-4">
+            <button type="submit" className="btn btn-primary" disabled={loading}>
+              {loading ? <Spinner size="sm" /> : "Submit"}
+            </button>
+          </div>
+        )}
+      </form>
+    </CardBody>
   );
 };
 

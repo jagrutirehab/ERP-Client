@@ -32,10 +32,15 @@ import {
 } from "../../../Components/constants/patient";
 import { toast } from "react-toastify";
 import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
-import { setAdmissionRamsayApplicable } from "../../../store/features/chart/chartSlice";
+import {
+  setAdmissionRamsayApplicable,
+  setAdmissionPsychologicalTestStatus,
+} from "../../../store/features/chart/chartSlice";
 import SetAdmissionTypeModal from "./Components/SetAdmissionTypeModal";
 import BaselinePackageControl from "./Components/BaselinePackageControl";
 import BaselinePackageStatusModal from "./Components/BaselinePackageStatusModal";
+import PsychologicalTestsControl from "./Components/PsychologicalTestsControl";
+import PsychologicalTestsStatusModal from "./Components/PsychologicalTestsStatusModal";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { capitalizeWords } from "../../../utils/toCapitalize";
 
@@ -67,6 +72,9 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   // null. Keyed by admission id for the same reason as admissionTypeFor, and
   // carries the target status because one modal serves all three transitions.
   const [baselineTarget, setBaselineTarget] = useState(null);
+  // { admissionId, nextStatus } for the open psychological-tests dialog, or
+  // null — the same shape as baselineTarget, for the same reasons.
+  const [psychTestTarget, setPsychTestTarget] = useState(null);
   const latestPatientIdRef = useRef();
 
   // `user.accessroles` is a bare ObjectId on the user document, so the role NAME
@@ -144,6 +152,22 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
       );
     } catch (error) {
       toast.warn(error.message);
+    }
+  };
+
+  // Resolves true/false and never rejects, so the dialog can stay open on
+  // failure. Don't read error.message here: the thunk rejects with a
+  // STRING (so .unwrap() throws a string) and has already shown the server's
+  // message via setAlert.
+  const handlePsychTestStatusChange = async (admissionId, body) => {
+    try {
+      const res = await dispatch(
+        setAdmissionPsychologicalTestStatus({ admissionId, ...body }),
+      ).unwrap();
+      toast.success(res?.message || "Psychological tests updated");
+      return true;
+    } catch {
+      return false;
     }
   };
 
@@ -434,6 +458,20 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     }
                   />
                 </div>
+
+                {/* Psychological tests applicability — its own w-100 line below
+                    Baseline. Not Applicable stops the clinical-test "not
+                    recorded" reminders for this admission; score alerts still
+                    fire. The reason is collected in a dialog, as for
+                    Baseline. */}
+                <div className="d-flex align-items-center gap-1 w-100">
+                  <PsychologicalTestsControl
+                    addmission={addmission}
+                    onRequestChange={(admissionId, nextStatus) =>
+                      setPsychTestTarget({ admissionId, nextStatus })
+                    }
+                  />
+                </div>
               </div>
 
               <SetAdmissionTypeModal
@@ -447,6 +485,14 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                 toggle={() => setBaselineTarget(null)}
                 addmission={addmission}
                 nextStatus={baselineTarget?.nextStatus}
+              />
+
+              <PsychologicalTestsStatusModal
+                isOpen={psychTestTarget?.admissionId === addmission._id}
+                toggle={() => setPsychTestTarget(null)}
+                addmission={addmission}
+                nextStatus={psychTestTarget?.nextStatus}
+                onSubmit={handlePsychTestStatusChange}
               />
 
               <div className="d-flex align-items-center gap-4">

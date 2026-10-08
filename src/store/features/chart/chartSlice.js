@@ -2,6 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   setRamsayApplicable as setRamsayApplicableApi,
   setBaselineInvestigationStatus as setBaselineInvestigationStatusApi,
+  setPsychologicalTestStatus as setPsychologicalTestStatusApi,
   setAdmissionTypeDirect as setAdmissionTypeDirectApi,
   deleteChart,
   deleteClinicalNoteFile,
@@ -410,6 +411,27 @@ export const setAdmissionBaselineInvestigationStatus = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue(
         error.message || "Failed to update baseline investigation status",
+      );
+    }
+  },
+);
+
+// Psychological tests applicability. In THIS slice for the same reason as the
+// baseline thunk above: IPD.js renders from `state.Chart.data`, so the control
+// only holds its new value if the timeline is patched there.
+//
+// Rejects with a STRING (rejectWithValue), so a caller's `.unwrap()` throws that
+// string — `error.message` on it is always undefined. The server's message is
+// already surfaced via setAlert below, so callers should just catch.
+export const setAdmissionPsychologicalTestStatus = createAsyncThunk(
+  "setPsychologicalTestStatus",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      return await setPsychologicalTestStatusApi(data);
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(
+        error.message || "Failed to update psychological tests",
       );
     }
   },
@@ -2099,6 +2121,25 @@ export const chartSlice = createSlice({
             payload.data.baselineInvestigationStatus;
           state.data[idx].baselineInvestigationHistory =
             payload.data.baselineInvestigationHistory || [];
+        },
+      )
+      .addCase(
+        setAdmissionPsychologicalTestStatus.fulfilled,
+        (state, { payload }) => {
+          // Same reason as the baseline case above. `psychologicalTestStatus` is
+          // a mongoose VIRTUAL derived from `psychologicalTestHistory`; both are
+          // patched and the keys must match exactly, or the control silently
+          // snaps back on the next render.
+          const id = payload?.data?._id;
+          if (!id) return;
+          const idx = state.data.findIndex(
+            (el) => String(el._id) === String(id),
+          );
+          if (idx === -1) return;
+          state.data[idx].psychologicalTestStatus =
+            payload.data.psychologicalTestStatus;
+          state.data[idx].psychologicalTestHistory =
+            payload.data.psychologicalTestHistory || [];
         },
       )
       .addCase(addAdmissionType.fulfilled, (state, { payload }) => {

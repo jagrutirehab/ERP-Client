@@ -94,6 +94,8 @@ export const EDIT_ADMISSION = "/patient/admit/update";
 export const SET_RAMSAY_APPLICABLE = "/patient/admission/ramsay-applicable";
 export const SET_BASELINE_INVESTIGATION_STATUS =
   "/patient/admission/baseline-investigation";
+export const SET_PSYCHOLOGICAL_TEST_STATUS =
+  "/patient/admission/psychological-tests";
 export const SET_ADMISSION_TYPE_DIRECT = "/patient/admission/admission-type";
 export const UPDATE_ADMISSION_WARD_BED = "/patient/admission/ward-bed";
 export const SUBMIT_ADMISSION_FORM = "/patient/admission-submit";
@@ -860,6 +862,10 @@ export const SOP_BASELINE_PACKAGE = "/sop/baseline-package";
 export const CREATE_TRAININGS = "/trainings/create";
 export const GET_BY_ROLES = "/trainings/get/by/roles";
 export const ACKNOWLEDGE_TRAINING = "/trainings/acknowledge";
+export const LEARN_TRAINING = "/trainings/learn";
+export const TRAINING_BASE = "/trainings";
+export const TRAINING_UPLOADS = "/trainings/uploads";
+export const TRAINING_ADMIN = "/trainings/admin";
 export const GET_ALL_TRAININGS = "/trainings/get";
 export const EDIT_TRAINING = "/trainings/edit/training";
 export const GET_TRAINING_BY_ID = "/trainings";

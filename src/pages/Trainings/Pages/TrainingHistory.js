@@ -20,6 +20,7 @@ import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import EditTrainingModal from "../Components/EditTrainingModal";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useNavigate } from "react-router-dom";
+import { getAudienceLabels } from "../Helpers/adminTrainingHelpers";
 
 const roleBadgeColors = ["#3b82f6", "#8b5cf6", "#f59e0b", "#ec4899", "#14b8a6"];
 
@@ -88,11 +89,18 @@ const TrainingHistory = () => {
   }, []);
 
   const file = fileModal.file;
+  const isOfficeFile = /\.(docx?|pptx?)$/i.test(
+    file?.originalName || file?.name || "",
+  );
 
   return (
     <CardBody
       className="p-4 bg-white"
-      style={isMobile ? { width: "100%" } : { width: "78%" }}
+      style={{
+        width: isMobile ? "100%" : "78%",
+        height: "100vh",
+        overflowY: "auto",
+      }}
     >
       <style>{`
                 .ack-table { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -184,9 +192,9 @@ const TrainingHistory = () => {
                             Every {training.repeatFrequency}d
                           </span>
                         )}
-                        {training.roles?.map((role, idx) => (
+                        {getAudienceLabels(training).map((label, idx) => (
                           <span
-                            key={role}
+                            key={label}
                             style={{
                               padding: "2px 10px",
                               borderRadius: 20,
@@ -200,7 +208,7 @@ const TrainingHistory = () => {
                               border: `1px solid ${roleBadgeColors[idx % roleBadgeColors.length]}30`,
                             }}
                           >
-                            {role}
+                            {label}
                           </span>
                         ))}
                       </div>
@@ -217,6 +225,19 @@ const TrainingHistory = () => {
                       >
                         View History
                       </Button>
+                      {hasUserPermission && (
+                        <Button
+                          color="primary"
+                          size="sm"
+                          onClick={() =>
+                            navigate(`/trainings/all/${training?._id}`, {
+                              state: { from: "history" },
+                            })
+                          }
+                        >
+                          <i className="ri-eye-line me-1" /> View details
+                        </Button>
+                      )}
                     </div>
                   </div>
 
@@ -254,10 +275,7 @@ const TrainingHistory = () => {
                           <tbody>
                             {training?.acknowledgedBy?.map((ack) => (
                               <tr key={ack._id}>
-                                <td>
-                                  {/* <span className="ack-avatar">{ack.employee?.name?.[0]?.toUpperCase() || '?'}</span> */}
-                                  {ack.employee?.name || "—"}
-                                </td>
+                                <td>{ack.employee?.name || "—"}</td>
                                 <td style={{ color: "#6b7280" }}>
                                   {ack.employee?.eCode || "—"}
                                 </td>
@@ -353,12 +371,7 @@ const TrainingHistory = () => {
             />
           )}
           {/* 3. WORD DOCUMENT VIEWER */}
-          {((file?.originalName || file?.name)
-            ?.toLowerCase()
-            .endsWith(".doc") ||
-            (file?.originalName || file?.name)
-              ?.toLowerCase()
-              .endsWith(".docx")) && (
+          {isOfficeFile && (
             <iframe
               src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(file.url)}`}
               width="100%"
@@ -371,12 +384,7 @@ const TrainingHistory = () => {
           {/* 4. FALLBACK FOR UNSUPPORTED FILES */}
           {!file?.type?.startsWith("image/") &&
             file?.type !== "application/pdf" &&
-            !(file?.originalName || file?.name)
-              ?.toLowerCase()
-              .endsWith(".doc") &&
-            !(file?.originalName || file?.name)
-              ?.toLowerCase()
-              .endsWith(".docx") && (
+            !isOfficeFile && (
               <p className="text-muted text-center py-5">
                 Preview not available for this file type
               </p>

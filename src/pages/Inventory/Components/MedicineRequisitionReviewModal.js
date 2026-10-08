@@ -1,5 +1,6 @@
-import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Input, Spinner } from "reactstrap";
+import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Input, Spinner, Alert } from "reactstrap";
 import { capitalizeWords } from "../../../utils/toCapitalize";
+import { getAiFilledFields, getAiFieldLabel } from "./aiFilledFields";
 
 const MedicineRequisitionReviewModal = ({
   isOpen,
@@ -27,6 +28,13 @@ const MedicineRequisitionReviewModal = ({
               {row.proposedMedicine?.type})
             </p>
           </div>
+        )}
+        {mode === "approve" && getAiFilledFields(row).length > 0 && (
+          <Alert color="warning" className="mb-3 py-2" style={{ fontSize: 13 }}>
+            <strong>AI generated fields:</strong>{" "}
+            {getAiFilledFields(row).map(getAiFieldLabel).join(", ")}.
+            These were suggested by AI (Gemini). Please verify them carefully before approving.
+          </Alert>
         )}
         <div className="form-group">
           <label className={`form-label ${mode === "reject" ? "required" : ""}`}>

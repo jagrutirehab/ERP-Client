@@ -15,8 +15,9 @@ const buildRows = (list, cycleLabel, trainingName, fileUrl) =>
         'File Link': fileUrl || '—',
         'Cycle': cycleLabel,
         'Employee Name': ack?.employee?.name || '—',
+        'E-Code': ack?.employee?.eCode || '—',
         'Email': ack?.employee?.email || '—',
-        'Role': ack?.employee?.role || '—',
+        'Position': ack?.employee?.position || '—',
         'Center': ack?.employee?.center?.title || '—',
         'Acknowledged On': formatDate(ack?.acknowledgedOn)
     })) || []
