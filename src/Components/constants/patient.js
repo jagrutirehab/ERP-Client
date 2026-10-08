@@ -633,9 +633,11 @@ const Forms = [
   },
 ];
 const testRecord = [
-  { name: "YMRS" },
-  { name: "CIWA-AR" },
+  { name: "CGI-S" },
   { name: "C-SSRS" },
+  { name: "AUDIT" },
+  { name: "CIWA-AR" },
+  { name: "YMRS" },
   { name: "MPQ-9" },
   { name: "MMSE" },
   { name: "Y-BOCS" },
@@ -646,9 +648,7 @@ const testRecord = [
   { name: "Morse Fall Scale" },
   { name: "Ramsay Sedation Scale" },
   { name: "GCS" },
-  { name: "CGI-S" },
   { name: "COWS" },
-  { name: "AUDIT" },
 ];
 
 const prescriptionFormFields = [
