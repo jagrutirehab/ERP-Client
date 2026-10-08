@@ -758,6 +758,21 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       return;
     }
 
+    // Standalone "Undertaking Discharge Form" dropdown entry — jumps straight
+    // to the existing openform3/UndertakingDischargeForm flow, skipping the
+    // DishchargeformModal admissiontype picker (which no longer offers this
+    // as a sub-option). Same submit handler, same API call, same payload —
+    // only the entry point changed.
+    if (formType === "UNDERTAKING DISCHARGE FORM") {
+      setAdmissiontype("DISCHARGE_UNDERTAKING");
+      setOpenform3(true);
+      setDateModal(false);
+      setDateModal4(false);
+      setDateModal3(false);
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return;
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formType, dispatch]);
 
@@ -935,7 +950,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       return "Emergency - Inter-Facility";
     if (type === "EMERGENCY_DISCHARGE" && emergency === "DEATH")
       return "Emergency - Death Declaration";
-    return "Discharge Form";
+    return "MHRB Discharge Form";
   };
 
   return (
@@ -1075,7 +1090,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
                                   ) : (
-                                    "Upload Signed Copy Of Admission Form"
+                                    "Upload Signed Copy Of MHRB Form"
                                   )}
                                 </Button>
                                 {test?.addmissionfromRaw?.length > 0 && (
@@ -1094,7 +1109,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Draft Admission Form{" "}
+                                            Download Draft MHRB Form{" "}
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
@@ -1130,7 +1145,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Signed Admission Form{" "}
+                                            Download Signed MHRB Form{" "}
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
@@ -1167,7 +1182,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
                                   ) : (
-                                    "Upload Signed Copy Of Consent Form"
+                                    "Upload Signed Copy Of Admission and Consent Form"
                                   )}
                                 </Button>
                                 <input
@@ -1192,7 +1207,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                           rel="noopener noreferrer"
                                           className="btn btn-outline-primary btn-sm"
                                         >
-                                          Download Draft Consent Form{" "}
+                                          Download Draft Admission and Consent
+                                          Form{" "}
                                           {index + 1}{" "}
                                           {file?.uploadedAt
                                             ? `(${new Date(
@@ -1219,7 +1235,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                           rel="noopener noreferrer"
                                           className="btn btn-outline-primary btn-sm"
                                         >
-                                          Download Signed Consent Form{" "}
+                                          Download Signed Admission and
+                                          Consent Form{" "}
                                           {index + 1}{" "}
                                           {file?.uploadedAt
                                             ? `(${new Date(
@@ -1233,105 +1250,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                 )}
                               </div>
                             </div>
-                            <div>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  gap: "30px",
-                                  width: "100%",
-                                }}
-                              >
-                                <Button
-                                  onClick={handleDischargeUploadClick}
-                                  size="sm"
-                                  color="primary"
-                                  className="mr-10"
-                                  disabled={isGenerating2}
-                                  label="patient-discharge-form"
-                                  style={{ width: "100%", minHeight: "44px" }}
-                                >
-                                  {isGenerating2 ? (
-                                    <Spinner size="sm" />
-                                  ) : (
-                                    "Upload Signed Copy Of Discharge Form"
-                                  )}
-                                </Button>
-                                <input
-                                  id="patient-discharge-form"
-                                  type="file"
-                                  accept="application/pdf"
-                                  ref={dischargeFileInputRef}
-                                  className="sr-only"
-                                  // style={{ display: "none" }}
-                                  onChange={(e) => {
-                                    console.log("Discharge Form is hitted");
-                                    handleFileChangeDishcharge(e);
-                                  }}
-                                />
-                                {test?.dischargeFormRaw?.length > 0 && (
-                                  <div
-                                    style={{
-                                      width: "100%",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    {test?.dischargeFormRaw.map(
-                                      (file, index) => (
-                                        <div key={index} className="mt-2">
-                                          <a
-                                            href={file?.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="btn btn-outline-primary btn-sm"
-                                          >
-                                            Download Draft Discharge Form —{" "}
-                                            {getDischargeFormLabel(file)}{" "}
-                                            {index + 1}{" "}
-                                            {file?.uploadedAt
-                                              ? `(${new Date(
-                                                  file.uploadedAt,
-                                                ).toLocaleDateString()})`
-                                              : ""}
-                                          </a>
-                                        </div>
-                                      ),
-                                    )}
-                                  </div>
-                                )}
-                                {test?.dischargeFormURL?.length > 0 && (
-                                  <div
-                                    style={{
-                                      width: "100%",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    {test?.dischargeFormURL.map(
-                                      (file, index) => (
-                                        <div key={index} className="mt-2">
-                                          <a
-                                            href={file?.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="btn btn-outline-primary btn-sm"
-                                          >
-                                            Download Signed Discharge Form{" "}
-                                            {index + 1}{" "}
-                                            {file?.uploadedAt
-                                              ? `(${new Date(
-                                                  file.uploadedAt,
-                                                ).toLocaleDateString()})`
-                                              : ""}
-                                          </a>
-                                        </div>
-                                      ),
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+
                             <div>
                               <div
                                 style={{
@@ -1356,7 +1275,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
                                   ) : (
-                                    "Upload Signed Copy Of Undertaking Discharge Form"
+                                    "Upload Signed Copy Of Undertaking MHRB Discharge Form"
                                   )}
                                 </Button>
                                 <input
@@ -1387,8 +1306,8 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Draft Undertaking Discharge
-                                            Form {index + 1}{" "}
+                                            Download Draft Undertaking MHRB
+                                            Discharge Form {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
                                                   file.uploadedAt,
@@ -1417,7 +1336,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Signed Undertaking
+                                            Download Signed Undertaking MHRB
                                             Discharge Form {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
@@ -1433,6 +1352,172 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                               </div>
                             </div>
 
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                  width: "100%",
+                                }}
+                              >
+                                <Button
+                                  onClick={handleDischargeUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                  label="patient-discharge-form"
+                                  style={{ width: "100%", minHeight: "44px" }}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Upload Signed Copy Of MHRB Discharge Form"
+                                  )}
+                                </Button>
+                                <input
+                                  id="patient-discharge-form"
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={dischargeFileInputRef}
+                                  className="sr-only"
+                                  // style={{ display: "none" }}
+                                  onChange={(e) => {
+                                    console.log("Discharge Form is hitted");
+                                    handleFileChangeDishcharge(e);
+                                  }}
+                                />
+                                {test?.dischargeFormRaw?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test?.dischargeFormRaw.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Draft MHRB Discharge
+                                            Form —{" "}
+                                            {getDischargeFormLabel(file)}{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                  file.uploadedAt,
+                                                ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                                {test?.dischargeFormURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test?.dischargeFormURL.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Signed MHRB Discharge
+                                            Form{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                  file.uploadedAt,
+                                                ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* MHRB email form */}
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                  width: "100%",
+                                }}
+                              >
+                                <Button
+                                  onClick={() => {
+                                    const targetId = resolveTargetAddmission();
+                                    if (targetId) {
+                                      setMhrbTargetAdmissionId(targetId);
+                                      setMhrbModalOpen(true);
+                                    }
+                                  }}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "60px" }}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "MHRB Email Upload"
+                                  )}
+                                </Button>
+
+                                {test?.mhrbEmailFormURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.mhrbEmailFormURL.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-success btn-sm"
+                                          >
+                                            Download MHRB Email File{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* ── Group 2: standalone forms (no section header) ── */}
                             <div>
                               <div
                                 style={{
@@ -1619,69 +1704,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                               </div>
                             </div>
 
-                            {/* MHRB email form */}
-                            <div>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  gap: "30px",
-                                  width: "100%",
-                                }}
-                              >
-                                <Button
-                                  onClick={() => {
-                                    const targetId = resolveTargetAddmission();
-                                    if (targetId) {
-                                      setMhrbTargetAdmissionId(targetId);
-                                      setMhrbModalOpen(true);
-                                    }
-                                  }}
-                                  size="sm"
-                                  color="primary"
-                                  className="mr-10"
-                                  disabled={isGenerating2}
-                                  style={{ width: "100%", minHeight: "60px" }}
-                                >
-                                  {isGenerating2 ? (
-                                    <Spinner size="sm" />
-                                  ) : (
-                                    "MHRB Email Upload"
-                                  )}
-                                </Button>
-
-                                {test?.mhrbEmailFormURL?.length > 0 && (
-                                  <div
-                                    style={{
-                                      width: "100%",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    {test.mhrbEmailFormURL.map(
-                                      (file, index) => (
-                                        <div key={index} className="mt-2">
-                                          <a
-                                            href={file?.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="btn btn-outline-success btn-sm"
-                                          >
-                                            Download MHRB Email File{" "}
-                                            {index + 1}{" "}
-                                            {file?.uploadedAt
-                                              ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
-                                              : ""}
-                                          </a>
-                                        </div>
-                                      ),
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
                             {/* DNR (Do Not Resuscitate) form */}
                             <div>
                               <div
@@ -1807,7 +1829,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
             setEmergencyRestraint("");
           }}
         >
-          Admission Form
+          MHRB Form
         </ModalHeader>
         <ModalBody style={{ height: "80vh", overflow: "auto" }}>
           {openform === true ? (
@@ -1972,7 +1994,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
             setOpenform4(false);
           }}
         >
-          Consent Form
+          Admission and Consent Form
         </ModalHeader>
         <ModalBody style={{ height: "80vh", overflow: "auto" }}>
           {openform4 === true ? (
@@ -2054,7 +2076,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
             setOpenform3(false);
           }}
         >
-          Discharge Form
+          MHRB Discharge Form
         </ModalHeader>
         <ModalBody style={{ height: "80vh", overflow: "auto" }}>
           {openform3 === true ? (

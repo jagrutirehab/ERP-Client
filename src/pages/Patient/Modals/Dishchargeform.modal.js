@@ -125,9 +125,6 @@ const DischargeFormModal = ({
               </option>
               <option value="SUPPORTIVE_ADMISSION">Supportive Discharge</option>
               <option value="EMERGENCY_DISCHARGE">Emergency Discharge</option>
-              <option value="DISCHARGE_UNDERTAKING">
-                Discharge Undertaking
-              </option>
             </Input>
           </div>
           {/* Conditional fields */}
