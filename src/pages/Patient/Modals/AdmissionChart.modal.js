@@ -6,6 +6,11 @@ import {
   DropdownToggle,
   DropdownItem,
   DropdownMenu,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ListGroup,
+  ListGroupItem,
 } from "reactstrap";
 import { set } from "date-fns";
 import Flatpicker from "react-flatpickr";
@@ -34,6 +39,48 @@ const AdmissionChart = ({
   const [ectConsentModal, setEctConsentModal] = useState(false);
   const [mhrbEmailModal, setMhrbEmailModal] = useState(false);
   const [dnrModal, setDnrModal] = useState(false);
+  const [mhrbSectionOpen, setMhrbSectionOpen] = useState(false);
+  const [mhrbFlyoutOpen, setMhrbFlyoutOpen] = useState(false);
+
+  // The 4 forms grouped under "MHRB Related Forms" in the Add Records dropdown.
+  // Filtered by name rather than array position so this stays correct even
+  // if Forms is reordered later.
+  const MHRB_SECTION_NAMES = [
+    "MHRB Form",
+    "Admission and Consent Form",
+    "MHRB Discharge Form",
+    "MHRB Email Upload",
+  ];
+  const mhrbSectionForms = (Forms || []).filter((f) =>
+    MHRB_SECTION_NAMES.includes(f.name),
+  );
+  const standaloneForms = (Forms || []).filter(
+    (f) => !MHRB_SECTION_NAMES.includes(f.name),
+  );
+
+  // Same routing every form item has always used — shared by the main
+  // dropdown's standalone items and the MHRB Related Forms sub-modal's items, so
+  // both paths trigger the exact same action.
+  const handleFormSelect = (item) => {
+    if (item.name === "Capacity Assessment Form") {
+      setCapacityModal(true);
+    } else if (item.name === "ECT Consent Form") {
+      setEctConsentModal(true);
+    } else if (item.name === "MHRB Email Upload") {
+      setMhrbEmailModal(true);
+    } else if (item.name === "Do Not Resuscitate Form") {
+      setDnrModal(true);
+    } else {
+      dispatch(
+        createEditChart({
+          ...editChartData,
+          chart: item.category,
+          patient,
+          isOpen: true,
+        }),
+      );
+    }
+  };
 
   useEffect(() => {
     const d = new Date();
@@ -132,50 +179,64 @@ const AdmissionChart = ({
               Add Records
             </DropdownToggle>
             <DropdownMenu flip={false} color="warning">
-              {(Forms || []).map((item, idx) => {
-                // Admission & Consent forms are locked until a Capacity
-                // Assessment exists for this admission.
-                const gated =
-                  !hasCapacityAssessment &&
-                  (item.name === "Admission Form" ||
-                    item.name === "Consent Form");
-                return (
-                  <DropdownItem
-                    key={idx + item.category}
-                    // disabled={gated}
-                    // title={
-                    //   gated
-                    //     ? "Complete the Capacity Assessment Form first"
-                    //     : undefined
-                    // }
-                    onClick={() => {
-                      // if (gated) return;
-                      if (item.name === "Capacity Assessment Form") {
-                        setCapacityModal(true);
-                      } else if (item.name === "ECT Consent Form") {
-                        setEctConsentModal(true);
-                      } else if (item.name === "MHRB Email Upload") {
-                        setMhrbEmailModal(true);
-                      } else if (item.name === "Do Not Resuscitate Form") {
-                        setDnrModal(true);
-                      } else {
-                        dispatch(
-                          createEditChart({
-                            ...editChartData,
-                            chart: item.category,
-                            patient,
-                            isOpen: true,
-                          }),
-                        );
-                      }
-
-                      toggle();
+              <div
+                style={{ position: "relative" }}
+                onMouseEnter={() => setMhrbFlyoutOpen(true)}
+                onMouseLeave={() => setMhrbFlyoutOpen(false)}
+              >
+                <DropdownItem
+                  id="mhrb-section-item"
+                  onClick={() => {
+                    setMhrbSectionOpen(true);
+                    toggle();
+                  }}
+                >
+                  MHRB Related Forms
+                </DropdownItem>
+                {mhrbFlyoutOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      top: 0,
+                      left: "100%",
+                      minWidth: "220px",
+                      backgroundColor: "#fff",
+                      border: "1px solid rgba(0, 0, 0, 0.15)",
+                      borderRadius: "0.25rem",
+                      boxShadow: "0 0.5rem 1rem rgba(0, 0, 0, 0.175)",
+                      padding: "0.5rem 0",
+                      zIndex: 1000,
                     }}
                   >
-                    {item.name}
-                  </DropdownItem>
-                );
-              })}
+                    {mhrbSectionForms.map((item) => (
+                      <div
+                        key={item.category}
+                        style={{
+                          padding: "0.25rem 1.5rem",
+                          fontSize: "1rem",
+                          fontWeight: 400,
+                          color: "#212529",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        {item.name}
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <DropdownItem divider />
+              {standaloneForms.map((item) => (
+                <DropdownItem
+                  key={item.category}
+                  onClick={() => {
+                    handleFormSelect(item);
+                    toggle();
+                  }}
+                >
+                  {item.name}
+                </DropdownItem>
+              ))}
             </DropdownMenu>
           </Dropdown>
           {/* {!hasCapacityAssessment && (
@@ -214,6 +275,32 @@ const AdmissionChart = ({
         admissions={patient?.addmission ? [patient.addmission] : []}
         addmissionId={patient?.addmission?._id}
       />
+      <Modal
+        isOpen={mhrbSectionOpen}
+        toggle={() => setMhrbSectionOpen(false)}
+        centered
+      >
+        <ModalHeader toggle={() => setMhrbSectionOpen(false)}>
+          MHRB Related Forms
+        </ModalHeader>
+        <ModalBody>
+          <ListGroup>
+            {mhrbSectionForms.map((item) => (
+              <ListGroupItem
+                key={item.category}
+                action
+                tag="button"
+                onClick={() => {
+                  handleFormSelect(item);
+                  setMhrbSectionOpen(false);
+                }}
+              >
+                {item.name}
+              </ListGroupItem>
+            ))}
+          </ListGroup>
+        </ModalBody>
+      </Modal>
     </React.Fragment>
   );
 };
