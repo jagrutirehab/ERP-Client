@@ -230,6 +230,7 @@ export const permissionList = [
       },
       { name: "BILL_UPLOAD_DASHBOARD", label: "Bill Upload Dashboard" },
       { name: "SAREYAAN_INVENTORY", label: "Sareyaan Inventory" },
+      { name: "PHARMACY_ACTIVITY", label: "Activity" },
     ],
   },
   {

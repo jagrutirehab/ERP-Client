@@ -2285,6 +2285,16 @@ export const getExpiredStockHistory = (params = {}) => {
   });
 };
 
+// PHARMACY ACTIVITY LOG
+export const getPharmacyActivity = (params = {}) => {
+  return api.get(url.PHARMACY_ACTIVITY, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, { arrayFormat: "repeat", skipNulls: true }),
+  });
+};
+
 export const getExpiredStockDetails = (id, params = {}) => {
   return api.get(`${url.PHARMACY_EXPIRED_STOCK}/${id}/details`, {
     params,

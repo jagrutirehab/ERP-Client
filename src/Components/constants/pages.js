@@ -553,6 +553,12 @@ export const Pharmacy = [
     link: "/pharmacy/sareyaan-inventory",
     icon: "bx bx-package",
   },
+  {
+    id: "pharmacyActivity",
+    label: "Activity",
+    link: "/pharmacy/activity",
+    icon: "bx bx-pulse",
+  },
 ];
 
 export const MIReporting = [

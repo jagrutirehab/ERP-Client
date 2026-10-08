@@ -518,6 +518,9 @@ export const PHARMACY_MEDICINE_REQUISITION =
 // PHARMACY EXPIRED STOCK
 export const PHARMACY_EXPIRED_STOCK = "/pharmacy/expired-stock";
 
+// PHARMACY ACTIVITY LOG
+export const PHARMACY_ACTIVITY = "/pharmacy/activity";
+
 // PHARMACY INVENTORY HEALTH REPORT (transit loss / variance / expiry)
 export const PHARMACY_INVENTORY_HEALTH_REPORT = "/pharmacy/reports/inventory-health";
 

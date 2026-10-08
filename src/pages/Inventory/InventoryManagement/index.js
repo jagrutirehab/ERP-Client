@@ -189,7 +189,7 @@ const InventoryManagement = () => {
         centers
       });
     } catch (error) {
-      if (!handleAuthError(error)) {
+      if (!handleAuthError({ statusCode: error?.response?.status })) {
         toast.error(
           error.response?.data?.message ||
           "Failed to save medicine. Please try again."
