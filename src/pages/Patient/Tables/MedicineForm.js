@@ -28,6 +28,7 @@ import {
   getMedicineFrequencyLabel,
   getMedicineFrequencyPreset,
   normalizeMedicineFrequency,
+  PRESET_MEDICINE_FREQUENCIES,
 } from "../../../helpers/prescriptionFrequency";
 import { getMedicineEndDate, getDaysBetween, drugIdentity } from "../../../helpers/currentMedicines";
 import { toast } from "react-toastify";
@@ -157,7 +158,7 @@ const Medicine = ({
           drugsTable[index].frequency
         );
         drugsTable[index].frequency =
-          currentFrequency === 1 || currentFrequency === 2 || currentFrequency === 15 || currentFrequency === 30
+          PRESET_MEDICINE_FREQUENCIES.some(({ value }) => value === currentFrequency)
             ? ""
             : currentFrequency;
       } else {
@@ -655,7 +656,9 @@ const Medicine = ({
                       >
                         <option value="1">Daily</option>
                         <option value="2">Alternate days</option>
+                        <option value="7">Every 7 days</option>
                         <option value="15">Every 15 days</option>
+                        <option value="28">Every 28 days</option>
                         <option value="30">Every 30 days</option>
                         <option value="monthly">Specific date every month</option>
                         <option value="custom">Custom days</option>
