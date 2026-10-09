@@ -21,6 +21,7 @@ import {
   CHANGE_COMPARATOR_OPTIONS,
   CHANGE_UNIT_OPTIONS,
   CHANGE_PERIOD_UNIT_OPTIONS,
+  CRITERIA_ONLY_FIELD_TYPES,
 } from "../../../Components/constants/sopConstants";
 import { getICDCodes, sopGetLabTests } from "../../../helpers/backend_helper";
 
@@ -51,6 +52,9 @@ const ConditionRow = ({
   onRemove,
   isDisabled,
   disableTrigger = false,
+  // True for Satisfying Criteria rows (MainBlock). Criteria-only fields are
+  // offered there and hidden from target-block rows.
+  isCriteria = false,
   isOnly,
   error,
   modelFieldsCache,
@@ -62,6 +66,11 @@ const ConditionRow = ({
   const [labPanels, setLabPanels] = useState([]);
 
   const fieldOptions = modelFieldsCache[condition.model?.value] || [];
+  // What the Field dropdown offers. Lookups below keep using the full list, so
+  // a condition saved before this filter still displays its field.
+  const pickableFieldOptions = isCriteria
+    ? fieldOptions
+    : fieldOptions.filter((f) => !CRITERIA_ONLY_FIELD_TYPES.has(f.type));
   const selectedField = fieldOptions.find((f) => f.value === condition.field);
   const fieldType = selectedField?.type || "String";
   const fieldEnumOpts = selectedField?.enumValues || null;
@@ -906,7 +915,7 @@ const ConditionRow = ({
         <Col md={2}>
           <Label className="small text-muted mb-1">Field</Label>
           <Select
-            options={fieldOptions}
+            options={pickableFieldOptions}
             value={
               fieldOptions.find((f) => f.value === condition.field) || null
             }

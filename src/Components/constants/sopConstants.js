@@ -149,7 +149,17 @@ export const OPERATORS_BY_TYPE = {
   // can target admissions whose form type was never recorded. The dropdown comes
   // from the field's `options` metadata, not from here.
   AdmissionSupportType: ["EQUALS", "NOT_EQUALS", "EXISTS", "NOT_EXISTS"],
+  // Synthetic type for Addmission.detailAdmissionPatientType — the Patient Type
+  // on the admission's latest Detail Admission chart (Psychiatric / Addiction /
+  // Geriatric), resolved by the server. A missing type counts as "not" any
+  // type, so "NOT_EQUALS Geriatric" still lets an untyped admission through.
+  // The dropdown comes from the field's `options` metadata, not from here.
+  DetailAdmissionPatientType: ["EQUALS", "NOT_EQUALS"],
 };
+
+// Field types that only mean something in Satisfying Criteria. ConditionRow
+// hides them from target-block rows; the server refuses them there too.
+export const CRITERIA_ONLY_FIELD_TYPES = new Set(["DetailAdmissionPatientType"]);
 
 // Severity threshold dropdown for LabReport flagged-items conditions.
 // "Very Low" intentionally omitted — the server's severityRank treats it as
