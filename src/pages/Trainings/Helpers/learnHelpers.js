@@ -133,6 +133,12 @@ export const findMediaInLearn = (learn, mediaId) => {
   return null;
 };
 
+export const needsDeclaration = (learn) =>
+  !!learn?.declaration?.required && learn.declaration.state !== "completed";
+
+export const getFinalStepTarget = (learn) =>
+  needsDeclaration(learn) ? { type: "declaration" } : { type: "acknowledge" };
+
 export const getAfterLessonStep = (learn, lessonId) => {
   const index = learn.lessons.findIndex((lesson) => lesson._id === lessonId);
   const nextLesson = learn.lessons[index + 1];
@@ -147,8 +153,10 @@ export const getAfterLessonStep = (learn, lessonId) => {
     return { target: { type: "finalExam" }, label: "Take Final Exam" };
   }
   return {
-    target: { type: "acknowledge" },
-    label: "Continue to Acknowledgement",
+    target: getFinalStepTarget(learn),
+    label: needsDeclaration(learn)
+      ? "Continue to Declaration"
+      : "Continue to Acknowledgement",
   };
 };
 
@@ -187,7 +195,7 @@ export const viewFromCurrent = (learn) => {
     case "final_exam":
       return { type: "finalExam" };
     case "completed":
-      return { type: "acknowledge" };
+      return getFinalStepTarget(learn);
     default:
       return { type: "overview" };
   }

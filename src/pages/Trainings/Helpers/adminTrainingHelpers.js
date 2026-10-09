@@ -5,6 +5,7 @@ export const STATUS_STYLES = {
   quiz_ready: { label: "Ready for quiz", color: "#4338ca", background: "#e0e7ff", bar: "#6366f1" },
   quiz_retrying: { label: "Quiz retrying", color: "#b45309", background: "#fef3c7", bar: "#f59e0b" },
   final_exam: { label: "Final exam", color: "#7e22ce", background: "#f3e8ff", bar: "#a855f7" },
+  declaration_pending: { label: "Declaration pending", color: "#9a3412", background: "#ffedd5", bar: "#f97316" },
   pending_ack: { label: "Pending acknowledgement", color: "#0f766e", background: "#ccfbf1", bar: "#14b8a6" },
   acknowledged: { label: "Acknowledged", color: "#15803d", background: "#dcfce7", bar: "#22c55e" },
   did_not_complete: { label: "Did not complete", color: "#b91c1c", background: "#fee2e2", bar: "#ef4444" },
@@ -17,6 +18,7 @@ export const STATUS_FILTERS = [
   "quiz_ready",
   "quiz_retrying",
   "final_exam",
+  "declaration_pending",
   "pending_ack",
   "acknowledged",
 ];

@@ -11,6 +11,7 @@ import { enqueueTrainingUploads } from "../../../helpers/trainingUploader";
 import Questionary from "../Components/Questionary";
 import PositionsSelector from "../Components/UploadTraining/PositionsSelector";
 import OuterFileInput from "../Components/UploadTraining/OuterFileInput";
+import DeclarationFileInput from "../Components/UploadTraining/DeclarationFileInput";
 import LessonsSection from "../Components/UploadTraining/LessonsSection";
 import { flattenPositions } from "../Helpers/Helper";
 import {
@@ -174,6 +175,15 @@ const Upload = () => {
             isSubmitted={isSubmitted}
           />
 
+          <DeclarationFileInput
+            file={training.declaration}
+            placements={training.declarationPlacements}
+            onChange={({ file, placements }) => {
+              setField("declaration", file);
+              setField("declarationPlacements", placements);
+            }}
+          />
+
           <div className="mb-3">
             <Questionary
               title={
@@ -192,7 +202,11 @@ const Upload = () => {
 
         {canEdit && (
           <div className="d-flex gap-2 mb-4">
-            <button type="submit" className="btn btn-primary" disabled={loading}>
+            <button
+              type="submit"
+              className="btn btn-primary"
+              disabled={loading || (!!training.declaration && !training.declarationPlacements)}
+            >
               {loading ? <Spinner size="sm" /> : "Submit"}
             </button>
           </div>

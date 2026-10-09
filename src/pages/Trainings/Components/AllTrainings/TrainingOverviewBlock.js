@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { formatBytes, formatDate, getAudienceLabels } from "../../Helpers/adminTrainingHelpers";
 import Collapsible from "../UploadTraining/Collapsible";
 import QuestionAnswerList from "./QuestionAnswerList";
+import { sourceLabel } from "../../Helpers/declaration";
 
 const Tile = ({ icon, label, value }) => (
   <div className="border rounded p-3 text-center" style={{ background: "#f8fafc", minWidth: 120, flex: "1 1 120px" }}>
@@ -81,6 +82,36 @@ const TrainingOverviewBlock = ({ content, onViewFile }) => {
           ))
         )}
       </div>
+
+      {content.declaration && (
+        <div className="border rounded p-3 mb-3" data-testid="declaration-overview">
+          <p className="text-uppercase text-muted fw-semibold mb-2" style={{ fontSize: 11, letterSpacing: 1 }}>
+            Declaration form
+          </p>
+          <div className="d-flex align-items-center gap-2 flex-wrap" style={{ fontSize: 13 }}>
+            <i className={content.declaration.format === "docx" ? "ri-file-word-line" : "ri-file-pdf-line"} />
+            <span>{content.declaration.originalName}</span>
+            <span className="badge bg-soft-secondary text-secondary">{(content.declaration.format || "pdf").toUpperCase()}</span>
+            {content.declaration.pageCount ? (
+              <span className="text-muted">
+                {content.declaration.pageCount} page{content.declaration.pageCount !== 1 ? "s" : ""}
+              </span>
+            ) : null}
+            {content.declaration.inactive ? (
+              <span className="badge bg-warning text-dark" data-testid="declaration-inactive">
+                Declaration inactive: place the signature box
+              </span>
+            ) : (
+              <span className="badge bg-success">Employees sign this</span>
+            )}
+          </div>
+          {content.declaration.autoFilled?.length > 0 && (
+            <div className="text-muted mt-2" style={{ fontSize: 12 }} data-testid="declaration-autofilled">
+              Filled automatically: {content.declaration.autoFilled.map(sourceLabel).join(", ")}
+            </div>
+          )}
+        </div>
+      )}
 
       <div className="d-flex flex-wrap gap-2 mb-3">
         <Tile icon="ri-book-open-line" label="Lessons" value={totals.lessons} />

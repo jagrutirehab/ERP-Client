@@ -4833,6 +4833,28 @@ export const uploadTrainingFile = (file, kind, fields, config = {}) => {
     ...config,
   });
 };
+export const renderDeclarationPages = (file) => {
+  const formData = new FormData();
+  formData.append("declaration", file);
+  return axios.post(`${url.TRAINING_BASE}/declaration/render`, formData, {
+    headers: { "Content-Type": undefined },
+    timeout: 0,
+  });
+};
+export const getAdminSignedCopy = (trainingId, employeeId, params) =>
+  axios.get(`${url.TRAINING_ADMIN}/${trainingId}/declaration/signed/${employeeId}`, {
+    params,
+    responseType: "blob",
+  });
+export const getDeclarationPreview = (trainingId) =>
+  api.get(`${url.TRAINING_BASE}/${trainingId}/declaration/preview`);
+export const markDeclarationRead = (trainingId) =>
+  axios.post(`${url.TRAINING_BASE}/${trainingId}/declaration/read`, {});
+export const getOwnSignedCopy = (trainingId, params) =>
+  axios.get(`${url.TRAINING_BASE}/${trainingId}/declaration/signed`, {
+    params,
+    responseType: "blob",
+  });
 export const uploadTrainerVideo = (file, fields, config = {}) => {
   const formData = new FormData();
   Object.entries(fields).forEach(([key, value]) => {

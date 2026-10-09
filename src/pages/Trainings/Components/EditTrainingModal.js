@@ -3,6 +3,7 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Label, I
 import { editTraining } from '../../../helpers/backend_helper'
 import { toast } from 'react-toastify'
 import { usePermissions } from '../../../Components/Hooks/useRoles'
+import { formatFileSize } from '../Helpers/uploadTrainingForm'
 
 const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
     const [form, setForm] = useState({ trainingName: '', repeatFrequency: '' })
@@ -11,6 +12,7 @@ const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
 
 
     const isInactive = training?.status === 'inactive'
+    const declaration = training?.declaration || null
 
     useEffect(() => {
         if (training) {
@@ -98,6 +100,27 @@ const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
                                 placeholder="e.g. 30"
                             />
                         </FormGroup> */}
+
+                        {declaration && (
+                            <FormGroup data-testid="declaration-edit">
+                                <Label className="fw-semibold small">Declaration form</Label>
+                                <div className="border rounded p-2">
+                                    <div className="small fw-semibold text-truncate">
+                                        {declaration.originalName} <span className="badge bg-soft-secondary text-secondary ms-1">{(declaration.format || 'pdf').toUpperCase()}</span>
+                                    </div>
+                                    <div className="text-muted small">
+                                        {formatFileSize(declaration.size || 0)}{declaration.pageCount ? ` · ${declaration.pageCount} page${declaration.pageCount !== 1 ? 's' : ''}` : ''}
+                                    </div>
+                                    {declaration.inactive ? (
+                                        <div className="alert alert-warning py-1 px-2 small mt-2 mb-0" data-testid="declaration-inactive">
+                                            Declaration inactive: place the signature box. This file cannot be changed, so create a new training with the form to use it.
+                                        </div>
+                                    ) : (
+                                        <small className="text-muted d-block mt-2">The declaration is locked once a training is created and cannot be edited or replaced.</small>
+                                    )}
+                                </div>
+                            </FormGroup>
+                        )}
 
                         <hr />
 
