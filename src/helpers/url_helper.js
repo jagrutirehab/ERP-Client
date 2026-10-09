@@ -81,6 +81,7 @@ export const GET_PATIENTS = "/patient";
 export const GET_PATIENT_BY_ID = "/patient/patient-id";
 export const GET_ALL_PATIENTS = "/patient/all";
 export const GET_MORE_PATIENTS = "/patient/more";
+export const GET_PATIENT_STAFF = "/patient/staff";
 export const GET_PATIENTS_REFERRAL = "/patient/patient-referral";
 export const GET_PATIENT_COUNTED_DOCUMENTS = "/patient/count-documents";
 export const GET_DELETED_PATIENTS = "/patient/deleted";

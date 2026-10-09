@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import PropTypes from "prop-types";
 import {
   Button,
@@ -9,6 +9,7 @@ import {
   UncontrolledTooltip,
 } from "reactstrap";
 import classnames from "classnames";
+import StaffSelect from "./StaffSelect";
 import {
   ADMIT_PATIENTS,
   ALL_PATIENTS,
@@ -21,7 +22,15 @@ import {
 // Shared between the buttons and their tooltips, which are rendered separately.
 const genderTargetId = (key) => `gender-filter-${key.toLowerCase()}`;
 
-const Tabs = ({ customActiveTab, toggleCustom, gender, setGender }) => {
+const Tabs = ({
+  customActiveTab,
+  toggleCustom,
+  gender,
+  setGender,
+  staff,
+  setStaff,
+  centerAccess,
+}) => {
   return (
     <React.Fragment>
       <div>
@@ -134,8 +143,19 @@ const Tabs = ({ customActiveTab, toggleCustom, gender, setGender }) => {
             quietly under the tab row; the label lives in the tooltip. Narrows the
             list server-side and carries across tab changes. Clicking the active
             icon clears it. */}
-        <div className="d-flex justify-content-center mb-3">
-          <ButtonGroup size="sm" className="rounded-pill border bg-light p-1">
+        <div className="d-flex justify-content-center align-items-center gap-1 mb-3">
+
+          {customActiveTab === ADMIT_PATIENTS && (
+            <div className="flex-grow-1" style={{ minWidth: 0 }}>
+              <StaffSelect
+                value={staff}
+                onChange={setStaff}
+                centerAccess={centerAccess}
+              />
+            </div>
+          )}
+
+          <ButtonGroup size="sm" className="rounded-2 border bg-light p-1">
             {PATIENT_GENDER_FILTERS.map(({ key, icon, iconActive }) => {
               const isActive = gender === key;
               return (
@@ -143,7 +163,7 @@ const Tabs = ({ customActiveTab, toggleCustom, gender, setGender }) => {
                   key={key}
                   id={genderTargetId(key)}
                   color={isActive ? "success" : "light"}
-                  className="px-3 rounded-pill border-0"
+                  className="px-2 rounded-2 border-0"
                   onClick={() => setGender(isActive ? null : key)}
                 >
                   <i
@@ -177,6 +197,9 @@ Tabs.propTypes = {
   toggleCustom: PropTypes.func,
   gender: PropTypes.string,
   setGender: PropTypes.func,
+  staff: PropTypes.object,
+  setStaff: PropTypes.func,
+  centerAccess: PropTypes.array,
 };
 
 export default Tabs;

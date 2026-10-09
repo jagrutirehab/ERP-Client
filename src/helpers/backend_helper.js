@@ -367,6 +367,7 @@ export const getPatients = (data) =>
       // qs.stringify serialises null as `gender=`, which would send an empty
       // value on every unfiltered request.
       gender: data?.gender || undefined,
+      staffId: data?.staffId || undefined,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
@@ -382,6 +383,18 @@ export const getMorePatients = (data) =>
       type: data?.type,
       skip: data?.skip,
       gender: data?.gender || undefined,
+      staffId: data?.staffId || undefined,
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+export const getPatientStaff = (data) =>
+  api.get(url.GET_PATIENT_STAFF, {
+    params: {
+      centerIds: data?.centerAccess,
+      skip: data?.skip,
+      search: data?.search || undefined,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
