@@ -1,3 +1,5 @@
+import { validateDeclarationFile, hasSignature } from "./declaration";
+
 export const MIN_FINAL_EXAM_QUESTIONS = 20;
 export const MIN_LESSON_QUIZ_QUESTIONS = 5;
 export const DEFAULT_PASS_PERCENTAGE = 80;
@@ -104,6 +106,8 @@ export const emptyTraining = () => ({
   positions: [],
   repeatFrequency: "",
   file: null,
+  declaration: null,
+  declarationPlacements: null,
   questionary: [],
   lessons: [],
 });
@@ -246,6 +250,8 @@ export const isTrainingValid = (training) =>
   training.trainingName.trim() !== "" &&
   training.positions.length > 0 &&
   training.file !== null &&
+  validateDeclarationFile(training.declaration) === null &&
+  (!training.declaration || hasSignature(training.declarationPlacements)) &&
   isQuestionaryValid(training.questionary, MIN_FINAL_EXAM_QUESTIONS) &&
   training.lessons.every((lesson) => !getLessonErrors(lesson).any);
 
@@ -300,6 +306,11 @@ export const buildTrainingFormData = (training) => {
   }
 
   formData.append("file_0", training.file);
+
+  if (training.declaration) {
+    formData.append("declaration_0", training.declaration);
+    formData.append("trainings[0][declarationPlacements]", JSON.stringify(training.declarationPlacements));
+  }
 
   return formData;
 };

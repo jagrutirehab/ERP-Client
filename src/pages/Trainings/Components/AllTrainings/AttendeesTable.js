@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Spinner } from "reactstrap";
 import { toast } from "react-toastify";
-import { getTrainingProgressReport } from "../../../../helpers/backend_helper";
+import { getAdminSignedCopy, getTrainingProgressReport } from "../../../../helpers/backend_helper";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { getErrorMessage } from "../../Helpers/learnHelpers";
 import {
   PAST_STATUS_FILTERS,
@@ -12,6 +13,8 @@ import {
   formatRelative,
 } from "../../Helpers/adminTrainingHelpers";
 import ExportButton from "../ExportButton";
+import SignedCopyViewer from "../Declaration/SignedCopyViewer";
+import { formatSigned } from "../../Helpers/declaration";
 import StageStatus from "./StageStatus";
 
 const PAGE_SIZE = 15;
@@ -26,6 +29,10 @@ const AttendeesTable = ({ trainingId, cycle, cntrs, isPast, onSummary }) => {
   const [page, setPage] = useState(1);
   const [data, setData] = useState(null);
   const [loadedKey, setLoadedKey] = useState(null);
+  const [viewing, setViewing] = useState(null);
+  const token = JSON.parse(localStorage.getItem("micrologin") || "null")?.token;
+  const { hasPermission } = usePermissions(token);
+  const canViewSigned = hasPermission("TRAININGS", "ALL_TRAININGS", "WRITE");
 
   const requestKey = JSON.stringify([trainingId, cycle, cntrs, search, status, appliedRange, page]);
   const loading = loadedKey !== requestKey;
@@ -75,6 +82,12 @@ const AttendeesTable = ({ trainingId, cycle, cntrs, isPast, onSummary }) => {
       cancelled = true;
     };
   }, [trainingId, cycle, cntrs, search, status, appliedRange, page]);
+
+  const loadSigned = useCallback(
+    () =>
+      getAdminSignedCopy(trainingId, viewing?.employeeId, cycle ? { cycle } : undefined),
+    [trainingId, viewing, cycle],
+  );
 
   const summary = data?.summary;
   const rows = data?.rows || [];
@@ -227,6 +240,29 @@ const AttendeesTable = ({ trainingId, cycle, cntrs, isPast, onSummary }) => {
                   </td>
                   <td>
                     <StageStatus row={row} />
+                    {(data?.hasDeclaration || data?.declarationInactive || row.declaration) && (
+                      <div className="mt-2 d-flex align-items-center gap-2 flex-wrap" style={{ fontSize: 12 }} data-testid="declaration-state">
+                        {row.declarationFormat && <span className="badge bg-soft-secondary text-secondary">{row.declarationFormat.toUpperCase()}</span>}
+                        {row.declaration === "signed" && (
+                          <>
+                            <span className="badge bg-success" title={formatSigned(row.signedAt)}>Signed</span>
+                            {canViewSigned && (
+                              <button
+                                type="button"
+                                className="btn btn-outline-success btn-sm py-0"
+                                onClick={() => setViewing({ employeeId: row.employeeId, name: row.name })}
+                              >
+                                {row.declarationFormat === "docx" ? "Download signed copy" : "View signed copy"}
+                              </button>
+                            )}
+                          </>
+                        )}
+                        {row.declaration === "read" && <span className="badge bg-info text-dark">Declaration read</span>}
+                        {row.declaration === "pending" && <span className="badge bg-warning text-dark">Declaration pending</span>}
+                        {row.declaration === "inactive" && <span className="badge bg-secondary">Declaration inactive</span>}
+                        {!row.declaration && <span className="text-muted">Declaration: —</span>}
+                      </div>
+                    )}
                   </td>
                   <td className="text-muted" title={formatDateTime(row.lastActivityAt)}>
                     {formatRelative(row.lastActivityAt)}
@@ -251,6 +287,13 @@ const AttendeesTable = ({ trainingId, cycle, cntrs, isPast, onSummary }) => {
           </tbody>
         </table>
       </div>
+
+      <SignedCopyViewer
+        isOpen={!!viewing}
+        onClose={() => setViewing(null)}
+        title={viewing ? `Signed declaration: ${viewing.name}` : "Signed declaration"}
+        loader={loadSigned}
+      />
 
       {pagination && pagination.totalPages > 1 && (
         <div className="d-flex justify-content-center align-items-center gap-2 mt-3">

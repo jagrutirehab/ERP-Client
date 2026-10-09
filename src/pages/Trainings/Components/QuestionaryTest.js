@@ -16,14 +16,16 @@ const QuestionaryTest = () => {
   const [trainingName, setTrainingName] = useState(
     state?.trainingName || "Training",
   );
+  const [requiresDeclaration, setRequiresDeclaration] = useState(!!state?.requiresDeclaration);
   const [ackLoading, setAckLoading] = useState(false);
 
   useEffect(() => {
-    if (state?.trainingName) return;
+    if (state?.trainingName && state?.requiresDeclaration !== undefined) return;
     const loadName = async () => {
       try {
         const response = await getTrainingById(id);
         setTrainingName(response?.data?.trainingName || "Training");
+        setRequiresDeclaration(!!response?.data?.declaration?.required);
       } catch {
         setTrainingName("Training");
       }
@@ -50,7 +52,15 @@ const QuestionaryTest = () => {
       scope="final"
       title={trainingName}
       onBack={() => navigate(-1)}
-      renderPassActions={() => (
+      renderPassActions={() =>
+        requiresDeclaration ? (
+          <button
+            className="btn btn-success btn-sm d-flex align-items-center gap-2 px-4"
+            onClick={() => navigate(-1)}
+          >
+            Continue to Declaration
+          </button>
+        ) : (
         <button
           className="btn btn-success btn-sm d-flex align-items-center gap-2 px-4"
           onClick={handleAcknowledge}
@@ -65,7 +75,8 @@ const QuestionaryTest = () => {
             </>
           )}
         </button>
-      )}
+        )
+      }
     />
   );
 };

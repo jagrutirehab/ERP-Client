@@ -1,19 +1,23 @@
-import React, { useState } from "react";
+import React, { useCallback, useState } from "react";
 import { Button, FormGroup, Input, Label } from "reactstrap";
 import { toast } from "react-toastify";
-import { acknowledgeTraining } from "../../../../helpers/backend_helper";
+import { acknowledgeTraining, getOwnSignedCopy } from "../../../../helpers/backend_helper";
 import { getErrorMessage } from "../../Helpers/learnHelpers";
 import ConfirmModal from "../ConfirmModal";
+import SignedCopyViewer from "../Declaration/SignedCopyViewer";
 
 const AcknowledgePanel = ({
   trainingId,
   acknowledged,
+  hasDeclaration,
   canAcknowledge,
   onAcknowledged,
 }) => {
   const [checked, setChecked] = useState(false);
   const [confirmModal, setConfirmModal] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [viewingCopy, setViewingCopy] = useState(false);
+  const loadOwnCopy = useCallback(() => getOwnSignedCopy(trainingId), [trainingId]);
 
   const handleConfirm = async () => {
     try {
@@ -36,6 +40,21 @@ const AcknowledgePanel = ({
         <span className="small fw-semibold">
           You have acknowledged this training
         </span>
+        {hasDeclaration && (
+          <button
+            type="button"
+            className="btn btn-outline-success btn-sm ms-auto"
+            onClick={() => setViewingCopy(true)}
+          >
+            View my signed declaration
+          </button>
+        )}
+        <SignedCopyViewer
+          isOpen={viewingCopy}
+          onClose={() => setViewingCopy(false)}
+          title="My signed declaration"
+          loader={loadOwnCopy}
+        />
       </div>
     );
   }
