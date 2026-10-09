@@ -38,6 +38,9 @@ const AdmissionFormModal = ({
   const handleCancel = () => {
     setEmergencyType("");
     setEmergencyRestraint("");
+    // So the next time this picker opens via the regular "MHRB Admission"
+    // entry point, it doesn't start with Emergency preselected.
+    setAdmissiontype("");
     toggle();
   };
 
@@ -141,21 +144,29 @@ const AdmissionFormModal = ({
               placeholder="Enter IPD Number"
             />
           </div> */}
-          <div className="mt-3">
-            <Label className="text-muted mb-1">Admission Type</Label>
-            <Input
-              type="select"
-              value={admissiontype}
-              onChange={(e) => setAdmissiontype(e.target.value)}
-            >
-              <option value="">Select Admission Type</option>
-              <option value="INDEPENDENT_ADMISSION">
-                Independent Admission
-              </option>
-              <option value="SUPPORTIVE_ADMISSION">Supportive Admission</option>
-              <option value="EMERGENCY_ADMISSION">Emergency Admission</option>
-            </Input>
-          </div>
+          {/* Hidden when the type is already fixed by the entry point (the
+              Emergency Admission Form standalone dropdown item presets this
+              before the modal opens — there's no "Emergency" option left in
+              this select for a user to pick manually, so this condition is
+              only ever true via that dedicated entry point). */}
+          {admissiontype !== "EMERGENCY_ADMISSION" && (
+            <div className="mt-3">
+              <Label className="text-muted mb-1">Admission Type</Label>
+              <Input
+                type="select"
+                value={admissiontype}
+                onChange={(e) => setAdmissiontype(e.target.value)}
+              >
+                <option value="">Select Admission Type</option>
+                <option value="INDEPENDENT_ADMISSION">
+                  Independent Admission
+                </option>
+                <option value="SUPPORTIVE_ADMISSION">
+                  Supportive Admission
+                </option>
+              </Input>
+            </div>
+          )}
 
           {/* Conditional fields */}
           {admissiontype === "INDEPENDENT_ADMISSION" && (

@@ -773,6 +773,21 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       return;
     }
 
+    // Standalone "Emergency Admission Form" dropdown entry — opens the same
+    // Admissionform.modal.js picker as before, with admissiontype preset to
+    // "EMERGENCY_ADMISSION" so it goes straight to the Emergency Type /
+    // Restraint selects (see Admissionform.modal.js). Same Submit button,
+    // same openform/EmergencyAdmissionForm flow, same payload — only the
+    // entry point changed.
+    if (formType === "EMERGENCY ADMISSION FORM") {
+      setAdmissiontype("EMERGENCY_ADMISSION");
+      setDateModal(true);
+      setDateModal4(false);
+      setDateModal3(false);
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return;
+    }
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [formType, dispatch]);
 
