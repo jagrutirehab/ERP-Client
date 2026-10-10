@@ -410,7 +410,9 @@ const ActivityMedicineForm = ({
 
   const toggleModal = () => setModalOpen(!modalOpen);
 
-  const tomorrowDate = moment().add(1, "days").format("MMMM D, YYYY");
+  const tomorrowDate = medicineBoxFillingActivities?.date
+    ? moment(medicineBoxFillingActivities.date).format("MMMM D, YYYY")
+    : moment().add(1, "days").format("MMMM D, YYYY");
 
   if (
     !medicineLoading &&
