@@ -628,6 +628,10 @@ const Forms = [
     category: "EMERGENCY ADMISSION FORM",
   },
   {
+    name: "Emergency Discharge Form",
+    category: "EMERGENCY DISCHARGE FORM",
+  },
+  {
     name: "ECT Consent Form",
     category: "ECT CONSENT FORM",
   },

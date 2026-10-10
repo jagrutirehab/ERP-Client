@@ -27,6 +27,7 @@ const AdmissionFormModal = ({
   details,
   setDetails,
   setOpenform,
+  onProceed,
 }) => {
   const dispatch = useDispatch();
 
@@ -247,8 +248,11 @@ const AdmissionFormModal = ({
                   (!emergencyType || !emergencyRestraint))
               }
               onClick={() => {
-                toggle();
-                setOpenform(true);
+                if (onProceed) onProceed();
+                else {
+                  toggle();
+                  setOpenform(true);
+                }
               }}
             >
               Submit
