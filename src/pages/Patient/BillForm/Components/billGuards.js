@@ -1,20 +1,8 @@
 import { useEffect, useState } from "react";
 import { CARD, CASH, UPI } from "../../../../Components/constants/patient";
 import { getPosTerminal } from "../../../../helpers/backend_helper";
-
-/** Tenders a Pine Labs terminal can collect. */
 export const POS_MODES = [CARD, UPI];
-
-/** Pine Labs refuses anything under 1 rupee. */
 export const POS_MIN_AMOUNT = 1;
-
-/**
- * A centre's POS state.
- *
- * Shared by the payment rows and by the forms around them: the rows need it to
- * offer the charge, the forms need it to decide whether a bill may be saved.
- * Keeping one fetch means the two can never disagree about whether POS applies.
- */
 export const usePosTerminal = (centerId) => {
   const [posTerminal, setPosTerminal] = useState(null);
 
@@ -29,9 +17,7 @@ export const usePosTerminal = (centerId) => {
         if (!cancelled) setPosTerminal(response.payload);
       })
       .catch((err) => {
-        // A centre without a terminal is normal — fall back to manual entry.
-        // Keep the reason though: without it the button simply never appears
-        // and nobody can tell why.
+
         if (!cancelled)
           setPosTerminal({
             available: false,
@@ -53,21 +39,15 @@ export const usePosTerminal = (centerId) => {
   };
 };
 
-/**
- * Whether this bill may be saved or abandoned.
- *
- * Two rules, both about not letting the paperwork and the money disagree:
- *
- *  - A card or UPI row on a centre with a working terminal must carry an
- *    approved charge. Otherwise a cashier can type a reference by hand and
- *    record a payment the terminal never took.
- *
- *  - Once a charge IS approved the form cannot be abandoned, because the money
- *    is already gone and cancelling would leave nothing recording it.
- *
- * `tenderKey` differs by form: OPD receipt rows name the tender `type`,
- * deposit and advance-payment rows name it `paymentMode`.
- */
+
+export const isPineLabsAccount = (name) => {
+  if (!name) return false;
+  const raw = typeof name === "object" ? name?.name || "" : name;
+  const normalized = String(raw).toLowerCase().replace(/[\s_-]/g, "");
+  return normalized.includes("pinelab");
+};
+
+
 export const evaluatePosGuards = (
   paymentModes,
   { posAvailable, tenderKey = "paymentMode", readOnly = false } = {},
@@ -75,16 +55,16 @@ export const evaluatePosGuards = (
   const rows = paymentModes || [];
   const paidOnPos = rows.some((row) => row.posTransaction);
 
-  // Recovery forms are billing a charge that already happened; there is
-  // nothing left to charge and the row is locked anyway.
+
   const uncharged =
     posAvailable && !readOnly
       ? rows.filter(
-          (row) =>
-            POS_MODES.includes(row[tenderKey]) &&
-            !row.posTransaction &&
-            Number(row.amount) > 0,
-        )
+        (row) =>
+          POS_MODES.includes(row[tenderKey]) &&
+          !row.posTransaction &&
+          Number(row.amount) > 0 &&
+          (!row.bankAccount || isPineLabsAccount(row.bankAccount)),
+      )
       : [];
 
   const modes = [...new Set(uncharged.map((row) => row[tenderKey]))];
@@ -102,17 +82,6 @@ export const evaluatePosGuards = (
   };
 };
 
-/**
- * Whether every payment row that needs proof has it.
- *
- * Cash leaves no trail worth attaching; everything else — card, UPI, cheque,
- * bank transfer — is only auditable if the slip or screenshot is on the bill,
- * so the save is held until one is there.
- *
- * A row already collected on a Pine Labs terminal is exempt: its RRN and
- * approval code come from the acquirer, which is stronger proof than a
- * photograph of a screen.
- */
 export const evaluateEvidenceGuard = (
   paymentModes,
   { tenderKey = "paymentMode", existingTransactionProof = [], readOnly = false } = {},
@@ -155,6 +124,7 @@ export default {
   evaluatePosGuards,
   evaluateEvidenceGuard,
   needsEvidence,
+  isPineLabsAccount,
   POS_MODES,
   POS_MIN_AMOUNT,
 };
