@@ -1690,6 +1690,13 @@ export const MASTER_DATA = [
         icon: "bx bx-building",
         permissionModule: "DEPARTMENT",
       },
+      {
+        id: "audit-log",
+        label: "Audit Logs",
+        icon: "bx bx-history",
+        link: "/vendor-management/audit-log",
+        permissionModule: "AUDIT_LOG",
+      },
     ],
   },
   // {

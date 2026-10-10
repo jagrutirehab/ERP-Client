@@ -650,6 +650,7 @@ export const permissionList = [
       { name: "PAYMENT_TERM", label: "Payment Terms" },
       { name: "ASSET_CATEGORY", label: "Asset Categories" },
       { name: "DEPARTMENT", label: "Departments" },
+      { name: "AUDIT_LOG", label: "Audit Logs" },
       { name: "BUDGET", label: "Budget Management" },
       { name: "PR", label: "Purchase Requisition" },
       { name: "RFQ", label: "Request for Quotation" },
