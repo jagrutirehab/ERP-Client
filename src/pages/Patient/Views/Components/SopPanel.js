@@ -15,7 +15,10 @@ const itemLabels = {
   MENTAL_EXAMINATION: "Clinical Note",
   DISCHARGE_SUMMARY: "Discharge Summary",
   ADMISSION_FORM: "MHRB Admission",
+  EMERGENCY_ADMISSION_FORM: "Emergency Admission",
   CONSENT_FORM: "Admission and Consent Form",
+  CAPACITY_ASSESSMENT_FORM: "Capacity Assessment",
+  EMERGENCY_DISCHARGE_FORM: "Emergency Discharge",
   BELONGING_FORM: "Belonging Form",
 };
 
@@ -29,7 +32,10 @@ const itemTooltips = {
   DETAIL_ADMISSION: "Within 1st 24 hours of admission",
   DISCHARGE_SUMMARY: "Created at discharge",
   ADMISSION_FORM: "Signed copy uploaded within 1st 24 hours of admission",
+  EMERGENCY_ADMISSION_FORM: "Signed copy uploaded within 1st 24 hours of admission",
   CONSENT_FORM: "Signed copy uploaded within 1st 24 hours of admission",
+  CAPACITY_ASSESSMENT_FORM: "Signed copy uploaded within 1st 24 hours of admission",
+  EMERGENCY_DISCHARGE_FORM: "Signed copy uploaded within 1st 24 hours of admission",
   BELONGING_FORM: "Signed copy uploaded within 1st 24 hours of admission",
 };
 
@@ -39,6 +45,10 @@ const statusLabels = {
   no: "No",
 };
 
+// EMERGENCY_ADMISSION_FORM and EMERGENCY_DISCHARGE_FORM are deliberately not
+// in this list — they're rendered as their own gated blocks below (same
+// pattern as the MHRB Email item), shown only for emergency admissions or
+// once a file has actually been uploaded, rather than to every patient.
 const DISPLAY_ORDER = [
   "VITAL_SIGN",
   "COUNSELLING_NOTE",
@@ -50,6 +60,7 @@ const DISPLAY_ORDER = [
   "DISCHARGE_SUMMARY",
   "ADMISSION_FORM",
   "CONSENT_FORM",
+  "CAPACITY_ASSESSMENT_FORM",
   "BELONGING_FORM",
 ];
 
@@ -116,6 +127,13 @@ const SopPanel = ({ patient, sopOverview, sopLoading }) => {
   const showMhrbEmailItem =
     isSupportiveAdmission || isEmergencyAdmission || isMinorPatient;
   const isMHRBEmailSent = activeAdmission?.isMHRBEmailSent === true;
+
+  // Emergency Admission / Emergency Discharge SOP tiles — shown only for an
+  // emergency admission.
+  const emergencyAdmissionData = overview?.EMERGENCY_ADMISSION_FORM;
+  const emergencyDischargeData = overview?.EMERGENCY_DISCHARGE_FORM;
+  const showEmergencyAdmissionItem = isEmergencyAdmission;
+  const showEmergencyDischargeItem = isEmergencyAdmission;
 
   return (
     <div>
@@ -240,6 +258,102 @@ const SopPanel = ({ patient, sopOverview, sopLoading }) => {
                 </UncontrolledTooltip>
               </div>
             )}
+            {showEmergencyAdmissionItem &&
+              emergencyAdmissionData &&
+              (() => {
+                const lastDate = formatDate(emergencyAdmissionData.lastDate);
+                const statusKey = emergencyAdmissionData.status || null;
+                const statusStyle =
+                  statusColors[statusKey] || statusColors.null;
+                const statusLabel = statusLabels[statusKey];
+                return (
+                  <div
+                    id="sop-EMERGENCY_ADMISSION_FORM"
+                    className="d-flex flex-column align-items-start"
+                    style={{ minWidth: 100, cursor: "default" }}
+                  >
+                    <div className="d-flex align-items-center gap-1">
+                      <span
+                        className="rounded-circle d-inline-block"
+                        style={{
+                          width: 8,
+                          height: 8,
+                          backgroundColor: statusStyle.bg,
+                          flexShrink: 0,
+                        }}
+                      ></span>
+                      <span
+                        className="fw-medium text-dark"
+                        style={{ fontSize: "0.75rem" }}
+                      >
+                        {itemLabels.EMERGENCY_ADMISSION_FORM}
+                      </span>
+                    </div>
+                    <span
+                      className="text-muted"
+                      style={{ fontSize: "0.7rem", paddingLeft: 14 }}
+                    >
+                      {lastDate || "Not yet"}
+                    </span>
+                    <UncontrolledTooltip
+                      target="sop-EMERGENCY_ADMISSION_FORM"
+                      placement="top"
+                    >
+                      {itemTooltips.EMERGENCY_ADMISSION_FORM}
+                      {statusLabel ? `: ${statusLabel}` : ""}
+                      {lastDate ? ` (${lastDate})` : ""}
+                    </UncontrolledTooltip>
+                  </div>
+                );
+              })()}
+            {showEmergencyDischargeItem &&
+              emergencyDischargeData &&
+              (() => {
+                const lastDate = formatDate(emergencyDischargeData.lastDate);
+                const statusKey = emergencyDischargeData.status || null;
+                const statusStyle =
+                  statusColors[statusKey] || statusColors.null;
+                const statusLabel = statusLabels[statusKey];
+                return (
+                  <div
+                    id="sop-EMERGENCY_DISCHARGE_FORM"
+                    className="d-flex flex-column align-items-start"
+                    style={{ minWidth: 100, cursor: "default" }}
+                  >
+                    <div className="d-flex align-items-center gap-1">
+                      <span
+                        className="rounded-circle d-inline-block"
+                        style={{
+                          width: 8,
+                          height: 8,
+                          backgroundColor: statusStyle.bg,
+                          flexShrink: 0,
+                        }}
+                      ></span>
+                      <span
+                        className="fw-medium text-dark"
+                        style={{ fontSize: "0.75rem" }}
+                      >
+                        {itemLabels.EMERGENCY_DISCHARGE_FORM}
+                      </span>
+                    </div>
+                    <span
+                      className="text-muted"
+                      style={{ fontSize: "0.7rem", paddingLeft: 14 }}
+                    >
+                      {lastDate || "Not yet"}
+                    </span>
+                    <UncontrolledTooltip
+                      target="sop-EMERGENCY_DISCHARGE_FORM"
+                      placement="top"
+                    >
+                      {statusKey === "yes"
+                        ? "Emergency Discharge : Yes"
+                        : "Emergency Discharge : No"}
+                    </UncontrolledTooltip>
+                  </div>
+                );
+              })()}
           </div>
         </Collapse>
       </div>
