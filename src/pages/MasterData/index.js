@@ -42,6 +42,7 @@ import AssetTag from "./AssetLifecycle/AssetTag";
 import LocationStock from "./Inventory/LocationStock";
 import AssetTransferRequest from "./AssetLifecycle/AssetTransfer";
 import VendorInvoice from "./Finance/VendorInvoice";
+import AuditLogs from "./AuditLog";
 import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { usePermissions } from "../../Components/Hooks/useRoles.js";
 import "./masterData.scss";
@@ -60,6 +61,7 @@ const ROUTES = [
   { path: "uom/*", perm: "UOM", element: <UnitOfMeasurement /> },
   { path: "payment-term/*", perm: "PAYMENT_TERM", element: <PaymentTerm /> },
   { path: "department/*", perm: "DEPARTMENT", element: <DepartmentMaster /> },
+  { path: "audit-log/*", perm: "AUDIT_LOG", element: <AuditLogs /> },
   {
     path: "asset-category/level/:level/*",
     perm: "ASSET_CATEGORY",

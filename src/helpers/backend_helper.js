@@ -6402,3 +6402,8 @@ export const shortClosePO = (id, data) =>
   axios.patch(`/master/po/${id}/short-close`, data, {
     headers: { "X-No-Cookie-Token": "true" },
   });
+export const getAuditLogs = (params) =>
+  axios.get("/master/audit-logs", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
