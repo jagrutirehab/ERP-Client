@@ -18,7 +18,10 @@ const tableCustomStyles = {
   headRow: {
     style: { backgroundColor: "#fff", borderBottom: "1px solid #edeff3", minHeight: "44px" },
   },
-  headCells: { style: { fontSize: "13px", fontWeight: 600, color: "#475569" } },
+  headCells: {
+    style: { fontSize: "13px", fontWeight: 600, color: "#475569", paddingLeft: "10px", paddingRight: "10px" },
+  },
+  cells: { style: { paddingLeft: "10px", paddingRight: "10px" } },
   rows: {
     style: {
       minHeight: "56px",
@@ -191,10 +194,10 @@ const POList = ({ onAdd, onOpen }) => {
   };
 
   const columns = [
-    { name: "PO Number", selector: (row) => row.poNumber, sortable: true, width: "160px" },
+    { name: "PO Number", selector: (row) => row.poNumber, sortable: true, width: "150px" },
     {
       name: "Type",
-      width: "130px",
+      width: "115px",
       cell: (row) => <span className="uom-cell-muted">{PO_TYPE_LABELS[row.poType]}</span>,
     },
     {
@@ -206,22 +209,29 @@ const POList = ({ onAdd, onOpen }) => {
       ),
     },
     {
+      name: "Department",
+      minWidth: "150px",
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.departmentId?.name || "—"}</span>
+      ),
+    },
+    {
       name: "Net Payable",
       cell: (row) => <span className="uom-cell-primary">{money(row.netPayable)}</span>,
     },
     {
       name: "Status",
-      width: "130px",
+      width: "115px",
       cell: (row) => <StatusPill status={row.status} />,
     },
     {
       name: "Delivery",
-      width: "210px",
+      width: "175px",
       cell: (row) => <DeliveryCell delivery={row.delivery} />,
     },
     {
       name: "Actions",
-      width: "240px",
+      width: "165px",
       right: true,
       cell: (row) => (
         <div className="d-flex gap-2 align-items-center">

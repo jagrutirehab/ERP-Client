@@ -40,6 +40,7 @@ const ACTIONS = [
   { value: "reject", label: "Reject" },
   { value: "cancel", label: "Cancel" },
   { value: "short_close", label: "Short close" },
+  { value: "close", label: "Close" },
   { value: "receive", label: "Receive" },
 ];
 
@@ -52,6 +53,7 @@ const ACTION_STYLE = {
   reject: { bg: "#fef3f2", color: "#b42318" },
   cancel: { bg: "#fef3f2", color: "#b42318" },
   short_close: { bg: "#f2f4f7", color: "#475467" },
+  close: { bg: "#f2f4f7", color: "#475467" },
   receive: { bg: "#ecfdf3", color: "#067647" },
 };
 
@@ -194,9 +196,16 @@ const AuditLogs = () => {
 
   const columns = [
     {
-      name: "When",
-      width: "160px",
-      cell: (row) => <span className="uom-cell-muted">{dateTimeFmt(row.createdAt)}</span>,
+      name: "Done by",
+      width: "190px",
+      cell: (row) => (
+        <div className="py-1">
+          <div className="uom-cell-primary">
+            {row.performedBy?.name || row.performedByName || "—"}
+          </div>
+          <div className="small text-muted">{dateTimeFmt(row.createdAt)}</div>
+        </div>
+      ),
     },
     {
       name: "Module",
@@ -217,13 +226,6 @@ const AuditLogs = () => {
       name: "What happened",
       minWidth: "300px",
       cell: (row) => <span className="small">{row.summary || "—"}</span>,
-    },
-    {
-      name: "Done by",
-      width: "150px",
-      cell: (row) => (
-        <span className="uom-cell-muted">{row.performedBy?.name || row.performedByName || "—"}</span>
-      ),
     },
   ];
 

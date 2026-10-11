@@ -4842,10 +4842,13 @@ export const renderDeclarationPages = (file) => {
   });
 };
 export const getAdminSignedCopy = (trainingId, employeeId, params) =>
-  axios.get(`${url.TRAINING_ADMIN}/${trainingId}/declaration/signed/${employeeId}`, {
-    params,
-    responseType: "blob",
-  });
+  axios.get(
+    `${url.TRAINING_ADMIN}/${trainingId}/declaration/signed/${employeeId}`,
+    {
+      params,
+      responseType: "blob",
+    },
+  );
 export const getDeclarationPreview = (trainingId) =>
   api.get(`${url.TRAINING_BASE}/${trainingId}/declaration/preview`);
 export const markDeclarationRead = (trainingId) =>
@@ -6405,5 +6408,14 @@ export const shortClosePO = (id, data) =>
 export const getAuditLogs = (params) =>
   axios.get("/master/audit-logs", {
     params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getBudgetUsage = (id) =>
+  axios.get(`/master/budget/${id}/usage`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const adjustBudgetAmount = (id, data) =>
+  axios.patch(`/master/budget/${id}/adjust`, data, {
     headers: { "X-No-Cookie-Token": "true" },
   });
