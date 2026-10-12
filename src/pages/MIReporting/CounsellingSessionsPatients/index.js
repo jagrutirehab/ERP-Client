@@ -373,7 +373,7 @@ const CounsellingSessionsPatients = () => {
                                                                         whiteSpace: "nowrap",
                                                                     }}
                                                                 >
-                                                                    {patient?.wow_data?.[week]??0}
+                                                                    {patient?.wow_data?.[week]??""}
                                                                 </td>
                                                             ))}
                                                         </tr>
