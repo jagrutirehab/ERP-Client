@@ -27,6 +27,7 @@ import Prescription from "../Charts/Prescription";
 import PsychoDiagnosticForm from "../Charts/PsychoDiagnosticForm";
 import { getCurrentUserId } from "../../../helpers/currentMedicines";
 import OPDInvoice from "../Bills/OPDInvoice";
+import OnlineTransaction from "../Bills/OnlineTransaction";
 import {
   INVOICE,
   PRESCRIPTION,
@@ -263,34 +264,51 @@ const OPDView = ({
                     </div> */}
                     </div>
                     <div className="d-flex align-items-center mt-2 flex-column">
-                      <h6
-                        className={`display-6 fs-6 ${
-                          isPayable ? "text-danger" : "text-success"
-                        }`}
-                      >
-                        {doc.calculatedAmount}
-                      </h6>
-                      <h6
-                        className={`display-6 fs-6 ${
-                          isPayable ? "text-danger" : "text-success"
-                        }`}
-                      >
-                        {doc.totalBills}
-                      </h6>
+                      {doc.transactionId && !doc.bill ? (
+                        <>
+                          <h6 className="display-6 fs-6 text-success mb-1">
+                            ₹{doc.transactionId.booking_price ?? 0}
+                          </h6>
+                          <span className="badge bg-soft-success text-success fs-11">
+                            Paid Online ({doc.transactionId.payment_method?.toUpperCase() || "ONLINE"})
+                          </span>
+                        </>
+                      ) : (
+                        <>
+                          <h6
+                            className={`display-6 fs-6 ${
+                              isPayable ? "text-danger" : "text-success"
+                            }`}
+                          >
+                            {doc.calculatedAmount}
+                          </h6>
+                          <h6
+                            className={`display-6 fs-6 ${
+                              isPayable ? "text-danger" : "text-success"
+                            }`}
+                          >
+                            {doc.totalBills}
+                          </h6>
+                        </>
+                      )}
                     </div>
                     <div className="d-flex mt-2 align-items-center">
                       <UncontrolledTooltip
                         placement="bottom"
-                        target="expand-bills"
+                        target={`expand-bills-${idx}`}
                       >
-                        Show Bills
+                        {doc.bill
+                          ? "Show Bills"
+                          : doc.transactionId
+                          ? "Show Payment & Details"
+                          : "Show Details"}
                       </UncontrolledTooltip>
                       <Button
                         onClick={() => {
                           toggleAccordian(idx.toString());
                           setAppointment(doc._id);
                         }}
-                        id="expand-bills"
+                        id={`expand-bills-${idx}`}
                         size="sm"
                         outline
                       >
@@ -403,6 +421,38 @@ const OPDView = ({
                                           }
                                         />
                                       </Wrapper>
+                                    )}
+                                    {doc.transactionId && (
+                                      <div className="mb-3">
+                                        <Wrapper
+                                          item={{
+                                            bill: "ONLINE_PAYMENT",
+                                            _id: doc.transactionId._id,
+                                            createdAt:
+                                              doc.transactionId.completedTime ||
+                                              doc.transactionId.createdAt ||
+                                              doc.startDate,
+                                            date:
+                                              doc.transactionId.completedTime ||
+                                              doc.transactionId.createdAt ||
+                                              doc.startDate,
+                                            author: {
+                                              name: "Razorpay (Online Booking)",
+                                              role: "Payment Gateway",
+                                            },
+                                            type: "OPD",
+                                          }}
+                                          hideDropDown={true}
+                                          disableEdit={true}
+                                          disableDelete={true}
+                                          showPrint={false}
+                                          name="OPD"
+                                        >
+                                          <OnlineTransaction
+                                            data={doc.transactionId}
+                                          />
+                                        </Wrapper>
+                                      </div>
                                     )}
                                     <div>
                                       {doc.bill?.receiptInvoice && (
