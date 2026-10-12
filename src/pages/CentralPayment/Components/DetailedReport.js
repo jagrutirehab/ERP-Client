@@ -198,6 +198,17 @@ const DetailedReport = ({
       minWidth: "150px",
     },
     {
+      name: <div>Accounting Remark</div>,
+      selector: (row) =>
+        row?.accountingApprovalRemarks ? (
+          <ExpandableText text={capitalizeWords(row.accountingApprovalRemarks)} limit={30} />
+        ) : (
+          "-"
+        ),
+      wrap: true,
+      minWidth: "150px",
+    },
+    {
       name: <div>Finance Approved By</div>,
       selector: (row) => capitalizeWords(row.financeApprovedBy?.name || "-"),
       wrap: true,
@@ -452,6 +463,25 @@ const DetailedReport = ({
       name: <div>Approval Status</div>,
       selector: (row) => {
         const status = row?.approvalStatus;
+        return (
+          <Badge
+            color={getBadgeColor(status)}
+            style={{
+              display: "inline-block",
+              whiteSpace: "normal",
+              wordBreak: "break-word",
+            }}
+          >
+            {capitalizeWords(status || "-")}
+          </Badge>
+        );
+      },
+      wrap: true,
+    },
+    {
+      name: <div>Accounting Approval Status</div>,
+      selector: (row) => {
+        const status = row?.accountingApprovalStatus;
         return (
           <Badge
             color={getBadgeColor(status)}
