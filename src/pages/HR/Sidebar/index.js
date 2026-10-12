@@ -138,6 +138,16 @@ const Sidebar = () => {
     "GET_BIOMETRIC_ADDITION_REQUESTS",
     "READ",
   );
+  const hasNewJoiningBiometricMapping = hasPermission(
+    "HR",
+    "NEW_JOINING_BIOMETRIC_MAPPING",
+    "READ",
+  );
+  const hasNewJoiningBiometricRequests = hasPermission(
+    "HR",
+    "NEW_JOINING_BIOMETRIC_REQUESTS",
+    "READ",
+  );
   const hasGetMyBiometricRequests = hasPermission(
     "HR",
     "GET_MY_BIOMETRIC_REQUESTS",
@@ -606,6 +616,16 @@ const Sidebar = () => {
           if (
             child.id === "get-biometric-addition-requests" &&
             !hasGetBiometricAddiitonRequests
+          )
+            return false;
+          if (
+            child.id === "add-new-joining-biometric" &&
+            !hasNewJoiningBiometricMapping
+          )
+            return false;
+          if (
+            child.id === "get-new-joining-biometric-requests" &&
+            !hasNewJoiningBiometricRequests
           )
             return false;
           // if (

@@ -446,6 +446,14 @@ export const permissionList = [
         name: "GET_BIOMETRIC_ADDITION_REQUESTS",
         label: "Get Biometric Addition Requests",
       },
+      {
+        name: "NEW_JOINING_BIOMETRIC_MAPPING",
+        label: "New Joining JRC Mapping",
+      },
+      {
+        name: "NEW_JOINING_BIOMETRIC_REQUESTS",
+        label: "New Joining Biometric Requests",
+      },
       // {
       //   name: "GET_MY_BIOMETRIC_REQUESTS",
       //   label: "Get My Biometric Requests",

@@ -5502,6 +5502,27 @@ export const updateAssigneeStatusData = (params = {}) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+
+export const addNewJoiningBiometricData = (data) =>
+  axios.post(url.NEW_JOINING_BIOMETRIC_DATA, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getNewJoiningBiometricData = (params = {}) =>
+  axios.get(url.NEW_JOINING_BIOMETRIC_DATA, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+
+export const actionOnNewJoiningBiometricData = (params = {}) =>
+  axios.patch(url.ACTION_ON_NEW_JOINING_BIOMETRIC_DATA, null, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 // center fallbacks
 export const getCentersWithFallbackManager = () => {
   return axios.get(url.GET_CENTERS_FALLBACK_MANAGERS, {

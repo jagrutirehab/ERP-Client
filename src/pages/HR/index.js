@@ -77,6 +77,8 @@ import BiometricApprovals from "./ExitEmployees/BiometricApprovals";
 import BiometricAdditionForm from "./BiometricAdditions/BiometricAdditionForm";
 import AllBiometricRequests from "./BiometricAdditions/AllBiometricRequests";
 import MyBiometrics from "./BiometricAdditions/MyBiometrics";
+import AddNewJoiningBiometric from "./NewJoiningBiometric/AddRequest";
+import NewJoiningBiometricApprovals from "./NewJoiningBiometric/Approvals";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -339,6 +341,14 @@ const HR = () => {
                 <Route
                   path="/biometric/addition/requests"
                   element={<AllBiometricRequests />}
+                />
+                <Route
+                  path="/biometric/new-joining/add"
+                  element={<AddNewJoiningBiometric />}
+                />
+                <Route
+                  path="/biometric/new-joining/requests"
+                  element={<NewJoiningBiometricApprovals />}
                 />
                 <Route
                   path="/biometric/my/requests"

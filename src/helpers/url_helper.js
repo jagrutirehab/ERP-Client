@@ -1001,3 +1001,6 @@ export const GET_USERS_BY_ROLE = "/hr/biometric/get/usersbyrole";
 export const ACTION_ON_BIOMETRIC_ADDITION_REQUEST = "/hr/biometric/action";
 export const GET_MY_ASSIGNED_BIOMETRICS = "/hr/biometric/get/my/assigns";
 export const UPDATE_ASSIGNEE_STATUS = "/hr/biometric/update/assignee/status";
+export const NEW_JOINING_BIOMETRIC_DATA = "/hr/new-joining-biometric";
+export const ACTION_ON_NEW_JOINING_BIOMETRIC_DATA =
+  "/hr/new-joining-biometric/action";

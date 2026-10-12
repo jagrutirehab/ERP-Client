@@ -1038,6 +1038,18 @@ export const HR = [
         icon: "bx bx-user-plus",
         link: "/hr/biometric/addition/requests",
       },
+      {
+        id: "add-new-joining-biometric",
+        label: "New Joining JRC Mapping",
+        icon: "bx bx-user-check",
+        link: "/hr/biometric/new-joining/add",
+      },
+      {
+        id: "get-new-joining-biometric-requests",
+        label: "New Joining Biometric Requests",
+        icon: "bx bx-check-shield",
+        link: "/hr/biometric/new-joining/requests",
+      },
       // {
       //   id: "get-biometric-my-requests",
       //   label: "Get My Biometric Requests",
