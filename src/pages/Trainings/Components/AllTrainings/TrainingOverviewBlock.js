@@ -3,6 +3,7 @@ import { formatBytes, formatDate, getAudienceLabels } from "../../Helpers/adminT
 import Collapsible from "../UploadTraining/Collapsible";
 import QuestionAnswerList from "./QuestionAnswerList";
 import { sourceLabel } from "../../Helpers/declaration";
+import { resolvePassMark } from "../../Helpers/passMark";
 
 const Tile = ({ icon, label, value }) => (
   <div className="border rounded p-3 text-center" style={{ background: "#f8fafc", minWidth: 120, flex: "1 1 120px" }}>
@@ -140,7 +141,7 @@ const TrainingOverviewBlock = ({ content, onViewFile }) => {
           <div>
             <span className="fw-semibold">{examTitle}</span>
             <span className="text-muted ms-2" style={{ fontSize: 12 }}>
-              {finalExam.questionCount} question{finalExam.questionCount !== 1 ? "s" : ""} · pass at {content.passPercentage}%
+              {finalExam.questionCount} question{finalExam.questionCount !== 1 ? "s" : ""} · pass percentage: {resolvePassMark(content)}%
             </span>
           </div>
           <span className="text-primary" style={{ fontSize: 12 }}>
@@ -151,7 +152,7 @@ const TrainingOverviewBlock = ({ content, onViewFile }) => {
           <div className="p-3">
             {!content.hasLessons && finalExam.questionCount > 0 && (
               <p className="text-muted small">
-                Learners are shown a random 10 of these questions on each attempt.
+                Learners are shown all questions in random order on each attempt.
               </p>
             )}
             <QuestionAnswerList questions={finalExam.questions} />

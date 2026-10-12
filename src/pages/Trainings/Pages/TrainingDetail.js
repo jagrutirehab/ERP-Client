@@ -17,6 +17,7 @@ import LegacyStepper from "../Components/Learn/LegacyStepper";
 import DeclarationReadStep from "../Components/Learn/DeclarationReadStep";
 import SignedCopyViewer from "../Components/Declaration/SignedCopyViewer";
 import { getErrorMessage } from "../Helpers/learnHelpers";
+import { resolvePassMark } from "../Helpers/passMark";
 
 const TrainingDetail = () => {
   const { id } = useParams();
@@ -97,6 +98,7 @@ const TrainingDetail = () => {
       state: {
         trainingName: training.trainingName,
         requiresDeclaration: !!training?.declaration?.required,
+        passPercentage: resolvePassMark(training),
         activeTab,
         canEdit,
       },
@@ -210,8 +212,8 @@ const TrainingDetail = () => {
       return (
         <div className="p-3 border rounded">
           <p className="mb-3 small text-muted">
-            You have read the overview. Next, take the quiz. You need 80% to
-            pass and can retry as many times as you need.
+            You have read the overview. Next, take the quiz. Pass percentage:{" "}
+            {resolvePassMark(training)}%. You can retry as many times as you need.
           </p>
           <Button color="primary" onClick={goToQuiz}>
             Take the quiz

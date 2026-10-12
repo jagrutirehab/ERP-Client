@@ -1,5 +1,6 @@
 import React, { useEffect, useReducer, useState } from "react";
 import { CardBody, Spinner } from "reactstrap";
+import Select from "react-select";
 import {
   createTrainings,
   getPositions,
@@ -23,6 +24,7 @@ import {
   isTrainingValid,
   trainingReducer,
 } from "../Helpers/uploadTrainingForm";
+import { PASS_MARK_SELECT_OPTIONS } from "../Helpers/passMark";
 
 const Upload = () => {
   const [training, dispatch] = useReducer(trainingReducer, emptyTraining());
@@ -155,6 +157,25 @@ const Upload = () => {
           />
 
           <div className="mb-3">
+            <label className="form-label">Pass percentage (%)</label>
+            <Select
+              options={PASS_MARK_SELECT_OPTIONS}
+              value={
+                PASS_MARK_SELECT_OPTIONS.find(
+                  (option) => option.value === training.passPercentage,
+                ) || null
+              }
+              onChange={(selected) => setField("passPercentage", selected?.value || "")}
+              isSearchable={false}
+              menuPortalTarget={document.body}
+              styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+            />
+            <small className="text-muted d-block mt-2">
+              Applies to every quiz in this training.
+            </small>
+          </div>
+
+          <div className="mb-3">
             <label className="form-label">Repeat Frequency (days)</label>
             <input
               type="text"
@@ -205,7 +226,10 @@ const Upload = () => {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={loading || (!!training.declaration && !training.declarationPlacements)}
+              disabled={
+                loading ||
+                (!!training.declaration && !training.declarationPlacements)
+              }
             >
               {loading ? <Spinner size="sm" /> : "Submit"}
             </button>

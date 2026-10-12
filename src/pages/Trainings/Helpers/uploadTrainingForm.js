@@ -1,8 +1,8 @@
 import { validateDeclarationFile, hasSignature } from "./declaration";
+import { DEFAULT_PASS_MARK, parsePassMarkText } from "./passMark";
 
 export const MIN_FINAL_EXAM_QUESTIONS = 20;
 export const MIN_LESSON_QUIZ_QUESTIONS = 5;
-export const DEFAULT_PASS_PERCENTAGE = 80;
 
 export const MAX_VIDEO_SIZE = 500 * 1024 * 1024;
 export const MAX_AUDIO_SIZE = 150 * 1024 * 1024;
@@ -105,6 +105,7 @@ export const emptyTraining = () => ({
   description: "",
   positions: [],
   repeatFrequency: "",
+  passPercentage: String(DEFAULT_PASS_MARK),
   file: null,
   declaration: null,
   declarationPlacements: null,
@@ -249,6 +250,7 @@ export const getLessonErrors = (lesson) => {
 export const isTrainingValid = (training) =>
   training.trainingName.trim() !== "" &&
   training.positions.length > 0 &&
+  parsePassMarkText(training.passPercentage) !== null &&
   training.file !== null &&
   validateDeclarationFile(training.declaration) === null &&
   (!training.declaration || hasSignature(training.declarationPlacements)) &&
@@ -269,7 +271,6 @@ const serializeLessons = (lessons) =>
   lessons.map((lesson) => ({
     name: lesson.name.trim(),
     description: lesson.description.trim(),
-    passPercentage: DEFAULT_PASS_PERCENTAGE,
     questionary: serializeQuestionary(lesson.questionary),
     chapters: lesson.chapters.map((chapter) => ({
       name: chapter.name.trim(),
@@ -285,6 +286,11 @@ export const buildTrainingFormData = (training) => {
   formData.append(
     "trainings[0][repeatFrequency]",
     training.repeatFrequency || "",
+  );
+
+  formData.append(
+    "trainings[0][passPercentage]",
+    String(parsePassMarkText(training.passPercentage)),
   );
 
   if (training.description.trim() !== "") {
