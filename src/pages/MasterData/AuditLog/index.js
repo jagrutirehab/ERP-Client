@@ -26,6 +26,15 @@ const MODULES = [
   { value: "DI", label: "Delivery Intimation" },
   { value: "GRN", label: "GRN" },
   { value: "VENDOR", label: "Vendor" },
+  { value: "STORAGE_LOCATION", label: "Storage Location" },
+  { value: "PUTAWAY", label: "Putaway" },
+  { value: "MATERIAL_ISSUE", label: "Material Issue" },
+  { value: "MATERIAL_RETURN", label: "Material Return" },
+  { value: "MOVE_ORDER", label: "Move Order" },
+  { value: "TRANSFER", label: "Inventory Transfer" },
+  { value: "CYCLE_COUNT", label: "Cycle Count" },
+  { value: "ADJUSTMENT", label: "Stock Adjustment" },
+  { value: "REORDER_RULE", label: "Reorder Rule" },
 ];
 
 const MODULE_LABEL = MODULES.reduce((acc, m) => ({ ...acc, [m.value]: m.label }), {});
@@ -42,6 +51,8 @@ const ACTIONS = [
   { value: "short_close", label: "Short close" },
   { value: "close", label: "Close" },
   { value: "receive", label: "Receive" },
+  { value: "status_change", label: "Status change" },
+  { value: "reconcile", label: "Reconcile" },
 ];
 
 const ACTION_STYLE = {
@@ -55,6 +66,8 @@ const ACTION_STYLE = {
   short_close: { bg: "#f2f4f7", color: "#475467" },
   close: { bg: "#f2f4f7", color: "#475467" },
   receive: { bg: "#ecfdf3", color: "#067647" },
+  status_change: { bg: "#fffaeb", color: "#b54708" },
+  reconcile: { bg: "#ecfdf3", color: "#067647" },
 };
 
 const ActionPill = ({ action }) => {

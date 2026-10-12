@@ -383,15 +383,14 @@ const BudgetList = ({ onAdd, onEdit }) => {
     },
     {
       name: "Status",
-      width: "120px",
+      width: "115px",
       cell: (row) => <StatusPill status={row.status} />,
     },
     {
       name: "Actions",
       width: "230px",
-      right: true,
       cell: (row) => (
-        <div className="d-flex gap-2 flex-wrap justify-content-end">
+        <div className="d-flex gap-2 flex-wrap justify-content-start">
           <Button size="sm" color="light" title="View details" onClick={() => openOverview(row)}>
             <i className="bx bx-show"></i>
           </Button>
@@ -551,7 +550,25 @@ const BudgetList = ({ onAdd, onEdit }) => {
                 <AmountCard
                   label="Approved"
                   value={ub.status === "approved" ? money(ub.approvedAmount) : "—"}
-                  sub={ub.status === "approved" ? `by ${ub.approvedBy || "—"}, ${dateFmt(ub.approvedAt)}` : undefined}
+                  sub={
+                    ub.status === "approved" ? (
+                      <>
+                        by {ub.approvedBy || "—"}, {dateFmt(ub.approvedAt)}
+                        {ub.approvedAmount !== ub.requestedAmount && (
+                          <div
+                            style={{
+                              color: ub.approvedAmount > ub.requestedAmount ? "#067647" : "#b54708",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {ub.approvedAmount > ub.requestedAmount ? "+" : "-"}
+                            {money(Math.abs(ub.approvedAmount - ub.requestedAmount))}{" "}
+                            {ub.approvedAmount > ub.requestedAmount ? "above" : "below"} request
+                          </div>
+                        )}
+                      </>
+                    ) : undefined
+                  }
                 />
                 <AmountCard label="Used" value={ub.status === "approved" ? money(ub.consumedAmount) : "—"} />
                 <AmountCard
@@ -576,6 +593,23 @@ const BudgetList = ({ onAdd, onEdit }) => {
                       }}
                     />
                   </div>
+                </div>
+              )}
+
+              {usage.amountHistory?.length > 0 && (
+                <div className="mb-4">
+                  <div className="fw-semibold mb-2">Approved amount history</div>
+                  {usage.amountHistory.map((h, i) => (
+                    <div key={i} className="small mb-1">
+                      <span className="text-muted">
+                        {dateFmt(h.at)} · {h.by || "—"}:
+                      </span>{" "}
+                      {h.type === "approved"
+                        ? `Approved ${money(h.to)}`
+                        : `${h.to > h.from ? "Increased" : "Reduced"} ${money(h.from)} to ${money(h.to)}`}
+                      {h.reason && <span className="text-muted"> · {h.reason}</span>}
+                    </div>
+                  ))}
                 </div>
               )}
 
