@@ -38,7 +38,7 @@ const AppointmentCard = ({ data, children }) => {
               </h6>
             </div>
           </div>
-          <RenderWhen isTrue={data.chart && data.bill}>
+          <RenderWhen isTrue={data.chart && (data.bill || data.transactionId)}>
             <div className="position-absolute patient-addmission-complete badge bg-light rounded-pill px-1">
               <i className="ri-checkbox-circle-line text-success fs-5"></i>
             </div>
