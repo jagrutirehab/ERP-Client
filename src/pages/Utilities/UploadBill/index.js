@@ -7,7 +7,6 @@ import {
   FormGroup,
   Label,
   Input,
-  FormFeedback,
   Spinner,
   Row,
   Col,
@@ -17,15 +16,9 @@ import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { uploadUtilityBill } from "../../../helpers/backend_helper";
+import AttachmentPicker from "../Components/AttachmentPicker";
 
-const ALLOWED_FILE_TYPES = [
-  "application/pdf",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "image/jpeg",
-  "image/png",
-];
-const INVALID_FILE_MESSAGE =
-  "Only PDF, DOCX, JPG, JPEG, and PNG files are allowed";
+const CURRENT_YEAR = new Date().getFullYear();
 const YEAR_RANGE_END = 2076;
 const yearOptions = Array.from(
   { length: YEAR_RANGE_END - 2026 + 1 },
@@ -43,10 +36,9 @@ const makeEmptyRow = (id) => ({
   id,
   center: null,
   month: null,
-  year: null,
+  year: CURRENT_YEAR,
   comment: "",
-  file: null,
-  fileError: "",
+  files: [],
 });
 
 const isDateAllowed = (row) => {
@@ -142,30 +134,35 @@ const UploadBill = () => {
     });
   };
 
-  const handleFileChange = (id, selectedFile) => {
-    if (!selectedFile) {
-      updateRow(id, "file", null);
-      updateRow(id, "fileError", "");
-      return;
-    }
+  const addFilesToRow = (id, newFiles) => {
+    setRows((prev) =>
+      prev.map((row) =>
+        row.id === id ? { ...row, files: [...row.files, ...newFiles] } : row,
+      ),
+    );
+    setRowErrors((prev) => {
+      if (!prev[id]) return prev;
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+  };
 
-    if (!ALLOWED_FILE_TYPES.includes(selectedFile.type)) {
-      updateRow(id, "file", null);
-      updateRow(id, "fileError", INVALID_FILE_MESSAGE);
-      toast.error(INVALID_FILE_MESSAGE);
-      return;
-    }
-
-    updateRow(id, "fileError", "");
-    updateRow(id, "file", selectedFile);
+  const removeFileFromRow = (id, index) => {
+    setRows((prev) =>
+      prev.map((row) =>
+        row.id === id
+          ? { ...row, files: row.files.filter((_, i) => i !== index) }
+          : row,
+      ),
+    );
   };
 
   const isRowValid = (row) =>
     !!row.center &&
     !!row.month &&
     !!row.year &&
-    !!row.file &&
-    !row.fileError &&
+    row.files.length > 0 &&
     isDateAllowed(row);
 
   const canSubmit =
@@ -175,7 +172,7 @@ const UploadBill = () => {
     duplicateRowIds.size === 0;
 
   const previewRows = rows.filter(
-    (row) => row.center && row.month && row.year && row.file,
+    (row) => row.center && row.month && row.year && row.files.length > 0,
   );
 
   const resetForm = () => {
@@ -189,14 +186,6 @@ const UploadBill = () => {
     setSubmitAttempted(true);
     if (!canSubmit) return;
 
-    const hasInvalidFile = rows.some(
-      (row) => row.file && !ALLOWED_FILE_TYPES.includes(row.file.type),
-    );
-    if (hasInvalidFile) {
-      toast.error(INVALID_FILE_MESSAGE);
-      return;
-    }
-
     setRowErrors({});
     setUploading(true);
     try {
@@ -206,7 +195,9 @@ const UploadBill = () => {
         formData.append(`bills[${index}][month]`, row.month);
         formData.append(`bills[${index}][year]`, row.year);
         formData.append(`bills[${index}][comment]`, row.comment || "");
-        formData.append(`billFile_${index}`, row.file);
+        row.files.forEach((file) => {
+          formData.append(`billFile_${index}`, file);
+        });
       });
 
       await uploadUtilityBill(formData);
@@ -247,7 +238,7 @@ const UploadBill = () => {
                 const monthMissing = submitAttempted && !row.month;
                 const yearMissing = submitAttempted && !row.year;
                 const fileMissing =
-                  submitAttempted && !row.file && !row.fileError;
+                  submitAttempted && row.files.length === 0;
                 const apiError = rowErrors[row.id];
                 const hasRowError =
                   !!apiError ||
@@ -400,24 +391,21 @@ const UploadBill = () => {
                       </Col>
 
                       <Col md={6}>
-                        <FormGroup className="mb-0">
-                          <Label className="fw-semibold">
-                            Bill File <span className="text-danger">*</span>
-                          </Label>
-                          <Input
-                            type="file"
-                            accept=".pdf,.docx,.jpg,.jpeg,.png"
-                            disabled={uploading}
-                            onChange={(e) =>
-                              handleFileChange(row.id, e.currentTarget.files[0])
-                            }
-                            invalid={!!row.fileError || fileMissing}
-                          />
-                          <FormFeedback>
-                            {row.fileError ||
-                              (fileMissing ? "Bill file is required" : "")}
-                          </FormFeedback>
-                        </FormGroup>
+                        <AttachmentPicker
+                          existingFiles={[]}
+                          newFiles={row.files}
+                          onAddFiles={(files) => addFilesToRow(row.id, files)}
+                          onRemoveNew={(idx) => removeFileFromRow(row.id, idx)}
+                          disabled={uploading}
+                        />
+                        {fileMissing && (
+                          <div
+                            className="text-danger mt-1"
+                            style={{ fontSize: 13 }}
+                          >
+                            Bill file is required
+                          </div>
+                        )}
                       </Col>
                     </Row>
                   </div>
@@ -454,7 +442,7 @@ const UploadBill = () => {
                             className="text-truncate"
                             style={{ fontSize: 13 }}
                           >
-                            {row.file?.name}
+                            {row.files.map((f) => f.name).join(", ")}
                           </div>
                         </div>
                       </Col>

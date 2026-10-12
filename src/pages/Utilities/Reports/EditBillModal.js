@@ -9,77 +9,42 @@ import {
     FormGroup,
     Label,
     Input,
-    FormFeedback,
 } from "reactstrap";
 import { toast } from "react-toastify";
-import { FileText, Download } from "lucide-react";
 import { updateUtilityBill } from "../../../helpers/backend_helper";
-
-const DOCX_MIME =
-    "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
-const ALLOWED_FILE_TYPES = ["application/pdf", DOCX_MIME, "image/jpeg", "image/png"];
-const INVALID_FILE_MESSAGE =
-    "Only PDF, DOCX, JPG, JPEG, and PNG files are allowed";
-
-const formatFileSize = (bytes) => {
-    if (!bytes && bytes !== 0) return "";
-    if (bytes < 1024) return `${bytes} B`;
-    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-};
+import AttachmentPicker from "../Components/AttachmentPicker";
 
 const EditBillModal = ({ isOpen, onClose, bill, onRefresh, onSubmittingChange }) => {
-    const [file, setFile] = useState(null);
-    const [fileError, setFileError] = useState("");
     const [comment, setComment] = useState("");
+    const [newFiles, setNewFiles] = useState([]);
+    const [removedPaths, setRemovedPaths] = useState([]);
     const [submitting, setSubmitting] = useState(false);
-    const [previewUrl, setPreviewUrl] = useState(null);
-
-    useEffect(() => {
-        if (file && file.type?.startsWith("image/")) {
-            const url = URL.createObjectURL(file);
-            setPreviewUrl(url);
-            return () => URL.revokeObjectURL(url);
-        }
-        setPreviewUrl(null);
-    }, [file]);
 
     useEffect(() => {
         if (isOpen && bill) {
             setComment(bill.comment || "");
+            setNewFiles([]);
+            setRemovedPaths([]);
         }
     }, [isOpen, bill]);
 
     const handleClose = () => {
         if (submitting) return;
-        setFile(null);
-        setFileError("");
         setComment("");
+        setNewFiles([]);
+        setRemovedPaths([]);
         onClose();
     };
 
-    const handleFileChange = (selectedFile) => {
-        if (!selectedFile) {
-            setFile(null);
-            return;
-        }
-
-        if (!ALLOWED_FILE_TYPES.includes(selectedFile.type)) {
-            setFileError(INVALID_FILE_MESSAGE);
-            toast.error(INVALID_FILE_MESSAGE);
-            setFile(null);
-            return;
-        }
-
-        setFileError("");
-        setFile(selectedFile);
-    };
+    const existingFiles = (bill?.files || []).filter(
+        (f) => !removedPaths.includes(f.path),
+    );
 
     const handleSubmit = async () => {
-        if (!bill || fileError) return;
+        if (!bill) return;
 
-        if (file && !ALLOWED_FILE_TYPES.includes(file.type)) {
-            toast.error(INVALID_FILE_MESSAGE);
+        if (existingFiles.length === 0 && newFiles.length === 0) {
+            toast.error("At least one file is required");
             return;
         }
 
@@ -87,77 +52,27 @@ const EditBillModal = ({ isOpen, onClose, bill, onRefresh, onSubmittingChange })
         onSubmittingChange?.(true);
         try {
             const formData = new FormData();
-            if (file) formData.append("billFile", file);
             formData.append("comment", comment || "");
+            formData.append("removeFilePaths", JSON.stringify(removedPaths));
+            newFiles.forEach((file) => formData.append("files", file));
+
             await updateUtilityBill(bill._id, formData);
 
-            toast.success("File updated successfully");
+            toast.success("Bill updated successfully");
             onRefresh();
             handleClose();
         } catch (error) {
-            toast.error(error?.message || "Failed to update file");
+            toast.error(error?.message || "Failed to update bill");
         } finally {
             setSubmitting(false);
             onSubmittingChange?.(false);
         }
     };
 
-    const isCurrentPdf = bill?.fileType === "application/pdf";
-    const isCurrentDocx = bill?.fileType === DOCX_MIME;
-    const isCurrentImage = bill?.fileType?.startsWith("image/");
-
-    const isNewPdf = file?.type === "application/pdf";
-    const isNewDocx = file?.type === DOCX_MIME;
-    const isNewImage = file?.type?.startsWith("image/");
-
     return (
         <Modal isOpen={isOpen} toggle={handleClose} centered size="lg">
-            <ModalHeader toggle={handleClose}>Replace Bill File</ModalHeader>
+            <ModalHeader toggle={handleClose}>Edit Bill</ModalHeader>
             <ModalBody>
-                {bill && (
-                    <div className="mb-3">
-                        <Label className="fw-semibold">Current File</Label>
-                        {isCurrentPdf && (
-                            <iframe
-                                src={bill.fileUrl}
-                                title={bill.fileName || "Current Bill"}
-                                width="100%"
-                                height="400"
-                                style={{ border: "1px solid #dee2e6", borderRadius: 4 }}
-                            />
-                        )}
-                        {isCurrentImage && (
-                            <div className="text-center">
-                                <img
-                                    src={bill.fileUrl}
-                                    alt={bill.fileName || "Current Bill"}
-                                    style={{
-                                        maxWidth: "100%",
-                                        maxHeight: 400,
-                                        objectFit: "contain",
-                                    }}
-                                />
-                            </div>
-                        )}
-                        {isCurrentDocx && (
-                            <a
-                                href={bill.fileUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="d-flex align-items-center gap-2 p-3 border rounded text-decoration-none"
-                            >
-                                <Download size={18} />
-                                Word Document — click to download
-                            </a>
-                        )}
-                        {!isCurrentPdf && !isCurrentImage && !isCurrentDocx && (
-                            <p className="text-muted mb-0">
-                                Preview not supported for this file type
-                            </p>
-                        )}
-                    </div>
-                )}
-
                 <FormGroup>
                     <Label className="fw-semibold">Comment</Label>
                     <Input
@@ -169,53 +84,21 @@ const EditBillModal = ({ isOpen, onClose, bill, onRefresh, onSubmittingChange })
                     />
                 </FormGroup>
 
-                <FormGroup className="mb-0">
-                    <Label className="fw-semibold">Replacement File</Label>
-                    <Input
-                        type="file"
-                        accept=".pdf,.docx,.jpg,.jpeg,.png"
-                        disabled={submitting}
-                        onChange={(e) => handleFileChange(e.currentTarget.files[0])}
-                        invalid={!!fileError}
-                    />
-                    <FormFeedback>{fileError}</FormFeedback>
-                </FormGroup>
-
-                {file && !fileError && (
-                    <div className="mt-3 p-2 px-3 border rounded bg-light">
-                        {isNewImage && previewUrl && (
-                            <img
-                                src={previewUrl}
-                                alt={file.name}
-                                style={{
-                                    maxWidth: "100%",
-                                    maxHeight: 200,
-                                    objectFit: "contain",
-                                    display: "block",
-                                    margin: "0 auto",
-                                }}
-                            />
-                        )}
-                        {(isNewPdf || isNewDocx) && (
-                            <div className="d-flex align-items-center gap-2">
-                                <FileText size={20} />
-                                <div>
-                                    <div className="fw-semibold">{file.name}</div>
-                                    <div className="text-muted" style={{ fontSize: 12 }}>
-                                        {formatFileSize(file.size)}
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-                    </div>
-                )}
+                <AttachmentPicker
+                    existingFiles={existingFiles}
+                    newFiles={newFiles}
+                    onAddFiles={(files) => setNewFiles((prev) => [...prev, ...files])}
+                    onRemoveExisting={(file) =>
+                        setRemovedPaths((prev) => [...prev, file.path])
+                    }
+                    onRemoveNew={(i) =>
+                        setNewFiles((prev) => prev.filter((_, idx) => idx !== i))
+                    }
+                    disabled={submitting}
+                />
             </ModalBody>
             <ModalFooter>
-                <Button
-                    color="primary"
-                    onClick={handleSubmit}
-                    disabled={!!fileError || submitting}
-                >
+                <Button color="primary" onClick={handleSubmit} disabled={submitting}>
                     {submitting ? <Spinner size="sm" /> : "Save"}
                 </Button>
                 <Button
