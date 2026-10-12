@@ -7,6 +7,7 @@ import {
   getTrainingById,
 } from "../../../helpers/backend_helper";
 import QuizRunner from "./Learn/QuizRunner";
+import { resolvePassMark } from "../Helpers/passMark";
 
 const QuestionaryTest = () => {
   const { id } = useParams();
@@ -17,15 +18,23 @@ const QuestionaryTest = () => {
     state?.trainingName || "Training",
   );
   const [requiresDeclaration, setRequiresDeclaration] = useState(!!state?.requiresDeclaration);
+  const [passMark, setPassMark] = useState(state?.passPercentage);
   const [ackLoading, setAckLoading] = useState(false);
 
   useEffect(() => {
-    if (state?.trainingName && state?.requiresDeclaration !== undefined) return;
+    if (
+      state?.trainingName &&
+      state?.requiresDeclaration !== undefined &&
+      state?.passPercentage !== undefined
+    ) {
+      return;
+    }
     const loadName = async () => {
       try {
         const response = await getTrainingById(id);
         setTrainingName(response?.data?.trainingName || "Training");
         setRequiresDeclaration(!!response?.data?.declaration?.required);
+        setPassMark(resolvePassMark(response?.data));
       } catch {
         setTrainingName("Training");
       }
@@ -51,6 +60,7 @@ const QuestionaryTest = () => {
       trainingId={id}
       scope="final"
       title={trainingName}
+      passMark={passMark}
       onBack={() => navigate(-1)}
       renderPassActions={() =>
         requiresDeclaration ? (
