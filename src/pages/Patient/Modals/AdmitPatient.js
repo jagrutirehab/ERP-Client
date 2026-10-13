@@ -715,8 +715,8 @@ const AdmitPatient = ({
                 { value: "psychiatrist", label: "Psychiatrist" },
                 { value: "doctor", label: "Doctor" },
                 { value: "online", label: "Online" },
-                { value: "other", label: "Other" },
                 ...REFERRAL_SOURCE_OPTIONS,
+                { value: "other", label: "Other" },
               ]}
               placeholder="Select or search for a referral doctor"
               menuPlacement="auto"

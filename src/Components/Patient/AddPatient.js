@@ -43,6 +43,7 @@ import FormField from "../Common/FormField"; // Assuming this component is well-
 import convertToFormDataPatient from "../../utils/convertToFormDataPatient";
 import ReferralSourceFields from "./ReferralSourceFields";
 import {
+  REFERRAL_DOCTOR_TYPES,
   REFERRAL_SOURCE_KEYS,
   REFERRAL_SOURCE_OPTIONS,
   REFERRAL_SOURCES_REQUIRING_REF,
@@ -139,15 +140,30 @@ const AddPatient = ({
         ? ""
         : editData?.referredBy?.doctorName
           ? editData.referredBy.doctorName
-          : leadData?.refferedBy || "",
-      referralPhoneNumber: editData?.referredBy?.mobileNumber || "",
-      referralType: editData?.referredBy?.speciality || "",
-      referralSource: editData?.referredBy?.source || "",
+          : REFERRAL_SOURCE_KEYS.includes(leadData?.referralSource)
+            ? ""
+            : leadData?.refferedBy || "",
+      referralPhoneNumber:
+        editData?.referredBy?.mobileNumber ||
+        leadData?.referralPhoneNumber ||
+        "",
+      referralType:
+        editData?.referredBy?.speciality ||
+        (REFERRAL_DOCTOR_TYPES.includes(leadData?.referralSource)
+          ? leadData.referralSource
+          : ""),
+      referralSource:
+        editData?.referredBy?.source ||
+        (REFERRAL_SOURCE_KEYS.includes(leadData?.referralSource)
+          ? leadData.referralSource
+          : ""),
       referralRefId:
         editData?.referredBy?.employee ||
         editData?.referredBy?.referringPatient ||
+        leadData?.referralRefId ||
         "",
-      referralName: editData?.referredBy?.name || "",
+      referralName:
+        editData?.referredBy?.name || leadData?.referralName || "",
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
       socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
       areatype: editData ? editData.areatype : "",
@@ -330,6 +346,30 @@ const AddPatient = ({
 
   const referralInitialized = useRef(false);
   useEffect(() => {
+    if (
+      !editData &&
+      REFERRAL_DOCTOR_TYPES.includes(leadData?.referralSource)
+    ) {
+      const type = leadData.referralSource;
+      setSelectedReferral({
+        value: type,
+        label: type.charAt(0).toUpperCase() + type.slice(1),
+      });
+      setIsOtherReferral(true);
+      return;
+    }
+
+    // Lead created with a non-doctor referral source — pre-select it
+    if (!editData && leadData?.referralSource) {
+      setSelectedReferral(
+        REFERRAL_SOURCE_OPTIONS.find(
+          (o) => o.value === leadData.referralSource,
+        ) || null,
+      );
+      setIsOtherReferral(false);
+      return;
+    }
+
     // Patient saved with a non-doctor referral source — pre-select it
     if (editData?.referredBy?.source) {
       setSelectedReferral(
@@ -397,7 +437,7 @@ const AddPatient = ({
         validation.setFieldValue("referralType", "other");
       }
     }
-  }, [editData, referrals]);
+  }, [editData, leadData, referrals]);
 
   useEffect(() => {
     if (validation.values.center)
@@ -685,8 +725,8 @@ const AddPatient = ({
                     { value: "psychiatrist", label: "Psychiatrist" },
                     { value: "doctor", label: "Doctor" },
                     { value: "online", label: "Online" },
-                    { value: "other", label: "Other" },
                     ...REFERRAL_SOURCE_OPTIONS,
+                    { value: "other", label: "Other" },
                   ]}
                   placeholder="Select or search for a referral doctor"
                   menuPlacement="auto"
