@@ -26,6 +26,7 @@ import {
   getFlaggedVisits,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+const SHOW_RISK_UI = false;
 const INTEREST_STYLE = {
   HOT: { bg: "#fde8e4", color: "#f06548" },
   WARM: { bg: "#fef4e4", color: "#f7b84b" },
@@ -327,7 +328,6 @@ const VisitLogList = () => {
     return counts;
   }, [logs]);
 
-
   let visibleLogs = logsWithDistance;
   if (sortByDistanceDesc) {
     visibleLogs = [...visibleLogs].sort(
@@ -363,7 +363,7 @@ const VisitLogList = () => {
   };
 
   const SuspiciousBadge = ({ log }) => {
-    if (!log.isSuspicious) return null;
+    if (!SHOW_RISK_UI || !log.isSuspicious) return null;
     const reasons = (log.suspiciousReasons || [])
       .map((r) => REASON_LABELS[r] || r)
       .join(", ");
@@ -426,17 +426,19 @@ const VisitLogList = () => {
                   <i className="bx bx-filter-alt me-1 text-muted" /> Filters
                 </span>
                 <div className="d-flex align-items-center gap-3">
-                  <Button
-                    size="sm"
-                    color={showFlaggedOnly ? "danger" : "light"}
-                    className="d-flex align-items-center gap-1"
-                    onClick={toggleFlaggedOnly}
-                  >
-                    <i className="bx bx-shield-quarter" />
-                    {showFlaggedOnly
-                      ? "Showing Flagged Only"
-                      : "Show Flagged Only"}
-                  </Button>
+                  {SHOW_RISK_UI && (
+                    <Button
+                      size="sm"
+                      color={showFlaggedOnly ? "danger" : "light"}
+                      className="d-flex align-items-center gap-1"
+                      onClick={toggleFlaggedOnly}
+                    >
+                      <i className="bx bx-shield-quarter" />
+                      {showFlaggedOnly
+                        ? "Showing Flagged Only"
+                        : "Show Flagged Only"}
+                    </Button>
+                  )}
                   {hasActiveFilters && (
                     <Button
                       size="sm"
