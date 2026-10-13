@@ -136,13 +136,11 @@ const Deposit = ({
   const editData = editBillData?.deposit;
   const existingTransactionProof = editData?.transactionProof;
 
-  // Guards: a card/UPI row on a POS centre must carry an approved charge
-  // before the bill may be saved, and once one is approved the form cannot be
-  // abandoned — the money is already gone.
+  // Charging on the terminal is optional — a payment collected elsewhere is
+  // recorded with an evidence screenshot instead. Once a charge HAS been
+  // approved though, the form cannot be abandoned: the money is already gone.
   const { posAvailable } = usePosTerminal(patient?.center?._id);
   const posGuard = evaluatePosGuards(paymentModes, {
-    posAvailable,
-    tenderKey: "paymentMode",
     readOnly: isPosRecovery,
   });
   // Evidence is required for every non-cash tender that was not collected on

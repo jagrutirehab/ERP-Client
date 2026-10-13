@@ -48,37 +48,32 @@ export const isPineLabsAccount = (name) => {
 };
 
 
+/**
+ * Whether a bill may be abandoned.
+ *
+ * Charging on the terminal is optional: a cashier may take the money on the
+ * POS machine, or record a payment collected elsewhere and attach the proof
+ * (see `evaluateEvidenceGuard`). So nothing here blocks saving.
+ *
+ * What it does block is cancelling once a charge HAS been approved — the
+ * money is already gone, and abandoning the form would leave nothing
+ * recording it.
+ */
 export const evaluatePosGuards = (
   paymentModes,
-  { posAvailable, tenderKey = "paymentMode", readOnly = false } = {},
+  { readOnly = false } = {},
 ) => {
-  const rows = paymentModes || [];
-  const paidOnPos = rows.some((row) => row.posTransaction);
-
-
-  const uncharged =
-    posAvailable && !readOnly
-      ? rows.filter(
-        (row) =>
-          POS_MODES.includes(row[tenderKey]) &&
-          !row.posTransaction &&
-          Number(row.amount) > 0 &&
-          (!row.bankAccount || isPineLabsAccount(row.bankAccount)),
-      )
-      : [];
-
-  const modes = [...new Set(uncharged.map((row) => row[tenderKey]))];
+  const paidOnPos = (paymentModes || []).some((row) => row.posTransaction);
 
   return {
     paidOnPos,
-    blockSave: uncharged.length > 0,
-    saveReason: uncharged.length
-      ? `Charge the ${modes.join(" and ")} amount on the POS terminal before saving — nothing has been collected yet.`
-      : null,
-    blockCancel: paidOnPos,
-    cancelReason: paidOnPos
-      ? "The terminal has already taken this payment. Save the bill — cancelling now would leave the money unrecorded."
-      : null,
+    blockSave: false,
+    saveReason: null,
+    blockCancel: paidOnPos && !readOnly,
+    cancelReason:
+      paidOnPos && !readOnly
+        ? "The terminal has already taken this payment. Save the bill — cancelling now would leave the money unrecorded."
+        : null,
   };
 };
 
