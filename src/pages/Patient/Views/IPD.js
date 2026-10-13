@@ -55,7 +55,7 @@ import { capitalizeWords } from "../../../utils/toCapitalize";
 // (Note "New_limited" also contains the letters "it" — a substring match would
 // have wrongly included it. Exact names avoid that class of mistake entirely.)
 const ADMISSION_TYPE_ALLOWED_ROLES = ["IT", "IT-ADMIN", "IT-MIS"];
-const ADMISSION_TYPE_ALLOWED_EMAILS = ["vikas@jagrutirehab.org", "owais@gmail.com"];
+const ADMISSION_TYPE_ALLOWED_EMAILS = ["vikas@jagrutirehab.org", "owais@gmail.com", "pratikymane@gmail.com"];
 
 const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   const dispatch = useDispatch();
@@ -431,7 +431,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     isTrue={
                       canSetAdmissionType &&
                       !addmission.dischargeDate &&
-                      !addmission.admissionTypeHistory?.length
+                      (!addmission.admissionTypeHistory?.length || user.email === "pratikymane@gmail.com")
                     }
                   >
                     <Button
