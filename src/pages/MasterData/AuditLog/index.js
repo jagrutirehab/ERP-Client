@@ -35,6 +35,21 @@ const MODULES = [
   { value: "CYCLE_COUNT", label: "Cycle Count" },
   { value: "ADJUSTMENT", label: "Stock Adjustment" },
   { value: "REORDER_RULE", label: "Reorder Rule" },
+  { value: "CAPITALIZATION", label: "Capitalization Request" },
+  { value: "CWIP", label: "CWIP" },
+  { value: "ASSET_CAPITALIZATION", label: "Asset Capitalization" },
+  { value: "FIXED_ASSET", label: "Fixed Asset" },
+  { value: "ASSET_TRANSFER", label: "Asset Transfer" },
+  { value: "ASSET_WRITEOFF", label: "Asset Write-off" },
+  { value: "MAINTENANCE_REQUEST", label: "Maintenance Request" },
+  { value: "WORK_ORDER", label: "Work Order" },
+  { value: "MAINTENANCE_JOB", label: "Maintenance Job" },
+  { value: "TASK_TEMPLATE", label: "Task Template" },
+  { value: "PM_SCHEDULE", label: "PM Schedule" },
+  { value: "VERIFICATION_JOB", label: "Verification Job" },
+  { value: "PHYSICAL_VERIFICATION", label: "Physical Verification" },
+  { value: "ASSET_TAG", label: "Asset Tag" },
+  { value: "CONTRACT", label: "Contract" },
 ];
 
 const MODULE_LABEL = MODULES.reduce((acc, m) => ({ ...acc, [m.value]: m.label }), {});
