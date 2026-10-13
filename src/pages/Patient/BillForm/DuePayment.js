@@ -222,14 +222,11 @@ const DuePayment = ({
 
   const ptCenter = center ? center : patient?.center?._id;
 
-  // Guards: a card/UPI row on a POS centre must carry an approved charge
-  // before the invoice may be saved, and once one is approved the form cannot
-  // be abandoned — the money is already gone. OPD rows key the tender on
-  // `type`, hence the tenderKey below.
+  // Charging on the terminal is optional — a payment collected elsewhere is
+  // recorded with an evidence screenshot instead. Once a charge HAS been
+  // approved though, the form cannot be abandoned: the money is already gone.
   const { posAvailable } = usePosTerminal(ptCenter);
   const posGuard = evaluatePosGuards(paymentModes, {
-    posAvailable: posAvailable && type === OPD,
-    tenderKey: "type",
     readOnly: isPosRecovery,
   });
   // Evidence is required for every non-cash tender that was not collected on
