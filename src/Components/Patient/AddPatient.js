@@ -86,16 +86,7 @@ const AddPatient = ({
       : "";
   const dateOfBirth = editData?.dateOfBirth
     ? format(new Date(editData.dateOfBirth), "yyyy-MM-dd")
-    : leadData?.patient?.age
-      ? (() => {
-          const today = new Date();
-          const birthYear = today.getFullYear() - leadData.patient.age;
-          return format(
-            new Date(birthYear, today.getMonth(), today.getDate()),
-            "yyyy-MM-dd",
-          );
-        })()
-      : "";
+    : "";
   const gender = editData
     ? editData.gender
     : leadData
@@ -123,7 +114,7 @@ const AddPatient = ({
       dateOfBirth,
       email,
       address: editData ? editData.address : "",
-      age: editData ? editData.age : "",
+      age: editData ? editData.age : leadData?.patient?.age ?? "",
       religion: editData ? editData.religion : "",
       maritalstatus: editData ? editData.maritalstatus : "",
       doctor: editData ? editData.doctor?._id : "",
@@ -319,7 +310,10 @@ const AddPatient = ({
       const age = Math.floor((today - dob) / (1000 * 60 * 60 * 24 * 365.25));
       validation.setFieldValue("age", age);
     } else {
-      validation.setFieldValue("age", "");
+      validation.setFieldValue(
+        "age",
+        !editData && leadData?.patient?.age ? leadData.patient.age : "",
+      );
     }
   }, [validation.values.dateOfBirth]);
 
