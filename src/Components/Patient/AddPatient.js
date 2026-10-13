@@ -41,6 +41,12 @@ import UploadedFiles from "../Common/UploadedFiles";
 import PatientId from "./PatientId";
 import FormField from "../Common/FormField"; // Assuming this component is well-styled or will be adapted
 import convertToFormDataPatient from "../../utils/convertToFormDataPatient";
+import ReferralSourceFields from "./ReferralSourceFields";
+import {
+  REFERRAL_SOURCE_KEYS,
+  REFERRAL_SOURCE_OPTIONS,
+  REFERRAL_SOURCES_REQUIRING_REF,
+} from "../constants/referralSources";
 
 const AddPatient = ({
   patient,
@@ -129,11 +135,19 @@ const AddPatient = ({
       dateOfAddmission: editData?.dateOfAddmission
         ? format(new Date(editData.dateOfAddmission), "yyyy-MM-dd")
         : "",
-      referredBy: editData?.referredBy?.doctorName
-        ? editData.referredBy.doctorName
-        : leadData?.refferedBy || "",
+      referredBy: editData?.referredBy?.source
+        ? ""
+        : editData?.referredBy?.doctorName
+          ? editData.referredBy.doctorName
+          : leadData?.refferedBy || "",
       referralPhoneNumber: editData?.referredBy?.mobileNumber || "",
       referralType: editData?.referredBy?.speciality || "",
+      referralSource: editData?.referredBy?.source || "",
+      referralRefId:
+        editData?.referredBy?.employee ||
+        editData?.referredBy?.referringPatient ||
+        "",
+      referralName: editData?.referredBy?.name || "",
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
       socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
       areatype: editData ? editData.areatype : "",
@@ -216,6 +230,11 @@ const AddPatient = ({
             return isValidPhoneNumber(value);
           },
         ),
+      referralRefId: Yup.string().when("referralSource", {
+        is: (v) => REFERRAL_SOURCES_REQUIRING_REF.includes(v),
+        then: (schema) => schema.required("Please select a value"),
+        otherwise: (schema) => schema.nullable().notRequired(),
+      }),
     }),
 
     onSubmit: async (values) => {
@@ -311,6 +330,17 @@ const AddPatient = ({
 
   const referralInitialized = useRef(false);
   useEffect(() => {
+    // Patient saved with a non-doctor referral source — pre-select it
+    if (editData?.referredBy?.source) {
+      setSelectedReferral(
+        REFERRAL_SOURCE_OPTIONS.find(
+          (o) => o.value === editData.referredBy.source,
+        ) || null,
+      );
+      setIsOtherReferral(false);
+      return;
+    }
+
     // Only run once when editData and referrals are both available
     if (!editData?.referredBy || !referrals?.length) return;
     if (referralInitialized.current) return;
@@ -623,20 +653,28 @@ const AddPatient = ({
                       "psychiatrist",
                       "online",
                     ];
-                    if (option && staticValues.includes(option.value)) {
+                    const isSource =
+                      option && REFERRAL_SOURCE_KEYS.includes(option.value);
+                    // One setValues call: back-to-back setFieldValue calls each
+                    // validate against stale values, leaving old errors behind.
+                    const updates = {
+                      referralSource: isSource ? option.value : "",
+                      referralRefId: "",
+                      referralName: "",
+                      referredBy: "",
+                      referralPhoneNumber: "",
+                      referralType: "",
+                    };
+                    if (isSource) {
+                      setIsOtherReferral(false);
+                    } else if (option && staticValues.includes(option.value)) {
                       setIsOtherReferral(true);
-                      validation.setFieldValue("referredBy", "");
-                      validation.setFieldValue("referralPhoneNumber", "");
-                      validation.setFieldValue("referralType", option.value);
+                      updates.referralType = option.value;
                     } else {
                       setIsOtherReferral(false);
-                      validation.setFieldValue(
-                        "referredBy",
-                        option?.value || "",
-                      );
-                      validation.setFieldValue("referralPhoneNumber", "");
-                      validation.setFieldValue("referralType", "");
+                      updates.referredBy = option?.value || "";
                     }
+                    validation.setValues({ ...validation.values, ...updates });
                   }}
                   onBlur={() => validation.setFieldTouched("referredBy", true)}
                   options={[
@@ -648,8 +686,11 @@ const AddPatient = ({
                     { value: "doctor", label: "Doctor" },
                     { value: "online", label: "Online" },
                     { value: "other", label: "Other" },
+                    ...REFERRAL_SOURCE_OPTIONS,
                   ]}
                   placeholder="Select or search for a referral doctor"
+                  menuPlacement="auto"
+                  maxMenuHeight={200}
                   isClearable
                   isLoading={referralsLoading}
                   styles={{
@@ -679,6 +720,28 @@ const AddPatient = ({
                       zIndex: 9999,
                     }),
                   }}
+                />
+
+                <ReferralSourceFields
+                  source={validation.values.referralSource}
+                  refId={validation.values.referralRefId}
+                  name={validation.values.referralName}
+                  onRefChange={(id, label) =>
+                    validation.setValues({
+                      ...validation.values,
+                      referralRefId: id,
+                      referralName: label,
+                    })
+                  }
+                  onNameChange={(value) =>
+                    validation.setFieldValue("referralName", value)
+                  }
+                  error={
+                    validation.touched.referralRefId ||
+                    validation.submitCount > 0
+                      ? validation.errors.referralRefId
+                      : undefined
+                  }
                 />
 
                 {isOtherReferral && (

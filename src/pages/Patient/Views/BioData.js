@@ -1,3 +1,4 @@
+import referredByName from "../../../utils/referredByName";
 import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { Card, CardBody, CardHeader, Col, Row, Button } from "reactstrap";
@@ -174,7 +175,7 @@ const BioData = ({ patient, addmission }) => {
             />
             <InfoItem
               label="Referred By"
-              value={patient.referredBy?.doctorName}
+              value={referredByName(patient.referredBy)}
             />
           </Row>
         </CardBody>

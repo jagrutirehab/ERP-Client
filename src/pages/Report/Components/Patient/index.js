@@ -1,3 +1,4 @@
+import referredByName from "../../../../utils/referredByName";
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { differenceInYears, endOfDay, format, startOfDay } from "date-fns";
@@ -58,9 +59,9 @@ const Patient = ({ centerAccess }) => {
 
           // Referred By
           referredBy:
-            d?.patient?.referredBy?.doctorName ||
+            referredByName(d?.patient?.referredBy) ||
             d?.patient?.referredBy ||
-            d?.referredBy?.doctorName ||
+            referredByName(d?.referredBy) ||
             d?.referredBy,
 
           // Age
@@ -257,8 +258,9 @@ const Patient = ({ centerAccess }) => {
     {
       name: <div>Referred By</div>,
       selector: (row) =>
-        row.patient?.referredBy?.doctorName || row.patient?.referredBy,
+        referredByName(row.patient?.referredBy) || row.patient?.referredBy,
       wrap: true,
+      minWidth: "200px",
     },
     // {
     //   name: <div>Phone No</div>,
@@ -351,8 +353,9 @@ const Patient = ({ centerAccess }) => {
     },
     {
       name: <div>Referred By</div>,
-      selector: (row) => row?.referredBy?.doctorName || row?.referredBy,
+      selector: (row) => referredByName(row?.referredBy) || row?.referredBy,
       wrap: true,
+      minWidth: "200px",
     },
     {
       name: <div>Doctor</div>,

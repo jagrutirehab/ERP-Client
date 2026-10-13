@@ -1,3 +1,4 @@
+import referredByName from "../../../../utils/referredByName";
 import { useEffect, useRef, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Input, Spinner, Row, Col, Button } from "reactstrap";
@@ -96,7 +97,7 @@ const Doctor = ({ centers, centerAccess }) => {
         patientName: capitalizeWords(data.patientName),
         guardianName: capitalizeWords(data.guardianName),
         referredBy: capitalizeWords(
-          data.referredBy?.doctorName || data.referredBy,
+          referredByName(data.referredBy) || data.referredBy,
         ),
         age: data.dateOfBirth
           ? `${differenceInYears(new Date(), new Date(data.dateOfBirth))} years`
@@ -192,8 +193,9 @@ const Doctor = ({ centers, centerAccess }) => {
     {
       name: "Referred By",
       selector: (row) =>
-        capitalizeWords(row.referredBy?.doctorName || row.referredBy) || "-",
+        capitalizeWords(referredByName(row.referredBy) || row.referredBy) || "-",
       wrap: true,
+      minWidth: "200px",
     },
     // { name: "Phone No", selector: (row) => row.phoneNumber || "-", wrap: true },
     {

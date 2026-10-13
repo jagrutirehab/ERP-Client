@@ -1,3 +1,4 @@
+import referredByName from "../../../utils/referredByName";
 import { Text, View, StyleSheet, Font } from "@react-pdf/renderer";
 import PropTypes from "prop-types";
 import React from "react";
@@ -187,7 +188,7 @@ const Body = ({ patient, addmission }) => {
             />
             <InfoItem
               label="Referred By"
-              value={patient.referredBy?.doctorName}
+              value={referredByName(patient.referredBy)}
             />
           </View>
         </View>

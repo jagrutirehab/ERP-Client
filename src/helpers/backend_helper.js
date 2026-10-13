@@ -400,6 +400,23 @@ export const getPatientStaff = (data) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+export const getReferralPatients = (data) =>
+  api.get(url.GET_REFERRAL_PATIENTS, {
+    params: {
+      search: data?.search || undefined,
+      skip: data?.skip,
+      id: data?.id || undefined,
+    },
+  });
+export const getReferralEmployees = (data) =>
+  api.get(url.GET_REFERRAL_EMPLOYEES, {
+    params: {
+      type: data?.type,
+      skip: data?.skip,
+      search: data?.search || undefined,
+      id: data?.id || undefined,
+    },
+  });
 export const getPatientReferral = (data) =>
   api.get(url.GET_PATIENTS_REFERRAL, data);
 export const getPatientCountedDocuments = (data) =>
