@@ -17,42 +17,72 @@ const dateTimeFmt = (d) =>
       })
     : "—";
 
-const MODULES = [
-  { value: "", label: "All modules" },
-  { value: "BUDGET", label: "Budget" },
-  { value: "PR", label: "Purchase Requisition" },
-  { value: "RFQ", label: "RFQ" },
-  { value: "PO", label: "Purchase Order" },
-  { value: "DI", label: "Delivery Intimation" },
-  { value: "GRN", label: "GRN" },
-  { value: "VENDOR", label: "Vendor" },
-  { value: "STORAGE_LOCATION", label: "Storage Location" },
-  { value: "PUTAWAY", label: "Putaway" },
-  { value: "MATERIAL_ISSUE", label: "Material Issue" },
-  { value: "MATERIAL_RETURN", label: "Material Return" },
-  { value: "MOVE_ORDER", label: "Move Order" },
-  { value: "TRANSFER", label: "Inventory Transfer" },
-  { value: "CYCLE_COUNT", label: "Cycle Count" },
-  { value: "ADJUSTMENT", label: "Stock Adjustment" },
-  { value: "REORDER_RULE", label: "Reorder Rule" },
-  { value: "CAPITALIZATION", label: "Capitalization Request" },
-  { value: "CWIP", label: "CWIP" },
-  { value: "ASSET_CAPITALIZATION", label: "Asset Capitalization" },
-  { value: "FIXED_ASSET", label: "Fixed Asset" },
-  { value: "ASSET_TRANSFER", label: "Asset Transfer" },
-  { value: "ASSET_WRITEOFF", label: "Asset Write-off" },
-  { value: "MAINTENANCE_REQUEST", label: "Maintenance Request" },
-  { value: "WORK_ORDER", label: "Work Order" },
-  { value: "MAINTENANCE_JOB", label: "Maintenance Job" },
-  { value: "TASK_TEMPLATE", label: "Task Template" },
-  { value: "PM_SCHEDULE", label: "PM Schedule" },
-  { value: "VERIFICATION_JOB", label: "Verification Job" },
-  { value: "PHYSICAL_VERIFICATION", label: "Physical Verification" },
-  { value: "ASSET_TAG", label: "Asset Tag" },
-  { value: "CONTRACT", label: "Contract" },
+const MODULE_GROUPS = [
+  {
+    label: "Finance and procurement",
+    items: [
+      { value: "BUDGET", label: "Budget" },
+      { value: "PR", label: "Purchase Requisition" },
+      { value: "RFQ", label: "RFQ" },
+      { value: "PO", label: "Purchase Order" },
+      { value: "CONTRACT", label: "Contract" },
+      { value: "DI", label: "Delivery Intimation" },
+      { value: "GRN", label: "GRN" },
+    ],
+  },
+  {
+    label: "Vendors and masters",
+    items: [
+      { value: "VENDOR", label: "Vendor" },
+      { value: "DEPARTMENT", label: "Department" },
+      { value: "PAYMENT_TERM", label: "Payment Term" },
+      { value: "UOM", label: "Unit of Measurement" },
+      { value: "ASSET_CATEGORY", label: "Asset Category" },
+      { value: "ITEM_TYPE", label: "Item Type" },
+      { value: "ITEM", label: "Item" },
+    ],
+  },
+  {
+    label: "Inventory and warehouse",
+    items: [
+      { value: "STORAGE_LOCATION", label: "Storage Location" },
+      { value: "PUTAWAY", label: "Putaway" },
+      { value: "MATERIAL_ISSUE", label: "Material Issue" },
+      { value: "MATERIAL_RETURN", label: "Material Return" },
+      { value: "MOVE_ORDER", label: "Move Order" },
+      { value: "TRANSFER", label: "Inventory Transfer" },
+      { value: "CYCLE_COUNT", label: "Cycle Count" },
+      { value: "ADJUSTMENT", label: "Stock Adjustment" },
+      { value: "REORDER_RULE", label: "Reorder Rule" },
+    ],
+  },
+  {
+    label: "Assets",
+    items: [
+      { value: "CAPITALIZATION", label: "Capitalization Request" },
+      { value: "CWIP", label: "CWIP" },
+      { value: "ASSET_CAPITALIZATION", label: "Asset Capitalization" },
+      { value: "FIXED_ASSET", label: "Fixed Asset" },
+      { value: "ASSET_TRANSFER", label: "Asset Transfer" },
+      { value: "ASSET_WRITEOFF", label: "Asset Write-off" },
+      { value: "ASSET_TAG", label: "Asset Tag" },
+    ],
+  },
+  {
+    label: "Maintenance and verification",
+    items: [
+      { value: "MAINTENANCE_REQUEST", label: "Maintenance Request" },
+      { value: "WORK_ORDER", label: "Work Order" },
+      { value: "MAINTENANCE_JOB", label: "Maintenance Job" },
+      { value: "TASK_TEMPLATE", label: "Task Template" },
+      { value: "PM_SCHEDULE", label: "PM Schedule" },
+      { value: "VERIFICATION_JOB", label: "Verification Job" },
+      { value: "PHYSICAL_VERIFICATION", label: "Physical Verification" },
+    ],
+  },
 ];
 
-const MODULE_LABEL = MODULES.reduce((acc, m) => ({ ...acc, [m.value]: m.label }), {});
+const MODULE_LABEL = MODULE_GROUPS.flatMap((g) => g.items).reduce((acc, m) => ({ ...acc, [m.value]: m.label }), {});
 
 const ACTIONS = [
   { value: "", label: "All actions" },
@@ -111,6 +141,16 @@ const show = (v) => {
   return String(v);
 };
 
+// Money fields read as rupees. Quantities and counts never do, even if their name has "total".
+const MONEY_KEY = /(amount|cost|price|value|payable|consumed|available|total|subtotal|tax|released)/i;
+const COUNT_KEY = /(qty|quantity|count|items|lines|assets|documents|images|verifications|rows|created|skipped|failed)/i;
+const showValue = (key, v) => {
+  if (typeof v === "number" && MONEY_KEY.test(key) && !COUNT_KEY.test(key)) {
+    return `₹${v.toLocaleString("en-IN")}`;
+  }
+  return show(v);
+};
+
 // Opens under a row: what exactly changed, plus any extra facts (amounts, reasons)
 const Details = ({ data }) => {
   const changes = data.changes ? Object.entries(data.changes) : [];
@@ -130,8 +170,8 @@ const Details = ({ data }) => {
             {changes.map(([field, v]) => (
               <tr key={field}>
                 <td className="text-capitalize">{field.replace(/([A-Z])/g, " $1")}</td>
-                <td className="text-muted">{show(v?.from)}</td>
-                <td className="fw-semibold">{show(v?.to)}</td>
+                <td className="text-muted">{showValue(field, v?.from)}</td>
+                <td className="fw-semibold">{showValue(field, v?.to)}</td>
               </tr>
             ))}
           </tbody>
@@ -142,7 +182,7 @@ const Details = ({ data }) => {
           {meta.map(([k, v]) => (
             <div key={k}>
               <div className="text-muted small text-capitalize">{k.replace(/([A-Z])/g, " $1")}</div>
-              <div className="fw-semibold">{show(v)}</div>
+              <div className="fw-semibold">{showValue(k, v)}</div>
             </div>
           ))}
         </div>
@@ -243,7 +283,23 @@ const AuditLogs = () => {
     {
       name: "Record",
       minWidth: "190px",
-      cell: (row) => <span className="uom-cell-primary">{row.entityNumber || "—"}</span>,
+      cell: (row) =>
+        row.entityNumber ? (
+          <span
+            className="uom-cell-primary"
+            style={{ cursor: "pointer", textDecoration: "underline dotted" }}
+            title="Show everything that happened to this record"
+            onClick={() => {
+              setModuleFilter("");
+              setActionFilter("");
+              setSearchInput(row.entityNumber);
+            }}
+          >
+            {row.entityNumber}
+          </span>
+        ) : (
+          "—"
+        ),
     },
     {
       name: "Action",
@@ -273,24 +329,29 @@ const AuditLogs = () => {
         <div className="uom-search-wrap mb-0" style={{ maxWidth: 260 }}>
           <i className="bx bx-search"></i>
           <Input
-            placeholder="Search record or text..."
+            placeholder="Search record or text. Or click a record below."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
           />
         </div>
         <Input
           type="select"
-          style={{ maxWidth: 200 }}
+          style={{ maxWidth: 230 }}
           value={moduleFilter}
           onChange={(e) => {
             setModuleFilter(e.target.value);
             setPage(1);
           }}
         >
-          {MODULES.map((m) => (
-            <option key={m.value} value={m.value}>
-              {m.label}
-            </option>
+          <option value="">All modules</option>
+          {MODULE_GROUPS.map((g) => (
+            <optgroup key={g.label} label={g.label}>
+              {g.items.map((m) => (
+                <option key={m.value} value={m.value}>
+                  {m.label}
+                </option>
+              ))}
+            </optgroup>
           ))}
         </Input>
         <Input
