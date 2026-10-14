@@ -15,6 +15,7 @@ import { SEVERITY_COLOR, SEVERITY_HEX } from "../../../Alerts/components/alertCo
 import { fmtDate } from "./ruleUtils";
 import { getICDCodes } from "../../../../helpers/backend_helper";
 import { buildDocumentViewerSrc } from "../SOPDocumentSection";
+import { sopCategoryLabel } from "../../../../Components/constants/sopConstants";
 
 const SEV_RANK = { LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 };
 
@@ -156,6 +157,14 @@ const RulePreviewOffcanvas = ({
               </div>
 
               <h4 className="fw-bold mb-2">{rule.ruleName}</h4>
+              <p className="mb-2">
+                <span
+                  className={`badge rounded-pill ${rule.category ? "badge-soft-info" : "badge-soft-warning"}`}
+                >
+                  <i className="bx bx-category me-1" />
+                  {sopCategoryLabel(rule.category) || "No category"}
+                </span>
+              </p>
               {rule.protocol && (
                 <p className="text-muted mb-3">
                   <i className="bx bx-bookmark me-1" />
