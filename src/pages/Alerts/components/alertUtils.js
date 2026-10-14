@@ -1,3 +1,5 @@
+import { sopCategoryLabel } from "../../../Components/constants/sopConstants";
+
 export const timeAgo = (date) => {
   if (!date) return "";
   const diff = (Date.now() - new Date(date).getTime()) / 1000;
@@ -33,6 +35,17 @@ export const isRuleSourced = (a) => !a?.source || a.source === "SOP_RULE";
  */
 export const alertSourceLabel = (a) =>
   a?.rule?.ruleName || a?.sourceLabel || (isRuleSourced(a) ? "(deleted rule)" : "—");
+
+/**
+ * The alert's SOP category label, from its rule. Baseline-package alerts have
+ * no rule and count as Lab Reports — the same rule the server's category filter
+ * applies, so the column always agrees with the filter. "" when the rule has
+ * no category yet.
+ */
+export const alertCategoryLabel = (a) =>
+  sopCategoryLabel(
+    a?.rule?.category || (isRuleSourced(a) ? "" : "LAB_REPORTS"),
+  );
 
 /* ── Resolution notes ──────────────────────────────────────────────────────
  * Resolving an alert requires a note; it is stored as a normal notes[] entry
