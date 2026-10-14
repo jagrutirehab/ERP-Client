@@ -107,6 +107,12 @@ const Navdata = () => {
       icon: "bx bx-layer",
       link: "/centers",
     },
+    {
+      id: "compliance",
+      label: "Compliance",
+      icon: "bx bx-shield-alt-2",
+      link: "/compliance",
+    },
     ...sortPages(filteredDynamicPages),
     // pages.find((p) => p.id === "issues"),
     // pages.find((p) => p.id === "recordings"),
