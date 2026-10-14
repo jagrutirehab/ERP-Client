@@ -213,6 +213,7 @@ export const GET_OPD_PRESCRIPTION = "/chart/opd/prescription";
 //BILL
 export const GET_BILLS_ADDMISSIONS = "/bill/addmission";
 export const GET_BILLS = "/bill";
+export const GET_PATIENT_LEDGER = "/bill/ledger";
 export const GET_DRAFT_BILLS = "/bill/draft";
 export const DELETE_DRAFT_BILL = "/bill/draft";
 export const GET_DELETED_BILLS = "/bill/deleted";

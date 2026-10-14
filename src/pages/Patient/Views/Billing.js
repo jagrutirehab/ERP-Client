@@ -33,6 +33,8 @@ import CheckPermission from "../../../Components/HOC/CheckPermission";
 import DraftInvoice from "./Components/DraftInvoice";
 import { getWriteOff } from "../../../helpers/backend_helper";
 import { clearLogs } from "../../../store/features/report/dbLogSlice";
+import InvoiceLedgerModal from "./Components/InvoiceLedgerModal";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const Billing = ({
   user,
@@ -46,6 +48,7 @@ const Billing = ({
   totalDeposit = 0,
   view,
   drafts,
+  centers = [],
 }) => {
   const dispatch = useDispatch();
   const [showDraft, setDraft] = useState(false);
@@ -53,7 +56,17 @@ const Billing = ({
   const [admission, setAdmission] = useState(null);
   const [withWriteOffPayableAmount, setWithWriteOffPayableAmount] = useState();
   const [writeOffMap, setWriteOffMap] = useState({});
+  const [ledgerModal, setLedgerModal] = useState(false);
+  const [ledgerAdmission, setLedgerAdmission] = useState(null);
   const toggleModal = () => setDateModal(!dateModal);
+  const toggleLedgerModal = () => {
+    setLedgerModal((prev) => {
+      if (prev) {
+        setLedgerAdmission(null);
+      }
+      return !prev;
+    });
+  };
 
   const handleAdmitPatient = () => {
     dispatch(admitDischargePatient({ data: null, isOpen: ADMIT_PATIENT }));
@@ -62,6 +75,18 @@ const Billing = ({
   const [addmissionId, setAddmissionId] = useState();
 
   const [open, setOpen] = useState("");
+
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+
+  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const hasUserPermission = hasPermission(
+    "PATIENTS",
+    "INVOICEHISTORY",
+    "WRITE",
+  );
+
+  console.log("hasUserPermission", hasUserPermission);
+
   const toggleAccordian = (id) => {
     if (open === id) {
       setOpen();
@@ -82,7 +107,6 @@ const Billing = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, patient, addmissionsBills]);
 
-
   useEffect(() => {
     if (addmissionId && patient?.addmissions?.includes(addmissionId)) {
       dispatch(fetchBills(addmissionId));
@@ -95,17 +119,14 @@ const Billing = ({
 
   const latestAdmission = addmissionsBills?.length
     ? addmissionsBills?.reduce((latest, current) =>
-      new Date(current.addmissionDate) >
-        new Date(latest.addmissionDate)
-        ? current
-        : latest
-    )
+        new Date(current.addmissionDate) > new Date(latest.addmissionDate)
+          ? current
+          : latest,
+      )
     : null;
-
+  //
   console.log("latestAdmission", latestAdmission);
   console.log("addmissionsBills", addmissionsBills);
-
-
 
   const arrayOfWriteOffs = [];
 
@@ -151,11 +172,10 @@ const Billing = ({
               }, 0) || 0;
 
             newWriteOffs[adm._id] = totalAmount;
-
           } catch (err) {
             newWriteOffs[adm._id] = 0;
           }
-        })
+        }),
       );
 
       setWriteOffMap(newWriteOffs);
@@ -164,14 +184,7 @@ const Billing = ({
     fetchAllWriteOffs();
   }, [patient?._id, addmissionsBills]);
 
-
   console.log("WriteOffPayalbe", withWriteOffPayableAmount);
-
-
-
-
-
-
 
   const adjustedPayable = useMemo(() => {
     const latestId = latestAdmission?._id;
@@ -179,15 +192,8 @@ const Billing = ({
     const advance = Number(calculatedAdvance) || 0;
     const payable = Number(calculatedPayable) || 0;
 
-
-    return (advance + writeOff) - payable;
-  }, [
-    calculatedAdvance,
-    calculatedPayable,
-    writeOffMap,
-    latestAdmission?._id,
-  ]);
-
+    return advance + writeOff - payable;
+  }, [calculatedAdvance, calculatedPayable, writeOffMap, latestAdmission?._id]);
 
   return (
     <div className="mt-3">
@@ -215,35 +221,36 @@ const Billing = ({
         </div>
 
         {/*  Random Comment */}
-        {addmissionId && !loading && (<div className="d-flex justify-content-aroun align-items-center gap-3">
-          <RenderWhen isTrue={adjustedPayable < 0}>
-            <h6
-              id="payable-amount"
-              className="display-6 fs-xs-12 fs-md-18 mb-0 me-4 text-danger"
-            >
-              {Math.abs(adjustedPayable)}
-            </h6>
-          </RenderWhen>
+        {addmissionId && !loading && (
+          <div className="d-flex justify-content-aroun align-items-center gap-3">
+            <RenderWhen isTrue={adjustedPayable < 0}>
+              <h6
+                id="payable-amount"
+                className="display-6 fs-xs-12 fs-md-18 mb-0 me-4 text-danger"
+              >
+                {Math.abs(adjustedPayable)}
+              </h6>
+            </RenderWhen>
 
-          <RenderWhen isTrue={adjustedPayable > 0}>
-            <h6
-              id="payable-amount"
-              className="display-6 fs-xs-12 fs-md-18 mb-0 me-4 text-success"
-            >
-              {adjustedPayable}
-            </h6>
-          </RenderWhen>
+            <RenderWhen isTrue={adjustedPayable > 0}>
+              <h6
+                id="payable-amount"
+                className="display-6 fs-xs-12 fs-md-18 mb-0 me-4 text-success"
+              >
+                {adjustedPayable}
+              </h6>
+            </RenderWhen>
 
-          <RenderWhen isTrue={adjustedPayable === 0}>
-            <h6
-              id="payable-amount"
-              className="display-6 fs-xs-12 fs-md-18 mb-0 me-4"
-            >
-              0
-            </h6>
-          </RenderWhen>
-        </div>)}
-
+            <RenderWhen isTrue={adjustedPayable === 0}>
+              <h6
+                id="payable-amount"
+                className="display-6 fs-xs-12 fs-md-18 mb-0 me-4"
+              >
+                0
+              </h6>
+            </RenderWhen>
+          </div>
+        )}
       </div>
 
       <RenderWhen isTrue={Boolean(drafts?.length)}>
@@ -273,10 +280,59 @@ const Billing = ({
           patient in order to create bills!
         </Alert>
       </RenderWhen>
-      <BillDate isOpen={dateModal} toggle={toggleModal} admission={admission} adjustedPayable={
-        adjustedPayable < 0 ? Math.abs(adjustedPayable) : 0
-      } />
+      <BillDate
+        isOpen={dateModal}
+        toggle={toggleModal}
+        admission={admission}
+        adjustedPayable={adjustedPayable < 0 ? Math.abs(adjustedPayable) : 0}
+      />
       <BillForm type={IPD} />
+
+      <InvoiceLedgerModal
+        isOpen={ledgerModal}
+        toggle={toggleLedgerModal}
+        patient={patient}
+        admission={ledgerAdmission}
+        center={(() => {
+          if (
+            ledgerAdmission?.center &&
+            typeof ledgerAdmission.center === "object" &&
+            ledgerAdmission.center.name
+          ) {
+            return ledgerAdmission.center;
+          }
+          const admCenterId =
+            ledgerAdmission?.center?._id ||
+            (typeof ledgerAdmission?.center === "string"
+              ? ledgerAdmission.center
+              : null);
+          if (admCenterId && Array.isArray(centers)) {
+            const found = centers.find(
+              (c) => String(c?._id) === String(admCenterId),
+            );
+            if (found && found.name) return found;
+          }
+          if (
+            patient?.center &&
+            typeof patient.center === "object" &&
+            patient.center.name
+          ) {
+            return patient.center;
+          }
+          const ptCenterId =
+            patient?.center?._id ||
+            (typeof patient?.center === "string" ? patient.center : null);
+          if (ptCenterId && Array.isArray(centers)) {
+            const found = centers.find(
+              (c) => String(c?._id) === String(ptCenterId),
+            );
+            if (found && found.name) return found;
+          }
+          return patient?.center && typeof patient.center === "object"
+            ? patient.center
+            : null;
+        })()}
+      />
 
       <div className="mt-3">
         <Row className="timeline-right row-gap-5">
@@ -303,26 +359,26 @@ const Billing = ({
               >
                 <div className="d-flex align-items-center mt-2 flex-column">
                   <RenderWhen
-                    isTrue={
-                      (() => {
-                        const specialEmails = [
-                          "rijutarafder000@gmail.com",
-                          "owais@gmail.com",
-                          "bishal@gmail.com",
-                          "hemanthshinde@gmail.com",
-                          "surjeet.parida@gmail.com",
-                          "sarang.padulkar@jagrutirehab.org"
-                        ];
+                    isTrue={(() => {
+                      const specialEmails = [
+                        "rijutarafder000@gmail.com",
+                        "owais@gmail.com",
+                        "bishal@gmail.com",
+                        "hemanthshinde@gmail.com",
+                        "surjeet.parida@gmail.com",
+                        "sarang.padulkar@jagrutirehab.org",
+                      ];
 
-                        const isSpecialUser = specialEmails.includes(user?.email);
-                        const hasBasicRequirements = addmission.dischargeDate && latestAdmission._id === addmission._id;
+                      const isSpecialUser = specialEmails.includes(user?.email);
+                      const hasBasicRequirements =
+                        addmission.dischargeDate &&
+                        latestAdmission._id === addmission._id;
 
-                        if (isSpecialUser) {
-                          return hasBasicRequirements;
-                        }
-                        return hasBasicRequirements && adjustedPayable < 0;
-                      })()
-                    }
+                      if (isSpecialUser) {
+                        return hasBasicRequirements;
+                      }
+                      return hasBasicRequirements && adjustedPayable < 0;
+                    })()}
                   >
                     {/* sarang.padulkar@jagrutirehab.org */}
                     <Button
@@ -336,6 +392,25 @@ const Billing = ({
                       Create new Bill
                     </Button>
                   </RenderWhen>
+                  {/* <CheckPermission permission={"read"} subAccess={"Billing"}> */}
+                  {addmission._id === latestAdmission?._id &&
+                    hasUserPermission && (
+                      <div className="mt-2">
+                        <Button
+                          className="text-nowrap"
+                          color="secondary"
+                          outline
+                          onClick={() => {
+                            setLedgerAdmission(addmission);
+                            setLedgerModal(true);
+                          }}
+                          size="sm"
+                        >
+                          Invoice History
+                        </Button>
+                      </div>
+                    )}
+                  {/* </CheckPermission> */}
                 </div>
 
                 <div className="d-flex gap-3 mt-2">
@@ -383,30 +458,30 @@ const Billing = ({
                     user?.email === "owais@gmail.com" ||
                     user?.email === "bishal@gmail.com" ||
                     user?.email === "hemanthshinde@gmail.com") && (
-                      <div className="d-flex align-items-center">
-                        <UncontrolledTooltip
-                          placement="bottom"
-                          target="edit-admission"
-                        >
-                          Edit Admission
-                        </UncontrolledTooltip>
-                        <Button
-                          onClick={() => {
-                            dispatch(
-                              admitDischargePatient({
-                                data: addmission,
-                                isOpen: EDIT_ADMISSION,
-                              }),
-                            );
-                          }}
-                          id="edit-admission"
-                          size="sm"
-                          outline
-                        >
-                          <i className="ri-quill-pen-line text-muted fs-6"></i>
-                        </Button>
-                      </div>
-                    )}
+                    <div className="d-flex align-items-center">
+                      <UncontrolledTooltip
+                        placement="bottom"
+                        target="edit-admission"
+                      >
+                        Edit Admission
+                      </UncontrolledTooltip>
+                      <Button
+                        onClick={() => {
+                          dispatch(
+                            admitDischargePatient({
+                              data: addmission,
+                              isOpen: EDIT_ADMISSION,
+                            }),
+                          );
+                        }}
+                        id="edit-admission"
+                        size="sm"
+                        outline
+                      >
+                        <i className="ri-quill-pen-line text-muted fs-6"></i>
+                      </Button>
+                    </div>
+                  )}
 
                   <div className="d-flex align-items-center">
                     <UncontrolledTooltip
@@ -425,10 +500,11 @@ const Billing = ({
                       outline
                     >
                       <i
-                        className={`${open === idx.toString()
-                          ? " ri-arrow-up-s-line"
-                          : "ri-arrow-down-s-line"
-                          } fs-6`}
+                        className={`${
+                          open === idx.toString()
+                            ? " ri-arrow-up-s-line"
+                            : "ri-arrow-down-s-line"
+                        } fs-6`}
                       ></i>
                     </Button>
                   </div>
@@ -481,6 +557,7 @@ const mapStateToProps = (state) => ({
   totalDeposit: state.Bill.totalDeposit,
   loading: state.Bill.billLoading,
   drafts: state.Bill.draftData,
+  centers: state.Center.data,
 });
 
 export default connect(mapStateToProps)(Billing);
