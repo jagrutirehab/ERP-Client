@@ -20,6 +20,8 @@ export const useManageRules = () => {
   const [search, setSearch] = useState("");
   const [severityFilter, setSeverityFilter] = useState([]);
   const [activeFilter, setActiveFilter] = useState("all"); // all | active | inactive
+  // "all" | a category value | "UNCATEGORISED" (rules saved before categories)
+  const [categoryFilter, setCategoryFilter] = useState("all");
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -55,9 +57,16 @@ export const useManageRules = () => {
         return false;
       if (activeFilter === "active" && !r.isActive) return false;
       if (activeFilter === "inactive" && r.isActive) return false;
+      if (categoryFilter === "UNCATEGORISED" && r.category) return false;
+      if (
+        categoryFilter !== "all" &&
+        categoryFilter !== "UNCATEGORISED" &&
+        r.category !== categoryFilter
+      )
+        return false;
       return true;
     });
-  }, [rules, search, severityFilter, activeFilter]);
+  }, [rules, search, severityFilter, activeFilter, categoryFilter]);
 
   const counts = useMemo(
     () => ({
@@ -110,6 +119,8 @@ export const useManageRules = () => {
     clearSeverityFilter,
     activeFilter,
     setActiveFilter,
+    categoryFilter,
+    setCategoryFilter,
     // actions
     load,
     handleToggleActive,

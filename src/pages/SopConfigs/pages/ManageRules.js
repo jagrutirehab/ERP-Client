@@ -82,7 +82,8 @@ const ManageRules = () => {
   const noFiltersApplied =
     rulesState.search === "" &&
     rulesState.severityFilter.length === 0 &&
-    rulesState.activeFilter === "all";
+    rulesState.activeFilter === "all" &&
+    rulesState.categoryFilter === "all";
 
   return (
     <CardBody
@@ -103,6 +104,8 @@ const ManageRules = () => {
         onSearchChange={rulesState.setSearch}
         activeFilter={rulesState.activeFilter}
         onActiveFilterChange={rulesState.setActiveFilter}
+        categoryFilter={rulesState.categoryFilter}
+        onCategoryFilterChange={rulesState.setCategoryFilter}
         severityFilter={rulesState.severityFilter}
         onToggleSeverity={rulesState.toggleSeverity}
         onClearSeverity={rulesState.clearSeverityFilter}

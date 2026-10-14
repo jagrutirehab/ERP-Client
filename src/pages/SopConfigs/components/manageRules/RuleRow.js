@@ -2,6 +2,7 @@ import { Badge, Button } from "reactstrap";
 import { SEVERITY_COLOR, SEVERITY_HEX } from "../../../Alerts/components/alertConstants";
 import { fmtDate, ruleSummary } from "./ruleUtils";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
+import { sopCategoryLabel } from "../../../../Components/constants/sopConstants";
 
 const SEV_RANK = { LOW: 1, MEDIUM: 2, HIGH: 3, CRITICAL: 4 };
 
@@ -75,6 +76,15 @@ const RuleRow = ({
               <Badge color="secondary" pill>
                 {rule.targetBlocks.length} blocks
               </Badge>
+            )}
+            {rule.category ? (
+              <span className="badge rounded-pill badge-soft-info">
+                {sopCategoryLabel(rule.category)}
+              </span>
+            ) : (
+              <span className="badge rounded-pill badge-soft-warning">
+                No category
+              </span>
             )}
           </div>
           <div

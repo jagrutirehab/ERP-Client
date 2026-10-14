@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import Flatpickr from "react-flatpickr";
 import AsyncSelect from "react-select/async";
+import Select from "react-select";
 import "flatpickr/dist/themes/material_blue.css";
 import { Button, ButtonGroup, Row, Col } from "reactstrap";
 import { useSelector } from "react-redux";
@@ -11,6 +12,7 @@ import {
   listSopRules,
 } from "../../../helpers/backend_helper";
 import CenterDropdown from "../../Report/Components/Doctor/components/CenterDropDown";
+import { SOP_CATEGORY_OPTIONS } from "../../../Components/constants/sopConstants";
 
 const READ_STATES = [
   { k: "all", label: "All" },
@@ -75,6 +77,7 @@ const AlertsFilters = ({
   const hasAnyServerFilter =
     serverFilters.patients?.length > 0 ||
     serverFilters.rules?.length > 0 ||
+    serverFilters.categories?.length > 0 ||
     serverFilters.centers?.length > 0 ||
     !!serverFilters.dateFrom ||
     !!serverFilters.dateTo ||
@@ -145,9 +148,9 @@ const AlertsFilters = ({
 
   return (
     <div className="mb-3 p-2 bg-light rounded">
-      {/* Row 1 — Patient + SOP Rule multi-selects */}
+      {/* Row 1 — Patient + SOP Category + SOP Rule multi-selects + dates */}
       <Row className="g-2 mb-2 align-items-end">
-        <Col md={5}>
+        <Col md={3}>
           <small className="text-muted d-block mb-1">
             <i className="bx bx-user-circle me-1" />
             Patient
@@ -165,7 +168,29 @@ const AlertsFilters = ({
             }
           />
         </Col>
-        <Col md={4}>
+        <Col md={3}>
+          <small className="text-muted d-block mb-1">
+            <i className="bx bx-category me-1" />
+            SOP Category
+          </small>
+          {/* Matches by the alert's rule, so older alerts filter too.
+              Baseline Package alerts count as Lab Reports. */}
+          <Select
+            isMulti
+            options={SOP_CATEGORY_OPTIONS}
+            value={SOP_CATEGORY_OPTIONS.filter((o) =>
+              (serverFilters.categories || []).includes(o.value),
+            )}
+            onChange={(v) =>
+              onServerFilterChange(
+                "categories",
+                (v || []).map((o) => o.value),
+              )
+            }
+            placeholder="All categories"
+          />
+        </Col>
+        <Col md={3}>
           <small className="text-muted d-block mb-1">
             <i className="bx bx-list-check me-1" />
             SOP Rule (name or protocol)

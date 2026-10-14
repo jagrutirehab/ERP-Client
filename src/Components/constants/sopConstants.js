@@ -277,8 +277,24 @@ export const emptyTargetBlock = () => ({
 export const emptyForm = () => ({
   ruleName: "",
   protocol: "",
+  category: "",
   isActive: true,
 });
+
+// SOP rule categories — organisational only (rules list + alerts filter); they
+// never affect whether an alert fires. Mirrors SOP_CATEGORY_OPTIONS in the
+// server's src/constants/sopCategories.js — values must match exactly.
+export const SOP_CATEGORY_OPTIONS = [
+  { value: "VITAL_SIGNS", label: "Vital Signs" },
+  { value: "CLINICAL_TESTS", label: "Clinical Tests" },
+  { value: "LAB_REPORTS", label: "Lab Reports" },
+  { value: "ADMISSION_DOCUMENTATION", label: "Admission Documentation" },
+  { value: "CLINICAL_DOCUMENTATION", label: "Clinical Documentation" },
+  { value: "OTHER", label: "Other" },
+];
+
+export const sopCategoryLabel = (value) =>
+  SOP_CATEGORY_OPTIONS.find((o) => o.value === value)?.label || "";
 export const BLOOD_GROUP_OPTIONS = [
   "A+",
   "A-",
