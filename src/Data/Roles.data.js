@@ -61,6 +61,7 @@ export const permissionList = [
       { name: "PATIENTSBILLING", label: "Paitents Bill" },
       { name: "PATIENTCHARTS", label: "Paitents Chart" },
       { name: "ADDMISSIONSUMMARY", label: "Addmission Summary" },
+      { name: "INVOICEHISTORY", label: "Invoice History" },
     ],
   },
   {
@@ -197,7 +198,7 @@ export const permissionList = [
     label: "Pharmacy",
     subModules: [
       { name: "DASHBOARD", label: "Dashboard" },
-       {
+      {
         name: "INVENTORY_HEALTH_REPORT",
         label: "Inventory Health Report",
       },
@@ -523,8 +524,14 @@ export const permissionList = [
       // Incentives
       { name: "INCENTIVES_ADD_REQUEST", label: "Incentives Add Request" },
       { name: "INCENTIVES_APPROVAL", label: "Incentives Approval" },
-      { name: "PAYROLL_ADJUSTMENTS_ADD_REQUEST", label: "Payroll Adjustments Add Request" },
-      { name: "PAYROLL_ADJUSTMENTS_APPROVAL", label: "Payroll Adjustments Approval" },
+      {
+        name: "PAYROLL_ADJUSTMENTS_ADD_REQUEST",
+        label: "Payroll Adjustments Add Request",
+      },
+      {
+        name: "PAYROLL_ADJUSTMENTS_APPROVAL",
+        label: "Payroll Adjustments Approval",
+      },
       // Salary
       { name: "SALARY", label: "Salary" },
       // My Pending Approvals

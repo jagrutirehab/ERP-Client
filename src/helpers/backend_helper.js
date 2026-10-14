@@ -750,6 +750,11 @@ export const getBillsAddmissions = (data) =>
     },
   });
 export const getBills = (data) => api.get(url.GET_BILLS, { addmission: data });
+export const getPatientLedger = (data) =>
+  api.get(
+    url.GET_PATIENT_LEDGER,
+    typeof data === "object" && data !== null ? data : { patient: data }
+  );
 export const getDraftBills = (data) => api.get(url.GET_DRAFT_BILLS, data);
 const multipartConfig = (data) =>
   data instanceof FormData
