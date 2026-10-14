@@ -2,7 +2,7 @@ import React from "react";
 import { Modal, ModalHeader, ModalBody, Button } from "reactstrap";
 import { Eye, Download, FileText } from "lucide-react";
 import StatusBadge from "./StatusBadge";
-import { formatDate } from "./data";
+import { formatDate } from "../data";
 
 const Field = ({ label, children }) => (
   <div className="d-flex justify-content-between py-2 border-bottom">

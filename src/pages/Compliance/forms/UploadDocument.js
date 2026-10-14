@@ -14,8 +14,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { UploadCloud, CheckCircle2 } from "lucide-react";
 import { toast } from "react-toastify";
 import Select from "react-select";
-import { addSubmission } from "./submissionsStore";
-import { CENTRES, CATEGORIES, getItem } from "./data";
+import { addSubmission } from "../submissionsStore";
+import { CENTRES, CATEGORIES, getItem } from "../data";
 
 const LEAD_OPTIONS = [30, 60, 90, 120];
 

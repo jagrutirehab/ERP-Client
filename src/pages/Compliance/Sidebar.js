@@ -16,6 +16,7 @@ const Sidebar = () => {
   const hasCentresPermission = hasPermission("COMPLIANCE", "CENTRES", "READ");
   const hasRegisterPermission = hasPermission("COMPLIANCE", "REGISTER", "READ");
   const hasTypesPermission = hasPermission("COMPLIANCE", "COMPLIANCE_TYPES", "READ");
+  const hasCategoriesPermission = hasPermission("COMPLIANCE", "CATEGORIES", "READ");
   const hasApprovalsPermission = hasPermission("COMPLIANCE", "APPROVALS", "READ");
 
   const submissions = useSubmissions();
@@ -34,6 +35,7 @@ const Sidebar = () => {
     if (page.id === "compliance-centres") return hasCentresPermission;
     if (page.id === "compliance-register") return hasRegisterPermission;
     if (page.id === "compliance-types") return hasTypesPermission;
+    if (page.id === "compliance-categories") return hasCategoriesPermission;
     if (page.id === "compliance-approvals") return hasApprovalsPermission;
     return true;
   });

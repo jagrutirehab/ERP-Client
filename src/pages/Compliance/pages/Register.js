@@ -1,12 +1,12 @@
 import React, { useMemo, useState } from "react";
 import { Card, CardBody, Row, Col, Button, Input } from "reactstrap";
 import { useNavigate } from "react-router-dom";
-import DataTable from "react-data-table-component";
+import DataTableComponent from "../../../Components/Common/DataTable";
 import Select from "react-select";
 import { Eye } from "lucide-react";
-import StatusBadge from "./StatusBadge";
-import ItemDetailModal from "./ItemDetailModal";
-import { CENTRES, ITEMS, formatDate } from "./data";
+import StatusBadge from "../components/StatusBadge";
+import ItemDetailModal from "../components/ItemDetailModal";
+import { CENTRES, ITEMS, formatDate } from "../data";
 
 const getIssuedOn = (item) =>
   item.validTill && item.termDays ? new Date(item.validTill.getTime() - item.termDays * 86400000) : null;
@@ -24,19 +24,6 @@ const STATUS_OPTIONS = [
   { value: "valid", label: "Valid" },
   { value: "lt", label: "No expiry" },
 ];
-
-const customStyles = {
-  headCells: {
-    style: {
-      backgroundColor: "#f8f9fa",
-      fontWeight: "600",
-      borderBottom: "2px solid #e9ecef",
-    },
-  },
-  rows: {
-    style: { borderBottom: "1px solid #f1f1f1" },
-  },
-};
 
 const Register = () => {
   const navigate = useNavigate();
@@ -187,17 +174,10 @@ const Register = () => {
       {/* Table */}
       <Card className="shadow-sm border-0">
         <CardBody className="p-0">
-          <DataTable
+          <DataTableComponent
             columns={columns}
             data={rows}
-            highlightOnHover
-            pagination
-            striped
-            responsive
-            customStyles={customStyles}
-            noDataComponent={
-              <div className="text-center text-muted py-4">No items match these filters.</div>
-            }
+            noDataComponent="No items match these filters."
           />
         </CardBody>
       </Card>

@@ -1,5 +1,5 @@
 import React from "react";
-import { STATUS } from "./data";
+import { STATUS } from "../data";
 
 const StatusBadge = ({ statusKey, className = "" }) => {
   const s = STATUS[statusKey];

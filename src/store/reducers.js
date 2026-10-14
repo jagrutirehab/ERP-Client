@@ -108,6 +108,9 @@ import HRMS from "./features/HRMS/hrmsSlice";
 // Center Dashboard
 import CenterDashboard from "./features/centerDashboard/centerDashboardSlice";
 
+// Compliance
+import Compliance from "./features/compliance/complianceSlice";
+
 const rootReducer = combineReducers({
   // ** public **
   User,
@@ -149,6 +152,7 @@ const rootReducer = combineReducers({
   MIReporting,
   HRMS,
   CenterDashboard,
+  Compliance,
 });
 
 export default rootReducer;

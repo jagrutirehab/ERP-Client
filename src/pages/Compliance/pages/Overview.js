@@ -1,8 +1,8 @@
 import React, { useMemo } from "react";
 import { Row, Col, Card, CardHeader, CardBody, Button } from "reactstrap";
 import { Link, useNavigate } from "react-router-dom";
-import StatusBadge from "./StatusBadge";
-import { CENTRES, CATEGORIES, ITEMS, STATUS, formatDate, overviewStats, centreScore } from "./data";
+import StatusBadge from "../components/StatusBadge";
+import { CENTRES, CATEGORIES, ITEMS, STATUS, formatDate, overviewStats, centreScore } from "../data";
 
 const ACTION_ORDER = { expired: 0, missing: 1, renewal: 2 };
 

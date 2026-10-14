@@ -3,29 +3,23 @@ import { Row, Col, Card, CardHeader, CardBody, Button } from "reactstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import { Download, Plus, ChevronDown, ChevronRight, Eye, FileText, Check } from "lucide-react";
 import Select from "react-select";
-import StatusBadge from "./StatusBadge";
-import { getCategoryIcon, GROUP_COLORS } from "./icons";
+import StatusBadge from "../components/StatusBadge";
+import { getCategoryIcon, GROUP_COLORS } from "../icons";
 import {
   CENTRES,
   STATUS,
   TODAY,
+  DEFAULT_CHECKLIST_STEPS,
   centreItems,
   centreCategoryItems,
   worstStatus,
   validityProgress,
   centreScore,
   formatDate,
-} from "./data";
+} from "../data";
 
 const GROUP_ORDER = ["Statutory registration", "Safety & environment", "Pharmacy", "Premises & insurance"];
 const ATTENTION_KEYS = ["expired", "due30", "due90", "renewal", "missing"];
-const CHECKLIST_STEPS = [
-  "Prerequisites gathered (inspection reports, prior certificate)",
-  "Application submitted on authority portal",
-  "Fee paid · challan uploaded",
-  "Inspection / authority visit completed",
-  "Renewed certificate uploaded & verified",
-];
 const CHECKLIST_PROGRESS = { renewal: 2, due30: 1, expired: 1, due90: 0, valid: 0 };
 
 const CenterDetail = () => {
@@ -399,7 +393,7 @@ const CenterDetail = () => {
                   <div className="mb-4">
                     <h6 className="mb-2">Renewal checklist</h6>
                     <div className="d-flex flex-column gap-2">
-                      {CHECKLIST_STEPS.map((step, idx) => {
+                      {(selected.checklistSteps?.length ? selected.checklistSteps : DEFAULT_CHECKLIST_STEPS).map((step, idx) => {
                         const done = idx < (CHECKLIST_PROGRESS[selected.statusKey] || 0);
                         return (
                           <div key={step} className="d-flex align-items-center gap-2">

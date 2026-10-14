@@ -182,6 +182,16 @@ export const ITEMS = (() => {
 
 export const GROUPS = ["Statutory registration", "Safety & environment", "Pharmacy", "Premises & insurance"];
 
+// Default renewal checklist steps, used to seed a new Compliance Type and as the
+// fallback wherever an item's type doesn't define its own steps yet.
+export const DEFAULT_CHECKLIST_STEPS = [
+  "Prerequisites gathered (inspection reports, prior certificate)",
+  "Application submitted on authority portal",
+  "Fee paid · challan uploaded",
+  "Inspection / authority visit completed",
+  "Renewed certificate uploaded & verified",
+];
+
 // Seed data for the "Compliance type" admin screen — one row per category,
 // derived from the matrix above so "applicable centres" matches what's actually tracked.
 export const DEFAULT_COMPLIANCE_TYPES = CATEGORIES.map((cat, ki) => {

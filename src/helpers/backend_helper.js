@@ -2296,6 +2296,82 @@ export const deleteMedicineRequisition = (id) => {
   });
 };
 
+// COMPLIANCE TYPES
+export const getComplianceTypes = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_TYPES, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getComplianceTypeById = (id) => {
+  return api.get(`${url.COMPLIANCE_TYPES}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const createComplianceType = (data) => {
+  return api.create(url.COMPLIANCE_TYPES, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editComplianceType = (id, data) => {
+  return api.update(`${url.COMPLIANCE_TYPES}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const updateComplianceTypeStatus = (id, active) => {
+  return api.update(
+    `${url.COMPLIANCE_TYPES}/${id}/status`,
+    { active },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const deleteComplianceType = (id) => {
+  return api.delete(`${url.COMPLIANCE_TYPES}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// COMPLIANCE CATEGORIES
+export const getComplianceCategories = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_CATEGORIES, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const createComplianceCategory = (data) => {
+  return api.create(url.COMPLIANCE_CATEGORIES, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editComplianceCategory = (id, data) => {
+  return api.update(`${url.COMPLIANCE_CATEGORIES}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const updateComplianceCategoryStatus = (id, active) => {
+  return api.update(
+    `${url.COMPLIANCE_CATEGORIES}/${id}/status`,
+    { active },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const deleteComplianceCategory = (id) => {
+  return api.delete(`${url.COMPLIANCE_CATEGORIES}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 // PHARMACY EXPIRED STOCK
 export const getExpiredStock = (params = {}) => {
   return api.get(url.PHARMACY_EXPIRED_STOCK, {

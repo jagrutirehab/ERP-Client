@@ -1,21 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Label, Input } from "reactstrap";
 import { CheckCircle2, XCircle, FileText } from "lucide-react";
-import { renderStatusBadge } from "../../Components/Common/renderStatusBadge";
+import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge";
+import { formatDateTime } from "../../../utils/time";
 
 const formatDate = (d) =>
   d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
-
-const formatDateTime = (d) =>
-  d
-    ? new Date(d).toLocaleString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "—";
 
 const Field = ({ label, children }) => (
   <div className="d-flex justify-content-between py-2 border-bottom">

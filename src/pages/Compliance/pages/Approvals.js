@@ -1,42 +1,19 @@
 import React, { useMemo, useState } from "react";
 import { Card, CardBody, Nav, NavItem, NavLink, Button } from "reactstrap";
-import DataTable from "react-data-table-component";
+import DataTableComponent from "../../../Components/Common/DataTable";
 import Select from "react-select";
 import { Eye } from "lucide-react";
-import { renderStatusBadge } from "../../Components/Common/renderStatusBadge";
-import ReviewModal from "./ReviewModal";
-import { useSubmissions, decideSubmission } from "./submissionsStore";
-import { CENTRES } from "./data";
+import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge";
+import ReviewModal from "../components/ReviewModal";
+import { useSubmissions, decideSubmission } from "../submissionsStore";
+import { CENTRES } from "../data";
+import { formatDateTime } from "../../../utils/time";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
   { value: "APPROVED", label: "Approved" },
   { value: "REJECTED", label: "Rejected" },
 ];
-
-const customStyles = {
-  headCells: {
-    style: {
-      backgroundColor: "#f8f9fa",
-      fontWeight: "600",
-      borderBottom: "2px solid #e9ecef",
-    },
-  },
-  rows: {
-    style: { borderBottom: "1px solid #f1f1f1" },
-  },
-};
-
-const formatDateTime = (d) =>
-  d
-    ? new Date(d).toLocaleString("en-IN", {
-        day: "numeric",
-        month: "short",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-      })
-    : "—";
 
 const Approvals = () => {
   const submissions = useSubmissions();
@@ -184,17 +161,10 @@ const Approvals = () => {
       {/* Table */}
       <Card className="shadow-sm border-0">
         <CardBody className="p-0">
-          <DataTable
+          <DataTableComponent
             columns={columns}
             data={rows}
-            highlightOnHover
-            pagination
-            striped
-            responsive
-            customStyles={customStyles}
-            noDataComponent={
-              <div className="text-center text-muted py-4">No submissions match these filters.</div>
-            }
+            noDataComponent="No submissions match these filters."
           />
         </CardBody>
       </Card>
