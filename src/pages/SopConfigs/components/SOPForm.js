@@ -29,6 +29,7 @@ import {
   emptyConditionItem,
   emptyTargetBlock,
   emptyForm,
+  SOP_CATEGORY_OPTIONS,
 } from "../../../Components/constants/sopConstants";
 import ConditionRow from "./ConditionRow";
 import MainBlock from "./MainBlock";
@@ -260,6 +261,7 @@ const SOPForm = ({
     setForm({
       ruleName: initialValues.ruleName || "",
       protocol: initialValues.protocol || "",
+      category: initialValues.category || "",
       isActive: initialValues.isActive !== false,
     });
 
@@ -559,6 +561,7 @@ const SOPForm = ({
   const validate = () => {
     const errs = {};
     if (!form.ruleName.trim()) errs.ruleName = "Rule name is required";
+    if (!form.category) errs.category = "Select a category";
     if (!satisfyingCriteria.centers?.length)
       errs.satisfyingCriteriaCenters = "Select at least one center";
 
@@ -737,6 +740,7 @@ const SOPForm = ({
 
     const payload = {
       ruleName: form.ruleName.trim(),
+      category: form.category,
       isActive: form.isActive,
       targetBlocks: targetBlocks.map((block) => ({
         name: block.name?.trim(),
@@ -799,7 +803,7 @@ const SOPForm = ({
         <CardHeader className="fw-semibold">1. Basic Info</CardHeader>
         <CardBody>
           <Row>
-            <Col md={6}>
+            <Col md={4}>
               <FormGroup>
                 <Label for="ruleName">
                   SOP Name <span className="text-danger">*</span>
@@ -817,7 +821,30 @@ const SOPForm = ({
                 )}
               </FormGroup>
             </Col>
-            <Col md={6}>
+            <Col md={4}>
+              <FormGroup>
+                <Label for="sopCategory">
+                  SOP Category <span className="text-danger">*</span>
+                </Label>
+                <Select
+                  inputId="sopCategory"
+                  options={SOP_CATEGORY_OPTIONS}
+                  value={
+                    SOP_CATEGORY_OPTIONS.find((o) => o.value === form.category) ||
+                    null
+                  }
+                  onChange={(opt) =>
+                    setForm((prev) => ({ ...prev, category: opt?.value || "" }))
+                  }
+                  isDisabled={isSubmitting}
+                  placeholder="Select category..."
+                />
+                {fieldErrors.category && (
+                  <small className="text-danger">{fieldErrors.category}</small>
+                )}
+              </FormGroup>
+            </Col>
+            <Col md={4}>
               <FormGroup>
                 <Label for="protocol">Protocol</Label>
                 <Input
