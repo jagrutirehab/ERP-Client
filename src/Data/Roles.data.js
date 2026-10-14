@@ -692,6 +692,22 @@ export const permissionList = [
       { name: "ASSET_TAG", label: "Create Tags" },
     ],
   },
+  {
+    key: "GRIEVANCE",
+    label: "Grievances",
+    // READ  — see the queue and open a grievance
+    // WRITE — change status, assign, and record the action taken
+    //
+    // DELETE is deliberately not offered. A grievance record is the evidence
+    // that the 30-day window under SPDI Rule 5(9) was met; a role that can
+    // delete one can erase a missed deadline, so the option should not exist
+    // rather than merely be discouraged.
+    permissionOptions: ["READ", "WRITE", "NONE"],
+    // No submodules: a grievance is one workflow with one statutory clock, and
+    // splitting it would let a role close a grievance without being able to
+    // read the complaint it closes.
+    subModules: [],
+  },
 ];
 
 export const modulePermissionOptions = ["READ", "WRITE", "DELETE", "NONE"];

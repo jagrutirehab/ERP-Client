@@ -67,6 +67,18 @@ const pages = [
     },
   },
   {
+    id: "grievances",
+    label: "Grievances",
+    name: "Grievances",
+    link: "/grievances",
+    icon: "bx bx-shield-quarter",
+    // No `permissions` block on purpose — User/Form.js only renders the
+    // Create/Edit/Delete checkboxes when one is present. Page Access decides
+    // whether this page is VISIBLE to a user; what they may DO on it is the
+    // GRIEVANCE module in Roles Management, so there is one place to look
+    // rather than two that can disagree.
+  },
+  {
     id: "cash",
     label: "Cash",
     name: "Cash",
@@ -702,6 +714,12 @@ export const setting = [
     label: "Centre Fallback Manager",
     link: "/setting/center/fallback/manager",
     icon: "bx bx-user-pin",
+  },
+  {
+    id: "grievanceofficer",
+    label: "Grievance Officer",
+    link: "/setting/grievance-officer",
+    icon: "bx bx-user-voice",
   },
 ];
 
