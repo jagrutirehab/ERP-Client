@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import PropTypes from "prop-types";
 import {
   Input,
@@ -17,22 +17,26 @@ const Medicine = ({ data, dataList, fieldName, addItem }) => {
   const [searchItem, setSearchItem] = useState("");
   const [filteredMedicines, setFilteredMedicines] = useState([]);
 
-  const debouncedHandleChange = debounce(async (val) => {
-    try {
-      const res = await axios.get("/medicine/", {
-        params: {
-          search: val,
-          page: 1,
-          limit: 10,
-        },
-      });
-      const payload = res?.payload || [];
-      setFilteredMedicines(payload);
-      setDropdown(true);
-    } catch (error) {
-      console.error("Failed to fetch medicines", error);
-    }
-  }, 500);
+  const debouncedHandleChange = useMemo(
+    () =>
+      debounce(async (val) => {
+        try {
+          const res = await axios.get("/medicine/", {
+            params: {
+              search: val,
+              page: 1,
+              limit: 10,
+            },
+          });
+          const payload = res?.payload || [];
+          setFilteredMedicines(payload);
+          setDropdown(true);
+        } catch (error) {
+          console.error("Failed to fetch medicines", error);
+        }
+      }, 500),
+    [],
+  );
 
   const onInputChange = (e) => {
     const val = e.target.value;
@@ -62,7 +66,8 @@ const Medicine = ({ data, dataList, fieldName, addItem }) => {
             }}
           />
           <span
-            onClick={() => {
+            onMouseDown={(e) => {
+              e.preventDefault();
               addItem(searchItem, data);
               setSearchItem("");
             }}
@@ -73,6 +78,7 @@ const Medicine = ({ data, dataList, fieldName, addItem }) => {
               top: "50%",
               transform: "translateY(-50%)",
               cursor: "pointer",
+              zIndex: 5,
             }}
           ></span>
         </DropdownToggle>

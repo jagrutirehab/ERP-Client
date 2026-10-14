@@ -54,7 +54,7 @@ const UploadedFiles = ({ id, chartId, files }) => {
           <Divider />
         </div>
       </Col>
-      {(files || []).map((file) => (
+      {/* {(files || []).map((file) => (
         <Col xs={12} md={4}>
           <FileCard
             file={{ ...file.file, _id: file._id }}
@@ -63,9 +63,20 @@ const UploadedFiles = ({ id, chartId, files }) => {
             onPreview={onPreview}
           />
         </Col>
+      ))} */}
+      {(files || []).map((reportFile) => (
+        <Col key={reportFile._id} xs={12} md={4}>
+          <FileCard
+            file={{ ...reportFile.file, _id: reportFile._id }}
+            showDeleteButton
+            onDelete={getDeleteFile}
+            onPreview={onPreview}
+          />
+        </Col>
       ))}
       <PreviewFile
-        img={file.img}
+        // img={file.img}
+        file={file.img}
         isOpen={file.isOpen}
         toggle={() => setFile({ img: null, isOpen: false })}
       />

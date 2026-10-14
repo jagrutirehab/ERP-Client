@@ -7,6 +7,7 @@ import { connect, useDispatch } from "react-redux";
 import {
   BANK,
   CARD,
+  CASH,
   CHEQUE,
   UPI,
 } from "../../../../Components/constants/intern";
@@ -54,7 +55,8 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                       onKeyDown={(e) => {
                         if (e.key === "ArrowUp" || e.key === "ArrowDown") {
                           e.preventDefault();
-                        }}}
+                        }
+                      }}
                       onChange={(e) => {
                         const event = {
                           target: {
@@ -114,32 +116,13 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                     </Col>
                   </>
                 )}
-                {item.paymentMode === BANK && (
-                  <Col xs={12} md={4}>
-                    <Label>Bank Accounts</Label>
-                    <Input
-                      id={idx}
-                      bsSize="sm"
-                      size={"1"}
-                      name="bankAccount"
-                      value={item.bankAccount || ""}
-                      onChange={handleChange}
-                      type="select"
-                      required
-                    >
-                      <option>No Bank Account Selected</option>
-                      {(paymentAccounts || []).map((item) => (
-                        <option key={item._id} value={item.name}>
-                          {item.name}
-                        </option>
-                      ))}
-                    </Input>
-                  </Col>
-                )}
 
                 {item.paymentMode === UPI && (
                   <Col xs={12} md={4}>
-                    <Label>Transaction Id</Label>
+                    <Label>
+                      Transaction Id
+                      <span className="text-danger">*</span>
+                    </Label>
                     <Input
                       id={idx}
                       bsSize="sm"
@@ -150,6 +133,34 @@ const Payment = ({ paymentModes, setPaymentModes, paymentAccounts }) => {
                       type="text"
                       required
                     />
+                  </Col>
+                )}
+
+                {item.paymentMode !== CASH && (
+                  <Col xs={12} md={4}>
+                    <Label>
+                      Bank Accounts
+                      <span className="text-danger">*</span>
+                    </Label>
+                    <Input
+                      id={idx}
+                      bsSize="sm"
+                      size={"1"}
+                      name="bankAccount"
+                      value={item.bankAccount || ""}
+                      onChange={handleChange}
+                      type="select"
+                      required
+                    >
+                      <option value={""} selected defaultValue={""}>
+                        No Bank Account Selected
+                      </option>
+                      {(paymentAccounts || []).map((item) => (
+                        <option key={item._id} value={item.name}>
+                          {item.name}
+                        </option>
+                      ))}
+                    </Input>
                   </Col>
                 )}
 

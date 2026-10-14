@@ -3,7 +3,10 @@ export const Table = ({ children, tableStyle }) => (
     className="table-responsive rounded-lg border border-primary shadow-lg bg-white"
     style={{ overflowX: "auto", minHeight:"55vh" }}
   >
-    <table className="table table-hover mb-0" style={{ minWidth: "1200px" }}>
+    <table
+      className="table table-hover mb-0"
+      style={{ minWidth: "1200px", ...(tableStyle || {}) }}
+    >
       {children}
     </table>
   </div>

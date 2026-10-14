@@ -15,12 +15,27 @@ import PropTypes from "prop-types";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getExitEmployeesBySearch } from "../../../../store/features/HR/hrSlice";
 import { editAdvanceSalary, postAdvanceSalary } from "../../../../helpers/backend_helper";
+import { format, parse, set } from "date-fns";
 
 const validationSchema = Yup.object().shape({
     amount: Yup.number()
         .typeError("Amount must be a number")
         .required("Amount is required")
         .min(1, "Amount must be greater than 0"),
+    monthlyDeductionAmount: Yup.number()
+        .typeError("Monthly deduction must be a number")
+        .required("Monthly deduction amount is required")
+        .min(1, "Monthly deduction must be greater than 0")
+        .test(
+            "not-greater-than-amount",
+            "Monthly deduction cannot be greater than the advance amount",
+            function (val) {
+                return !val || !this.parent.amount || val <= this.parent.amount;
+            }
+        ),
+    date: Yup.date()
+        .required("Date is required")
+        .typeError("Invalid date"),
 });
 
 const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
@@ -45,7 +60,12 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                     view: "SALARY_ADVANCE"
                 })
             ).unwrap();
-        } finally {
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "something went wrong")
+            }
+        }
+        finally {
             setSearching(false);
         }
     };
@@ -76,7 +96,9 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
             name: initialData?.employeeData?.name || "",
             eCode: initialData?.employeeData?.eCode || "",
             currentLocation: initialData?.center?.title || "",
-            amount: initialData?.amount || "",
+            amount: initialData?.amount || 0,
+            monthlyDeductionAmount: initialData?.monthlyDeductionAmount || 0,
+            date: initialData?.date ? format(new Date(initialData.date), "yyyy-MM-dd") : "",
         },
         validationSchema,
         onSubmit: async (values) => {
@@ -86,9 +108,26 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                     return;
                 }
 
+                let salaryAdvanceDate;
+
+                if (values.date) {
+                    const now = new Date();
+                    salaryAdvanceDate = set(
+                        parse(values.date, "yyyy-MM-dd", new Date()),
+                        {
+                            hours: now.getHours(),
+                            minutes: now.getMinutes(),
+                            seconds: now.getSeconds(),
+                            milliseconds: 0,
+                        }
+                    );
+                }
+
                 const payload = {
                     ...(!isEdit && { employeeId: values.employeeId }),
-                    amount: values.amount
+                    amount: values.amount,
+                    monthlyDeductionAmount: values.monthlyDeductionAmount,
+                    date: salaryAdvanceDate
                 };
 
                 if (isEdit) {
@@ -130,7 +169,7 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                     <Label>Search Employee</Label>
                     <Input
                         type="text"
-                        placeholder="Search by name or eCode"
+                        placeholder="Search by name or ECode"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />
@@ -182,19 +221,19 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
 
             {/* NAME */}
             <FormGroup className="mb-3">
-                <Label for="name">Name</Label>
+                <Label for="name">Name <span className="text-danger">*</span></Label>
                 <Input id="name" name="name" value={form.values.name} disabled />
             </FormGroup>
 
             {/* E-CODE */}
             <FormGroup className="mb-3">
-                <Label for="eCode">E-Code</Label>
+                <Label for="eCode">E-Code <span className="text-danger">*</span></Label>
                 <Input id="eCode" name="eCode" value={form.values.eCode} disabled />
             </FormGroup>
 
             {/* CURRENT LOCATION */}
             <FormGroup className="mb-3">
-                <Label for="currentLocation">Current Location</Label>
+                <Label for="currentLocation">Current Location <span className="text-danger">*</span></Label>
                 <Input
                     id="currentLocation"
                     name="currentLocation"
@@ -203,9 +242,28 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                 />
             </FormGroup>
 
+            {/* DATE */}
+            <FormGroup className="mb-3">
+                <Label for="date">
+                    Date <span className="text-danger">*</span>
+                </Label>
+                <Input
+                    id="date"
+                    type="date"
+                    name="date"
+                    value={form.values.date}
+                    onChange={form.handleChange}
+                    onBlur={form.handleBlur}
+                    invalid={form.touched.date && !!form.errors.date}
+                />
+                {form.touched.date && form.errors.date && (
+                    <div className="text-danger small">{form.errors.date}</div>
+                )}
+            </FormGroup>
+
             {/* AMOUNT */}
             <FormGroup className="mb-3">
-                <Label for="amount">Amount</Label>
+                <Label for="amount">Amount <span className="text-danger">*</span></Label>
                 <Input
                     id="amount"
                     type="number"
@@ -220,7 +278,24 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
                 )}
             </FormGroup>
 
-            <div className="d-flex gap-2 justify-content-end">
+            {/* MONTHLY DEDUCTION AMOUNT */}
+            <FormGroup className="mb-3">
+                <Label for="monthlyDeductionAmount">Employee's Monthly Deduction Amount <span className="text-danger">*</span></Label>
+                <Input
+                    id="monthlyDeductionAmount"
+                    type="number"
+                    name="monthlyDeductionAmount"
+                    value={form.values.monthlyDeductionAmount}
+                    onChange={form.handleChange}
+                    onBlur={form.handleBlur}
+                    invalid={form.touched.monthlyDeductionAmount && !!form.errors.monthlyDeductionAmount}
+                />
+                {form.touched.monthlyDeductionAmount && form.errors.monthlyDeductionAmount && (
+                    <div className="text-danger small">{form.errors.monthlyDeductionAmount}</div>
+                )}
+            </FormGroup>
+
+            <div className="d-flex gap-2 justify-content-end mb-4">
                 {view === "MODAL" && <Button color="secondary" onClick={onCancel} disabled={form.isSubmitting}>
                     Cancel
                 </Button>}

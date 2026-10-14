@@ -7,6 +7,7 @@ import { Trash } from "lucide-react";
 export const attendanceImportHistoryColumns = ({
     hasDeletePermission,
     onDelete,
+    importType
 }) => [
         {
             name: <div>Upload Date</div>,
@@ -20,18 +21,29 @@ export const attendanceImportHistoryColumns = ({
             wrap: true,
             minWidth: "120px"
         },
-        {
+        ...importType === "LOG" ? [{
             name: <div>Generation Date</div>,
             selector: row => row?.generatedOn || "-",
             wrap: true,
             minWidth: "120px"
+        }] : [],
+        {
+            name: <div>Import Type</div>,
+            selector: row => row?.importType?.toUpperCase() || "-",
+            wrap: true,
         },
         {
             name: <div>Center</div>,
             selector: row => capitalizeWords(row?.center?.title || "-"),
             wrap: true,
-            minWidth: "200px"
+            minWidth: "180px"
         },
+        ...importType === "LOG" ? [{
+            name: <div>Organization</div>,
+            selector: row => row?.organization?.toUpperCase() || "-",
+            wrap: true,
+            minWidth: "160px"
+        }] : [],
         {
             name: <div>Total Count</div>,
             selector: row => row?.totalRows,
@@ -56,8 +68,8 @@ export const attendanceImportHistoryColumns = ({
             name: <div>Failed File</div>,
             selector: row => row?.failed?.url,
             cell: (row) =>
-                row.failed.url ? (
-                    <p onClick={() => downloadFile({ url: row.failed.url })}
+                row.failed?.url ? (
+                    <p onClick={() => downloadFile({ url: row.failed.url, originalName: row.failed.originalName || "attendance_API_error_records.xlsx" })}
                         className="text-primary text-decoration-underline cursor-pointer"
                     >
                         Download

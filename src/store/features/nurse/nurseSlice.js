@@ -8,11 +8,13 @@ import {
   getNextDayMedicineBoxFillingMedicines,
   getNotesByPatient,
   getNurseAssignedPatients,
+  getNurseGivenMedicines,
   getNursesListByPatientCenter,
   getPatientDetails,
   getPatientOverview,
   getPatientPrescription,
   getPendingActiveMedicines,
+  getPrescriptionHistory,
   markAlertAsRead,
   markTomorrowMedicines,
 } from "../../../helpers/backend_helper";
@@ -25,8 +27,16 @@ const initialState = {
   notesLoading: false,
   medicineLoading: false,
   medicines: {
-    activities: [],
+    activities: {
+      data: [],
+      pagination: {},
+    },
     nextDay: [],
+  },
+  prescriptionHistory: [],
+  givenMedicines: {
+    data: [],
+    pagination: {},
   },
   searchMode: false,
   patientIdsFromSearch: false,
@@ -205,7 +215,7 @@ export const markTomorrowActivityMedicines = createAsyncThunk(
       return response;
     } catch (error) {
       console.log(error);
-      return rejectWithValue("Failed to mark medicine activity");
+      return rejectWithValue(error);
     }
   }
 );
@@ -224,6 +234,32 @@ export const getNextDayMedicineBoxFillingActivities = createAsyncThunk(
     }
   }
 );
+
+export const getNurseGivenMedicinesList = createAsyncThunk(
+  "nurse/getNurseGivenMedicines",
+  async (params, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getNurseGivenMedicines(params);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to fetch nurse given medicines");
+    }
+  }
+);
+export const getPatientPrescriptionHistory = createAsyncThunk(
+  "nurse/getPrescriptionHistory",
+  async (patientId, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getPrescriptionHistory(patientId);
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("Failed to fetch prescription history");
+    }
+  }
+);
+
 export const markUnreadAlert = createAsyncThunk(
   "nurse/markAlertAsRead",
   async (data, { dispatch, rejectWithValue }) => {
@@ -438,7 +474,10 @@ export const NurseSlice = createSlice({
       .addCase(
         getMedicineActivitiesByStatus.fulfilled,
         (state, { payload }) => {
-          state.medicines.activities = payload.data;
+          state.medicines.activities = {
+            data: payload.data || [],
+            pagination: payload.pagination || {},
+          };
           state.medicineLoading = false;
         }
       )
@@ -448,6 +487,25 @@ export const NurseSlice = createSlice({
     builder.addCase(
       markTomorrowActivityMedicines.fulfilled,
       (state, { payload }) => {
+        const flattenSchedule = (schedule, status) => {
+          if (!schedule) return [];
+          return Object.entries(schedule).flatMap(([slot, meds]) =>
+            (meds || []).map((med) => ({
+              ...med,
+              slot,
+              status,
+            }))
+          );
+        };
+        const activityCompleted = !!payload?.data?.completed;
+        const hasPendingRemoval =
+          Array.isArray(payload?.data?.retrievals?.morning) &&
+          payload.data.retrievals.morning.length > 0 ||
+          Array.isArray(payload?.data?.retrievals?.evening) &&
+          payload.data.retrievals.evening.length > 0 ||
+          Array.isArray(payload?.data?.retrievals?.night) &&
+          payload.data.retrievals.night.length > 0;
+
         const patientIndex = state.data.data.findIndex(
           (patient) => patient._id === payload.data.patient
         );
@@ -460,16 +518,28 @@ export const NurseSlice = createSlice({
           state.data.data[patientIndex].missedMedsCount =
             payload?.data?.missedCount ?? 0;
           state.data.data[patientIndex].medicinesToTakeNow = [];
+          state.data.data[patientIndex].medicinesToRemove = flattenSchedule(
+            payload?.data?.retrievals,
+            "remove_pending"
+          );
           state.data.data[patientIndex] = {
             ...state.data.data[patientIndex],
-            alertCount: payload.data.allCompleted
-              ? state.data.data[patientIndex].alertCount - 1
-              : state.data.data[patientIndex].alertCount,
-            flag: payload.data.allCompleted
-              ? state.data.data[patientIndex].alertCount > 1
-                ? "attention"
-                : "stable"
-              : "attention",
+            alertCount:
+              payload?.data?.alertCount ??
+              (activityCompleted
+                ? state.data.data[patientIndex].alertCount - 1
+                : state.data.data[patientIndex].alertCount),
+            flag:
+              payload?.data?.flag ||
+              (hasPendingRemoval
+                ? "urgent"
+                : payload?.data?.missedCount > 0
+                  ? "attention"
+                  : activityCompleted
+                    ? state.data.data[patientIndex].alertCount > 1
+                      ? "attention"
+                      : "stable"
+                    : state.data.data[patientIndex].flag),
           };
         }
       }
@@ -487,6 +557,31 @@ export const NurseSlice = createSlice({
       )
       .addCase(getNextDayMedicineBoxFillingActivities.rejected, (state) => {
         state.medicineLoading = false;
+      });
+    builder
+      .addCase(getNurseGivenMedicinesList.pending, (state) => {
+        state.medicineLoading = true;
+      })
+      .addCase(getNurseGivenMedicinesList.fulfilled, (state, { payload }) => {
+        state.givenMedicines = {
+          data: payload.data || [],
+          pagination: payload.pagination || {},
+        };
+        state.medicineLoading = false;
+      })
+      .addCase(getNurseGivenMedicinesList.rejected, (state) => {
+        state.medicineLoading = false;
+      });
+    builder
+      .addCase(getPatientPrescriptionHistory.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getPatientPrescriptionHistory.fulfilled, (state, { payload }) => {
+        state.prescriptionHistory = payload.payload || [];
+        state.loading = false;
+      })
+      .addCase(getPatientPrescriptionHistory.rejected, (state) => {
+        state.loading = false;
       });
     builder.addCase(markUnreadAlert.fulfilled, (state, { payload }) => {
       // const alertIndex = state.alertData.findIndex(
@@ -514,6 +609,7 @@ export const NurseSlice = createSlice({
             ...(payload.data.type === "prescription-update" && {
               isPrescriptionUpdated: false,
             }),
+            ...(payload.data.flag && { flag: payload.data.flag }),
             alertCount: Math.max(
               0,
               (state.data.data[patientIndex]?.alertCount || 1) - 1

@@ -18,6 +18,8 @@ import PropTypes from "prop-types";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { getExitEmployeesBySearch } from "../../../../store/features/HR/hrSlice";
 import { editEmployeeTransfer, postEmployeeTransfer } from "../../../../helpers/backend_helper";
+import { fetchAllCenters } from "../../../../store/actions";
+import { format } from "date-fns";
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/;
 
@@ -41,7 +43,8 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
     const [searching, setSearching] = useState(false);
 
     const { employees } = useSelector((state) => state.HR);
-    const { centerAccess, userCenters } = useSelector((state) => state.User);
+    const { centerAccess } = useSelector((state) => state.User);
+    const { allCenters } = useSelector((state) => state.Center);
 
     const searchEmployees = async (text) => {
         setSearching(true);
@@ -71,6 +74,10 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
         return debouncedSearch.cancel;
     }, [searchText]);
 
+    useEffect(() => {
+        dispatch(fetchAllCenters());
+    }, [dispatch]);
+
     const resetAll = () => {
         form.resetForm();
         setSearchText("");
@@ -84,7 +91,10 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
             name: initialData?.employee?.name || "",
             eCode: initialData?.employee?.eCode || "",
             currentLocation: initialData?.currentLocation?.title || "",
-            transferDate: initialData?.transferDate || "",
+            currentLocationId: initialData?.currentLocation?._id || "",
+            transferDate: initialData?.transferDate
+                ? format(new Date(initialData.transferDate), "yyyy-MM-dd")
+                : "",
             transferLocation: initialData?.transferLocation._id || "",
         },
         validationSchema,
@@ -127,15 +137,19 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
         form.setFieldValue("employeeId", emp._id);
         form.setFieldValue("name", emp.name);
         form.setFieldValue("eCode", emp.eCode);
-        form.setFieldValue("currentLocation", emp.currentLocation);
+        form.setFieldValue("currentLocation", emp.currentLocation || "");
+        form.setFieldValue("currentLocationId", emp.currentLocationId || "");
+
+        form.setFieldValue("transferLocation", "");
+
         setShowList(false);
         setSearchText("");
     };
 
     const transferLocationOptions =
-        userCenters
+        allCenters
             ?.filter(
-                center => center._id !== initialData?.currentLocation?._id
+                center => center._id !== form.values.currentLocationId
             )
             .map(center => ({
                 value: center._id,
@@ -150,7 +164,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
                     <Label>Search Employee</Label>
                     <Input
                         type="text"
-                        placeholder="Search by name or eCode"
+                        placeholder="Search by name or ECode"
                         value={searchText}
                         onChange={(e) => setSearchText(e.target.value)}
                     />
@@ -202,19 +216,19 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
 
             {/* NAME */}
             <FormGroup className="mb-3">
-                <Label for="name">Name</Label>
+                <Label for="name">Name <span className="text-danger">*</span></Label>
                 <Input id="name" name="name" value={form.values.name} disabled />
             </FormGroup>
 
             {/* E-CODE */}
             <FormGroup className="mb-3">
-                <Label for="eCode">E-Code</Label>
+                <Label for="eCode">E-Code <span className="text-danger">*</span></Label>
                 <Input id="eCode" name="eCode" value={form.values.eCode} disabled />
             </FormGroup>
 
             {/* CURRENT LOCATION */}
             <FormGroup className="mb-3">
-                <Label for="currentLocation">Current Location</Label>
+                <Label for="currentLocation">Current Location <span className="text-danger">*</span></Label>
                 <Input
                     id="currentLocation"
                     name="currentLocation"
@@ -225,7 +239,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
 
             {/* TRANSFER LOCATION */}
             <FormGroup>
-                <Label for="transferLocation">Transfer Location</Label>
+                <Label for="transferLocation">Transfer Location <span className="text-danger">*</span></Label>
 
                 <Select
                     inputId="transferLocation"
@@ -257,7 +271,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
 
             {/* DATE OF TRANSFER */}
             <FormGroup className="mb-3">
-                <Label for="transferDate">Date of Transfer</Label>
+                <Label for="transferDate">Date of Transfer <span className="text-danger">*</span></Label>
                 <Input
                     id="transferDate"
                     type="date"

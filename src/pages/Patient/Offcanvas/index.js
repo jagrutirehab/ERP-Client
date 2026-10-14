@@ -12,12 +12,10 @@ import {
   Row,
   UncontrolledDropdown,
   Button,
-  UncontrolledPopover,
-  PopoverHeader,
-  PopoverBody,
 } from "reactstrap";
 import { Link } from "react-router-dom";
 import DeleteModal from "../../../Components/Common/DeleteModal";
+import PreviewFile from "../../../Components/Common/PreviewFile";
 
 import smallImage9 from "../../../assets/images/small/img-9.jpg";
 import { connect, useDispatch } from "react-redux";
@@ -42,6 +40,7 @@ const Offcanvas = ({ admissions, profile, user }) => {
     id: "",
     open: false,
   });
+  const [preview, setPreview] = useState({ file: null, title: "" });
 
   const toggleOffCanvas = () => {
     dispatch(viewProfile({ data: null, isOpen: false }));
@@ -69,19 +68,16 @@ const Offcanvas = ({ admissions, profile, user }) => {
           <div className="p-3">
             <div className="team-settings">
               <Row>
-                <Col>
-                  <div className="bookmark-icon flex-shrink-0 me-2">
-                    <Input
-                      type="checkbox"
-                      id="favourite13"
-                      className="bookmark-input bookmark-hide"
-                    />
-                    <Label htmlFor="favourite13" className="btn-star">
-                      <svg width="20" height="20">
-                        {/* <use xlink:href="#icon-star"/> */}
-                      </svg>
-                    </Label>
-                  </div>
+                <Col className="d-flex align-items-center">
+                  <Button
+                    color="soft-danger"
+                    size="sm"
+                    className="btn-icon rounded-circle"
+                    onClick={toggleOffCanvas}
+                    aria-label="Close"
+                  >
+                    <i className="ri-close-line fs-18" />
+                  </Button>
                 </Col>
                 <UncontrolledDropdown
                   direction="start"
@@ -236,37 +232,72 @@ const Offcanvas = ({ admissions, profile, user }) => {
           </div>
           <div className="p-3 border-top">
             <h5 className="fs-15 mb-4">File Manager</h5>
-            <div className="d-flex mb-3 align-items-center">
-              <div className="flex-shrink-0 avatar-xs">
-                <div className="avatar-title bg-soft-danger text-danger rounded fs-16">
-                  <i className="ri-image-2-line"></i>
-                </div>
-              </div>
-              <div className="flex-grow-1 ms-3">
-                <h6 className="mb-1">
-                  <Link to="#">Images</Link>
-                </h6>
-                <p className="text-muted mb-0">Aadhaar Card</p>
-              </div>
-              <div className="text-muted">
-                <Button id="patient-aadhaar-card" size="sm">
-                  View
-                </Button>
-                <UncontrolledPopover
-                  placement="left"
-                  target="patient-aadhaar-card"
+            {[
+              {
+                title: "Aadhaar Card",
+                file: patient?.aadhaarCard,
+                icon: "ri-image-2-line",
+                color: "danger",
+              },
+              {
+                title: "Passport",
+                file: patient?.passportCard,
+                icon: "ri-passport-line",
+                color: "info",
+              },
+            ]
+              .filter((doc) => doc.file?.url)
+              .map((doc) => (
+                <div
+                  key={doc.title}
+                  className="d-flex mb-3 align-items-center"
                 >
-                  <PopoverBody>
-                    <img
-                      className="w-100"
-                      src={patient?.aadhaarCard?.url}
-                      alt="Patient Aadhaar Card"
-                    />
-                  </PopoverBody>
-                </UncontrolledPopover>
-              </div>
-            </div>
+                  <div className="flex-shrink-0 avatar-xs">
+                    <div
+                      className={`avatar-title bg-soft-${doc.color} text-${doc.color} rounded fs-16`}
+                    >
+                      <i className={doc.icon}></i>
+                    </div>
+                  </div>
+                  <div className="flex-grow-1 ms-3">
+                    <h6 className="mb-1">
+                      <Link
+                        to="#"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setPreview({ file: doc.file, title: doc.title });
+                        }}
+                      >
+                        {doc.title}
+                      </Link>
+                    </h6>
+                    <p className="text-muted mb-0 text-truncate">
+                      {doc.file.originalName || "Document"}
+                    </p>
+                  </div>
+                  <div className="text-muted">
+                    <Button
+                      size="sm"
+                      onClick={() =>
+                        setPreview({ file: doc.file, title: doc.title })
+                      }
+                    >
+                      View
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            {!patient?.aadhaarCard?.url && !patient?.passportCard?.url && (
+              <p className="text-muted mb-0">No documents uploaded.</p>
+            )}
           </div>
+          <PreviewFile
+            title={preview.title}
+            file={preview.file}
+            isOpen={Boolean(preview.file)}
+            toggle={() => setPreview({ file: null, title: "" })}
+            allowDownload
+          />
         </OffcanvasBody>
       </PatientOffCanvas>
     </React.Fragment>

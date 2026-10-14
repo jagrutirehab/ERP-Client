@@ -8,9 +8,10 @@ import Select from "react-select";
 import { fetchReportings } from '../../../../store/features/HRMS/hrmsSlice';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
 import { toast } from 'react-toastify';
-import DataTableComponent from '../../components/Table/DataTable';
+import DataTableComponent from '../../../../Components/Common/DataTable';
 import { employeeReportingsColumns } from '../../components/Table/Columns/employeeReportings';
 import EditEmployeeReportingModal from '../../components/EditEmployeeReportingModal';
+import { useCenterOptions } from '../../../../Components/Hooks/useCenterOptions';
 
 const sortByOptions = [
     { value: "ALL", label: "All" },
@@ -22,7 +23,7 @@ const ManageEmployeeReportings = () => {
     const dispatch = useDispatch();
     const navigate = useNavigate();
     const isMobile = useMediaQuery("(max-width: 1000px)");
-    const { centerAccess, userCenters } = useSelector((state) => state.User);
+    const { centerAccess } = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HRMS);
     const handleAuthError = useAuthError();
     const [selectedCenter, setSelectedCenter] = useState("ALL");
@@ -32,6 +33,7 @@ const ManageEmployeeReportings = () => {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
     const [modalOpen, setModalOpen] = useState(false);
+
     const [sortBy, setSortBy] = useState("ACTIVE");
 
     const microUser = localStorage.getItem("micrologin");
@@ -39,41 +41,23 @@ const ManageEmployeeReportings = () => {
 
     const { hasPermission, loading: permissionLoader } = usePermissions(token);
     const hasUserPermission = hasPermission(
-        "HRMS",
+        "HR",
         "MANAGE_EMPLOYEE_REPORTINGS",
         "READ"
     );
 
     const hasEditPermission = hasPermission(
-        "HRMS",
+        "HR",
         "MANAGE_EMPLOYEE_REPORTINGS",
         "WRITE"
     ) ||
         hasPermission(
-            "HRMS",
+            "HR",
             "MANAGE_EMPLOYEE_REPORTINGS",
             "DELETE"
         );
 
-    const centerOptions = [
-        ...(centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            centerAccess?.map(id => {
-                const center = userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter
@@ -224,6 +208,7 @@ const ManageEmployeeReportings = () => {
                     pagination={pagination}
                 />
             </CardBody>
+
 
             <EditEmployeeReportingModal
                 isOpen={modalOpen}

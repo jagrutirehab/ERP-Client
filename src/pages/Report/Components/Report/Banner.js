@@ -3,7 +3,7 @@ import RenderWhen from "../../../../Components/Common/RenderWhen";
 import { ADVANCE_PAYMENT, ALL_TRANSACTIONS, DUE_AMOUNT, INVOICE, OPD_BILL } from "./data";
 
 const Banner = ({ data, billType }) => {
-  // console.log(billType);
+  console.log(billType);
   const totalAdvancePayment = (dt) => {
     let amount = 0;
     dt?.forEach((item) => {
@@ -22,7 +22,7 @@ const Banner = ({ data, billType }) => {
           item?.receiptInvoice?.payable ??
           0;
       }
-      if (billType === ALL_TRANSACTIONS || billType === ADVANCE_PAYMENT) {
+      if (billType === ALL_TRANSACTIONS || billType === INVOICE) {
         let refund = item?.invoice?.refund ?? 0;
         amount += baseAmount - refund;
       } else {
@@ -99,7 +99,7 @@ const Banner = ({ data, billType }) => {
               </h5>
             </div>
           </RenderWhen>
-          <RenderWhen isTrue={billType === ALL_TRANSACTIONS || billType === ADVANCE_PAYMENT}>
+          <RenderWhen isTrue={billType === ALL_TRANSACTIONS || billType === INVOICE}>
             <div className="d-flex align-items-center">
               <h6 className="display-6 fs-6">TOTAL REFUND AMOUNT (₹): </h6>
               <h5 className="display-5 ms-2 fs-17 font-semi-bold">

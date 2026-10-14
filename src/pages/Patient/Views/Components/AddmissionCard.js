@@ -2,26 +2,21 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Col } from "reactstrap";
 import { connect } from "react-redux";
+import { format } from "date-fns";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
 
-// ✅ Helper to format ISO date string in UTC to "DD Month YYYY"
+// Helper to format ISO date string in the browser's local timezone (e.g. IST)
 const formatDate = (isoDateStr) => {
   if (!isoDateStr) return "N/A";
   const date = new Date(isoDateStr);
-
-  const day = date.getUTCDate().toString().padStart(2, "0");
-  const month = date.toLocaleString("en-US", {
-    month: "long",
-    timeZone: "UTC",
-  });
-  const year = date.getUTCFullYear();
-  // const hour = date.getHours();
-  // const minute = date.getMinutes();
-
-  return `${day} ${month} ${year}`;
+  if (isNaN(date)) return "N/A";
+  return format(date, "dd MMMM yyyy");
 };
 
-const AddmissionCard = ({ data, children }) => {
+const AddmissionCard = ({ data, children, user }) => {
+
+
+
   return (
     <React.Fragment>
       <Col xs={12}>
@@ -34,7 +29,7 @@ const AddmissionCard = ({ data, children }) => {
               </div>
             )}
             <div className="d-flex align-items-center">
-              <span>Addmission Date:</span>
+              <span>Admission Date:</span>
               <h6 className="display-6 fs-6 mb-0 ms-2">
                 {data?.addmissionDate && !isNaN(new Date(data.addmissionDate))
                   ? formatDate(data.addmissionDate)
@@ -46,6 +41,16 @@ const AddmissionCard = ({ data, children }) => {
                 <span>Discharge Date:</span>
                 <h6 className="display-6 fs-6 mb-0 ms-2">
                   {formatDate(data.dischargeDate)}
+                </h6>
+              </div>
+            )}
+            {data.provisional_diagnosis?.length > 0 && user?.email === "vikas10040.yadav@gmail.com" && (
+              <div className="d-flex align-items-center my-1">
+                <span>Provisional Diagnosis:</span>
+                <h6 className="display-6 fs-12 mb-0 ms-2">
+                  {data.provisional_diagnosis.map((diagnosis, index) => (
+                    <span key={index}>{diagnosis.code}.</span>
+                  ))}
                 </h6>
               </div>
             )}
@@ -78,6 +83,7 @@ AddmissionCard.propTypes = {
 
 const mapStateToProps = (state) => ({
   // loading: state.Bill.billLoading,
+  user: state.User.user,
 });
 
 export default connect(mapStateToProps)(AddmissionCard);

@@ -19,6 +19,7 @@ import { setAlertData, setAlertModal } from "../../../../store/actions";
 import PropTypes from "prop-types";
 import AddNoteModal from "./AddNoteModal";
 import { Check, Copy } from "lucide-react";
+import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const statusColors = {
   Urgent: { color: "danger", border: "#ff4d4f" },
@@ -34,6 +35,11 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
   const [notesModal, setNotesModal] = useState(false);
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
+  const writable = hasPermission("NURSE", "MEDICINE_BOX_FILLING_FOR_TOMORROW", "WRITE");
 
   const toggle = () => setOpen(!open);
 
@@ -384,26 +390,28 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                   </>
                 )}
               </li>
-              <li
-                id="add-note"
-                className="list-inline-item mt-2 mt-md-0 align-self-center"
-              >
-                <Button
-                  color="primary"
-                  className="d-none d-sm-inline-block"
-                  onClick={() => setNotesModal(true)}
+              {writable && (
+                <li
+                  id="add-note"
+                  className="list-inline-item mt-2 mt-md-0 align-self-center"
                 >
-                  Add Note
-                </Button>
+                  <Button
+                    color="primary"
+                    className="d-none d-sm-inline-block"
+                    onClick={() => setNotesModal(true)}
+                  >
+                    Add Note
+                  </Button>
 
-                <Button
-                  color="primary"
-                  className="d-inline-block d-sm-none btn-sm"
-                  onClick={() => setNotesModal(true)}
-                >
-                  <i className="ri-add-line"></i>{" "}
-                </Button>
-              </li>
+                  <Button
+                    color="primary"
+                    className="d-inline-block d-sm-none btn-sm"
+                    onClick={() => setNotesModal(true)}
+                  >
+                    <i className="ri-add-line"></i>{" "}
+                  </Button>
+                </li>
+              )}
 
               {((profile?.doctorName && profile?.doctorNumber) ||
                 (profile?.psychologistName && profile?.psychologistNumber)) && (

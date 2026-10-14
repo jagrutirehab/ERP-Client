@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
@@ -12,17 +13,24 @@ import DataTable from "react-data-table-component";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
-import { renderStatusBadge } from "../../../components/renderStatusBadge";
+import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
+import { formatCurrency } from "../../../../../utils/formatCurrency";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
+import { useSearchParams } from "react-router-dom";
 
 const ApprovalHistory = ({ activeTab }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const { data, pagination, loading } = useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
-  const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const querySearch = searchParams.get("q") || "";
+  const queryCenter = searchParams.get("center") || "ALL";
+  const queryAdvanceSalaryId = searchParams.get("id") || "";
+  const [search, setSearch] = useState(querySearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
+  const [selectedCenter, setSelectedCenter] = useState(queryCenter);
   const [page, setPage] = useState(1);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [limit, setLimit] = useState(10);
 
   const microUser = localStorage.getItem("micrologin");
@@ -33,25 +41,7 @@ const ApprovalHistory = ({ activeTab }) => {
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [{
-        value: "ALL",
-        label: "All Centers",
-        isDisabled: false,
-      }]
-      : []
-    ),
-    ...(
-      user?.centerAccess?.map(id => {
-        const center = user?.userCenters?.find(c => c._id === id);
-        return {
-          value: id,
-          label: center?.title || "Unknown Center"
-        };
-      }) || []
-    )
-  ];
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption = centerOptions.find(
     opt => opt.value === selectedCenter
@@ -71,10 +61,30 @@ const ApprovalHistory = ({ activeTab }) => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
+      setSearchParams((prev) => {
+        if (search.trim()) {
+          prev.set("q", search);
+        } else {
+          prev.delete("q");
+          prev.delete("tab");
+          prev.delete("center");
+          prev.delete("id");
+        }
+        return prev;
+      });
     }, 500);
 
     return () => clearTimeout(handler);
   }, [search]);
+
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    const c = searchParams.get("center") || "ALL";
+    setSearch(q);
+    setDebouncedSearch(q);
+    setSelectedCenter(c);
+    setPage(1);
+  }, [activeTab]);
 
 
   const fetchAdvanceSalaryHistory = async () => {
@@ -89,7 +99,8 @@ const ApprovalHistory = ({ activeTab }) => {
         limit,
         centers,
         view: "HISTORY",
-        ...search.trim() !== "" && { search: debouncedSearch }
+        ...search.trim() !== "" && { search: debouncedSearch },
+        ...(queryAdvanceSalaryId !== "" && { advanceSalaryId: queryAdvanceSalaryId })
       })).unwrap();
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -124,9 +135,43 @@ const ApprovalHistory = ({ activeTab }) => {
     },
     {
       name: <div>Mobile Number</div>,
-      selector: row => row?.employeeData?.mobile,
+      selector: row => row?.employeeData?.mobile || "-",
       wrap: true,
       minWidth: "140px"
+    },
+    {
+      name: <div>Date</div>,
+      selector: row => {
+        if (!row?.date) return "-";
+        const date = new Date(row.date);
+        if (isNaN(date)) return "-";
+        return format(new Date(row.date), "dd-MM-yyyy")
+      },
+      wrap: true,
+    },
+    {
+      name: <div>Amount</div>,
+      selector: row => formatCurrency(row?.amount),
+      wrap: true,
+      minWidth: "140px"
+    },
+    {
+      name: <div>Employee's Monthly Deduction Amount</div>,
+      selector: row => formatCurrency(row?.monthlyDeductionAmount),
+      wrap: true,
+      minWidth: "160px"
+    },
+    {
+      name: <div>Remaining Amount</div>,
+      selector: row => formatCurrency(row?.remainingAmount),
+      wrap: true,
+      minWidth: "160px"
+    },
+    {
+      name: <div>Payment Id</div>,
+      selector: row => row?.centralPaymentId || "-",
+      wrap: true,
+      center: true
     },
     {
       name: <div>Filled By</div>,
@@ -233,6 +278,7 @@ const ApprovalHistory = ({ activeTab }) => {
 
           </div>
 
+          <RefreshButton loading={loading} onRefresh={fetchAdvanceSalaryHistory} />
         </div>
 
         {/*  MOBILE VIEW */}
@@ -257,6 +303,9 @@ const ApprovalHistory = ({ activeTab }) => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+          </div>
+          <div className="d-flex justify-content-end">
+            <RefreshButton loading={loading} onRefresh={fetchAdvanceSalaryHistory} />
           </div>
         </div>
       </div>

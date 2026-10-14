@@ -2,13 +2,21 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Button } from "reactstrap";
 
-const NextButton = ({ setFormStep, step }) => {
+const NextButton = ({ setFormStep, step, onBeforeNext }) => {
+  const handleClick = () => {
+    if (onBeforeNext) {
+      const isValid = onBeforeNext();
+      if (!isValid) return;
+    }
+    setFormStep(step);
+  };
+
   return (
     <React.Fragment>
       <div className="text-end">
         <Button
           className="text-white"
-          onClick={() => setFormStep(step)}
+          onClick={handleClick}
           size="sm"
           color="success"
         >

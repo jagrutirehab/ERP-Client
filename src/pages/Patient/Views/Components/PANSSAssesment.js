@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import {
     Dropdown,
     DropdownItem,
@@ -15,9 +16,11 @@ import {
 import { fetchDoctors } from "../../../../store/actions";
 
 import { calculateScores, getInterpretationAndRecommendations, panssQuestions } from "./QuestionData/PANSSQuestions";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 const PANSSAssessment = () => {
     const dispatch = useDispatch();
+    const handleAuthError = useAuthError();
     const fileInputRef = useRef(null);
 
     const [answers, setAnswers] = useState({});
@@ -32,6 +35,7 @@ const PANSSAssessment = () => {
         name: "Choose Doctor",
         id: -1,
     });
+    const [isLoading, setIsLoading] = useState(false);
 
     const patient = useSelector((state) => state.Patient.patient);
     const doctorDetails = useSelector((state) => state.User?.doctor) || [];
@@ -68,7 +72,7 @@ const PANSSAssessment = () => {
         setModalMessage("");
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (!selectedDoctor.id || selectedDoctor.id === -1) {
@@ -112,10 +116,19 @@ const PANSSAssessment = () => {
             Array.from(files).forEach((file) => formData.append("files", file));
         }
 
-        dispatch(createPANSSTest(formData));
-        openModal(
-            "Test submitted! The results are now available on the next page."
-        );
+        setIsLoading(true);
+        try {
+            await dispatch(createPANSSTest(formData)).unwrap();
+            openModal(
+                "Test submitted! The results are now available on the next page."
+            );
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to submit assessment");
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     return (
@@ -286,8 +299,9 @@ const PANSSAssessment = () => {
                 <button
                     className="btn btn-success fw-bold px-4 py-2 shadow-sm"
                     onClick={handleSubmit}
+                    disabled={isLoading}
                 >
-                    <i className="fas fa-check-circle me-2"></i> Submit Assessment
+                    <i className="fas fa-check-circle me-2"></i> {isLoading ? "Saving..." : "Submit Assessment"}
                 </button>
             </div>
 

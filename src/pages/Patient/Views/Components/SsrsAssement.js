@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import {
   Dropdown,
   DropdownItem,
@@ -18,9 +19,11 @@ import {
   setTestPageOpen,
 } from "../../../../store/features/clinicalTest/clinicalTestSlice";
 import { fetchDoctors } from "../../../../store/actions";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 const PsychologistAssessment = ({ onAssessmentComplete }) => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
   const fileInputRef = useRef(null);
   const [modalMessage, setModalMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -35,6 +38,7 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
     name: "Choose Doctor",
     id: -1,
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const patient = useSelector((state) => state.Patient.patient);
   const doctorDetails = useSelector((state) => state.User?.doctor) || [];
@@ -70,7 +74,7 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
     dispatch(setTestPageOpen(false));
   };
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     if (
@@ -122,11 +126,19 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
         formData.append("files", imageFiles[i]);
       }
     }
-    openModal(
-      "Test submitted! The results are now available on the next page."
-    );
-
-    dispatch(createSsrsTest(formData));
+    setIsLoading(true);
+    try {
+      await dispatch(createSsrsTest(formData)).unwrap();
+      openModal(
+        "Test submitted! The results are now available on the next page."
+      );
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to submit assessment");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -310,8 +322,9 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
         <button
           className="btn btn-success fw-bold px-4 py-2 shadow-sm"
           onClick={handleSubmit}
+          disabled={isLoading}
         >
-          <i className="fas fa-check-circle me-2"></i> Submit Assessment
+          <i className="fas fa-check-circle me-2"></i> {isLoading ? "Saving..." : "Submit Assessment"}
         </button>
       </div>
       {isModalOpen && (

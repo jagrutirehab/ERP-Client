@@ -1,9 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { setAlert } from "../alert/alertSlice";
 import {
+  submitAdmissionForm as submitAdmissionFormApi,
   assignNurseToPatient,
   assignPatientType,
   deletePatientAadhaarCard,
+  deletePatientPassportCard,
   editPatient,
   getAllPatients,
   getMorePatients,
@@ -18,9 +20,18 @@ import {
   removePatient,
   unAssignNurseToPatient,
   updateAdmissionAssignment,
+  updateAdmissionWardBed,
   updatePatientAdmission,
+  getSopOverview,
 } from "../../../helpers/backend_helper";
-import { setChartAdmission, updateChartAdmission } from "../chart/chartSlice";
+import {
+  setChartAdmission,
+  updateChartAdmission,
+  addAdmissionType,
+  updateAdmissionType,
+  removeChart,
+  setAdmissionTypeDirect,
+} from "../chart/chartSlice";
 import { setBillAdmission, updateBillAdmission } from "../bill/billSlice";
 
 const initialState = {
@@ -55,6 +66,8 @@ const initialState = {
   phoneNumberLoading: false,
   patientRefLoading: false,
   nurseLoading: false,
+  sopOverview: null,
+  sopLoading: false,
 };
 
 export const fetchPatients = createAsyncThunk(
@@ -131,10 +144,6 @@ export const addPatient = createAsyncThunk(
         setAlert({ type: "success", message: "Patient Saved Successfully" })
       );
 
-      dispatch(
-        togglePatientForm({ data: null, leadData: null, isOpen: false })
-      );
-
       return response;
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
@@ -152,6 +161,25 @@ export const removeAadhaarCard = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Aadhaar Card Deleted Successfully",
+        })
+      );
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const removePassportCard = createAsyncThunk(
+  "deletePatientPassportCard",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await deletePatientPassportCard(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Passport Deleted Successfully",
         })
       );
       return response;
@@ -230,6 +258,28 @@ export const editAdmissionAssignment = createAsyncThunk(
       );
       dispatch(setChartAdmission(response.payload));
       dispatch(setBillAdmission(response.payload));
+
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
+export const editAdmissionWardBed = createAsyncThunk(
+  "updateAdmissionWardBed",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await updateAdmissionWardBed(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Floor / Ward / Room and Bed Updated Successfully!",
+        })
+      );
+      dispatch(updateChartAdmission(response.payload));
+      dispatch(updateBillAdmission(response.payload));
 
       return response;
     } catch (error) {
@@ -339,6 +389,27 @@ export const unAssignNurse = createAsyncThunk(
 );
 
 
+// Admission Form submit.
+//
+// Owned by this slice rather than fired as a bare axios call from the form
+// component: the response carries the admission's refreshed type timeline, and
+// the reducer below patches it in place. That keeps the topbar and the summary
+// card correct with no refetch of the whole patient — which would be an extra
+// round trip for one field and could clobber fresher state mid-flight.
+export const submitAdmissionForm = createAsyncThunk(
+  "submitAdmissionForm",
+  async ({ admissionId, formData }, { dispatch, rejectWithValue }) => {
+    try {
+      return await submitAdmissionFormApi({ admissionId, formData });
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(
+        error.message || "Failed to submit the admission form",
+      );
+    }
+  },
+);
+
 export const assignEmergencyPatientType = createAsyncThunk(
   "assignPatientType",
   async (data, { dispatch, rejectWithValue }) => {
@@ -348,6 +419,18 @@ export const assignEmergencyPatientType = createAsyncThunk(
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to assign patient type");
+    }
+  }
+);
+
+export const fetchSopOverview = createAsyncThunk(
+  "patient/fetchSopOverview",
+  async ({ admissionId, currentDate }, { rejectWithValue }) => {
+    try {
+      const response = await getSopOverview(admissionId, currentDate);
+      return response;
+    } catch (error) {
+      return rejectWithValue("Failed to fetch SOP overview");
     }
   }
 );
@@ -435,6 +518,44 @@ export const patientSlice = createSlice({
     }
   },
   extraReducers: (builder) => {
+    // Admission Type chart writes land in the chart slice, but the header's
+    // Admission Type card reads the admission from THIS slice — so the timeline
+    // has to be refreshed here too, or the card keeps showing the previous type
+    // until the patient is refetched. The three responses carry the fresh array
+    // (see controllers/chart/admissionType and chart/delete).
+    const syncAdmissionTypeHistory = (state, { payload }) => {
+      const history = payload?.admissionTypeHistory;
+      if (!Array.isArray(history)) return; // other chart kinds send nothing
+      const addmission = state.patient?.addmission;
+      if (!addmission) return;
+      if (
+        payload.addmission &&
+        String(addmission._id) !== String(payload.addmission)
+      ) {
+        return; // response is for a different admission
+      }
+      addmission.admissionTypeHistory = history;
+    };
+
+    // The direct setter returns the array nested under `data`, unlike the chart
+    // responses which put it at the top level — normalise before reusing the
+    // same patcher.
+    const syncAdmissionTypeHistoryFromData = (state, { payload }) =>
+      syncAdmissionTypeHistory(state, {
+        payload: {
+          addmission: payload?.data?._id,
+          admissionTypeHistory: payload?.data?.admissionTypeHistory,
+        },
+      });
+
+    builder
+      .addCase(addAdmissionType.fulfilled, syncAdmissionTypeHistory)
+      .addCase(updateAdmissionType.fulfilled, syncAdmissionTypeHistory)
+      .addCase(removeChart.fulfilled, syncAdmissionTypeHistory)
+      .addCase(setAdmissionTypeDirect.fulfilled, syncAdmissionTypeHistoryFromData)
+      // Same `data: { _id, admissionTypeHistory }` envelope as the direct setter.
+      .addCase(submitAdmissionForm.fulfilled, syncAdmissionTypeHistoryFromData);
+
     builder
       .addCase(fetchPatients.pending, (state) => {
         state.loading = true;
@@ -568,6 +689,23 @@ export const patientSlice = createSlice({
       });
 
     builder
+      .addCase(removePassportCard.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(removePassportCard.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        const findIndex = state.data.findIndex(
+          (el) => el._id === payload.payload._id
+        );
+        state.patient = payload.payload;
+        state.patientForm.data = payload.payload;
+        state.data[findIndex] = payload.payload;
+      })
+      .addCase(removePassportCard.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
       .addCase(admitIpdPatient.pending, (state) => {
         state.loading = true;
       })
@@ -602,6 +740,29 @@ export const patientSlice = createSlice({
         state.admissionLoading = false;
       })
       .addCase(editAdmissionAssignment.rejected, (state) => {
+        state.admissionLoading = false;
+      });
+
+    builder
+      .addCase(editAdmissionWardBed.pending, (state) => {
+        state.admissionLoading = true;
+      })
+      .addCase(editAdmissionWardBed.fulfilled, (state, { payload }) => {
+        state.admissionLoading = false;
+        // BioData reads ward/bed off state.patient.addmission, not off the
+        // chart/bill slices the response is otherwise mirrored into (see
+        // updateChartAdmission/updateBillAdmission above) - without this the
+        // Bio Data display kept showing the pre-edit values until a refetch.
+        const addmission = state.patient?.addmission;
+        if (
+          addmission &&
+          String(addmission._id) === String(payload.payload._id)
+        ) {
+          addmission.ward = payload.payload.ward;
+          addmission.bed = payload.payload.bed;
+        }
+      })
+      .addCase(editAdmissionWardBed.rejected, (state) => {
         state.admissionLoading = false;
       });
 
@@ -686,6 +847,18 @@ export const patientSlice = createSlice({
           payload.data.patientType;
       }
     );
+
+    builder
+      .addCase(fetchSopOverview.pending, (state) => {
+        state.sopLoading = true;
+      })
+      .addCase(fetchSopOverview.fulfilled, (state, { payload }) => {
+        state.sopLoading = false;
+        state.sopOverview = payload;
+      })
+      .addCase(fetchSopOverview.rejected, (state) => {
+        state.sopLoading = false;
+      });
   },
 });
 

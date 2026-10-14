@@ -1,3 +1,4 @@
+import referredByName from "../../../../utils/referredByName";
 import React from "react";
 import { Button, Col, Input, Row } from "reactstrap";
 import { format } from "date-fns";
@@ -55,10 +56,13 @@ const Menu = ({
       patient: {
         ...row.patient,
         referredBy:
-          row.patient?.referredBy?.doctorName || row.patient?.referredBy,
+          referredByName(row.patient?.referredBy) || row.patient?.referredBy,
       },
       name: row.intern ? row.intern.name : row.patient?.name || "",
       date: row.date ? format(new Date(row.date), "dd MMM yyyy") : "",
+      updatedAt: row.updatedAt
+        ? format(new Date(row.updatedAt), "dd MMM yyyy")
+        : "",
       uid: row.patient?.id
         ? `${row.patient.id.prefix}${row.patient.id.value}`
         : "",
@@ -89,8 +93,8 @@ const Menu = ({
           row.intern && row.receipt
             ? row.receipt.totalAmount || 0
             : row.advancePayment?.totalAmount ||
-            row.receiptInvoice?.payable ||
-            0,
+              row.receiptInvoice?.payable ||
+              0,
       },
       paymentModes: (row.intern
         ? row.receipt?.paymentModes
@@ -103,20 +107,24 @@ const Menu = ({
             return `${prefix}${item.paymentMode || item.type} ₹${item.amount}`;
           }
           if (item.paymentMode === CARD || item.type === CARD) {
-            return `${prefix}${item.paymentMode || item.type} ${item.cardNumber || ""
-              } ₹${item.amount}`;
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.cardNumber || ""
+            } ₹${item.amount}`;
           }
           if (item.paymentMode === UPI || item.type === UPI) {
-            return `${prefix}${item.paymentMode || item.type} ${item.transactionId || ""
-              }`;
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.transactionId || ""
+            }`;
           }
           if (item.paymentMode === CHEQUE || item.type === CHEQUE) {
-            return `${prefix}${item.paymentMode || item.type} ${item.bankName || ""
-              } ${item.chequeNo || item.chequeNumber || ""} ₹${item.amount}`;
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.bankName || ""
+            } ${item.chequeNo || item.chequeNumber || ""} ₹${item.amount}`;
           }
           if (item.paymentMode === BANK || item.type === BANK) {
-            return `${prefix}${item.paymentMode || item.type} ${item.bankName || ""
-              } ₹${item.amount}`;
+            return `${prefix}${item.paymentMode || item.type} ${
+              item.bankName || ""
+            } ₹${item.amount}`;
           }
           return "";
         })
@@ -145,6 +153,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeadersAddmissionDischargeDate,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -158,9 +170,9 @@ const Menu = ({
           ...dueAmountHeaders,
           sortPatientStatus === DISCHARGE_PATIENT
             ? {
-              label: "Date of Discharge",
-              key: "dateOfDischarge",
-            }
+                label: "Date of Discharge",
+                key: "dateOfDischarge",
+              }
             : null,
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
@@ -173,7 +185,13 @@ const Menu = ({
       else if (billType === ALL_TRANSACTIONS)
         resultantHeaders = [
           ...allTransactionHeadersAddmissionDischargeDate,
-
+          patientsReferrel
+            ? { label: "Referred By", key: "patient.referredBy" }
+            : null,
+        ];
+      else if (billType === OPD_BILL)
+        resultantHeaders = [
+          ...opdBillHeaders,
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -183,6 +201,7 @@ const Menu = ({
           { label: "Patient/Intern", key: "name" },
           { label: "Center", key: "center.title" },
           { label: "Date", key: "date" },
+          { label: "Updated At", key: "updatedAt" },
           { label: "UID", key: "uid" },
           { label: "Invoice No", key: "invoiceNumber" },
           { label: "Invoiced Amount", key: "invoice.payable" },
@@ -203,6 +222,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeadersAddmissionDischargeDate,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -212,9 +235,9 @@ const Menu = ({
           ...dueAmountHeaders,
           sortPatientStatus === DISCHARGE_PATIENT
             ? {
-              label: "Date of Discharge",
-              key: "dateOfDischarge",
-            }
+                label: "Date of Discharge",
+                key: "dateOfDischarge",
+              }
             : null,
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
@@ -227,11 +250,19 @@ const Menu = ({
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
         ];
+      else if (billType === OPD_BILL)
+        resultantHeaders = [
+          ...opdBillHeaders,
+          patientsReferrel
+            ? { label: "Referred By", key: "patient.referredBy" }
+            : null,
+        ];
       else if (billType === INTERN)
         resultantHeaders = [
           { label: "Patient/Intern", key: "name" },
           { label: "Center", key: "center.title" },
           { label: "Date", key: "date" },
+          { label: "Updated At", key: "updatedAt" },
           { label: "UID", key: "uid" },
           { label: "Invoice No", key: "invoiceNumber" },
           { label: "Invoiced Amount", key: "invoice.payable" },
@@ -244,9 +275,9 @@ const Menu = ({
           ...dueAmountHeaders,
           sortPatientStatus === DISCHARGE_PATIENT
             ? {
-              label: "Date of Discharge",
-              key: "dateOfDischarge",
-            }
+                label: "Date of Discharge",
+                key: "dateOfDischarge",
+              }
             : null,
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
@@ -270,6 +301,10 @@ const Menu = ({
       else if (billType === INVOICE)
         resultantHeaders = [
           ...payableAmountHeaders,
+          {
+            label: "Refund Amount (₹Dr)",
+            key: "invoice.refund",
+          },
           patientsReferrel
             ? { label: "Referred By", key: "patient.referredBy" }
             : null,
@@ -294,6 +329,7 @@ const Menu = ({
           { label: "Patient/Intern", key: "name" },
           { label: "Center", key: "center.title" },
           { label: "Date", key: "date" },
+          { label: "Updated At", key: "updatedAt" },
           { label: "UID", key: "uid" },
           { label: "Invoice No", key: "invoiceNumber" },
           { label: "Invoiced Amount", key: "invoice.payable" },
@@ -305,9 +341,9 @@ const Menu = ({
         ...dueAmountHeaders,
         sortPatientStatus === DISCHARGE_PATIENT
           ? {
-            label: "Date of Discharge",
-            key: "dateOfDischarge",
-          }
+              label: "Date of Discharge",
+              key: "dateOfDischarge",
+            }
           : null,
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
@@ -323,6 +359,10 @@ const Menu = ({
     else if (billType === INVOICE)
       resultantHeaders = [
         ...payableAmountHeaders,
+        {
+          label: "Refund Amount (₹Dr)",
+          key: "invoice.refund",
+        },
         patientsReferrel
           ? { label: "Referred By", key: "patient.referredBy" }
           : null,
@@ -346,6 +386,7 @@ const Menu = ({
         { label: "Patient/Intern", key: "name" },
         { label: "Center", key: "center.title" },
         { label: "Date", key: "date" },
+        { label: "Updated At", key: "updatedAt" },
         // { label: "UID", key: "uid" },
         // { label: "Invoice No", key: "invoiceNumber" },
         // { label: "Invoiced Amount", key: "invoice.payable" },
@@ -375,7 +416,7 @@ const Menu = ({
           <form>
             <Row>
               <Col xs={12} md={3} className="mb-3 mb-md-0">
-                <div className="d-flex">
+                {/* <div className="d-flex">
                   <Input
                     id="selectfilter"
                     name="address"
@@ -394,10 +435,10 @@ const Menu = ({
                       </option>
                     ))}
                   </Input>
-                </div>
+                </div> */}
               </Col>
               <Col xs={12} md={3}>
-                <SearchPatient setPatient={setPatient} patient={patient} />
+                {/* <SearchPatient setPatient={setPatient} patient={patient} /> */}
               </Col>
               <Col xs={12} md={6}>
                 <div className="d-flex justify-content-start justify-content-md-end mt-3 mt-md-0">
@@ -420,14 +461,16 @@ const Menu = ({
                   <CSVLink
                     // data={(documents() || [])}
                     data={(() => {
-                      console.log(documents());
+                      console.log({ documents: documents() });
+
                       return documents() || [];
                     })()}
                     title="CSV Download"
                     filename={"reports.csv"}
                     // headers={headers()}
                     headers={(() => {
-                      console.log(headers());
+                      console.log({ headers: headers() });
+
                       return headers();
                     })()}
                     className="btn btn-info px-2 ms-3"

@@ -16,6 +16,8 @@ const HAMDQuestion = () => {
     setCurrentAssessment(null);
   };
 
+  console.log("Rendering HAMDQuestion component, current view:", view);
+
   return (
     <div className="d-flex align-items-center justify-content-center min-vh-100 text-dark px-3">
         <div className="bg-white shadow-xl rounded-2xl w-100">

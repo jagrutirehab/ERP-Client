@@ -1,0 +1,715 @@
+:root {
+  --uom-primary: #4f46e5;
+  --uom-primary-dark: #4338ca;
+  --uom-primary-soft: #eef2ff;
+  --uom-primary-ring: rgba(79, 70, 229, 0.15);
+  --uom-primary-gradient: linear-gradient(135deg, #6366f1 0%, #4f46e5 55%, #4338ca 100%);
+
+  --uom-border: #e2e8f0;
+  --uom-border-soft: #edeff3;
+  --uom-muted: #64748b;
+  --uom-muted-soft: #98a2b3;
+  --uom-text: #101828;
+  --uom-bg-soft: #f8fafc;
+
+  --uom-success: #067647;
+  --uom-success-soft: #ecfdf3;
+  --uom-success-border: #abefc6;
+
+  --uom-warning: #b54708;
+  --uom-warning-soft: #fffaeb;
+  --uom-warning-border: #fedf89;
+
+  --uom-danger: #d92d20;
+
+  --uom-radius-lg: 14px;
+  --uom-radius-md: 10px;
+  --uom-radius-sm: 8px;
+
+  --uom-shadow-xs: 0 1px 2px rgba(16, 24, 40, 0.04);
+  --uom-shadow-sm: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+}
+
+// ---------- Page wrapper ----------
+
+.uom-page {
+  padding: 20px 24px;
+  width: 100%;
+}
+
+// Form pages (Create PR, Create PO, Putaway, ...) use the same outer spacing as list pages
+.uom-form-page {
+  padding: 20px 24px 32px;
+  width: 100%;
+}
+
+.uom-form-title {
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  color: var(--uom-text);
+  margin-bottom: 4px;
+}
+
+.uom-form-section-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--uom-text);
+  margin: 6px 0 16px;
+}
+
+// ---------- Page header ----------
+
+.uom-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding-bottom: 20px;
+  border-bottom: 1px solid var(--uom-border-soft);
+
+  h4 {
+    margin-bottom: 0;
+  }
+
+  p {
+    margin: 4px 0 0;
+    color: var(--uom-muted);
+  }
+}
+
+.uom-header-title-row {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.uom-icon-badge {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 21px;
+  color: #fff;
+  background: var(--uom-primary-gradient);
+  box-shadow: 0 8px 18px -4px rgba(79, 70, 229, 0.45);
+  flex-shrink: 0;
+}
+
+.uom-page-title h4 {
+  font-weight: 700;
+  font-size: 19px;
+  letter-spacing: -0.01em;
+  color: var(--uom-text);
+  margin-bottom: 3px;
+}
+
+.uom-page-title p {
+  color: var(--uom-muted);
+  font-size: 13.5px;
+  margin: 0;
+}
+
+// ---------- Toolbar (search + add button) ----------
+
+.uom-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+// ---------- Search box ----------
+
+.uom-search-wrap {
+  position: relative;
+  max-width: 320px;
+  width: 100%;
+
+  i {
+    position: absolute;
+    left: 13px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+    font-size: 16px;
+    pointer-events: none;
+  }
+
+  input {
+    padding-left: 38px !important;
+    border-radius: var(--uom-radius-sm) !important;
+    border-color: var(--uom-border) !important;
+
+    &:focus {
+      border-color: var(--uom-primary) !important;
+      box-shadow: 0 0 0 3px var(--uom-primary-ring) !important;
+    }
+  }
+}
+
+// ---------- Table card ----------
+
+.uom-table-card {
+  border: 1px solid var(--uom-border-soft);
+  border-radius: var(--uom-radius-lg);
+  overflow: hidden;
+  box-shadow: var(--uom-shadow-xs);
+  background: #fff;
+}
+
+// ---------- Table cells ----------
+
+.uom-cell-primary {
+  font-weight: 500;
+  color: var(--uom-text);
+}
+
+.uom-cell-muted {
+  color: var(--uom-muted);
+}
+
+.uom-symbol-badge,
+.uom-symbol-code {
+  display: inline-block;
+  font-family: "SFMono-Regular", ui-monospace, Menlo, Consolas, monospace;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--uom-text);
+  background: var(--uom-bg-soft);
+  border: 1px solid var(--uom-border-soft);
+  border-radius: 6px;
+  padding: 2px 8px;
+}
+
+// ---------- Row avatar ----------
+
+.uom-avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  background: var(--uom-primary-soft);
+  color: var(--uom-primary-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+// ---------- Status pill ----------
+
+.uom-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 11px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+  white-space: nowrap;
+
+  .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    flex-shrink: 0;
+  }
+
+  &.status-active {
+    background: var(--uom-success-soft);
+    color: var(--uom-success);
+    border: 1px solid var(--uom-success-border);
+  }
+
+  &.status-inactive {
+    background: var(--uom-warning-soft);
+    color: var(--uom-warning);
+    border: 1px solid var(--uom-warning-border);
+  }
+}
+
+// ---------- Row actions ----------
+
+.uom-row-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.uom-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 31px;
+  padding: 0;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  background: #f3f4f6;
+  color: var(--uom-text);
+  font-size: 15px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+
+  &:hover {
+    background: #e5e7eb;
+  }
+
+  &:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--uom-primary-ring);
+  }
+
+  &.is-danger {
+    color: var(--uom-danger);
+  }
+}
+
+.uom-btn-label {
+  margin-left: 5px;
+}
+
+// ---------- Empty state ----------
+
+.uom-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  text-align: center;
+
+  .uom-empty-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--uom-primary-soft);
+    color: var(--uom-primary);
+    font-size: 26px;
+    margin-bottom: 16px;
+    box-shadow: 0 0 0 8px rgba(79, 70, 229, 0.06);
+  }
+
+  p.uom-empty-title {
+    font-weight: 700;
+    font-size: 14.5px;
+    color: var(--uom-text);
+    margin-bottom: 4px;
+  }
+
+  p.uom-empty-sub {
+    font-size: 13px;
+    color: var(--uom-muted);
+    margin-bottom: 0;
+  }
+}
+
+// ---------- Skeleton loading ----------
+
+@keyframes uom-shimmer {
+  0% { background-position: -400px 0; }
+  100% { background-position: 400px 0; }
+}
+
+.uom-skeleton {
+  background: linear-gradient(90deg, #eef0f4 25%, #e2e5ea 37%, #eef0f4 63%);
+  background-size: 800px 100%;
+  border-radius: 8px;
+  animation: uom-shimmer 1.4s ease-in-out infinite;
+}
+
+// ---------- Form (Add/Edit) ----------
+
+.uom-form-panel {
+  background: #fff;
+  border: 1px solid var(--uom-border-soft);
+  border-radius: var(--uom-radius-lg);
+  box-shadow: var(--uom-shadow-sm);
+  padding: 26px 30px;
+}
+
+// First heading inside a panel shouldn't push itself down
+.uom-form-panel .uom-form-section-title:first-child {
+  margin-top: 0;
+}
+
+.uom-form-panel label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
+  color: #475569;
+  margin-bottom: 7px;
+  display: inline-block;
+}
+
+.uom-form-panel .form-control,
+.uom-form-panel select.form-control {
+  border-radius: var(--uom-radius-sm);
+  border: 1.5px solid var(--uom-border);
+  font-size: 14px;
+  padding: 9px 13px;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+
+  &:focus {
+    border-color: var(--uom-primary);
+    box-shadow: 0 0 0 4px var(--uom-primary-ring);
+  }
+}
+
+.uom-form-footer {
+  border-top: 1px solid var(--uom-border-soft);
+  margin-top: 26px;
+  padding-top: 18px;
+}
+
+// ---------- Tablet ----------
+
+@media (max-width: 768px) {
+  .uom-page,
+  .uom-form-page {
+    padding: 16px;
+  }
+
+  .uom-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+
+    .btn {
+      width: 100%;
+    }
+  }
+
+  .uom-search-wrap {
+    max-width: 100%;
+  }
+
+  .uom-form-panel {
+    padding: 18px 16px;
+  }
+}
+
+// ---------- Phone ----------
+
+@media (max-width: 576px) {
+  .uom-page,
+  .uom-form-page {
+    padding: 12px;
+  }
+}
+
+// =========================================================
+// Form pages (PO, PR wagairah)
+// =========================================================
+
+.uom-form-page {
+  padding: 20px 24px;
+  width: 100%;
+}
+
+.uom-form-header {
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--uom-border-soft);
+}
+
+.uom-form-title {
+  font-weight: 700;
+  font-size: 20px;
+  color: var(--uom-text);
+  margin-bottom: 4px;
+}
+
+.uom-form-subtitle {
+  color: var(--uom-muted);
+  font-size: 13.5px;
+  margin: 0;
+}
+
+// ---------- Sections ----------
+
+.uom-form-section {
+  padding-bottom: 22px;
+  margin-bottom: 22px;
+  border-bottom: 1px dashed var(--uom-border-soft);
+
+  &:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+}
+
+.uom-form-section-title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--uom-text);
+  margin-bottom: 16px;
+
+  .uom-section-icon {
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--uom-primary-soft);
+    color: var(--uom-primary-dark);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .uom-section-hint {
+    margin-left: auto;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--uom-muted);
+  }
+}
+
+.uom-form-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--uom-muted);
+  background: var(--uom-bg-soft);
+  border: 1px solid var(--uom-border-soft);
+  border-radius: 10px;
+  padding: 10px 14px;
+
+  i {
+    font-size: 16px;
+    color: var(--uom-primary);
+  }
+}
+
+// ---------- Choice cards (PO type) ----------
+
+.uom-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.uom-choice-card {
+  width: 100%;
+  text-align: left;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  background: #fff;
+  border: 1.5px solid var(--uom-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+
+  &:hover {
+    border-color: #c7c9ff;
+  }
+
+  .uom-choice-radio {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: 2px solid #cbd5e1;
+    background: #fff;
+    flex-shrink: 0;
+    margin-top: 2px;
+    transition: all 0.15s ease;
+  }
+
+  .uom-choice-title {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--uom-text);
+  }
+
+  .uom-choice-sub {
+    font-size: 12.5px;
+    color: var(--uom-muted);
+    margin-top: 2px;
+  }
+
+  &.is-active {
+    border-color: var(--uom-primary);
+    background: var(--uom-primary-soft);
+
+    .uom-choice-radio {
+      border-color: var(--uom-primary);
+      background: var(--uom-primary);
+      box-shadow: inset 0 0 0 3px #fff;
+    }
+  }
+}
+
+// ---------- Line items table ----------
+
+.uom-line-table {
+  margin: 0;
+
+  th {
+    font-size: 11.5px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #667085;
+    background: #f8f9fb;
+    border-bottom: 1px solid var(--uom-border-soft);
+    padding: 11px 12px;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px 12px;
+    vertical-align: middle;
+    border-color: var(--uom-border-soft);
+    font-size: 13.5px;
+  }
+
+  tbody tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+// ---------- Item search dropdown ----------
+
+.uom-item-dropdown {
+  background: #fff;
+  border: 1px solid var(--uom-border);
+  border-radius: 10px;
+  box-shadow: 0 12px 28px -8px rgba(16, 24, 40, 0.2);
+  padding: 4px;
+}
+
+.uom-item-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--uom-text);
+
+  &:hover {
+    background: var(--uom-bg-soft);
+  }
+}
+
+// ---------- Totals box ----------
+
+.uom-totals {
+  max-width: 380px;
+  margin-left: auto;
+  background: var(--uom-bg-soft);
+  border: 1px solid var(--uom-border-soft);
+  border-radius: 12px;
+  padding: 16px 18px;
+
+  .uom-totals-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 13.5px;
+    margin-bottom: 6px;
+
+    span:first-child {
+      color: var(--uom-muted);
+    }
+  }
+
+  .uom-totals-total {
+    display: flex;
+    justify-content: space-between;
+    font-weight: 700;
+    font-size: 15px;
+    color: var(--uom-text);
+    padding-top: 10px;
+    margin-top: 6px;
+    border-top: 1px solid var(--uom-border);
+  }
+
+  .uom-totals-divider {
+    border-top: 1px dashed var(--uom-border);
+    margin: 10px 0;
+  }
+}
+
+// ---------- Sticky footer ----------
+
+.uom-form-panel .uom-form-footer.is-sticky {
+  position: sticky;
+  bottom: 0;
+  z-index: 5;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(6px);
+  margin: 26px -30px -26px;
+  padding: 14px 30px;
+  border-radius: 0 0 var(--uom-radius-lg) var(--uom-radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.uom-footer-summary {
+  font-size: 13px;
+  color: var(--uom-muted);
+
+  strong {
+    font-size: 16px;
+    color: var(--uom-text);
+    margin-left: 6px;
+  }
+
+  &.is-over strong {
+    color: var(--uom-danger);
+  }
+}
+
+@media (max-width: 768px) {
+  .uom-form-page {
+    padding: 16px;
+  }
+
+  .uom-choice-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .uom-totals {
+    max-width: 100%;
+  }
+
+  .uom-form-panel .uom-form-footer.is-sticky {
+    margin: 20px -16px -18px;
+    padding: 12px 16px;
+
+    .btn {
+      flex: 1;
+    }
+  }
+}
+
+@media (max-width: 576px) {
+  .uom-form-page {
+    padding: 12px;
+  }
+}

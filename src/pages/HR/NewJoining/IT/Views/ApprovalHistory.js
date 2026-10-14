@@ -1,5 +1,6 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
@@ -10,7 +11,9 @@ import { format } from "date-fns";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import DataTable from "react-data-table-component";
 import Select from "react-select";
-import { renderStatusBadge } from "../../../components/renderStatusBadge";
+import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
+import DataTableComponent from "../../../../../Components/Common/DataTable";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 
 const customStyles = {
@@ -34,7 +37,7 @@ const customStyles = {
   },
 };
 
-const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
+const ApprovalHistory = ({ activeTab, hasUserPermission, roles, designationOptions = [] }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const { data, pagination, loading } = useSelector((state) => state.HR);
@@ -44,28 +47,11 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [limit, setLimit] = useState(10);
+  const [selectedDesignation, setSelectedDesignation] = useState(null);
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [{
-        value: "ALL",
-        label: "All Centers",
-        isDisabled: false,
-      }]
-      : []
-    ),
-    ...(
-      user?.centerAccess?.map(id => {
-        const center = user?.userCenters?.find(c => c._id === id);
-        return {
-          value: id,
-          label: center?.title || "Unknown Center"
-        };
-      }) || []
-    )
-  ];
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption = centerOptions.find(
     opt => opt.value === selectedCenter
@@ -102,7 +88,8 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         limit,
         centers,
         view: "NEW_JOINING_HISTORY",
-        ...search.trim() !== "" && { search: debouncedSearch }
+        ...search.trim() !== "" && { search: debouncedSearch },
+        ...(selectedDesignation && { designation: selectedDesignation }),
       })).unwrap();
     } catch (error) {
       console.log(error)
@@ -116,12 +103,25 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     if (activeTab === "HISTORY" && hasUserPermission) {
       fetchITApprovalHistory();
     }
-  }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+  }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles, selectedDesignation]);
+
+
+  const normalizeEmploymentType = (type) => {
+    if (!type) return "-";
+
+    return type
+      .toLowerCase()
+      .split("_")
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(" ");
+  };
 
   const columns = [
     {
       name: <div>ECode</div>,
-      selector: row => row?.eCode || "-",
+      selector: (row) => {
+        return row?.eCode || "-";
+      },
       sortable: true,
     },
     {
@@ -138,7 +138,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       name: <div>Department</div>,
       selector: row => capitalizeWords(row?.department || "-"),
       wrap: true,
-      minWidth: "100px"
+      minWidth: "130px"
     },
     {
       name: <div>Designation</div>,
@@ -147,10 +147,43 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
       minWidth: "120px"
     },
     {
+      name: <div>Position</div>,
+      selector: (row) => row?.position?.name || "-",
+      wrap: true,
+      minWidth: "120px",
+    },
+    {
+      name: <div>Employee Type</div>,
+      selector: row => capitalizeWords(row?.employeeType || "-"),
+      wrap: true,
+      minWidth: "130px"
+    },
+    {
+      name: <div>Employement Type</div>,
+      selector: (row) => {
+        return normalizeEmploymentType(row?.newEmploymentType) || "-";
+      },
+      wrap: true,
+      minWidth: "100px",
+    },
+    // 
+    {
+      name: <div>Employement Status</div>,
+      selector: (row) => renderStatusBadge(row?.employmentStatus) || "-",
+      wrap: true,
+      minWidth: "150px",
+      center: false,
+    },
+    {
       name: <div>Current Location</div>,
       selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
       wrap: true,
       minWidth: "120px"
+    },
+    {
+      name: <div>Joining Date</div>,
+      selector: (row) => row?.joinningDate || "-",
+      wrap: true,
     },
     {
       name: <div>Gender</div>,
@@ -254,9 +287,19 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-
+            <div style={{ width: "180px" }}>
+              <Select
+                options={designationOptions}
+                value={designationOptions.find(o => o.value === selectedDesignation) || null}
+                onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
+                placeholder="Designation"
+                isClearable
+                classNamePrefix="react-select"
+              />
+            </div>
           </div>
 
+          <RefreshButton loading={loading} onRefresh={fetchITApprovalHistory} />
         </div>
 
         {/*  MOBILE VIEW */}
@@ -283,35 +326,33 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
             />
           </div>
 
+          <div style={{ width: "100%" }}>
+            <Select
+              options={designationOptions}
+              value={designationOptions.find(o => o.value === selectedDesignation) || null}
+              onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
+              placeholder="Designation"
+              isClearable
+              classNamePrefix="react-select"
+            />
+          </div>
+          <div className="d-flex justify-content-end">
+            <RefreshButton loading={loading} onRefresh={fetchITApprovalHistory} />
+          </div>
         </div>
 
       </div>
 
-      <DataTable
+      <DataTableComponent
         columns={columns}
         data={data}
-        highlightOnHover
-        pagination
-        paginationServer
-        paginationTotalRows={pagination?.totalDocs}
-        paginationPerPage={limit}
-        paginationDefaultPage={page}
-        progressPending={loading}
-        striped
-        fixedHeader
-        fixedHeaderScrollHeight="500px"
-        dense={isMobile}
-        responsive
-        customStyles={customStyles}
-        progressComponent={
-          <div className="py-4 text-center">
-            <Spinner className="text-primary" />
-          </div>
-        }
-        onChangePage={(newPage) => setPage(newPage)}
-        onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
+        page={page}
+        setPage={setPage}
+        limit={limit}
+        setLimit={setLimit}
+        loading={loading}
+        pagination={pagination}
       />
-
     </>
   )
 }

@@ -26,7 +26,7 @@ const UserForm = ({
   setUserData,
   hasUserPermission,
   onComplete,
-  isFromIT = false
+  isFromIT = false,
 }) => {
   const isMobile = useMediaQuery("(max-width: 640px)");
   const isTablet = useMediaQuery("(min-width: 641px) and (max-width: 1023px)");
@@ -36,26 +36,26 @@ const UserForm = ({
   const dummyImage =
     "https://skala.or.id/wp-content/uploads/2024/01/dummy-post-square-1-1.jpg";
   const author = useSelector((state) => state.User.user);
-  const userCenters = useSelector((state) => state.User.userCenters);
+  const userCenters = useSelector((state) => state.Center.data);
   const allCenters = useSelector((state) => state.Center.allCenters);
 
   const centers = isFromIT ? userCenters : allCenters;
 
   const accessibleCenters = isFromIT
-    ? centers?.filter(c => author?.centerAccess?.includes(c._id))
+    ? centers?.filter((c) => author?.centerAccess?.includes(c._id))
     : centers;
 
   const therapyOptions = useSelector((state) => state.Setting.therapies).map(
     (therapy) => ({
       value: therapy.title,
       label: therapy.title,
-    })
+    }),
   );
   const conditionOptions = useSelector((state) => state.Setting.conditions).map(
     (condition) => ({
       value: condition.title,
       label: condition.title,
-    })
+    }),
   );
   const userForm = useSelector((state) => state.User.form);
   const microUser = localStorage.getItem("micrologin");
@@ -64,11 +64,11 @@ const UserForm = ({
   const [faqs, setFaqs] = useState(userData?.faqs?.length ? userData.faqs : []);
   const [signature, setSignature] = useState(null);
   const [cropSignature, setCropSignature] = useState(
-    userData?.signature ? { dataURI: userData.signature } : null
+    userData?.signature ? { dataURI: userData.signature } : null,
   );
   const [profilePic, setProfilePic] = useState(null);
   const [cropProfilePic, setCropProfilePic] = useState(
-    userData?.profilePicture ? { dataURI: userData.profilePicture } : null
+    userData?.profilePicture ? { dataURI: userData.profilePicture } : null,
   );
   const [options, setOptions] = useState([]);
   const [expertise, setExpertise] = useState([]);
@@ -81,11 +81,9 @@ const UserForm = ({
   const handleAuthError = useAuthError();
 
   const isITPrefill =
-    userData?.isNewUserFromIT === true ||
-    userData?.isUpdateUserFromIT === true;
+    userData?.isNewUserFromIT === true || userData?.isUpdateUserFromIT === true;
 
-  const isEditing =
-    Boolean(userData?._id) && !userData?.isNewUserFromIT;
+  const isEditing = Boolean(userData?._id) && !userData?.isNewUserFromIT;
 
   const fetchRoles = async () => {
     if (!token) return;
@@ -163,7 +161,7 @@ const UserForm = ({
   const mergedConditionOptions = [
     ...conditionOptions,
     ...conditions.filter(
-      (c) => !conditionOptions.some((opt) => opt.value === c.value)
+      (c) => !conditionOptions.some((opt) => opt.value === c.value),
     ),
   ];
 
@@ -185,7 +183,7 @@ const UserForm = ({
   const mergedTherapyOptions = [
     ...therapyOptions,
     ...therapies.filter(
-      (t) => !therapyOptions.some((opt) => opt.value === t.value)
+      (t) => !therapyOptions.some((opt) => opt.value === t.value),
     ),
   ];
 
@@ -215,25 +213,25 @@ const UserForm = ({
   useEffect(() => {
     setFaqs(userData?.faqs || []);
     setOptions(
-      userData?.patientsConcern?.map((p) => ({ label: p, value: p })) || []
+      userData?.patientsConcern?.map((p) => ({ label: p, value: p })) || [],
     );
     setExpertise(
-      userData?.expertise?.map((e) => ({ label: e, value: e })) || []
+      userData?.expertise?.map((e) => ({ label: e, value: e })) || [],
     );
     setConditions(
-      userData?.conditions?.map((e) => ({ label: e, value: e })) || []
+      userData?.conditions?.map((e) => ({ label: e, value: e })) || [],
     );
     setTherapies(
-      userData?.therapies?.map((e) => ({ label: e, value: e })) || []
+      userData?.therapies?.map((e) => ({ label: e, value: e })) || [],
     );
     setLanguages(
-      userData?.languages?.map((e) => ({ label: e, value: e })) || []
+      userData?.languages?.map((e) => ({ label: e, value: e })) || [],
     );
     setCropProfilePic(
-      userData?.profilePicture ? { dataURI: userData.profilePicture } : null
+      userData?.profilePicture ? { dataURI: userData.profilePicture } : null,
     );
     setCropSignature(
-      userData?.signature ? { dataURI: userData.signature } : null
+      userData?.signature ? { dataURI: userData.signature } : null,
     );
     setSignature(null);
     setProfilePic(null);
@@ -288,7 +286,7 @@ const UserForm = ({
       ...(!isEditing && {
         confirm_password: Yup.string().oneOf(
           [Yup.ref("password")],
-          "Confirm Password Doesn't Match"
+          "Confirm Password Doesn't Match",
         ),
       }),
       // phoneNumber: Yup.string()
@@ -304,25 +302,23 @@ const UserForm = ({
             return false;
           }
           return true;
-        }
+        },
       ),
       accessroles: Yup.string().required("Access Role is required"),
-      pageAccess: Yup.array()
-      // .test(
-      //   "notEmpty",
-      //   "Pages Access is required",
-      //   (value) => {
-      //     if (!value || value.length === 0) {
-      //       return false;
-      //     }
-      //     return true;
-      //   }
-      // )
-      ,
+      pageAccess: Yup.array().test(
+        "notEmpty",
+        "Pages Access is required",
+        (value) => {
+          if (!value || value.length === 0) {
+            return false;
+          }
+          return true;
+        },
+      ),
       role: Yup.string().required("Please Select User Role"),
     }),
     onSubmit: async (values) => {
-      console.log("here")
+      console.log("here");
       const formData = new FormData();
       formData.append("authorId", values.authorId);
       formData.append("name", values.name);
@@ -346,27 +342,27 @@ const UserForm = ({
       if (expertise?.length)
         formData.append(
           "expertise",
-          JSON.stringify(expertise?.map((o) => o.value))
+          JSON.stringify(expertise?.map((o) => o.value)),
         );
       if (conditions?.length)
         formData.append(
           "conditions",
-          JSON.stringify(conditions?.map((o) => o.value))
+          JSON.stringify(conditions?.map((o) => o.value)),
         );
       if (therapies?.length)
         formData.append(
           "therapies",
-          JSON.stringify(therapies?.map((o) => o.value))
+          JSON.stringify(therapies?.map((o) => o.value)),
         );
       if (options?.length)
         formData.append(
           "patientsConcern",
-          JSON.stringify(options?.map((o) => o.value))
+          JSON.stringify(options?.map((o) => o.value)),
         );
       if (languages?.length)
         formData.append(
           "languages",
-          JSON.stringify(languages?.map((o) => o.value))
+          JSON.stringify(languages?.map((o) => o.value)),
         );
       if (faqs?.length) formData.append("faqs", JSON.stringify(faqs));
       if (cropSignature?.file) {
@@ -384,7 +380,7 @@ const UserForm = ({
 
         try {
           const updatedUser = await dispatch(
-            updateUser({ data: formData, id: userData._id, token })
+            updateUser({ data: formData, id: userData._id, token }),
           ).unwrap();
           if (onComplete) {
             onComplete(updatedUser.data[0]._id);
@@ -397,7 +393,9 @@ const UserForm = ({
         }
       } else {
         try {
-          const newUser = await dispatch(addNewUser({ data: formData, token })).unwrap();
+          const newUser = await dispatch(
+            addNewUser({ data: formData, token }),
+          ).unwrap();
           if (onComplete) {
             onComplete(newUser.data[0]._id);
           }
@@ -419,14 +417,14 @@ const UserForm = ({
       name: "name",
       type: "text",
       placeholder: "Enter full name",
-      disabled: isITPrefill
+      disabled: isITPrefill,
     },
     {
       label: "Email",
       name: "email",
       type: "email",
       placeholder: "Enter email address",
-      disabled: isITPrefill
+      disabled: isITPrefill,
     },
     {
       label: "Acccess Role",
@@ -441,14 +439,13 @@ const UserForm = ({
       type: "select",
       options: authRoles,
       placeholder: "Select role",
-
     },
     {
       label: "Phone number",
       name: "phoneNumber",
       type: "phoneNumber",
       handleChange: (e) => validation.handleChange(e),
-      disabled: isITPrefill
+      disabled: isITPrefill,
     },
     {
       label: "Gender",
@@ -456,7 +453,7 @@ const UserForm = ({
       type: "radio",
       options: ["MALE", "FEMALE", "OTHERS"],
       handleChange: (e) => validation.handleChange(e),
-      disabled: isITPrefill
+      disabled: isITPrefill,
     },
     !isEditing && {
       label: "Password",
@@ -496,7 +493,7 @@ const UserForm = ({
         validation.values[field.name]?.find((tm) => tm.name === item.name),
       subCheck: (fieldName, parentName, subName) => {
         const parent = validation.values[fieldName]?.find(
-          (pg) => pg.name === parentName
+          (pg) => pg.name === parentName,
         );
         return (
           parent &&
@@ -562,7 +559,7 @@ const UserForm = ({
       const exists = currentPageAccess.some((pg) => pg.name === item.name);
       if (exists) {
         updatedPageAccess = currentPageAccess.filter(
-          (pg) => pg.name !== item.name
+          (pg) => pg.name !== item.name,
         );
       } else {
         updatedPageAccess = [
@@ -1084,7 +1081,7 @@ const UserForm = ({
                                       value={perm}
                                       checked={field.checkPermission(
                                         item.name,
-                                        perm
+                                        perm,
                                       )}
                                       onChange={() =>
                                         handlePermission(item, perm)
@@ -1105,7 +1102,7 @@ const UserForm = ({
                                       {perm}
                                     </label>
                                   </div>
-                                )
+                                ),
                               )}
                             </div>
                           )}
@@ -1133,7 +1130,7 @@ const UserForm = ({
                                     checked={field.subCheck(
                                       field.name,
                                       item.name,
-                                      val.name
+                                      val.name,
                                     )}
                                     disabled={!field.check(field, item)}
                                     onChange={(e) =>
@@ -1157,7 +1154,7 @@ const UserForm = ({
                                 {field.subCheck(
                                   field.name,
                                   item.name,
-                                  val.name
+                                  val.name,
                                 ) &&
                                   val.permissions && (
                                     <div
@@ -1184,13 +1181,13 @@ const UserForm = ({
                                               checked={field.checkPermission(
                                                 item.name,
                                                 perm,
-                                                val.name
+                                                val.name,
                                               )}
                                               onChange={() =>
                                                 handlePermission(
                                                   item,
                                                   perm,
-                                                  val
+                                                  val,
                                                 )
                                               }
                                               style={{
@@ -1209,7 +1206,7 @@ const UserForm = ({
                                               {perm}
                                             </label>
                                           </div>
-                                        )
+                                        ),
                                       )}
                                     </div>
                                   )}
@@ -1394,7 +1391,7 @@ const UserForm = ({
                                 cursor: "pointer",
                               }}
                             >
-                              {item.title || item.label}
+                              {item.title || item.displayLabel || item.label}
                             </label>
                           </div>
 
@@ -1424,7 +1421,7 @@ const UserForm = ({
                                       value={perm}
                                       checked={field.checkPermission(
                                         item.name,
-                                        perm
+                                        perm,
                                       )}
                                       onChange={() =>
                                         handlePermission(item, perm)
@@ -1446,7 +1443,7 @@ const UserForm = ({
                                       {perm}
                                     </label>
                                   </div>
-                                )
+                                ),
                               )}
                             </div>
                           )}
@@ -1490,7 +1487,7 @@ const UserForm = ({
                                       checked={field.subCheck(
                                         field.name,
                                         item.name,
-                                        val.name
+                                        val.name,
                                       )}
                                       disabled={!field.check(field, item)}
                                       onChange={(e) =>
@@ -1518,7 +1515,7 @@ const UserForm = ({
                                   {field.subCheck(
                                     field.name,
                                     item.name,
-                                    val.name
+                                    val.name,
                                   ) &&
                                     val.permissions && (
                                       <div
@@ -1546,13 +1543,13 @@ const UserForm = ({
                                                 checked={field.checkPermission(
                                                   item.name,
                                                   perm,
-                                                  val.name
+                                                  val.name,
                                                 )}
                                                 onChange={() =>
                                                   handlePermission(
                                                     item,
                                                     perm,
-                                                    val
+                                                    val,
                                                   )
                                                 }
                                                 style={{
@@ -1572,7 +1569,7 @@ const UserForm = ({
                                                 {perm}
                                               </label>
                                             </div>
-                                          )
+                                          ),
                                         )}
                                       </div>
                                     )}
@@ -1640,7 +1637,7 @@ const UserForm = ({
                     name="centerAccess"
                     value={item._id}
                     checked={validation.values?.centerAccess?.includes(
-                      item._id
+                      item._id,
                     )}
                     onChange={validation.handleChange}
                     style={{
@@ -1676,7 +1673,7 @@ const UserForm = ({
           </div>
 
           {(validation.values.role === "DOCTOR" ||
-            validation.values.role === "COUNSELLOR") && (
+            validation.values.role === "COUNSELLOR" || validation.values.role === "PSYCHOLOGIST") && (
               <div
                 style={{ display: "flex", flexDirection: "column", gap: "24px" }}
               >

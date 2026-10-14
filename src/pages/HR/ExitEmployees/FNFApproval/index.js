@@ -9,7 +9,7 @@ import {
   TabPane,
 } from "reactstrap";
 import classnames from "classnames";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import ExitHistory from "./Views/ApprovalHistory";
@@ -20,7 +20,8 @@ import PendingApprovals from "./Views/PendingApprovals";
 const FNFApproval = () => {
   const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width: 1000px)");
-  const [activeTab, setActiveTab] = useState("PENDING");
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState(searchParams.get("tab") || "PENDING");
 
 
   const microUser = localStorage.getItem("micrologin");

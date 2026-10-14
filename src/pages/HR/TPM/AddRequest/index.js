@@ -42,7 +42,7 @@ const AddTPMRequest = () => {
             </div>
             <hr className="mb-2 border-secondary" />
             <div>
-                <div className="d-flex justify-content-center">
+                <div className="d-flex justify-content-center mb-5">
                     <div style={{ width: "100%", maxWidth: "700px" }}>
                         <TPMForm
                             view="PAGE"

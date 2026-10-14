@@ -7,17 +7,31 @@ import {
   getLatestInflows,
   getLatestSpendings,
   getSummaryCashReport,
+  getDateRangeReport,
   postBankDeposit,
   postBaseBalance,
   postInflow,
   postSpending,
+  postCashReco,
+  getCashRecoList,
+  putCashReco,
+  removeCashReco,
+  getCashRecoDayStatus,
+  getCashRecoComparison,
+  confirmCashRecoEntry,
 } from "../../../helpers/backend_helper";
-
+ 
 const initialState = {
   loading: false,
   bankDeposits: {},
   spendings: {},
   inflows: {},
+  cashRecos: {
+    data: [],
+    pagination: {},
+    loading: false,
+    latestRequestId: null,
+  },
   baseBalance: [],
   lastBaseBalance: null,
   detailedReport: {},
@@ -30,10 +44,11 @@ const initialState = {
 export const getLastBankDeposits = createAsyncThunk(
   "cash/getLatestBankDesposits",
   async (data, { getState, dispatch, rejectWithValue }) => {
-    const { centers } = data;
+    const { centers, refetch = false } = data;
     const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
     const cachedBankDeposits = getState().Cash.bankDeposits?.[cacheKey];
     if (
+      !refetch &&
       cachedBankDeposits &&
       Array.isArray(cachedBankDeposits.data) &&
       cachedBankDeposits.data.length > 0
@@ -73,12 +88,13 @@ export const addSpending = createAsyncThunk(
 export const getLastSpendings = createAsyncThunk(
   "cash/getLatestSpendings",
   async (data, { getState, rejectWithValue }) => {
-    const { centers } = data;
+    const { centers, refetch = false } = data;
     const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
 
     const cachedSpendings = getState().Cash.spendings?.[cacheKey];
 
     if (
+      !refetch &&
       cachedSpendings &&
       Array.isArray(cachedSpendings.data) &&
       cachedSpendings.data.length > 0
@@ -142,12 +158,13 @@ export const addInflow = createAsyncThunk(
 export const getLastInflows = createAsyncThunk(
   "cash/getLatestInflows",
   async (data, { getState, rejectWithValue }) => {
-    const { centers } = data;
+    const { centers, refetch = false } = data;
     const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
 
     const cachedInflows = getState().Cash.inflows?.[cacheKey];
 
     if (
+      !refetch &&
       cachedInflows &&
       Array.isArray(cachedInflows.data) &&
       cachedInflows.data.length > 0
@@ -158,6 +175,92 @@ export const getLastInflows = createAsyncThunk(
     try {
       const response = await getLatestInflows(data);
       return { data: response, fromCache: false, cacheKey };
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+// opening balance (denomination wise)
+export const addCashReco = createAsyncThunk(
+  "cash/addCashReco",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await postCashReco(data);
+      return response.payload;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getCashRecos = createAsyncThunk(
+  "cash/getCashRecoList",
+  async (params, { rejectWithValue }) => {
+    try {
+      return await getCashRecoList(params);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const updateCashReco = createAsyncThunk(
+  "cash/updateCashReco",
+  async ({ id, ...data }, { rejectWithValue }) => {
+    try {
+      const response = await putCashReco(id, data);
+      return response.payload;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const deleteCashReco = createAsyncThunk(
+  "cash/deleteCashReco",
+  async (id, { rejectWithValue }) => {
+    try {
+      await removeCashReco(id);
+      return id;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const fetchCashRecoDayStatus = createAsyncThunk(
+  "cash/openingBalanceDayStatus",
+  async (center, { rejectWithValue }) => {
+    try {
+      const response = await getCashRecoDayStatus({ center });
+      return response.payload;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const fetchCashRecoComparison = createAsyncThunk(
+  "cash/cashRecoComparison",
+  async (id, { rejectWithValue }) => {
+    try {
+      const response = await getCashRecoComparison(id);
+      return response.payload;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const confirmCashReco = createAsyncThunk(
+  "cash/confirmCashReco",
+  async ({ id, acknowledgedDifference }, { rejectWithValue }) => {
+    try {
+      const response = await confirmCashRecoEntry(id, {
+        acknowledgedDifference,
+      });
+      return response.payload;
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -229,6 +332,18 @@ export const getSummaryReport = createAsyncThunk(
     try {
       const response = await getSummaryCashReport({ centers });
       return { data: response, cacheKey, fromCache: false };
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  }
+);
+
+export const getRangeReport = createAsyncThunk(
+  "cash/getDateRangeReport",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await getDateRangeReport(data);
+      return response;
     } catch (error) {
       return rejectWithValue(error);
     }
@@ -397,6 +512,16 @@ export const CashSlice = createSlice({
       .addCase(getSummaryReport.rejected, (state) => {
         state.loading = false;
       });
+      builder.addCase(getRangeReport.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(getRangeReport.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        state.rangeReport = payload?.payload;
+      })
+      .addCase(getRangeReport.rejected, (state) => {
+        state.loading = false;
+      });
 
     // inflows
     builder
@@ -427,6 +552,55 @@ export const CashSlice = createSlice({
       .addCase(getLastInflows.rejected, (state) => {
         state.loading = false;
       });
+
+    // opening balances
+    builder
+      .addCase(getCashRecos.pending, (state, { meta }) => {
+        state.cashRecos.loading = true;
+        state.cashRecos.latestRequestId = meta.requestId;
+      })
+      .addCase(getCashRecos.fulfilled, (state, { payload, meta }) => {
+        if (meta.requestId !== state.cashRecos.latestRequestId) return;
+        state.cashRecos.loading = false;
+        state.cashRecos.data = payload?.data || [];
+        state.cashRecos.pagination = payload?.pagination || {};
+      })
+      .addCase(getCashRecos.rejected, (state, { meta }) => {
+        if (meta.requestId !== state.cashRecos.latestRequestId) return;
+        state.cashRecos.loading = false;
+      });
+
+    builder.addCase(addCashReco.fulfilled, (state, { payload }) => {
+      if (payload) {
+        state.cashRecos.data.unshift(payload);
+      }
+    });
+
+    builder.addCase(updateCashReco.fulfilled, (state, { payload }) => {
+      if (!payload) return;
+      const index = state.cashRecos.data.findIndex(
+        (record) => record._id === payload._id
+      );
+      if (index >= 0) {
+        state.cashRecos.data[index] = payload;
+      }
+    });
+
+    builder.addCase(confirmCashReco.fulfilled, (state, { payload }) => {
+      if (!payload) return;
+      const index = state.cashRecos.data.findIndex(
+        (record) => record._id === payload._id
+      );
+      if (index >= 0) {
+        state.cashRecos.data[index] = payload;
+      }
+    });
+
+    builder.addCase(deleteCashReco.fulfilled, (state, { payload }) => {
+      state.cashRecos.data = state.cashRecos.data.filter(
+        (record) => record._id !== payload
+      );
+    });
   },
 });
 

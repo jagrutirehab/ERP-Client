@@ -13,6 +13,12 @@ import {
   postHAMATest,
   postHAMDTest,
   postPANSSTest,
+  postMorseFallTest,
+  postRamsayTest,
+  postGCSTest,
+  postCGISTest,
+  postCOWSTest,
+  postAUDITTest,
 } from "../../../helpers/backend_helper";
 
 export const fetchClinicalTest = createAsyncThunk(
@@ -22,10 +28,10 @@ export const fetchClinicalTest = createAsyncThunk(
       const response = await getClinicalTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
 );
 
 export const fetchCiwaTest = createAsyncThunk(
@@ -35,10 +41,10 @@ export const fetchCiwaTest = createAsyncThunk(
       const response = await getCiwaTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
 );
 
 export const createCiwaTest = createAsyncThunk(
@@ -48,10 +54,10 @@ export const createCiwaTest = createAsyncThunk(
       const response = await postCiwatest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
 );
 
 export const createSsrsTest = createAsyncThunk(
@@ -61,10 +67,10 @@ export const createSsrsTest = createAsyncThunk(
       const response = await postSsrstest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
 );
 
 export const createMPQTest = createAsyncThunk(
@@ -74,10 +80,10 @@ export const createMPQTest = createAsyncThunk(
       const response = await postMPQtest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
 );
 
 export const createMMSETest = createAsyncThunk(
@@ -87,10 +93,10 @@ export const createMMSETest = createAsyncThunk(
       const response = await postMMSEtest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
 );
 
 export const createYMRSTest = createAsyncThunk(
@@ -100,10 +106,10 @@ export const createYMRSTest = createAsyncThunk(
       const response = await postYmrsTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
 );
 
 export const createYBOCSTest = createAsyncThunk(
@@ -113,10 +119,10 @@ export const createYBOCSTest = createAsyncThunk(
       const response = await postYBOCSTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
 );
 
 export const createACDSTest = createAsyncThunk(
@@ -126,10 +132,10 @@ export const createACDSTest = createAsyncThunk(
       const response = await postACDSTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
 );
 
 export const createHAMATest = createAsyncThunk(
@@ -139,10 +145,10 @@ export const createHAMATest = createAsyncThunk(
       const response = await postHAMATest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
 );
 
 export const createHAMDTest = createAsyncThunk(
@@ -152,10 +158,10 @@ export const createHAMDTest = createAsyncThunk(
       const response = await postHAMDTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
 );
 
 export const createPANSSTest = createAsyncThunk(
@@ -165,10 +171,82 @@ export const createPANSSTest = createAsyncThunk(
       const response = await postPANSSTest(data);
       return response;
     } catch (error) {
-      dispatch(setAlert({ type: "error", message: error.message }));
-      return rejectWithValue("something went wrong");
+      // dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error);
     }
-  }
+  },
+);
+
+export const createMorseFallTest = createAsyncThunk(
+  "createMorseFallTest",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await postMorseFallTest(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const createRamsayTest = createAsyncThunk(
+  "createRamsayTest",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await postRamsayTest(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const createGCSTest = createAsyncThunk(
+  "createGCSTest",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      const response = await postGCSTest(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const createCGISTest = createAsyncThunk(
+  "createCGISTest",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await postCGISTest(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const createCOWSTest = createAsyncThunk(
+  "createCOWSTest",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await postCOWSTest(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const createAUDITTest = createAsyncThunk(
+  "createAUDITTest",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await postAUDITTest(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
 );
 
 const initialState = {
@@ -334,6 +412,77 @@ export const clinicalTestSlice = createSlice({
       })
       .addCase(fetchClinicalTest.rejected, (state) => {
         state.testResult = [];
+        state.isLoading = false;
+      });
+
+    builder
+      .addCase(createMorseFallTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createMorseFallTest.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(createMorseFallTest.rejected, (state) => {
+        state.isLoading = false;
+      });
+
+    // create Ramsay Sedation Test
+    builder
+      .addCase(createRamsayTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createRamsayTest.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(createRamsayTest.rejected, (state) => {
+        state.isLoading = false;
+      });
+
+    // create GCS Test
+    builder
+      .addCase(createGCSTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createGCSTest.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(createGCSTest.rejected, (state) => {
+        state.isLoading = false;
+      });
+
+    // create CGI-S Test
+    builder
+      .addCase(createCGISTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createCGISTest.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(createCGISTest.rejected, (state) => {
+        state.isLoading = false;
+      });
+
+    // create COWS Test
+    builder
+      .addCase(createCOWSTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createCOWSTest.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(createCOWSTest.rejected, (state) => {
+        state.isLoading = false;
+      });
+
+    // create AUDIT Test
+    builder
+      .addCase(createAUDITTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createAUDITTest.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(createAUDITTest.rejected, (state) => {
         state.isLoading = false;
       });
   },

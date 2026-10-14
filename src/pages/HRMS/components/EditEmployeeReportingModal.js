@@ -14,7 +14,7 @@ const EditEmployeeReportingModal = ({
 }) => {
 
     return (
-        <Modal isOpen={isOpen} toggle={toggle} size="lg" centered backdrop="static"
+        <Modal isOpen={isOpen} toggle={toggle} size="xl" centered backdrop="static"
             keyboard={false}>
             <ModalHeader toggle={toggle}>
                 Edit Employee Reporting

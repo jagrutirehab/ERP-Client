@@ -10,40 +10,29 @@ import { ExpandableText } from '../../../../../Components/Common/ExpandableText'
 import { Input, Spinner } from 'reactstrap';
 import Select from "react-select";
 import DataTable from 'react-data-table-component';
-import { renderStatusBadge } from '../../../components/renderStatusBadge';
+import { renderStatusBadge } from '../../../../../Components/Common/renderStatusBadge';
+import { useSearchParams } from 'react-router-dom';
+import { normalizeUnderscores } from '../../../../../utils/normalizeUnderscore';
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 
 const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
-    const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const querySearch = searchParams.get("q") || "";
+    const queryCenter = searchParams.get("center") || "ALL";
+    const queryExitId = searchParams.get("id") || "";
+    const [selectedCenter, setSelectedCenter] = useState(queryCenter);
     const [page, setPage] = useState(1);
-    const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
+    const [search, setSearch] = useState(querySearch);
+    const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
     const [limit, setLimit] = useState(10);
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter
@@ -63,10 +52,30 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         const handler = setTimeout(() => {
             setDebouncedSearch(search);
             setPage(1);
+            setSearchParams((prev) => {
+                if (search.trim()) {
+                    prev.set("q", search);
+                } else {
+                    prev.delete("q");
+                    prev.delete("tab");
+                    prev.delete("center");
+                    prev.delete("id");
+                }
+                return prev;
+            });
         }, 500);
 
         return () => clearTimeout(handler);
     }, [search]);
+
+    useEffect(() => {
+        const q = searchParams.get("q") || "";
+        const c = searchParams.get("center") || "ALL";
+        setSearch(q);
+        setDebouncedSearch(q);
+        setSelectedCenter(c);
+        setPage(1);
+    }, [activeTab]);
 
 
     const fetchExitEmployeeListHistory = async () => {
@@ -81,7 +90,8 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                 limit,
                 centers,
                 stage: "HISTORY",
-                ...search.trim() !== "" && { search: debouncedSearch }
+                ...search.trim() !== "" && { search: debouncedSearch },
+                ...(queryExitId !== "" && { exitId: queryExitId })
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -116,7 +126,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         },
         {
             name: <div>Reason of Leaving</div>,
-            selector: row => capitalizeWords(row?.reason || "-"),
+            selector: row =>  capitalizeWords(normalizeUnderscores(row?.reason) || "-"),
             wrap: true,
             minWidth: "140px",
         },
@@ -248,6 +258,12 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                                 onChange={(option) => {
                                     setSelectedCenter(option?.value);
                                     setPage(1);
+                                    if (queryExitId) {
+                                        setSearchParams((prev) => {
+                                            prev.delete("id");
+                                            return prev;
+                                        });
+                                    }
                                 }}
                                 options={centerOptions}
                                 placeholder="All Centers"
@@ -277,6 +293,12 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
                             onChange={(option) => {
                                 setSelectedCenter(option?.value);
                                 setPage(1);
+                                if (queryExitId) {
+                                    setSearchParams((prev) => {
+                                        prev.delete("id");
+                                        return prev;
+                                    });
+                                }
                             }}
                             options={centerOptions}
                             placeholder="All Centers"

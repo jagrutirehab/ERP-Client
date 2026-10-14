@@ -1,43 +1,61 @@
-import React from "react";
+import React, { useState } from "react";
 import RenderFields from "../../../../Components/Common/RenderFields";
-import { Col, Input, Label, Row } from "reactstrap";
 import NextButton from "./NextButton";
 
 const fields = [
   {
-    label: "Counsellor",
-    name: "counsellor",
-    type: "text",
-  },
-  // {
-  //   label: "Referred by",
-  //   name: "referredby",
-  //   type: "text",
-  // },
-  {
-    label: "History / Onset Duration & Progress",
-    name: "history",
-    type: "textarea",
-  },
-  {
     label: "Negative History",
     name: "negativeHistory",
-    type: "textarea",
+    type: "checkbox",
+    required: true,
+    options: [
+      "Head Injury",
+      "Seizures",
+      "Loss of Consciousness",
+      "CNS Infection",
+      "Significant Medical Illness",
+      "Medico-Legal Issues",
+      "Abuse/Trauma",
+      "Overdose",
+      "Withdrawal delirium",
+      "Substance induced Psychosis",
+      "Epilepsy",
+      "Other",
+    ],
   },
   {
-    label: "Past History",
-    name: "pastHistory",
-    type: "textarea",
+    label: "Negative History — Other (specify)",
+    name: "negativeHistoryOther",
+    type: "text",
+    showIf: {
+      field: "negativeHistory",
+      includes: "Other",
+    },
   },
   {
-    label: "Development History & Childhood/Adolescence",
-    name: "developmentHistory",
-    type: "textarea",
+    label: "Development Delay",
+    name: "developmentDelay",
+    type: "select",
+    options: ["Yes", "No", "Not Available"],
+    required: true,
   },
   {
-    label: "Occupation History",
-    name: "occupationHistory",
-    type: "textarea",
+    label: "Development Delay Details",
+    name: "developmentDelayDetails",
+    type: "checkboxWithText",
+    options: [
+      { value: "Sitting", textName: "developmentDelaySittingDetails" },
+      { value: "Standing", textName: "developmentDelayStandingDetails" },
+      { value: "Speech", textName: "developmentDelaySpeechDetails" },
+      {
+        value: "Toilet Training",
+        textName: "developmentDelayToiletTrainingDetails",
+      },
+    ],
+    showIf: {
+      field: "developmentDelay",
+      value: "Yes",
+    },
   },
   {
     label: "Family History",
@@ -50,99 +68,43 @@ const fields = [
     type: "textarea",
   },
   {
-    label: "Personality",
+    label: "Pre-morbid personality break-up",
     name: "personality",
     type: "textarea",
-  },
-  {
-    label: "Social Support",
-    name: "socialSupport",
-    type: "textarea",
+    required: true,
   },
 ];
 
 const DetailHistoryForm = ({ validation, setFormStep, step }) => {
+  const [attempted, setAttempted] = useState(false);
+
+  const validate = () => {
+    setAttempted(true);
+    const negativeHistoryMissing =
+      !Array.isArray(validation.values.negativeHistory) ||
+      validation.values.negativeHistory.length === 0;
+    const developmentDelayMissing = !validation.values.developmentDelay;
+    const personalityMissing = !validation.values.personality;
+    return (
+      !negativeHistoryMissing && !developmentDelayMissing && !personalityMissing
+    );
+  };
+
   return (
     <React.Fragment>
       <div>
-        <Row>
-          <Col xs={12} md={6}>
-            <div className="mb-3">
-              <Label>Informant</Label>
-              <div className="input-group">
-                <div className="input-group-text">Self +</div>
-                <Input
-                  type="text"
-                  style={{
-                    borderTopLeftRadius: "0 !important",
-                    borderBottomLeftRadius: "0 !important",
-                  }}
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values.informant || ""}
-                  invalid={
-                    validation.touched.informant && validation.errors.informant
-                      ? true
-                      : false
-                  }
-                  name="informant"
-                  className="form-control"
-                  aria-label="With textarea"
-                  rows="2"
-                />
-              </div>
-            </div>
-          </Col>
-          <Col xs={12} md={3}>
-            <div className="mt-2">
-              <Label></Label>
-              <Input
-                type="select"
-                name="reliable"
-                onChange={validation.handleChange}
-                onBlur={validation.handleBlur}
-                value={validation.values.reliable || ""}
-                invalid={
-                  validation.touched.reliable && validation.errors.reliable
-                    ? true
-                    : false
-                }
-                className="form-control"
-                aria-label="With textarea"
-                rows="2"
-              >
-                <option>Reliable</option>
-                <option>Unrelaible</option>
-              </Input>
-            </div>
-          </Col>
-          <Col>
-            <div className="mt-2">
-              <Label></Label>
-              <Input
-                type="select"
-                name="adequate"
-                onChange={validation.handleChange}
-                onBlur={validation.handleBlur}
-                value={validation.values.adequate || ""}
-                invalid={
-                  validation.touched.adequate && validation.errors.adequate
-                    ? true
-                    : false
-                }
-                className="form-control"
-                aria-label="With textarea"
-                rows="2"
-              >
-                <option>Adequate</option>
-                <option>Inadequate</option>
-              </Input>
-            </div>
-          </Col>
-        </Row>
         <RenderFields fields={fields} validation={validation} />
-        <NextButton setFormStep={setFormStep} step={step} />
+        {attempted && (
+          <p className="text-danger small">
+            Please fill in all required fields before continuing.
+          </p>
+        )}
       </div>
+      <NextButton
+        setFormStep={setFormStep}
+        step={step}
+        onBeforeNext={validate}
+      />
     </React.Fragment>
   );
 };

@@ -1,0 +1,210 @@
+export const callRecordingsColumns = (
+  page,
+  limit,
+  navigate,
+  recordings,
+  setSelectedRecording,
+  setShowGenerateModal,
+  canAction,
+) => {
+  const parseGeminiResponse = (raw) => {
+    try {
+      if (!raw) return null;
+
+      // If already an object, return directly
+      if (typeof raw === "object") return raw;
+
+      // Strip markdown fences ```json ... ```
+      const cleaned = raw
+        .replace(/^```json\s*/i, "")
+        .replace(/^```\s*/i, "")
+        .replace(/```\s*$/i, "")
+        .trim();
+
+      return JSON.parse(cleaned);
+    } catch {
+      return null;
+    }
+  };
+
+  const columns = [
+    {
+      name: <div className="text-center">Index</div>,
+      selector: (row, index) => (page - 1) * limit + index + 1,
+      width: "100px",
+    },
+    {
+      name: <div className="text-center">UCID</div>,
+      selector: (row) => row?.UCID || "-",
+      width: "200px",
+    },
+    {
+      name: <div className="text-center">Overview Generated</div>,
+      cell: (row) => {
+        const response = row?.Files?.geminiResponse;
+
+        // In the queue: an overview is on its way, so neither "Not Generated"
+        // nor a stale error is the truth here.
+        if (row?.transcriptionQueued) {
+          return (
+            <span
+              className="d-inline-flex align-items-center"
+              style={{ color: "#2f7ed8", fontWeight: 600 }}
+            >
+              <span
+                className="spinner-border spinner-border-sm me-2"
+                role="status"
+                aria-hidden="true"
+                style={{ width: "0.75rem", height: "0.75rem" }}
+              />
+              {row?.transcriptionState === "submitted"
+                ? "Transcribing"
+                : "In Queue"}
+            </span>
+          );
+        }
+
+        if (!response) {
+          return (
+            <span style={{ color: "red", fontWeight: 600 }}>Not Generated</span>
+          );
+        }
+
+        if (response?.startsWith("API Error")) {
+          return (
+            <span style={{ color: "orange", fontWeight: 600 }}>
+              Generated (API Error)
+            </span>
+          );
+        }
+
+        return (
+          <span style={{ color: "green", fontWeight: 600 }}>Generated</span>
+        );
+      },
+      width: "180px",
+    },
+
+    {
+      name: <div className="text-center">More details</div>,
+      cell: (row, index) => (
+        <div
+          className="text-primary text-center"
+          style={{ cursor: "pointer", textDecoration: "underline" }}
+          onClick={() =>
+            navigate(`/recordings/more/${row._id}`, {
+              state: {
+                recordings,
+                index,
+                limit,
+                page,
+              },
+            })
+          }
+        >
+          View
+        </div>
+      ),
+      width: "200px",
+    },
+    {
+      name: <div className="text-center">Location</div>,
+      selector: (row) => row?.Location || "-",
+      width: "200px",
+    },
+    {
+      name: <div className="text-center">Agent</div>,
+      selector: (row) => row?.Agent || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Caller Number</div>,
+      selector: (row) => row?.Caller_No || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Call Date</div>,
+      selector: (row) => row?.Call_Date || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Campaign</div>,
+      selector: (row) => row?.Campaign?.split("_")?.[0] || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Status</div>,
+      selector: (row) => row?.Status || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Talk Time</div>,
+      selector: (row) => row?.Talk_Time || "-",
+      width: "160px",
+    },
+    {
+      name: <div className="text-center">Lead Quality</div>,
+      selector: (row) => {
+        const gemini = parseGeminiResponse(row?.Files?.geminiResponse);
+        const raw = gemini?.lead_type || "";
+        const normalized = raw.trim().toLowerCase();
+
+        if (normalized.includes("hot")) return "Hot";
+        if (normalized.includes("normal")) return "Normal";
+        if (normalized.includes("cold")) return "Cold";
+        return "-";
+      },
+      width: "160px",
+    },
+  ];
+
+  if (canAction) {
+    columns.push({
+      name: <div className="text-center">Generate</div>,
+      cell: (row) => {
+        const response = row?.Files?.geminiResponse;
+
+        // Already queued — clicking Generate again would be de-duplicated
+        // server-side and do nothing, so there is nothing to offer.
+        if (row?.transcriptionQueued) {
+          return (
+            <span className="badge bg-info-subtle text-info">Queued</span>
+          );
+        }
+
+        if (!response) {
+          return (
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => {
+                setSelectedRecording(row);
+                setShowGenerateModal(true);
+              }}
+            >
+              Generate
+            </button>
+          );
+        }
+
+        if (response?.startsWith("API Error")) {
+          return (
+            <button
+              className="btn btn-warning btn-sm"
+              onClick={() => {
+                setSelectedRecording(row);
+                setShowGenerateModal(true);
+              }}
+            >
+              Re-Generate
+            </button>
+          );
+        }
+
+        return null;
+      },
+      width: "180px",
+    });
+  }
+
+  return columns;
+};

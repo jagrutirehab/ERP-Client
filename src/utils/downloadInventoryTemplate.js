@@ -2,19 +2,16 @@ import ExcelJS from "exceljs";
 import { toast } from "react-toastify";
 import { saveAs } from "file-saver";
 
-export const downloadInventoryTemplate = async (type = "TEMPLATE") => {
+export const downloadInventoryTemplate = async (type = "TEMPLATE", medicines = []) => {
     try {
         const workbook = new ExcelJS.Workbook();
         const sheet = workbook.addWorksheet("Pharmacy Inventory");
 
         const headers = [
-            "Code",
             "Medicine Name",
             "Strength",
             "Unit",
             "Stock",
-            "Cost Price",
-            "Value",
             "MRP",
             "Purchase Price",
             "Sales Price",
@@ -47,8 +44,19 @@ export const downloadInventoryTemplate = async (type = "TEMPLATE") => {
             sheet.getColumn(expiryDateColIndex).numFmt = "dd-mm-yyyy";
         }
 
-        const emptyRow = headers.map(() => "");
-        sheet.addRow(emptyRow);
+        if (medicines.length > 0) {
+            medicines.forEach((med) => {
+                const rowData = {
+                    "Medicine Name": med?.name || "",
+                    Strength: med?.strength || "",
+                    Unit: med?.unit || "",
+                };
+                sheet.addRow(headers.map((h) => rowData[h] ?? ""));
+            });
+        } else {
+            const emptyRow = headers.map(() => "");
+            sheet.addRow(emptyRow);
+        }
 
         const now = new Date();
         const istDate = new Date(now.getTime() + 5.5 * 60 * 60 * 1000);

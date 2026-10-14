@@ -1,9 +1,16 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Card, CardBody, Row, Col, Input, Button } from "reactstrap";
+import { CardBody, Row, Col, Input, Button } from "reactstrap";
+import { usePermissions } from "../../../../../Components/Hooks/useRoles";
+import CheckPermission from "../../../../../Components/HOC/CheckPermission";
 
 const PaymentBar = ({ toggleForm, setSearchadv }) => {
   const [tempSearch, setTempSearch] = useState("");
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { roles } = usePermissions(token);
 
   useEffect(() => {
     const delayDebounce = setTimeout(() => {
@@ -12,6 +19,7 @@ const PaymentBar = ({ toggleForm, setSearchadv }) => {
 
     return () => clearTimeout(delayDebounce);
   }, [tempSearch, setSearchadv]);
+
   return (
     <CardBody className="p-3 bg-white">
       <Row className="gy-2 gx-3 align-items-center">
@@ -28,13 +36,18 @@ const PaymentBar = ({ toggleForm, setSearchadv }) => {
           </div>
         </Col>
         <Col xs="12" sm="4" md="6" lg="4" className="ms-sm-auto text-sm-end">
-          <Button
-            className="text-white w-100 w-sm-auto"
-            color="success"
-            onClick={toggleForm}
-          >
-            <i className="ri-add-fill me-1 align-bottom"></i> Add Item
-          </Button>
+          <CheckPermission
+            accessRolePermission={roles?.permissions}
+            permission={"create"}
+            subAccess={"ADVANCEPAYMENTSETTING"}>
+            <Button
+              className="text-white w-100 w-sm-auto"
+              color="success"
+              onClick={toggleForm}
+            >
+              <i className="ri-add-fill me-1 align-bottom"></i> Add Item
+            </Button>
+          </CheckPermission>
         </Col>
       </Row>
     </CardBody>

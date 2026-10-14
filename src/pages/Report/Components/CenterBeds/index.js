@@ -41,7 +41,7 @@ const CenterBedsAnalytics = ({ data, loading, centerAccess }) => {
       };
     }
 
-    const totals = data.reduce(
+    const totals = data?.reduce(
       (acc, center) => {
         const totalBeds = center.totalBeds || 0;
         const occupiedBeds = center.occupiedBeds || 0;

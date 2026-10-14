@@ -1,5 +1,6 @@
 import React, { useRef, useState, useEffect, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import {
   Dropdown,
   DropdownItem,
@@ -21,9 +22,11 @@ import {
 import jsPDF from "jspdf";
 import "svg2pdf.js";
 import { AlertTriangle } from "lucide-react";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 const MMSEAssessment = () => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
   const fileInputRef = useRef(null);
   const svgRef = useRef(null);
   const readingTextRef = useRef(null);
@@ -44,6 +47,7 @@ const MMSEAssessment = () => {
   const [pdfType, setPdfType] = useState("");
   const [isSvgReady, setIsSvgReady] = useState(false);
   const [isTextReady, setIsTextReady] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
   const patient = useSelector((state) => state.Patient.patient);
   const psychologistDetails = useSelector((state) => state.User?.doctor) || [];
@@ -216,7 +220,7 @@ const MMSEAssessment = () => {
     setPdfType("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!selectedPsychologist.id || selectedPsychologist.id === -1) {
@@ -273,10 +277,19 @@ const MMSEAssessment = () => {
       Array.from(files).forEach((file) => formData.append("file", file));
     }
 
-    dispatch(createMMSETest(formData));
-    openModal(
-      "Test submitted! The results are now available on the next page."
-    );
+    setIsLoading(true);
+    try {
+      await dispatch(createMMSETest(formData)).unwrap();
+      openModal(
+        "Test submitted! The results are now available on the next page."
+      );
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to submit assessment");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const sectionKeyMap = {
@@ -627,8 +640,9 @@ const MMSEAssessment = () => {
         <button
           className="btn btn-success fw-bold px-4 py-2 shadow-sm"
           onClick={handleSubmit}
+          disabled={isLoading}
         >
-          <i className="fas fa-check-circle me-2"></i> Submit Assessment
+          <i className="fas fa-check-circle me-2"></i> {isLoading ? "Saving..." : "Submit Assessment"}
         </button>
       </div>
 

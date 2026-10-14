@@ -132,7 +132,7 @@ const ApprovedReferralsList = ({
         <Table className="table-bordered table-nowrap align-middle mb-0">
           <thead className="table-light">
             <tr>
-              <th scope="col">Doctor Name</th>
+              <th scope="col">Contact Name</th>
               <th scope="col">Speciality</th>
               <th scope="col">Hospital/Clinic</th>
               <th scope="col">Mobile Number</th>
@@ -146,9 +146,9 @@ const ApprovedReferralsList = ({
             {referrals && referrals.length > 0 ? (
               referrals.map((referral) => (
                 <tr key={referral._id}>
-                  <td className="text-capitalize">{referral.doctorName}</td>
-                  <td className="text-capitalize">{referral.speciality}</td>
-                  <td className="text-capitalize">{referral.hospitalClinic}</td>
+                  <td>{referral.doctorName}</td>
+                  <td>{referral.speciality}</td>
+                  <td>{referral.hospitalClinic}</td>
                   <td>{referral.mobileNumber}</td>
                   <td>{referral.email || "—"}</td>
                   <td>
@@ -183,7 +183,7 @@ const ApprovedReferralsList = ({
             ) : (
               <tr>
                 <td colSpan="6" className="text-center py-4">
-                  No approved referrals found
+                  No approved contacts found
                 </td>
               </tr>
             )}

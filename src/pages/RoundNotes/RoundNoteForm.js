@@ -21,11 +21,116 @@ import Select from "react-select";
 import AsyncSelect from "react-select/async";
 import Flatpickr from "react-flatpickr";
 import moment from "moment";
-import { useForm, Controller, useFieldArray } from "react-hook-form";
+import { useForm, Controller, useFieldArray, useWatch } from "react-hook-form";
 import { useSelector } from "react-redux";
 import SearchPatient from "../Booking/Components/SearchPatient";
 import { getRoundNoteStaff } from "../../helpers/backend_helper";
 import { setHours, setMinutes } from "date-fns";
+import PatientAsyncSelect from "./PatientSearch";
+
+/**
+ * Isolates SearchPatient re-renders to a single table cell.
+ * useWatch scopes the subscription so only THIS cell re-renders
+ * when its patient name/id changes — not the entire form.
+ */
+// const PatientSearchCell = React.memo(({ index, control, setValue, errors }) => {
+//   const patientId = useWatch({ control, name: `notes.${index}.patient._id` });
+//   const patientName = useWatch({ control, name: `notes.${index}.patient.name` });
+
+//   const validation = React.useMemo(
+//     () => ({
+//       setFieldValue: (name, value) => {
+//         if (name === "patient") {
+//           setValue(`notes.${index}.patient._id`, value);
+//           if (value) {
+//             setValue(`notes.${index}.patientsCategory`, "Selected Patients");
+//           } else {
+//             setValue(`notes.${index}.patientsCategory`, "All Patients");
+//           }
+//         }
+//         if (name === "patientName") {
+//           setValue(`notes.${index}.patient.name`, value);
+//         }
+//       },
+//       values: {
+//         patient: patientId || "",
+//         patientName: patientName || "",
+//       },
+//     }),
+//     [index, setValue, patientId, patientName],
+//   );
+
+//   return (
+//     <div
+//       style={{ minHeight: "100%" }}
+//       className="d-flex align-items-centerflex-shrink-0 mb-3"
+//     >
+//       <SearchPatient
+//         dropdownKey={`search-${index}`}
+//         validation={validation}
+//         showNewTag={false}
+//       />
+//       {errors?.notes?.[index]?.patient && (
+//         <small className="text-danger">Required</small>
+//       )}
+//     </div>
+//   );
+// });
+const PatientSearchCell = React.memo(({ index, control, setValue, errors }) => {
+  return (
+    <div style={{ minHeight: "100%", minWidth: "220px" }} className="mb-3">
+      <Controller
+        name={`notes.${index}.patient`}
+        control={control}
+        render={({ field }) => {
+          // field.value is an array of { _id, name }. Tolerate a legacy single
+          // object too (older form state / carried-forward notes).
+          const selected = Array.isArray(field.value)
+            ? field.value
+            : field.value?._id
+              ? [field.value]
+              : [];
+
+          // Format the stored value for react-select (multi) format.
+          const selectValue = selected
+            .filter((p) => p?._id)
+            .map((p) => ({
+              label: p.name,
+              value: p._id,
+              original: p,
+            }));
+
+          return (
+            <PatientAsyncSelect
+              isMulti={false}
+              value={selectValue}
+              onChange={(selectedOptions) => {
+                console.log({ selectedOptions });
+                const options = [selectedOptions] || [];
+
+                field.onChange(
+                  options.map((o) => ({
+                    _id: o.value,
+                    name: o.original?.name ?? o.label,
+                  })),
+                );
+                // Automatically switch the category based on whether any
+                // specific patient is selected.
+                setValue(
+                  `notes.${index}.patientsCategory`,
+                  options.length ? "Selected Patients" : "All Patients",
+                );
+              }}
+            />
+          );
+        }}
+      />
+      {errors?.notes?.[index]?.patient && (
+        <small className="text-danger mt-1 d-block">Required</small>
+      )}
+    </div>
+  );
+});
 
 export const CarryForwardStrip = ({ notes, onUse, onCloseCarryForward }) => {
   if (!notes?.length) return null;
@@ -49,7 +154,15 @@ export const CarryForwardStrip = ({ notes, onUse, onCloseCarryForward }) => {
                 <div>
                   <strong>{moment(note.occursAt).format("MMM D, YYYY")}</strong>
                   <div className="text-muted small">
-                    {note.patient?.name || "General Round"}
+                    {(Array.isArray(note.patient)
+                      ? note.patient
+                      : note.patient
+                        ? [note.patient]
+                        : []
+                    )
+                      .map((p) => p?.name)
+                      .filter(Boolean)
+                      .join(", ") || "General Round"}
                   </div>
                 </div>
                 <Badge color="warning" pill>
@@ -106,21 +219,11 @@ const RoundNoteForm = ({
   function getCurrentSession() {
     const hour = new Date().getHours();
 
-    console.log({ hour });
-
     if (hour >= 5 && hour < 12) return "Morning";
     if (hour >= 12 && hour < 17) return "Afternoon";
     if (hour >= 17 && hour < 21) return "Evening";
     return "Night"; // 21–4
   }
-
-  console.log("-------------------------");
-  console.log("-------------------------");
-  console.log("-------------------------");
-  console.log(getCurrentSession());
-  console.log("-------------------------");
-  console.log("-------------------------");
-  console.log("-------------------------");
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
@@ -141,7 +244,7 @@ const RoundNoteForm = ({
       center: "",
       notes: Array.from({ length: 5 }).map(() => ({
         floor: "",
-        patient: { _id: null, name: "" },
+        patient: [],
         patientsCategory: "All Patients",
         note: "",
       })),
@@ -157,6 +260,7 @@ const RoundNoteForm = ({
 
   // watch date
   const selectedDate = watch("date");
+  const selectedCenter = watch("center");
 
   // Reset form when editing or carryForwardSource provided
   useEffect(() => {
@@ -164,12 +268,16 @@ const RoundNoteForm = ({
       // transform data.notes to fields format
       const transformedNotes = (data.notes || []).map((n) => ({
         floor: n.floor || "",
-        patient: n.patient
-          ? {
-              name: `${n.patient.name}`,
-              _id: n.patient._id,
-            }
-          : null,
+        // patient may come back as a single populated object (legacy docs) or
+        // an array of them (new multi-select docs) — normalize to an array.
+        patient: (Array.isArray(n.patient)
+          ? n.patient
+          : n.patient
+            ? [n.patient]
+            : []
+        )
+          .filter((p) => p?._id)
+          .map((p) => ({ _id: p._id, name: p.name })),
         patientsCategory: n.patientsCategory || "All Patients",
         note: n.note || "",
       }));
@@ -202,7 +310,7 @@ const RoundNoteForm = ({
       // create mode: use carryForwardSource if provided to prefill first row(s)
       const baseNotes = Array.from({ length: 5 }).map(() => ({
         floor: "",
-        patient: { name: "", _id: "" },
+        patient: [],
         patientsCategory: "All Patients",
         roundTakenBy: [],
         note: "",
@@ -241,7 +349,6 @@ const RoundNoteForm = ({
   }, [data, mode, carryForwardSource, reset]);
 
   const submit = handleSubmit((values) => {
-    console.log({ values });
     // Build payload matching your mongoose schema
     const date = new Date(values.date);
     setHours(date, new Date().getHours());
@@ -259,12 +366,14 @@ const RoundNoteForm = ({
         .filter(
           (n) =>
             (n.note && n.note.trim().length > 0 && n.patientsCategory) ||
-            n.patient?._id ||
-            n.floor
+            n.patient?.length ||
+            n.floor,
         ) // Only include rows with actual content
         .map((n) => ({
           floor: n.floor || "",
-          patient: n.patient?._id || null,
+          patient: (Array.isArray(n.patient) ? n.patient : n.patient ? [n.patient] : [])
+            .map((p) => p._id)
+            .filter(Boolean),
           patientsCategory: n.patientsCategory || "All Patients",
           note: n.note,
         })),
@@ -278,7 +387,7 @@ const RoundNoteForm = ({
       center: "",
       notes: Array.from({ length: 5 }).map(() => ({
         floor: "",
-        patient: { _id: null, name: "" },
+        patient: [],
         patientsCategory: "All Patients",
         note: "",
       })),
@@ -298,14 +407,12 @@ const RoundNoteForm = ({
             setValue("notes", [
               {
                 floor: note.floor || "",
-                patient: note.patient
-                  ? {
-                      label: `${note.patient.name} (${
-                        note.patient.patientId || ""
-                      })`,
-                      value: note.patient._id,
-                    }
-                  : null,
+                patient: (Array.isArray(note.patient)
+                  ? note.patient
+                  : note.patient
+                    ? [note.patient]
+                    : []
+                ).map((p) => ({ _id: p._id, name: p.name })),
                 patientsCategory: note.patientsCategory || "All Patients",
                 roundTakenBy:
                   (note.roundTakenBy || []).map((m) => ({
@@ -318,11 +425,11 @@ const RoundNoteForm = ({
               ...Array.from({ length: Math.max(0, Math.max(5 - 1, 0)) }).map(
                 () => ({
                   floor: "",
-                  patient: null,
+                  patient: [],
                   patientsCategory: "All Patients",
                   roundTakenBy: [],
                   note: "",
-                })
+                }),
               ),
             ]);
           }}
@@ -342,8 +449,13 @@ const RoundNoteForm = ({
                 rules={{ required: true }}
                 render={({ field }) => (
                   <Flatpickr
-                    className="form-control"
-                    options={{ dateFormat: "d-m-Y" }}
+                    disabled={
+                      selectedCenter?.value === "694e565ed6e6dd32a39c9815" ||
+                      selectedCenter?.label === "Gurgaon"
+                    }
+                    // className={`form-control`}
+                    className={`form-control ${selectedCenter?.value === "694e565ed6e6dd32a39c9815" || selectedCenter?.label === "Gurgaon" ? "disabled text-muted" : ""}`}
+                    options={{ dateFormat: "d-m-Y", disableMobile: true }}
                     value={field.value}
                     onChange={(dates) => {
                       field.onChange(dates[0]);
@@ -411,7 +523,14 @@ const RoundNoteForm = ({
                     classNamePrefix="select2"
                     onChange={(val) => {
                       field.onChange(val);
-                      console.log({ val });
+
+                      const ifCenterIsGurgaon =
+                        val.value === "694e565ed6e6dd32a39c9815" ||
+                        val.label === "Gurgaon";
+
+                      if (ifCenterIsGurgaon) {
+                        setValue("date", new Date());
+                      }
 
                       setCenterIds([val.value]);
                     }}
@@ -419,9 +538,9 @@ const RoundNoteForm = ({
                   />
                 )}
               />
-              {errors.roundTakenBy && (
+              {errors.center && (
                 <small className="text-danger d-block">
-                  Select at least one staff
+                  Center is required
                 </small>
               )}
             </FormGroup>
@@ -482,7 +601,7 @@ const RoundNoteForm = ({
                   onClick={() =>
                     append({
                       floor: "",
-                      patient: null,
+                      patient: [],
                       patientsCategory: "All Patients",
                       roundTakenBy: [],
                       note: "",
@@ -498,11 +617,11 @@ const RoundNoteForm = ({
                       append(
                         Array.from({ length: 5 }).map(() => ({
                           floor: "",
-                          patient: null,
+                          patient: [],
                           patientsCategory: "All Patients",
                           roundTakenBy: [],
                           note: "",
-                        }))
+                        })),
                       )
                     }
                   >
@@ -513,11 +632,11 @@ const RoundNoteForm = ({
                       append(
                         Array.from({ length: 10 }).map(() => ({
                           floor: "",
-                          patient: null,
+                          patient: [],
                           patientsCategory: "All Patients",
                           roundTakenBy: [],
                           note: "",
-                        }))
+                        })),
                       )
                     }
                   >
@@ -579,47 +698,12 @@ const RoundNoteForm = ({
                     </td>
 
                     <td>
-                      <div
-                        style={{ minHeight: "100%" }}
-                        className="d-flex align-items-centerflex-shrink-0 mb-3"
-                      >
-                        <SearchPatient
-                          dropdownKey={`search-${index}`}
-                          validation={{
-                            setFieldValue: (name, value) => {
-                              if (name === "patient") {
-                                setValue(`notes.${index}.patient._id`, value);
-                                if (value) {
-                                  // Patient selected
-                                  setValue(
-                                    `notes.${index}.patientsCategory`,
-                                    "Selected Patients"
-                                  );
-                                } else {
-                                  // Patient cleared
-                                  setValue(
-                                    `notes.${index}.patientsCategory`,
-                                    "All Patients"
-                                  );
-                                }
-                              }
-                              if (name === "patientName") {
-                                setValue(`notes.${index}.patient.name`, value);
-                              }
-                            },
-                            values: {
-                              patient:
-                                watch(`notes.${index}.patient._id`) || "",
-                              patientName:
-                                watch(`notes.${index}.patient.name`) || "",
-                            },
-                          }}
-                          showNewTag={false}
-                        />
-                        {errors.notes?.[index]?.patient && (
-                          <small className="text-danger">Required</small>
-                        )}
-                      </div>
+                      <PatientSearchCell
+                        index={index}
+                        control={control}
+                        setValue={setValue}
+                        errors={errors}
+                      />
 
                       {/* <Controller
                         name={`notes.${index}.patientName`}
@@ -670,7 +754,9 @@ const RoundNoteForm = ({
                           <Select
                             {...field}
                             isMulti={false}
-                            isDisabled={!!watch(`notes.${index}.patient._id`)}
+                            isDisabled={
+                              watch(`notes.${index}.patient`)?.length > 0
+                            }
                             options={[
                               {
                                 label: "Selected Patients",

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import FileCard from "../../../Components/Common/FileCard";
 import { Col, Row } from "reactstrap";
@@ -14,6 +14,40 @@ const CounsellingNote = ({ data }) => {
   const onPreview = (img) => {
     setFileModal({ img, isOpen: true });
   };
+
+  const normalizeGeminiResponse = (response) => {
+    try {
+      if (!response || typeof response !== "string") {
+        return null;
+      }
+
+      let cleaned = response.trim();
+
+      if (cleaned.toLowerCase().startsWith("api error")) {
+        return null;
+      }
+
+      cleaned = cleaned
+        .replace(/^#{1,6}\s?/gm, "")
+
+        .replace(/^\s*[\*\-]\s+/gm, "• ")
+
+        .replace(/\*\*/g, "")
+        .replace(/\*/g, "")
+
+        .replace(/[ \t]+/g, " ")
+        .replace(/\n{3,}/g, "\n\n")
+        .trim();
+
+      return cleaned;
+
+    } catch (error) {
+      console.error("Error normalizing Gemini response:", error);
+      return null;
+    }
+  };
+
+
 
   return (
     <React.Fragment>
@@ -96,6 +130,42 @@ const CounsellingNote = ({ data }) => {
             </Row>
           </div>
         )}
+        {data?.audioFile?.map((audio, index) => {
+          const cleaned = normalizeGeminiResponse(audio?.geminiResponse);
+
+          return (
+            <div key={audio._id || index} className="mb-3">
+              <audio controls style={{ width: "100%" }}>
+                <source src={audio.url} type={audio.type} />
+              </audio>
+
+              {audio?.isProcessing && (
+                <div className="mt-3 text-center">
+                  <p className="text-warning fw-semibold">
+                    Audio processing is in progress. It can take up to 10 minutes.
+                  </p>
+                </div>
+              )}
+
+              {!audio.isProcessing && cleaned && (
+                <div className="mt-3">
+
+                  {/* Label */}
+                  <h6 className="fw-semibold mb-2">Detail Overview : </h6>
+
+                  {/* Content */}
+                  <div
+                    className="text-muted"
+                    style={{ whiteSpace: "pre-line" }}
+                  >
+                    {cleaned}
+                  </div>
+
+                </div>
+              )}
+            </div>
+          );
+        })}
         <PreviewFile
           file={fileModal.img}
           isOpen={fileModal.isOpen}

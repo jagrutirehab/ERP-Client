@@ -6,6 +6,7 @@ import "flatpickr/dist/themes/material_green.css";
 import { useDispatch, connect } from "react-redux";
 import { Button, Input, Label } from "reactstrap";
 import { setChartDate } from "../../../store/actions";
+import { getLatestAdmission } from "../../../utils/admissions";
 
 const AdmissionFormModal = ({
   isOpen,
@@ -19,11 +20,30 @@ const AdmissionFormModal = ({
   setAdultationtype,
   supporttype,
   setSupporttype,
+  emergencyType,
+  setEmergencyType,
+  emergencyRestraint,
+  setEmergencyRestraint,
   details,
   setDetails,
   setOpenform,
+  onProceed,
 }) => {
   const dispatch = useDispatch();
+
+  // `admissions` is the raw, session-wide state.Chart.data — reading [0] off it
+  // printed whichever patient's admission happened to be first, which after a
+  // patient switch could be the previous patient's. See utils/admissions.js.
+  const currentAdmission = getLatestAdmission(admissions, patient);
+
+  const handleCancel = () => {
+    setEmergencyType("");
+    setEmergencyRestraint("");
+    // So the next time this picker opens via the regular "MHRB Admission"
+    // entry point, it doesn't start with Emergency preselected.
+    setAdmissiontype("");
+    toggle();
+  };
 
   useEffect(() => {
     if (!chartDate) {
@@ -54,7 +74,7 @@ const AdmissionFormModal = ({
   };
 
   return (
-    <CustomModal isOpen={isOpen} title="Admission" toggle={toggle}>
+    <CustomModal isOpen={isOpen} title="Admission" toggle={handleCancel}>
       <div>
         {/* Date + Time */}
         <p className="text-muted mt-0 mb-1">Chart date and time</p>
@@ -99,7 +119,7 @@ const AdmissionFormModal = ({
             <p className="text-muted mb-0">
               Doctor:{" "}
               <span className="text-primary font-semi-bold fs-6 ms-1">
-                {(admissions[0]?.doctor?.name || "Doctor Name").toUpperCase()}
+                {(currentAdmission?.doctor?.name || "Doctor Name").toUpperCase()}
               </span>
             </p>
 
@@ -107,7 +127,7 @@ const AdmissionFormModal = ({
               Psychologist:{" "}
               <span className="text-primary font-semi-bold fs-6 ms-1">
                 {(
-                  admissions[0]?.psychologist?.name || "Psychologist Name"
+                  currentAdmission?.psychologist?.name || "Psychologist Name"
                 ).toUpperCase()}
               </span>
             </p>
@@ -125,20 +145,29 @@ const AdmissionFormModal = ({
               placeholder="Enter IPD Number"
             />
           </div> */}
-          <div className="mt-3">
-            <Label className="text-muted mb-1">Admission Type</Label>
-            <Input
-              type="select"
-              value={admissiontype}
-              onChange={(e) => setAdmissiontype(e.target.value)}
-            >
-              <option value="">Select Admission Type</option>
-              <option value="INDEPENDENT_ADMISSION">
-                Independent Admission
-              </option>
-              <option value="SUPPORTIVE_ADMISSION">Supportive Admission</option>
-            </Input>
-          </div>
+          {/* Hidden when the type is already fixed by the entry point (the
+              Emergency Admission Form standalone dropdown item presets this
+              before the modal opens — there's no "Emergency" option left in
+              this select for a user to pick manually, so this condition is
+              only ever true via that dedicated entry point). */}
+          {admissiontype !== "EMERGENCY_ADMISSION" && (
+            <div className="mt-3">
+              <Label className="text-muted mb-1">Admission Type</Label>
+              <Input
+                type="select"
+                value={admissiontype}
+                onChange={(e) => setAdmissiontype(e.target.value)}
+              >
+                <option value="">Select Admission Type</option>
+                <option value="INDEPENDENT_ADMISSION">
+                  Independent Admission
+                </option>
+                <option value="SUPPORTIVE_ADMISSION">
+                  Supportive Admission
+                </option>
+              </Input>
+            </div>
+          )}
 
           {/* Conditional fields */}
           {admissiontype === "INDEPENDENT_ADMISSION" && (
@@ -173,6 +202,39 @@ const AdmissionFormModal = ({
             </div>
           )}
 
+          {admissiontype === "EMERGENCY_ADMISSION" && (
+            <>
+              <div className="mt-3">
+                <Label className="text-muted mb-1">Emergency Type</Label>
+                <Input
+                  type="select"
+                  value={emergencyType}
+                  onChange={(e) => setEmergencyType(e.target.value)}
+                >
+                  <option value="">Select Emergency Type</option>
+                  <option value="Risk to self">Risk to self</option>
+                  <option value="Risk to others">Risk to others</option>
+                  <option value="Agitation">Agitation</option>
+                  <option value="Psychosis">Psychosis</option>
+                  <option value="Substance">Substance</option>
+                  <option value="Inability to care">Inability to care</option>
+                </Input>
+              </div>
+              <div className="mt-3">
+                <Label className="text-muted mb-1">Restraint</Label>
+                <Input
+                  type="select"
+                  value={emergencyRestraint}
+                  onChange={(e) => setEmergencyRestraint(e.target.value)}
+                >
+                  <option value="">Select Restraint</option>
+                  <option value="Yes">Yes</option>
+                  <option value="No">No</option>
+                </Input>
+              </div>
+            </>
+          )}
+
           {/* Next Button */}
           <div className="text-center mt-4">
             <Button
@@ -181,11 +243,16 @@ const AdmissionFormModal = ({
               disabled={
                 !admissiontype ||
                 (admissiontype === "INDEPENDENT_ADMISSION" && !adultationype) ||
-                (admissiontype === "SUPPORTIVE_ADMISSION" && !supporttype)
+                (admissiontype === "SUPPORTIVE_ADMISSION" && !supporttype) ||
+                (admissiontype === "EMERGENCY_ADMISSION" &&
+                  (!emergencyType || !emergencyRestraint))
               }
               onClick={() => {
-                toggle();
-                setOpenform(true);
+                if (onProceed) onProceed();
+                else {
+                  toggle();
+                  setOpenform(true);
+                }
               }}
             >
               Submit

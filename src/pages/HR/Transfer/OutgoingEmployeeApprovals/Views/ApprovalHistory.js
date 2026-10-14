@@ -1,28 +1,31 @@
-import { useDispatch, useSelector } from "react-redux";
-import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { format } from "date-fns";
+import { Input } from "reactstrap";
+import Select from "react-select";
+import { useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
+import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchEmployeeTransfers } from "../../../../../store/features/HR/hrSlice";
-import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
-import { format } from "date-fns";
-import { Input, Spinner } from "reactstrap";
-import DataTable from "react-data-table-component";
-import Select from "react-select";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
-
-
+import DataTableComponent from "../../../../../Components/Common/DataTable";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 
 const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
-    const [selectedCenter, setSelectedCenter] = useState("ALL");
+    const [searchParams, setSearchParams] = useSearchParams();
+    const querySearch = searchParams.get("q") || "";
+    const queryCenter = searchParams.get("center") || "ALL";
+    const [search, setSearch] = useState(querySearch);
+    const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
+    const [selectedCenter, setSelectedCenter] = useState(queryCenter);
     const [page, setPage] = useState(1);
-    const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
 
     const microUser = localStorage.getItem("micrologin");
@@ -33,25 +36,7 @@ const PendingApprovals = ({ activeTab }) => {
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter
@@ -75,6 +60,15 @@ const PendingApprovals = ({ activeTab }) => {
 
         return () => clearTimeout(handler);
     }, [search]);
+
+    useEffect(() => {
+        const q = searchParams.get("q") || "";
+        const c = searchParams.get("center") || "ALL";
+        setSearch(q);
+        setDebouncedSearch(q);
+        setSelectedCenter(c);
+        setPage(1);
+    }, [activeTab]);
 
     const fetchPendingEmployeeTransferApprovals = async () => {
         try {
@@ -129,17 +123,15 @@ const PendingApprovals = ({ activeTab }) => {
         },
         {
             name: <div>Date Of Transfer</div>,
-            selector: row =>
-                row?.transferDate
-                    ? format(new Date(row.transferDate), "dd-MM-yyyy")
-                    : "-",
+            selector: row => {
+                if (!row?.transferDate) return "-";
+
+                const date = new Date(row.transferDate);
+                if (isNaN(date.getTime())) return "-";
+
+                return format(date, "dd MMM yyyy");
+            },
             wrap: true,
-        },
-        {
-            name: <div>Is Transferred</div>,
-            selector: row => row?.isTransferApplied ? "Yes" : "No",
-            wrap: true,
-            center: true,
         },
         {
             name: <div>Transfer Location</div>,
@@ -265,48 +257,18 @@ const PendingApprovals = ({ activeTab }) => {
                 </div>
             </div>
 
-            <DataTable
+            <DataTableComponent
                 columns={columns}
                 data={data}
-                highlightOnHover
-                pagination
-                paginationServer
-                paginationTotalRows={pagination?.totalDocs}
-                paginationPerPage={limit}
-                paginationDefaultPage={page}
-                progressPending={loading}
-                striped
-                fixedHeader
-                fixedHeaderScrollHeight="500px"
-                dense={isMobile}
-                responsive
-                customStyles={{
-                    table: {
-                        style: {
-                            minHeight: "450px",
-                        },
-                    },
-                    headCells: {
-                        style: {
-                            backgroundColor: "#f8f9fa",
-                            fontWeight: "600",
-                            borderBottom: "2px solid #e9ecef",
-                        },
-                    },
-                    rows: {
-                        style: {
-                            minHeight: "60px",
-                            borderBottom: "1px solid #f1f1f1",
-                        },
-                    },
+                loading={loading}
+                pagination={pagination}
+                page={page}
+                setPage={setPage}
+                limit={limit}
+                setLimit={(newLimit) => {
+                    setLimit(newLimit);
+                    setPage(1);
                 }}
-                progressComponent={
-                    <div className="py-4 text-center">
-                        <Spinner className="text-primary" />
-                    </div>
-                }
-                onChangePage={(newPage) => setPage(newPage)}
-                onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
             />
         </>
     )

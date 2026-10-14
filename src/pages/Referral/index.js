@@ -161,7 +161,7 @@ const ReferralRegistration = ({
     }
   };
 
-  document.title = "Referral Registration | ERP";
+  document.title = "Contacts | ERP";
 
   // Filter approved referrals (status === 'approved' or no status for legacy)
   const approvedReferrals =
@@ -171,57 +171,45 @@ const ReferralRegistration = ({
     <React.Fragment>
       <div className="page-content">
         <Container fluid>
-          <BreadCrumb title="Referral Registration" pageTitle="Settings" />
+          <BreadCrumb title="Contacts" pageTitle="Settings" />
           <Row>
             <Col lg={12}>
               <Card>
                 <CardHeader className="d-flex justify-content-between align-items-center">
-                  <h5 className="card-title mb-0">Referral Doctors</h5>
+                  <h5 className="card-title mb-0">Contacts</h5>
 
                   <RenderWhen isTrue={hasCreateReferralPermission}>
                     <Button color="primary" size="sm" onClick={handleAddNew}>
                       <i className="ri-add-line align-middle me-1"></i>
-                      Add Referral
+                      Add Contact
                     </Button>
                   </RenderWhen>
                 </CardHeader>
                 <CardBody>
                   {/* Tabs */}
-                  <Nav
-                    tabs
-                    className="nav-tabs-custom nav-success"
-                    style={{ flexWrap: "nowrap", overflowX: "auto" }}
-                  >
+                  <Nav tabs className="nav-tabs-custom nav-success">
                     <NavItem>
                       <NavLink
-                        style={{
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                          padding: "0.5rem 0.75rem",
-                        }}
+                        style={{ cursor: "pointer" }}
                         className={classnames({
                           active: activeTab === "approved",
                         })}
                         onClick={() => toggleTab("approved")}
                       >
                         <i className="ri-check-line me-1"></i>
-                        Approved Referrals
+                        Approved Contacts
                       </NavLink>
                     </NavItem>
                     <NavItem>
                       <NavLink
-                        style={{
-                          cursor: "pointer",
-                          whiteSpace: "nowrap",
-                          padding: "0.5rem 0.75rem",
-                        }}
+                        style={{ cursor: "pointer" }}
                         className={classnames({
                           active: activeTab === "pending",
                         })}
                         onClick={() => toggleTab("pending")}
                       >
                         <i className="ri-time-line me-1"></i>
-                        Pending Referrals
+                        Pending Contacts
                         {pendingReferrals && pendingReferrals.length > 0 && (
                           <span className="badge bg-warning ms-1">
                             {pendingReferrals.length}
@@ -290,7 +278,7 @@ const ReferralRegistration = ({
           <ModalHeader toggle={() => setDeleteModal(false)}>
             Confirm Delete
           </ModalHeader>
-          <ModalBody>Are you sure you want to delete this referral?</ModalBody>
+          <ModalBody>Are you sure you want to delete this contact?</ModalBody>
           <ModalFooter>
             <Button color="light" onClick={() => setDeleteModal(false)}>
               Cancel

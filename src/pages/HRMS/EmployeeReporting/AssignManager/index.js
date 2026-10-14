@@ -1,23 +1,22 @@
-import { useNavigate } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
 import { CardBody, Spinner } from 'reactstrap';
 import EmployeeReportingForm from '../../components/forms/EmployeeReportingForm';
 
 const AssignManager = () => {
-  const navigate = useNavigate();
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const { hasPermission, loading } = usePermissions(token);
-  const hasUserPermission = hasPermission("HRMS", "ASSIGN_MANAGER", "READ");
+  const hasUserPermission = hasPermission("HR", "ASSIGN_MANAGER", "READ");
 
-  const hasCreatePermission = hasPermission("HRMS", "ASSIGN_MANAGER", "WRITE") || hasPermission("HRMS", "ASSIGN_MANAGER", "DELETE");
+  const hasCreatePermission = hasPermission("HR", "ASSIGN_MANAGER", "WRITE") || hasPermission("HR", "ASSIGN_MANAGER", "DELETE");
 
 
   if (!loading && !hasUserPermission) {
-    navigate("/unauthorized");
+    <Navigate to="/unauthorized" replace />
   }
 
   if (loading) {

@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux';
 import Select from "react-select";
 import Header from '../../Report/Components/Header';
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
+import { useCenterOptions } from '../../../Components/Hooks/useCenterOptions';
 
 
 const HRFilter = ({ setPage, reportDate, setReportDate, search, selectedCenter, setSelectedCenter, setDebouncedSearch }) => {
@@ -10,25 +11,7 @@ const HRFilter = ({ setPage, reportDate, setReportDate, search, selectedCenter, 
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter

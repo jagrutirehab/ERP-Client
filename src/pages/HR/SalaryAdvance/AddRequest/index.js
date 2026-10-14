@@ -16,16 +16,16 @@ const AddSalaryAdvanceRequest = () => {
     const hasCreatePermission = hasPermission("HR", "SALARY_ADVANCE_ADD_REQUEST", "WRITE") || hasPermission("HR", "SALARY_ADVANCE_ADD_REQUEST", "DELETE");
 
 
-    if (!loading && !hasUserPermission) {
-        navigate("/unauthorized");
-    }
-
     if (loading) {
         return (
             <div className="d-flex justify-content-center align-items-center" style={{ height: "100vh" }}>
                 <Spinner color="primary" />
             </div>
         )
+    }
+
+    if (!loading && !hasUserPermission) {
+        navigate("/unauthorized");
     }
     return (
         <CardBody className="bg-white" style={isMobile ? {

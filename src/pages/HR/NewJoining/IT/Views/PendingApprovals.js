@@ -1,45 +1,24 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
-import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import CheckPermission from "../../../../../Components/HOC/CheckPermission";
-import { Button, Input, Spinner } from "reactstrap";
+import { Button, Input } from "reactstrap";
 import { CheckCheck, X } from "lucide-react";
-import DataTable from "react-data-table-component";
 import ApproveModal from "../../../components/ApproveModal";
 import Select from "react-select";
 import { updateNewJoiningITStatus } from "../../../../../helpers/backend_helper";
 import UserForm from "../../../../User/Form";
 import EmailSelectModal from "../../../components/EmailSelectModal";
+import DataTableComponent from "../../../../../Components/Common/DataTable";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
+import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 
-
-const customStyles = {
-    table: {
-        style: {
-            minHeight: "450px",
-        },
-    },
-    headCells: {
-        style: {
-            backgroundColor: "#f8f9fa",
-            fontWeight: "600",
-            borderBottom: "2px solid #e9ecef",
-        },
-    },
-    rows: {
-        style: {
-            minHeight: "60px",
-            borderBottom: "1px solid #f1f1f1",
-        },
-    },
-};
-
-
-const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }) => {
+const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles, designationOptions = []  }) => {
 
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
@@ -56,32 +35,11 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     const [emailSelectModal, setEmailSelectModal] = useState(false);
     const [modalLoading, setModalLoading] = useState(false);
     const [selectedEmail, setSelectedEmail] = useState("");
-    const [approveModalOpen, setApproveModalOpen] = useState(false);
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
     const [reason, setReason] = useState("");
+    const [selectedDesignation, setSelectedDesignation] = useState(null);
 
-
-    const isMobile = useMediaQuery("(max-width: 1000px)");
-
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter
@@ -118,7 +76,8 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                 limit,
                 centers,
                 view: "NEW_JOINING_PENDING",
-                ...search.trim() !== "" && { search: debouncedSearch }
+                ...search.trim() !== "" && { search: debouncedSearch },
+                ...(selectedDesignation && { designation: selectedDesignation }),
             })).unwrap();
         } catch (error) {
             if (!handleAuthError(error)) {
@@ -131,7 +90,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchPendingITApprovals();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles, selectedDesignation]);
 
 
     const handleApproveStart = (row) => {
@@ -218,6 +177,16 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
         }
     };
 
+    const normalizeEmploymentType = (type) => {
+        if (!type) return "-";
+
+        return type
+            .toLowerCase()
+            .split("_")
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(" ");
+    };
+
     const columns = [
         {
             name: <div>ECode</div>,
@@ -238,7 +207,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             name: <div>Department</div>,
             selector: row => capitalizeWords(row?.department || "-"),
             wrap: true,
-            minWidth: "100px"
+            minWidth: "130px"
         },
         {
             name: <div>Designation</div>,
@@ -247,10 +216,43 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
             minWidth: "120px"
         },
         {
+            name: <div>Position</div>,
+            selector: (row) => row?.position?.name || "-",
+            wrap: true,
+            minWidth: "120px",
+        },
+        {
+            name: <div>Employee Type</div>,
+            selector: row => capitalizeWords(row?.employeeType || "-"),
+            wrap: true,
+            minWidth: "130px"
+        },
+        {
+            name: <div>Employement Type</div>,
+            selector: (row) => {
+                return normalizeEmploymentType(row?.newEmploymentType) || "-";
+            },
+            wrap: true,
+            minWidth: "100px",
+        },
+        // 
+        {
+            name: <div>Employement Status</div>,
+            selector: (row) => renderStatusBadge(row?.employmentStatus) || "-",
+            wrap: true,
+            minWidth: "150px",
+            center: false,
+        },
+        {
             name: <div>Current Location</div>,
             selector: row => capitalizeWords(row?.currentLocation?.title || "-"),
             wrap: true,
             minWidth: "120px"
+        },
+        {
+            name: <div>Joining Date</div>,
+            selector: (row) => row?.joinningDate || "-",
+            wrap: true,
         },
         {
             name: <div>Gender</div>,
@@ -361,7 +363,20 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                             />
                         </div>
 
+                        <div style={{ width: "180px" }}>
+    <Select
+        options={designationOptions}
+        value={designationOptions.find(o => o.value === selectedDesignation) || null}
+        onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
+        placeholder="Designation"
+        isClearable
+        classNamePrefix="react-select"
+    />
+</div>
+
                     </div>
+
+                    <RefreshButton loading={loading} onRefresh={fetchPendingITApprovals} />
                 </div>
 
                 {/*  MOBILE VIEW */}
@@ -388,33 +403,33 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+
+                    <div style={{ width: "100%" }}>
+    <Select
+        options={designationOptions}
+        value={designationOptions.find(o => o.value === selectedDesignation) || null}
+        onChange={(opt) => { setSelectedDesignation(opt?.value || null); setPage(1); }}
+        placeholder="Designation"
+        isClearable
+        classNamePrefix="react-select"
+    />
+</div>
+
+                    <div className="d-flex justify-content-end">
+                        <RefreshButton loading={loading} onRefresh={fetchPendingITApprovals} />
+                    </div>
                 </div>
 
             </div>
-
-            <DataTable
+            <DataTableComponent
                 columns={columns}
                 data={data}
-                highlightOnHover
-                pagination
-                paginationServer
-                paginationTotalRows={pagination?.totalDocs}
-                paginationPerPage={limit}
-                paginationDefaultPage={page}
-                progressPending={loading}
-                striped
-                fixedHeader
-                fixedHeaderScrollHeight="500px"
-                dense={isMobile}
-                responsive
-                customStyles={customStyles}
-                progressComponent={
-                    <div className="py-4 text-center">
-                        <Spinner className="text-primary" />
-                    </div>
-                }
-                onChangePage={(newPage) => setPage(newPage)}
-                onChangeRowsPerPage={(newLimit) => setLimit(newLimit)}
+                page={page}
+                setPage={setPage}
+                limit={limit}
+                setLimit={setLimit}
+                loading={loading}
+                pagination={pagination}
             />
             <ApproveModal
                 isOpen={rejectModalOpen}

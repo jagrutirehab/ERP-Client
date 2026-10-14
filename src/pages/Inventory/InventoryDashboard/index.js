@@ -144,6 +144,7 @@ const TableCell = ({ children, style = {}, colSpan }) => (
 
 const App = () => {
   const user = useSelector((state) => state.User);
+  const centerList = useSelector((state) => state.Center.data);
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
@@ -170,13 +171,10 @@ const App = () => {
       : []
     ),
     ...(
-      user?.centerAccess?.map(id => {
-        const center = user?.userCenters?.find(c => c._id === id);
-        return {
-          value: id,
-          label: center?.title || "Unknown Center"
-        };
-      }) || []
+      centerList?.map(c => ({
+        value: c._id,
+        label: c.title,
+      })) || []
     )
   ];
 
@@ -370,16 +368,17 @@ const App = () => {
             borderBottom: "1px solid #e5e7eb",
           }}
         >
-          <h1
+          <h4
             style={{
-              fontSize: "2rem",
-              fontWeight: "800",
+              fontSize: "1.5rem",
+              fontWeight: "700",
               color: "#0d9488",
               letterSpacing: "-0.025em",
+              margin: 0,
             }}
           >
             Pharmacy Dashboard
-          </h1>
+          </h4>
           <div
             style={{
               display: "flex",

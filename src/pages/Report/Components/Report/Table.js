@@ -1,3 +1,4 @@
+import referredByName from "../../../../utils/referredByName";
 import React from "react";
 import { format } from "date-fns";
 import {
@@ -71,6 +72,12 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
       maxWidth: "130px",
       minWidth: "130px",
     },
+    {
+      name: "Updated At",
+      selector: (row) => row.updatedAt ? format(new Date(row.updatedAt), "dd MMM yyyy") : "",
+      maxWidth: "130px",
+      minWidth: "130px",
+    },
     billType !== DUE_AMOUNT &&
       billType !== OPD_BILL &&
       billType !== INTERN &&
@@ -125,7 +132,7 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
       ? {
         name: "Referred By",
         selector: (row) =>
-          row.patient?.referredBy?.doctorName ||
+          referredByName(row.patient?.referredBy) ||
           row.patient?.referredBy ||
           "",
       }
@@ -155,7 +162,7 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
         },
       }
       : null,
-    billType === ALL_TRANSACTIONS || billType === ADVANCE_PAYMENT
+    billType === ALL_TRANSACTIONS || billType === INVOICE
       ? {
         name: <div>Refund Amount</div>,
         selector: (row) => {

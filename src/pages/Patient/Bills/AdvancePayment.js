@@ -1,9 +1,9 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Col, Row } from "reactstrap";
+import TransactionProofLink from "./TransactionProofLink";
 
 const AdvancePayment = ({ data }) => {
-  
   return (
     <React.Fragment>
       <div>
@@ -26,6 +26,10 @@ const AdvancePayment = ({ data }) => {
             </p>
             <div className="p-2">
               {(data?.paymentModes || []).map((item) => {
+                const proofUrls = (data?.transactionProof || [])
+                  .filter((proof) => proof.mode === item.paymentMode)
+                  .map((proof) => proof.url);
+
                 return (
                   <div
                     className="d-flex align-items-center justify-content-between border-bottom-1 pt-1"
@@ -58,7 +62,7 @@ const AdvancePayment = ({ data }) => {
                           </p>
                         </div>
                       )}
-                      {item.paymentMode === "BANK" && (
+                      {item.paymentMode !== "CASH" && (
                         <div className="text-center">
                           <p className="text-muted fs-xs-11 fs-md-14 pb-0 mb-0">
                             {item.bankAccount}
@@ -70,6 +74,11 @@ const AdvancePayment = ({ data }) => {
                           <p className="text-muted fs-xs-11 fs-md-14 pb-0 mb-0">
                             {item.cardNumber}
                           </p>
+                        </div>
+                      )}
+                      {proofUrls.length > 0 && (
+                        <div className="text-center ms-3">
+                          <TransactionProofLink urls={proofUrls} />
                         </div>
                       )}
                     </div>

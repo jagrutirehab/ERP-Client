@@ -1,6 +1,8 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchAdvanceSalaries } from "../../../../../store/features/HR/hrSlice";
@@ -17,17 +19,24 @@ import ApproveModal from "../../../components/ApproveModal";
 import PropTypes from "prop-types";
 import Select from "react-select";
 import EditSalaryAdvanceModal from "../../../components/EditSalaryAdvanceModal";
+import { formatCurrency } from "../../../../../utils/formatCurrency";
+import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 const PendingApprovals = ({ activeTab }) => {
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const { data, pagination, loading } = useSelector((state) => state.HR);
   const handleAuthError = useAuthError();
-  const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [searchParams, setSearchParams] = useSearchParams();
+  const querySearch = searchParams.get("q") || "";
+  const queryCenter = searchParams.get("center") || "ALL";
+  const queryAdvanceSalaryId = searchParams.get("id") || "";
+  
+  const [search, setSearch] = useState(querySearch);
+  const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
+  const [selectedCenter, setSelectedCenter] = useState(queryCenter);
   const [page, setPage] = useState(1);
   const [selectedRecord, setSelectedRecord] = useState(null);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [limit, setLimit] = useState(10);
   const [modalOpen, setModalOpen] = useState(false);
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
@@ -45,25 +54,7 @@ const PendingApprovals = ({ activeTab }) => {
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
-  const centerOptions = [
-    ...(user?.centerAccess?.length > 1
-      ? [{
-        value: "ALL",
-        label: "All Centers",
-        isDisabled: false,
-      }]
-      : []
-    ),
-    ...(
-      user?.centerAccess?.map(id => {
-        const center = user?.userCenters?.find(c => c._id === id);
-        return {
-          value: id,
-          label: center?.title || "Unknown Center"
-        };
-      }) || []
-    )
-  ];
+  const centerOptions = useCenterOptions();
 
   const selectedCenterOption = centerOptions.find(
     opt => opt.value === selectedCenter
@@ -83,10 +74,30 @@ const PendingApprovals = ({ activeTab }) => {
     const handler = setTimeout(() => {
       setDebouncedSearch(search);
       setPage(1);
+      setSearchParams((prev) => {
+        if (search.trim()) {
+          prev.set("q", search);
+        } else {
+          prev.delete("q");
+          prev.delete("tab");
+          prev.delete("center");
+          prev.delete("id");
+        }
+        return prev;
+      });
     }, 500);
 
     return () => clearTimeout(handler);
   }, [search]);
+
+  useEffect(() => {
+    const q = searchParams.get("q") || "";
+    const c = searchParams.get("center") || "ALL";
+    setSearch(q);
+    setDebouncedSearch(q);
+    setSelectedCenter(c);
+    setPage(1);
+  }, [activeTab]);
 
   const fetchPendingAdvanceSalaryApprovals = async () => {
     try {
@@ -100,7 +111,8 @@ const PendingApprovals = ({ activeTab }) => {
         limit,
         centers,
         view: "PENDING",
-        ...search.trim() !== "" && { search: debouncedSearch }
+        ...search.trim() !== "" && { search: debouncedSearch },
+        ...(queryAdvanceSalaryId !== "" && { advanceSalaryId: queryAdvanceSalaryId })
       })).unwrap();
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -178,12 +190,32 @@ const PendingApprovals = ({ activeTab }) => {
       minWidth: "140px"
     },
     {
+      name: <div>Date</div>,
+      selector: row => {
+        if (!row?.date) return "-";
+        const date = new Date(row.date);
+        if (isNaN(date)) return "-";
+        return format(new Date(row.date), "dd-MM-yyyy")
+      },
+      wrap: true,
+    },
+    {
       name: <div>Amount</div>,
-      selector: row => typeof row?.amount === "number"
-        ? `₹${row.amount.toLocaleString()}`
-        : "-",
+      selector: row => formatCurrency(row?.amount),
       wrap: true,
       minWidth: "140px"
+    },
+    {
+      name: <div>Employee's Monthly Deduction Amount</div>,
+      selector: row => formatCurrency(row?.monthlyDeductionAmount),
+      wrap: true,
+      minWidth: "160px"
+    },
+    {
+      name: <div>Payment Id</div>,
+      selector: row => row.centralPaymentId || "-",
+      wrap: true,
+      center: true
     },
     {
       name: <div>Filled By</div>,
@@ -319,6 +351,8 @@ const PendingApprovals = ({ activeTab }) => {
               />
             </div>
           </div>
+
+          <RefreshButton loading={loading} onRefresh={fetchPendingAdvanceSalaryApprovals} />
         </div>
 
         {/*  MOBILE VIEW */}
@@ -344,6 +378,9 @@ const PendingApprovals = ({ activeTab }) => {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
+          </div>
+          <div className="d-flex justify-content-end">
+            <RefreshButton loading={loading} onRefresh={fetchPendingAdvanceSalaryApprovals} />
           </div>
         </div>
       </div>

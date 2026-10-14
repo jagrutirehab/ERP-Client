@@ -1,8 +1,20 @@
 import React, { useEffect, useState } from "react";
-import { Container, Table, Row, Col, Input, Button, Badge } from "reactstrap";
+import {
+  Container,
+  Table,
+  Row,
+  Col,
+  Input,
+  Button,
+  Badge,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Label,
+  FormGroup,
+} from "reactstrap";
 import Select from "react-select";
-import Flatpickr from "react-flatpickr";
-import "flatpickr/dist/themes/material_blue.css";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { api } from "../../config";
@@ -22,15 +34,15 @@ const alertOptions = [
 
 const Stats = () => {
   const user = useSelector((state) => state.User);
+  const centers = useSelector((state) => state.Center.data);
 
   const [loading, setLoading] = useState(false);
-  const [exporting, setExporting] = useState(false); // New state for export loading
+  const [exporting, setExporting] = useState(false);
   const [data, setData] = useState([]);
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [camSearch, setCamSearch] = useState("");
   const [selectedAlert, setSelectedAlert] = useState("");
-  const [dateRange, setDateRange] = useState([null, null]);
 
   const [pagination, setPagination] = useState({
     page: 1,
@@ -39,55 +51,146 @@ const Stats = () => {
     totalPages: 0,
   });
 
+  // Media View Modal
+  const [mediaModal, setMediaModal] = useState({
+    isOpen: false,
+    mediaUrls: [], // always an array
+    activeIndex: 0,
+  });
+
+  const toggleMediaModal = (urlOrUrls = null) => {
+    if (!urlOrUrls) {
+      setMediaModal({ isOpen: false, mediaUrls: [], activeIndex: 0 });
+      return;
+    }
+    const urls = Array.isArray(urlOrUrls) ? urlOrUrls : [urlOrUrls];
+    setMediaModal({ isOpen: true, mediaUrls: urls, activeIndex: 0 });
+  };
+
+  const setActiveMediaIndex = (index) => {
+    setMediaModal((prev) => ({ ...prev, activeIndex: index }));
+  };
+
+  // Action Modal (existing)
+  const [modal, setModal] = useState(false);
+  const [selectedActionItem, setSelectedActionItem] = useState(null);
+  const [notificationForm, setNotificationForm] = useState({
+    status: {},
+    person: "",
+    description: "",
+  });
+
+  const toggleModal = () => {
+    setModal(!modal);
+    if (modal) {
+      setNotificationForm({
+        status: {},
+        person: "",
+        description: "",
+      });
+      setSelectedActionItem(null);
+    }
+  };
+
+  const handleAction = (item) => {
+    setSelectedActionItem(item);
+    const initialStatus = {};
+    if (item.alerts) {
+      Object.entries(item.alerts).forEach(([key, value]) => {
+        if (value) initialStatus[key] = key;
+      });
+    }
+    setNotificationForm({
+      status: initialStatus,
+      person: "",
+      description: "",
+    });
+    setModal(true);
+  };
+
+  const handleStatusChange = (alertKey, value) => {
+    setNotificationForm((prev) => ({
+      ...prev,
+      status: {
+        ...prev.status,
+        [alertKey]: value,
+      },
+    }));
+  };
+
+  const handleFormChange = (e) => {
+    const { name, value } = e.target;
+    setNotificationForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleConfirm = async () => {
+    if (!notificationForm.description) {
+      toast.error("Please enter a description");
+      return;
+    }
+
+    try {
+      const payload = {
+        actionBy: {
+          name: user?.user?.name || "Unknown",
+          id: user?.user?._id,
+        },
+        actionStatus: Object.values(notificationForm.status),
+        actionNotes: notificationForm.description,
+      };
+
+      await axios.put(
+        `${api.CCTV_SERVICE_URL}/alerts/${selectedActionItem._id}`,
+        payload,
+        {
+          headers: {
+            "x-api-key":
+              "48dd6cc2f04685a14c6a7320b87097b23bd9a2979edfa8d0818902a8659313b0",
+          },
+        },
+      );
+
+      toast.success("Alert notification updated successfully");
+      toggleModal();
+      fetchcctvstats(pagination.page, pagination.limit);
+    } catch (error) {
+      console.error("Error updating alert:", error);
+      toast.error("Failed to update alert");
+    }
+  };
+
   const [lastFetchedAt, setLastFetchedAt] = useState(null);
   const [dataAge, setDataAge] = useState(0);
 
-  // ---------------- CENTER OPTIONS ----------------
   const centerOptions = [
     ...(user?.centerAccess?.length > 1
       ? [{ value: "ALL", label: "All Centers" }]
       : []),
     ...(user?.centerAccess?.map((id) => {
-      const center = user?.userCenters?.find((c) => c._id === id);
+      const center = centers?.find((c) => c._id === id);
       return {
         value: id,
         label: center?.title || "Unknown Center",
       };
-    }) || []),
+    }) || []).sort((a, b) => a.label.localeCompare(b.label)),
   ];
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === selectedCenter) ||
     centerOptions[0];
 
-  // ---------------- FETCH DATA ----------------
   const fetchcctvstats = async (page = 1, limit = 10) => {
     try {
       setLoading(true);
 
-      const params = {
-        page,
-        limit,
-      };
+      const params = { page, limit };
 
-      if (selectedCenter !== "ALL") {
-        params.centerId = selectedCenter;
-      }
-
-      if (camSearch) {
-        params.camId = camSearch;
-      }
-
-      if (selectedAlert) {
-        params.alertType = selectedAlert;
-      }
-
-      if (dateRange[0]) {
-        params.startDate = dateRange[0].toISOString();
-      }
-      if (dateRange[1]) {
-        params.endDate = dateRange[1].toISOString();
-      }
+      if (selectedCenter !== "ALL") params.centerId = selectedCenter;
+      if (camSearch) params.camId = camSearch;
+      if (selectedAlert) params.alertType = selectedAlert;
 
       const response = await axios.get(`${api.CCTV_SERVICE_URL}/alerts`, {
         params,
@@ -97,24 +200,18 @@ const Stats = () => {
         },
       });
 
-      if (response) {
-        // Accessing response.data directly based on typical axios structure,
-        // adjusted to match your previous code if you have an interceptor unwrapping it
-        const responseData = response;
+      setData(response?.data || []);
+      setPagination(
+        response?.pagination || {
+          page: 1,
+          limit: 10,
+          total: 0,
+          totalPages: 0,
+        },
+      );
 
-        setData(responseData.data || []);
-        setPagination(
-          responseData.pagination || {
-            page: 1,
-            limit: 10,
-            total: 0,
-            totalPages: 0,
-          }
-        );
-
-        setLastFetchedAt(Date.now());
-        setDataAge(0);
-      }
+      setLastFetchedAt(Date.now());
+      setDataAge(0);
     } catch (error) {
       console.error("Failed to fetch alerts", error);
     } finally {
@@ -122,32 +219,15 @@ const Stats = () => {
     }
   };
 
-  // ---------------- EXPORT HANDLER ----------------
   const handleExport = async () => {
     try {
       setExporting(true);
-
-      // Construct params (reuse logic from fetch, but no pagination)
       const params = {};
 
-      if (selectedCenter !== "ALL") {
-        params.centerId = selectedCenter;
-      }
-      if (camSearch) {
-        params.camId = camSearch;
-      }
-      if (selectedAlert) {
-        params.alertType = selectedAlert;
-      }
+      if (selectedCenter !== "ALL") params.centerId = selectedCenter;
+      if (camSearch) params.camId = camSearch;
+      if (selectedAlert) params.alertType = selectedAlert;
 
-      if (dateRange[0]) {
-        params.startDate = dateRange[0].toISOString();
-      }
-      if (dateRange[1]) {
-        params.endDate = dateRange[1].toISOString();
-      }
-
-      // API Call with responseType: 'blob' is crucial for file downloads
       const response = await axios.get(
         `${api.CCTV_SERVICE_URL}/alerts/export`,
         {
@@ -157,24 +237,16 @@ const Stats = () => {
               "48dd6cc2f04685a14c6a7320b87097b23bd9a2979edfa8d0818902a8659313b0",
           },
           responseType: "blob",
-        }
+        },
       );
 
-      // Create a URL for the blob
       const url = window.URL.createObjectURL(new Blob([response.data]));
-
-      // Create a temporary link element to trigger the download
       const link = document.createElement("a");
       link.href = url;
-
-      // Generate a filename with timestamp
       const timestamp = new Date().toISOString().replace(/[:.]/g, "-");
       link.setAttribute("download", `alerts_export_${timestamp}.csv`);
-
       document.body.appendChild(link);
       link.click();
-
-      // Clean up
       link.remove();
       window.URL.revokeObjectURL(url);
     } catch (error) {
@@ -184,30 +256,24 @@ const Stats = () => {
     }
   };
 
-  // ---------------- INITIAL LOAD ----------------
   useEffect(() => {
     fetchcctvstats(1, pagination.limit);
     // eslint-disable-next-line
   }, []);
 
-  // ---------------- FILTER CHANGE ----------------
   useEffect(() => {
     fetchcctvstats(1, pagination.limit);
     // eslint-disable-next-line
-  }, [selectedCenter, camSearch, selectedAlert, dateRange]);
+  }, [selectedCenter, camSearch, selectedAlert]);
 
-  // ---------------- DATA AGE COUNTER ----------------
   useEffect(() => {
     if (!lastFetchedAt) return;
-
     const interval = setInterval(() => {
       setDataAge(Math.floor((Date.now() - lastFetchedAt) / 1000));
     }, 1000);
-
     return () => clearInterval(interval);
   }, [lastFetchedAt]);
 
-  // ---------------- HANDLERS ----------------
   const handlePageChange = (newPage) => {
     if (newPage >= 1 && newPage <= pagination.totalPages) {
       fetchcctvstats(newPage, pagination.limit);
@@ -225,17 +291,22 @@ const Stats = () => {
 
   const renderAlerts = (alerts) => {
     if (!alerts) return null;
-
     return Object.entries(alerts).map(([key, value]) =>
       value ? (
         <Badge color="danger" className="me-1" key={key}>
           {key}
         </Badge>
-      ) : null
+      ) : null,
     );
   };
 
-  // ---------------- UI ----------------
+  const getMediaType = (filename) => {
+    if (!filename) return "image";
+    const ext = filename.split(".").pop().toLowerCase();
+    if (["mp4", "webm", "ogg"].includes(ext)) return "video";
+    return "image";
+  };
+
   return (
     <div className="page-content overflow-hidden">
       <Container fluid>
@@ -278,7 +349,7 @@ const Stats = () => {
 
             <Col md="3">
               <Input
-                placeholder="Search Cam ID"
+                placeholder="Filter By Camera Name"
                 value={camSearch}
                 onChange={(e) => setCamSearch(e.target.value)}
               />
@@ -291,64 +362,118 @@ const Stats = () => {
                 placeholder="Filter Alert Type"
               />
             </Col>
-            <Col md="3">
-              <Flatpickr
-                className="form-control"
-                placeholder="Select Date Range"
-                options={{
-                  mode: "range",
-                  dateFormat: "Y-m-d",
-                }}
-                value={dateRange}
-                onChange={(date) => setDateRange(date)}
-              />
-            </Col>
           </Row>
 
           {/* TABLE */}
-          <div className="table-responsive">
-            <Table bordered striped>
-              <thead>
+          <div
+            className="table-responsive"
+            style={{
+              maxHeight: "calc(100vh - 280px)",
+              overflow: "auto",
+              width: "98%",
+              margin: "0 auto",
+            }}
+          >
+            <Table
+              bordered
+              striped
+              className="mb-0"
+              style={{ whiteSpace: "nowrap" }}
+            >
+              <thead
+                style={{
+                  position: "sticky",
+                  top: 0,
+                  zIndex: 1,
+                  background: "#fff",
+                }}
+              >
                 <tr>
-                  <th>Cam ID</th>
+                  <th>Name</th>
                   <th>Center</th>
                   <th>Timestamp</th>
                   <th>Alerts</th>
+                  <th>Event</th>
+                  <th>Last Occurrence</th>
                   <th>Evidence</th>
+                  <th>Take Action</th>
+                  <th>Action</th>
+                  <th>Status</th>
+                  <th>Action Notes</th>
+                  <th>Action Date</th>
+                  <th>Action By</th>
                 </tr>
               </thead>
               <tbody>
                 {loading ? (
                   <tr>
-                    <td colSpan="5" className="text-center">
+                    <td colSpan={13} className="text-center">
                       Loading...
                     </td>
                   </tr>
                 ) : data.length ? (
                   data.map((item) => (
                     <tr key={item._id}>
-                      <td>{item.cam_id}</td>
+                      <td>{item.name}</td>
                       <td>{item.center?.name || "N/A"}</td>
                       <td>{new Date(item.timestamp).toLocaleString()}</td>
                       <td>{renderAlerts(item.alerts)}</td>
+                      <td>{item.eventCount || "N/A"}</td>
                       <td>
-                        {item.fileName ? (
+                        {item.lastOccurrence
+                          ? new Date(item.lastOccurrence).toLocaleString()
+                          : "N/A"}
+                      </td>
+                      <td>
+                        {item.fileName && (Array.isArray(item.fileName) ? item.fileName.length > 0 : true) ? (
                           <Button
                             color="info"
                             size="sm"
-                            onClick={() => window.open(item.fileName, "_blank")}
+                            onClick={() => toggleMediaModal(item.fileName)}
                           >
-                            View
+                            View{Array.isArray(item.fileName) && item.fileName.length > 1 ? ` (${item.fileName.length})` : ""}
                           </Button>
                         ) : (
                           "N/A"
                         )}
                       </td>
+                      <td>
+                        <Button
+                          color="primary"
+                          size="sm"
+                          onClick={() => handleAction(item)}
+                        >
+                          Action
+                        </Button>
+                      </td>
+                      <td>
+                        <Badge
+                          color={
+                            item.action === "resolved" ? "success" : "warning"
+                          }
+                        >
+                          {item.action || "investigate"}
+                        </Badge>
+                      </td>
+                      <td>
+                        {item.actionStatus?.map((status, i) => (
+                          <Badge color="secondary" className="me-1" key={i}>
+                            {status}
+                          </Badge>
+                        )) || "N/A"}
+                      </td>
+                      <td>{item.actionNotes || "N/A"}</td>
+                      <td>
+                        {item.actionTime
+                          ? new Date(item.actionTime).toLocaleString()
+                          : "N/A"}
+                      </td>
+                      <td>{item.actionBy?.name || "N/A"}</td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="5" className="text-center">
+                    <td colSpan={13} className="text-center">
                       No Record Found
                     </td>
                   </tr>
@@ -396,6 +521,235 @@ const Stats = () => {
           </Row>
         </div>
       </Container>
+
+      {/* MEDIA VIEW MODAL */}
+      <Modal
+        isOpen={mediaModal.isOpen}
+        toggle={() => toggleMediaModal()}
+        size="xl"
+        centered
+      >
+        <ModalHeader toggle={() => toggleMediaModal()}>
+          Evidence Preview
+          {mediaModal.mediaUrls.length > 1 && (
+            <small className="ms-2 text-muted" style={{ fontSize: "0.75rem" }}>
+              ({mediaModal.activeIndex + 1} / {mediaModal.mediaUrls.length})
+            </small>
+          )}
+        </ModalHeader>
+        <ModalBody className="p-3">
+          {mediaModal.mediaUrls.length > 0 ? (
+            <>
+              {/* Main Preview */}
+              <div className="text-center mb-3">
+                {(() => {
+                  const activeUrl = mediaModal.mediaUrls[mediaModal.activeIndex];
+                  const mediaType = getMediaType(activeUrl);
+                  return mediaType === "video" ? (
+                    <video
+                      key={activeUrl}
+                      controls
+                      autoPlay
+                      style={{ maxWidth: "100%", maxHeight: "60vh" }}
+                    >
+                      <source src={activeUrl} type="video/mp4" />
+                      Your browser does not support the video tag.
+                    </video>
+                  ) : (
+                    <img
+                      key={activeUrl}
+                      src={activeUrl}
+                      alt={`Evidence ${mediaModal.activeIndex + 1}`}
+                      style={{
+                        maxWidth: "100%",
+                        maxHeight: "60vh",
+                        objectFit: "contain",
+                        borderRadius: "6px",
+                      }}
+                    />
+                  );
+                })()}
+              </div>
+
+              {mediaModal.mediaUrls.length > 1 && (
+                <div
+                  className="d-flex gap-2 justify-content-center flex-wrap"
+                  style={{ maxHeight: "130px", overflowY: "auto" }}
+                >
+                  {mediaModal.mediaUrls.map((url, idx) => {
+                    const isActive = idx === mediaModal.activeIndex;
+                    const isVideo = getMediaType(url) === "video";
+                    return (
+                      <div
+                        key={idx}
+                        onClick={() => setActiveMediaIndex(idx)}
+                        style={{
+                          cursor: "pointer",
+                          border: isActive ? "2.5px solid #0d6efd" : "2px solid transparent",
+                          borderRadius: "6px",
+                          overflow: "hidden",
+                          width: "90px",
+                          height: "70px",
+                          background: "#f0f0f0",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "center",
+                          opacity: isActive ? 1 : 0.6,
+                          transition: "opacity 0.2s, border-color 0.2s",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {isVideo ? (
+                          <span style={{ fontSize: "1.8rem" }}>🎬</span>
+                        ) : (
+                          <img
+                            src={url}
+                            alt={`thumb-${idx}`}
+                            style={{
+                              width: "100%",
+                              height: "100%",
+                              objectFit: "cover",
+                            }}
+                          />
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Prev / Next navigation */}
+              {mediaModal.mediaUrls.length > 1 && (
+                <div className="d-flex justify-content-center gap-3 mt-3">
+                  <Button
+                    size="sm"
+                    color="secondary"
+                    disabled={mediaModal.activeIndex === 0}
+                    onClick={() => setActiveMediaIndex(mediaModal.activeIndex - 1)}
+                  >
+                    ← Prev
+                  </Button>
+                  <Button
+                    size="sm"
+                    color="secondary"
+                    disabled={mediaModal.activeIndex === mediaModal.mediaUrls.length - 1}
+                    onClick={() => setActiveMediaIndex(mediaModal.activeIndex + 1)}
+                  >
+                    Next →
+                  </Button>
+                </div>
+              )}
+            </>
+          ) : (
+            <p className="text-center">No media available</p>
+          )}
+        </ModalBody>
+        <ModalFooter>
+          <Button color="secondary" onClick={() => toggleMediaModal()}>
+            Close
+          </Button>
+        </ModalFooter>
+      </Modal>
+
+      {/* EXISTING ACTION MODAL */}
+      <Modal isOpen={modal} toggle={toggleModal} centered>
+        <ModalHeader toggle={toggleModal}>Alert Notification</ModalHeader>
+        <ModalBody>
+          {selectedActionItem && (
+            <div className="bg-light p-3 rounded mb-3">
+              <div className="d-flex align-items-center mb-2">
+                <span className="me-2">
+                  {renderAlerts(selectedActionItem.alerts)}
+                </span>
+                <small className="ms-auto text-muted">
+                  {new Date(selectedActionItem.timestamp).toLocaleString()}
+                </small>
+              </div>
+              <p className="mb-0 text-muted small">
+                Resident at {selectedActionItem.center?.name || "Unknown"}
+              </p>
+            </div>
+          )}
+
+          <FormGroup tag="fieldset">
+            <div className="d-flex gap-3">
+              <div className="d-flex gap-3 flex-wrap">
+                {selectedActionItem?.alerts &&
+                  Object.entries(selectedActionItem.alerts)
+                    .filter(([_, value]) => value)
+                    .map(([alertKey]) => {
+                      const label =
+                        alertOptions.find((opt) => opt.value === alertKey)
+                          ?.label ||
+                        alertKey.charAt(0).toUpperCase() + alertKey.slice(1);
+                      return (
+                        <React.Fragment key={alertKey}>
+                          <FormGroup check>
+                            <Label check>
+                              <Input
+                                type="radio"
+                                name={`status_${alertKey}`}
+                                value={alertKey}
+                                checked={
+                                  notificationForm.status[alertKey] === alertKey
+                                }
+                                onChange={() =>
+                                  handleStatusChange(alertKey, alertKey)
+                                }
+                              />{" "}
+                              {label}
+                            </Label>
+                          </FormGroup>
+                          <FormGroup check>
+                            <Label check>
+                              <Input
+                                type="radio"
+                                name={`status_${alertKey}`}
+                                value={`no_${alertKey}`}
+                                checked={
+                                  notificationForm.status[alertKey] ===
+                                  `no_${alertKey}`
+                                }
+                                onChange={() =>
+                                  handleStatusChange(alertKey, `no_${alertKey}`)
+                                }
+                              />{" "}
+                              No {label}
+                            </Label>
+                          </FormGroup>
+                        </React.Fragment>
+                      );
+                    })}
+              </div>
+            </div>
+          </FormGroup>
+
+          <FormGroup className="mb-0">
+            <Label for="description">Notes *</Label>
+            <Input
+              type="textarea"
+              name="description"
+              id="description"
+              rows="3"
+              value={notificationForm.description}
+              onChange={handleFormChange}
+              style={{
+                borderColor: notificationForm.description ? "#28a745" : "",
+              }}
+            />
+            {notificationForm.description && (
+              <div className="text-end mt-1">
+                <i className="bx bx-check-circle text-success font-size-18"></i>
+              </div>
+            )}
+          </FormGroup>
+        </ModalBody>
+        <ModalFooter className="justify-content-center">
+          <Button color="warning" onClick={handleConfirm} className="px-4">
+            Confirm
+          </Button>
+        </ModalFooter>
+      </Modal>
     </div>
   );
 };

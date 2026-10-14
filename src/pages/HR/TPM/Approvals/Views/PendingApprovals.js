@@ -3,29 +3,36 @@ import { useDispatch, useSelector } from 'react-redux'
 import { useAuthError } from '../../../../../Components/Hooks/useAuthError';
 import { usePermissions } from '../../../../../Components/Hooks/useRoles';
 import { useMediaQuery } from '../../../../../Components/Hooks/useMediaQuery';
+import { useCenterOptions } from '../../../../../Components/Hooks/useCenterOptions';
 import { fetchDesignations, fetchTPMs } from '../../../../../store/features/HR/hrSlice';
-import { TPMOptions } from '../../../../../Components/constants/HR';
 import { toast } from 'react-toastify';
 import DataTable from 'react-data-table-component';
 import { capitalizeWords } from '../../../../../utils/toCapitalize';
+import { normalizeUnderscores } from '../../../../../utils/normalizeUnderscore';
 import { format } from 'date-fns';
-import { Button, Spinner } from 'reactstrap';
+import { Button, Spinner, Input } from 'reactstrap';
 import Select from "react-select";
 import { CheckCheck, Pencil, Trash2, X } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import CheckPermission from '../../../../../Components/HOC/CheckPermission';
 import { deleteTPM, TPMAction } from '../../../../../helpers/backend_helper';
 import DeleteConfirmModal from '../../../components/DeleteConfirmModal';
 import EditTPMModal from '../../../components/EditTPMModal';
 import PropTypes from 'prop-types';
 import ApproveModal from '../../../components/ApproveModal';
+import RefreshButton from '../../../../../Components/Common/RefreshButton';
 
 const PendingApprovals = ({ activeTab }) => {
     const dispatch = useDispatch();
     const user = useSelector((state) => state.User);
     const { data, pagination, loading, designations: designationOptions } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const querySearch = searchParams.get("q") || "";
+    const queryCenter = searchParams.get("center") || "ALL";
+    const queryTpmId = searchParams.get("id") || "";
     const [filters, setFilters] = useState({
-        center: "ALL",
+        center: queryCenter,
         designation: null
     });
     const [page, setPage] = useState(1);
@@ -38,6 +45,8 @@ const PendingApprovals = ({ activeTab }) => {
     const [actionType, setActionType] = useState(null); // APPROVE | REJECT
     const [note, setNote] = useState("");
     const [eCode, setECode] = useState(null);
+    const [search, setSearch] = useState(querySearch);
+    const [debouncedSearch, setDebouncedSearch] = useState(querySearch);
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
@@ -47,25 +56,7 @@ const PendingApprovals = ({ activeTab }) => {
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === filters.center
@@ -86,11 +77,39 @@ const PendingApprovals = ({ activeTab }) => {
     }, [filters.center, user?.centerAccess]);
 
     useEffect(() => {
+        const handler = setTimeout(() => {
+            setDebouncedSearch(search);
+            setPage(1);
+            setSearchParams((prev) => {
+                if (search.trim()) {
+                    prev.set("q", search);
+                } else {
+                    prev.delete("q");
+                    prev.delete("tab");
+                    prev.delete("center");
+                    prev.delete("id");
+                }
+                return prev;
+            });
+        }, 500);
+
+        return () => clearTimeout(handler);
+    }, [search]);
+
+    useEffect(() => {
+        const q = searchParams.get("q") || "";
+        const c = searchParams.get("center") || "ALL";
+        setSearch(q);
+        setDebouncedSearch(q);
+        setFilters(prev => ({ ...prev, center: c }));
+        setPage(1);
+    }, [activeTab]);
+
+    useEffect(() => {
         const loadDesignations = async () => {
             try {
                 dispatch(fetchDesignations({
-                    status: "APPROVED",
-                    only: TPMOptions
+                    status: ["PENDING", "APPROVED"]
                 })).unwrap();
             } catch (error) {
                 if (!handleAuthError(error)) {
@@ -114,7 +133,10 @@ const PendingApprovals = ({ activeTab }) => {
                 limit,
                 centers,
                 view: "PENDING",
-                ...filters.designation ? { designation: filters.designation } : {}
+                ...filters.designation ? { designation: filters.designation } : {},
+                status: "PENDING",
+                ...search.trim() !== "" && { search: debouncedSearch },
+                ...(queryTpmId !== "" && { tpmId: queryTpmId })
             })).unwrap();
         } catch (error) {
             if (!handleAuthError) {
@@ -127,7 +149,7 @@ const PendingApprovals = ({ activeTab }) => {
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchPendingTPMApprovals();
         }
-    }, [page, limit, filters, user?.centerAccess, activeTab]);
+    }, [page, limit, filters, user?.centerAccess, activeTab, debouncedSearch]);
 
     const handleDelete = async () => {
         setModalLoading(true);
@@ -184,8 +206,32 @@ const PendingApprovals = ({ activeTab }) => {
             minWidth: "120px"
         },
         {
+            name: "Position",
+            selector: (row) => capitalizeWords(normalizeUnderscores(row?.position?.name) || "-"),
+            wrap: true,
+            minWidth: "120px"
+        },
+        {
+            name: "Department",
+            selector: (row) => capitalizeWords(normalizeUnderscores(row?.department?.name) || "-"),
+            wrap: true,
+            minWidth: "120px"
+        },
+        {
+            name: <div>Center</div>,
+            selector: row => capitalizeWords(row?.center?.title || "-"),
+            wrap: true,
+            minWidth: "120px"
+        },
+        {
             name: <div>Vendor</div>,
             selector: (row) => capitalizeWords(row?.vendor) || "",
+            wrap: true,
+            minWidth: "150px"
+        },
+        {
+            name: <div>Employment Type</div>,
+            selector: (row) => capitalizeWords(normalizeUnderscores(row?.newEmploymentType) || "-"),
             wrap: true,
             minWidth: "150px"
         },
@@ -194,7 +240,7 @@ const PendingApprovals = ({ activeTab }) => {
             selector: row => {
                 if (!row?.startDate) return "-";
 
-                const date = new Date(row.startDate);
+                const date = new Date(row?.startDate);
                 if (isNaN(date)) return "-";
 
                 return format(date, "dd-MM-yyyy");
@@ -203,15 +249,39 @@ const PendingApprovals = ({ activeTab }) => {
         },
         {
             name: <div>Contract Signed With Vendor</div>,
-            selector: (row) => row?.contractSignedWithVendor ? "Yes" : "No",
+            cell: (row) => {
+                const approval = row?.contractSignedWithVendor;
+                return (
+                    <div className="text-start">
+                        <div className="">{approval?.approved ? "Yes" : "No"}</div>
+                        {approval?.approvedBy && (
+                            <div className="text-muted small">
+                                <i>{approval.approvedBy}</i>
+                            </div>
+                        )}
+                    </div>
+                );
+            },
             wrap: true,
-            center: true
+            minWidth: "160px"
         },
         {
-            name: <div>Manpower Approved By Management</div>,
-            selector: (row) => row?.manpowerApprovedByManagement ? "Yes" : "No",
+            name: <div>Man power approveed by Management</div>,
+            cell: (row) => {
+                const approval = row?.manpowerApprovedByManagement;
+                return (
+                    <div className="text-start">
+                        <div className="">{approval?.approved ? "Yes" : "No"}</div>
+                        {approval?.approvedBy && (
+                            <div className="text-muted small">
+                                <i>{approval.approvedBy}</i>
+                            </div>
+                        )}
+                    </div>
+                );
+            },
             wrap: true,
-            cener: true
+            minWidth: "160px"
         },
         {
             name: <div>Filled By</div>,
@@ -347,7 +417,20 @@ const PendingApprovals = ({ activeTab }) => {
                             placeholder="Designation"
                             isClearable
                         />
+                    </div>
 
+                    {/* Search */}
+                    <div style={{ width: isMobile ? "100%" : "250px" }}>
+                        <Input
+                            type="text"
+                            className="form-control"
+                            placeholder="Search by name..."
+                            value={search}
+                            onChange={(e) => setSearch(e.target.value)}
+                        />
+                    </div>
+                    <div className="ms-auto">
+                        <RefreshButton loading={loading} onRefresh={fetchPendingTPMApprovals} />
                     </div>
                 </div>
             </div>

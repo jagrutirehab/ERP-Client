@@ -9,6 +9,7 @@ export {
   updateUserWeeklySchedule,
   updateUserPassword,
   suspendStaff,
+  toggleAppLogin,
   // fetchUsers,
   removeUser,
   updateUser,
@@ -151,6 +152,7 @@ export {
   updatePatient,
   updatePatientCenter,
   removeAadhaarCard,
+  removePassportCard,
   deletePatient,
   fetchPatients,
   fetchMorePatients,
@@ -164,6 +166,7 @@ export {
   fetchAllPatients,
   fetchPatientById,
   editAdmissionAssignment,
+  editAdmissionWardBed,
 } from "./features/patient/patientSlice";
 
 // timeline
@@ -178,6 +181,8 @@ export {
   setChartDate,
   fetchChartsAddmissions,
   fetchCharts,
+  fetchFinalDiagnosis,
+  fetchAdditionalDiagnosis,
   fetchGeneralCharts,
   addPrescription,
   addGeneralPrescription,
@@ -185,6 +190,11 @@ export {
   addVitalSign,
   addGeneralVitalSign,
   updateVitalSign,
+  addEctSession,
+  addGeneralEctSession,
+  updateEctSession,
+  addAdmissionType,
+  updateAdmissionType,
   addClinicalNote,
   addGeneralClinicalNote,
   updateClinicalNote,
@@ -200,8 +210,12 @@ export {
   addRelativeVisit,
   addGeneralRelativeVisit,
   updateRelativeVisit,
+  addOutpass,
+  updateOutpass,
   addDischargeSummary,
   updateDischargeSummary,
+  addExpirySummary,
+  updateExpirySummary,
   addDetailAdmission,
   addGeneralDetailAdmission,
   updateDetailAdmission,
@@ -210,6 +224,23 @@ export {
   resetOpdPatientCharts,
   fetchOPDPrescription,
   setPtLatestOPDPrescription,
+  fetchLastEctSession,
+  setPtLatestEctSession,
+  addECTConsent,
+  addPsychoDiagnosticForm,
+  addGeneralPsychoDiagnosticForm,
+  updatePsychoDiagnosticForm,
+  removePsychoDiagnosticFormFile,
+  addInputOutput,
+  addGeneralInputOutput,
+  updateInputOutput,
+  addNurseSosProcedure,
+  addGeneralNurseSosProcedure,
+  updateNurseSosProcedure,
+  addInjuryMarks,
+  addGeneralInjuryMarks,
+  updateInjuryMarks,
+  removeInjuryMarksFile,
 } from "./features/chart/chartSlice";
 
 // bill
@@ -292,11 +323,14 @@ export {
 //Report
 export {
   fetchReport,
+  fetchReportUpdated,
   fetchPatientAnalytics,
   fetchLeadAnalytics,
   fetchOPDAnalytics,
   fetchBookingAnalytics,
+  fetchTransactionsAnalytics,
   fetchCenterBedsAnalytics,
+  fetchAdmissionForms,
 } from "./features/report/reportSlice";
 
 //Hubspot

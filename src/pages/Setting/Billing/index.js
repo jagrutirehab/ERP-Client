@@ -16,6 +16,7 @@ import classNames from "classnames";
 import PaymentBar from "./Components/advancePayment/PaymentBar";
 import PaymentList from "./Components/advancePayment/PaymentList";
 import AddPayment from "./Components/advancePayment/AddPayment";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const Billing = ({
   centers,
@@ -49,14 +50,33 @@ const Billing = ({
   const [searchadv, setSearchadv] = useState("");
   const [pageadv, setPageadv] = useState(1);
   const [limitadv, setLimitadv] = useState(10);
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { hasPermission } = usePermissions(token);
+  const hasAdvancePermission = hasPermission(
+    "SETTING",
+    "ADVANCEPAYMENTSETTING",
+    "READ",
+  );
+  const hasInvoiceSettingPermission = hasPermission(
+    "SETTING",
+    "INVOICESETTING",
+    "READ",
+  );
+
+  console.log("hasInvoiceSettingPermission", hasInvoiceSettingPermission);
+  console.log("hasAdvancePermission", hasAdvancePermission);
 
   // Toggle handlers
   const toggleForm = () => setModal(!modal);
   const togglePaymentForm = () => setPaymentModal(!paymentModal);
 
   // Delete handlers
-  const dltItem = () => {
-    dispatch(removeBillItem(deleteItem.data));
+  const dltItem = async () => {
+    await dispatch(removeBillItem(deleteItem.data));
+    if (tab === "1") {
+      dispatch(fetchBillItems({ centerIds: centers, page, limit, search }));
+    }
     setDeleteItem({ isOpen: false, data: null });
   };
 
@@ -84,7 +104,7 @@ const Billing = ({
           page: pageadv,
           limit: limitadv,
           search: searchadv,
-        })
+        }),
       );
     }
   }, [dispatch, centers, tab, pageadv, limitadv, searchadv]);
@@ -97,69 +117,81 @@ const Billing = ({
         </div>
 
         <Nav tabs className="py-2">
-          <NavItem>
-            <NavLink
-              className={classNames({ active: tab === "1" })}
-              onClick={() => setTab("1")}
-            >
-              Invoice
-            </NavLink>
-          </NavItem>
-          <NavItem>
-            <NavLink
-              className={classNames({ active: tab === "2" })}
-              onClick={() => setTab("2")}
-            >
-              Advance Payment
-            </NavLink>
-          </NavItem>
+          {hasInvoiceSettingPermission && (
+            <NavItem>
+              <NavLink
+                className={classNames({ active: tab === "1" })}
+                onClick={() => setTab("1")}
+              >
+                Invoice
+              </NavLink>
+            </NavItem>
+          )}
+          {hasAdvancePermission && (
+            <NavItem>
+              <NavLink
+                className={classNames({ active: tab === "2" })}
+                onClick={() => setTab("2")}
+              >
+                Advance Payment
+              </NavLink>
+            </NavItem>
+          )}
         </Nav>
 
         <TabContent activeTab={tab}>
-          <TabPane tabId="1">
-            <BillingBar toggleForm={toggleForm} setSearch={setSearch} />
-            <ItemList
-              items={billItems}
-              setDeleteItem={setDeleteItem}
-              currentPage={currentPage}
-              itemsPerPage={itemsPerPage}
-              onPageChange={setPage}
-              onItemsPerPageChange={setLimit}
-              searchItem={search}
-              totalItems={totalCount}
-              totalPages={totalPages}
-            />
-            <AddItems modal={modal} toggle={toggleForm} />
-            <DeleteModal
-              show={deleteItem.isOpen}
-              onDeleteClick={dltItem}
-              onCloseClick={cancelDeleteItem}
-            />
-          </TabPane>
+          {hasInvoiceSettingPermission && (
+            <TabPane tabId="1">
+              <BillingBar toggleForm={toggleForm} setSearch={setSearch} />
+              <ItemList
+                items={billItems}
+                setDeleteItem={setDeleteItem}
+                currentPage={currentPage}
+                itemsPerPage={itemsPerPage}
+                onPageChange={setPage}
+                onItemsPerPageChange={setLimit}
+                searchItem={search}
+                totalItems={totalCount}
+                totalPages={totalPages}
+              />
+              <AddItems modal={modal} toggle={toggleForm} />
+              {tab === "1" && (
+                <DeleteModal
+                  show={deleteItem.isOpen}
+                  onDeleteClick={dltItem}
+                  onCloseClick={cancelDeleteItem}
+                />
+              )}
+            </TabPane>
+          )}
 
-          <TabPane tabId="2">
-            <PaymentBar
-              toggleForm={togglePaymentForm}
-              setSearchadv={setSearchadv}
-            />
-            <PaymentList
-              items={paymentAccounts}
-              setDeleteItem={setDeleteItem}
-              currentPage={paymentCurrentPage}
-              itemsPerPage={paymentItemsPerPage}
-              onPageChange={setPageadv}
-              onItemsPerPageChange={setLimitadv}
-              searchItem={searchadv}
-              totalItems={paymentTotalCount}
-              totalPages={paymentTotalPages}
-            />
-            <AddPayment modal={paymentModal} toggle={togglePaymentForm} />
-            <DeleteModal
-              show={deleteItem.isOpen}
-              onDeleteClick={dltPaymentItem}
-              onCloseClick={cancelDeleteItem}
-            />
-          </TabPane>
+          {hasAdvancePermission && (
+            <TabPane tabId="2">
+              <PaymentBar
+                toggleForm={togglePaymentForm}
+                setSearchadv={setSearchadv}
+              />
+              <PaymentList
+                items={paymentAccounts}
+                setDeleteItem={setDeleteItem}
+                currentPage={paymentCurrentPage}
+                itemsPerPage={paymentItemsPerPage}
+                onPageChange={setPageadv}
+                onItemsPerPageChange={setLimitadv}
+                searchItem={searchadv}
+                totalItems={paymentTotalCount}
+                totalPages={paymentTotalPages}
+              />
+              <AddPayment modal={paymentModal} toggle={togglePaymentForm} />
+              {tab === "2" && (
+                <DeleteModal
+                  show={deleteItem.isOpen}
+                  onDeleteClick={dltPaymentItem}
+                  onCloseClick={cancelDeleteItem}
+                />
+              )}
+            </TabPane>
+          )}
         </TabContent>
       </div>
     </React.Fragment>

@@ -216,21 +216,31 @@ export const centralPaymentSlice = createSlice({
 
         builder.addCase(updateCentralPaymentAction.fulfilled, (state, { payload }) => {
             if (Array.isArray(state.approvals.data)) {
+                const removed = state.approvals.data.find(
+                    (approval) => approval._id === payload.payload._id
+                );
                 state.approvals.data = state.approvals.data.filter(
                     (approval) => approval._id !== payload.payload._id
                 );
+                if (removed && state.approvals.totalFinalAmount != null) {
+                    state.approvals.totalFinalAmount -= removed.finalAmount || 0;
+                }
             }
         });
 
         builder.addCase(updateCentralPayment.fulfilled, (state, { payload, meta }) => {
             const centers = meta.arg.centers;
             const cacheKey = centers?.length ? [...centers].sort().join(",") : "all";
-            state.spendings[cacheKey].data = state.spendings[cacheKey].data.map((item) =>
-                item._id === payload._id ? payload : item
-            );
-            state.approvals.data = state.approvals.data.map((approval) =>
-                approval._id === payload._id ? payload : approval
-            )
+            if (state.spendings[cacheKey]?.data) {
+                state.spendings[cacheKey].data = state.spendings[cacheKey].data.map((item) =>
+                    item._id === payload._id ? { ...payload, author: item.author } : item
+                );
+            }
+            if (Array.isArray(state.approvals?.data)) {
+                state.approvals.data = state.approvals.data.map((approval) =>
+                    approval._id === payload._id ? { ...payload, author: approval.author, approvedBy: approval.approvedBy } : approval
+                );
+            }
         });
 
         builder.addCase(getPaymentDetails.pending, (state) => {

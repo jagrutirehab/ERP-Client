@@ -203,7 +203,15 @@ const RoundNoteCard = ({ round, onEdit, onDelete }) => {
                       </Badge>
                     </td>
                     <td className="py-3 align-middle fw-medium text-dark">
-                      {n.patient?.name || "General / All"}
+                      {(Array.isArray(n.patient)
+                        ? n.patient
+                        : n.patient
+                          ? [n.patient]
+                          : []
+                      )
+                        .map((p) => p?.name)
+                        .filter(Boolean)
+                        .join(", ") || "General / All"}
                     </td>
                     <td className="py-3 align-middle text-muted">
                       {n.patientsCategory}

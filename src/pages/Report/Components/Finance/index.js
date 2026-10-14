@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Spinner } from "reactstrap";
 import {
@@ -25,23 +25,36 @@ const Finance = ({ centers, centerAccess }) => {
   const [currentPage, setCurrentPage] = useState(1);
 
   // Center selection state
-  const centerOptions = centers
-    ?.filter((c) => centerAccess.includes(c._id))
-    .map((c) => ({
-      _id: c._id,
-      title: c.title,
-    }));
-
-  const [selectedCentersIds, setSelectedCentersIds] = useState(
-    centerOptions?.map((c) => c._id) || []
+  const [centerOptions, setCenterOptions] = useState(
+    centers
+      ?.filter((c) => centerAccess.includes(c._id))
+      .map((c) => ({
+        _id: c._id,
+        title: c.title,
+      })),
   );
+  const [selectedCentersIds, setSelectedCentersIds] = useState(
+    centerOptions?.map((c) => c._id) || [],
+  );
+
+  useEffect(() => {
+    setCenterOptions(
+      centers
+        ?.filter((c) => centerAccess.includes(c._id))
+        .map((c) => ({
+          _id: c._id,
+          title: c.title,
+        })),
+    );
+  }, [centerAccess, centers]);
 
   // Update selected centers when centerOptions change
   useEffect(() => {
     if (
       centerOptions &&
-      centerOptions.length > 0 &&
-      selectedCentersIds.length === 0
+      centerOptions?.length > 0
+      // &&
+      // selectedCentersIds.length === 0
     ) {
       setSelectedCentersIds(centerOptions.map((c) => c._id));
     }
@@ -116,7 +129,7 @@ const Finance = ({ centers, centerAccess }) => {
       link.href = url;
       link.setAttribute(
         "download",
-        `financial-report-${new Date().toISOString().split("T")[0]}.csv`
+        `financial-report-${new Date().toISOString().split("T")[0]}.csv`,
       );
       document.body.appendChild(link);
       link.click();
@@ -181,41 +194,43 @@ const Finance = ({ centers, centerAccess }) => {
       minWidth: "150px",
     },
     {
-      name: "Total Invoiced",
+      name: "Total Invoiced (INR)",
       selector: (row) =>
         row.totalInvoicedAmount
-          ? `₹${row.totalInvoicedAmount.toLocaleString()}`
-          : "₹0",
+          ? `${row.totalInvoicedAmount.toLocaleString()}`
+          : "0",
       sortable: false,
       right: true,
       wrap: true,
-      maxWidth: "130px",
-      minWidth: "130px",
+      maxWidth: "150px",
+      minWidth: "150px",
     },
     {
-      name: "Total Paid",
+      name: "Total Paid (INR)",
       selector: (row) =>
-        row.totalPaidAmount ? `₹${row.totalPaidAmount.toLocaleString()}` : "₹0",
+        row.totalPaidAmount ? `${row.totalPaidAmount.toLocaleString()}` : "0",
       sortable: false,
       right: true,
       wrap: true,
+      maxWidth: "150px",
+      minWidth: "150px",
     },
     {
-      name: "Total Deposit",
+      name: "Total Deposit (INR)",
       selector: (row) =>
-        row.totalDeposit ? `₹${row.totalDeposit.toLocaleString()}` : "₹0",
+        row.totalDeposit ? `${row.totalDeposit.toLocaleString()}` : "0",
       sortable: false,
       right: true,
       wrap: true,
-      maxWidth: "130px",
-      minWidth: "130px",
+      maxWidth: "150px",
+      minWidth: "150px",
     },
     {
-      name: "Total Draft",
+      name: "Total Draft (INR)",
       selector: (row) =>
         row.totalDraftAmount && row.totalDraftAmount !== "0"
-          ? `₹${row.totalDraftAmount.toLocaleString()}`
-          : "₹0",
+          ? `${row.totalDraftAmount.toLocaleString()}`
+          : "0",
       sortable: false,
       right: true,
       wrap: true,
@@ -223,23 +238,23 @@ const Finance = ({ centers, centerAccess }) => {
       minWidth: "130px",
     },
     {
-      name: "Total Refund",
+      name: "Total Refund (INR)",
       selector: (row) =>
         row.totalRefundAmount
-          ? `₹${row.totalRefundAmount.toLocaleString()}`
-          : "₹0",
+          ? `${row.totalRefundAmount.toLocaleString()}`
+          : "0",
       sortable: false,
       right: true,
       wrap: true,
-      maxWidth: "130px",
-      minWidth: "130px",
+      maxWidth: "150px",
+      minWidth: "150px",
     },
     {
-      name: "Total Discount",
+      name: "Total Discount (INR)",
       selector: (row) =>
         row.totalDiscountAmount
-          ? `₹${row.totalDiscountAmount.toLocaleString()}`
-          : "₹0",
+          ? `${row.totalDiscountAmount.toLocaleString()}`
+          : "0",
       sortable: false,
       right: true,
       wrap: true,
@@ -251,8 +266,8 @@ const Finance = ({ centers, centerAccess }) => {
       selector: (row) =>
         row.priceForSelectedRoomMonthly &&
         row.priceForSelectedRoomMonthly !== "0"
-          ? `₹${row.priceForSelectedRoomMonthly.toLocaleString()}`
-          : "₹0",
+          ? `${row.priceForSelectedRoomMonthly.toLocaleString()}`
+          : "0",
       sortable: false,
       right: true,
       wrap: true,
@@ -263,8 +278,8 @@ const Finance = ({ centers, centerAccess }) => {
       name: "Room Price (Daily)",
       selector: (row) =>
         row.priceForSelectedRoomDaily && row.priceForSelectedRoomDaily !== "0"
-          ? `₹${row.priceForSelectedRoomDaily.toLocaleString()}`
-          : "₹0",
+          ? `${row.priceForSelectedRoomDaily.toLocaleString()}`
+          : "0",
       sortable: false,
       right: true,
       wrap: true,
@@ -272,11 +287,23 @@ const Finance = ({ centers, centerAccess }) => {
       minWidth: "180px",
     },
     {
-      name: "Invoice (Date Range)",
+      name: "Invoice (Date Range)(INR)",
       selector: (row) =>
         row.invoiceAmountInDateRange
-          ? `₹${row.invoiceAmountInDateRange.toLocaleString()}`
-          : "₹0",
+          ? `${row.invoiceAmountInDateRange.toLocaleString()}`
+          : "0",
+      sortable: false,
+      right: true,
+      wrap: true,
+      maxWidth: "190px",
+      minWidth: "190px",
+    },
+    {
+      name: "Paid (Date Range)(INR)",
+      selector: (row) =>
+        row.paidAmountInDateRange
+          ? `${row.paidAmountInDateRange.toLocaleString()}`
+          : "0",
       sortable: false,
       right: true,
       wrap: true,
@@ -284,26 +311,14 @@ const Finance = ({ centers, centerAccess }) => {
       minWidth: "170px",
     },
     {
-      name: "Paid (Date Range)",
+      name: "Due Amount(INR)",
       selector: (row) =>
-        row.paidAmountInDateRange
-          ? `₹${row.paidAmountInDateRange.toLocaleString()}`
-          : "₹0",
+        row.dueAmount ? `${row.dueAmount.toLocaleString()}` : "0",
       sortable: false,
       right: true,
       wrap: true,
       maxWidth: "150px",
       minWidth: "150px",
-    },
-    {
-      name: "Due Amount",
-      selector: (row) =>
-        row.dueAmount ? `₹${row.dueAmount.toLocaleString()}` : "₹0",
-      sortable: false,
-      right: true,
-      wrap: true,
-      maxWidth: "130px",
-      minWidth: "130px",
     },
     {
       name: "Bill Cycle Date",

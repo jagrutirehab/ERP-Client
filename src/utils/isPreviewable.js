@@ -1,18 +1,56 @@
-export const isPreviewable = (file, documentDate) => {
-    if (!file?.url) return false;
+import { parseISO, isAfter, isEqual, startOfDay } from "date-fns";
 
-    const url = file.url.toLowerCase();
-    const ext = url.split(".").pop();
+export const isPreviewable = (
+  file,
+  documentDate,
+  cutOffDate = "2025-12-30",
+) => {
+  if (!file?.url) return false;
 
-    const IMAGE_EXTS = ["png", "jpg", "jpeg", "webp"];
-    if (IMAGE_EXTS.includes(ext)) return true;
+  const ext = file.url.toLowerCase().split(".").pop();
+  const IMAGE_EXTS = ["png", "jpg", "jpeg", "webp"];
+  if (IMAGE_EXTS.includes(ext)) return true;
 
-    if (ext === "pdf") {
-        if (!documentDate) return false;
+  const EXCEL_EXTS = ["xlsx", "xls"];
+  if (EXCEL_EXTS.includes(ext)) return true;
 
-        const CUTOFF = new Date("2025-12-30");
-        return new Date(documentDate) >= CUTOFF;
-    }
+  const WORD_EXTS = ["docx", "doc"];
+  if (WORD_EXTS.includes(ext)) return true;
 
-    return false;
+  if (ext === "pdf" || WORD_EXTS.includes(ext)) {
+    if (!documentDate) return false;
+
+    const docDate = startOfDay(
+      typeof documentDate === "string"
+        ? parseISO(documentDate)
+        : new Date(documentDate),
+    );
+
+    const cutoff = startOfDay(
+      typeof cutOffDate === "string" ? parseISO(cutOffDate) : cutOffDate,
+    );
+
+    return isAfter(docDate, cutoff) || isEqual(docDate, cutoff);
+  }
+
+  return false;
+};
+export const getFilePreviewMeta = (file, documentDate, cutOffDate) => {
+  if (!file?.url) {
+    return {
+      show: false,
+      canPreview: false,
+      label: "-",
+      action: null,
+    };
+  }
+
+  const canPreview = isPreviewable(file, documentDate, cutOffDate);
+
+  return {
+    show: true,
+    canPreview,
+    label: canPreview ? "Preview" : "Download",
+    action: canPreview ? "preview" : "download",
+  };
 };

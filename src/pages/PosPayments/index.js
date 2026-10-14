@@ -1,0 +1,444 @@
+import React, { useCallback, useEffect, useRef, useState } from "react";
+import PropTypes from "prop-types";
+import { connect, useDispatch } from "react-redux";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import {
+  Alert,
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Col,
+  Input,
+  Label,
+  Row,
+} from "reactstrap";
+import { format } from "date-fns";
+
+import { getPosTransactions } from "../../helpers/backend_helper";
+import { createEditBill, setBillDate } from "../../store/actions";
+import {
+  ADVANCE_PAYMENT,
+  DEPOSIT,
+  INVOICE,
+} from "../../Components/constants/patient";
+import { usePermissions } from "../../Components/Hooks/useRoles";
+import PosTransactionTable from "./PosTransactionTable";
+import RefundModal from "./RefundModal";
+
+// Refreshes itself — a charge the terminal settles while this is open should
+// appear without anyone remembering to reload.
+const REFRESH_INTERVAL_MS = 30000;
+
+const DEFAULT_PAGE_SIZE = 10;
+
+// Page size is a per-user habit, not something to re-pick every visit.
+const PAGE_SIZE_KEY = "posDashboardPageSize";
+
+const readPageSize = () => {
+  try {
+    const stored = Number(window.localStorage.getItem(PAGE_SIZE_KEY));
+    return stored > 0 ? stored : DEFAULT_PAGE_SIZE;
+  } catch {
+    return DEFAULT_PAGE_SIZE;
+  }
+};
+
+const rememberPageSize = (size) => {
+  try {
+    window.localStorage.setItem(PAGE_SIZE_KEY, String(size));
+  } catch {
+    // Blocked storage just means it resets next visit.
+  }
+};
+
+const todayValue = () => format(new Date(), "yyyy-MM-dd");
+
+const TILES = [
+  { key: "ALL", countKey: "all", label: "All", color: "secondary" },
+  { key: "APPROVED", countKey: "approved", label: "Approved", color: "success" },
+  { key: "OPEN", countKey: "open", label: "In flight", color: "info" },
+  { key: "FAILED", countKey: "failed", label: "Declined", color: "danger" },
+  { key: "CANCELLED", countKey: "cancelled", label: "Cancelled", color: "secondary" },
+  { key: "TIMEOUT", countKey: "timeout", label: "Timed out", color: "warning" },
+  { key: "UNKNOWN", countKey: "unknown", label: "Unknown", color: "danger" },
+  { key: "UNBILLED", countKey: "unbilled", label: "Unbilled", color: "danger" },
+];
+
+const PosPayments = ({ centers, centerAccess }) => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+  const canView = hasPermission("POS_PAYMENTS", "POS_MONITOR", "READ");
+  // Refunds send money back, so they are a separate grant from merely looking.
+  const canRefund = hasPermission("POS_PAYMENTS", "POS_REFUND", "WRITE");
+  // Billing writes to the patient's billing, so it is its own grant too.
+  const canBill = hasPermission("POS_PAYMENTS", "POS_BILL", "WRITE");
+
+  useEffect(() => {
+    if (permissionLoader) return;
+    if (!canView) navigate("/unauthorized");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [canView, permissionLoader]);
+
+  // Filters, tab and page live in the query string so a refresh (or a shared
+  // link) lands on the same view instead of resetting to today's defaults.
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const centerId = searchParams.get("center") || "";
+  const statusParam = searchParams.get("status");
+  const status = TILES.some((t) => t.key === statusParam) ? statusParam : "ALL";
+  // Absent means today, which is what a cashier checking their own shift
+  // wants. Present-but-empty means "All time" was chosen.
+  const fromParam = searchParams.get("from");
+  const toParam = searchParams.get("to");
+  const from = fromParam === null ? todayValue() : fromParam;
+  const to = toParam === null ? todayValue() : toParam;
+  const page = Math.max(1, Number(searchParams.get("page")) || 1);
+  const perPage = Number(searchParams.get("limit")) || readPageSize();
+
+  // Merges into the current query. `replace` keeps each filter tweak from
+  // piling up history entries behind the back button.
+  const updateParams = useCallback(
+    (patch) => {
+      setSearchParams(
+        (prev) => {
+          const next = new URLSearchParams(prev);
+          Object.entries(patch).forEach(([key, value]) => {
+            if (value === undefined || value === null) next.delete(key);
+            else next.set(key, String(value));
+          });
+          return next;
+        },
+        { replace: true },
+      );
+    },
+    [setSearchParams],
+  );
+
+  const setPage = useCallback(
+    (nextPage) => updateParams({ page: nextPage > 1 ? nextPage : null }),
+    [updateParams],
+  );
+
+  const [rows, setRows] = useState([]);
+  const [counts, setCounts] = useState({});
+  const [total, setTotal] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [refundTarget, setRefundTarget] = useState(null);
+
+  const mountedRef = useRef(true);
+  useEffect(
+    () => () => {
+      mountedRef.current = false;
+    },
+    [],
+  );
+
+  const visibleCenters = (centers || []).filter((c) =>
+    (centerAccess || []).includes(c._id),
+  );
+
+  const hasScope = Array.isArray(centerAccess);
+  const scopeIds = hasScope ? centerAccess.join(",") : null;
+
+  useEffect(() => {
+    if (!centerId) return;
+    // Also guards a pasted link naming a centre this user cannot see.
+    if (!(centerAccess || []).includes(centerId)) {
+      updateParams({ center: null, page: null });
+    }
+  }, [centerAccess, centerId, updateParams]);
+
+  const load = useCallback(async () => {
+    try {
+      const response = await getPosTransactions({
+        ...(hasScope ? { centerIds: scopeIds } : {}),
+        ...(centerId ? { centerId } : {}),
+        ...(status && status !== "ALL" ? { status } : {}),
+        ...(from ? { from } : {}),
+        ...(to ? { to } : {}),
+        page,
+        limit: perPage,
+      });
+      if (!mountedRef.current) return;
+      setRows(response.payload || []);
+      setCounts(response.counts || {});
+      setTotal(response.total || 0);
+      if (response.page && response.page !== page) setPage(response.page);
+      setError(null);
+    } catch (err) {
+      if (mountedRef.current)
+        setError(err?.message || "Could not load POS payments.");
+    } finally {
+      if (mountedRef.current) setLoading(false);
+    }
+  }, [hasScope, scopeIds, centerId, status, from, to, page, perPage, setPage]);
+
+  useEffect(() => {
+    setLoading(true);
+    load();
+    const timer = setInterval(load, REFRESH_INTERVAL_MS);
+    return () => clearInterval(timer);
+  }, [load]);
+
+  // Any filter change goes back to page 1. Defaults are dropped from the URL
+  // to keep it short.
+  const applyFilter = (key) => (value) => {
+    const isDefault =
+      (key === "center" && !value) || (key === "status" && value === "ALL");
+    updateParams({ [key]: isDefault ? null : value, page: null });
+  };
+
+  const showAllTime = () => {
+    updateParams({ from: "", to: "", page: null });
+  };
+
+  // Recovery for a payment the terminal took but nothing billed — usually an
+  // ERP crash mid-transaction. Rather than writing the bill from here, this
+  // hands the cashier the patient's own Deposit form with the charge already
+  // filled in and locked, so the deposit is created through exactly the same
+  // path as any other and lands in the patient's billing as usual.
+  const createBill = (row) => {
+    // An OPD receipt belongs to an appointment, not the patient's billing tab,
+    // so it reopens over the calendar instead. The procedures still have to be
+    // entered — the charge only carries the tender — but the payment row comes
+    // back filled and locked.
+    if (row.purpose === "INVOICE") {
+      if (!row.appointment) {
+        setError(
+          "This OPD charge is not linked to an appointment, so the invoice cannot be reopened automatically. Collect payment on the appointment quoting RRN " +
+          (row.result?.rrn || row.transactionNumber) +
+          ".",
+        );
+        return;
+      }
+
+      dispatch(setBillDate(new Date().toISOString()));
+      dispatch(
+        createEditBill({
+          bill: INVOICE,
+          isOpen: true,
+          type: row.billType || "OPD",
+          // The invoice form reads patient.center for its procedure list, and
+          // the dashboard row carries the centre separately.
+          patient: { ...(row.patient || {}), center: row.center },
+          center: row.center?._id || row.center,
+          appointment: { _id: row.appointment },
+          shouldPrintAfterSave: true,
+          posPrefill: row,
+        }),
+      );
+      navigate("/booking");
+      return;
+    }
+
+    const patientId = row.patient?._id || row.patient;
+    if (!patientId) {
+      setError(
+        "This payment is not linked to a patient, so a deposit cannot be raised from it.",
+      );
+      return;
+    }
+
+    // Dated to now, like any other bill raised today. Dating it back to when
+    // the terminal took the money buries it among older bills and the cashier
+    // cannot tell the save worked — the collection time is kept in the
+    // remarks and the form banner instead.
+    dispatch(setBillDate(new Date().toISOString()));
+    // Reopen the form the charge was collected on — a payment taken against
+    // an invoice belongs back on Advance Payment, not on Deposit.
+    dispatch(
+      createEditBill({
+        data: null,
+        bill: row.purpose === "ADVANCE_PAYMENT" ? ADVANCE_PAYMENT : DEPOSIT,
+        isOpen: true,
+        admission: row.addmission,
+        paymentAgainstBillNo: row.paymentAgainstBillNo,
+        // The Deposit form reads this, pre-fills the tender from it and locks
+        // the fields — see Deposit.js.
+        posPrefill: row,
+      }),
+    );
+    navigate(`/patient/${patientId}?view=BILLING`);
+  };
+
+  const handleChangePage = (nextPage) => setPage(nextPage);
+
+  const handleChangeRowsPerPage = (nextPerPage, nextPage) => {
+    rememberPageSize(nextPerPage);
+    updateParams({
+      limit: nextPerPage,
+      page: nextPage > 1 ? nextPage : null,
+    });
+  };
+
+  return (
+    <div className="page-content">
+      <div className="container-fluid">
+        <Row>
+          <Col xs={12}>
+            <Card>
+              <CardHeader className="d-flex flex-wrap align-items-center justify-content-between gap-2">
+                <h4 className="card-title mb-0">
+                  <i className="bx bx-credit-card me-2"></i>
+                  POS Dashboard
+                </h4>
+                <div className="d-flex align-items-center gap-2">
+                  <span className="text-muted fs-12">
+                    {total} charge{total === 1 ? "" : "s"}
+                  </span>
+                  <Button size="sm" outline color="secondary" onClick={load}>
+                    <i className="ri-refresh-line"></i>
+                  </Button>
+                </div>
+              </CardHeader>
+
+              <CardBody>
+                {/* --- filters --- */}
+                <Row className="g-2 align-items-end mb-3">
+                  <Col xs={12} md={3}>
+                    <Label className="text-muted fs-12 mb-1">Centre</Label>
+                    <Input
+                      type="select"
+                      bsSize="sm"
+                      value={centerId}
+                      onChange={(e) => applyFilter("center")(e.target.value)}
+                    >
+                      <option value="">All centres</option>
+                      {visibleCenters.map((c) => (
+                        <option key={c._id} value={c._id}>
+                          {c.title || c.name}
+                        </option>
+                      ))}
+                    </Input>
+                  </Col>
+
+                  <Col xs={6} md={2}>
+                    <Label className="text-muted fs-12 mb-1">From</Label>
+                    <Input
+                      type="date"
+                      bsSize="sm"
+                      value={from}
+                      max={to || undefined}
+                      onChange={(e) => applyFilter("from")(e.target.value)}
+                    />
+                  </Col>
+
+                  <Col xs={6} md={2}>
+                    <Label className="text-muted fs-12 mb-1">To</Label>
+                    <Input
+                      type="date"
+                      bsSize="sm"
+                      value={to}
+                      min={from || undefined}
+                      onChange={(e) => applyFilter("to")(e.target.value)}
+                    />
+                  </Col>
+
+                  <Col xs={12} md={3}>
+                    <Label className="text-muted fs-12 mb-1">Status</Label>
+                    <Input
+                      type="select"
+                      bsSize="sm"
+                      value={status}
+                      onChange={(e) => applyFilter("status")(e.target.value)}
+                    >
+                      {TILES.map((t) => (
+                        <option key={t.key} value={t.key}>
+                          {t.label}
+                        </option>
+                      ))}
+                    </Input>
+                  </Col>
+
+                  <Col xs={12} md={2}>
+                    <Button
+                      size="sm"
+                      outline
+                      color="secondary"
+                      className="w-100"
+                      onClick={showAllTime}
+                      title="Clear the date range"
+                    >
+                      All time
+                    </Button>
+                  </Col>
+                </Row>
+
+                {/* --- counts, doubling as the status filter --- */}
+                <div className="d-flex flex-wrap gap-2 mb-3">
+                  {TILES.map((tile) => {
+                    const count = counts[tile.countKey] ?? 0;
+                    const active = status === tile.key;
+                    return (
+                      <Button
+                        key={tile.key}
+                        size="sm"
+                        outline={!active}
+                        color={count > 0 ? tile.color : "light"}
+                        onClick={() => applyFilter("status")(tile.key)}
+                        className={count === 0 ? "text-muted" : ""}
+                      >
+                        {tile.label}
+                        <span className="ms-2 fw-semibold">{count}</span>
+                      </Button>
+                    );
+                  })}
+                </div>
+
+                {error && (
+                  <Alert color="danger" className="fs-12">
+                    {error}
+                  </Alert>
+                )}
+
+                <PosTransactionTable
+                  rows={rows}
+                  loading={loading}
+                  emptyText={
+                    from || to
+                      ? "No POS charges in this date range. Widen the dates or hit “All time”."
+                      : "No POS charges yet."
+                  }
+                  showRefund={canRefund}
+                  showBill={canBill}
+                  onRefund={setRefundTarget}
+                  onCreateBill={createBill}
+                  totalRows={total}
+                  page={page}
+                  perPage={perPage}
+                  onChangePage={handleChangePage}
+                  onChangeRowsPerPage={handleChangeRowsPerPage}
+                />
+              </CardBody>
+            </Card>
+          </Col>
+        </Row>
+      </div>
+
+      <RefundModal
+        isOpen={!!refundTarget}
+        toggle={() => setRefundTarget(null)}
+        transaction={refundTarget}
+        onDone={load}
+      />
+    </div>
+  );
+};
+
+PosPayments.propTypes = {
+  centers: PropTypes.array,
+  centerAccess: PropTypes.array,
+};
+
+const mapStateToProps = (state) => ({
+  centers: state.Center.data,
+  centerAccess: state.User?.centerAccess,
+});
+
+export default connect(mapStateToProps)(PosPayments);

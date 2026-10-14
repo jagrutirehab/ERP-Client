@@ -4,7 +4,18 @@ import MedicineChart from "../Tables/MedicineChart";
 import Divider from "../../../Components/Common/Divider";
 import moment from "moment";
 
-const Prescription = ({ data, startDate, endDate }) => {
+const Prescription = ({
+  data,
+  startDate,
+  endDate,
+  baseDate,
+  showDates,
+  showOwner,
+  currentUserId,
+  fallbackPrescriber,
+}) => {
+  const medicineBaseDate = startDate || baseDate || data?.createdAt;
+  console.log("data", data);
   return (
     <React.Fragment>
       <div>
@@ -12,7 +23,8 @@ const Prescription = ({ data, startDate, endDate }) => {
           <div></div>
           {startDate && endDate && (
             <i className="mb-0 text-muted" style={{ fontSize: "13px" }}>
-              {moment(startDate).format("MMM D, YYYY")} - {moment(endDate).format("MMM D, YYYY")}
+              {moment(startDate).format("MMM D, YYYY")} -{" "}
+              {moment(endDate).format("MMM D, YYYY")}
             </i>
           )}
         </div>
@@ -22,8 +34,11 @@ const Prescription = ({ data, startDate, endDate }) => {
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Dr Notes:-
               </span>
-              <span className="fs-xs-9 fs-md-12">
-              {data.drNotes}
+              <span
+                className="fs-xs-9 fs-md-12"
+                style={{ whiteSpace: "pre-line" }}
+              >
+                {data.drNotes}
               </span>
             </p>
           </div>
@@ -32,23 +47,31 @@ const Prescription = ({ data, startDate, endDate }) => {
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
-                Diagnosis:-
+                Diagnosis :-
               </span>
-              <span className="fs-xs-9 fs-md-12">
-              {data.diagnosis}
-              </span>
+              <span className="fs-xs-9 fs-md-12">{data.diagnosis}</span>
             </p>
           </div>
         )}
+        {/* {data?.diagnosis2 && (
+          <div className="d-flex justify-content-between mb-2">
+            <p className="fs-xs-9 font-size-14 mb-0">
+              <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
+                Diagnosis 2:-
+              </span>
+              <span className="fs-xs-9 fs-md-12">
+              {data?.diagnosis2}
+              </span>
+            </p>
+          </div>
+        )} */}
         {data?.observation && (
           <div className="d-flex justify-content-between mb-2">
             <p className="fs-xs-9 font-size-14 mb-0">
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Observation:-
               </span>
-              <span className="fs-xs-9 fs-md-12"> 
-              {data.observation}
-              </span>
+              <span className="fs-xs-9 fs-md-12">{data.observation}</span>
             </p>
           </div>
         )}
@@ -58,18 +81,64 @@ const Prescription = ({ data, startDate, endDate }) => {
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Complaints:-
               </span>
-              <span className="fs-xs-9 fs-md-12">
-              {data.complaints}
-              </span>
+              <span className="fs-xs-9 fs-md-12">{data.complaints}</span>
             </p>
           </div>
         )}
-        {/* )} */}
+
+        {data?.ICD10_Code && (
+          <div className="d-flex justify-content-between mb-2">
+            <p className="fs-xs-9 font-size-14 mb-0">
+              <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
+                Diagnosis ICD10 Code 1 :-
+              </span>
+              <span className="fs-xs-9 fs-md-12">{data.ICD10_Code}</span>
+            </p>
+          </div>
+        )}
+        {data?.ICD10_Code2 ? (
+          <div className="d-flex justify-content-between mb-2">
+            <p className="fs-xs-9 font-size-14 mb-0">
+              <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
+                Diagnosis ICD10 Code 2 :
+              </span>
+              <span className="fs-xs-9 fs-md-12">{data.ICD10_Code2}</span>
+            </p>
+          </div>
+        ) : Array.isArray(data?.icdCode2) ? (
+          data.icdCode2.length > 0 && (
+            <div className="d-flex  mb-2">
+              <p className="fs-xs-9 font-size-14 mb-0">
+                <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
+                  Diagnosis ICD10 Code 2 :
+                </span>
+              </p>
+
+              <div>
+                {data.icdCode2
+                  .filter(item => item?.code)
+                  .map((item, index, arr) => (
+                    <div className="fs-xs-12" key={item?.code_id || index}>
+                      {item.code}
+                      {index !== arr.length - 1 ? "," : ""}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )
+        ) : null}
         <div className="d-block text-center mt-3 mb-3">
           <Divider />
         </div>
         <>
-          <MedicineChart medicines={data?.medicines || []} />
+          <MedicineChart
+            medicines={data?.medicines || []}
+            baseDate={medicineBaseDate}
+            showDates={showDates}
+            showOwner={showOwner}
+            currentUserId={currentUserId}
+            fallbackPrescriber={fallbackPrescriber}
+          />
           <div className="d-block text-center mt-3 mb-3">
             <Divider />
           </div>
@@ -80,9 +149,7 @@ const Prescription = ({ data, startDate, endDate }) => {
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Notes:-
               </span>
-              <span className="fs-xs-9 fs-md-12">
-              {data.notes}
-              </span>
+              <span className="fs-xs-9 fs-md-12">{data.notes}</span>
             </p>
           </div>
         )}
@@ -92,9 +159,7 @@ const Prescription = ({ data, startDate, endDate }) => {
               <span className="display-6 font-semi-bold fs-xs-10 fs-md-14 font-size-20 me-3">
                 Investigation Plan:-
               </span>
-              <span className="fs-xs-9 fs-md-12">
-              {data.investigationPlan}
-              </span>
+              <span className="fs-xs-9 fs-md-12">{data.investigationPlan}</span>
             </p>
           </div>
         )}
@@ -105,6 +170,13 @@ const Prescription = ({ data, startDate, endDate }) => {
 
 Prescription.propTypes = {
   data: PropTypes.object.isRequired,
+  startDate: PropTypes.any,
+  endDate: PropTypes.any,
+  baseDate: PropTypes.any,
+  showDates: PropTypes.bool,
+  showOwner: PropTypes.bool,
+  currentUserId: PropTypes.string,
+  fallbackPrescriber: PropTypes.object,
 };
 
 export default Prescription;

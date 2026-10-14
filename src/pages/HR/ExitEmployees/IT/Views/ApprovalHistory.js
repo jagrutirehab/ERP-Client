@@ -1,16 +1,19 @@
 import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
-import { Input, Spinner } from "reactstrap";
+import { Input, Spinner, Badge } from "reactstrap";
+import { Laptop } from "lucide-react";
 import { format } from "date-fns";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import DataTable from "react-data-table-component";
 import Select from "react-select";
-import { renderStatusBadge } from "../../../components/renderStatusBadge";
+import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
+import { normalizeUnderscores } from "../../../../../utils/normalizeUnderscore";
 
 
 const customStyles = {
@@ -44,28 +47,20 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     const [search, setSearch] = useState("");
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
+    const [lwdFilter, setLwdFilter] = useState("ALL");
+const [lwdFrom, setLwdFrom] = useState("");
+const [lwdTo, setLwdTo] = useState("");
+
+const lwdOptions = [
+  { value: "ALL", label: "All" },
+  { value: "BEFORE_TODAY", label: "Before Today" },
+  { value: "AFTER_TODAY", label: "After Today" },
+  { value: "CUSTOM", label: "Custom Range" },
+];
 
     const isMobile = useMediaQuery("(max-width: 1000px)");
 
-    const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-            ? [{
-                value: "ALL",
-                label: "All Centers",
-                isDisabled: false,
-            }]
-            : []
-        ),
-        ...(
-            user?.centerAccess?.map(id => {
-                const center = user?.userCenters?.find(c => c._id === id);
-                return {
-                    value: id,
-                    label: center?.title || "Unknown Center"
-                };
-            }) || []
-        )
-    ];
+    const centerOptions = useCenterOptions();
 
     const selectedCenterOption = centerOptions.find(
         opt => opt.value === selectedCenter
@@ -91,6 +86,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     }, [search]);
 
     const fetchITApprovalHistory = async () => {
+        const today = new Date().toISOString();
         try {
             const centers =
                 selectedCenter === "ALL"
@@ -102,7 +98,11 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
                 limit,
                 centers,
                 view: "EXIT_EMPLOYEE_HISTORY",
-                ...search.trim() !== "" && { search: debouncedSearch }
+                ...search.trim() !== "" && { search: debouncedSearch },
+                 ...(lwdFilter === "BEFORE_TODAY" && { lwdTo: today }),
+            ...(lwdFilter === "AFTER_TODAY" && { lwdFrom: today }),
+            ...(lwdFilter === "CUSTOM" && lwdFrom && { lwdFrom }),
+            ...(lwdFilter === "CUSTOM" && lwdTo && { lwdTo }),
             })).unwrap();
         } catch (error) {
             console.log(error)
@@ -116,7 +116,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         if (activeTab === "HISTORY" && hasUserPermission) {
             fetchITApprovalHistory();
         }
-    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
+    }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles,  lwdFilter, lwdFrom, lwdTo]);
 
     const columns = [
         {
@@ -131,6 +131,36 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
             minWidth: "160px"
         },
         {
+            name: <div>Last Working Date</div>,
+            selector: row => {
+                console.log("Row", row);
+                
+                if (!row?.exitDate) return "-";
+
+                const date = new Date(row?.exitDate);
+
+                return date.toLocaleDateString("en-GB", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric"
+                });
+            },
+            wrap: true,
+            minWidth: "250px"
+        },
+        {
+            name: <div>Email ID</div>,
+            selector: row => row?.email || "-",
+            wrap: true,
+            minWidth: "250px"
+        },
+        {
+            name: <div>Official Email ID</div>,
+            selector: row => row?.officialEmail || "-",
+            wrap: true,
+            minWidth: "250px"
+        },
+        {
             name: <div>Department</div>,
             selector: row => capitalizeWords(row?.department || "-"),
             wrap: true,
@@ -138,9 +168,15 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         },
         {
             name: <div>Designation</div>,
-            selector: row => capitalizeWords(row?.designation?.name || "-"),
+            selector: row => capitalizeWords(normalizeUnderscores(row?.designation?.name) || "-"),
             wrap: true,
             minWidth: "100px"
+        },
+        {
+            name: <div>Position</div>,
+            selector: (row) => row?.position?.name || "-",
+            wrap: true,
+            minWidth: "120px",
         },
         {
             name: <div>Current Location</div>,
@@ -158,18 +194,6 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
             selector: row => row?.mobile || "-",
             wrap: true,
             minWidth: "140px"
-        },
-        {
-            name: <div>Official Email ID</div>,
-            selector: row => row?.officialEmail || "-",
-            wrap: true,
-            minWidth: "250px"
-        },
-        {
-            name: <div>Email ID</div>,
-            selector: row => row?.email || "-",
-            wrap: true,
-            minWidth: "250px"
         },
         {
             name: <div>Approval Status</div>,
@@ -202,12 +226,21 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         {
             name: <div>Acted By</div>,
             selector: (row) => (
-                <div>
-                    <div>{capitalizeWords(row?.actedBy?.name || "-")}</div>
-                    <div style={{ fontSize: "12px", color: "#666" }}>
-                        {row?.actedBy?.email || "-"}
-                    </div>
-                </div>
+                row?.isSystemApproved
+                    ? (
+                        <Badge color="success" className="d-inline-flex align-items-center gap-1">
+                            <Laptop size={14} />
+                            System
+                        </Badge>
+                    )
+                    : (
+                        <div>
+                            <div>{capitalizeWords(row?.actedBy?.name || row?.actedBy?.email || "-")}</div>
+                            <div style={{ fontSize: "12px", color: "#666" }}>
+                                {row?.actedBy?.email || "-"}
+                            </div>
+                        </div>
+                    )
             ),
             wrap: true,
             minWidth: "200px"
@@ -250,7 +283,25 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
                                 onChange={(e) => setSearch(e.target.value)}
                             />
                         </div>
+                        <div style={{ width: "180px" }}>
+        <Select
+            options={lwdOptions}
+            value={lwdOptions.find(o => o.value === lwdFilter)}
+            onChange={(opt) => { setLwdFilter(opt.value); setLwdFrom(""); setLwdTo(""); setPage(1); }}
+            placeholder="Last Working Date"
+        />
+    </div>
 
+    {lwdFilter === "CUSTOM" && (
+        <>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdFrom} onChange={(e) => { setLwdFrom(e.target.value); setPage(1); }} />
+            </div>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdTo} onChange={(e) => { setLwdTo(e.target.value); setPage(1); }} />
+            </div>
+        </>
+    )}
                     </div>
 
                 </div>
@@ -278,7 +329,25 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
                             onChange={(e) => setSearch(e.target.value)}
                         />
                     </div>
+                    <div style={{ width: "180px" }}>
+        <Select
+            options={lwdOptions}
+            value={lwdOptions.find(o => o.value === lwdFilter)}
+            onChange={(opt) => { setLwdFilter(opt.value); setLwdFrom(""); setLwdTo(""); setPage(1); }}
+            placeholder="Last Working Date"
+        />
+    </div>
 
+    {lwdFilter === "CUSTOM" && (
+        <>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdFrom} onChange={(e) => { setLwdFrom(e.target.value); setPage(1); }} />
+            </div>
+            <div style={{ width: "160px" }}>
+                <Input type="date" value={lwdTo} onChange={(e) => { setLwdTo(e.target.value); setPage(1); }} />
+            </div>
+        </>
+    )}
                 </div>
 
             </div>

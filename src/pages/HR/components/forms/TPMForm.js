@@ -2,15 +2,16 @@ import PropTypes from "prop-types";
 import { useDispatch, useSelector } from "react-redux";
 import * as Yup from "yup";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
 import { useFormik } from "formik";
-import { TPMOptions } from "../../../../Components/constants/HR";
 import { fetchDesignations } from "../../../../store/features/HR/hrSlice";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Button, Form, FormGroup, Input, Label, Spinner } from "reactstrap";
 import Select from "react-select";
-import { editTPM, postTPM } from "../../../../helpers/backend_helper";
+import { editTPM, getPositions, postTPM } from "../../../../helpers/backend_helper";
 import { format } from "date-fns";
+import { newEmploymentOptions } from "../../../../Components/constants/HR";
 
 const objectIdRegex = /^[0-9a-fA-F]{24}$/
 
@@ -24,38 +25,45 @@ const validationSchema = Yup.object().shape({
     designation: Yup.string()
         .required("Designation is required")
         .matches(objectIdRegex, "Invalid designation"),
+    position: Yup.string()
+        .required("Position is required")
+        .matches(objectIdRegex, "Invalid position"),
+    department: Yup.string()
+        .required("Department is required")
+        .matches(objectIdRegex, "Invalid department"),
     vendor: Yup.string()
         .trim()
         .required("Vendor is required"),
+    newEmploymentType: Yup.string().required("Employment type is required"),
     startDate: Yup.date()
         .required("Start date is required"),
-    contractSignedWithVendor: Yup.boolean()
-        .required("Contract signed with vendor is required"),
-    manpowerApprovedByManagement: Yup.boolean()
-        .required("Manpower approved by management is required"),
+    contractSignedWithVendor: Yup.object({
+        approved: Yup.boolean().required(),
+        approvedBy: Yup.string().nullable(),
+    }),
+    manpowerApprovedByManagement: Yup.object({
+        approved: Yup.boolean().required(),
+        approvedBy: Yup.string().nullable(),
+    }),
 });
 
 const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }) => {
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const { designations: designationOptions, designationLoading } = useSelector((state) => state.HR);
-    const { centerAccess, userCenters } = useSelector((state) => state.User);
     const isEdit = !!initialData?._id;
 
-    const centerOptions =
-        userCenters
-            ?.filter(center => centerAccess?.includes(center._id))
-            .map(center => ({
-                value: center._id,
-                label: center.title,
-            })) || [];
+    const centerOptions = useCenterOptions({ includeAll: false });
+
+    const [positionOptions, setPositionOptions] = useState([]);
+    const [departmentOptions, setDepartmentOptions] = useState([]);
 
     useEffect(() => {
         const loadDesignations = async () => {
             try {
                 dispatch(fetchDesignations({
-                    status: "APPROVED",
-                    only: TPMOptions
+                    status: ["PENDING", "APPROVED"],
+                    version: 2
                 })).unwrap();
             } catch (error) {
                 if (!handleAuthError(error)) {
@@ -67,6 +75,51 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
         loadDesignations();
     }, []);
 
+    useEffect(() => {
+        const loadPositions = async () => {
+            try {
+                const res = await getPositions();
+                const rawData = res?.data || [];
+
+                const mapped = rawData.flatMap((p) =>
+                    (p.positions || [])
+                        .filter((pos) => !pos.deleted && pos.version === 2)
+                        .map((pos) => ({
+                            label: pos.name,
+                            value: pos._id.toString(),
+                            department: p.department?.department,
+                            departmentId: p.department?._id,
+                        }))
+                );
+
+                mapped.sort((a, b) =>
+                    a.label.localeCompare(b.label, undefined, { sensitivity: "base" })
+                );
+
+                setPositionOptions(mapped);
+
+                const deptsMapped = rawData
+                    .filter((p) => p.department?._id)
+                    .map((p) => ({
+                        label: p.department?.department,
+                        value: p.department?._id,
+                    }));
+
+                setDepartmentOptions((prev) => {
+                    const existing = new Set(prev.map((o) => o.value));
+                    const newOnes = deptsMapped.filter((d) => !existing.has(d.value));
+                    return [...prev, ...newOnes];
+                });
+            } catch (error) {
+                if (!handleAuthError(error)) {
+                    toast.error("Failed to fetch positions");
+                }
+            }
+        };
+
+        loadPositions();
+    }, []);
+
     const form = useFormik({
         enableReinitialize: true,
         validateOnMount: true,
@@ -74,12 +127,21 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
             center: initialData?.center?._id || "",
             employeeName: initialData?.employeeName || "",
             designation: initialData?.designation?._id || "",
+            position: initialData?.position?._id || "",
+            department: initialData?.department?._id || "",
             vendor: initialData?.vendor || "",
+            newEmploymentType: initialData?.newEmploymentType || "",
             startDate: initialData?.startDate
                 ? format(new Date(initialData?.startDate), "yyyy-MM-dd")
                 : "",
-            contractSignedWithVendor: initialData?.contractSignedWithVendor || false,
-            manpowerApprovedByManagement: initialData?.manpowerApprovedByManagement || false,
+            contractSignedWithVendor: {
+                approved: initialData?.contractSignedWithVendor?.approved ?? false,
+                approvedBy: initialData?.contractSignedWithVendor?.approvedBy || "",
+            },
+            manpowerApprovedByManagement: {
+                approved: initialData?.manpowerApprovedByManagement?.approved ?? false,
+                approvedBy: initialData?.manpowerApprovedByManagement?.approvedBy || "",
+            },
         },
         validationSchema,
         onSubmit: async (values, { setSubmitting }) => {
@@ -187,6 +249,64 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
                 )}
             </FormGroup>
 
+            {/* POSITION */}
+            <FormGroup>
+                <Label htmlFor="position">Position <span className="text-danger">*</span></Label>
+                <Select
+                    inputId="position"
+                    placeholder="Select Position"
+                    isClearable
+                    options={positionOptions}
+                    value={
+                        positionOptions.find(
+                            opt => opt.value === form.values.position
+                        ) || null
+                    }
+                    onChange={(opt) => {
+                        form.setFieldValue("position", opt ? opt.value : "");
+                        if (opt?.departmentId) {
+                            form.setFieldValue("department", opt.departmentId);
+                            form.setFieldTouched("department", true, false);
+                        } else {
+                            form.setFieldValue("department", "");
+                        }
+                    }}
+                    onBlur={() => form.setFieldTouched("position", true)}
+                />
+
+                {form.touched.position && form.errors.position && (
+                    <div className="text-danger small mt-1">
+                        {form.errors.position}
+                    </div>
+                )}
+            </FormGroup>
+
+            {/* DEPARTMENT */}
+            <FormGroup>
+                <Label htmlFor="department">Department <span className="text-danger">*</span></Label>
+                <Select
+                    inputId="department"
+                    placeholder="Auto-filled from position"
+                    isDisabled={true}
+                    options={departmentOptions}
+                    value={
+                        departmentOptions.find(
+                            opt => opt.value === form.values.department
+                        ) || null
+                    }
+                    onChange={(option) =>
+                        form.setFieldValue("department", option ? option.value : "")
+                    }
+                    onBlur={() => form.setFieldTouched("department", true)}
+                />
+
+                {form.touched.department && form.errors.department && (
+                    <div className="text-danger small mt-1">
+                        {form.errors.department}
+                    </div>
+                )}
+            </FormGroup>
+
             {/* VENDOR */}
             <FormGroup>
                 <Label htmlFor="vendor">Vendor<span className="text-danger">*</span></Label>
@@ -204,6 +324,32 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
                             {form.errors.vendor}
                         </div>
                     )}
+            </FormGroup>
+
+            {/* EMPLOYMENT TYPE */}
+            <FormGroup>
+                <Label htmlFor="newEmploymentType">Employment Type <span className="text-danger">*</span></Label>
+                <Select
+                    inputId="newEmploymentType"
+                    placeholder="Select Employment Type"
+                    isClearable
+                    options={newEmploymentOptions}
+                    value={
+                        newEmploymentOptions.find(
+                            opt => opt.value === form.values.newEmploymentType
+                        ) || null
+                    }
+                    onChange={(option) =>
+                        form.setFieldValue("newEmploymentType", option ? option.value : "")
+                    }
+                    onBlur={() => form.setFieldTouched("newEmploymentType", true)}
+                />
+
+                {form.touched.newEmploymentType && form.errors.newEmploymentType && (
+                    <div className="text-danger small mt-1">
+                        {form.errors.newEmploymentType}
+                    </div>
+                )}
             </FormGroup>
 
             {/* START DATE */}
@@ -236,45 +382,70 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
                     <FormGroup check>
                         <Input
                             type="radio"
-                            id="contractSignedYes"
-                            name="contractSignedWithVendor"
-                            checked={form.values.contractSignedWithVendor === true}
-                            onChange={() =>
-                                form.setFieldValue("contractSignedWithVendor", true)
-                            }
+                            checked={form.values.contractSignedWithVendor.approved === true}
+                            onChange={() => {
+                                form.setFieldValue(
+                                    "contractSignedWithVendor.approved",
+                                    true
+                                );
+                                form.setFieldTouched(
+                                    "contractSignedWithVendor.approved",
+                                    true
+                                );
+                            }}
                         />
-                        <Label for="contractSignedYes" check>
-                            Yes
-                        </Label>
+                        <Label check>Yes</Label>
                     </FormGroup>
+
                     <FormGroup check>
                         <Input
                             type="radio"
-                            id="contractSignedNo"
-                            name="contractSignedWithVendor"
-                            checked={form.values.contractSignedWithVendor === false}
-                            onChange={() =>
-                                form.setFieldValue("contractSignedWithVendor", false)
-                            }
+                            checked={form.values.contractSignedWithVendor.approved === false}
+                            onChange={() => {
+                                form.setFieldValue(
+                                    "contractSignedWithVendor.approved",
+                                    false
+                                );
+                                form.setFieldTouched(
+                                    "contractSignedWithVendor.approved",
+                                    true
+                                );
+                            }}
                         />
-                        <Label for="contractSignedNo" check>
-                            No
-                        </Label>
+                        <Label check>No</Label>
                     </FormGroup>
                 </div>
 
-                {form.touched.contractSignedWithVendor &&
-                    form.errors.contractSignedWithVendor && (
+                {form.touched.contractSignedWithVendor?.approved &&
+                    form.errors.contractSignedWithVendor?.approved && (
                         <div className="text-danger small mt-1">
-                            {form.errors.contractSignedWithVendor}
+                            {form.errors.contractSignedWithVendor.approved}
                         </div>
                     )}
+
+                {/* APPROVED BY */}
+                <FormGroup className="ms-4 mt-2">
+                    <Label className="text-muted">
+                        Approved By (optional)
+                    </Label>
+                    <Input
+                        type="text"
+                        value={form.values.contractSignedWithVendor.approvedBy}
+                        onChange={(e) =>
+                            form.setFieldValue(
+                                "contractSignedWithVendor.approvedBy",
+                                e.target.value
+                            )
+                        }
+                    />
+                </FormGroup>
             </FormGroup>
 
             {/* MANPOWER APPROVED */}
             <FormGroup>
                 <Label>
-                    Is the Manpower approved by Management <span className="text-danger">*</span>
+                    Is the Manpower approved by Management{" "}
+                    <span className="text-danger">*</span>
                 </Label>
 
                 <div className="d-flex gap-4 mt-2">
@@ -282,25 +453,42 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
                         <Input
                             type="radio"
                             id="manpowerApprovedYes"
-                            name="manpowerApprovedByManagement"
-                            checked={form.values.manpowerApprovedByManagement === true}
-                            onChange={() =>
-                                form.setFieldValue("manpowerApprovedByManagement", true)
+                            checked={
+                                form.values.manpowerApprovedByManagement.approved === true
                             }
+                            onChange={() => {
+                                form.setFieldValue(
+                                    "manpowerApprovedByManagement.approved",
+                                    true
+                                );
+                                form.setFieldTouched(
+                                    "manpowerApprovedByManagement.approved",
+                                    true
+                                );
+                            }}
                         />
                         <Label for="manpowerApprovedYes" check>
                             Yes
                         </Label>
                     </FormGroup>
+
                     <FormGroup check>
                         <Input
                             type="radio"
                             id="manpowerApprovedNo"
-                            name="manpowerApprovedByManagement"
-                            checked={form.values.manpowerApprovedByManagement === false}
-                            onChange={() =>
-                                form.setFieldValue("manpowerApprovedByManagement", false)
+                            checked={
+                                form.values.manpowerApprovedByManagement.approved === false
                             }
+                            onChange={() => {
+                                form.setFieldValue(
+                                    "manpowerApprovedByManagement.approved",
+                                    false
+                                );
+                                form.setFieldTouched(
+                                    "manpowerApprovedByManagement.approved",
+                                    true
+                                );
+                            }}
                         />
                         <Label for="manpowerApprovedNo" check>
                             No
@@ -308,14 +496,32 @@ const TPMForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermission }
                     </FormGroup>
                 </div>
 
-                {form.touched.manpowerApprovedByManagement &&
-                    form.errors.manpowerApprovedByManagement && (
+                {form.touched.manpowerApprovedByManagement?.approved &&
+                    form.errors.manpowerApprovedByManagement?.approved && (
                         <div className="text-danger small mt-1">
-                            {form.errors.manpowerApprovedByManagement}
+                            {form.errors.manpowerApprovedByManagement.approved}
                         </div>
                     )}
-            </FormGroup>
 
+                {/* APPROVED BY */}
+                <FormGroup className="ms-4 mt-2">
+                    <Label className="text-muted">
+                        Approved By (optional)
+                    </Label>
+                    <Input
+                        type="text"
+                        value={
+                            form.values.manpowerApprovedByManagement.approvedBy
+                        }
+                        onChange={(e) =>
+                            form.setFieldValue(
+                                "manpowerApprovedByManagement.approvedBy",
+                                e.target.value
+                            )
+                        }
+                    />
+                </FormGroup>
+            </FormGroup>
 
             <div className="d-flex justify-content-end gap-2">
                 {view === "MODAL" && <Button type="button" color="secondary" onClick={onCancel} disabled={form.isSubmitting}>

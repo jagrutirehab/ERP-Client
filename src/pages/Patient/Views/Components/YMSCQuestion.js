@@ -1,13 +1,16 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { connect, useDispatch, useSelector } from 'react-redux';
+import { toast } from "react-toastify";
 import { useParams } from 'react-router-dom';
 import { fetchDoctors, fetchPatientById } from '../../../../store/actions';
 import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap';
 import Loader from '../../../../Components/Common/Loader';
 import { createYMRSTest, setIsClinicalTab, setTestName, setTestPageOpen } from '../../../../store/features/clinicalTest/clinicalTestSlice';
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import axios from 'axios';
 
 const YMSCQuestion = () => {
+    const handleAuthError = useAuthError();
     const [userId, setUserId] = useState('dummy-user-id');
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [dummyDrop, setDummyDrop] = useState(false);
@@ -28,6 +31,7 @@ const YMSCQuestion = () => {
     const clinicalTestLoading = useSelector((state) => state.ClinicalTest?.isLoading);
 
     const [center, setCenters] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [scores, setScores] = useState({});
     const [currentPage, setCurrentPage] = useState('assessment');
 
@@ -273,7 +277,7 @@ const YMSCQuestion = () => {
         }));
     };
 
-    const handleSubmit = (e) => {
+    const handleSubmit = async (e) => {
         e.preventDefault();
 
         if (selectedDoctor.id == -1) {
@@ -322,11 +326,19 @@ const YMSCQuestion = () => {
         formData.append("observation", observation);
         // formData.append("evidence", evidenceDetails);
 
-        dispatch(createYMRSTest(formData));
-
-        setAttempTotalQuestion(true);
-        setIsModalOpen(true);
-        setModalMessage("Test submitted! The results are now available on the next page.");
+        setIsLoading(true);
+        try {
+            await dispatch(createYMRSTest(formData)).unwrap();
+            setAttempTotalQuestion(true);
+            setIsModalOpen(true);
+            setModalMessage("Test submitted! The results are now available on the next page.");
+        } catch (error) {
+            if (!handleAuthError(error)) {
+                toast.error(error.message || "Failed to submit assessment");
+            }
+        } finally {
+            setIsLoading(false);
+        }
     };
 
 
@@ -590,9 +602,9 @@ const YMSCQuestion = () => {
 
 
                             <div className="d-flex justify-content-end bg-light p-4 rounded border border-primary">
-                                <button type="submit" className="btn btn-success fw-bold px-4 py-2 shadow-sm">
+                                <button type="submit" className="btn btn-success fw-bold px-4 py-2 shadow-sm" disabled={isLoading}>
                                     <i className="fas fa-check-circle me-2"></i>
-                                    Submit Test
+                                    {isLoading ? "Saving..." : "Submit Test"}
                                 </button>
                             </div>
                         </form>

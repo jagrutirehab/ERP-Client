@@ -20,6 +20,7 @@ import {
 import { Link } from "react-router-dom";
 import Select from "react-select";
 import { toast } from "react-toastify";
+import moment from "moment";
 
 //redux
 import { connect, useDispatch } from "react-redux";
@@ -30,6 +31,8 @@ import {
   viewProfile,
   fetchDoctors,
   editAdmissionAssignment,
+  fetchFinalDiagnosis,
+  fetchAdditionalDiagnosis,
 } from "../../store/actions";
 
 //assets
@@ -40,6 +43,12 @@ import CheckPermission from "../../Components/HOC/CheckPermission";
 import AddNoteModal from "../Nurse/Views/Components/AddNoteModal";
 import AssignNurseModal from "./Views/Components/AssignNurseModal";
 import { unAssignNurse } from "../../store/features/patient/patientSlice";
+import {
+  getCurrentAdmissionType,
+  admissionTypeLabel,
+  getAdmissionTypeDetailParts,
+} from "../../utils/admissionType";
+// import { getAdditionalDetails } from "../../helpers/backend_helper";
 // import RenderWhen from "../../Components/Common/RenderWhen";
 
 const PatientTopbar = ({
@@ -53,6 +62,8 @@ const PatientTopbar = ({
   nurseLoading,
   setDeletePatient,
   assignedNurse,
+  finalDiagnosis,
+  finalDiagnosisLoading,
 }) => {
   const dispatch = useDispatch();
 
@@ -65,16 +76,62 @@ const PatientTopbar = ({
   const [selectedPsychologist, setSelectedPsychologist] = useState(null);
   const [notesModal, setNotesModal] = useState(false);
   const [nurseModal, setNurseModal] = useState(false);
+  // const [additionalDiagnosis, setAdditionalDiagnosis] = useState(null);
+  // const [additionalDiagnosisLoading, setAdditionalDiagnosisLoading] =
+  //   useState(false);
+  // const [finalDiagnosisText, setFinalDiagnosisText] = useState("");
 
   const admission = admissions.find(
-    (admission) => admission._id === patient.addmission._id
+    (admission) => admission._id === patient.addmission._id,
   );
 
+  // console.log("admission", admission.center?._id);
+
   useEffect(() => {
-    if (admission?.center) {
+    if (admission?.center?._id) {
       dispatch(fetchDoctors({ center: admission.center?._id }));
     }
-  }, [dispatch, admission?.center]);
+  }, [dispatch, admission?.center?._id]);
+
+  // Current (active) admission id — always present on the patient object,
+  // independent of whether the charts tab has been opened.
+  const currentAdmissionId = patient?.addmission?._id;
+
+  useEffect(() => {
+    if (currentAdmissionId && patient?._id) {
+      dispatch(fetchFinalDiagnosis(currentAdmissionId));
+      dispatch(
+        fetchAdditionalDiagnosis({
+          patient: patient?._id,
+          admission: currentAdmissionId,
+        }),
+      );
+    }
+  }, [dispatch, currentAdmissionId]);
+
+  // getFinalDiagnosis already walks the chart timeline (most recent first)
+  // and resolves to whichever chart's additional-details entry or raw
+  // diagnosis should currently be shown — nothing left to derive here.
+  const finalDiagnosisText = finalDiagnosis?.code || "N/A";
+
+  const isFinalDiagnosisReady = !finalDiagnosisLoading;
+
+  // Admission type + its branch detail, e.g. "Supportive Admission · Upto 30
+  // days". Read straight off `patient.addmission` — unlike the final diagnosis
+  // there is nothing to fetch, so this needs no loading state. Same source the
+  // ADMISSION TYPE card below the topbar reads.
+  const currentAdmissionType = getCurrentAdmissionType(patient?.addmission);
+  const admissionTypeText = currentAdmissionType
+    ? [
+        admissionTypeLabel(
+          "admissionType",
+          currentAdmissionType.data?.admissionType,
+        ),
+        ...getAdmissionTypeDetailParts(currentAdmissionType.data),
+      ]
+        .filter(Boolean)
+        .join(" · ") || "N/A"
+    : "N/A";
 
   const handleEditClick = () => {
     if (admission?.doctor) {
@@ -104,7 +161,7 @@ const PatientTopbar = ({
         admissionId: admission?._id,
         doctorId: selectedDoctor?.value,
         psychologistId: selectedPsychologist?.value,
-      })
+      }),
     );
   };
 
@@ -166,7 +223,7 @@ const PatientTopbar = ({
                       />
                       <span className="user-status"></span>
                     </div>
-                    <div className="flex-grow-1">
+                    <div className="flex-grow-1" style={{ minWidth: 0 }}>
                       <h5 className="mb-0 fs-16 text-wrap">
                         <a
                           className="text-reset text-capitalize username d-block"
@@ -175,7 +232,7 @@ const PatientTopbar = ({
                           aria-controls="userProfileCanvasExample"
                           onClick={() =>
                             dispatch(
-                              viewProfile({ data: patient, isOpen: true })
+                              viewProfile({ data: patient, isOpen: true }),
                             )
                           }
                         >
@@ -187,9 +244,56 @@ const PatientTopbar = ({
                           </span>
                         </a>
                       </h5>
+                      {currentAdmissionId && (
+                        <p
+                          className="text-muted fs-13 mb-0 mt-1"
+                          title={
+                            isFinalDiagnosisReady
+                              ? finalDiagnosisText
+                              : undefined
+                          }
+                        >
+                          <span className="fw-semibold">Final Diagnosis:</span>{" "}
+                          {isFinalDiagnosisReady ? (
+                            finalDiagnosisText || "N/A"
+                          ) : (
+                            <span className="placeholder-glow">
+                              <span
+                                className="placeholder rounded"
+                                style={{ width: "140px", maxWidth: "60%" }}
+                              ></span>
+                            </span>
+                          )}
+                        </p>
+                      )}
+                      {currentAdmissionId && (
+                        <p
+                          className="text-muted fs-13 mb-0 mt-1"
+                          title={admissionTypeText}
+                        >
+                          <span className="fw-semibold">Admission Type:</span>{" "}
+                          {admissionTypeText}
+                        </p>
+                      )}
                       <p className="text-truncate text-muted fs-14 mb-0 userStatus">
                         {/* <small>Online</small> */}
                       </p>
+                      {patient?.isOnOutpass && patient?.outpass && (
+                        <span
+                          className="badge bg-warning text-dark mt-1 d-inline-block text-wrap"
+                          style={{ whiteSpace: "normal", maxWidth: "100%" }}
+                        >
+                          <i className="ri-walk-line me-1"></i>
+                          On Outpass:{" "}
+                          {moment(patient.outpass.fromDate).format(
+                            "DD MMM, YYYY",
+                          )}{" "}
+                          -{" "}
+                          {moment(patient.outpass.toDate).format(
+                            "DD MMM, YYYY",
+                          )}
+                        </span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -547,7 +651,7 @@ const PatientTopbar = ({
                             admitDischargePatient({
                               data: null,
                               isOpen: DISCHARGE_PATIENT,
-                            })
+                            }),
                           )
                         }
                         // href="#"
@@ -559,7 +663,10 @@ const PatientTopbar = ({
                         <DropdownItem
                           onClick={() =>
                             dispatch(
-                              togglePatientForm({ data: patient, isOpen: true })
+                              togglePatientForm({
+                                data: patient,
+                                isOpen: true,
+                              }),
                             )
                           }
                           href="#"
@@ -673,6 +780,8 @@ const mapStateToProps = (state) => ({
   loading: state.Patient.admissionLoading,
   nurseLoading: state.Patient.nurseLoading,
   assignedNurse: state.Patient.patient.assignedNurse,
+  finalDiagnosis: state.Chart.finalDiagnosis,
+  finalDiagnosisLoading: state.Chart.finalDiagnosisLoading,
 });
 
 export default connect(mapStateToProps)(PatientTopbar);

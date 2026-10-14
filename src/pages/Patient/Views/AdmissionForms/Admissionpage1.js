@@ -192,7 +192,7 @@ const Admissionpage1 = ({ register, admissions, patient, details, chartData }) =
           />
         </div> */}
         <div>
-          <span style={label}>Ward / Bed :</span>
+          <span style={label}>Floor / Ward / Room / Bed :</span>
           <input
             type="text"
             value={`${details?.ward}/ ${details?.bed}`}
@@ -256,8 +256,8 @@ const Admissionpage1 = ({ register, admissions, patient, details, chartData }) =
             value={
               admissions?.[0]?.addmissionDate
                 ? new Date(admissions[0].addmissionDate)
-                    .toISOString()
-                    .split("T")[0]
+                  .toISOString()
+                  .split("T")[0]
                 : ""
             }
             {...register("Basic_Admission_Form_dateAdmission")}

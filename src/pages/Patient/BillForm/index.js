@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import CustomModal from "../../../Components/Common/Modal";
 import { connect, useDispatch } from "react-redux";
@@ -24,6 +24,11 @@ const BillForm = ({ bill, ...rest }) => {
   const toggleForm = () => {
     dispatch(createEditBill({ bill: null, isOpen: false }));
   };
+  // Set by the form while a row holds an approved POS charge. The header ✕
+  // must honour the same lock as the Cancel button, or the money is left
+  // unrecorded by closing the modal instead.
+  const [closeLocked, setCloseLocked] = useState(false);
+  const formProps = { toggleForm, onCloseLockChange: setCloseLocked, ...rest };
 
   const isAdvancePayment = bill.bill === ADVANCE_PAYMENT;
   const isDeposit = bill.bill === DEPOSIT;
@@ -33,10 +38,10 @@ const BillForm = ({ bill, ...rest }) => {
   const title = isAdvancePayment
     ? "Advance Payment"
     : isDeposit
-    ? "Deposit"
-    : isDraftInvoice
-    ? "Draft Invoice"
-    : "Invoice";
+      ? "Deposit"
+      : isDraftInvoice
+        ? "Draft Invoice"
+        : "Invoice";
 
   return (
     <React.Fragment>
@@ -45,16 +50,16 @@ const BillForm = ({ bill, ...rest }) => {
         title={title}
         size="xl"
         isOpen={bill.isOpen}
-        toggle={toggleForm}
+        toggle={closeLocked ? undefined : toggleForm}
       >
         <RenderWhen isTrue={isAdvancePayment}>
-          <AdvancePayment toggleForm={toggleForm} {...rest} />
+          <AdvancePayment {...formProps} />
         </RenderWhen>
         <RenderWhen isTrue={isDeposit}>
-          <Deposit toggleForm={toggleForm} {...rest} />
+          <Deposit {...formProps} />
         </RenderWhen>
         <RenderWhen isTrue={isInvoice}>
-          <DuePayment toggleForm={toggleForm} {...rest} />
+          <DuePayment isLatest={bill.isLatest} {...formProps} />
         </RenderWhen>
         <RenderWhen isTrue={isDraftInvoice}>
           <InvoiceDraft toggleForm={toggleForm} {...rest} />

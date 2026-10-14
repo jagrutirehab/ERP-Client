@@ -25,7 +25,7 @@ import AddPatient from "../../Components/Patient/AddPatient";
 import Offcanvas from "./Offcanvas";
 import SwitchCenter from "./Modals/SwitchCenter";
 import DeleteModal from "../../Components/Common/DeleteModal";
-import { ALL_PATIENTS } from "../../Components/constants/patient";
+import { ADMIT_PATIENTS, ALL_PATIENTS } from "../../Components/constants/patient";
 
 const Patient = ({ centerAccess, patients, user }) => {
   const dispatch = useDispatch();
@@ -42,6 +42,15 @@ const Patient = ({ centerAccess, patients, user }) => {
     }
   };
 
+  // Gender sub-filter for whichever tab is active. Sibling state to the tab so
+  // the selection carries over when the tab changes, and — like the tab — it
+  // resets only when you leave /patient entirely.
+  const [gender, setGender] = useState(null);
+
+  const [staff, setStaff] = useState(null);
+  const staffId =
+    customActiveTab === ADMIT_PATIENTS ? staff?.value : undefined;
+
   const onCloseClick = () => {
     setDeletePatient({ data: null, isOpen: false });
   };
@@ -57,10 +66,15 @@ const Patient = ({ centerAccess, patients, user }) => {
       fetchPatients({
         type: customActiveTab,
         centerAccess,
+        gender,
+        staffId,
+        // Always page 1. fetchPatients.fulfilled replaces state.data outright,
+        // which is what resets the infinite scroll when the tab, gender or staff
+        // filter changes.
         skip: 0,
       })
     );
-  }, [dispatch, centerAccess, customActiveTab]);
+  }, [dispatch, centerAccess, customActiveTab, gender, staffId]);
 
   useEffect(() => {
     dispatch(fetchBillItems(centerAccess));
@@ -84,6 +98,10 @@ const Patient = ({ centerAccess, patients, user }) => {
               <Sidebar
                 customActiveTab={customActiveTab}
                 toggleCustom={toggleCustom}
+                gender={gender}
+                setGender={setGender}
+                staff={staff}
+                setStaff={setStaff}
               />
               <Offcanvas />
               <AddPatient />

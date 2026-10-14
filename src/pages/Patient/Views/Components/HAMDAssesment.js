@@ -1,5 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import { fetchDoctors } from "../../../../store/actions";
 import {
   Dropdown,
@@ -14,10 +15,12 @@ import {
   setTestPageOpen,
 } from "../../../../store/features/clinicalTest/clinicalTestSlice";
 import { calculateScores, getInterpretationAndRecommendations, hamdQuestions } from "./QuestionData/HAM-DQuestions";
+import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 
 
 const HAMDAssesment = () => {
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
   const fileInputRef = useRef(null);
 
   const [answers, setAnswers] = useState({});
@@ -32,6 +35,7 @@ const HAMDAssesment = () => {
     name: "Choose Doctor",
     id: -1,
   });
+  const [isLoading, setIsLoading] = useState(false);
 
   const patient = useSelector((state) => state.Patient.patient);
   const doctorDetails = useSelector((state) => state.User?.doctor) || [];
@@ -69,7 +73,7 @@ const HAMDAssesment = () => {
     setModalMessage("");
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (!selectedDoctor.id || selectedDoctor.id === -1) {
@@ -108,10 +112,19 @@ const HAMDAssesment = () => {
       Array.from(files).forEach((file) => formData.append("files", file));
     }
 
-    dispatch(createHAMDTest(formData));
-    openModal(
-      "Test submitted! The results are now available on the next page."
-    );
+    setIsLoading(true);
+    try {
+      await dispatch(createHAMDTest(formData)).unwrap();
+      openModal(
+        "Test submitted! The results are now available on the next page."
+      );
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error.message || "Failed to submit assessment");
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -283,8 +296,9 @@ const HAMDAssesment = () => {
         <button
           className="btn btn-success fw-bold px-4 py-2 shadow-sm"
           onClick={handleSubmit}
+          disabled={isLoading}
         >
-          <i className="fas fa-check-circle me-2"></i> Submit Assessment
+          <i className="fas fa-check-circle me-2"></i> {isLoading ? "Saving..." : "Submit Assessment"}
         </button>
       </div>
 

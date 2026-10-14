@@ -17,7 +17,7 @@ const EditTPMModal = ({
         <Modal isOpen={isOpen} toggle={toggle} size="lg" centered backdrop="static"
             keyboard={false}>
             <ModalHeader toggle={toggle}>
-                Edit Advance Salary Request
+                Edit TPM Request
             </ModalHeader>
 
             <ModalBody>

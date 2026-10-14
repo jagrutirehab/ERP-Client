@@ -1,3 +1,4 @@
+import referredByName from "../../../../utils/referredByName";
 import { useEffect, useRef, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Input, Spinner, Row, Col, Button } from "reactstrap";
@@ -60,7 +61,7 @@ const Doctor = ({ centers, centerAccess }) => {
 
   const [selectedCenters, setSelectedCenters] = useState(centerOptions);
   const [selectedCentersIds, setSelectedCentersIds] = useState(
-    centerOptions.map((c) => c._id)
+    centerOptions.map((c) => c._id),
   );
 
   useEffect(() => {
@@ -96,7 +97,7 @@ const Doctor = ({ centers, centerAccess }) => {
         patientName: capitalizeWords(data.patientName),
         guardianName: capitalizeWords(data.guardianName),
         referredBy: capitalizeWords(
-          data.referredBy?.doctorName || data.referredBy
+          referredByName(data.referredBy) || data.referredBy,
         ),
         age: data.dateOfBirth
           ? `${differenceInYears(new Date(), new Date(data.dateOfBirth))} years`
@@ -192,8 +193,9 @@ const Doctor = ({ centers, centerAccess }) => {
     {
       name: "Referred By",
       selector: (row) =>
-        capitalizeWords(row.referredBy?.doctorName || row.referredBy) || "-",
+        capitalizeWords(referredByName(row.referredBy) || row.referredBy) || "-",
       wrap: true,
+      minWidth: "200px",
     },
     // { name: "Phone No", selector: (row) => row.phoneNumber || "-", wrap: true },
     {
@@ -267,8 +269,8 @@ const Doctor = ({ centers, centerAccess }) => {
             </h6>
           </div>
           <Header reportDate={reportDate} setReportDate={setReportDate} />
-          <div className="d-flex justify-content-between align-items-center mt-3">
-            <div className="d-flex gap-2 align-items-center">
+          <div className="d-flex flex-wrap justify-content-between align-items-center mt-3">
+            <div className="d-flex flex-wrap gap-2 align-items-center">
               <Input
                 type="select"
                 value={limit}
@@ -316,7 +318,7 @@ const Doctor = ({ centers, centerAccess }) => {
                 onChange={(ids) => {
                   setSelectedCentersIds(ids);
                   setSelectedCenters(
-                    centerOptions.filter((c) => ids.includes(c._id))
+                    centerOptions.filter((c) => ids.includes(c._id)),
                   );
                 }}
               />

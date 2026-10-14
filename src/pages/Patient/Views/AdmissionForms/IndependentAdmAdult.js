@@ -227,82 +227,10 @@ const IndependentAdmAdult = ({ register, patient, details, chartData }) => {
             ...fullLine,
           }}
         />{" "}
-        have mental illness with following Symptoms since
-        <input
-          type="text"
-          {...register("Indipendent_Admission_adult_symptomSince")}
-          style={inputLine}
-        />
+        have mental illness.
       </p>
 
-      {/* Symptoms List */}
-      <ol style={{ marginLeft: "20px", marginBottom: "10px" }}>
-        <li>
-          <input
-            type="text"
-            value={chartData?.detailAdmission?.ChiefComplaints?.line1}
-            {...register("Indipendent_Admission_adult_symptom1")}
-            style={{
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              ...fullLine,
-            }}
-          />
-        </li>
-        <li>
-          <input
-            type="text"
-            value={chartData?.detailAdmission?.ChiefComplaints?.line2}
-            {...register("Indipendent_Admission_adult_symptom2")}
-            style={{
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              ...fullLine,
-            }}
-          />
-        </li>
-        <li>
-          <input
-            type="text"
-            value={chartData?.detailAdmission?.ChiefComplaints?.line3}
-            {...register("Indipendent_Admission_adult_symptom3")}
-            style={{
-              fontWeight: "bold",
-              textTransform: "uppercase",
-              ...fullLine,
-            }}
-          />
-        </li>
-      </ol>
 
-      {/* Papers Enclosed */}
-      <p>
-        The following papers related to his/her illness along my photo identity
-        copy are enclosed.
-      </p>
-      <ol style={{ marginLeft: "20px", marginBottom: "10px" }}>
-        <li>
-          <input
-            type="text"
-            {...register("Indipendent_Admission_adult_paper1")}
-            style={fullLine}
-          />
-        </li>
-        <li>
-          <input
-            type="text"
-            {...register("Indipendent_Admission_adult_paper2")}
-            style={fullLine}
-          />
-        </li>
-        <li>
-          <input
-            type="text"
-            {...register("Indipendent_Admission_adult_paper3")}
-            style={fullLine}
-          />
-        </li>
-      </ol>
 
       {/* Request Admission */}
       <p>

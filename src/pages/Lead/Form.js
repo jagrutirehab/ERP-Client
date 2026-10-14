@@ -19,6 +19,23 @@ import { leadFields } from "../../Components/constants/lead";
 //redux
 import { connect, useDispatch } from "react-redux";
 import { addLead, createEditLead, updateLead } from "../../store/actions";
+import ReferredBy from "./ReferredBy";
+import { isValidPhoneNumber } from "react-phone-number-input";
+import {
+  REFERRAL_DOCTOR_TYPES,
+  REFERRAL_SOURCES_REQUIRING_REF,
+} from "../../Components/constants/referralSources";
+
+const REQUIRED_FIELDS = [
+  "patientName",
+  "patientPhoneNumber",
+  "patientGender",
+  "patientAge",
+  "attendedBy",
+  "location",
+  "inquiry",
+  "refferedBy",
+];
 
 const LeadForm = ({ user, isOpen, lead, centers, centerAccess, date }) => {
   const dispatch = useDispatch();
@@ -52,6 +69,10 @@ const LeadForm = ({ user, isOpen, lead, centers, centerAccess, date }) => {
       relationWithPatient: lead ? lead.relationWithPatient : "",
       charges: lead ? lead.charges : "",
       refferedBy: lead ? lead.refferedBy : "",
+      referralSource: lead?.referralSource || "",
+      referralPhoneNumber: lead?.referralPhoneNumber || "",
+      referralRefId: lead?.referralRefId || "",
+      referralName: lead?.referralName || "",
       inquiry: lead ? lead.inquiry : "",
       comment: lead ? lead.comment : "",
       inquiryType: lead ? lead.inquiryType : "",
@@ -77,6 +98,34 @@ const LeadForm = ({ user, isOpen, lead, centers, centerAccess, date }) => {
         }
       ),
       inquiry: Yup.string().required("Please Enter Inquiry"),
+      // Referred By is required. An old lead has only the free text in
+      // refferedBy (no referralSource), which also counts as filled.
+      referralSource: Yup.string().test(
+        "referred-by-required",
+        "Please select Referred By",
+        function (value) {
+          return !!value || !!this.parent.refferedBy;
+        }
+      ),
+      // Doctor / Psychiatrist / Online / Other need the doctor's name
+      refferedBy: Yup.string().when("referralSource", {
+        is: (v) => REFERRAL_DOCTOR_TYPES.includes(v),
+        then: (schema) => schema.required("Please enter doctor name"),
+        otherwise: (schema) => schema.nullable().notRequired(),
+      }),
+      referralPhoneNumber: Yup.string()
+        .nullable()
+        .notRequired()
+        .test("is-valid-referral-phone", "Invalid phone number", (value) => {
+          if (!value) return true;
+          return isValidPhoneNumber(value);
+        }),
+      // Sub-dropdown is mandatory for the employee / patient sources
+      referralRefId: Yup.string().when("referralSource", {
+        is: (v) => REFERRAL_SOURCES_REQUIRING_REF.includes(v),
+        then: (schema) => schema.required("Please select a value"),
+        otherwise: (schema) => schema.nullable().notRequired(),
+      }),
       // inquiryType: Yup.string().required("Please Enter Inquiry Type"),
       // givenUpdates: Yup.string().required("Please Enter Given Updates"),
       // followUp: Yup.string().required("Please Enter Follow Up"),
@@ -131,8 +180,39 @@ const LeadForm = ({ user, isOpen, lead, centers, centerAccess, date }) => {
                   <div className="mb-3">
                     <Label htmlFor={field} className="form-label">
                       {field.label}
+                      {REQUIRED_FIELDS.includes(field.name) && (
+                        <span className="text-danger"> *</span>
+                      )}
                     </Label>
-                    {field.type === "radio" ? (
+                    {field.name === "refferedBy" ? (
+                      <ReferredBy
+                        values={validation.values}
+                        resetKey={isOpen ? lead?._id || "new" : "closed"}
+                        onChange={(updates) =>
+                          validation.setValues({
+                            ...validation.values,
+                            ...updates,
+                          })
+                        }
+                        error={
+                          validation.touched.referralRefId ||
+                          validation.submitCount > 0
+                            ? validation.errors.referralRefId
+                            : undefined
+                        }
+                        sourceError={
+                          validation.submitCount > 0
+                            ? validation.errors.referralSource
+                            : undefined
+                        }
+                        nameError={
+                          validation.submitCount > 0
+                            ? validation.errors.refferedBy
+                            : undefined
+                        }
+                        phoneError={validation.errors.referralPhoneNumber}
+                      />
+                    ) : field.type === "radio" ? (
                       <>
                         <div className="d-flex flex-wrap">
                           {(field.options || []).map((item, idx) => (

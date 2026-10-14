@@ -26,12 +26,12 @@ const PendingReferralsList = ({
   const hasApproveReferralPermission = hasPermission(
     "REFERRAL",
     "APPROVE_REFERRAL",
-    "WRITE"
+    "WRITE",
   );
   const hasRejectReferralPermission = hasPermission(
     "REFERRAL",
     "REJECT_REFERRAL",
-    "WRITE"
+    "WRITE",
   );
 
   if (loading) {
@@ -62,7 +62,7 @@ const PendingReferralsList = ({
     const from = (currentPage - 1) * (pagination.limit || 10) + 1;
     const to = Math.min(
       currentPage * (pagination.limit || 10),
-      pagination?.total || pendingReferrals.length
+      pagination?.total || pendingReferrals.length,
     );
 
     return (
@@ -144,7 +144,7 @@ const PendingReferralsList = ({
         <Table className="table-bordered table-nowrap align-middle mb-0">
           <thead className="table-light">
             <tr>
-              <th scope="col">Doctor Name</th>
+              <th scope="col">Contact Name</th>
               <th scope="col">Patient Name</th>
               <th scope="col">Phone Number</th>
               <th scope="col">Created Date</th>
@@ -157,11 +157,9 @@ const PendingReferralsList = ({
             {pendingReferrals && pendingReferrals.length > 0 ? (
               pendingReferrals.map((referral) => (
                 <tr key={referral._id}>
-                  <td className="text-capitalize">{referral.doctorName}</td>
-                  <td className="text-capitalize">
-                    {referral.patient?.name || "—"}
-                  </td>
-                  <td>{referral.patient?.phoneNumber || "—"}</td>
+                  <td>{referral.doctorName}</td>
+                  <td>{referral.patient?.name || "—"}</td>
+                  <td>{referral.mobileNumber || "—"}</td>
                   <td>{new Date(referral.createdAt).toLocaleDateString()}</td>
                   <td>
                     <div className="d-flex gap-2">
@@ -190,7 +188,7 @@ const PendingReferralsList = ({
             ) : (
               <tr>
                 <td colSpan="5" className="text-center py-4">
-                  No pending referrals
+                  No pending contacts
                 </td>
               </tr>
             )}
