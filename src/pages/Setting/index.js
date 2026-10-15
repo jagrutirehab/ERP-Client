@@ -16,6 +16,7 @@ import HrConfigurations from "./HRConfigs";
 import DocumentConfig from "./DocumentConfig";
 import CenterFloorConfig from "./CenterFloorConfig";
 import CenterFallbackManager from "./CenterFallbackManager";
+import GrievanceOfficerSetting from "./GrievanceOfficer";
 
 const index = (props) => {
   return (
@@ -47,6 +48,10 @@ const index = (props) => {
                <Route
                 path={`/center/fallback/manager`}
                 element={<CenterFallbackManager />}
+              />
+              <Route
+                path={`/grievance-officer`}
+                element={<GrievanceOfficerSetting />}
               />
             </Routes>
           </div>

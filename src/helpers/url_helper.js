@@ -213,6 +213,7 @@ export const GET_OPD_PRESCRIPTION = "/chart/opd/prescription";
 //BILL
 export const GET_BILLS_ADDMISSIONS = "/bill/addmission";
 export const GET_BILLS = "/bill";
+export const GET_PATIENT_LEDGER = "/bill/ledger";
 export const GET_DRAFT_BILLS = "/bill/draft";
 export const DELETE_DRAFT_BILL = "/bill/draft";
 export const GET_DELETED_BILLS = "/bill/deleted";
@@ -873,6 +874,7 @@ export const TRAINING_BASE = "/trainings";
 export const TRAINING_UPLOADS = "/trainings/uploads";
 export const TRAINER_VIDEOS = "/trainings/trainer-videos";
 export const TRAINING_ADMIN = "/trainings/admin";
+export const TRAINING_NOTIFICATIONS = "/trainings/notifications";
 export const GET_ALL_TRAININGS = "/trainings/get";
 export const EDIT_TRAINING = "/trainings/edit/training";
 export const GET_TRAINING_BY_ID = "/trainings";

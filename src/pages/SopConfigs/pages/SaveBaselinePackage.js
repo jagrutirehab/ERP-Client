@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import CreatableSelect from "react-select/creatable";
+import Select from "react-select";
 import { toast } from "react-toastify";
 import {
   Alert,
@@ -26,6 +27,7 @@ import {
   BASELINE_TIER_SEED,
   BASELINE_DRUG_PATTERN_SUGGESTIONS,
   SEVERITY_OPTIONS,
+  BASELINE_LAB_CATEGORY,
 } from "../../../Components/constants/sopConstants";
 import {
   getBaselinePackageMeta,
@@ -313,7 +315,7 @@ const SaveBaselinePackage = () => {
         <CardHeader className="fw-semibold">1. Basic Info</CardHeader>
         <CardBody>
           <Row>
-            <Col md={6}>
+            <Col md={4}>
               <FormGroup>
                 <Label>
                   Package Name <span className="text-danger">*</span>
@@ -329,7 +331,24 @@ const SaveBaselinePackage = () => {
                 )}
               </FormGroup>
             </Col>
-            <Col md={6}>
+            <Col md={4}>
+              <FormGroup>
+                <Label for="baselineSopCategory">SOP Category</Label>
+                {/* View only. Every Baseline Package alert is Baseline Lab —
+                    nothing is saved; the alerts screen labels and filters
+                    them by their source. */}
+                <Select
+                  inputId="baselineSopCategory"
+                  options={[BASELINE_LAB_CATEGORY]}
+                  value={BASELINE_LAB_CATEGORY}
+                  isDisabled
+                />
+                <small className="text-muted">
+                  Fixed for baseline packages.
+                </small>
+              </FormGroup>
+            </Col>
+            <Col md={4}>
               <FormGroup>
                 <Label>
                   Effective From <span className="text-danger">*</span>

@@ -61,6 +61,7 @@ export const permissionList = [
       { name: "PATIENTSBILLING", label: "Paitents Bill" },
       { name: "PATIENTCHARTS", label: "Paitents Chart" },
       { name: "ADDMISSIONSUMMARY", label: "Addmission Summary" },
+      { name: "INVOICEHISTORY", label: "Invoice History" },
     ],
   },
   {
@@ -197,7 +198,7 @@ export const permissionList = [
     label: "Pharmacy",
     subModules: [
       { name: "DASHBOARD", label: "Dashboard" },
-       {
+      {
         name: "INVENTORY_HEALTH_REPORT",
         label: "Inventory Health Report",
       },
@@ -511,8 +512,14 @@ export const permissionList = [
       // Incentives
       { name: "INCENTIVES_ADD_REQUEST", label: "Incentives Add Request" },
       { name: "INCENTIVES_APPROVAL", label: "Incentives Approval" },
-      { name: "PAYROLL_ADJUSTMENTS_ADD_REQUEST", label: "Payroll Adjustments Add Request" },
-      { name: "PAYROLL_ADJUSTMENTS_APPROVAL", label: "Payroll Adjustments Approval" },
+      {
+        name: "PAYROLL_ADJUSTMENTS_ADD_REQUEST",
+        label: "Payroll Adjustments Add Request",
+      },
+      {
+        name: "PAYROLL_ADJUSTMENTS_APPROVAL",
+        label: "Payroll Adjustments Approval",
+      },
       // Salary
       { name: "SALARY", label: "Salary" },
       // My Pending Approvals
@@ -623,6 +630,7 @@ export const permissionList = [
       { name: "TRAINING_HISTORY", label: "Training History" },
       { name: "CREATE_TRAINING_RECORD", label: "Create Trainer Record" },
       { name: "TRAINING_RECORDS", label: "Trainer Records" },
+      { name: "TRAINING_COMPLETION_NOTIFIER", label: "Training Completion Notifier" },
     ],
   },
   {
@@ -691,6 +699,22 @@ export const permissionList = [
       { name: "PHYSICAL_VERIFICATION", label: "Physical Verifications" },
       { name: "ASSET_TAG", label: "Create Tags" },
     ],
+  },
+  {
+    key: "GRIEVANCE",
+    label: "Grievances",
+    // READ  — see the queue and open a grievance
+    // WRITE — change status, assign, and record the action taken
+    //
+    // DELETE is deliberately not offered. A grievance record is the evidence
+    // that the 30-day window under SPDI Rule 5(9) was met; a role that can
+    // delete one can erase a missed deadline, so the option should not exist
+    // rather than merely be discouraged.
+    permissionOptions: ["READ", "WRITE", "NONE"],
+    // No submodules: a grievance is one workflow with one statutory clock, and
+    // splitting it would let a role close a grievance without being able to
+    // read the complaint it closes.
+    subModules: [],
   },
 ];
 
