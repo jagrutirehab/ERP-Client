@@ -50,6 +50,7 @@ const Issues = React.lazy(() => import("../pages/Issues"));
 const Recordings = React.lazy(() => import("../pages/Recordings"));
 const SOP = React.lazy(() => import("../pages/SopConfigs"));
 const Trainings = React.lazy(() => import("../pages/Trainings"));
+const TrainingNotifications = React.lazy(() => import("../pages/Trainings/Pages/TrainingNotifications"));
 const Utilities = React.lazy(() => import("../pages/Utilities"));
 const AlertPage = React.lazy(() => import("../pages/Alerts"));
 const Marketing = React.lazy(() => import("../pages/Marketing"));
@@ -132,6 +133,7 @@ const authProtectedRoutes = [
   { path: "/tally", component: Tally },
   { path: "/pos-payments", component: PosPayments },
   { path: "/sop-configs/*", component: SOP },
+  { path: "/trainings/notifications", component: TrainingNotifications },
   { path: "/trainings/*", component: Trainings },
   { path: "/utilities/*", component: Utilities },
   { path: "/marketing/*", component: Marketing },

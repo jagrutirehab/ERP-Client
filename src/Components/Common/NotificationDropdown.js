@@ -25,7 +25,33 @@ import bell from "../../assets/images/svg/bell.svg";
 import SimpleBar from "simplebar-react";
 import { connect } from "react-redux";
 
-const NotificationDropdown = ({ bill }) => {
+const NotificationRow = ({ icon, tone, to, title, text, checkId, onNavigate }) => (
+  <div className="text-reset notification-item d-block dropdown-item position-relative">
+    <div className="d-flex">
+      <div className="avatar-xs me-3">
+        <span className={`avatar-title bg-soft-${tone} text-${tone} rounded-circle fs-16`}>
+          <i className={icon}></i>
+        </span>
+      </div>
+      <div className="flex-1">
+        <Link to={to} className="stretched-link" onClick={onNavigate}>
+          <h6 className="mt-0 mb-1 lh-base">{title}</h6>
+        </Link>
+        <div className="fs-13 text-muted">
+          <p className="mb-0">{text}</p>
+        </div>
+      </div>
+      <div className="px-2 fs-15">
+        <div className="form-check notification-check">
+          <input className="form-check-input" type="checkbox" value="" id={checkId} />
+          <label className="form-check-label" htmlFor={checkId}></label>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const NotificationDropdown = ({ bill, trainingAssigned, trainingCompletion }) => {
   //Dropdown Toggle
   const [isNotificationDropdown, setIsNotificationDropdown] = useState(false);
   const toggleNotificationDropdown = () => {
@@ -40,7 +66,11 @@ const NotificationDropdown = ({ bill }) => {
     }
   };
 
-  const notification = bill?.length;
+  const assignedCount = trainingAssigned || 0;
+  const completionCount = trainingCompletion || 0;
+  const showCompletion = trainingCompletion !== null && trainingCompletion !== undefined;
+  const notification = (bill?.length || 0) + assignedCount + completionCount;
+  const closeDropdown = () => setIsNotificationDropdown(false);
 
   return (
     <React.Fragment>
@@ -90,7 +120,7 @@ const NotificationDropdown = ({ bill }) => {
                       toggleTab("1");
                     }}
                   >
-                    All ({notification?.length || 0})
+                    All ({notification})
                   </NavLink>
                 </NavItem>
                 <NavItem>
@@ -115,6 +145,17 @@ const NotificationDropdown = ({ bill }) => {
                     Alerts
                   </NavLink>
                 </NavItem>
+                <NavItem>
+                  <NavLink
+                    href="#"
+                    className={classnames({ active: activeTab === "4" })}
+                    onClick={() => {
+                      toggleTab("4");
+                    }}
+                  >
+                    Training Manager
+                  </NavLink>
+                </NavItem>
               </Nav>
             </div>
           </div>
@@ -131,11 +172,15 @@ const NotificationDropdown = ({ bill }) => {
                     </div>
                     <div className="flex-1">
                       <Link to="/notification" className="stretched-link">
-                        <h6 className="mt-0 mb-2 lh-base">
-                          Pending{" "}
-                          <span className="text-secondary ms-2">bills</span>
+                        <h6 className="mt-0 mb-1 lh-base">
+                          Pending bills ({bill?.length || 0})
                         </h6>
                       </Link>
+                      <div className="fs-13 text-muted">
+                        <p className="mb-0">
+                          {bill?.length || 0} patient billing cycles due
+                        </p>
+                      </div>
                     </div>
                     <div className="px-2 fs-15">
                       <div className="form-check notification-check">
@@ -153,6 +198,28 @@ const NotificationDropdown = ({ bill }) => {
                     </div>
                   </div>
                 </div>
+
+                <NotificationRow
+                  icon="bx bx-book-reader"
+                  tone="primary"
+                  to="/trainings/notifications?type=trainings"
+                  title={`Assigned trainings (${assignedCount})`}
+                  text={`${assignedCount} assigned training${assignedCount !== 1 ? "s" : ""} pending`}
+                  checkId="training-assigned-check-all"
+                  onNavigate={closeDropdown}
+                />
+
+                {showCompletion && (
+                  <NotificationRow
+                    icon="bx bx-task"
+                    tone="success"
+                    to="/trainings/notifications?type=completion"
+                    title={`Training completion (${completionCount})`}
+                    text={`${completionCount} employee training${completionCount !== 1 ? "s" : ""} completed`}
+                    checkId="training-completion-check-all"
+                    onNavigate={closeDropdown}
+                  />
+                )}
 
                 {/* <div className="text-reset notification-item d-block dropdown-item position-relative">
                   <div className="d-flex">
@@ -490,6 +557,31 @@ const NotificationDropdown = ({ bill }) => {
                 </h6>
               </div>
             </TabPane>
+            <TabPane tabId="4" className="py-2 ps-2">
+              <SimpleBar style={{ maxHeight: "300px" }} className="pe-2">
+                <NotificationRow
+                  icon="bx bx-book-reader"
+                  tone="primary"
+                  to="/trainings/notifications?type=trainings"
+                  title={`Assigned (${assignedCount})`}
+                  text={`${assignedCount} assigned training${assignedCount !== 1 ? "s" : ""} pending`}
+                  checkId="training-assigned-check-tab"
+                  onNavigate={closeDropdown}
+                />
+
+                {showCompletion && (
+                  <NotificationRow
+                    icon="bx bx-task"
+                    tone="success"
+                    to="/trainings/notifications?type=completion"
+                    title={`Completion (${completionCount})`}
+                    text={`${completionCount} employee training${completionCount !== 1 ? "s" : ""} completed`}
+                    checkId="training-completion-check-tab"
+                    onNavigate={closeDropdown}
+                  />
+                )}
+              </SimpleBar>
+            </TabPane>
           </TabContent>
         </DropdownMenu>
       </Dropdown>
@@ -499,6 +591,8 @@ const NotificationDropdown = ({ bill }) => {
 
 const mapStateToProps = (state) => ({
   bill: state.Notification?.bill,
+  trainingAssigned: state.TrainingNotification?.assigned,
+  trainingCompletion: state.TrainingNotification?.completion,
 });
 
 export default connect(mapStateToProps)(NotificationDropdown);
