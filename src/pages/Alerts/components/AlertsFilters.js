@@ -12,7 +12,7 @@ import {
   listSopRules,
 } from "../../../helpers/backend_helper";
 import CenterDropdown from "../../Report/Components/Doctor/components/CenterDropDown";
-import { SOP_CATEGORY_OPTIONS } from "../../../Components/constants/sopConstants";
+import { ALERT_CATEGORY_OPTIONS } from "../../../Components/constants/sopConstants";
 
 const READ_STATES = [
   { k: "all", label: "All" },
@@ -174,11 +174,11 @@ const AlertsFilters = ({
             SOP Category
           </small>
           {/* Matches by the alert's rule, so older alerts filter too.
-              Baseline Package alerts count as Lab Reports. */}
+              Baseline Package alerts are the Baseline Lab category. */}
           <Select
             isMulti
-            options={SOP_CATEGORY_OPTIONS}
-            value={SOP_CATEGORY_OPTIONS.filter((o) =>
+            options={ALERT_CATEGORY_OPTIONS}
+            value={ALERT_CATEGORY_OPTIONS.filter((o) =>
               (serverFilters.categories || []).includes(o.value),
             )}
             onChange={(v) =>
