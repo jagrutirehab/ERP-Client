@@ -1,4 +1,7 @@
-import { sopCategoryLabel } from "../../../Components/constants/sopConstants";
+import {
+  sopCategoryLabel,
+  BASELINE_LAB_CATEGORY,
+} from "../../../Components/constants/sopConstants";
 
 export const timeAgo = (date) => {
   if (!date) return "";
@@ -37,14 +40,14 @@ export const alertSourceLabel = (a) =>
   a?.rule?.ruleName || a?.sourceLabel || (isRuleSourced(a) ? "(deleted rule)" : "—");
 
 /**
- * The alert's SOP category label, from its rule. Baseline-package alerts have
- * no rule and count as Lab Reports — the same rule the server's category filter
- * applies, so the column always agrees with the filter. "" when the rule has
- * no category yet.
+ * The alert's category label. A rule-sourced alert takes its rule's category;
+ * a Baseline Package alert has no rule and is always Baseline Lab — the same
+ * rule the server's category filter applies, so the column always agrees with
+ * the filter. "" when the rule has no category yet.
  */
 export const alertCategoryLabel = (a) =>
   sopCategoryLabel(
-    a?.rule?.category || (isRuleSourced(a) ? "" : "LAB_REPORTS"),
+    isRuleSourced(a) ? a?.rule?.category : BASELINE_LAB_CATEGORY.value,
   );
 
 /* ── Resolution notes ──────────────────────────────────────────────────────
