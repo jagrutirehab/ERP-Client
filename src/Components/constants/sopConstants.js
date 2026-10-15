@@ -293,8 +293,22 @@ export const SOP_CATEGORY_OPTIONS = [
   { value: "OTHER", label: "Other" },
 ];
 
+// The fixed category of every Baseline Package alert. Shown read-only on the
+// Baseline Package screen; NOT selectable on an SOP rule (the server refuses
+// it there). Mirrors BASELINE_LAB_CATEGORY on the server.
+export const BASELINE_LAB_CATEGORY = {
+  value: "BASELINE_LAB",
+  label: "Baseline Lab",
+};
+
+// Every category an alert can have — for the alerts filter and labels.
+export const ALERT_CATEGORY_OPTIONS = [
+  ...SOP_CATEGORY_OPTIONS,
+  BASELINE_LAB_CATEGORY,
+];
+
 export const sopCategoryLabel = (value) =>
-  SOP_CATEGORY_OPTIONS.find((o) => o.value === value)?.label || "";
+  ALERT_CATEGORY_OPTIONS.find((o) => o.value === value)?.label || "";
 export const BLOOD_GROUP_OPTIONS = [
   "A+",
   "A-",
