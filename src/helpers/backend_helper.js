@@ -750,6 +750,11 @@ export const getBillsAddmissions = (data) =>
     },
   });
 export const getBills = (data) => api.get(url.GET_BILLS, { addmission: data });
+export const getPatientLedger = (data) =>
+  api.get(
+    url.GET_PATIENT_LEDGER,
+    typeof data === "object" && data !== null ? data : { patient: data }
+  );
 export const getDraftBills = (data) => api.get(url.GET_DRAFT_BILLS, data);
 const multipartConfig = (data) =>
   data instanceof FormData
@@ -4900,6 +4905,15 @@ export const markOverviewRead = (trainingId) =>
   axios.post(`${url.TRAINING_BASE}/${trainingId}/overview-read`, {});
 export const getMyTrainingProgress = (trainingId) =>
   api.get(`${url.TRAINING_BASE}/${trainingId}/my-progress`);
+
+export const getTrainingNotificationSummary = (params) =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/summary`, { params });
+export const getAssignedTrainingNotifications = () =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/assigned`);
+export const getCompletionTrainingList = (params) =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/completion/trainings`, { params });
+export const getCompletionTrainingDetail = (trainingId, params) =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/completion/trainings/${trainingId}`, { params });
 
 export const getTrainingAdminContent = (trainingId) =>
   api.get(`${url.TRAINING_ADMIN}/${trainingId}/content`);

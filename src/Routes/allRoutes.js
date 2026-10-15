@@ -6,6 +6,9 @@ import MyMeetingUI from "../pages/Meeting/MeetingPage.jsx";
 import Intern from "../pages/Intern/index.js";
 import SopConfigs from "../pages/SopConfigs/index.js";
 import { element } from "prop-types";
+const GrievancePage = React.lazy(() => import("../pages/Grievance"));
+const GrievanceAdmin = React.lazy(() => import("../pages/GrievanceAdmin"));
+const PrivacyPolicyPage = React.lazy(() => import("../pages/PrivacyPolicy"));
 const Login = React.lazy(() => import("../pages/Authentication/Login"));
 const ForgetPasswordPage = React.lazy(
   () => import("../pages/Authentication/ForgetPassword"),
@@ -47,6 +50,7 @@ const Issues = React.lazy(() => import("../pages/Issues"));
 const Recordings = React.lazy(() => import("../pages/Recordings"));
 const SOP = React.lazy(() => import("../pages/SopConfigs"));
 const Trainings = React.lazy(() => import("../pages/Trainings"));
+const TrainingNotifications = React.lazy(() => import("../pages/Trainings/Pages/TrainingNotifications"));
 const Utilities = React.lazy(() => import("../pages/Utilities"));
 const AlertPage = React.lazy(() => import("../pages/Alerts"));
 const Marketing = React.lazy(() => import("../pages/Marketing"));
@@ -129,6 +133,7 @@ const authProtectedRoutes = [
   { path: "/tally", component: Tally },
   { path: "/pos-payments", component: PosPayments },
   { path: "/sop-configs/*", component: SOP },
+  { path: "/trainings/notifications", component: TrainingNotifications },
   { path: "/trainings/*", component: Trainings },
   { path: "/utilities/*", component: Utilities },
   { path: "/marketing/*", component: Marketing },
@@ -136,6 +141,8 @@ const authProtectedRoutes = [
   { path: "/doctor-visits", component: DoctorVisits },
   { path: "/center-dashboard", component: CenterDashboard },
   { path: "/mis-master", component: MISMaster },
+  // Staff-side queue for the public grievance form.
+  { path: "/grievances", component: GrievanceAdmin },
   {
     path: "/",
     exact: true,
@@ -148,6 +155,11 @@ const publicRoutes = [
   { path: "/login", component: Login },
   { path: "/forgot-password", component: ForgetPasswordPage },
   { path: "/meeting", component: MyMeetingUI },
+  // Public by statute: SPDI Rule 5(9) requires the Grievance Officer's details
+  // to be published, and Rule 4 requires the privacy policy to be accessible.
+  // Both are for people who have no account, so neither can sit behind a login.
+  { path: "/grievance", component: GrievancePage },
+  { path: "/privacy-policy", component: PrivacyPolicyPage },
 ];
 
 export { authProtectedRoutes, publicRoutes, allElements };

@@ -10,6 +10,7 @@ import {
   timeAgo,
   isRuleSourced,
   alertSourceLabel,
+  alertCategoryLabel,
   isResolutionNote,
 } from "./alertUtils";
 import { Link } from "react-router-dom";
@@ -152,6 +153,22 @@ const AlertsList = ({
           )}
         </div>
       ),
+    },
+    {
+      name: "Category",
+      width: "150px",
+      cell: (row) => {
+        const label = alertCategoryLabel(row);
+        return label ? (
+          <span {...RC} className="badge rounded-pill badge-soft-info text-wrap text-start">
+            {label}
+          </span>
+        ) : (
+          <small {...RC} className="text-muted">
+            —
+          </small>
+        );
+      },
     },
     {
       name: "Block",
