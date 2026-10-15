@@ -4906,6 +4906,15 @@ export const markOverviewRead = (trainingId) =>
 export const getMyTrainingProgress = (trainingId) =>
   api.get(`${url.TRAINING_BASE}/${trainingId}/my-progress`);
 
+export const getTrainingNotificationSummary = (params) =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/summary`, { params });
+export const getAssignedTrainingNotifications = () =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/assigned`);
+export const getCompletionTrainingList = (params) =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/completion/trainings`, { params });
+export const getCompletionTrainingDetail = (trainingId, params) =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/completion/trainings/${trainingId}`, { params });
+
 export const getTrainingAdminContent = (trainingId) =>
   api.get(`${url.TRAINING_ADMIN}/${trainingId}/content`);
 export const getTrainingProgressReport = (trainingId, params) =>

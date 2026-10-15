@@ -874,6 +874,7 @@ export const TRAINING_BASE = "/trainings";
 export const TRAINING_UPLOADS = "/trainings/uploads";
 export const TRAINER_VIDEOS = "/trainings/trainer-videos";
 export const TRAINING_ADMIN = "/trainings/admin";
+export const TRAINING_NOTIFICATIONS = "/trainings/notifications";
 export const GET_ALL_TRAININGS = "/trainings/get";
 export const EDIT_TRAINING = "/trainings/edit/training";
 export const GET_TRAINING_BY_ID = "/trainings";

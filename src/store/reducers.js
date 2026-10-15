@@ -18,6 +18,7 @@ import Alert from "./features/alert/alertSlice";
 
 // notification
 import Notification from "./features/notification/notificationSlice";
+import TrainingNotification from "./features/trainingNotification/trainingNotificationSlice";
 
 // layout
 import Layout from "./features/layouts/layoutsSlice";
@@ -116,6 +117,7 @@ const rootReducer = combineReducers({
   Log,
   Center,
   Notification,
+  TrainingNotification,
   Recyclebin,
   Setting,
   Lead,

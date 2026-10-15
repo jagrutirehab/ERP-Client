@@ -8,7 +8,11 @@ const handlers = {
   done: new Set(),
   failed: new Set(),
   reconnect: new Set(),
+  assigned: new Set(),
+  completed: new Set(),
 };
+
+const hasHandlers = () => Object.values(handlers).some((set) => set.size > 0);
 
 const readToken = () => {
   try {
@@ -27,7 +31,7 @@ const ensureSocket = () => {
   const token = readToken();
   if (!token) return null;
 
-  socket = io(`${api.BASE_URL}/notifications`, {
+  socket = io(`${api.API_URL.replace("/api/v1", "")}/notifications`, {
     path: "/socket/search",
     auth: { token },
     withCredentials: true,
@@ -45,6 +49,8 @@ const ensureSocket = () => {
 
   socket.on("training-upload:done", (payload) => emitTo(handlers.done, payload));
   socket.on("training-upload:failed", (payload) => emitTo(handlers.failed, payload));
+  socket.on("training:assigned", (payload) => emitTo(handlers.assigned, payload));
+  socket.on("training:completed", (payload) => emitTo(handlers.completed, payload));
 
   return socket;
 };
@@ -68,7 +74,25 @@ export const subscribeUploadEvents = ({ onDone, onFailed, onReconnect }) => {
     if (onFailed) handlers.failed.delete(onFailed);
     if (onReconnect) handlers.reconnect.delete(onReconnect);
 
-    if (!handlers.done.size && !handlers.failed.size && !handlers.reconnect.size) {
+    if (!hasHandlers()) {
+      disconnectNotifications();
+    }
+  };
+};
+
+export const subscribeTrainingEvents = ({ onAssigned, onCompleted, onReconnect }) => {
+  ensureSocket();
+
+  if (onAssigned) handlers.assigned.add(onAssigned);
+  if (onCompleted) handlers.completed.add(onCompleted);
+  if (onReconnect) handlers.reconnect.add(onReconnect);
+
+  return () => {
+    if (onAssigned) handlers.assigned.delete(onAssigned);
+    if (onCompleted) handlers.completed.delete(onCompleted);
+    if (onReconnect) handlers.reconnect.delete(onReconnect);
+
+    if (!hasHandlers()) {
       disconnectNotifications();
     }
   };

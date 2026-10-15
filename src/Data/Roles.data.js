@@ -630,6 +630,7 @@ export const permissionList = [
       { name: "TRAINING_HISTORY", label: "Training History" },
       { name: "CREATE_TRAINING_RECORD", label: "Create Trainer Record" },
       { name: "TRAINING_RECORDS", label: "Trainer Records" },
+      { name: "TRAINING_COMPLETION_NOTIFIER", label: "Training Completion Notifier" },
     ],
   },
   {
