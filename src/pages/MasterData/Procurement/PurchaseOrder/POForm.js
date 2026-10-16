@@ -7,21 +7,18 @@ import { toast } from "react-toastify";
 import {
   createPO,
   getClosedRFQs,
-  getVendors,
-  getPRDepartments,
   getBudgets,
-  getUoms,
-  getAllCenters,
-  getPaymentTerms,
   getItemMasters,
   getContracts,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import "../../UnitOfMeasurement/uom.scss";
 
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
-const budgetAvailable = (b) => (b ? (b.approvedAmount || 0) - (b.consumedAmount || 0) : 0);
+const budgetAvailable = (b) =>
+  b ? (b.approvedAmount || 0) - (b.consumedAmount || 0) : 0;
 
 const emptyLineItem = () => ({
   itemName: "",
@@ -33,9 +30,17 @@ const emptyLineItem = () => ({
 });
 
 const PO_TYPES = [
-  { key: "pr_based", label: "PR-Based", sub: "From an approved PR and a closed RFQ" },
+  {
+    key: "pr_based",
+    label: "PR-Based",
+    sub: "From an approved PR and a closed RFQ",
+  },
   { key: "direct", label: "Direct", sub: "Urgent. Skips the PR and RFQ" },
-  { key: "contract_based", label: "Contract-Based", sub: "Against a vendor contract" },
+  {
+    key: "contract_based",
+    label: "Contract-Based",
+    sub: "Against a vendor contract",
+  },
 ];
 
 const SectionTitle = ({ icon, children, hint }) => (
@@ -51,12 +56,13 @@ const SectionTitle = ({ icon, children, hint }) => (
 const POForm = ({ onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
   const [closedRFQs, setClosedRFQs] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [departments, setDepartments] = useState([]);
+
+  const { items: vendors } = useReferenceList("vendors");
+  const { items: departments } = useReferenceList("departments");
+  const { items: uoms } = useReferenceList("uoms");
+  const { items: centers } = useReferenceList("centers");
+  const { items: paymentTerms } = useReferenceList("paymentTerms");
   const [budgets, setBudgets] = useState([]);
-  const [uoms, setUoms] = useState([]);
-  const [centers, setCenters] = useState([]);
-  const [paymentTerms, setPaymentTerms] = useState([]);
   const [contracts, setContracts] = useState([]);
   const [selectedRFQ, setSelectedRFQ] = useState(null);
   const [itemSearchState, setItemSearchState] = useState({});
@@ -64,13 +70,12 @@ const POForm = ({ onSaved, onCancel }) => {
   const itemInputRefs = useRef({});
 
   useEffect(() => {
-    getClosedRFQs({}).then((res) => setClosedRFQs(res?.data || [])).catch(() => {});
-    getVendors({}).then((res) => setVendors(res?.data || [])).catch(() => {});
-    getPRDepartments({}).then((res) => setDepartments(res?.data || [])).catch(() => {});
-    getUoms({}).then((res) => setUoms(res?.data || [])).catch(() => {});
-    getAllCenters().then((res) => setCenters(res?.payload || res?.data || [])).catch(() => {});
-    getPaymentTerms({}).then((res) => setPaymentTerms(res?.data || [])).catch(() => {});
-    getContracts({ status: "active" }).then((res) => setContracts(res?.data || [])).catch(() => {});
+    getClosedRFQs({})
+      .then((res) => setClosedRFQs(res?.data || []))
+      .catch(() => {});
+    getContracts({ status: "active" })
+      .then((res) => setContracts(res?.data || []))
+      .catch(() => {});
   }, []);
 
   const validation = useFormik({
@@ -111,10 +116,15 @@ const POForm = ({ onSaved, onCancel }) => {
         then: (schema) => schema.required("Budget is required"),
       }),
       deliverySiteId: Yup.string().required("Delivery site is required"),
-      expectedDeliveryDate: Yup.string().required("Expected delivery date is required"),
+      expectedDeliveryDate: Yup.string().required(
+        "Expected delivery date is required",
+      ),
       justification: Yup.string().when("poType", {
         is: "direct",
-        then: (schema) => schema.min(10, "Minimum 10 characters required").required("Justification is required"),
+        then: (schema) =>
+          schema
+            .min(10, "Minimum 10 characters required")
+            .required("Justification is required"),
       }),
       lineItems: Yup.array().when("poType", {
         is: (val) => val !== "pr_based",
@@ -146,7 +156,11 @@ const POForm = ({ onSaved, onCancel }) => {
         return;
       }
 
-      if (values.poType !== "pr_based" && selectedBudget && netPayable > budgetAvailable(selectedBudget)) {
+      if (
+        values.poType !== "pr_based" &&
+        selectedBudget &&
+        netPayable > budgetAvailable(selectedBudget)
+      ) {
         toast.error(
           `This PO (${money(netPayable)}) exceeds the available budget (${money(budgetAvailable(selectedBudget))}). Please reduce the amount or select a different budget.`,
         );
@@ -184,7 +198,11 @@ const POForm = ({ onSaved, onCancel }) => {
         onSaved();
       } catch (error) {
         if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+          toast.error(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Something went wrong",
+          );
         }
       }
     },
@@ -215,12 +233,19 @@ const POForm = ({ onSaved, onCancel }) => {
     const rfq = closedRFQs.find((r) => r._id === v.rfqId);
     setSelectedRFQ(rfq || null);
     // Vendor RFQ close hote waqt final ho chuka tha, isliye apne aap bhar do
-    validation.setFieldValue("vendorId", rfq?.selectedVendorId?._id || rfq?.selectedVendorId || "");
+    validation.setFieldValue(
+      "vendorId",
+      rfq?.selectedVendorId?._id || rfq?.selectedVendorId || "",
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [v.rfqId]);
 
-  const quotedVendorsForRFQ = (selectedRFQ?.vendorQuotes || []).filter((vq) => vq.quotedAt);
-  const vendorQuote = quotedVendorsForRFQ.find((vq) => (vq.vendorId?._id || vq.vendorId) === v.vendorId);
+  const quotedVendorsForRFQ = (selectedRFQ?.vendorQuotes || []).filter(
+    (vq) => vq.quotedAt,
+  );
+  const vendorQuote = quotedVendorsForRFQ.find(
+    (vq) => (vq.vendorId?._id || vq.vendorId) === v.vendorId,
+  );
 
   // PO type badalne pe us type ke fields fresh shuru hote hain
   const changePoType = (key) => {
@@ -237,7 +262,8 @@ const POForm = ({ onSaved, onCancel }) => {
     });
   };
 
-  const addLineItem = () => validation.setFieldValue("lineItems", [...v.lineItems, emptyLineItem()]);
+  const addLineItem = () =>
+    validation.setFieldValue("lineItems", [...v.lineItems, emptyLineItem()]);
   const removeLineItem = (idx) => {
     if (v.lineItems.length === 1) return;
     validation.setFieldValue(
@@ -265,14 +291,25 @@ const POForm = ({ onSaved, onCancel }) => {
   const setItemSearchFor = (idx, patch) => {
     setItemSearchState((prev) => ({
       ...prev,
-      [idx]: { search: "", options: [], showDropdown: false, ...prev[idx], ...patch },
+      [idx]: {
+        search: "",
+        options: [],
+        showDropdown: false,
+        ...prev[idx],
+        ...patch,
+      },
     }));
   };
 
   const searchItemsForLine = (idx, term) => {
     const shouldClearOptions = term.trim().length < 2;
-    setItemSearchFor(idx, { search: term, showDropdown: true, ...(shouldClearOptions ? { options: [] } : {}) });
-    if (itemSearchTimers.current[idx]) clearTimeout(itemSearchTimers.current[idx]);
+    setItemSearchFor(idx, {
+      search: term,
+      showDropdown: true,
+      ...(shouldClearOptions ? { options: [] } : {}),
+    });
+    if (itemSearchTimers.current[idx])
+      clearTimeout(itemSearchTimers.current[idx]);
     if (shouldClearOptions) return;
     itemSearchTimers.current[idx] = setTimeout(() => {
       getItemMasters({ search: term, limit: 10 })
@@ -296,7 +333,11 @@ const POForm = ({ onSaved, onCancel }) => {
           : li,
       ),
     );
-    setItemSearchFor(idx, { search: `${item.itemCode} - ${item.itemName}`, options: [], showDropdown: false });
+    setItemSearchFor(idx, {
+      search: `${item.itemCode} - ${item.itemName}`,
+      options: [],
+      showDropdown: false,
+    });
   };
 
   const calc = v.lineItems.reduce(
@@ -310,16 +351,20 @@ const POForm = ({ onSaved, onCancel }) => {
   );
   const netPayable = calc.subtotal + calc.tax;
   const selectedBudget = budgets.find((b) => b._id === v.budgetId);
-  const overBudget = selectedBudget && netPayable > budgetAvailable(selectedBudget);
+  const overBudget =
+    selectedBudget && netPayable > budgetAvailable(selectedBudget);
 
   // Kis row mein item naam khaali hai (red border dikhane ke liye)
-  const lineError = (idx) => t.lineItems && Array.isArray(e.lineItems) && e.lineItems[idx]?.itemName;
+  const lineError = (idx) =>
+    t.lineItems && Array.isArray(e.lineItems) && e.lineItems[idx]?.itemName;
 
   return (
     <div className="uom-form-page">
       <div className="uom-form-header">
         <h4 className="uom-form-title">Create Purchase Order</h4>
-        <p className="uom-form-subtitle">Fill in the details. The PO is saved as a draft until it is approved.</p>
+        <p className="uom-form-subtitle">
+          Fill in the details. The PO is saved as a draft until it is approved.
+        </p>
       </div>
 
       <div className="uom-form-panel">
@@ -347,7 +392,9 @@ const POForm = ({ onSaved, onCancel }) => {
 
           {/* ---------- Vendor ---------- */}
           <div className="uom-form-section">
-            <SectionTitle icon="bx-store">{isPR ? "RFQ and Vendor" : "Vendor"}</SectionTitle>
+            <SectionTitle icon="bx-store">
+              {isPR ? "RFQ and Vendor" : "Vendor"}
+            </SectionTitle>
 
             {isPR ? (
               <>
@@ -359,7 +406,9 @@ const POForm = ({ onSaved, onCancel }) => {
                     <Input
                       type="select"
                       value={v.rfqId}
-                      onChange={(ev) => validation.setFieldValue("rfqId", ev.target.value)}
+                      onChange={(ev) =>
+                        validation.setFieldValue("rfqId", ev.target.value)
+                      }
                       invalid={t.rfqId && !!e.rfqId}
                     >
                       <option value="">Select closed RFQ</option>
@@ -379,20 +428,29 @@ const POForm = ({ onSaved, onCancel }) => {
                       type="select"
                       value={v.vendorId}
                       disabled={!v.rfqId || !!selectedRFQ?.selectedVendorId}
-                      onChange={(ev) => validation.setFieldValue("vendorId", ev.target.value)}
+                      onChange={(ev) =>
+                        validation.setFieldValue("vendorId", ev.target.value)
+                      }
                       invalid={t.vendorId && !!e.vendorId}
                     >
-                      <option value="">{v.rfqId ? "Select vendor" : "Select an RFQ first"}</option>
+                      <option value="">
+                        {v.rfqId ? "Select vendor" : "Select an RFQ first"}
+                      </option>
                       {quotedVendorsForRFQ.map((vq) => (
-                        <option key={vq.vendorId._id || vq.vendorId} value={vq.vendorId._id || vq.vendorId}>
-                          {vq.vendorId?.tradeName || vq.vendorId?.legalName} — {money(vq.totalAmount)}
+                        <option
+                          key={vq.vendorId._id || vq.vendorId}
+                          value={vq.vendorId._id || vq.vendorId}
+                        >
+                          {vq.vendorId?.tradeName || vq.vendorId?.legalName} —{" "}
+                          {money(vq.totalAmount)}
                         </option>
                       ))}
                     </Input>
                     <FormFeedback>{e.vendorId}</FormFeedback>
                     {selectedRFQ?.selectedVendorId && (
                       <div className="text-muted small mt-1">
-                        <i className="bx bx-check-circle text-success me-1"></i>Chosen when the RFQ was closed.
+                        <i className="bx bx-check-circle text-success me-1"></i>
+                        Chosen when the RFQ was closed.
                       </div>
                     )}
                   </Col>
@@ -401,7 +459,10 @@ const POForm = ({ onSaved, onCancel }) => {
                 {selectedRFQ && vendorQuote && (
                   <div className="mt-1">
                     <Label>Items from the quote</Label>
-                    <div className="uom-table-card" style={{ overflowX: "auto" }}>
+                    <div
+                      className="uom-table-card"
+                      style={{ overflowX: "auto" }}
+                    >
                       <table className="table uom-line-table">
                         <thead>
                           <tr>
@@ -421,14 +482,23 @@ const POForm = ({ onSaved, onCancel }) => {
                               <td>{li.quantity}</td>
                               <td>{money(li.unitPrice)}</td>
                               <td>{li.taxPercent}%</td>
-                              <td className="fw-semibold text-end">{money(li.amount)}</td>
+                              <td className="fw-semibold text-end">
+                                {money(li.amount)}
+                              </td>
                             </tr>
                           ))}
                         </tbody>
                       </table>
                     </div>
                     <div className="uom-totals mt-3">
-                      <div className="uom-totals-total" style={{ borderTop: "none", marginTop: 0, paddingTop: 0 }}>
+                      <div
+                        className="uom-totals-total"
+                        style={{
+                          borderTop: "none",
+                          marginTop: 0,
+                          paddingTop: 0,
+                        }}
+                      >
                         <span>Quote Total</span>
                         <span>{money(vendorQuote.totalAmount)}</span>
                       </div>
@@ -450,11 +520,24 @@ const POForm = ({ onSaved, onCancel }) => {
                         onChange={(ev) => {
                           const contractId = ev.target.value;
                           validation.setFieldValue("contractId", contractId);
-                          const c = contracts.find((ct) => ct._id === contractId);
-                          if (c?.vendorId) validation.setFieldValue("vendorId", c.vendorId._id || c.vendorId);
+                          const c = contracts.find(
+                            (ct) => ct._id === contractId,
+                          );
+                          if (c?.vendorId)
+                            validation.setFieldValue(
+                              "vendorId",
+                              c.vendorId._id || c.vendorId,
+                            );
                           if (c?.departmentId)
-                            validation.setFieldValue("departmentId", c.departmentId._id || c.departmentId);
-                          if (c?.budgetId) validation.setFieldValue("budgetId", c.budgetId._id || c.budgetId);
+                            validation.setFieldValue(
+                              "departmentId",
+                              c.departmentId._id || c.departmentId,
+                            );
+                          if (c?.budgetId)
+                            validation.setFieldValue(
+                              "budgetId",
+                              c.budgetId._id || c.budgetId,
+                            );
                         }}
                         invalid={t.contractId && !!e.contractId}
                       >
@@ -475,7 +558,9 @@ const POForm = ({ onSaved, onCancel }) => {
                     <Input
                       type="select"
                       value={v.vendorId}
-                      onChange={(ev) => validation.setFieldValue("vendorId", ev.target.value)}
+                      onChange={(ev) =>
+                        validation.setFieldValue("vendorId", ev.target.value)
+                      }
                       invalid={t.vendorId && !!e.vendorId}
                     >
                       <option value="">Select vendor</option>
@@ -499,7 +584,12 @@ const POForm = ({ onSaved, onCancel }) => {
                         rows={2}
                         placeholder="Why is this a direct order? (at least 10 characters)"
                         value={v.justification}
-                        onChange={(ev) => validation.setFieldValue("justification", ev.target.value)}
+                        onChange={(ev) =>
+                          validation.setFieldValue(
+                            "justification",
+                            ev.target.value,
+                          )
+                        }
                         invalid={t.justification && !!e.justification}
                       />
                       <FormFeedback>{e.justification}</FormFeedback>
@@ -546,13 +636,20 @@ const POForm = ({ onSaved, onCancel }) => {
                     type="select"
                     value={v.budgetId}
                     disabled={!v.departmentId}
-                    onChange={(ev) => validation.setFieldValue("budgetId", ev.target.value)}
+                    onChange={(ev) =>
+                      validation.setFieldValue("budgetId", ev.target.value)
+                    }
                     invalid={t.budgetId && !!e.budgetId}
                   >
-                    <option value="">{v.departmentId ? "Select budget" : "Select a department first"}</option>
+                    <option value="">
+                      {v.departmentId
+                        ? "Select budget"
+                        : "Select a department first"}
+                    </option>
                     {budgets.map((b) => (
                       <option key={b._id} value={b._id}>
-                        {b.fiscalYear}: {money(budgetAvailable(b))} available of {money(b.approvedAmount)}
+                        {b.fiscalYear}: {money(budgetAvailable(b))} available of{" "}
+                        {money(b.approvedAmount)}
                         {b.budgetType === "global" ? " (Global)" : ""}
                       </option>
                     ))}
@@ -575,7 +672,12 @@ const POForm = ({ onSaved, onCancel }) => {
                   type="date"
                   value={v.expectedDeliveryDate}
                   invalid={t.expectedDeliveryDate && !!e.expectedDeliveryDate}
-                  onChange={(ev) => validation.setFieldValue("expectedDeliveryDate", ev.target.value)}
+                  onChange={(ev) =>
+                    validation.setFieldValue(
+                      "expectedDeliveryDate",
+                      ev.target.value,
+                    )
+                  }
                 />
                 <FormFeedback>{e.expectedDeliveryDate}</FormFeedback>
               </Col>
@@ -586,7 +688,9 @@ const POForm = ({ onSaved, onCancel }) => {
                 <Input
                   type="select"
                   value={v.deliverySiteId}
-                  onChange={(ev) => validation.setFieldValue("deliverySiteId", ev.target.value)}
+                  onChange={(ev) =>
+                    validation.setFieldValue("deliverySiteId", ev.target.value)
+                  }
                   invalid={t.deliverySiteId && !!e.deliverySiteId}
                 >
                   <option value="">Select site</option>
@@ -603,7 +707,9 @@ const POForm = ({ onSaved, onCancel }) => {
                 <Input
                   type="select"
                   value={v.paymentTermId}
-                  onChange={(ev) => validation.setFieldValue("paymentTermId", ev.target.value)}
+                  onChange={(ev) =>
+                    validation.setFieldValue("paymentTermId", ev.target.value)
+                  }
                 >
                   <option value="">Select terms</option>
                   {paymentTerms.map((pt) => (
@@ -618,7 +724,9 @@ const POForm = ({ onSaved, onCancel }) => {
                 <Input
                   type="select"
                   value={v.billingSiteId}
-                  onChange={(ev) => validation.setFieldValue("billingSiteId", ev.target.value)}
+                  onChange={(ev) =>
+                    validation.setFieldValue("billingSiteId", ev.target.value)
+                  }
                 >
                   <option value="">Select billing site</option>
                   {centers.map((c) => (
@@ -634,12 +742,21 @@ const POForm = ({ onSaved, onCancel }) => {
           {/* ---------- Items (Direct and Contract-Based) ---------- */}
           {!isPR && (
             <div className="uom-form-section">
-              <SectionTitle icon="bx-list-ul" hint={`${v.lineItems.length} line${v.lineItems.length === 1 ? "" : "s"}`}>
+              <SectionTitle
+                icon="bx-list-ul"
+                hint={`${v.lineItems.length} line${v.lineItems.length === 1 ? "" : "s"}`}
+              >
                 Items <span className="text-danger">*</span>
               </SectionTitle>
 
-              <div className="uom-table-card mb-3" style={{ overflowX: "auto" }}>
-                <table className="table uom-line-table" style={{ minWidth: 780 }}>
+              <div
+                className="uom-table-card mb-3"
+                style={{ overflowX: "auto" }}
+              >
+                <table
+                  className="table uom-line-table"
+                  style={{ minWidth: 780 }}
+                >
                   <thead>
                     <tr>
                       <th>Item</th>
@@ -655,7 +772,9 @@ const POForm = ({ onSaved, onCancel }) => {
                   </thead>
                   <tbody>
                     {v.lineItems.map((li, idx) => {
-                      const base = (Number(li.quantity) || 0) * (Number(li.unitPrice) || 0);
+                      const base =
+                        (Number(li.quantity) || 0) *
+                        (Number(li.unitPrice) || 0);
                       const tax = base * ((Number(li.taxPercent) || 0) / 100);
                       const searchInfo = itemSearchState[idx] || {
                         search: li.itemName || "",
@@ -666,13 +785,27 @@ const POForm = ({ onSaved, onCancel }) => {
                         <tr key={idx}>
                           <td style={{ minWidth: 240 }}>
                             <Input
-                              innerRef={(el) => (itemInputRefs.current[idx] = el)}
+                              innerRef={(el) =>
+                                (itemInputRefs.current[idx] = el)
+                              }
                               placeholder="Search item code or name..."
                               value={searchInfo.search}
                               invalid={!!lineError(idx)}
-                              onFocus={() => setItemSearchFor(idx, { showDropdown: true })}
-                              onChange={(ev) => searchItemsForLine(idx, ev.target.value)}
-                              onBlur={() => setTimeout(() => setItemSearchFor(idx, { showDropdown: false }), 150)}
+                              onFocus={() =>
+                                setItemSearchFor(idx, { showDropdown: true })
+                              }
+                              onChange={(ev) =>
+                                searchItemsForLine(idx, ev.target.value)
+                              }
+                              onBlur={() =>
+                                setTimeout(
+                                  () =>
+                                    setItemSearchFor(idx, {
+                                      showDropdown: false,
+                                    }),
+                                  150,
+                                )
+                              }
                             />
                             {searchInfo.showDropdown &&
                               searchInfo.options.length > 0 &&
@@ -686,18 +819,29 @@ const POForm = ({ onSaved, onCancel }) => {
                                     width: 340,
                                     maxHeight: 240,
                                     overflowY: "auto",
-                                    top: itemInputRefs.current[idx].getBoundingClientRect().bottom + 4,
-                                    left: itemInputRefs.current[idx].getBoundingClientRect().left,
+                                    top:
+                                      itemInputRefs.current[
+                                        idx
+                                      ].getBoundingClientRect().bottom + 4,
+                                    left: itemInputRefs.current[
+                                      idx
+                                    ].getBoundingClientRect().left,
                                   }}
                                 >
                                   {searchInfo.options.map((opt) => (
                                     <div
                                       key={opt._id}
                                       className="uom-item-option"
-                                      onMouseDown={() => selectItemForLine(idx, opt)}
+                                      onMouseDown={() =>
+                                        selectItemForLine(idx, opt)
+                                      }
                                     >
-                                      <span className="uom-symbol-badge">{opt.itemCode}</span>
-                                      <span className="text-truncate">{opt.itemName}</span>
+                                      <span className="uom-symbol-badge">
+                                        {opt.itemCode}
+                                      </span>
+                                      <span className="text-truncate">
+                                        {opt.itemName}
+                                      </span>
                                     </div>
                                   ))}
                                 </div>,
@@ -710,14 +854,18 @@ const POForm = ({ onSaved, onCancel }) => {
                               min={0}
                               value={li.quantity}
                               onFocus={(ev) => ev.target.select()}
-                              onChange={(ev) => updateLineItem(idx, "quantity", ev.target.value)}
+                              onChange={(ev) =>
+                                updateLineItem(idx, "quantity", ev.target.value)
+                              }
                             />
                           </td>
                           <td>
                             <Input
                               type="select"
                               value={li.uomId}
-                              onChange={(ev) => updateLineItem(idx, "uomId", ev.target.value)}
+                              onChange={(ev) =>
+                                updateLineItem(idx, "uomId", ev.target.value)
+                              }
                             >
                               <option value="">None</option>
                               {uoms.map((u) => (
@@ -733,14 +881,26 @@ const POForm = ({ onSaved, onCancel }) => {
                               min={0}
                               value={li.unitPrice}
                               onFocus={(ev) => ev.target.select()}
-                              onChange={(ev) => updateLineItem(idx, "unitPrice", ev.target.value)}
+                              onChange={(ev) =>
+                                updateLineItem(
+                                  idx,
+                                  "unitPrice",
+                                  ev.target.value,
+                                )
+                              }
                             />
                           </td>
                           <td>
                             <Input
                               type="select"
                               value={li.taxPercent}
-                              onChange={(ev) => updateLineItem(idx, "taxPercent", ev.target.value)}
+                              onChange={(ev) =>
+                                updateLineItem(
+                                  idx,
+                                  "taxPercent",
+                                  ev.target.value,
+                                )
+                              }
                             >
                               <option value={0}>0%</option>
                               <option value={12}>12%</option>
@@ -748,14 +908,20 @@ const POForm = ({ onSaved, onCancel }) => {
                               <option value={28}>28%</option>
                             </Input>
                           </td>
-                          <td className="fw-semibold text-end">{money(base + tax)}</td>
+                          <td className="fw-semibold text-end">
+                            {money(base + tax)}
+                          </td>
                           <td className="text-end">
                             <button
                               type="button"
                               className="uom-icon-btn is-danger"
                               title="Remove line"
                               disabled={v.lineItems.length === 1}
-                              style={v.lineItems.length === 1 ? { opacity: 0.4, cursor: "not-allowed" } : undefined}
+                              style={
+                                v.lineItems.length === 1
+                                  ? { opacity: 0.4, cursor: "not-allowed" }
+                                  : undefined
+                              }
                               onClick={() => removeLineItem(idx)}
                             >
                               <i className="bx bx-trash"></i>
@@ -773,7 +939,12 @@ const POForm = ({ onSaved, onCancel }) => {
               )}
 
               <div className="d-flex flex-wrap justify-content-between align-items-start gap-3">
-                <Button type="button" color="light" className="border" onClick={addLineItem}>
+                <Button
+                  type="button"
+                  color="light"
+                  className="border"
+                  onClick={addLineItem}
+                >
                   <i className="bx bx-plus me-1"></i> Add line
                 </Button>
 
@@ -803,12 +974,15 @@ const POForm = ({ onSaved, onCancel }) => {
                         style={{ fontSize: 13.5 }}
                       >
                         <span>Left after this PO</span>
-                        <span>{money(budgetAvailable(selectedBudget) - netPayable)}</span>
+                        <span>
+                          {money(budgetAvailable(selectedBudget) - netPayable)}
+                        </span>
                       </div>
                       {overBudget && (
                         <div className="text-danger small mt-2">
                           <i className="bx bx-error-circle me-1"></i>
-                          More than the budget has left. Reduce the amount or choose another budget.
+                          More than the budget has left. Reduce the amount or
+                          choose another budget.
                         </div>
                       )}
                     </>
@@ -826,13 +1000,20 @@ const POForm = ({ onSaved, onCancel }) => {
             <Row>
               <Col md={6} className="mb-3">
                 <Label>PO Title</Label>
-                <Input value={v.poTitle} onChange={(ev) => validation.setFieldValue("poTitle", ev.target.value)} />
+                <Input
+                  value={v.poTitle}
+                  onChange={(ev) =>
+                    validation.setFieldValue("poTitle", ev.target.value)
+                  }
+                />
               </Col>
               <Col md={6} className="mb-3">
                 <Label>Project Reference</Label>
                 <Input
                   value={v.projectRef}
-                  onChange={(ev) => validation.setFieldValue("projectRef", ev.target.value)}
+                  onChange={(ev) =>
+                    validation.setFieldValue("projectRef", ev.target.value)
+                  }
                 />
               </Col>
               <Col md={4} className="mb-3">
@@ -840,7 +1021,9 @@ const POForm = ({ onSaved, onCancel }) => {
                 <Input
                   type="date"
                   value={v.startDate}
-                  onChange={(ev) => validation.setFieldValue("startDate", ev.target.value)}
+                  onChange={(ev) =>
+                    validation.setFieldValue("startDate", ev.target.value)
+                  }
                 />
               </Col>
               <Col md={4} className="mb-3">
@@ -848,7 +1031,9 @@ const POForm = ({ onSaved, onCancel }) => {
                 <Input
                   type="date"
                   value={v.endDate}
-                  onChange={(ev) => validation.setFieldValue("endDate", ev.target.value)}
+                  onChange={(ev) =>
+                    validation.setFieldValue("endDate", ev.target.value)
+                  }
                 />
               </Col>
               <Col md={4} className="mb-3">
@@ -856,7 +1041,9 @@ const POForm = ({ onSaved, onCancel }) => {
                 <Input
                   type="select"
                   value={v.criticality}
-                  onChange={(ev) => validation.setFieldValue("criticality", ev.target.value)}
+                  onChange={(ev) =>
+                    validation.setFieldValue("criticality", ev.target.value)
+                  }
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
@@ -869,7 +1056,9 @@ const POForm = ({ onSaved, onCancel }) => {
                   type="textarea"
                   rows={2}
                   value={v.remarks}
-                  onChange={(ev) => validation.setFieldValue("remarks", ev.target.value)}
+                  onChange={(ev) =>
+                    validation.setFieldValue("remarks", ev.target.value)
+                  }
                 />
               </Col>
             </Row>
@@ -877,7 +1066,9 @@ const POForm = ({ onSaved, onCancel }) => {
 
           {/* ---------- Sticky footer — buttons hamesha dikhte hain ---------- */}
           <div className="uom-form-footer is-sticky">
-            <div className={`uom-footer-summary ${overBudget ? "is-over" : ""}`}>
+            <div
+              className={`uom-footer-summary ${overBudget ? "is-over" : ""}`}
+            >
               {!isPR && (
                 <>
                   Net Payable<strong>{money(netPayable)}</strong>
@@ -885,11 +1076,22 @@ const POForm = ({ onSaved, onCancel }) => {
               )}
             </div>
             <div className="d-flex gap-2">
-              <Button type="button" color="light" className="border" onClick={onCancel}>
+              <Button
+                type="button"
+                color="light"
+                className="border"
+                onClick={onCancel}
+              >
                 Cancel
               </Button>
-              <Button type="submit" color="primary" disabled={validation.isSubmitting}>
-                {validation.isSubmitting ? "Creating..." : "Create Purchase Order"}
+              <Button
+                type="submit"
+                color="primary"
+                disabled={validation.isSubmitting}
+              >
+                {validation.isSubmitting
+                  ? "Creating..."
+                  : "Create Purchase Order"}
               </Button>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+
 import { Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -6,20 +6,14 @@ import { toast } from "react-toastify";
 import {
   createStorageLocation,
   updateStorageLocation,
-  getAllCenters,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import "../../UnitOfMeasurement/uom.scss";
 
 const StorageLocationForm = ({ editingItem, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
-  const [centers, setCenters] = useState([]);
-
-  useEffect(() => {
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
-  }, []);
+  const { items: centers } = useReferenceList("centers");
 
   const validation = useFormik({
     initialValues: {
@@ -45,7 +39,11 @@ const StorageLocationForm = ({ editingItem, onSaved, onCancel }) => {
         onSaved();
       } catch (error) {
         if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+          toast.error(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Something went wrong",
+          );
         }
       }
     },
@@ -68,7 +66,9 @@ const StorageLocationForm = ({ editingItem, onSaved, onCancel }) => {
               <Input
                 placeholder="e.g. Rack A1"
                 value={v.name}
-                onChange={(e) => validation.setFieldValue("name", e.target.value)}
+                onChange={(e) =>
+                  validation.setFieldValue("name", e.target.value)
+                }
                 onBlur={validation.handleBlur}
                 invalid={validation.touched.name && !!validation.errors.name}
               />
@@ -81,7 +81,9 @@ const StorageLocationForm = ({ editingItem, onSaved, onCancel }) => {
               <Input
                 placeholder="e.g. RA1"
                 value={v.code}
-                onChange={(e) => validation.setFieldValue("code", e.target.value)}
+                onChange={(e) =>
+                  validation.setFieldValue("code", e.target.value)
+                }
                 onBlur={validation.handleBlur}
                 invalid={validation.touched.code && !!validation.errors.code}
               />
@@ -94,9 +96,13 @@ const StorageLocationForm = ({ editingItem, onSaved, onCancel }) => {
               <Input
                 type="select"
                 value={v.centerId}
-                onChange={(e) => validation.setFieldValue("centerId", e.target.value)}
+                onChange={(e) =>
+                  validation.setFieldValue("centerId", e.target.value)
+                }
                 onBlur={validation.handleBlur}
-                invalid={validation.touched.centerId && !!validation.errors.centerId}
+                invalid={
+                  validation.touched.centerId && !!validation.errors.centerId
+                }
               >
                 <option value="">Select Center</option>
                 {centers.map((c) => (
@@ -113,7 +119,9 @@ const StorageLocationForm = ({ editingItem, onSaved, onCancel }) => {
               <Label>Description</Label>
               <Input
                 value={v.description}
-                onChange={(e) => validation.setFieldValue("description", e.target.value)}
+                onChange={(e) =>
+                  validation.setFieldValue("description", e.target.value)
+                }
               />
             </Col>
           </Row>
@@ -121,7 +129,11 @@ const StorageLocationForm = ({ editingItem, onSaved, onCancel }) => {
             <Button type="button" color="light" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit" color="primary" disabled={validation.isSubmitting}>
+            <Button
+              type="submit"
+              color="primary"
+              disabled={validation.isSubmitting}
+            >
               {editingItem ? "Save changes" : "Create Location"}
             </Button>
           </div>
