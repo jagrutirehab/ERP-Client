@@ -15,7 +15,6 @@ import {
 const DOCTOR_OPTIONS = [
   { value: "psychiatrist", label: "Psychiatrist" },
   { value: "doctor", label: "Doctor" },
-  { value: "online", label: "Online" },
 ];
 const OTHER_OPTION = { value: "other", label: "Other" };
 const ALL_OPTIONS = [...DOCTOR_OPTIONS, ...REFERRAL_SOURCE_OPTIONS, OTHER_OPTION];
