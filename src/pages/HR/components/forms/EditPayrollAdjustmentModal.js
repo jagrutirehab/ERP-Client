@@ -28,7 +28,6 @@ const EditPayrollAdjustmentModal = ({
                         onUpdate?.();
                     }}
                     onCancel={toggle}
-                    view={"MODAL"}
                 />
             </ModalBody>
         </Modal>

@@ -172,17 +172,21 @@ const ApprovalHistory = ({ activeTab }) => {
         {
             name: <div>Attachment</div>,
             selector: row => (
-                <div>
-                    {row?.attachment ? (
-                        <span
-                            className="text-primary text-decoration-underline cursor-pointer"
-                            onClick={() => {
-                                setPreviewOpen(true);
-                                setPreviewFile({ url: row.attachment });
-                            }}
-                        >
-                            Preview
-                        </span>
+                <div className="d-flex flex-column align-items-start py-1">
+                    {row?.files?.length ? (
+                        row.files.map((file, idx) => (
+                            <span
+                                key={file.path || idx}
+                                className="text-primary text-decoration-underline cursor-pointer"
+                                title={file.originalName || file.name}
+                                onClick={() => {
+                                    setPreviewOpen(true);
+                                    setPreviewFile(file);
+                                }}
+                            >
+                                {`File ${idx + 1}`}
+                            </span>
+                        ))
                     ) : (
                         "-"
                     )}
