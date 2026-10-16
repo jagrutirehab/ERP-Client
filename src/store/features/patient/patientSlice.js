@@ -31,6 +31,7 @@ import {
   updateAdmissionType,
   removeChart,
   setAdmissionTypeDirect,
+  clearAdmissionTypeDirect,
 } from "../chart/chartSlice";
 import { setBillAdmission, updateBillAdmission } from "../bill/billSlice";
 
@@ -553,6 +554,7 @@ export const patientSlice = createSlice({
       .addCase(updateAdmissionType.fulfilled, syncAdmissionTypeHistory)
       .addCase(removeChart.fulfilled, syncAdmissionTypeHistory)
       .addCase(setAdmissionTypeDirect.fulfilled, syncAdmissionTypeHistoryFromData)
+      .addCase(clearAdmissionTypeDirect.fulfilled, syncAdmissionTypeHistoryFromData)
       // Same `data: { _id, admissionTypeHistory }` envelope as the direct setter.
       .addCase(submitAdmissionForm.fulfilled, syncAdmissionTypeHistoryFromData);
 

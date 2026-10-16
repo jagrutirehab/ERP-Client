@@ -37,6 +37,7 @@ import {
   setAdmissionPsychologicalTestStatus,
 } from "../../../store/features/chart/chartSlice";
 import SetAdmissionTypeModal from "./Components/SetAdmissionTypeModal";
+import ClearAdmissionTypeModal from "./Components/ClearAdmissionTypeModal";
 import BaselinePackageControl from "./Components/BaselinePackageControl";
 import BaselinePackageStatusModal from "./Components/BaselinePackageStatusModal";
 import PsychologicalTestsControl from "./Components/PsychologicalTestsControl";
@@ -57,6 +58,12 @@ import { capitalizeWords } from "../../../utils/toCapitalize";
 const ADMISSION_TYPE_ALLOWED_ROLES = ["IT", "IT-ADMIN", "IT-MIS"];
 const ADMISSION_TYPE_ALLOWED_EMAILS = ["vikas@jagrutirehab.org", "owais@gmail.com", "pratikymane@gmail.com"];
 
+// Who may correct a type that is already recorded: replace it (Set Admission
+// Type stays visible) or clear the history back to empty. Must match
+// ADMISSION_TYPE_OVERRIDE_EMAILS in the server's
+// src/constants/admissionTypeOverride.js, which enforces it.
+const ADMISSION_TYPE_OVERRIDE_EMAILS = ["pratikymane@gmail.com"];
+
 const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   const dispatch = useDispatch();
   const chartData = useSelector((state) => state.Chart.data);
@@ -68,6 +75,8 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
   // Admission id whose "Set Admission Type" dialog is open, or null. Keyed by id
   // rather than a boolean because the page renders one card per admission.
   const [admissionTypeFor, setAdmissionTypeFor] = useState(null);
+  // Admission id whose "Clear Admission Type" confirm is open, or null.
+  const [clearAdmissionTypeFor, setClearAdmissionTypeFor] = useState(null);
   // { admissionId, nextStatus } for the open baseline-package confirm dialog, or
   // null. Keyed by admission id for the same reason as admissionTypeFor, and
   // carries the target status because one modal serves all three transitions.
@@ -91,6 +100,10 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
     (!permissionLoader &&
       ADMISSION_TYPE_ALLOWED_ROLES.includes(accessRole?.name)) ||
     ADMISSION_TYPE_ALLOWED_EMAILS.includes(user?.email);
+
+  const canOverrideAdmissionType = ADMISSION_TYPE_OVERRIDE_EMAILS.includes(
+    String(user?.email || "").trim().toLowerCase(),
+  );
 
   // `state.Chart.data` is a shared slice — other screens (ChartDate modal,
   // AI socket refreshes, Wrapper validation) also read/write it for
@@ -431,7 +444,8 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     isTrue={
                       canSetAdmissionType &&
                       !addmission.dischargeDate &&
-                      (!addmission.admissionTypeHistory?.length || user.email === "pratikymane@gmail.com")
+                      (!addmission.admissionTypeHistory?.length ||
+                        canOverrideAdmissionType)
                     }
                   >
                     <Button
@@ -442,6 +456,27 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                       onClick={() => setAdmissionTypeFor(addmission._id)}
                     >
                       Set Admission Type
+                    </Button>
+                  </RenderWhen>
+
+                  {/* Override accounts only: empty the type history back to
+                      "none recorded". Only offered when there is something to
+                      clear, on a live stay. */}
+                  <RenderWhen
+                    isTrue={
+                      canOverrideAdmissionType &&
+                      !addmission.dischargeDate &&
+                      addmission.admissionTypeHistory?.length > 0
+                    }
+                  >
+                    <Button
+                      size="sm"
+                      color="danger"
+                      outline
+                      className="ms-2"
+                      onClick={() => setClearAdmissionTypeFor(addmission._id)}
+                    >
+                      Clear Admission Type
                     </Button>
                   </RenderWhen>
                 </div>
@@ -479,6 +514,14 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                 toggle={() => setAdmissionTypeFor(null)}
                 addmission={addmission}
               />
+
+              {canOverrideAdmissionType && (
+                <ClearAdmissionTypeModal
+                  isOpen={clearAdmissionTypeFor === addmission._id}
+                  toggle={() => setClearAdmissionTypeFor(null)}
+                  addmission={addmission}
+                />
+              )}
 
               <BaselinePackageStatusModal
                 isOpen={baselineTarget?.admissionId === addmission._id}

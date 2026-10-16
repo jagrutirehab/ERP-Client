@@ -101,6 +101,7 @@ export const SET_PSYCHOLOGICAL_TEST_STATUS =
   "/patient/admission/psychological-tests";
 export const SET_ADMISSION_TYPE_DIRECT = "/patient/admission/admission-type";
 export const UPDATE_ADMISSION_WARD_BED = "/patient/admission/ward-bed";
+export const CLEAR_ADMISSION_TYPE_DIRECT = "/patient/admission/admission-type/clear";
 export const SUBMIT_ADMISSION_FORM = "/patient/admission-submit";
 export const DISCHARGE_PATIENT = "/patient/discharge";
 export const UNDISCHARGE_PATIENT = "/patient/un-discharge";
