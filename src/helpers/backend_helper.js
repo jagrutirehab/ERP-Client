@@ -436,6 +436,9 @@ export const setBaselineInvestigationStatus = (data) =>
   api.update(url.SET_BASELINE_INVESTIGATION_STATUS, data);
 export const setPsychologicalTestStatus = (data) =>
   api.update(url.SET_PSYCHOLOGICAL_TEST_STATUS, data);
+// Override accounts only (server-enforced): empties admissionTypeHistory.
+export const clearAdmissionTypeDirect = (data) =>
+  api.update(url.CLEAR_ADMISSION_TYPE_DIRECT, data);
 export const setAdmissionTypeDirect = (data) =>
   api.update(url.SET_ADMISSION_TYPE_DIRECT, data);
 export const submitAdmissionForm = ({ admissionId, formData }) =>
