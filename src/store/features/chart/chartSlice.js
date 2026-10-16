@@ -4,6 +4,7 @@ import {
   setBaselineInvestigationStatus as setBaselineInvestigationStatusApi,
   setPsychologicalTestStatus as setPsychologicalTestStatusApi,
   setAdmissionTypeDirect as setAdmissionTypeDirectApi,
+  clearAdmissionTypeDirect as clearAdmissionTypeDirectApi,
   deleteChart,
   deleteClinicalNoteFile,
   deleteCounsellingNoteFile,
@@ -454,6 +455,24 @@ export const setAdmissionTypeDirect = createAsyncThunk(
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue(
         error.message || "Failed to record the admission type",
+      );
+    }
+  },
+);
+
+// Empties an admission's admission-type timeline — override accounts only (the
+// server refuses everyone else). Same response envelope as the setter, so the
+// same reducers patch IPD and the patient header. Rejects with a STRING (like
+// the setter): callers must not read `error.message` after .unwrap().
+export const clearAdmissionTypeDirect = createAsyncThunk(
+  "clearAdmissionTypeDirect",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      return await clearAdmissionTypeDirectApi(data);
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(
+        error.message || "Failed to clear the admission type",
       );
     }
   },
@@ -2090,6 +2109,9 @@ export const chartSlice = createSlice({
         state.loading = true;
       })
       .addCase(setAdmissionTypeDirect.fulfilled, (state, { payload }) => {
+        syncAdmissionTypeHistory(state, payload);
+      })
+      .addCase(clearAdmissionTypeDirect.fulfilled, (state, { payload }) => {
         syncAdmissionTypeHistory(state, payload);
       })
       .addCase(setAdmissionRamsayApplicable.fulfilled, (state, { payload }) => {
