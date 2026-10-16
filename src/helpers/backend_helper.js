@@ -753,7 +753,7 @@ export const getBills = (data) => api.get(url.GET_BILLS, { addmission: data });
 export const getPatientLedger = (data) =>
   api.get(
     url.GET_PATIENT_LEDGER,
-    typeof data === "object" && data !== null ? data : { patient: data }
+    typeof data === "object" && data !== null ? data : { patient: data },
   );
 export const getDraftBills = (data) => api.get(url.GET_DRAFT_BILLS, data);
 const multipartConfig = (data) =>
@@ -2374,6 +2374,15 @@ export const updateComplianceCategoryStatus = (id, active) => {
 export const deleteComplianceCategory = (id) => {
   return api.delete(`${url.COMPLIANCE_CATEGORIES}/${id}`, {
     headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+// COMPLIANCE SUBMISSIONS
+export const createComplianceSubmission = (data) => {
+  return api.create(url.COMPLIANCE_SUBMISSIONS, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
   });
 };
 

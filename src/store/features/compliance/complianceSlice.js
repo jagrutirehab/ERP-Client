@@ -10,6 +10,7 @@ import {
   createComplianceType,
   editComplianceType,
   updateComplianceTypeStatus,
+  createComplianceSubmission,
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -20,6 +21,7 @@ const initialState = {
   currentType: null,
   currentTypeLoading: false,
   saving: false,
+  submissionSaving: false,
 };
 
 const isAborted = (error) => error?.code === "ERR_CANCELED";
@@ -139,6 +141,17 @@ export const setComplianceTypeStatus = createAsyncThunk(
   },
 );
 
+export const addComplianceSubmission = createAsyncThunk(
+  "compliance/addComplianceSubmission",
+  async (data, { rejectWithValue }) => {
+    try {
+      return await createComplianceSubmission(data);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
 const complianceSlice = createSlice({
   name: "compliance",
   initialState,
@@ -180,22 +193,30 @@ const complianceSlice = createSlice({
         state.saving = false;
         const updated = payload?.data;
         if (updated) {
-          state.categories = state.categories.map((c) => (c._id === updated._id ? updated : c));
+          state.categories = state.categories.map((c) =>
+            c._id === updated._id ? updated : c,
+          );
         }
       })
       .addCase(updateComplianceCategory.rejected, (state) => {
         state.saving = false;
       });
 
-    builder.addCase(setComplianceCategoryStatus.fulfilled, (state, { payload }) => {
-      state.categories = state.categories.map((c) =>
-        c._id === payload.id ? { ...c, active: payload.active } : c,
-      );
-    });
+    builder.addCase(
+      setComplianceCategoryStatus.fulfilled,
+      (state, { payload }) => {
+        state.categories = state.categories.map((c) =>
+          c._id === payload.id ? { ...c, active: payload.active } : c,
+        );
+      },
+    );
 
-    builder.addCase(removeComplianceCategory.fulfilled, (state, { payload: id }) => {
-      state.categories = state.categories.filter((c) => c._id !== id);
-    });
+    builder.addCase(
+      removeComplianceCategory.fulfilled,
+      (state, { payload: id }) => {
+        state.categories = state.categories.filter((c) => c._id !== id);
+      },
+    );
 
     builder
       .addCase(fetchComplianceTypes.pending, (state) => {
@@ -249,6 +270,16 @@ const complianceSlice = createSlice({
         t._id === payload.id ? { ...t, active: payload.active } : t,
       );
     });
+    builder
+      .addCase(addComplianceSubmission.pending, (state) => {
+        state.submissionSaving = true;
+      })
+      .addCase(addComplianceSubmission.fulfilled, (state) => {
+        state.submissionSaving = false;
+      })
+      .addCase(addComplianceSubmission.rejected, (state) => {
+        state.submissionSaving = false;
+      });
   },
 });
 
