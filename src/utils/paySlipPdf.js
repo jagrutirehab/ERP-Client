@@ -364,6 +364,7 @@ const StandardPayslip = ({ row }) => {
       { label: "Reimbursement", value: adjustments.reimbursement },
       { label: "Variable Pay", value: adjustments.variablePay },
       { label: "Other Earnings", value: adjustments.otherEarnings },
+      { label: "EL Encashment", value: adjustments.elEncashment },
     ].filter((r) => num(r.value) > 0),
   ];
 
@@ -547,6 +548,7 @@ const SimplifiedPayslip = ({ row, cfg }) => {
   const reimbursement = num(adjustments.reimbursement);
   const variablePay = num(adjustments.variablePay);
   const otherEarnings = num(adjustments.otherEarnings);
+  const elEncashment = num(adjustments.elEncashment);
   const gross = num(row?.grossSalary);
   const totalD = num(row?.totalDeductions);
   const netPay =
@@ -555,7 +557,7 @@ const SimplifiedPayslip = ({ row, cfg }) => {
       : gross - totalD;
 
   const derivedFee = Math.max(
-    gross - incentives - arrear - reimbursement - variablePay - otherEarnings,
+    gross - incentives - arrear - reimbursement - variablePay - otherEarnings - elEncashment,
     0
   );
   const fee =
@@ -570,6 +572,7 @@ const SimplifiedPayslip = ({ row, cfg }) => {
     { label: cfg.arrearLabel, value: arrear },
     ...(variablePay > 0 ? [{ label: "Variable Pay", value: variablePay }] : []),
     ...(otherEarnings > 0 ? [{ label: "Other Earnings", value: otherEarnings }] : []),
+    ...(elEncashment > 0 ? [{ label: "EL Encashment", value: elEncashment }] : []),
   ];
 
   const deductionValues = {
