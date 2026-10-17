@@ -3,6 +3,7 @@ export const adjustmentEarningOptions = [
     { value: "REIMBURSEMENT", label: "Reimbursement" },
     { value: "VARIABLE_PAY", label: "Variable Pay" },
     { value: "OTHER_EARNINGS", label: "Other Earnings" },
+    { value: "EL_ENCASHMENT", label: "EL Encashment" },
 ];
 
 export const adjustmentDeductionOptions = [
