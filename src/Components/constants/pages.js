@@ -1722,6 +1722,18 @@ export const Compliance = [
     link: "/compliance/approvals",
     icon: "bx bx-check-shield",
   },
+  {
+    id: "compliance-my-drafts",
+    label: "My Drafts",
+    link: "/compliance/my-drafts",
+    icon: "bx bx-edit",
+  },
+  {
+    id: "compliance-all-drafts",
+    label: "All Drafts",
+    link: "/compliance/drafts",
+    icon: "bx bx-folder-open",
+  },
 ];
 export const MASTER_DATA = [
   {

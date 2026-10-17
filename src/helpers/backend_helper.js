@@ -2412,6 +2412,38 @@ export const rejectComplianceSubmission = (id, data) => {
   });
 };
 
+// COMPLIANCE DRAFTS
+export const getMyComplianceDrafts = (params = {}, { signal } = {}) => {
+  return api.get(`${url.COMPLIANCE_SUBMISSIONS}/drafts/mine`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getAllComplianceDrafts = (params = {}, { signal } = {}) => {
+  return api.get(`${url.COMPLIANCE_SUBMISSIONS}/drafts`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const updateComplianceDraft = (id, data) => {
+  return api.update(`${url.COMPLIANCE_SUBMISSIONS}/drafts/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const discardComplianceDraft = (id) => {
+  return api.delete(`${url.COMPLIANCE_SUBMISSIONS}/drafts/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 // PHARMACY EXPIRED STOCK
 export const getExpiredStock = (params = {}) => {
   return api.get(url.PHARMACY_EXPIRED_STOCK, {

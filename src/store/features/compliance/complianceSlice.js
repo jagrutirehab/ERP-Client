@@ -14,6 +14,10 @@ import {
   getComplianceSubmissions,
   approveComplianceSubmission,
   rejectComplianceSubmission,
+  getMyComplianceDrafts,
+  getAllComplianceDrafts,
+  updateComplianceDraft,
+  discardComplianceDraft,
 } from "../../../helpers/backend_helper";
 
 const EMPTY_COUNTS = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
@@ -31,6 +35,10 @@ const initialState = {
   submissionCounts: { ...EMPTY_COUNTS },
   submissionsLoading: false,
   submissionReviewing: false,
+  myDrafts: [],
+  allDrafts: [],
+  draftsLoading: false,
+  draftSaving: false,
 };
 
 const isAborted = (error) => error?.code === "ERR_CANCELED";
@@ -206,6 +214,57 @@ export const rejectSubmission = createAsyncThunk(
   },
 );
 
+// ---------------------------------------------------------------------------
+// Drafts
+// ---------------------------------------------------------------------------
+export const fetchMyDrafts = createAsyncThunk(
+  "compliance/fetchMyDrafts",
+  async (params = {}, { rejectWithValue, signal }) => {
+    try {
+      return await getMyComplianceDrafts(params, { signal });
+    } catch (error) {
+      if (isAborted(error)) return rejectWithValue({ aborted: true });
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const fetchAllDrafts = createAsyncThunk(
+  "compliance/fetchAllDrafts",
+  async (params = {}, { rejectWithValue, signal }) => {
+    try {
+      return await getAllComplianceDrafts(params, { signal });
+    } catch (error) {
+      if (isAborted(error)) return rejectWithValue({ aborted: true });
+      return rejectWithValue(error);
+    }
+  },
+);
+
+// "Continue draft": formData carries the fields, files and action (DRAFT | SEND)
+export const saveDraft = createAsyncThunk(
+  "compliance/saveDraft",
+  async ({ id, formData }, { rejectWithValue }) => {
+    try {
+      return await updateComplianceDraft(id, formData);
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const removeDraft = createAsyncThunk(
+  "compliance/removeDraft",
+  async (id, { rejectWithValue }) => {
+    try {
+      await discardComplianceDraft(id);
+      return id;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
 // Moves one submission out of the PENDING list after a decision
 const removeDecided = (state, id, toStatus) => {
   state.submissions = state.submissions.filter((s) => s._id !== id);
@@ -375,6 +434,49 @@ const complianceSlice = createSlice({
       .addCase(rejectSubmission.rejected, (state) => {
         state.submissionReviewing = false;
       });
+
+    // ---------------- Drafts ----------------
+    builder
+      .addCase(fetchMyDrafts.pending, (state) => {
+        state.draftsLoading = true;
+      })
+      .addCase(fetchMyDrafts.fulfilled, (state, { payload }) => {
+        state.draftsLoading = false;
+        state.myDrafts = payload?.data || [];
+      })
+      .addCase(fetchMyDrafts.rejected, (state, { payload }) => {
+        if (payload?.aborted) return;
+        state.draftsLoading = false;
+      });
+
+    builder
+      .addCase(fetchAllDrafts.pending, (state) => {
+        state.draftsLoading = true;
+      })
+      .addCase(fetchAllDrafts.fulfilled, (state, { payload }) => {
+        state.draftsLoading = false;
+        state.allDrafts = payload?.data || [];
+      })
+      .addCase(fetchAllDrafts.rejected, (state, { payload }) => {
+        if (payload?.aborted) return;
+        state.draftsLoading = false;
+      });
+
+    builder
+      .addCase(saveDraft.pending, (state) => {
+        state.draftSaving = true;
+      })
+      .addCase(saveDraft.fulfilled, (state) => {
+        state.draftSaving = false;
+      })
+      .addCase(saveDraft.rejected, (state) => {
+        state.draftSaving = false;
+      });
+
+    builder.addCase(removeDraft.fulfilled, (state, { payload: id }) => {
+      state.myDrafts = state.myDrafts.filter((d) => d._id !== id);
+      state.allDrafts = state.allDrafts.filter((d) => d._id !== id);
+    });
   },
 });
 

@@ -244,6 +244,8 @@ export const permissionList = [
       { name: "COMPLIANCE_TYPES", label: "Compliance Types" },
       { name: "CATEGORIES", label: "Categories" },
       { name: "APPROVALS", label: "Approvals" },
+      { name: "MY_DRAFTS", label: "My Drafts" },
+      { name: "ALL_DRAFTS", label: "All Drafts" },
     ],
   },
   {

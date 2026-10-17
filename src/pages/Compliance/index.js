@@ -10,6 +10,8 @@ import ComplianceTypes from "./pages/ComplianceTypes";
 import ComplianceTypeForm from "./forms/ComplianceTypeForm";
 import Categories from "./pages/Categories";
 import Approvals from "./pages/Approvals";
+import MyDrafts from "./pages/MyDrafts";
+import AllDrafts from "./pages/AllDrafts";
 
 // Same shell pattern as Pharmacy/HR: "page-conten" (not the real "page-content"
 // class) + "patient-page" gives the correct top offset below the fixed navbar,
@@ -31,10 +33,18 @@ const Compliance = () => {
                 <Route path="upload" element={<UploadDocument />} />
                 <Route path="types" element={<ComplianceTypes />} />
                 <Route path="types/new" element={<ComplianceTypeForm />} />
-                <Route path="types/:typeId/edit" element={<ComplianceTypeForm />} />
+                <Route
+                  path="types/:typeId/edit"
+                  element={<ComplianceTypeForm />}
+                />
                 <Route path="categories" element={<Categories />} />
                 <Route path="approvals" element={<Approvals />} />
-                <Route path="*" element={<Navigate to="/compliance" replace />} />
+                <Route path="my-drafts" element={<MyDrafts />} />
+                <Route path="drafts" element={<AllDrafts />} />
+                <Route
+                  path="*"
+                  element={<Navigate to="/compliance" replace />}
+                />
               </Routes>
             </div>
           </div>

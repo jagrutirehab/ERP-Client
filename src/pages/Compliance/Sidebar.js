@@ -19,6 +19,8 @@ const Sidebar = () => {
   const hasTypesPermission = hasPermission("COMPLIANCE", "COMPLIANCE_TYPES", "READ");
   const hasCategoriesPermission = hasPermission("COMPLIANCE", "CATEGORIES", "READ");
   const hasApprovalsPermission = hasPermission("COMPLIANCE", "APPROVALS", "READ");
+  const hasMyDraftsPermission = hasPermission("COMPLIANCE", "MY_DRAFTS", "READ");
+  const hasAllDraftsPermission = hasPermission("COMPLIANCE", "ALL_DRAFTS", "READ");
 
   const location = useLocation();
   const [collapsed, setCollapsed] = useState(false);
@@ -58,6 +60,8 @@ const Sidebar = () => {
     if (page.id === "compliance-types") return hasTypesPermission;
     if (page.id === "compliance-categories") return hasCategoriesPermission;
     if (page.id === "compliance-approvals") return hasApprovalsPermission;
+    if (page.id === "compliance-my-drafts") return hasMyDraftsPermission;
+    if (page.id === "compliance-all-drafts") return hasAllDraftsPermission;
     return true;
   });
 
