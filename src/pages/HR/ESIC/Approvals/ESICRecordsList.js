@@ -64,17 +64,31 @@ const ESICRecordsList = ({ status, centers, search }) => {
 
   const columns = [
     {
-      name: "Employee Code",
+      name: "eCode",
       selector: (row) => row.employee?.eCode,
       sortable: true,
+      wrap: true,
+      minWidth: "130px",
     },
     {
       name: "Employee Name",
       selector: (row) => row.employee?.name,
       sortable: true,
+      wrap: true,
+      minWidth: "180px",
     },
-    { name: "Center", selector: (row) => row.center?.title },
-    { name: "Description", selector: (row) => row.description || "—" },
+    {
+      name: "Center",
+      selector: (row) => row.center?.title,
+      wrap: true,
+      minWidth: "140px",
+    },
+    {
+      name: "Description",
+      selector: (row) => row.description || "—",
+      wrap: true,
+      minWidth: "180px",
+    },
     {
       name: "Files",
       cell: (row) => (
@@ -99,8 +113,18 @@ const ESICRecordsList = ({ status, centers, search }) => {
     },
     ...(status !== "PENDING"
       ? [
-          { name: "Note", selector: (row) => row.note || "—" },
-          { name: "Acted By", selector: (row) => row.actedBy?.name || "—" },
+          {
+            name: "Note",
+            selector: (row) => row.note || "—",
+            wrap: true,
+            minWidth: "180px",
+          },
+          {
+            name: "Acted By",
+            selector: (row) => row.actedBy?.name || "—",
+            wrap: true,
+            minWidth: "150px",
+          },
         ]
       : []),
     {

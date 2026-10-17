@@ -234,20 +234,22 @@ const UploadESIC = () => {
         </Button>
 
         <div className="mt-4">
-          <Button
-            type="button"
-            color="primary"
-            onClick={handleSubmit}
-            disabled={submitting || !hasWritePermission}
-          >
-            {submitting ? (
-              <Spinner size="sm" />
-            ) : rows.length > 1 ? (
-              `Submit ${rows.length} Records`
-            ) : (
-              "Submit"
-            )}
-          </Button>
+          {hasWritePermission && (
+            <Button
+              type="button"
+              color="primary"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
+              {submitting ? (
+                <Spinner size="sm" />
+              ) : rows.length > 1 ? (
+                `Submit ${rows.length} Records`
+              ) : (
+                "Submit"
+              )}
+            </Button>
+          )}
         </div>
       </div>
     </CardBody>
