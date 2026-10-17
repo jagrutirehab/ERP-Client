@@ -4189,6 +4189,72 @@ export const getPayrollAdjustments = (params = {}) => {
   });
 };
 
+export const postESICRecords = (data) => {
+  return api.create(url.ESIC_RECORDS, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const editESICRecord = (id, data) => {
+  return api.update(`${url.ESIC_RECORDS}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const deleteESICRecord = (id) => {
+  return api.delete(`${url.ESIC_RECORDS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const esicAction = (id, data) => {
+  return api.update(`${url.ESIC_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getESICRecords = (params = {}) => {
+  return api.get(url.ESIC_RECORDS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const searchESICEmployees = (params = {}) => {
+  return api.get(url.ESIC_SEARCH_EMPLOYEES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getMyESICRecords = () => {
+  return api.get(url.ESIC_MY_RECORDS, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const generatePayroll = (data) => {
   return api.create(url.GENERATE_PAYROLL, data, {
     headers: {
