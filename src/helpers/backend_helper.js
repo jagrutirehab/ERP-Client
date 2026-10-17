@@ -2386,6 +2386,32 @@ export const createComplianceSubmission = (data) => {
   });
 };
 
+export const getComplianceSubmissions = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_SUBMISSIONS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getComplianceSubmissionById = (id) => {
+  return api.get(`${url.COMPLIANCE_SUBMISSIONS}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const approveComplianceSubmission = (id, data = {}) => {
+  return api.update(`${url.COMPLIANCE_SUBMISSIONS}/${id}/approve`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const rejectComplianceSubmission = (id, data) => {
+  return api.update(`${url.COMPLIANCE_SUBMISSIONS}/${id}/reject`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 // PHARMACY EXPIRED STOCK
 export const getExpiredStock = (params = {}) => {
   return api.get(url.PHARMACY_EXPIRED_STOCK, {

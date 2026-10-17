@@ -18,7 +18,7 @@ const Field = ({ label, children }) => (
   </div>
 );
 
-const ReviewModal = ({ isOpen, toggle, submission, onApprove, onReject }) => {
+const ReviewModal = ({ isOpen, toggle, submission, onApprove, onReject, busy = false }) => {
   const [rejecting, setRejecting] = useState(false);
   const [rejectNote, setRejectNote] = useState("");
 
@@ -31,9 +31,19 @@ const ReviewModal = ({ isOpen, toggle, submission, onApprove, onReject }) => {
 
   if (!submission) return null;
 
+  const handleApprove = async () => {
+    const ok = await onApprove(submission.id);
+    if (ok) toggle();
+  };
+
+  const handleReject = async () => {
+    const ok = await onReject(submission.id, rejectNote.trim());
+    if (ok) toggle();
+  };
+
   return (
-    <Modal isOpen={isOpen} toggle={toggle} centered size="lg">
-      <ModalHeader toggle={toggle}>Review submission</ModalHeader>
+    <Modal isOpen={isOpen} toggle={busy ? undefined : toggle} centered size="lg">
+      <ModalHeader toggle={busy ? undefined : toggle}>Review submission</ModalHeader>
       <ModalBody>
         <div className="d-flex justify-content-between align-items-start mb-3">
           <div>
@@ -71,20 +81,42 @@ const ReviewModal = ({ isOpen, toggle, submission, onApprove, onReject }) => {
             Documents
           </div>
           <div className="d-flex flex-column gap-2">
-            {submission.fileNames.map((f) => (
-              <div key={f} className="d-flex align-items-center gap-2 border rounded p-2">
+            {(submission.files || []).map((f) => (
+              <a
+                key={f._id || f.url}
+                href={f.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="d-flex align-items-center gap-2 border rounded p-2 text-decoration-none text-body"
+              >
                 <FileText size={16} className="text-muted flex-shrink-0" />
-                <span className="text-truncate" style={{ fontSize: 13 }}>
-                  {f}
+                <span className="text-truncate flex-grow-1" style={{ fontSize: 13 }}>
+                  {f.originalName || f.name}
                 </span>
-              </div>
+                {f.role === "PRIMARY_CERTIFICATE" && (
+                  <span className="badge bg-success-subtle text-success" style={{ fontSize: 11 }}>
+                    Primary
+                  </span>
+                )}
+              </a>
             ))}
+            {!submission.files?.length && (
+              <span className="text-muted" style={{ fontSize: 13 }}>
+                No files
+              </span>
+            )}
           </div>
         </div>
 
         {submission.status === "rejected" && submission.note && (
           <div className="mt-2 p-2 rounded" style={{ background: "#F9DEDA", fontSize: 13 }}>
             <strong>Rejection reason:</strong> {submission.note}
+          </div>
+        )}
+
+        {submission.status === "approved" && submission.note && (
+          <div className="mt-2 p-2 rounded" style={{ background: "#E3F1EA", fontSize: 13 }}>
+            <strong>Reviewer comment:</strong> {submission.note}
           </div>
         )}
 
@@ -96,44 +128,41 @@ const ReviewModal = ({ isOpen, toggle, submission, onApprove, onReject }) => {
               rows={2}
               value={rejectNote}
               onChange={(e) => setRejectNote(e.target.value)}
+              placeholder="e.g. Certificate is not readable, please re-upload"
               autoFocus
             />
           </div>
         )}
       </ModalBody>
+
       {submission.status === "pending" && (
         <ModalFooter>
           {rejecting ? (
             <>
-              <Button color="light" className="border" onClick={() => setRejecting(false)}>
+              <Button color="light" className="border" disabled={busy} onClick={() => setRejecting(false)}>
                 Back
               </Button>
               <Button
                 color="danger"
                 className="text-white"
-                disabled={!rejectNote.trim()}
-                onClick={() => {
-                  onReject(submission.id, rejectNote.trim());
-                  toggle();
-                }}
+                disabled={busy || rejectNote.trim().length < 3}
+                onClick={handleReject}
               >
-                Confirm reject
+                {busy ? "Rejecting..." : "Confirm reject"}
               </Button>
             </>
           ) : (
             <>
-              <Button color="light" className="border text-danger" onClick={() => setRejecting(true)}>
+              <Button
+                color="light"
+                className="border text-danger"
+                disabled={busy}
+                onClick={() => setRejecting(true)}
+              >
                 <XCircle size={14} className="me-1" /> Reject
               </Button>
-              <Button
-                color="success"
-                className="text-white"
-                onClick={() => {
-                  onApprove(submission.id);
-                  toggle();
-                }}
-              >
-                <CheckCircle2 size={14} className="me-1" /> Approve
+              <Button color="success" className="text-white" disabled={busy} onClick={handleApprove}>
+                <CheckCircle2 size={14} className="me-1" /> {busy ? "Approving..." : "Approve"}
               </Button>
             </>
           )}

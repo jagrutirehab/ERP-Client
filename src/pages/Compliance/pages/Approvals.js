@@ -1,13 +1,19 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardBody, Nav, NavItem, NavLink, Button } from "reactstrap";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import DataTableComponent from "../../../Components/Common/DataTable";
 import Select from "react-select";
 import { Eye } from "lucide-react";
 import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge";
 import ReviewModal from "../components/ReviewModal";
-import { useSubmissions, decideSubmission } from "../submissionsStore";
-import { CENTRES } from "../data";
 import { formatDateTime } from "../../../utils/time";
+import { getAllCenters } from "../../../helpers/backend_helper";
+import {
+  fetchComplianceSubmissions,
+  approveSubmission,
+  rejectSubmission,
+} from "../../../store/features/compliance/complianceSlice";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
@@ -15,26 +21,92 @@ const STATUS_OPTIONS = [
   { value: "REJECTED", label: "Rejected" },
 ];
 
+const centreLabel = (c) => c?.displayName || c?.title || c?.name || "—";
+
+// Backend record -> the shape the table and ReviewModal already use
+const toRow = (s) => ({
+  id: s._id,
+  centreId: s.center?._id,
+  centreName: centreLabel(s.center),
+  categoryName: s.complianceType?.name || "—",
+  submittedBy: s.submittedBy?.name || s.submittedBy?.email || "—",
+  submittedAt: s.submittedAt,
+  issuingAuthority: s.issuingAuthority,
+  licenceNo: s.licenceNumber,
+  issuedOn: s.issueDate,
+  validTill: s.expiryDate,
+  noExpiry: s.noExpiry,
+  leadDays: s.renewalLeadDays,
+  owner: s.responsibleOwner,
+  escalateTo: s.escalateTo,
+  notes: s.notes,
+  files: s.documents || [],
+  fileNames: (s.documents || []).map((d) => d.originalName || d.name),
+  status: String(s.status || "").toLowerCase(), // "pending" | "approved" | "rejected"
+  note: s.reviewComment,
+});
+
 const Approvals = () => {
-  const submissions = useSubmissions();
+  const dispatch = useDispatch();
+  const { submissions, submissionCounts, submissionsLoading, submissionReviewing } = useSelector(
+    (state) => state.Compliance,
+  );
+
   const [statusFilter, setStatusFilter] = useState("PENDING");
   const [centreFilter, setCentreFilter] = useState("all");
   const [reviewing, setReviewing] = useState(null);
+  const [centres, setCentres] = useState([]);
 
-  const pendingCount = submissions.filter((s) => s.status === "pending").length;
+  // centres for the filter dropdown
+  useEffect(() => {
+    getAllCenters()
+      .then((res) => {
+        const list = Array.isArray(res)
+          ? res
+          : Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.payload)
+          ? res.payload
+          : Array.isArray(res?.data?.data)
+          ? res.data.data
+          : [];
+        setCentres(list);
+      })
+      .catch(() => toast.error("Failed to load centres"));
+  }, []);
 
-  const rows = useMemo(() => {
-    return submissions
-      .filter((s) => s.status === statusFilter.toLowerCase())
-      .filter((s) => centreFilter === "all" || s.centreId === centreFilter)
-      .sort((a, b) => new Date(b.submittedAt) - new Date(a.submittedAt));
-  }, [submissions, statusFilter, centreFilter]);
+  const loadSubmissions = () => {
+    dispatch(
+      fetchComplianceSubmissions({
+        status: statusFilter,
+        center: centreFilter === "all" ? undefined : centreFilter,
+      }),
+    )
+      .unwrap()
+      .catch((error) => {
+        if (error?.aborted) return;
+        toast.error(error?.message || "Failed to load submissions");
+      });
+  };
+
+  // reload whenever the tab or centre filter changes
+  useEffect(() => {
+    loadSubmissions();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [statusFilter, centreFilter]);
+
+  const rows = useMemo(() => (submissions || []).map(toRow), [submissions]);
+  const pendingCount = submissionCounts?.PENDING || 0;
+
+  const centreOptions = [
+    { value: "all", label: "All centres" },
+    ...centres.map((c) => ({ value: c._id, label: centreLabel(c) })),
+  ];
 
   const columns = [
     {
       name: <div>Submitted</div>,
       selector: (row) => formatDateTime(row.submittedAt),
-      sortable: true,
       wrap: true,
       minWidth: "150px",
     },
@@ -58,9 +130,9 @@ const Approvals = () => {
     },
     {
       name: <div>Files</div>,
-      selector: (row) => row.fileNames.join(", "),
+      selector: (row) => (row.fileNames.length ? `${row.fileNames.length} file(s)` : "—"),
       wrap: true,
-      minWidth: "130px",
+      minWidth: "90px",
     },
     {
       name: <div>Status</div>,
@@ -83,8 +155,30 @@ const Approvals = () => {
     },
   ];
 
-  const approve = (id) => decideSubmission(id, "approved");
-  const reject = (id, note) => decideSubmission(id, "rejected", note);
+  // Both return true on success so the modal knows when to close
+  const approve = async (id) => {
+    try {
+      const res = await dispatch(approveSubmission({ id })).unwrap();
+      toast.success(res?.message || "Approved.");
+      return true;
+    } catch (error) {
+      toast.error(error?.message || "Failed to approve");
+      loadSubmissions(); // someone else may have reviewed it already
+      return false;
+    }
+  };
+
+  const reject = async (id, reason) => {
+    try {
+      await dispatch(rejectSubmission({ id, reason })).unwrap();
+      toast.success("Submission rejected.");
+      return true;
+    } catch (error) {
+      toast.error(error?.message || "Failed to reject");
+      loadSubmissions();
+      return false;
+    }
+  };
 
   return (
     <div className="p-3 p-lg-4">
@@ -92,13 +186,11 @@ const Approvals = () => {
         <div>
           <h5 className="mb-1 fw-semibold">Approvals</h5>
           <p className="text-muted mb-0 fs-13">
-            Review centre-submitted compliance documents and approve or reject them.{" "}
-            {pendingCount} pending.
+            Review centre-submitted compliance documents and approve or reject them. {pendingCount} pending.
           </p>
         </div>
       </div>
 
-      {/* Status tabs, matching the Pharmacy Medicine Requisition approval screen */}
       <Nav tabs className="flex-wrap mb-0" style={{ borderBottom: "1px solid #dee2e6" }}>
         {STATUS_OPTIONS.map((status) => {
           const isActive = statusFilter === status.value;
@@ -127,10 +219,7 @@ const Approvals = () => {
               >
                 {status.label}
                 {status.value === "PENDING" && pendingCount > 0 && (
-                  <span
-                    className="ms-2 badge rounded-pill bg-danger"
-                    style={{ fontSize: 11 }}
-                  >
+                  <span className="ms-2 badge rounded-pill bg-danger" style={{ fontSize: 11 }}>
                     {pendingCount}
                   </span>
                 )}
@@ -140,30 +229,25 @@ const Approvals = () => {
         })}
       </Nav>
 
-      {/* Filters */}
       <Card className="mb-3 shadow-sm border-0" style={{ borderRadius: "0 0 8px 8px" }}>
         <CardBody className="py-3">
           <div style={{ maxWidth: 260 }}>
             <Select
               classNamePrefix="react-select"
-              options={[{ value: "all", label: "All centres" }, ...CENTRES.map((c) => ({ value: c.id, label: c.name }))]}
-              value={
-                centreFilter === "all"
-                  ? { value: "all", label: "All centres" }
-                  : { value: centreFilter, label: CENTRES.find((c) => c.id === centreFilter)?.name }
-              }
+              options={centreOptions}
+              value={centreOptions.find((o) => o.value === centreFilter) || centreOptions[0]}
               onChange={(option) => setCentreFilter(option?.value || "all")}
             />
           </div>
         </CardBody>
       </Card>
 
-      {/* Table */}
       <Card className="shadow-sm border-0">
         <CardBody className="p-0">
           <DataTableComponent
             columns={columns}
             data={rows}
+            loading={submissionsLoading}
             noDataComponent="No submissions match these filters."
           />
         </CardBody>
@@ -175,6 +259,7 @@ const Approvals = () => {
         submission={reviewing}
         onApprove={approve}
         onReject={reject}
+        busy={submissionReviewing}
       />
     </div>
   );

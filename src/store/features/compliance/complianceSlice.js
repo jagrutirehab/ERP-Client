@@ -11,7 +11,12 @@ import {
   editComplianceType,
   updateComplianceTypeStatus,
   createComplianceSubmission,
+  getComplianceSubmissions,
+  approveComplianceSubmission,
+  rejectComplianceSubmission,
 } from "../../../helpers/backend_helper";
+
+const EMPTY_COUNTS = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
 
 const initialState = {
   categories: [],
@@ -22,10 +27,17 @@ const initialState = {
   currentTypeLoading: false,
   saving: false,
   submissionSaving: false,
+  submissions: [],
+  submissionCounts: { ...EMPTY_COUNTS },
+  submissionsLoading: false,
+  submissionReviewing: false,
 };
 
 const isAborted = (error) => error?.code === "ERR_CANCELED";
 
+// ---------------------------------------------------------------------------
+// Categories
+// ---------------------------------------------------------------------------
 export const fetchComplianceCategories = createAsyncThunk(
   "compliance/fetchComplianceCategories",
   async (params = {}, { rejectWithValue, signal }) => {
@@ -84,6 +96,9 @@ export const removeComplianceCategory = createAsyncThunk(
   },
 );
 
+// ---------------------------------------------------------------------------
+// Compliance types
+// ---------------------------------------------------------------------------
 export const fetchComplianceTypes = createAsyncThunk(
   "compliance/fetchComplianceTypes",
   async (params = {}, { rejectWithValue, signal }) => {
@@ -141,6 +156,9 @@ export const setComplianceTypeStatus = createAsyncThunk(
   },
 );
 
+// ---------------------------------------------------------------------------
+// Submissions (upload form + approvals)
+// ---------------------------------------------------------------------------
 export const addComplianceSubmission = createAsyncThunk(
   "compliance/addComplianceSubmission",
   async (data, { rejectWithValue }) => {
@@ -152,6 +170,49 @@ export const addComplianceSubmission = createAsyncThunk(
   },
 );
 
+export const fetchComplianceSubmissions = createAsyncThunk(
+  "compliance/fetchComplianceSubmissions",
+  async (params = {}, { rejectWithValue, signal }) => {
+    try {
+      return await getComplianceSubmissions(params, { signal });
+    } catch (error) {
+      if (isAborted(error)) return rejectWithValue({ aborted: true });
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const approveSubmission = createAsyncThunk(
+  "compliance/approveSubmission",
+  async ({ id, comment = "" }, { rejectWithValue }) => {
+    try {
+      const res = await approveComplianceSubmission(id, { comment });
+      return { id, message: res?.message };
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const rejectSubmission = createAsyncThunk(
+  "compliance/rejectSubmission",
+  async ({ id, reason }, { rejectWithValue }) => {
+    try {
+      await rejectComplianceSubmission(id, { reason });
+      return { id };
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+// Moves one submission out of the PENDING list after a decision
+const removeDecided = (state, id, toStatus) => {
+  state.submissions = state.submissions.filter((s) => s._id !== id);
+  state.submissionCounts.PENDING = Math.max((state.submissionCounts.PENDING || 0) - 1, 0);
+  state.submissionCounts[toStatus] = (state.submissionCounts[toStatus] || 0) + 1;
+};
+
 const complianceSlice = createSlice({
   name: "compliance",
   initialState,
@@ -161,6 +222,7 @@ const complianceSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
+    // ---------------- Categories ----------------
     builder
       .addCase(fetchComplianceCategories.pending, (state) => {
         state.categoriesLoading = true;
@@ -193,31 +255,24 @@ const complianceSlice = createSlice({
         state.saving = false;
         const updated = payload?.data;
         if (updated) {
-          state.categories = state.categories.map((c) =>
-            c._id === updated._id ? updated : c,
-          );
+          state.categories = state.categories.map((c) => (c._id === updated._id ? updated : c));
         }
       })
       .addCase(updateComplianceCategory.rejected, (state) => {
         state.saving = false;
       });
 
-    builder.addCase(
-      setComplianceCategoryStatus.fulfilled,
-      (state, { payload }) => {
-        state.categories = state.categories.map((c) =>
-          c._id === payload.id ? { ...c, active: payload.active } : c,
-        );
-      },
-    );
+    builder.addCase(setComplianceCategoryStatus.fulfilled, (state, { payload }) => {
+      state.categories = state.categories.map((c) =>
+        c._id === payload.id ? { ...c, active: payload.active } : c,
+      );
+    });
 
-    builder.addCase(
-      removeComplianceCategory.fulfilled,
-      (state, { payload: id }) => {
-        state.categories = state.categories.filter((c) => c._id !== id);
-      },
-    );
+    builder.addCase(removeComplianceCategory.fulfilled, (state, { payload: id }) => {
+      state.categories = state.categories.filter((c) => c._id !== id);
+    });
 
+    // ---------------- Compliance types ----------------
     builder
       .addCase(fetchComplianceTypes.pending, (state) => {
         state.typesLoading = true;
@@ -270,6 +325,8 @@ const complianceSlice = createSlice({
         t._id === payload.id ? { ...t, active: payload.active } : t,
       );
     });
+
+    // ---------------- Submissions ----------------
     builder
       .addCase(addComplianceSubmission.pending, (state) => {
         state.submissionSaving = true;
@@ -279,6 +336,44 @@ const complianceSlice = createSlice({
       })
       .addCase(addComplianceSubmission.rejected, (state) => {
         state.submissionSaving = false;
+      });
+
+    builder
+      .addCase(fetchComplianceSubmissions.pending, (state) => {
+        state.submissionsLoading = true;
+      })
+      .addCase(fetchComplianceSubmissions.fulfilled, (state, { payload }) => {
+        state.submissionsLoading = false;
+        state.submissions = payload?.data || [];
+        state.submissionCounts = payload?.counts || { ...EMPTY_COUNTS };
+      })
+      .addCase(fetchComplianceSubmissions.rejected, (state, { payload }) => {
+        if (payload?.aborted) return;
+        state.submissionsLoading = false;
+      });
+
+    builder
+      .addCase(approveSubmission.pending, (state) => {
+        state.submissionReviewing = true;
+      })
+      .addCase(approveSubmission.fulfilled, (state, { payload }) => {
+        state.submissionReviewing = false;
+        removeDecided(state, payload.id, "APPROVED");
+      })
+      .addCase(approveSubmission.rejected, (state) => {
+        state.submissionReviewing = false;
+      });
+
+    builder
+      .addCase(rejectSubmission.pending, (state) => {
+        state.submissionReviewing = true;
+      })
+      .addCase(rejectSubmission.fulfilled, (state, { payload }) => {
+        state.submissionReviewing = false;
+        removeDecided(state, payload.id, "REJECTED");
+      })
+      .addCase(rejectSubmission.rejected, (state) => {
+        state.submissionReviewing = false;
       });
   },
 });

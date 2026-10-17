@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { Compliance } from "../../Components/constants/pages";
 import { usePermissions } from "../../Components/Hooks/useRoles";
-import { useSubmissions } from "./submissionsStore";
+import { getComplianceSubmissions } from "../../helpers/backend_helper";
 
 const Sidebar = () => {
   const microUser = localStorage.getItem("micrologin");
@@ -19,8 +20,28 @@ const Sidebar = () => {
   const hasCategoriesPermission = hasPermission("COMPLIANCE", "CATEGORIES", "READ");
   const hasApprovalsPermission = hasPermission("COMPLIANCE", "APPROVALS", "READ");
 
-  const submissions = useSubmissions();
-  const pendingCount = submissions.filter((s) => s.status === "pending").length;
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState(false);
+  const [pendingCount, setPendingCount] = useState(0);
+
+  // When Approvals approves/rejects, the store's count changes -> re-check here too
+  const storePending = useSelector((state) => state.Compliance?.submissionCounts?.PENDING);
+
+  // Real pending count from the API. Re-checks on every page change inside
+  // Compliance, so it updates after sending a submission or approving one.
+  useEffect(() => {
+    let cancelled = false;
+    getComplianceSubmissions({ status: "PENDING", limit: 1 })
+      .then((res) => {
+        if (!cancelled) setPendingCount(res?.counts?.PENDING || 0);
+      })
+      .catch(() => {
+        if (!cancelled) setPendingCount(0);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [location.pathname, storePending]);
 
   // The backend doesn't have a COMPLIANCE module in anyone's role yet, so
   // hasPermission() would return false for everyone and hide the whole menu.
@@ -39,9 +60,6 @@ const Sidebar = () => {
     if (page.id === "compliance-approvals") return hasApprovalsPermission;
     return true;
   });
-
-  const location = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
 
   const isActive = (page) => {
     if (page.id === "compliance-overview") return location.pathname === "/compliance";
