@@ -675,6 +675,11 @@ export const INCENTIVES_ACTION = "/hr/incentives/action";
 export const PAYROLL_ADJUSTMENTS = "/hr/payroll-adjustments";
 export const PAYROLL_ADJUSTMENTS_ACTION = "/hr/payroll-adjustments/action";
 
+export const ESIC_RECORDS = "/hr/esic";
+export const ESIC_ACTION = "/hr/esic/action";
+export const ESIC_SEARCH_EMPLOYEES = "/hr/esic/employees/search";
+export const ESIC_MY_RECORDS = "/hr/esic/my";
+
 export const GENERATE_PAYROLL = "/hr/payroll/generate";
 export const GET_PAYROLLS = "/hr/payroll";
 export const EXPORT_PAYROLLS_XLSX = "/hr/payroll/xlsx";

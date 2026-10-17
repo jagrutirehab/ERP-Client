@@ -531,6 +531,8 @@ export const permissionList = [
       { name: "MY_SALARY_AND_FORMS", label: "My Salary And Forms" },
       { name: "UPLOAD_EMPLOYEE_FORM", label: "Upload Employee Form" },
       { name: "EMPLOYEE_FORMS", label: "Employee Forms" },
+      { name: "ESIC_UPLOAD", label: "ESIC Upload" },
+      { name: "ESIC_APPROVAL", label: "ESIC Approval" },
       // HR DASHBOARD
       { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
       { name: "REPORTEES_LEAVE_BALANCE", label: "Reportees Leave Balance" },
