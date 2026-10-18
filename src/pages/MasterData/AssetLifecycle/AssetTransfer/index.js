@@ -6,10 +6,10 @@ import {
   getAssetTransferRequests,
   createAssetTransferRequest,
   getFixedAssets,
-  getAllCenters,
   getStorageLocations,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
@@ -37,7 +37,7 @@ const AssetTransferRequest = () => {
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
   const [assets, setAssets] = useState([]);
-  const [centers, setCenters] = useState([]);
+  const { items: centers } = useReferenceList("centers");
   const [locations, setLocations] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -51,12 +51,6 @@ const AssetTransferRequest = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const [detailModal, setDetailModal] = useState(null);
-
-  useEffect(() => {
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
