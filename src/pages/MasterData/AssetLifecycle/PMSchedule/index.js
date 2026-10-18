@@ -7,11 +7,11 @@ import {
   createPMSchedule,
   updatePMSchedule,
   generateDueWorkOrders,
-  getAllCenters,
   getFixedAssets,
   getTaskTemplates,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
@@ -36,7 +36,7 @@ const PMSchedule = () => {
   const [schedules, setSchedules] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
-  const [centers, setCenters] = useState([]);
+  const { items: centers } = useReferenceList("centers");
   const [assets, setAssets] = useState([]);
   const [templates, setTemplates] = useState([]);
   const [generating, setGenerating] = useState(false);
@@ -59,9 +59,6 @@ const PMSchedule = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
     getTaskTemplates({})
       .then((res) => setTemplates(res?.data || []))
       .catch(() => {});

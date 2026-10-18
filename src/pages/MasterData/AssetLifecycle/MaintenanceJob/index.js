@@ -8,10 +8,9 @@ import {
   updateMaintenanceJob,
   getWorkOrders,
   getUserLookup,
-  getAllCenters,
-  getVendors,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
@@ -51,8 +50,12 @@ const MaintenanceJob = () => {
   const [showTechDropdown, setShowTechDropdown] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const debounceRef = React.useRef(null);
-  const [centers, setCenters] = useState([]);
-  const [vendors, setVendors] = useState([]);
+const { items: centers } = useReferenceList("centers");
+const { items: activeVendors } = useReferenceList("vendors");
+const vendors = React.useMemo(
+  () => activeVendors.filter((v) => v.approvalStatus === "approved"),
+  [activeVendors],
+);
 
   const [modalOpen, setModalOpen] = useState(false);
   const [workOrderId, setWorkOrderId] = useState("");
@@ -72,19 +75,6 @@ const MaintenanceJob = () => {
   useEffect(() => {
     getWorkOrders({ status: "pending" })
       .then((res) => setWorkOrders(res?.data || []))
-      .catch(() => {});
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
-    // Only active, approved vendors can take a repair job
-    getVendors({ limit: 200 })
-      .then((res) =>
-        setVendors(
-          (res?.data || []).filter(
-            (v) => v.status === "active" && v.approvalStatus === "approved",
-          ),
-        ),
-      )
       .catch(() => {});
   }, []);
 

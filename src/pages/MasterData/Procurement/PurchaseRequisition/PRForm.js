@@ -7,14 +7,14 @@ import { toast } from "react-toastify";
 import {
   createPR,
   updatePR,
-  getPRDepartments,
   getBudgets,
   getVendors,
   getUoms,
-  getAllCenters,
   getItemMasters,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
+
 import "../../UnitOfMeasurement/uom.scss";
 
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
@@ -51,28 +51,22 @@ function generatePreviewPrNumber() {
 const PRForm = ({ editingItem, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
   const [previewPrNumber] = useState(generatePreviewPrNumber());
-  const [departments, setDepartments] = useState([]);
   const [budgets, setBudgets] = useState([]);
   const [vendors, setVendors] = useState([]);
   const [uoms, setUoms] = useState([]);
-  const [centers, setCenters] = useState([]);
+  const { items: departments } = useReferenceList("departments");
+  const { items: centers } = useReferenceList("centers");
 
   const [itemSearchState, setItemSearchState] = useState({});
   const itemSearchTimers = useRef({});
   const itemInputRefs = useRef({});
 
   useEffect(() => {
-    getPRDepartments({})
-      .then((res) => setDepartments(res?.data || []))
-      .catch(() => {});
     getVendors({})
       .then((res) => setVendors(res?.data || []))
       .catch(() => {});
     getUoms({})
       .then((res) => setUoms(res?.data || []))
-      .catch(() => {});
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
       .catch(() => {});
   }, []);
 

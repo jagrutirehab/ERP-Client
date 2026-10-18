@@ -7,12 +7,12 @@ import {
   createContract,
   updateContract,
   getVendors,
-  getAllCenters,
-  getPRDepartments,
   getBudgets,
   getUserLookup,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../Components/Hooks/useReferenceData";
+
 import "../UnitOfMeasurement/uom.scss";
 
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
@@ -31,8 +31,8 @@ const ContractForm = ({ editingItem, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
   const [previewContractId] = useState(generatePreviewContractId());
   const [vendors, setVendors] = useState([]);
-  const [centers, setCenters] = useState([]);
-  const [departments, setDepartments] = useState([]);
+  const { items: centers } = useReferenceList("centers");
+  const { items: departments } = useReferenceList("departments");
   const [budgets, setBudgets] = useState([]);
 
   const [ownerSearch, setOwnerSearch] = useState(
@@ -43,12 +43,6 @@ const ContractForm = ({ editingItem, onSaved, onCancel }) => {
   useEffect(() => {
     getVendors({})
       .then((res) => setVendors(res?.data || []))
-      .catch(() => {});
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
-    getPRDepartments({})
-      .then((res) => setDepartments(res?.data || []))
       .catch(() => {});
   }, []);
 

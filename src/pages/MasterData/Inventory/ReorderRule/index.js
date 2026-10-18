@@ -7,11 +7,11 @@ import {
   createReorderRule,
   deleteReorderRule,
   getReorderAlerts,
-  getAllCenters,
   getVendors,
   getStockBalances,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
@@ -27,7 +27,7 @@ const ReorderRule = () => {
   const [alerts, setAlerts] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
-  const [centers, setCenters] = useState([]);
+  const { items: centers } = useReferenceList("centers");
   const [vendors, setVendors] = useState([]);
   const [stockOptions, setStockOptions] = useState([]);
 
@@ -45,9 +45,6 @@ const ReorderRule = () => {
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
     getVendors({})
       .then((res) => setVendors(res?.data || []))
       .catch(() => {});
