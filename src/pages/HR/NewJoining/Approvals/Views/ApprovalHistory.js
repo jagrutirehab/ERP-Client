@@ -174,6 +174,10 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
 
   const columns = [
     {
+      name: <div>Salutation</div>,
+      selector: (row) => row?.salutation || "-",
+    },
+    {
       name: <div>ECode</div>,
       selector: (row) => row?.eCode || "-",
       sortable: true,

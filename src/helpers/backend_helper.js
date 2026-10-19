@@ -463,11 +463,16 @@ export const updatePatientAdmission = (data) =>
   api.update(url.EDIT_ADMISSION, data);
 export const setRamsayApplicable = (data) =>
   api.update(url.SET_RAMSAY_APPLICABLE, data);
+export const setMorseApplicable = (data) =>
+  api.update(url.SET_MORSE_APPLICABLE, data);
 export const setBaselineInvestigationStatus = (data) =>
   api.update(url.SET_BASELINE_INVESTIGATION_STATUS, data);
 export const setPsychologicalTestStatus = (data) =>
   api.update(url.SET_PSYCHOLOGICAL_TEST_STATUS, data);
 // Override accounts only (server-enforced): empties admissionTypeHistory.
+// The admission card's clinical Patient Type (Psychiatric / Addiction / Geriatric).
+export const setPatientAdmissionType = (data) =>
+  api.update(url.SET_PATIENT_ADMISSION_TYPE, data);
 export const clearAdmissionTypeDirect = (data) =>
   api.update(url.CLEAR_ADMISSION_TYPE_DIRECT, data);
 export const setAdmissionTypeDirect = (data) =>
@@ -4185,6 +4190,72 @@ export const getPayrollAdjustments = (params = {}) => {
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const postESICRecords = (data) => {
+  return api.create(url.ESIC_RECORDS, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const editESICRecord = (id, data) => {
+  return api.update(`${url.ESIC_RECORDS}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const deleteESICRecord = (id) => {
+  return api.delete(`${url.ESIC_RECORDS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const esicAction = (id, data) => {
+  return api.update(`${url.ESIC_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getESICRecords = (params = {}) => {
+  return api.get(url.ESIC_RECORDS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const searchESICEmployees = (params = {}) => {
+  return api.get(url.ESIC_SEARCH_EMPLOYEES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getMyESICRecords = () => {
+  return api.get(url.ESIC_MY_RECORDS, {
+    headers: {
+      "X-No-Cookie-Token": "true",
     },
   });
 };

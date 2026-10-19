@@ -307,6 +307,13 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         style: earnedCellStyle,
     },
     {
+        name: <div>EL Encashment</div>,
+        selector: row => formatCurrency(row?.earned?.adjustments?.EL_ENCASHMENT),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
+    {
         name: <div>Gross Salary</div>,
         selector: row => formatCurrency(
             isSimplifiedEmployee(row)

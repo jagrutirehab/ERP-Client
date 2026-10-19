@@ -60,6 +60,13 @@ export const employeeGenderOptions = [
     { value: "OTHER", label: "Other" },
 ];
 
+export const salutationOptions = [
+    { value: "MR", label: "Mr" },
+    { value: "MS", label: "Ms" },
+    { value: "MRS", label: "Mrs" },
+    { value: "DR", label: "Dr" },
+];
+
 export const HiringPreferredGenderOptions = [
     { value: "MALE", label: "Male", },
     { value: "FEMALE", label: "Female", },

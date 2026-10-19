@@ -34,10 +34,13 @@ import { toast } from "react-toastify";
 import { assignEmergencyPatientType } from "../../../store/features/patient/patientSlice";
 import {
   setAdmissionRamsayApplicable,
+  setAdmissionMorseApplicable,
   setAdmissionPsychologicalTestStatus,
+  setAdmissionPatientAdmissionType,
 } from "../../../store/features/chart/chartSlice";
 import SetAdmissionTypeModal from "./Components/SetAdmissionTypeModal";
 import ClearAdmissionTypeModal from "./Components/ClearAdmissionTypeModal";
+import PatientAdmissionTypeControl from "./Components/PatientAdmissionTypeControl";
 import BaselinePackageControl from "./Components/BaselinePackageControl";
 import BaselinePackageStatusModal from "./Components/BaselinePackageStatusModal";
 import PsychologicalTestsControl from "./Components/PsychologicalTestsControl";
@@ -152,6 +155,40 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
 
   // Takes the admission id, not the patient id: a patient can have several
   // admissions rendered here, and this flag belongs to one of them.
+  // The thunk rejects with a string and has already shown the server's message,
+  // so there's nothing to add on failure.
+  const handlePatientAdmissionTypeChange = async (admissionId, value) => {
+    try {
+      const res = await dispatch(
+        setAdmissionPatientAdmissionType({
+          admissionId,
+          patientAdmissionType: value,
+        }),
+      ).unwrap();
+      toast.success(res?.message || "Patient type updated");
+    } catch {
+      // shown via setAlert
+    }
+  };
+
+  // Same as Ramsay, for the Morse Fall Risk protocol. The thunk rejects with a
+  // string after showing the server's message, so there's nothing to add here.
+  const handleMorseApplicableChange = async (admissionId, isApplicable) => {
+    try {
+      await dispatch(
+        setAdmissionMorseApplicable({
+          admissionId,
+          isMorseApplicable: isApplicable,
+        }),
+      ).unwrap();
+      toast.success(
+        `Morse marked as ${isApplicable ? "applicable" : "not applicable"}`,
+      );
+    } catch {
+      // shown via setAlert
+    }
+  };
+
   const handleRamsayApplicableChange = async (admissionId, isApplicable) => {
     try {
       await dispatch(
@@ -400,7 +437,7 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                     row. Add another w-100 sibling below rather than nesting
                     into this div, which has no flex-wrap and would overflow on
                     a narrow screen. */}
-                <div className="d-flex align-items-center gap-1 w-100">
+                <div className="d-flex align-items-center flex-wrap gap-1 row-gap-2 w-100">
                   <RenderWhen isTrue={!addmission.dischargeDate}>
                     <div className="form-check form-switch d-flex align-items-center mb-0">
                       <Input
@@ -422,6 +459,29 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                         Is Ramsay Applicable
                       </Label>
                     </div>
+
+                    {/* Gates the Morse Fall Risk protocol, exactly like
+                        Ramsay. Off by default; independent of Patient Type. */}
+                    <div className="form-check form-switch d-flex align-items-center mb-0 ms-3">
+                      <Input
+                        type="checkbox"
+                        role="switch"
+                        id={`morse-applicable-${addmission._id}`}
+                        checked={!!addmission.isMorseApplicable}
+                        onChange={(e) =>
+                          handleMorseApplicableChange(
+                            addmission._id,
+                            e.target.checked,
+                          )
+                        }
+                      />
+                      <Label
+                        className="form-check-label text-nowrap ms-2 mb-0"
+                        htmlFor={`morse-applicable-${addmission._id}`}
+                      >
+                        Is Morse Applicable
+                      </Label>
+                    </div>
                   </RenderWhen>
 
                   <RenderWhen isTrue={addmission.dischargeDate}>
@@ -433,7 +493,23 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
                         {addmission.isRamsayApplicable ? "Yes" : "No"}
                       </p>
                     </div>
+                    <div className="d-flex align-items-center ms-3">
+                      <Label className="mb-0 text-nowrap me-2">
+                        Is Morse Applicable:
+                      </Label>
+                      <p className="mb-0">
+                        {addmission.isMorseApplicable ? "Yes" : "No"}
+                      </p>
+                    </div>
                   </RenderWhen>
+
+                  {/* Clinical Patient Type (Psychiatric / Addiction /
+                      Geriatric). Not the emergency "Patient Category" above.
+                      A Detail Admission save with a type overwrites it. */}
+                  <PatientAdmissionTypeControl
+                    addmission={addmission}
+                    onChange={handlePatientAdmissionTypeChange}
+                  />
 
                   {/* Backfill affordance: only for a live admission that has NO
                       timeline at all, i.e. neither an Admission Type chart nor a
