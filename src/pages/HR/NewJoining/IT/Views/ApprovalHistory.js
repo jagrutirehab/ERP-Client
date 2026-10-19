@@ -118,6 +118,10 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles, designationOptio
 
   const columns = [
     {
+      name: <div>Salutation</div>,
+      selector: (row) => row?.salutation || "-",
+    },
+    {
       name: <div>ECode</div>,
       selector: (row) => {
         return row?.eCode || "-";

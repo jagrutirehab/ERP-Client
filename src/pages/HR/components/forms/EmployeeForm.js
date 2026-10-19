@@ -60,6 +60,7 @@ import {
   isConsultantFinanceType,
   isPfApplicable,
   categoryOptions,
+  salutationOptions,
 } from "../../../../Components/constants/HR";
 import {
   calculatePayroll,
@@ -125,6 +126,7 @@ const FORM_TABS = [
 const TAB_FIELDS = {
   personal: [
     "name",
+    "salutation",
     "state",
     "gender",
     "dateOfBirth",
@@ -563,6 +565,7 @@ const baseValidationSchema = (mode, isEdit) =>
 
 const getInitialValues = (initialData, mode) => ({
   name: initialData?.name || "",
+  salutation: initialData?.salutation || "",
   eCode: mode === "NEW_JOINING" ? "" : initialData?.eCode || "",
 
   department: initialData?.department?._id || "",
@@ -3937,6 +3940,25 @@ const EmployeeForm = ({
               onBlur={() => setFieldTouched("name", true)}
             />
             {errorText("name")}
+          </Col>
+          <Col md={6}>
+            <Label htmlFor="salutation">Salutation</Label>
+            <Select
+              inputId="salutation"
+              placeholder="Select Salutation"
+              options={salutationOptions}
+              value={
+                salutationOptions.find(
+                  (opt) => opt.value === values.salutation,
+                ) || null
+              }
+              onChange={(opt) =>
+                form.setFieldValue("salutation", opt ? opt.value : "")
+              }
+              onBlur={() => setFieldTouched("salutation", true)}
+              isClearable
+            />
+            {errorText("salutation")}
           </Col>
           {/* STATE */}
           <Col md={6}>
