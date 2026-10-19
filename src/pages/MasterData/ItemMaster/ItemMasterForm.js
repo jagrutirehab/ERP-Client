@@ -20,13 +20,12 @@ import {
   getItemTypes,
   getAssetCategories,
   getItemMasters,
-  getUoms,
-  getVendors,
   createItemMaster,
   updateItemMaster,
   uploadItemImage,
   deleteItemImage,
 } from "../../../helpers/backend_helper";
+import { useReferenceList } from "../../../Components/Hooks/useReferenceData";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import FormSectionLabel from "../shared/FormSectionLabel";
 import COUNTRIES from "../shared/countries";
@@ -54,8 +53,8 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
   const [activeTab, setActiveTab] = useState("general");
 
   const [itemTypes, setItemTypes] = useState([]);
-  const [uoms, setUoms] = useState([]);
-  const [vendors, setVendors] = useState([]);
+  const { items: uoms } = useReferenceList("uomsAll");
+  const { items: vendors } = useReferenceList("vendorsAll");
   const [catOptions, setCatOptions] = useState({
     l1: [],
     l2: [],
@@ -248,18 +247,6 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
   }, []);
 
   useEffect(() => {
-    getUoms({})
-      .then((res) => setUoms(res?.data || []))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    getVendors({})
-      .then((res) => setVendors(res?.data || []))
-      .catch(() => {});
-  }, []);
-
-    useEffect(() => {
     getAssetCategories({ level: 1 })
       .then((res) => setCatOptions((p) => ({ ...p, l1: res?.data || [] })))
       .catch(() => {});
@@ -321,8 +308,13 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [v.itemCode]);
 
-    const handleCategoryChange = (levelKey, value) => {
-    const order = ["assetCategoryL1", "assetCategoryL2", "assetCategoryL3", "assetCategoryL4"];
+  const handleCategoryChange = (levelKey, value) => {
+    const order = [
+      "assetCategoryL1",
+      "assetCategoryL2",
+      "assetCategoryL3",
+      "assetCategoryL4",
+    ];
     const idx = order.indexOf(levelKey);
     const resetFields = {};
     order.slice(idx + 1).forEach((k) => (resetFields[k] = ""));
