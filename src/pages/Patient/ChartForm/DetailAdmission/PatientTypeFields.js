@@ -9,11 +9,10 @@ import SectionRenderer from "../Components/SectionRenderer";
 import { setInPath, validateSections } from "./Helpers/Fields";
 import Select from "react-select";
 
-export const PATIENT_TYPE_OPTIONS = [
-  { value: "psychiatric", label: "Psychiatric" },
-  { value: "addiction", label: "Addiction" },
-  { value: "geriatric", label: "Geriatric / Dementia / Palliative" },
-];
+// Shared with the IPD admission card's Patient Type dropdown. Re-exported so
+// existing imports from this file keep working.
+import { PATIENT_TYPE_OPTIONS } from "../../../../Components/constants/patientAdmissionType";
+export { PATIENT_TYPE_OPTIONS };
 
 const CONFIG_BY_TYPE = {
   psychiatric: psychiatricConfig,

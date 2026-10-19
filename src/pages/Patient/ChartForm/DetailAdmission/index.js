@@ -665,6 +665,13 @@ const DetailAdmission = ({
       date: chartDate,
       type,
       ...(!isEdit && savedDraft ? savedDraft : {}),
+      // A NEW chart starts from the Patient Type already on the admission card
+      // (unless the draft has one). Editing keeps the chart's own value.
+      ...(!isEdit &&
+        !savedDraft?.patientType &&
+        patient?.addmission?.patientAdmissionType && {
+          patientType: patient.addmission.patientAdmissionType,
+        }),
     },
 
     validationSchema: Yup.object({
