@@ -26,6 +26,14 @@ const PHASE_STATES = [
   { k: "DELAYED", label: "Delayed" },
 ];
 
+// Who closed the alert. "System" = the daily sweep that resolves alerts once the
+// patient's stay is over (discharged / admission deleted).
+const RESOLVED_BY_STATES = [
+  { k: "all", label: "All" },
+  { k: "staff", label: "Staff" },
+  { k: "system", label: "System" },
+];
+
 const RESOLVED_STATES = [
   { k: "all", label: "All" },
   { k: "unresolved", label: "Unresolved" },
@@ -84,6 +92,7 @@ const AlertsFilters = ({
     serverFilters.readState !== "all" ||
     serverFilters.phase !== "all" ||
     serverFilters.resolvedState !== "all" ||
+    (serverFilters.resolvedBy || "all") !== "all" ||
     serverFilters.source !== "all" ||
     serverFilters.severity?.length > 0;
 
@@ -279,6 +288,21 @@ const AlertsFilters = ({
               outline={serverFilters.resolvedState !== k}
               size="sm"
               onClick={() => onServerFilterChange("resolvedState", k)}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+
+        <div className="d-flex gap-1 align-items-center">
+          <small className="text-muted me-1">Resolved by:</small>
+          {RESOLVED_BY_STATES.map(({ k, label }) => (
+            <Button
+              key={k}
+              color={serverFilters.resolvedBy === k ? "primary" : "secondary"}
+              outline={serverFilters.resolvedBy !== k}
+              size="sm"
+              onClick={() => onServerFilterChange("resolvedBy", k)}
             >
               {label}
             </Button>

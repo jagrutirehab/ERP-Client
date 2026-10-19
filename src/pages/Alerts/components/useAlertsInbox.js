@@ -30,6 +30,7 @@ const initialFilters = () => ({
   readState: "all",     // all | unread | read
   phase: "all",         // all | IMMEDIATE | DELAYED
   resolvedState: "all", // all | resolved | unresolved
+  resolvedBy: "all",    // all | staff | system — who closed it; all by default
   // all | SOP_RULE | BASELINE_INVESTIGATION. What produced the alert. Needed
   // because a baseline-package alert has no `rule`, so it can never be reached
   // through the SOP-name dropdown above.
@@ -65,6 +66,8 @@ const buildServerParams = (filters, page, pageSize) => {
   if (filters.phase && filters.phase !== "all") out.phase = filters.phase;
   if (filters.resolvedState && filters.resolvedState !== "all")
     out.resolvedState = filters.resolvedState;
+  if (filters.resolvedBy && filters.resolvedBy !== "all")
+    out.resolvedBy = filters.resolvedBy;
   if (filters.source && filters.source !== "all") out.source = filters.source;
 
   return out;

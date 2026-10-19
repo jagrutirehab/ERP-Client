@@ -432,11 +432,16 @@ export const updatePatientAdmission = (data) =>
   api.update(url.EDIT_ADMISSION, data);
 export const setRamsayApplicable = (data) =>
   api.update(url.SET_RAMSAY_APPLICABLE, data);
+export const setMorseApplicable = (data) =>
+  api.update(url.SET_MORSE_APPLICABLE, data);
 export const setBaselineInvestigationStatus = (data) =>
   api.update(url.SET_BASELINE_INVESTIGATION_STATUS, data);
 export const setPsychologicalTestStatus = (data) =>
   api.update(url.SET_PSYCHOLOGICAL_TEST_STATUS, data);
 // Override accounts only (server-enforced): empties admissionTypeHistory.
+// The admission card's clinical Patient Type (Psychiatric / Addiction / Geriatric).
+export const setPatientAdmissionType = (data) =>
+  api.update(url.SET_PATIENT_ADMISSION_TYPE, data);
 export const clearAdmissionTypeDirect = (data) =>
   api.update(url.CLEAR_ADMISSION_TYPE_DIRECT, data);
 export const setAdmissionTypeDirect = (data) =>

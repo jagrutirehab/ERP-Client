@@ -92,12 +92,14 @@ export const SEARCH_PATIENTS_PHONE_NUMBER = "/patient/search/phone-number";
 export const ADMIT_PATIENT = "/patient/admit";
 export const EDIT_ADMISSION = "/patient/admit/update";
 export const SET_RAMSAY_APPLICABLE = "/patient/admission/ramsay-applicable";
+export const SET_MORSE_APPLICABLE = "/patient/admission/morse-applicable";
 export const SET_BASELINE_INVESTIGATION_STATUS =
   "/patient/admission/baseline-investigation";
 export const SET_PSYCHOLOGICAL_TEST_STATUS =
   "/patient/admission/psychological-tests";
 export const SET_ADMISSION_TYPE_DIRECT = "/patient/admission/admission-type";
 export const CLEAR_ADMISSION_TYPE_DIRECT = "/patient/admission/admission-type/clear";
+export const SET_PATIENT_ADMISSION_TYPE = "/patient/admission/patient-admission-type";
 export const SUBMIT_ADMISSION_FORM = "/patient/admission-submit";
 export const DISCHARGE_PATIENT = "/patient/discharge";
 export const UNDISCHARGE_PATIENT = "/patient/un-discharge";
