@@ -5,7 +5,6 @@ import {
   updateVendor,
   getVendorById,
   uploadVendorDocument,
-  getPaymentTerms,
   updateVendorApprovalStatus,
 } from "../../../helpers/backend_helper";
 import { Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
@@ -13,6 +12,9 @@ import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../Components/Hooks/useReferenceData";
+import { useDispatch } from "react-redux";
+import { invalidateReferenceList } from "../../../store/features/reference/referenceSlice";
 import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import "./vendor.scss";
 
@@ -547,6 +549,7 @@ const DocDropzone = ({
 
 const VendorForm = ({ vendorId, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
+  const dispatch = useDispatch();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "VENDOR", "WRITE");
@@ -589,14 +592,8 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
     fetchVendor();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vendorId]);
+  const { items: paymentTermOptions } = useReferenceList("paymentTerms"); 
 
-  const [paymentTermOptions, setPaymentTermOptions] = useState([]);
-
-  useEffect(() => {
-    getPaymentTerms({ status: "active" })
-      .then((res) => setPaymentTermOptions(res?.data || []))
-      .catch(() => {});
-  }, []);
 
   const [approvalStatus, setApprovalStatus] = useState(
     initialValues?.approvalStatus || "incomplete",
@@ -613,6 +610,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
     setSubmittingApproval(true);
     try {
       await updateVendorApprovalStatus(vendorId, "pending");
+      dispatch(invalidateReferenceList("vendors"));
       setApprovalStatus("pending");
       toast.success("Vendor submitted for approval");
     } catch (error) {
@@ -741,7 +739,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
           const res = await createVendor(payload);
           savedVendorId = res?.data?._id;
         }
-
+        dispatch(invalidateReferenceList("vendors"));
         const docKeys = Object.keys(documentFiles);
         if (savedVendorId && docKeys.length > 0) {
           for (const docType of docKeys) {
@@ -2276,6 +2274,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       setSubmittingApproval(true);
                       try {
                         await updateVendorApprovalStatus(vendorId, "approved");
+                        dispatch(invalidateReferenceList("vendors"));
                         setApprovalStatus("approved");
                         toast.success("Vendor marked as verified");
                       } catch (error) {
@@ -2300,6 +2299,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                           vendorId,
                           "incomplete",
                         );
+                        dispatch(invalidateReferenceList("vendors"));
                         setApprovalStatus("incomplete");
                         toast.success("Vendor marked as unverified");
                       } catch (error) {

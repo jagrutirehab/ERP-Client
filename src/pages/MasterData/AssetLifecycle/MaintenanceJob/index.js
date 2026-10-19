@@ -50,7 +50,6 @@ const MaintenanceJob = () => {
   const [showTechDropdown, setShowTechDropdown] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const debounceRef = React.useRef(null);
-  const { items: centers } = useReferenceList("centers");
   const { items: activeVendors } = useReferenceList("vendors");
   const vendors = React.useMemo(
     () => activeVendors.filter((v) => v.approvalStatus === "approved"),

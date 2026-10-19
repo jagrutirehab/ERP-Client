@@ -8,8 +8,6 @@ import {
   createPR,
   updatePR,
   getBudgets,
-  getVendors,
-  getUoms,
   getItemMasters,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
@@ -52,8 +50,8 @@ const PRForm = ({ editingItem, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
   const [previewPrNumber] = useState(generatePreviewPrNumber());
   const [budgets, setBudgets] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [uoms, setUoms] = useState([]);
+const { items: vendors } = useReferenceList("vendorsAll"); 
+const { items: uoms } = useReferenceList("uomsAll"); 
   const { items: departments } = useReferenceList("departments");
   const { items: centers } = useReferenceList("centers");
 
@@ -61,14 +59,6 @@ const PRForm = ({ editingItem, onSaved, onCancel }) => {
   const itemSearchTimers = useRef({});
   const itemInputRefs = useRef({});
 
-  useEffect(() => {
-    getVendors({})
-      .then((res) => setVendors(res?.data || []))
-      .catch(() => {});
-    getUoms({})
-      .then((res) => setUoms(res?.data || []))
-      .catch(() => {});
-  }, []);
 
   const validation = useFormik({
     initialValues: {

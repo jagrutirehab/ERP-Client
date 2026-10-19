@@ -7,7 +7,7 @@ import {
   getVendors,
 } from "../../../helpers/backend_helper";
 
-const FRESH_FOR_MS = 15 * 1000;
+const FRESH_FOR_MS = 2 * 60 * 1000;
 
 const LISTS = {
   centers: {
@@ -19,10 +19,16 @@ const LISTS = {
   uoms: { load: () => getUoms({ status: "active", limit: 1000 }) },
   paymentTerms: { load: () => getPaymentTerms({ status: "active" }) },
   vendors: { load: () => getVendors({ status: "active", limit: 1000 }) },
+  uomsAll: { load: () => getUoms({ limit: 1000 }) },
+  vendorsAll: { load: () => getVendors({ limit: 1000 }) },
 };
-
-// The center slice already announces these. Listening to them means a change made anywhere in the
-// app makes the cached centers "old" at once, without touching the center slice at all.
+// Two lists that come from the same master. When one becomes old, so does the other.
+const SAME_MASTER = {
+  uoms: ["uoms", "uomsAll"],
+  uomsAll: ["uoms", "uomsAll"],
+  vendors: ["vendors", "vendorsAll"],
+  vendorsAll: ["vendors", "vendorsAll"],
+};
 const CENTER_CHANGE_ACTIONS = [
   "postCenter/fulfilled",
   "editCenter/fulfilled",
@@ -30,10 +36,19 @@ const CENTER_CHANGE_ACTIONS = [
   "deleteCenterLogo/fulfilled",
 ];
 
-const emptyList = () => ({ items: [], loading: false, loadedAt: null, error: null });
+const LOGOUT_ACTIONS = ["auth/logoutUser/pending", "auth/logoutUser/fulfilled"];
+
+const emptyList = () => ({
+  items: [],
+  loading: false,
+  loadedAt: null,
+  error: null,
+});
 
 const initialState = {
-  lists: Object.fromEntries(Object.keys(LISTS).map((name) => [name, emptyList()])),
+  lists: Object.fromEntries(
+    Object.keys(LISTS).map((name) => [name, emptyList()]),
+  ),
 };
 
 export const fetchReferenceList = createAsyncThunk(
@@ -47,7 +62,10 @@ export const fetchReferenceList = createAsyncThunk(
       // only plain text goes into the store, never the whole error object
       return rejectWithValue({
         name,
-        message: error?.response?.data?.message || error?.message || "Couldn't load the list",
+        message:
+          error?.response?.data?.message ||
+          error?.message ||
+          "Couldn't load the list",
       });
     }
   },
@@ -58,7 +76,8 @@ export const fetchReferenceList = createAsyncThunk(
       if (!list) return false;
       if (list.loading) return false;
       const freshFor = LISTS[name].freshForMs ?? FRESH_FOR_MS;
-      if (!force && list.loadedAt && Date.now() - list.loadedAt < freshFor) return false;
+      if (!force && list.loadedAt && Date.now() - list.loadedAt < freshFor)
+        return false;
       return true;
     },
   },
@@ -70,7 +89,9 @@ const referenceSlice = createSlice({
   reducers: {
     // Call after a master is created, edited or deleted, so the next form fetches a new copy
     invalidateReferenceList: (state, { payload: name }) => {
-      if (state.lists[name]) state.lists[name].loadedAt = null;
+      (SAME_MASTER[name] || [name]).forEach((n) => {
+        if (state.lists[n]) state.lists[n].loadedAt = null;
+      });
     },
     invalidateAllReferenceLists: (state) => {
       Object.values(state.lists).forEach((l) => {
@@ -102,6 +123,12 @@ const referenceSlice = createSlice({
         list.error = payload?.message || "Couldn't load the list";
       });
 
+    // the user logged out: start again from nothing
+    builder.addMatcher(
+      (action) => LOGOUT_ACTIONS.includes(action.type),
+      () => initialState,
+    );
+
     // a center was created, edited or deleted: the cached centers are now old
     builder.addMatcher(
       (action) => CENTER_CHANGE_ACTIONS.includes(action.type),
@@ -112,6 +139,9 @@ const referenceSlice = createSlice({
   },
 });
 
-export const { invalidateReferenceList, invalidateAllReferenceLists, clearReferenceData } =
-  referenceSlice.actions;
+export const {
+  invalidateReferenceList,
+  invalidateAllReferenceLists,
+  clearReferenceData,
+} = referenceSlice.actions;
 export default referenceSlice.reducer;

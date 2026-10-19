@@ -5,10 +5,13 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { createUom, updateUom } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useDispatch } from "react-redux";
+import { invalidateReferenceList } from "../../../store/features/reference/referenceSlice";
 import "./uom.scss";
 
 const UOMForm = ({ editingItem, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
+  const dispatch = useDispatch();
 
   const validation = useFormik({
     initialValues: {
@@ -29,6 +32,7 @@ const UOMForm = ({ editingItem, onSaved, onCancel }) => {
           await createUom(values);
           toast.success("Unit of measurement added successfully");
         }
+        dispatch(invalidateReferenceList("uoms"));
         onSaved();
       } catch (error) {
         if (!handleAuthError(error)) {

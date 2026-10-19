@@ -7,7 +7,6 @@ import {
   createReorderRule,
   deleteReorderRule,
   getReorderAlerts,
-  getVendors,
   getStockBalances,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
@@ -28,7 +27,7 @@ const ReorderRule = () => {
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
   const { items: centers } = useReferenceList("centers");
-  const [vendors, setVendors] = useState([]);
+  const { items: vendors } = useReferenceList("vendorsAll");
   const [stockOptions, setStockOptions] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -43,12 +42,6 @@ const ReorderRule = () => {
   const [remarks, setRemarks] = useState("");
   const [active, setActive] = useState(true);
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    getVendors({})
-      .then((res) => setVendors(res?.data || []))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     let cancelled = false;

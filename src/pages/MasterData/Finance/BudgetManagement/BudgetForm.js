@@ -6,10 +6,10 @@ import { toast } from "react-toastify";
 import {
   createBudget,
   updateBudget,
-  getPRDepartments,
   getUserLookup,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import "../../UnitOfMeasurement/uom.scss";
 
 function getCurrentFiscalYear() {
@@ -25,19 +25,13 @@ const CURRENT_FISCAL_YEAR = getCurrentFiscalYear();
 
 const BudgetForm = ({ editingItem, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
-  const [departments, setDepartments] = useState([]);
+  const { items: departments } = useReferenceList("departments");
   const [userSearch, setUserSearch] = useState("");
   const [userOptions, setUserOptions] = useState([]);
   const [selectedUserLabel, setSelectedUserLabel] = useState(
     editingItem?.departmentBudgetHeadId?.name || "",
   );
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-
-  useEffect(() => {
-    getPRDepartments({})
-      .then((res) => setDepartments(res?.data || []))
-      .catch(() => {});
-  }, []);
   useEffect(() => {
     if (userSearch.trim().length < 2) {
       setUserOptions([]);

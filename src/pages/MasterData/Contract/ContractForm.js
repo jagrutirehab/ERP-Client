@@ -6,7 +6,6 @@ import { toast } from "react-toastify";
 import {
   createContract,
   updateContract,
-  getVendors,
   getBudgets,
   getUserLookup,
 } from "../../../helpers/backend_helper";
@@ -30,7 +29,7 @@ function generatePreviewContractId() {
 const ContractForm = ({ editingItem, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
   const [previewContractId] = useState(generatePreviewContractId());
-  const [vendors, setVendors] = useState([]);
+  const { items: vendors } = useReferenceList("vendorsAll");
   const { items: centers } = useReferenceList("centers");
   const { items: departments } = useReferenceList("departments");
   const [budgets, setBudgets] = useState([]);
@@ -39,12 +38,6 @@ const ContractForm = ({ editingItem, onSaved, onCancel }) => {
     editingItem?.ownerId ? editingItem.ownerId.name || "" : "",
   );
   const [ownerOptions, setOwnerOptions] = useState([]);
-
-  useEffect(() => {
-    getVendors({})
-      .then((res) => setVendors(res?.data || []))
-      .catch(() => {});
-  }, []);
 
   const validation = useFormik({
     initialValues: {

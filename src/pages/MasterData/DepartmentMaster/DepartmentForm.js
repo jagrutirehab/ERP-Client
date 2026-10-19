@@ -3,12 +3,18 @@ import { Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { createPRDepartment, updatePRDepartment } from "../../../helpers/backend_helper";
+import {
+  createPRDepartment,
+  updatePRDepartment,
+} from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useDispatch } from "react-redux";
+import { invalidateReferenceList } from "../../../store/features/reference/referenceSlice";
 import "../UnitOfMeasurement/uom.scss";
 
 const DepartmentForm = ({ editingItem, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
+  const dispatch = useDispatch();
 
   const validation = useFormik({
     initialValues: {
@@ -32,10 +38,15 @@ const DepartmentForm = ({ editingItem, onSaved, onCancel }) => {
           await createPRDepartment(values);
           toast.success("Department created successfully");
         }
+        dispatch(invalidateReferenceList("departments"));
         onSaved();
       } catch (error) {
         if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+          toast.error(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Something went wrong",
+          );
         }
       }
     },
@@ -45,7 +56,9 @@ const DepartmentForm = ({ editingItem, onSaved, onCancel }) => {
 
   return (
     <div className="uom-form-page">
-      <h4 className="uom-form-title">{editingItem ? "Edit Department" : "Add Department"}</h4>
+      <h4 className="uom-form-title">
+        {editingItem ? "Edit Department" : "Add Department"}
+      </h4>
 
       <div className="uom-form-panel">
         <form onSubmit={validation.handleSubmit}>
@@ -73,8 +86,16 @@ const DepartmentForm = ({ editingItem, onSaved, onCancel }) => {
             <Button type="button" color="light" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit" color="primary" disabled={validation.isSubmitting}>
-              {validation.isSubmitting ? "Saving..." : editingItem ? "Save changes" : "Add Department"}
+            <Button
+              type="submit"
+              color="primary"
+              disabled={validation.isSubmitting}
+            >
+              {validation.isSubmitting
+                ? "Saving..."
+                : editingItem
+                  ? "Save changes"
+                  : "Add Department"}
             </Button>
           </div>
         </form>

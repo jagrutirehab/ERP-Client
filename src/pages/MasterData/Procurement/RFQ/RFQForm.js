@@ -1,24 +1,31 @@
 import React, { useEffect, useState } from "react";
-import { Row, Col, Label, Input, FormFeedback, Button, Modal, ModalBody } from "reactstrap";
+import {
+  Row,
+  Col,
+  Label,
+  Input,
+  FormFeedback,
+  Button,
+  Modal,
+  ModalBody,
+} from "reactstrap";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
-import { createRFQ, getPRs, getVendors } from "../../../../helpers/backend_helper";
+import { createRFQ, getPRs } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import "../../UnitOfMeasurement/uom.scss";
 
 const RFQForm = ({ onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
   const [approvedPRs, setApprovedPRs] = useState([]);
-  const [vendors, setVendors] = useState([]);
+  const { items: vendors } = useReferenceList("vendorsAll");
   const [detailVendor, setDetailVendor] = useState(null);
 
   useEffect(() => {
     getPRs({ status: "approved" })
       .then((res) => setApprovedPRs(res?.data || []))
-      .catch(() => {});
-    getVendors({})
-      .then((res) => setVendors(res?.data || []))
       .catch(() => {});
   }, []);
 
@@ -47,7 +54,9 @@ const RFQForm = ({ onSaved, onCancel }) => {
       } catch (error) {
         if (!handleAuthError(error)) {
           toast.error(
-            error?.response?.data?.message || error?.message || "Something went wrong",
+            error?.response?.data?.message ||
+              error?.message ||
+              "Something went wrong",
           );
         }
       }
@@ -82,12 +91,15 @@ const RFQForm = ({ onSaved, onCancel }) => {
           <Row>
             <Col md={6} className="mb-4">
               <Label>
-                Purchase Requisition (Approved only) <span className="text-danger">*</span>
+                Purchase Requisition (Approved only){" "}
+                <span className="text-danger">*</span>
               </Label>
               <Input
                 type="select"
                 value={v.prId}
-                onChange={(e) => validation.setFieldValue("prId", e.target.value)}
+                onChange={(e) =>
+                  validation.setFieldValue("prId", e.target.value)
+                }
                 onBlur={validation.handleBlur}
                 invalid={validation.touched.prId && !!validation.errors.prId}
               >
@@ -110,7 +122,9 @@ const RFQForm = ({ onSaved, onCancel }) => {
               <Input
                 type="date"
                 value={v.dueDate}
-                onChange={(e) => validation.setFieldValue("dueDate", e.target.value)}
+                onChange={(e) =>
+                  validation.setFieldValue("dueDate", e.target.value)
+                }
               />
             </Col>
           </Row>
@@ -119,7 +133,10 @@ const RFQForm = ({ onSaved, onCancel }) => {
             <div className="uom-table-card p-3 mb-4">
               <div className="fw-semibold small mb-2">Items in this PR</div>
               {(selectedPR.lineItems || []).map((li, idx) => (
-                <div key={idx} className="d-flex justify-content-between small text-muted mb-1">
+                <div
+                  key={idx}
+                  className="d-flex justify-content-between small text-muted mb-1"
+                >
                   <span>{li.itemName}</span>
                   <span>Qty: {li.quantity}</span>
                 </div>
@@ -131,7 +148,8 @@ const RFQForm = ({ onSaved, onCancel }) => {
             Select Vendors <span className="text-danger">*</span>
           </h6>
           <p className="uom-form-section-sub">
-            Choose 3–4 vendors to request quotes from (you'll contact them manually)
+            Choose 3–4 vendors to request quotes from (you'll contact them
+            manually)
           </p>
           <Row className="mb-2">
             {vendors.map((vd) => (
@@ -142,7 +160,9 @@ const RFQForm = ({ onSaved, onCancel }) => {
                     border: "1px solid #e4e7ec",
                     borderRadius: 8,
                     padding: 10,
-                    background: v.vendorIds.includes(vd._id) ? "#eef2ff" : "#fff",
+                    background: v.vendorIds.includes(vd._id)
+                      ? "#eef2ff"
+                      : "#fff",
                   }}
                 >
                   <input
@@ -152,13 +172,18 @@ const RFQForm = ({ onSaved, onCancel }) => {
                     style={{ cursor: "pointer" }}
                     onClick={() => toggleVendor(vd._id)}
                   />
-                  <div style={{ cursor: "pointer" }} onClick={() => setDetailVendor(vd)}>
+                  <div
+                    style={{ cursor: "pointer" }}
+                    onClick={() => setDetailVendor(vd)}
+                  >
                     <span className="small fw-semibold d-block text-primary">
                       {vd.tradeName || vd.legalName}
                     </span>
                     <span className="text-muted" style={{ fontSize: 11 }}>
                       {vd.vendorCode}
-                      {vd.primaryContact?.phone ? ` · ${vd.primaryContact.phone}` : ""}
+                      {vd.primaryContact?.phone
+                        ? ` · ${vd.primaryContact.phone}`
+                        : ""}
                     </span>
                   </div>
                 </div>
@@ -166,7 +191,9 @@ const RFQForm = ({ onSaved, onCancel }) => {
             ))}
           </Row>
           {validation.touched.vendorIds && validation.errors.vendorIds && (
-            <div className="text-danger small mb-3">{validation.errors.vendorIds}</div>
+            <div className="text-danger small mb-3">
+              {validation.errors.vendorIds}
+            </div>
           )}
 
           <Row>
@@ -176,7 +203,9 @@ const RFQForm = ({ onSaved, onCancel }) => {
                 type="textarea"
                 rows={2}
                 value={v.remarks}
-                onChange={(e) => validation.setFieldValue("remarks", e.target.value)}
+                onChange={(e) =>
+                  validation.setFieldValue("remarks", e.target.value)
+                }
                 placeholder="Any notes for this RFQ"
               />
             </Col>
@@ -186,18 +215,28 @@ const RFQForm = ({ onSaved, onCancel }) => {
             <Button type="button" color="light" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit" color="primary" disabled={validation.isSubmitting}>
+            <Button
+              type="submit"
+              color="primary"
+              disabled={validation.isSubmitting}
+            >
               {validation.isSubmitting ? "Creating..." : "Create RFQ"}
             </Button>
           </div>
         </form>
       </div>
 
-      <Modal isOpen={!!detailVendor} toggle={() => setDetailVendor(null)} centered>
+      <Modal
+        isOpen={!!detailVendor}
+        toggle={() => setDetailVendor(null)}
+        centered
+      >
         <ModalBody className="p-4">
           {detailVendor && (
             <>
-              <h5 className="mb-1">{detailVendor.tradeName || detailVendor.legalName}</h5>
+              <h5 className="mb-1">
+                {detailVendor.tradeName || detailVendor.legalName}
+              </h5>
               <span className="uom-symbol-badge mb-3 d-inline-block">
                 {detailVendor.vendorCode}
               </span>
@@ -245,7 +284,9 @@ const RFQForm = ({ onSaved, onCancel }) => {
                 </Col>
                 <Col md={6}>
                   <div className="text-muted small">Status</div>
-                  <div className="text-capitalize">{detailVendor.status || "—"}</div>
+                  <div className="text-capitalize">
+                    {detailVendor.status || "—"}
+                  </div>
                 </Col>
               </Row>
 
@@ -254,13 +295,19 @@ const RFQForm = ({ onSaved, onCancel }) => {
                   Close
                 </Button>
                 <Button
-                  color={v.vendorIds.includes(detailVendor._id) ? "danger" : "primary"}
+                  color={
+                    v.vendorIds.includes(detailVendor._id)
+                      ? "danger"
+                      : "primary"
+                  }
                   onClick={() => {
                     toggleVendor(detailVendor._id);
                     setDetailVendor(null);
                   }}
                 >
-                  {v.vendorIds.includes(detailVendor._id) ? "Remove Vendor" : "Select Vendor"}
+                  {v.vendorIds.includes(detailVendor._id)
+                    ? "Remove Vendor"
+                    : "Select Vendor"}
                 </Button>
               </div>
             </>
