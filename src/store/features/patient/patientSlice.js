@@ -31,6 +31,10 @@ import {
   updateAdmissionType,
   removeChart,
   setAdmissionTypeDirect,
+  clearAdmissionTypeDirect,
+  setAdmissionPatientAdmissionType,
+  addDetailAdmission,
+  updateDetailAdmission,
 } from "../chart/chartSlice";
 import { setBillAdmission, updateBillAdmission } from "../bill/billSlice";
 
@@ -548,11 +552,34 @@ export const patientSlice = createSlice({
         },
       });
 
+    // `{ _id, patientAdmissionType, patientAdmissionTypeMeta }` → the open
+    // patient's admission, when it is that admission.
+    const syncPatientAdmissionTypeHere = (state, sync) => {
+      const addmission = state.patient?.addmission;
+      if (!addmission || !sync?.patientAdmissionType) return;
+      if (String(addmission._id) !== String(sync._id)) return;
+      addmission.patientAdmissionType = sync.patientAdmissionType;
+      if (sync.patientAdmissionTypeMeta)
+        addmission.patientAdmissionTypeMeta = sync.patientAdmissionTypeMeta;
+    };
+
     builder
       .addCase(addAdmissionType.fulfilled, syncAdmissionTypeHistory)
       .addCase(updateAdmissionType.fulfilled, syncAdmissionTypeHistory)
       .addCase(removeChart.fulfilled, syncAdmissionTypeHistory)
       .addCase(setAdmissionTypeDirect.fulfilled, syncAdmissionTypeHistoryFromData)
+      .addCase(clearAdmissionTypeDirect.fulfilled, syncAdmissionTypeHistoryFromData)
+      // Clinical Patient Type — from the card, or synced by a Detail Admission
+      // save. Kept here too so a new Detail Admission form prefills from it.
+      .addCase(setAdmissionPatientAdmissionType.fulfilled, (state, { payload }) =>
+        syncPatientAdmissionTypeHere(state, payload?.data),
+      )
+      .addCase(addDetailAdmission.fulfilled, (state, { payload }) =>
+        syncPatientAdmissionTypeHere(state, payload?.patientAdmissionTypeSync),
+      )
+      .addCase(updateDetailAdmission.fulfilled, (state, { payload }) =>
+        syncPatientAdmissionTypeHere(state, payload?.patientAdmissionTypeSync),
+      )
       // Same `data: { _id, admissionTypeHistory }` envelope as the direct setter.
       .addCase(submitAdmissionForm.fulfilled, syncAdmissionTypeHistoryFromData);
 

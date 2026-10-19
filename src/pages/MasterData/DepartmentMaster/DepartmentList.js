@@ -7,6 +7,8 @@ import {
   deletePRDepartment,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useDispatch } from "react-redux";
+import { invalidateReferenceList } from "../../../store/features/reference/referenceSlice";
 import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import "../UnitOfMeasurement/uom.scss";
 
@@ -33,6 +35,7 @@ const tableCustomStyles = {
 
 const DepartmentList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
+    const dispatch = useDispatch();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "DEPARTMENT", "WRITE");
@@ -74,6 +77,7 @@ const DepartmentList = ({ onAdd, onEdit }) => {
     setDeleting(true);
     try {
       await deletePRDepartment(deleteTarget._id);
+      dispatch(invalidateReferenceList("departments"));
       toast.success("Department deleted successfully");
       setDeleteTarget(null);
       setRefreshFlag((f) => f + 1);

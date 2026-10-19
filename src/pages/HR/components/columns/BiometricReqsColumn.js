@@ -14,6 +14,13 @@ export const BiometricReqsColumn = ({
 
   return [
     {
+      name: "Salutation",
+      selector: (row) => row?.employee?.salutation || "-",
+      sortable: true,
+      minWidth: "120px",
+      wrap: true,
+    },
+    {
       name: "ECode",
       selector: (row) => row?.employee?.eCode || "-",
       sortable: true,

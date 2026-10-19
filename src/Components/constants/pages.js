@@ -1339,6 +1339,27 @@ export const HR = [
     ],
   },
   {
+    id: "esic",
+    label: "ESIC",
+    icon: "bx bx-shield-quarter",
+    link: "/hr/esic",
+    isAccordion: true,
+    children: [
+      {
+        id: "esicupload",
+        label: "ESIC Upload",
+        icon: "bx bx-upload",
+        link: "/hr/esic/upload",
+      },
+      {
+        id: "esicapproval",
+        label: "ESIC Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/esic/approval",
+      },
+    ],
+  },
+  {
     id: "salary",
     label: "Salary",
     icon: "bx bx-bar-chart-alt-2",

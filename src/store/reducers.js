@@ -109,6 +109,10 @@ import HRMS from "./features/HRMS/hrmsSlice";
 // Center Dashboard
 import CenterDashboard from "./features/centerDashboard/centerDashboardSlice";
 
+// Reference data (shared lists: centers, vendors, units, departments, payment terms)
+
+import Reference from "./features/reference/referenceSlice";
+
 const rootReducer = combineReducers({
   // ** public **
   User,
@@ -151,6 +155,7 @@ const rootReducer = combineReducers({
   MIReporting,
   HRMS,
   CenterDashboard,
+  Reference
 });
 
 export default rootReducer;

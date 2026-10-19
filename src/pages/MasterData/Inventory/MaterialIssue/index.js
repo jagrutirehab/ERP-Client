@@ -5,14 +5,12 @@ import { toast } from "react-toastify";
 import {
   getMaterialIssues,
   createMaterialIssue,
-  getAllCenters,
-  getPRDepartments,
   // getStockBalances,
   getStorageLocations,
   getLocationStock,
-  getUoms,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
@@ -45,9 +43,9 @@ const MaterialIssue = () => {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
-  const [centers, setCenters] = useState([]);
-  const [departments, setDepartments] = useState([]);
-  const [uoms, setUoms] = useState([]);
+  const { items: centers } = useReferenceList("centers");
+  const { items: departments } = useReferenceList("departments");
+  const { items: uoms } = useReferenceList("uoms");
   const [stockOptions, setStockOptions] = useState([]);
   const [locations, setLocations] = useState([]);
 
@@ -65,18 +63,6 @@ const MaterialIssue = () => {
   const [submitting, setSubmitting] = useState(false);
 
   const [detailModal, setDetailModal] = useState(null);
-
-  useEffect(() => {
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
-    getPRDepartments({})
-      .then((res) => setDepartments(res?.payload || res?.data || []))
-      .catch((err) => console.log("Department fetch error:", err));
-    getUoms({})
-      .then((res) => setUoms(res?.payload || res?.data || []))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     let cancelled = false;

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -6,25 +6,20 @@ import { toast } from "react-toastify";
 import {
   createPRSubDepartment,
   updatePRSubDepartment,
-  getPRDepartments,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../Components/Hooks/useReferenceData";
 import "../UnitOfMeasurement/uom.scss";
 
 const SubDepartmentForm = ({ editingItem, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
-  const [departments, setDepartments] = useState([]);
-
-  useEffect(() => {
-    getPRDepartments({})
-      .then((res) => setDepartments(res?.data || []))
-      .catch(() => {});
-  }, []);
+  const { items: departments } = useReferenceList("departments");
 
   const validation = useFormik({
     initialValues: {
       name: editingItem?.name || "",
-      departmentId: editingItem?.departmentId?._id || editingItem?.departmentId || "",
+      departmentId:
+        editingItem?.departmentId?._id || editingItem?.departmentId || "",
     },
     validationSchema: Yup.object({
       name: Yup.string().trim().required("Name is required"),
@@ -48,7 +43,11 @@ const SubDepartmentForm = ({ editingItem, onSaved, onCancel }) => {
         onSaved();
       } catch (error) {
         if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+          toast.error(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Something went wrong",
+          );
         }
       }
     },
@@ -58,12 +57,16 @@ const SubDepartmentForm = ({ editingItem, onSaved, onCancel }) => {
 
   return (
     <div className="uom-form-page">
-      <h4 className="uom-form-title">{editingItem ? "Edit Sub-Department" : "Add Sub-Department"}</h4>
+      <h4 className="uom-form-title">
+        {editingItem ? "Edit Sub-Department" : "Add Sub-Department"}
+      </h4>
 
       <div className="uom-form-panel">
         <form onSubmit={validation.handleSubmit}>
           <h6 className="uom-form-section-title">Basic Information</h6>
-          <p className="uom-form-section-sub">Sub-department and its parent department</p>
+          <p className="uom-form-section-sub">
+            Sub-department and its parent department
+          </p>
 
           <Row>
             <Col md={6} className="mb-4">
@@ -87,9 +90,14 @@ const SubDepartmentForm = ({ editingItem, onSaved, onCancel }) => {
               <Input
                 type="select"
                 value={v.departmentId}
-                onChange={(e) => validation.setFieldValue("departmentId", e.target.value)}
+                onChange={(e) =>
+                  validation.setFieldValue("departmentId", e.target.value)
+                }
                 onBlur={validation.handleBlur}
-                invalid={validation.touched.departmentId && !!validation.errors.departmentId}
+                invalid={
+                  validation.touched.departmentId &&
+                  !!validation.errors.departmentId
+                }
               >
                 <option value="">Select Department</option>
                 {departments.map((d) => (
@@ -106,8 +114,16 @@ const SubDepartmentForm = ({ editingItem, onSaved, onCancel }) => {
             <Button type="button" color="light" onClick={onCancel}>
               Cancel
             </Button>
-            <Button type="submit" color="primary" disabled={validation.isSubmitting}>
-              {validation.isSubmitting ? "Saving..." : editingItem ? "Save changes" : "Add Sub-Department"}
+            <Button
+              type="submit"
+              color="primary"
+              disabled={validation.isSubmitting}
+            >
+              {validation.isSubmitting
+                ? "Saving..."
+                : editingItem
+                  ? "Save changes"
+                  : "Add Sub-Department"}
             </Button>
           </div>
         </form>

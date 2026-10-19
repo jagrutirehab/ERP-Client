@@ -336,6 +336,8 @@ const Sidebar = () => {
     "READ",
   );
   const hasEmployeeForms = hasPermission("HR", "EMPLOYEE_FORMS", "READ");
+  const hasESICUpload = hasPermission("HR", "ESIC_UPLOAD", "READ");
+  const hasESICApproval = hasPermission("HR", "ESIC_APPROVAL", "READ");
   const hasEmployeePayslipsPermission = hasPermission(
     "HR",
     "EMPLOYEE_PAYSLIPS",
@@ -713,6 +715,15 @@ const Sidebar = () => {
             !hasPayrollAdjustmentsApprovalPermission
           )
             return false;
+          return true;
+        });
+        return page.children.length > 0;
+      }
+
+      if (page.id === "esic") {
+        page.children = page.children.filter((child) => {
+          if (child.id === "esicupload" && !hasESICUpload) return false;
+          if (child.id === "esicapproval" && !hasESICApproval) return false;
           return true;
         });
         return page.children.length > 0;

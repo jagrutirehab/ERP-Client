@@ -5,10 +5,10 @@ import { toast } from "react-toastify";
 import {
   getStockAdjustments,
   createStockAdjustment,
-  getAllCenters,
   getStockBalances,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
@@ -40,7 +40,7 @@ const StockAdjustment = () => {
   const [adjustments, setAdjustments] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
-  const [centers, setCenters] = useState([]);
+  const { items: centers } = useReferenceList("centers");
   const [stockOptions, setStockOptions] = useState([]);
 
   const [modalOpen, setModalOpen] = useState(false);
@@ -52,11 +52,6 @@ const StockAdjustment = () => {
 
   const [detailModal, setDetailModal] = useState(null);
 
-  useEffect(() => {
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     let cancelled = false;

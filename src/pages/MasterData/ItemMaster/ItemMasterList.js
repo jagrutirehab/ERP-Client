@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import DataTable from "react-data-table-component";
 import { Button, Input, Modal, ModalBody } from "reactstrap";
 import { toast } from "react-toastify";
@@ -7,9 +7,9 @@ import {
   deleteItemMaster,
   getItemTypes,
   getAssetCategories,
-  getUoms,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import ImportItemsModal from "./ImportItemsModal";
 import "../shared/itemMasterForms.scss";
@@ -126,7 +126,12 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
 
   const [typeMap, setTypeMap] = useState({});
   const [categoryMap, setCategoryMap] = useState({});
-  const [uomMap, setUomMap] = useState({});
+  const { items: allUoms } = useReferenceList("uomsAll");
+  const uomMap = useMemo(() => {
+    const map = {};
+    allUoms.forEach((u) => (map[u._id] = `${u.name} (${u.symbol})`));
+    return map;
+  }, [allUoms]);
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
@@ -153,16 +158,6 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
         const map = {};
         (res?.data || []).forEach((c) => (map[c._id] = c.name));
         setCategoryMap(map);
-      })
-      .catch(() => {});
-
-    getUoms({})
-      .then((res) => {
-        const map = {};
-        (res?.data || []).forEach(
-          (u) => (map[u._id] = `${u.name} (${u.symbol})`),
-        );
-        setUomMap(map);
       })
       .catch(() => {});
   }, []);

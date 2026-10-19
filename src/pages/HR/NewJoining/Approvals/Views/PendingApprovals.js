@@ -276,6 +276,10 @@ const PendingApprovals = ({
 
   const columns = [
     {
+      name: <div>Salutation</div>,
+      selector: (row) => row?.salutation || "-",
+    },
+    {
       name: <div>Date</div>,
       selector: (row) =>
         row?.createdAt
