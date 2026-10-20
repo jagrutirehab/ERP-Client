@@ -7,10 +7,14 @@ import exportTrainingHistory from '../Components/exportTrainingHistory'
 import { getAudienceLabels } from '../Helpers/adminTrainingHelpers'
 import { useCenterFilter } from '../Helpers/centerFilter'
 import CenterSelect from '../Components/CenterSelect'
+import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery'
+
+const roleBadgeColors = ['#3b82f6', '#8b5cf6', '#f59e0b', '#ec4899', '#14b8a6']
 
 const TrainingHistoryDetail = () => {
     const { id } = useParams()
     const navigate = useNavigate()
+    const isMobile = useMediaQuery('(max-width: 1000px)')
 
     const [data, setData] = useState(null)
     const [loading, setLoading] = useState(true)
@@ -80,34 +84,36 @@ const TrainingHistoryDetail = () => {
             </div>
         )
         return (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                <thead>
-                    <tr>
-                        {['#', 'Name', 'E-Code', 'Email', 'Position', 'Center', 'Acknowledged On'].map(h => (
-                            <th key={h} style={{ padding: '9px 12px', background: '#f8fafc', color: '#6b7280', fontWeight: 600, textAlign: 'left', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap' }}>{h}</th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {list?.map((ack, i) => (
-                        <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '9px 12px', color: '#9ca3af' }}>{i + 1}</td>
-                            <td style={{ padding: '9px 12px', fontWeight: 600, color: '#111827' }}>{ack?.employee?.name || '—'}</td>
-                            <td style={{ padding: '9px 12px', color: '#6b7280' }}>{ack?.employee?.eCode || '—'}</td>
-                            <td style={{ padding: '9px 12px', color: '#6b7280' }}>{ack?.employee?.email || '—'}</td>
-                            <td style={{ padding: '9px 12px' }}>
-                                <span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: '#eff6ff', color: '#3b82f6', border: '1px solid #bfdbfe' }}>
-                                    {ack?.employee?.position || '—'}
-                                </span>
-                            </td>
-                            <td style={{ padding: '9px 12px', color: '#6b7280' }}>{ack?.employee?.center?.title || '—'}</td>
-                            <td style={{ padding: '9px 12px', color: '#16a34a', fontWeight: 500, whiteSpace: 'nowrap' }}>
-                                {ack?.acknowledgedOn ? new Date(ack.acknowledgedOn).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
-                            </td>
+            <div className="table-responsive">
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
+                    <thead>
+                        <tr>
+                            {['#', 'Name', 'E-Code', 'Email', 'Position', 'Center', 'Acknowledged On'].map(h => (
+                                <th key={h} style={{ padding: '9px 12px', background: '#f8fafc', color: '#6b7280', fontWeight: 600, textAlign: 'left', borderBottom: '1px solid #e5e7eb', whiteSpace: 'nowrap' }}>{h}</th>
+                            ))}
                         </tr>
-                    ))}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {list?.map((ack, i) => (
+                            <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '9px 12px', color: '#9ca3af' }}>{i + 1}</td>
+                                <td style={{ padding: '9px 12px', fontWeight: 600, color: '#111827' }}>{ack?.employee?.name || '—'}</td>
+                                <td style={{ padding: '9px 12px', color: '#6b7280' }}>{ack?.employee?.eCode || '—'}</td>
+                                <td style={{ padding: '9px 12px', color: '#6b7280' }}>{ack?.employee?.email || '—'}</td>
+                                <td style={{ padding: '9px 12px' }}>
+                                    <span style={{ padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 600, background: '#eff6ff', color: '#3b82f6', border: '1px solid #bfdbfe' }}>
+                                        {ack?.employee?.position || '—'}
+                                    </span>
+                                </td>
+                                <td style={{ padding: '9px 12px', color: '#6b7280' }}>{ack?.employee?.center?.title || '—'}</td>
+                                <td style={{ padding: '9px 12px', color: '#16a34a', fontWeight: 500, whiteSpace: 'nowrap' }}>
+                                    {ack?.acknowledgedOn ? new Date(ack.acknowledgedOn).toLocaleString('en-IN', { day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : '—'}
+                                </td>
+                            </tr>
+                        ))}
+                    </tbody>
+                </table>
+            </div>
         )
     }
 
@@ -139,18 +145,61 @@ const TrainingHistoryDetail = () => {
     )
 
     return (
-        <CardBody className="p-4 bg-white" style={{ width: '78%' }}>
-            <div className="d-flex align-items-center gap-3 mb-4">
+        <CardBody className={isMobile ? 'px-2 py-4 bg-white' : 'p-4 bg-white'} style={{ width: isMobile ? '100%' : '78%' }}>
+            <div
+                className="d-flex align-items-center gap-3 mb-4"
+                style={isMobile ? { flexWrap: 'wrap' } : undefined}
+            >
                 <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate(-1)}>
                     <i className="ri-arrow-left-line" />
                 </button>
-                <div style={{ flex: 1 }}>
+                <div style={isMobile ? { flex: '1 1 100%', order: -1, minWidth: 0 } : { flex: 1 }}>
                     <h5 className="fw-bold mb-0">{data?.trainingName || 'Training History'}</h5>
                     {data && (
-                        <small className="text-muted">
-                            {getAudienceLabels(data).join(', ')}
-                            {data?.repeatFrequency && ` · Repeats every ${data.repeatFrequency} day${data.repeatFrequency > 1 ? 's' : ''}`}
-                        </small>
+                        <div className="d-flex align-items-center gap-2 flex-wrap mt-1">
+                            <div
+                                style={
+                                    isMobile
+                                        ? {
+                                            display: 'flex',
+                                            flexWrap: 'nowrap',
+                                            gap: 8,
+                                            width: '100%',
+                                            overflowX: 'auto',
+                                            WebkitOverflowScrolling: 'touch',
+                                            scrollSnapType: 'x proximity',
+                                        }
+                                        : { display: 'contents' }
+                                }
+                            >
+                                {getAudienceLabels(data).map((label, idx) => (
+                                    <span
+                                        key={label}
+                                        style={{
+                                            padding: '2px 10px',
+                                            ...(isMobile && {
+                                                flex: '0 0 auto',
+                                                scrollSnapAlign: 'start',
+                                                whiteSpace: 'nowrap',
+                                            }),
+                                            borderRadius: 20,
+                                            fontSize: 11,
+                                            fontWeight: 600,
+                                            background: roleBadgeColors[idx % roleBadgeColors.length] + '18',
+                                            color: roleBadgeColors[idx % roleBadgeColors.length],
+                                            border: `1px solid ${roleBadgeColors[idx % roleBadgeColors.length]}30`,
+                                        }}
+                                    >
+                                        {label}
+                                    </span>
+                                ))}
+                            </div>
+                            {data?.repeatFrequency && (
+                                <small className="text-muted">
+                                    Repeats every {data.repeatFrequency} day{data.repeatFrequency > 1 ? 's' : ''}
+                                </small>
+                            )}
+                        </div>
                     )}
                 </div>
                 {data?.status && (
