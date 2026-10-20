@@ -360,19 +360,23 @@
                                                         : patient[labelsMapping[label]] ?? ""}
                                             </td>
                                         ))}
-                                        {last30Days.map(({ key }) => (
-                                            <td
-                                                key={key}
-                                                className="text-center px-1 py-1"
-                                                style={{
-                                                    border: "1px solid #d6dde8",
-                                                    background: idx % 2 === 0 ? "#f8fafc" : "#fff",
-                                                    whiteSpace: "nowrap",
-                                                }}
-                                            >
-                                                {patient?.dod_data?.[key] ?? 0}
-                                            </td>
-                                        ))}
+                                        {last30Days.map(({ key }) => {
+                                            const cellValue = patient?.dod_data?.[key] ?? 0;
+                                            const isZero = cellValue === 0;
+                                            return (
+                                                <td
+                                                    key={key}
+                                                    className="text-center px-1 py-1"
+                                                    style={{
+                                                        border: "1px solid #d6dde8",
+                                                        background: isZero ? "#ffcdd2" : (idx % 2 === 0 ? "#f8fafc" : "#fff"),
+                                                        whiteSpace: "nowrap",
+                                                    }}
+                                                >
+                                                    {cellValue}
+                                                </td>
+                                            );
+                                        })}
                                     </tr>
                                 ))}
                             </tbody>
