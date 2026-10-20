@@ -1,67 +1,132 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Card, CardBody, Row, Col, Button, Input } from "reactstrap";
 import { useNavigate } from "react-router-dom";
-import DataTableComponent from "../../../Components/Common/DataTable";
+import { useDispatch, useSelector } from "react-redux";
+import { toast } from "react-toastify";
 import Select from "react-select";
 import { Eye } from "lucide-react";
+import DataTableComponent from "../../../Components/Common/DataTable";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 import StatusBadge from "../components/StatusBadge";
 import ItemDetailModal from "../components/ItemDetailModal";
-import { CENTRES, ITEMS, formatDate } from "../data";
+import { getAllCenters } from "../../../helpers/backend_helper";
+import { fetchComplianceRecords } from "../../../store/features/compliance/complianceSlice";
 
-const getIssuedOn = (item) =>
-  item.validTill && item.termDays ? new Date(item.validTill.getTime() - item.termDays * 86400000) : null;
+// Backend status -> key used by StatusBadge (colours/labels live in data.js STATUS)
+export const STATUS_KEY = {
+  VALID: "valid",
+  DUE_30: "due30",
+  DUE_90: "due90",
+  EXPIRED: "expired",
+  IN_RENEWAL: "renewal",
+  DOC_MISSING: "missing",
+  NO_EXPIRY: "lt",
+};
 
-const ATTENTION_KEYS = ["expired", "due30", "due90", "renewal", "missing"];
-
+// Filter chip -> what the API expects
 const STATUS_OPTIONS = [
-  { value: "attention", label: "Needs attention" },
-  { value: "all", label: "All" },
-  { value: "expired", label: "Expired" },
-  { value: "due30", label: "Due ≤30 days" },
-  { value: "due90", label: "Due ≤90 days" },
-  { value: "renewal", label: "In renewal" },
-  { value: "missing", label: "Doc missing" },
-  { value: "valid", label: "Valid" },
-  { value: "lt", label: "No expiry" },
+  { value: "NEEDS_ATTENTION", label: "Needs attention" },
+  { value: "ALL", label: "All" },
+  { value: "EXPIRED", label: "Expired" },
+  { value: "DUE_30", label: "Due ≤30 days" },
+  { value: "DUE_90", label: "Due ≤90 days" },
+  { value: "IN_RENEWAL", label: "In renewal" },
+  { value: "DOC_MISSING", label: "Doc missing" },
+  { value: "VALID", label: "Valid" },
+  { value: "NO_EXPIRY", label: "No expiry" },
 ];
+
+const centreLabel = (c) => c?.displayName || c?.title || c?.name || "—";
+const formatDate = (d) =>
+  d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+const daysLabel = (n) => (n == null ? "—" : n < 0 ? `${Math.abs(n)}d overdue` : `${n}d`);
+
+const toList = (res) =>
+  Array.isArray(res)
+    ? res
+    : Array.isArray(res?.data)
+    ? res.data
+    : Array.isArray(res?.payload)
+    ? res.payload
+    : Array.isArray(res?.data?.data)
+    ? res.data.data
+    : [];
 
 const Register = () => {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { records, recordsLoading, recordsTotal, recordsOverallTotal } = useSelector(
+    (state) => state.Compliance,
+  );
+
+  const [centres, setCentres] = useState([]);
   const [centreFilter, setCentreFilter] = useState("all");
-  const [statusFilter, setStatusFilter] = useState("attention");
+  const [statusFilter, setStatusFilter] = useState("NEEDS_ATTENTION");
   const [query, setQuery] = useState("");
-  const [detailItem, setDetailItem] = useState(null);
+  const [detailId, setDetailId] = useState(null);
 
-  const rows = useMemo(() => {
-    return ITEMS.filter((i) => i.statusKey !== "na")
-      .filter((i) => centreFilter === "all" || i.centreId === centreFilter)
-      .filter((i) =>
-        statusFilter === "attention"
-          ? ATTENTION_KEYS.includes(i.statusKey)
-          : statusFilter === "all" || i.statusKey === statusFilter,
-      )
-      .filter((i) => {
-        if (!query) return true;
-        const t = `${i.categoryName} ${i.licenceNo || ""} ${i.centreName}`.toLowerCase();
-        return t.includes(query.toLowerCase());
-      })
-      .sort((a, b) => (a.daysLeft ?? 99999) - (b.daysLeft ?? 99999));
-  }, [centreFilter, statusFilter, query]);
+  const requestRef = useRef(null);
 
-  const actionCta = (item) =>
-    item.statusKey === "missing" ? "Upload document" : item.statusKey === "renewal" ? "Update status" : "Start renewal";
+  useEffect(() => {
+    getAllCenters()
+      .then((res) => setCentres(toList(res)))
+      .catch(() => toast.error("Failed to load centres"));
+  }, []);
 
-  const goToUpload = (item) =>
-    navigate(`/compliance/upload?centre=${item.centreId}&category=${item.categoryId}`);
+  const loadRecords = (search = query) => {
+    requestRef.current?.abort(); // drop an older, slower request
+    const promise = dispatch(
+      fetchComplianceRecords({
+        center: centreFilter === "all" ? undefined : centreFilter,
+        status: statusFilter,
+        search: search.trim() || undefined,
+        limit: 200,
+      }),
+    );
+    requestRef.current = promise;
+    promise.unwrap().catch((error) => {
+      if (error?.aborted) return;
+      toast.error(error?.message || "Failed to load register");
+    });
+  };
+
+  // filters: reload straight away
+  useEffect(() => {
+    loadRecords();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centreFilter, statusFilter]);
+
+  // search: wait until typing stops
+  const firstSearch = useRef(true);
+  useEffect(() => {
+    if (firstSearch.current) {
+      firstSearch.current = false;
+      return;
+    }
+    const t = setTimeout(() => loadRecords(query), 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
+
+  const actionCta = (row) =>
+    row.status === "DOC_MISSING" ? "Upload document" : row.status === "IN_RENEWAL" ? "Update status" : "Start renewal";
+
+  const goToUpload = (row) =>
+    navigate(`/compliance/upload?centre=${row.center?._id || ""}&type=${row.complianceType?._id || ""}`);
+
+  const centreOptions = [
+    { value: "all", label: "All centres" },
+    ...centres.map((c) => ({ value: c._id, label: centreLabel(c) })),
+  ];
 
   const columns = [
     {
       name: <div>Compliance item</div>,
       cell: (row) => (
         <div className="py-1">
-          <div className="fw-medium">{row.categoryName}</div>
+          <div className="fw-medium text-capitalize">{row.complianceType?.name || "—"}</div>
           <div className="text-muted" style={{ fontSize: 12, fontFamily: "monospace" }}>
-            {row.licenceNo || "—"}
+            {row.licenceNumber || "—"}
           </div>
         </div>
       ),
@@ -70,44 +135,41 @@ const Register = () => {
     },
     {
       name: <div>Centre</div>,
-      selector: (row) => row.centreName,
+      selector: (row) => centreLabel(row.center),
       wrap: true,
       minWidth: "110px",
     },
     {
       name: <div>Issued on</div>,
-      selector: (row) => {
-        const issuedOn = getIssuedOn(row);
-        return issuedOn ? formatDate(issuedOn) : "—";
-      },
+      selector: (row) => formatDate(row.issueDate),
       wrap: true,
       minWidth: "110px",
     },
     {
       name: <div>Valid till</div>,
-      selector: (row) => (row.validTill ? formatDate(row.validTill) : "—"),
+      selector: (row) => (row.noExpiry ? "No expiry" : formatDate(row.expiryDate)),
       wrap: true,
       minWidth: "110px",
     },
     {
       name: <div>Days left</div>,
-      selector: (row) =>
-        row.daysLeft == null ? "—" : row.daysLeft < 0 ? `${Math.abs(row.daysLeft)}d overdue` : `${row.daysLeft}d`,
+      selector: (row) => (row.daysLeft == null ? 99999 : row.daysLeft),
+      format: (row) => daysLabel(row.daysLeft),
       sortable: true,
       wrap: true,
       minWidth: "100px",
     },
     {
       name: <div>Status</div>,
-      cell: (row) => <StatusBadge statusKey={row.statusKey} />,
+      cell: (row) => <StatusBadge statusKey={STATUS_KEY[row.status]} />,
       wrap: true,
-      minWidth: "110px",
+      minWidth: "120px",
     },
     {
       name: <div>Actions</div>,
       cell: (row) => (
         <div className="d-flex align-items-center gap-2">
-          <Button color="light" className="border p-2" size="sm" onClick={() => setDetailItem(row)}>
+          <Button color="light" className="border p-2" size="sm" onClick={() => setDetailId(row._id)}>
             <Eye size={14} />
           </Button>
           <Button color="link" size="sm" className="p-0" onClick={() => goToUpload(row)}>
@@ -128,25 +190,21 @@ const Register = () => {
         <div>
           <h5 className="mb-1 fw-semibold">Register</h5>
           <p className="text-muted mb-0 fs-13">
-            Track every licence, NOC and registration across centres. {rows.length} of{" "}
-            {ITEMS.filter((i) => i.statusKey !== "na").length} items match.
+            Track every licence, NOC and registration across centres. {recordsTotal} of {recordsOverallTotal}{" "}
+            items match.
           </p>
         </div>
+        <RefreshButton onRefresh={() => loadRecords()} loading={recordsLoading} />
       </div>
 
-      {/* Filters */}
       <Card className="mb-3 shadow-sm border-0" style={{ borderRadius: "0 0 8px 8px" }}>
         <CardBody className="py-3">
           <Row className="g-2 align-items-center">
             <Col sm={6} md={4} lg={3}>
               <Select
                 classNamePrefix="react-select"
-                options={[{ value: "all", label: "All centres" }, ...CENTRES.map((c) => ({ value: c.id, label: c.name }))]}
-                value={
-                  centreFilter === "all"
-                    ? { value: "all", label: "All centres" }
-                    : { value: centreFilter, label: CENTRES.find((c) => c.id === centreFilter)?.name }
-                }
+                options={centreOptions}
+                value={centreOptions.find((o) => o.value === centreFilter) || centreOptions[0]}
                 onChange={(option) => setCentreFilter(option?.value || "all")}
               />
             </Col>
@@ -155,7 +213,7 @@ const Register = () => {
                 classNamePrefix="react-select"
                 options={STATUS_OPTIONS}
                 value={STATUS_OPTIONS.find((o) => o.value === statusFilter)}
-                onChange={(option) => setStatusFilter(option?.value || "attention")}
+                onChange={(option) => setStatusFilter(option?.value || "NEEDS_ATTENTION")}
               />
             </Col>
             <Col md={4} lg={6}>
@@ -171,22 +229,18 @@ const Register = () => {
         </CardBody>
       </Card>
 
-      {/* Table */}
       <Card className="shadow-sm border-0">
         <CardBody className="p-0">
           <DataTableComponent
             columns={columns}
-            data={rows}
+            data={records}
+            loading={recordsLoading}
             noDataComponent="No items match these filters."
           />
         </CardBody>
       </Card>
 
-      <ItemDetailModal
-        isOpen={!!detailItem}
-        toggle={() => setDetailItem(null)}
-        item={detailItem}
-      />
+      <ItemDetailModal isOpen={!!detailId} toggle={() => setDetailId(null)} recordId={detailId} />
     </div>
   );
 };

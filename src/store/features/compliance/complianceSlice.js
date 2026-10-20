@@ -18,6 +18,7 @@ import {
   getAllComplianceDrafts,
   updateComplianceDraft,
   discardComplianceDraft,
+  getComplianceRecords,
 } from "../../../helpers/backend_helper";
 
 const EMPTY_COUNTS = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
@@ -39,6 +40,10 @@ const initialState = {
   allDrafts: [],
   draftsLoading: false,
   draftSaving: false,
+  records: [],
+  recordsLoading: false,
+  recordsTotal: 0,
+  recordsOverallTotal: 0,
 };
 
 const isAborted = (error) => error?.code === "ERR_CANCELED";
@@ -265,6 +270,21 @@ export const removeDraft = createAsyncThunk(
   },
 );
 
+// ---------------------------------------------------------------------------
+// Compliance records (Register)
+// ---------------------------------------------------------------------------
+export const fetchComplianceRecords = createAsyncThunk(
+  "compliance/fetchComplianceRecords",
+  async (params = {}, { rejectWithValue, signal }) => {
+    try {
+      return await getComplianceRecords(params, { signal });
+    } catch (error) {
+      if (isAborted(error)) return rejectWithValue({ aborted: true });
+      return rejectWithValue(error);
+    }
+  },
+);
+
 // Moves one submission out of the PENDING list after a decision
 const removeDecided = (state, id, toStatus) => {
   state.submissions = state.submissions.filter((s) => s._id !== id);
@@ -477,6 +497,22 @@ const complianceSlice = createSlice({
       state.myDrafts = state.myDrafts.filter((d) => d._id !== id);
       state.allDrafts = state.allDrafts.filter((d) => d._id !== id);
     });
+
+    // ---------------- Records (Register) ----------------
+    builder
+      .addCase(fetchComplianceRecords.pending, (state) => {
+        state.recordsLoading = true;
+      })
+      .addCase(fetchComplianceRecords.fulfilled, (state, { payload }) => {
+        state.recordsLoading = false;
+        state.records = payload?.data || [];
+        state.recordsTotal = payload?.pagination?.total || 0;
+        state.recordsOverallTotal = payload?.overallTotal || 0;
+      })
+      .addCase(fetchComplianceRecords.rejected, (state, { payload }) => {
+        if (payload?.aborted) return;
+        state.recordsLoading = false;
+      });
   },
 });
 

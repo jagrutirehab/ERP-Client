@@ -530,6 +530,8 @@ export const COMPLIANCE_CATEGORIES = "/compliance/categories";
 // COMPLIANCE SUBMISSIONS
 export const COMPLIANCE_SUBMISSIONS = "/compliance/submissions";
 
+export const COMPLIANCE_RECORDS = "/compliance/records";
+
 // PHARMACY ACTIVITY LOG
 export const PHARMACY_ACTIVITY = "/pharmacy/activity";
 

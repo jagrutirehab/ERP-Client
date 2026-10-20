@@ -2444,6 +2444,28 @@ export const discardComplianceDraft = (id) => {
   });
 };
 
+// COMPLIANCE RECORDS
+export const getComplianceRecords = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_RECORDS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getComplianceRecordById = (id) => {
+  return api.get(`${url.COMPLIANCE_RECORDS}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getComplianceSummary = (params = {}) => {
+  return api.get(`${url.COMPLIANCE_RECORDS}/summary`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 // PHARMACY EXPIRED STOCK
 export const getExpiredStock = (params = {}) => {
   return api.get(url.PHARMACY_EXPIRED_STOCK, {
