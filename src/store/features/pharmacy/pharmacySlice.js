@@ -14,6 +14,7 @@ import {
     updateInternalTransferRequisition,
     reviewInternalTransferRequisition,
     dispatchInternalTransferRequisition,
+    packageInternalTransferRequisition,
     grnInternalTransferRequisition,
     requestingReviewInternalTransferRequisition,
     getPharmacyConsolidated,
@@ -242,6 +243,18 @@ export const grnInternalTransfer = createAsyncThunk(
     async ({ id, ...data }, { rejectWithValue }) => {
         try {
             const response = await grnInternalTransferRequisition(id, data);
+            return { id, data: response?.data || response };
+        } catch (error) {
+            return rejectWithValue(error);
+        }
+    }
+);
+
+export const packageInternalTransfer = createAsyncThunk(
+    "pharmacy/packageInternalTransfer",
+    async ({ id, ...data }, { rejectWithValue }) => {
+        try {
+            const response = await packageInternalTransferRequisition(id, data);
             return { id, data: response?.data || response };
         } catch (error) {
             return rejectWithValue(error);
@@ -624,6 +637,20 @@ export const pharmacySlice = createSlice({
                 );
             })
             .addCase(grnInternalTransfer.rejected, (state) => {
+                state.submitLoading = false;
+            });
+
+        builder
+            .addCase(packageInternalTransfer.pending, (state) => {
+                state.submitLoading = true;
+            })
+            .addCase(packageInternalTransfer.fulfilled, (state, { payload }) => {
+                state.submitLoading = false;
+                state.internalTransfer.data = state.internalTransfer.data.map((req) =>
+                    req._id === payload.id ? { ...req, status: payload.data?.status ?? req.status } : req
+                );
+            })
+            .addCase(packageInternalTransfer.rejected, (state) => {
                 state.submitLoading = false;
             });
 
