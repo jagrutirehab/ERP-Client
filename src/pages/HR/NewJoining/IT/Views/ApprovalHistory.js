@@ -6,6 +6,7 @@ import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { Input, Spinner } from "reactstrap";
 import { format } from "date-fns";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
@@ -118,10 +119,6 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles, designationOptio
 
   const columns = [
     {
-      name: <div>Salutation</div>,
-      selector: (row) => row?.salutation || "-",
-    },
-    {
       name: <div>ECode</div>,
       selector: (row) => {
         return row?.eCode || "-";
@@ -130,7 +127,8 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles, designationOptio
     },
     {
       name: <div>Name</div>,
-      selector: row => row?.employeeName?.toUpperCase() || "-",
+      selector: row =>
+        formatEmployeeName(row?.employeeName, row?.salutation)?.toUpperCase() || "-",
       wrap: true,
       minWidth: "160px"
     },

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
+import { formatEmployeeName } from "../../../utils/formatEmployeeName";
 import { Button, CardBody, Input, Spinner } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { format } from "date-fns";
@@ -362,17 +363,14 @@ const Employee = () => {
 
   const columns = [
     {
-      name: <div>Salutation</div>,
-      selector: (row) => row?.salutation || "-",
-    },
-    {
       name: <div>ECode</div>,
       selector: (row) => row?.eCode || "-",
       sortable: true,
     },
     {
       name: <div>Name</div>,
-      selector: (row) => row?.name?.toUpperCase() || "-",
+      selector: (row) =>
+        formatEmployeeName(row?.name, row?.salutation)?.toUpperCase() || "-",
       wrap: true,
       minWidth: "160px",
     },

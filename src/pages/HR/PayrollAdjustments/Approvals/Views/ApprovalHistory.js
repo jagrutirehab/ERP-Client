@@ -3,6 +3,7 @@ import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { fetchPayrollAdjustments } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
@@ -123,7 +124,8 @@ const ApprovalHistory = ({ activeTab }) => {
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.employee?.name?.toUpperCase() || "-",
+            selector: row =>
+                formatEmployeeName(row?.employee?.name, row?.employee?.salutation)?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px",
         },

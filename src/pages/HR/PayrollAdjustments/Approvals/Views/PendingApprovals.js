@@ -3,6 +3,7 @@ import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { toast } from "react-toastify";
 import { fetchPayrollAdjustments } from "../../../../../store/features/HR/hrSlice";
@@ -170,7 +171,8 @@ const PendingApprovals = ({ activeTab }) => {
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.employee?.name?.toUpperCase() || "-",
+            selector: row =>
+                formatEmployeeName(row?.employee?.name, row?.employee?.salutation)?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },

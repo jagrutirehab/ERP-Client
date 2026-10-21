@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { Button } from "reactstrap";
 import { Check, CheckCheck, Copy, Pencil, X } from "lucide-react";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { formatCurrency } from "../../../../../utils/formatCurrency";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
@@ -59,13 +60,14 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
     {
         name: <div>Name</div>,
-        selector: row => row?.employee?.name?.toUpperCase() || "-",
+        selector: row =>
+            formatEmployeeName(row?.employee?.name, row?.employee?.salutation)?.toUpperCase() || "-",
         cell: row => (
             <Highlighter
                 highlightClassName="react-highlight"
                 searchWords={[searchText]}
                 autoEscape
-                textToHighlight={`${row?.employee?.name?.toUpperCase() || ""}`}
+                textToHighlight={`${formatEmployeeName(row?.employee?.name, row?.employee?.salutation)?.toUpperCase() || ""}`}
             />
         ),
         wrap: true,
