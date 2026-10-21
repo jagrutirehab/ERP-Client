@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { formatEmployeeName } from '../../../../utils/formatEmployeeName'
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
@@ -160,7 +161,8 @@ const ExitApprovals = () => {
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.employeeName?.toUpperCase() || "-",
+            selector: row =>
+                formatEmployeeName(row?.employeeName, row?.salutation)?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },

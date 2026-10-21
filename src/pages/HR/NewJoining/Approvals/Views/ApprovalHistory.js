@@ -6,6 +6,7 @@ import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptio
 import { getMasterEmployees } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { downloadFile } from "../../../../../Components/Common/downloadFile";
 import { Badge, Input, Spinner } from "reactstrap";
 import { format } from "date-fns";
@@ -174,17 +175,14 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
 
   const columns = [
     {
-      name: <div>Salutation</div>,
-      selector: (row) => row?.salutation || "-",
-    },
-    {
       name: <div>ECode</div>,
       selector: (row) => row?.eCode || "-",
       sortable: true,
     },
     {
       name: <div>Name</div>,
-      selector: (row) => row?.name?.toUpperCase() || "-",
+      selector: (row) =>
+        formatEmployeeName(row?.name, row?.salutation)?.toUpperCase() || "-",
       wrap: true,
       minWidth: "160px",
     },

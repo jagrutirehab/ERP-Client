@@ -3,6 +3,7 @@ import { Check, X } from "lucide-react";
 import Select from "react-select";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import { normalizeText } from "../../components/helpers/normalizeText";
+import { formatEmployeeName } from "../../../../utils/formatEmployeeName";
 
 export const BiometricAdditionColumns = ({
   onApprove,
@@ -22,7 +23,11 @@ export const BiometricAdditionColumns = ({
   },
   {
     name: "Name",
-    selector: (row) => normalizeText(row?.employee?.name) || "-",
+    selector: (row) =>
+      formatEmployeeName(
+        normalizeText(row?.employee?.name),
+        row?.employee?.salutation,
+      ) || "-",
     sortable: true,
     minWidth: "150px",
     wrap: true,

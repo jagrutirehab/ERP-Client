@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { getMasterEmployees } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import {
@@ -276,10 +277,6 @@ const PendingApprovals = ({
 
   const columns = [
     {
-      name: <div>Salutation</div>,
-      selector: (row) => row?.salutation || "-",
-    },
-    {
       name: <div>Date</div>,
       selector: (row) =>
         row?.createdAt
@@ -291,7 +288,8 @@ const PendingApprovals = ({
     },
     {
       name: <div>Name</div>,
-      selector: (row) => row?.name?.toUpperCase() || "-",
+      selector: (row) =>
+        formatEmployeeName(row?.name, row?.salutation)?.toUpperCase() || "-",
       wrap: true,
       minWidth: "160px",
     },
