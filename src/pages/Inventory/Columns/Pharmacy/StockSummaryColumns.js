@@ -19,6 +19,7 @@ const CenterStockList = ({ centers = [] }) => {
                     <col style={{ width: 60 }} />
                     <col style={{ width: 70 }} />
                     <col style={{ width: 70 }} />
+                    <col style={{ width: 70 }} />
                     <col style={{ width: 80 }} />
                 </colgroup>
                 <tbody>
@@ -35,6 +36,9 @@ const CenterStockList = ({ centers = [] }) => {
                             </td>
                             <td className="text-end" style={{ fontSize: 11 }}>
                                 {item?.reservedQty ? `-${item.reservedQty}` : 0}
+                            </td>
+                            <td className="text-end" style={{ fontSize: 11 }}>
+                                {item?.packagedQty || 0}
                             </td>
                             <td className="text-end" style={{ fontSize: 11 }}>
                                 {item?.inTransitQty ? `+${item.inTransitQty}` : 0}
@@ -109,6 +113,13 @@ export const getStockSummaryGridColumns = () => [
         render: (row) => (row.totalReservedQty ? `-${row.totalReservedQty}` : 0),
     },
     {
+        key: "totalPackaged",
+        header: "Total Packaged",
+        align: "right",
+        minWidth: 100,
+        render: (row) => row.totalPackagedQty || 0,
+    },
+    {
         key: "totalInTransit",
         header: "Total In-Transit",
         align: "right",
@@ -131,6 +142,7 @@ export const getStockSummaryGridColumns = () => [
                     <col style={{ width: 60 }} />
                     <col style={{ width: 70 }} />
                     <col style={{ width: 70 }} />
+                    <col style={{ width: 70 }} />
                     <col style={{ width: 80 }} />
                 </colgroup>
                 <tbody>
@@ -139,12 +151,13 @@ export const getStockSummaryGridColumns = () => [
                         <td className="text-end" style={{ fontWeight: 700 }}>Total</td>
                         <td className="text-end" style={{ fontWeight: 700 }}>Requested</td>
                         <td className="text-end" style={{ fontWeight: 700 }}>Reserved</td>
+                        <td className="text-end" style={{ fontWeight: 700 }}>Packaged</td>
                         <td className="text-end" style={{ fontWeight: 700 }}>In-Transit</td>
                     </tr>
                 </tbody>
             </table>
         ),
-        minWidth: 380,
+        minWidth: 440,
         render: (row) => <CenterStockList centers={row.centers} />,
     },
     {
