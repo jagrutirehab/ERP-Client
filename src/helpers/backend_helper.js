@@ -761,7 +761,7 @@ export const getBills = (data) => api.get(url.GET_BILLS, { addmission: data });
 export const getPatientLedger = (data) =>
   api.get(
     url.GET_PATIENT_LEDGER,
-    typeof data === "object" && data !== null ? data : { patient: data }
+    typeof data === "object" && data !== null ? data : { patient: data },
   );
 export const getDraftBills = (data) => api.get(url.GET_DRAFT_BILLS, data);
 const multipartConfig = (data) =>
@@ -2305,6 +2305,171 @@ export const rejectMedicineRequisition = (id, data) => {
 
 export const deleteMedicineRequisition = (id) => {
   return api.delete(`${url.PHARMACY_MEDICINE_REQUISITION}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// COMPLIANCE TYPES
+export const getComplianceTypes = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_TYPES, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getComplianceTypeById = (id) => {
+  return api.get(`${url.COMPLIANCE_TYPES}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const createComplianceType = (data) => {
+  return api.create(url.COMPLIANCE_TYPES, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editComplianceType = (id, data) => {
+  return api.update(`${url.COMPLIANCE_TYPES}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const updateComplianceTypeStatus = (id, active) => {
+  return api.update(
+    `${url.COMPLIANCE_TYPES}/${id}/status`,
+    { active },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const deleteComplianceType = (id) => {
+  return api.delete(`${url.COMPLIANCE_TYPES}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// COMPLIANCE CATEGORIES
+export const getComplianceCategories = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_CATEGORIES, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const createComplianceCategory = (data) => {
+  return api.create(url.COMPLIANCE_CATEGORIES, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editComplianceCategory = (id, data) => {
+  return api.update(`${url.COMPLIANCE_CATEGORIES}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const updateComplianceCategoryStatus = (id, active) => {
+  return api.update(
+    `${url.COMPLIANCE_CATEGORIES}/${id}/status`,
+    { active },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const deleteComplianceCategory = (id) => {
+  return api.delete(`${url.COMPLIANCE_CATEGORIES}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+// COMPLIANCE SUBMISSIONS
+export const createComplianceSubmission = (data) => {
+  return api.create(url.COMPLIANCE_SUBMISSIONS, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const getComplianceSubmissions = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_SUBMISSIONS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getComplianceSubmissionById = (id) => {
+  return api.get(`${url.COMPLIANCE_SUBMISSIONS}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const approveComplianceSubmission = (id, data = {}) => {
+  return api.update(`${url.COMPLIANCE_SUBMISSIONS}/${id}/approve`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const rejectComplianceSubmission = (id, data) => {
+  return api.update(`${url.COMPLIANCE_SUBMISSIONS}/${id}/reject`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// COMPLIANCE DRAFTS
+export const getMyComplianceDrafts = (params = {}, { signal } = {}) => {
+  return api.get(`${url.COMPLIANCE_SUBMISSIONS}/drafts/mine`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getAllComplianceDrafts = (params = {}, { signal } = {}) => {
+  return api.get(`${url.COMPLIANCE_SUBMISSIONS}/drafts`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const updateComplianceDraft = (id, data) => {
+  return api.update(`${url.COMPLIANCE_SUBMISSIONS}/drafts/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const discardComplianceDraft = (id) => {
+  return api.delete(`${url.COMPLIANCE_SUBMISSIONS}/drafts/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// COMPLIANCE RECORDS
+export const getComplianceRecords = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_RECORDS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getComplianceRecordById = (id) => {
+  return api.get(`${url.COMPLIANCE_RECORDS}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getComplianceSummary = (params = {}) => {
+  return api.get(`${url.COMPLIANCE_RECORDS}/summary`, {
+    params,
     headers: { "X-No-Cookie-Token": "true" },
   });
 };

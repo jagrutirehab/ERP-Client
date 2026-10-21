@@ -58,6 +58,7 @@ const DoctorVisits = React.lazy(() => import("../pages/DoctorVisits/DoctorVisits
 const MasterData = React.lazy(() => import("../pages/MasterData"));
 const CenterDashboard = React.lazy(() => import("../pages/CenterDashboard"));
 const MISMaster = React.lazy(() => import("../pages/MISMaster"));
+const Compliance = React.lazy(() => import("../pages/Compliance"));
 const allElements = [
   { element: Register, label: "User" },
   { element: Center, label: "Center" },
@@ -93,6 +94,7 @@ const allElements = [
   { element: MasterData, label: "Vendor Management" },
   { element: CenterDashboard, label: "Center Dashboard" },
   { element: MISMaster, label: "MIS Master" },
+  { element: Compliance, label: "Compliance" },
 ];
 
 console.log("SOP:", SOP);
@@ -141,8 +143,7 @@ const authProtectedRoutes = [
   { path: "/doctor-visits", component: DoctorVisits },
   { path: "/center-dashboard", component: CenterDashboard },
   { path: "/mis-master", component: MISMaster },
-  // Staff-side queue for the public grievance form.
-  { path: "/grievances", component: GrievanceAdmin },
+  { path: "/compliance/*", component: Compliance },
   {
     path: "/",
     exact: true,

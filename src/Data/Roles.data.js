@@ -235,6 +235,20 @@ export const permissionList = [
     ],
   },
   {
+    key: "COMPLIANCE",
+    label: "Compliance",
+    subModules: [
+      { name: "OVERVIEW", label: "Overview" },
+      { name: "CENTRES", label: "Centres" },
+      { name: "REGISTER", label: "Register" },
+      { name: "COMPLIANCE_TYPES", label: "Compliance Types" },
+      { name: "CATEGORIES", label: "Categories" },
+      { name: "APPROVALS", label: "Approvals" },
+      { name: "MY_DRAFTS", label: "My Drafts" },
+      { name: "ALL_DRAFTS", label: "All Drafts" },
+    ],
+  },
+  {
     key: "GUIDELINES",
     label: "Guidelines",
     subModules: [

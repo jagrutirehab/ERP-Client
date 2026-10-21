@@ -525,6 +525,16 @@ export const PHARMACY_MEDICINE_REQUISITION =
 // PHARMACY EXPIRED STOCK
 export const PHARMACY_EXPIRED_STOCK = "/pharmacy/expired-stock";
 
+// COMPLIANCE TYPES
+export const COMPLIANCE_TYPES = "/compliance/types";
+
+// COMPLIANCE CATEGORIES
+export const COMPLIANCE_CATEGORIES = "/compliance/categories";
+// COMPLIANCE SUBMISSIONS
+export const COMPLIANCE_SUBMISSIONS = "/compliance/submissions";
+
+export const COMPLIANCE_RECORDS = "/compliance/records";
+
 // PHARMACY ACTIVITY LOG
 export const PHARMACY_ACTIVITY = "/pharmacy/activity";
 

@@ -334,6 +334,13 @@ const pages = [
     icon: "bx bx-book",
   },
   {
+    id: "compliance",
+    label: "Compliance",
+    name: "Compliance",
+    link: "/compliance",
+    icon: "bx bx-shield-alt-2",
+  },
+  {
     id: "masterdata",
     label: "Vendor Management",
     name: "Vendor Management",
@@ -1697,6 +1704,56 @@ export const UTILITIES = [
     label: "Reports",
     link: "/utilities/reports",
     icon: "bx bxs-report",
+  },
+];
+export const Compliance = [
+  {
+    id: "compliance-overview",
+    label: "Overview",
+    link: "/compliance",
+    icon: "bx bx-grid-alt",
+  },
+  {
+    id: "compliance-centres",
+    label: "Centres",
+    link: "/compliance/centres/pune",
+    icon: "bx bx-buildings",
+  },
+  {
+    id: "compliance-register",
+    label: "Register",
+    link: "/compliance/register",
+    icon: "bx bx-list-check",
+  },
+  {
+    id: "compliance-types",
+    label: "Compliance Types",
+    link: "/compliance/types",
+    icon: "bx bx-shield-quarter",
+  },
+  {
+    id: "compliance-categories",
+    label: "Categories",
+    link: "/compliance/categories",
+    icon: "bx bx-category",
+  },
+  {
+    id: "compliance-approvals",
+    label: "Approvals",
+    link: "/compliance/approvals",
+    icon: "bx bx-check-shield",
+  },
+  {
+    id: "compliance-my-drafts",
+    label: "My Drafts",
+    link: "/compliance/my-drafts",
+    icon: "bx bx-edit",
+  },
+  {
+    id: "compliance-all-drafts",
+    label: "All Drafts",
+    link: "/compliance/drafts",
+    icon: "bx bx-folder-open",
   },
 ];
 export const MASTER_DATA = [

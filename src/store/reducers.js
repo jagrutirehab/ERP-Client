@@ -112,6 +112,8 @@ import CenterDashboard from "./features/centerDashboard/centerDashboardSlice";
 // Reference data (shared lists: centers, vendors, units, departments, payment terms)
 
 import Reference from "./features/reference/referenceSlice";
+// Compliance
+import Compliance from "./features/compliance/complianceSlice";
 
 const rootReducer = combineReducers({
   // ** public **
@@ -155,7 +157,8 @@ const rootReducer = combineReducers({
   MIReporting,
   HRMS,
   CenterDashboard,
-  Reference
+  Reference,
+  Compliance,
 });
 
 export default rootReducer;
