@@ -204,7 +204,6 @@ const Charting = ({
       observations,
       diagnosis,
       notes,
-      elderlyChecklistFields,
     } = values;
     const formData = new FormData();
     formData.append("author", author);
@@ -220,12 +219,6 @@ const Charting = ({
     formData.append("observations", observations);
     formData.append("diagnosis", diagnosis);
     formData.append("notes", notes);
-    if (elderlyChecklistFields && Object.keys(elderlyChecklistFields).length > 0) {
-      formData.append(
-        "elderlyChecklistFields",
-        JSON.stringify(elderlyChecklistFields),
-      );
-    }
     files.forEach((file) => {
       if (file?.file) {
         // FilePond wrapper object

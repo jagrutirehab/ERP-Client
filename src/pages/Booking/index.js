@@ -103,7 +103,6 @@ const Booking = ({
       observations,
       diagnosis,
       notes,
-      elderlyChecklistFields,
     } = values;
     const formData = new FormData();
     formData.append("shouldPrintAfterSave", true);
@@ -121,12 +120,6 @@ const Booking = ({
     formData.append("observations", observations);
     formData.append("diagnosis", diagnosis);
     formData.append("notes", notes);
-    if (elderlyChecklistFields && Object.keys(elderlyChecklistFields).length > 0) {
-      formData.append(
-        "elderlyChecklistFields",
-        JSON.stringify(elderlyChecklistFields),
-      );
-    }
     files.forEach((file) => formData.append("file", file.file));
 
     if (editClinicalNote) {

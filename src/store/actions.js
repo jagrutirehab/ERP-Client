@@ -190,6 +190,8 @@ export {
   addVitalSign,
   addGeneralVitalSign,
   updateVitalSign,
+  addElderlyFunctionalChecklist,
+  updateElderlyFunctionalChecklist,
   addEctSession,
   addGeneralEctSession,
   updateEctSession,

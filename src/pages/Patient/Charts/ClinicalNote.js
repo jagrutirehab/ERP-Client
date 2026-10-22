@@ -3,10 +3,8 @@ import PropTypes from "prop-types";
 import FileCard from "../../../Components/Common/FileCard";
 import { Col, Row } from "reactstrap";
 import PreviewFile from "../../../Components/Common/PreviewFile";
-import ElderlyChecklist from "../ChartForm/Components/ElderlyChecklist";
 
 const ClinicalNote = ({ data }) => {
-  const hasElderlyChecklist = Boolean(data?.elderlyChecklistFields);
   const [fileModal, setFileModal] = useState({
     img: null,
     isOpen: false,
@@ -19,37 +17,29 @@ const ClinicalNote = ({ data }) => {
   return (
     <React.Fragment>
       <div>
-        {hasElderlyChecklist ? (
-          <ElderlyChecklist value={data.elderlyChecklistFields} readOnly />
-        ) : (
-          <>
-            {data?.complaints && (
-              <div className="d-flex">
-                <h6 className="fs-xs-10 fs-md-14">Complaints:-</h6>
-                <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.complaints}</p>
-              </div>
-            )}
-            {data?.observations && (
-              <div className="d-flex">
-                <h6 className="fs-xs-10 fs-md-14">Observations:-</h6>
-                <p className="fs-xs-9 fs-md-12 mb-0 ms-2">
-                  {data.observations}
-                </p>
-              </div>
-            )}
-            {data?.diagnosis && (
-              <div className="d-flex">
-                <h6 className="fs-xs-10 fs-md-14">Diagnosis:-</h6>
-                <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.diagnosis}</p>
-              </div>
-            )}
-            {data?.notes && (
-              <div className="d-flex">
-                <h6 className="fs-xs-10 fs-md-14">Notes:-</h6>
-                <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.notes}</p>
-              </div>
-            )}
-          </>
+        {data?.complaints && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Complaints:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.complaints}</p>
+          </div>
+        )}
+        {data?.observations && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Observations:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.observations}</p>
+          </div>
+        )}
+        {data?.diagnosis && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Diagnosis:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.diagnosis}</p>
+          </div>
+        )}
+        {data?.notes && (
+          <div className="d-flex">
+            <h6 className="fs-xs-10 fs-md-14">Notes:-</h6>
+            <p className="fs-xs-9 fs-md-12 mb-0 ms-2">{data.notes}</p>
+          </div>
         )}
 
         {/* 🎙️ Render Audio File if present */}

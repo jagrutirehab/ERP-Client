@@ -17,15 +17,10 @@ import {
   updateMentalExamination,
 } from "../../../store/features/chart/chartSlice";
 import PropTypes from "prop-types";
-import ElderlyChecklist, {
-  FUNCTIONAL_ASSESSMENT_FIELDS,
-  DAILY_LIVING_ASSESSMENT_FIELDS,
-} from "./Components/ElderlyChecklist";
 
 const MentalExamination = ({
   author,
   patient,
-  livePatientAdmissionType,
   appointment,
   chartDate,
   editChartData,
@@ -41,10 +36,6 @@ const MentalExamination = ({
   const ptLatestMentalExamination =
     patientLatestMentalExamination?.mentalExamination;
   console.log(ptLatestMentalExamination);
-
-  const isGeriatric =
-    (livePatientAdmissionType ?? patient?.addmission?.patientAdmissionType) ===
-    "geriatric";
 
   useEffect(() => {
     if (!editMentalExamination && patient?._id) {
@@ -279,8 +270,6 @@ const MentalExamination = ({
         ? ptLatestMentalExamination?.observation
         : "",
 
-      elderlyChecklistFields: editMentalExamination?.elderlyChecklistFields || {},
-
       date: chartDate,
       shouldPrintAfterSave,
       chart: MENTAL_EXAMINATION,
@@ -290,28 +279,6 @@ const MentalExamination = ({
       patient: Yup.string().required("Patient is required"),
       center: Yup.string().required("Center is required"),
       chart: Yup.string().required("Chart is required"),
-      elderlyChecklistFields: Yup.object({
-        functionalAssessment: Yup.object(
-          Object.fromEntries(
-            FUNCTIONAL_ASSESSMENT_FIELDS.map((f) => [
-              f.key,
-              isGeriatric
-                ? Yup.string().required("This field is required.")
-                : Yup.string(),
-            ]),
-          ),
-        ),
-        dailyLivingAssessment: Yup.object(
-          Object.fromEntries(
-            DAILY_LIVING_ASSESSMENT_FIELDS.map((f) => [
-              f.key,
-              isGeriatric
-                ? Yup.string().required("This field is required.")
-                : Yup.string(),
-            ]),
-          ),
-        ),
-      }),
     }),
     onSubmit: (values) => {
       if (editMentalExamination) {
@@ -343,21 +310,10 @@ const MentalExamination = ({
 
   return (
     <Form onSubmit={validation.handleSubmit}>
-      {isGeriatric ? (
-        <ElderlyChecklist
-          value={validation.values.elderlyChecklistFields}
-          onChange={(next) =>
-            validation.setFieldValue("elderlyChecklistFields", next)
-          }
-          required={isGeriatric}
-          submitAttempted={validation.submitCount > 0}
-        />
-      ) : (
-        <RenderFields
-          fields={mentalExaminationV2Fields}
-          validation={validation}
-        />
-      )}
+      <RenderFields
+        fields={mentalExaminationV2Fields}
+        validation={validation}
+      />
 
       <div className="mt-3">
         <div className="d-flex gap-3 justify-content-end">
@@ -375,7 +331,6 @@ const MentalExamination = ({
 
 MentalExamination.propTypes = {
   patient: PropTypes.object,
-  livePatientAdmissionType: PropTypes.string,
   author: PropTypes.object,
   chartDate: PropTypes.any,
   editChartData: PropTypes.object,
@@ -386,13 +341,6 @@ MentalExamination.propTypes = {
 const mapStateToProps = (state) => ({
   // patient: state.Patient.patient,
   patient: state.Chart.chartForm?.patient,
-  livePatientAdmissionType:
-    state.Patient.patient?._id &&
-    state.Chart.chartForm?.patient?._id &&
-    String(state.Patient.patient._id) ===
-      String(state.Chart.chartForm.patient._id)
-      ? state.Patient.patient?.addmission?.patientAdmissionType
-      : undefined,
   appointment: state.Chart.chartForm.appointment,
   author: state.User.user,
   chartDate: state.Chart.chartDate,

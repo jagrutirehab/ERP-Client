@@ -2,19 +2,9 @@ import { Col } from "reactstrap";
 import Divider from "../../../Components/Common/Divider";
 import { mentalExaminationV2Fields } from "../../../Components/constants/patient";
 import { convertSnakeToTitle } from "../../../utils/convertSnakeToTitle";
-import ElderlyChecklist from "../ChartForm/Components/ElderlyChecklist";
 
 const MentalExamination = ({ data }) => {
     if (!data) return null;
-
-    if (data.elderlyChecklistFields) {
-        return (
-            <>
-                <ElderlyChecklist value={data.elderlyChecklistFields} readOnly />
-                <Divider />
-            </>
-        );
-    }
 
     const convertCamelCaseToTitleCase = (str) =>
         str

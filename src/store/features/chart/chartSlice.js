@@ -49,6 +49,8 @@ import {
   postPrescription,
   postRealtiveVisit,
   postVitalSign,
+  postElderlyFunctionalChecklist,
+  editElderlyFunctionalChecklist,
   submitAssessment,
   submitECTConsent,
   postPsychoDiagnosticForm,
@@ -371,6 +373,48 @@ export const updateVitalSign = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Vital Sign Updated Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addElderlyFunctionalChecklist = createAsyncThunk(
+  "postElderlyFunctionalChecklist",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postElderlyFunctionalChecklist(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Elderly Functional Checklist Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updateElderlyFunctionalChecklist = createAsyncThunk(
+  "editElderlyFunctionalChecklist",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editElderlyFunctionalChecklist(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Elderly Functional Checklist Updated Successfully",
         }),
       );
 
@@ -2150,6 +2194,54 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(updateVitalSign.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addElderlyFunctionalChecklist.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addElderlyFunctionalChecklist.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addElderlyFunctionalChecklist.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateElderlyFunctionalChecklist.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateElderlyFunctionalChecklist.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id,
+          );
+          state.charts[findIndex] = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission,
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id,
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+        }
+      })
+      .addCase(updateElderlyFunctionalChecklist.rejected, (state) => {
         state.loading = false;
       });
 

@@ -30,6 +30,7 @@ import {
   VITAL_SIGN,
   ROUND_NOTE,
   MEDICINE_GIVEN,
+  ELDERLY_FUNCTIONAL_CHECKLIST,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -241,6 +242,17 @@ const ChartDate = ({
                     // never offered as a manually creatable chart type.
                     if (item.category === ROUND_NOTE) return false;
                     if (item.category === MEDICINE_GIVEN) return false;
+                    const isGeriatric =
+                      String(patient?.addmission?.patientAdmissionType || "")
+                        .trim()
+                        .toLowerCase() === "geriatric";
+                    if (
+                      item.category === ELDERLY_FUNCTIONAL_CHECKLIST &&
+                      !isGeriatric
+                    ) {
+                      return false;
+                    }
+
                     if (user?.role === "NURSE") {
                       return ![
                         PRESCRIPTION,
@@ -271,7 +283,8 @@ const ChartDate = ({
                                   item.category === OUTPASS ||
                                   // Admission type only means something for an
                                   // admitted patient.
-                                  item.category === ADMISSION_TYPE)
+                                  item.category === ADMISSION_TYPE ||
+                                  item.category === ELDERLY_FUNCTIONAL_CHECKLIST)
                               ? true
                               : !editChartData.data && isOnOutpass
                                 ? true

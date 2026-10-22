@@ -579,6 +579,10 @@ export const postGeneralVitalSign = (data) =>
   api.create(url.POST_GENERAL_VITAL_SIGN, data);
 export const editGeneralVitalSign = (data) =>
   api.put(url.EDIT_GENERAL_VITAL_SIGN, data);
+export const postElderlyFunctionalChecklist = (data) =>
+  api.create(url.POST_ELDERLY_FUNCTIONAL_CHECKLIST, data);
+export const editElderlyFunctionalChecklist = (data) =>
+  api.put(url.EDIT_ELDERLY_FUNCTIONAL_CHECKLIST, data);
 export const postAdmissionType = (data) =>
   api.create(url.POST_ADMISSION_TYPE, data);
 export const editAdmissionType = (data) =>

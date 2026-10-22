@@ -10,7 +10,7 @@ import {
   mentalExaminationV2Fields,
 } from "../../../Components/constants/patient";
 import { SPECIAL_REQUIREMENT_LABELS } from "../../../utils/specialRequirements";
-import ElderlyChecklist from "../ChartForm/Components/ElderlyChecklist";
+import ElderlyFunctionalChecklist from "./ElderlyFunctionalChecklist";
 
 const DetailAdmission = ({ data }) => {
   const [fileModal, setFileModal] = useState({
@@ -151,8 +151,6 @@ const DetailAdmission = ({ data }) => {
     psychiatric: "Psychiatric Assessment",
     geriatric: "Geriatric / Dementia / Palliative Assessment",
   };
-
-  const showElderlyChecklist = hasContent(data?.elderlyChecklistFields);
 
   console.log("data", data);
 
@@ -312,21 +310,22 @@ const DetailAdmission = ({ data }) => {
               });
           })()}
         {data?.detailHistory && <Divider />}
-        {showElderlyChecklist && (
-          <>
-            <h6 className="fs-xs-12 fs-md-14 display-6">
-              Mental Status Examination
-            </h6>
-            <ElderlyChecklist value={data.elderlyChecklistFields} readOnly />
-            <Divider />
-          </>
-        )}
-        {!showElderlyChecklist &&
-          (data?.mentalExamination || data?.mentalExaminationV2) && (
-            <h6 className="fs-xs-12 fs-md-14 display-6">
-              Mental Status Examination
-            </h6>
+        {data?.patientType?.toLowerCase() === "geriatric" &&
+          data?.elderlyChecklistFields && (
+            <>
+              <Col xs={12}>
+                <h6 className="fs-xs-12 fs-md-14 display-6">
+                  Elderly Functional Checklist
+                </h6>
+              </Col>
+              <ElderlyFunctionalChecklist data={data.elderlyChecklistFields} />
+            </>
           )}
+        {(data?.mentalExamination || data?.mentalExaminationV2) && (
+          <h6 className="fs-xs-12 fs-md-14 display-6">
+            Mental Status Examination
+          </h6>
+        )}
         {/* {data?.mentalExamination &&
           Object.entries(data.mentalExamination).map((d, i) => (
             <Col key={i} xs={12}>
@@ -343,8 +342,7 @@ const DetailAdmission = ({ data }) => {
               </div>
             </Col>
           ))} */}
-        {!showElderlyChecklist &&
-          data?.mentalExamination &&
+        {data?.mentalExamination &&
           Object.entries(data.mentalExamination).map(([key, value], i) => {
             // Define rename rules
             const renameMap = {
@@ -371,9 +369,8 @@ const DetailAdmission = ({ data }) => {
               </Col>
             );
           })}
-        {!showElderlyChecklist && data?.mentalExamination && <Divider />}
-        {!showElderlyChecklist &&
-          data?.mentalExaminationV2 &&
+        {data?.mentalExamination && <Divider />}
+        {data?.mentalExaminationV2 &&
           (() => {
             const v2 = data.mentalExaminationV2;
 

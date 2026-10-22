@@ -24,6 +24,7 @@ import {
   ECT_SESSION,
   ADMISSION_TYPE,
   MEDICINE_GIVEN,
+  ELDERLY_FUNCTIONAL_CHECKLIST,
 } from "../../constants/patient";
 
 //charts
@@ -47,6 +48,7 @@ import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
 import AdmissionType from "./AdmissionType";
 import MedicineGiven from "./MedicineGiven";
+import ElderlyFunctionalChecklist from "./ElderlyFunctionalChecklist";
 
 const styles = StyleSheet.create({
   page: {
@@ -330,6 +332,20 @@ const Charts = ({
                 isTrue={chart?.chart === ADMISSION_TYPE && chart.type === IPD}
               >
                 <AdmissionType
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
+
+              <RenderWhen
+                isTrue={
+                  chart?.chart === ELDERLY_FUNCTIONAL_CHECKLIST &&
+                  chart.type === IPD
+                }
+              >
+                <ElderlyFunctionalChecklist
                   chart={chart}
                   center={chart.center}
                   patient={patient}

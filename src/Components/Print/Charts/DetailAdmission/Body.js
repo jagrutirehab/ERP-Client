@@ -13,6 +13,7 @@ import ProvisionalDiagnosis from "./ProvisionalDaignosis";
 import MentalExaminationBody from "../MentalExaminationBody";
 import { DETAIL_ADMISSION } from "../../../constants/patient";
 import PatientTypeAssessment from "./PatientTypeAssessment";
+import ElderlyFunctionalChecklist from "./ElderlyFunctionalChecklist";
 
 //table
 // import PrescriptionTable from "./Table";
@@ -148,6 +149,13 @@ const Body = ({ chart, patient, admission, additionalDiagnosis }) => {
         styles={styles}
         additionalDiagnosis={chartDiagnosis}
       />
+      {data.patientType?.toLowerCase() === "geriatric" &&
+        data.elderlyChecklistFields && (
+          <ElderlyFunctionalChecklist
+            data={data.elderlyChecklistFields}
+            styles={styles}
+          />
+        )}
       {isOldMentalExamination ? (
         <MentalExamination data={data.mentalExamination} styles={styles} />
       ) : (
