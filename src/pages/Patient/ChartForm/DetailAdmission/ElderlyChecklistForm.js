@@ -50,21 +50,21 @@ const ElderlyChecklistForm = ({
     }
   };
 
-  const centerId = patient?.center?._id || patient?.center || "";
+  // const centerId = patient?.center?._id || patient?.center || "";
 
-  useEffect(() => {
-    if (!latestValuesRef.current.checklistDateTime) {
-      updateField("checklistDateTime", new Date().toISOString().slice(0, 10));
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  // useEffect(() => {
+  //   if (!latestValuesRef.current.checklistDateTime) {
+  //     updateField("checklistDateTime", new Date().toISOString().slice(0, 10));
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, []);
 
-  useEffect(() => {
-    if (centerId && latestValuesRef.current.center !== centerId) {
-      updateField("center", centerId);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [centerId]);
+  // useEffect(() => {
+  //   if (centerId && latestValuesRef.current.center !== centerId) {
+  //     updateField("center", centerId);
+  //   }
+  //   // eslint-disable-next-line react-hooks/exhaustive-deps
+  // }, [centerId]);
 
   const touchedObject = useMemo(() => {
     if (!attempted) return {};
@@ -108,7 +108,7 @@ const ElderlyChecklistForm = ({
   return (
     <React.Fragment>
       <div>
-        <Row>
+        {/* <Row>
           <Col xs={12}>
             <div className="mb-3">
               <Label htmlFor="residentNameId" className="form-label">
@@ -174,7 +174,7 @@ const ElderlyChecklistForm = ({
               )}
             </div>
           </Col>
-        </Row>
+        </Row> */}
         <RenderFields
           fields={elderlyFunctionalChecklistFields.filter(
             (field) =>

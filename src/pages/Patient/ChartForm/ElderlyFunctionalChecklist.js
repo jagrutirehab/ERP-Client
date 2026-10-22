@@ -37,12 +37,12 @@ const ElderlyFunctionalChecklist = ({
       center: patient.center._id || patient.center,
       addmission: patient?.addmission?._id || patient?.addmission || "",
 
-      residentNameId: editElderlyFunctionalChecklist
-        ? editElderlyFunctionalChecklist?.residentNameId
-        : "",
-      checklistDateTime: editElderlyFunctionalChecklist
-        ? editElderlyFunctionalChecklist?.checklistDateTime
-        : new Date().toISOString().slice(0, 10),
+      // residentNameId: editElderlyFunctionalChecklist
+      //   ? editElderlyFunctionalChecklist?.residentNameId
+      //   : "",
+      // checklistDateTime: editElderlyFunctionalChecklist
+      //   ? editElderlyFunctionalChecklist?.checklistDateTime
+      //   : new Date().toISOString().slice(0, 10),
       informationSource: editElderlyFunctionalChecklist
         ? editElderlyFunctionalChecklist?.informationSource
         : "",
@@ -132,6 +132,7 @@ const ElderlyFunctionalChecklist = ({
     },
     validationSchema: Yup.object({
       patient: Yup.string().required("Patient is required"),
+      center: Yup.string().required("Center is required"),
       addmission: Yup.string().required("Addmission is required"),
       chart: Yup.string().required("Chart is required"),
       ...elderlyChecklistYupShape,
@@ -158,7 +159,7 @@ const ElderlyFunctionalChecklist = ({
 
   return (
     <Form onSubmit={validation.handleSubmit}>
-      <Row>
+      {/* <Row>
         <Col xs={12}>
           <div className="mb-3">
             <Label htmlFor="residentNameId" className="form-label">
@@ -236,7 +237,7 @@ const ElderlyFunctionalChecklist = ({
               )}
           </div>
         </Col>
-      </Row>
+      </Row> */}
       <RenderFields
         fields={elderlyFunctionalChecklistFields.filter(
           (field) =>
