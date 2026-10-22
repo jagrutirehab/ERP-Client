@@ -15,6 +15,9 @@ const AudioRecorder = ({ onReady }) => {
   const audioContextRef = useRef(null);
   const animationRef = useRef(null);
   const mimeTypeRef = useRef("");
+  const elapsedBeforeSegmentRef = useRef(0);
+  const segmentStartRef = useRef(null);
+  const [displaySeconds, setDisplaySeconds] = useState(0);
 
   useEffect(() => {
     const initRecording = async () => {
@@ -60,9 +63,11 @@ const AudioRecorder = ({ onReady }) => {
         // create File when stopped
         mediaRecorderRef.current.onstop = () => {
           const file = buildAndSendFile();
+          finalizeElapsed();
+          const audioDetails = buildAudioDetails();
 
           if (onReady && file) {
-            onReady(file, null);
+            onReady(file, null, audioDetails);
           }
         };
 
@@ -163,6 +168,51 @@ const AudioRecorder = ({ onReady }) => {
     return file;
   };
 
+  const formatDuration = (totalSecondsRaw) => {
+    const totalSeconds = Math.max(0, Math.round(totalSecondsRaw));
+    const hours = Math.floor(totalSeconds / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+    const pad = (n) => String(n).padStart(2, "0");
+
+    return hours > 0
+      ? `${hours}:${pad(minutes)}:${pad(seconds)}`
+      : `${minutes}:${pad(seconds)}`;
+  };
+
+  const getElapsedSeconds = () => {
+    const activeSegment = segmentStartRef.current
+      ? (Date.now() - segmentStartRef.current) / 1000
+      : 0;
+    return elapsedBeforeSegmentRef.current + activeSegment;
+  };
+
+  const finalizeElapsed = () => {
+    if (segmentStartRef.current) {
+      elapsedBeforeSegmentRef.current += (Date.now() - segmentStartRef.current) / 1000;
+      segmentStartRef.current = null;
+    }
+  };
+
+  const buildAudioDetails = () => {
+    const endedOn = Math.round(getElapsedSeconds());
+    return {
+      startedFrom: 0,
+      endedOn,
+      totalTime: formatDuration(endedOn),
+    };
+  };
+
+  useEffect(() => {
+    if (!isRecording) return;
+
+    const id = setInterval(() => {
+      setDisplaySeconds(Math.round(getElapsedSeconds()));
+    }, 1000);
+
+    return () => clearInterval(id);
+  }, [isRecording]);
+
   const drawVisualizer = () => {
     const canvas = canvasRef.current;
     const ctx = canvas.getContext("2d");
@@ -192,6 +242,9 @@ const AudioRecorder = ({ onReady }) => {
   const handleStart = () => {
     if (mediaRecorderRef.current) {
       audioChunksRef.current = [];
+      elapsedBeforeSegmentRef.current = 0;
+      segmentStartRef.current = Date.now();
+      setDisplaySeconds(0);
       // mediaRecorderRef.current.start();
       const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
       mediaRecorderRef.current.start(isIOS ? 10000 : undefined);
@@ -216,6 +269,10 @@ const AudioRecorder = ({ onReady }) => {
       setIsRecording(false);
       mediaRecorderRef.current.requestData();
 
+      finalizeElapsed();
+      setDisplaySeconds(Math.round(elapsedBeforeSegmentRef.current));
+      if (onReady) onReady(null, null, buildAudioDetails());
+
       // immediately build file on pause
       setTimeout(() => {
         buildAndSendFile();
@@ -229,6 +286,7 @@ const AudioRecorder = ({ onReady }) => {
         await audioContextRef.current.resume();
       }
       mediaRecorderRef.current.resume();
+      segmentStartRef.current = Date.now();
       setIsRecording(true);
     }
   };
@@ -242,11 +300,16 @@ const AudioRecorder = ({ onReady }) => {
 
         mediaRecorderRef.current.onstop = () => {
           const file = buildAndSendFile();
+          finalizeElapsed();
+          setDisplaySeconds(Math.round(elapsedBeforeSegmentRef.current));
+          if (onReady) onReady(null, null, buildAudioDetails());
           resolve(file);
         };
 
         mediaRecorderRef.current.stop();
       } else {
+        finalizeElapsed();
+        if (onReady) onReady(null, null, buildAudioDetails());
         resolve(null);
       }
     });
@@ -261,6 +324,12 @@ const AudioRecorder = ({ onReady }) => {
   return (
     <div className="my-3">
       {error && <Alert color="danger">{error}</Alert>}
+
+      {!error && (
+        <div className="mb-2">
+          <strong>{formatDuration(displaySeconds)}</strong>
+        </div>
+      )}
 
       <div className="d-flex gap-2 mb-2">
         <Button

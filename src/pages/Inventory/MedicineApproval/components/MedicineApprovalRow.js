@@ -96,6 +96,11 @@ const MedicineApprovalRow = ({
                                         Given — {med.dispensedCount} of {med.totalQuantity}
                                     </Badge>
                                 )}
+                                {readOnly && med.givenByName && (
+                                    <span className="text-muted ms-2" style={{ fontSize: "0.75rem" }}>
+                                        by {med.givenByName}
+                                    </span>
+                                )}
                                 {med.sources && med.sources.length > 1 ? (
                                     <div className="mt-1">
                                         {med.sources.map((src, i) => (
@@ -126,6 +131,9 @@ const MedicineApprovalRow = ({
                                                         {src.batch?.id && <> {src.batch.id} · </>}
                                                         Batch: {src.batch?.Batch || "-"}
                                                         {src.batch?.company && <> · {src.batch.company}</>}
+                                                        {readOnly && src.givenByName && (
+                                                            <> · by {src.givenByName}</>
+                                                        )}
                                                     </div>
                                                 </div>
                                             </div>

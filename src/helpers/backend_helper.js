@@ -2460,6 +2460,14 @@ export const getInternalTransferRequisitionById = (id) => {
   });
 };
 
+export const packageInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/package`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const dispatchInternalTransferRequisition = (id, data) => {
   return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/dispatch`, data, {
     headers: {
