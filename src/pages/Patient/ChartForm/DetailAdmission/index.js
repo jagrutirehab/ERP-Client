@@ -29,6 +29,8 @@ import MentalExaminationV2 from "./MentalExaminationV2";
 import PatientTypeFields, {
   validatePatientTypeFields,
 } from "./PatientTypeFields";
+import ElderlyChecklist from "../Components/ElderlyChecklist";
+import NextButton from "./NextButton";
 // import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
 // const CONSET_FILES = "CONSENT_FILES";
@@ -654,6 +656,9 @@ const DetailAdmission = ({
       geriatricFields: JSON.stringify(
         detailAdmissionForm?.geriatricFields || {},
       ),
+      elderlyChecklistFields: JSON.stringify(
+        detailAdmissionForm?.elderlyChecklistFields || {},
+      ),
       rapport:
         detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
           ?.rapport || "",
@@ -811,7 +816,7 @@ const DetailAdmission = ({
         setFormStep(DETAIL_HISTORY);
         return;
       }
-      if (!isOldMentalExamination) {
+      if (!isOldMentalExamination && values.patientType !== "geriatric") {
         const mseFields = [
           "generalAppearance",
           "psychomotorActivity",
@@ -1130,7 +1135,31 @@ const DetailAdmission = ({
               )}
 
               {formStep === MENTAL_EXAMINATION &&
-                (isOldMentalExamination ? (
+                (validation.values.patientType === "geriatric" ? (
+                  <>
+                    <ElderlyChecklist
+                      value={(() => {
+                        try {
+                          return (
+                            JSON.parse(
+                              validation.values.elderlyChecklistFields ||
+                                "{}",
+                            ) || {}
+                          );
+                        } catch {
+                          return {};
+                        }
+                      })()}
+                      onChange={(next) =>
+                        validation.setFieldValue(
+                          "elderlyChecklistFields",
+                          JSON.stringify(next),
+                        )
+                      }
+                    />
+                    <NextButton setFormStep={setFormStep} step={DOCTOR_SIGNATURE} />
+                  </>
+                ) : isOldMentalExamination ? (
                   <MentalExamination
                     validation={validation}
                     setFormStep={setFormStep}

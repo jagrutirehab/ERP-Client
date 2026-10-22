@@ -33,6 +33,7 @@ import {
 import PreviewFile from "../../../Components/Common/PreviewFile";
 import axios from "axios";
 import AudioRecorder from "./AaudioRecorder";
+import ElderlyChecklist from "./Components/ElderlyChecklist";
 
 registerPlugin(
   FilePondPluginImageExifOrientation,
@@ -92,6 +93,7 @@ const UploadedFiles = ({ id, chartId, files, appointment }) => {
 const ClinicalNote = ({
   author,
   patient,
+  livePatientAdmissionType,
   chartDate,
   editChartData,
   appointment,
@@ -109,6 +111,9 @@ const ClinicalNote = ({
   console.log({ type });
 
   const editClinicalNote = editChartData?.clinicalNote;
+  const isGeriatric =
+    (livePatientAdmissionType ?? patient?.addmission?.patientAdmissionType) ===
+    "geriatric";
 
   useEffect(() => {
     const fetchOPDPrescription = async () => {
@@ -147,6 +152,7 @@ const ClinicalNote = ({
       observations: noteSource?.observations || "",
       diagnosis: noteSource?.diagnosis || "",
       notes: noteSource?.notes || "",
+      elderlyChecklistFields: noteSource?.elderlyChecklistFields || {},
       type,
       date: chartDate,
       shouldPrintAfterSave,
@@ -226,27 +232,38 @@ const ClinicalNote = ({
       encType="multipart/form-data"
     >
       <Row className="mt-3">
-        {(clinicalNoteFields || []).map((item, idx) => (
-          <Col xs={12} md={6} key={idx}>
-            <Card className="ribbon-box border shadow-none mb-3">
-              <CardBody className="position-relative p-0">
-                <div className="ribbon ribbon-primary w-75 ribbon-shape">
-                  {item.label}
-                </div>
-                <Input
-                  type="textarea"
-                  name={item.name}
-                  onChange={validation.handleChange}
-                  onBlur={validation.handleBlur}
-                  value={validation.values[item.name] || ""}
-                  className="form-control presc-border pt-5 rounded"
-                  aria-label="With textarea"
-                  rows="2"
-                />
-              </CardBody>
-            </Card>
+        {isGeriatric ? (
+          <Col xs={12}>
+            <ElderlyChecklist
+              value={validation.values.elderlyChecklistFields}
+              onChange={(next) =>
+                validation.setFieldValue("elderlyChecklistFields", next)
+              }
+            />
           </Col>
-        ))}
+        ) : (
+          (clinicalNoteFields || []).map((item, idx) => (
+            <Col xs={12} md={6} key={idx}>
+              <Card className="ribbon-box border shadow-none mb-3">
+                <CardBody className="position-relative p-0">
+                  <div className="ribbon ribbon-primary w-75 ribbon-shape">
+                    {item.label}
+                  </div>
+                  <Input
+                    type="textarea"
+                    name={item.name}
+                    onChange={validation.handleChange}
+                    onBlur={validation.handleBlur}
+                    value={validation.values[item.name] || ""}
+                    className="form-control presc-border pt-5 rounded"
+                    aria-label="With textarea"
+                    rows="2"
+                  />
+                </CardBody>
+              </Card>
+            </Col>
+          ))
+        )}
         {type === "IPD" && (
           <Col xs={12} className="mt-3">
             <h5>Audio Recording</h5>
@@ -285,6 +302,7 @@ const ClinicalNote = ({
 
 ClinicalNote.propTypes = {
   patient: PropTypes.object,
+  livePatientAdmissionType: PropTypes.string,
   author: PropTypes.object,
   chartDate: PropTypes.any,
   editChartData: PropTypes.object,
@@ -294,6 +312,13 @@ ClinicalNote.propTypes = {
 
 const mapStateToProps = (state) => ({
   patient: state.Chart.chartForm?.patient,
+  livePatientAdmissionType:
+    state.Patient.patient?._id &&
+    state.Chart.chartForm?.patient?._id &&
+    String(state.Patient.patient._id) ===
+      String(state.Chart.chartForm.patient._id)
+      ? state.Patient.patient?.addmission?.patientAdmissionType
+      : undefined,
   author: state.User.user,
   chartDate: state.Chart.chartDate,
   editChartData: state.Chart.chartForm?.data,
