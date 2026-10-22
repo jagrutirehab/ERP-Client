@@ -315,7 +315,7 @@ const DetailAdmission = ({ data }) => {
             <>
               <Col xs={12}>
                 <h6 className="fs-xs-12 fs-md-14 display-6">
-                  Elderly Functional Checklist
+                  Elderly Functional and Daily Living Checklist
                 </h6>
               </Col>
               <ElderlyFunctionalChecklist data={data.elderlyChecklistFields} />

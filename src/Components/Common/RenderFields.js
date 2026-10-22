@@ -4,6 +4,31 @@ import { capitalizeWords } from "../../utils/toCapitalize";
 import Select from "react-select";
 import { getIn } from "formik";
 
+const evaluateCondition = (condition, validation, prefix) => {
+  if (!condition) return true;
+  const conditionField = condition.field;
+  const fieldPath = prefix ? `${prefix}.${conditionField}` : conditionField;
+  const currentVal = getIn(validation.values, fieldPath);
+
+  if (condition.value !== undefined && currentVal !== condition.value)
+    return false;
+  if (condition.notEquals !== undefined && currentVal === condition.notEquals)
+    return false;
+  if (
+    condition.includes !== undefined &&
+    (!Array.isArray(currentVal) || !currentVal.includes(condition.includes))
+  )
+    return false;
+  if (
+    condition.includesAny !== undefined &&
+    (!Array.isArray(currentVal) ||
+      !condition.includesAny.some((v) => currentVal.includes(v)))
+  )
+    return false;
+
+  return true;
+};
+
 const RenderFields = ({ fields, validation, prefix }) => {
   const handleCheckboxToggle = (field, optValue) => {
     const fieldPath = prefix ? `${prefix}.${field.name}` : field.name;
@@ -34,33 +59,16 @@ const RenderFields = ({ fields, validation, prefix }) => {
     <React.Fragment>
       <Row>
         {(fields.filter((fl) => fl) || []).map((field, i) => {
-          if (field.showIf) {
-            const conditionField = field.showIf.field;
-            const conditionValue = field.showIf.value;
-            const notEquals = field.showIf.notEquals;
-            const includes = field.showIf.includes;
-            const condFieldPath = prefix
-              ? `${prefix}.${conditionField}`
-              : conditionField;
-            const currentCondVal = getIn(validation.values, condFieldPath);
-
-            if (
-              conditionValue !== undefined &&
-              currentCondVal !== conditionValue
-            )
-              return null;
-            if (
-              notEquals !== undefined &&
-              currentCondVal === notEquals
-            )
-              return null;
-            if (
-              includes !== undefined &&
-              (!Array.isArray(currentCondVal) ||
-                !currentCondVal.includes(includes))
-            )
-              return null;
+          if (
+            field.showIf &&
+            !evaluateCondition(field.showIf, validation, prefix)
+          ) {
+            return null;
           }
+
+          const isFieldRequired = field.requiredIf
+            ? evaluateCondition(field.requiredIf, validation, prefix)
+            : field.required;
 
           if (field.type === "empty") {
             return <Col key={i + "empty"} xs={12} lg={6} />;
@@ -218,7 +226,7 @@ const RenderFields = ({ fields, validation, prefix }) => {
                 {!field.labelHidden && (
                   <Label htmlFor={field.name} className="form-label">
                     {field.label}
-                    {field.required && (
+                    {isFieldRequired && (
                       <span className="text-danger ms-1">*</span>
                     )}
                   </Label>
