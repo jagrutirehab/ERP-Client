@@ -16,6 +16,10 @@ import "react-phone-number-input/style.css";
 import Select from "react-select";
 import { format } from "date-fns";
 import * as Yup from "yup";
+import {
+  isEnteredIdentifier,
+  isMaskedIdentifier,
+} from "../../helpers/maskedIdentifier";
 import { useFormik } from "formik";
 import { addPatientFields, patientGuradianFields } from "../constants/patient";
 import Divider from "../Common/Divider";
@@ -181,9 +185,13 @@ const AddPatient = ({
         .when("nationality", {
           is: "Indian",
           then: (schema) =>
-            schema.matches(
-              /^$|^[0-9]{12}$/,
+            // Blank is fine, and so is the mask the server sends back for a
+            // number nobody edited — only a freshly typed value is checked.
+            schema.test(
+              "aadhaar-format",
               "Aadhaar Card Number must be exactly 12 digits",
+              (value) =>
+                !isEnteredIdentifier(value) || /^[0-9]{12}$/.test(value.trim()),
             ),
         }),
       passportNumber: Yup.string()
@@ -997,6 +1005,14 @@ const AddPatient = ({
                     id="aadhaarCardNumber"
                     placeholder="Enter 12-digit Aadhaar number"
                     maxLength={12}
+                    onFocus={() => {
+                      // The server only ever sends a mask. Clearing it on
+                      // focus means typing replaces the number instead of
+                      // appending to "XXXXXXXX3001". Leaving it blank is safe:
+                      // the server reads a blank as "no change".
+                      if (isMaskedIdentifier(validation.values.aadhaarCardNumber))
+                        validation.setFieldValue("aadhaarCardNumber", "");
+                    }}
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
                     value={validation.values.aadhaarCardNumber || ""}
@@ -1014,6 +1030,13 @@ const AddPatient = ({
                         {validation.errors.aadhaarCardNumber}
                       </FormFeedback>
                     )}
+                  {isMaskedIdentifier(validation.values.aadhaarCardNumber) && (
+                    <small className="text-muted d-block mt-1">
+                      Showing the last 4 digits only. Click the field and type a
+                      new number to replace it, or leave it as-is to keep the
+                      saved one.
+                    </small>
+                  )}
                   <Label
                     htmlFor="aadhaarCardFile"
                     className="form-label"
@@ -1055,6 +1078,14 @@ const AddPatient = ({
                     name="passportNumber"
                     id="passportNumber"
                     placeholder="Enter passport number"
+                    onFocus={() => {
+                      // The server only ever sends a mask. Clearing it on
+                      // focus means typing replaces the number instead of
+                      // appending to "XXXXXXXX3001". Leaving it blank is safe:
+                      // the server reads a blank as "no change".
+                      if (isMaskedIdentifier(validation.values.passportNumber))
+                        validation.setFieldValue("passportNumber", "");
+                    }}
                     onChange={validation.handleChange}
                     onBlur={validation.handleBlur}
                     value={validation.values.passportNumber || ""}
@@ -1072,6 +1103,13 @@ const AddPatient = ({
                         {validation.errors.passportNumber}
                       </FormFeedback>
                     )}
+                  {isMaskedIdentifier(validation.values.passportNumber) && (
+                    <small className="text-muted d-block mt-1">
+                      Showing the last 4 digits only. Click the field and type a
+                      new number to replace it, or leave it as-is to keep the
+                      saved one.
+                    </small>
+                  )}
                   <Label
                     htmlFor="passportCardFile"
                     className="form-label"
