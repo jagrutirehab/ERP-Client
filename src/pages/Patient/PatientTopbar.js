@@ -120,8 +120,14 @@ const PatientTopbar = ({
   // days". Read straight off `patient.addmission` — unlike the final diagnosis
   // there is nothing to fetch, so this needs no loading state. Same source the
   // ADMISSION TYPE card below the topbar reads.
+  // A Geriatric patient (Patient Type on the admission card) shows as
+  // "Admission Type: Geriatric" in place of the admission type — by decision,
+  // and the same in the ADMISSION TYPE card.
   const currentAdmissionType = getCurrentAdmissionType(patient?.addmission);
-  const admissionTypeText = currentAdmissionType
+  const isGeriatric = patient?.addmission?.patientAdmissionType === "geriatric";
+  const admissionTypeText = isGeriatric
+    ? "Geriatric"
+    : currentAdmissionType
     ? [
         admissionTypeLabel(
           "admissionType",
