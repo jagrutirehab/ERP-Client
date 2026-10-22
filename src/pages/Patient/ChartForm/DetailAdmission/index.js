@@ -29,7 +29,9 @@ import MentalExaminationV2 from "./MentalExaminationV2";
 import PatientTypeFields, {
   validatePatientTypeFields,
 } from "./PatientTypeFields";
-import ElderlyChecklist from "../Components/ElderlyChecklist";
+import ElderlyChecklist, {
+  isElderlyChecklistComplete,
+} from "../Components/ElderlyChecklist";
 import NextButton from "./NextButton";
 // import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
@@ -135,6 +137,8 @@ const DetailAdmission = ({
   const [consentFiles, setConsentFiles] = useState();
   const [formStep, setFormStep] = useState(CHIEF_COMPLAINTS);
   const [patientTypeSubmitAttempted, setPatientTypeSubmitAttempted] =
+    useState(false);
+  const [elderlyChecklistNextAttempted, setElderlyChecklistNextAttempted] =
     useState(false);
   // console.log("editChartData", editChartData);
 
@@ -848,6 +852,19 @@ const DetailAdmission = ({
           return;
         }
       }
+      if (values.patientType === "geriatric") {
+        let parsedElderlyChecklistFields = {};
+        try {
+          parsedElderlyChecklistFields =
+            JSON.parse(values.elderlyChecklistFields || "{}") || {};
+        } catch {
+          parsedElderlyChecklistFields = {};
+        }
+        if (!isElderlyChecklistComplete(parsedElderlyChecklistFields)) {
+          setFormStep(MENTAL_EXAMINATION);
+          return;
+        }
+      }
       //
       const diagnosisMissing =
         !Array.isArray(values.provisionaldiagnosis) ||
@@ -1156,8 +1173,38 @@ const DetailAdmission = ({
                           JSON.stringify(next),
                         )
                       }
+                      required
+                      submitAttempted={
+                        validation.submitCount > 0 ||
+                        elderlyChecklistNextAttempted
+                      }
                     />
-                    <NextButton setFormStep={setFormStep} step={DOCTOR_SIGNATURE} />
+                    {elderlyChecklistNextAttempted && (
+                      <p className="text-danger small">
+                        Please fill in all required fields before continuing.
+                      </p>
+                    )}
+                    <NextButton
+                      setFormStep={setFormStep}
+                      step={DOCTOR_SIGNATURE}
+                      onBeforeNext={() => {
+                        let parsedElderlyChecklistFields = {};
+                        try {
+                          parsedElderlyChecklistFields =
+                            JSON.parse(
+                              validation.values.elderlyChecklistFields ||
+                                "{}",
+                            ) || {};
+                        } catch {
+                          parsedElderlyChecklistFields = {};
+                        }
+                        const isValid = isElderlyChecklistComplete(
+                          parsedElderlyChecklistFields,
+                        );
+                        setElderlyChecklistNextAttempted(!isValid);
+                        return isValid;
+                      }}
+                    />
                   </>
                 ) : isOldMentalExamination ? (
                   <MentalExamination

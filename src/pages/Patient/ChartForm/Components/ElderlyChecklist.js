@@ -54,9 +54,29 @@ export const DAILY_LIVING_ASSESSMENT_FIELDS = [
   },
 ];
 
+export const isElderlyChecklistComplete = (value) => {
+  const functionalAssessment = value?.functionalAssessment || {};
+  const dailyLivingAssessment = value?.dailyLivingAssessment || {};
+  return (
+    FUNCTIONAL_ASSESSMENT_FIELDS.every((f) =>
+      Boolean(functionalAssessment[f.key]),
+    ) &&
+    DAILY_LIVING_ASSESSMENT_FIELDS.every((f) =>
+      Boolean(dailyLivingAssessment[f.key]),
+    )
+  );
+};
+
 const EMPTY_SECTION = {};
 
-const ElderlyChecklistField = ({ field, value, onChange, readOnly }) => {
+const ElderlyChecklistField = ({
+  field,
+  value,
+  onChange,
+  readOnly,
+  required,
+  submitAttempted,
+}) => {
   if (readOnly) {
     return (
       <Col md={6} xs={12} className="mb-2">
@@ -70,22 +90,39 @@ const ElderlyChecklistField = ({ field, value, onChange, readOnly }) => {
     );
   }
 
+  const isInvalid = required && submitAttempted && !value;
+
+  const selectStyles = {
+    control: (base) => ({
+      ...base,
+      borderColor: isInvalid ? "#dc3545" : base.borderColor,
+      "&:hover": { borderColor: isInvalid ? "#dc3545" : base.borderColor },
+    }),
+  };
+
   return (
     <Col md={6} className="mb-3">
       <FormGroup className="mb-0">
-        <Label htmlFor={field.key}>{field.label}</Label>
+        <Label htmlFor={field.key}>
+          {field.label}{" "}
+          {required && <span className="text-danger">*</span>}
+        </Label>
         <Select
           inputId={field.key}
           name={field.key}
           classNamePrefix="select"
           placeholder="-- Select --"
           isClearable
+          styles={selectStyles}
           options={field.options.map((opt) => ({ value: opt, label: opt }))}
           value={value ? { value, label: value } : null}
           onChange={(selected) =>
             onChange(field.key, selected ? selected.value : "")
           }
         />
+        {isInvalid && (
+          <div className="text-danger small mt-1">This field is required.</div>
+        )}
       </FormGroup>
     </Col>
   );
@@ -97,6 +134,8 @@ const ElderlyChecklistSection = ({
   values,
   onChange,
   readOnly,
+  required,
+  submitAttempted,
 }) => (
   <div className="mb-4">
     <div className="d-flex align-items-center flex-wrap gap-2 gap-md-3 mb-3">
@@ -111,13 +150,21 @@ const ElderlyChecklistSection = ({
           value={values?.[field.key] || ""}
           onChange={onChange}
           readOnly={readOnly}
+          required={required}
+          submitAttempted={submitAttempted}
         />
       ))}
     </Row>
   </div>
 );
 
-const ElderlyChecklist = ({ value, onChange, readOnly = false }) => {
+const ElderlyChecklist = ({
+  value,
+  onChange,
+  readOnly = false,
+  required = false,
+  submitAttempted = false,
+}) => {
   const functionalAssessment = value?.functionalAssessment || EMPTY_SECTION;
   const dailyLivingAssessment = value?.dailyLivingAssessment || EMPTY_SECTION;
 
@@ -139,6 +186,8 @@ const ElderlyChecklist = ({ value, onChange, readOnly = false }) => {
         values={functionalAssessment}
         onChange={readOnly ? undefined : handleSectionChange("functionalAssessment")}
         readOnly={readOnly}
+        required={required}
+        submitAttempted={submitAttempted}
       />
       <ElderlyChecklistSection
         title="Daily Living Assessment"
@@ -146,6 +195,8 @@ const ElderlyChecklist = ({ value, onChange, readOnly = false }) => {
         values={dailyLivingAssessment}
         onChange={readOnly ? undefined : handleSectionChange("dailyLivingAssessment")}
         readOnly={readOnly}
+        required={required}
+        submitAttempted={submitAttempted}
       />
     </div>
   );
