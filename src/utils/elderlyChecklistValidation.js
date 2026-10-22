@@ -78,14 +78,21 @@ export const elderlyChecklistValidationSchema = Yup.object(
 );
 
 export const parseElderlyChecklist = (raw) => {
-  if (!raw) return {};
-  if (typeof raw === "object") return raw;
-  try {
-    const parsed = JSON.parse(raw);
-    return parsed && typeof parsed === "object" ? parsed : {};
-  } catch {
-    return {};
+  let parsed = {};
+  if (raw && typeof raw === "object") {
+    parsed = raw;
+  } else if (typeof raw === "string") {
+    try {
+      const json = JSON.parse(raw);
+      if (json && typeof json === "object") parsed = json;
+    } catch {
+      parsed = {};
+    }
   }
+  return {
+    ...parsed,
+    skinConcerns: Array.isArray(parsed.skinConcerns) ? parsed.skinConcerns : [],
+  };
 };
 
 export const validateElderlyChecklist = (rawValues = {}) => {

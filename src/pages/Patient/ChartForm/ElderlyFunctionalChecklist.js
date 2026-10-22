@@ -88,8 +88,8 @@ const ElderlyFunctionalChecklist = ({
       catheterStatus: editElderlyFunctionalChecklist
         ? editElderlyFunctionalChecklist?.catheterStatus
         : "",
-      skinConcerns: editElderlyFunctionalChecklist
-        ? editElderlyFunctionalChecklist?.skinConcerns
+      skinConcerns: Array.isArray(editElderlyFunctionalChecklist?.skinConcerns)
+        ? editElderlyFunctionalChecklist.skinConcerns
         : [],
       skinConcernDetails: editElderlyFunctionalChecklist
         ? editElderlyFunctionalChecklist?.skinConcernDetails

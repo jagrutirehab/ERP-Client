@@ -35,8 +35,13 @@ const ElderlyChecklistForm = ({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [forceShowErrors]);
 
+  const latestValuesRef = React.useRef(checklistValues);
+  latestValuesRef.current = checklistValues;
+
   const updateField = (name, value) => {
-    const next = { ...checklistValues, [name]: value };
+    const key = name.includes(".") ? name.split(".").pop() : name;
+    const next = { ...latestValuesRef.current, [key]: value };
+    latestValuesRef.current = next;
     validation.setFieldValue("elderlyChecklistFields", JSON.stringify(next));
     if (attempted) {
       runValidation(next);
@@ -53,7 +58,10 @@ const ElderlyChecklistForm = ({
   }, [attempted]);
 
   const checklistAdapter = {
-    values: checklistValues,
+    values: {
+      ...checklistValues,
+      elderlyChecklistFields: checklistValues,
+    },
     handleChange: (e) => {
       const { name, value } = e.target;
       updateField(name, value);
@@ -62,13 +70,21 @@ const ElderlyChecklistForm = ({
       updateField(name, value);
     },
     handleBlur: () => {},
-    touched: touchedObject,
-    errors: attempted ? errors : {},
+    touched: {
+      ...touchedObject,
+      elderlyChecklistFields: touchedObject,
+    },
+    errors: attempted
+      ? {
+          ...errors,
+          elderlyChecklistFields: errors,
+        }
+      : {},
   };
 
   const handleBeforeNext = () => {
     setAttempted(true);
-    return runValidation(checklistValues);
+    return runValidation(latestValuesRef.current || checklistValues);
   };
 
   return (
