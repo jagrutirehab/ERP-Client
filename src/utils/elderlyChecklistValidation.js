@@ -1,6 +1,11 @@
 import * as Yup from "yup";
 
 export const elderlyChecklistYupShape = {
+  center: Yup.string().required(
+    "Patient's admission center is missing - cannot proceed",
+  ),
+  residentNameId: Yup.string().trim().required("Resident Name / ID is required"),
+  checklistDateTime: Yup.string().trim().required("Date / Time is required"),
   informationSource: Yup.string().trim().required("Information source is required"),
   informationSourceOther: Yup.string().when("informationSource", {
     is: "other",
@@ -92,8 +97,6 @@ export const parseElderlyChecklist = (raw) => {
   return {
     ...parsed,
     skinConcerns: Array.isArray(parsed.skinConcerns) ? parsed.skinConcerns : [],
-    checklistDateTime:
-      parsed.checklistDateTime || new Date().toISOString().slice(0, 10),
   };
 };
 
@@ -101,6 +104,15 @@ export const validateElderlyChecklist = (rawValues = {}) => {
   const values = parseElderlyChecklist(rawValues);
   const errors = {};
 
+  if (!values.center) {
+    errors.center = "Patient's admission center is missing - cannot proceed";
+  }
+  if (!values.residentNameId?.trim()) {
+    errors.residentNameId = "Resident Name / ID is required";
+  }
+  if (!values.checklistDateTime) {
+    errors.checklistDateTime = "Date / Time is required";
+  }
   if (!values.informationSource) {
     errors.informationSource = "Information source is required";
   }

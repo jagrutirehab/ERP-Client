@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
+import { Row, Col, Input, Label } from "reactstrap";
 import RenderFields from "../../../../Components/Common/RenderFields";
 import { elderlyFunctionalChecklistFields } from "../../../../Components/constants/patient";
 import NextButton from "./NextButton";
@@ -49,6 +50,22 @@ const ElderlyChecklistForm = ({
     }
   };
 
+  const centerId = patient?.center?._id || patient?.center || "";
+
+  useEffect(() => {
+    if (!latestValuesRef.current.checklistDateTime) {
+      updateField("checklistDateTime", new Date().toISOString().slice(0, 10));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (centerId && latestValuesRef.current.center !== centerId) {
+      updateField("center", centerId);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centerId]);
+
   const touchedObject = useMemo(() => {
     if (!attempted) return {};
     const touched = {};
@@ -91,12 +108,79 @@ const ElderlyChecklistForm = ({
   return (
     <React.Fragment>
       <div>
-        <p className="mb-3">
-          <span className="fw-semibold me-2">Centre:</span>
-          {patient?.center?.title || ""}
-        </p>
+        <Row>
+          <Col xs={12}>
+            <div className="mb-3">
+              <Label htmlFor="residentNameId" className="form-label">
+                Resident Name / ID <span className="text-danger">*</span>
+              </Label>
+              <Input
+                name="residentNameId"
+                id="residentNameId"
+                className="form-control"
+                type="text"
+                onChange={(e) => updateField("residentNameId", e.target.value)}
+                value={checklistValues.residentNameId || ""}
+                invalid={attempted && Boolean(errors.residentNameId)}
+              />
+              {attempted && errors.residentNameId && (
+                <div className="text-danger small mt-1">
+                  {errors.residentNameId}
+                </div>
+              )}
+            </div>
+          </Col>
+        </Row>
+        <Row>
+          <Col xs={12} lg={6}>
+            <div className="mb-3">
+              <Label htmlFor="checklistCentre" className="form-label">
+                Centre <span className="text-danger">*</span>
+              </Label>
+              <Input
+                name="checklistCentre"
+                id="checklistCentre"
+                className="form-control"
+                type="text"
+                value={patient?.center?.title || ""}
+                disabled
+                invalid={attempted && Boolean(errors.center)}
+              />
+              {attempted && errors.center && (
+                <div className="text-danger small mt-1">{errors.center}</div>
+              )}
+            </div>
+          </Col>
+          <Col xs={12} lg={6}>
+            <div className="mb-3">
+              <Label htmlFor="checklistDateTime" className="form-label">
+                Date / Time <span className="text-danger">*</span>
+              </Label>
+              <Input
+                name="checklistDateTime"
+                id="checklistDateTime"
+                className="form-control"
+                type="date"
+                onChange={(e) =>
+                  updateField("checklistDateTime", e.target.value)
+                }
+                value={checklistValues.checklistDateTime || ""}
+                invalid={attempted && Boolean(errors.checklistDateTime)}
+              />
+              {attempted && errors.checklistDateTime && (
+                <div className="text-danger small mt-1">
+                  {errors.checklistDateTime}
+                </div>
+              )}
+            </div>
+          </Col>
+        </Row>
         <RenderFields
-          fields={elderlyFunctionalChecklistFields}
+          fields={elderlyFunctionalChecklistFields.filter(
+            (field) =>
+              field.name !== "residentNameId" &&
+              field.name !== "checklistDateTime",
+          )}
           validation={checklistAdapter}
         />
         {attempted && Object.keys(errors).length > 0 && (
