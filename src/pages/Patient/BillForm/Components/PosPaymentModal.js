@@ -114,12 +114,7 @@ const PosPaymentModal = ({
   const [now, setNow] = useState(() => Date.now());
 
   const machines = terminals || [];
-  const [cardType, setCardType] = useState("CREDIT");
-  const hasCardChoice =
-    paymentMode === "CARD" && (surchargePercentProp || 0) > 0;
-  // With several machines or a card choice, the cashier confirms before anything
-  // is sent.
-  const mustChoose = machines.length > 1 || hasCardChoice;
+  const [cardType, setCardType] = useState(null);
 
   const [terminalId, setTerminalId] = useState(
     () =>
@@ -143,7 +138,12 @@ const PosPaymentModal = ({
   }, []);
 
   const start = useCallback(
-    async (chosenTerminalId) => {
+    async (chosenTerminalId, chosenCardType) => {
+      const typeToUse = chosenCardType || cardType;
+      if (paymentMode === "CARD" && !typeToUse) {
+        setError("Please select Credit Card or Debit Card before proceeding.");
+        return;
+      }
       setStarting(true);
       setError(null);
       try {
@@ -163,7 +163,7 @@ const PosPaymentModal = ({
           invoiceSnapshot: context.invoiceSnapshot,
           amount,
           paymentMode,
-          cardType: paymentMode === "CARD" ? cardType : undefined,
+          cardType: paymentMode === "CARD" ? typeToUse : undefined,
           terminalId: chosenTerminalId || undefined,
         });
         if (!mountedRef.current) return;
@@ -179,14 +179,6 @@ const PosPaymentModal = ({
     [amount, paymentMode, cardType, bankAccount, context],
   );
 
-  // Kick off the charge once per open — unless the cashier still has a counter
-  // to pick.
-  useEffect(() => {
-    if (!isOpen || startedRef.current || mustChoose) return;
-    startedRef.current = true;
-    start(terminalId);
-  }, [isOpen, mustChoose, start, terminalId]);
-
   // Keep the picker in step if the terminal list arrives after the first render.
   useEffect(() => {
     if (terminalId || !machines.length) return;
@@ -199,6 +191,7 @@ const PosPaymentModal = ({
     startedRef.current = false;
     stopPolling();
     setPosTransaction(null);
+    setCardType(null);
     setError(null);
     setNotice(null);
     setCancelling(false);
@@ -283,11 +276,9 @@ const PosPaymentModal = ({
   const retry = () => {
     setPosTransaction(null);
     setError(null);
+    setNotice(null);
+    setCardType(null);
     approvedRef.current = false;
-    // With several counters, go back to the picker rather than assuming the
-    // retry belongs on the same machine.
-    if (mustChoose) startedRef.current = false;
-    else start(terminalId);
   };
 
   const status = posTransaction?.status;
@@ -299,8 +290,12 @@ const PosPaymentModal = ({
   // this window is open or not.
   const cancelRefused = !!notice && pending;
   const locked = pending && !cancelRefused;
-  // The cashier still has a counter to confirm before anything is sent.
-  const awaitingChoice = mustChoose && !posTransaction && !starting;
+  // Awaiting cashier to select card type / machine and click "Proceed Payment"
+  const awaitingStart = !posTransaction && !starting;
+  const canProceed =
+    !starting &&
+    Boolean(terminalId) &&
+    (paymentMode !== "CARD" || Boolean(cardType));
 
   const waitedSeconds = posTransaction?.createdAt
     ? Math.max(0, Math.floor((now - new Date(posTransaction.createdAt)) / 1000))
@@ -370,7 +365,9 @@ const PosPaymentModal = ({
 
         {paymentMode === "CARD" && (
           <div className="mb-3">
-            <Label className="text-muted fs-12 mb-1 d-block">Card Type</Label>
+            <Label className="text-muted fs-12 mb-1 d-block">
+              Card Type <span className="text-danger">*</span>
+            </Label>
             <div className="btn-group w-100" role="group">
               <button
                 type="button"
@@ -403,6 +400,12 @@ const PosPaymentModal = ({
                 <span className="badge bg-light text-muted ms-1">0%</span>
               </button>
             </div>
+            {!cardType && !posTransaction && (
+              <div className="text-primary fs-11 mt-1">
+                <i className="ri-information-line me-1"></i>
+                Please select Credit Card or Debit Card to continue.
+              </div>
+            )}
             {cardType === "DEBIT" && !posTransaction && (
               <div className="text-muted fs-11 mt-1">
                 <i className="ri-information-line me-1"></i>
@@ -416,36 +419,39 @@ const PosPaymentModal = ({
           <span className="text-muted">Mode</span>
           <span className="fw-semibold">
             {paymentMode}
-            {posTransaction?.cardType && (
+            {(posTransaction?.cardType || cardType) && (
               <span className="text-muted fs-12 ms-1">
-                ({posTransaction.cardType === "CREDIT" ? "Credit" : "Debit"})
+                ({(posTransaction?.cardType || cardType) === "CREDIT" ? "Credit" : "Debit"})
               </span>
             )}
           </span>
         </div>
 
-        {awaitingChoice && (
+        {awaitingStart && (
           <div className="mb-2">
             <Label htmlFor="posTerminalPicker" className="text-muted fs-12">
-              Which machine?
+              Terminal / Machine
             </Label>
-            <Input
-              id="posTerminalPicker"
-              type="select"
-              bsSize="sm"
-              value={terminalId}
-              onChange={(event) => setTerminalId(event.target.value)}
-            >
-              {machines.map((machine) => (
-                <option key={machine.terminalId} value={machine.terminalId}>
-                  {machine.label}
-                  {machine.isDefault ? " (default)" : ""}
-                </option>
-              ))}
-            </Input>
-            <div className="text-muted fs-11 mt-1">
-              The charge goes only to the counter you pick here.
-            </div>
+            {machines.length > 1 ? (
+              <Input
+                id="posTerminalPicker"
+                type="select"
+                bsSize="sm"
+                value={terminalId}
+                onChange={(event) => setTerminalId(event.target.value)}
+              >
+                {machines.map((machine) => (
+                  <option key={machine.terminalId} value={machine.terminalId}>
+                    {machine.label}
+                    {machine.isDefault ? " (default)" : ""}
+                  </option>
+                ))}
+              </Input>
+            ) : (
+              <div className="fw-medium fs-13 text-dark">
+                {machines[0]?.label || "machine 1"}
+              </div>
+            )}
           </div>
         )}
 
@@ -567,18 +573,20 @@ const PosPaymentModal = ({
       </ModalBody>
 
       <ModalFooter>
-        {awaitingChoice && (
-          <Button
-            color="primary"
-            size="sm"
-            disabled={!terminalId}
-            onClick={() => {
-              startedRef.current = true;
-              start(terminalId);
-            }}
-          >
-            Send to terminal
-          </Button>
+        {awaitingStart && (
+          <>
+            <Button color="secondary" outline size="sm" onClick={toggle}>
+              Cancel
+            </Button>
+            <Button
+              color="primary"
+              size="sm"
+              disabled={!canProceed}
+              onClick={() => start(terminalId, cardType)}
+            >
+              Proceed Payment
+            </Button>
+          </>
         )}
 
         {/* Once the terminal has refused the cancel, offering it again just
@@ -603,7 +611,7 @@ const PosPaymentModal = ({
           </Button>
         )}
 
-        {((!posTransaction || settled) && !starting) || cancelRefused ? (
+        {(settled && !starting) || cancelRefused ? (
           <Button color="primary" size="sm" onClick={toggle}>
             {status === "APPROVED" ? "Done" : "Close"}
           </Button>

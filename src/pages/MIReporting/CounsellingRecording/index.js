@@ -352,19 +352,23 @@ const CounsellingRecording = () => {
                                                     : psychologist[labelsMapping[label]]}
                                             </td>
                                         ))}
-                                        {last30Days.map(({ key,label }) => (
-                                            <td
-                                                key={key}
-                                                className="text-center px-1 py-1"
-                                                style={{
-                                                    border: "1px solid #d6dde8",
-                                                    background: idx % 2 === 0 ? "#f8fafc" : "#fff",
-                                                    whiteSpace: "nowrap",
-                                                }}
-                                            >
-                                                {psychologist[key] ?? 0}
-                                            </td>
-                                        ))}
+                                        {last30Days.map(({ key,label }) => {
+                                            const cellValue = psychologist[key] ?? 0;
+                                            const isZero = cellValue === 0;
+                                            return (
+                                                <td
+                                                    key={key}
+                                                    className="text-center px-1 py-1"
+                                                    style={{
+                                                        border: "1px solid #d6dde8",
+                                                        background: isZero ? "#ffcdd2" : (idx % 2 === 0 ? "#f8fafc" : "#fff"),
+                                                        whiteSpace: "nowrap",
+                                                    }}
+                                                >
+                                                    {cellValue}
+                                                </td>
+                                            );
+                                        })}
 
 
 

@@ -16,6 +16,10 @@ import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
 import * as Yup from "yup";
+import {
+  isEnteredIdentifier,
+  isMaskedIdentifier,
+} from "../../../helpers/maskedIdentifier";
 import { useFormik } from "formik";
 import Flatpicker from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
@@ -159,9 +163,15 @@ const AdmitPatient = ({
           then: (schema) =>
             schema
               .required("Aadhaar Card Number is required")
-              .matches(
-                /^[0-9]{12}$/,
+              // The mask the server returns for an existing number satisfies
+              // "required" but is not twelve digits, so only check the format
+              // when the value was actually typed.
+              .test(
+                "aadhaar-format",
                 "Aadhaar Card Number must be exactly 12 digits",
+                (value) =>
+                  !isEnteredIdentifier(value) ||
+                  /^[0-9]{12}$/.test(value.trim()),
               ),
         }),
       passportNumber: Yup.string()
@@ -553,6 +563,13 @@ const AdmitPatient = ({
                 id="aadhaarCardNumber"
                 placeholder="Enter 12-digit Aadhaar number"
                 maxLength={12}
+                onFocus={() => {
+                  // The server only ever sends a mask. Clearing it on focus
+                  // means typing replaces the number instead of appending to
+                  // "XXXXXXXX3001". A blank is read as "no change".
+                  if (isMaskedIdentifier(validation.values.aadhaarCardNumber))
+                    validation.setFieldValue("aadhaarCardNumber", "");
+                }}
                 onChange={validation.handleChange}
                 onBlur={validation.handleBlur}
                 value={validation.values.aadhaarCardNumber || ""}
@@ -563,6 +580,12 @@ const AdmitPatient = ({
                 <FormFeedback type="invalid">
                   {validation.errors.aadhaarCardNumber}
                 </FormFeedback>
+              )}
+              {isMaskedIdentifier(validation.values.aadhaarCardNumber) && (
+                <small className="text-muted d-block mt-1">
+                  Showing the last 4 digits only. Click the field and type a new
+                  number to replace it, or leave it as-is to keep the saved one.
+                </small>
               )}
             </div>
           ) : validation.values.nationality === "Foreigner" ? (
@@ -575,6 +598,13 @@ const AdmitPatient = ({
                 name="passportNumber"
                 id="passportNumber"
                 placeholder="Enter passport number"
+                onFocus={() => {
+                  // The server only ever sends a mask. Clearing it on focus
+                  // means typing replaces the number instead of appending to
+                  // "XXXXXXXX3001". A blank is read as "no change".
+                  if (isMaskedIdentifier(validation.values.passportNumber))
+                    validation.setFieldValue("passportNumber", "");
+                }}
                 onChange={validation.handleChange}
                 onBlur={validation.handleBlur}
                 value={validation.values.passportNumber || ""}
@@ -585,6 +615,12 @@ const AdmitPatient = ({
                 <FormFeedback type="invalid">
                   {validation.errors.passportNumber}
                 </FormFeedback>
+              )}
+              {isMaskedIdentifier(validation.values.passportNumber) && (
+                <small className="text-muted d-block mt-1">
+                  Showing the last 4 digits only. Click the field and type a new
+                  number to replace it, or leave it as-is to keep the saved one.
+                </small>
               )}
               <div
                 style={{
