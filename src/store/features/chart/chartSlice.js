@@ -393,7 +393,7 @@ export const addElderlyFunctionalChecklist = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message: "Elderly Functional Checklist Saved Successfully",
+          message: "Elderly Functional and Daily Living Checklist Saved Successfully",
         }),
       );
 
@@ -414,7 +414,7 @@ export const updateElderlyFunctionalChecklist = createAsyncThunk(
       dispatch(
         setAlert({
           type: "success",
-          message: "Elderly Functional Checklist Updated Successfully",
+          message: "Elderly Functional and Daily Living Checklist Updated Successfully",
         }),
       );
 

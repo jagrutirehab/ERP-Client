@@ -142,7 +142,7 @@ const records = [
     category: MEDICINE_GIVEN,
   },
   {
-    name: "Elderly Functional Checklist",
+    name: "Elderly Functional and Daily Living Checklist",
     category: ELDERLY_FUNCTIONAL_CHECKLIST,
   },
 ];
@@ -1373,6 +1373,16 @@ const mentalExaminationV2Fields = [
 const elderlyFunctionalChecklistFields = [
   { label: "Information", type: "header" },
   {
+    label: "Resident Name / ID",
+    name: "residentNameId",
+    type: "text",
+  },
+  {
+    label: "Date / Time",
+    name: "checklistDateTime",
+    type: "date",
+  },
+  {
     label: "Information Source",
     name: "informationSource",
     type: "radio",
@@ -1587,7 +1597,7 @@ const elderlyFunctionalChecklistFields = [
     label: "Skin Concern Location / Details",
     name: "skinConcernDetails",
     type: "text",
-    required: true,
+    requiredIf: { field: "skinConcerns", includesAny: ["redness", "wound_sore"] },
   },
 
   { label: "Section C. Everyday Observations", type: "header" },
@@ -1671,7 +1681,7 @@ const elderlyFunctionalChecklistFields = [
     label: "Name / Date / Time, if Shared",
     name: "sharedNameDateTime",
     type: "text",
-    required: true,
+    requiredIf: { field: "concernSharedWith", notEquals: "not_required" },
   },
 ];
 

@@ -1075,7 +1075,7 @@ const DetailAdmission = ({
                 outline={formStep !== ELDERLY_CHECKLIST}
                 onClick={() => setFormStep(ELDERLY_CHECKLIST)}
               >
-                Elderly Functional Checklist
+                Elderly Functional and Daily Living Checklist
               </Button>
             )}
             <Button
@@ -1175,6 +1175,7 @@ const DetailAdmission = ({
                   setFormStep={setFormStep}
                   step={MENTAL_EXAMINATION}
                   forceShowErrors={elderlyChecklistSubmitAttempted}
+                  patient={patient}
                 />
               )}
 

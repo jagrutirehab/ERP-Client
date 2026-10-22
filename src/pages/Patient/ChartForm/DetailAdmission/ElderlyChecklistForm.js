@@ -13,6 +13,7 @@ const ElderlyChecklistForm = ({
   setFormStep,
   step,
   forceShowErrors,
+  patient,
 }) => {
   const [attempted, setAttempted] = useState(Boolean(forceShowErrors));
   const [errors, setErrors] = useState({});
@@ -90,6 +91,10 @@ const ElderlyChecklistForm = ({
   return (
     <React.Fragment>
       <div>
+        <p className="mb-3">
+          <span className="fw-semibold me-2">Centre:</span>
+          {patient?.center?.title || ""}
+        </p>
         <RenderFields
           fields={elderlyFunctionalChecklistFields}
           validation={checklistAdapter}
@@ -114,6 +119,7 @@ ElderlyChecklistForm.propTypes = {
   setFormStep: PropTypes.func.isRequired,
   step: PropTypes.string.isRequired,
   forceShowErrors: PropTypes.bool,
+  patient: PropTypes.object,
 };
 
 export default ElderlyChecklistForm;

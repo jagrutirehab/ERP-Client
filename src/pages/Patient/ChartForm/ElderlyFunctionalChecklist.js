@@ -37,6 +37,12 @@ const ElderlyFunctionalChecklist = ({
       center: patient.center._id || patient.center,
       addmission: patient?.addmission?._id || patient?.addmission || "",
 
+      residentNameId: editElderlyFunctionalChecklist
+        ? editElderlyFunctionalChecklist?.residentNameId
+        : "",
+      checklistDateTime: editElderlyFunctionalChecklist
+        ? editElderlyFunctionalChecklist?.checklistDateTime
+        : new Date().toISOString().slice(0, 10),
       informationSource: editElderlyFunctionalChecklist
         ? editElderlyFunctionalChecklist?.informationSource
         : "",
@@ -153,6 +159,10 @@ const ElderlyFunctionalChecklist = ({
 
   return (
     <Form onSubmit={validation.handleSubmit}>
+      <p className="mb-3">
+        <span className="fw-semibold me-2">Centre:</span>
+        {patient?.center?.title || ""}
+      </p>
       <RenderFields
         fields={elderlyFunctionalChecklistFields}
         validation={validation}

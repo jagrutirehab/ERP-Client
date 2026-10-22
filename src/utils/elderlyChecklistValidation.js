@@ -92,6 +92,8 @@ export const parseElderlyChecklist = (raw) => {
   return {
     ...parsed,
     skinConcerns: Array.isArray(parsed.skinConcerns) ? parsed.skinConcerns : [],
+    checklistDateTime:
+      parsed.checklistDateTime || new Date().toISOString().slice(0, 10),
   };
 };
 

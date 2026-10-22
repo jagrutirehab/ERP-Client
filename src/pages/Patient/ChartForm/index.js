@@ -107,7 +107,7 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
                                 : isAdmissionType
                                   ? "Admission Type"
                                   : isElderlyFunctionalChecklist
-                                    ? "Elderly Functional Checklist"
+                                    ? "Elderly Functional and Daily Living Checklist"
                                     : "Detail Admission";
 
   // console.log({ type });
