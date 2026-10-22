@@ -306,7 +306,9 @@ const RenderFields = ({ fields, validation }) => {
                               checked={isChecked}
                             />
                             <Label className="form-label fs-6 mb-0">
-                              {value.charAt(0).toUpperCase() + value.slice(1)}
+                              {typeof opt === "object" && opt.label
+                                ? opt.label
+                                : value.charAt(0).toUpperCase() + value.slice(1)}
                             </Label>
                           </div>
                           {isChecked && textName && (
@@ -443,7 +445,7 @@ const RenderFields = ({ fields, validation }) => {
                 )}
                 {validation.touched[field.name] &&
                 validation.errors[field.name] ? (
-                  <FormFeedback type="invalid">
+                  <FormFeedback type="invalid" className="d-block">
                     {validation.errors[field.name]}
                   </FormFeedback>
                 ) : null}

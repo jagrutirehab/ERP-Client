@@ -22,6 +22,7 @@ import {
   ECT_SESSION,
   ADMISSION_TYPE,
   MEDICINE_GIVEN,
+  ELDERLY_FUNCTIONAL_CHECKLIST,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -56,6 +57,7 @@ import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
 import AdmissionType from "./AdmissionType";
 import MedicineGiven from "./MedicineGiven";
+import ElderlyFunctionalChecklist from "./ElderlyFunctionalChecklist";
 import { io } from "socket.io-client";
 import {
   getCharts,
@@ -507,6 +509,11 @@ const Charts = ({
                   )}
                   {chart.chart === MEDICINE_GIVEN && (
                     <MedicineGiven data={chart.nurseGivenMedicine} />
+                  )}
+                  {chart.chart === ELDERLY_FUNCTIONAL_CHECKLIST && (
+                    <ElderlyFunctionalChecklist
+                      data={chart.elderlyFunctionalChecklist}
+                    />
                   )}
                 </Wrapper>
               );

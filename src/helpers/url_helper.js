@@ -148,6 +148,10 @@ export const POST_VITAL_SIGN = "/chart/vital-sign";
 export const EDIT_VITAL_SIGN = "/chart/vital-sign";
 export const POST_GENERAL_VITAL_SIGN = "/chart/vital-sign/general";
 export const EDIT_GENERAL_VITAL_SIGN = "/chart/vital-sign/general";
+export const POST_ELDERLY_FUNCTIONAL_CHECKLIST =
+  "/chart/elderly-functional-checklist";
+export const EDIT_ELDERLY_FUNCTIONAL_CHECKLIST =
+  "/chart/elderly-functional-checklist";
 export const POST_ECT_SESSION = "/chart/ect-session";
 export const EDIT_ECT_SESSION = "/chart/ect-session";
 export const POST_GENERAL_ECT_SESSION = "/chart/ect-session/general";
