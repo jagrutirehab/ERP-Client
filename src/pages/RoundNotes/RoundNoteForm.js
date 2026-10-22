@@ -227,6 +227,19 @@ const RoundNoteForm = ({
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
 
+  // The logged-in user, pre-selected in "Round Taken by" on a NEW round note.
+  // Same "Name (ROLE)" option shape the staff search returns, so it shows and
+  // submits exactly like a picked staff member; it can be removed or added to.
+  const currentUser = useSelector((state) => state.User?.user);
+  const currentUserOptions = currentUser?._id
+    ? [
+        {
+          label: `${currentUser.name} (${currentUser.role || ""})`,
+          value: currentUser._id,
+        },
+      ]
+    : [];
+
   const {
     getValues,
     register,
@@ -240,7 +253,7 @@ const RoundNoteForm = ({
     defaultValues: {
       date: new Date(),
       session: getCurrentSession(), //{ lable: getCurrentSession(), value: getCurrentSession() },
-      roundTakenBy: "",
+      roundTakenBy: currentUserOptions,
       center: "",
       notes: Array.from({ length: 5 }).map(() => ({
         floor: "",
@@ -342,11 +355,24 @@ const RoundNoteForm = ({
       reset({
         date: new Date(),
         session: getCurrentSession(),
+        roundTakenBy: currentUserOptions,
         notes: baseNotes,
       });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data, mode, carryForwardSource, reset]);
+
+  // The user can arrive in the store after the form mounted. In create mode,
+  // fill "Round Taken by" once it does — but only while it is still empty, so
+  // a selection someone already made is never overwritten.
+  useEffect(() => {
+    if (mode === "edit" || !currentUser?._id) return;
+    const picked = getValues("roundTakenBy");
+    if (!Array.isArray(picked) || picked.length === 0) {
+      setValue("roundTakenBy", currentUserOptions);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentUser?._id, mode, isOpen]);
 
   const submit = handleSubmit((values) => {
     // Build payload matching your mongoose schema
@@ -383,7 +409,7 @@ const RoundNoteForm = ({
     reset({
       date: new Date(),
       session: getCurrentSession(), //{ lable: getCurrentSession(), value: getCurrentSession() },
-      roundTakenBy: "",
+      roundTakenBy: currentUserOptions,
       center: "",
       notes: Array.from({ length: 5 }).map(() => ({
         floor: "",
@@ -516,7 +542,7 @@ const RoundNoteForm = ({
                   <Select
                     {...field}
                     isMulti={false}
-                    options={centers.map((cn) => ({
+                    options={centers.filter(cn => cn.title !== "Online").map((cn) => ({
                       label: cn.title,
                       value: cn._id,
                     }))}
