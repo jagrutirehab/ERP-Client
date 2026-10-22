@@ -1,5 +1,5 @@
 import React from "react";
-import { Button, Form } from "reactstrap";
+import { Button, Form, Row, Col, Input, Label, FormFeedback } from "reactstrap";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { connect } from "react-redux";
@@ -132,7 +132,6 @@ const ElderlyFunctionalChecklist = ({
     },
     validationSchema: Yup.object({
       patient: Yup.string().required("Patient is required"),
-      center: Yup.string().required("Center is required"),
       addmission: Yup.string().required("Addmission is required"),
       chart: Yup.string().required("Chart is required"),
       ...elderlyChecklistYupShape,
@@ -159,12 +158,91 @@ const ElderlyFunctionalChecklist = ({
 
   return (
     <Form onSubmit={validation.handleSubmit}>
-      <p className="mb-3">
-        <span className="fw-semibold me-2">Centre:</span>
-        {patient?.center?.title || ""}
-      </p>
+      <Row>
+        <Col xs={12}>
+          <div className="mb-3">
+            <Label htmlFor="residentNameId" className="form-label">
+              Resident Name / ID <span className="text-danger">*</span>
+            </Label>
+            <Input
+              name="residentNameId"
+              id="residentNameId"
+              className="form-control"
+              type="text"
+              onChange={validation.handleChange}
+              onBlur={validation.handleBlur}
+              value={validation.values.residentNameId || ""}
+              invalid={
+                validation.touched.residentNameId &&
+                Boolean(validation.errors.residentNameId)
+              }
+            />
+            {validation.touched.residentNameId &&
+              validation.errors.residentNameId && (
+                <FormFeedback type="invalid">
+                  {validation.errors.residentNameId}
+                </FormFeedback>
+              )}
+          </div>
+        </Col>
+      </Row>
+      <Row>
+        <Col xs={12} lg={6}>
+          <div className="mb-3">
+            <Label htmlFor="checklistCentre" className="form-label">
+              Centre <span className="text-danger">*</span>
+            </Label>
+            <Input
+              name="checklistCentre"
+              id="checklistCentre"
+              className="form-control"
+              type="text"
+              value={patient?.center?.title || ""}
+              disabled
+              invalid={
+                validation.touched.center && Boolean(validation.errors.center)
+              }
+            />
+            {validation.touched.center && validation.errors.center && (
+              <FormFeedback type="invalid">
+                {validation.errors.center}
+              </FormFeedback>
+            )}
+          </div>
+        </Col>
+        <Col xs={12} lg={6}>
+          <div className="mb-3">
+            <Label htmlFor="checklistDateTime" className="form-label">
+              Date / Time <span className="text-danger">*</span>
+            </Label>
+            <Input
+              name="checklistDateTime"
+              id="checklistDateTime"
+              className="form-control"
+              type="date"
+              onChange={validation.handleChange}
+              onBlur={validation.handleBlur}
+              value={validation.values.checklistDateTime || ""}
+              invalid={
+                validation.touched.checklistDateTime &&
+                Boolean(validation.errors.checklistDateTime)
+              }
+            />
+            {validation.touched.checklistDateTime &&
+              validation.errors.checklistDateTime && (
+                <FormFeedback type="invalid">
+                  {validation.errors.checklistDateTime}
+                </FormFeedback>
+              )}
+          </div>
+        </Col>
+      </Row>
       <RenderFields
-        fields={elderlyFunctionalChecklistFields}
+        fields={elderlyFunctionalChecklistFields.filter(
+          (field) =>
+            field.name !== "residentNameId" &&
+            field.name !== "checklistDateTime",
+        )}
         validation={validation}
       />
 
