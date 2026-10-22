@@ -659,9 +659,14 @@ const DetailAdmission = ({
       geriatricFields: JSON.stringify(
         detailAdmissionForm?.geriatricFields || {},
       ),
-      elderlyChecklistFields: JSON.stringify(
-        detailAdmissionForm?.elderlyChecklistFields || {},
-      ),
+      elderlyChecklistFields: JSON.stringify({
+        ...(detailAdmissionForm?.elderlyChecklistFields || {}),
+        skinConcerns: Array.isArray(
+          detailAdmissionForm?.elderlyChecklistFields?.skinConcerns,
+        )
+          ? detailAdmissionForm.elderlyChecklistFields.skinConcerns
+          : [],
+      }),
       rapport:
         detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
           ?.rapport || "",
