@@ -1372,18 +1372,18 @@ const mentalExaminationV2Fields = [
 
 const elderlyFunctionalChecklistFields = [
   { label: "Information", type: "header" },
-  {
-    label: "Resident Name / ID",
-    name: "residentNameId",
-    type: "text",
-    required: true,
-  },
-  {
-    label: "Date / Time",
-    name: "checklistDateTime",
-    type: "date",
-    required: true,
-  },
+  // {
+  //   label: "Resident Name / ID",
+  //   name: "residentNameId",
+  //   type: "text",
+  //   required: true,
+  // },
+  // {
+  //   label: "Date / Time",
+  //   name: "checklistDateTime",
+  //   type: "date",
+  //   required: true,
+  // },
   {
     label: "Information Source",
     name: "informationSource",
