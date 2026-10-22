@@ -359,6 +359,7 @@ export const permissionList = [
       { name: "COUNSELLING_SESSIONS", label: "Counselling Sessions" },
       { name: "COUNSELLING_RECORDING", label: "Counselling Recording" },
       { name: "PATIENT_ASSIGNED_STATUS", label: "Patient Assigned Status" },
+      { name: "SUSPENDED_ASSIGNED", label: "Suspended Assigned" },
 
       // Nursing Operations
       { name: "NURSES_DOD", label: "Nurses DOD" },

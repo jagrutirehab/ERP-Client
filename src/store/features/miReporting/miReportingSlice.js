@@ -50,6 +50,7 @@ import {
   getReadmissionMonthly,
   getAttritionMonthly,
   getAssignedData,
+  getPatientsWithSuspendedStaff,
   getCashRecoCompliance,
 
 } from "../../../helpers/backend_helper";
@@ -111,6 +112,7 @@ const initialState = {
   readmissionMonthly: [],
   attritionMonthly: [],
   assignedData: [],
+  patientsWithSuspendedStaff: [],
   cashRecoCompliance: [],
 
   loading: false,
@@ -864,6 +866,20 @@ export const fetchAssignedData = createAsyncThunk(
   }
 );
 
+export const fetchPatientsWithSuspendedStaff = createAsyncThunk(
+  "miReporting/fetchPatientsWithSuspendedStaff",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getPatientsWithSuspendedStaff(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Patients With Suspended Staff"
+      );
+    }
+  }
+);
+
 export const fetchCashRecoCompliance = createAsyncThunk(
   "miReporting/fetchCashRecoCompliance",
   async (data, { rejectWithValue }) => {
@@ -1561,6 +1577,20 @@ const miReportingSlice = createSlice({
         state.assignedData = action.payload.payload || [];
       })
       .addCase(fetchAssignedData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Patients With Suspended Staff
+      .addCase(fetchPatientsWithSuspendedStaff.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPatientsWithSuspendedStaff.fulfilled, (state, action) => {
+        state.loading = false;
+        state.patientsWithSuspendedStaff = action.payload.payload || [];
+      })
+      .addCase(fetchPatientsWithSuspendedStaff.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })

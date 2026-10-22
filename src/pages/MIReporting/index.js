@@ -50,6 +50,7 @@ import Incident from "./Incident";
 import Readmission from "./Readmission";
 import AttritionData from "./AttritionData";
 import PatientAssignedStatus from "./PatientAssignedStatus";
+import SuspendedAssigned from "./SuspendedAssigned";
 import CashReco from "./CashReco";
 
 const MiReporting = () => {
@@ -151,6 +152,7 @@ const MiReporting = () => {
   const hasCounsellingSessionsPermission = hasPermission("MIS_REPORTS", "COUNSELLING_SESSIONS", "READ");
   const hasCounsellingRecordingPermission = hasPermission("MIS_REPORTS", "COUNSELLING_RECORDING", "READ");
   const hasPatientAssignedStatusPermission = hasPermission("MIS_REPORTS", "PATIENT_ASSIGNED_STATUS", "READ");
+  const hasSuspendedAssignedPermission = hasPermission("MIS_REPORTS", "SUSPENDED_ASSIGNED", "READ");
   const hasCashRecoCompliancePermission = hasPermission("MIS_REPORTS", "CASH_RECO_COMPLIANCE", "READ");
   const hasNursesDodPermission = hasPermission("MIS_REPORTS", "NURSES_DOD", "READ");
   const hasNursesDashboardDodPermission = hasPermission("MIS_REPORTS", "NURSES_DASHBOARD_DOD", "READ");
@@ -376,6 +378,11 @@ const MiReporting = () => {
                   {hasMISPermission && hasPatientAssignedStatusPermission && <Route
                     path="/patient-assigned-status"
                     element={<PatientAssignedStatus />}
+                  />}
+
+                  {hasMISPermission && hasSuspendedAssignedPermission && <Route
+                    path="/suspended-assigned"
+                    element={<SuspendedAssigned />}
                   />}
 
                   {hasMISPermission && hasCashRecoCompliancePermission && <Route

@@ -148,6 +148,7 @@ const Sidebar = () => {
         { id: "counselling-sessions", label: "Counselling Sessions", link: "/mi-reporting/counselling-sessions", icon: "bx bx-conversation", submodule: "COUNSELLING_SESSIONS" },
         { id: "counselling-recording", label: "Counselling Recording", link: "/mi-reporting/counselling-recording", icon: "bx bx-microphone", submodule: "COUNSELLING_RECORDING" },
         { id: "patient-assigned-status", label: "Patient Assigned Status", link: "/mi-reporting/patient-assigned-status", icon: "bx bx-user-x", submodule: "PATIENT_ASSIGNED_STATUS" },
+        { id: "suspended-assigned", label: "Suspended Assigned", link: "/mi-reporting/suspended-assigned", icon: "bx bx-user-x", submodule: "SUSPENDED_ASSIGNED" },
       ],
     },
     {
