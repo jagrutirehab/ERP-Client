@@ -17,7 +17,10 @@ import {
   updateMentalExamination,
 } from "../../../store/features/chart/chartSlice";
 import PropTypes from "prop-types";
-import ElderlyChecklist from "./Components/ElderlyChecklist";
+import ElderlyChecklist, {
+  FUNCTIONAL_ASSESSMENT_FIELDS,
+  DAILY_LIVING_ASSESSMENT_FIELDS,
+} from "./Components/ElderlyChecklist";
 
 const MentalExamination = ({
   author,
@@ -287,6 +290,28 @@ const MentalExamination = ({
       patient: Yup.string().required("Patient is required"),
       center: Yup.string().required("Center is required"),
       chart: Yup.string().required("Chart is required"),
+      elderlyChecklistFields: Yup.object({
+        functionalAssessment: Yup.object(
+          Object.fromEntries(
+            FUNCTIONAL_ASSESSMENT_FIELDS.map((f) => [
+              f.key,
+              isGeriatric
+                ? Yup.string().required("This field is required.")
+                : Yup.string(),
+            ]),
+          ),
+        ),
+        dailyLivingAssessment: Yup.object(
+          Object.fromEntries(
+            DAILY_LIVING_ASSESSMENT_FIELDS.map((f) => [
+              f.key,
+              isGeriatric
+                ? Yup.string().required("This field is required.")
+                : Yup.string(),
+            ]),
+          ),
+        ),
+      }),
     }),
     onSubmit: (values) => {
       if (editMentalExamination) {
@@ -324,6 +349,8 @@ const MentalExamination = ({
           onChange={(next) =>
             validation.setFieldValue("elderlyChecklistFields", next)
           }
+          required={isGeriatric}
+          submitAttempted={validation.submitCount > 0}
         />
       ) : (
         <RenderFields
