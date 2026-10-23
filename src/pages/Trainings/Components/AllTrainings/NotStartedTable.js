@@ -1,24 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { Spinner } from "reactstrap";
 import { toast } from "react-toastify";
-import {
-  exportNotStartedCsv,
-  getTrainingProgressReport,
-} from "../../../../helpers/backend_helper";
+import { getTrainingProgressReport } from "../../../../helpers/backend_helper";
 import { getErrorMessage } from "../../Helpers/learnHelpers";
-import { getFileNameFromHeaders } from "../../Helpers/adminTrainingHelpers";
+import ExportButton from "../ExportButton";
 
 const PAGE_SIZE = 20;
 
-const NotStartedTable = ({ trainingId, cycle, onSummary }) => {
+const NotStartedTable = ({ trainingId, cycle, cntrs, onSummary }) => {
   const [searchInput, setSearchInput] = useState("");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [data, setData] = useState(null);
   const [loadedKey, setLoadedKey] = useState(null);
-  const [exporting, setExporting] = useState(false);
 
-  const requestKey = JSON.stringify([trainingId, cycle, search, page]);
+  const requestKey = JSON.stringify([trainingId, cycle, cntrs, search, page]);
   const loading = loadedKey !== requestKey;
 
   useEffect(() => {
@@ -30,6 +26,10 @@ const NotStartedTable = ({ trainingId, cycle, onSummary }) => {
   }, [searchInput]);
 
   useEffect(() => {
+    setPage(1);
+  }, [cntrs]);
+
+  useEffect(() => {
     let cancelled = false;
 
     const load = async () => {
@@ -37,6 +37,7 @@ const NotStartedTable = ({ trainingId, cycle, onSummary }) => {
         const response = await getTrainingProgressReport(trainingId, {
           section: "not_started",
           ...(cycle && { cycle }),
+          cntrs,
           search,
           page,
           limit: PAGE_SIZE,
@@ -57,26 +58,7 @@ const NotStartedTable = ({ trainingId, cycle, onSummary }) => {
     return () => {
       cancelled = true;
     };
-  }, [trainingId, cycle, search, page]);
-
-  const handleExport = async () => {
-    try {
-      setExporting(true);
-      const response = await exportNotStartedCsv(trainingId, { search, ...(cycle && { cycle }) });
-      const blob = new Blob([response.data], { type: "text/csv;charset=utf-8" });
-      const link = document.createElement("a");
-      link.href = URL.createObjectURL(blob);
-      link.download = getFileNameFromHeaders(response.headers, "not-started.csv");
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(link.href);
-    } catch (error) {
-      toast.error(getErrorMessage(error, "Export failed"));
-    } finally {
-      setExporting(false);
-    }
-  };
+  }, [trainingId, cycle, cntrs, search, page]);
 
   const rows = data?.rows || [];
   const pagination = data?.pagination;
@@ -100,14 +82,11 @@ const NotStartedTable = ({ trainingId, cycle, onSummary }) => {
               {pagination.totalRecords} employee{pagination.totalRecords !== 1 ? "s" : ""} have not started
             </span>
           )}
-          <button
-            type="button"
-            className="btn btn-outline-primary btn-sm"
-            disabled={exporting || !pagination?.totalRecords}
-            onClick={handleExport}
-          >
-            {exporting ? <Spinner size="sm" /> : <><i className="ri-download-2-line me-1" /> Export CSV</>}
-          </button>
+          <ExportButton
+            trainingId={trainingId}
+            params={{ section: "not_started", ...(cycle && { cycle }), cntrs, search }}
+            disabled={!pagination?.totalRecords}
+          />
         </div>
       </div>
 

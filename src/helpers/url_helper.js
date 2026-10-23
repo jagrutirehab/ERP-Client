@@ -81,6 +81,9 @@ export const GET_PATIENTS = "/patient";
 export const GET_PATIENT_BY_ID = "/patient/patient-id";
 export const GET_ALL_PATIENTS = "/patient/all";
 export const GET_MORE_PATIENTS = "/patient/more";
+export const GET_PATIENT_STAFF = "/patient/staff";
+export const GET_REFERRAL_EMPLOYEES = "/patient/referral-employees";
+export const GET_REFERRAL_PATIENTS = "/patient/referral-patients";
 export const GET_PATIENTS_REFERRAL = "/patient/patient-referral";
 export const GET_PATIENT_COUNTED_DOCUMENTS = "/patient/count-documents";
 export const GET_DELETED_PATIENTS = "/patient/deleted";
@@ -92,12 +95,15 @@ export const SEARCH_PATIENTS_PHONE_NUMBER = "/patient/search/phone-number";
 export const ADMIT_PATIENT = "/patient/admit";
 export const EDIT_ADMISSION = "/patient/admit/update";
 export const SET_RAMSAY_APPLICABLE = "/patient/admission/ramsay-applicable";
+export const SET_MORSE_APPLICABLE = "/patient/admission/morse-applicable";
 export const SET_BASELINE_INVESTIGATION_STATUS =
   "/patient/admission/baseline-investigation";
 export const SET_PSYCHOLOGICAL_TEST_STATUS =
   "/patient/admission/psychological-tests";
 export const SET_ADMISSION_TYPE_DIRECT = "/patient/admission/admission-type";
 export const UPDATE_ADMISSION_WARD_BED = "/patient/admission/ward-bed";
+export const CLEAR_ADMISSION_TYPE_DIRECT = "/patient/admission/admission-type/clear";
+export const SET_PATIENT_ADMISSION_TYPE = "/patient/admission/patient-admission-type";
 export const SUBMIT_ADMISSION_FORM = "/patient/admission-submit";
 export const DISCHARGE_PATIENT = "/patient/discharge";
 export const UNDISCHARGE_PATIENT = "/patient/un-discharge";
@@ -142,6 +148,10 @@ export const POST_VITAL_SIGN = "/chart/vital-sign";
 export const EDIT_VITAL_SIGN = "/chart/vital-sign";
 export const POST_GENERAL_VITAL_SIGN = "/chart/vital-sign/general";
 export const EDIT_GENERAL_VITAL_SIGN = "/chart/vital-sign/general";
+export const POST_ELDERLY_FUNCTIONAL_CHECKLIST =
+  "/chart/elderly-functional-checklist";
+export const EDIT_ELDERLY_FUNCTIONAL_CHECKLIST =
+  "/chart/elderly-functional-checklist";
 export const POST_ECT_SESSION = "/chart/ect-session";
 export const EDIT_ECT_SESSION = "/chart/ect-session";
 export const POST_GENERAL_ECT_SESSION = "/chart/ect-session/general";
@@ -184,6 +194,8 @@ export const EDIT_DETAIL_ADMISSION = "/chart/detail-admission";
 export const POST_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const EDIT_GENERAL_DETAIL_ADMISSION = "/chart/detail-admission/general";
 export const DELETE_DETAIL_ADMISSION_FILE = "/chart/detail-admission";
+export const POST_CARRY_FORWARD_DETAIL_ADMISSION =
+  "/chart/detail-admission/carry-forward";
 export const POST_MENTAL_EXAMINATION = "/chart/mental-examination";
 export const POST_GENERAL_MENTAL_EXAMINATION =
   "/chart/mental-examination/general";
@@ -210,6 +222,7 @@ export const GET_OPD_PRESCRIPTION = "/chart/opd/prescription";
 //BILL
 export const GET_BILLS_ADDMISSIONS = "/bill/addmission";
 export const GET_BILLS = "/bill";
+export const GET_PATIENT_LEDGER = "/bill/ledger";
 export const GET_DRAFT_BILLS = "/bill/draft";
 export const DELETE_DRAFT_BILL = "/bill/draft";
 export const GET_DELETED_BILLS = "/bill/deleted";
@@ -518,6 +531,19 @@ export const PHARMACY_MEDICINE_REQUISITION =
 // PHARMACY EXPIRED STOCK
 export const PHARMACY_EXPIRED_STOCK = "/pharmacy/expired-stock";
 
+// COMPLIANCE TYPES
+export const COMPLIANCE_TYPES = "/compliance/types";
+
+// COMPLIANCE CATEGORIES
+export const COMPLIANCE_CATEGORIES = "/compliance/categories";
+// COMPLIANCE SUBMISSIONS
+export const COMPLIANCE_SUBMISSIONS = "/compliance/submissions";
+
+export const COMPLIANCE_RECORDS = "/compliance/records";
+
+// PHARMACY ACTIVITY LOG
+export const PHARMACY_ACTIVITY = "/pharmacy/activity";
+
 // PHARMACY INVENTORY HEALTH REPORT (transit loss / variance / expiry)
 export const PHARMACY_INVENTORY_HEALTH_REPORT = "/pharmacy/reports/inventory-health";
 
@@ -609,6 +635,7 @@ export const GET_INCIDENT_STATUS_MONTHLY =
 export const GET_READMISSION_MONTHLY = "/mi-reporting/readmission-monthly";
 export const GET_ATTRITION_MONTHLY = "/mi-reporting/attrition-monthly";
 export const GET_ASSIGNED_DATA = "/mi-reporting/assigned-data";
+export const GET_PATIENTS_WITH_SUSPENDED_STAFF = "/mi-reporting/patients-with-suspended-staff";
 export const GET_CASH_RECO_COMPLIANCE = "/mi-reporting/cash-reco-compliance";
 
 // CENTER DASHBOARD
@@ -666,6 +693,11 @@ export const INCENTIVES_ACTION = "/hr/incentives/action";
 
 export const PAYROLL_ADJUSTMENTS = "/hr/payroll-adjustments";
 export const PAYROLL_ADJUSTMENTS_ACTION = "/hr/payroll-adjustments/action";
+
+export const ESIC_RECORDS = "/hr/esic";
+export const ESIC_ACTION = "/hr/esic/action";
+export const ESIC_SEARCH_EMPLOYEES = "/hr/esic/employees/search";
+export const ESIC_MY_RECORDS = "/hr/esic/my";
 
 export const GENERATE_PAYROLL = "/hr/payroll/generate";
 export const GET_PAYROLLS = "/hr/payroll";
@@ -865,7 +897,9 @@ export const ACKNOWLEDGE_TRAINING = "/trainings/acknowledge";
 export const LEARN_TRAINING = "/trainings/learn";
 export const TRAINING_BASE = "/trainings";
 export const TRAINING_UPLOADS = "/trainings/uploads";
+export const TRAINER_VIDEOS = "/trainings/trainer-videos";
 export const TRAINING_ADMIN = "/trainings/admin";
+export const TRAINING_NOTIFICATIONS = "/trainings/notifications";
 export const GET_ALL_TRAININGS = "/trainings/get";
 export const EDIT_TRAINING = "/trainings/edit/training";
 export const GET_TRAINING_BY_ID = "/trainings";
@@ -996,3 +1030,6 @@ export const GET_USERS_BY_ROLE = "/hr/biometric/get/usersbyrole";
 export const ACTION_ON_BIOMETRIC_ADDITION_REQUEST = "/hr/biometric/action";
 export const GET_MY_ASSIGNED_BIOMETRICS = "/hr/biometric/get/my/assigns";
 export const UPDATE_ASSIGNEE_STATUS = "/hr/biometric/update/assignee/status";
+export const NEW_JOINING_BIOMETRIC_DATA = "/hr/new-joining-biometric";
+export const ACTION_ON_NEW_JOINING_BIOMETRIC_DATA =
+  "/hr/new-joining-biometric/action";

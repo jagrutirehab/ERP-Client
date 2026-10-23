@@ -9,6 +9,8 @@ import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import EditTrainerModal from "../Components/EditTrainerModal";
 import DeleteTrainerModal from "../Components/DeleteTrainerModal";
 import AttachmentList from "../Components/AttachmentList";
+import TrainerVideoList from "../Components/TrainerVideoList";
+import { onTrainerVideoChange } from "../../../helpers/trainerVideoEvents";
 import { usePermissions } from '../../../Components/Hooks/useRoles'
 
 const LIMIT = 5;
@@ -58,6 +60,7 @@ const TrainingCard = ({ record, onEdit, onDelete }) => {
                         <span><i className="ri-user-line me-1" />by {record?.author?.name || "—"}</span>
                     </div>
                     <AttachmentList files={record?.files} />
+                    <TrainerVideoList videos={record?.videos} />
                 </div>
 
                 <div className="px-3 py-2 d-flex align-items-center justify-content-between" style={{ background: '#f9fafb', borderTop: '1px solid #f1f5f9' }}>
@@ -147,6 +150,8 @@ const TrainingRecords = () => {
     useEffect(() => {
         fetchRecords();
     }, [fetchRecords]);
+
+    useEffect(() => onTrainerVideoChange(() => fetchRecords()), [fetchRecords]);
 
     const handleApply = () => {
         setAppliedFrom(from);

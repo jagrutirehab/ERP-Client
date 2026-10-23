@@ -13,6 +13,8 @@ import {
   ModalFooter,
 } from "reactstrap";
 import { useNavigate } from "react-router-dom";
+import moment from "moment";
+import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { medicineSchema } from "./ActivityMedicineForm";
 import { Formik, Form, Field } from "formik";
 import { useDispatch } from "react-redux";
@@ -180,10 +182,31 @@ const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
         </div>
 
         <CardBody className="d-flex flex-column h-100 mt-2">
-          <CardTitle tag="h5" className="mb-2 fw-semibold">
+          <CardTitle tag="h5" className="mb-1 fw-semibold">
             {toTitleCase(patient.name)}
+            {(patient.uid || patient.age) && (
+              <span className="text-muted fw-normal">
+                {" "}
+                ({[patient.uid, patient.age ? `${patient.age}y` : null]
+                  .filter(Boolean)
+                  .join(", ")})
+              </span>
+            )}
           </CardTitle>
-          <CardText className="text-muted mb-3">Room {30}</CardText>
+          <CardText className="text-muted mb-2" style={{ fontSize: "0.78rem", lineHeight: 1.4 }}>
+            <span className="d-block text-truncate">
+              <strong>DOA:</strong>{" "}
+              {patient.addmissionDate
+                ? moment(patient.addmissionDate).format("DD MMM YY")
+                : "N/A"}
+            </span>
+            <span className="d-block text-truncate">
+              <strong>Doctor:</strong> {capitalizeWords(patient.doctorName) || "N/A"}
+            </span>
+            <span className="d-block text-truncate">
+              <strong>Counselor:</strong> {capitalizeWords(patient.counselorName) || "N/A"}
+            </span>
+          </CardText>
 
           <div className="d-flex align-items-center mb-2 text-body-secondary">
             <span className="text-danger me-2">❤</span>

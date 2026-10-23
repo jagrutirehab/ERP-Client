@@ -6,6 +6,7 @@ import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import CheckPermission from "../../../../../Components/HOC/CheckPermission";
 import { Button, Input } from "reactstrap";
 import { CheckCheck, X } from "lucide-react";
@@ -195,7 +196,8 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles, 
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.employeeName?.toUpperCase() || "-",
+            selector: row =>
+                formatEmployeeName(row?.employeeName, row?.salutation)?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },

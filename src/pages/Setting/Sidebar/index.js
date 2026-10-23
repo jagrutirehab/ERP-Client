@@ -51,7 +51,13 @@ const Sidebar = () => {
     "READ",
   );
 
+  // Gated on the GRIEVANCE module rather than a SETTING submodule: the people
+  // who action grievances are the ones who maintain the designation, and a
+  // separate permission would let the two drift apart.
+  const hasGrievancePerm = hasPermission("GRIEVANCE", null, "READ");
+
   const filteredSettings = (setting || []).filter((page) => {
+    if (page.id === "grievanceofficer" && !hasGrievancePerm) return false;
     if (page.id === "roles" && !hasUserPermission) return false;
     if (page.id === "hrconfigs" && !hasHRConfigPerm) return false;
     if (page.id === "medicine" && !hasMedicinePerm) return false;

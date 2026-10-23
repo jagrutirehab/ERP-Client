@@ -138,6 +138,16 @@ const Sidebar = () => {
     "GET_BIOMETRIC_ADDITION_REQUESTS",
     "READ",
   );
+  const hasNewJoiningBiometricMapping = hasPermission(
+    "HR",
+    "NEW_JOINING_BIOMETRIC_MAPPING",
+    "READ",
+  );
+  const hasNewJoiningBiometricRequests = hasPermission(
+    "HR",
+    "NEW_JOINING_BIOMETRIC_REQUESTS",
+    "READ",
+  );
   const hasGetMyBiometricRequests = hasPermission(
     "HR",
     "GET_MY_BIOMETRIC_REQUESTS",
@@ -326,6 +336,8 @@ const Sidebar = () => {
     "READ",
   );
   const hasEmployeeForms = hasPermission("HR", "EMPLOYEE_FORMS", "READ");
+  const hasESICUpload = hasPermission("HR", "ESIC_UPLOAD", "READ");
+  const hasESICApproval = hasPermission("HR", "ESIC_APPROVAL", "READ");
   const hasEmployeePayslipsPermission = hasPermission(
     "HR",
     "EMPLOYEE_PAYSLIPS",
@@ -608,6 +620,16 @@ const Sidebar = () => {
             !hasGetBiometricAddiitonRequests
           )
             return false;
+          if (
+            child.id === "add-new-joining-biometric" &&
+            !hasNewJoiningBiometricMapping
+          )
+            return false;
+          if (
+            child.id === "get-new-joining-biometric-requests" &&
+            !hasNewJoiningBiometricRequests
+          )
+            return false;
           // if (
           //   child.id === "get-biometric-my-requests" &&
           //   !hasGetMyBiometricRequests
@@ -693,6 +715,15 @@ const Sidebar = () => {
             !hasPayrollAdjustmentsApprovalPermission
           )
             return false;
+          return true;
+        });
+        return page.children.length > 0;
+      }
+
+      if (page.id === "esic") {
+        page.children = page.children.filter((child) => {
+          if (child.id === "esicupload" && !hasESICUpload) return false;
+          if (child.id === "esicapproval" && !hasESICApproval) return false;
           return true;
         });
         return page.children.length > 0;

@@ -5,11 +5,11 @@ import { toast } from "react-toastify";
 import {
   getInventoryTransfers,
   createInventoryTransfer,
-  getAllCenters,
   getStorageLocations,
   getLocationStock,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
@@ -24,7 +24,7 @@ const InventoryTransfer = () => {
   const [transfers, setTransfers] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
-  const [centers, setCenters] = useState([]);
+  const { items: centers } = useReferenceList("centers");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [title, setTitle] = useState("");
@@ -37,12 +37,6 @@ const InventoryTransfer = () => {
   const [lines, setLines] = useState([{ itemName: "", quantity: 1 }]);
   const [availableStock, setAvailableStock] = useState([]);
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     let cancelled = false;

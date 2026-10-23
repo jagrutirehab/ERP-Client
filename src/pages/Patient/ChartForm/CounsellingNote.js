@@ -567,6 +567,7 @@ const CounsellingNote = ({
   const [files, setFiles] = useState([]);
   const [audioFile, setAudioFile] = useState(null);
   const audioFinalizeRef = useRef(null);
+  const audioDetailsRef = useRef(null);
   const [fetchedNote, setFetchedNote] = useState(null);
   const [uploadedAudio, setUploadedAudio] = useState(null);
   const [isRecording, setIsRecording] = useState("recording")
@@ -603,7 +604,8 @@ const CounsellingNote = ({
     values,
     files,
     editChartData,
-    editClinicalNote
+    editClinicalNote,
+    audioDetails
   ) => {
     const {
       author,
@@ -642,6 +644,9 @@ const CounsellingNote = ({
     formData.append("reviewPreviousTask", reviewPreviousTask);
     formData.append("nextEndGoal", nextEndGoal);
     formData.append("nextSessionDate", nextSessionDate);
+    if (!editClinicalNote && audioDetails) {
+      formData.append("audioDetails", JSON.stringify(audioDetails));
+    }
     // files.forEach((file) => formData.append("file", file.file));
     files.forEach((file) => {
       const actualFile = file.file || file;
@@ -729,7 +734,8 @@ const CounsellingNote = ({
         values,
         allFiles,
         editChartData,
-        editCounsellingNote
+        editCounsellingNote,
+        audioDetailsRef.current
       );
     }
   });
@@ -852,9 +858,10 @@ const CounsellingNote = ({
           <Col xs={12} className="mt-3">
             <h5>Audio Recording</h5>
             <AudioRecorder
-              onReady={(file, stopFn) => {
+              onReady={(file, stopFn, audioDetails) => {
                 if (file) setAudioFile(file);
                 if (stopFn) audioFinalizeRef.current = stopFn;
+                if (audioDetails) audioDetailsRef.current = audioDetails;
               }}
             />
           </Col>

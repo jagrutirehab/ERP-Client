@@ -1,3 +1,4 @@
+import referredByName from "../../../../utils/referredByName";
 import React from "react";
 import { Button, Col, Input, Row } from "reactstrap";
 import { format } from "date-fns";
@@ -55,7 +56,7 @@ const Menu = ({
       patient: {
         ...row.patient,
         referredBy:
-          row.patient?.referredBy?.doctorName || row.patient?.referredBy,
+          referredByName(row.patient?.referredBy) || row.patient?.referredBy,
       },
       name: row.intern ? row.intern.name : row.patient?.name || "",
       date: row.date ? format(new Date(row.date), "dd MMM yyyy") : "",

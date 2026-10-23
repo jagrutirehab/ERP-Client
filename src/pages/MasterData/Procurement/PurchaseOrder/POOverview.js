@@ -13,6 +13,22 @@ const PO_TYPE_LABELS = {
   contract_based: "Contract-Based",
 };
 
+const PO_STATUS_LABELS = {
+  draft: "Draft",
+  approved: "Approved",
+  cancelled: "Cancelled",
+  short_closed: "Short closed",
+};
+
+const DELIVERY_LABELS = {
+  not_started: "Not started",
+  partial: "Partially received",
+  completed: "Completed",
+  delayed: "Delayed",
+  short_closed: "Closed early (short closed)",
+  cancelled: "Cancelled before full delivery",
+};
+
 const Field = ({ label, value }) => (
   <div className="mb-3">
     <div className="text-muted small">{label}</div>
@@ -50,6 +66,9 @@ const POOverview = ({ poId, onBack }) => {
     0,
   );
 
+  const isDelayed = po.delivery?.deliveryStatus === "delayed";
+  const isClosed = po.status === "cancelled" || po.status === "short_closed";
+
   return (
     <div className="uom-page">
       {/* Header */}
@@ -58,10 +77,16 @@ const POOverview = ({ poId, onBack }) => {
           <h4>
             {po.poNumber}{" "}
             <Badge
-              color={po.status === "approved" ? "success" : "secondary"}
+              color={
+                po.status === "approved"
+                  ? "success"
+                  : po.status === "draft"
+                    ? "secondary"
+                    : "danger"
+              }
               className="ms-2"
             >
-              {po.status === "approved" ? "Approved" : "Draft"}
+              {PO_STATUS_LABELS[po.status] || po.status}
             </Badge>{" "}
             <Badge color="light" className="text-dark border ms-1">
               {PO_TYPE_LABELS[po.poType]}
@@ -92,6 +117,12 @@ const POOverview = ({ poId, onBack }) => {
               {dateFmt(po.expectedDeliveryDate)}
             </div>
             <div className="text-muted small">Ordered {dateFmt(po.poDate)}</div>
+            {isDelayed && (
+              <div className="small text-danger fw-semibold mt-1">
+                {po.delivery.daysOverdue} day
+                {po.delivery.daysOverdue === 1 ? "" : "s"} late
+              </div>
+            )}
           </div>
         </Col>
         <Col md={3}>
@@ -231,6 +262,12 @@ const POOverview = ({ poId, onBack }) => {
               <span>Grand Total</span>
               <span>{money(po.netPayable)}</span>
             </div>
+            {isClosed && (
+              <div className="d-flex justify-content-between mt-2 text-muted">
+                <span>Budget released</span>
+                <span>{money(po.releasedAmount)}</span>
+              </div>
+            )}
           </SectionCard>
 
           <SectionCard icon="bx-store" title="Vendor Details">
@@ -259,9 +296,20 @@ const POOverview = ({ poId, onBack }) => {
           <SectionCard icon="bx-check-shield" title="Approval">
             <Field
               label="Status"
-              value={po.status === "approved" ? "Approved" : "Pending Approval"}
+              value={
+                po.status === "draft"
+                  ? "Pending Approval"
+                  : PO_STATUS_LABELS[po.status] || po.status
+              }
             />
-            {po.status === "approved" && (
+            {isClosed && (
+              <>
+                <Field label="Closed On" value={dateFmt(po.closedAt)} />
+                <Field label="Reason" value={po.closeReason || "—"} />
+                <Field label="Budget Released" value={money(po.releasedAmount)} />
+              </>
+            )}
+            {po.approvedAt && (
               <>
                 <Field
                   label="Approved By"
@@ -273,9 +321,53 @@ const POOverview = ({ poId, onBack }) => {
           </SectionCard>
 
           <SectionCard icon="bx-truck" title="Fulfillment">
-            <div className="text-muted small">
-              Not started — no deliveries recorded yet.
-            </div>
+            {po.delivery ? (
+              <>
+                <Field
+                  label="Delivery Status"
+                  value={DELIVERY_LABELS[po.delivery.deliveryStatus] || "—"}
+                />
+                <Field
+                  label={
+                    isClosed
+                      ? "Ordered / Received / Not received"
+                      : "Ordered / Received / Pending"
+                  }
+                  value={`${po.delivery.orderedQty} / ${po.delivery.receivedQty} / ${po.delivery.pendingQty}`}
+                />
+                {isClosed && (
+                  <Field
+                    label="Result"
+                    value={`${po.delivery.receivedQty} of ${po.delivery.orderedQty} received, ${po.delivery.pendingQty} never delivered`}
+                  />
+                )}
+                <Field
+                  label="Expected Delivery"
+                  value={dateFmt(po.expectedDeliveryDate)}
+                />
+                {isDelayed && (
+                  <>
+                    <Field
+                      label="Delay"
+                      value={`${po.delivery.daysOverdue} day(s) late`}
+                    />
+                    <Field
+                      label="Delay Reason"
+                      value={po.delayReason || "Not recorded yet"}
+                    />
+                  </>
+                )}
+                {isClosed && po.delayReason && (
+                  <Field label="Delay Reason (before closing)" value={po.delayReason} />
+                )}
+              </>
+            ) : (
+              <div className="text-muted small">
+                {po.status === "draft"
+                  ? "Delivery tracking starts once the PO is approved."
+                  : "Delivery tracking has ended for this PO."}
+              </div>
+            )}
           </SectionCard>
         </Col>
       </Row>

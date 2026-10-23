@@ -121,6 +121,10 @@ const Payment = ({
     newPaymentModes[idx] = {
       ...newPaymentModes[idx],
       amount: posTransaction.amount,
+      baseAmount: posTransaction.baseAmount || posTransaction.amount,
+      surchargeAmount: posTransaction.surchargeAmount || 0,
+      surchargePercent: posTransaction.surchargePercent || 0,
+      totalCharged: posTransaction.amount,
       // For a card this is the RRN; for UPI the same field carries the UTR,
       // which is what the customer's bank statement shows.
       transactionId: result.rrn || result.transactionId || "",
@@ -228,8 +232,13 @@ const Payment = ({
                     }}
                     type="number"
                     onWheel={(e) => e.target.blur()}
-                    disabled={readOnly}
+                    disabled={readOnly || !!item.posTransaction}
                   />
+                  {item.surchargeAmount > 0 && (
+                    <div className="text-warning fs-11 mt-1" title="Includes credit card surcharge">
+                      +{item.surchargeAmount} surcharge
+                    </div>
+                  )}
                 </Col>
                 {item.paymentMode === CARD && (
                   <Col xs="auto" className="card-number">
@@ -458,6 +467,7 @@ const Payment = ({
           context={posContext}
           terminals={posTerminal?.terminals}
           defaultTerminalId={posTerminal?.defaultTerminalId}
+          surchargePercent={posTerminal?.creditCardSurchargePercent}
           onApproved={(posTransaction) =>
             applyPosApproval(posRowIdx, posTransaction)
           }

@@ -162,6 +162,8 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       pineLabsMerchantId: centerData ? centerData.pineLabs?.merchantId || "" : "",
       pineLabsSecurityToken: "",
       pineLabsStoreId: centerData ? centerData.pineLabs?.storeId || "" : "",
+      pineLabsCreditCardSurchargePercent:
+        centerData?.pineLabs?.creditCardSurchargePercent ?? 0,
       pineLabsTerminals: centerData?.pineLabs?.terminals?.length
         ? centerData.pineLabs.terminals.map((t) => ({
             _id: t._id,
@@ -187,6 +189,10 @@ const CenterForm = ({ author, isOpen, centerData }) => {
       branchName: Yup.string().required("Center branch name is required"),
       numbers: Yup.string().required("Center contact number(s) are required"),
       numberOfBeds: Yup.number().required("Number of beds are required"),
+      pineLabsCreditCardSurchargePercent: Yup.number()
+        .min(0, "Surcharge cannot be negative")
+        .max(100, "Surcharge cannot exceed 100%")
+        .nullable(),
     }),
     onSubmit: (values) => {
       const formData = new FormData();
@@ -220,6 +226,15 @@ const CenterForm = ({ author, isOpen, centerData }) => {
           merchantId: values.pineLabsMerchantId,
           securityToken: values.pineLabsSecurityToken,
           storeId: values.pineLabsStoreId,
+          creditCardSurchargePercent: Math.min(
+            100,
+            Math.max(
+              0,
+              Number(
+                parseFloat(values.pineLabsCreditCardSurchargePercent || 0).toFixed(2)
+              )
+            )
+          ),
           terminals: values.pineLabsTerminals,
         })
       );
@@ -718,6 +733,66 @@ const CenterForm = ({ author, isOpen, centerData }) => {
                         onBlur={validation.handleBlur}
                         value={validation.values.pineLabsStoreId || ""}
                       />
+                    </div>
+                  </Col>
+
+                  <Col xs={12} lg={6}>
+                    <div className="mb-3">
+                      <Label
+                        htmlFor="pineLabsCreditCardSurchargePercent"
+                        className="form-label"
+                      >
+                        Credit Card Surcharge (%)
+                      </Label>
+                      <Input
+                        id="pineLabsCreditCardSurchargePercent"
+                        name="pineLabsCreditCardSurchargePercent"
+                        className="form-control"
+                        placeholder="e.g. 2 for 2%"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.01"
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          if (val === "") {
+                            validation.setFieldValue("pineLabsCreditCardSurchargePercent", "");
+                            return;
+                          }
+                          const num = Number(val);
+                          if (num < 0) return;
+                          if (num > 100) {
+                            validation.setFieldValue("pineLabsCreditCardSurchargePercent", 100);
+                            return;
+                          }
+                          const parts = val.split(".");
+                          if (parts[1] && parts[1].length > 2) {
+                            validation.setFieldValue(
+                              "pineLabsCreditCardSurchargePercent",
+                              Number(parseFloat(val).toFixed(2))
+                            );
+                            return;
+                          }
+                          validation.handleChange(e);
+                        }}
+                        onBlur={(e) => {
+                          validation.handleBlur(e);
+                          const num = parseFloat(e.target.value);
+                          if (!isNaN(num)) {
+                            validation.setFieldValue(
+                              "pineLabsCreditCardSurchargePercent",
+                              Math.min(100, Math.max(0, Number(num.toFixed(2))))
+                            );
+                          }
+                        }}
+                        value={
+                          validation.values.pineLabsCreditCardSurchargePercent ??
+                          ""
+                        }
+                      />
+                      <small className="text-muted fs-11">
+                        Auto-applied to terminal amount on CARD transactions (0 - 100%). Set to 0 to disable. Not applied to UPI.
+                      </small>
                     </div>
                   </Col>
 

@@ -67,6 +67,18 @@ const pages = [
     },
   },
   {
+    id: "grievances",
+    label: "Grievances",
+    name: "Grievances",
+    link: "/grievances",
+    icon: "bx bx-shield-quarter",
+    // No `permissions` block on purpose — User/Form.js only renders the
+    // Create/Edit/Delete checkboxes when one is present. Page Access decides
+    // whether this page is VISIBLE to a user; what they may DO on it is the
+    // GRIEVANCE module in Roles Management, so there is one place to look
+    // rather than two that can disagree.
+  },
+  {
     id: "cash",
     label: "Cash",
     name: "Cash",
@@ -322,6 +334,13 @@ const pages = [
     icon: "bx bx-book",
   },
   {
+    id: "compliance",
+    label: "Compliance",
+    name: "Compliance",
+    link: "/compliance",
+    icon: "bx bx-shield-alt-2",
+  },
+  {
     id: "masterdata",
     label: "Vendor Management",
     name: "Vendor Management",
@@ -553,6 +572,12 @@ export const Pharmacy = [
     link: "/pharmacy/sareyaan-inventory",
     icon: "bx bx-package",
   },
+  {
+    id: "pharmacyActivity",
+    label: "Activity",
+    link: "/pharmacy/activity",
+    icon: "bx bx-pulse",
+  },
 ];
 
 export const MIReporting = [
@@ -696,6 +721,12 @@ export const setting = [
     label: "Centre Fallback Manager",
     link: "/setting/center/fallback/manager",
     icon: "bx bx-user-pin",
+  },
+  {
+    id: "grievanceofficer",
+    label: "Grievance Officer",
+    link: "/setting/grievance-officer",
+    icon: "bx bx-user-voice",
   },
 ];
 
@@ -1032,6 +1063,18 @@ export const HR = [
         icon: "bx bx-user-plus",
         link: "/hr/biometric/addition/requests",
       },
+      {
+        id: "add-new-joining-biometric",
+        label: "New Joining JRC Mapping",
+        icon: "bx bx-user-check",
+        link: "/hr/biometric/new-joining/add",
+      },
+      {
+        id: "get-new-joining-biometric-requests",
+        label: "New Joining Biometric Requests",
+        icon: "bx bx-check-shield",
+        link: "/hr/biometric/new-joining/requests",
+      },
       // {
       //   id: "get-biometric-my-requests",
       //   label: "Get My Biometric Requests",
@@ -1299,6 +1342,27 @@ export const HR = [
         label: "Employee Forms",
         icon: "bx bx-file",
         link: "/hr/employee/forms",
+      },
+    ],
+  },
+  {
+    id: "esic",
+    label: "ESIC",
+    icon: "bx bx-shield-quarter",
+    link: "/hr/esic",
+    isAccordion: true,
+    children: [
+      {
+        id: "esicupload",
+        label: "ESIC Upload",
+        icon: "bx bx-upload",
+        link: "/hr/esic/upload",
+      },
+      {
+        id: "esicapproval",
+        label: "ESIC Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/esic/approval",
       },
     ],
   },
@@ -1642,6 +1706,56 @@ export const UTILITIES = [
     icon: "bx bxs-report",
   },
 ];
+export const Compliance = [
+  {
+    id: "compliance-overview",
+    label: "Overview",
+    link: "/compliance",
+    icon: "bx bx-grid-alt",
+  },
+  {
+    id: "compliance-centres",
+    label: "Centres",
+    link: "/compliance/centres/pune",
+    icon: "bx bx-buildings",
+  },
+  {
+    id: "compliance-register",
+    label: "Register",
+    link: "/compliance/register",
+    icon: "bx bx-list-check",
+  },
+  {
+    id: "compliance-types",
+    label: "Compliance Types",
+    link: "/compliance/types",
+    icon: "bx bx-shield-quarter",
+  },
+  {
+    id: "compliance-categories",
+    label: "Categories",
+    link: "/compliance/categories",
+    icon: "bx bx-category",
+  },
+  {
+    id: "compliance-approvals",
+    label: "Approvals",
+    link: "/compliance/approvals",
+    icon: "bx bx-check-shield",
+  },
+  {
+    id: "compliance-my-drafts",
+    label: "My Drafts",
+    link: "/compliance/my-drafts",
+    icon: "bx bx-edit",
+  },
+  {
+    id: "compliance-all-drafts",
+    label: "All Drafts",
+    link: "/compliance/drafts",
+    icon: "bx bx-folder-open",
+  },
+];
 export const MASTER_DATA = [
   {
     id: "masterdata-core",
@@ -1683,6 +1797,13 @@ export const MASTER_DATA = [
         link: "/vendor-management/department",
         icon: "bx bx-building",
         permissionModule: "DEPARTMENT",
+      },
+      {
+        id: "audit-log",
+        label: "Audit Logs",
+        icon: "bx bx-history",
+        link: "/vendor-management/audit-log",
+        permissionModule: "AUDIT_LOG",
       },
     ],
   },
@@ -1737,6 +1858,12 @@ export const MASTER_DATA = [
     isAccordion: true,
     children: [
       {
+        id: "procurement-dashboard",
+        label: "Dashboard",
+        link: "/vendor-management/procurement-dashboard",
+        permissionModule: "PO",
+      },
+      {
         id: "procurement-pr",
         label: "Purchase Requisitions",
         link: "/vendor-management/purchase-requisition",
@@ -1790,7 +1917,7 @@ export const MASTER_DATA = [
         id: "inventory-location-stock",
         label: "Stock by Location",
         link: "/vendor-management/location-stock",
-        permissionModule: "STORAGE_LOCATION",
+        permissionModule: "PUTAWAY",
       },
       {
         id: "inventory-stock",

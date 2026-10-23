@@ -6,13 +6,12 @@ import { toast } from "react-toastify";
 import {
   createContract,
   updateContract,
-  getVendors,
-  getAllCenters,
-  getPRDepartments,
   getBudgets,
   getUserLookup,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../Components/Hooks/useReferenceData";
+
 import "../UnitOfMeasurement/uom.scss";
 
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
@@ -30,27 +29,15 @@ function generatePreviewContractId() {
 const ContractForm = ({ editingItem, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
   const [previewContractId] = useState(generatePreviewContractId());
-  const [vendors, setVendors] = useState([]);
-  const [centers, setCenters] = useState([]);
-  const [departments, setDepartments] = useState([]);
+  const { items: vendors } = useReferenceList("vendorsAll");
+  const { items: centers } = useReferenceList("centers");
+  const { items: departments } = useReferenceList("departments");
   const [budgets, setBudgets] = useState([]);
 
   const [ownerSearch, setOwnerSearch] = useState(
     editingItem?.ownerId ? editingItem.ownerId.name || "" : "",
   );
   const [ownerOptions, setOwnerOptions] = useState([]);
-
-  useEffect(() => {
-    getVendors({})
-      .then((res) => setVendors(res?.data || []))
-      .catch(() => {});
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
-    getPRDepartments({})
-      .then((res) => setDepartments(res?.data || []))
-      .catch(() => {});
-  }, []);
 
   const validation = useFormik({
     initialValues: {

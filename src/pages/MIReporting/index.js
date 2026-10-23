@@ -50,8 +50,8 @@ import Incident from "./Incident";
 import Readmission from "./Readmission";
 import AttritionData from "./AttritionData";
 import PatientAssignedStatus from "./PatientAssignedStatus";
+import SuspendedAssigned from "./SuspendedAssigned";
 import CashReco from "./CashReco";
-import MissingInvoices from "./MissingInvoices";
 
 const MiReporting = () => {
   const navigate = useNavigate();
@@ -137,7 +137,6 @@ const MiReporting = () => {
   const hasMetricsReportPermission = hasPermission("MIS_REPORTS", "METRICS_REPORT", "READ");
   const hasDailyInvoicesPermission = hasPermission("MIS_REPORTS", "DAILY_INVOICES", "READ");
   const hasDueAmountPermission = hasPermission("MIS_REPORTS", "DUE_AMOUNT", "READ");
-  const hasMissingInvoicesPermission = hasPermission("MIS_REPORTS", "MISSING_INVOICES", "READ");
   const hasOpdChargesPermission = hasPermission("MIS_REPORTS", "OPD_CHARGES", "READ");
   const hasCashPerCenterPermission = hasPermission("MIS_REPORTS", "CASH_PER_CENTER", "READ");
   const hasRefundAmountPermission = hasPermission("MIS_REPORTS", "REFUND_AMOUNT", "READ");
@@ -153,6 +152,7 @@ const MiReporting = () => {
   const hasCounsellingSessionsPermission = hasPermission("MIS_REPORTS", "COUNSELLING_SESSIONS", "READ");
   const hasCounsellingRecordingPermission = hasPermission("MIS_REPORTS", "COUNSELLING_RECORDING", "READ");
   const hasPatientAssignedStatusPermission = hasPermission("MIS_REPORTS", "PATIENT_ASSIGNED_STATUS", "READ");
+  const hasSuspendedAssignedPermission = hasPermission("MIS_REPORTS", "SUSPENDED_ASSIGNED", "READ");
   const hasCashRecoCompliancePermission = hasPermission("MIS_REPORTS", "CASH_RECO_COMPLIANCE", "READ");
   const hasNursesDodPermission = hasPermission("MIS_REPORTS", "NURSES_DOD", "READ");
   const hasNursesDashboardDodPermission = hasPermission("MIS_REPORTS", "NURSES_DASHBOARD_DOD", "READ");
@@ -304,11 +304,6 @@ const MiReporting = () => {
                     element={<DueAmount />}
                   />}
 
-                  {hasMISPermission && hasMissingInvoicesPermission && <Route
-                    path="/missing-invoices"
-                    element={<MissingInvoices />}
-                  />}
-
                   {hasMISPermission && hasAttendancePermission && <Route
                     path="/attendance"
                     element={<Attendance />}
@@ -383,6 +378,11 @@ const MiReporting = () => {
                   {hasMISPermission && hasPatientAssignedStatusPermission && <Route
                     path="/patient-assigned-status"
                     element={<PatientAssignedStatus />}
+                  />}
+
+                  {hasMISPermission && hasSuspendedAssignedPermission && <Route
+                    path="/suspended-assigned"
+                    element={<SuspendedAssigned />}
                   />}
 
                   {hasMISPermission && hasCashRecoCompliancePermission && <Route

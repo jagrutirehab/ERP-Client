@@ -102,6 +102,23 @@ const LessonSidebar = ({ learn, view, acknowledged, onSelect }) => {
         </div>
       )}
 
+      {learn.declaration?.required && (
+        <div className="mt-2">
+          <SidebarItem
+            label="Declaration"
+            state={
+              acknowledged || learn.declaration.state === "completed"
+                ? "completed"
+                : learn.declaration.state === "locked"
+                  ? "locked"
+                  : "available"
+            }
+            active={view.type === "declaration"}
+            onClick={() => onSelect({ type: "declaration" })}
+          />
+        </div>
+      )}
+
       <div className="mt-2">
         <SidebarItem
           label="Acknowledgement"

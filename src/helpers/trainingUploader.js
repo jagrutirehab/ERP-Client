@@ -2,8 +2,10 @@ import { toast } from "react-toastify";
 import {
   getMyTrainingUploads,
   getTrainingUploadStatus,
+  uploadTrainerVideo,
   uploadTrainingFile,
 } from "./backend_helper";
+import { emitTrainerVideoChange } from "./trainerVideoEvents";
 
 const MAX_CONCURRENT = 2;
 const MAX_NETWORK_RETRIES = 1;
@@ -79,25 +81,37 @@ const send = async (item) => {
   const controller = new AbortController();
   update(item.id, { phase: "sending", progress: 0, error: null, controller });
 
+  const requestConfig = {
+    signal: controller.signal,
+    onUploadProgress: (event) => {
+      if (!event.total) return;
+      const progress = Math.min(Math.round((event.loaded * 100) / event.total), 99);
+      const current = items.find((entry) => entry.id === item.id);
+      if (current && current.progress !== progress) update(item.id, { progress });
+    },
+  };
+
   try {
-    const response = await uploadTrainingFile(
-      item.file,
-      item.kind,
-      {
-        trainingId: item.trainingId,
-        chapterId: item.chapterId,
-        ...(item.durationSec ? { durationSec: item.durationSec } : {}),
-      },
-      {
-        signal: controller.signal,
-        onUploadProgress: (event) => {
-          if (!event.total) return;
-          const progress = Math.min(Math.round((event.loaded * 100) / event.total), 99);
-          const current = items.find((entry) => entry.id === item.id);
-          if (current && current.progress !== progress) update(item.id, { progress });
-        },
-      },
-    );
+    const response =
+      item.targetType === "trainerRecord"
+        ? await uploadTrainerVideo(
+            item.file,
+            {
+              recordId: item.recordId,
+              ...(item.durationSec ? { durationSec: item.durationSec } : {}),
+            },
+            requestConfig,
+          )
+        : await uploadTrainingFile(
+            item.file,
+            item.kind,
+            {
+              trainingId: item.trainingId,
+              chapterId: item.chapterId,
+              ...(item.durationSec ? { durationSec: item.durationSec } : {}),
+            },
+            requestConfig,
+          );
 
     update(item.id, {
       phase: "processing",
@@ -150,6 +164,8 @@ export const enqueueTrainingUploads = (entries) => {
     kind: entry.kind,
     trainingId: entry.trainingId,
     chapterId: entry.chapterId,
+    targetType: entry.targetType,
+    recordId: entry.recordId,
     trainingName: entry.trainingName || "",
     durationSec: entry.durationSec,
     phase: "queued",
@@ -203,12 +219,14 @@ export const applyServerStatus = ({ uploadId, status, error }) => {
   if (status === "done" && item.phase !== "done") {
     update(item.id, { phase: "done", progress: 100, error: null });
     toast.success(`"${item.name}" is ready`);
+    if (item.targetType === "trainerRecord") emitTrainerVideoChange(item.recordId);
     return "updated";
   }
 
   if (status === "failed" && item.phase !== "failed") {
     update(item.id, { phase: "failed", error: error || "Processing failed" });
     toast.error(`"${item.name}" could not be processed. ${error || ""}`.trim());
+    if (item.targetType === "trainerRecord") emitTrainerVideoChange(item.recordId);
     return "updated";
   }
 
@@ -232,6 +250,8 @@ export const rehydrateUploads = async () => {
         name: upload.originalName,
         size: upload.size,
         kind: upload.kind,
+        targetType: upload.targetType,
+        recordId: upload.recordId,
         trainingName: "",
         phase: "processing",
         progress: 100,

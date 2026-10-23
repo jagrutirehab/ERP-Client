@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import Flatpickr from "react-flatpickr";
 import AsyncSelect from "react-select/async";
+import Select from "react-select";
 import "flatpickr/dist/themes/material_blue.css";
 import { Button, ButtonGroup, Row, Col } from "reactstrap";
 import { useSelector } from "react-redux";
@@ -11,6 +12,7 @@ import {
   listSopRules,
 } from "../../../helpers/backend_helper";
 import CenterDropdown from "../../Report/Components/Doctor/components/CenterDropDown";
+import { ALERT_CATEGORY_OPTIONS } from "../../../Components/constants/sopConstants";
 
 const READ_STATES = [
   { k: "all", label: "All" },
@@ -22,6 +24,14 @@ const PHASE_STATES = [
   { k: "all", label: "All" },
   { k: "IMMEDIATE", label: "Immediate" },
   { k: "DELAYED", label: "Delayed" },
+];
+
+// Who closed the alert. "System" = the daily sweep that resolves alerts once the
+// patient's stay is over (discharged / admission deleted).
+const RESOLVED_BY_STATES = [
+  { k: "all", label: "All" },
+  { k: "staff", label: "Staff" },
+  { k: "system", label: "System" },
 ];
 
 const RESOLVED_STATES = [
@@ -75,12 +85,14 @@ const AlertsFilters = ({
   const hasAnyServerFilter =
     serverFilters.patients?.length > 0 ||
     serverFilters.rules?.length > 0 ||
+    serverFilters.categories?.length > 0 ||
     serverFilters.centers?.length > 0 ||
     !!serverFilters.dateFrom ||
     !!serverFilters.dateTo ||
     serverFilters.readState !== "all" ||
     serverFilters.phase !== "all" ||
     serverFilters.resolvedState !== "all" ||
+    (serverFilters.resolvedBy || "all") !== "all" ||
     serverFilters.source !== "all" ||
     serverFilters.severity?.length > 0;
 
@@ -145,9 +157,9 @@ const AlertsFilters = ({
 
   return (
     <div className="mb-3 p-2 bg-light rounded">
-      {/* Row 1 — Patient + SOP Rule multi-selects */}
+      {/* Row 1 — Patient + SOP Category + SOP Rule multi-selects + dates */}
       <Row className="g-2 mb-2 align-items-end">
-        <Col md={5}>
+        <Col md={3}>
           <small className="text-muted d-block mb-1">
             <i className="bx bx-user-circle me-1" />
             Patient
@@ -165,7 +177,29 @@ const AlertsFilters = ({
             }
           />
         </Col>
-        <Col md={4}>
+        <Col md={3}>
+          <small className="text-muted d-block mb-1">
+            <i className="bx bx-category me-1" />
+            SOP Category
+          </small>
+          {/* Matches by the alert's rule, so older alerts filter too.
+              Baseline Package alerts are the Baseline Lab category. */}
+          <Select
+            isMulti
+            options={ALERT_CATEGORY_OPTIONS}
+            value={ALERT_CATEGORY_OPTIONS.filter((o) =>
+              (serverFilters.categories || []).includes(o.value),
+            )}
+            onChange={(v) =>
+              onServerFilterChange(
+                "categories",
+                (v || []).map((o) => o.value),
+              )
+            }
+            placeholder="All categories"
+          />
+        </Col>
+        <Col md={3}>
           <small className="text-muted d-block mb-1">
             <i className="bx bx-list-check me-1" />
             SOP Rule (name or protocol)
@@ -254,6 +288,21 @@ const AlertsFilters = ({
               outline={serverFilters.resolvedState !== k}
               size="sm"
               onClick={() => onServerFilterChange("resolvedState", k)}
+            >
+              {label}
+            </Button>
+          ))}
+        </div>
+
+        <div className="d-flex gap-1 align-items-center">
+          <small className="text-muted me-1">Resolved by:</small>
+          {RESOLVED_BY_STATES.map(({ k, label }) => (
+            <Button
+              key={k}
+              color={serverFilters.resolvedBy === k ? "primary" : "secondary"}
+              outline={serverFilters.resolvedBy !== k}
+              size="sm"
+              onClick={() => onServerFilterChange("resolvedBy", k)}
             >
               {label}
             </Button>

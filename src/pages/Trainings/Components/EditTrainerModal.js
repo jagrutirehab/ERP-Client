@@ -3,10 +3,12 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Spinner } from "rea
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import Select from "react-select";
-import { getEmployeesByPosition, editTrainerRecord, getPositions } from "../../../helpers/backend_helper";
+import { getEmployeesByPosition, editTrainerRecord, getPositions, removeTrainerVideo } from "../../../helpers/backend_helper";
+import { enqueueTrainingUploads } from "../../../helpers/trainingUploader";
 import { flattenPositions } from "../Helpers/Helper";
 import UserSelector from "./UserSelector";
 import AttachmentPicker from "./AttachmentPicker";
+import TrainerVideoInput from "./TrainerVideoInput";
 
 const LIMIT = 10;
 
@@ -39,6 +41,8 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
     const [savedPositionNames, setSavedPositionNames] = useState({});
     const [removedPaths, setRemovedPaths] = useState([]);
     const [newFiles, setNewFiles] = useState([]);
+    const [videoRemoved, setVideoRemoved] = useState(false);
+    const [newVideo, setNewVideo] = useState(null);
 
     const centerOptions = user?.centerAccess?.map(cid => {
         const center = user?.userCenters?.find(c => c._id === cid);
@@ -69,6 +73,8 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
         setSavedPositionNames(names);
         setRemovedPaths([]);
         setNewFiles([]);
+        setVideoRemoved(false);
+        setNewVideo(null);
     }, [isOpen, record]);
 
     const fetchUsers = useCallback(async ({ positionId, page, search: searchTerm, centers, append = false }) => {
@@ -203,7 +209,28 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
         try {
             setSubmitting(true);
             await editTrainerRecord(record._id, payload);
-            toast.success("Trainer record updated successfully");
+
+            let videoReady = true;
+            if (savedVideo && (videoRemoved || newVideo)) {
+                try {
+                    await removeTrainerVideo(record._id, savedVideo._id);
+                } catch (err) {
+                    videoReady = false;
+                    toast.error(err?.response?.data?.message || "The record was saved, but the old video could not be removed. Try again.");
+                }
+            }
+            if (newVideo && videoReady) {
+                enqueueTrainingUploads([{
+                    file: newVideo.file,
+                    kind: "video",
+                    targetType: "trainerRecord",
+                    recordId: record._id,
+                    trainingName: `Trainer record: ${form.trainingName}`,
+                    durationSec: newVideo.durationSec,
+                }]);
+            }
+
+            toast.success(newVideo && videoReady ? "Trainer record updated. The video is uploading in the background." : "Trainer record updated successfully");
             onRefresh();
             onClose();
         } catch (err) {
@@ -217,6 +244,7 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
     const selectedInActivePosition = selectedUsers[activePosition.id] || [];
     const fakeRecord = { selectedUsers, center: form.center };
     const existingFiles = (record?.files || []).filter(f => !removedPaths.includes(f.path));
+    const savedVideo = record?.videos?.[0] || null;
 
     return (
         <Modal isOpen={isOpen} toggle={onClose} size="xl" centered>
@@ -338,6 +366,14 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
                             onAddFiles={added => setNewFiles(prev => [...prev, ...added])}
                             onRemoveExisting={file => setRemovedPaths(prev => [...prev, file.path])}
                             onRemoveNew={i => setNewFiles(prev => prev.filter((_, idx) => idx !== i))}
+                        />
+                        <TrainerVideoInput
+                            saved={savedVideo}
+                            removed={videoRemoved}
+                            pending={newVideo}
+                            onPick={setNewVideo}
+                            onClearPending={() => setNewVideo(null)}
+                            onToggleRemove={() => setVideoRemoved(prev => !prev)}
                         />
                     </div>
                 </div>

@@ -29,6 +29,8 @@ import MentalExaminationV2 from "./MentalExaminationV2";
 import PatientTypeFields, {
   validatePatientTypeFields,
 } from "./PatientTypeFields";
+import ElderlyChecklistForm from "./ElderlyChecklistForm";
+import { validateElderlyChecklist } from "../../../../utils/elderlyChecklistValidation";
 // import ProvisionalDiagnosisForm from "./ProvisionalDiagnosisForm";
 
 // const CONSET_FILES = "CONSENT_FILES";
@@ -37,6 +39,7 @@ const DETAIL_HISTORY = "DETAIL_HISTORY";
 const SPECIAL_REQUIREMENTS = "SPECIAL_REQUIREMENTS";
 const CHIEF_COMPLAINTS = "CHIEF_COMPLAINTS";
 // const PROVISIONAL_DIAGNOSIS = "PROVISIONAL_DIAGNOSIS";
+const ELDERLY_CHECKLIST = "ELDERLY_CHECKLIST";
 const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 // const PHYSICAL_EXAMINATION = "PHYSICAL_EXAMINATION";
 const DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE";
@@ -133,6 +136,8 @@ const DetailAdmission = ({
   const [consentFiles, setConsentFiles] = useState();
   const [formStep, setFormStep] = useState(CHIEF_COMPLAINTS);
   const [patientTypeSubmitAttempted, setPatientTypeSubmitAttempted] =
+    useState(false);
+  const [elderlyChecklistSubmitAttempted, setElderlyChecklistSubmitAttempted] =
     useState(false);
   // console.log("editChartData", editChartData);
 
@@ -654,6 +659,14 @@ const DetailAdmission = ({
       geriatricFields: JSON.stringify(
         detailAdmissionForm?.geriatricFields || {},
       ),
+      elderlyChecklistFields: JSON.stringify({
+        ...(detailAdmissionForm?.elderlyChecklistFields || {}),
+        skinConcerns: Array.isArray(
+          detailAdmissionForm?.elderlyChecklistFields?.skinConcerns,
+        )
+          ? detailAdmissionForm.elderlyChecklistFields.skinConcerns
+          : [],
+      }),
       rapport:
         detailAdmissionForm?.mentalExaminationV2?.appearanceAndBehavior
           ?.rapport || "",
@@ -665,6 +678,13 @@ const DetailAdmission = ({
       date: chartDate,
       type,
       ...(!isEdit && savedDraft ? savedDraft : {}),
+      // A NEW chart starts from the Patient Type already on the admission card
+      // (unless the draft has one). Editing keeps the chart's own value.
+      ...(!isEdit &&
+        !savedDraft?.patientType &&
+        patient?.addmission?.patientAdmissionType && {
+          patientType: patient.addmission.patientAdmissionType,
+        }),
     },
 
     validationSchema: Yup.object({
@@ -803,6 +823,16 @@ const DetailAdmission = ({
       if (detailHistoryMissing) {
         setFormStep(DETAIL_HISTORY);
         return;
+      }
+      if (values.patientType?.toLowerCase() === "geriatric") {
+        const { isValid: checklistValid } = validateElderlyChecklist(
+          values.elderlyChecklistFields,
+        );
+        if (!checklistValid) {
+          setElderlyChecklistSubmitAttempted(true);
+          setFormStep(ELDERLY_CHECKLIST);
+          return;
+        }
       }
       if (!isOldMentalExamination) {
         const mseFields = [
@@ -983,6 +1013,15 @@ const DetailAdmission = ({
     );
   }, [editChartData, detailAdmissionForm]);
 
+  const isGeriatric =
+    validation.values.patientType?.toLowerCase() === "geriatric";
+
+  useEffect(() => {
+    if (formStep === ELDERLY_CHECKLIST && !isGeriatric) {
+      setFormStep(DETAIL_HISTORY);
+    }
+  }, [formStep, isGeriatric]);
+
   useEffect(() => {
     if (isEdit) return; // don't overwrite real data with a draft
     localStorage.setItem(draftKey, JSON.stringify(validation.values));
@@ -1031,6 +1070,14 @@ const DetailAdmission = ({
             >
               Other History
             </Button>
+            {isGeriatric && (
+              <Button
+                outline={formStep !== ELDERLY_CHECKLIST}
+                onClick={() => setFormStep(ELDERLY_CHECKLIST)}
+              >
+                Elderly Functional and Daily Living Checklist
+              </Button>
+            )}
             <Button
               outline={formStep !== MENTAL_EXAMINATION}
               onClick={() => setFormStep(MENTAL_EXAMINATION)}
@@ -1118,7 +1165,17 @@ const DetailAdmission = ({
                 <DetailHistoryForm
                   validation={validation}
                   setFormStep={setFormStep}
+                  step={isGeriatric ? ELDERLY_CHECKLIST : MENTAL_EXAMINATION}
+                />
+              )}
+
+              {formStep === ELDERLY_CHECKLIST && (
+                <ElderlyChecklistForm
+                  validation={validation}
+                  setFormStep={setFormStep}
                   step={MENTAL_EXAMINATION}
+                  forceShowErrors={elderlyChecklistSubmitAttempted}
+                  patient={patient}
                 />
               )}
 

@@ -149,7 +149,17 @@ export const OPERATORS_BY_TYPE = {
   // can target admissions whose form type was never recorded. The dropdown comes
   // from the field's `options` metadata, not from here.
   AdmissionSupportType: ["EQUALS", "NOT_EQUALS", "EXISTS", "NOT_EXISTS"],
+  // Synthetic type for Addmission.detailAdmissionPatientType — the Patient Type
+  // on the admission's latest Detail Admission chart (Psychiatric / Addiction /
+  // Geriatric), resolved by the server. A missing type counts as "not" any
+  // type, so "NOT_EQUALS Geriatric" still lets an untyped admission through.
+  // The dropdown comes from the field's `options` metadata, not from here.
+  DetailAdmissionPatientType: ["EQUALS", "NOT_EQUALS"],
 };
+
+// Field types that only mean something in Satisfying Criteria. ConditionRow
+// hides them from target-block rows; the server refuses them there too.
+export const CRITERIA_ONLY_FIELD_TYPES = new Set(["DetailAdmissionPatientType"]);
 
 // Severity threshold dropdown for LabReport flagged-items conditions.
 // "Very Low" intentionally omitted — the server's severityRank treats it as
@@ -267,8 +277,38 @@ export const emptyTargetBlock = () => ({
 export const emptyForm = () => ({
   ruleName: "",
   protocol: "",
+  category: "",
   isActive: true,
 });
+
+// SOP rule categories — organisational only (rules list + alerts filter); they
+// never affect whether an alert fires. Mirrors SOP_CATEGORY_OPTIONS in the
+// server's src/constants/sopCategories.js — values must match exactly.
+export const SOP_CATEGORY_OPTIONS = [
+  { value: "VITAL_SIGNS", label: "Vital Signs" },
+  { value: "CLINICAL_TESTS", label: "Clinical Tests" },
+  { value: "LAB_REPORTS", label: "Lab Reports" },
+  { value: "ADMISSION_DOCUMENTATION", label: "Admission Documentation" },
+  { value: "CLINICAL_DOCUMENTATION", label: "Clinical Documentation" },
+  { value: "OTHER", label: "Other" },
+];
+
+// The fixed category of every Baseline Package alert. Shown read-only on the
+// Baseline Package screen; NOT selectable on an SOP rule (the server refuses
+// it there). Mirrors BASELINE_LAB_CATEGORY on the server.
+export const BASELINE_LAB_CATEGORY = {
+  value: "BASELINE_LAB",
+  label: "Baseline Lab",
+};
+
+// Every category an alert can have — for the alerts filter and labels.
+export const ALERT_CATEGORY_OPTIONS = [
+  ...SOP_CATEGORY_OPTIONS,
+  BASELINE_LAB_CATEGORY,
+];
+
+export const sopCategoryLabel = (value) =>
+  ALERT_CATEGORY_OPTIONS.find((o) => o.value === value)?.label || "";
 export const BLOOD_GROUP_OPTIONS = [
   "A+",
   "A-",

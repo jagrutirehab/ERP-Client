@@ -81,6 +81,13 @@ export const formatDateOnly = (dateStr) => {
     return format(new Date(year, month - 1, day), "d MMMM, yyyy");
 };
 
+// ISO timestamp -> "12 Oct 2026, 03:45 PM"
+export const formatDateTime = (value) => {
+    if (!value) return "-";
+    const date = new Date(value);
+    return isNaN(date) ? "-" : format(date, "dd MMM yyyy, hh:mm a");
+};
+
 export const normalizeDateForInput = (value) => {
     if (!value) return "";
 

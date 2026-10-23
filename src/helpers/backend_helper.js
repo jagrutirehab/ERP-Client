@@ -367,6 +367,7 @@ export const getPatients = (data) =>
       // qs.stringify serialises null as `gender=`, which would send an empty
       // value on every unfiltered request.
       gender: data?.gender || undefined,
+      staffId: data?.staffId || undefined,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
@@ -382,9 +383,38 @@ export const getMorePatients = (data) =>
       type: data?.type,
       skip: data?.skip,
       gender: data?.gender || undefined,
+      staffId: data?.staffId || undefined,
     },
     paramsSerializer: (params) => {
       return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+export const getPatientStaff = (data) =>
+  api.get(url.GET_PATIENT_STAFF, {
+    params: {
+      centerIds: data?.centerAccess,
+      skip: data?.skip,
+      search: data?.search || undefined,
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+export const getReferralPatients = (data) =>
+  api.get(url.GET_REFERRAL_PATIENTS, {
+    params: {
+      search: data?.search || undefined,
+      skip: data?.skip,
+      id: data?.id || undefined,
+    },
+  });
+export const getReferralEmployees = (data) =>
+  api.get(url.GET_REFERRAL_EMPLOYEES, {
+    params: {
+      type: data?.type,
+      skip: data?.skip,
+      search: data?.search || undefined,
+      id: data?.id || undefined,
     },
   });
 export const getPatientReferral = (data) =>
@@ -433,10 +463,18 @@ export const updatePatientAdmission = (data) =>
   api.update(url.EDIT_ADMISSION, data);
 export const setRamsayApplicable = (data) =>
   api.update(url.SET_RAMSAY_APPLICABLE, data);
+export const setMorseApplicable = (data) =>
+  api.update(url.SET_MORSE_APPLICABLE, data);
 export const setBaselineInvestigationStatus = (data) =>
   api.update(url.SET_BASELINE_INVESTIGATION_STATUS, data);
 export const setPsychologicalTestStatus = (data) =>
   api.update(url.SET_PSYCHOLOGICAL_TEST_STATUS, data);
+// Override accounts only (server-enforced): empties admissionTypeHistory.
+// The admission card's clinical Patient Type (Psychiatric / Addiction / Geriatric).
+export const setPatientAdmissionType = (data) =>
+  api.update(url.SET_PATIENT_ADMISSION_TYPE, data);
+export const clearAdmissionTypeDirect = (data) =>
+  api.update(url.CLEAR_ADMISSION_TYPE_DIRECT, data);
 export const setAdmissionTypeDirect = (data) =>
   api.update(url.SET_ADMISSION_TYPE_DIRECT, data);
 export const updateAdmissionWardBed = (data) =>
@@ -541,6 +579,10 @@ export const postGeneralVitalSign = (data) =>
   api.create(url.POST_GENERAL_VITAL_SIGN, data);
 export const editGeneralVitalSign = (data) =>
   api.put(url.EDIT_GENERAL_VITAL_SIGN, data);
+export const postElderlyFunctionalChecklist = (data) =>
+  api.create(url.POST_ELDERLY_FUNCTIONAL_CHECKLIST, data);
+export const editElderlyFunctionalChecklist = (data) =>
+  api.put(url.EDIT_ELDERLY_FUNCTIONAL_CHECKLIST, data);
 export const postAdmissionType = (data) =>
   api.create(url.POST_ADMISSION_TYPE, data);
 export const editAdmissionType = (data) =>
@@ -667,6 +709,8 @@ export const editDetailAdmission = (data) =>
   });
 export const validateChart = (chartId) =>
   api.update(`/chart/${chartId}/validate`);
+export const carryForwardDetailAdmission = (data) =>
+  api.create(url.POST_CARRY_FORWARD_DETAIL_ADMISSION, data);
 export const postGeneralDetailAdmission = (data) =>
   api.create(url.POST_GENERAL_DETAIL_ADMISSION, data, {
     headers: { "Content-Type": "multipart/form-data" },
@@ -720,6 +764,11 @@ export const getBillsAddmissions = (data) =>
     },
   });
 export const getBills = (data) => api.get(url.GET_BILLS, { addmission: data });
+export const getPatientLedger = (data) =>
+  api.get(
+    url.GET_PATIENT_LEDGER,
+    typeof data === "object" && data !== null ? data : { patient: data },
+  );
 export const getDraftBills = (data) => api.get(url.GET_DRAFT_BILLS, data);
 const multipartConfig = (data) =>
   data instanceof FormData
@@ -2266,6 +2315,171 @@ export const deleteMedicineRequisition = (id) => {
   });
 };
 
+// COMPLIANCE TYPES
+export const getComplianceTypes = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_TYPES, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getComplianceTypeById = (id) => {
+  return api.get(`${url.COMPLIANCE_TYPES}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const createComplianceType = (data) => {
+  return api.create(url.COMPLIANCE_TYPES, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editComplianceType = (id, data) => {
+  return api.update(`${url.COMPLIANCE_TYPES}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const updateComplianceTypeStatus = (id, active) => {
+  return api.update(
+    `${url.COMPLIANCE_TYPES}/${id}/status`,
+    { active },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const deleteComplianceType = (id) => {
+  return api.delete(`${url.COMPLIANCE_TYPES}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// COMPLIANCE CATEGORIES
+export const getComplianceCategories = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_CATEGORIES, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const createComplianceCategory = (data) => {
+  return api.create(url.COMPLIANCE_CATEGORIES, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const editComplianceCategory = (id, data) => {
+  return api.update(`${url.COMPLIANCE_CATEGORIES}/${id}`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const updateComplianceCategoryStatus = (id, active) => {
+  return api.update(
+    `${url.COMPLIANCE_CATEGORIES}/${id}/status`,
+    { active },
+    { headers: { "X-No-Cookie-Token": "true" } },
+  );
+};
+
+export const deleteComplianceCategory = (id) => {
+  return api.delete(`${url.COMPLIANCE_CATEGORIES}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+// COMPLIANCE SUBMISSIONS
+export const createComplianceSubmission = (data) => {
+  return api.create(url.COMPLIANCE_SUBMISSIONS, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const getComplianceSubmissions = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_SUBMISSIONS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getComplianceSubmissionById = (id) => {
+  return api.get(`${url.COMPLIANCE_SUBMISSIONS}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const approveComplianceSubmission = (id, data = {}) => {
+  return api.update(`${url.COMPLIANCE_SUBMISSIONS}/${id}/approve`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const rejectComplianceSubmission = (id, data) => {
+  return api.update(`${url.COMPLIANCE_SUBMISSIONS}/${id}/reject`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// COMPLIANCE DRAFTS
+export const getMyComplianceDrafts = (params = {}, { signal } = {}) => {
+  return api.get(`${url.COMPLIANCE_SUBMISSIONS}/drafts/mine`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getAllComplianceDrafts = (params = {}, { signal } = {}) => {
+  return api.get(`${url.COMPLIANCE_SUBMISSIONS}/drafts`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const updateComplianceDraft = (id, data) => {
+  return api.update(`${url.COMPLIANCE_SUBMISSIONS}/drafts/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const discardComplianceDraft = (id) => {
+  return api.delete(`${url.COMPLIANCE_SUBMISSIONS}/drafts/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+// COMPLIANCE RECORDS
+export const getComplianceRecords = (params = {}, { signal } = {}) => {
+  return api.get(url.COMPLIANCE_RECORDS, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    signal,
+  });
+};
+
+export const getComplianceRecordById = (id) => {
+  return api.get(`${url.COMPLIANCE_RECORDS}/${id}`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getComplianceSummary = (params = {}) => {
+  return api.get(`${url.COMPLIANCE_RECORDS}/summary`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 // PHARMACY EXPIRED STOCK
 export const getExpiredStock = (params = {}) => {
   return api.get(url.PHARMACY_EXPIRED_STOCK, {
@@ -2278,6 +2492,16 @@ export const getExpiredStock = (params = {}) => {
 
 export const getExpiredStockHistory = (params = {}) => {
   return api.get(`${url.PHARMACY_EXPIRED_STOCK}/history`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    paramsSerializer: (parameters) =>
+      qs.stringify(parameters, { arrayFormat: "repeat", skipNulls: true }),
+  });
+};
+
+// PHARMACY ACTIVITY LOG
+export const getPharmacyActivity = (params = {}) => {
+  return api.get(url.PHARMACY_ACTIVITY, {
     params,
     headers: { "X-No-Cookie-Token": "true" },
     paramsSerializer: (parameters) =>
@@ -2401,6 +2625,14 @@ export const requestingReviewInternalTransferRequisition = (id, data) => {
 
 export const getInternalTransferRequisitionById = (id) => {
   return api.get(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const packageInternalTransferRequisition = (id, data) => {
+  return api.update(`${url.PHARMACY_INTERNAL_TRANSFER}/${id}/package`, data, {
     headers: {
       "X-No-Cookie-Token": "true",
     },
@@ -2809,6 +3041,14 @@ export const getAttritionMonthly = (data) => {
 
 export const getAssignedData = (data) => {
   return api.get(url.GET_ASSIGNED_DATA, {
+    params: {
+      centerIds: data?.centerAccess,
+    },
+  });
+};
+
+export const getPatientsWithSuspendedStaff = (data) => {
+  return api.get(url.GET_PATIENTS_WITH_SUSPENDED_STAFF, {
     params: {
       centerIds: data?.centerAccess,
     },
@@ -4141,6 +4381,72 @@ export const getPayrollAdjustments = (params = {}) => {
   });
 };
 
+export const postESICRecords = (data) => {
+  return api.create(url.ESIC_RECORDS, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const editESICRecord = (id, data) => {
+  return api.update(`${url.ESIC_RECORDS}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};
+
+export const deleteESICRecord = (id) => {
+  return api.delete(`${url.ESIC_RECORDS}/${id}`, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const esicAction = (id, data) => {
+  return api.update(`${url.ESIC_ACTION}/${id}`, data, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
+export const getESICRecords = (params = {}) => {
+  return api.get(url.ESIC_RECORDS, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const searchESICEmployees = (params = {}) => {
+  return api.get(url.ESIC_SEARCH_EMPLOYEES, {
+    params,
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+};
+
+export const getMyESICRecords = () => {
+  return api.get(url.ESIC_MY_RECORDS, {
+    headers: {
+      "X-No-Cookie-Token": "true",
+    },
+  });
+};
+
 export const generatePayroll = (data) => {
   return api.create(url.GENERATE_PAYROLL, data, {
     headers: {
@@ -4810,6 +5116,47 @@ export const uploadTrainingFile = (file, kind, fields, config = {}) => {
     ...config,
   });
 };
+export const renderDeclarationPages = (file) => {
+  const formData = new FormData();
+  formData.append("declaration", file);
+  return axios.post(`${url.TRAINING_BASE}/declaration/render`, formData, {
+    headers: { "Content-Type": undefined },
+    timeout: 0,
+  });
+};
+export const getAdminSignedCopy = (trainingId, employeeId, params) =>
+  axios.get(
+    `${url.TRAINING_ADMIN}/${trainingId}/declaration/signed/${employeeId}`,
+    {
+      params,
+      responseType: "blob",
+    },
+  );
+export const getDeclarationPreview = (trainingId) =>
+  api.get(`${url.TRAINING_BASE}/${trainingId}/declaration/preview`);
+export const markDeclarationRead = (trainingId) =>
+  axios.post(`${url.TRAINING_BASE}/${trainingId}/declaration/read`, {});
+export const getOwnSignedCopy = (trainingId, params) =>
+  axios.get(`${url.TRAINING_BASE}/${trainingId}/declaration/signed`, {
+    params,
+    responseType: "blob",
+  });
+export const uploadTrainerVideo = (file, fields, config = {}) => {
+  const formData = new FormData();
+  Object.entries(fields).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) formData.append(key, value);
+  });
+  formData.append("file", file);
+
+  return axios.post(url.TRAINER_VIDEOS, formData, {
+    params: { kind: "video", size: file.size, name: file.name },
+    headers: { "Content-Type": undefined },
+    timeout: 0,
+    ...config,
+  });
+};
+export const removeTrainerVideo = (recordId, videoId) =>
+  axios.delete(`${url.TRAINER_VIDEOS}/${recordId}/${videoId}`);
 export const getTrainingUploadStatus = (uploadId) =>
   api.get(`${url.TRAINING_UPLOADS}/${uploadId}`);
 export const getMyTrainingUploads = (params) =>
@@ -4820,13 +5167,22 @@ export const markOverviewRead = (trainingId) =>
 export const getMyTrainingProgress = (trainingId) =>
   api.get(`${url.TRAINING_BASE}/${trainingId}/my-progress`);
 
+export const getTrainingNotificationSummary = (params) =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/summary`, { params });
+export const getAssignedTrainingNotifications = () =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/assigned`);
+export const getCompletionTrainingList = (params) =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/completion/trainings`, { params });
+export const getCompletionTrainingDetail = (trainingId, params) =>
+  api.get(`${url.TRAINING_NOTIFICATIONS}/completion/trainings/${trainingId}`, { params });
+
 export const getTrainingAdminContent = (trainingId) =>
   api.get(`${url.TRAINING_ADMIN}/${trainingId}/content`);
 export const getTrainingProgressReport = (trainingId, params) =>
   api.get(`${url.TRAINING_ADMIN}/${trainingId}/progress`, { params });
-export const exportNotStartedCsv = (trainingId, params) =>
+export const exportProgressCsv = (trainingId, params) =>
   axios.get(`${url.TRAINING_ADMIN}/${trainingId}/progress`, {
-    params: { ...params, section: "not_started", format: "csv" },
+    params: { ...params, format: "csv" },
     responseType: "blob",
   });
 export const getAllTrainings = (params) =>
@@ -5438,6 +5794,27 @@ export const updateAssigneeStatusData = (params = {}) =>
       return qs.stringify(params, { arrayFormat: "repeat" });
     },
   });
+
+export const addNewJoiningBiometricData = (data) =>
+  axios.post(url.NEW_JOINING_BIOMETRIC_DATA, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getNewJoiningBiometricData = (params = {}) =>
+  axios.get(url.NEW_JOINING_BIOMETRIC_DATA, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    paramsSerializer: (params) => {
+      return qs.stringify(params, { arrayFormat: "repeat" });
+    },
+  });
+
+export const actionOnNewJoiningBiometricData = (params = {}) =>
+  axios.patch(url.ACTION_ON_NEW_JOINING_BIOMETRIC_DATA, null, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
 // center fallbacks
 export const getCentersWithFallbackManager = () => {
   return axios.get(url.GET_CENTERS_FALLBACK_MANAGERS, {
@@ -5763,11 +6140,9 @@ export const recordVendorQuote = (rfqId, vendorQuoteId, data) => {
   );
 };
 export const closeRFQ = (id, data = {}) => {
-  return axios.patch(
-    `${url.RFQ_BASE}/${id}/close`,
-    data,
-    { headers: { "X-No-Cookie-Token": "true" } },
-  );
+  return axios.patch(`${url.RFQ_BASE}/${id}/close`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
 };
 export const deleteRFQ = (id) => {
   return axios.delete(`${url.RFQ_BASE}/${id}`, {
@@ -6326,3 +6701,34 @@ export const uploadPhysicalVerificationImage = (id, imageType, formData) =>
       },
     },
   );
+export const getProcurementDashboard = () =>
+  axios.get("/master/po-dashboard", {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const setPODelayReason = (id, data) =>
+  axios.patch(`/master/po/${id}/delay-reason`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const cancelPO = (id, data) =>
+  axios.patch(`/master/po/${id}/cancel`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const shortClosePO = (id, data) =>
+  axios.patch(`/master/po/${id}/short-close`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const getAuditLogs = (params) =>
+  axios.get("/master/audit-logs", {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+
+export const getBudgetUsage = (id) =>
+  axios.get(`/master/budget/${id}/usage`, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+export const adjustBudgetAmount = (id, data) =>
+  axios.patch(`/master/budget/${id}/adjust`, data, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });

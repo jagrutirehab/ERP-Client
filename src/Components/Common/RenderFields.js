@@ -2,37 +2,73 @@ import React from "react";
 import { Col, FormFeedback, Input, Label, Row } from "reactstrap";
 import { capitalizeWords } from "../../utils/toCapitalize";
 import Select from "react-select";
-import * as Yup from "yup";
+import { getIn } from "formik";
 
-const RenderFields = ({ fields, validation }) => {
-  console.log("fields", fields);
+const evaluateCondition = (condition, validation, prefix) => {
+  if (!condition) return true;
+  const conditionField = condition.field;
+  const fieldPath = prefix ? `${prefix}.${conditionField}` : conditionField;
+  const currentVal = getIn(validation.values, fieldPath);
+
+  if (condition.value !== undefined && currentVal !== condition.value)
+    return false;
+  if (condition.notEquals !== undefined && currentVal === condition.notEquals)
+    return false;
+  if (
+    condition.includes !== undefined &&
+    (!Array.isArray(currentVal) || !currentVal.includes(condition.includes))
+  )
+    return false;
+  if (
+    condition.includesAny !== undefined &&
+    (!Array.isArray(currentVal) ||
+      !condition.includesAny.some((v) => currentVal.includes(v)))
+  )
+    return false;
+
+  return true;
+};
+
+const RenderFields = ({ fields, validation, prefix }) => {
+  const handleCheckboxToggle = (field, optValue) => {
+    const fieldPath = prefix ? `${prefix}.${field.name}` : field.name;
+    const rawVal = getIn(validation.values, fieldPath);
+    const currentArr = Array.isArray(rawVal) ? rawVal : [];
+    const isChecked = currentArr.includes(optValue);
+
+    let updated;
+    if (isChecked) {
+      updated = currentArr.filter((item) => item !== optValue);
+    } else {
+      if (typeof optValue === "string" && optValue.toLowerCase() === "none") {
+        updated = [optValue];
+      } else {
+        updated = [
+          ...currentArr.filter(
+            (item) => typeof item !== "string" || item.toLowerCase() !== "none",
+          ),
+          optValue,
+        ];
+      }
+    }
+
+    validation.setFieldValue(fieldPath, updated);
+  };
 
   return (
     <React.Fragment>
       <Row>
         {(fields.filter((fl) => fl) || []).map((field, i) => {
-          if (field.showIf) {
-            const conditionField = field.showIf.field;
-            const conditionValue = field.showIf.value;
-            const notEquals = field.showIf.notEquals;
-            const includes = field.showIf.includes;
-            if (
-              conditionValue !== undefined &&
-              validation.values[conditionField] !== conditionValue
-            )
-              return null;
-            if (
-              notEquals !== undefined &&
-              validation.values[conditionField] === notEquals
-            )
-              return null;
-            if (
-              includes !== undefined &&
-              (!Array.isArray(validation.values[conditionField]) ||
-                !validation.values[conditionField].includes(includes))
-            )
-              return null;
+          if (
+            field.showIf &&
+            !evaluateCondition(field.showIf, validation, prefix)
+          ) {
+            return null;
           }
+
+          const isFieldRequired = field.requiredIf
+            ? evaluateCondition(field.requiredIf, validation, prefix)
+            : field.required;
 
           if (field.type === "empty") {
             return <Col key={i + "empty"} xs={12} lg={6} />;
@@ -190,7 +226,7 @@ const RenderFields = ({ fields, validation }) => {
                 {!field.labelHidden && (
                   <Label htmlFor={field.name} className="form-label">
                     {field.label}
-                    {field.required && (
+                    {isFieldRequired && (
                       <span className="text-danger ms-1">*</span>
                     )}
                   </Label>
@@ -291,22 +327,42 @@ const RenderFields = ({ fields, validation }) => {
                       const value = typeof opt === "string" ? opt : opt.value;
                       const textName =
                         typeof opt === "string" ? null : opt.textName;
-                      const isChecked =
-                        Array.isArray(validation.values[field.name]) &&
-                        validation.values[field.name].includes(value);
+                      const fieldPath = prefix
+                        ? `${prefix}.${field.name}`
+                        : field.name;
+                      const rawVal = getIn(validation.values, fieldPath);
+                      const currentArr = Array.isArray(rawVal) ? rawVal : [];
+                      const isChecked = currentArr.includes(value);
+
                       return (
                         <div key={idx}>
-                          <div className="d-flex align-items-center mb-1">
+                          <div
+                            className="d-flex align-items-center mb-1"
+                            style={{ cursor: "pointer" }}
+                            onClick={(e) => {
+                              if (e.target.tagName !== "INPUT") {
+                                handleCheckboxToggle(field, value);
+                              }
+                            }}
+                          >
                             <Input
                               className="me-2 mt-0"
                               type="checkbox"
-                              name={field.name}
+                              name={fieldPath}
                               value={value}
-                              onChange={validation.handleChange}
+                              onChange={() =>
+                                handleCheckboxToggle(field, value)
+                              }
                               checked={isChecked}
+                              style={{ cursor: "pointer" }}
                             />
-                            <Label className="form-label fs-6 mb-0">
-                              {value.charAt(0).toUpperCase() + value.slice(1)}
+                            <Label
+                              className="form-label fs-6 mb-0"
+                              style={{ cursor: "pointer" }}
+                            >
+                              {typeof opt === "object" && opt.label
+                                ? opt.label
+                                : value.charAt(0).toUpperCase() + value.slice(1)}
                             </Label>
                           </div>
                           {isChecked && textName && (
@@ -317,20 +373,29 @@ const RenderFields = ({ fields, validation }) => {
                               type="text"
                               onChange={validation.handleChange}
                               onBlur={validation.handleBlur}
-                              value={validation.values[textName] || ""}
+                              value={getIn(validation.values, textName) || ""}
                               style={{ width: "80%" }}
                             />
                           )}
                         </div>
                       );
                     })}
-                    {validation.touched[field.name] &&
-                      validation.errors[field.name] && (
+                    {getIn(
+                      validation.touched,
+                      prefix ? `${prefix}.${field.name}` : field.name,
+                    ) &&
+                      getIn(
+                        validation.errors,
+                        prefix ? `${prefix}.${field.name}` : field.name,
+                      ) && (
                         <div
                           className="text-danger mt-1"
                           style={{ fontSize: "0.875em" }}
                         >
-                          {validation.errors[field.name]}
+                          {getIn(
+                            validation.errors,
+                            prefix ? `${prefix}.${field.name}` : field.name,
+                          )}
                         </div>
                       )}
                   </div>
@@ -338,24 +403,40 @@ const RenderFields = ({ fields, validation }) => {
                   <>
                     <div className="d-flex flex-wrap">
                       {(field.options || []).map((item, idx) => {
+                        const fieldPath = prefix
+                          ? `${prefix}.${field.name}`
+                          : field.name;
+                        const rawVal = getIn(validation.values, fieldPath);
+                        const currentArr = Array.isArray(rawVal) ? rawVal : [];
+                        const isChecked = currentArr.includes(item);
+
                         return (
                           <React.Fragment key={idx}>
                             <div>
-                              <div className="d-flex me-3 mb-2 align-items-center">
+                              <div
+                                className="d-flex me-3 mb-2 align-items-center"
+                                style={{ cursor: "pointer" }}
+                                onClick={(e) => {
+                                  if (e.target.tagName !== "INPUT") {
+                                    handleCheckboxToggle(field, item);
+                                  }
+                                }}
+                              >
                                 <Input
                                   className="me-2 mt-0"
                                   type={field.type}
-                                  name={field.name}
+                                  name={fieldPath}
                                   value={item}
-                                  onChange={validation.handleChange}
-                                  checked={
-                                    Array.isArray(
-                                      validation.values[field.name],
-                                    ) &&
-                                    validation.values[field.name].includes(item)
+                                  onChange={() =>
+                                    handleCheckboxToggle(field, item)
                                   }
+                                  checked={isChecked}
+                                  style={{ cursor: "pointer" }}
                                 />
-                                <Label className="form-label fs-6 mb-0">
+                                <Label
+                                  className="form-label fs-6 mb-0"
+                                  style={{ cursor: "pointer" }}
+                                >
                                   {item.charAt(0).toUpperCase() + item.slice(1)}
                                 </Label>
                               </div>
@@ -363,13 +444,22 @@ const RenderFields = ({ fields, validation }) => {
                           </React.Fragment>
                         );
                       })}
-                      {validation.touched[field.name] &&
-                        validation.errors[field.name] && (
+                      {getIn(
+                        validation.touched,
+                        prefix ? `${prefix}.${field.name}` : field.name,
+                      ) &&
+                        getIn(
+                          validation.errors,
+                          prefix ? `${prefix}.${field.name}` : field.name,
+                        ) && (
                           <div
                             className="text-danger mt-1"
                             style={{ fontSize: "0.875em" }}
                           >
-                            {validation.errors[field.name]}
+                            {getIn(
+                              validation.errors,
+                              prefix ? `${prefix}.${field.name}` : field.name,
+                            )}
                           </div>
                         )}
                     </div>
@@ -443,7 +533,7 @@ const RenderFields = ({ fields, validation }) => {
                 )}
                 {validation.touched[field.name] &&
                 validation.errors[field.name] ? (
-                  <FormFeedback type="invalid">
+                  <FormFeedback type="invalid" className="d-block">
                     {validation.errors[field.name]}
                   </FormFeedback>
                 ) : null}

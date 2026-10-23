@@ -38,7 +38,10 @@ import {
 import { useState, useRef, useEffect, useMemo } from "react";
 import AdmissionformModal from "../../Modals/Admissionform.modal";
 import { connect, useDispatch, useSelector } from "react-redux";
-import { submitAdmissionForm } from "../../../../store/features/patient/patientSlice";
+import {
+  submitAdmissionForm,
+  fetchSopOverview,
+} from "../../../../store/features/patient/patientSlice";
 import PropTypes from "prop-types";
 import jsPDF from "jspdf";
 import { captureSection } from "./captureSection";
@@ -97,9 +100,25 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   const [dateModal3, setDateModal3] = useState(false);
   const [dateModal4, setDateModal4] = useState(false);
   const [chartType, setChartType] = useState("");
-  const toggleModal = () => setDateModal(!dateModal);
+  const toggleModal = () => {
+    if (dateModal) {
+      setAdmissiontype("");
+      setEmergencyType("");
+      setEmergencyRestraint("");
+      setAdultationtype("");
+    }
+    setDateModal(!dateModal);
+  };
   const toggleModal2 = () => setDateModal2(!dateModal2);
-  const toggleModal3 = () => setDateModal3(!dateModal3);
+  const toggleModal3 = () => {
+    if (dateModal3) {
+      setAdmissiontype("");
+      setAdultationtype("");
+      setSupporttype("");
+      setEmergencyDischargeType("");
+    }
+    setDateModal3(!dateModal3);
+  };
   const toggleModal4 = () => setDateModal4(!dateModal4);
   const [openform3, setOpenform3] = useState(false);
   const [openform4, setOpenform4] = useState(false);
@@ -124,8 +143,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
   const [emergencyDischargeType, setEmergencyDischargeType] = useState("");
 
   const fileInputRef = useRef(null);
+  const emergencyAdmissionFileInputRef = useRef(null);
   const consentFileInputRef = useRef(null);
   const dischargeFileInputRef = useRef(null);
+  const emergencyDischargeFileInputRef = useRef(null);
   const undertakingDischargeFileInputRef = useRef(null);
   const capacityAssessmentFileInputRef = useRef(null);
   const ectConsentFileInputRef = useRef(null);
@@ -346,11 +367,19 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (emergencyRef.current) await captureSection(emergencyRef, pdf, true);
       const pdfBlob = pdf.output("blob");
       const formData = new FormData();
-      formData.append(
-        "addmissionfromRaw",
-        pdfBlob,
-        `${patient?.id?.value}-${patient?.name}-admission-form.pdf`,
-      );
+      if (admissiontype === "EMERGENCY_ADMISSION") {
+        formData.append(
+          "emergencyAdmissionFormRaw",
+          pdfBlob,
+          `${patient?.id?.value}-${patient?.name}-emergency-admission-form.pdf`,
+        );
+      } else {
+        formData.append(
+          "addmissionfromRaw",
+          pdfBlob,
+          `${patient?.id?.value}-${patient?.name}-admission-form.pdf`,
+        );
+      }
 
       // Add structured form data (filled in the Create New Form modal);
       // conditional fields are gated on their admission type so a stale value
@@ -395,6 +424,12 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (patient?.addmissions?.length) {
         dispatch(fetchChartsAddmissions(patient.addmissions));
       }
+      dispatch(
+        fetchSopOverview({
+          admissionId: targetId,
+          currentDate: new Date().toISOString(),
+        })
+      );
       reset();
       setOpenform(false);
       setAdmissiontype("");
@@ -421,12 +456,20 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     fileInputRef.current.click();
   };
 
+  const handleEmergencyAdmissionUploadClick = () => {
+    emergencyAdmissionFileInputRef.current.click();
+  };
+
   const handleConsentUploadClick = () => {
     consentFileInputRef.current.click();
   };
 
   const handleDischargeUploadClick = () => {
     dischargeFileInputRef.current.click();
+  };
+
+  const handleEmergencyDischargeUploadClick = () => {
+    emergencyDischargeFileInputRef.current.click();
   };
 
   const handleUndertakingDischargeUploadClick = () => {
@@ -460,6 +503,52 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (patient?.addmissions?.length) {
         dispatch(fetchChartsAddmissions(patient.addmissions));
       }
+      dispatch(
+        fetchSopOverview({
+          admissionId: targetId,
+          currentDate: new Date().toISOString(),
+        })
+      );
+      setIsGenerating2(false);
+    } catch (err) {
+      toast.error("Upload failed");
+      setIsGenerating2(false);
+    }
+  };
+
+  const handleFileChangeEmergencyAdmission = async (e) => {
+    const file = e.target.files[0];
+    const targetId = resolveTargetAddmission();
+    if (!targetId) return;
+    setIsGenerating2(true);
+    if (!file) return;
+
+    if (file.type !== "application/pdf") {
+      toast.warning("Please upload a PDF file.");
+      setIsGenerating2(false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append("emergencyAdmissionFormURL", file);
+      formData.append("id", targetId);
+      await axios.patch("/patient/emergency-admission-submit-file", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      toast.success("Signed PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
+      dispatch(
+        fetchSopOverview({
+          admissionId: targetId,
+          currentDate: new Date().toISOString(),
+        })
+      );
       setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
@@ -494,6 +583,12 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (patient?.addmissions?.length) {
         dispatch(fetchChartsAddmissions(patient.addmissions));
       }
+      dispatch(
+        fetchSopOverview({
+          admissionId: targetId,
+          currentDate: new Date().toISOString(),
+        })
+      );
       setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
@@ -600,6 +695,48 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (patient?.addmissions?.length) {
         dispatch(fetchChartsAddmissions(patient.addmissions));
       }
+      dispatch(
+        fetchSopOverview({
+          admissionId: targetId,
+          currentDate: new Date().toISOString(),
+        })
+      );
+      setIsGenerating2(false);
+    } catch (err) {
+      toast.error("Upload failed");
+      setIsGenerating2(false);
+    }
+  };
+
+  const handleFileChangeEmergencyDischarge = async (e) => {
+    const file = e.target.files[0];
+    const targetId = resolveTargetAddmission();
+    if (!targetId) return;
+    setIsGenerating2(true);
+    if (!file) return;
+    if (file.type !== "application/pdf") {
+      toast.warning("Please upload a PDF file.");
+      setIsGenerating2(false);
+      return;
+    }
+    try {
+      const formData = new FormData();
+      formData.append("emergencyDischargeFormURL", file);
+      formData.append("id", targetId);
+      await axios.patch("/patient/discharge-submit", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      toast.success("Signed PDF uploaded successfully!");
+      dispatch(fetchPatientById(patient?._id));
+      if (patient?.addmissions?.length) {
+        dispatch(fetchChartsAddmissions(patient.addmissions));
+      }
+      dispatch(
+        fetchSopOverview({
+          admissionId: targetId,
+          currentDate: new Date().toISOString(),
+        })
+      );
       setIsGenerating2(false);
     } catch (err) {
       toast.error("Upload failed");
@@ -671,6 +808,12 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
           pdfBlob,
           `${patient?.id?.value}-${patient?.name}-undertaking-discharge-form.pdf`,
         );
+      } else if (admissiontype === "EMERGENCY_DISCHARGE") {
+        formData.append(
+          "emergencyDischargeFormRaw",
+          pdfBlob,
+          `${patient?.id?.value}-${patient?.name}-emergency-discharge-form.pdf`,
+        );
       } else {
         formData.append(
           "dischargeFormRaw",
@@ -717,6 +860,12 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       if (patient?.addmissions?.length) {
         dispatch(fetchChartsAddmissions(patient.addmissions));
       }
+      dispatch(
+        fetchSopOverview({
+          admissionId: targetId,
+          currentDate: new Date().toISOString(),
+        })
+      );
       setOpenform3(false);
       setAdmissiontype("");
       setAdultationtype("");
@@ -735,6 +884,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
 
   useEffect(() => {
     if (formType === "ADMISSION FORM") {
+      setAdmissiontype("");
+      setEmergencyType("");
+      setEmergencyRestraint("");
+      setAdultationtype("");
       if (!dateModal) toggleModal();
       setDateModal4(false);
       setDateModal3(false);
@@ -751,9 +904,52 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
     }
 
     if (formType === "DISCHARGE FORM") {
+      setAdmissiontype("");
+      setAdultationtype("");
+      setSupporttype("");
+      setEmergencyDischargeType("");
       if (!dateModal3) toggleModal3();
       setDateModal4(false);
       setDateModal(false);
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return;
+    }
+
+    // Standalone "Undertaking Discharge Form" dropdown entry — jumps straight
+    // to the existing openform3/UndertakingDischargeForm flow, skipping the
+    // DishchargeformModal admissiontype picker (which no longer offers this
+    // as a sub-option). Same submit handler, same API call, same payload —
+    // only the entry point changed.
+    if (formType === "UNDERTAKING DISCHARGE FORM") {
+      setAdmissiontype("DISCHARGE_UNDERTAKING");
+      setOpenform3(true);
+      setDateModal(false);
+      setDateModal4(false);
+      setDateModal3(false);
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return;
+    }
+
+    // Standalone "Emergency Admission Form" dropdown entry — opens the same
+    // Admissionform.modal.js picker as before, with admissiontype preset to
+    // "EMERGENCY_ADMISSION" so it goes straight to the Emergency Type /
+    // Restraint selects (see Admissionform.modal.js). Same Submit button,
+    // same openform/EmergencyAdmissionForm flow, same payload — only the
+    // entry point changed.
+    if (formType === "EMERGENCY ADMISSION FORM") {
+      setAdmissiontype("EMERGENCY_ADMISSION");
+      setDateModal(true);
+      setDateModal4(false);
+      setDateModal3(false);
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return;
+    }
+
+    if (formType === "EMERGENCY DISCHARGE FORM") {
+      setAdmissiontype("EMERGENCY_DISCHARGE");
+      setDateModal3(true);
+      setDateModal(false);
+      setDateModal4(false);
       dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
       return;
     }
@@ -935,7 +1131,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       return "Emergency - Inter-Facility";
     if (type === "EMERGENCY_DISCHARGE" && emergency === "DEATH")
       return "Emergency - Death Declaration";
-    return "Discharge Form";
+    return "MHRB Discharge Form";
   };
 
   return (
@@ -997,11 +1193,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                     outline
                   >
                     <i
-                      className={`${
-                        open === idx.toString()
+                      className={`${open === idx.toString()
                           ? "ri-arrow-up-s-line"
                           : "ri-arrow-down-s-line"
-                      } fs-6`}
+                        } fs-6`}
                     ></i>
                   </Button>
                 </div>
@@ -1075,7 +1270,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
                                   ) : (
-                                    "Upload Signed Copy Of Admission Form"
+                                    "Upload Signed Copy Of MHRB Admission"
                                   )}
                                 </Button>
                                 {test?.addmissionfromRaw?.length > 0 && (
@@ -1094,12 +1289,12 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Draft Admission Form{" "}
+                                            Download Draft MHRB Admission{" "}
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
-                                                  file.uploadedAt,
-                                                ).toLocaleDateString()})`
+                                                file.uploadedAt,
+                                              ).toLocaleDateString()})`
                                               : ""}
                                           </a>
                                         </div>
@@ -1130,12 +1325,104 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Signed Admission Form{" "}
+                                            Download Signed MHRB Admission{" "}
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
-                                                  file.uploadedAt,
-                                                ).toLocaleDateString()})`
+                                                file.uploadedAt,
+                                              ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                  width: "100%",
+                                }}
+                              >
+                                <Button
+                                  onClick={handleEmergencyAdmissionUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "44px" }}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Upload Signed Copy Of Emergency Admission Form"
+                                  )}
+                                </Button>
+                                {test?.emergencyAdmissionFormRaw?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.emergencyAdmissionFormRaw.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Draft Emergency Admission{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                file.uploadedAt,
+                                              ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                                <input
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={emergencyAdmissionFileInputRef}
+                                  style={{ display: "none" }}
+                                  onChange={handleFileChangeEmergencyAdmission}
+                                />
+                                {test?.emergencyAdmissionFormURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.emergencyAdmissionFormURL.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Signed Emergency Admission{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                file.uploadedAt,
+                                              ).toLocaleDateString()})`
                                               : ""}
                                           </a>
                                         </div>
@@ -1167,7 +1454,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
                                   ) : (
-                                    "Upload Signed Copy Of Consent Form"
+                                    "Upload Signed Copy Of Admission and Consent Form"
                                   )}
                                 </Button>
                                 <input
@@ -1192,12 +1479,13 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                           rel="noopener noreferrer"
                                           className="btn btn-outline-primary btn-sm"
                                         >
-                                          Download Draft Consent Form{" "}
+                                          Download Draft Admission and Consent
+                                          Form{" "}
                                           {index + 1}{" "}
                                           {file?.uploadedAt
                                             ? `(${new Date(
-                                                file.uploadedAt,
-                                              ).toLocaleDateString()})`
+                                              file.uploadedAt,
+                                            ).toLocaleDateString()})`
                                             : ""}
                                         </a>
                                       </div>
@@ -1219,12 +1507,13 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                           rel="noopener noreferrer"
                                           className="btn btn-outline-primary btn-sm"
                                         >
-                                          Download Signed Consent Form{" "}
+                                          Download Signed Admission and
+                                          Consent Form{" "}
                                           {index + 1}{" "}
                                           {file?.uploadedAt
                                             ? `(${new Date(
-                                                file.uploadedAt,
-                                              ).toLocaleDateString()})`
+                                              file.uploadedAt,
+                                            ).toLocaleDateString()})`
                                             : ""}
                                         </a>
                                       </div>
@@ -1233,105 +1522,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                 )}
                               </div>
                             </div>
-                            <div>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  gap: "30px",
-                                  width: "100%",
-                                }}
-                              >
-                                <Button
-                                  onClick={handleDischargeUploadClick}
-                                  size="sm"
-                                  color="primary"
-                                  className="mr-10"
-                                  disabled={isGenerating2}
-                                  label="patient-discharge-form"
-                                  style={{ width: "100%", minHeight: "44px" }}
-                                >
-                                  {isGenerating2 ? (
-                                    <Spinner size="sm" />
-                                  ) : (
-                                    "Upload Signed Copy Of Discharge Form"
-                                  )}
-                                </Button>
-                                <input
-                                  id="patient-discharge-form"
-                                  type="file"
-                                  accept="application/pdf"
-                                  ref={dischargeFileInputRef}
-                                  className="sr-only"
-                                  // style={{ display: "none" }}
-                                  onChange={(e) => {
-                                    console.log("Discharge Form is hitted");
-                                    handleFileChangeDishcharge(e);
-                                  }}
-                                />
-                                {test?.dischargeFormRaw?.length > 0 && (
-                                  <div
-                                    style={{
-                                      width: "100%",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    {test?.dischargeFormRaw.map(
-                                      (file, index) => (
-                                        <div key={index} className="mt-2">
-                                          <a
-                                            href={file?.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="btn btn-outline-primary btn-sm"
-                                          >
-                                            Download Draft Discharge Form —{" "}
-                                            {getDischargeFormLabel(file)}{" "}
-                                            {index + 1}{" "}
-                                            {file?.uploadedAt
-                                              ? `(${new Date(
-                                                  file.uploadedAt,
-                                                ).toLocaleDateString()})`
-                                              : ""}
-                                          </a>
-                                        </div>
-                                      ),
-                                    )}
-                                  </div>
-                                )}
-                                {test?.dischargeFormURL?.length > 0 && (
-                                  <div
-                                    style={{
-                                      width: "100%",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    {test?.dischargeFormURL.map(
-                                      (file, index) => (
-                                        <div key={index} className="mt-2">
-                                          <a
-                                            href={file?.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="btn btn-outline-primary btn-sm"
-                                          >
-                                            Download Signed Discharge Form{" "}
-                                            {index + 1}{" "}
-                                            {file?.uploadedAt
-                                              ? `(${new Date(
-                                                  file.uploadedAt,
-                                                ).toLocaleDateString()})`
-                                              : ""}
-                                          </a>
-                                        </div>
-                                      ),
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
+
                             <div>
                               <div
                                 style={{
@@ -1356,7 +1547,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                   {isGenerating2 ? (
                                     <Spinner size="sm" />
                                   ) : (
-                                    "Upload Signed Copy Of Undertaking Discharge Form"
+                                    "Upload Signed Copy Of Undertaking MHRB Discharge Form"
                                   )}
                                 </Button>
                                 <input
@@ -1372,13 +1563,211 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                 />
                                 {test?.undertakingdischargeFormRaw?.length >
                                   0 && (
+                                    <div
+                                      style={{
+                                        width: "100%",
+                                        textAlign: "center",
+                                      }}
+                                    >
+                                      {test?.undertakingdischargeFormRaw.map(
+                                        (file, index) => (
+                                          <div key={index} className="mt-2">
+                                            <a
+                                              href={file?.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="btn btn-outline-primary btn-sm"
+                                            >
+                                              Download Draft Undertaking MHRB
+                                              Discharge Form {index + 1}{" "}
+                                              {file?.uploadedAt
+                                                ? `(${new Date(
+                                                  file.uploadedAt,
+                                                ).toLocaleDateString()})`
+                                                : ""}
+                                            </a>
+                                          </div>
+                                        ),
+                                      )}
+                                    </div>
+                                  )}
+                                {test?.undertakingdischargeFormURL?.length >
+                                  0 && (
+                                    <div
+                                      style={{
+                                        width: "100%",
+                                        textAlign: "center",
+                                      }}
+                                    >
+                                      {test?.undertakingdischargeFormURL.map(
+                                        (file, index) => (
+                                          <div key={index} className="mt-2">
+                                            <a
+                                              href={file?.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="btn btn-outline-primary btn-sm"
+                                            >
+                                              Download Signed Undertaking MHRB
+                                              Discharge Form {index + 1}{" "}
+                                              {file?.uploadedAt
+                                                ? `(${new Date(
+                                                  file.uploadedAt,
+                                                ).toLocaleDateString()})`
+                                                : ""}
+                                            </a>
+                                          </div>
+                                        ),
+                                      )}
+                                    </div>
+                                  )}
+                              </div>
+                            </div>
+
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                  width: "100%",
+                                }}
+                              >
+                                <Button
+                                  onClick={handleDischargeUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                  label="patient-discharge-form"
+                                  style={{ width: "100%", minHeight: "44px" }}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Upload Signed Copy Of MHRB Discharge Form"
+                                  )}
+                                </Button>
+                                <input
+                                  id="patient-discharge-form"
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={dischargeFileInputRef}
+                                  className="sr-only"
+                                  // style={{ display: "none" }}
+                                  onChange={(e) => {
+                                    console.log("Discharge Form is hitted");
+                                    handleFileChangeDishcharge(e);
+                                  }}
+                                />
+                                {test?.dischargeFormRaw?.length > 0 && (
                                   <div
                                     style={{
                                       width: "100%",
                                       textAlign: "center",
                                     }}
                                   >
-                                    {test?.undertakingdischargeFormRaw.map(
+                                    {test?.dischargeFormRaw
+                                      ?.map((file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Draft MHRB Discharge
+                                            Form —{" "}
+                                            {getDischargeFormLabel(file)}{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                file.uploadedAt,
+                                              ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                      )}
+                                  </div>
+                                )}
+                                {test?.dischargeFormURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test?.dischargeFormURL
+                                      ?.map((file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-primary btn-sm"
+                                          >
+                                            Download Signed MHRB Discharge
+                                            Form{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(
+                                                file.uploadedAt,
+                                              ).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                      )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                  width: "100%",
+                                }}
+                              >
+                                <Button
+                                  onClick={handleEmergencyDischargeUploadClick}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                  label="patient-emergency-discharge-form"
+                                  style={{ width: "100%", minHeight: "44px" }}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "Upload Signed Copy Of Emergency Discharge Form"
+                                  )}
+                                </Button>
+                                <input
+                                  id="patient-emergency-discharge-form"
+                                  type="file"
+                                  accept="application/pdf"
+                                  ref={emergencyDischargeFileInputRef}
+                                  className="sr-only"
+                                  onChange={handleFileChangeEmergencyDischarge}
+                                />
+                                {test?.emergencyDischargeFormRaw?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test?.emergencyDischargeFormRaw.map(
                                       (file, index) => (
                                         <div key={index} className="mt-2">
                                           <a
@@ -1387,12 +1776,13 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Draft Undertaking Discharge
-                                            Form {index + 1}{" "}
+                                            Download Draft Emergency Discharge Form —{" "}
+                                            {getDischargeFormLabel(file)}{" "}
+                                            {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
-                                                  file.uploadedAt,
-                                                ).toLocaleDateString()})`
+                                                file.uploadedAt,
+                                              ).toLocaleDateString()})`
                                               : ""}
                                           </a>
                                         </div>
@@ -1400,15 +1790,14 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                     )}
                                   </div>
                                 )}
-                                {test?.undertakingdischargeFormURL?.length >
-                                  0 && (
+                                {test?.emergencyDischargeFormURL?.length > 0 && (
                                   <div
                                     style={{
                                       width: "100%",
                                       textAlign: "center",
                                     }}
                                   >
-                                    {test?.undertakingdischargeFormURL.map(
+                                    {test?.emergencyDischargeFormURL.map(
                                       (file, index) => (
                                         <div key={index} className="mt-2">
                                           <a
@@ -1417,12 +1806,12 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             rel="noopener noreferrer"
                                             className="btn btn-outline-primary btn-sm"
                                           >
-                                            Download Signed Undertaking
-                                            Discharge Form {index + 1}{" "}
+                                            Download Signed Emergency Discharge Form{" "}
+                                            {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(
-                                                  file.uploadedAt,
-                                                ).toLocaleDateString()})`
+                                                file.uploadedAt,
+                                              ).toLocaleDateString()})`
                                               : ""}
                                           </a>
                                         </div>
@@ -1433,6 +1822,70 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                               </div>
                             </div>
 
+                            {/* MHRB email form */}
+                            <div>
+                              <div
+                                style={{
+                                  display: "flex",
+                                  flexDirection: "column",
+                                  justifyContent: "center",
+                                  alignItems: "center",
+                                  gap: "30px",
+                                  width: "100%",
+                                }}
+                              >
+                                <Button
+                                  onClick={() => {
+                                    const targetId = resolveTargetAddmission();
+                                    if (targetId) {
+                                      setMhrbTargetAdmissionId(targetId);
+                                      setMhrbModalOpen(true);
+                                    }
+                                  }}
+                                  size="sm"
+                                  color="primary"
+                                  className="mr-10"
+                                  disabled={isGenerating2}
+                                  style={{ width: "100%", minHeight: "60px" }}
+                                >
+                                  {isGenerating2 ? (
+                                    <Spinner size="sm" />
+                                  ) : (
+                                    "MHRB Email Upload"
+                                  )}
+                                </Button>
+
+                                {test?.mhrbEmailFormURL?.length > 0 && (
+                                  <div
+                                    style={{
+                                      width: "100%",
+                                      textAlign: "center",
+                                    }}
+                                  >
+                                    {test.mhrbEmailFormURL.map(
+                                      (file, index) => (
+                                        <div key={index} className="mt-2">
+                                          <a
+                                            href={file?.url}
+                                            target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="btn btn-outline-success btn-sm"
+                                          >
+                                            Download MHRB Email File{" "}
+                                            {index + 1}{" "}
+                                            {file?.uploadedAt
+                                              ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
+                                              : ""}
+                                          </a>
+                                        </div>
+                                      ),
+                                    )}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+
+                            {/* ── Group 2: standalone forms (no section header) ── */}
                             <div>
                               <div
                                 style={{
@@ -1469,60 +1922,60 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
 
                                 {test?.capacityAssessmentFormRaw?.length >
                                   0 && (
-                                  <div
-                                    style={{
-                                      width: "100%",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    {test.capacityAssessmentFormRaw.map(
-                                      (form, index) => (
-                                        <div key={index} className="mt-2">
-                                          <a
-                                            href={form?.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="btn btn-outline-primary btn-sm"
-                                          >
-                                            Download Draft Capacity Form{" "}
-                                            {index + 1}{" "}
-                                            {form?.lastUpdatedAt
-                                              ? `(${new Date(form.lastUpdatedAt).toLocaleDateString()})`
-                                              : ""}
-                                          </a>
-                                        </div>
-                                      ),
-                                    )}
-                                  </div>
-                                )}
+                                    <div
+                                      style={{
+                                        width: "100%",
+                                        textAlign: "center",
+                                      }}
+                                    >
+                                      {test.capacityAssessmentFormRaw.map(
+                                        (form, index) => (
+                                          <div key={index} className="mt-2">
+                                            <a
+                                              href={form?.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="btn btn-outline-primary btn-sm"
+                                            >
+                                              Download Draft Capacity Form{" "}
+                                              {index + 1}{" "}
+                                              {form?.lastUpdatedAt
+                                                ? `(${new Date(form.lastUpdatedAt).toLocaleDateString()})`
+                                                : ""}
+                                            </a>
+                                          </div>
+                                        ),
+                                      )}
+                                    </div>
+                                  )}
                                 {test?.capacityAssessmentFormURL?.length >
                                   0 && (
-                                  <div
-                                    style={{
-                                      width: "100%",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    {test.capacityAssessmentFormURL.map(
-                                      (file, index) => (
-                                        <div key={index} className="mt-2">
-                                          <a
-                                            href={file?.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="btn btn-outline-success btn-sm"
-                                          >
-                                            Download Signed Capacity Form{" "}
-                                            {index + 1}{" "}
-                                            {file?.uploadedAt
-                                              ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
-                                              : ""}
-                                          </a>
-                                        </div>
-                                      ),
-                                    )}
-                                  </div>
-                                )}
+                                    <div
+                                      style={{
+                                        width: "100%",
+                                        textAlign: "center",
+                                      }}
+                                    >
+                                      {test.capacityAssessmentFormURL.map(
+                                        (file, index) => (
+                                          <div key={index} className="mt-2">
+                                            <a
+                                              href={file?.url}
+                                              target="_blank"
+                                              rel="noopener noreferrer"
+                                              className="btn btn-outline-success btn-sm"
+                                            >
+                                              Download Signed Capacity Form{" "}
+                                              {index + 1}{" "}
+                                              {file?.uploadedAt
+                                                ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
+                                                : ""}
+                                            </a>
+                                          </div>
+                                        ),
+                                      )}
+                                    </div>
+                                  )}
                               </div>
                             </div>
 
@@ -1606,69 +2059,6 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
                                             className="btn btn-outline-success btn-sm"
                                           >
                                             Download Signed ECT Consent{" "}
-                                            {index + 1}{" "}
-                                            {file?.uploadedAt
-                                              ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
-                                              : ""}
-                                          </a>
-                                        </div>
-                                      ),
-                                    )}
-                                  </div>
-                                )}
-                              </div>
-                            </div>
-
-                            {/* MHRB email form */}
-                            <div>
-                              <div
-                                style={{
-                                  display: "flex",
-                                  flexDirection: "column",
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  gap: "30px",
-                                  width: "100%",
-                                }}
-                              >
-                                <Button
-                                  onClick={() => {
-                                    const targetId = resolveTargetAddmission();
-                                    if (targetId) {
-                                      setMhrbTargetAdmissionId(targetId);
-                                      setMhrbModalOpen(true);
-                                    }
-                                  }}
-                                  size="sm"
-                                  color="primary"
-                                  className="mr-10"
-                                  disabled={isGenerating2}
-                                  style={{ width: "100%", minHeight: "60px" }}
-                                >
-                                  {isGenerating2 ? (
-                                    <Spinner size="sm" />
-                                  ) : (
-                                    "MHRB Email Upload"
-                                  )}
-                                </Button>
-
-                                {test?.mhrbEmailFormURL?.length > 0 && (
-                                  <div
-                                    style={{
-                                      width: "100%",
-                                      textAlign: "center",
-                                    }}
-                                  >
-                                    {test.mhrbEmailFormURL.map(
-                                      (file, index) => (
-                                        <div key={index} className="mt-2">
-                                          <a
-                                            href={file?.url}
-                                            target="_blank"
-                                            rel="noopener noreferrer"
-                                            className="btn btn-outline-success btn-sm"
-                                          >
-                                            Download MHRB Email File{" "}
                                             {index + 1}{" "}
                                             {file?.uploadedAt
                                               ? `(${new Date(file.uploadedAt).toLocaleDateString()})`
@@ -1807,7 +2197,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
             setEmergencyRestraint("");
           }}
         >
-          Admission Form
+          MHRB Admission
         </ModalHeader>
         <ModalBody style={{ height: "80vh", overflow: "auto" }}>
           {openform === true ? (
@@ -1972,7 +2362,7 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
             setOpenform4(false);
           }}
         >
-          Consent Form
+          Admission and Consent Form
         </ModalHeader>
         <ModalBody style={{ height: "80vh", overflow: "auto" }}>
           {openform4 === true ? (
@@ -2040,10 +2430,14 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
           )}
         </ModalBody>
       </Modal>
-      <Modal
+        <Modal
         isOpen={openform3}
         toggle={() => {
           setOpenform3(false);
+          setAdmissiontype("");
+          setAdultationtype("");
+          setSupporttype("");
+          setEmergencyDischargeType("");
         }}
         size="xl"
         backdrop="static"
@@ -2052,9 +2446,17 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
         <ModalHeader
           toggle={() => {
             setOpenform3(false);
+            setAdmissiontype("");
+            setAdultationtype("");
+            setSupporttype("");
+            setEmergencyDischargeType("");
           }}
         >
-          Discharge Form
+          {admissiontype === "EMERGENCY_DISCHARGE"
+            ? "Emergency Discharge Form"
+            : admissiontype === "DISCHARGE_UNDERTAKING"
+            ? "Undertaking Discharge Form"
+            : "MHRB Discharge Form"}
         </ModalHeader>
         <ModalBody style={{ height: "80vh", overflow: "auto" }}>
           {openform3 === true ? (
@@ -2339,6 +2741,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       <AdmissionformModal
         isOpen={dateModal}
         toggle={toggleModal}
+        onProceed={() => {
+          setDateModal(false);
+          setOpenform(true);
+        }}
         admissiontype={admissiontype}
         setAdmissiontype={setAdmissiontype}
         adultationype={adultationype}
@@ -2358,6 +2764,10 @@ const AddmissionForms = ({ patient, admissions: allAddmissions }) => {
       <DishchargeformModal
         isOpen={dateModal3}
         toggle={toggleModal3}
+        onProceed={() => {
+          setDateModal3(false);
+          setOpenform3(true);
+        }}
         admissiontype={admissiontype}
         setAdmissiontype={setAdmissiontype}
         adultationype={adultationype}

@@ -10,6 +10,7 @@ import {
 } from "reactstrap";
 import DocPreview from "./DocPreview";
 import PositionDocumentsCard from "./PositionDocumentsCard";
+import ESICDetailsCard from "./ESICDetailsCard";
 
 const Field = ({ label, value }) => (
   <Col md={4} className="mb-3">
@@ -140,6 +141,8 @@ const EmployeeProfileTab = ({ data, loading }) => {
           </Row>
         </CardBody>
       </Card>
+
+      <ESICDetailsCard />
 
       <PositionDocumentsCard employeeId={data._id} />
     </>

@@ -1,5 +1,6 @@
 import { Button, ButtonGroup, Input } from "reactstrap";
 import { SEVERITIES, SEVERITY_COLOR } from "../../../Alerts/components/alertConstants";
+import { SOP_CATEGORY_OPTIONS } from "../../../../Components/constants/sopConstants";
 
 const ManageRulesFilters = ({
   counts,
@@ -7,6 +8,8 @@ const ManageRulesFilters = ({
   onSearchChange,
   activeFilter,
   onActiveFilterChange,
+  categoryFilter,
+  onCategoryFilterChange,
   severityFilter,
   onToggleSeverity,
   onClearSeverity,
@@ -40,6 +43,23 @@ const ManageRulesFilters = ({
           </Button>
         ))}
       </ButtonGroup>
+
+      <Input
+        type="select"
+        bsSize="sm"
+        value={categoryFilter}
+        onChange={(e) => onCategoryFilterChange(e.target.value)}
+        style={{ width: 220 }}
+        aria-label="Filter by SOP category"
+      >
+        <option value="all">All categories</option>
+        {SOP_CATEGORY_OPTIONS.map((o) => (
+          <option key={o.value} value={o.value}>
+            {o.label}
+          </option>
+        ))}
+        <option value="UNCATEGORISED">No category</option>
+      </Input>
 
       <div className="d-flex gap-1 align-items-center">
         <small className="text-muted me-1">Severity:</small>

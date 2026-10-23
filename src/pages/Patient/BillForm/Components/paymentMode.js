@@ -78,7 +78,7 @@ const PaymentMode = ({
   // When it doesn't, "Charge on POS" must be blocked so the terminal never
   // collects an amount that the bill cannot reconcile.
   const tenderedTotal = (paymentModes || []).reduce(
-    (sum, mode) => sum + (Number(mode.amount) || 0),
+    (sum, mode) => sum + (Number(mode.baseAmount || mode.amount) || 0),
     0,
   );
   const payableNum = Number(payable) || 0;
@@ -114,6 +114,10 @@ const PaymentMode = ({
     next[idx] = {
       ...next[idx],
       amount: posTransaction.amount,
+      baseAmount: posTransaction.baseAmount || posTransaction.amount,
+      surchargeAmount: posTransaction.surchargeAmount || 0,
+      surchargePercent: posTransaction.surchargePercent || 0,
+      totalCharged: posTransaction.amount,
       transactionId: result.rrn || result.transactionId || "",
       cardNumber: lastFourDigits(result.cardNumber) || next[idx].cardNumber || "",
       bankAccount: next[idx].bankAccount || pineLabsAccount?.name || "",
@@ -235,8 +239,13 @@ const PaymentMode = ({
                   value={val.amount || ""}
                   onChange={handleChange}
                   type="number"
-                  disabled={readOnly}
+                  disabled={readOnly || !!val.posTransaction}
                 />
+                {val.surchargeAmount > 0 && (
+                  <div className="text-warning fs-11 mt-1" title="Includes credit card surcharge">
+                    +{val.surchargeAmount} surcharge
+                  </div>
+                )}
               </Col>
 
               {val?.type === CARD && (
@@ -485,6 +494,7 @@ const PaymentMode = ({
           context={posContext}
           terminals={posTerminal?.terminals}
           defaultTerminalId={posTerminal?.defaultTerminalId}
+          surchargePercent={posTerminal?.creditCardSurchargePercent}
           onApproved={(posTransaction) =>
             applyPosApproval(posRowIdx, posTransaction)
           }

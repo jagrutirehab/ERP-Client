@@ -1,3 +1,4 @@
+import referredByName from "../../../utils/referredByName";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Form,
@@ -429,7 +430,7 @@ const Prescription = ({
       //     : "",
       notes: sourcePrescription?.notes || "",
       followUp: sourcePrescription?.followUp || "",
-      referredby: patient.referredBy?.doctorName || patient.referredBy || "",
+      referredby: referredByName(patient.referredBy) || patient.referredBy || "",
       // editPrescription
       //   ? editPrescription.referredby
       //   : ptLatestOPDPrescription

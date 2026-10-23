@@ -5,11 +5,17 @@ import { toast } from "react-toastify";
 import { getUoms, deleteUom } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../Components/Hooks/useRoles.js";
+import { useDispatch } from "react-redux";
+import { invalidateReferenceList } from "../../../store/features/reference/referenceSlice";
 import "./uom.scss";
 
 const tableCustomStyles = {
   headRow: {
-    style: { backgroundColor: "#fff", borderBottom: "1px solid #edeff3", minHeight: "44px" },
+    style: {
+      backgroundColor: "#fff",
+      borderBottom: "1px solid #edeff3",
+      minHeight: "44px",
+    },
   },
   headCells: { style: { fontSize: "13px", fontWeight: 600, color: "#475569" } },
   rows: {
@@ -25,7 +31,9 @@ const tableCustomStyles = {
       outline: "none",
     },
   },
-  pagination: { style: { borderTopColor: "#edeff3", fontSize: "13px", color: "#667085" } },
+  pagination: {
+    style: { borderTopColor: "#edeff3", fontSize: "13px", color: "#667085" },
+  },
 };
 
 const StatusPill = ({ status }) => (
@@ -36,6 +44,7 @@ const StatusPill = ({ status }) => (
 
 const UOMList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
+  const dispatch = useDispatch();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "UOM", "WRITE");
@@ -67,7 +76,11 @@ const UOMList = ({ onAdd, onEdit }) => {
       } catch (error) {
         if (cancelled) return;
         if (!handleAuthError(error)) {
-          toast.error(error?.response?.data?.message || error?.message || "Couldn't load units.");
+          toast.error(
+            error?.response?.data?.message ||
+              error?.message ||
+              "Couldn't load units.",
+          );
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -84,12 +97,17 @@ const UOMList = ({ onAdd, onEdit }) => {
     setDeleting(true);
     try {
       await deleteUom(deleteTarget._id);
+      dispatch(invalidateReferenceList("uoms"));
       toast.success("Unit deleted successfully");
       setDeleteTarget(null);
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't delete unit.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't delete unit.",
+        );
       }
     } finally {
       setDeleting(false);
@@ -110,7 +128,9 @@ const UOMList = ({ onAdd, onEdit }) => {
     },
     {
       name: "Description",
-      cell: (row) => <span className="uom-cell-muted">{row.description || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.description || "—"}</span>
+      ),
     },
     {
       name: "Status",
@@ -124,16 +144,28 @@ const UOMList = ({ onAdd, onEdit }) => {
       cell: (row) => (
         <div className="d-flex gap-2">
           {canEdit && (
-            <Button size="sm" color="light" title="Edit" onClick={() => onEdit(row)}>
+            <Button
+              size="sm"
+              color="light"
+              title="Edit"
+              onClick={() => onEdit(row)}
+            >
               <i className="bx bx-edit-alt"></i>
             </Button>
           )}
           {canDelete && (
-            <Button size="sm" color="light" title="Delete" onClick={() => setDeleteTarget(row)}>
+            <Button
+              size="sm"
+              color="light"
+              title="Delete"
+              onClick={() => setDeleteTarget(row)}
+            >
               <i className="bx bx-trash text-danger"></i>
             </Button>
           )}
-          {!canEdit && !canDelete && <span className="text-muted small">—</span>}
+          {!canEdit && !canDelete && (
+            <span className="text-muted small">—</span>
+          )}
         </div>
       ),
     },
@@ -175,7 +207,11 @@ const UOMList = ({ onAdd, onEdit }) => {
           progressComponent={
             <div className="w-100 p-3">
               {[1, 2, 3].map((i) => (
-                <div key={i} className="uom-skeleton mb-2" style={{ height: 44 }} />
+                <div
+                  key={i}
+                  className="uom-skeleton mb-2"
+                  style={{ height: 44 }}
+                />
               ))}
             </div>
           }
@@ -184,13 +220,19 @@ const UOMList = ({ onAdd, onEdit }) => {
           noDataComponent={
             <div className="uom-empty-state">
               <p className="uom-empty-title">No units found</p>
-              <p className="uom-empty-sub">Try adjusting your search, or add your first unit.</p>
+              <p className="uom-empty-sub">
+                Try adjusting your search, or add your first unit.
+              </p>
             </div>
           }
         />
       </div>
 
-      <Modal isOpen={!!deleteTarget} toggle={() => setDeleteTarget(null)} centered>
+      <Modal
+        isOpen={!!deleteTarget}
+        toggle={() => setDeleteTarget(null)}
+        centered
+      >
         <ModalBody className="p-4">
           <h5 className="mb-2">Delete this unit?</h5>
           <p className="text-muted mb-4">
@@ -202,7 +244,11 @@ const UOMList = ({ onAdd, onEdit }) => {
             will be permanently deleted. This cannot be undone.
           </p>
           <div className="d-flex justify-content-end gap-2">
-            <Button color="light" onClick={() => setDeleteTarget(null)} disabled={deleting}>
+            <Button
+              color="light"
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleting}
+            >
               Cancel
             </Button>
             <Button color="danger" onClick={confirmDelete} disabled={deleting}>

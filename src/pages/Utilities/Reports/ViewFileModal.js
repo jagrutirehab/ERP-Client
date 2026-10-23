@@ -5,55 +5,33 @@ import CustomModal from "../../../Components/Common/Modal";
 const DOCX_MIME =
     "application/vnd.openxmlformats-officedocument.wordprocessingml.document";
 
-const ViewFileModal = ({ isOpen, toggle, bill }) => {
-    if (!bill) return null;
-
-    const isPdf = bill.fileType === "application/pdf";
-    const isImage = bill.fileType?.startsWith("image/");
-    const isDocx = bill.fileType === DOCX_MIME;
-
-    const handlePrint = () => {
-        window.open(bill.fileUrl, "_blank");
-    };
+const FilePreview = ({ file }) => {
+    const isPdf = file.type === "application/pdf";
+    const isImage = file.type?.startsWith("image/");
+    const isDocx = file.type === DOCX_MIME;
 
     return (
-        <CustomModal
-            size="lg"
-            centered
-            title={bill.fileName || "View Bill"}
-            isOpen={isOpen}
-            toggle={toggle}
-            footer={
-                <>
-                    <Button color="primary" onClick={handlePrint}>
-                        Print
-                    </Button>
-                    <Button color="secondary" outline onClick={toggle}>
-                        Close
-                    </Button>
-                </>
-            }
-        >
+        <div>
             {isPdf && (
                 <iframe
-                    src={bill.fileUrl}
-                    title={bill.fileName || "Bill Preview"}
+                    src={file.url}
+                    title={file.originalName || "Bill Preview"}
                     width="100%"
-                    height="600"
+                    height="500"
                     style={{ border: "none" }}
                 />
             )}
             {isImage && (
                 <img
-                    src={bill.fileUrl}
-                    alt={bill.fileName || "Bill Preview"}
+                    src={file.url}
+                    alt={file.originalName || "Bill Preview"}
                     className="img-fluid mx-auto d-block"
                 />
             )}
             {isDocx && (
-                <div className="text-center py-5">
+                <div className="text-center py-4 border rounded">
                     <a
-                        href={bill.fileUrl}
+                        href={file.url}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="d-inline-flex align-items-center gap-2"
@@ -64,10 +42,49 @@ const ViewFileModal = ({ isOpen, toggle, bill }) => {
                 </div>
             )}
             {!isPdf && !isImage && !isDocx && (
-                <p className="text-center text-muted py-5">
+                <p className="text-center text-muted py-4 border rounded">
                     Preview not supported for this file type
                 </p>
             )}
+        </div>
+    );
+};
+
+const ViewFileModal = ({ isOpen, toggle, file }) => {
+    if (!file) return null;
+
+    const handlePrint = () => {
+        if (file.url) window.open(file.url, "_blank");
+    };
+
+    return (
+        <CustomModal
+            size="lg"
+            centered
+            title={file.originalName || file.name || "View Bill"}
+            isOpen={isOpen}
+            toggle={toggle}
+            footer={
+                <>
+                    <a
+                        href={file.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn btn-outline-secondary d-flex align-items-center gap-1"
+                    >
+                        <Download size={16} />
+                        Open
+                    </a>
+                    <Button color="primary" onClick={handlePrint}>
+                        Print
+                    </Button>
+                    <Button color="secondary" outline onClick={toggle}>
+                        Close
+                    </Button>
+                </>
+            }
+        >
+            <FilePreview file={file} />
         </CustomModal>
     );
 };

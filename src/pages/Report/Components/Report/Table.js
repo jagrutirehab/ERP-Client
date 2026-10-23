@@ -1,3 +1,4 @@
+import referredByName from "../../../../utils/referredByName";
 import React from "react";
 import { format } from "date-fns";
 import {
@@ -131,7 +132,7 @@ const Table = ({ data, billType, sortByDate, patientsReferrel }) => {
       ? {
         name: "Referred By",
         selector: (row) =>
-          row.patient?.referredBy?.doctorName ||
+          referredByName(row.patient?.referredBy) ||
           row.patient?.referredBy ||
           "",
       }

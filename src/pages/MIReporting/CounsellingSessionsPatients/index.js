@@ -363,19 +363,23 @@ const CounsellingSessionsPatients = () => {
                                                                             : patient[labelsMapping[label]]}
                                                                 </td>
                                                             ))}
-                                                            {weeks.map((week) => (
-                                                                <td
-                                                                    key={week}
-                                                                    className="text-center px-1 py-1"
-                                                                    style={{
-                                                                        border: "1px solid #d6dde8",
-                                                                        background: idx % 2 === 0 ? "#f8fafc" : "#fff",
-                                                                        whiteSpace: "nowrap",
-                                                                    }}
-                                                                >
-                                                                    {patient?.wow_data?.[week]??0}
-                                                                </td>
-                                                            ))}
+                                                            {weeks.map((week) => {
+                                                                const cellValue = patient?.wow_data?.[week] ?? 0;
+                                                                const isZero = cellValue === 0;
+                                                                return (
+                                                                    <td
+                                                                        key={week}
+                                                                        className="text-center px-1 py-1"
+                                                                        style={{
+                                                                            border: "1px solid #d6dde8",
+                                                                            background: isZero ? "#ffcdd2" : (idx % 2 === 0 ? "#f8fafc" : "#fff"),
+                                                                            whiteSpace: "nowrap",
+                                                                        }}
+                                                                    >
+                                                                        {cellValue}
+                                                                    </td>
+                                                                );
+                                                            })}
                                                         </tr>
                                                     ))}
                                                 </tbody>

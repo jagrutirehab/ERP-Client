@@ -1,6 +1,7 @@
 
 import { useDispatch, useSelector } from "react-redux";
 import Select from "react-select";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useEffect, useState } from "react";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
@@ -171,7 +172,8 @@ const PendingApprovals = ({ activeTab }) => {
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.employeeName?.toUpperCase() || "-",
+            selector: row =>
+                formatEmployeeName(row?.employeeName, row?.salutation)?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },

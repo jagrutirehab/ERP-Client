@@ -1,9 +1,12 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import {
   setRamsayApplicable as setRamsayApplicableApi,
+  setMorseApplicable as setMorseApplicableApi,
   setBaselineInvestigationStatus as setBaselineInvestigationStatusApi,
   setPsychologicalTestStatus as setPsychologicalTestStatusApi,
   setAdmissionTypeDirect as setAdmissionTypeDirectApi,
+  clearAdmissionTypeDirect as clearAdmissionTypeDirectApi,
+  setPatientAdmissionType as setPatientAdmissionTypeApi,
   deleteChart,
   deleteClinicalNoteFile,
   deleteCounsellingNoteFile,
@@ -46,6 +49,8 @@ import {
   postPrescription,
   postRealtiveVisit,
   postVitalSign,
+  postElderlyFunctionalChecklist,
+  editElderlyFunctionalChecklist,
   submitAssessment,
   submitECTConsent,
   postPsychoDiagnosticForm,
@@ -380,6 +385,48 @@ export const updateVitalSign = createAsyncThunk(
   },
 );
 
+export const addElderlyFunctionalChecklist = createAsyncThunk(
+  "postElderlyFunctionalChecklist",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postElderlyFunctionalChecklist(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Elderly Functional and Daily Living Checklist Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updateElderlyFunctionalChecklist = createAsyncThunk(
+  "editElderlyFunctionalChecklist",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editElderlyFunctionalChecklist(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Elderly Functional and Daily Living Checklist Updated Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
 // Ramsay applicability, toggled from the IPD admission card.
 //
 // Lives in THIS slice, not patientSlice, because IPD.js renders admissions from
@@ -395,6 +442,20 @@ export const setAdmissionRamsayApplicable = createAsyncThunk(
     } catch (error) {
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue(error.message || "Failed to update Ramsay applicability");
+    }
+  },
+);
+
+// Same as the Ramsay toggle, for the Morse Fall Risk protocol — and in this
+// slice for the same reason.
+export const setAdmissionMorseApplicable = createAsyncThunk(
+  "setMorseApplicable",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      return await setMorseApplicableApi(data);
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error.message || "Failed to update Morse applicability");
     }
   },
 );
@@ -459,6 +520,39 @@ export const setAdmissionTypeDirect = createAsyncThunk(
   },
 );
 
+// The admission card's clinical Patient Type. Any logged-in user, live stays
+// only (server-enforced). Rejects with a STRING after showing the server's
+// message via setAlert — callers must not read `error.message` after .unwrap().
+export const setAdmissionPatientAdmissionType = createAsyncThunk(
+  "setAdmissionPatientAdmissionType",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      return await setPatientAdmissionTypeApi(data);
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(error.message || "Failed to set the patient type");
+    }
+  },
+);
+
+// Empties an admission's admission-type timeline — override accounts only (the
+// server refuses everyone else). Same response envelope as the setter, so the
+// same reducers patch IPD and the patient header. Rejects with a STRING (like
+// the setter): callers must not read `error.message` after .unwrap().
+export const clearAdmissionTypeDirect = createAsyncThunk(
+  "clearAdmissionTypeDirect",
+  async (data, { dispatch, rejectWithValue }) => {
+    try {
+      return await clearAdmissionTypeDirectApi(data);
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue(
+        error.message || "Failed to clear the admission type",
+      );
+    }
+  },
+);
+
 // Admission Type — IPD only, so there is no addGeneral counterpart.
 // Keeps the admission's type timeline current in the form's copy of the patient.
 //
@@ -490,6 +584,24 @@ const readAdmissionTypeUpdate = (payload) => ({
       ? payload.data.admissionTypeHistory
       : null,
 });
+
+// Applies an admission's clinical Patient Type — `{ _id, patientAdmissionType,
+// patientAdmissionTypeMeta }`, from the card endpoint or synced by a Detail
+// Admission save — to the IPD card list and the open chart form's snapshot.
+const syncPatientAdmissionType = (state, sync) => {
+  if (!sync?._id || !sync.patientAdmissionType) return;
+  const apply = (adm) => {
+    adm.patientAdmissionType = sync.patientAdmissionType;
+    if (sync.patientAdmissionTypeMeta)
+      adm.patientAdmissionTypeMeta = sync.patientAdmissionTypeMeta;
+  };
+  const idx = (state.data || []).findIndex(
+    (el) => String(el._id) === String(sync._id),
+  );
+  if (idx !== -1) apply(state.data[idx]);
+  const formAdm = state.chartForm?.patient?.addmission;
+  if (formAdm && String(formAdm._id) === String(sync._id)) apply(formAdm);
+};
 
 const syncAdmissionTypeHistory = (state, payload) => {
   const { admissionId, history } = readAdmissionTypeUpdate(payload);
@@ -2086,12 +2198,69 @@ export const chartSlice = createSlice({
       });
 
     builder
+      .addCase(addElderlyFunctionalChecklist.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addElderlyFunctionalChecklist.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addElderlyFunctionalChecklist.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateElderlyFunctionalChecklist.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateElderlyFunctionalChecklist.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id,
+          );
+          state.charts[findIndex] = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission,
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id,
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+        }
+      })
+      .addCase(updateElderlyFunctionalChecklist.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
       .addCase(addAdmissionType.pending, (state) => {
         state.loading = true;
       })
       .addCase(setAdmissionTypeDirect.fulfilled, (state, { payload }) => {
         syncAdmissionTypeHistory(state, payload);
       })
+      .addCase(clearAdmissionTypeDirect.fulfilled, (state, { payload }) => {
+        syncAdmissionTypeHistory(state, payload);
+      })
+      .addCase(
+        setAdmissionPatientAdmissionType.fulfilled,
+        (state, { payload }) => {
+          syncPatientAdmissionType(state, payload?.data);
+        },
+      )
       .addCase(setAdmissionRamsayApplicable.fulfilled, (state, { payload }) => {
         // IPD.js reads this array, so patch it here or the checkbox reverts on
         // the next render.
@@ -2100,6 +2269,14 @@ export const chartSlice = createSlice({
         const idx = state.data.findIndex((el) => String(el._id) === String(id));
         if (idx === -1) return;
         state.data[idx].isRamsayApplicable = payload.data.isRamsayApplicable;
+      })
+      .addCase(setAdmissionMorseApplicable.fulfilled, (state, { payload }) => {
+        // IPD.js reads this array — same as Ramsay above.
+        const id = payload?.data?._id;
+        if (!id) return;
+        const idx = state.data.findIndex((el) => String(el._id) === String(id));
+        if (idx === -1) return;
+        state.data[idx].isMorseApplicable = payload.data.isMorseApplicable;
       })
       .addCase(
         setAdmissionBaselineInvestigationStatus.fulfilled,
@@ -2737,6 +2914,8 @@ export const chartSlice = createSlice({
         } else {
           state.data = [...payload.payload, ...state.data];
         }
+        // Chart → card: the server copied the chart's type onto the admission.
+        syncPatientAdmissionType(state, payload?.patientAdmissionTypeSync);
       })
       .addCase(addDetailAdmission.rejected, (state) => {
         state.loading = false;
@@ -2816,6 +2995,8 @@ export const chartSlice = createSlice({
             }
           }
         }
+        // Chart → card: the server copied the chart's type onto the admission.
+        syncPatientAdmissionType(state, payload?.patientAdmissionTypeSync);
       })
       .addCase(updateDetailAdmission.rejected, (state) => {
         state.loading = false;

@@ -6,6 +6,7 @@ import {
   submitQuizAttempt,
 } from "../../../../helpers/backend_helper";
 import { getErrorMessage, shuffle } from "../../Helpers/learnHelpers";
+import { normalizePassMark } from "../../Helpers/passMark";
 
 const buildAnswers = (questions) =>
   questions.reduce((acc, question) => {
@@ -57,7 +58,12 @@ const QuizRunner = ({
 
   const submitted = phase === "result";
   const questions = attempt?.questions || [];
-  const effectivePassMark = result?.passMark ?? attempt?.passMark ?? passMark ?? 80;
+  const effectivePassMark = normalizePassMark(result?.passMark ?? attempt?.passMark ?? passMark);
+  const passMarkChanged =
+    !!result && attempt?.passMark !== undefined && result.passMark !== attempt.passMark;
+  const passMarkChangedNote = passMarkChanged
+    ? ` (it changed to ${result.passMark}% while you were taking this quiz)`
+    : "";
   const correctAnswers = result?.passed ? result.correctAnswers || {} : null;
 
   const handleStart = async () => {
@@ -166,7 +172,7 @@ const QuizRunner = ({
           <div className="text-muted" style={{ fontSize: 11 }}>
             {questions.length || questionCount || 0} question
             {(questions.length || questionCount) !== 1 ? "s" : ""} &nbsp;&middot;&nbsp;
-            Pass at {effectivePassMark}%
+            Pass percentage: {effectivePassMark}%
           </div>
         </div>
       </div>
@@ -198,7 +204,7 @@ const QuizRunner = ({
             <h6 className="fw-bold mb-2">Ready to begin?</h6>
             <p className="text-muted small mb-4">
               {questionCount ? `${questionCount} questions. ` : ""}
-              You need {effectivePassMark}% to pass. You can retry as many times
+              Pass percentage: {effectivePassMark}%. You can retry as many times
               as you need.
             </p>
             <button
@@ -356,6 +362,7 @@ const QuizRunner = ({
                   {result.correct !== undefined && result.total !== undefined
                     ? ` — ${result.correct} of ${result.total} correct`
                     : ""}
+                  . Pass percentage: {effectivePassMark}%{passMarkChangedNote}
                 </small>
                 {renderPassActions && renderPassActions(result)}
               </>
@@ -363,7 +370,7 @@ const QuizRunner = ({
               <>
                 <small className="text-muted">
                   You scored <strong className="text-danger">{result?.percentage}%</strong>{" "}
-                  &mdash; need {effectivePassMark}% to pass
+                  &mdash; pass percentage: {effectivePassMark}%{passMarkChangedNote}
                 </small>
                 <button
                   className="btn btn-outline-danger btn-sm d-flex align-items-center gap-2 px-4"

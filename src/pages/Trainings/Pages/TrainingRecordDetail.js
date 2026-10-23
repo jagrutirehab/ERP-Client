@@ -4,6 +4,9 @@ import { CardBody, Collapse, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
 import { getTrainerRecordById } from "../../../helpers/backend_helper";
 import AttachmentList from "../Components/AttachmentList";
+import TrainerVideoList from "../Components/TrainerVideoList";
+import { onTrainerVideoChange } from "../../../helpers/trainerVideoEvents";
+import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 
 const formatDate = (d) =>
   d
@@ -23,13 +26,62 @@ const RoleBadge = ({ role }) => (
     </span>
 );
 
+const roleBadgeColors = ["#3b82f6", "#8b5cf6", "#f59e0b", "#ec4899", "#14b8a6"];
+
+const CenterBadges = ({ centers, isMobile }) => {
+    if (!centers.length) {
+        return <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>—</p>;
+    }
+    return (
+        <div
+            style={
+                isMobile
+                    ? {
+                        display: "flex",
+                        flexWrap: "nowrap",
+                        gap: 8,
+                        width: "100%",
+                        overflowX: "auto",
+                        WebkitOverflowScrolling: "touch",
+                        scrollSnapType: "x proximity",
+                    }
+                    : { display: "flex", flexWrap: "wrap", gap: 8 }
+            }
+        >
+            {centers.map((name, idx) => (
+                <span
+                    key={name}
+                    style={{
+                        padding: "2px 10px",
+                        ...(isMobile && { flex: "0 0 auto", scrollSnapAlign: "start", whiteSpace: "nowrap" }),
+                        borderRadius: 20,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        background: roleBadgeColors[idx % roleBadgeColors.length] + "18",
+                        color: roleBadgeColors[idx % roleBadgeColors.length],
+                        border: `1px solid ${roleBadgeColors[idx % roleBadgeColors.length]}30`,
+                    }}
+                >
+                    {name}
+                </span>
+            ))}
+        </div>
+    );
+};
+
 const TrainingRecordDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [openRoles, setOpenRoles] = useState({});
+    const [reloadKey, setReloadKey] = useState(0);
+
+    useEffect(() => onTrainerVideoChange((recordId) => {
+        if (!recordId || recordId === id) setReloadKey((key) => key + 1);
+    }), [id]);
 
     useEffect(() => {
         const fetch = async () => {
@@ -47,7 +99,7 @@ const TrainingRecordDetail = () => {
             }
         };
         fetch();
-    }, [id]);
+    }, [id, reloadKey]);
 
     const toggleRole = (role) =>
         setOpenRoles((prev) => ({ ...prev, [role]: !prev[role] }));
@@ -56,20 +108,22 @@ const TrainingRecordDetail = () => {
         (sum, d) => sum + (d?.presents?.length || 0), 0
     ) || 0;
 
-    const centerNames = data?.center?.map((c) => c?.title).filter(Boolean).join(", ") || "—";
+    const centerList = data?.center?.map((c) => c?.title).filter(Boolean) || [];
+    const centerNames = centerList.join(", ") || "—";
 
     return (
-        <CardBody className="p-4 bg-white" style={{ width: "78%" }}>
+        <CardBody className={isMobile ? "px-2 py-4 bg-white" : "p-4 bg-white"} style={{ width: isMobile ? "100%" : "78%" }}>
             <div className="d-flex align-items-center gap-3 mb-4">
                 <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate(-1)}>
                     <i className="ri-arrow-left-line" />
                 </button>
-                <div className="flex-grow-1">
+                <div className="flex-grow-1" style={{ minWidth: 0 }}>
                     <h5 className="fw-bold mb-0">{data?.trainingName || "Training Detail"}</h5>
                     {data && (
-                        <small className="text-muted">
-                            by {data?.author?.name || "—"} · {centerNames}
-                        </small>
+                        <div className="d-flex align-items-center flex-wrap gap-1 text-muted small">
+                            <span>by {data?.author?.name || "—"} ·</span>
+                            <CenterBadges centers={centerList} isMobile={isMobile} />
+                        </div>
                     )}
                 </div>
             </div>
@@ -83,12 +137,12 @@ const TrainingRecordDetail = () => {
                     <div className="row g-3 mb-4">
                         {[
                             { label: "Trainer", value: data?.trainerName, icon: "ri-user-line" },
-                            { label: "Centers", value: centerNames, icon: "ri-building-line" },
+                            { label: "Centers", value: centerNames, icon: "ri-building-line", render: () => <CenterBadges centers={centerList} isMobile={isMobile} /> },
                             { label: "From", value: formatDate(data?.from), icon: "ri-calendar-line" },
                             { label: "To", value: formatDate(data?.to), icon: "ri-calendar-check-line" },
                             { label: "Total Hours", value: data?.totalHours ? `${Math.floor(data.totalHours)}h ${Math.round((data.totalHours % 1) * 60)}m` : "—", icon: "ri-time-line" },
                             { label: "Total Attendees", value: totalAttendees, icon: "ri-group-line" },
-                        ].map(({ label, value, icon }) => (
+                        ].map(({ label, value, icon, render }) => (
                             <div className="col-sm-4 col-6" key={label}>
                                 <div className="p-3 rounded-3 border" style={{ background: "#f8fafc" }}>
                                     <div className="d-flex align-items-center gap-2 mb-1">
@@ -97,7 +151,7 @@ const TrainingRecordDetail = () => {
                                             {label}
                                         </span>
                                     </div>
-                                    <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>{value || "—"}</p>
+                                    {render ? render() : <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>{value || "—"}</p>}
                                 </div>
                             </div>
                         ))}
@@ -120,6 +174,16 @@ const TrainingRecordDetail = () => {
                                 <span className="text-muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>Attachments</span>
                             </div>
                             <AttachmentList files={data.files} />
+                        </div>
+                    )}
+
+                    {data?.videos?.length > 0 && (
+                        <div className="mb-4 p-3 rounded-3 border" style={{ background: "#f8fafc" }}>
+                            <div className="d-flex align-items-center gap-2 mb-1">
+                                <i className="ri-movie-line text-primary" style={{ fontSize: 14 }} />
+                                <span className="text-muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>Video</span>
+                            </div>
+                            <TrainerVideoList videos={data.videos} />
                         </div>
                     )}
 

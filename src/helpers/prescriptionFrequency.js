@@ -1,7 +1,9 @@
 export const PRESET_MEDICINE_FREQUENCIES = [
   { value: 1, label: "Daily" },
   { value: 2, label: "Alternate days" },
+  { value: 7, label: "Every 7 days" },
   { value: 15, label: "Every 15 days" },
+  { value: 28, label: "Every 28 days" },
   { value: 30, label: "Every 30 days" },
 ];
 

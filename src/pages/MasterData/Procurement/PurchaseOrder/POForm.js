@@ -7,19 +7,18 @@ import { toast } from "react-toastify";
 import {
   createPO,
   getClosedRFQs,
-  getVendors,
-  getPRDepartments,
   getBudgets,
-  getUoms,
-  getAllCenters,
-  getPaymentTerms,
   getItemMasters,
   getContracts,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import "../../UnitOfMeasurement/uom.scss";
 
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+
+const budgetAvailable = (b) =>
+  b ? (b.approvedAmount || 0) - (b.consumedAmount || 0) : 0;
 
 const emptyLineItem = () => ({
   itemName: "",
@@ -30,15 +29,40 @@ const emptyLineItem = () => ({
   taxPercent: 0,
 });
 
+const PO_TYPES = [
+  {
+    key: "pr_based",
+    label: "PR-Based",
+    sub: "From an approved PR and a closed RFQ",
+  },
+  { key: "direct", label: "Direct", sub: "Urgent. Skips the PR and RFQ" },
+  {
+    key: "contract_based",
+    label: "Contract-Based",
+    sub: "Against a vendor contract",
+  },
+];
+
+const SectionTitle = ({ icon, children, hint }) => (
+  <h6 className="uom-form-section-title">
+    <span className="uom-section-icon">
+      <i className={`bx ${icon}`}></i>
+    </span>
+    {children}
+    {hint && <span className="uom-section-hint">{hint}</span>}
+  </h6>
+);
+
 const POForm = ({ onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
   const [closedRFQs, setClosedRFQs] = useState([]);
-  const [vendors, setVendors] = useState([]);
-  const [departments, setDepartments] = useState([]);
+
+  const { items: vendors } = useReferenceList("vendors");
+  const { items: departments } = useReferenceList("departments");
+  const { items: uoms } = useReferenceList("uoms");
+  const { items: centers } = useReferenceList("centers");
+  const { items: paymentTerms } = useReferenceList("paymentTerms");
   const [budgets, setBudgets] = useState([]);
-  const [uoms, setUoms] = useState([]);
-  const [centers, setCenters] = useState([]);
-  const [paymentTerms, setPaymentTerms] = useState([]);
   const [contracts, setContracts] = useState([]);
   const [selectedRFQ, setSelectedRFQ] = useState(null);
   const [itemSearchState, setItemSearchState] = useState({});
@@ -48,21 +72,6 @@ const POForm = ({ onSaved, onCancel }) => {
   useEffect(() => {
     getClosedRFQs({})
       .then((res) => setClosedRFQs(res?.data || []))
-      .catch(() => {});
-    getVendors({})
-      .then((res) => setVendors(res?.data || []))
-      .catch(() => {});
-    getPRDepartments({})
-      .then((res) => setDepartments(res?.data || []))
-      .catch(() => {});
-    getUoms({})
-      .then((res) => setUoms(res?.data || []))
-      .catch(() => {});
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
-    getPaymentTerms({})
-      .then((res) => setPaymentTerms(res?.data || []))
       .catch(() => {});
     getContracts({ status: "active" })
       .then((res) => setContracts(res?.data || []))
@@ -107,6 +116,9 @@ const POForm = ({ onSaved, onCancel }) => {
         then: (schema) => schema.required("Budget is required"),
       }),
       deliverySiteId: Yup.string().required("Delivery site is required"),
+      expectedDeliveryDate: Yup.string().required(
+        "Expected delivery date is required",
+      ),
       justification: Yup.string().when("poType", {
         is: "direct",
         then: (schema) =>
@@ -138,6 +150,7 @@ const POForm = ({ onSaved, onCancel }) => {
           justification: true,
           lineItems: true,
           deliverySiteId: true,
+          expectedDeliveryDate: true,
         });
         toast.error("Please fill in all required fields");
         return;
@@ -146,14 +159,13 @@ const POForm = ({ onSaved, onCancel }) => {
       if (
         values.poType !== "pr_based" &&
         selectedBudget &&
-        netPayable > selectedBudget.approvedAmount
+        netPayable > budgetAvailable(selectedBudget)
       ) {
         toast.error(
-          `This PO (${money(netPayable)}) exceeds the approved budget (${money(selectedBudget.approvedAmount)}). Please reduce the amount or select a different budget.`,
+          `This PO (${money(netPayable)}) exceeds the available budget (${money(budgetAvailable(selectedBudget))}). Please reduce the amount or select a different budget.`,
         );
         return;
       }
-
       const payload = { ...values };
       if (values.poType === "pr_based") {
         delete payload.lineItems;
@@ -173,7 +185,6 @@ const POForm = ({ onSaved, onCancel }) => {
       }
 
       if (!payload.paymentTermId) delete payload.paymentTermId;
-      // if (!payload.deliverySiteId) delete payload.deliverySiteId;
       if (!payload.billingSiteId) delete payload.billingSiteId;
       if (!payload.expectedDeliveryDate) delete payload.expectedDeliveryDate;
       if (!payload.startDate) delete payload.startDate;
@@ -198,6 +209,9 @@ const POForm = ({ onSaved, onCancel }) => {
   });
 
   const v = validation.values;
+  const t = validation.touched;
+  const e = validation.errors;
+  const isPR = v.poType === "pr_based";
 
   useEffect(() => {
     if (!v.departmentId) {
@@ -218,7 +232,7 @@ const POForm = ({ onSaved, onCancel }) => {
     }
     const rfq = closedRFQs.find((r) => r._id === v.rfqId);
     setSelectedRFQ(rfq || null);
-    // The vendor was finalized when the RFQ was closed, so fill it in automatically
+    // Vendor RFQ close hote waqt final ho chuka tha, isliye apne aap bhar do
     validation.setFieldValue(
       "vendorId",
       rfq?.selectedVendorId?._id || rfq?.selectedVendorId || "",
@@ -229,19 +243,41 @@ const POForm = ({ onSaved, onCancel }) => {
   const quotedVendorsForRFQ = (selectedRFQ?.vendorQuotes || []).filter(
     (vq) => vq.quotedAt,
   );
+  const vendorQuote = quotedVendorsForRFQ.find(
+    (vq) => (vq.vendorId?._id || vq.vendorId) === v.vendorId,
+  );
 
-  const addLineItem = () => {
-    validation.setFieldValue("lineItems", [...v.lineItems, emptyLineItem()]);
+  // PO type badalne pe us type ke fields fresh shuru hote hain
+  const changePoType = (key) => {
+    if (key === v.poType) return;
+    validation.setValues({
+      ...v,
+      poType: key,
+      rfqId: "",
+      vendorId: "",
+      contractId: "",
+      departmentId: "",
+      budgetId: "",
+      justification: "",
+    });
   };
+
+  const addLineItem = () =>
+    validation.setFieldValue("lineItems", [...v.lineItems, emptyLineItem()]);
   const removeLineItem = (idx) => {
     if (v.lineItems.length === 1) return;
     validation.setFieldValue(
       "lineItems",
       v.lineItems.filter((_, i) => i !== idx),
     );
+    // baaki rows ka search box sahi row pe rahe
     setItemSearchState((prev) => {
-      const next = { ...prev };
-      delete next[idx];
+      const next = {};
+      Object.keys(prev).forEach((k) => {
+        const n = Number(k);
+        if (n === idx) return;
+        next[n > idx ? n - 1 : n] = prev[k];
+      });
       return next;
     });
   };
@@ -272,16 +308,12 @@ const POForm = ({ onSaved, onCancel }) => {
       showDropdown: true,
       ...(shouldClearOptions ? { options: [] } : {}),
     });
-
     if (itemSearchTimers.current[idx])
       clearTimeout(itemSearchTimers.current[idx]);
     if (shouldClearOptions) return;
-
     itemSearchTimers.current[idx] = setTimeout(() => {
       getItemMasters({ search: term, limit: 10 })
-        .then((res) => {
-          setItemSearchFor(idx, { options: res?.data || [] });
-        })
+        .then((res) => setItemSearchFor(idx, { options: res?.data || [] }))
         .catch(() => {});
     }, 300);
   };
@@ -311,491 +343,431 @@ const POForm = ({ onSaved, onCancel }) => {
   const calc = v.lineItems.reduce(
     (acc, li) => {
       const base = (Number(li.quantity) || 0) * (Number(li.unitPrice) || 0);
-      const tax = base * ((Number(li.taxPercent) || 0) / 100);
       acc.subtotal += base;
-      acc.tax += tax;
+      acc.tax += base * ((Number(li.taxPercent) || 0) / 100);
       return acc;
     },
     { subtotal: 0, tax: 0 },
   );
   const netPayable = calc.subtotal + calc.tax;
   const selectedBudget = budgets.find((b) => b._id === v.budgetId);
+  const overBudget =
+    selectedBudget && netPayable > budgetAvailable(selectedBudget);
+
+  // Kis row mein item naam khaali hai (red border dikhane ke liye)
+  const lineError = (idx) =>
+    t.lineItems && Array.isArray(e.lineItems) && e.lineItems[idx]?.itemName;
 
   return (
     <div className="uom-form-page">
-      <h4 className="uom-form-title">Create Purchase Order</h4>
-      <p className="text-muted mb-4">Vendor · terms · line items · submit</p>
+      <div className="uom-form-header">
+        <h4 className="uom-form-title">Create Purchase Order</h4>
+        <p className="uom-form-subtitle">
+          Fill in the details. The PO is saved as a draft until it is approved.
+        </p>
+      </div>
 
       <div className="uom-form-panel">
         <form onSubmit={validation.handleSubmit}>
-          {/* ---------- PO Type ---------- */}
-          <h6 className="uom-form-section-title">PO Type</h6>
-          <Row className="mb-4">
-            {[
-              {
-                key: "pr_based",
-                label: "PR-Based",
-                sub: "Standard flow from an approved PR + closed RFQ",
-              },
-              {
-                key: "direct",
-                label: "Direct",
-                sub: "Emergency — skips PR/RFQ",
-              },
-              {
-                key: "contract_based",
-                label: "Contract-Based",
-                sub: "Pre-negotiated vendor rate contract",
-              },
-            ].map((opt) => (
-              <Col md={4} key={opt.key}>
-                <div
-                  className="im-checkbox-row"
-                  style={{
-                    border: "1px solid #e4e7ec",
-                    borderRadius: 8,
-                    padding: 12,
-                    cursor: "pointer",
-                    background: v.poType === opt.key ? "#eef2ff" : "#fff",
-                  }}
-                  onClick={() => validation.setFieldValue("poType", opt.key)}
+          {/* ---------- PO type ---------- */}
+          <div className="uom-form-section">
+            <SectionTitle icon="bx-category">PO Type</SectionTitle>
+            <div className="uom-choice-grid">
+              {PO_TYPES.map((opt) => (
+                <button
+                  type="button"
+                  key={opt.key}
+                  className={`uom-choice-card ${v.poType === opt.key ? "is-active" : ""}`}
+                  onClick={() => changePoType(opt.key)}
                 >
-                  <input type="radio" checked={v.poType === opt.key} readOnly />
-                  <div>
-                    <div className="fw-semibold small">{opt.label}</div>
-                    <div className="text-muted" style={{ fontSize: 11.5 }}>
-                      {opt.sub}
-                    </div>
-                  </div>
-                </div>
-              </Col>
-            ))}
-          </Row>
+                  <span className="uom-choice-radio"></span>
+                  <span>
+                    <div className="uom-choice-title">{opt.label}</div>
+                    <div className="uom-choice-sub">{opt.sub}</div>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
 
-          {/* ---------- PO Details ---------- */}
-          <h6 className="uom-form-section-title">PO Details</h6>
-          <Row>
-            <Col md={4} className="mb-4">
-              <Label>PO Title</Label>
-              <Input
-                value={v.poTitle}
-                onChange={(e) =>
-                  validation.setFieldValue("poTitle", e.target.value)
-                }
-              />
-            </Col>
-            <Col md={4} className="mb-4">
-              <Label>Start Date</Label>
-              <Input
-                type="date"
-                value={v.startDate}
-                onChange={(e) =>
-                  validation.setFieldValue("startDate", e.target.value)
-                }
-              />
-            </Col>
-            <Col md={4} className="mb-4">
-              <Label>End Date</Label>
-              <Input
-                type="date"
-                value={v.endDate}
-                onChange={(e) =>
-                  validation.setFieldValue("endDate", e.target.value)
-                }
-              />
-            </Col>
-          </Row>
+          {/* ---------- Vendor ---------- */}
+          <div className="uom-form-section">
+            <SectionTitle icon="bx-store">
+              {isPR ? "RFQ and Vendor" : "Vendor"}
+            </SectionTitle>
 
-          {/* ---------- PR-Based: RFQ + Vendor (from quotes) ---------- */}
-          {v.poType === "pr_based" && (
-            <>
-              <h6 className="uom-form-section-title mt-2">Reference</h6>
-              <Row>
-                <Col md={6} className="mb-4">
-                  <Label>
-                    Closed RFQ <span className="text-danger">*</span>
-                  </Label>
-                  <Input
-                    type="select"
-                    value={v.rfqId}
-                    onChange={(e) =>
-                      validation.setFieldValue("rfqId", e.target.value)
-                    }
-                    invalid={
-                      validation.touched.rfqId && !!validation.errors.rfqId
-                    }
-                  >
-                    <option value="">Select Closed RFQ</option>
-                    {closedRFQs.map((r) => (
-                      <option key={r._id} value={r._id}>
-                        {r.rfqNumber} — {r.prId?.prTitle}
-                      </option>
-                    ))}
-                  </Input>
-                  <FormFeedback>{validation.errors.rfqId}</FormFeedback>
-                </Col>
-                <Col md={6} className="mb-4">
-                  <Label>
-                    Vendor (from RFQ quotes){" "}
-                    <span className="text-danger">*</span>
-                  </Label>
-                  <Input
-                    type="select"
-                    value={v.vendorId}
-                    disabled={!v.rfqId || !!selectedRFQ?.selectedVendorId}
-                    onChange={(e) =>
-                      validation.setFieldValue("vendorId", e.target.value)
-                    }
-                    invalid={
-                      validation.touched.vendorId &&
-                      !!validation.errors.vendorId
-                    }
-                  >
-                    <option value="">
-                      {v.rfqId ? "Select Vendor" : "Select RFQ first"}
-                    </option>
-                    {quotedVendorsForRFQ.map((vq) => (
-                      <option
-                        key={vq.vendorId._id || vq.vendorId}
-                        value={vq.vendorId._id || vq.vendorId}
-                      >
-                        {vq.vendorId?.tradeName || vq.vendorId?.legalName} —{" "}
-                        {money(vq.totalAmount)}
-                      </option>
-                    ))}
-                  </Input>
-                  <FormFeedback>{validation.errors.vendorId}</FormFeedback>
-                  {selectedRFQ?.selectedVendorId && (
-                    <div className="text-muted small mt-1">
-                      Vendor was finalized when the RFQ was closed.
-                    </div>
-                  )}
-                </Col>
-              </Row>
-
-              {selectedRFQ && (
-                <div className="uom-table-card p-3 mb-4">
-                  <div className="fw-semibold small mb-2">
-                    Line Items (from RFQ quote)
-                  </div>
-                  {v.vendorId ? (
-                    quotedVendorsForRFQ
-                      .find(
-                        (vq) => (vq.vendorId._id || vq.vendorId) === v.vendorId,
-                      )
-                      ?.lineItemQuotes.map((li, idx) => (
-                        <div
-                          key={idx}
-                          className="d-flex justify-content-between small text-muted mb-1"
-                        >
-                          <span>
-                            {li.itemName} (Qty: {li.quantity})
-                          </span>
-                          <span>{money(li.amount)}</span>
-                        </div>
-                      ))
-                  ) : (
-                    <div className="text-muted small">
-                      Select a vendor to preview line items.
-                    </div>
-                  )}
-                </div>
-              )}
-            </>
-          )}
-
-          {/* ---------- Direct / Contract-Based: Vendor + Contract + Justification ---------- */}
-          {v.poType !== "pr_based" && (
-            <>
-              <h6 className="uom-form-section-title mt-2">
-                {v.poType === "contract_based" ? "Contract" : "Vendor"}
-              </h6>
-              <Row>
-                {v.poType === "contract_based" && (
-                  <Col md={4} className="mb-4">
+            {isPR ? (
+              <>
+                <Row>
+                  <Col md={6} className="mb-3">
                     <Label>
-                      Contract <span className="text-danger">*</span>
+                      Closed RFQ <span className="text-danger">*</span>
                     </Label>
                     <Input
                       type="select"
-                      value={v.contractId}
-                      onChange={(e) => {
-                        const contractId = e.target.value;
-                        validation.setFieldValue("contractId", contractId);
-                        const c = contracts.find((ct) => ct._id === contractId);
-                        if (c?.vendorId) {
-                          validation.setFieldValue(
-                            "vendorId",
-                            c.vendorId._id || c.vendorId,
-                          );
-                        }
-                        if (c?.departmentId) {
-                          validation.setFieldValue(
-                            "departmentId",
-                            c.departmentId._id || c.departmentId,
-                          );
-                        }
-                        if (c?.budgetId) {
-                          // Pre-fill; the department-change effect below will
-                          // refresh the budgets list, then this value applies.
-                          validation.setFieldValue(
-                            "budgetId",
-                            c.budgetId._id || c.budgetId,
-                          );
-                        }
-                      }}
-                      invalid={
-                        validation.touched.contractId &&
-                        !!validation.errors.contractId
+                      value={v.rfqId}
+                      onChange={(ev) =>
+                        validation.setFieldValue("rfqId", ev.target.value)
                       }
+                      invalid={t.rfqId && !!e.rfqId}
                     >
-                      <option value="">Select Contract</option>
-                      {contracts.map((c) => (
-                        <option key={c._id} value={c._id}>
-                          {c.contractId} — {c.title}
+                      <option value="">Select closed RFQ</option>
+                      {closedRFQs.map((r) => (
+                        <option key={r._id} value={r._id}>
+                          {r.rfqNumber} — {r.prId?.prTitle}
                         </option>
                       ))}
                     </Input>
-                    <FormFeedback>{validation.errors.contractId}</FormFeedback>
+                    <FormFeedback>{e.rfqId}</FormFeedback>
                   </Col>
+                  <Col md={6} className="mb-3">
+                    <Label>
+                      Vendor <span className="text-danger">*</span>
+                    </Label>
+                    <Input
+                      type="select"
+                      value={v.vendorId}
+                      disabled={!v.rfqId || !!selectedRFQ?.selectedVendorId}
+                      onChange={(ev) =>
+                        validation.setFieldValue("vendorId", ev.target.value)
+                      }
+                      invalid={t.vendorId && !!e.vendorId}
+                    >
+                      <option value="">
+                        {v.rfqId ? "Select vendor" : "Select an RFQ first"}
+                      </option>
+                      {quotedVendorsForRFQ.map((vq) => (
+                        <option
+                          key={vq.vendorId._id || vq.vendorId}
+                          value={vq.vendorId._id || vq.vendorId}
+                        >
+                          {vq.vendorId?.tradeName || vq.vendorId?.legalName} —{" "}
+                          {money(vq.totalAmount)}
+                        </option>
+                      ))}
+                    </Input>
+                    <FormFeedback>{e.vendorId}</FormFeedback>
+                    {selectedRFQ?.selectedVendorId && (
+                      <div className="text-muted small mt-1">
+                        <i className="bx bx-check-circle text-success me-1"></i>
+                        Chosen when the RFQ was closed.
+                      </div>
+                    )}
+                  </Col>
+                </Row>
+
+                {selectedRFQ && vendorQuote && (
+                  <div className="mt-1">
+                    <Label>Items from the quote</Label>
+                    <div
+                      className="uom-table-card"
+                      style={{ overflowX: "auto" }}
+                    >
+                      <table className="table uom-line-table">
+                        <thead>
+                          <tr>
+                            <th>Item</th>
+                            <th style={{ width: 80 }}>Qty</th>
+                            <th style={{ width: 120 }}>Rate</th>
+                            <th style={{ width: 80 }}>Tax</th>
+                            <th style={{ width: 130 }} className="text-end">
+                              Amount
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {vendorQuote.lineItemQuotes.map((li, idx) => (
+                            <tr key={idx}>
+                              <td className="fw-semibold">{li.itemName}</td>
+                              <td>{li.quantity}</td>
+                              <td>{money(li.unitPrice)}</td>
+                              <td>{li.taxPercent}%</td>
+                              <td className="fw-semibold text-end">
+                                {money(li.amount)}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                    <div className="uom-totals mt-3">
+                      <div
+                        className="uom-totals-total"
+                        style={{
+                          borderTop: "none",
+                          marginTop: 0,
+                          paddingTop: 0,
+                        }}
+                      >
+                        <span>Quote Total</span>
+                        <span>{money(vendorQuote.totalAmount)}</span>
+                      </div>
+                    </div>
+                  </div>
                 )}
-                <Col
-                  md={v.poType === "contract_based" ? 8 : 12}
-                  className="mb-4"
-                >
-                  <Label>
-                    Vendor <span className="text-danger">*</span>
-                  </Label>
+              </>
+            ) : (
+              <>
+                <Row>
+                  {v.poType === "contract_based" && (
+                    <Col md={6} className="mb-3">
+                      <Label>
+                        Contract <span className="text-danger">*</span>
+                      </Label>
+                      <Input
+                        type="select"
+                        value={v.contractId}
+                        onChange={(ev) => {
+                          const contractId = ev.target.value;
+                          validation.setFieldValue("contractId", contractId);
+                          const c = contracts.find(
+                            (ct) => ct._id === contractId,
+                          );
+                          if (c?.vendorId)
+                            validation.setFieldValue(
+                              "vendorId",
+                              c.vendorId._id || c.vendorId,
+                            );
+                          if (c?.departmentId)
+                            validation.setFieldValue(
+                              "departmentId",
+                              c.departmentId._id || c.departmentId,
+                            );
+                          if (c?.budgetId)
+                            validation.setFieldValue(
+                              "budgetId",
+                              c.budgetId._id || c.budgetId,
+                            );
+                        }}
+                        invalid={t.contractId && !!e.contractId}
+                      >
+                        <option value="">Select contract</option>
+                        {contracts.map((c) => (
+                          <option key={c._id} value={c._id}>
+                            {c.contractId} — {c.title}
+                          </option>
+                        ))}
+                      </Input>
+                      <FormFeedback>{e.contractId}</FormFeedback>
+                    </Col>
+                  )}
+                  <Col md={6} className="mb-3">
+                    <Label>
+                      Vendor <span className="text-danger">*</span>
+                    </Label>
+                    <Input
+                      type="select"
+                      value={v.vendorId}
+                      onChange={(ev) =>
+                        validation.setFieldValue("vendorId", ev.target.value)
+                      }
+                      invalid={t.vendorId && !!e.vendorId}
+                    >
+                      <option value="">Select vendor</option>
+                      {vendors.map((vd) => (
+                        <option key={vd._id} value={vd._id}>
+                          {vd.tradeName || vd.legalName}
+                        </option>
+                      ))}
+                    </Input>
+                    <FormFeedback>{e.vendorId}</FormFeedback>
+                  </Col>
+                </Row>
+                {v.poType === "direct" && (
+                  <Row>
+                    <Col md={12} className="mb-1">
+                      <Label>
+                        Justification <span className="text-danger">*</span>
+                      </Label>
+                      <Input
+                        type="textarea"
+                        rows={2}
+                        placeholder="Why is this a direct order? (at least 10 characters)"
+                        value={v.justification}
+                        onChange={(ev) =>
+                          validation.setFieldValue(
+                            "justification",
+                            ev.target.value,
+                          )
+                        }
+                        invalid={t.justification && !!e.justification}
+                      />
+                      <FormFeedback>{e.justification}</FormFeedback>
+                    </Col>
+                  </Row>
+                )}
+              </>
+            )}
+          </div>
+
+          {/* ---------- Department and budget ---------- */}
+          <div className="uom-form-section">
+            <SectionTitle icon="bx-wallet">Department and Budget</SectionTitle>
+            {isPR ? (
+              <div className="uom-form-note">
+                <i className="bx bx-info-circle"></i>
+                The department and the budget come from the PR.
+              </div>
+            ) : (
+              <Row>
+                <Col md={6} className="mb-3">
+                  <Label>Department</Label>
                   <Input
                     type="select"
-                    value={v.vendorId}
-                    onChange={(e) =>
-                      validation.setFieldValue("vendorId", e.target.value)
-                    }
-                    invalid={
-                      validation.touched.vendorId &&
-                      !!validation.errors.vendorId
-                    }
+                    value={v.departmentId}
+                    onChange={(ev) => {
+                      validation.setFieldValue("departmentId", ev.target.value);
+                      validation.setFieldValue("budgetId", "");
+                    }}
                   >
-                    <option value="">Select Vendor</option>
-                    {vendors.map((vd) => (
-                      <option key={vd._id} value={vd._id}>
-                        {vd.tradeName || vd.legalName}
+                    <option value="">Select department</option>
+                    {departments.map((d) => (
+                      <option key={d._id} value={d._id}>
+                        {d.name}
                       </option>
                     ))}
                   </Input>
-                  <FormFeedback>{validation.errors.vendorId}</FormFeedback>
+                </Col>
+                <Col md={6} className="mb-3">
+                  <Label>
+                    Budget <span className="text-danger">*</span>
+                  </Label>
+                  <Input
+                    type="select"
+                    value={v.budgetId}
+                    disabled={!v.departmentId}
+                    onChange={(ev) =>
+                      validation.setFieldValue("budgetId", ev.target.value)
+                    }
+                    invalid={t.budgetId && !!e.budgetId}
+                  >
+                    <option value="">
+                      {v.departmentId
+                        ? "Select budget"
+                        : "Select a department first"}
+                    </option>
+                    {budgets.map((b) => (
+                      <option key={b._id} value={b._id}>
+                        {b.fiscalYear}: {money(budgetAvailable(b))} available of{" "}
+                        {money(b.approvedAmount)}
+                        {b.budgetType === "global" ? " (Global)" : ""}
+                      </option>
+                    ))}
+                  </Input>
+                  <FormFeedback>{e.budgetId}</FormFeedback>
                 </Col>
               </Row>
+            )}
+          </div>
 
-              {v.poType === "direct" && (
-                <Row>
-                  <Col md={12} className="mb-4">
-                    <Label>
-                      Justification (Required for Direct PO){" "}
-                      <span className="text-danger">*</span>
-                    </Label>
-                    <Input
-                      type="textarea"
-                      rows={2}
-                      placeholder="Please provide justification for direct purchase order (minimum 10 characters)..."
-                      value={v.justification}
-                      onChange={(e) =>
-                        validation.setFieldValue(
-                          "justification",
-                          e.target.value,
-                        )
-                      }
-                      invalid={
-                        validation.touched.justification &&
-                        !!validation.errors.justification
-                      }
-                    />
-                    <FormFeedback>
-                      {validation.errors.justification}
-                    </FormFeedback>
-                  </Col>
-                </Row>
-              )}
-            </>
-          )}
+          {/* ---------- Delivery and payment ---------- */}
+          <div className="uom-form-section">
+            <SectionTitle icon="bx-package">Delivery and Payment</SectionTitle>
+            <Row>
+              <Col md={6} className="mb-3">
+                <Label>
+                  Expected Delivery <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  type="date"
+                  value={v.expectedDeliveryDate}
+                  invalid={t.expectedDeliveryDate && !!e.expectedDeliveryDate}
+                  onChange={(ev) =>
+                    validation.setFieldValue(
+                      "expectedDeliveryDate",
+                      ev.target.value,
+                    )
+                  }
+                />
+                <FormFeedback>{e.expectedDeliveryDate}</FormFeedback>
+              </Col>
+              <Col md={6} className="mb-3">
+                <Label>
+                  Delivery Site <span className="text-danger">*</span>
+                </Label>
+                <Input
+                  type="select"
+                  value={v.deliverySiteId}
+                  onChange={(ev) =>
+                    validation.setFieldValue("deliverySiteId", ev.target.value)
+                  }
+                  invalid={t.deliverySiteId && !!e.deliverySiteId}
+                >
+                  <option value="">Select site</option>
+                  {centers.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.title}
+                    </option>
+                  ))}
+                </Input>
+                <FormFeedback>{e.deliverySiteId}</FormFeedback>
+              </Col>
+              <Col md={6} className="mb-3">
+                <Label>Payment Terms</Label>
+                <Input
+                  type="select"
+                  value={v.paymentTermId}
+                  onChange={(ev) =>
+                    validation.setFieldValue("paymentTermId", ev.target.value)
+                  }
+                >
+                  <option value="">Select terms</option>
+                  {paymentTerms.map((pt) => (
+                    <option key={pt._id} value={pt._id}>
+                      {pt.description || pt.code}
+                    </option>
+                  ))}
+                </Input>
+              </Col>
+              <Col md={6} className="mb-3">
+                <Label>Bill To</Label>
+                <Input
+                  type="select"
+                  value={v.billingSiteId}
+                  onChange={(ev) =>
+                    validation.setFieldValue("billingSiteId", ev.target.value)
+                  }
+                >
+                  <option value="">Select billing site</option>
+                  {centers.map((c) => (
+                    <option key={c._id} value={c._id}>
+                      {c.title}
+                    </option>
+                  ))}
+                </Input>
+              </Col>
+            </Row>
+          </div>
 
-          {/* ---------- Project & Budget (always shown once) ---------- */}
-          <h6 className="uom-form-section-title mt-2">
-            Project & Budget Information
-          </h6>
-          <Row>
-            <Col md={4} className="mb-4">
-              <Label>Project Reference (Optional)</Label>
-              <Input
-                value={v.projectRef}
-                onChange={(e) =>
-                  validation.setFieldValue("projectRef", e.target.value)
-                }
-                placeholder="Search or select project"
-              />
-            </Col>
-            <Col md={4} className="mb-4">
-              <Label>Department</Label>
-              <Input
-                type="select"
-                value={v.departmentId}
-                onChange={(e) => {
-                  validation.setFieldValue("departmentId", e.target.value);
-                  validation.setFieldValue("budgetId", "");
-                }}
+          {/* ---------- Items (Direct and Contract-Based) ---------- */}
+          {!isPR && (
+            <div className="uom-form-section">
+              <SectionTitle
+                icon="bx-list-ul"
+                hint={`${v.lineItems.length} line${v.lineItems.length === 1 ? "" : "s"}`}
               >
-                <option value="">Select Department</option>
-                {departments.map((d) => (
-                  <option key={d._id} value={d._id}>
-                    {d.name}
-                  </option>
-                ))}
-              </Input>
-            </Col>
-            <Col md={4} className="mb-4">
-              <Label>
-                Available Budget{" "}
-                {v.poType !== "pr_based" && (
-                  <span className="text-danger">*</span>
-                )}
-              </Label>
-              <Input
-                type="select"
-                value={v.budgetId}
-                disabled={!v.departmentId}
-                onChange={(e) =>
-                  validation.setFieldValue("budgetId", e.target.value)
-                }
-                invalid={
-                  validation.touched.budgetId && !!validation.errors.budgetId
-                }
-              >
-                <option value="">
-                  {v.departmentId ? "Select Budget" : "Select Department first"}
-                </option>
-                {budgets.map((b) => (
-                  <option key={b._id} value={b._id}>
-                    {b.fiscalYear} — {money(b.approvedAmount)}
-                    {b.budgetType === "global" ? " (Global)" : " (Department)"}
-                  </option>
-                ))}
-              </Input>
-              <FormFeedback>{validation.errors.budgetId}</FormFeedback>
-            </Col>
-          </Row>
+                Items <span className="text-danger">*</span>
+              </SectionTitle>
 
-          {/* ---------- Delivery & Payment (always shown once) ---------- */}
-          <h6 className="uom-form-section-title mt-2">Delivery & Payment</h6>
-          <Row>
-            <Col md={3} className="mb-4">
-              <Label>Payment Terms</Label>
-              <Input
-                type="select"
-                value={v.paymentTermId}
-                onChange={(e) =>
-                  validation.setFieldValue("paymentTermId", e.target.value)
-                }
-              >
-                <option value="">Select terms</option>
-                {paymentTerms.map((pt) => (
-                  <option key={pt._id} value={pt._id}>
-                    {pt.description || pt.code}
-                  </option>
-                ))}
-              </Input>
-            </Col>
-            <Col md={3} className="mb-4">
-              <Label>Expected Delivery</Label>
-              <Input
-                type="date"
-                value={v.expectedDeliveryDate}
-                onChange={(e) =>
-                  validation.setFieldValue(
-                    "expectedDeliveryDate",
-                    e.target.value,
-                  )
-                }
-              />
-            </Col>
-            <Col md={3} className="mb-4">
-              <Label>
-                Delivery Site <span className="text-danger">*</span>
-              </Label>
-              <Input
-                type="select"
-                value={v.deliverySiteId}
-                onChange={(e) =>
-                  validation.setFieldValue("deliverySiteId", e.target.value)
-                }
-                invalid={
-                  validation.touched.deliverySiteId &&
-                  !!validation.errors.deliverySiteId
-                }
-              >
-                <option value="">Select site</option>
-                {centers.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.title}
-                  </option>
-                ))}
-              </Input>
-            </Col>
-            <Col md={3} className="mb-4">
-              <Label>Bill To Address</Label>
-              <Input
-                type="select"
-                value={v.billingSiteId}
-                onChange={(e) =>
-                  validation.setFieldValue("billingSiteId", e.target.value)
-                }
-              >
-                <option value="">Select Billing Site</option>
-                {centers.map((c) => (
-                  <option key={c._id} value={c._id}>
-                    {c.title}
-                  </option>
-                ))}
-              </Input>
-            </Col>
-          </Row>
-          <Row>
-            <Col md={3} className="mb-4">
-              <Label>Criticality</Label>
-              <Input
-                type="select"
-                value={v.criticality}
-                onChange={(e) =>
-                  validation.setFieldValue("criticality", e.target.value)
-                }
-              >
-                <option value="low">Low</option>
-                <option value="medium">Medium</option>
-                <option value="high">High</option>
-              </Input>
-            </Col>
-          </Row>
-
-          {/* ---------- Line Items (Direct / Contract-Based only) ---------- */}
-          {v.poType !== "pr_based" && (
-            <>
-              <h6 className="uom-form-section-title mt-2">
-                Line Items <span className="text-danger">*</span>
-              </h6>
               <div
                 className="uom-table-card mb-3"
                 style={{ overflowX: "auto" }}
               >
-                <table className="table mb-0">
+                <table
+                  className="table uom-line-table"
+                  style={{ minWidth: 780 }}
+                >
                   <thead>
                     <tr>
                       <th>Item</th>
-                      <th style={{ width: 80 }}>Qty</th>
-                      <th style={{ width: 110 }}>UOM</th>
-                      <th style={{ width: 110 }}>Rate</th>
-                      <th style={{ width: 90 }}>Tax %</th>
-                      <th style={{ width: 120 }}>Amount</th>
-                      <th style={{ width: 50 }}></th>
+                      <th style={{ width: 90 }}>Qty</th>
+                      <th style={{ width: 120 }}>UOM</th>
+                      <th style={{ width: 130 }}>Rate</th>
+                      <th style={{ width: 100 }}>Tax</th>
+                      <th style={{ width: 130 }} className="text-end">
+                        Amount
+                      </th>
+                      <th style={{ width: 56 }}></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -804,111 +776,98 @@ const POForm = ({ onSaved, onCancel }) => {
                         (Number(li.quantity) || 0) *
                         (Number(li.unitPrice) || 0);
                       const tax = base * ((Number(li.taxPercent) || 0) / 100);
+                      const searchInfo = itemSearchState[idx] || {
+                        search: li.itemName || "",
+                        options: [],
+                        showDropdown: false,
+                      };
                       return (
                         <tr key={idx}>
-                          <td style={{ position: "relative" }}>
-                            {(() => {
-                              const searchInfo = itemSearchState[idx] || {
-                                search: li.itemName || "",
-                                options: [],
-                                showDropdown: false,
-                              };
-                              return (
-                                <>
-                                  <Input
-                                    innerRef={(el) =>
-                                      (itemInputRefs.current[idx] = el)
-                                    }
-                                    bsSize="sm"
-                                    placeholder="Search item code or name..."
-                                    value={searchInfo.search}
-                                    onFocus={() =>
-                                      setItemSearchFor(idx, {
-                                        showDropdown: true,
-                                      })
-                                    }
-                                    onChange={(e) =>
-                                      searchItemsForLine(idx, e.target.value)
-                                    }
-                                    onBlur={() =>
-                                      setTimeout(
-                                        () =>
-                                          setItemSearchFor(idx, {
-                                            showDropdown: false,
-                                          }),
-                                        150,
-                                      )
-                                    }
-                                  />
-                                  {searchInfo.showDropdown &&
-                                    searchInfo.options.length > 0 &&
-                                    itemInputRefs.current[idx] &&
-                                    createPortal(
-                                      <div
-                                        className="uom-table-card"
-                                        style={{
-                                          position: "fixed",
-                                          zIndex: 9999,
-                                          width: 280,
-                                          maxHeight: 220,
-                                          overflowY: "auto",
-                                          top:
-                                            itemInputRefs.current[
-                                              idx
-                                            ].getBoundingClientRect().bottom +
-                                            2,
-                                          left: itemInputRefs.current[
-                                            idx
-                                          ].getBoundingClientRect().left,
-                                        }}
-                                      >
-                                        {searchInfo.options.map((opt) => (
-                                          <div
-                                            key={opt._id}
-                                            style={{
-                                              padding: "8px 12px",
-                                              cursor: "pointer",
-                                              fontSize: 13,
-                                            }}
-                                            onMouseDown={() =>
-                                              selectItemForLine(idx, opt)
-                                            }
-                                          >
-                                            <span className="uom-symbol-badge">
-                                              {opt.itemCode}
-                                            </span>{" "}
-                                            {opt.itemName}
-                                          </div>
-                                        ))}
-                                      </div>,
-                                      document.body,
-                                    )}
-                                </>
-                              );
-                            })()}
+                          <td style={{ minWidth: 240 }}>
+                            <Input
+                              innerRef={(el) =>
+                                (itemInputRefs.current[idx] = el)
+                              }
+                              placeholder="Search item code or name..."
+                              value={searchInfo.search}
+                              invalid={!!lineError(idx)}
+                              onFocus={() =>
+                                setItemSearchFor(idx, { showDropdown: true })
+                              }
+                              onChange={(ev) =>
+                                searchItemsForLine(idx, ev.target.value)
+                              }
+                              onBlur={() =>
+                                setTimeout(
+                                  () =>
+                                    setItemSearchFor(idx, {
+                                      showDropdown: false,
+                                    }),
+                                  150,
+                                )
+                              }
+                            />
+                            {searchInfo.showDropdown &&
+                              searchInfo.options.length > 0 &&
+                              itemInputRefs.current[idx] &&
+                              createPortal(
+                                <div
+                                  className="uom-item-dropdown"
+                                  style={{
+                                    position: "fixed",
+                                    zIndex: 9999,
+                                    width: 340,
+                                    maxHeight: 240,
+                                    overflowY: "auto",
+                                    top:
+                                      itemInputRefs.current[
+                                        idx
+                                      ].getBoundingClientRect().bottom + 4,
+                                    left: itemInputRefs.current[
+                                      idx
+                                    ].getBoundingClientRect().left,
+                                  }}
+                                >
+                                  {searchInfo.options.map((opt) => (
+                                    <div
+                                      key={opt._id}
+                                      className="uom-item-option"
+                                      onMouseDown={() =>
+                                        selectItemForLine(idx, opt)
+                                      }
+                                    >
+                                      <span className="uom-symbol-badge">
+                                        {opt.itemCode}
+                                      </span>
+                                      <span className="text-truncate">
+                                        {opt.itemName}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>,
+                                document.body,
+                              )}
                           </td>
                           <td>
                             <Input
-                              bsSize="sm"
                               type="number"
                               min={0}
                               value={li.quantity}
-                              onFocus={(e) => e.target.select()}
-                              onChange={(e) =>
-                                updateLineItem(idx, "quantity", e.target.value)
+                              onFocus={(ev) => ev.target.select()}
+                              onChange={(ev) =>
+                                updateLineItem(idx, "quantity", ev.target.value)
                               }
                             />
                           </td>
                           <td>
                             <Input
-                              bsSize="sm"
                               type="select"
                               value={li.uomId}
-                              onChange={(e) =>
-                                updateLineItem(idx, "uomId", e.target.value)
+                              onChange={(ev) =>
+                                updateLineItem(idx, "uomId", ev.target.value)
                               }
                             >
-                              <option value="">—</option>
+                              <option value="">None</option>
                               {uoms.map((u) => (
                                 <option key={u._id} value={u._id}>
                                   {u.symbol || u.name}
@@ -918,26 +877,28 @@ const POForm = ({ onSaved, onCancel }) => {
                           </td>
                           <td>
                             <Input
-                              bsSize="sm"
                               type="number"
                               min={0}
                               value={li.unitPrice}
-                              onFocus={(e) => e.target.select()}
-                              onChange={(e) =>
-                                updateLineItem(idx, "unitPrice", e.target.value)
+                              onFocus={(ev) => ev.target.select()}
+                              onChange={(ev) =>
+                                updateLineItem(
+                                  idx,
+                                  "unitPrice",
+                                  ev.target.value,
+                                )
                               }
                             />
                           </td>
                           <td>
                             <Input
-                              bsSize="sm"
                               type="select"
                               value={li.taxPercent}
-                              onChange={(e) =>
+                              onChange={(ev) =>
                                 updateLineItem(
                                   idx,
                                   "taxPercent",
-                                  e.target.value,
+                                  ev.target.value,
                                 )
                               }
                             >
@@ -947,18 +908,24 @@ const POForm = ({ onSaved, onCancel }) => {
                               <option value={28}>28%</option>
                             </Input>
                           </td>
-                          <td className="align-middle fw-semibold">
+                          <td className="fw-semibold text-end">
                             {money(base + tax)}
                           </td>
-                          <td className="align-middle">
-                            <Button
-                              size="sm"
-                              color="light"
+                          <td className="text-end">
+                            <button
+                              type="button"
+                              className="uom-icon-btn is-danger"
+                              title="Remove line"
                               disabled={v.lineItems.length === 1}
+                              style={
+                                v.lineItems.length === 1
+                                  ? { opacity: 0.4, cursor: "not-allowed" }
+                                  : undefined
+                              }
                               onClick={() => removeLineItem(idx)}
                             >
-                              <i className="bx bx-trash text-danger"></i>
-                            </Button>
+                              <i className="bx bx-trash"></i>
+                            </button>
                           </td>
                         </tr>
                       );
@@ -966,103 +933,167 @@ const POForm = ({ onSaved, onCancel }) => {
                   </tbody>
                 </table>
               </div>
-              {validation.touched.lineItems &&
-                typeof validation.errors.lineItems === "string" && (
-                  <div className="text-danger small mb-3">
-                    {validation.errors.lineItems}
+
+              {t.lineItems && typeof e.lineItems === "string" && (
+                <div className="text-danger small mb-2">{e.lineItems}</div>
+              )}
+
+              <div className="d-flex flex-wrap justify-content-between align-items-start gap-3">
+                <Button
+                  type="button"
+                  color="light"
+                  className="border"
+                  onClick={addLineItem}
+                >
+                  <i className="bx bx-plus me-1"></i> Add line
+                </Button>
+
+                {/* totals */}
+                <div className="uom-totals flex-grow-1">
+                  <div className="uom-totals-row">
+                    <span>Subtotal</span>
+                    <span>{money(calc.subtotal)}</span>
                   </div>
-                )}
+                  <div className="uom-totals-row">
+                    <span>Tax</span>
+                    <span>{money(calc.tax)}</span>
+                  </div>
+                  <div className="uom-totals-total">
+                    <span>Net Payable</span>
+                    <span>{money(netPayable)}</span>
+                  </div>
+                  {selectedBudget && (
+                    <>
+                      <div className="uom-totals-divider"></div>
+                      <div className="uom-totals-row">
+                        <span>Budget available</span>
+                        <span>{money(budgetAvailable(selectedBudget))}</span>
+                      </div>
+                      <div
+                        className={`d-flex justify-content-between fw-semibold ${overBudget ? "text-danger" : "text-success"}`}
+                        style={{ fontSize: 13.5 }}
+                      >
+                        <span>Left after this PO</span>
+                        <span>
+                          {money(budgetAvailable(selectedBudget) - netPayable)}
+                        </span>
+                      </div>
+                      {overBudget && (
+                        <div className="text-danger small mt-2">
+                          <i className="bx bx-error-circle me-1"></i>
+                          More than the budget has left. Reduce the amount or
+                          choose another budget.
+                        </div>
+                      )}
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ---------- Other details (optional) ---------- */}
+          <div className="uom-form-section">
+            <SectionTitle icon="bx-detail" hint="Optional">
+              Other Details
+            </SectionTitle>
+            <Row>
+              <Col md={6} className="mb-3">
+                <Label>PO Title</Label>
+                <Input
+                  value={v.poTitle}
+                  onChange={(ev) =>
+                    validation.setFieldValue("poTitle", ev.target.value)
+                  }
+                />
+              </Col>
+              <Col md={6} className="mb-3">
+                <Label>Project Reference</Label>
+                <Input
+                  value={v.projectRef}
+                  onChange={(ev) =>
+                    validation.setFieldValue("projectRef", ev.target.value)
+                  }
+                />
+              </Col>
+              <Col md={4} className="mb-3">
+                <Label>Start Date</Label>
+                <Input
+                  type="date"
+                  value={v.startDate}
+                  onChange={(ev) =>
+                    validation.setFieldValue("startDate", ev.target.value)
+                  }
+                />
+              </Col>
+              <Col md={4} className="mb-3">
+                <Label>End Date</Label>
+                <Input
+                  type="date"
+                  value={v.endDate}
+                  onChange={(ev) =>
+                    validation.setFieldValue("endDate", ev.target.value)
+                  }
+                />
+              </Col>
+              <Col md={4} className="mb-3">
+                <Label>Criticality</Label>
+                <Input
+                  type="select"
+                  value={v.criticality}
+                  onChange={(ev) =>
+                    validation.setFieldValue("criticality", ev.target.value)
+                  }
+                >
+                  <option value="low">Low</option>
+                  <option value="medium">Medium</option>
+                  <option value="high">High</option>
+                </Input>
+              </Col>
+              <Col md={12} className="mb-1">
+                <Label>Remarks</Label>
+                <Input
+                  type="textarea"
+                  rows={2}
+                  value={v.remarks}
+                  onChange={(ev) =>
+                    validation.setFieldValue("remarks", ev.target.value)
+                  }
+                />
+              </Col>
+            </Row>
+          </div>
+
+          {/* ---------- Sticky footer — buttons hamesha dikhte hain ---------- */}
+          <div className="uom-form-footer is-sticky">
+            <div
+              className={`uom-footer-summary ${overBudget ? "is-over" : ""}`}
+            >
+              {!isPR && (
+                <>
+                  Net Payable<strong>{money(netPayable)}</strong>
+                </>
+              )}
+            </div>
+            <div className="d-flex gap-2">
               <Button
                 type="button"
                 color="light"
-                size="sm"
-                className="mb-4"
-                onClick={addLineItem}
+                className="border"
+                onClick={onCancel}
               >
-                <i className="bx bx-plus me-1"></i> Add line
+                Cancel
               </Button>
-
-              <div
-                className="uom-table-card p-3 mb-4"
-                style={{ maxWidth: 360, marginLeft: "auto" }}
+              <Button
+                type="submit"
+                color="primary"
+                disabled={validation.isSubmitting}
               >
-                <div className="d-flex justify-content-between mb-1">
-                  <span className="text-muted small">Subtotal</span>
-                  <span>{money(calc.subtotal)}</span>
-                </div>
-                <div className="d-flex justify-content-between mb-1">
-                  <span className="text-muted small">Tax</span>
-                  <span>{money(calc.tax)}</span>
-                </div>
-                <hr className="my-2" />
-                <div className="d-flex justify-content-between fw-bold">
-                  <span>Net Payable</span>
-                  <span>{money(netPayable)}</span>
-                </div>
-
-                {selectedBudget && (
-                  <>
-                    <hr className="my-2" />
-                    <div className="d-flex justify-content-between mb-1">
-                      <span className="text-muted small">Budget Approved</span>
-                      <span>{money(selectedBudget.approvedAmount)}</span>
-                    </div>
-                    <div
-                      className={`d-flex justify-content-between fw-semibold ${
-                        netPayable > selectedBudget.approvedAmount
-                          ? "text-danger"
-                          : "text-success"
-                      }`}
-                    >
-                      <span>Remaining</span>
-                      <span>
-                        {money(selectedBudget.approvedAmount - netPayable)}
-                      </span>
-                    </div>
-                    {netPayable > selectedBudget.approvedAmount && (
-                      <div
-                        className="text-danger small mt-2 p-2"
-                        style={{ background: "#fef3f2", borderRadius: 6 }}
-                      >
-                        <i className="bx bx-error-circle me-1"></i>
-                        Exceeds approved budget — reduce quantity/rate or select
-                        a different budget.
-                      </div>
-                    )}
-                  </>
-                )}
-              </div>
-            </>
-          )}
-
-          {/* ---------- Remarks ---------- */}
-          <Row>
-            <Col md={12} className="mb-4">
-              <Label>Remarks</Label>
-              <Input
-                type="textarea"
-                rows={2}
-                value={v.remarks}
-                onChange={(e) =>
-                  validation.setFieldValue("remarks", e.target.value)
-                }
-              />
-            </Col>
-          </Row>
-
-          <div className="uom-form-footer d-flex justify-content-end gap-2">
-            <Button type="button" color="light" onClick={onCancel}>
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              color="primary"
-              disabled={validation.isSubmitting}
-            >
-              {validation.isSubmitting
-                ? "Creating..."
-                : "Create Purchase Order"}
-            </Button>
+                {validation.isSubmitting
+                  ? "Creating..."
+                  : "Create Purchase Order"}
+              </Button>
+            </div>
           </div>
         </form>
       </div>

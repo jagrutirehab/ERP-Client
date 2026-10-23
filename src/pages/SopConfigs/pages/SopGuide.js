@@ -282,6 +282,26 @@ const SopGuide = () => {
             below will fire for anyone under 60.
           </div>
         </Alert>
+        <Alert color="info" className="d-flex">
+          <i className="bx bx-user-check me-2 fs-4" />
+          <div>
+            <strong>Patient Type:</strong> choose{" "}
+            <Kbd>Admission &rarr; Patient Type (admission card, else Detail
+            Admission)</Kbd>{" "}
+            to gate a rule on the patient&rsquo;s type (Psychiatric, Addiction
+            or Geriatric / Dementia / Palliative). It reads the Patient Type on
+            the admission card, which every Detail Admission save with a type
+            updates. Only if the card has none does it read the newest Detail
+            Admission chart on that admission that has a type. If neither has
+            one, the patient counts as <em>not</em> any type &mdash; so{" "}
+            <Kbd>NOT EQUALS Geriatric</Kbd> still lets the rule fire, and{" "}
+            <Kbd>EQUALS</Kbd> does not. E.g. add{" "}
+            <Kbd>Patient Type NOT EQUALS Geriatric</Kbd> to the Admission
+            Duration Review rules so they skip geriatric patients. Add it{" "}
+            <strong>last</strong>: conditions are checked in order, and this one
+            may have to look up a chart. Satisfying Criteria only.
+          </div>
+        </Alert>
 
         {/* 5. Target Blocks */}
         <SectionAnchor id="target-blocks">5. Target Blocks (the rules)</SectionAnchor>

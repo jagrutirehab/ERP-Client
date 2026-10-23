@@ -117,7 +117,6 @@ const Sidebar = () => {
         { id: "write-off-amount", label: "Write Off Amount", link: "/mi-reporting/write-off-amount", icon: "bx bx-money", submodule: "WRITE_OFF_AMOUNT" },
         { id: "central-expenses", label: "Central Expenses", link: "/mi-reporting/central-expenses", icon: "bx bx-receipt", submodule: "CENTRAL_EXPENSES" },
         { id: "cash-reco-compliance", label: "Cash Reco Compliance", link: "/mi-reporting/cash-reco-compliance", icon: "bx bx-wallet-alt", submodule: "CASH_RECO_COMPLIANCE" },
-        { id: "missing-invoices", label: "Missing Invoices", link: "/mi-reporting/missing-invoices", icon: "bx bx-receipt", submodule: "MISSING_INVOICES" },
       ],
     },
     {
@@ -149,6 +148,7 @@ const Sidebar = () => {
         { id: "counselling-sessions", label: "Counselling Sessions", link: "/mi-reporting/counselling-sessions", icon: "bx bx-conversation", submodule: "COUNSELLING_SESSIONS" },
         { id: "counselling-recording", label: "Counselling Recording", link: "/mi-reporting/counselling-recording", icon: "bx bx-microphone", submodule: "COUNSELLING_RECORDING" },
         { id: "patient-assigned-status", label: "Patient Assigned Status", link: "/mi-reporting/patient-assigned-status", icon: "bx bx-user-x", submodule: "PATIENT_ASSIGNED_STATUS" },
+        { id: "suspended-assigned", label: "Suspended Assigned", link: "/mi-reporting/suspended-assigned", icon: "bx bx-user-x", submodule: "SUSPENDED_ASSIGNED" },
       ],
     },
     {

@@ -1,9 +1,10 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { CardBody, Spinner, FormGroup, Input, Label, Button } from "reactstrap";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import {
   acknowledgeTraining,
   getMyTrainingProgress,
+  getOwnSignedCopy,
   getTrainingById,
   markOverviewRead,
 } from "../../../helpers/backend_helper";
@@ -13,7 +14,10 @@ import ConfirmModal from "../Components/ConfirmModal";
 import TrainingFileViewer from "../Components/Learn/TrainingFileViewer";
 import StructuredTraining from "../Components/Learn/StructuredTraining";
 import LegacyStepper from "../Components/Learn/LegacyStepper";
+import DeclarationReadStep from "../Components/Learn/DeclarationReadStep";
+import SignedCopyViewer from "../Components/Declaration/SignedCopyViewer";
 import { getErrorMessage } from "../Helpers/learnHelpers";
+import { resolvePassMark } from "../Helpers/passMark";
 
 const TrainingDetail = () => {
   const { id } = useParams();
@@ -70,11 +74,16 @@ const TrainingDetail = () => {
 
   const acknowledged = activeTab === "acknowledged" || !!myProgress?.acknowledged;
   const overviewDone = acknowledged || !!myProgress?.overviewReadAt;
+  const [viewingCopy, setViewingCopy] = useState(false);
+  const loadOwnCopy = useCallback(() => getOwnSignedCopy(id), [id]);
   const quizPassed = acknowledged || !!myProgress?.quiz?.passed;
+  const declarationRequired = !!myProgress?.declaration?.required;
+  const declarationDone = acknowledged || myProgress?.declaration?.state === "completed";
 
   const steps = [
     { key: "overview", label: "Overview", done: overviewDone },
     ...(hasQuestionary ? [{ key: "quiz", label: "Quiz", done: quizPassed }] : []),
+    ...(declarationRequired ? [{ key: "declaration", label: "Declaration", done: declarationDone }] : []),
     { key: "acknowledged", label: "Acknowledgement", done: acknowledged },
   ];
 
@@ -82,11 +91,14 @@ const TrainingDetail = () => {
   if (acknowledged) currentKey = null;
   else if (!overviewDone) currentKey = "overview";
   else if (hasQuestionary && !quizPassed) currentKey = "quiz";
+  else if (declarationRequired && !declarationDone) currentKey = "declaration";
 
   const goToQuiz = () => {
     navigate(`/trainings/questionary/${id}`, {
       state: {
         trainingName: training.trainingName,
+        requiresDeclaration: !!training?.declaration?.required,
+        passPercentage: resolvePassMark(training),
         activeTab,
         canEdit,
       },
@@ -177,12 +189,31 @@ const TrainingDetail = () => {
       );
     }
 
+    if (currentKey === "declaration") {
+      return (
+        <DeclarationReadStep
+          trainingId={id}
+          onRead={async () => {
+            try {
+              const mine = await getMyTrainingProgress(id);
+              setMyProgress(mine?.data || null);
+            } catch {
+              setMyProgress((previous) => ({
+                ...(previous || {}),
+                declaration: { ...(previous?.declaration || {}), state: "completed" },
+              }));
+            }
+          }}
+        />
+      );
+    }
+
     if (currentKey === "quiz") {
       return (
         <div className="p-3 border rounded">
           <p className="mb-3 small text-muted">
-            You have read the overview. Next, take the quiz. You need 80% to
-            pass and can retry as many times as you need.
+            You have read the overview. Next, take the quiz. Pass percentage:{" "}
+            {resolvePassMark(training)}%. You can retry as many times as you need.
           </p>
           <Button color="primary" onClick={goToQuiz}>
             Take the quiz
@@ -235,10 +266,26 @@ const TrainingDetail = () => {
           <span className="small fw-semibold">
             You have acknowledged this training
           </span>
+          {training?.declaration?.required && (
+            <button
+              type="button"
+              className="btn btn-outline-success btn-sm ms-auto"
+              onClick={() => setViewingCopy(true)}
+            >
+              View my signed declaration
+            </button>
+          )}
         </div>
       ) : (
         renderAction()
       )}
+
+      <SignedCopyViewer
+        isOpen={viewingCopy}
+        onClose={() => setViewingCopy(false)}
+        title="My signed declaration"
+        loader={loadOwnCopy}
+      />
 
       <ConfirmModal
         isOpen={confirmModal}

@@ -366,6 +366,8 @@ import SessionForm from "../Components/SessionForm";
 import UserSelector from "../Components/UserSelector";
 import SelectedPanel from "../Components/SelectedPanel";
 import AttachmentPicker from "../Components/AttachmentPicker";
+import TrainerVideoInput from "../Components/TrainerVideoInput";
+import { enqueueTrainingUploads } from "../../../helpers/trainingUploader";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const LIMIT = 10;
@@ -559,8 +561,31 @@ const CreateTrainers = () => {
         const formData = buildCreateFormData(records, positionNameById);
         setSubmitting(true);
         try {
-            await createTrainerRecord(formData);
-            toast.success(`${records.length} trainer record(s) saved successfully!`);
+            const response = await createTrainerRecord(formData);
+            const saved = Array.isArray(response?.data) ? response.data : response?.data ? [response.data] : [];
+            const withVideo = records
+                .map((record, index) => ({ record, saved: saved[index] }))
+                .filter(({ record }) => record.video);
+
+            if (withVideo.length && saved.length !== records.length) {
+                toast.warning(`${records.length} trainer record(s) saved, but the videos could not be matched to their records. Add them from Edit.`);
+            } else {
+                toast.success(
+                    withVideo.length
+                        ? `${records.length} trainer record(s) saved. ${withVideo.length} video(s) uploading in the background.`
+                        : `${records.length} trainer record(s) saved successfully!`
+                );
+                enqueueTrainingUploads(
+                    withVideo.map(({ record, saved: savedRecord }) => ({
+                        file: record.video.file,
+                        kind: "video",
+                        targetType: "trainerRecord",
+                        recordId: savedRecord._id,
+                        trainingName: `Trainer record: ${record.trainingName}`,
+                        durationSec: record.video.durationSec,
+                    }))
+                );
+            }
             setRecords([emptyRecord(user?.data?.name)]);
             setActiveRecordIdx(0);
         } catch (err) {
@@ -649,6 +674,11 @@ const CreateTrainers = () => {
                                     newFiles={activeRecord.files || []}
                                     onAddFiles={(added) => updateRecord(activeRecordIdx, "files", [...(activeRecord.files || []), ...added])}
                                     onRemoveNew={(i) => updateRecord(activeRecordIdx, "files", (activeRecord.files || []).filter((_, idx) => idx !== i))}
+                                />
+                                <TrainerVideoInput
+                                    pending={activeRecord.video}
+                                    onPick={(video) => updateRecord(activeRecordIdx, "video", video)}
+                                    onClearPending={() => updateRecord(activeRecordIdx, "video", null)}
                                 />
                             </div>
                         </div>

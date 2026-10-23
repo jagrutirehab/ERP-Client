@@ -10,10 +10,12 @@ import {
   findLesson,
   getAfterLessonStep,
   getErrorMessage,
+  getFinalStepTarget,
   viewFromCurrent,
 } from "../../Helpers/learnHelpers";
 import AcknowledgePanel from "./AcknowledgePanel";
 import ChapterView from "./ChapterView";
+import DeclarationReadStep from "./DeclarationReadStep";
 import LessonSidebar from "./LessonSidebar";
 import LessonView from "./LessonView";
 import QuizRunner from "./QuizRunner";
@@ -143,19 +145,55 @@ const StructuredTraining = ({
       );
     }
 
+    if (view.type === "declaration" && learn.declaration?.required) {
+      if (acknowledged) {
+        return (
+          <AcknowledgePanel
+            trainingId={training._id}
+            acknowledged
+            hasDeclaration
+            canAcknowledge={canAcknowledge}
+            onAcknowledged={onAcknowledged}
+          />
+        );
+      }
+      if (learn.declaration.state === "locked") {
+        return (
+          <LockedMessage text="Complete all lessons and the final exam to unlock the declaration." />
+        );
+      }
+      return (
+        <DeclarationReadStep
+          key="declaration"
+          trainingId={training._id}
+          onRead={async () => {
+            await load(false);
+            setView({ type: "acknowledge" });
+          }}
+        />
+      );
+    }
+
     if (view.type === "acknowledge") {
       if (acknowledged || learn.canAcknowledge) {
         return (
           <AcknowledgePanel
             trainingId={training._id}
             acknowledged={acknowledged}
+            hasDeclaration={!!learn.declaration?.required}
             canAcknowledge={canAcknowledge}
             onAcknowledged={onAcknowledged}
           />
         );
       }
       return (
-        <LockedMessage text="Complete all lessons and the final exam to unlock acknowledgement." />
+        <LockedMessage
+          text={
+            learn.declaration?.required && learn.declaration.state !== "completed"
+              ? "Read the declaration to unlock acknowledgement."
+              : "Complete all lessons and the final exam to unlock acknowledgement."
+          }
+        />
       );
     }
 
@@ -175,9 +213,11 @@ const StructuredTraining = ({
           renderPassActions={() => (
             <button
               className="btn btn-success btn-sm px-4"
-              onClick={() => setView({ type: "acknowledge" })}
+              onClick={() => setView(getFinalStepTarget(learn))}
             >
-              Continue to Acknowledgement
+              {learn.declaration?.required && learn.declaration.state !== "completed"
+                ? "Continue to Declaration"
+                : "Continue to Acknowledgement"}
             </button>
           )}
         />

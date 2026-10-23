@@ -3,19 +3,24 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button, FormGroup, Label, I
 import { editTraining } from '../../../helpers/backend_helper'
 import { toast } from 'react-toastify'
 import { usePermissions } from '../../../Components/Hooks/useRoles'
+import { formatFileSize } from '../Helpers/uploadTrainingForm'
+import Select from 'react-select'
+import { PASS_MARK_SELECT_OPTIONS, parsePassMarkText, resolvePassMark } from '../Helpers/passMark'
 
 const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
-    const [form, setForm] = useState({ trainingName: '', repeatFrequency: '' })
+    const [form, setForm] = useState({ trainingName: '', repeatFrequency: '', passPercentage: '' })
     const [file, setFile] = useState(null)
     const [loading, setLoading] = useState(false)
 
 
     const isInactive = training?.status === 'inactive'
+    const declaration = training?.declaration || null
 
     useEffect(() => {
         if (training) {
             setForm({
                 trainingName: training.trainingName || '',
+                passPercentage: String(resolvePassMark(training)),
                 // repeatFrequency: training.repeatFrequency || ''
             })
             setFile(null)
@@ -39,6 +44,7 @@ const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
     const handleSubmit = () => {
         const formData = new FormData()
         formData.append('trainingName', form.trainingName)
+        formData.append('passPercentage', String(parsePassMarkText(form.passPercentage)))
         // if (form.repeatFrequency !== '') formData.append('repeatFrequency', form.repeatFrequency)
         if (file) formData.append('file', file)
         callApi(formData)
@@ -80,6 +86,21 @@ const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
                             />
                         </FormGroup>
 
+                        <FormGroup>
+                            <Label className="fw-semibold small">Pass percentage (%)</Label>
+                            <Select
+                                options={PASS_MARK_SELECT_OPTIONS}
+                                value={PASS_MARK_SELECT_OPTIONS.find(option => option.value === form.passPercentage) || null}
+                                onChange={selected => setForm({ ...form, passPercentage: selected?.value || '' })}
+                                isSearchable={false}
+                                menuPortalTarget={document.body}
+                                styles={{ menuPortal: base => ({ ...base, zIndex: 9999 }) }}
+                            />
+                            <small className="text-muted d-block mt-1">
+                                Applies to every quiz in this training. Already-passed quizzes are not re-graded.
+                            </small>
+                        </FormGroup>
+
                         {/* <FormGroup>
                             <Label className="fw-semibold small">Replace File</Label>
                             <Input type="file" onChange={e => setFile(e.target.files[0])} />
@@ -98,6 +119,27 @@ const EditTrainingModal = ({ isOpen, onClose, training, onRefresh }) => {
                                 placeholder="e.g. 30"
                             />
                         </FormGroup> */}
+
+                        {declaration && (
+                            <FormGroup data-testid="declaration-edit">
+                                <Label className="fw-semibold small">Declaration form</Label>
+                                <div className="border rounded p-2">
+                                    <div className="small fw-semibold text-truncate">
+                                        {declaration.originalName} <span className="badge bg-soft-secondary text-secondary ms-1">{(declaration.format || 'pdf').toUpperCase()}</span>
+                                    </div>
+                                    <div className="text-muted small">
+                                        {formatFileSize(declaration.size || 0)}{declaration.pageCount ? ` · ${declaration.pageCount} page${declaration.pageCount !== 1 ? 's' : ''}` : ''}
+                                    </div>
+                                    {declaration.inactive ? (
+                                        <div className="alert alert-warning py-1 px-2 small mt-2 mb-0" data-testid="declaration-inactive">
+                                            Declaration inactive: place the signature box. This file cannot be changed, so create a new training with the form to use it.
+                                        </div>
+                                    ) : (
+                                        <small className="text-muted d-block mt-2">The declaration is locked once a training is created and cannot be edited or replaced.</small>
+                                    )}
+                                </div>
+                            </FormGroup>
+                        )}
 
                         <hr />
 

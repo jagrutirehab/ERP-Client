@@ -22,6 +22,7 @@ import OCRBillImport from "./OCRBillImport/OCRBillImport";
 import BillUploadDashboard from "./BillUploadDashboard/BillUploadDashboard";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import SareyaanInventory from "./SareyaanInventory";
+import PharmacyActivity from "./Activity";
 
 const Pharmacy = () => {
   const navigate = useNavigate();
@@ -78,6 +79,7 @@ const Pharmacy = () => {
                 <Route path={`/ocr-bill-import`} element={<OCRBillImport />} />
                 <Route path={`/bill-upload-dashboard`} element={<BillUploadDashboard />} />
                 <Route path={`/sareyaan-inventory`} element={<SareyaanInventory />} />
+                <Route path={`/activity`} element={<PharmacyActivity />} />
               </Routes>
 
 

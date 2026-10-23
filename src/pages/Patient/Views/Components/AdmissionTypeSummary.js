@@ -23,17 +23,32 @@ const AdmissionTypeSummary = ({ addmission, isAdmit }) => {
   if (!isAdmit || !addmission?._id) return null;
 
   const current = getCurrentAdmissionType(addmission);
-  if (!current) return null;
+  const data = current?.data;
+  const typeLabel = data
+    ? admissionTypeLabel("admissionType", data.admissionType)
+    : "";
+  const detail = data ? getAdmissionTypeDetailParts(data) : [];
 
-  const data = current.data;
-  const typeLabel = admissionTypeLabel("admissionType", data?.admissionType);
-  if (!typeLabel) return null;
+  // The admission card's Patient Type (patientAdmissionType) — flagged here
+  // only when Geriatric, so it's visible at a glance in the header column.
+  const isGeriatric = addmission.patientAdmissionType === "geriatric";
 
-  const detail = getAdmissionTypeDetailParts(data);
+  // Nothing to show: no admission type recorded and not geriatric.
+  if (!typeLabel && !isGeriatric) return null;
+
+  // Geriatric is shown IN PLACE of the admission type, by decision — the same
+  // as the patient header's "Admission Type: Geriatric".
+  if (isGeriatric) {
+    return (
+      <SummaryCard title="ADMISSION TYPE" compact>
+        <div style={{ fontSize: "0.7rem" }}>Geriatric</div>
+      </SummaryCard>
+    );
+  }
 
   return (
     <SummaryCard title="ADMISSION TYPE" compact>
-      <div style={{ fontSize: "0.7rem" }}>{typeLabel}</div>
+      {typeLabel && <div style={{ fontSize: "0.7rem" }}>{typeLabel}</div>}
       {detail.length > 0 && (
         <div className="text-muted" style={{ fontSize: "0.7rem" }}>
           {detail.join(" · ")}

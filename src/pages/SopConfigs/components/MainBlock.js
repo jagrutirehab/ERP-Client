@@ -87,6 +87,7 @@ const MainBlock = ({
             condition={c}
             idx={cIdx}
             disableTrigger={true}
+            isCriteria
             onChange={handleConditionChange}
             onRemove={removeCondition}
             isDisabled={isSubmitting}

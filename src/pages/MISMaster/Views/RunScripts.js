@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Card, CardBody, Table, Spinner, Alert, Button, Badge, Collapse } from "reactstrap";
 import { getScripts, runScript } from "../../../helpers/reportsMakerApiHelper";
 
@@ -48,6 +48,18 @@ const RunScripts = () => {
         setExpandedMap((prev) => ({ ...prev, [scriptName]: !prev[scriptName] }));
     };
 
+    const sortedScripts = useMemo(() => {
+        const getStatus = (s) => {
+            const result = resultsMap[s.script];
+            return result ? result.status : s.last_run_status;
+        };
+        return [...scripts].sort((a, b) => {
+            const aIsError = getStatus(a) === "error" ? 0 : 1;
+            const bIsError = getStatus(b) === "error" ? 0 : 1;
+            return aIsError - bIsError;
+        });
+    }, [scripts, resultsMap]);
+
     return (
         <Card>
             <CardBody>
@@ -76,7 +88,7 @@ const RunScripts = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {scripts.map((s) => {
+                            {sortedScripts.map((s) => {
                                 const scriptName = s.script;
                                 const result = resultsMap[scriptName];
                                 const status = result ? result.status : s.last_run_status;

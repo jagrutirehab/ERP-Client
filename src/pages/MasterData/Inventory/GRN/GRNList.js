@@ -7,7 +7,16 @@ import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
-const dateFmt = (d) => (d ? new Date(d).toLocaleDateString("en-IN") : "—");
+const dateTimeFmt = (d) =>
+  d
+    ? new Date(d).toLocaleString("en-IN", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+      })
+    : "—";
 
 const tableCustomStyles = {
   headRow: {
@@ -67,10 +76,12 @@ const GRNList = ({ onAdd }) => {
     { name: "GRN Number", selector: (row) => row.grnNumber, sortable: true, width: "160px" },
     {
       name: "PO Number",
+      width: "160px",
       cell: (row) => <span className="uom-cell-muted">{row.poId?.poNumber || "—"}</span>,
     },
     {
       name: "Vendor",
+      minWidth: "170px",
       cell: (row) => (
         <span className="uom-cell-muted">
           {row.poId?.vendorId?.tradeName || row.poId?.vendorId?.legalName || "—"}
@@ -78,19 +89,41 @@ const GRNList = ({ onAdd }) => {
       ),
     },
     {
+      name: "Site",
+      minWidth: "120px",
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.poId?.deliverySiteId?.title || "—"}</span>
+      ),
+    },
+    {
       name: "DI Reference",
+      width: "160px",
       cell: (row) => (
         <span className="uom-cell-muted">{row.deliveryIntimationId?.intimationNumber || "—"}</span>
       ),
     },
     {
-      name: "Received Date",
-      cell: (row) => <span className="uom-cell-muted">{dateFmt(row.receivedDate)}</span>,
+      name: "Qty (Received / Ordered)",
+      width: "170px",
+      cell: (row) => {
+        const received = (row.lineItems || []).reduce((s, li) => s + (li.receivedQty || 0), 0);
+        const ordered = (row.lineItems || []).reduce((s, li) => s + (li.orderedQty || 0), 0);
+        return (
+          <span className="uom-cell-muted">
+            {received} / {ordered}
+          </span>
+        );
+      },
     },
     {
-      name: "Lines",
-      width: "80px",
-      cell: (row) => <span className="uom-cell-muted">{row.lineItems?.length || 0}</span>,
+      name: "Received By",
+      minWidth: "180px",
+      cell: (row) => (
+        <div className="py-1">
+          <span className="uom-cell-muted">{row.createdBy?.name || "—"}</span>
+          <div className="small text-muted">{dateTimeFmt(row.receivedDate)}</div>
+        </div>
+      ),
     },
   ];
 
@@ -119,7 +152,7 @@ const GRNList = ({ onAdd }) => {
         )}
       </div>
 
-      <div className="uom-table-card">
+      <div className="uom-table-card" style={{ overflowX: "auto" }}>
         <DataTable
           columns={columns}
           data={grns}
@@ -130,7 +163,7 @@ const GRNList = ({ onAdd }) => {
           noDataComponent={
             <div className="uom-empty-state">
               <p className="uom-empty-title">No GRNs found</p>
-              <p className="uom-empty-sub">Create one from a received Delivery Intimation.</p>
+              <p className="uom-empty-sub">Create one from an approved Purchase Order.</p>
             </div>
           }
         />

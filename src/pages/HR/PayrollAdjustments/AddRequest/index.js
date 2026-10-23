@@ -2,7 +2,7 @@ import { useNavigate } from 'react-router-dom';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import { usePermissions } from '../../../../Components/Hooks/useRoles';
 import { CardBody, Spinner } from 'reactstrap';
-import PayrollAdjustmentsForm from '../../components/forms/PayrollAdjustmentsForm';
+import PayrollAdjustmentsMultiForm from '../../components/forms/PayrollAdjustmentsMultiForm';
 
 const AddPayrollAdjustmentRequest = () => {
   const navigate = useNavigate();
@@ -37,17 +37,14 @@ const AddPayrollAdjustmentRequest = () => {
       <div className="px-3 pt-3">
         <h5 className="mb-1">Add Payroll Adjustment Request</h5>
         <small className="text-muted">
-          Please fill the form to create a new payroll adjustment request
+          Add one or more payroll adjustment requests and submit them together
         </small>
       </div>
       <hr className="mb-2 border-secondary" />
       <div>
         <div className="d-flex justify-content-center mb-5">
           <div style={{ width: "100%", maxWidth: "700px" }}>
-            <PayrollAdjustmentsForm
-              view="PAGE"
-              hasCreatePermission={hasCreatePermission}
-            />
+            <PayrollAdjustmentsMultiForm hasCreatePermission={hasCreatePermission} />
           </div>
         </div>
       </div>

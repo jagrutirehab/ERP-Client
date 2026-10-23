@@ -151,8 +151,11 @@ const TrainingHistory = () => {
             return (
               <Card key={training?._id} className="mb-3">
                 <CardBody>
-                  <div className="d-flex justify-content-between align-items-start mb-2">
-                    <div style={{ minWidth: 0, flex: "1 1 auto" }}>
+                  <div
+                    className="d-flex justify-content-between align-items-start mb-2"
+                    style={isMobile ? { flexDirection: "column", gap: 8 } : undefined}
+                  >
+                    <div style={{ minWidth: 0, flex: "1 1 auto", ...(isMobile && { width: "100%" }) }}>
                       <h6
                         className="fw-bold mb-1"
                         style={{
@@ -192,29 +195,56 @@ const TrainingHistory = () => {
                             Every {training.repeatFrequency}d
                           </span>
                         )}
-                        {getAudienceLabels(training).map((label, idx) => (
-                          <span
-                            key={label}
-                            style={{
-                              padding: "2px 10px",
-                              borderRadius: 20,
-                              fontSize: 11,
-                              fontWeight: 600,
-                              background:
-                                roleBadgeColors[idx % roleBadgeColors.length] +
-                                "18",
-                              color:
-                                roleBadgeColors[idx % roleBadgeColors.length],
-                              border: `1px solid ${roleBadgeColors[idx % roleBadgeColors.length]}30`,
-                            }}
-                          >
-                            {label}
-                          </span>
-                        ))}
+                        <div
+                          style={
+                            isMobile
+                              ? {
+                                  display: "flex",
+                                  flexWrap: "nowrap",
+                                  gap: 8,
+                                  width: "100%",
+                                  overflowX: "auto",
+                                  WebkitOverflowScrolling: "touch",
+                                  scrollSnapType: "x proximity",
+                                }
+                              : { display: "contents" }
+                          }
+                        >
+                          {getAudienceLabels(training).map((label, idx) => (
+                            <span
+                              key={label}
+                              style={{
+                                padding: "2px 10px",
+                                ...(isMobile && {
+                                  flex: "0 0 auto",
+                                  scrollSnapAlign: "start",
+                                  whiteSpace: "nowrap",
+                                }),
+                                borderRadius: 20,
+                                fontSize: 11,
+                                fontWeight: 600,
+                                background:
+                                  roleBadgeColors[idx % roleBadgeColors.length] +
+                                  "18",
+                                color:
+                                  roleBadgeColors[idx % roleBadgeColors.length],
+                                border: `1px solid ${roleBadgeColors[idx % roleBadgeColors.length]}30`,
+                              }}
+                            >
+                              {label}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
 
-                    <div className="d-flex gap-2 flex-shrink-0 ms-2">
+                    <div
+                      className={
+                        isMobile
+                          ? "d-flex gap-2 flex-wrap"
+                          : "d-flex gap-2 flex-shrink-0 ms-2"
+                      }
+                    >
                       <Button
                         color="secondary"
                         outline

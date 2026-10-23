@@ -3,6 +3,7 @@ import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 import { toast } from "react-toastify";
 import { fetchPayrollAdjustments } from "../../../../../store/features/HR/hrSlice";
@@ -170,7 +171,8 @@ const PendingApprovals = ({ activeTab }) => {
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.employee?.name?.toUpperCase() || "-",
+            selector: row =>
+                formatEmployeeName(row?.employee?.name, row?.employee?.salutation)?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },
@@ -219,17 +221,21 @@ const PendingApprovals = ({ activeTab }) => {
         {
             name: <div>Attachment</div>,
             selector: row => (
-                <div>
-                    {row?.attachment ? (
-                        <span
-                            className="text-primary text-decoration-underline cursor-pointer"
-                            onClick={() => {
-                                setPreviewOpen(true);
-                                setPreviewFile({ url: row.attachment });
-                            }}
-                        >
-                            Preview
-                        </span>
+                <div className="d-flex flex-column align-items-start py-1">
+                    {row?.files?.length ? (
+                        row.files.map((file, idx) => (
+                            <span
+                                key={file.path || idx}
+                                className="text-primary text-decoration-underline cursor-pointer"
+                                title={file.originalName || file.name}
+                                onClick={() => {
+                                    setPreviewOpen(true);
+                                    setPreviewFile(file);
+                                }}
+                            >
+                                {`File ${idx + 1}`}
+                            </span>
+                        ))
                     ) : (
                         "-"
                     )}

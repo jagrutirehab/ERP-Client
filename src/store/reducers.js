@@ -18,6 +18,7 @@ import Alert from "./features/alert/alertSlice";
 
 // notification
 import Notification from "./features/notification/notificationSlice";
+import TrainingNotification from "./features/trainingNotification/trainingNotificationSlice";
 
 // layout
 import Layout from "./features/layouts/layoutsSlice";
@@ -108,6 +109,12 @@ import HRMS from "./features/HRMS/hrmsSlice";
 // Center Dashboard
 import CenterDashboard from "./features/centerDashboard/centerDashboardSlice";
 
+// Reference data (shared lists: centers, vendors, units, departments, payment terms)
+
+import Reference from "./features/reference/referenceSlice";
+// Compliance
+import Compliance from "./features/compliance/complianceSlice";
+
 const rootReducer = combineReducers({
   // ** public **
   User,
@@ -116,6 +123,7 @@ const rootReducer = combineReducers({
   Log,
   Center,
   Notification,
+  TrainingNotification,
   Recyclebin,
   Setting,
   Lead,
@@ -149,6 +157,8 @@ const rootReducer = combineReducers({
   MIReporting,
   HRMS,
   CenterDashboard,
+  Reference,
+  Compliance,
 });
 
 export default rootReducer;

@@ -9,6 +9,8 @@ import {
   updateVendorApprovalStatus,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useDispatch } from "react-redux";
+import { invalidateReferenceList } from "../../../store/features/reference/referenceSlice";
 import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import "./vendor.scss";
 
@@ -54,6 +56,7 @@ const tableCustomStyles = {
 
 const VendorList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
+  const dispatch = useDispatch();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "VENDOR", "WRITE");
@@ -85,6 +88,7 @@ const VendorList = ({ onAdd, onEdit }) => {
     setApprovalSaving(true);
     try {
       await updateVendorApprovalStatus(overviewVendor._id, newStatus);
+      dispatch(invalidateReferenceList("vendors"));
       setOverviewVendor((v) => ({ ...v, approvalStatus: newStatus }));
       toast.success("Approval status updated");
       setRefreshFlag((f) => f + 1);
@@ -136,6 +140,7 @@ const VendorList = ({ onAdd, onEdit }) => {
   const handleStatusChange = async (id, status) => {
     try {
       await updateVendorStatus(id, status);
+      dispatch(invalidateReferenceList("vendors"));
       toast.success(
         status === "active" ? "Vendor activated" : "Vendor deactivated",
       );
@@ -165,6 +170,7 @@ const VendorList = ({ onAdd, onEdit }) => {
         await updateVendorStatus(row._id, "active");
         toast.success("Vendor approved and activated");
       }
+      dispatch(invalidateReferenceList("vendors"));
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -182,6 +188,7 @@ const VendorList = ({ onAdd, onEdit }) => {
     setDeleting(true);
     try {
       await deleteVendor(deleteTarget._id);
+      dispatch(invalidateReferenceList("vendors"));
       toast.success("Vendor deleted successfully");
       setDeleteTarget(null);
       setRefreshFlag((f) => f + 1);
@@ -219,7 +226,7 @@ const VendorList = ({ onAdd, onEdit }) => {
   const hasQuickAction =
     canChangeStatus && vendors.some((v) => v.approvalStatus !== "approved");
   const actionsWidth = hasQuickAction ? "230px" : "150px";
-  
+
   const columns = [
     {
       name: "Vendor Code",

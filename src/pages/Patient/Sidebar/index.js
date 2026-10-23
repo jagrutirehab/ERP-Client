@@ -16,6 +16,7 @@ import { useInView } from "react-hook-inview";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { setTestPageOpen } from "../../../store/features/clinicalTest/clinicalTestSlice";
 import { format } from "date-fns";
+import { ADMIT_PATIENTS } from "../../../Components/constants/patient";
 import { BILL_PAID, BILLING_CYCLE_MISSED, INVOICE_CREATED, NEXT_BILLING_PENDING, NO_BILLING } from "../../../Components/constants/bill";
 
 const Sidebar = ({
@@ -26,9 +27,12 @@ const Sidebar = ({
   centerAccess,
   gender,
   setGender,
+  staff,
+  setStaff,
   loading,
 }) => {
   const dispatch = useDispatch();
+  const staffId = customActiveTab === ADMIT_PATIENTS ? staff?.value : undefined;
   const [loadMoreRef, isVisible] = useInView({
     defaultInView: false,
   });
@@ -39,7 +43,7 @@ const Sidebar = ({
   const lastRequestRef = useRef({ key: null, skip: -1 });
 
   useEffect(() => {
-    const key = `${customActiveTab}|${gender ?? ""}`;
+    const key = `${customActiveTab}|${gender ?? ""}|${staffId ?? ""}`;
     const skip = patients.length ?? 0;
 
     // The filter just changed. Child effects run before the parent's, so at this
@@ -65,6 +69,7 @@ const Sidebar = ({
         type: customActiveTab,
         centerAccess,
         gender,
+        staffId,
         skip,
       })
     );
@@ -73,6 +78,7 @@ const Sidebar = ({
     centerAccess,
     customActiveTab,
     gender,
+    staffId,
     isVisible,
     loading,
     patients.length,
@@ -146,6 +152,9 @@ const Sidebar = ({
               toggleCustom={toggleCustom}
               gender={gender}
               setGender={setGender}
+              staff={staff}
+              setStaff={setStaff}
+              centerAccess={centerAccess}
             />
           </div>
         </div>
@@ -300,6 +309,8 @@ Sidebar.propTypes = {
   centerAccess: PropTypes.array.isRequired,
   gender: PropTypes.string,
   setGender: PropTypes.func,
+  staff: PropTypes.object,
+  setStaff: PropTypes.func,
   loading: PropTypes.bool,
 };
 

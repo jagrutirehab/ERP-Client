@@ -19,6 +19,7 @@ import { setAlertData, setAlertModal } from "../../../../store/actions";
 import PropTypes from "prop-types";
 import AddNoteModal from "./AddNoteModal";
 import { Check, Copy } from "lucide-react";
+import moment from "moment";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
 const statusColors = {
@@ -128,8 +129,14 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                           <span className="text-reset text-capitalize username fs-14 fs-md-16">
                             {profile?.name}
                             <span className="ms-2 text-muted fs-12 fs-md-14">
-                              ({`${profile?.uid}`})
+                              ({`${profile?.uid}`}
+                              {profile?.age ? `, ${profile.age}y` : ""})
                             </span>
+                            {profile?.addmissionDate && (
+                              <span className="ms-2 text-muted fs-12 fs-md-14">
+                                DOA: {moment(profile.addmissionDate).format("DD MMM YY")}
+                              </span>
+                            )}
                           </span>
                           <Link
                             to={`/patient/${id}`}

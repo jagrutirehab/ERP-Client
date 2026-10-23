@@ -120,7 +120,20 @@ const RefundModal = ({ isOpen, toggle, transaction, onDone }) => {
         {transaction && (
           <dl className="row fs-12 mb-3">
             <dt className="col-5 text-muted fw-normal">Original payment</dt>
-            <dd className="col-7">₹{transaction.amount}</dd>
+            <dd className="col-7">
+              ₹{transaction.amount}
+              {transaction.surchargeAmount > 0 && (
+                <div className="text-muted fs-11 mt-1">
+                  (Base: ₹{transaction.baseAmount ?? transaction.amount - transaction.surchargeAmount} + Surcharge: ₹{transaction.surchargeAmount})
+                </div>
+              )}
+            </dd>
+            {transaction.result?.cardType && (
+              <>
+                <dt className="col-5 text-muted fw-normal">Card Type</dt>
+                <dd className="col-7">{transaction.result.cardType}</dd>
+              </>
+            )}
             <dt className="col-5 text-muted fw-normal">Reference</dt>
             <dd className="col-7">{transaction.transactionNumber}</dd>
             {transaction.result?.rrn && (

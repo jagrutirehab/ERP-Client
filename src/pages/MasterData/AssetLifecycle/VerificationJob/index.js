@@ -6,10 +6,10 @@ import {
   getVerificationJobs,
   createVerificationJob,
   updateVerificationJob,
-  getAllCenters,
   getUserLookup,
 } from "../../../../helpers/backend_helper";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../../Components/Hooks/useRoles.js";
 import "../../UnitOfMeasurement/uom.scss";
 
@@ -96,7 +96,12 @@ const UserSearchInput = ({ label, required, value, onChange }) => {
           }}
         >
           {results.map((u) => (
-            <div key={u._id} className="p-2" style={{ cursor: "pointer" }} onMouseDown={() => select(u)}>
+            <div
+              key={u._id}
+              className="p-2"
+              style={{ cursor: "pointer" }}
+              onMouseDown={() => select(u)}
+            >
               {u.name} <span className="text-muted small">({u.email})</span>
             </div>
           ))}
@@ -115,7 +120,7 @@ const VerificationJob = () => {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [refreshFlag, setRefreshFlag] = useState(0);
-  const [centers, setCenters] = useState([]);
+  const { items: centers } = useReferenceList("centers");
 
   const [modalOpen, setModalOpen] = useState(false);
   const [jobName, setJobName] = useState("");
@@ -130,12 +135,6 @@ const VerificationJob = () => {
   const [geoRestrict, setGeoRestrict] = useState(false);
   const [remarks, setRemarks] = useState("");
   const [submitting, setSubmitting] = useState(false);
-
-  useEffect(() => {
-    getAllCenters()
-      .then((res) => setCenters(res?.payload || res?.data || []))
-      .catch(() => {});
-  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -169,8 +168,17 @@ const VerificationJob = () => {
   };
 
   const handleSubmit = async () => {
-    if (!jobName.trim() || !centerId || !supervisorId || !assignedToId || !startDate || !endDate) {
-      return toast.error("Fill in Job Name, Site, Supervisor, Assigned To, Start and End Date");
+    if (
+      !jobName.trim() ||
+      !centerId ||
+      !supervisorId ||
+      !assignedToId ||
+      !startDate ||
+      !endDate
+    ) {
+      return toast.error(
+        "Fill in Job Name, Site, Supervisor, Assigned To, Start and End Date",
+      );
     }
     setSubmitting(true);
     try {
@@ -192,7 +200,11 @@ const VerificationJob = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Something went wrong");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Something went wrong",
+        );
       }
     } finally {
       setSubmitting(false);
@@ -206,30 +218,49 @@ const VerificationJob = () => {
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
-        toast.error(error?.response?.data?.message || error?.message || "Couldn't update.");
+        toast.error(
+          error?.response?.data?.message ||
+            error?.message ||
+            "Couldn't update.",
+        );
       }
     }
   };
 
   const columns = [
-    { name: "Job Code", selector: (row) => row.jobCode, sortable: true, width: "140px" },
+    {
+      name: "Job Code",
+      selector: (row) => row.jobCode,
+      sortable: true,
+      width: "140px",
+    },
     { name: "Job Name", selector: (row) => row.jobName },
     {
       name: "Type",
       width: "150px",
       cell: (row) => (
-        <span className="uom-cell-muted text-capitalize">{row.jobType?.replace("_", " ")}</span>
+        <span className="uom-cell-muted text-capitalize">
+          {row.jobType?.replace("_", " ")}
+        </span>
       ),
     },
     {
       name: "Site",
-      cell: (row) => <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.centerId?.title || "—"}</span>
+      ),
     },
     {
       name: "Assigned To",
-      cell: (row) => <span className="uom-cell-muted">{row.assignedToId?.name || "—"}</span>,
+      cell: (row) => (
+        <span className="uom-cell-muted">{row.assignedToId?.name || "—"}</span>
+      ),
     },
-    { name: "Status", width: "120px", cell: (row) => <StatusPill status={row.status} /> },
+    {
+      name: "Status",
+      width: "120px",
+      cell: (row) => <StatusPill status={row.status} />,
+    },
     {
       name: "Dates",
       cell: (row) => (
@@ -244,11 +275,19 @@ const VerificationJob = () => {
       width: "120px",
       cell: (row) =>
         row.status === "draft" ? (
-          <Button size="sm" color="success" onClick={() => handleStatusChange(row, "active")}>
+          <Button
+            size="sm"
+            color="success"
+            onClick={() => handleStatusChange(row, "active")}
+          >
             Activate
           </Button>
         ) : row.status === "active" ? (
-          <Button size="sm" color="primary" onClick={() => handleStatusChange(row, "completed")}>
+          <Button
+            size="sm"
+            color="primary"
+            onClick={() => handleStatusChange(row, "completed")}
+          >
             Complete
           </Button>
         ) : null,
@@ -279,14 +318,23 @@ const VerificationJob = () => {
           progressPending={loading}
           pagination
           highlightOnHover
-          noDataComponent={<div className="uom-empty-state">No verification jobs yet</div>}
+          noDataComponent={
+            <div className="uom-empty-state">No verification jobs yet</div>
+          }
         />
       </div>
 
-      <Modal isOpen={modalOpen} toggle={() => setModalOpen(false)} centered size="lg">
+      <Modal
+        isOpen={modalOpen}
+        toggle={() => setModalOpen(false)}
+        centered
+        size="lg"
+      >
         <ModalBody className="p-4">
           <h5 className="mb-1">Create New Job</h5>
-          <p className="text-muted small mb-3">Set up a new job with site location and user assignments</p>
+          <p className="text-muted small mb-3">
+            Set up a new job with site location and user assignments
+          </p>
 
           <h6 className="fw-semibold mb-3">Job Information</h6>
           <Row>
@@ -294,13 +342,20 @@ const VerificationJob = () => {
               <Label>
                 Job Name <span className="text-danger">*</span>
               </Label>
-              <Input value={jobName} onChange={(e) => setJobName(e.target.value)} />
+              <Input
+                value={jobName}
+                onChange={(e) => setJobName(e.target.value)}
+              />
             </Col>
             <Col md={6} className="mb-3">
               <Label>
                 Priority <span className="text-danger">*</span>
               </Label>
-              <Input type="select" value={priority} onChange={(e) => setPriority(e.target.value)}>
+              <Input
+                type="select"
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+              >
                 {PRIORITIES.map((p) => (
                   <option key={p} value={p}>
                     {p[0].toUpperCase() + p.slice(1)}
@@ -315,7 +370,11 @@ const VerificationJob = () => {
               <Label>
                 Job Type <span className="text-danger">*</span>
               </Label>
-              <Input type="select" value={jobType} onChange={(e) => setJobType(e.target.value)}>
+              <Input
+                type="select"
+                value={jobType}
+                onChange={(e) => setJobType(e.target.value)}
+              >
                 {JOB_TYPES.map((t) => (
                   <option key={t.value} value={t.value}>
                     {t.label}
@@ -327,7 +386,11 @@ const VerificationJob = () => {
               <Label>
                 Site <span className="text-danger">*</span>
               </Label>
-              <Input type="select" value={centerId} onChange={(e) => setCenterId(e.target.value)}>
+              <Input
+                type="select"
+                value={centerId}
+                onChange={(e) => setCenterId(e.target.value)}
+              >
                 <option value="">Select site</option>
                 {centers.map((c) => (
                   <option key={c._id} value={c._id}>
@@ -373,13 +436,21 @@ const VerificationJob = () => {
               <Label>
                 Start Date <span className="text-danger">*</span>
               </Label>
-              <Input type="date" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+              <Input
+                type="date"
+                value={startDate}
+                onChange={(e) => setStartDate(e.target.value)}
+              />
             </Col>
             <Col md={6} className="mb-3">
               <Label>
                 End Date <span className="text-danger">*</span>
               </Label>
-              <Input type="date" value={endDate} onChange={(e) => setEndDate(e.target.value)} />
+              <Input
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+              />
             </Col>
           </Row>
 
@@ -406,10 +477,18 @@ const VerificationJob = () => {
           />
 
           <div className="d-flex justify-content-end gap-2">
-            <Button color="light" onClick={() => setModalOpen(false)} disabled={submitting}>
+            <Button
+              color="light"
+              onClick={() => setModalOpen(false)}
+              disabled={submitting}
+            >
               Cancel
             </Button>
-            <Button color="primary" onClick={handleSubmit} disabled={submitting}>
+            <Button
+              color="primary"
+              onClick={handleSubmit}
+              disabled={submitting}
+            >
               {submitting ? "Saving..." : "Create Job"}
             </Button>
           </div>
