@@ -904,6 +904,7 @@ export const REVIEW_DOC = "/hr/doc/employee-documents";
 export const CGIS_TEST = "/clinical-test/cgis-test";
 export const COWS_TEST = "/clinical-test/cows-test";
 export const AUDIT_TEST = "/clinical-test/audit-test";
+export const CIWA_B_TEST = "/clinical-test/ciwa-b-test";
 
 // center floors + floor photos
 export const FLOOR_INPUT_POST = "/center-floor/post";

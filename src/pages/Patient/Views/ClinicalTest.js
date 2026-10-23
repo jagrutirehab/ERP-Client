@@ -32,6 +32,7 @@ import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import CGISResultComponent from "./Components/CGISResultComponent";
 import COWSResultComponent from "./Components/COWSResultComponent";
 import AUDITResultComponent from "./Components/AUDITResultComponent";
+import CIWABResultComponent from "./Components/CIWABResultComponent";
 
 const ClinicalTest = ({
   open,
@@ -249,6 +250,11 @@ const ClinicalTest = ({
                                         )}
                                         {test?.testType === 21 && (
                                           <AUDITResultComponent
+                                            resultData={test}
+                                          />
+                                        )}
+                                        {test?.testType === 22 && (
+                                          <CIWABResultComponent
                                             resultData={test}
                                           />
                                         )}

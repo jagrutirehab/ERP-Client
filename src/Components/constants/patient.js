@@ -630,6 +630,7 @@ const testRecord = [
   { name: "CGI-S" },
   { name: "COWS" },
   { name: "AUDIT" },
+  { name: "CIWA-B" },
 ];
 
 const prescriptionFormFields = [

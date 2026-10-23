@@ -162,6 +162,13 @@ const AdmissionSummary = ({ patient, patientProfile, addmission }) => {
         if (s <= 15) return "Hazardous Use";
         if (s <= 19) return "Harmful Use";
         return "Possible Dependence";
+
+      case "CIWA-B":
+        if (s <= 0) return "No Withdrawal";
+        if (s <= 20) return "Mild Withdrawal";
+        if (s <= 40) return "Moderate Withdrawal";
+        if (s <= 60) return "Severe Withdrawal";
+        return "Very Severe Withdrawal";
       default:
         return null;
     }
