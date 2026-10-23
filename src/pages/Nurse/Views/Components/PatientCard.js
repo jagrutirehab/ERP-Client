@@ -204,7 +204,7 @@ const PatientCard = ({ patient, toggleAlertsModal, writable = true }) => {
               <strong>Doctor:</strong> {capitalizeWords(patient.doctorName) || "N/A"}
             </span>
             <span className="d-block text-truncate">
-              <strong>Counselor:</strong> {capitalizeWords(patient.counselorName) || "N/A"}
+              <strong>Psychologist:</strong> {capitalizeWords(patient.counselorName) || "N/A"}
             </span>
           </CardText>
 
