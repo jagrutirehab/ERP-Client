@@ -709,6 +709,8 @@ export const editDetailAdmission = (data) =>
   });
 export const validateChart = (chartId) =>
   api.update(`/chart/${chartId}/validate`);
+export const carryForwardDetailAdmission = (data) =>
+  api.create(url.POST_CARRY_FORWARD_DETAIL_ADMISSION, data);
 export const postGeneralDetailAdmission = (data) =>
   api.create(url.POST_GENERAL_DETAIL_ADMISSION, data, {
     headers: { "Content-Type": "multipart/form-data" },

@@ -21,6 +21,7 @@ const General = ({
             charts={charts ?? []}
             currentAddmissionId={currentAddmissionId}
             isPatientDischarged={isPatientDischarged}
+            isHistoryView
           />
         )}
       </div>

@@ -79,8 +79,16 @@ const Charts = ({
   currentAddmissionId,
   isPatientDischarged,
   chartForm,
+  isHistoryView,
 }) => {
   const dispatch = useDispatch();
+  // The History tab's own list is already the one place that only ever
+  // holds DETAIL_ADMISSION charts, sorted newest-first by the backend — so
+  // the first Detail Admission entry here is exactly "the latest Detail
+  // History record" the Carry Forward feature is scoped to.
+  const latestHistoryDetailAdmissionId = isHistoryView
+    ? (charts || []).find((c) => c.chart === DETAIL_ADMISSION)?._id
+    : undefined;
   const [, forceUpdate] = useState(0);
   // Prescriptions the current user has staged for carry-forward, loaded from
   // the server rather than kept in redux — so the selection survives a page
@@ -404,6 +412,13 @@ const Charts = ({
                   validatorId={chart?.validatorId}
                   doctorValidatorId={chart?.doctorValidatorId}
                   currentAddmissionId={currentAddmissionId}
+                  canCarryForward={
+                    isHistoryView &&
+                    chart._id === latestHistoryDetailAdmissionId &&
+                    !!chart.addmission &&
+                    !!currentAddmissionId &&
+                    String(chart.addmission) !== String(currentAddmissionId)
+                  }
                   hideEdit={
                     chart.chart === PRESCRIPTION &&
                     (String(chart.author?._id || chart.author) !==

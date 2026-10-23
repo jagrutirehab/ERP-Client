@@ -35,9 +35,11 @@ import {
   validateChart,
   validateAISummary,
   validateAIExpirySummary,
+  carryForwardDetailAdmission,
 } from "../../../helpers/backend_helper";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import ValidateConfirmationModal from "../ChartForm/Components/ValidateConfirmationModal";
+import ConfirmationModal from "../../../Components/Common/ConfirmationModal";
 
 const Wrapper = ({
   item,
@@ -67,6 +69,7 @@ const Wrapper = ({
   additionalDiagnosis,
   additionalDiagnosisLoading,
   currentAddmissionId,
+  canCarryForward,
 }) => {
   const dispatch = useDispatch();
   const [showRelatives, setShowRelatives] = React.useState(
@@ -152,6 +155,30 @@ const Wrapper = ({
     }
   };
 
+  const [carryForwardLoading, setCarryForwardLoading] = React.useState(false);
+  const [showCarryForwardModal, setShowCarryForwardModal] =
+    React.useState(false);
+
+  const handleCarryForward = async () => {
+    setCarryForwardLoading(true);
+    try {
+      await carryForwardDetailAdmission({ sourceChartId: item._id });
+      toast.success("Carried forward to current admission");
+      dispatch(
+        fetchGeneralCharts({
+          patient: item.patient,
+          type: "GENERAL",
+          _t: Date.now(),
+        }),
+      );
+    } catch (err) {
+      toast.error(err?.message || "Failed to carry forward");
+    } finally {
+      setCarryForwardLoading(false);
+      setShowCarryForwardModal(false);
+    }
+  };
+
   const handleToggleRelatives = async (e) => {
     e.stopPropagation();
     const newValue = e.target.checked;
@@ -190,6 +217,10 @@ const Wrapper = ({
 
   const isDetailAdmissionValidated =
     chart === DETAIL_ADMISSION && !!item.doctorValidatorId;
+
+  const carryForwardSourceId = item?.carryForwardedFrom?.id
+    ? `${item.carryForwardedFrom.id.prefix}${item.carryForwardedFrom.id.patientId}-${item.carryForwardedFrom.id.value}`
+    : null;
 
   console.log("chartDiagnosis:", chartDiagnosis);
   console.log("item._id:", item._id);
@@ -338,6 +369,13 @@ const Wrapper = ({
                   {item?.author?.role}
                 </h6>
               </div>
+              {item?.isCarryForwarded && (
+                <div className="d-flex align-items-center mt-1">
+                  <span className="badge bg-success">
+                    Carried from {carryForwardSourceId || "previous record"}
+                  </span>
+                </div>
+              )}
               {chart === DETAIL_ADMISSION &&
                 (additionalDiagnosisLoading && !!currentAddmissionId ? (
                   <div className="mt-2 placeholder-glow">
@@ -563,6 +601,18 @@ const Wrapper = ({
                           Add Additional Details
                         </DropdownItem>
                       )}
+                    {false && chart === DETAIL_ADMISSION && canCarryForward && (
+                      <DropdownItem
+                        disabled={carryForwardLoading}
+                        onClick={() => setShowCarryForwardModal(true)}
+                        href="#"
+                      >
+                        <i className="ri-file-copy-2-line align-bottom text-primary me-2"></i>
+                        {carryForwardLoading
+                          ? "Carrying Forward..."
+                          : "Carry to Current Admission"}
+                      </DropdownItem>
+                    )}
                     <RenderWhen
                       isTrue={item?.bill === INVOICE && item.type === IPD}
                     >
@@ -610,6 +660,16 @@ const Wrapper = ({
         toggle={closeModal}
         loading={loading}
         onConfirm={handleConfirm}
+      />
+      <ConfirmationModal
+        isOpen={showCarryForwardModal}
+        toggle={() => setShowCarryForwardModal(false)}
+        title="Carry to Current Admission"
+        message="This will copy this Detail Admission's content into a new record under the patient's current admission. Continue?"
+        confirmText={carryForwardLoading ? "Carrying Forward..." : "Confirm"}
+        confirmColor="primary"
+        confirmDisabled={carryForwardLoading}
+        onConfirm={handleCarryForward}
       />
     </motion.div>
   );
