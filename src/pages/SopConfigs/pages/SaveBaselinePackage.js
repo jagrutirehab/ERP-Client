@@ -55,11 +55,16 @@ const hydrate = (pkg) => ({
     actionGuidance: t.actionGuidance || "",
     referenceSection: t.referenceSection || "",
     selectedRoles: t.routing?.notifyRoles || [],
-    selectedUsers: (t.routing?.notifySpecificUsers || []).map((u) =>
-      typeof u === "string"
-        ? { value: u, label: u }
-        : { value: u._id, label: u.name || u._id },
-    ),
+    // The server resolves the stored employee ids to { value, label } names
+    // (_specificUsersDetailed), like the SOP rule editor. Without it the picker
+    // could only show the raw ids.
+    selectedUsers:
+      t._specificUsersDetailed ||
+      (t.routing?.notifySpecificUsers || []).map((u) =>
+        typeof u === "string"
+          ? { value: u, label: "Unknown employee" }
+          : { value: u._id, label: u.name || "Unknown employee" },
+      ),
     notifyAdmissionDoctor: !!t.routing?.notifyAdmissionDoctor,
     notifyAdmissionPsychologist: !!t.routing?.notifyAdmissionPsychologist,
   })),
