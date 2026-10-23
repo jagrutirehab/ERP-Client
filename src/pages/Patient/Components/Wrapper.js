@@ -601,7 +601,7 @@ const Wrapper = ({
                           Add Additional Details
                         </DropdownItem>
                       )}
-                    {chart === DETAIL_ADMISSION && canCarryForward && (
+                    {false && chart === DETAIL_ADMISSION && canCarryForward && (
                       <DropdownItem
                         disabled={carryForwardLoading}
                         onClick={() => setShowCarryForwardModal(true)}
