@@ -34,6 +34,7 @@ import Belongings from "./Belongings";
 import CGISQuestion from "./Components/CGISQuestion";
 import COWSQuestion from "./Components/COWSQuestion";
 import AUDITQuestion from "./Components/AUDITQuestion";
+import CIWABQuestion from "./Components/CIWABQuestion";
 
 const Views = (props) => {
   const ref = useRef();
@@ -160,6 +161,7 @@ const Views = (props) => {
             {data === "CGI-S" && <CGISQuestion />}
             {data === "COWS" && <COWSQuestion />}
             {data === "AUDIT" && <AUDITQuestion />}
+            {data === "CIWA-B" && <CIWABQuestion />}
           </div>
         )}
       </div>

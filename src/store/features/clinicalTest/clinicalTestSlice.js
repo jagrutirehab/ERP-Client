@@ -19,6 +19,7 @@ import {
   postCGISTest,
   postCOWSTest,
   postAUDITTest,
+  postCIWABTest,
 } from "../../../helpers/backend_helper";
 
 export const fetchClinicalTest = createAsyncThunk(
@@ -230,6 +231,18 @@ export const createCOWSTest = createAsyncThunk(
   async (data, { rejectWithValue }) => {
     try {
       const response = await postCOWSTest(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error);
+    }
+  },
+);
+
+export const createCIWABTest = createAsyncThunk(
+  "createCIWABTest",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await postCIWABTest(data);
       return response;
     } catch (error) {
       return rejectWithValue(error);
@@ -471,6 +484,18 @@ export const clinicalTestSlice = createSlice({
         state.isLoading = false;
       })
       .addCase(createCOWSTest.rejected, (state) => {
+        state.isLoading = false;
+      });
+
+    // create CIWA-B Test
+    builder
+      .addCase(createCIWABTest.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(createCIWABTest.fulfilled, (state) => {
+        state.isLoading = false;
+      })
+      .addCase(createCIWABTest.rejected, (state) => {
         state.isLoading = false;
       });
 
