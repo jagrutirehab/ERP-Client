@@ -3,6 +3,7 @@ import { Page, Document, StyleSheet } from "@react-pdf/renderer";
 
 import Header from "./Header";
 import Table from "./Table";
+import ProcedureBreakdownTable from "./ProcedureBreakdownTable";
 import Footer from "./Footer";
 
 const styles = StyleSheet.create({
@@ -35,6 +36,7 @@ const Ledger = ({ patient, admission, center, rows, totals }) => {
       <Page size="A4" style={styles.page}>
         <Header patient={patient} admission={admission} center={activeCenter} />
         <Table rows={rows} totals={totals} />
+        <ProcedureBreakdownTable rows={rows} />
         <Footer />
       </Page>
     </Document>
