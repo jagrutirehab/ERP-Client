@@ -51,6 +51,7 @@ export const TARGET_OPTIONS = [
   { value: "cowsTest", label: "COWS Test" },
   { value: "auditTest", label: "AUDIT Test" },
   { value: "cgisTest", label: "CGI-S Test" },
+  { value: "ciwaBTest", label: "CIWA-B Test" },
 ];
 export const OPERATOR_OPTIONS = [
   ...[

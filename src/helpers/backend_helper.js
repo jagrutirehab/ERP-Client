@@ -5592,6 +5592,14 @@ export const postCOWSTest = (data) =>
     },
   });
 
+export const postCIWABTest = (data) =>
+  api.create(url.CIWA_B_TEST, data, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+      "X-No-Cookie-Token": "true",
+    },
+  });
+
 export const postAUDITTest = (data) =>
   api.create(url.AUDIT_TEST, data, {
     headers: {

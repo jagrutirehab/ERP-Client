@@ -662,6 +662,8 @@ const testRecord = [
   { name: "Ramsay Sedation Scale" },
   { name: "GCS" },
   { name: "COWS" },
+  { name: "AUDIT" },
+  { name: "CIWA-B" },
 ];
 
 const prescriptionFormFields = [

@@ -98,6 +98,15 @@ const testInfo = [
     name: "AUDIT: Alcohol Use Disorders Identification Test",
     totalScore: 40,
   },
+  {
+    type: 22,
+    name: "CIWA-B: Clinical Institute Withdrawal Assessment – Benzodiazepines",
+    totalScore: 80,
+    subScores: [
+      { label: "Part A – Patient-rated (max 68)", key: "systemPartAScore" },
+      { label: "Part B – Clinician-observed (max 12)", key: "systemPartBScore" },
+    ],
+  },
 ];
 
 const panssScoreToAnswer = {
