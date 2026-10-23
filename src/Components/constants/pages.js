@@ -1052,20 +1052,8 @@ export const HR = [
     isAccordion: true,
     children: [
       {
-        id: "add-biometric-request",
-        label: "JRC Mapping",
-        icon: "bx bx-plus",
-        link: "/hr/biometric/add",
-      },
-      {
-        id: "get-biometric-addition-requests",
-        label: "Get Biometric Addition Requests",
-        icon: "bx bx-user-plus",
-        link: "/hr/biometric/addition/requests",
-      },
-      {
         id: "add-new-joining-biometric",
-        label: "New Joining JRC Mapping",
+        label: "New Joining Biometric Creation",
         icon: "bx bx-user-check",
         link: "/hr/biometric/new-joining/add",
       },
@@ -1074,6 +1062,18 @@ export const HR = [
         label: "New Joining Biometric Requests",
         icon: "bx bx-check-shield",
         link: "/hr/biometric/new-joining/requests",
+      },
+      {
+        id: "add-biometric-request",
+        label: "JRC Mapping with Biometric ID",
+        icon: "bx bx-plus",
+        link: "/hr/biometric/add",
+      },
+      {
+        id: "get-biometric-addition-requests",
+        label: "Get Biometric Addition Requests",
+        icon: "bx bx-user-plus",
+        link: "/hr/biometric/addition/requests",
       },
       // {
       //   id: "get-biometric-my-requests",
@@ -1744,16 +1744,24 @@ export const Compliance = [
     icon: "bx bx-check-shield",
   },
   {
-    id: "compliance-my-drafts",
-    label: "My Drafts",
-    link: "/compliance/my-drafts",
-    icon: "bx bx-edit",
-  },
-  {
-    id: "compliance-all-drafts",
-    label: "All Drafts",
-    link: "/compliance/drafts",
+    id: "compliance-drafts",
+    label: "Drafts",
     icon: "bx bx-folder-open",
+    isAccordion: true,
+    children: [
+      {
+        id: "compliance-my-drafts",
+        label: "My Drafts",
+        link: "/compliance/my-drafts",
+        icon: "bx bx-edit",
+      },
+      {
+        id: "compliance-all-drafts",
+        label: "All Drafts",
+        link: "/compliance/drafts",
+        icon: "bx bx-folder-open",
+      },
+    ],
   },
 ];
 export const MASTER_DATA = [

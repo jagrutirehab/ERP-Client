@@ -16,9 +16,9 @@ const PersonCell = ({ person }) => (
 );
 
 const statusMap = {
-  addition_pending: "PENDING",
-  addition_approved: "APPROVED",
-  addition_rejected: "REJECTED",
+  pending: "PENDING",
+  approved: "APPROVED",
+  rejected: "REJECTED",
 };
 
 const roundButton = {
@@ -39,47 +39,14 @@ export const NewJoiningBiometricColumn = ({
 } = {}) => [
     {
       name: "Name",
-      selector: (row) => row?.employee?.name?.toUpperCase() || "-",
+      selector: (row) => row?.employeeName?.toUpperCase() || "-",
       sortable: true,
       minWidth: "160px",
       wrap: true,
     },
-    ...(tab === "HISTORY"
-      ? [
-          {
-            name: "ECode",
-            selector: (row) => row?.employee?.eCode || "-",
-            sortable: true,
-            minWidth: "120px",
-            wrap: true,
-          },
-        ]
-      : []),
     {
       name: "Center",
-      selector: (row) => row?.employee?.currentLocation?.title || "-",
-      sortable: true,
-      minWidth: "150px",
-      wrap: true,
-    },
-    {
-      name: "Department",
-      selector: (row) =>
-        normalizeText(row?.employee?.department?.department) || "-",
-      sortable: true,
-      minWidth: "150px",
-      wrap: true,
-    },
-    {
-      name: "Designation",
-      selector: (row) => normalizeText(row?.employee?.designation?.name) || "-",
-      sortable: true,
-      minWidth: "150px",
-      wrap: true,
-    },
-    {
-      name: "Position",
-      selector: (row) => normalizeText(row?.employee?.positionName) || "-",
+      selector: (row) => row?.center?.title || "-",
       sortable: true,
       minWidth: "150px",
       wrap: true,
@@ -209,7 +176,7 @@ export const NewJoiningBiometricColumn = ({
                 style={{
                   fontSize: "13px",
                   color:
-                    row.status === "addition_rejected" ? "#dc3545" : "inherit",
+                    row.status === "rejected" ? "#dc3545" : "inherit",
                 }}
               >
                 {row.reason}

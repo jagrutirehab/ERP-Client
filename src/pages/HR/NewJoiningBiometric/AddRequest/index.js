@@ -55,9 +55,9 @@ const AddNewJoiningBiometric = () => {
       }
     >
       <div className="px-3 pt-3">
-        <h5 className="mb-1">New Joining JRC Mapping</h5>
+        <h5 className="mb-1">New Joining Biometric Creation</h5>
         <small className="text-muted">
-          Map a biometric ID for a new joining that is pending approval.
+          Create a biometric ID mapping for a new joining by entering their name and center.
         </small>
       </div>
       <hr className="mb-2 border-secondary" />

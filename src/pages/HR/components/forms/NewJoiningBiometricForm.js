@@ -1,72 +1,24 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import Select from "react-select";
 import { Button, FormGroup, Label, Input, Spinner } from "reactstrap";
 import { Plus, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
-import { useSelector } from "react-redux";
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
-import {
-  addNewJoiningBiometricData,
-  searchExitEmployee,
-} from "../../../../helpers/backend_helper";
-
-const debounce = (fn, delay = 400) => {
-  let timer;
-  return (...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  };
-};
+import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions";
+import { addNewJoiningBiometricData } from "../../../../helpers/backend_helper";
 
 const emptyShift = { shift: "", answers: "" };
 
 const NewJoiningBiometricForm = ({ hasCreatePermission }) => {
-  const [selectedEmployee, setSelectedEmployee] = useState(null);
+  const [employeeName, setEmployeeName] = useState("");
+  const [selectedCenter, setSelectedCenter] = useState(null);
   const [biometricId, setBiometricId] = useState("");
   const [loading, setLoading] = useState(false);
-  const [employees, setEmployees] = useState([]);
-  const [loadingEmployees, setLoadingEmployees] = useState(false);
-  const [searchText, setSearchText] = useState("");
   const [shifts, setShifts] = useState([{ ...emptyShift }]);
   const [errors, setErrors] = useState({});
 
-  const { centerAccess } = useSelector((state) => state.User);
+  const centerOptions = useCenterOptions({ includeAll: false });
   const handleAuthError = useAuthError();
-
-  const fetchEmployees = async (text) => {
-    if (!text || text.trim().length < 2) {
-      setEmployees([]);
-      return;
-    }
-    try {
-      setLoadingEmployees(true);
-      const response = await searchExitEmployee({
-        query: text.trim(),
-        centers: centerAccess,
-        view: "NEW_JOINING_BIOMETRIC",
-      });
-      setEmployees(
-        (response?.data || []).map((emp) => ({
-          value: emp._id,
-          label: emp.name,
-          center: emp.currentLocation,
-        })),
-      );
-    } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message || "Failed to fetch employees",
-        );
-      }
-    } finally {
-      setLoadingEmployees(false);
-    }
-  };
-
-  const debouncedFetchEmployees = useMemo(
-    () => debounce(fetchEmployees, 400),
-    [centerAccess],
-  );
 
   const handleShiftChange = (index, field, value) => {
     setShifts((prev) =>
@@ -76,19 +28,19 @@ const NewJoiningBiometricForm = ({ hasCreatePermission }) => {
 
   const validate = () => {
     const newErrors = {};
-    if (!selectedEmployee) newErrors.employee = "Employee is required";
+    if (!employeeName.trim()) newErrors.employeeName = "Employee name is required";
+    if (!selectedCenter) newErrors.center = "Center is required";
     if (!biometricId.trim()) newErrors.biometricId = "Biometric ID is required";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const resetForm = () => {
-    setSelectedEmployee(null);
+    setEmployeeName("");
+    setSelectedCenter(null);
     setBiometricId("");
     setShifts([{ ...emptyShift }]);
     setErrors({});
-    setSearchText("");
-    setEmployees([]);
   };
 
   const handleSubmit = async () => {
@@ -96,7 +48,8 @@ const NewJoiningBiometricForm = ({ hasCreatePermission }) => {
     setLoading(true);
     try {
       await addNewJoiningBiometricData({
-        employeeId: selectedEmployee.value,
+        employeeName: employeeName.trim(),
+        center: selectedCenter.value,
         biometricId: biometricId.trim(),
         shifts: shifts.filter((s) => s.shift.trim()),
       });
@@ -119,54 +72,46 @@ const NewJoiningBiometricForm = ({ hasCreatePermission }) => {
     <div>
       <FormGroup>
         <Label>
-          Employee <span className="text-danger">*</span>
+          Employee Name <span className="text-danger">*</span>
         </Label>
-        <small className="text-danger d-block mb-1">
-          * Only showing new joinings that are pending approval
-        </small>
-        <Select
-          placeholder="Search by name..."
-          isClearable
-          isLoading={loadingEmployees}
-          options={employees}
-          value={selectedEmployee}
-          onInputChange={(value, { action }) => {
-            if (action === "input-change") {
-              setSearchText(value);
-              debouncedFetchEmployees(value);
-            }
+        <Input
+          type="text"
+          placeholder="Enter employee name"
+          value={employeeName}
+          onChange={(e) => {
+            setEmployeeName(e.target.value);
+            if (errors.employeeName)
+              setErrors((prev) => ({ ...prev, employeeName: "" }));
           }}
-          onChange={(option) => {
-            setSelectedEmployee(option || null);
-            if (errors.employee)
-              setErrors((prev) => ({ ...prev, employee: "" }));
-          }}
-          noOptionsMessage={() => {
-            if (loadingEmployees) return "Searching...";
-            if (searchText.trim().length < 2)
-              return "Type at least 2 characters";
-            return "No new joining found";
-          }}
-          classNamePrefix="react-select"
         />
-        {errors.employee && (
+        {errors.employeeName && (
           <div className="text-danger mt-1" style={{ fontSize: "13px" }}>
-            {errors.employee}
+            {errors.employeeName}
           </div>
         )}
       </FormGroup>
 
-      {selectedEmployee && (
-        <FormGroup>
-          <Label>Center</Label>
-          <Input
-            type="text"
-            value={selectedEmployee.center || "-"}
-            disabled
-            style={{ backgroundColor: "#f4f4f4", cursor: "not-allowed" }}
-          />
-        </FormGroup>
-      )}
+      <FormGroup>
+        <Label>
+          Center <span className="text-danger">*</span>
+        </Label>
+        <Select
+          placeholder="Select Center"
+          isClearable
+          options={centerOptions}
+          value={selectedCenter}
+          onChange={(option) => {
+            setSelectedCenter(option || null);
+            if (errors.center) setErrors((prev) => ({ ...prev, center: "" }));
+          }}
+          classNamePrefix="react-select"
+        />
+        {errors.center && (
+          <div className="text-danger mt-1" style={{ fontSize: "13px" }}>
+            {errors.center}
+          </div>
+        )}
+      </FormGroup>
 
       <FormGroup>
         <Label>

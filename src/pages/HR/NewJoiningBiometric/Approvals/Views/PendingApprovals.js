@@ -94,7 +94,7 @@ const PendingApprovals = ({
       const centers =
         selectedCenter === "ALL" ? user?.centerAccess : [selectedCenter];
       const response = await getNewJoiningBiometricData({
-        status: "addition_pending",
+        status: "pending",
         page,
         limit,
         centers,
@@ -130,8 +130,7 @@ const PendingApprovals = ({
     try {
       await actionOnNewJoiningBiometricData({
         doc_id: selectedRow?._id,
-        status:
-          actionType === "APPROVE" ? "addition_approved" : "addition_rejected",
+        status: actionType === "APPROVE" ? "approved" : "rejected",
         ...(note.trim() && { reason: note.trim() }),
       });
       toast.success(
@@ -240,7 +239,7 @@ const PendingApprovals = ({
         }}
         onSubmit={handleAction}
         mode="NEW_JOINING_BIOMETRIC"
-        targetName={selectedRow?.employee?.name}
+        targetName={selectedRow?.employeeName}
         loading={modalLoading}
         actionType={actionType}
         note={note}

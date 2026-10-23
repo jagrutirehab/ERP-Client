@@ -454,20 +454,20 @@ export const permissionList = [
         label: "My Hiring Status",
       },
       {
-        name: "BIOMETRIC_ADDITION_REQUEST",
-        label: "JRC Mapping",
-      },
-      {
-        name: "GET_BIOMETRIC_ADDITION_REQUESTS",
-        label: "Get Biometric Addition Requests",
-      },
-      {
         name: "NEW_JOINING_BIOMETRIC_MAPPING",
-        label: "New Joining JRC Mapping",
+        label: "New Joining Biometric Creation",
       },
       {
         name: "NEW_JOINING_BIOMETRIC_REQUESTS",
         label: "New Joining Biometric Requests",
+      },
+      {
+        name: "BIOMETRIC_ADDITION_REQUEST",
+        label: "JRC Mapping with Biometric ID",
+      },
+      {
+        name: "GET_BIOMETRIC_ADDITION_REQUESTS",
+        label: "Get Biometric Addition Requests",
       },
       // {
       //   name: "GET_MY_BIOMETRIC_REQUESTS",
