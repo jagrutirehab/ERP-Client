@@ -8,10 +8,13 @@ import {
   updatePaymentTerm,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useDispatch } from "react-redux";
+import { invalidateReferenceList } from "../../../store/features/reference/referenceSlice";
 import "../UnitOfMeasurement/uom.scss";
 
 const PaymentTermForm = ({ editingItem, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
+  const dispatch = useDispatch();
 
   const validation = useFormik({
     initialValues: {
@@ -61,6 +64,15 @@ const PaymentTermForm = ({ editingItem, onSaved, onCancel }) => {
           await createPaymentTerm(payload);
           toast.success("Payment term created successfully");
         }
+        if (editingItem) {
+          await updatePaymentTerm(editingItem._id, payload);
+          toast.success("Payment term updated successfully");
+        } else {
+          await createPaymentTerm(payload);
+          toast.success("Payment term created successfully");
+        }
+        dispatch(invalidateReferenceList("paymentTerms"));
+        onSaved();
         onSaved();
       } catch (error) {
         if (!handleAuthError(error)) {

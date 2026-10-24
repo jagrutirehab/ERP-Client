@@ -25,6 +25,7 @@ const HRFilter = ({ setPage, reportDate, setReportDate, search, selectedCenter, 
             setSelectedCenter("ALL");
             setPage(1);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedCenter, user?.centerAccess]);
 
     useEffect(() => {
@@ -34,6 +35,7 @@ const HRFilter = ({ setPage, reportDate, setReportDate, search, selectedCenter, 
         }, 500);
 
         return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     return (

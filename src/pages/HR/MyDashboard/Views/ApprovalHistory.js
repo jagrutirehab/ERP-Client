@@ -78,6 +78,7 @@ const ApprovalHistory = ({ activeTab }) => {
     if (activeTab === "HISTORY" && hasUserPermission) {
       fetchApprovalHistory();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, selectedCenter, type, centerAccess, activeTab]);
 
   const columns = [

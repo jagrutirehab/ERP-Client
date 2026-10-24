@@ -7,7 +7,6 @@ import { useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../../../Components/Hooks/useRoles";
-import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchEmployeeTransfers } from "../../../../../store/features/HR/hrSlice";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
@@ -19,7 +18,7 @@ const PendingApprovals = ({ activeTab }) => {
     const user = useSelector((state) => state.User);
     const { data, pagination, loading } = useSelector((state) => state.HR);
     const handleAuthError = useAuthError();
-    const [searchParams, setSearchParams] = useSearchParams();
+    const [searchParams] = useSearchParams();
     const querySearch = searchParams.get("q") || "";
     const queryCenter = searchParams.get("center") || "ALL";
     const [search, setSearch] = useState(querySearch);
@@ -34,7 +33,6 @@ const PendingApprovals = ({ activeTab }) => {
     const { hasPermission } = usePermissions(token);
     const hasUserPermission = hasPermission("HR", "TRANSFER_EMPLOYEE_CURRENT_LOCATION_APPROVAL", "READ");
 
-    const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const centerOptions = useCenterOptions();
 
@@ -68,6 +66,7 @@ const PendingApprovals = ({ activeTab }) => {
         setDebouncedSearch(q);
         setSelectedCenter(c);
         setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab]);
 
     const fetchPendingEmployeeTransferApprovals = async () => {
@@ -95,6 +94,7 @@ const PendingApprovals = ({ activeTab }) => {
         if (activeTab === "HISTORY" && hasUserPermission) {
             fetchPendingEmployeeTransferApprovals();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab]);
 
     const columns = [

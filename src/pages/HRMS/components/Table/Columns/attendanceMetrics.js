@@ -7,7 +7,6 @@ export const attendanceMetricsColumns = ({ onNavigate, hasUserAllViewPermission,
      {
         name: <div>Actions</div>,
         cell: (row) => {
-            console.log("Type", type);
 
 
             return (

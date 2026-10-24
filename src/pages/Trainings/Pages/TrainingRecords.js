@@ -8,6 +8,9 @@ import { deleteTrainerRecord, getTrainerRecords } from "../../../helpers/backend
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import EditTrainerModal from "../Components/EditTrainerModal";
 import DeleteTrainerModal from "../Components/DeleteTrainerModal";
+import AttachmentList from "../Components/AttachmentList";
+import TrainerVideoList from "../Components/TrainerVideoList";
+import { onTrainerVideoChange } from "../../../helpers/trainerVideoEvents";
 import { usePermissions } from '../../../Components/Hooks/useRoles'
 
 const LIMIT = 5;
@@ -56,6 +59,8 @@ const TrainingCard = ({ record, onEdit, onDelete }) => {
                         <span><i className="ri-group-line me-1" />{totalAttendees} attendees</span>
                         <span><i className="ri-user-line me-1" />by {record?.author?.name || "—"}</span>
                     </div>
+                    <AttachmentList files={record?.files} />
+                    <TrainerVideoList videos={record?.videos} />
                 </div>
 
                 <div className="px-3 py-2 d-flex align-items-center justify-content-between" style={{ background: '#f9fafb', borderTop: '1px solid #f1f5f9' }}>
@@ -146,6 +151,8 @@ const TrainingRecords = () => {
         fetchRecords();
     }, [fetchRecords]);
 
+    useEffect(() => onTrainerVideoChange(() => fetchRecords()), [fetchRecords]);
+
     const handleApply = () => {
         setAppliedFrom(from);
         setAppliedTo(to);
@@ -163,13 +170,11 @@ const TrainingRecords = () => {
     const handleDelete = async () => {
         setDeleteLoading(true)
         try {
-            console.log("deleteRecord._id", deleteRecord._id);
             await deleteTrainerRecord(deleteRecord._id)
             toast.success("Record deleted successfully")
             setDeleteRecord(null)
             fetchRecords()
         } catch (error) {
-            console.log("Error", error)
             toast.error(error?.message || "Error deleting record")
         } finally {
             setDeleteLoading(false);

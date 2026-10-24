@@ -1,9 +1,8 @@
 import React from "react";
-import { StyleSheet, View, Image, Text, Font } from "@react-pdf/renderer";
+import { StyleSheet, View, Text, Font } from "@react-pdf/renderer";
 import toWords from "../../../../utils/toWords";
 
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
-import { OPD, REFUND } from "../../../constants/patient";
 
 Font.register({
   family: "Roboto",

@@ -3,6 +3,10 @@ import { useParams, useNavigate } from "react-router-dom";
 import { CardBody, Collapse, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
 import { getTrainerRecordById } from "../../../helpers/backend_helper";
+import AttachmentList from "../Components/AttachmentList";
+import TrainerVideoList from "../Components/TrainerVideoList";
+import { onTrainerVideoChange } from "../../../helpers/trainerVideoEvents";
+import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 
 const formatDate = (d) =>
   d
@@ -22,13 +26,62 @@ const RoleBadge = ({ role }) => (
     </span>
 );
 
+const roleBadgeColors = ["#3b82f6", "#8b5cf6", "#f59e0b", "#ec4899", "#14b8a6"];
+
+const CenterBadges = ({ centers, isMobile }) => {
+    if (!centers.length) {
+        return <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>—</p>;
+    }
+    return (
+        <div
+            style={
+                isMobile
+                    ? {
+                        display: "flex",
+                        flexWrap: "nowrap",
+                        gap: 8,
+                        width: "100%",
+                        overflowX: "auto",
+                        WebkitOverflowScrolling: "touch",
+                        scrollSnapType: "x proximity",
+                    }
+                    : { display: "flex", flexWrap: "wrap", gap: 8 }
+            }
+        >
+            {centers.map((name, idx) => (
+                <span
+                    key={name}
+                    style={{
+                        padding: "2px 10px",
+                        ...(isMobile && { flex: "0 0 auto", scrollSnapAlign: "start", whiteSpace: "nowrap" }),
+                        borderRadius: 20,
+                        fontSize: 11,
+                        fontWeight: 600,
+                        background: roleBadgeColors[idx % roleBadgeColors.length] + "18",
+                        color: roleBadgeColors[idx % roleBadgeColors.length],
+                        border: `1px solid ${roleBadgeColors[idx % roleBadgeColors.length]}30`,
+                    }}
+                >
+                    {name}
+                </span>
+            ))}
+        </div>
+    );
+};
+
 const TrainingRecordDetail = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const [data, setData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [openRoles, setOpenRoles] = useState({});
+    const [reloadKey, setReloadKey] = useState(0);
+
+    useEffect(() => onTrainerVideoChange((recordId) => {
+        if (!recordId || recordId === id) setReloadKey((key) => key + 1);
+    }), [id]);
 
     useEffect(() => {
         const fetch = async () => {
@@ -37,7 +90,7 @@ const TrainingRecordDetail = () => {
                 const res = await getTrainerRecordById(id);
                 setData(res?.data);
                 if (res?.data?.attendanceData?.length) {
-                    setOpenRoles({ [res.data.attendanceData[0]?.role]: true });
+                    setOpenRoles({ [res.data.attendanceData[0]?.position]: true });
                 }
             } catch {
                 toast.error("Failed to load record");
@@ -46,7 +99,7 @@ const TrainingRecordDetail = () => {
             }
         };
         fetch();
-    }, [id]);
+    }, [id, reloadKey]);
 
     const toggleRole = (role) =>
         setOpenRoles((prev) => ({ ...prev, [role]: !prev[role] }));
@@ -55,20 +108,22 @@ const TrainingRecordDetail = () => {
         (sum, d) => sum + (d?.presents?.length || 0), 0
     ) || 0;
 
-    const centerNames = data?.center?.map((c) => c?.title).filter(Boolean).join(", ") || "—";
+    const centerList = data?.center?.map((c) => c?.title).filter(Boolean) || [];
+    const centerNames = centerList.join(", ") || "—";
 
     return (
-        <CardBody className="p-4 bg-white" style={{ width: "78%" }}>
+        <CardBody className={isMobile ? "px-2 py-4 bg-white" : "p-4 bg-white"} style={{ width: isMobile ? "100%" : "78%" }}>
             <div className="d-flex align-items-center gap-3 mb-4">
                 <button className="btn btn-outline-secondary btn-sm" onClick={() => navigate(-1)}>
                     <i className="ri-arrow-left-line" />
                 </button>
-                <div className="flex-grow-1">
+                <div className="flex-grow-1" style={{ minWidth: 0 }}>
                     <h5 className="fw-bold mb-0">{data?.trainingName || "Training Detail"}</h5>
                     {data && (
-                        <small className="text-muted">
-                            by {data?.author?.name || "—"} · {centerNames}
-                        </small>
+                        <div className="d-flex align-items-center flex-wrap gap-1 text-muted small">
+                            <span>by {data?.author?.name || "—"} ·</span>
+                            <CenterBadges centers={centerList} isMobile={isMobile} />
+                        </div>
                     )}
                 </div>
             </div>
@@ -82,12 +137,12 @@ const TrainingRecordDetail = () => {
                     <div className="row g-3 mb-4">
                         {[
                             { label: "Trainer", value: data?.trainerName, icon: "ri-user-line" },
-                            { label: "Centers", value: centerNames, icon: "ri-building-line" },
+                            { label: "Centers", value: centerNames, icon: "ri-building-line", render: () => <CenterBadges centers={centerList} isMobile={isMobile} /> },
                             { label: "From", value: formatDate(data?.from), icon: "ri-calendar-line" },
                             { label: "To", value: formatDate(data?.to), icon: "ri-calendar-check-line" },
                             { label: "Total Hours", value: data?.totalHours ? `${Math.floor(data.totalHours)}h ${Math.round((data.totalHours % 1) * 60)}m` : "—", icon: "ri-time-line" },
                             { label: "Total Attendees", value: totalAttendees, icon: "ri-group-line" },
-                        ].map(({ label, value, icon }) => (
+                        ].map(({ label, value, icon, render }) => (
                             <div className="col-sm-4 col-6" key={label}>
                                 <div className="p-3 rounded-3 border" style={{ background: "#f8fafc" }}>
                                     <div className="d-flex align-items-center gap-2 mb-1">
@@ -96,7 +151,7 @@ const TrainingRecordDetail = () => {
                                             {label}
                                         </span>
                                     </div>
-                                    <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>{value || "—"}</p>
+                                    {render ? render() : <p className="mb-0 fw-semibold" style={{ fontSize: 13 }}>{value || "—"}</p>}
                                 </div>
                             </div>
                         ))}
@@ -112,41 +167,61 @@ const TrainingRecordDetail = () => {
                         </div>
                     )}
 
+                    {data?.files?.length > 0 && (
+                        <div className="mb-4 p-3 rounded-3 border" style={{ background: "#f8fafc" }}>
+                            <div className="d-flex align-items-center gap-2 mb-1">
+                                <i className="ri-attachment-2 text-primary" style={{ fontSize: 14 }} />
+                                <span className="text-muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>Attachments</span>
+                            </div>
+                            <AttachmentList files={data.files} />
+                        </div>
+                    )}
+
+                    {data?.videos?.length > 0 && (
+                        <div className="mb-4 p-3 rounded-3 border" style={{ background: "#f8fafc" }}>
+                            <div className="d-flex align-items-center gap-2 mb-1">
+                                <i className="ri-movie-line text-primary" style={{ fontSize: 14 }} />
+                                <span className="text-muted" style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: 0.5 }}>Video</span>
+                            </div>
+                            <TrainerVideoList videos={data.videos} />
+                        </div>
+                    )}
+
                     <p className="fw-semibold small text-muted mb-3" style={{ textTransform: "uppercase", letterSpacing: "0.5px" }}>
-                        Attendees by Role
+                        Attendees by Position
                     </p>
 
                     {!data?.attendanceData?.length ? (
                         <p className="text-muted text-center py-4" style={{ fontSize: 13 }}>No attendance data</p>
                     ) : (
                         data.attendanceData.map((entry) => (
-                            <div key={entry?.role} style={{ border: "1px solid #e5e7eb", borderRadius: 10, marginBottom: 10, overflow: "hidden" }}>
+                            <div key={entry?.position} style={{ border: "1px solid #e5e7eb", borderRadius: 10, marginBottom: 10, overflow: "hidden" }}>
                                 <div
-                                    onClick={() => toggleRole(entry?.role)}
+                                    onClick={() => toggleRole(entry?.position)}
                                     style={{
                                         padding: "14px 18px",
-                                        background: openRoles[entry?.role] ? "#eff6ff" : "#f9fafb",
+                                        background: openRoles[entry?.position] ? "#eff6ff" : "#f9fafb",
                                         display: "flex", alignItems: "center", justifyContent: "space-between",
                                         cursor: "pointer",
-                                        borderBottom: openRoles[entry?.role] ? "1px solid #bfdbfe" : "none",
+                                        borderBottom: openRoles[entry?.position] ? "1px solid #bfdbfe" : "none",
                                     }}
                                 >
                                     <div className="d-flex align-items-center gap-3">
                                         <span style={{ width: 8, height: 8, borderRadius: "50%", background: "#3b82f6", display: "inline-block", flexShrink: 0 }} />
-                                        <span className="fw-semibold" style={{ fontSize: 14, color: "#1d4ed8" }}>{entry?.role}</span>
+                                        <span className="fw-semibold" style={{ fontSize: 14, color: "#1d4ed8" }}>{entry?.positionName}</span>
                                         <span className="badge bg-primary" style={{ fontSize: 10 }}>
                                             {entry?.presents?.length || 0}
                                         </span>
                                     </div>
-                                    <i className={`ri-arrow-${openRoles[entry?.role] ? "up" : "down"}-s-line text-muted`} />
+                                    <i className={`ri-arrow-${openRoles[entry?.position] ? "up" : "down"}-s-line text-muted`} />
                                 </div>
 
-                                <Collapse isOpen={!!openRoles[entry?.role]}>
-                                    <div style={{ padding: 16 }}>
+                                <Collapse isOpen={!!openRoles[entry?.position]}>
+                                    <div style={{ padding: 16, overflowX: "auto" }}>
                                         <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
                                             <thead>
                                                 <tr>
-                                                    {["#", "Name", "Email", "Access Role", "Role"].map((h) => (
+                                                    {["#", "Name", "eCode", "Position", "Department", "Designation"].map((h) => (
                                                         <th key={h} style={{ padding: "9px 12px", background: "#f8fafc", color: "#6b7280", fontWeight: 600, textAlign: "left", borderBottom: "1px solid #e5e7eb", whiteSpace: "nowrap" }}>
                                                             {h}
                                                         </th>
@@ -155,12 +230,13 @@ const TrainingRecordDetail = () => {
                                             </thead>
                                             <tbody>
                                                 {entry?.presents?.map((p, i) => (
-                                                    <tr key={p?.user?._id || i} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                                                    <tr key={p?.employee?._id || i} style={{ borderBottom: "1px solid #f1f5f9" }}>
                                                         <td style={{ padding: "9px 12px", color: "#9ca3af" }}>{i + 1}</td>
-                                                        <td style={{ padding: "9px 12px", fontWeight: 600, color: "#111827" }}>{p?.user?.name || "—"}</td>
-                                                        <td style={{ padding: "9px 12px", color: "#6b7280" }}>{p?.user?.email || "—"}</td>
-                                                        <td style={{ padding: "9px 12px" }}><RoleBadge role={p?.user?.accessRole || "—"} /></td>
-                                                        <td style={{ padding: "9px 12px" }}><RoleBadge role={p?.user?.role || "—"} /></td>
+                                                        <td style={{ padding: "9px 12px", fontWeight: 600, color: "#111827" }}>{p?.employee?.name || <span className="text-muted fw-normal">Employee not found</span>}</td>
+                                                        <td style={{ padding: "9px 12px", color: "#6b7280" }}>{p?.employee?.eCode || "—"}</td>
+                                                        <td style={{ padding: "9px 12px", color: "#374151" }}>{entry?.positionName || "—"}</td>
+                                                        <td style={{ padding: "9px 12px" }}><RoleBadge role={p?.employee?.department?.department || "—"} /></td>
+                                                        <td style={{ padding: "9px 12px" }}><RoleBadge role={p?.employee?.designation?.name?.replace(/_/g, " ") || "—"} /></td>
                                                     </tr>
                                                 ))}
                                             </tbody>

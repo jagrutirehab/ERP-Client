@@ -15,15 +15,15 @@ import {
   Spinner,
 } from "reactstrap";
 import Select from "react-select";
+import AsyncSelect from "react-select/async";
 import DataTable from "react-data-table-component";
 import { toast } from "react-toastify";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import {
   uploadOCRBill,
-  checkPharmacyBatch,
   checkExistingMedicineInPharmacy,
   confirmOCRMedicines,
   getMatchingMedicines,
@@ -33,10 +33,58 @@ import {
 import FileUpload from "../../CashManagement/Components/FileUpload";
 import { normalizeUnderscores } from "../../../utils/normalizeUnderscore";
 
+// One control for a missed medicine: the auto-found matches are the default options,
+// typing searches the whole master. Picking sets the selection for that row.
+const MissedMedicineSearch = ({ candidates, selectedId, onPick, onClear }) => {
+  const timer = useRef(null);
+  const toOption = (m) => ({ value: m._id || m.id, label: formatMedicineLabel(m), data: m });
+  const defaults = (candidates || []).map(toOption);
+  const selected = selectedId ? defaults.find((o) => o.value === selectedId) || null : null;
+
+  const loadOptions = (input) =>
+    new Promise((resolve) => {
+      clearTimeout(timer.current);
+      if (!input || input.trim().length < 2) return resolve(defaults);
+      timer.current = setTimeout(async () => {
+        try {
+          const res = await getMatchingMedicines({ extractedName: input.trim(), typeahead: true });
+          const list = Array.isArray(res?.data) ? res.data : [];
+          resolve(list.map(toOption));
+        } catch (e) {
+          resolve([]);
+        }
+      }, 300);
+    });
+
+  return (
+    <AsyncSelect
+      key={defaults.map((o) => o.value).join(",")}
+      defaultOptions={defaults}
+      loadOptions={loadOptions}
+      value={selected}
+      onChange={(opt) => (opt ? onPick(opt.data) : onClear())}
+      isClearable
+      placeholder="Search or pick the correct medicine..."
+      noOptionsMessage={({ inputValue }) =>
+        inputValue && inputValue.trim().length >= 2 ? "No medicines found" : "Type at least 2 letters"
+      }
+      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
+      menuPosition="fixed"
+      styles={{ menuPortal: (base) => ({ ...base, zIndex: 9999 }) }}
+    />
+  );
+};
+
+// Dropdown label: "<id> | <type> <name> <strength> (baseunit: <baseUnit>)"
+const formatMedicineLabel = (m) => {
+  if (!m) return "";
+  const main = [m.type, m.name, m.strength].filter(Boolean).join(" ");
+  const unit = m.baseUnit || m.unit;
+  return `${m.id ? `${m.id} | ` : ""}${main}${unit ? ` (Baseunit: ${unit})` : ""}`;
+};
+
 const OCRBillImport = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
-  const dispatch = useDispatch();
-  const user = useSelector((state) => state.User);
   const centerList = useSelector((state) => state.Center.data);
   const location = useLocation();
   const navigate = useNavigate();
@@ -51,6 +99,9 @@ const OCRBillImport = () => {
   const [loading, setLoading] = useState(false);
   const [processingStatus, setProcessingStatus] = useState(null); // "uploading", "extracting", "matching"
   const [rechecking, setRechecking] = useState(false);
+  // True once the user has hand-edited a value on the confirm screen. Submit stays
+  // disabled until "Review Again" re-checks the stock for the edited values.
+  const [editedSinceReview, setEditedSinceReview] = useState(false);
   const [error, setError] = useState(null);
   const [selectedCenter, setSelectedCenter] = useState(null);
 
@@ -72,19 +123,19 @@ const OCRBillImport = () => {
   const [errorMedicinesFormData, setErrorMedicinesFormData] = useState({});
   const [selectedErrorMedicineIds, setSelectedErrorMedicineIds] = useState({});
   const [errorMatchingMedicinesMap, setErrorMatchingMedicinesMap] = useState({});
-  const [errorCheckedMedicines, setErrorCheckedMedicines] = useState({});
+  const [, setErrorCheckedMedicines] = useState({});
 
   // Pharmacy check results
   const [pharmacyCheckResults, setPharmacyCheckResults] = useState({});
 
   // Medicine confirmation
-  const [confirmedMedicines, setConfirmedMedicines] = useState({});
+  const [, setConfirmedMedicines] = useState({});
   const [matchingMedicinesMap, setMatchingMedicinesMap] = useState({});
   const [confirmationLoading, setConfirmationLoading] = useState(false);
 
   // User input for filling forms
   const [medicineFormData, setMedicineFormData] = useState({});
-  const [pharmacyStatus, setPharmacyStatus] = useState({});
+  const [, setPharmacyStatus] = useState({});
   const [successResult, setSuccessResult] = useState(null);
   const [billSupplier, setBillSupplier] = useState("");
   const [billNumber, setBillNumber] = useState("");
@@ -98,10 +149,6 @@ const OCRBillImport = () => {
   const [isResuming, setIsResuming] = useState(!!location.state?.resumeBillId || !!location.state?.retryBillId);
 
   // Edit missing medicine modal
-  const [editingMissingMedicineIdx, setEditingMissingMedicineIdx] = useState(null);
-  const [editingMissingMedicineData, setEditingMissingMedicineData] = useState({});
-  const [editingMissingMatches, setEditingMissingMatches] = useState([]);
-  const [editingMissingLoading, setEditingMissingLoading] = useState(false);
 
   // Per-row search-again state for the missing medicines table (extract step)
   const [errorSearchLoading, setErrorSearchLoading] = useState({});
@@ -236,12 +283,9 @@ const OCRBillImport = () => {
   const newMedicinesColumns = useMemo(() => [
     {
       name: <div>Medicine</div>,
-      width: "200px",
+      width: "320px",
       cell: (row) => (
-        <div>
-          <small><strong>{row.name}</strong></small><br />
-          <small className="text-muted">{row.strength}</small>
-        </div>
+        <span style={{ whiteSpace: "normal", lineHeight: 1.4, fontSize: "0.85rem", fontWeight: 500, color: "#111827" }}>{row.label}</span>
       ),
     },
     {
@@ -270,19 +314,17 @@ const OCRBillImport = () => {
       cell: (row) => (
         <div>
           <Input type="number" bsSize="sm" value={row.quantity || ""} onChange={(e) => handleFormChange(row.idx, "quantity", e.target.value)} placeholder="0" style={{ fontSize: "0.85rem", width: "100%" }} />
-          <small className="text-muted d-block mt-1">{row.purchaseUnit}</small>
+          <small className="text-muted d-block mt-1">{row.baseUnit}</small>
         </div>
       ),
     },
     {
-      name: <div>In Base Unit</div>,
+      name: <div>Packs (price unit)</div>,
       width: "130px",
       cell: (row) => (
-        <div>
-          <small className="text-muted d-block">
-            = {row.qty === 0 ? "—" : `${row.baseUnitQtyDisplay} ${row.baseUnit}`}
-          </small>
-        </div>
+        <small className="text-muted">
+          {row.qty === 0 ? "—" : `${row.packQtyDisplay} ${row.purchaseUnit}`}
+        </small>
       ),
     },
     {
@@ -300,38 +342,35 @@ const OCRBillImport = () => {
   const existingMedicinesColumns = useMemo(() => [
     {
       name: <div>Medicine</div>,
-      width: "200px",
+      width: "300px",
       cell: (row) => (
-        <div>
-          <small><strong>{row.name}</strong></small><br />
-          <small className="text-muted">{row.strength}</small>
+        <span style={{ whiteSpace: "normal", lineHeight: 1.4, fontSize: "0.85rem", fontWeight: 500, color: "#111827" }}>{row.label}</span>
+      ),
+    },
+    {
+      name: <div>Inventory Record</div>,
+      width: "150px",
+      cell: (row) => (
+        <div style={{ lineHeight: 1.35 }}>
+          <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#111827" }}>{row.pharmId || "N/A"}</div>
+          <small className="text-muted d-block">
+            Batch {row.batchNumber || "—"}
+          </small>
+          <small className="text-muted d-block">Exp {row.expiryDate || "—"}</small>
         </div>
       ),
     },
     {
-      name: <div>Med ID</div>,
-      width: "100px",
-      cell: (row) => <small className="text-muted">{row.medId}</small>,
-    },
-    {
-      name: <div>Pharmacy ID</div>,
-      width: "120px",
-      cell: (row) => <small className="text-muted" title={row.pharmId || "N/A"}>{row.pharmId || "N/A"}</small>,
-    },
-    {
-      name: <div>Batch</div>,
-      width: "100px",
-      cell: (row) => <small>{row.batchNumber}</small>,
-    },
-    {
-      name: <div>Expiry</div>,
-      width: "110px",
-      cell: (row) => <small>{row.expiryDate}</small>,
-    },
-    {
-      name: <div>Stock</div>,
-      width: "90px",
-      cell: (row) => <Badge color="info" className="px-2" style={{ fontSize: "0.75rem" }}>{row.centerStock || 0} {row.baseUnit}</Badge>,
+      name: <div>Current Stock</div>,
+      width: "140px",
+      cell: (row) => (
+        <div style={{ lineHeight: 1.35 }}>
+          <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#111827" }}>
+            {row.centerStock || 0} {row.baseUnit}
+          </div>
+          <small className="text-muted d-block">this center</small>
+        </div>
+      ),
     },
     {
       name: <div>Add Qty*</div>,
@@ -339,42 +378,72 @@ const OCRBillImport = () => {
       cell: (row) => (
         <div>
           <Input type="number" bsSize="sm" value={row.quantity || ""} onChange={(e) => handleFormChange(row.idx, "quantity", e.target.value)} placeholder="0" style={{ fontSize: "0.85rem", width: "100%" }} />
-          <small className="text-muted d-block mt-1">{row.purchaseUnit}</small>
+          <small className="text-muted d-block mt-1">{row.baseUnit}</small>
         </div>
       ),
     },
     {
-      name: <div>In Base Unit</div>,
+      name: <div>Packs (price unit)</div>,
       width: "130px",
       cell: (row) => (
-        <div>
-          <small className="text-muted d-block">
-            = {row.qty === 0 ? "—" : `${row.baseUnitQtyDisplay} ${row.baseUnit}`}
-          </small>
+        <small className="text-muted">
+          {row.qty === 0 ? "—" : `${row.packQtyDisplay} ${row.purchaseUnit}`}
+        </small>
+      ),
+    },
+    {
+      name: <div>Stock After</div>,
+      width: "130px",
+      cell: (row) => (
+        <div style={{ fontWeight: 600, fontSize: "0.85rem", color: "#111827" }}>
+          {row.qty === 0 ? "—" : `${row.stockAfter} ${row.baseUnit}`}
         </div>
       ),
     },
     {
       name: <div>Purchase Price</div>,
-      width: "90px",
-      cell: (row) => <Input type="number" bsSize="sm" value={row.purchasePrice || ""} onChange={(e) => handleFormChange(row.idx, "purchasePrice", e.target.value)} placeholder="0" step="0.01" style={{ fontSize: "0.85rem", width: "100%" }} />,
+      width: "120px",
+      cell: (row) => (
+        <div>
+          <Input type="number" bsSize="sm" value={row.purchasePrice || ""} onChange={(e) => handleFormChange(row.idx, "purchasePrice", e.target.value)} placeholder="0" step="0.01" style={{ fontSize: "0.85rem", width: "100%" }} />
+          {row.existingPurchasePrice !== null && row.existingPurchasePrice !== undefined && (
+            <small className="text-muted d-block mt-1">In inventory: {row.existingPurchasePrice}</small>
+          )}
+        </div>
+      ),
     },
     {
       name: <div>MRP</div>,
-      width: "90px",
-      cell: (row) => <Input type="number" bsSize="sm" value={row.mrp || ""} onChange={(e) => handleFormChange(row.idx, "mrp", e.target.value)} placeholder="0" step="0.01" style={{ fontSize: "0.85rem", width: "100%" }} />,
+      width: "120px",
+      cell: (row) => (
+        <div>
+          <Input type="number" bsSize="sm" value={row.mrp || ""} onChange={(e) => handleFormChange(row.idx, "mrp", e.target.value)} placeholder="0" step="0.01" style={{ fontSize: "0.85rem", width: "100%" }} />
+          {row.existingMrp !== null && row.existingMrp !== undefined && (
+            <small className="text-muted d-block mt-1">In inventory: {row.existingMrp}</small>
+          )}
+        </div>
+      ),
     },
   ], []);
 
   // Build the per-row display data for new + existing tables.
   // Both pull discount from the single helper so what the user sees is
   // exactly what will be persisted (no more display/save divergence).
+  // Quantity is entered/stored in the BASE unit; price is per PURCHASE unit.
+  // factor = base units per purchase unit, so packs = baseQty / factor.
+  const getConversionFactor = (medicine) => {
+    const conv = medicine?.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
+    return (conv.baseQuantity || 1) / (conv.purchaseQuantity || 1);
+  };
+
   const buildRowDisplay = (collection) => {
-    const lines = collection.map(({ idx }) => {
+    const lines = collection.map(({ idx, result }) => {
       const fd = medicineFormData[idx] || {};
+      const factor = getConversionFactor(result?.selectedMedicine) || 1;
       return {
         unitPrice: parseFloat(fd.unitPrice) || 0,
-        quantity: parseFloat(fd.quantity) || 0,
+        // line total = price per pack x number of packs
+        quantity: (parseFloat(fd.quantity) || 0) / factor,
       };
     });
     const discounts = computeDiscountedPrices(lines, billDiscountAmount, billDiscountPercentage, billGrossAmount);
@@ -390,15 +459,25 @@ const OCRBillImport = () => {
       };
 
       const purchaseUnit = selectedMedicine?.purchaseUnit || selectedMedicine?.baseUnit || "unit";
-      const conv = selectedMedicine?.conversion || { purchaseQuantity: 1, baseQuantity: 1 };
-      const factor = (conv.baseQuantity || 1) / (conv.purchaseQuantity || 1);
-      const baseUnitQty = qty * factor;
-      const baseUnitQtyDisplay = qty === 0 ? "—" : baseUnitQty.toFixed(2);
+      const factor = getConversionFactor(selectedMedicine) || 1;
+      const baseUnitQty = qty;
+      const packQtyDisplay = qty === 0 ? "—" : String(Math.round((qty / factor) * 100) / 100);
+
+      // Once the user manually edits Purchase Price, that value is final —
+      // it must stop being overwritten by the auto-discount recompute on
+      // every subsequent render (e.g. when quantity changes).
+      const displayedPurchasePrice = formData.purchasePriceEdited
+        ? parseFloat(formData.purchasePrice) || 0
+        : purchasePrice;
 
       return {
         idx,
         medId: selectedMedicine?._id?.slice(-6) || selectedMedicine?.id,
-        pharmId: pharmacyStatus?.data?.pharmacyId?.slice(-6) || "N/A",
+        pharmId: pharmacyStatus?.data?.pharmacyId || "N/A",
+        existingPurchasePrice: pharmacyStatus?.data?.purchasePrice ?? null,
+        existingMrp: pharmacyStatus?.data?.mrp ?? null,
+        stockAfter: Math.round(((Number(pharmacyStatus?.data?.centerStock) || 0) + baseUnitQty) * 100) / 100,
+        label: formatMedicineLabel(selectedMedicine),
         name: selectedMedicine?.name,
         strength: selectedMedicine?.strength,
         form: selectedMedicine?.form,
@@ -409,9 +488,9 @@ const OCRBillImport = () => {
         quantity: formData.quantity || "",
         qty,
         purchaseUnit,
-        baseUnitQtyDisplay,
-        purchasePrice,
-        discountedPrice: purchasePrice,
+        packQtyDisplay,
+        purchasePrice: displayedPurchasePrice,
+        discountedPrice: displayedPurchasePrice,
         medicineDiscount,
         mrp: formData.mrp || "",
       };
@@ -429,6 +508,25 @@ const OCRBillImport = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [existingMedicines, medicineFormData, billDiscountAmount, billDiscountPercentage, billGrossAmount]
   );
+
+  // A row can only be imported when a medicine is selected for it.
+  const isRowTicked = (i) => !!(checkedMedicines[i] && selectedMedicineIds[i]);
+  const tickableIndices = (list) => list.filter((i) => selectedMedicineIds[i]);
+
+  const requestedMissingRef = useRef(new Set());
+  useEffect(() => {
+    errorMedicines.forEach((med, idx) => {
+      const key = med._tempId || `${idx}-${med.extractedName}`;
+      if (!med.extractedName || requestedMissingRef.current.has(key)) return;
+      requestedMissingRef.current.add(key);
+      fetchMatchingMedicines(med.extractedName, "", { strict: false }).then((matches) => {
+        setErrorMatchingMedicinesMap((prev) =>
+          prev[idx] !== undefined ? prev : { ...prev, [idx]: matches || [] }
+        );
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [errorMedicines]);
 
   if (permissionLoader) {
     return (
@@ -449,10 +547,6 @@ const OCRBillImport = () => {
   // Helper Functions
   // ============================================
 
-  const getMissingMasterFields = (masterData) => {
-    const required = ["form", "baseUnit", "category", "storageType"];
-    return required.filter((field) => !masterData[field]);
-  };
 
   const downloadMissingFieldsCSV = async (medicines) => {
     if (medicines.length === 0) {
@@ -513,7 +607,6 @@ const OCRBillImport = () => {
 
       toast.success("Excel downloaded! Add these medicines to your master database.");
     } catch (err) {
-      console.error("Excel generation error:", err);
       toast.error("Failed to generate Excel report");
     }
   };
@@ -566,7 +659,6 @@ const OCRBillImport = () => {
 
       toast.success("Failed medicines list downloaded!");
     } catch (err) {
-      console.error("Excel generation error:", err);
       toast.error("Failed to generate Excel report");
     }
   };
@@ -615,13 +707,13 @@ const OCRBillImport = () => {
   };
 
   // Get matching medicines for user confirmation
-  const fetchMatchingMedicines = async (extractedName, extractedStrength) => {
+  // strict (default): strength must match - used for bill lines in the review table.
+  // strict: false: name only - used for missing medicines (search, edit, retry).
+  const fetchMatchingMedicines = async (extractedName, extractedStrength, { strict = true } = {}) => {
     if (!extractedName || extractedName.trim() === "") {
-      console.warn("⚠️ fetchMatchingMedicines: Empty name provided");
       return [];
     }
     try {
-      console.log(`🔍 CALLING API: getMatchingMedicines("${extractedName}", "${extractedStrength || ""}")`);
 
       // Create a promise that rejects after 10 seconds
       const timeoutPromise = new Promise((_, reject) =>
@@ -630,28 +722,22 @@ const OCRBillImport = () => {
 
       const apiCall = getMatchingMedicines({
         extractedName: extractedName.trim(),
-        extractedStrength: extractedStrength?.trim() || "",
+        extractedStrength: strict ? extractedStrength?.trim() || "" : "",
+        strictStrength: strict,
       });
 
-      // Race between API call and timeout
       const result = await Promise.race([apiCall, timeoutPromise]);
-      console.log(`✅ API Response received for "${extractedName}":`, result);
 
-      // Axios interceptor already unwraps response.data, so result is { success: true, data: [...] }
-      // Extract the medicines array from the response
-      // NOTE: API already filters by strict strength matching, so no frontend filtering needed
       const medicinesArray = result?.data || [];
-      console.log(`   Total matches found: ${Array.isArray(medicinesArray) ? medicinesArray.length : 'ERROR - not an array'}`);
       if (Array.isArray(medicinesArray) && medicinesArray.length > 0) {
-        console.log(`   Sample match:`, medicinesArray[0]);
       }
 
       return Array.isArray(medicinesArray) ? medicinesArray : [];
     } catch (err) {
-      console.error(`❌ API Error for "${extractedName}":`, err?.message || err);
       return [];
     }
   };
+
 
 
   // ============================================
@@ -737,25 +823,15 @@ const OCRBillImport = () => {
       setProcessingStatus("extracting");
       const response = await uploadOCRBill(formData);
 
-      console.log("📤 Full upload response:", response);
-      console.log("   response.data:", response.data);
-
       // Handle both response.data.data and response.data structures
       const result = response.data || response;
-      console.log("📤 Extracted result:", result);
 
       // Validation
       if (!result || !result.billImportId) {
-        console.error("❌ Invalid response:", result);
         throw new Error("Invalid response structure: missing billImportId");
       }
 
-      console.log("✅ Upload successful, bill ID:", result.billImportId);
-      console.log("   Extracted medicines count:", (result.extractedMedicines || []).length);
-      console.log("   Missing medicines count:", (result.errorMedicines || []).length);
       if (result.createdRequisitions?.length > 0) {
-        console.log(`✅ Created ${result.createdRequisitions.length} medicine requisitions`);
-        console.log("   Justification:", result.requisitionJustification);
       }
 
       setBillImportId(result.billImportId);
@@ -764,7 +840,6 @@ const OCRBillImport = () => {
       setErrorMedicines(addIdsToMedicines(result.errorMedicines || []));
 
       // Initialize extracted form data with OCR data
-      console.log("📋 Building extracted form data from medicines...");
       const initialExtractedData = {};
       let extractedSupplier = result.billMetadata?.supplier || "";
       let extractedBillNumber = result.billMetadata?.billNumber || result.extractedBillNumber || "";
@@ -777,7 +852,6 @@ const OCRBillImport = () => {
       let totalBillAmount = result.billMetadata?.totalAmount || (extractedFinalAmount + extractedTax) || 0;
 
       if (result.extractedMedicines && Array.isArray(result.extractedMedicines)) {
-        console.log(`   Processing ${result.extractedMedicines.length} medicines`);
         result.extractedMedicines.forEach((med, idx) => {
           const quantity = parseFloat(med.ocrExtracted?.quantity) || 0;
           const unitPrice = parseFloat(med.ocrExtracted?.unitPrice) || 0;
@@ -794,10 +868,8 @@ const OCRBillImport = () => {
             unitPrice: med.ocrExtracted?.unitPrice || "",
             totalPrice: med.ocrExtracted?.totalPrice || "",
           };
-          console.log(`   [${idx}] ${med.ocrExtracted?.name}`);
         });
       }
-      console.log("✅ Form data built successfully");
       setExtractedFormData(initialExtractedData);
       setBillSupplier(extractedSupplier);
       setBillNumber(extractedBillNumber);
@@ -807,34 +879,25 @@ const OCRBillImport = () => {
       setBillFinalAmount(extractedFinalAmount);
       setBillTotal(totalBillAmount);
 
-      console.log("✅ All state set. Ready to fetch matching medicines...");
-
       // Fetch matching medicines for each extracted medicine
       const matchingMap = {};
       const totalMeds = (result.extractedMedicines || []).length;
-      console.log("\n🔍 FETCHING MATCHING MEDICINES:");
-      console.log(`  Total medicines to fetch: ${totalMeds}`);
 
       if (totalMeds === 0) {
-        console.warn("⚠️ No medicines to fetch matches for");
       }
 
       for (let idx = 0; idx < totalMeds; idx++) {
         const extractedData = initialExtractedData[idx];
-        console.log(`\n  [${idx}] Fetching matches for: "${extractedData.medicineName}" ${extractedData.strength || ""}`);
         try {
           const matches = await fetchMatchingMedicines(
             extractedData.medicineName,
             extractedData.strength
           );
-          console.log(`    [${idx}] Found ${matches?.length || 0} matches`);
           matchingMap[idx] = matches || [];
         } catch (err) {
-          console.error(`  [${idx}] API Error:`, err);
           matchingMap[idx] = [];
         }
       }
-      console.log("\n  ✅ All medicines processed. Final matchingMap:", matchingMap);
 
       // Filter out medicines with no matches and move them to errors
       const medicinesWithMatches = [];
@@ -859,10 +922,6 @@ const OCRBillImport = () => {
           });
         }
       });
-
-      console.log(`\n📊 MEDICINE FILTERING RESULTS:`);
-      console.log(`  - Medicines with matches: ${medicinesWithMatches.length}`);
-      console.log(`  - Medicines without matches: ${medicinesWithoutMatches.length}`);
 
       // Update extracted medicines to only include those with matches
       setExtractedMedicines(medicinesWithMatches);
@@ -922,9 +981,6 @@ const OCRBillImport = () => {
 
       setStep("extract");
     } catch (err) {
-      console.error("❌ Upload error details:", err);
-      console.error("   Error message:", err.message);
-      console.error("   Error stack:", err.stack);
       setError(err.response?.data?.message || err.message || "Failed to process bill");
     } finally {
       setLoading(false);
@@ -935,6 +991,45 @@ const OCRBillImport = () => {
   // ============================================
   // STEP 1: Handle Extracted Data Changes
   // ============================================
+
+  const moveExtractedRowToMissing = (idx, formData, reason) => {
+    const med = extractedMedicines[idx];
+    if (!med) return;
+
+    const reindex = (map) => {
+      const next = {};
+      let cursor = 0;
+      extractedMedicines.forEach((_, i) => {
+        if (i === idx) return;
+        if (map[i] !== undefined) next[cursor] = map[i];
+        cursor++;
+      });
+      return next;
+    };
+
+    setExtractedMedicines((prev) => prev.filter((_, i) => i !== idx));
+    setExtractedFormData(reindex(extractedFormData));
+    setCheckedMedicines(reindex(checkedMedicines));
+    setSelectedMedicineIds(reindex(selectedMedicineIds));
+    setMatchingMedicinesMap(reindex(matchingMedicinesMap));
+
+    setErrorMedicines((prev) => [
+      ...prev,
+      {
+        _tempId: med._tempId,
+        extractedName: formData?.medicineName || "",
+        extractedStrength: formData?.strength || "",
+        quantity: formData?.quantity || med.ocrExtracted?.quantity || 0,
+        batchNumber: formData?.batchNumber || med.ocrExtracted?.batchNumber || null,
+        expiryDate: formData?.expiryDate || med.ocrExtracted?.expiryDate || null,
+        unitPrice: formData?.unitPrice || med.ocrExtracted?.unitPrice || null,
+        totalPrice: formData?.totalPrice || med.ocrExtracted?.totalPrice || null,
+        reason,
+      },
+    ]);
+
+    toast.warning(`"${formData?.medicineName || med.ocrExtracted?.name}" no longer matches any medicine — moved to Missing Medicines.`);
+  };
 
   const handleExtractedDataChange = (idx, field, value) => {
     setExtractedFormData((prev) => {
@@ -959,8 +1054,13 @@ const OCRBillImport = () => {
           const strength = field === "strength" ? value : updated[idx]?.strength;
 
           if (medicineName && medicineName.trim() !== "") {
-            console.log(`Refetching matches for idx ${idx}: "${medicineName}" ${strength}`);
             const matches = await fetchMatchingMedicines(medicineName, strength);
+
+            if (matches.length === 0) {
+              moveExtractedRowToMissing(idx, updated[idx], "No medicine matches this name and strength");
+              return;
+            }
+
             setMatchingMedicinesMap((prevMap) => ({
               ...prevMap,
               [idx]: matches,
@@ -1017,8 +1117,7 @@ const OCRBillImport = () => {
           const strength = field === "extractedStrength" ? value : updated[idx]?.extractedStrength;
 
           if (medicineName && medicineName.trim() !== "") {
-            console.log(`Refetching matches for error idx ${idx}: "${medicineName}" ${strength}`);
-            const matches = await fetchMatchingMedicines(medicineName, strength);
+            const matches = await fetchMatchingMedicines(medicineName, strength, { strict: false });
             setErrorMatchingMedicinesMap((prevMap) => ({
               ...prevMap,
               [idx]: matches,
@@ -1048,14 +1147,11 @@ const OCRBillImport = () => {
               updateBillErrors({
                 billImportId,
                 errors: [row],
-              }).catch((err) =>
-                console.warn("Auto-save of edited error failed:", err?.message || err)
-              );
+              }).catch(() => {});
             }
             return current;
           });
         } catch (err) {
-          console.warn("Auto-save of edited error failed:", err?.message || err);
         }
       }, 800);
     }
@@ -1076,7 +1172,7 @@ const OCRBillImport = () => {
 
     setErrorSearchLoading((prev) => ({ ...prev, [idx]: true }));
     try {
-      const matches = await fetchMatchingMedicines(name, strength);
+      const matches = await fetchMatchingMedicines(name, strength, { strict: false });
       setErrorMatchingMedicinesMap((prev) => ({ ...prev, [idx]: matches || [] }));
       // Clear any prior selection for this row since the match list changed
       setSelectedErrorMedicineIds((prev) => {
@@ -1091,11 +1187,19 @@ const OCRBillImport = () => {
         toast.success(`Found ${matches.length} match(es). Pick one and click "Move to Extracted".`);
       }
     } catch (err) {
-      console.error("Error medicine search failed:", err);
       toast.error("Search failed");
     } finally {
       setErrorSearchLoading((prev) => ({ ...prev, [idx]: false }));
     }
+  };
+
+  // Typeahead pick: make sure the medicine is in this row's match list, then select it
+  const handleSearchPick = (idx, med) => {
+    setErrorMatchingMedicinesMap((prev) => {
+      const cur = prev[idx] || [];
+      return cur.some((m) => m._id === med._id) ? prev : { ...prev, [idx]: [med, ...cur] };
+    });
+    setSelectedErrorMedicineIds((prev) => ({ ...prev, [idx]: med._id }));
   };
 
   // Convert error medicine to extracted medicine when matched
@@ -1120,7 +1224,6 @@ const OCRBillImport = () => {
     }
 
     if (!movedTempId) {
-      console.warn("[Move to Extracted] error row has no _tempId — downstream tracking may fall back to name/strength matching");
     }
 
     // Add to extracted medicines, preserving the _tempId for tracking
@@ -1156,8 +1259,9 @@ const OCRBillImport = () => {
     setExtractedFormData(prev => ({
       ...prev,
       [newIdx]: {
-        medicineName: selectedMed.name,
-        strength: selectedMed.strength || "",
+        // Keep what the bill said; the matched master medicine is shown in the dropdown
+        medicineName: formData.extractedName || selectedMed.name,
+        strength: formData.extractedStrength ?? (selectedMed.strength || ""),
         quantity: formData.quantity || 0,
         batchNumber: formData.batchNumber || "",
         expiryDate: formData.expiryDate || "",
@@ -1169,6 +1273,13 @@ const OCRBillImport = () => {
     setSelectedMedicineIds(prev => ({
       ...prev,
       [newIdx]: selectedId,
+    }));
+
+    // Tick the row like a dropdown pick does — unticked rows are sent back to
+    // the missing list on Proceed, which made moved medicines silently vanish.
+    setCheckedMedicines(prev => ({
+      ...prev,
+      [newIdx]: true,
     }));
 
     setMatchingMedicinesMap(prev => ({
@@ -1203,39 +1314,7 @@ const OCRBillImport = () => {
   };
 
   // Handle editing missing medicines in success view
-  const handleEditMissingMedicine = (medicine, idx) => {
-    setEditingMissingMedicineIdx(idx);
-    setEditingMissingMedicineData({
-      _tempId: medicine._tempId, // Preserve ID so retry flow can track this medicine
-      extractedName: medicine.extractedName,
-      extractedStrength: medicine.extractedStrength,
-    });
-    setEditingMissingMatches([]);
-  };
 
-  const handleSearchMissingMedicine = async () => {
-    if (!editingMissingMedicineData.extractedName?.trim()) {
-      toast.warning("Please enter medicine name");
-      return;
-    }
-
-    setEditingMissingLoading(true);
-    try {
-      const matches = await fetchMatchingMedicines(
-        editingMissingMedicineData.extractedName,
-        editingMissingMedicineData.extractedStrength
-      );
-      setEditingMissingMatches(matches || []);
-      if (!matches || matches.length === 0) {
-        toast.info("No matches found. Try different name or strength");
-      }
-    } catch (err) {
-      console.error("Error searching medicines:", err);
-      toast.error("Failed to search medicines");
-    } finally {
-      setEditingMissingLoading(false);
-    }
-  };
 
   const handleProceedFromExtraction = async () => {
     // Process ALL medicines (checked & unchecked)
@@ -1266,13 +1345,22 @@ const OCRBillImport = () => {
           extractedData.strength
         );
         matchingMap[idx] = matches || [];
+
+        // Keep the user's pick even if the re-search no longer returns it
+        // (e.g. it was found via an edited name/strength on the missing list,
+        // or fell outside the server's candidate limit). Without this the
+        // selection couldn't be resolved and the medicine was silently dropped.
+        const selectedId = selectedMedicineIds[idx];
+        if (selectedId && !matchingMap[idx].some((m) => (m._id || m.id) === selectedId)) {
+          const previousPick = matchingMedicinesMap[idx]?.find((m) => (m._id || m.id) === selectedId);
+          if (previousPick) matchingMap[idx] = [previousPick, ...matchingMap[idx]];
+        }
       }
       setMatchingMedicinesMap(matchingMap);
 
       // Step 2: Process all medicines (selected ones proceed, unselected go to errors)
       await handleProceedToPharmacyCheckAuto(indicesToProcess, matchingMap);
     } catch (err) {
-      console.error("Error in extraction flow:", err);
       const errorMsg = err.response?.data?.message || err.message || "Failed to process medicines";
       setError(errorMsg);
       toast.error(errorMsg);
@@ -1315,12 +1403,15 @@ const OCRBillImport = () => {
         const selectedMedicineId = selectedMedicineIds[idx_num];
         const medicine = extractedMedicines[idx_num];
 
+        const candidates = matchingMap[idx_num] || [];
+
         // Check if medicine is unchecked OR user didn't select a medicine from dropdown
         if (!isChecked || !selectedMedicineId) {
-          // Medicine is unchecked OR no dropdown selection - add to errors
-          const reason = !isChecked
-            ? "Not checked by user"
-            : "No medicine selected from dropdown";
+          // Candidates still exist - leave the row as-is in the Extracted table (unticked,
+          // dropdown still showing matches) instead of also cloning it into Missing, where
+          // it would show twice. Only genuinely matchless rows belong in Missing.
+          if (candidates.length > 0) continue;
+
           const editedData = extractedFormData[idx_num] || medicine.ocrExtracted;
           unselectedMedicines.push({
             _tempId: medicine._tempId, // Preserve ID for tracking
@@ -1331,16 +1422,40 @@ const OCRBillImport = () => {
             expiryDate: editedData?.expiryDate || medicine.ocrExtracted?.expiryDate || null,
             unitPrice: editedData?.unitPrice || medicine.ocrExtracted?.unitPrice || null,
             totalPrice: editedData?.totalPrice || medicine.ocrExtracted?.totalPrice || null,
-            reason: reason,
+            reason: "No medicine found matching this name and strength",
             action: "Edit & Retry from missing list",
           });
           continue;
         }
 
         // Find the medicine that user selected from dropdown
-        let selectedMedicine = matchingMap[idx_num]?.find(
+        let selectedMedicine = candidates.find(
           m => (m._id || m.id) === selectedMedicineId
         );
+
+        // The previous pick fell out of the current candidate list (e.g. a re-search
+        // changed it), but OTHER candidates still exist - leave the row in Extracted so
+        // the user can re-pick, rather than cloning it into Missing too.
+        if (!selectedMedicine && candidates.length > 0) continue;
+
+        // Never drop a row silently: if there are truly no candidates, send it to the
+        // missing list so the user sees it and can search again.
+        if (!selectedMedicine) {
+          const editedData = extractedFormData[idx_num] || medicine.ocrExtracted;
+          unselectedMedicines.push({
+            _tempId: medicine._tempId,
+            extractedName: editedData?.medicineName || medicine.ocrExtracted?.name,
+            extractedStrength: editedData?.strength || medicine.ocrExtracted?.strength,
+            quantity: editedData?.quantity || medicine.ocrExtracted?.quantity || 0,
+            batchNumber: editedData?.batchNumber || medicine.ocrExtracted?.batchNumber || null,
+            expiryDate: editedData?.expiryDate || medicine.ocrExtracted?.expiryDate || null,
+            unitPrice: editedData?.unitPrice || medicine.ocrExtracted?.unitPrice || null,
+            totalPrice: editedData?.totalPrice || medicine.ocrExtracted?.totalPrice || null,
+            reason: "No medicine found matching this name and strength",
+            action: "Edit & Retry from missing list",
+          });
+          continue;
+        }
 
         if (selectedMedicine) {
           const medicineId = selectedMedicine._id || selectedMedicine.id;
@@ -1350,6 +1465,9 @@ const OCRBillImport = () => {
           // whole submission. Falls back to raw unitPrice if somehow missing.
           const unitPrice = parseFloat(editedData?.unitPrice) || 0;
           const discountedPrice = discountByIdx[idx_num] ?? unitPrice;
+          // Same default the confirm screen gives MRP (see initializeMedicineFormData),
+          // so this check matches what will actually be saved if the user doesn't edit it.
+          const mrpGuess = unitPrice > 0 ? Math.round(unitPrice * 100) / 100 : "";
 
           try {
             const checkResult = await checkExistingMedicineInPharmacy({
@@ -1358,6 +1476,7 @@ const OCRBillImport = () => {
               batchNumber: editedData?.batchNumber,
               expiryDate: editedData?.expiryDate,
               purchasePrice: discountedPrice,
+              mrp: mrpGuess,
             });
 
             results[idx_num] = {
@@ -1368,7 +1487,6 @@ const OCRBillImport = () => {
               pharmacyStatus: { exists: checkResult.exists, data: checkResult.data },
             };
           } catch (err) {
-            console.error(`Error checking medicine at index ${idx_num}:`, err);
             // Still add medicine to results even if check fails, just mark as error
             results[idx_num] = {
               medicineId: medicineId,
@@ -1384,10 +1502,6 @@ const OCRBillImport = () => {
       // Add unselected medicines to error list
       if (unselectedMedicines.length > 0) {
         const newErrorList = [...errorMedicines, ...unselectedMedicines];
-        console.log(`📊 ERROR MEDICINES UPDATE:`);
-        console.log(`   Before: ${errorMedicines.length} medicines`);
-        console.log(`   Adding: ${unselectedMedicines.length} unselected medicines`);
-        console.log(`   After: ${newErrorList.length} medicines`, newErrorList);
         setErrorMedicines(newErrorList);
 
         toast.info(`${unselectedMedicines.length} medicine(s) not selected — moved to "Missing" list. You can retry them later.`);
@@ -1403,9 +1517,9 @@ const OCRBillImport = () => {
 
       setPharmacyCheckResults(results);
       initializeMedicineFormData(results);
+      setEditedSinceReview(false);
       setStep("confirm");
     } catch (err) {
-      console.error("Error in pharmacy check:", err);
       setError(err.message || "Failed to process medicines");
       throw err;
     }
@@ -1463,6 +1577,10 @@ const OCRBillImport = () => {
           existingMedicinesData.find(m => m.idx === idx_num);
         const discountedPrice = medicineData?.discountedPrice ||
           parseFloat(extractedData.purchasePrice) || 0;
+        // Same default the confirm screen gives MRP (see initializeMedicineFormData),
+        // so this check matches what will actually be saved if the user doesn't edit it.
+        const unitPriceForMrp = parseFloat(extractedData.unitPrice) || 0;
+        const mrpGuess = unitPriceForMrp > 0 ? Math.round(unitPriceForMrp * 100) / 100 : "";
 
         try {
           const checkResult = await checkExistingMedicineInPharmacy({
@@ -1471,10 +1589,12 @@ const OCRBillImport = () => {
             batchNumber: extractedData.batchNumber,
             expiryDate: extractedData.expiryDate,
             purchasePrice: discountedPrice,
+            mrp: mrpGuess,
           });
 
           results[idx_num] = {
             medicineId,
+            _tempId: extractedMedicines[idx_num]?._tempId,
             selectedMedicine,
             extractedData,
             pharmacyStatus: {
@@ -1483,9 +1603,9 @@ const OCRBillImport = () => {
             },
           };
         } catch (err) {
-          console.error(`Error checking medicine ${idx}:`, err);
           results[idx_num] = {
             medicineId,
+            _tempId: extractedMedicines[idx_num]?._tempId,
             selectedMedicine,
             extractedData,
             pharmacyStatus: { exists: false },
@@ -1495,9 +1615,9 @@ const OCRBillImport = () => {
 
       setPharmacyCheckResults(results);
       initializeMedicineFormData(results);
+      setEditedSinceReview(false);
       setStep("confirm");
     } catch (err) {
-      console.error("Error in pharmacy check:", err);
       setError(err.response?.data?.message || "Failed to check pharmacy status");
     } finally {
       setLoading(false);
@@ -1548,12 +1668,16 @@ const OCRBillImport = () => {
   };
 
   const handleFormChange = (idx, field, value) => {
+    setEditedSinceReview(true);
     setMedicineFormData((prev) => {
       const updated = {
         ...prev,
         [idx]: {
           ...prev[idx],
           [field]: value,
+          // Manually editing Purchase Price makes it final — stop
+          // auto-recomputing it from unitPrice/quantity/discount from here on.
+          ...(field === "purchasePrice" ? { purchasePriceEdited: true } : {}),
         },
       };
 
@@ -1585,19 +1709,52 @@ const OCRBillImport = () => {
 
   // Consolidated: handleProceedToSummary removed - confirm step now includes summary
 
+  const handleSubmitAllForRequisition = async () => {
+    if (errorMedicines.length === 0) return;
+
+    setConfirmationLoading(true);
+    setError(null);
+
+    try {
+      const response = await confirmOCRMedicines({
+        billImportId,
+        billMetadata: {
+          billNumber,
+          billSupplier,
+          billGrossAmount,
+          billDiscountPercentage,
+          billDiscountAmount,
+          billFinalAmount,
+          billTotal,
+        },
+        medicineConfirmations: [],
+        errorMedicines: errorMedicines,
+      });
+
+      const result = response.data || response;
+      if (!result || !result.billImportId) {
+        throw new Error("Invalid response: missing billImportId");
+      }
+
+      setSuccessResult({
+        ...result,
+        pendingErrors: errorMedicines,
+      });
+      setStep("success");
+    } catch (err) {
+      const errorMsg = err.response?.data?.message || err.message || "Failed to submit for requisition";
+      setError(errorMsg);
+      toast.error(errorMsg);
+    } finally {
+      setConfirmationLoading(false);
+    }
+  };
+
   // ============================================
   // Final Submission
   // ============================================
 
   const handleFinalSubmission = async () => {
-    console.log(`\n🔍 FINAL SUBMISSION DEBUG:`);
-    console.log(`   Error Medicines Count: ${errorMedicines.length}`);
-    console.log(`   Error Medicines Details:`, errorMedicines.map(m => ({
-      name: m.extractedName,
-      strength: m.extractedStrength,
-      reason: m.reason
-    })));
-    console.log(`   Confirmed Medicines: ${Object.keys(pharmacyCheckResults).length}`);
 
     setLoading(true);
     setError(null);
@@ -1610,8 +1767,6 @@ const OCRBillImport = () => {
 
       Object.entries(pharmacyCheckResults).forEach(([idx, result]) => {
         const formData = medicineFormData[idx];
-        const medicineName = formData.medicineName || extractedFormData[idx]?.medicineName;
-        const strength = formData.strength || extractedFormData[idx]?.strength;
 
         // Track successfully processed medicines by ID for API and by temp ID for filtering errors
         processedMedicineIds.push(result.medicineId);
@@ -1634,10 +1789,35 @@ const OCRBillImport = () => {
         });
       });
 
-      console.log(`\n📤 SENDING TO API:`);
-      console.log(`   medicineConfirmations count: ${medicineConfirmations.length}`);
-      console.log(`   errorMedicines count: ${errorMedicines.length}`);
-      console.log(`   errorMedicines being passed:`, errorMedicines);
+      // A row can still be sitting in extractedMedicines, never confirmed, without being in
+      // errorMedicines - e.g. it had matches but was never ticked/selected, so Review & Proceed
+      // deliberately left it alone rather than cloning it into Missing (see
+      // handleProceedToPharmacyCheckAuto). This is the last point before the bill leaves this
+      // session, so anything not actually confirmed here MUST be recorded now, or it's gone for
+      // good - not in medicineConfirmations, not in errorMedicines, not recoverable via Retry.
+      const confirmedTempIds = new Set(
+        Object.values(pharmacyCheckResults).map((r) => r._tempId).filter(Boolean)
+      );
+      const alreadyRecordedTempIds = new Set(errorMedicines.map((e) => e._tempId).filter(Boolean));
+      const leftoverExtracted = extractedMedicines.reduce((acc, med, idx) => {
+        if (!med._tempId) return acc;
+        if (confirmedTempIds.has(med._tempId) || alreadyRecordedTempIds.has(med._tempId)) return acc;
+        const editedData = extractedFormData[idx] || med.ocrExtracted;
+        acc.push({
+          _tempId: med._tempId,
+          extractedName: editedData?.medicineName || med.ocrExtracted?.name,
+          extractedStrength: editedData?.strength || med.ocrExtracted?.strength,
+          quantity: editedData?.quantity || med.ocrExtracted?.quantity || 0,
+          batchNumber: editedData?.batchNumber || med.ocrExtracted?.batchNumber || null,
+          expiryDate: editedData?.expiryDate || med.ocrExtracted?.expiryDate || null,
+          unitPrice: editedData?.unitPrice || med.ocrExtracted?.unitPrice || null,
+          totalPrice: editedData?.totalPrice || med.ocrExtracted?.totalPrice || null,
+          reason: "Not selected before submitting",
+          action: "Edit & Retry from missing list",
+        });
+        return acc;
+      }, []);
+      const errorsToSend = [...errorMedicines, ...leftoverExtracted];
 
       const response = await confirmOCRMedicines({
         billImportId,
@@ -1651,41 +1831,25 @@ const OCRBillImport = () => {
           billTotal,
         },
         medicineConfirmations,
-        errorMedicines: errorMedicines, // Include all error medicines (unchecked + not found)
+        errorMedicines: errorsToSend, // Include all error medicines (unchecked + not found + never selected)
       });
-
-      console.log("✅ Confirm response:", response);
 
       const result = response.data || response;
 
       if (!result || !result.billImportId) {
-        console.error("Invalid confirm response:", result);
         throw new Error("Invalid response: missing billImportId");
       }
 
       // Remove successfully processed medicines from error list using temp IDs
-      console.log("🔍 FILTERING LOGIC DEBUG (ID-BASED):");
-      console.log(`   Processed temp IDs:`, processedTempIds);
-      console.log(`   Error medicines before filtering:`, errorMedicines);
 
-      const updatedErrorMedicines = errorMedicines.filter(error => {
+      const updatedErrorMedicines = errorsToSend.filter(error => {
         const wasProcessed = processedTempIds.includes(error._tempId);
 
         if (error._tempId) {
-          console.log(`   Checking error: "${error.extractedName}" (${error.extractedStrength}) - ID: ${error._tempId}`);
-          console.log(`   Result: ${wasProcessed ? "REMOVE" : "KEEP"}`);
         }
 
         return !wasProcessed;
       });
-
-      if (updatedErrorMedicines.length < errorMedicines.length) {
-        const removed = errorMedicines.filter(e => !updatedErrorMedicines.includes(e));
-        console.log(`🗑️ Removed ${removed.length} processed medicines from error list`);
-        console.log(`   Removed: ${removed.map(e => `${e.extractedName} (${e.extractedStrength})`).join(", ")}`);
-      } else {
-        console.log(`ℹ️ No medicines removed from error list`);
-      }
 
       // Update state with filtered medicines and add to success result
       setErrorMedicines(updatedErrorMedicines);
@@ -1695,7 +1859,6 @@ const OCRBillImport = () => {
       });
       setStep("success");
     } catch (err) {
-      console.error("Submission error:", err);
       setError(err.response?.data?.message || err.message || "Failed to submit medicines");
     } finally {
       setLoading(false);
@@ -1707,13 +1870,10 @@ const OCRBillImport = () => {
   // ============================================
 
   const handleResumeBill = async (billImportIdParam) => {
-    console.log("\n📂 RESUMING BILL:", billImportIdParam);
     setLoading(true);
     try {
       const bill = await getOCRBillDetails(billImportIdParam);
       const billData = bill?.data || bill;
-
-      console.log("  Bill loaded:", billData);
 
       // Restore bill state
       setBillImportId(billImportIdParam);
@@ -1746,8 +1906,42 @@ const OCRBillImport = () => {
       setBillFinalAmount(calculatedFinalAmount);
       setBillTotal(meta.totalAmount || 0);
 
-      // Transform medicines from flat structure to nested structure expected by component
-      const transformedMedicines = addIdsToMedicines((billData.extractedData?.medicines || []).map((med) => ({
+      // Everything extracted from the bill that has NOT been added to inventory yet.
+      // Already-processed lines are skipped (matched by _tempId, then name+strength).
+      const processedTempIds = new Set(
+        (billData.processedItems || []).map((item) => item._tempId).filter(Boolean)
+      );
+      const processedNameStrength = new Set(
+        (billData.processedItems || []).map((item) => {
+          const name = (item.pharmacyId?.medicineName || "").toLowerCase().trim();
+          const strength = (item.pharmacyId?.Strength || "").toLowerCase().trim();
+          return name ? `${name}|${strength}` : null;
+        }).filter(Boolean)
+      );
+      const isProcessedLine = (m) =>
+        (m._tempId && processedTempIds.has(m._tempId)) ||
+        processedNameStrength.has(`${(m.name || "").toLowerCase().trim()}|${(m.strength || "").toLowerCase().trim()}`);
+
+      const pendingLines = addIdsToMedicines(
+        (billData.extractedData?.medicines || []).filter((m) => !isProcessedLine(m))
+      );
+
+      // Look every pending line up again (the master / matcher may have changed since upload)
+      const matchesByTempId = {};
+      for (const med of pendingLines) {
+        try {
+          matchesByTempId[med._tempId] = (await fetchMatchingMedicines(med.name, med.strength)) || [];
+        } catch (err) {
+          matchesByTempId[med._tempId] = [];
+        }
+      }
+
+      const withMatches = pendingLines.filter((m) => matchesByTempId[m._tempId].length > 0);
+      const withoutMatches = pendingLines.filter((m) => matchesByTempId[m._tempId].length === 0);
+
+      // Matched lines go to the review table (same shape as a fresh extraction)
+      const transformedMedicines = withMatches.map((med) => ({
+        _tempId: med._tempId,
         medicineId: null, // Will be selected from matching medicines
         ocrExtracted: {
           name: med.name || "",
@@ -1762,11 +1956,11 @@ const OCRBillImport = () => {
         masterData: {},
         matchingMedicines: [],
         strengthWarning: false,
-      })));
+      }));
       setExtractedMedicines(transformedMedicines);
 
-      // Rebuild extractedFormData
       const initialData = {};
+      const matchingMap = {};
       transformedMedicines.forEach((med, idx) => {
         initialData[idx] = {
           medicineName: med.ocrExtracted.name || "",
@@ -1777,40 +1971,46 @@ const OCRBillImport = () => {
           unitPrice: med.ocrExtracted.unitPrice || "",
           totalPrice: med.ocrExtracted.totalPrice || "",
         };
+        matchingMap[idx] = matchesByTempId[med._tempId];
       });
       setExtractedFormData(initialData);
-
-      // Fetch matching medicines
-      const medicinesCount = billData.extractedData?.medicines?.length || 0;
-      console.log(`  🔄 Fetching matches for ${medicinesCount} medicines...`);
-      const matchingMap = {};
-
-      for (let idx = 0; idx < medicinesCount; idx++) {
-        const med = billData.extractedData?.medicines[idx];
-        console.log(`    [${idx}] Fetching matches for "${med.name}" strength="${med.strength || ""}"`);
-        try {
-          const matches = await fetchMatchingMedicines(med.name, med.strength);
-          console.log(`    [${idx}] Got ${matches ? matches.length : 0} matches`);
-          matchingMap[idx] = matches || [];
-        } catch (err) {
-          console.error(`    [${idx}] ❌ Error fetching matches:`, err);
-          matchingMap[idx] = [];
-        }
-      }
-      console.log("  ✅ All medicines processed. Final matchingMap:", matchingMap);
       setMatchingMedicinesMap(matchingMap);
+      setCheckedMedicines({});
+      setSelectedMedicineIds({});
+
+      // Unmatched lines stay in the missing list. Keep the saved error entry when there
+      // is one (it carries the user's edits); otherwise build it from the extracted line.
+      const savedErrorsById = new Map((billData.errors || []).filter((e) => e._tempId).map((e) => [e._tempId, e]));
+      const missingList = withoutMatches.map((med) => {
+        const saved = savedErrorsById.get(med._tempId) || {};
+        return {
+          ...saved,
+          _tempId: med._tempId,
+          extractedName: saved.extractedName ?? med.name ?? "",
+          extractedStrength: saved.extractedStrength ?? med.strength ?? "",
+          quantity: med.quantity || 0,
+          batchNumber: med.batchNumber || null,
+          expiryDate: med.expiryDate || null,
+          unitPrice: med.unitPrice || null,
+          totalPrice: med.totalPrice || null,
+          reason: saved.reason || "No matching medicine found in master database",
+        };
+      });
+      // Saved errors that are not part of extractedData (legacy records without _tempId)
+      (billData.errors || []).forEach((e) => {
+        const inPending = e._tempId && pendingLines.some((m) => m._tempId === e._tempId);
+        if (!inPending && !(e._tempId && processedTempIds.has(e._tempId))) missingList.push(e);
+      });
+      setErrorMedicines(addIdsToMedicines(missingList));
       setIsResuming(false);
 
       // Show notification about missing medicines
-      if (billData.errors && billData.errors.length > 0) {
-        setError(`You have ${billData.errors.length} missing medicine(s) from previous attempt. You can edit their names/strength and search again below.`);
-        toast.info(`${billData.errors.length} missing medicine(s) - Edit and search again!`);
+      if (missingList.length > 0) {
+        toast.info(`${missingList.length} missing medicine(s) - Edit and search again!`);
       }
 
       setStep("extract");
-      console.log("✅ Bill resumed successfully");
     } catch (err) {
-      console.error("❌ Failed to resume bill:", err);
       setError("Failed to resume bill");
       setIsResuming(false);
     } finally {
@@ -1846,6 +2046,8 @@ const OCRBillImport = () => {
       setBillGrossAmount(meta.grossAmount || 0);
       setBillDiscountPercentage(meta.discountPercentage || 0);
       setBillDiscountAmount(meta.discountAmount || 0);
+      // Same rule as a fresh extraction / resume: final = gross - discount
+      setBillFinalAmount((meta.grossAmount || 0) - (meta.discountAmount || 0));
       setBillTotal(meta.totalAmount || 0);
 
       // Filter out medicines that are already processed (added to inventory).
@@ -1892,7 +2094,6 @@ const OCRBillImport = () => {
       errorsToRetry = errorsToRetry.filter(e => !isProcessed(e));
 
       if (alreadyProcessed.length > 0) {
-        console.log(`⏭️ Skipping ${alreadyProcessed.length} medicines already added to inventory:`, alreadyProcessed.map(m => m.extractedName));
         toast.info(`${alreadyProcessed.length} medicine(s) already added to inventory - skipping retry`);
       }
 
@@ -1910,13 +2111,15 @@ const OCRBillImport = () => {
       const newMatchingMap = { ...matchingMedicinesMap };
 
       // Re-search for each missing medicine
-      console.log(`🔄 Retrying ${errorsToRetry.length} missing medicines...`);
       for (const error of errorsToRetry) {
         try {
+          // Move a line into the review table only when a master medicine matches its
+          // strength too (same rule as a fresh extraction). Otherwise it stays missing.
           const matches = await fetchMatchingMedicines(error.extractedName, error.extractedStrength);
           if (matches && matches.length > 0) {
             // Found matches! Add to extracted medicines
-            const nextIdx = Object.keys(matchingMedicinesMap).length + newMatches.length;
+            // Row index = where this line will sit in extractedMedicines (see startIdx below)
+            const nextIdx = extractedMedicines.length + newMatches.length;
             newMatchingMap[nextIdx] = matches;
             newMatches.push({
               _tempId: error._tempId, // Stable ID — used to look up the original extracted medicine
@@ -1926,7 +2129,6 @@ const OCRBillImport = () => {
             });
           }
         } catch (err) {
-          console.error(`Failed to retry "${error.extractedName}":`, err);
         }
       }
 
@@ -1989,8 +2191,13 @@ const OCRBillImport = () => {
         }
 
         if (originalMedicine || newMatch.name) {
+          // Saved values (incl. edits made in the missing table) win over the original extraction
+          const errorMedForId = originalErrorMedicine || fallbackErrorMedicine;
+          const savedErr = errorMedForId || {};
+          const pick = (k) => (savedErr[k] != null && savedErr[k] !== "" ? savedErr[k] : originalMedicine?.[k]);
+
           // Ensure expiryDate is in YYYY-MM-DD format for date input
-          let formattedExpiryDate = originalMedicine?.expiryDate || "";
+          let formattedExpiryDate = pick("expiryDate") || "";
           if (formattedExpiryDate && typeof formattedExpiryDate === "string") {
             // If it's already in YYYY-MM-DD, keep it; otherwise try to parse it
             if (!/^\d{4}-\d{2}-\d{2}$/.test(formattedExpiryDate)) {
@@ -1998,7 +2205,7 @@ const OCRBillImport = () => {
               const dateStr = formattedExpiryDate.trim();
 
               // Try MM/YY or MM-YY format (pharmacy expiry, e.g., "07/27" = July 2027)
-              const mmyyMatch = dateStr.match(/^(\d{1,2})[-\/](\d{2})$/);
+              const mmyyMatch = dateStr.match(/^(\d{1,2})[-/](\d{2})$/);
               if (mmyyMatch) {
                 const month = parseInt(mmyyMatch[1]);
                 let year = parseInt(mmyyMatch[2]);
@@ -2016,7 +2223,7 @@ const OCRBillImport = () => {
 
               // Try DD-MM-YYYY or DD/MM/YYYY format (common in India)
               if (!parsed || isNaN(parsed.getTime())) {
-                const ddmmMatch = dateStr.match(/^(\d{1,2})[-\/](\d{1,2})[-\/](\d{4})$/);
+                const ddmmMatch = dateStr.match(/^(\d{1,2})[-/](\d{1,2})[-/](\d{4})$/);
                 if (ddmmMatch) {
                   const day = parseInt(ddmmMatch[1]);
                   const month = parseInt(ddmmMatch[2]);
@@ -2033,30 +2240,29 @@ const OCRBillImport = () => {
               }
 
               if (parsed && !isNaN(parsed.getTime())) {
-                formattedExpiryDate = parsed.toISOString().split('T')[0];
+                // local date parts - toISOString() shifts the date back a day east of UTC
+                formattedExpiryDate = `${parsed.getFullYear()}-${String(parsed.getMonth() + 1).padStart(2, "0")}-${String(parsed.getDate()).padStart(2, "0")}`;
               } else {
                 formattedExpiryDate = "";
               }
             }
           }
 
-          // Use first matched medicine's strength from database
-          const firstMatch = newMatch.matches?.[0];
-          const matchedStrength = firstMatch?.strength || newMatch.strength || "";
+          // Keep what the bill said; the master medicine is chosen in the dropdown
+          const matchedStrength = newMatch.strength || "";
 
           // Create a new medicine entry with the structure expected by extract step
-          const errorMedForId = originalErrorMedicine || fallbackErrorMedicine;
           updatedExtractedMedicines.push({
             _tempId: errorMedForId?._tempId, // Preserve ID for tracking across workflow
             medicineId: null, // Will be selected from dropdown
             ocrExtracted: {
               name: newMatch.name,
               strength: matchedStrength,
-              batchNumber: originalMedicine?.batchNumber || null,
-              quantity: originalMedicine?.quantity || 0,
-              unitPrice: originalMedicine?.unitPrice || null,
-              totalPrice: originalMedicine?.totalPrice || null,
-              expiryDate: originalMedicine?.expiryDate || null,
+              batchNumber: pick("batchNumber") || null,
+              quantity: pick("quantity") || 0,
+              unitPrice: pick("unitPrice") || null,
+              totalPrice: pick("totalPrice") || null,
+              expiryDate: formattedExpiryDate || null,
               confidence: originalMedicine?.confidence || 0,
             },
             masterData: {},
@@ -2068,11 +2274,11 @@ const OCRBillImport = () => {
           newFormDataEntries[startIdx] = {
             medicineName: newMatch.name,
             strength: matchedStrength,
-            quantity: originalMedicine?.quantity || 0,
-            batchNumber: originalMedicine?.batchNumber || null,
+            quantity: pick("quantity") || 0,
+            batchNumber: pick("batchNumber") || null,
             expiryDate: formattedExpiryDate,
-            unitPrice: originalMedicine?.unitPrice || null,
-            totalPrice: originalMedicine?.totalPrice || null,
+            unitPrice: pick("unitPrice") || null,
+            totalPrice: pick("totalPrice") || null,
           };
 
           // Don't auto-select on retry - let user manually verify strength match
@@ -2094,18 +2300,19 @@ const OCRBillImport = () => {
       setMatchingMedicinesMap(newMatchingMap);
 
       // Update the error medicines to remove the newly matched ones
-      const retryNames = newMatches.map(m => m.name);
-      const updatedErrors = errorMedicines.filter(e => !retryNames.includes(e.extractedName));
-      setErrorMedicines(updatedErrors);
+      const isMoved = (e) =>
+        newMatches.some((m) => (m._tempId && e._tempId ? m._tempId === e._tempId : m.name === e.extractedName));
+      const updatedErrors = errorsToRetry.filter((e) => !isMoved(e));
+      setErrorMedicines(addIdsToMedicines(updatedErrors));
 
-      // Update database to mark retried medicines as processed
+      // Replace the saved error list, so moved lines are no longer missing in the database
       try {
         await updateBillErrors({
           billImportId: billImportIdParam,
           errors: updatedErrors,
+          replace: true,
         });
       } catch (updateErr) {
-        console.error("Failed to update bill errors in database:", updateErr);
       }
 
       setError(null);
@@ -2113,7 +2320,6 @@ const OCRBillImport = () => {
       toast.success(`Found ${newMatches.length} new matches! Select them to continue.`);
       setStep("extract");
     } catch (err) {
-      console.error("Failed to retry missing medicines:", err);
       setError("Failed to retry missing medicines");
       setIsResuming(false);
     } finally {
@@ -2277,65 +2483,82 @@ const OCRBillImport = () => {
             <Card
               style={{
                 width: "90%",
-                maxWidth: "500px",
+                maxWidth: "440px",
                 textAlign: "center",
-                border: "none",
-                borderRadius: "12px",
-                boxShadow: "0 15px 50px rgba(0,0,0,0.4)",
+                border: "1px solid #e5e7eb",
+                borderRadius: "10px",
+                boxShadow: "0 12px 40px rgba(0,0,0,0.18)",
                 backgroundColor: "#ffffff",
               }}
             >
-              <CardBody className="p-5">
-                <div className="mb-4">
-                  <Spinner
-                    color="primary"
-                    style={{
-                      width: "70px",
-                      height: "70px",
-                      marginBottom: "20px",
-                    }}
-                  />
-                </div>
+              <CardBody style={{ padding: "2rem 2rem 1.5rem" }}>
+                {(() => {
+                  const stages = [
+                    { key: "uploading", label: "Uploading bill" },
+                    { key: "extracting", label: "Extracting and matching medicines" },
+                  ];
+                  const activeIdx = Math.max(0, stages.findIndex((x) => x.key === processingStatus));
+                  const copy = {
+                    uploading: ["Uploading bill", "Preparing your document for processing."],
+                    extracting: ["Extracting medicine details", "This can take a minute or two for longer bills."],
+                    matching: ["Matching medicines", "Comparing the extracted names with your medicine master."],
+                  }[stages[activeIdx].key];
+                  return (
+                    <>
+                      <Spinner
+                        style={{ width: "2.25rem", height: "2.25rem", borderWidth: "3px", color: "#475569", animationDuration: "0.35s" }}
+                      />
+                      <h5 className="mt-3 mb-1" style={{ color: "#111827", fontWeight: 600 }}>{copy[0]}</h5>
+                      <p className="mb-4" style={{ color: "#6b7280", fontSize: "0.9rem" }}>{copy[1]}</p>
 
-                {processingStatus === "uploading" && (
-                  <>
-                    <h4 className="font-weight-bold mb-3" style={{ color: "#333" }}>
-                      Uploading Bill
-                    </h4>
-                    <p className="text-muted" style={{ fontSize: "16px" }}>
-                      Preparing your document for processing...
-                    </p>
-                  </>
-                )}
+                      <div
+                        className="text-start mx-auto"
+                        style={{ maxWidth: "320px", borderTop: "1px solid #eef0f3", paddingTop: "1rem" }}
+                      >
+                        {stages.map((st, i) => {
+                          const done = i < activeIdx;
+                          const active = i === activeIdx;
+                          return (
+                            <div
+                              key={st.key}
+                              className="d-flex align-items-center"
+                              style={{
+                                gap: "0.65rem",
+                                padding: "0.3rem 0",
+                                fontSize: "0.875rem",
+                                color: done || active ? "#111827" : "#9ca3af",
+                                fontWeight: active ? 600 : 400,
+                              }}
+                            >
+                              <span
+                                style={{
+                                  width: 18,
+                                  height: 18,
+                                  borderRadius: "50%",
+                                  flex: "0 0 18px",
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  fontSize: "0.65rem",
+                                  color: done ? "#fff" : "#6b7280",
+                                  background: done ? "#475569" : "#fff",
+                                  border: done ? "1px solid #475569" : active ? "2px solid #475569" : "1px solid #d1d5db",
+                                }}
+                              >
+                                {done ? "\u2713" : ""}
+                              </span>
+                              {st.label}
+                            </div>
+                          );
+                        })}
+                      </div>
 
-                {processingStatus === "extracting" && (
-                  <>
-                    <div className="text-center mx-auto py-5" style={{ maxWidth: "420px" }}>
-
-                      <h4 className="fw-semibold text-dark mb-3">
-                        Extracting Medicine Details
-                      </h4>
-                      <p className="text-muted small mb-2">
-                        This may take a minute or two
+                      <p className="mb-0 mt-4" style={{ color: "#6b7280", fontSize: "0.78rem" }}>
+                        Please keep this page open until it finishes.
                       </p>
-
-                      <small className="text-danger">
-                        Please do not close or refresh the page
-                      </small>
-                    </div>
-                  </>
-                )}
-
-                {processingStatus === "matching" && (
-                  <>
-                    <h4 className="font-weight-bold mb-3" style={{ color: "#333" }}>
-                      Matching Medicines
-                    </h4>
-                    <p className="text-muted" style={{ fontSize: "16px" }}>
-                      Finding matching medicines from your master database...
-                    </p>
-                  </>
-                )}
+                    </>
+                  );
+                })()}
               </CardBody>
             </Card>
           </div>
@@ -2490,11 +2713,11 @@ const OCRBillImport = () => {
           )}
 
           {errorMedicines.length > 0 && extractedMedicines.length > 0 && (
-            <Card className="border-warning mb-4">
-              <CardHeader className="bg-light border-warning">
+            <Card className="mb-4 shadow-sm" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+              <CardHeader style={{ background: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
                 <Row className="align-items-center">
                   <Col>
-                    <h6 className="mb-0 text-warning font-weight-bold">Missing Medicines ({errorMedicines.length})</h6>
+                    <h6 className="mb-0 font-weight-bold">Missing Medicines ({errorMedicines.length})</h6>
                   </Col>
                   <Col xs="auto">
                     <Button
@@ -2509,35 +2732,42 @@ const OCRBillImport = () => {
               </CardHeader>
               <CardBody className="p-0">
                 <style>{`
-                  .error-medicine-table td {
-                    padding: 0.35rem 0.5rem !important;
-                    vertical-align: middle;
-                    height: 38px;
-                  }
-                  .error-medicine-table input {
-                    font-size: 0.85rem;
-                    padding: 0.25rem 0.4rem !important;
-                    border: 1px solid #e0e0e0 !important;
-                    border-radius: 3px;
-                  }
-                  .error-medicine-table input:focus {
-                    border-color: #ffc107 !important;
-                    background-color: #fffbf0;
-                    box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.1) !important;
-                  }
-                  .error-medicine-table tbody tr:hover {
-                    background-color: #fffbf0;
-                  }
-                  .error-medicine-table tbody tr:nth-child(even) {
-                    background-color: #fffdf5;
-                  }
-                  .error-medicine-table th {
-                    font-size: 0.85rem;
-                    padding: 0.5rem 0.5rem !important;
-                    font-weight: 600;
-                    border-bottom: 2px solid #dee2e6;
-                  }
-                `}</style>
+                .error-medicine-table { border-collapse: separate; border-spacing: 0; }
+                .error-medicine-table thead th {
+                  position: sticky; top: 0; z-index: 1;
+                  background: #f8f9fb;
+                  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+                  color: #6b7280;
+                  padding: 0.65rem 0.6rem !important;
+                  border-bottom: 1px solid #e5e7eb !important;
+                  white-space: nowrap;
+                }
+                .error-medicine-table td {
+                  padding: 0.45rem 0.6rem !important;
+                  vertical-align: middle;
+                  border-top: 0 !important;
+                  border-bottom: 1px solid #eef0f3 !important;
+                }
+                .error-medicine-table tbody tr { transition: background-color .12s ease; }
+                .error-medicine-table tbody tr:hover { background-color: #f8fafc; }
+                .error-medicine-table input.form-control {
+                  font-size: 0.85rem;
+                  padding: 0.3rem 0.5rem !important;
+                  border: 1px solid #cbd5e1 !important;
+                  background-color: #fff;
+                  border-radius: 6px;
+                  transition: border-color .12s ease, background-color .12s ease, box-shadow .12s ease;
+                }
+                .error-medicine-table input.form-control:hover { border-color: #94a3b8 !important; }
+                .error-medicine-table input.form-control:focus {
+                  border-color: #64748b !important;
+                  background-color: #fff;
+                  box-shadow: 0 0 0 3px rgba(100,116,139, 0.18) !important;
+                }
+                .error-medicine-table input[type="number"] { text-align: right; font-variant-numeric: tabular-nums; }
+                .error-medicine-table input[type="checkbox"] { width: 1rem; height: 1rem; cursor: pointer; }
+                
+              `}</style>
                 <div className="table-responsive">
                   <table className="table table-sm mb-0 error-medicine-table">
                     <thead className="bg-light">
@@ -2697,47 +2927,18 @@ const OCRBillImport = () => {
                               </div>
                             </td>
                           </tr>
-                          {errorMatchingMedicinesMap[idx] && errorMatchingMedicinesMap[idx].length > 0 && (
-                            <tr key={`${idx}-matches`} style={{ backgroundColor: "#fffbf0" }}>
-                              <td colSpan={8} style={{ padding: "0.5rem 1rem" }}>
-                                <div className="d-flex align-items-center gap-2 flex-wrap">
-                                  <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#856404" }}>
-                                    Select match:
-                                  </span>
-                                  <div style={{ minWidth: "280px", flex: 1 }}>
-                                    <Select
-                                      options={errorMatchingMedicinesMap[idx].map((m) => ({
-                                        value: m._id || m.id,
-                                        label: `${m.name || ""}${m.strength ? ` — ${m.strength}` : ""}${m.form ? ` (${m.form})` : ""}`,
-                                      }))}
-                                      value={
-                                        selectedErrorMedicineIds[idx]
-                                          ? {
-                                              value: selectedErrorMedicineIds[idx],
-                                              label: (() => {
-                                                const m = errorMatchingMedicinesMap[idx].find(
-                                                  (x) => (x._id || x.id) === selectedErrorMedicineIds[idx]
-                                                );
-                                                return m ? `${m.name}${m.strength ? ` — ${m.strength}` : ""}` : "";
-                                              })(),
-                                            }
-                                          : null
-                                      }
-                                      onChange={(opt) => {
-                                        setSelectedErrorMedicineIds((prev) => ({
-                                          ...prev,
-                                          [idx]: opt?.value || null,
-                                        }));
-                                      }}
-                                      placeholder="Pick the correct medicine..."
-                                      isClearable
-                                      menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                                      menuPosition="fixed"
-                                      styles={{
-                                        menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                                      }}
+                          {(
+                            <tr key={`${idx}-matches`} style={{ backgroundColor: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
+                              <td style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b5563", verticalAlign: "middle" }}>Match to:</td>
+                                <td colSpan={6} style={{ verticalAlign: "middle" }}>
+                                  <MissedMedicineSearch
+                                      candidates={errorMatchingMedicinesMap[idx]}
+                                      selectedId={selectedErrorMedicineIds[idx]}
+                                      onPick={(med) => handleSearchPick(idx, med)}
+                                      onClear={() => setSelectedErrorMedicineIds((prev) => ({ ...prev, [idx]: null }))}
                                     />
-                                  </div>
+                                </td>
+                                <td style={{ textAlign: "right", verticalAlign: "middle" }}>
                                   <Button
                                     color="success"
                                     size="sm"
@@ -2747,8 +2948,7 @@ const OCRBillImport = () => {
                                   >
                                     Move to Extracted
                                   </Button>
-                                </div>
-                              </td>
+                                </td>
                             </tr>
                           )}
                           </React.Fragment>
@@ -2763,19 +2963,21 @@ const OCRBillImport = () => {
 
           {extractedMedicines.length === 0 && (
             <div className="text-center py-5">
-              <Alert color="warning" className="mb-4">
-                <h5 className="font-weight-bold">No Medicines Extracted</h5>
-                <p className="mb-0">
-                  No medicines were found in the bill. Please try uploading a different bill.
-                </p>
-              </Alert>
+              {errorMedicines.length === 0 && (
+                <Alert color="warning" className="mb-4">
+                  <h5 className="font-weight-bold">No Medicines Extracted</h5>
+                  <p className="mb-0">
+                    No medicines were found in the bill. Please try uploading a different bill.
+                  </p>
+                </Alert>
+              )}
 
               {errorMedicines.length > 0 && (
-                <Card className="border-warning mt-4">
-                  <CardHeader className="bg-light border-warning">
+                <Card className="mt-4 shadow-sm" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+                  <CardHeader style={{ background: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
                     <Row className="align-items-center">
                       <Col>
-                        <h6 className="mb-0 text-warning font-weight-bold">Missing Medicines Found ({errorMedicines.length})</h6>
+                        <h6 className="mb-0 font-weight-bold">Missing Medicines Found ({errorMedicines.length})</h6>
                       </Col>
                       <Col xs="auto">
                         <Button
@@ -2790,35 +2992,42 @@ const OCRBillImport = () => {
                   </CardHeader>
                   <CardBody className="p-0">
                     <style>{`
-                      .error-medicine-table-no-extracted td {
-                        padding: 0.35rem 0.5rem !important;
-                        vertical-align: middle;
-                        height: 38px;
-                      }
-                      .error-medicine-table-no-extracted input {
-                        font-size: 0.85rem;
-                        padding: 0.25rem 0.4rem !important;
-                        border: 1px solid #e0e0e0 !important;
-                        border-radius: 3px;
-                      }
-                      .error-medicine-table-no-extracted input:focus {
-                        border-color: #ffc107 !important;
-                        background-color: #fffbf0;
-                        box-shadow: 0 0 0 2px rgba(255, 193, 7, 0.1) !important;
-                      }
-                      .error-medicine-table-no-extracted tbody tr:hover {
-                        background-color: #fffbf0;
-                      }
-                      .error-medicine-table-no-extracted tbody tr:nth-child(even) {
-                        background-color: #fffdf5;
-                      }
-                      .error-medicine-table-no-extracted th {
-                        font-size: 0.85rem;
-                        padding: 0.5rem 0.5rem !important;
-                        font-weight: 600;
-                        border-bottom: 2px solid #dee2e6;
-                      }
-                    `}</style>
+                .error-medicine-table-no-extracted { border-collapse: separate; border-spacing: 0; }
+                .error-medicine-table-no-extracted thead th {
+                  position: sticky; top: 0; z-index: 1;
+                  background: #f8f9fb;
+                  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+                  color: #6b7280;
+                  padding: 0.65rem 0.6rem !important;
+                  border-bottom: 1px solid #e5e7eb !important;
+                  white-space: nowrap;
+                }
+                .error-medicine-table-no-extracted td {
+                  padding: 0.45rem 0.6rem !important;
+                  vertical-align: middle;
+                  border-top: 0 !important;
+                  border-bottom: 1px solid #eef0f3 !important;
+                }
+                .error-medicine-table-no-extracted tbody tr { transition: background-color .12s ease; }
+                .error-medicine-table-no-extracted tbody tr:hover { background-color: #f8fafc; }
+                .error-medicine-table-no-extracted input.form-control {
+                  font-size: 0.85rem;
+                  padding: 0.3rem 0.5rem !important;
+                  border: 1px solid #cbd5e1 !important;
+                  background-color: #fff;
+                  border-radius: 6px;
+                  transition: border-color .12s ease, background-color .12s ease, box-shadow .12s ease;
+                }
+                .error-medicine-table-no-extracted input.form-control:hover { border-color: #94a3b8 !important; }
+                .error-medicine-table-no-extracted input.form-control:focus {
+                  border-color: #64748b !important;
+                  background-color: #fff;
+                  box-shadow: 0 0 0 3px rgba(100,116,139, 0.18) !important;
+                }
+                .error-medicine-table-no-extracted input[type="number"] { text-align: right; font-variant-numeric: tabular-nums; }
+                .error-medicine-table-no-extracted input[type="checkbox"] { width: 1rem; height: 1rem; cursor: pointer; }
+                
+              `}</style>
                     <div className="table-responsive">
                       <table className="table table-sm mb-0 error-medicine-table-no-extracted">
                         <thead className="bg-light">
@@ -2971,48 +3180,19 @@ const OCRBillImport = () => {
                                   </div>
                                 </td>
                               </tr>
-                              {errorMatchingMedicinesMap[idx] && errorMatchingMedicinesMap[idx].length > 0 && (
-                                <tr key={`${idx}-matches`} style={{ backgroundColor: "#fffbf0" }}>
-                                  <td colSpan={8} style={{ padding: "0.5rem 1rem" }}>
-                                    <div className="d-flex align-items-center gap-2 flex-wrap">
-                                      <span style={{ fontSize: "0.8rem", fontWeight: 600, color: "#856404" }}>
-                                        Select match:
-                                      </span>
-                                      <div style={{ minWidth: "280px", flex: 1 }}>
-                                        <Select
-                                          options={errorMatchingMedicinesMap[idx].map((m) => ({
-                                            value: m._id || m.id,
-                                            label: `${m.name || ""}${m.strength ? ` — ${m.strength}` : ""}${m.form ? ` (${m.form})` : ""}`,
-                                          }))}
-                                          value={
-                                            selectedErrorMedicineIds[idx]
-                                              ? {
-                                                  value: selectedErrorMedicineIds[idx],
-                                                  label: (() => {
-                                                    const m = errorMatchingMedicinesMap[idx].find(
-                                                      (x) => (x._id || x.id) === selectedErrorMedicineIds[idx]
-                                                    );
-                                                    return m ? `${m.name}${m.strength ? ` — ${m.strength}` : ""}` : "";
-                                                  })(),
-                                                }
-                                              : null
-                                          }
-                                          onChange={(opt) => {
-                                            setSelectedErrorMedicineIds((prev) => ({
-                                              ...prev,
-                                              [idx]: opt?.value || null,
-                                            }));
-                                          }}
-                                          placeholder="Pick the correct medicine..."
-                                          isClearable
-                                          menuPortalTarget={typeof document !== "undefined" ? document.body : null}
-                                          menuPosition="fixed"
-                                          styles={{
-                                            menuPortal: (base) => ({ ...base, zIndex: 9999 }),
-                                          }}
+                              {(
+                                <tr key={`${idx}-matches`} style={{ backgroundColor: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
+                                  <td style={{ fontSize: "0.8rem", fontWeight: 600, color: "#4b5563", verticalAlign: "middle" }}>Match to:</td>
+                                <td colSpan={6} style={{ verticalAlign: "middle" }}>
+                                  <MissedMedicineSearch
+                                          candidates={errorMatchingMedicinesMap[idx]}
+                                          selectedId={selectedErrorMedicineIds[idx]}
+                                          onPick={(med) => handleSearchPick(idx, med)}
+                                          onClear={() => setSelectedErrorMedicineIds((prev) => ({ ...prev, [idx]: null }))}
                                         />
-                                      </div>
-                                      <Button
+                                </td>
+                                <td style={{ textAlign: "right", verticalAlign: "middle" }}>
+                                  <Button
                                         color="success"
                                         size="sm"
                                         disabled={!selectedErrorMedicineIds[idx]}
@@ -3021,8 +3201,7 @@ const OCRBillImport = () => {
                                       >
                                         Move to Extracted
                                       </Button>
-                                    </div>
-                                  </td>
+                                </td>
                                 </tr>
                               )}
                               </React.Fragment>
@@ -3041,64 +3220,77 @@ const OCRBillImport = () => {
           {extractedMedicines.length > 0 && (
             <Row className="mb-3 g-2">
               <Col xs="auto">
-                <Badge color="secondary" className="px-3 py-2">
-                  {extractedMedicines.length} medicines
-                </Badge>
+                <div style={{ minWidth: 140, padding: "0.5rem 0.9rem", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6 }}>
+                  <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>Medicines</div>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 600, color: "#111827", fontVariantNumeric: "tabular-nums" }}>{extractedMedicines.length}</div>
+                </div>
               </Col>
               <Col xs="auto">
-                <Badge color="secondary" className="px-3 py-2">
-                  {billTotal.toFixed(2)} total
-                </Badge>
+                <div style={{ minWidth: 140, padding: "0.5rem 0.9rem", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6 }}>
+                  <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>Bill total</div>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 600, color: "#111827", fontVariantNumeric: "tabular-nums" }}>₹{billTotal.toFixed(2)}</div>
+                </div>
               </Col>
               {errorMedicines.length > 0 && (
-                <Col xs="auto">
-                  <Badge color="secondary" className="px-3 py-2">
-                    {errorMedicines.length} missing from master
-                  </Badge>
-                </Col>
+              <Col xs="auto">
+                <div style={{ minWidth: 140, padding: "0.5rem 0.9rem", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6 }}>
+                  <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>Missing from master</div>
+                  <div style={{ fontSize: "1.1rem", fontWeight: 600, color: "#111827", fontVariantNumeric: "tabular-nums" }}>{errorMedicines.length}</div>
+                </div>
+              </Col>
               )}
             </Row>
           )}
 
           {/* Compact Table View for Quick Bulk Entry - Only show if medicines were extracted */}
           {extractedMedicines.length > 0 && (
-          <Card className="border-0 shadow-sm">
-            <CardHeader className="bg-light border-0">
+          <Card className="shadow-sm" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+            <CardHeader className="bg-white" style={{ borderBottom: "1px solid #eef0f3", padding: "0.9rem 1.1rem" }}>
               <h6 className="mb-0 font-weight-bold">
                 Extracted Medicines ({extractedMedicines.filter((_, idx) => matchingMedicinesMap[idx]?.length > 0).length} with matches)
               </h6>
-              <small className="text-muted">Use Tab to move between cells • Type to edit inline</small>
+              <small className="text-muted d-block mt-1">Tick the rows to import. Use Tab to move between cells, type to edit inline.</small>
             </CardHeader>
             <CardBody className="p-0">
               <style>{`
+                .medicine-table { border-collapse: separate; border-spacing: 0; }
+                .medicine-table thead th {
+                  position: sticky; top: 0; z-index: 1;
+                  background: #f8f9fb;
+                  font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+                  color: #6b7280;
+                  padding: 0.65rem 0.6rem !important;
+                  border-bottom: 1px solid #e5e7eb !important;
+                  white-space: nowrap;
+                }
                 .medicine-table td {
-                  padding: 0.35rem 0.5rem !important;
+                  padding: 0.45rem 0.6rem !important;
                   vertical-align: middle;
-                  height: 38px;
+                  border-top: 0 !important;
+                  border-bottom: 1px solid #eef0f3 !important;
                 }
-                .medicine-table input {
+                .medicine-table tbody tr { transition: background-color .12s ease; }
+                .medicine-table tbody tr:hover { background-color: #f8fafc; }
+                .medicine-table input.form-control {
                   font-size: 0.85rem;
-                  padding: 0.25rem 0.4rem !important;
-                  border: 1px solid #e0e0e0 !important;
-                  border-radius: 3px;
+                  padding: 0.3rem 0.5rem !important;
+                  border: 1px solid #cbd5e1 !important;
+                  background-color: #fff;
+                  border-radius: 6px;
+                  transition: border-color .12s ease, background-color .12s ease, box-shadow .12s ease;
                 }
-                .medicine-table input:focus {
-                  border-color: #007bff !important;
-                  background-color: #f0f7ff;
-                  box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1) !important;
+                .medicine-table input.form-control:hover { border-color: #94a3b8 !important; }
+                .medicine-table input.form-control:focus {
+                  border-color: #64748b !important;
+                  background-color: #fff;
+                  box-shadow: 0 0 0 3px rgba(100,116,139, 0.18) !important;
                 }
-                .medicine-table tbody tr:hover {
-                  background-color: #f9f9f9;
-                }
-                .medicine-table tbody tr:nth-child(even) {
-                  background-color: #f5f5f5;
-                }
-                .medicine-table th {
-                  font-size: 0.85rem;
-                  padding: 0.5rem 0.5rem !important;
-                  font-weight: 600;
-                  border-bottom: 2px solid #dee2e6;
-                }
+                .medicine-table input[type="number"] { text-align: right; font-variant-numeric: tabular-nums; }
+                .medicine-table input[type="checkbox"] { width: 1rem; height: 1rem; cursor: pointer; }
+                .medicine-table tbody tr.row-checked { background-color: #fafbfc; }
+                .medicine-table tbody tr.row-unchecked td { opacity: 0.55; }
+                .medicine-table tbody tr.row-unchecked:hover td { opacity: 1; }
+                .medicine-table input[type="date"] { min-width: 128px; }
               `}</style>
               <div className="table-responsive">
                 <table className="table table-sm mb-0 medicine-table">
@@ -3107,14 +3299,21 @@ const OCRBillImport = () => {
                       <th style={{ width: "3%" }}>
                         <Input
                           type="checkbox"
-                          checked={Object.keys(checkedMedicines).length === extractedMedicines.length}
+                          disabled={tickableIndices(extractedMedicines.map((_, i) => i)).length === 0}
+                          checked={
+                            tickableIndices(extractedMedicines.map((_, i) => i)).length > 0 &&
+                            tickableIndices(extractedMedicines.map((_, i) => i)).every((i) => isRowTicked(i))
+                          }
                           onChange={(e) => {
                             if (e.target.checked) {
                               const allChecked = {};
-                              extractedMedicines.forEach((_, i) => {
+                              tickableIndices(extractedMedicines.map((_, i) => i)).forEach((i) => {
                                 allChecked[i] = true;
                               });
                               setCheckedMedicines(allChecked);
+                              if (tickableIndices(extractedMedicines.map((_, i) => i)).length < extractedMedicines.length) {
+                                toast.info("Rows without a selected medicine were not ticked.");
+                              }
                             } else {
                               setCheckedMedicines({});
                             }
@@ -3122,15 +3321,15 @@ const OCRBillImport = () => {
                           title="Select all"
                         />
                       </th>
-                      <th style={{ width: "15%" }}>Matched Medicine</th>
-                      <th style={{ width: "15%" }}>Medicine Name</th>
-                      <th style={{ width: "10%" }}>Strength</th>
-                      <th style={{ width: "8%" }}>Qty</th>
-                      <th style={{ width: "12%" }}>Batch</th>
-                      <th style={{ width: "12%" }}>Expiry</th>
-                      <th style={{ width: "9%" }}>Unit Price</th>
-                      <th style={{ width: "9%" }}>Total</th>
-                      <th style={{ width: "5%" }}></th>
+                      <th style={{ width: "24%" }}>Matched Medicine</th>
+                      <th style={{ width: "16%" }}>Medicine Name</th>
+                      <th style={{ width: "9%" }}>Strength</th>
+                      <th style={{ width: "7%", textAlign: "right" }}>Qty</th>
+                      <th style={{ width: "11%" }}>Batch</th>
+                      <th style={{ width: "11%" }}>Expiry</th>
+                      <th style={{ width: "8%", textAlign: "right" }}>Unit Price</th>
+                      <th style={{ width: "8%", textAlign: "right" }}>Total</th>
+                      <th style={{ width: "3%" }}></th>
                     </tr>
                   </thead>
                   <tbody>
@@ -3140,13 +3339,18 @@ const OCRBillImport = () => {
                         return null;
                       }
                       return (
-                      <tr key={idx}>
+                      <tr key={idx} className={isRowTicked(idx) ? "row-checked" : "row-unchecked"}>
                         <td>
                           <Input
                             type="checkbox"
-                            checked={!!checkedMedicines[idx]}
+                            disabled={!selectedMedicineIds[idx]}
+                            checked={isRowTicked(idx)}
                             onChange={(e) => {
                               if (e.target.checked) {
+                                if (!selectedMedicineIds[idx]) {
+                                  toast.warning("Select a medicine for this row before ticking it.");
+                                  return;
+                                }
                                 setCheckedMedicines({
                                   ...checkedMedicines,
                                   [idx]: true,
@@ -3164,16 +3368,14 @@ const OCRBillImport = () => {
                             <Select
                               options={matchingMedicinesMap[idx]?.map((m) => ({
                                 value: m._id,
-                                label: `${m.id || m._id} | ${m.name} ${m.strength || ""} | ${m.baseUnit || ""} | ${m.form || ""}`.trim(),
+                                label: formatMedicineLabel(m),
                                 data: m,
                               })) || []}
                               value={
                                 selectedMedicineIds[idx]
                                   ? {
                                     value: selectedMedicineIds[idx],
-                                    label: matchingMedicinesMap[idx]?.find(
-                                      (m) => m._id === selectedMedicineIds[idx]
-                                    )?.id || selectedMedicineIds[idx],
+                                    label: formatMedicineLabel(matchingMedicinesMap[idx]?.find((m) => m._id === selectedMedicineIds[idx])) || selectedMedicineIds[idx],
                                   }
                                   : null
                               }
@@ -3319,7 +3521,7 @@ const OCRBillImport = () => {
                           />
                         </td>
                         <td className="text-center">
-                          <Badge color="info" style={{ fontSize: "0.75rem" }} title="Extracted by OCR">
+                          <Badge color="light" className="text-muted border" style={{ fontSize: "0.75rem", fontWeight: 500 }} title="Extracted by OCR">
                             ✓
                           </Badge>
                         </td>
@@ -3336,27 +3538,39 @@ const OCRBillImport = () => {
           {error && <Alert color="danger" className="mt-3">{error}</Alert>}
 
           <div className="d-flex gap-2 justify-content-end mt-4">
-            <Button
-              color="secondary"
-              onClick={() => setStep("upload")}
-              outline
-            >
-              Upload Different Bill
-            </Button>
-            <Button
-              color="primary"
-              onClick={handleProceedFromExtraction}
-              disabled={confirmationLoading || extractedMedicines.length === 0 || Object.keys(checkedMedicines).length === 0}
-            >
-              {confirmationLoading ? (
-                <>
-                  <Spinner size="sm" className="me-2" />
-                  Processing...
-                </>
-              ) : (
-                "Review & Proceed"
-              )}
-            </Button>
+            {extractedMedicines.length === 0 && errorMedicines.length > 0 ? (
+              // Nothing was ever matched/selected - there's nothing to confirm, so the only
+              // way forward is to raise requisitions for everything in Missing.
+              <Button
+                color="primary"
+                onClick={handleSubmitAllForRequisition}
+                disabled={confirmationLoading}
+              >
+                {confirmationLoading ? (
+                  <>
+                    <Spinner size="sm" className="me-2" />
+                    Submitting...
+                  </>
+                ) : (
+                  `Submit for Requisition (${errorMedicines.length})`
+                )}
+              </Button>
+            ) : (
+              <Button
+                color="primary"
+                onClick={handleProceedFromExtraction}
+                disabled={confirmationLoading || extractedMedicines.every((_, i) => !isRowTicked(i))}
+              >
+                {confirmationLoading ? (
+                  <>
+                    <Spinner size="sm" className="me-2" />
+                    Processing...
+                  </>
+                ) : (
+                  "Review & Proceed"
+                )}
+              </Button>
+            )}
           </div>
         </div>
       </CardBody>
@@ -3485,16 +3699,16 @@ const OCRBillImport = () => {
                               <Select
                                 options={(matchingMedicinesMap[idx] || []).map((m) => ({
                                   value: m._id,
-                                  label: `${m.name}${m.strength ? ` - ${m.strength}` : ""} (${m.form}, ${m.baseUnit})`,
+                                  label: formatMedicineLabel(m),
                                 }))}
                                 value={
                                   selectedMedicineIds[idx]
                                     ? {
                                       value: selectedMedicineIds[idx],
                                       label:
-                                        matchingMedicinesMap[idx]?.find(
-                                          (m) => m._id === selectedMedicineIds[idx]
-                                        )?.name || "Selected",
+                                        formatMedicineLabel(
+                                          matchingMedicinesMap[idx]?.find((m) => m._id === selectedMedicineIds[idx])
+                                        ) || "Selected",
                                     }
                                     : null
                                 }
@@ -3561,76 +3775,76 @@ const OCRBillImport = () => {
         style={isMobile ? { width: "100%" } : { width: "78%" }}
       >
         <div className="px-3 pt-3">
-          <h5 className="mb-1 text-primary text-uppercase font-weight-bold">
+          <h5 className="mb-1 font-weight-bold" style={{ color: "#111827" }}>
             Step 2 of 2: Confirm & Submit
           </h5>
           <small className="text-muted">
             Review pharmacy status • Fill inventory details • Submit
           </small>
         </div>
-        <hr className="mb-4 border-secondary" />
+        <hr className="mb-4" style={{ borderColor: "#e5e7eb" }} />
 
         <div className="content-wrapper">
           {/* BILL SUMMARY */}
-          <Card className="border-0 shadow-sm mb-4 bg-light">
-            <CardHeader className="bg-light border-0 pb-2">
-              <h6 className="mb-0 font-weight-bold">📄 Bill Summary</h6>
+          <Card className="shadow-sm mb-4" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+            <CardHeader style={{ background: "#f8f9fb", borderBottom: "1px solid #e5e7eb" }}>
+              <h6 className="mb-0 font-weight-bold">Bill Summary</h6>
             </CardHeader>
             <CardBody className="p-3">
               <Row>
                 {billNumber && (
                   <Col md="2" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>Bill #</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>Bill #</strong>
                     </small>
                     <div className="font-weight-bold small">{billNumber}</div>
                   </Col>
                 )}
                 {billSupplier && (
                   <Col md="2" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>Supplier</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>Supplier</strong>
                     </small>
                     <div className="font-weight-bold small">{billSupplier}</div>
                   </Col>
                 )}
                 {billGrossAmount > 0 && (
                   <Col md="2" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>Gross</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>Gross</strong>
                     </small>
                     <div className="font-weight-bold small">₹ {billGrossAmount.toFixed(2)}</div>
                   </Col>
                 )}
                 {billDiscountPercentage > 0 && (
                   <Col md="1" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>Disc %</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>Disc %</strong>
                     </small>
                     <div className="font-weight-bold small">{billDiscountPercentage.toFixed(0)}%</div>
                   </Col>
                 )}
                 {billDiscountAmount > 0 && (
                   <Col md="2" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>Discount</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>Discount</strong>
                     </small>
                     <div className="font-weight-bold small">— ₹ {billDiscountAmount.toFixed(2)}</div>
                   </Col>
                 )}
                 {billFinalAmount > 0 && (
                   <Col md="2" sm="6" className="mb-2">
-                    <small className="text-muted d-block">
-                      <strong>After Disc</strong>
+                    <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                      <strong style={{ fontWeight: 700 }}>After Disc</strong>
                     </small>
-                    <div className="font-weight-bold text-info small">₹ {billFinalAmount.toFixed(2)}</div>
+                    <div className="font-weight-bold small" style={{ color: "#111827" }}>₹ {billFinalAmount.toFixed(2)}</div>
                   </Col>
                 )}
                 <Col md={billGrossAmount > 0 ? "2" : "3"} sm="6" className="mb-2">
-                  <small className="text-muted d-block">
-                    <strong>Total</strong>
+                  <small className="d-block" style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>
+                    <strong style={{ fontWeight: 700 }}>Total</strong>
                   </small>
-                  <div className="font-weight-bold text-success small">₹ {billTotal.toFixed(2)}</div>
+                  <div className="font-weight-bold small" style={{ color: "#111827", fontSize: "0.95rem" }}>₹ {billTotal.toFixed(2)}</div>
                 </Col>
               </Row>
             </CardBody>
@@ -3639,23 +3853,26 @@ const OCRBillImport = () => {
           <style>{`
             .react-data-table-component input {
               font-size: 0.85rem;
-              padding: 0.25rem 0.4rem !important;
-              border: 1px solid #e0e0e0 !important;
-              border-radius: 3px;
+              padding: 0.3rem 0.5rem !important;
+              border: 1px solid #cbd5e1 !important;
+              background-color: #fff;
+              border-radius: 6px;
               min-width: 80px;
+              transition: border-color .12s ease, box-shadow .12s ease;
             }
+            .react-data-table-component input:hover { border-color: #94a3b8 !important; }
             .react-data-table-component input:focus {
-              border-color: #007bff !important;
-              background-color: #f0f7ff;
-              box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.1) !important;
+              border-color: #64748b !important;
+              box-shadow: 0 0 0 3px rgba(100,116,139, 0.18) !important;
             }
+            .react-data-table-component input::placeholder { color: #9ca3af; }
           `}</style>
 
           {/* SECTION 1: NEW MEDICINES TO ADD */}
           {newMedicines.length > 0 && (
             <div style={{ marginBottom: "30px" }}>
-              <h6 className="mb-3 text-dark font-weight-bold">📝 New Medicines ({newMedicines.length})</h6>
-              <Card className="border-0 shadow-sm">
+              <h6 className="mb-2 font-weight-bold" style={{ color: "#111827" }}>New Medicines ({newMedicines.length})</h6>
+              <Card className="shadow-sm" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
                 <CardBody className="p-0" style={{ overflowX: "auto" }}>
                   <DataTable
                     columns={newMedicinesColumns}
@@ -3666,21 +3883,24 @@ const OCRBillImport = () => {
                     pointerOnHover
                     striped
                     customStyles={{
-                      table: { style: { fontSize: "0.85rem", minWidth: "1100px" } },
+                      table: { style: { fontSize: "0.85rem", minWidth: "1220px" } },
                       headRow: {
                         style: {
-                          backgroundColor: "#f8f9fa",
-                          fontWeight: 600,
+                          backgroundColor: "#f8f9fb",
+                          fontWeight: 700,
                           padding: "8px 4px",
-                          borderBottom: "2px solid #dee2e6",
-                          fontSize: "0.8rem"
+                          borderBottom: "1px solid #e5e7eb",
+                          fontSize: "0.72rem",
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                          color: "#6b7280"
                         }
                       },
                       rows: {
                         style: {
                           minHeight: "40px",
                           padding: "6px 4px",
-                          "&:hover": { backgroundColor: "#f8f9fa" }
+                          "&:hover": { backgroundColor: "#f8fafc" }
                         }
                       },
                       cells: { style: { padding: "6px 8px" } },
@@ -3694,8 +3914,8 @@ const OCRBillImport = () => {
           {/* SECTION 2: EXISTING MEDICINES */}
           {existingMedicines.length > 0 && (
             <div style={{ marginBottom: "30px" }}>
-              <h6 className="mb-3 text-dark font-weight-bold">📦 Existing Medicines ({existingMedicines.length})</h6>
-              <Card className="border-0 shadow-sm">
+              <h6 className="mb-2 font-weight-bold" style={{ color: "#111827" }}>Existing Medicines ({existingMedicines.length})</h6>
+              <Card className="shadow-sm" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
                 <CardBody className="p-0" style={{ overflowX: "auto" }}>
                   <DataTable
                     columns={existingMedicinesColumns}
@@ -3706,21 +3926,24 @@ const OCRBillImport = () => {
                     pointerOnHover
                     striped
                     customStyles={{
-                      table: { style: { fontSize: "0.85rem", minWidth: "1150px" } },
+                      table: { style: { fontSize: "0.85rem", minWidth: "1300px" } },
                       headRow: {
                         style: {
-                          backgroundColor: "#f8f9fa",
-                          fontWeight: 600,
+                          backgroundColor: "#f8f9fb",
+                          fontWeight: 700,
                           padding: "8px 4px",
-                          borderBottom: "2px solid #dee2e6",
-                          fontSize: "0.8rem"
+                          borderBottom: "1px solid #e5e7eb",
+                          fontSize: "0.72rem",
+                          letterSpacing: "0.04em",
+                          textTransform: "uppercase",
+                          color: "#6b7280"
                         }
                       },
                       rows: {
                         style: {
                           minHeight: "40px",
                           padding: "6px 4px",
-                          "&:hover": { backgroundColor: "#f8f9fa" }
+                          "&:hover": { backgroundColor: "#f8fafc" }
                         }
                       },
                       cells: { style: { padding: "6px 8px" } },
@@ -3737,9 +3960,13 @@ const OCRBillImport = () => {
             </Alert>
           )}
 
-          {error && <Alert color="danger">{error}</Alert>}
-
           {error && <Alert color="danger" className="mt-3">{error}</Alert>}
+
+          {editedSinceReview && (
+            <Alert color="warning" className="mt-3 mb-0 py-2" style={{ fontSize: 13 }}>
+              You changed values on this screen. Click <strong>Review Again</strong> to re-check stock before you can submit.
+            </Alert>
+          )}
 
           <div className="d-flex gap-2 justify-content-end mt-4">
             <Button
@@ -3773,23 +4000,24 @@ const OCRBillImport = () => {
                         batchNumber: formData.batchNumber,
                         expiryDate: formData.expiryDate,
                         purchasePrice: purchasePrice,
+                        mrp: formData.mrp ? Number(formData.mrp) : "",
                       });
 
                       results[idx_num] = {
                         medicineId: selectedMedicine._id || selectedMedicine.id,
+                        _tempId: result._tempId,
                         selectedMedicine,
                         extractedData: result.extractedData,
                         pharmacyStatus: { exists: checkResult.exists, data: checkResult.data },
                       };
                     } catch (err) {
-                      console.error(`Error rechecking medicine at index ${idx_num}:`, err);
                     }
                   }
 
                   setPharmacyCheckResults(results);
+                  setEditedSinceReview(false);
                   toast.success("Pharmacy check completed. Review the results above.");
                 } catch (err) {
-                  console.error("Recheck error:", err);
                   setError("Failed to recheck pharmacy status");
                   toast.error("Failed to recheck pharmacy status");
                 } finally {
@@ -3816,7 +4044,8 @@ const OCRBillImport = () => {
                 }
                 handleFinalSubmission();
               }}
-              disabled={loading}
+              disabled={loading || editedSinceReview}
+              title={editedSinceReview ? "Click Review Again first" : undefined}
             >
               {loading ? (
                 <>
@@ -3861,284 +4090,176 @@ const OCRBillImport = () => {
         className="p-3 bg-white"
         style={isMobile ? { width: "100%" } : { width: "78%" }}
       >
-        <div className="px-3 pt-3">
-          <h5 className="mb-1 text-success text-uppercase font-weight-bold">
-            Bill Processing Complete!
-          </h5>
-          <small className="text-muted">
-            Your pharmacy inventory has been updated successfully
-          </small>
+        <div className="px-3 pt-3 d-flex align-items-center" style={{ gap: "0.85rem" }}>
+          <span
+            style={{
+              width: 36,
+              height: 36,
+              flex: "0 0 36px",
+              borderRadius: "50%",
+              background: "#111827",
+              color: "#fff",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontSize: "1rem",
+            }}
+          >
+            {"\u2713"}
+          </span>
+          <div>
+            <h5 className="mb-0 font-weight-bold" style={{ color: "#111827" }}>
+              Bill processed
+            </h5>
+            <small className="text-muted">
+              {[billNumber && `Bill ${billNumber}`, billSupplier].filter(Boolean).join(" \u00b7 ") ||
+                "Your inventory has been updated"}
+            </small>
+          </div>
         </div>
-        <hr className="mb-4 border-secondary" />
+        <hr className="mb-4" style={{ borderColor: "#e5e7eb" }} />
 
         <div className="content-wrapper">
+          <style>{`
+            .result-table { margin-bottom: 0; }
+            .result-table thead th {
+              background: #f8f9fb;
+              font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+              color: #6b7280; padding: 0.65rem 0.9rem !important;
+              border-bottom: 1px solid #e5e7eb !important; border-top: 0 !important; white-space: nowrap;
+            }
+            .result-table td {
+              padding: 0.7rem 0.9rem !important; vertical-align: middle;
+              border-top: 0 !important; border-bottom: 1px solid #eef0f3 !important;
+              font-size: 0.875rem; color: #111827;
+            }
+            .result-table tbody tr:last-child td { border-bottom: 0 !important; }
+            .result-table tbody tr:hover { background: #f8fafc; }
+          `}</style>
 
-          <Row className="mb-4">
-            <Col md="6">
-              <Card className="border-0 shadow-sm text-center">
-                <CardBody>
-                  <h5 className="text-primary">Medicines Processed</h5>
-                  <h2 className="font-weight-bold text-primary">
-                    {successResult?.updatedItems?.length || 0}
-                  </h2>
-                </CardBody>
-              </Card>
-            </Col>
-            {successResult?.errors?.length > 0 && (
-              <Col md="6">
-                <Card className="border-0 shadow-sm text-center">
-                  <CardBody>
-                    <h5 className="text-danger">Errors</h5>
-                    <h2 className="font-weight-bold text-danger">
-                      {successResult.errors.length}
-                    </h2>
-                  </CardBody>
-                </Card>
-              </Col>
-            )}
-          </Row>
+          {(() => {
+            const addedCount = successResult?.updatedItems?.length || 0;
+            const failedCount = successResult?.errors?.length || 0;
+            const tiles = [
+              { label: "Added to inventory", value: addedCount },
+              ...((successResult?.requisitions || []).length > 0
+                ? [{ label: "Requisitions raised", value: successResult.requisitions.length }]
+                : []),
+              ...(failedCount > 0 ? [{ label: "Failed", value: failedCount }] : []),
+            ];
+            return (
+              <Row className="mb-4 g-2">
+                {tiles.map((t) => (
+                  <Col xs="auto" key={t.label}>
+                    <div style={{ minWidth: 150, padding: "0.5rem 0.9rem", background: "#fff", border: "1px solid #e5e7eb", borderRadius: 6 }}>
+                      <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "#6b7280" }}>{t.label}</div>
+                      <div style={{ fontSize: "1.25rem", fontWeight: 600, color: "#111827", fontVariantNumeric: "tabular-nums" }}>{t.value}</div>
+                    </div>
+                  </Col>
+                ))}
+              </Row>
+            );
+          })()}
 
           {successResult.updatedItems.length > 0 && (
-            <Card className="border-0 shadow-sm mb-4 border-success border-start border-5">
-              <CardHeader className="bg-light border-0">
-                <h6 className="mb-0 font-weight-bold">✓ Medicines Added to Inventory ({successResult.updatedItems.length})</h6>
+            <Card className="shadow-sm mb-4" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+              <CardHeader style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "0.85rem 1rem" }}>
+                <h6 className="mb-0 font-weight-bold">Added to inventory ({successResult.updatedItems.length})</h6>
               </CardHeader>
               <CardBody className="p-0">
-                {successResult.updatedItems.map((item, idx) => (
-                  <div
-                    key={idx}
-                    className="border-bottom p-3"
-                    style={{
-                      backgroundColor:
-                        idx % 2 === 0 ? "#f8f9fa" : "transparent",
-                    }}
-                  >
-                    <Row className="align-items-start">
-                      <Col md="6">
-                        <div className="mb-2">
-                          <h6 className="mb-1 font-weight-bold">
-                            {item.medicineName} {item.strength ? `(${item.strength})` : ""}
-                          </h6>
-                          <small className="text-muted d-block">
-                            <strong>Batch:</strong> {item.batchNumber}
-                          </small>
-                          <small className="text-muted d-block">
-                            <strong>Expiry:</strong> {item.expiryDate || "—"}
-                          </small>
-                        </div>
-                      </Col>
-                      <Col md="6">
-                        <div className="text-md-end">
-                          <div className="mb-2">
-                            <Badge color="success" className="px-3 py-2 me-2">
-                              Qty: {item.quantity} {item.baseUnit || "units"}
-                            </Badge>
-                          </div>
-                          <div>
-                            <small className="text-muted">
-                              <strong>Pharmacy ID:</strong> {item.pharmacyId}
-                            </small>
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
+                <div className="table-responsive">
+                  <table className="table result-table">
+                    <thead>
+                      <tr>
+                        <th>Medicine</th>
+                        <th>Batch</th>
+                        <th>Expiry</th>
+                        <th style={{ textAlign: "right" }}>Qty added</th>
+                        <th>Inventory ID</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {successResult.updatedItems.map((item, idx) => (
+                        <tr key={idx}>
+                          <td style={{ fontWeight: 500 }}>
+                            {item.medicineMaster
+                              ? formatMedicineLabel(item.medicineMaster)
+                              : [item.medicineName, item.medicineStrength || item.strength].filter(Boolean).join(" ")}
+                          </td>
+                          <td>{item.batchNumber || "\u2014"}</td>
+                          <td>{item.expiryDate || "\u2014"}</td>
+                          <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>
+                            <strong>{item.quantity}</strong>{" "}
+                            <span className="text-muted">{item.baseUnit || "units"}</span>
+                          </td>
+                          <td className="text-muted">{item.pharmacyId}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </CardBody>
             </Card>
           )}
 
-          {(successResult.pendingErrors || [])?.length > 0 && (
-            <Card className="border-0 shadow-sm mb-4 border-warning border-start border-5">
-              <CardHeader className="bg-light border-0">
-                <h6 className="mb-0 font-weight-bold">Missing Medicines ({(successResult.pendingErrors || []).length})</h6>
-                <small className="text-muted">These medicines need to be retried or edited</small>
+          {(successResult.requisitions || []).length > 0 && (
+            <Card className="shadow-sm mb-4" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+              <CardHeader style={{ background: "#fff", borderBottom: "1px solid #e5e7eb", padding: "0.85rem 1rem" }}>
+                <h6 className="mb-0 font-weight-bold">Requisitions raised ({successResult.requisitions.length})</h6>
+                <small className="text-muted">These medicines are not in the master yet. They stay missing on this bill and can be retried from Bill Upload History.</small>
               </CardHeader>
               <CardBody className="p-0">
-                {(successResult.pendingErrors || []).map((medicine, idx) => (
-                  <div
-                    key={idx}
-                    className="border-bottom p-3"
-                    style={{
-                      backgroundColor:
-                        idx % 2 === 0 ? "#fffbf0" : "transparent",
-                    }}
-                  >
-                    <Row className="align-items-start">
-                      <Col md="6">
-                        <div className="mb-2">
-                          <h6 className="mb-1 font-weight-bold">
-                            {medicine.extractedName} {medicine.extractedStrength ? `(${medicine.extractedStrength})` : ""}
-                          </h6>
-                          <small className="text-muted d-block">
-                            <strong>Batch:</strong> {medicine.batchNumber || "—"}
-                          </small>
-                          <small className="text-muted d-block">
-                            <strong>Expiry:</strong> {medicine.expiryDate || "—"}
-                          </small>
-                          <small className="text-muted d-block">
-                            <strong>Qty:</strong> {medicine.quantity || 0}
-                          </small>
-                        </div>
-                      </Col>
-                      <Col md="6">
-                        <div className="text-md-end">
-                          <Badge color="warning" className="px-3 py-2 mb-2 d-inline-block">
-                            Price: ₹{medicine.unitPrice || "0"}
-                          </Badge>
-                          <div className="mt-2">
-                            <small className="text-danger d-block">
-                              <strong>Reason:</strong>
-                            </small>
-                            <small className="text-danger">
-                              {medicine.reason || "Not matched in master database"}
-                            </small>
-                          </div>
-                          <div className="mt-3">
-                            <Button
-                              color="warning"
-                              size="sm"
-                              onClick={() => handleEditMissingMedicine(medicine, idx)}
-                              outline
-                            >
-                              Edit & Search
-                            </Button>
-                          </div>
-                        </div>
-                      </Col>
-                    </Row>
-                  </div>
-                ))}
+                <div className="table-responsive">
+                  <table className="table result-table">
+                    <thead>
+                      <tr>
+                        <th>Requisition ID</th>
+                        <th>Medicine</th>
+                        <th style={{ textAlign: "right" }}>Qty on bill</th>
+                        <th>Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {successResult.requisitions.map((r, idx) => (
+                        <tr key={idx}>
+                          <td style={{ fontWeight: 600 }}>{r.requisitionNumber}</td>
+                          <td style={{ fontWeight: 500 }}>{[r.name, r.strength].filter(Boolean).join(" ")}</td>
+                          <td style={{ textAlign: "right", fontVariantNumeric: "tabular-nums" }}>{r.quantity || "\u2014"}</td>
+                          <td className="text-muted">{r.reused ? "Pending (already raised)" : "Pending"}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </CardBody>
             </Card>
           )}
 
           {successResult.errors?.length > 0 && (
-            <Card className="border-0 shadow-sm mb-4 border-danger border-start border-5">
-              <CardBody>
-                <h6 className="mb-3 text-danger">Failed Medicines ({successResult.errors.length})</h6>
-                <Alert color="danger" className="mb-3">
-                  {successResult.errors.map((err, idx) => (
-                    <div key={idx} className="mb-2">
-                      {err.error}
-                    </div>
-                  ))}
-                </Alert>
-                {successResult.errors?.length > 0 && (
-                  <Button
-                    color="danger"
-                    size="sm"
-                    onClick={() => downloadFailedMedicinesExcel(successResult.errors)}
-                    outline
-                  >
-                    Download Failed Medicines Excel
-                  </Button>
-                )}
-              </CardBody>
-            </Card>
-          )}
-
-          {/* Edit Missing Medicine Modal */}
-          {editingMissingMedicineIdx !== null && (
-            <Card className="border-0 shadow-lg mb-4 bg-light">
-              <CardHeader className="bg-primary text-white">
-                <h6 className="mb-0">Edit & Search Medicine</h6>
+            <Card className="shadow-sm mb-4" style={{ border: "1px solid #e5e7eb", borderRadius: 8, overflow: "hidden" }}>
+              <CardHeader style={{ background: "#f8f9fb", borderBottom: "1px solid #e5e7eb", padding: "0.85rem 1rem" }}>
+                <h6 className="mb-0 font-weight-bold">Failed ({successResult.errors.length})</h6>
               </CardHeader>
               <CardBody>
-                <Form>
-                  <Row>
-                    <Col md="6">
-                      <FormGroup>
-                        <Label><strong>Medicine Name</strong></Label>
-                        <Input
-                          type="text"
-                          value={editingMissingMedicineData.extractedName || ""}
-                          onChange={(e) =>
-                            setEditingMissingMedicineData({
-                              ...editingMissingMedicineData,
-                              extractedName: e.target.value,
-                            })
-                          }
-                          placeholder="Medicine name"
-                        />
-                      </FormGroup>
-                    </Col>
-                    <Col md="6">
-                      <FormGroup>
-                        <Label><strong>Strength</strong></Label>
-                        <Input
-                          type="text"
-                          value={editingMissingMedicineData.extractedStrength || ""}
-                          onChange={(e) =>
-                            setEditingMissingMedicineData({
-                              ...editingMissingMedicineData,
-                              extractedStrength: e.target.value,
-                            })
-                          }
-                          placeholder="Strength"
-                        />
-                      </FormGroup>
-                    </Col>
-                  </Row>
-
-                  <div className="d-flex gap-2 justify-content-between">
-                    <Button
-                      color="secondary"
-                      onClick={() => setEditingMissingMedicineIdx(null)}
-                      outline
-                    >
-                      Close
-                    </Button>
-                    <Button
-                      color="primary"
-                      onClick={handleSearchMissingMedicine}
-                      disabled={editingMissingLoading}
-                    >
-                      {editingMissingLoading ? (
-                        <>
-                          <Spinner size="sm" className="me-2" />
-                          Searching...
-                        </>
-                      ) : (
-                        "Search Again"
-                      )}
-                    </Button>
-                  </div>
-                </Form>
-
-                {editingMissingMatches.length > 0 && (
-                  <div className="mt-4">
-                    <h6 className="mb-3">Found Matches:</h6>
-                    <div className="bg-white p-3 rounded" style={{ maxHeight: "300px", overflowY: "auto" }}>
-                      {editingMissingMatches.map((match, idx) => (
-                        <div key={idx} className="d-flex justify-content-between align-items-center p-2 border-bottom">
-                          <div>
-                            <strong>{match.id || match._id}</strong><br />
-                            <small className="text-muted">{match.name} {match.strength || ""}</small>
-                          </div>
-                          <Button
-                            color="success"
-                            size="sm"
-                            onClick={() => {
-                              // User can now select this medicine
-                              // This would update the error medicine with the selected match
-                              toast.success(`Selected: ${match.name}`);
-                              setEditingMissingMedicineIdx(null);
-                            }}
-                          >
-                            Select
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                )}
+                <ul className="mb-3 ps-3" style={{ fontSize: "0.875rem", color: "#b91c1c" }}>
+                  {successResult.errors.map((err, idx) => (
+                    <li key={idx} className="mb-1">{err.error}</li>
+                  ))}
+                </ul>
+                <Button
+                  color="secondary"
+                  size="sm"
+                  onClick={() => downloadFailedMedicinesExcel(successResult.errors)}
+                  outline
+                >
+                  Download failed medicines (Excel)
+                </Button>
               </CardBody>
             </Card>
           )}
 
-          <div className="d-flex gap-3 justify-content-center mt-4">
-            <Button color="primary" onClick={handleStartNew} size="lg">
+          <div className="d-flex justify-content-end mt-4">
+            <Button color="primary" onClick={handleStartNew}>
               Process Another Bill
             </Button>
           </div>

@@ -22,6 +22,7 @@ import {
   INJURY_MARKS,
   ECT_SESSION,
   ADMISSION_TYPE,
+  ELDERLY_FUNCTIONAL_CHECKLIST,
 } from "../../../Components/constants/patient";
 
 //forms
@@ -43,6 +44,7 @@ import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
 import AdmissionType from "./AdmissionType";
+import ElderlyFunctionalChecklist from "./ElderlyFunctionalChecklist";
 
 const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const dispatch = useDispatch();
@@ -69,6 +71,8 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
   const isInjuryMarks = chart.chart === INJURY_MARKS;
   const isEctSession = chart.chart === ECT_SESSION;
   const isAdmissionType = chart.chart === ADMISSION_TYPE;
+  const isElderlyFunctionalChecklist =
+    chart.chart === ELDERLY_FUNCTIONAL_CHECKLIST;
 
   const title = isPrescription
     ? "Prescription"
@@ -102,9 +106,9 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
                                 ? "ECT Session"
                                 : isAdmissionType
                                   ? "Admission Type"
-                                  : "Detail Admission";
-
-  // console.log({ type });
+                                  : isElderlyFunctionalChecklist
+                                    ? "Elderly Functional and Daily Living Checklist"
+                                    : "Detail Admission";
 
   return (
     <React.Fragment>
@@ -141,6 +145,9 @@ const ChartForm = ({ chart, onSubmitClinicalForm, ...rest }) => {
         {isInjuryMarks && <InjuryMarks {...rest} />}
         {isEctSession && <EctSession {...rest} />}
         {isAdmissionType && <AdmissionType {...rest} />}
+        {isElderlyFunctionalChecklist && (
+          <ElderlyFunctionalChecklist {...rest} />
+        )}
       </CustomModal>
     </React.Fragment>
   );

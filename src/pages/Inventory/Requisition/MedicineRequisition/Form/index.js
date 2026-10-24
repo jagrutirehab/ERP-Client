@@ -11,9 +11,7 @@ import Select from "react-select";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { useNavigate } from "react-router-dom";
-import { useDispatch, useSelector } from "react-redux";
-import CheckPermission from "../../../../../Components/HOC/CheckPermission";
-import { toast } from "react-toastify";
+import { useSelector } from "react-redux";
 import {
   medicineTypes2,
   baseUnits,
@@ -23,10 +21,9 @@ import {
   storageTypes,
   scheduleTypes
 } from "../../../../../Components/constants/medicine";
-import { duplicateMedicineValidator } from "../../../../../store/features/medicine/medicineSlice";
+import { checkDuplicateMedicineRequisition } from "../../../../../helpers/backend_helper";
 import { normalizeLabel } from "../../../../../Components/constants/medicine";
 import { normalizeUnderscores } from "../../../../../utils/normalizeUnderscore";
-import { usePermissions } from "../../../../../Components/Hooks/useRoles";
 
 function useDebounce(callback, delay) {
   const timer = useRef(null);
@@ -53,56 +50,67 @@ const stepCircle = (active) => ({
     color: active ? "#fff" : "#adb5bd",
 });
 
-const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => {
+const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit, showBack = true, canSubmit = true }) => {
   const navigate = useNavigate();
-  const dispatch = useDispatch();
   const [duplicateError, setDuplicateError] = useState("");
 
-  const microUser = localStorage.getItem("micrologin");
-  const token = microUser ? JSON.parse(microUser).token : null;
+  // Requester's values win; where they are empty, the AI suggestion pre-fills the field.
+  const aiSuggested = initialData?.aiSuggestions || {};
+  const pickProposed = (key) => initialData?.proposedMedicine?.[key] || aiSuggested[key] || "";
+
 
   const user = useSelector((state) => state.User);
   const centerList = useSelector((state) => state.Center.data);
   const requisingCenterOptions = (centerList || [])
+    .filter((c) => user?.centerAccess?.includes(c._id))
     .map((c) => ({ value: c._id, label: c.title }));
 
-  const checkStrength = async (name, strength) => {
-    if (!name || !strength) {
+  // Duplicate = same name + strength + unit/base unit, in the master or a pending requisition.
+  const checkDuplicate = async (name, strength, baseUnit) => {
+    if (!name || !baseUnit) {
       setDuplicateError("");
       return;
     }
     try {
-      const response = await dispatch(duplicateMedicineValidator({ name, strength })).unwrap();
+      const response = await checkDuplicateMedicineRequisition({
+        name,
+        strength,
+        baseUnit,
+        id: initialData?._id,
+      });
       if (response.exists) {
         setDuplicateError(response.message);
       } else {
         setDuplicateError("");
       }
     } catch (err) {
-      console.error("Duplicate check failed", err);
     }
   };
 
-  const debouncedCheck = useDebounce(checkStrength, 500);
+  const debouncedCheck = useDebounce(checkDuplicate, 500);
 
   const formik = useFormik({
     enableReinitialize: true,
     initialValues: {
       requestingCenter: initialData?.requestingCenter?._id || requisingCenterOptions[0]?.value || "",
       medicineName: initialData?.proposedMedicine?.name || "",
-      genericName: initialData?.proposedMedicine?.genericName || "",
-      form: initialData?.proposedMedicine?.form || "",
-      baseUnit: initialData?.proposedMedicine?.baseUnit || "",
-      purchaseUnit: initialData?.proposedMedicine?.purchaseUnit || "",
-      baseQuantity: initialData?.proposedMedicine?.conversion?.baseQuantity || "",
-      purchaseQuantity: initialData?.proposedMedicine?.conversion?.purchaseQuantity || "",
-      category: initialData?.proposedMedicine?.category || "",
-      storageType: initialData?.proposedMedicine?.storageType || "",
-      scheduleType: initialData?.proposedMedicine?.scheduleType || "",
-      type: initialData?.proposedMedicine?.type || "",
+      genericName: pickProposed("genericName"),
+      form: pickProposed("form"),
+      baseUnit: pickProposed("baseUnit"),
+      purchaseUnit: pickProposed("purchaseUnit"),
+      baseQuantity:
+        initialData?.proposedMedicine?.conversion?.baseQuantity ||
+        aiSuggested.conversion?.baseQuantity || "",
+      purchaseQuantity:
+        initialData?.proposedMedicine?.conversion?.purchaseQuantity ||
+        aiSuggested.conversion?.purchaseQuantity || "",
+      category: pickProposed("category"),
+      storageType: pickProposed("storageType"),
+      scheduleType: pickProposed("scheduleType"),
+      type: pickProposed("type"),
       strength: initialData?.proposedMedicine?.strength || "",
       instruction: initialData?.proposedMedicine?.instruction || "",
-      composition: initialData?.proposedMedicine?.composition || "",
+      composition: pickProposed("composition"),
       unitPrice: initialData?.proposedMedicine?.unitPrice || "",
       isControlledDrug: initialData?.proposedMedicine?.isControlledDrug || false,
       justification: initialData?.justification || "",
@@ -159,6 +167,37 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
 
   const { values, errors, touched, handleChange, handleBlur, setFieldValue } = formik;
 
+  // A field keeps the AI tag only while its value is still the AI suggestion.
+  // Once the user changes it, the tag goes away.
+  const isAiField = (field) => !!aiSuggested[field] && values[field] === aiSuggested[field];
+  // Conversion is nested on the suggestion (aiSuggested.conversion.{purchaseQuantity,baseQuantity})
+  // but flat on the form, so it needs its own check instead of isAiField.
+  const isAiConversion =
+    !!aiSuggested.conversion?.purchaseQuantity &&
+    !!aiSuggested.conversion?.baseQuantity &&
+    Number(values.purchaseQuantity) === aiSuggested.conversion.purchaseQuantity &&
+    Number(values.baseQuantity) === aiSuggested.conversion.baseQuantity;
+  const aiBadge = (isAi) =>
+    isAi ? (
+      <span
+        title="Suggested by AI (Gemini). Verify before approving."
+        style={{
+          marginLeft: 6,
+          fontSize: 10,
+          fontWeight: 600,
+          color: "#1d4ed8",
+          background: "#eff6ff",
+          border: "1px solid #bfdbfe",
+          borderRadius: 4,
+          padding: "1px 6px",
+          verticalAlign: "middle",
+        }}
+      >
+        Suggested by AI
+      </span>
+    ) : null;
+  const aiTag = (field) => aiBadge(isAiField(field));
+
   const errorText = (field) => {
     return touched[field] && errors[field] ? (
       <div className="text-danger small mt-1">{errors[field]}</div>
@@ -174,14 +213,16 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
   return (
     <div className="px-3">
         {/* Header - Back Button */}
-        <button
-            type="button"
-            className="btn btn-link p-0 text-muted mb-2"
-            style={{ fontSize: 13, textDecoration: "none" }}
-            onClick={() => navigate("/pharmacy/requisition/medicine-requisition")}
-        >
-            <i className="bx bx-chevron-left" /> Back to Requisitions
-        </button>
+        {showBack && (
+            <button
+                type="button"
+                className="btn btn-link p-0 text-muted mb-2"
+                style={{ fontSize: 13, textDecoration: "none" }}
+                onClick={() => navigate("/pharmacy/requisition/medicine-requisition")}
+            >
+                <i className="bx bx-chevron-left" /> Back to Requisitions
+            </button>
+        )}
 
         {/* Page Heading + Step Pills */}
         <div className="d-flex align-items-start justify-content-between mb-4">
@@ -262,7 +303,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                         value={values.medicineName}
                         onChange={(e) => {
                             handleChange(e);
-                            debouncedCheck(e.target.value, values.strength);
+                            debouncedCheck(e.target.value, values.strength, values.baseUnit);
                         }}
                         onBlur={handleBlur}
                         invalid={touched.medicineName && !!errors.medicineName}
@@ -275,6 +316,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                 <Col md={6}>
                     <Label htmlFor="genericName" className="fs-13 text-muted mb-1">
                         Generic Name <span className="text-danger">*</span>
+                        {aiTag("genericName")}
                     </Label>
                     <Input
                         id="genericName"
@@ -296,12 +338,17 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                     <Col key={name} md={4}>
                         <Label className="fs-13 text-muted mb-1">
                             {label} {required && <span className="text-danger">*</span>}
+                            {aiTag(name)}
                         </Label>
                         <Select
                             name={name}
                             placeholder={placeholder}
                             options={(options || []).map((item) => ({ value: item, label: normalizeLabel(item) }))}
-                            onChange={(selected) => setFieldValue(name, selected ? selected.value : "")}
+                            onChange={(selected) => {
+                                const next = selected ? selected.value : "";
+                                setFieldValue(name, next);
+                                if (name === "baseUnit") debouncedCheck(values.medicineName, values.strength, next);
+                            }}
                             onBlur={() => handleBlur({ target: { name } })}
                             value={values[name] ? { value: values[name], label: normalizeLabel(values[name]) } : null}
                             classNamePrefix="react-select"
@@ -314,7 +361,13 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                 <Col md={12}>
                     <Label className="fs-13 text-muted mb-1">
                         Conversion <span className="text-danger">*</span>
+                        {aiBadge(isAiConversion)}
                     </Label>
+                    {isAiConversion && (
+                        <div className="small mb-1" style={{ color: "#6b7280" }}>
+                            This is AI's best guess at the typical pack size — please confirm it against the actual pack.
+                        </div>
+                    )}
                     <div className="d-flex align-items-start flex-column">
                         <div className="d-flex align-items-center gap-2">
                             <Input
@@ -362,6 +415,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                     <Col key={name} md={4}>
                         <Label className="fs-13 text-muted mb-1">
                             {label} {required && <span className="text-danger">*</span>}
+                            {aiTag(name)}
                         </Label>
                         <Select
                             name={name}
@@ -380,6 +434,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                 <Col md={4}>
                     <Label className="fs-13 text-muted mb-1">
                         Type <span className="text-danger">*</span>
+                        {aiTag("type")}
                     </Label>
                     <Select
                         name="type"
@@ -399,7 +454,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                         value={values.strength}
                         onChange={(e) => {
                             handleChange(e);
-                            debouncedCheck(values.medicineName, e.target.value);
+                            debouncedCheck(values.medicineName, e.target.value, values.baseUnit);
                         }}
                     />
                 </Col>
@@ -410,7 +465,7 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
 
                 {/* Composition & Instruction */}
                 <Col md={6}>
-                    <Label htmlFor="composition" className="fs-13 text-muted mb-1">Composition</Label>
+                    <Label htmlFor="composition" className="fs-13 text-muted mb-1">Composition{aiTag("composition")}</Label>
                     <Input id="composition" name="composition" type="textarea" rows={3} value={values.composition} onChange={handleChange} />
                 </Col>
                 <Col md={6}>
@@ -438,16 +493,18 @@ const MedicineRequisitionForm = ({ initialData, onSubmit, loading, isEdit }) => 
                 </Col>
 
                 {/* Submit Section */}
-                <Col md={12} className="text-end mt-4">
-                    <Button
-                        color="primary"
-                        type="submit"
-                        disabled={loading || !!duplicateError}
-                        className="px-5 text-white"
-                    >
-                        {loading ? <Spinner size="sm" /> : isEdit ? "Update Requisition" : "Submit Requisition"}
-                    </Button>
-                </Col>
+                {canSubmit && (
+                    <Col md={12} className="text-end mt-4">
+                        <Button
+                            color="primary"
+                            type="submit"
+                            disabled={loading || !!duplicateError}
+                            className="px-5 text-white"
+                        >
+                            {loading ? <Spinner size="sm" /> : isEdit ? "Update Requisition" : "Submit Requisition"}
+                        </Button>
+                    </Col>
+                )}
             </Row>
         </form>
     </div>

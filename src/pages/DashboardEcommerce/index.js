@@ -13,7 +13,7 @@ import {
   fetchPaymentAccounts,
   fetchUserLogs,
 } from "../../store/actions";
-import { connect, useDispatch, useSelector } from "react-redux";
+import { connect, useDispatch } from "react-redux";
 import store from "../../store/store";
 import { endOfDay, startOfDay } from "date-fns";
 import { TIMELINE_VIEW } from "../../Components/constants/patient";
@@ -30,10 +30,10 @@ const DashboardEcommerce = ({
   loading,
 }) => {
   const dispatch = useDispatch();
-  const [selectedOptions, setSelectedOptions] = useState(null);
+  const [selectedOptions] = useState(null);
   const [selectedCenterId, setSelectedCenterId] = useState(null);
 
-  const [date, setDate] = useState({
+  const [date] = useState({
     start: startOfDay(new Date()),
     end: endOfDay(new Date()),
   });
@@ -96,11 +96,7 @@ const DashboardEcommerce = ({
 
   document.title = "Dashboard";
 
-  const [selectedComponent, setSelectedComponent] = useState("");
 
-  const handleSelectChange = (e) => {
-    setSelectedComponent(e.target.value);
-  };
 
   return (
     <React.Fragment>

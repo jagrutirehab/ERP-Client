@@ -47,7 +47,6 @@ export { useProfile };
 //         setToken(null);
 //       }
 //     } catch (e) {
-//       console.error("Error in getLoggedinUser:", e);
 //       setUserProfile(null);
 //       setToken(null);
 //     }

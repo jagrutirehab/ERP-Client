@@ -99,15 +99,13 @@ const EmployeeLeaveBalanceDashboard = () => {
         if (hasUserPermission) {
             loadEmployeeLeaveBalance();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, year, user?.centerAccess]);
 
 
     if (!permissionLoader && !hasUserPermission) {
         navigate("/unathorized");
     }
-
-    console.log("data", data);
-    
 
     return (
         <CardBody

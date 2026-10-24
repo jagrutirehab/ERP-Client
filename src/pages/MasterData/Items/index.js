@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import ItemType from "../ItemType";
-import ItemCategory from "../ItemCategory";
 import ItemMaster from "../ItemMaster";
 import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import Basic404 from "../../AuthenticationInner/Errors/Basic404";
@@ -9,7 +8,6 @@ import "../shared/itemMasterForms.scss";
 const TABS = [
   { key: "items", label: "Items" },
   { key: "types", label: "Item Types" },
-  { key: "categories", label: "Categories" },
 ];
 
 const Items = () => {
@@ -17,22 +15,16 @@ const Items = () => {
   const { hasPermission } = usePermissions(token);
   const canViewItems = hasPermission("MASTERDATA", "ITEM_MASTER", "READ");
   const canViewItemTypes = hasPermission("MASTERDATA", "ITEM_TYPE", "READ");
-  const canViewCategories = hasPermission(
-    "MASTERDATA",
-    "ITEM_CATEGORY",
-    "READ",
-  );
 
   const visibleTabs = TABS.filter((t) => {
     if (t.key === "items") return canViewItems;
     if (t.key === "types") return canViewItemTypes;
-    if (t.key === "categories") return canViewCategories;
     return true;
   });
 
   const [activeTab, setActiveTab] = useState(visibleTabs[0]?.key || "items");
 
-  if (!canViewItems && !canViewItemTypes && !canViewCategories) {
+  if (!canViewItems && !canViewItemTypes) {
     return <Basic404 />;
   }
 
@@ -45,7 +37,7 @@ const Items = () => {
           </div> */}
           <div className="im-page-title">
             <h4>Item Master</h4>
-            {/* <p>Manage items, item types, and categories used across the catalog</p> */}
+            {/* <p>Manage items and item types used across the catalog</p> */}
           </div>
         </div>
       </div>
@@ -65,7 +57,6 @@ const Items = () => {
 
       {activeTab === "items" && canViewItems && <ItemMaster />}
       {activeTab === "types" && canViewItemTypes && <ItemType />}
-      {activeTab === "categories" && canViewCategories && <ItemCategory />}
     </div>
   );
 };

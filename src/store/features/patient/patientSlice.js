@@ -20,6 +20,7 @@ import {
   removePatient,
   unAssignNurseToPatient,
   updateAdmissionAssignment,
+  updateAdmissionWardBed,
   updatePatientAdmission,
   getSopOverview,
 } from "../../../helpers/backend_helper";
@@ -270,6 +271,28 @@ export const editAdmissionAssignment = createAsyncThunk(
   }
 );
 
+export const editAdmissionWardBed = createAsyncThunk(
+  "updateAdmissionWardBed",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await updateAdmissionWardBed(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Floor / Ward / Room and Bed Updated Successfully!",
+        })
+      );
+      dispatch(updateChartAdmission(response.payload));
+      dispatch(updateBillAdmission(response.payload));
+
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  }
+);
+
 export const dischargeIpdPatient = createAsyncThunk(
   "postPatientDischarge",
   async (data, { rejectWithValue, dispatch }) => {
@@ -350,7 +373,6 @@ export const assignNurse = createAsyncThunk(
       const response = await assignNurseToPatient(data);
       return response;
     } catch (error) {
-      console.log(error);
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to assign nurse");
     }
@@ -744,6 +766,29 @@ export const patientSlice = createSlice({
         state.admissionLoading = false;
       })
       .addCase(editAdmissionAssignment.rejected, (state) => {
+        state.admissionLoading = false;
+      });
+
+    builder
+      .addCase(editAdmissionWardBed.pending, (state) => {
+        state.admissionLoading = true;
+      })
+      .addCase(editAdmissionWardBed.fulfilled, (state, { payload }) => {
+        state.admissionLoading = false;
+        // BioData reads ward/bed off state.patient.addmission, not off the
+        // chart/bill slices the response is otherwise mirrored into (see
+        // updateChartAdmission/updateBillAdmission above) - without this the
+        // Bio Data display kept showing the pre-edit values until a refetch.
+        const addmission = state.patient?.addmission;
+        if (
+          addmission &&
+          String(addmission._id) === String(payload.payload._id)
+        ) {
+          addmission.ward = payload.payload.ward;
+          addmission.bed = payload.payload.bed;
+        }
+      })
+      .addCase(editAdmissionWardBed.rejected, (state) => {
         state.admissionLoading = false;
       });
 

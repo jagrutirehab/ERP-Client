@@ -94,6 +94,7 @@ const PendingApprovals = ({ activeTab }) => {
         }, 500);
 
         return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     useEffect(() => {
@@ -103,6 +104,7 @@ const PendingApprovals = ({ activeTab }) => {
         setDebouncedSearch(q);
         setFilters(prev => ({ ...prev, center: c }));
         setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab]);
 
     useEffect(() => {
@@ -119,6 +121,7 @@ const PendingApprovals = ({ activeTab }) => {
         };
 
         loadDesignations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
 
@@ -149,6 +152,7 @@ const PendingApprovals = ({ activeTab }) => {
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchPendingTPMApprovals();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, filters, user?.centerAccess, activeTab, debouncedSearch]);
 
     const handleDelete = async () => {

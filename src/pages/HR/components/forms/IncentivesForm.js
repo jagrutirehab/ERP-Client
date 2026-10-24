@@ -96,6 +96,7 @@ const IncentivesForm = ({ initialData, onSuccess, view, onCancel, hasCreatePermi
         }
 
         return debouncedSearch.cancel;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchText]);
 
     const resetAll = () => {

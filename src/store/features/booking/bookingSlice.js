@@ -201,7 +201,13 @@ const bookingSlice = createSlice({
       );
       if (findIndex >= 0) {
         state.data[findIndex].bill = payload.bill;
-        state.event.data.bill = payload.bill;
+        // `event.data` is only set once an appointment has been opened on the
+        // calendar. Billing can also start elsewhere — the POS dashboard sends
+        // the cashier straight here to record a charge — so there may be no
+        // open event to update. The sibling reducers already guard this.
+        if (state.event?.data) {
+          state.event.data.bill = payload.bill;
+        }
       }
       const findIndexInPatientAppointments =
         state.patient.appointments?.findIndex(

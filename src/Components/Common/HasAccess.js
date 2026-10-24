@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 
 const HasAccess = ({ page, userAccess, children }) => {
   // page = { name: 'Patient', .... } for sub access = { name: 'Charting', ...permissions }

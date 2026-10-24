@@ -3,7 +3,6 @@ import {
   FaCalendarAlt,
   FaUser,
   FaCheck,
-  FaTimes,
   FaEdit,
   FaEye,
 } from "react-icons/fa";

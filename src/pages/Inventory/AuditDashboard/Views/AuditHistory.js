@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import { Button, Input, Spinner } from "reactstrap";
 import DataTable from "react-data-table-component";
 import Header from "../../../Report/Components/Header";
@@ -76,10 +76,12 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         ...(user?.centerAccess?.length > 1
             ? [{ value: "ALL", label: "All Centers" }]
             : []),
-        ...(centerList?.map((c) => ({
-            value: c._id,
-            label: c.title,
-        })) || []),
+        ...(centerList
+            ?.filter((c) => user?.centerAccess?.includes(c._id))
+            ?.map((c) => ({
+                value: c._id,
+                label: c.title,
+            })) || []),
     ];
 
     const selectedCenterOption =
@@ -126,6 +128,7 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         if (activeTab === "HISTORY" && hasUserPermission) {
             loadAudits(1);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, hasUserPermission, selectedCenter, reportDate, limit, user?.centerAccess, dispatch]);
 
     const handlePageChange = async (newPage) => {
@@ -164,6 +167,7 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
         }, 500);
 
         return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchTerm]);
 
     const onAuditClick = (audit) => {
@@ -209,15 +213,15 @@ const AuditHistory = ({ activeTab, hasUserPermission, roles }) => {
     const safe = (v) => (v == null || v === "" ? "-" : v);
 
     const columns = [
+        { name: <div>Pharmacy ID</div>, selector: (r) => safe(r.pharmacyId), width: "120px", center: true, wrap: true },
+        { name: <div>Medicine ID</div>, selector: (r) => safe(r.medicineId), width: "120px", center: true, wrap: true },
         { name: <div>Code</div>, selector: (r) => safe(r.code), width: "200px", center: true, wrap: true },
         { name: <div>Name</div>, selector: (r) => safe(r.medicineName), width: "200px", center: true, wrap: true },
-        { name: <div>Unit</div>, selector: (r) => safe(r.unitType), width: "80px", center: true, wrap: true },
         { name: <div>Strength</div>, selector: (r) => safe(r.strength), width: "100px", center: true, wrap: true },
+        { name: <div>Base Unit</div>, selector: (r) => safe(r.baseUnit), width: "100px", center: true, wrap: true },
         { name: <div>Batch</div>, selector: (r) => safe(r.batch), width: "130px", center: true, wrap: true },
         { name: <div>Expiry</div>, selector: (r) => safe(r.expiry), width: "120px", center: true, wrap: true },
         { name: <div>MRP</div>, selector: (r) => safe(r.mrp), width: "80px", center: true, wrap: true },
-        { name: <div>Purchase Price</div>, selector: (r) => safe(r.purchasePrice), width: "90px", center: true, wrap: true },
-        { name: <div>Selling Price</div>, selector: (r) => safe(r.salesPrice), width: "90px", center: true, wrap: true },
         { name: <div>Old Stock</div>, selector: (r) => safe(r.oldStock), width: "70px", center: true, wrap: true },
         { name: <div>New Stock</div>, selector: (r) => safe(r.newStock), width: "70px", center: true, wrap: true },
         {

@@ -34,8 +34,7 @@ import PatientForm from "../../Components/Patient/AddPatient";
 import LeadForm from "./Form";
 import LeadList from "./List";
 import DeleteModal from "../../Components/Common/DeleteModal";
-import { CSVLink } from "react-csv";
-import { endOfDay, format, startOfDay } from "date-fns";
+import { endOfDay, startOfDay } from "date-fns";
 import Merge from "./Merge";
 import UnMerge from "./UnMerge";
 import LeadDashboard from "../Report/Components/Hubspot";
@@ -114,42 +113,7 @@ const Lead = ({ searchLoading, leads, centerAccess, user }) => {
     onCloseClick();
   };
 
-  const headers = [
-    { label: "Date", key: "date" },
-    { label: "Patient Name", key: "patient.name" },
-    { label: "Patient Phone Number", key: "patient.phoneNumber" },
-    { label: "Patient Age", key: "patient.age" },
-    { label: "Attended By", key: "attendedBy" },
-    { label: "Location", key: "location" },
-    { label: "Referred By", key: "refferedBy" },
-    { label: "Inquiry Details", key: "inquiry" },
-    { label: "Comment", key: "comment" },
-    { label: "Inquiry Type", key: "inquiryType" },
-    { label: "Given Updates", key: "givenUpdates" },
-    { label: "Follow up", key: "followUp" },
-    { label: "Registered", key: "isRegister" },
-  ];
 
-  const documents = () => {
-    let lds = [];
-    (leads || []).forEach((lead) => {
-      lead.leads?.forEach((val) => {
-        lds.push({
-          ...val,
-          date: format(new Date(val.date), "dd MMM yyyy hh:mm a"),
-          followUp:
-            val.followUp?.length > 0
-              ? val.followUp.map((vl) => vl.value).join(", \n")
-              : "",
-          location:
-            val.location?.length > 0
-              ? val.location.map((vl) => vl.title).join(", \n")
-              : "",
-        });
-      });
-    });
-    return lds;
-  };
 
   if (permissionLoader) {
     return (

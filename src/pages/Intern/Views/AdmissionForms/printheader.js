@@ -46,7 +46,6 @@ const getResponsiveStyles = (pageWidth) =>
       justifyContent: "space-between",
       alignItems: pageWidth <= 600 ? "flex-start" : "center",
       width: "100%",
-      marginBottom: 8,
     },
     leftCol: {
       width: pageWidth <= 600 ? "100%" : "46%",

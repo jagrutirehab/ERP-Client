@@ -15,13 +15,14 @@ const buildRows = (list, cycleLabel, trainingName, fileUrl) =>
         'File Link': fileUrl || '—',
         'Cycle': cycleLabel,
         'Employee Name': ack?.employee?.name || '—',
+        'E-Code': ack?.employee?.eCode || '—',
         'Email': ack?.employee?.email || '—',
-        'Role': ack?.employee?.role || '—',
+        'Position': ack?.employee?.position || '—',
         'Center': ack?.employee?.center?.title || '—',
         'Acknowledged On': formatDate(ack?.acknowledgedOn)
     })) || []
 
-const exportTrainingHistory = (data) => {
+const exportTrainingHistory = (data, filterLabel) => {
     if (!data) return
 
     const trainingName = data?.trainingName || '—'
@@ -51,7 +52,7 @@ const exportTrainingHistory = (data) => {
         XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(rows), `Cycle ${h?.cycle}`)
     })
 
-    XLSX.writeFile(wb, `${trainingName}_history.xlsx`)
+    XLSX.writeFile(wb, `${trainingName}_history${filterLabel ? `_${filterLabel}` : ''}.xlsx`)
 }
 
 export default exportTrainingHistory

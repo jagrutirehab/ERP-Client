@@ -18,25 +18,24 @@ import * as Yup from "yup";
 import { toast } from "react-toastify";
 import {
   getItemTypes,
-  getItemCategories,
+  getAssetCategories,
   getItemMasters,
-  getUoms,
-  getVendors,
   createItemMaster,
   updateItemMaster,
   uploadItemImage,
   deleteItemImage,
 } from "../../../helpers/backend_helper";
+import { useReferenceList } from "../../../Components/Hooks/useReferenceData";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import FormSectionLabel from "../shared/FormSectionLabel";
 import COUNTRIES from "../shared/countries";
 import "../shared/itemMasterForms.scss";
 
 const CATEGORY_LEVELS = [
-  { key: "l1Category", level: 1, label: "L1 Category", required: true },
-  { key: "l2Category", level: 2, label: "L2 Category", required: false },
-  { key: "l3Category", level: 3, label: "L3 Category", required: false },
-  { key: "l4Category", level: 4, label: "L4 Category", required: false },
+  { key: "assetCategoryL1", level: 1, label: "L1 Category", required: false },
+  { key: "assetCategoryL2", level: 2, label: "L2 Category", required: false },
+  { key: "assetCategoryL3", level: 3, label: "L3 Category", required: false },
+  { key: "assetCategoryL4", level: 4, label: "L4 Category", required: false },
 ];
 
 const FORM_TABS = [
@@ -54,8 +53,8 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
   const [activeTab, setActiveTab] = useState("general");
 
   const [itemTypes, setItemTypes] = useState([]);
-  const [uoms, setUoms] = useState([]);
-  const [vendors, setVendors] = useState([]);
+  const { items: uoms } = useReferenceList("uomsAll");
+  const { items: vendors } = useReferenceList("vendorsAll");
   const [catOptions, setCatOptions] = useState({
     l1: [],
     l2: [],
@@ -81,10 +80,10 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
       itemTypeId: editingItem?.itemTypeId || "",
       subTypeId: editingItem?.subTypeId || "",
       subType: editingItem?.subType || "",
-      l1Category: editingItem?.l1Category || "",
-      l2Category: editingItem?.l2Category || "",
-      l3Category: editingItem?.l3Category || "",
-      l4Category: editingItem?.l4Category || "",
+      assetCategoryL1: editingItem?.assetCategoryL1 || "",
+      assetCategoryL2: editingItem?.assetCategoryL2 || "",
+      assetCategoryL3: editingItem?.assetCategoryL3 || "",
+      assetCategoryL4: editingItem?.assetCategoryL4 || "",
       longDescription: editingItem?.longDescription || "",
       uomId: editingItem?.uomId || "",
       brand: editingItem?.brand || "",
@@ -152,10 +151,10 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
         const idFields = [
           "itemTypeId",
           "subTypeId",
-          "l1Category",
-          "l2Category",
-          "l3Category",
-          "l4Category",
+          "assetCategoryL1",
+          "assetCategoryL2",
+          "assetCategoryL3",
+          "assetCategoryL4",
           "uomId",
           "parentItemId",
         ];
@@ -248,55 +247,43 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
   }, []);
 
   useEffect(() => {
-    getUoms({})
-      .then((res) => setUoms(res?.data || []))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    getVendors({})
-      .then((res) => setVendors(res?.data || []))
-      .catch(() => {});
-  }, []);
-
-  useEffect(() => {
-    getItemCategories({ level: 1 })
+    getAssetCategories({ level: 1 })
       .then((res) => setCatOptions((p) => ({ ...p, l1: res?.data || [] })))
       .catch(() => {});
   }, []);
 
   useEffect(() => {
-    if (!v.l1Category) {
+    if (!v.assetCategoryL1) {
       setCatOptions((p) => ({ ...p, l2: [] }));
       return;
     }
-    getItemCategories({ level: 2, parentCategoryId: v.l1Category })
+    getAssetCategories({ level: 2, parentCategoryId: v.assetCategoryL1 })
       .then((res) => setCatOptions((p) => ({ ...p, l2: res?.data || [] })))
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [v.l1Category]);
+  }, [v.assetCategoryL1]);
 
   useEffect(() => {
-    if (!v.l2Category) {
+    if (!v.assetCategoryL2) {
       setCatOptions((p) => ({ ...p, l3: [] }));
       return;
     }
-    getItemCategories({ level: 3, parentCategoryId: v.l2Category })
+    getAssetCategories({ level: 3, parentCategoryId: v.assetCategoryL2 })
       .then((res) => setCatOptions((p) => ({ ...p, l3: res?.data || [] })))
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [v.l2Category]);
+  }, [v.assetCategoryL2]);
 
   useEffect(() => {
-    if (!v.l3Category) {
+    if (!v.assetCategoryL3) {
       setCatOptions((p) => ({ ...p, l4: [] }));
       return;
     }
-    getItemCategories({ level: 4, parentCategoryId: v.l3Category })
+    getAssetCategories({ level: 4, parentCategoryId: v.assetCategoryL3 })
       .then((res) => setCatOptions((p) => ({ ...p, l4: res?.data || [] })))
       .catch(() => {});
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [v.l3Category]);
+  }, [v.assetCategoryL3]);
 
   useEffect(() => {
     if (editingItem) return;
@@ -322,7 +309,12 @@ const ItemMasterForm = ({ editingItem, onSaved, onCancel }) => {
   }, [v.itemCode]);
 
   const handleCategoryChange = (levelKey, value) => {
-    const order = ["l1Category", "l2Category", "l3Category", "l4Category"];
+    const order = [
+      "assetCategoryL1",
+      "assetCategoryL2",
+      "assetCategoryL3",
+      "assetCategoryL4",
+    ];
     const idx = order.indexOf(levelKey);
     const resetFields = {};
     order.slice(idx + 1).forEach((k) => (resetFields[k] = ""));

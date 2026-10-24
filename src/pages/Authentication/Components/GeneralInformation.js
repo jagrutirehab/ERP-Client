@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import PropTypes from "prop-types";
 import { Button, Card, CardBody, CardHeader, Col, Row } from "reactstrap";
 import PersonalDetailForm from "./PersonalDetailForm";
 import EducationDetailForm from "./EducationDetailForm";
 import WorkExperience from "./WorkExperienceForm";
-import { connect, useSelector } from "react-redux";
+import { connect } from "react-redux";
 import { format } from "date-fns";
 import FileCard from "../../../Components/Common/FileCard";
 import PreviewFile from "../../../Components/Common/PreviewFile";

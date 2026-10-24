@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import Select from "react-select";
 import {
   Card,
@@ -16,7 +16,6 @@ import {
 import { toast } from "react-toastify";
 import { getMyEmploymentForms } from "../../../helpers/backend_helper";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
-import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const FILE_TYPE_OPTIONS = [
   { value: "Form26AS", label: "Form 26AS" },
@@ -131,6 +130,7 @@ const MyForms = () => {
 
   useEffect(() => {
     loadMyForms(buildParams());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
 
   const handleFilterChange = (key, opt) =>

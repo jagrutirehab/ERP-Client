@@ -10,7 +10,6 @@ import {
   ModalHeader,
   ModalBody,
   ModalFooter,
-  Input,
 } from "reactstrap";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
@@ -21,13 +20,11 @@ import { debounce } from "lodash";
 import Select from "react-select";
 import Flatpickr from "react-flatpickr";
 import "flatpickr/dist/themes/material_blue.css";
-import { Trash2 } from "lucide-react";
 
 import { detectShift } from "../detectShift";
 import {
   allViewPermissionRoles,
   SHIFT_CONFIG,
-  leaveTypeOptions,
 } from "../../../../Components/constants/HRMS";
 import {
   postEmployeeReporting,
@@ -46,21 +43,9 @@ const baseTimePickerConfig = {
   minuteIncrement: 5,
 };
 
-const datepickerConfig = {
-  dateFormat: "Y-m-d",
-};
 
-const detectRotationalShiftName = (start, end) => {
-  if (start == null || end == null) return "";
-  if (start >= 360 && start <= 660 && end <= 1200) return "NORMAL";
-  if (start < 720 && end <= 960) return "MORNING";
-  if (start >= 720 && end <= 1320) return "AFTERNOON";
-  if (start >= 1320) return "NIGHT";
-  return "";
-};
 
 const emptyShiftRow = () => ({ date: "", start: null, end: null });
-const emptyLeaveRow = () => ({ date: "", leaveType: "", reason: "" });
 
 const validationSchema = Yup.object({
   employee: Yup.string().required("Employee is required"),
@@ -95,10 +80,8 @@ const EmployeeReportingForm = ({
   const [managerSearch, setManagerSearch] = useState("");
   const [searching, setSearching] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const [leavesExpanded, setLeavesExpanded] = useState(false);
-  const [confirmCopyNextMonth, setConfirmCopyNextMonth] = useState(false);
-  const [existingLeaves, setExistingLeaves] = useState([]);
-  const [existingLeavesLoading, setExistingLeavesLoading] = useState(false);
+  const [, setExistingLeaves] = useState([]);
+  const [, setExistingLeavesLoading] = useState(false);
 
   const canEditManager =
     !permissionLoader && allViewPermissionRoles.includes(roles?.name);
@@ -135,15 +118,18 @@ const EmployeeReportingForm = ({
 
   const debouncedSearch = useMemo(
     () => debounce(searchEmployees, 400),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
   useEffect(() => {
     if (employeeSearch.trim()) debouncedSearch(employeeSearch, "ASSIGN_MANAGER_EMPLOYEE");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [employeeSearch]);
 
   useEffect(() => {
     if (managerSearch.trim()) debouncedSearch(managerSearch, "ASSIGN_MANAGER");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [managerSearch]);
 
   useEffect(() => {
@@ -155,6 +141,7 @@ const EmployeeReportingForm = ({
       setSearching(false);
       debouncedSearch.cancel();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchExistingLeaves = useMemo(
@@ -175,6 +162,7 @@ const EmployeeReportingForm = ({
 
   useEffect(() => {
     return () => fetchExistingLeaves.cancel();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const safeTimeToMinutes = (val) => {
@@ -295,37 +283,7 @@ const EmployeeReportingForm = ({
     },
   });
 
-  const shiftsChanged = () => {
-    const current = form.values.rotationalShifts.filter(
-      (s) => s.date && s.start != null && s.end != null
-    );
-    const original = (initialData?.rotationalShifts || []).map((s) => ({
-      date: s.date ? s.date.substring(0, 10) : "",
-      start: safeTimeToMinutes(s.start),
-      end: safeTimeToMinutes(s.end),
-    }));
-    if (current.length !== original.length) return true;
-    return current.some((s, i) => (
-      s.date !== original[i]?.date ||
-      s.start !== original[i]?.start ||
-      s.end !== original[i]?.end
-    ));
-  };
 
-  const handleRotationalEditClick = () => {
-    const validShifts = form.values.rotationalShifts.filter(
-      (s) => s.date && s.start != null && s.end != null
-    );
-    if (validShifts.length === 0) {
-      toast.error("Please add at least one valid rotational shift");
-      return;
-    }
-    if (shiftsChanged()) {
-      setConfirmOpen(true);
-    } else {
-      handleConfirmUpdate();
-    }
-  };
 
   const handleConfirmUpdate = async () => {
     setConfirmOpen(false);
@@ -395,92 +353,14 @@ const EmployeeReportingForm = ({
   }, [isEdit, employeeId, form.values.shiftType, shiftDateKey, fetchExistingLeaves]);
 
   // ---- Rotational shift row handlers ----
-  const addShiftRow = () => {
-    form.setFieldValue("rotationalShifts", [
-      ...form.values.rotationalShifts,
-      emptyShiftRow(),
-    ]);
-  };
 
-  const copyToNextMonth = () => {
-    const shifts = form.values.rotationalShifts.filter(
-      (s) => s.date && s.start != null && s.end != null
-    );
-    if (shifts.length === 0) return;
 
-    const firstDate = new Date(shifts[0].date);
-    const daysInMonth = new Date(
-      firstDate.getFullYear(),
-      firstDate.getMonth() + 1,
-      0
-    ).getDate();
 
-    const advanced = shifts.map((s) => {
-      const d = new Date(s.date);
-      d.setDate(d.getDate() + daysInMonth);
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const dd = String(d.getDate()).padStart(2, "0");
-      return { date: `${yyyy}-${mm}-${dd}`, start: s.start, end: s.end };
-    });
 
-    form.setFieldValue("rotationalShifts", advanced);
-    setConfirmCopyNextMonth(false);
-  };
-
-  const addShiftRowLikePrevious = () => {
-    const shifts = form.values.rotationalShifts;
-    const prev = shifts[shifts.length - 1];
-
-    let nextDate = "";
-    if (prev?.date) {
-      const d = new Date(prev.date);
-      d.setDate(d.getDate() + 1);
-      const yyyy = d.getFullYear();
-      const mm = String(d.getMonth() + 1).padStart(2, "0");
-      const dd = String(d.getDate()).padStart(2, "0");
-      nextDate = `${yyyy}-${mm}-${dd}`;
-    }
-
-    form.setFieldValue("rotationalShifts", [
-      ...shifts,
-      { date: nextDate, start: prev?.start ?? null, end: prev?.end ?? null },
-    ]);
-  };
-
-  const removeShiftRow = (idx) => {
-    const updated = form.values.rotationalShifts.filter((_, i) => i !== idx);
-    form.setFieldValue(
-      "rotationalShifts",
-      updated.length ? updated : [emptyShiftRow()]
-    );
-  };
-
-  const updateShiftRow = (idx, field, value) => {
-    const updated = form.values.rotationalShifts.map((row, i) =>
-      i === idx ? { ...row, [field]: value } : row
-    );
-    form.setFieldValue("rotationalShifts", updated);
-  };
 
   // ---- Leave row handlers ----
-  const addLeaveRow = () => {
-    form.setFieldValue("leaves", [...form.values.leaves, emptyLeaveRow()]);
-  };
 
-  const removeLeaveRow = (idx) => {
-    form.setFieldValue(
-      "leaves",
-      form.values.leaves.filter((_, i) => i !== idx)
-    );
-  };
 
-  const updateLeaveRow = (idx, field, value) => {
-    const updated = form.values.leaves.map((row, i) =>
-      i === idx ? { ...row, [field]: value } : row
-    );
-    form.setFieldValue("leaves", updated);
-  };
 
   // ---- Employee / manager options ----
   const employeeOptions = useMemo(
@@ -516,6 +396,7 @@ const EmployeeReportingForm = ({
       setManagerSearch("");
       form.setFieldValue("manager", "");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.values.employee]);
 
   // ---- Fixed shift detection ----
@@ -539,14 +420,7 @@ const EmployeeReportingForm = ({
   const isRotational = form.values.shiftType === "ROTATIONAL";
 
   // Dates already used for shifts — blocked from leave picker
-  const shiftDates = form.values.rotationalShifts
-    .map((s) => s.date)
-    .filter(Boolean);
 
-  const leaveDatepickerConfig = {
-    ...datepickerConfig,
-    disable: shiftDates,
-  };
 
   const handleSubmitButtonClick = () => {
     form.handleSubmit();

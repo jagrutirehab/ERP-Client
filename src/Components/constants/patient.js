@@ -27,6 +27,8 @@ const NURSE_SOS_PROCEDURE = "NURSE_SOS_PROCEDURE";
 const INJURY_MARKS = "INJURY_MARKS";
 const ECT_SESSION = "ECT_SESSION";
 const ADMISSION_TYPE = "ADMISSION_TYPE";
+const MEDICINE_GIVEN = "MEDICINE_GIVEN";
+export const ELDERLY_FUNCTIONAL_CHECKLIST = "ELDERLY_FUNCTIONAL_CHECKLIST";
 //Chart Bill Types
 const OPD = "OPD";
 const IPD = "IPD";
@@ -135,6 +137,14 @@ const records = [
   //   name: "Admission Type",
   //   category: ADMISSION_TYPE,
   // },
+  {
+    name: "Medicine Given",
+    category: MEDICINE_GIVEN,
+  },
+  {
+    name: "Elderly Functional and Daily Living Checklist",
+    category: ELDERLY_FUNCTIONAL_CHECKLIST,
+  },
 ];
 
 // ── Admission Type chart ───────────────────────────────────────────────────
@@ -592,31 +602,55 @@ const ectSessionSections = [
 ];
 
 const Forms = [
-  {
-    name: "Admission Form",
-    category: "ADMISSION FORM",
-  },
-  {
-    name: "Consent Form",
-    category: "CONSENT FORM",
-  },
-  {
-    name: "Discharge Form",
-    category: "DISCHARGE FORM",
-  },
+  // Group 1 — MHRB Related Forms
   {
     name: "Capacity Assessment Form",
     category: "CAPACITY ASSESSMENT FORM",
   },
   {
+    name: "MHRB Admission",
+    category: "ADMISSION FORM",
+  },
+  {
+    name: "MHRB Discharge Form",
+    category: "DISCHARGE FORM",
+  },
+  {
+    name: "MHRB Email Upload",
+    category: "MHRB EMAIL FORM",
+  },
+  // Group 2 — standalone (no section header in the dropdown)
+  {
+    name: "Admission and Consent Form",
+    category: "CONSENT FORM",
+  },
+  {
+    name: "Undertaking Discharge Form",
+    category: "UNDERTAKING DISCHARGE FORM",
+  },
+  {
+    name: "Emergency Admission Form",
+    category: "EMERGENCY ADMISSION FORM",
+  },
+  {
+    name: "Emergency Discharge Form",
+    category: "EMERGENCY DISCHARGE FORM",
+  },
+  {
     name: "ECT Consent Form",
     category: "ECT CONSENT FORM",
   },
+  {
+    name: "Do Not Resuscitate Form",
+    category: "DNR FORM",
+  },
 ];
 const testRecord = [
-  { name: "YMRS" },
-  { name: "CIWA-AR" },
+  { name: "CGI-S" },
   { name: "C-SSRS" },
+  { name: "AUDIT" },
+  { name: "CIWA-AR" },
+  { name: "YMRS" },
   { name: "MPQ-9" },
   { name: "MMSE" },
   { name: "Y-BOCS" },
@@ -627,7 +661,6 @@ const testRecord = [
   { name: "Morse Fall Scale" },
   { name: "Ramsay Sedation Scale" },
   { name: "GCS" },
-  { name: "CGI-S" },
   { name: "COWS" },
   { name: "AUDIT" },
   { name: "CIWA-B" },
@@ -777,40 +810,27 @@ const inputOutputColumns = [
 
 // Activity types for the Nurse - SOS Procedure chart
 const nurseSosActivityTypes = [
-  "100 ml ns infusion",
-  "blood collection",
-  "bp monitoring",
   "BSL",
-  "bsl fasting",
-  "bsl pp",
-  "bsl random",
   "ceftriaxone 1 gm iv",
-  "dns infusion",
   "Dressing",
   "ect preparation pre/post/nursing",
-  "ecg recording",
   "ECG",
   "foley's catheter insertion",
-  "im injection",
   "Injection",
   "iv cannula (intracath)",
   "iv injection",
   "IV Fluids",
   "Medicine",
+  "Mouth wash procedure",
   "nebulization",
-  "nebulization with monitoring",
   "ns infusion",
   "oxygen administration",
-  "oxygen mask application",
-  "pulse oximetry monitoring",
-  "restraint application & monitoring",
   "rl infusion",
   "rt feeding",
   "ryle's tube (rt) insertion",
-  "temperature monitoring",
+  "Suction procedure",
   "Urine Drug Tests",
   "urinary catheter care",
-  "wound dressing",
   "X-Ray",
   "Other",
 ];
@@ -1336,6 +1356,323 @@ const mentalExaminationV2Fields = [
     name: "observation",
     type: "textarea",
     labelHidden: true,
+  },
+];
+
+const elderlyFunctionalChecklistFields = [
+  { label: "Information", type: "header" },
+  // {
+  //   label: "Resident Name / ID",
+  //   name: "residentNameId",
+  //   type: "text",
+  //   required: true,
+  // },
+  // {
+  //   label: "Date / Time",
+  //   name: "checklistDateTime",
+  //   type: "date",
+  //   required: true,
+  // },
+  {
+    label: "Information Source",
+    name: "informationSource",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Direct observation", value: "direct_observation" },
+      { label: "Resident", value: "resident" },
+      { label: "Caregiver or nursing staff", value: "caregiver_or_nursing_staff" },
+      { label: "Family", value: "family" },
+      { label: "Other", value: "other" },
+    ],
+  },
+  {
+    label: "If Other, please specify",
+    name: "informationSourceOther",
+    type: "text",
+    required: true,
+    showIf: { field: "informationSource", value: "other" },
+  },
+
+  { label: "Section A. Functional Assessment", type: "header" },
+  {
+    label: "Supervision Required",
+    name: "supervisionRequired",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "None", value: "none" },
+      { label: "Intermittent", value: "intermittent" },
+      { label: "Continuous", value: "continuous" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Standing Ability",
+    name: "standingAbility",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Independent", value: "independent" },
+      { label: "Support required", value: "support_required" },
+      { label: "Unable", value: "unable" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Walking / Mobility",
+    name: "walkingMobility",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Independent", value: "independent" },
+      { label: "Assistance required", value: "assistance_required" },
+      { label: "Unable", value: "unable" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Walking Aid Used",
+    name: "walkingAidUsed",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "No", value: "no" },
+      { label: "Yes", value: "yes" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Personal Hygiene",
+    name: "personalHygiene",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Independent", value: "independent" },
+      { label: "Needs assistance", value: "needs_assistance" },
+      { label: "Dependent", value: "dependent" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Self-Care Ability",
+    name: "selfCareAbility",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Independent", value: "independent" },
+      { label: "Partially dependent", value: "partially_dependent" },
+      { label: "Fully dependent", value: "fully_dependent" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Level of Assistance Required",
+    name: "levelOfAssistanceRequired",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "None", value: "none" },
+      { label: "Minimal", value: "minimal" },
+      { label: "Moderate", value: "moderate" },
+      { label: "Maximum", value: "maximum" },
+      { label: "Total", value: "total" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+
+  { label: "Section B. Daily Living Assessment", type: "header" },
+  {
+    label: "Food Intake",
+    name: "foodIntake",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Usual/Adequate", value: "usual_adequate" },
+      { label: "Reduced", value: "reduced" },
+      { label: "Poor", value: "poor" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Fluid Intake",
+    name: "fluidIntake",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Usual/Adequate", value: "usual_adequate" },
+      { label: "Reduced", value: "reduced" },
+      { label: "Poor", value: "poor" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Feeding Assistance Required",
+    name: "feedingAssistanceRequired",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "No", value: "no" },
+      { label: "Yes", value: "yes" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Urine Pattern as Reported",
+    name: "urinePatternAsReported",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Usual", value: "usual" },
+      { label: "Change reported", value: "change_reported" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Bowel Pattern as Reported",
+    name: "bowelPatternAsReported",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Usual", value: "usual" },
+      { label: "Change reported", value: "change_reported" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Urine Control",
+    name: "urineControl",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "No accidents reported", value: "no_accidents_reported" },
+      { label: "Accidents reported", value: "accidents_reported" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Bowel Control",
+    name: "bowelControl",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "No accidents reported", value: "no_accidents_reported" },
+      { label: "Accidents reported", value: "accidents_reported" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Catheter Status per Nursing Staff",
+    name: "catheterStatus",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Absent", value: "absent" },
+      { label: "Present", value: "present" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Skin Concerns Noticed or Reported",
+    name: "skinConcerns",
+    type: "checkboxWithText",
+    required: true,
+    options: [
+      { label: "None", value: "none" },
+      { label: "Redness", value: "redness" },
+      { label: "Wound-sore", value: "wound_sore" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Skin Concern Location / Details",
+    name: "skinConcernDetails",
+    type: "text",
+    requiredIf: { field: "skinConcerns", includesAny: ["redness", "wound_sore"] },
+  },
+
+  { label: "Section C. Everyday Observations", type: "header" },
+  {
+    label: "Sleep as Reported",
+    name: "sleepAsReported",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Usual", value: "usual" },
+      { label: "Interrupted", value: "interrupted" },
+      { label: "Less than usual", value: "less_than_usual" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Activity Participation",
+    name: "activityParticipation",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Joins independently", value: "joins_independently" },
+      { label: "Needs encouragement", value: "needs_encouragement" },
+      { label: "Does not join", value: "does_not_join" },
+      {
+        label: "No activity offered / not observed",
+        value: "no_activity_offered_not_observed",
+      },
+    ],
+  },
+  {
+    label: "Expressing Needs",
+    name: "expressingNeeds",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Clearly", value: "clearly" },
+      { label: "With prompting/gestures", value: "with_prompting_gestures" },
+      { label: "Needs help", value: "needs_help" },
+      { label: "Not observed", value: "not_observed" },
+    ],
+  },
+  {
+    label: "Fall Since Last Review",
+    name: "fallSinceLastReview",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "No", value: "no" },
+      { label: "Yes", value: "yes" },
+      { label: "Not known", value: "not_known" },
+    ],
+  },
+  {
+    label: "Fall Date",
+    name: "fallDate",
+    type: "date",
+    required: true,
+    showIf: { field: "fallSinceLastReview", value: "yes" },
+  },
+  {
+    label: "Care Needs / Changes Noted",
+    name: "careNeedsChangesNoted",
+    type: "textarea",
+    required: true,
+    fullWidth: true,
+  },
+  {
+    label: "Concern Shared With",
+    name: "concernSharedWith",
+    type: "radio",
+    required: true,
+    options: [
+      { label: "Nurse", value: "nurse" },
+      { label: "Doctor", value: "doctor" },
+      { label: "Care team", value: "care_team" },
+      { label: "Not required", value: "not_required" },
+    ],
+  },
+  {
+    label: "Name / Date / Time, if Shared",
+    name: "sharedNameDateTime",
+    type: "text",
+    requiredIf: { field: "concernSharedWith", notEquals: "not_required" },
   },
 ];
 
@@ -3084,6 +3421,7 @@ export {
   INJURY_MARKS,
   ECT_SESSION,
   ADMISSION_TYPE,
+  MEDICINE_GIVEN,
   //PATIENT BILLS
   INVOICE,
   ADVANCE_PAYMENT,
@@ -3112,6 +3450,7 @@ export {
   clinicalNoteFields,
   mentalExaminationFields,
   mentalExaminationV2Fields,
+  elderlyFunctionalChecklistFields,
   counsellingNoteFields,
   relativeVisitFields,
   outpassFields,

@@ -97,6 +97,7 @@ const TransferApprovals = () => {
         if (hasUserPermission) {
             fetchPendingEmployeeTransferApprovals();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess]);
 
     const handleDelete = async () => {

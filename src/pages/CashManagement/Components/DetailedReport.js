@@ -46,7 +46,7 @@ const DetailedReport = ({
     }));
 
   const [selectedCentersIds, setSelectedCentersIds] = useState([]);
-  const [selectedCenters, setSelectedCenters] = useState([]);
+  const [, setSelectedCenters] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [isExcelGenerating, setIsExcelGenerating] = useState(false);
 
@@ -74,6 +74,7 @@ const DetailedReport = ({
         );
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerAccess, centers]);
 
   const [selectedTransactionType, setSelectedTransactionType] = useState("");
@@ -244,6 +245,7 @@ const DetailedReport = ({
 
       fetchDetailReport();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,

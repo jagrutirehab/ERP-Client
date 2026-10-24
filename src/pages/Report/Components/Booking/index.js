@@ -2,7 +2,6 @@ import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import {
   differenceInMinutes,
-  differenceInYears,
   endOfDay,
   format,
   startOfDay,
@@ -13,12 +12,6 @@ import Divider from "../../../../Components/Common/Divider";
 import DataTable from "react-data-table-component";
 import { CSVLink } from "react-csv";
 import { Button, Input } from "reactstrap";
-import {
-  GET_BOOKING_ANALYTICS,
-  GET_PATIENT_ANALYTICS,
-  GET_PATIENT_ANALYTICS_WP,
-} from "../../../../helpers/url_helper";
-import axios from "axios";
 import { fetchBookingAnalytics } from "../../../../store/actions";
 import { getBookingAnalytics } from "../../../../helpers/backend_helper";
 
@@ -37,7 +30,7 @@ const Booking = ({
     end: endOfDay(new Date()),
   });
   const [filter, setFilter] = useState("");
-  const [val, setVal] = useState("");
+  const [val] = useState("");
   //   const [data, setData] = useState([]);
   const [page, setPage] = useState(currentPage || 1);
   // const [totalPages, setTotalPages] = useState(1);
@@ -65,7 +58,6 @@ const Booking = ({
       });
 
       if (res.success) {
-        console.log(res.payload, "payload");
         const fullData = res.payload || [];
         const formatted = fullData.map((d, i) => ({
           ...d,
@@ -114,13 +106,10 @@ const Booking = ({
         }, 100);
       }
     } catch (err) {
-      console.error("Failed to fetch full patient analytics", err);
     } finally {
       setCsvLoading(false);
     }
   };
-
-  console.log(page, "page");
 
   const fetchData = async () => {
     dispatch(
@@ -138,9 +127,8 @@ const Booking = ({
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, reportDate, filter, limit, centerAccess, val]);
-
-  console.log(data, "data");
 
   const generalColumns = [
     {

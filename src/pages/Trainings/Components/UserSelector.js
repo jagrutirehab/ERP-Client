@@ -182,27 +182,27 @@ const UserCheckbox = React.memo(({ user, checked, onToggle }) => (
         <input type="checkbox" className="form-check-input m-0 flex-shrink-0" checked={checked} onChange={() => {}} />
         <div className="flex-grow-1 overflow-hidden">
             <p className="mb-0 fw-medium text-truncate" style={{ fontSize: 13 }}>{user.name}</p>
-            <p className="mb-0 text-muted text-truncate" style={{ fontSize: 11 }}>{user.email}</p>
+            <p className="mb-0 text-muted text-truncate" style={{ fontSize: 11 }}>{user.eCode}</p>
         </div>
     </div>
 ));
 
 const UserSelector = ({
-    allRoles,
-    activeRole,
-    onRoleChange,
-    roleState,
-    selectedInActiveRole,
+    allPositions,
+    activePosition,
+    onPositionChange,
+    positionState,
+    selectedInActivePosition,
     search,
     onSearchChange,
     onToggleUser,
     onSelectAll,
-    onClearRole,
+    onClearPosition,
     activeRecord,
     onLoadMore,
 }) => {
-    const { users = [], total = 0, hasMore = false, loading = false } = roleState;
-    const allSelectedIds = new Set(selectedInActiveRole.map((u) => u._id));
+    const { users = [], total = 0, hasMore = false, loading = false } = positionState;
+    const allSelectedIds = new Set(selectedInActivePosition.map((u) => u._id));
     const sentinelRef = useRef(null);
 
     useEffect(() => {
@@ -222,32 +222,32 @@ const UserSelector = ({
         <div>
             <div className="d-flex align-items-center justify-content-between mb-2">
                 <h6 className="text-uppercase text-muted fw-semibold mb-0" style={{ fontSize: 11, letterSpacing: 1 }}>
-                    Select Attendees by Role
+                    Select Attendees by Position
                 </h6>
                 {users.length > 0 && (
                     <div className="d-flex gap-2">
                         <button className="btn btn-link btn-sm text-primary p-0" style={{ fontSize: 12 }} onClick={onSelectAll}>Select all</button>
                         <span className="text-muted">|</span>
-                        <button className="btn btn-link btn-sm text-danger p-0" style={{ fontSize: 12 }} onClick={onClearRole}>Clear</button>
+                        <button className="btn btn-link btn-sm text-danger p-0" style={{ fontSize: 12 }} onClick={onClearPosition}>Clear</button>
                     </div>
                 )}
             </div>
 
             <div className="d-flex flex-wrap gap-1 mb-3">
-                {allRoles.map((r) => {
-                    const count = (activeRecord.selectedUsers[r.name] || []).length;
+                {allPositions.map((r) => {
+                    const count = (activeRecord.selectedUsers[r._id] || []).length;
                     return (
                         <button
-                            key={r.name}
+                            key={r._id}
                             type="button"
-                            className={`btn btn-sm rounded-pill ${activeRole.name === r.name ? "btn-primary" : "btn-outline-secondary"}`}
+                            className={`btn btn-sm rounded-pill ${activePosition.id === r._id ? "btn-primary" : "btn-outline-secondary"}`}
                             style={{ fontSize: 12 }}
-                            onClick={() => onRoleChange(r)}
+                            onClick={() => onPositionChange(r)}
                         >
                             {r.name}
                             {count > 0 && (
                                 <span
-                                    className={`ms-1 badge rounded-pill ${activeRole.name === r.name ? "bg-white text-primary" : "bg-primary text-white"}`}
+                                    className={`ms-1 badge rounded-pill ${activePosition.id === r._id ? "bg-white text-primary" : "bg-primary text-white"}`}
                                     style={{ fontSize: 10 }}
                                 >
                                     {count}
@@ -265,7 +265,7 @@ const UserSelector = ({
                 <input
                     type="text"
                     className="form-control border-start-0 bg-light"
-                    placeholder={`Search ${activeRole.name} by name or email...`}
+                    placeholder={`Search ${activePosition.name} by name or employee code...`}
                     value={search}
                     onChange={(e) => onSearchChange(e.target.value)}
                 />
@@ -280,12 +280,12 @@ const UserSelector = ({
                 {loading && users.length === 0 ? (
                     <div className="d-flex justify-content-center align-items-center py-4 gap-2 text-muted">
                         <Spinner size="sm" />
-                        <span style={{ fontSize: 13 }}>Loading users...</span>
+                        <span style={{ fontSize: 13 }}>Loading employees...</span>
                     </div>
                 ) : users.length === 0 ? (
                     <div className="text-center py-4 text-muted" style={{ fontSize: 13 }}>
                         <i className="ri-user-search-line fs-4 d-block mb-1" />
-                        No users found
+                        No employees found
                     </div>
                 ) : (
                     <>
@@ -305,7 +305,7 @@ const UserSelector = ({
                         )}
                         {!hasMore && users.length > 0 && (
                             <p className="text-center text-muted mb-0 py-1" style={{ fontSize: 11 }}>
-                                All {total} users loaded
+                                All {total} employees loaded
                             </p>
                         )}
                         <div ref={sentinelRef} style={{ height: 1 }} />
@@ -314,7 +314,7 @@ const UserSelector = ({
             </div>
 
             <p className="text-muted mt-1 mb-0" style={{ fontSize: 11 }}>
-                {selectedInActiveRole.length} of <strong>{total}</strong> total selected in <strong>{activeRole.name}</strong>
+                {selectedInActivePosition.length} of <strong>{total}</strong> total selected in <strong>{activePosition.name}</strong>
             </p>
         </div>
     );

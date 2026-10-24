@@ -3,8 +3,12 @@ import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Spinner } from "rea
 import { toast } from "react-toastify";
 import { useSelector } from "react-redux";
 import Select from "react-select";
-import { getUsersByRoles, editTrainerRecord, getRolesDisctinct } from "../../../helpers/backend_helper";
+import { getEmployeesByPosition, editTrainerRecord, getPositions, removeTrainerVideo } from "../../../helpers/backend_helper";
+import { enqueueTrainingUploads } from "../../../helpers/trainingUploader";
+import { flattenPositions } from "../Helpers/Helper";
 import UserSelector from "./UserSelector";
+import AttachmentPicker from "./AttachmentPicker";
+import TrainerVideoInput from "./TrainerVideoInput";
 
 const LIMIT = 10;
 
@@ -17,9 +21,9 @@ const toLocalDatetime = (dateStr) => {
 
 const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
     const user = useSelector(state => state.User);
-    const [allRoles, setAllRoles] = useState([]);
-    const [usersByRole, setUsersByRole] = useState({});
-    const [activeRole, setActiveRole] = useState({ id: "", name: "" });
+    const [allPositions, setAllPositions] = useState([]);
+    const [employeesByPosition, setEmployeesByPosition] = useState({});
+    const [activePosition, setActivePosition] = useState({ id: "", name: "" });
     const [search, setSearch] = useState("");
     const [submitting, setSubmitting] = useState(false);
     const searchTimeout = useRef(null);
@@ -34,6 +38,11 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
     });
 
     const [selectedUsers, setSelectedUsers] = useState({});
+    const [savedPositionNames, setSavedPositionNames] = useState({});
+    const [removedPaths, setRemovedPaths] = useState([]);
+    const [newFiles, setNewFiles] = useState([]);
+    const [videoRemoved, setVideoRemoved] = useState(false);
+    const [newVideo, setNewVideo] = useState(null);
 
     const centerOptions = user?.centerAccess?.map(cid => {
         const center = user?.userCenters?.find(c => c._id === cid);
@@ -53,95 +62,106 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
             center: record.center?.map(c => c._id || c) || []
         });
         const preSelected = {};
+        const names = {};
         record.attendanceData?.forEach(entry => {
-            if (entry.role) {
-                preSelected[entry.role] = entry.presents?.map(p => p.user).filter(Boolean) || [];
+            if (entry.position) {
+                preSelected[entry.position] = entry.presents?.map(p => p.employee).filter(Boolean) || [];
+                names[entry.position] = entry.positionName;
             }
         });
         setSelectedUsers(preSelected);
+        setSavedPositionNames(names);
+        setRemovedPaths([]);
+        setNewFiles([]);
+        setVideoRemoved(false);
+        setNewVideo(null);
     }, [isOpen, record]);
 
-    const fetchUsers = useCallback(async ({ roleName, page, search: searchTerm, centers, append = false }) => {
-        if (!roleName) return;
-        setUsersByRole(prev => ({
+    const fetchUsers = useCallback(async ({ positionId, page, search: searchTerm, centers, append = false }) => {
+        if (!positionId) return;
+        setEmployeesByPosition(prev => ({
             ...prev,
-            [roleName]: { ...(prev[roleName] || {}), loading: true },
+            [positionId]: { ...(prev[positionId] || {}), loading: true },
         }));
         try {
-            const response = await getUsersByRoles({
-                role: roleName,
+            const response = await getEmployeesByPosition({
+                position: positionId,
                 search: searchTerm,
                 page,
                 limit: LIMIT,
                 ...(centers && { centers }),
             });
-            const newUsers = response?.users || [];
+            const newUsers = response?.employees || [];
             const total = response?.total || 0;
-            setUsersByRole(prev => ({
+            setEmployeesByPosition(prev => ({
                 ...prev,
-                [roleName]: {
-                    users: append ? [...(prev[roleName]?.users || []), ...newUsers] : newUsers,
+                [positionId]: {
+                    users: append ? [...(prev[positionId]?.users || []), ...newUsers] : newUsers,
                     page,
                     total,
-                    hasMore: newUsers.length === LIMIT,
+                    hasMore: !!response?.hasMore,
                     loading: false,
                 },
             }));
         } catch {
-            setUsersByRole(prev => ({ ...prev, [roleName]: { ...(prev[roleName] || {}), loading: false } }));
+            setEmployeesByPosition(prev => ({ ...prev, [positionId]: { ...(prev[positionId] || {}), loading: false } }));
         }
     }, []);
 
-    const getRoles = async () => {
+    const loadPositions = async () => {
         try {
-            const response = await getRolesDisctinct();
-            if (response?.data?.length) {
-                setAllRoles(response.data);
-                const first = response.data[0];
-                setActiveRole({ id: first.name, name: first.name });
+            const response = await getPositions();
+            const positions = flattenPositions(response?.data);
+            if (positions.length) {
+                setAllPositions(positions);
+                setActivePosition({ id: positions[0]._id, name: positions[0].name });
             }
         } catch { }
     };
 
-    useEffect(() => { if (isOpen) getRoles(); }, [isOpen]);
+    useEffect(() => { if (isOpen) loadPositions(); }, [isOpen]);
 
     useEffect(() => {
-        if (!activeRole.id) return;
-        fetchUsers({ roleName: activeRole.name, page: 1, search: "", centers: getCenterIds() });
-    }, [activeRole.id]);
+        if (!activePosition.id) return;
+        fetchUsers({ positionId: activePosition.id, page: 1, search: "", centers: getCenterIds() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activePosition.id]);
 
     useEffect(() => {
-        if (!activeRole.id) return;
+        if (!activePosition.id) return;
         clearTimeout(searchTimeout.current);
         searchTimeout.current = setTimeout(() => {
-            fetchUsers({ roleName: activeRole.name, page: 1, search, centers: getCenterIds() });
+            fetchUsers({ positionId: activePosition.id, page: 1, search, centers: getCenterIds() });
         }, 400);
         return () => clearTimeout(searchTimeout.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     useEffect(() => {
-        if (!activeRole.id) return;
-        fetchUsers({ roleName: activeRole.name, page: 1, search, centers: getCenterIds() });
+        if (!activePosition.id) return;
+        fetchUsers({ positionId: activePosition.id, page: 1, search, centers: getCenterIds() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [form.center]);
 
     const loadMore = useCallback(() => {
-        const state = usersByRole[activeRole.name];
+        const state = employeesByPosition[activePosition.id];
         if (!state || state.loading || !state.hasMore) return;
-        fetchUsers({ roleName: activeRole.name, page: state.page + 1, search, centers: getCenterIds(), append: true });
-    }, [activeRole, usersByRole, search, form.center, fetchUsers]);
+        fetchUsers({ positionId: activePosition.id, page: state.page + 1, search, centers: getCenterIds(), append: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [activePosition, employeesByPosition, search, form.center, fetchUsers]);
 
-    const handleRoleChange = (role) => {
-        setActiveRole({ id: role.name, name: role.name });
+    const handlePositionChange = (role) => {
+        setActivePosition({ id: role._id, name: role.name });
         setSearch("");
     };
 
     const toggleUser = (user) => {
         setSelectedUsers(prev => {
-            const roleUsers = prev[activeRole.name] || [];
+            const roleUsers = prev[activePosition.id] || [];
             const exists = roleUsers.some(u => u._id === user._id);
             return {
                 ...prev,
-                [activeRole.name]: exists
+                [activePosition.id]: exists
                     ? roleUsers.filter(u => u._id !== user._id)
                     : [...roleUsers, user],
             };
@@ -149,14 +169,14 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
     };
 
     const selectAllLoaded = () => {
-        const loaded = usersByRole[activeRole.name]?.users || [];
-        setSelectedUsers(prev => ({ ...prev, [activeRole.name]: loaded }));
+        const loaded = employeesByPosition[activePosition.id]?.users || [];
+        setSelectedUsers(prev => ({ ...prev, [activePosition.id]: loaded }));
     };
 
-    const clearRoleSelection = () => {
+    const clearPositionSelection = () => {
         setSelectedUsers(prev => {
             const updated = { ...prev };
-            delete updated[activeRole.name];
+            delete updated[activePosition.id];
             return updated;
         });
     };
@@ -167,24 +187,54 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
         if (!form.from || !form.to) return toast.error("From and To dates are required");
         if (!form.center.length) return toast.error("At least one center is required");
 
+        const positionNameById = {
+            ...savedPositionNames,
+            ...Object.fromEntries(allPositions.map(p => [p._id, p.name])),
+        };
         const attendanceData = Object.entries(selectedUsers)
             .filter(([, users]) => users.length > 0)
-            .map(([role, users]) => ({
-                role,
-                presents: users.map(u => ({ user: u._id }))
+            .map(([positionId, users]) => ({
+                position: positionId,
+                positionName: positionNameById[positionId] || "",
+                presents: users.map(u => ({ employee: u._id }))
             }));
 
-        const payload = {
-            ...form,
-            from: form.from ? new Date(form.from).toISOString() : "",
-            to: form.to ? new Date(form.to).toISOString() : "",
-            attendanceData
-        };
+        const payload = new FormData();
+        payload.append("trainingName", form.trainingName);
+        payload.append("trainerName", form.trainerName);
+        payload.append("trainingDescription", form.trainingDescription);
+        payload.append("from", new Date(form.from).toISOString());
+        payload.append("to", new Date(form.to).toISOString());
+        payload.append("center", JSON.stringify(form.center));
+        payload.append("attendanceData", JSON.stringify(attendanceData));
+        payload.append("removeFilePaths", JSON.stringify(removedPaths));
+        newFiles.forEach(file => payload.append("files", file));
 
         try {
             setSubmitting(true);
             await editTrainerRecord(record._id, payload);
-            toast.success("Trainer record updated successfully");
+
+            let videoReady = true;
+            if (savedVideo && (videoRemoved || newVideo)) {
+                try {
+                    await removeTrainerVideo(record._id, savedVideo._id);
+                } catch (err) {
+                    videoReady = false;
+                    toast.error(err?.response?.data?.message || "The record was saved, but the old video could not be removed. Try again.");
+                }
+            }
+            if (newVideo && videoReady) {
+                enqueueTrainingUploads([{
+                    file: newVideo.file,
+                    kind: "video",
+                    targetType: "trainerRecord",
+                    recordId: record._id,
+                    trainingName: `Trainer record: ${form.trainingName}`,
+                    durationSec: newVideo.durationSec,
+                }]);
+            }
+
+            toast.success(newVideo && videoReady ? "Trainer record updated. The video is uploading in the background." : "Trainer record updated successfully");
             onRefresh();
             onClose();
         } catch (err) {
@@ -194,9 +244,11 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
         }
     };
 
-    const activeRoleState = usersByRole[activeRole.name] || { users: [], total: 0, hasMore: false, loading: false };
-    const selectedInActiveRole = selectedUsers[activeRole.name] || [];
+    const activePositionState = employeesByPosition[activePosition.id] || { users: [], total: 0, hasMore: false, loading: false };
+    const selectedInActivePosition = selectedUsers[activePosition.id] || [];
     const fakeRecord = { selectedUsers, center: form.center };
+    const existingFiles = (record?.files || []).filter(f => !removedPaths.includes(f.path));
+    const savedVideo = record?.videos?.[0] || null;
 
     return (
         <Modal isOpen={isOpen} toggle={onClose} size="xl" centered>
@@ -250,7 +302,7 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
                                     const filteredUsers = {};
                                     Object.entries(selectedUsers).forEach(([role, users]) => {
                                         filteredUsers[role] = users.filter(u =>
-                                            (u.centerAccess || []).some(c => newCenters.includes(c.toString()))
+                                            newCenters.includes(String(u.currentLocation))
                                         );
                                     });
                                     setSelectedUsers(filteredUsers);
@@ -299,18 +351,33 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
 
                     <div className="col-lg-6">
                         <UserSelector
-                            allRoles={allRoles}
-                            activeRole={activeRole}
-                            onRoleChange={handleRoleChange}
-                            roleState={activeRoleState}
-                            selectedInActiveRole={selectedInActiveRole}
+                            allPositions={allPositions}
+                            activePosition={activePosition}
+                            onPositionChange={handlePositionChange}
+                            positionState={activePositionState}
+                            selectedInActivePosition={selectedInActivePosition}
                             search={search}
                             onSearchChange={setSearch}
                             onToggleUser={toggleUser}
                             onSelectAll={selectAllLoaded}
-                            onClearRole={clearRoleSelection}
+                            onClearPosition={clearPositionSelection}
                             activeRecord={fakeRecord}
                             onLoadMore={loadMore}
+                        />
+                        <AttachmentPicker
+                            existingFiles={existingFiles}
+                            newFiles={newFiles}
+                            onAddFiles={added => setNewFiles(prev => [...prev, ...added])}
+                            onRemoveExisting={file => setRemovedPaths(prev => [...prev, file.path])}
+                            onRemoveNew={i => setNewFiles(prev => prev.filter((_, idx) => idx !== i))}
+                        />
+                        <TrainerVideoInput
+                            saved={savedVideo}
+                            removed={videoRemoved}
+                            pending={newVideo}
+                            onPick={setNewVideo}
+                            onClearPending={() => setNewVideo(null)}
+                            onToggleRemove={() => setVideoRemoved(prev => !prev)}
                         />
                     </div>
                 </div>

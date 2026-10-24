@@ -96,8 +96,6 @@ const ConditionRow = ({
         ? []
         : OPERATORS_BY_TYPE[fieldType] || OPERATORS_BY_TYPE.String;
 
-  console.log({ allowedOps });
-
   const filteredOps = OPERATOR_OPTIONS.filter((op) =>
     allowedOps.includes(op.value),
   );
@@ -105,6 +103,7 @@ const ConditionRow = ({
 
   useEffect(() => {
     if (isProvisional && icdOptions.length === 0) fetchIcd();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [condition.field]);
 
   useEffect(() => {
@@ -136,7 +135,6 @@ const ConditionRow = ({
         })),
       );
     } catch (err) {
-      console.error("ICD fetch error:", err);
     } finally {
       setIsLoadingIcd(false);
     }
@@ -895,8 +893,6 @@ const ConditionRow = ({
       />
     );
   };
-
-  console.log({ filteredOps });
 
   return (
     <>

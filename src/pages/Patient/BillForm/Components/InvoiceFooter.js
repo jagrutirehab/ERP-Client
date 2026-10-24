@@ -13,14 +13,8 @@ import PaymentMode from "./paymentMode";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
 
 const InvoiceFooter = (props) => {
-  const isEdit = props.isEdit;
-  console.log("isEdit from footer", isEdit);
-  const isDraft = props.isDraft === "draft";
-  console.log("Draffft", isDraft);
 
-  console.log("props", props);
   const isLatest = props.isLatest;
-  console.log("isLatest", isLatest);
 
   const itemDiscount = Number(props.itemDiscount) || 0;
 
@@ -93,6 +87,7 @@ const InvoiceFooter = (props) => {
     }
 
     setError("");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     props.validation?.values?.bill,
     props.refund,
@@ -129,10 +124,7 @@ const InvoiceFooter = (props) => {
 
 
 
-  const safeWhole = Number(props.wholeDiscount?.value) || 0;
-  const safeItemDiscount = Number(props.itemDiscount) || 0;
 
-  const editDisplayValue = Math.max(0, safeWhole - safeItemDiscount);
 
 
 
@@ -225,6 +217,9 @@ const InvoiceFooter = (props) => {
                           e.preventDefault();
                         }
                       }}
+                      // Locked when only recording a charge already taken —
+                      // the total must stay equal to the money collected.
+                      disabled={props.readOnly}
                     />
                     <span className="input-group-text p-0 bg-light">
                       <Input
@@ -241,6 +236,7 @@ const InvoiceFooter = (props) => {
                             unit: e.target.value,
                           })
                         }
+                        disabled={props.readOnly}
                       >
                         <option>₹</option>
                         <option>%</option>
@@ -289,6 +285,10 @@ const InvoiceFooter = (props) => {
                     setPaymentModes={props.setPaymentModes}
                     payable={props.payable}
                     validation={props.validation}
+                    existingTransactionProof={props.existingTransactionProof}
+                    posContext={props.posContext}
+                    readOnly={props.readOnly}
+                    chargeBlockedReason={props.chargeBlockedReason}
                   />
                 </Col>
               </RenderWhen>

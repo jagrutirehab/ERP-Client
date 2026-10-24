@@ -487,6 +487,22 @@ const PaymentFormModal = ({
                       </div>
                     </div>
                   )}
+
+                {paymentDetails?.transactionProof && (
+                  <div className="mt-3 pt-3 border-top">
+                    <strong>Payment Screenshot</strong>
+                    <div>
+                      <a
+                        href={paymentDetails.transactionProof}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary text-decoration-underline d-block mb-1"
+                      >
+                        View File
+                      </a>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
 

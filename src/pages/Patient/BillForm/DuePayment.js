@@ -1,10 +1,14 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Col, Form, FormFeedback, Row } from "reactstrap";
+import { Alert, Col, Form, Row } from "reactstrap";
 import * as Yup from "yup";
 import { useFormik } from "formik";
 import InvoiceTable from "./Components/InvoiceTable";
 import InvoiceFooter from "./Components/InvoiceFooter";
+import {
+  evaluateEvidenceGuard,
+  evaluatePosGuards,
+} from "./Components/billGuards";
 import SubmitForm from "./Components/SubmitForm";
 import { connect, useDispatch, useSelector } from "react-redux";
 import {
@@ -19,10 +23,63 @@ import Inovice from "../Dropdowns/Inovice";
 import { setBillingStatus } from "../../../store/features/patient/patientSlice";
 import {
   getProceduresByCenterid,
-  getProceduresByid,
 } from "../../../helpers/backend_helper";
-import InvoiceDateRange from "./Components/InvoiceDateRange";
 import FromDateModal from "./Components/FromDateModal";
+
+// Each paymentModes row may carry a transient `evidenceFiles` array (Files, never sent as-is).
+// Strip it before the array goes out as JSON, and collect it separately for FormData —
+// one entry per file, with the mode repeated so the backend can pair them positionally.
+const stripEvidenceFiles = (modes) =>
+  (modes || []).map(({ evidenceFiles, ...rest }) => rest);
+
+const collectEvidenceFiles = (modes) =>
+  (modes || []).flatMap((mode) =>
+    (mode.evidenceFiles || []).map((file) => ({ file, mode: mode.type }))
+  );
+
+// The invoice draft as it stands when the charge is sent. `availablePrices`
+// is a fetched lookup rebuilt on load, so it is dropped rather than stored.
+const buildInvoiceSnapshot = (invoiceList, wholeDiscount, paymentModes) => ({
+  invoiceList: (invoiceList || []).map(
+    ({ availablePrices, ...item }) => item,
+  ),
+  wholeDiscount,
+  // An invoice can be split across tenders — cash plus a card charge, say.
+  // Only one of them goes to the terminal, so the others have to be kept or
+  // the restored invoice would no longer add up to the payable amount.
+  paymentModes: (paymentModes || []).map(
+    ({ evidenceFiles, ...mode }) => mode,
+  ),
+});
+
+// IDs of Pine Labs charges already approved on the terminal. The server
+// re-reads each from its own record before billing them.
+const collectPosTransactionIds = (modes) =>
+  (modes || []).map((mode) => mode.posTransaction).filter(Boolean);
+
+const buildTransactionProofFormData = (payload, evidenceEntries) => {
+  const formData = new FormData();
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value === undefined || value === null) return;
+    if (value instanceof Date) {
+      formData.append(key, value.toISOString());
+    } else if (
+      key === "invoiceList" ||
+      key === "paymentModes" ||
+      key === "posTransactionIds"
+    ) {
+      formData.append(key, JSON.stringify(value));
+    } else {
+      formData.append(key, value);
+    }
+  });
+  evidenceEntries.forEach(({ file }) => formData.append("transactionProof", file));
+  formData.append(
+    "transactionProofModes",
+    JSON.stringify(evidenceEntries.map((entry) => entry.mode))
+  );
+  return formData;
+};
 
 const DuePayment = ({
   author,
@@ -37,20 +94,18 @@ const DuePayment = ({
   type,
   shouldPrintAfterSave,
   isLatest,
+  posPrefill,
+  onCloseLockChange,
   ...rest
 }) => {
   const dispatch = useDispatch();
-
-  // console.log("Data : ", {
-  //   patient,
-  //   center,
-  // });
 
   const editData = editBillData
     ? type === OPD
       ? editBillData.receiptInvoice
       : editBillData.invoice
     : null;
+  const existingTransactionProof = editData?.transactionProof;
   // getProceduresByid
   const advpayment = useSelector((state) => state.Bill.calculatedAdvance);
 
@@ -60,11 +115,11 @@ const DuePayment = ({
   const [totalDiscount, setTotalDiscount] = useState(0);
   const [totalTax, setTotalTax] = useState(0);
   const [grandTotal, setGrandTotal] = useState(0);
-  const [arrayToSend, setArrayToSend] = useState(null);
+  const [, setArrayToSend] = useState(null);
   const [availablePrices, setAvailablePrices] = useState([]);
-  const [whileEditAvailablePrices, setWhileEditAvailablePrices] = useState([]);
-  const [initialFromDate, setInitialFromDate] = useState("");
-  const [initialToDate, setInitialToDate] = useState("");
+  const [, setWhileEditAvailablePrices] = useState([]);
+  const [, setInitialFromDate] = useState("");
+  const [, setInitialToDate] = useState("");
   const [wholeDiscount, setWholeDiscount] = useState({
     unit: "₹",
     value: 0,
@@ -75,12 +130,135 @@ const DuePayment = ({
     editBillData ? editBillData.bill : INVOICE,
   );
   const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
+
+  // Opened from the POS dashboard to bill a charge the terminal already took.
+  // Only the tender is known — the procedures still have to be entered — so
+  // the payment row comes back filled and locked and nothing else changes.
+  const isPosRecovery = !!posPrefill && !editBillData;
+
+  // Restore the invoice draft the charge was taken against, so the cashier
+  // is not left retyping procedures for money already collected.
+  useEffect(() => {
+    if (!isPosRecovery) return;
+    const snapshot = posPrefill.invoiceSnapshot;
+    if (!snapshot) return;
+    if (Array.isArray(snapshot.invoiceList)) {
+      // Dates survive the round trip as full ISO strings; a date input only
+      // renders YYYY-MM-DD, so trim them back on the way in.
+      const asDateInput = (v) =>
+        v ? String(v).slice(0, 10) : v;
+      setInvoiceList(
+        snapshot.invoiceList.map((item) => ({
+          ...item,
+          availablePrices: [],
+          ...(item.fromDate ? { fromDate: asDateInput(item.fromDate) } : {}),
+          ...(item.toDate ? { toDate: asDateInput(item.toDate) } : {}),
+        })),
+      );
+    }
+    if (snapshot.wholeDiscount) setWholeDiscount(snapshot.wholeDiscount);
+  }, [isPosRecovery, posPrefill]);
+
+  useEffect(() => {
+    if (!isPosRecovery) return;
+    const result = posPrefill.result || {};
+    const tender = result.paymentMode || posPrefill.requestedMode;
+
+    // The row this charge actually paid, with the terminal's own values.
+    const charged = {
+      type: tender,
+      amount: posPrefill.amount,
+      transactionId: result.rrn || result.transactionId || "",
+      cardNumber: String(result.cardNumber || "")
+        .replace(/[^0-9]/g, "")
+        .slice(-4),
+      posTransaction: posPrefill._id,
+      posApprovalCode: result.approvalCode,
+      posReferenceId: posPrefill.plutusTransactionReferenceId,
+      posPayerVpa: result.upiPayerVpa,
+      // The account picked when the charge was sent. Only set when known, so
+      // it never blanks the one kept in the saved invoice snapshot.
+      ...(posPrefill.bankAccount ? { bankAccount: posPrefill.bankAccount } : {}),
+    };
+
+    const saved = posPrefill.invoiceSnapshot?.paymentModes;
+    if (!Array.isArray(saved) || !saved.length) {
+      setPaymentModes([charged]);
+      return;
+    }
+
+    // Overlay the charged row onto the saved split, leaving the other tenders
+    // (cash, cheque) exactly as the cashier entered them. Matched on tender
+    // and amount, and only the first match, so a second identical row is not
+    // credited to the same swipe.
+    let overlaid = false;
+    const restored = saved.map((mode) => {
+      if (
+        !overlaid &&
+        !mode.posTransaction &&
+        mode.type === tender &&
+        Number(mode.amount) === Number(posPrefill.amount)
+      ) {
+        overlaid = true;
+        return { ...mode, ...charged };
+      }
+      return mode;
+    });
+
+    setPaymentModes(overlaid ? restored : [...restored, charged]);
+  }, [isPosRecovery, posPrefill]);
   const [categories, setCategories] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [fromDate, setFromDate] = useState("");
   const [selectedIndex, setSelectedIndex] = useState(null);
 
   const ptCenter = center ? center : patient?.center?._id;
+
+  // Charging on the terminal is optional — a payment collected elsewhere is
+  // recorded with an evidence screenshot instead. Once a charge HAS been
+  // approved though, the form cannot be abandoned: the money is already gone.
+  const posGuard = evaluatePosGuards(paymentModes, {
+    readOnly: isPosRecovery,
+  });
+  // Evidence is required for every non-cash tender that was not collected on
+  // a terminal — see billGuards.js. Payment rows only exist on OPD invoices.
+  const evidenceGuard = evaluateEvidenceGuard(
+    type === OPD ? paymentModes : [],
+    {
+      tenderKey: "type",
+      existingTransactionProof: editData?.transactionProof,
+      readOnly: isPosRecovery,
+    },
+  );
+
+  // Never let the tender exceed what is owed. The existing rule requires the
+  // two to match exactly on save, but without this a cashier can type 5000
+  // against a 500 invoice and only find out at the end.
+  const tenderedTotal = (paymentModes || []).reduce(
+    (sum, row) => sum + (Number(row.amount) || 0),
+    0,
+  );
+  const overpaid = type === OPD && tenderedTotal > Number(totalPayable || 0);
+
+  const blockSave =
+    posGuard.blockSave || evidenceGuard.blockSave || overpaid;
+  const saveReason = overpaid
+    ? `Payments total ₹${tenderedTotal} but only ₹${totalPayable} is payable. Reduce the amount.`
+    : posGuard.saveReason || evidenceGuard.saveReason;
+  const { blockCancel, cancelReason } = posGuard;
+
+  // Hide the modal's ✕ while Cancel is blocked; release it on unmount.
+  useEffect(() => {
+    onCloseLockChange?.(blockCancel);
+  }, [blockCancel, onCloseLockChange]);
+  useEffect(() => () => onCloseLockChange?.(false), [onCloseLockChange]);
+
+  // Same rule, applied one step earlier: an over-tendered row must not be
+  // sent to the terminal at all. Blocking only the save would take the
+  // customer's money for a bill that cannot then be recorded.
+  const chargeBlockedReason = overpaid
+    ? `Payments already total ₹${tenderedTotal} against ₹${totalPayable} payable. Reduce the amount before charging.`
+    : null;
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -181,16 +359,24 @@ const DuePayment = ({
     }),
 
     onSubmit: async (values) => {
+      const evidenceEntries = collectEvidenceFiles(paymentModes);
+      const cleanPaymentModes = stripEvidenceFiles(paymentModes);
+
       if (editData) {
+        const payload = {
+          id: editBillData._id,
+          billId: editData._id,
+          appointment: appointment?._id,
+          shouldPrintAfterSave,
+          ...values,
+          paymentModes: cleanPaymentModes,
+        };
         const response = await dispatch(
-          updateInvoice({
-            id: editBillData._id,
-            billId: editData._id,
-            appointment: appointment?._id,
-            shouldPrintAfterSave,
-            ...values,
-            paymentModes,
-          }),
+          updateInvoice(
+            evidenceEntries.length > 0
+              ? buildTransactionProofFormData(payload, evidenceEntries)
+              : payload
+          ),
         ).unwrap();
         dispatch(
           setBillingStatus({
@@ -199,13 +385,20 @@ const DuePayment = ({
           }),
         );
       } else {
+        const posTransactionIds = collectPosTransactionIds(paymentModes);
+        const payload = {
+          ...values,
+          appointment: appointment?._id,
+          paymentModes: cleanPaymentModes,
+          ...(posTransactionIds.length ? { posTransactionIds } : {}),
+          shouldPrintAfterSave,
+        };
         const response = await dispatch(
-          addInvoice({
-            ...values,
-            appointment: appointment?._id,
-            paymentModes,
-            shouldPrintAfterSave,
-          }),
+          addInvoice(
+            evidenceEntries.length > 0
+              ? buildTransactionProofFormData(payload, evidenceEntries)
+              : payload
+          ),
         ).unwrap();
         dispatch(
           setBillingStatus({
@@ -224,7 +417,6 @@ const DuePayment = ({
   });
 
   useEffect(() => {
-    console.log({ ptCenter });
     if (ptCenter) {
       dispatch(
         fetchPaymentAccounts({
@@ -283,7 +475,6 @@ const DuePayment = ({
             // }
             // FromDate and to Date Carry Forward
 
-            console.log("latestInvoice", latestInvoice);
             const sendingArray = latestInvoice?.invoice?.invoiceList || [];
 
             setArrayToSend(sendingArray);
@@ -298,9 +489,7 @@ const DuePayment = ({
                   unit: item.unit || 1,
                   unitOfMeasurement: item.unitOfMeasurement || "",
                   availablePrices: [],
-                  fromDate: item.fromDate
-                    ? new Date(item.fromDate).toISOString().split("T")[0]
-                    : "",
+                  fromDate: "",
                   toDate: item.toDate
                     ? new Date(item.toDate).toISOString().split("T")[0]
                     : "",
@@ -310,10 +499,8 @@ const DuePayment = ({
               );
             }
           } else if (fetchBills.rejected.match(resultAction)) {
-            console.log("❌ Rejected error:", resultAction.error);
           }
         } catch (err) {
-          console.error("Dispatch error:", err);
         }
       })();
     } else {
@@ -481,12 +668,10 @@ const DuePayment = ({
     });
 
     if (!checkItem) {
-      console.log("item", item);
       const centerMatch = item?.center?.find(
         (d) =>
           String(d?.center?._id) === String(patient?.center?._id || center),
       );
-      // console.log("centerMatch", centerMatch);
 
       const defaultPriceObj =
         centerMatch?.prices && centerMatch.prices.length > 0
@@ -525,8 +710,6 @@ const DuePayment = ({
       });
     }
   };
-
-  // console.log("patient from invoice", patient);
 
   const handleUOMChange = (index, newUnit) => {
     setInvoiceList((prevList) => {
@@ -569,7 +752,6 @@ const DuePayment = ({
 
       setAvailablePrices(procedurePriceMap);
     } catch (error) {
-      console.log("error", error);
     }
   };
 
@@ -577,6 +759,7 @@ const DuePayment = ({
     if (!invoiceList?.length) return;
 
     fetchValidCosts(invoiceList[0]?.slot);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoiceList[0]?.slot]);
 
   // useEffect(() => {
@@ -671,6 +854,20 @@ const DuePayment = ({
           className="needs-validation"
           action="#"
         >
+          {isPosRecovery && (
+            <Alert color="info" className="fs-12 py-2">
+              <i className="ri-bank-card-line me-1"></i>
+              Billing a payment the terminal already took on{" "}
+              <strong>
+                {new Date(posPrefill.createdAt).toLocaleString()}
+              </strong>
+              {posPrefill.result?.rrn ? ` (RRN ${posPrefill.result.rrn})` : ""}.
+              The invoice and tender are restored exactly as they were when the
+              charge was sent and cannot be changed — nobody is charged again.
+              Press Save to record it.
+            </Alert>
+          )}
+
           <Row>
             <Col md={8}>
               {/* {type === "IPD" && (
@@ -679,6 +876,9 @@ const DuePayment = ({
                 </div>
               )} */}
 
+              {/* Nothing may be added to an invoice that is only being
+                  recorded — the total has to match the money already taken. */}
+              {!isPosRecovery && (
               <Inovice
                 data={invoiceList}
                 dataList={invoiceProcedures}
@@ -688,20 +888,29 @@ const DuePayment = ({
                 setCategories={setCategories}
                 center={center || patient?.center}
               />
+              )}
             </Col>
           </Row>
 
-          <InvoiceTable
-            isEdit={Boolean(editBillData)}
-            invoiceList={invoiceList}
-            setInvoiceList={setInvoiceList}
-            onUOMChange={handleUOMChange}
-            {...rest}
-            center={patient?.center}
-            validation={validation}
-            setShowModal={setShowModal}
-            setSelectedIndex={setSelectedIndex}
-          />
+          {/* A fieldset disables every control inside it natively, which is
+              both shorter and safer than tracking each input in the table —
+              nothing here may change once the money has been taken. */}
+          <fieldset
+            disabled={isPosRecovery}
+            style={{ border: 0, padding: 0, margin: 0, minWidth: 0 }}
+          >
+            <InvoiceTable
+              isEdit={Boolean(editBillData)}
+              invoiceList={invoiceList}
+              setInvoiceList={setInvoiceList}
+              onUOMChange={handleUOMChange}
+              {...rest}
+              center={patient?.center}
+              validation={validation}
+              setShowModal={setShowModal}
+              setSelectedIndex={setSelectedIndex}
+            />
+          </fieldset>
           {/* {validation.touched.invoiceList && validation.errors.invoiceList ? (
             <>
               {validation.errors.invoiceList.map((error, index) => (
@@ -731,13 +940,42 @@ const DuePayment = ({
             type={type}
             paymentModes={paymentModes}
             setPaymentModes={setPaymentModes}
+            // Enables "Charge on POS" on OPD card/UPI rows. Editing an
+            // existing invoice does not re-charge, so it is offered on new
+            // invoices only.
+            readOnly={isPosRecovery}
+            chargeBlockedReason={chargeBlockedReason}
+            posContext={
+              editData
+                ? undefined
+                : {
+                    center: ptCenter,
+                    patient: patient?._id,
+                    addmission: admission || patient?.addmission?._id,
+                    purpose: "INVOICE",
+                    billType: type,
+                    appointment: appointment?._id,
+                    // Kept so a charge that never got billed restores the
+                    // whole invoice, not just the tender.
+                    invoiceSnapshot: buildInvoiceSnapshot(
+                      invoiceList,
+                      wholeDiscount,
+                      paymentModes,
+                    ),
+                  }
+            }
             isLatest={isLatest}
+            existingTransactionProof={existingTransactionProof}
             {...rest}
           />
           <SubmitForm
             {...rest}
             enteredRefundAmount={validation.values.refund}
             bill={invoiceType}
+            blockSave={blockSave}
+            saveReason={saveReason}
+            blockCancel={blockCancel}
+            cancelReason={cancelReason}
           />
 
           <FromDateModal
@@ -781,6 +1019,7 @@ const mapStateToProps = (state) => ({
   editBillData: state.Bill.billForm.data,
   appointment: state.Bill.billForm.appointment,
   shouldPrintAfterSave: state.Bill.billForm.shouldPrintAfterSave,
+  posPrefill: state.Bill.billForm.posPrefill,
   admission: state.Bill.billForm.admission,
   invoiceProcedures: state.Setting.invoiceProcedures,
   ttlAdvance: state.Bill.totalAdvance,

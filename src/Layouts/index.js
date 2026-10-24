@@ -8,6 +8,8 @@ import Header from './Header';
 import Sidebar from './Sidebar';
 import Footer from './Footer';
 import RightSidebar from '../Components/Common/RightSidebar';
+import TrainingUploadDock from '../Components/Common/TrainingUploadDock';
+import { useTrainingNotifications } from '../Components/Hooks/useTrainingNotifications';
 
 //import actions
 import {
@@ -27,6 +29,7 @@ import { useSelector, useDispatch } from "react-redux";
 
 
 const Layout = (props) => {
+    useTrainingNotifications();
     const [headerClass, setHeaderClass] = useState("");
     const dispatch = useDispatch();
     const {
@@ -121,6 +124,7 @@ const Layout = (props) => {
                 </div>
             </div>
             <RightSidebar />
+            <TrainingUploadDock />
         </React.Fragment>
 
     );

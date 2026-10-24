@@ -5,7 +5,6 @@ import { connect, useDispatch, useSelector } from "react-redux";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate } from "react-router-dom";
-import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import SearchBar from "./components/SearchBar";
 import PaginationControls from "./components/PaginationControls";
 import DeleteConfirmModal from "./components/DeleteConfirmModal";
@@ -39,7 +38,6 @@ const Symptoms = (props) => {
     roles: userRoles,
   } = usePermissions(token);
   const hasUserPermission = hasPermission("SETTING", "SYMPTOMSETTING", "READ");
-  const handleAuthError = useAuthError();
 
   const isLoading = useSelector((state) => state.Setting.loading);
   const symptoms = props.symptoms || [];
@@ -136,7 +134,6 @@ const Symptoms = (props) => {
       (t.title || "").toLowerCase().includes(searchItem.toLowerCase()) ||
       (t.description || "").toLowerCase().includes(searchItem.toLowerCase())
   );
-  const totalPages = Math.ceil(filteredSymptoms.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentSymptoms = filteredSymptoms.slice(startIndex, endIndex);
@@ -157,8 +154,6 @@ const Symptoms = (props) => {
     navigate("/unauthorized");
     return null;
   }
-
-  console.log({ symptoms });
 
   return (
     <div className="container-fluid d-flex flex-column h-100 px-3">

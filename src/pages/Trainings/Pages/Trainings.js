@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { CardBody, Spinner, Nav, NavItem, NavLink } from 'reactstrap'
-import { acknowledgeTraining, getByRoles } from '../../../helpers/backend_helper'
+import { getByRoles } from '../../../helpers/backend_helper'
 import { toast } from 'react-toastify'
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery'
 import TrainingCard from '../Components/TrainingCard'
@@ -8,18 +8,14 @@ import { usePermissions } from '../../../Components/Hooks/useRoles'
 
 const Trainings = () => {
   const isMobile = useMediaQuery("(max-width: 1000px)")
-  const raw = localStorage.getItem("authUser")
-  const user = JSON.parse(raw)
 
   const [trainings, setTrainings] = useState([])
   const [loading, setLoading] = useState(false)
-  const [trainingId, setTrainingId] = useState(null)
   const [page, setPage] = useState(1)
   const [pagination, setPagination] = useState({})
   const [activeTab, setActiveTab] = useState("pending")
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const hasUserPermission = hasPermission("TRAININGS", "VIEW_TRAININGS", "READ");
   const hasWritePermission = hasPermission("TRAININGS", "VIEW_TRAININGS", "WRITE");
   const hasDeletePermission = hasPermission("TRAININGS", "VIEW_TRAININGS", "DELETE");
 
@@ -33,7 +29,6 @@ const Trainings = () => {
       setTrainings(response?.data || [])
       setPagination(response?.pagination || {})
     } catch (error) {
-      console.log("error", error);
 
       toast.error(error?.message || "Failed to load trainings")
     } finally {
@@ -59,19 +54,6 @@ const Trainings = () => {
     loadTrainings(1, tab)
   }
 
-  const handleAcknowledge = async (trainingId) => {
-    setTrainingId(trainingId)
-    try {
-      const res = await acknowledgeTraining(trainingId)
-      toast.success("Acknowledged successfully")
-      loadTrainings(page)
-    } catch (error) {
-      console.log("4. error", error)
-      toast.error(error?.response?.data?.message || "Failed to acknowledge")
-    } finally {
-      setTrainingId(null)
-    }
-  }
 
   const handlePageChange = (newPage) => {
     setPage(newPage)
@@ -80,6 +62,7 @@ const Trainings = () => {
 
   useEffect(() => {
     loadTrainings()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   return (

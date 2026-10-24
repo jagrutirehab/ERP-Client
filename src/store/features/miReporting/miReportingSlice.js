@@ -27,6 +27,7 @@ import {
   getDailyDashboard,
   getDocsCompliance,
   getDueAmount,
+  getMissingInvoices,
   getMIAttendance,
   getCenterWiseMOM,
   getCampaignWiseMOM,
@@ -41,11 +42,17 @@ import {
   getAdmissionDischargeDaily,
   getOpdChargesMonthly,
   getDoctorOpdChargesMonthly,
+  getDoctorOpdChargesDetail,
   getCentralExpensesMonthly,
   getDoctorPsychologistStayRange,
   getNursesDailyActivity,
   getIncidentStatusMonthly,
   getReadmissionMonthly,
+  getAttritionMonthly,
+  getAssignedData,
+  getPatientsWithSuspendedStaff,
+  getCashRecoCompliance,
+
 } from "../../../helpers/backend_helper";
 
 const initialState = {
@@ -80,6 +87,7 @@ const initialState = {
   dailyDashboard:[],
   docsCompliance: [],
   dueAmount: [],
+  missingInvoices: [],
   miAttendance: [],
   nursesDOD: [],
   centerWiseMOM: [],
@@ -96,11 +104,17 @@ const initialState = {
   counsellingSessionsPatientsDOD: [],
   opdChargesMonthly: [],
   doctorOpdChargesMonthly: [],
+  doctorOpdChargesDetail: [],
   centralExpensesMonthly: [],
   doctorPsychologistStayRange: [],
   nursesDailyActivity: [],
   incidentStatusMonthly: [],
   readmissionMonthly: [],
+  attritionMonthly: [],
+  assignedData: [],
+  patientsWithSuspendedStaff: [],
+  cashRecoCompliance: [],
+
   loading: false,
   error: null,
 };
@@ -357,7 +371,6 @@ export const fetchRefundAmountMOM = createAsyncThunk(
       const response = await getRefundAmountMOM(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Refund amount mom"
       );
@@ -485,6 +498,20 @@ export const fetchDoctorOpdChargesMonthly = createAsyncThunk(
   }
 );
 
+export const fetchDoctorOpdChargesDetail = createAsyncThunk(
+  "miReporting/fetchDoctorOpdChargesDetail",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getDoctorOpdChargesDetail(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch doctor opd charges detail"
+      );
+    }
+  }
+);
+
 
 export const fetchMetricsReport = createAsyncThunk(
   "miReporting/fetchMetricsReport",
@@ -568,7 +595,6 @@ export const fetchRoundNotesDOD = createAsyncThunk(
       const response = await getRoundNotesDOD(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Round notes dod"
       );
@@ -584,7 +610,6 @@ export const fetchClinicalNotesDOD = createAsyncThunk(
       const response = await getClinicalNotesDOD(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Clinical notes dod"
       );
@@ -616,7 +641,6 @@ export const fetchVitalSignsDOD = createAsyncThunk(
       const response = await getVitalSignsDOD(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Vital Signs DOD"
       );
@@ -631,7 +655,6 @@ export const fetchPatientDocs = createAsyncThunk(
       const response = await getPatientDocs(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Patient Docs"
       );
@@ -646,7 +669,6 @@ export const fetchOpdPatientDocs = createAsyncThunk(
       const response = await getOpdPatientDocs(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch OPD Patient Docs"
       );
@@ -662,7 +684,6 @@ export const fetchDailyInvoices = createAsyncThunk(
       const response = await getDailyInvoices(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Daily Invoices"
       );
@@ -677,7 +698,6 @@ export const fetchCounsellingSessions = createAsyncThunk(
       const response = await getCounsellingSessions(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Counselling Sessions"
       );
@@ -692,7 +712,6 @@ export const fetchCounsellingRecordings = createAsyncThunk(
       const response = await getCounsellingRecordings(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Counselling Recordings"
       );
@@ -723,6 +742,18 @@ export const fetchDueAmount = createAsyncThunk(
       return response;
     } catch (error) {
       return rejectWithValue(error.message || "Failed to fetch Due Amount");
+    }
+  }
+);
+
+export const fetchMissingInvoices = createAsyncThunk(
+  "miReporting/fetchMissingInvoices",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getMissingInvoices(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.message || "Failed to fetch Missing Invoices");
     }
   }
 );
@@ -758,7 +789,6 @@ export const fetchDailyDashboard = createAsyncThunk(
       const response = await getDailyDashboard(data);
       return response;
     } catch (error) {
-       console.log("response failed")
       return rejectWithValue(
         error.message || "Failed to fetch Daily Dashboard"
       );
@@ -798,6 +828,61 @@ export const fetchReadmissionMonthly = createAsyncThunk(
 
 
 
+export const fetchAttritionMonthly = createAsyncThunk(
+  "miReporting/fetchAttritionMonthly",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getAttritionMonthly(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Attrition Monthly"
+      );
+    }
+  }
+);
+
+export const fetchAssignedData = createAsyncThunk(
+  "miReporting/fetchAssignedData",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getAssignedData(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Assigned Data"
+      );
+    }
+  }
+);
+
+export const fetchPatientsWithSuspendedStaff = createAsyncThunk(
+  "miReporting/fetchPatientsWithSuspendedStaff",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getPatientsWithSuspendedStaff(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Patients With Suspended Staff"
+      );
+    }
+  }
+);
+
+export const fetchCashRecoCompliance = createAsyncThunk(
+  "miReporting/fetchCashRecoCompliance",
+  async (data, { rejectWithValue }) => {
+    try {
+      const response = await getCashRecoCompliance(data);
+      return response;
+    } catch (error) {
+      return rejectWithValue(
+        error.message || "Failed to fetch Cash Reco Compliance"
+      );
+    }
+  }
+);
 
 
 
@@ -1156,6 +1241,20 @@ const miReportingSlice = createSlice({
         state.error = action.payload;
       })
 
+      //Missing Invoices
+      .addCase(fetchMissingInvoices.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchMissingInvoices.fulfilled, (state, action) => {
+        state.loading = false;
+        state.missingInvoices = action.payload.payload || [];
+      })
+      .addCase(fetchMissingInvoices.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
       //MI Attendance
       .addCase(fetchMIAttendance.pending, (state) => {
         state.loading = true;
@@ -1366,6 +1465,19 @@ const miReportingSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
       })
+      // Doctor OPD Charges Detail
+      .addCase(fetchDoctorOpdChargesDetail.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchDoctorOpdChargesDetail.fulfilled, (state, action) => {
+        state.loading = false;
+        state.doctorOpdChargesDetail = action.payload.payload || [];
+      })
+      .addCase(fetchDoctorOpdChargesDetail.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
       // Central Expenses Monthly
       .addCase(fetchCentralExpensesMonthly.pending, (state) => {
         state.loading = true;
@@ -1430,8 +1542,61 @@ const miReportingSlice = createSlice({
       .addCase(fetchReadmissionMonthly.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
-      });
+      })
 
+       // Attrition Monthly
+      .addCase(fetchAttritionMonthly.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAttritionMonthly.fulfilled, (state, action) => {
+        state.loading = false;
+        state.attritionMonthly = action.payload.payload || [];
+      })
+      .addCase(fetchAttritionMonthly.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Assigned Data
+      .addCase(fetchAssignedData.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchAssignedData.fulfilled, (state, action) => {
+        state.loading = false;
+        state.assignedData = action.payload.payload || [];
+      })
+      .addCase(fetchAssignedData.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      // Patients With Suspended Staff
+      .addCase(fetchPatientsWithSuspendedStaff.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchPatientsWithSuspendedStaff.fulfilled, (state, action) => {
+        state.loading = false;
+        state.patientsWithSuspendedStaff = action.payload.payload || [];
+      })
+      .addCase(fetchPatientsWithSuspendedStaff.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // Cash Reco Compliance
+      .addCase(fetchCashRecoCompliance.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchCashRecoCompliance.fulfilled, (state, action) => {
+        state.loading = false;
+        state.cashRecoCompliance = action.payload.payload || [];
+      })
+      .addCase(fetchCashRecoCompliance.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      });
 
   },
 });

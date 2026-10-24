@@ -34,9 +34,7 @@ const AllLeaveHistory = () => {
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { hasPermission, loading: isLoading } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "ALL_LEAVE_HISTORY", "READ");
-  const hasRead = hasPermission("HR", "ALL_LEAVE_HISTORY", "READ");
+  const { hasPermission } = usePermissions(token);
   const hasWrite = hasPermission("HR", "ALL_LEAVE_HISTORY", "WRITE");
   const hasDelete = hasPermission("HR", "ALL_LEAVE_HISTORY", "DELETE");
 
@@ -62,14 +60,12 @@ const AllLeaveHistory = () => {
         centers
 
       })
-      console.log("response", response);
       setDoc(response?.data)
       setPagination({
         ...response?.pagination,
         totalDocs: response?.pagination?.totalRecords,
       });
     } catch (error) {
-      console.log(error);
       toast.error(error);
     } finally {
       setLoading(false);
@@ -78,6 +74,7 @@ const AllLeaveHistory = () => {
 
   useEffect(() => {
     loadAllLeaves();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, selectedYear, selectedMonth, page, limit, debouncedSearch, selectedCenter, user?.centerAccess])
 
   const leaves = doc || [];
@@ -88,9 +85,6 @@ const AllLeaveHistory = () => {
     (_, i) => 2015 + i,
   );
 
-  console.log("leaves", leaves);
-
-
   const handleAction = async (row, status) => {
     setApproveLoaderId(row?._id);
     try {
@@ -100,7 +94,6 @@ const AllLeaveHistory = () => {
         status,
       }
       const response = await changeLeaveStatusByHR(payload);
-      console.log("Response", response);
       toast.success(response?.message || `Leave status changed to ${status}`)
       loadAllLeaves();
 
@@ -117,7 +110,6 @@ const AllLeaveHistory = () => {
   };
 
   const handleCancel = async (row, reason = "") => {
-    console.log("row", row);
 
     setCancelLoaderId(row?._id);
 
@@ -128,9 +120,6 @@ const AllLeaveHistory = () => {
         employeeId: row?.employee?._id,
         reason,
       };
-
-      console.log("payload", payload);
-
 
       const res = await directCancellation(payload);
 

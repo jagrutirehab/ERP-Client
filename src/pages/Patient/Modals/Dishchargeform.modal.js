@@ -23,6 +23,7 @@ const DischargeFormModal = ({
   emergencyDischargeType,
   setEmergencyDischargeType,
   setOpenform3,
+  onProceed,
 }) => {
   const dispatch = useDispatch();
 
@@ -112,24 +113,22 @@ const DischargeFormModal = ({
             </p>
           </div>
           {/* Admission Type */}
-          <div className="mt-3">
-            <Label className="text-muted mb-1">Admission Type</Label>
-            <Input
-              type="select"
-              value={admissiontype}
-              onChange={(e) => setAdmissiontype(e.target.value)}
-            >
-              <option value="">Select Admission Type</option>
-              <option value="INDEPENDENT_ADMISSION">
-                Independent Discharge
-              </option>
-              <option value="SUPPORTIVE_ADMISSION">Supportive Discharge</option>
-              <option value="EMERGENCY_DISCHARGE">Emergency Discharge</option>
-              <option value="DISCHARGE_UNDERTAKING">
-                Discharge Undertaking
-              </option>
-            </Input>
-          </div>
+          {admissiontype !== "EMERGENCY_DISCHARGE" && (
+            <div className="mt-3">
+              <Label className="text-muted mb-1">Admission Type</Label>
+              <Input
+                type="select"
+                value={admissiontype}
+                onChange={(e) => setAdmissiontype(e.target.value)}
+              >
+                <option value="">Select Admission Type</option>
+                <option value="INDEPENDENT_ADMISSION">
+                  Independent Discharge
+                </option>
+                <option value="SUPPORTIVE_ADMISSION">Supportive Discharge</option>
+              </Input>
+            </div>
+          )}
           {/* Conditional fields */}
           {admissiontype === "INDEPENDENT_ADMISSION" && (
             <div className="mt-3">
@@ -140,7 +139,10 @@ const DischargeFormModal = ({
                 onChange={(e) => setAdultationtype(e.target.value)}
               >
                 <option value="">Select Adultation</option>
-                <option value="ADULT">Adult (18+)</option>
+                <option value="VOLUNTARY_ADULT">
+                  Adult (18+)
+                </option>
+                {/* <option value="ADULT">Adult (18+)</option> */}
                 <option value="MINOR">Minor (below 18)</option>
               </Input>
             </div>
@@ -193,8 +195,11 @@ const DischargeFormModal = ({
                   !emergencyDischargeType)
               }
               onClick={() => {
-                toggle();
-                setOpenform3(true);
+                if (onProceed) onProceed();
+                else {
+                  toggle();
+                  setOpenform3(true);
+                }
               }}
             >
               Submit

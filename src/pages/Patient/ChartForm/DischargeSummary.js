@@ -21,12 +21,11 @@ import { connect, useDispatch } from "react-redux";
 import {
   addDischargeSummary,
   createEditChart,
-  fetchCharts,
   updateDischargeSummary,
 } from "../../../store/actions";
 import { setEventChart } from "../../../store/features/booking/bookingSlice";
 import { toast } from "react-toastify";
-import { getAIDischargeSummary, getCharts, validateAISummary, validateChart } from "../../../helpers/backend_helper";
+import { getAIDischargeSummary, validateAISummary, validateChart } from "../../../helpers/backend_helper";
 import { FaCheck } from "react-icons/fa";
 import ValidateConfirmationModal from "./Components/ValidateConfirmationModal";
 
@@ -200,9 +199,6 @@ const DischargeSummary = ({
 
   });
 
-  console.log("patient?.addmission._id", patient?.addmission._id);
-
-
 
   useEffect(() => {
     if (!editSummary) {
@@ -324,8 +320,6 @@ const DischargeSummary = ({
   }, [dischargeAdvise]);
 
 
-  // console.log("patientonthefly", patient);
-
 
   const getGeminiSummary = async () => {
     setGenerateLoading(true);
@@ -334,8 +328,6 @@ const DischargeSummary = ({
         patient: patient?._id,
         addmission: patient?.addmission?._id,
       });
-
-      console.log("response", response);
 
       const data = response?.data;
       setGeminiResponse(data)
@@ -538,6 +530,7 @@ const DischargeSummary = ({
             : "",
       });
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleValidateResponse = async () => {
@@ -549,7 +542,6 @@ const DischargeSummary = ({
       } else {
         response = await validateChart(editChartData?._id);
       }
-      console.log("ValidateResponse", response);
       setIsEditVerified(true);
       dispatch({
         type: "editDischargeSummary/fulfilled",
@@ -569,7 +561,6 @@ const DischargeSummary = ({
       toast.success(response?.message || "Successfully Validated.")
 
     } catch (error) {
-      console.log(error);
       toast.error(error.message || "Failed to Validate Response")
     }
     finally {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { connect, useDispatch } from "react-redux";
-import { Button, Col, Container, Row, Spinner } from "reactstrap";
+import { Button, ButtonGroup, Col, Container, Row, Spinner } from "reactstrap";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import { getApprovals } from "../../../store/features/centralPayment/centralPaymentSlice";
@@ -20,6 +20,7 @@ const AccountingApprovalDashboard = ({
   const handleAuthError = useAuthError();
   const [page, setPage] = useState(1);
   const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [paymentTypeFilter, setPaymentTypeFilter] = useState("");
   const limit = 12;
 
   const microUser = localStorage.getItem("micrologin");
@@ -82,6 +83,7 @@ const AccountingApprovalDashboard = ({
             centers: centers,
             approvalStatus: "APPROVED",
             accountingApprovalStatus: "PENDING",
+            ...(paymentTypeFilter && { initialPaymentStatus: paymentTypeFilter }),
           }),
         ).unwrap();
       } catch (error) {
@@ -94,7 +96,8 @@ const AccountingApprovalDashboard = ({
     };
 
     fetchPendingAccountingApprovals();
-  }, [centerAccess, selectedCenter, dispatch, page, limit]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centerAccess, selectedCenter, dispatch, page, limit, paymentTypeFilter]);
 
   if (loading) {
     return (
@@ -113,17 +116,54 @@ const AccountingApprovalDashboard = ({
         <Container fluid>
           <div className="mb-5">
             <Row className="mb-3 align-items-center justify-content-between">
-              <Col lg="2" md="6" sm="12">
-                <Select
-                  value={selectedCenterOption}
-                  onChange={(option) => {
-                    setSelectedCenter(option?.value);
-                    setPage(1);
-                  }}
-                  options={centerOptions}
-                  placeholder="All Centers"
-                  classNamePrefix="react-select"
-                />
+              <Col lg="6" md="12" sm="12" className="d-flex flex-wrap gap-2">
+                <div style={{ minWidth: 200 }}>
+                  <Select
+                    value={selectedCenterOption}
+                    onChange={(option) => {
+                      setSelectedCenter(option?.value);
+                      setPage(1);
+                    }}
+                    options={centerOptions}
+                    placeholder="All Centers"
+                    classNamePrefix="react-select"
+                  />
+                </div>
+                <ButtonGroup>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "" ? "primary" : "secondary"}
+                    outline={paymentTypeFilter !== ""}
+                    onClick={() => {
+                      setPaymentTypeFilter("");
+                      setPage(1);
+                    }}
+                  >
+                    All
+                  </Button>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "COMPLETED" ? "success" : "secondary"}
+                    outline={paymentTypeFilter !== "COMPLETED"}
+                    onClick={() => {
+                      setPaymentTypeFilter("COMPLETED");
+                      setPage(1);
+                    }}
+                  >
+                    Paid
+                  </Button>
+                  <Button
+                    type="button"
+                    color={paymentTypeFilter === "PENDING" ? "warning" : "secondary"}
+                    outline={paymentTypeFilter !== "PENDING"}
+                    onClick={() => {
+                      setPaymentTypeFilter("PENDING");
+                      setPage(1);
+                    }}
+                  >
+                    To Be Paid
+                  </Button>
+                </ButtonGroup>
               </Col>
               <Col xs="auto" className="d-flex align-items-center">
                 <span className="text-muted me-1">Total Balance:</span>

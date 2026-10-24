@@ -276,7 +276,6 @@
 // //   const userCenters = useSelector((state) => state.User?.centerAccess);
 
 // //   const data = updateItem?.formData;
-// //   console.log("data", data);
 
 // //   const validation = useFormik({
 // //     enableReinitialize: true,
@@ -445,7 +444,7 @@
 
 
 import React, { useState, useEffect } from "react";
-import { Col, Button, Input, FormFeedback, Form, Row, UncontrolledTooltip } from "reactstrap";
+import { Col, Button, Input, Form, Row } from "reactstrap";
 import { useDispatch } from "react-redux";
 import * as Yup from "yup";
 import { useFormik } from "formik";
@@ -466,7 +465,6 @@ const EditBillItem = ({ item, onCancel }) => {
       const response = await getCategoriesOfProcedures();
       setCategories(response?.data || []);
     } catch (error) {
-      console.error("Error fetching categories:", error);
     } finally {
       setIsLoading(false);
     }

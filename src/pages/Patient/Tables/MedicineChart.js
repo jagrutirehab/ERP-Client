@@ -121,6 +121,7 @@ const MedicineChart = ({
   showDates = false,
   showOwner = false,
   fallbackPrescriber,
+  readOnly = false,
 }) => {
   // The owner badge stands on its own (read-only views want it too); the
   // action column only appears where discontinuing is actually offered.
@@ -160,11 +161,11 @@ const MedicineChart = ({
                   : ""}
               </span>
             )}
-            {isPharmacy && row.availableStock !== undefined && (row.dispensedCount > row.availableStock || row.totalQuantity > row.availableStock) && (
+            {/* {isPharmacy && row.availableStock !== undefined && (row.dispensedCount > row.availableStock || row.totalQuantity > row.availableStock) && (
               <span className="text-danger small fw-bold">
                 ⚠ Only {row.availableStock} left
               </span>
-            )}
+            )} */}
           </div>
         );
       },
@@ -326,7 +327,9 @@ const MedicineChart = ({
         },
       ]
       : []),
-    ...(isPharmacy
+    // Dispensed Count column — commented out for the read-only prescription
+    // view in medicine approval (readOnly), kept for the live approve flow.
+    ...(isPharmacy && !readOnly
       ? [
         {
           name: "Dispensed Count",
@@ -426,6 +429,7 @@ const MedicineChart = ({
 MedicineChart.propTypes = {
   medicines: PropTypes.array.isRequired,
   isPharmacy: PropTypes.bool,
+  readOnly: PropTypes.bool,
   handleDispensedCountChange: PropTypes.func,
   baseDate: PropTypes.any,
   currentUserId: PropTypes.string,

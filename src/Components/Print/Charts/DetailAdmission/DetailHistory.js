@@ -13,7 +13,6 @@ Font.register({
 });
 
 const DetailHistory = ({ data, styles, additionalDiagnosis }) => {
-  console.log("DetailHistory additionalDiagnosis:", additionalDiagnosis);
   return (
     <React.Fragment>
       <View

@@ -1,7 +1,5 @@
 import React from "react";
-import PropTypes from "prop-types";
 import { Card, CardBody } from "reactstrap";
-import { Link } from "react-router-dom";
 
 const Placeholder = (props) => {
   return (

@@ -33,8 +33,6 @@ const GetBalanceLeaves = () => {
       const res = await getBalance();
       const data = res?.data;
 
-      console.log("data", data);
-      
       if (!data) return;
 
       const rows = [
@@ -72,6 +70,7 @@ const GetBalanceLeaves = () => {
       return;
     }
     fetchBalancesData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openWeekOffModal = () => {

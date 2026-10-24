@@ -4,7 +4,6 @@ import PropTypes from "prop-types";
 
 //constant
 import {
-  IPD,
   VITAL_SIGN,
   vitalSignFields,
 } from "../../../Components/constants/patient";
@@ -61,7 +60,6 @@ const VitalSign = ({ author, patient, chartDate, editChartData, type }) => {
       const {
         weight,
         pulse,
-        bloodPressure: { systolic, diastolic },
         temprature,
         respirationRate,
         cns,

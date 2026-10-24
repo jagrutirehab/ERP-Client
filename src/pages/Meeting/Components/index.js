@@ -14,10 +14,8 @@ function MeetingComponent({ meetingId, name, userType }) {
                 const meetingUrl = `/meeting?authToken=${encodeURIComponent(data.token)}`;
                 window.open(meetingUrl, "_blank"); // Open in a new tab
             } else {
-                console.error("Token generation failed:", data);
             }
         } catch (error) {
-            console.error("Error generating token:", error);
         }
     };
 

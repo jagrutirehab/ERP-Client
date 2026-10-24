@@ -166,6 +166,7 @@ export {
   fetchAllPatients,
   fetchPatientById,
   editAdmissionAssignment,
+  editAdmissionWardBed,
 } from "./features/patient/patientSlice";
 
 // timeline
@@ -189,6 +190,8 @@ export {
   addVitalSign,
   addGeneralVitalSign,
   updateVitalSign,
+  addElderlyFunctionalChecklist,
+  updateElderlyFunctionalChecklist,
   addEctSession,
   addGeneralEctSession,
   updateEctSession,

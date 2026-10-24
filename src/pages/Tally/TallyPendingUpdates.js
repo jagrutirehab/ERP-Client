@@ -56,7 +56,6 @@ const TallyPendingUpdates = ({ centerOptions, initialCenters }) => {
         setExpandedTypes(expanded);
       }
     } catch (error) {
-      console.error("Failed to fetch pending updates:", error);
     } finally {
       setLoading(false);
     }
@@ -71,21 +70,6 @@ const TallyPendingUpdates = ({ centerOptions, initialCenters }) => {
   };
 
   // Extract unique dates hint per group
-  const getDateHint = (records) => {
-    const dateSet = new Set();
-    const centerSet = new Set();
-    records.forEach((r) => {
-      if (r.sourceDate) {
-        dateSet.add(format(new Date(r.sourceDate), "dd MMM yyyy"));
-      }
-      if (r.centerTitle && r.centerTitle !== "N/A") {
-        centerSet.add(r.centerTitle);
-      }
-    });
-    const dates = [...dateSet].sort().join(", ");
-    const centers = [...centerSet].sort().join(", ");
-    return { dates, centers };
-  };
 
   const columns = [
     {
@@ -284,7 +268,6 @@ const TallyPendingUpdates = ({ centerOptions, initialCenters }) => {
           icon: "bx-file",
         };
         const isOpen = expandedTypes[group.type];
-        const hint = getDateHint(group.records);
 
         return (
           <div key={group.type} className="mb-3">

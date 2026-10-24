@@ -1,19 +1,7 @@
 import React from "react";
 import { Col, Row } from "reactstrap";
-import { Link } from "react-router-dom";
 import PropTypes from "prop-types";
 import { format } from "date-fns";
-import RenderWhen from "./RenderWhen";
-import {
-  BILL,
-  CHART,
-  LEAD,
-  PATIENT,
-  PATIENT_BILL,
-  PATIENT_CENTER,
-  PATIENT_CHART,
-  PATIENT_STATUS,
-} from "../constants/log";
 
 const Timeline = ({ displayDetails, data }) => {
   return (

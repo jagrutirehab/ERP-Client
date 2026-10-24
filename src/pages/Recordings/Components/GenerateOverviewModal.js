@@ -8,7 +8,6 @@ const GenerateOverviewModal = ({
     onGenerate,
     loading
 }) => {
-    console.log("selectedRecording", selectedRecording);
 
     return (
         <Modal isOpen={isOpen} toggle={toggle} centered fade={true}>

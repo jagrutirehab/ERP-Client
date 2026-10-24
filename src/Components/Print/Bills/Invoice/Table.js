@@ -111,7 +111,7 @@ const Table = ({ bill }) => {
       ? addComma(invoice.payable ?? 0)
       : addComma(parseFloat(invoice.calculatedPayable ?? 0).toFixed(2));
 
-  const [height, setHeight] = useState();
+  const [, setHeight] = useState();
   const ref = useRef();
 
   useEffect(() => {

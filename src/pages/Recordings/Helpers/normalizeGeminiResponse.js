@@ -13,7 +13,6 @@
 
 //       data = JSON.parse(cleaned);
 //     } catch (err) {
-//       console.log("Gemini parse failed:", err);
 //       return response;
 //     }
 //   }
@@ -69,7 +68,6 @@ export const normalizeGeminiResponse = (response) => {
 
       data = JSON.parse(cleaned);
     } catch (err) {
-      console.log("Gemini parse failed:", err);
       return response;
     }
   }

@@ -376,8 +376,21 @@ export const Issues = (
         },
         {
           name: <div className="text-center">Patient/Staff ID</div>,
-          selector: (row) => row?.operationalIssue?.patientOrStaffId || "-",
-          width: "160px",
+          width: "240px",
+          cell: (row) => (
+            <div
+              style={{
+                maxHeight: "80px",
+                overflowY: "auto",
+                paddingRight: "6px",
+                lineHeight: "1.4",
+                wordBreak: "break-word",
+                whiteSpace: "normal",
+              }}
+            >
+              {row?.operationalIssue?.patientOrStaffId || "-"}
+            </div>
+          ),
         },
         {
           name: <div className="text-center">Images</div>,
@@ -412,7 +425,32 @@ export const Issues = (
                 row.assignedTo.name.slice(1).toLowerCase()
               : "-";
 
-            const eCode = row?.assignedTo?.eCode;
+
+            return (
+              <div className="text-center">
+                <div>{name}</div>
+                {/* {eCode && (
+              <div style={{ fontSize: "12px", color: "#6c757d", marginTop: '4px' }}>
+                {eCode}
+              </div>
+            )} */}
+              </div>
+            );
+          },
+        },
+      ]
+    : []),
+  ...(status !== "new" && type === "MAINTENANCE"
+    ? [
+        {
+          name: <div className="text-center">Assigned To</div>,
+          width: "160px",
+          cell: (row) => {
+            const name = row?.assignedTo?.name
+              ? row.assignedTo.name.charAt(0).toUpperCase() +
+                row.assignedTo.name.slice(1).toLowerCase()
+              : "-";
+
 
             return (
               <div className="text-center">
@@ -473,7 +511,9 @@ export const Issues = (
     width: "180px",
   },
 
-  ...(status === "new" && type !== "HR" && canEdit
+  ...((type === "MAINTENANCE"
+    ? status !== "resolved"
+    : status === "new" && type !== "HR") && canEdit
     ? [
         {
           name: <div className="text-center">Assign</div>,

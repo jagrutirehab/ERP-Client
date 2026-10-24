@@ -2,6 +2,7 @@ import { Button } from "reactstrap";
 import { Check, X } from "lucide-react";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import { normalizeText } from "../helpers/normalizeText";
+import { formatEmployeeName } from "../../../../utils/formatEmployeeName";
 
 export const BiometricReqsColumn = ({
   onApprove,
@@ -10,7 +11,6 @@ export const BiometricReqsColumn = ({
   type,
   hasWritePermission,
 } = {}) => {
-  console.log("Type", type);
 
   return [
     {
@@ -36,7 +36,9 @@ export const BiometricReqsColumn = ({
     },
     {
       name: "Name",
-      selector: (row) => row?.employee?.name || "-",
+      selector: (row) =>
+        formatEmployeeName(row?.employee?.name, row?.employee?.salutation) ||
+        "-",
       sortable: true,
       minWidth: "150px",
       wrap: true,
@@ -117,7 +119,6 @@ export const BiometricReqsColumn = ({
       sortable: true,
       minWidth: "130px",
       cell: (row) => {
-        console.log("Row status", row?.status);
         return renderStatusBadge(row?.status?.toUpperCase());
       },
     },

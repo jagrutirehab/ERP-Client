@@ -1,4 +1,5 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { ButtonGroup, Button, Row, Col } from "reactstrap";
 import {
   BILLING_VIEW,
@@ -36,7 +37,6 @@ import AUDITQuestion from "./Components/AUDITQuestion";
 import CIWABQuestion from "./Components/CIWABQuestion";
 
 const Views = (props) => {
-  const ref = useRef();
 
   const data = useSelector((state) => state.ClinicalTest.testName);
   const questionShow = useSelector(
@@ -52,14 +52,26 @@ const Views = (props) => {
   };
 
   const patientPage = props?.pageAccess?.find((pg) => pg.name === "Patient");
+
+  // ?view=BILLING lets another page deep-link straight to a tab — the POS
+  // dashboard uses it to drop the cashier on the patient's billing. Only
+  // honoured for tabs this user actually has access to.
+  const [searchParams] = useSearchParams();
+  const requestedView = (searchParams.get("view") || "").toUpperCase();
+  const allowedViews = (patientPage?.subAccess || []).map(
+    (sub) => vws[sub?.name],
+  );
+
   const [view, setView] = useState(
-    patientPage?.subAccess?.find(
-      (sub) => sub?.name.toUpperCase() === CHARTING_VIEW,
-    )
-      ? CHARTING_VIEW
-      : patientPage?.subAccess[0]?.name
-        ? vws[patientPage?.subAccess[0]?.name]
-        : "",
+    requestedView && allowedViews.includes(requestedView)
+      ? requestedView
+      : patientPage?.subAccess?.find(
+            (sub) => sub?.name.toUpperCase() === CHARTING_VIEW,
+          )
+        ? CHARTING_VIEW
+        : patientPage?.subAccess[0]?.name
+          ? vws[patientPage?.subAccess[0]?.name]
+          : "",
   );
 
   const handleView = (v) => setView(v);

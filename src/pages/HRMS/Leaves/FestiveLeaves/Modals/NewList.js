@@ -26,8 +26,6 @@ const NewList = ({ isOpen, toggle, onSubmit, initialRows = [], year }) => {
   const [rows, setRows] = useState([{ date: "", particulars: "" }]);
   const [errors, setErrors] = useState({});
 
-  console.log("initialRows", initialRows);
-
   useEffect(() => {
     if (isOpen) {
       const initial =

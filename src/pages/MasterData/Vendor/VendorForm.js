@@ -5,13 +5,15 @@ import {
   updateVendor,
   getVendorById,
   uploadVendorDocument,
-  getPaymentTerms,
 } from "../../../helpers/backend_helper";
 import { Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
 import { useFormik } from "formik";
 import * as Yup from "yup";
 import { toast } from "react-toastify";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../Components/Hooks/useReferenceData";
+import { useDispatch } from "react-redux";
+import { invalidateReferenceList } from "../../../store/features/reference/referenceSlice";
 import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import "./vendor.scss";
 
@@ -161,17 +163,17 @@ const COUNTRIES = [
   "Zimbabwe",
 ];
 
-const DOC_TYPES = [
+const getDocTypes = (hasGstin, hasPan) => [
   {
     key: "gst_certificate",
     label: "GST Certificate",
-    required: false,
+    required: hasGstin,
     accept: "PDF, JPG, PNG",
   },
   {
     key: "pan_card",
     label: "PAN Card Copy",
-    required: false,
+    required: hasPan,
     accept: "PDF, JPG, PNG",
   },
   {
@@ -274,7 +276,7 @@ const emptyInitialValues = {
     accountType: "",
     upiId: "",
   },
-  paymentTerms: "",
+  paymentTermId: "",
   preferredPaymentMode: "",
 };
 
@@ -282,6 +284,10 @@ const validationSchema = Yup.object({
   tradeName: Yup.string().required("Trade name is required"),
   vendorType: Yup.string().required("Vendor type is required"),
   supplyType: Yup.string().required("Supply type is required"),
+  cin: Yup.string().when("vendorType", {
+    is: "company",
+    then: (schema) => schema.required("CIN is required for Company vendors"),
+  }),
   udyamNumber: Yup.string().when("msmeRegistered", {
     is: true,
     then: (schema) =>
@@ -290,18 +296,16 @@ const validationSchema = Yup.object({
   pan: Yup.string()
     .required("PAN is required")
     .matches(PAN_REGEX, "Enter a valid PAN, e.g. ABCDE1234F"),
-  gstRegistrations: Yup.array()
-    .min(1, "Add at least one GST registration")
-    .of(
-      Yup.object({
-        gstin: Yup.string()
-          .required("GSTIN is required")
-          .matches(GSTIN_REGEX, "Enter a valid GSTIN, e.g. 22AAAAA0000A1Z5"),
-        registrationType: Yup.string().required(
-          "GST registration type is required",
-        ),
-      }),
-    ),
+  gstRegistrations: Yup.array().of(
+    Yup.object({
+      gstin: Yup.string()
+        .required("GSTIN is required")
+        .matches(GSTIN_REGEX, "Enter a valid GSTIN, e.g. 22AAAAA0000A1Z5"),
+      registrationType: Yup.string().required(
+        "GST registration type is required",
+      ),
+    }),
+  ),
   tdsRate: Yup.number()
     .transform((v, o) => (o === "" ? undefined : v))
     .min(0, "TDS rate can't be negative")
@@ -372,8 +376,7 @@ const collectMissingFields = (errors) => {
   if (errors.tradeName) labels.push("Trade name");
   if (errors.supplyType) labels.push("Supply type");
   if (errors.udyamNumber) labels.push("Udyam number");
-  if (errors.pan) labels.push("PAN");
-
+  if (errors.cin) labels.push("CIN");
   if (Array.isArray(errors.gstRegistrations)) {
     errors.gstRegistrations.forEach((regErr, idx) => {
       if (!regErr) return;
@@ -545,15 +548,12 @@ const DocDropzone = ({
 
 const VendorForm = ({ vendorId, onSaved, onCancel }) => {
   const handleAuthError = useAuthError();
+  const dispatch = useDispatch();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
-  const canCreate = hasPermission("MASTERDATA", "VENDOR_CREATE", "WRITE");
-  const canEdit = hasPermission("MASTERDATA", "VENDOR_EDIT", "WRITE");
-  const canUploadDocs = hasPermission(
-    "MASTERDATA",
-    "VENDOR_DOCUMENT_UPLOAD",
-    "WRITE",
-  );
+  const canCreate = hasPermission("MASTERDATA", "VENDOR", "WRITE");
+  const canEdit = hasPermission("MASTERDATA", "VENDOR", "WRITE");
+  const canUploadDocs = hasPermission("MASTERDATA", "VENDOR", "WRITE");
   const canSubmit = vendorId ? canEdit : canCreate;
   const [initialValues, setInitialValues] = useState(emptyInitialValues);
   const [documentFiles, setDocumentFiles] = useState({});
@@ -590,14 +590,17 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
     fetchVendor();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vendorId]);
+  const { items: paymentTermOptions } = useReferenceList("paymentTerms");
 
-  const [paymentTermOptions, setPaymentTermOptions] = useState([]);
-
+  const [, setApprovalStatus] = useState(
+    initialValues?.approvalStatus || "incomplete",
+  );
   useEffect(() => {
-    getPaymentTerms({ status: "active" })
-      .then((res) => setPaymentTermOptions(res?.data || []))
-      .catch(() => {});
-  }, []);
+    if (initialValues?.approvalStatus) {
+      setApprovalStatus(initialValues.approvalStatus);
+    }
+  }, [initialValues]);
+
 
   const validation = useFormik({
     enableReinitialize: true,
@@ -645,6 +648,35 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
             );
             return;
           }
+
+          const hasGstin = (values.gstRegistrations || []).some(
+            (g) => !!g.gstin,
+          );
+          if (hasGstin) {
+            const hasGstCertificate =
+              !!documentFiles["gst_certificate"] ||
+              (values.documents || []).some(
+                (d) => d.docType === "gst_certificate",
+              );
+            if (!hasGstCertificate) {
+              toast.error(
+                "GST Certificate is required since a GSTIN has been added.",
+              );
+              return;
+            }
+          }
+
+          if (values.pan) {
+            const hasPanCard =
+              !!documentFiles["pan_card"] ||
+              (values.documents || []).some((d) => d.docType === "pan_card");
+            if (!hasPanCard) {
+              toast.error(
+                "PAN Card Copy is required since PAN has been added.",
+              );
+              return;
+            }
+          }
         }
 
         const payload = { ...values };
@@ -659,7 +691,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
         if (!payload.udyamNumber) delete payload.udyamNumber;
         if (!payload.cin) delete payload.cin;
         if (payload.tdsRate === "") delete payload.tdsRate;
-        if (!payload.paymentTerms) delete payload.paymentTerms;
+        if (!payload.paymentTermId) delete payload.paymentTermId;
         if (!payload.preferredPaymentMode) delete payload.preferredPaymentMode;
         if (!payload.bankDetails.accountType)
           delete payload.bankDetails.accountType;
@@ -683,7 +715,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
           const res = await createVendor(payload);
           savedVendorId = res?.data?._id;
         }
-
+        dispatch(invalidateReferenceList("vendors"));
         const docKeys = Object.keys(documentFiles);
         if (savedVendorId && docKeys.length > 0) {
           for (const docType of docKeys) {
@@ -785,11 +817,17 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
         sub: "PAN, CIN, GSTIN and GST classification",
         checks: [
           !!v.pan && PAN_REGEX.test(v.pan),
-          v.gstRegistrations.length > 0 &&
-            v.gstRegistrations.every(
-              (g) =>
-                !!g.gstin && GSTIN_REGEX.test(g.gstin) && !!g.registrationType,
-            ),
+          ...(v.gstRegistrations.length > 0
+            ? [
+                v.gstRegistrations.every(
+                  (g) =>
+                    !!g.gstin &&
+                    GSTIN_REGEX.test(g.gstin) &&
+                    !!g.registrationType,
+                ),
+              ]
+            : []),
+          ...(v.vendorType === "company" ? [!!v.cin] : []),
         ],
       },
       {
@@ -840,18 +878,29 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
       },
       ...(canUploadDocs
         ? [
-            {
-              key: "documents",
-              number: 6,
-              title: "Documents",
-              sub: "Optional — KYB supporting files",
-              checks: [
-                !!documentFiles["cancelled_cheque"] ||
-                  (v.documents || []).some(
-                    (d) => d.docType === "cancelled_cheque",
-                  ),
-              ],
-            },
+            (() => {
+              const hasGstin = (v.gstRegistrations || []).some(
+                (g) => !!g.gstin,
+              );
+              const hasDoc = (key) =>
+                !!documentFiles[key] ||
+                (v.documents || []).some((d) => d.docType === key);
+
+              return {
+                key: "documents",
+                number: 6,
+                title: "Documents",
+                sub: hasGstin
+                  ? "Cancelled Cheque, GST Certificate and PAN Card required"
+                  : "Cancelled Cheque required",
+                checks: [
+                  hasDoc("cancelled_cheque"),
+                  ...(hasGstin
+                    ? [hasDoc("gst_certificate"), hasDoc("pan_card")]
+                    : []),
+                ],
+              };
+            })(),
           ]
         : []),
     ],
@@ -1058,9 +1107,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     <Label>
                       Trade name <span className="text-danger">*</span>
                     </Label>{" "}
-                    <small className="vendor-hint-text">
+                    {/* <small className="vendor-hint-text">
                       Auto-fetched from GST verification, or enter manually
-                    </small>
+                    </small> */}
                     <Input
                       name="tradeName"
                       value={v.tradeName}
@@ -1075,9 +1124,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                   </Col>
                   <Col md={6} className="mb-3">
                     <Label>Legal name</Label>
-                    <small className="vendor-hint-text">
+                    {/* <small className="vendor-hint-text">
                       Auto-fetched from GST verification, or enter manually
-                    </small>
+                    </small> */}
                     <Input
                       name="legalName"
                       value={v.legalName}
@@ -1114,6 +1163,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                       <option value="">Select supply type</option>
                       <option value="goods">Goods</option>
                       <option value="service_supply">Service Supply</option>
+                      <option value="both">Both (Goods & Service)</option>
                     </Input>
                     <FormFeedback>{validation.errors.supplyType}</FormFeedback>
                   </Col>
@@ -1236,7 +1286,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                   </Col>
                   {v.vendorType === "company" && (
                     <Col md={6} className="mb-3">
-                      <Label>CIN number</Label>
+                      <Label>
+                        CIN number <span className="text-danger">*</span>
+                      </Label>
                       <Input
                         name="cin"
                         className="text-uppercase"
@@ -1367,6 +1419,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                               validation.setFieldTouched(
                                 `gstRegistrations[${idx}].registrationType`,
                                 true,
+                                false,
                               );
                             }}
                             invalid={
@@ -2117,40 +2170,136 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     Select files below — they'll upload automatically once you
                     save this vendor.
                   </p>
-                  <Row>
-                    {DOC_TYPES.map((doc) => (
-                      <Col md={6} key={doc.key}>
-                        <DocDropzone
-                          docKey={doc.key}
-                          label={doc.label}
-                          required={doc.required}
-                          accept={doc.accept}
-                          file={documentFiles[doc.key]}
-                          existingDoc={(v.documents || []).find(
-                            (d) => d.docType === doc.key,
-                          )}
-                          onSelect={(key, file) =>
-                            setDocumentFiles((prev) => ({
-                              ...prev,
-                              [key]: file,
-                            }))
-                          }
-                          onRemove={(key) =>
-                            setDocumentFiles((prev) => {
-                              const next = { ...prev };
-                              delete next[key];
-                              return next;
-                            })
-                          }
-                        />
-                      </Col>
-                    ))}
-                  </Row>
+                  {(() => {
+                    const hasGstin = (v.gstRegistrations || []).some(
+                      (g) => !!g.gstin,
+                    );
+                    const hasPan = !!v.pan;
+                    const DOC_TYPES = getDocTypes(hasGstin, hasPan);
+                    return (
+                      <Row>
+                        {DOC_TYPES.map((doc) => (
+                          <Col md={6} key={doc.key}>
+                            <DocDropzone
+                              docKey={doc.key}
+                              label={doc.label}
+                              required={doc.required}
+                              accept={doc.accept}
+                              file={documentFiles[doc.key]}
+                              existingDoc={(v.documents || []).find(
+                                (d) => d.docType === doc.key,
+                              )}
+                              onSelect={(key, file) =>
+                                setDocumentFiles((prev) => ({
+                                  ...prev,
+                                  [key]: file,
+                                }))
+                              }
+                              onRemove={(key) =>
+                                setDocumentFiles((prev) => {
+                                  const next = { ...prev };
+                                  delete next[key];
+                                  return next;
+                                })
+                              }
+                            />
+                          </Col>
+                        ))}
+                      </Row>
+                    );
+                  })()}
                 </div>
               </div>
             )}
           </div>
         </div>
+
+        {/* {vendorId && canChangeStatus && (
+          <div
+            className="vendor-approval-workflow"
+            style={{ gridTemplateColumns: "1fr" }}
+          >
+            <div className="vendor-approval-col">
+              <h6 className="vendor-approval-title">
+                <i className="bx bx-shield-quarter me-1"></i> Verification
+              </h6>
+              <p className="vendor-approval-sub">
+                Confirm this vendor's details have been reviewed and are
+                correct.
+              </p>
+
+              <span
+                className={`vendor-status-pill ${
+                  approvalStatus === "approved"
+                    ? "status-active"
+                    : "status-inactive"
+                }`}
+              >
+                {approvalStatus === "approved" ? "Verified" : "Unverified"}
+              </span>
+
+              <div className="mt-3">
+                {approvalStatus !== "approved" ? (
+                  <Button
+                    color="dark"
+                    size="sm"
+                    disabled={
+                      submittingApproval || overall.done < overall.total
+                    }
+                    onClick={async () => {
+                      setSubmittingApproval(true);
+                      try {
+                        await updateVendorApprovalStatus(vendorId, "approved");
+                        dispatch(invalidateReferenceList("vendors"));
+                        setApprovalStatus("approved");
+                        toast.success("Vendor marked as verified");
+                      } catch (error) {
+                        if (!handleAuthError(error))
+                          toast.error("Couldn't update");
+                      } finally {
+                        setSubmittingApproval(false);
+                      }
+                    }}
+                  >
+                    {submittingApproval ? "Saving..." : "Mark as Verified"}
+                  </Button>
+                ) : (
+                  <Button
+                    color="light"
+                    size="sm"
+                    disabled={submittingApproval}
+                    onClick={async () => {
+                      setSubmittingApproval(true);
+                      try {
+                        await updateVendorApprovalStatus(
+                          vendorId,
+                          "incomplete",
+                        );
+                        dispatch(invalidateReferenceList("vendors"));
+                        setApprovalStatus("incomplete");
+                        toast.success("Vendor marked as unverified");
+                      } catch (error) {
+                        if (!handleAuthError(error))
+                          toast.error("Couldn't update");
+                      } finally {
+                        setSubmittingApproval(false);
+                      }
+                    }}
+                  >
+                    {submittingApproval ? "Saving..." : "Mark as Unverified"}
+                  </Button>
+                )}
+              </div>
+
+              {approvalStatus !== "approved" &&
+                overall.done < overall.total && (
+                  <div className="vendor-approval-hint">
+                    Complete all required fields before marking as verified.
+                  </div>
+                )}
+            </div>
+          </div>
+        )} */}
 
         <div className="vendor-form-footer">
           <div>

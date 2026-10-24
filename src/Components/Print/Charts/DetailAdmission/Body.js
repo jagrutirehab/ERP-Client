@@ -5,14 +5,13 @@ import DetailInfo from "./DetailInfo";
 import DetailHistory from "./DetailHistory";
 import SpecialRequirements from "./SpecialRequirements";
 import MentalExamination from "./MentalExamination";
-import PhysicalExamination from "./PhysicalExamination";
 import Diagnosis from "./Diagnosis";
 import DoctorSignature from "./DoctorSignature";
 import CheifComplaint from "./ChiefComplaint";
-import ProvisionalDiagnosis from "./ProvisionalDaignosis";
 import MentalExaminationBody from "../MentalExaminationBody";
 import { DETAIL_ADMISSION } from "../../../constants/patient";
 import PatientTypeAssessment from "./PatientTypeAssessment";
+import ElderlyFunctionalChecklist from "./ElderlyFunctionalChecklist";
 
 //table
 // import PrescriptionTable from "./Table";
@@ -123,10 +122,6 @@ const Body = ({ chart, patient, admission, additionalDiagnosis }) => {
 
   const chartDiagnosis = additionalDiagnosis || null;
 
-  console.log("Body chartDiagnosis:", chartDiagnosis);
-  console.log("Body chart._id:", chart._id);
-  console.log("Body additionalDiagnosis prop:", additionalDiagnosis);
-
   return (
     <React.Fragment>
       <DetailInfo
@@ -148,6 +143,13 @@ const Body = ({ chart, patient, admission, additionalDiagnosis }) => {
         styles={styles}
         additionalDiagnosis={chartDiagnosis}
       />
+      {data.patientType?.toLowerCase() === "geriatric" &&
+        data.elderlyChecklistFields && (
+          <ElderlyFunctionalChecklist
+            data={data.elderlyChecklistFields}
+            styles={styles}
+          />
+        )}
       {isOldMentalExamination ? (
         <MentalExamination data={data.mentalExamination} styles={styles} />
       ) : (

@@ -18,7 +18,6 @@ const Main = ({ intern, deleteIntern, setDeleteIntern }) => {
       try {
         dispatch(fetchInternById(id));
       } catch (err) {
-        console.error("Failed to fetch intern:", err);
       }
     };
 

@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PerfectScrollbar from "react-perfect-scrollbar";
-import { RECORDINGS, SOP_CONFIGS } from "../../../Components/constants/pages";
+import { SOP_CONFIGS } from "../../../Components/constants/pages";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 const SOPsidebar = () => {
@@ -59,6 +59,7 @@ const SOPsidebar = () => {
         setOpenSection(page.id);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   return (

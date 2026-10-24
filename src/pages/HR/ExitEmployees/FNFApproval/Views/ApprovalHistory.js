@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux';
+import { formatEmployeeName } from '../../../../../utils/formatEmployeeName';
 import { useAuthError } from '../../../../../Components/Hooks/useAuthError';
 import { useMediaQuery } from '../../../../../Components/Hooks/useMediaQuery';
 import { fetchExitEmployees } from '../../../../../store/features/HR/hrSlice';
@@ -66,6 +67,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         }, 500);
 
         return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     useEffect(() => {
@@ -75,6 +77,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         setDebouncedSearch(q);
         setSelectedCenter(c);
         setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab]);
 
 
@@ -104,6 +107,7 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         if (activeTab === "HISTORY" && hasUserPermission) {
             fetchExitEmployeeListHistory();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
 
     const columns = [
@@ -114,7 +118,8 @@ const ExitHistory = ({ activeTab, hasUserPermission, roles }) => {
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.employeeName?.toUpperCase() || "-",
+            selector: row =>
+                formatEmployeeName(row?.employeeName, row?.salutation)?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px",
         },

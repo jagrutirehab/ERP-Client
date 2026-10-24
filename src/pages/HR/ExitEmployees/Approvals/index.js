@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { formatEmployeeName } from '../../../../utils/formatEmployeeName'
 import { useSearchParams } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { useAuthError } from '../../../../Components/Hooks/useAuthError';
@@ -85,6 +86,7 @@ const ExitApprovals = () => {
         }, 500);
 
         return () => clearTimeout(handler);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     const fetchPendingExitEmployeeList = async () => {
@@ -113,6 +115,7 @@ const ExitApprovals = () => {
         if (hasUserPermission) {
             fetchPendingExitEmployeeList();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess]);
 
     const handleDelete = async () => {
@@ -160,7 +163,8 @@ const ExitApprovals = () => {
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.employeeName?.toUpperCase() || "-",
+            selector: row =>
+                formatEmployeeName(row?.employeeName, row?.salutation)?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },

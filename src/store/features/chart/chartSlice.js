@@ -49,6 +49,8 @@ import {
   postPrescription,
   postRealtiveVisit,
   postVitalSign,
+  postElderlyFunctionalChecklist,
+  editElderlyFunctionalChecklist,
   submitAssessment,
   submitECTConsent,
   postPsychoDiagnosticForm,
@@ -83,7 +85,6 @@ import {
 } from "../booking/bookingSlice";
 import {
   fetchPatientById,
-  replacePatient,
   setMedicines,
   viewPatient,
 } from "../../actions";
@@ -285,7 +286,6 @@ export const updatePrescription = createAsyncThunk(
       );
 
       const payload = response?.payload;
-      const patient = response?.patient;
       const appointment = payload.appointment;
       if ((payload.type === OPD || payload.type === IPD) && appointment) {
         dispatch(
@@ -371,6 +371,48 @@ export const updateVitalSign = createAsyncThunk(
         setAlert({
           type: "success",
           message: "Vital Sign Updated Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const addElderlyFunctionalChecklist = createAsyncThunk(
+  "postElderlyFunctionalChecklist",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await postElderlyFunctionalChecklist(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Elderly Functional and Daily Living Checklist Saved Successfully",
+        }),
+      );
+
+      dispatch(createEditChart({ data: null, chart: null, isOpen: false }));
+      return response;
+    } catch (error) {
+      dispatch(setAlert({ type: "error", message: error.message }));
+      return rejectWithValue("something went wrong");
+    }
+  },
+);
+
+export const updateElderlyFunctionalChecklist = createAsyncThunk(
+  "editElderlyFunctionalChecklist",
+  async (data, { rejectWithValue, dispatch }) => {
+    try {
+      const response = await editElderlyFunctionalChecklist(data);
+      dispatch(
+        setAlert({
+          type: "success",
+          message: "Elderly Functional and Daily Living Checklist Updated Successfully",
         }),
       );
 
@@ -1227,11 +1269,9 @@ export const updateOutpass = createAsyncThunk(
 export const addDischargeSummary = createAsyncThunk(
   "postDischargeSummary",
   async (data, { rejectWithValue, dispatch }) => {
-    console.log("datan", data);
 
     try {
       const response = await postDischargeSummary(data);
-      console.log("responseon", response);
 
       dispatch(
         setAlert({
@@ -1570,7 +1610,6 @@ export const addCapacityAssessment = createAsyncThunk(
   async ({ addmissionId, formData }, { dispatch, rejectWithValue }) => {
     try {
       const response = await submitAssessment(addmissionId, formData);
-      console.log("Capacity Response:", response);
 
       dispatch(
         setAlert({
@@ -1834,7 +1873,6 @@ export const chartSlice = createSlice({
       }
     },
     createEditChart: (state, { payload }) => {
-      console.log({ payload });
 
       state.chartForm = payload;
     },
@@ -1918,7 +1956,6 @@ export const chartSlice = createSlice({
         state.loading = true;
       })
       .addCase(fetchCounsellingNote.fulfilled, (state, { payload }) => {
-        console.log({ payload });
 
         state.loading = false;
         state.patientLatestCounsellingNote = payload.payload;
@@ -2068,7 +2105,6 @@ export const chartSlice = createSlice({
       })
       .addCase(updatePrescription.fulfilled, (state, { payload }) => {
         state.loading = false;
-        console.log({ payload });
 
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
@@ -2077,7 +2113,6 @@ export const chartSlice = createSlice({
           state.charts[findIndex] = payload.payload;
         } else if (payload.type !== "OPD" && state.data?.length > 0) {
           // && !payload.appointment
-          console.log("INSIDE IPD CHARTS");
 
           //IPD CHARTS
           const findIndex = state.data.findIndex(
@@ -2150,6 +2185,54 @@ export const chartSlice = createSlice({
         }
       })
       .addCase(updateVitalSign.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(addElderlyFunctionalChecklist.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(addElderlyFunctionalChecklist.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.isAddmissionAvailable) {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.addmission,
+          );
+          state.data[findIndex].totalCharts += 1;
+          state.data[findIndex].charts = [
+            payload.payload,
+            ...(state.data[findIndex].charts || []),
+          ];
+        } else {
+          state.data = [...payload.payload, ...state.data];
+        }
+      })
+      .addCase(addElderlyFunctionalChecklist.rejected, (state) => {
+        state.loading = false;
+      });
+
+    builder
+      .addCase(updateElderlyFunctionalChecklist.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(updateElderlyFunctionalChecklist.fulfilled, (state, { payload }) => {
+        state.loading = false;
+        if (payload.type === "GENERAL") {
+          const findIndex = state.charts.findIndex(
+            (el) => el._id === payload.payload._id,
+          );
+          state.charts[findIndex] = payload.payload;
+        } else {
+          const findIndex = state.data.findIndex(
+            (el) => el._id === payload.payload.addmission,
+          );
+          const findChartIndex = state.data[findIndex].charts.findIndex(
+            (chart) => chart._id === payload.payload._id,
+          );
+          state.data[findIndex].charts[findChartIndex] = payload.payload;
+        }
+      })
+      .addCase(updateElderlyFunctionalChecklist.rejected, (state) => {
         state.loading = false;
       });
 
@@ -2917,8 +3000,6 @@ export const chartSlice = createSlice({
       .addCase(addMentalExamination.fulfilled, (state, { payload }) => {
         state.loading = false;
 
-        console.log({ payload });
-
         if (
           (payload?.payload?.type === OPD || payload?.payload?.type === IPD) &&
           payload?.payload?.appointment
@@ -2977,8 +3058,6 @@ export const chartSlice = createSlice({
       .addCase(updateMentalExamination.fulfilled, (state, { payload }) => {
         state.loading = false;
 
-        console.log({ payload });
-
         if (payload.type === "GENERAL") {
           const findIndex = state.charts.findIndex(
             (el) => el._id === payload.payload._id,
@@ -3032,11 +3111,15 @@ export const chartSlice = createSlice({
         // helper no-ops for every other chart kind.
         syncAdmissionTypeHistory(state, payload);
         state.loading = false;
-        if (payload.payload.type === "GENERAL") {
+        if (
+          payload.payload.type === "GENERAL" ||
+          payload.payload.chart === "DETAIL_ADMISSION"
+        ) {
           state.charts = state.charts.filter(
             (item) => item._id !== payload.chart._id,
           );
-        } else if (payload.payload.type === IPD) {
+        }
+        if (payload.payload.type === IPD) {
           const findIndex = state.data.findIndex(
             (el) => el._id === payload.payload.addmission,
           );

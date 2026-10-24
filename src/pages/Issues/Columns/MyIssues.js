@@ -1,7 +1,6 @@
 import { Badge, Button } from "reactstrap";
 import { normalizeDates } from "../Helpers/normalizeDates";
 import { getStatusColor } from "../Helpers/getStatusColor";
-import { getNextStatus, returnButtonText } from "../Helpers/getNextStatus";
 
 export const MyIssuesCol = (
   handleViewDescription,
@@ -337,27 +336,33 @@ export const MyIssuesCol = (
         ]
       : []),
 
+    ...(activeTab !== "new" && type === "MAINTENANCE"
+      ? [
+          {
+            name: <div className="text-center">Assigned Managers</div>,
+            width: "200px",
+            cell: (row) => {
+              const managers = row?.maintenanceIssue?.assignedManagers || [];
+              return (
+                managers
+                  .map((m) => m?.name)
+                  .filter(Boolean)
+                  .join(", ") || "-"
+              );
+            },
+          },
+        ]
+      : []),
     ...(activeTab !== "new"
       ? [
           {
             name: <div className="text-center">Assigned To</div>,
             width: "200px",
-            cell: (row) => {
-              if (type === "MAINTENANCE") {
-                const managers = row?.maintenanceIssue?.assignedManagers || [];
-                if (!managers.length) return "-";
-                return (
-                  managers
-                    .map((m) => m?.name)
-                    .filter(Boolean)
-                    .join(", ") || "-"
-                );
-              }
-              return row?.assignedTo?.name
+            cell: (row) =>
+              row?.assignedTo?.name
                 ? row.assignedTo.name.charAt(0).toUpperCase() +
-                    row.assignedTo.name.slice(1).toLowerCase()
-                : "-";
-            },
+                  row.assignedTo.name.slice(1).toLowerCase()
+                : "-",
           },
         ]
       : []),

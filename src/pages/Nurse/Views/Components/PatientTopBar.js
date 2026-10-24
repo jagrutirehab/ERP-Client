@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Badge,
@@ -8,24 +8,19 @@ import {
   UncontrolledTooltip,
   Modal,
   ModalBody,
-  ModalFooter,
   ModalHeader,
 } from "reactstrap";
 import userDummayImage from "../../../../assets/images/users/user-dummy-img.jpg";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import InfoModal from "./InfoModal";
 import { connect, useDispatch } from "react-redux";
-import { setAlertData, setAlertModal } from "../../../../store/actions";
+import { setAlertModal } from "../../../../store/actions";
 import PropTypes from "prop-types";
 import AddNoteModal from "./AddNoteModal";
 import { Check, Copy } from "lucide-react";
+import moment from "moment";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
-const statusColors = {
-  Urgent: { color: "danger", border: "#ff4d4f" },
-  Attention: { color: "warning", border: "#faad14" },
-  Stable: { color: "success", border: "#52c41a" },
-};
 
 const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
   const navigate = useNavigate();
@@ -39,7 +34,7 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
-  const writable = hasPermission("NURSE", "TOMORROW_ACTIVITY", "WRITE");
+  const writable = hasPermission("NURSE", "MEDICINE_BOX_FILLING_FOR_TOMORROW", "WRITE");
 
   const toggle = () => setOpen(!open);
 
@@ -128,8 +123,14 @@ const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
                           <span className="text-reset text-capitalize username fs-14 fs-md-16">
                             {profile?.name}
                             <span className="ms-2 text-muted fs-12 fs-md-14">
-                              ({`${profile?.uid}`})
+                              ({`${profile?.uid}`}
+                              {profile?.age ? `, ${profile.age}y` : ""})
                             </span>
+                            {profile?.addmissionDate && (
+                              <span className="ms-2 text-muted fs-12 fs-md-14">
+                                DOA: {moment(profile.addmissionDate).format("DD MMM YY")}
+                              </span>
+                            )}
                           </span>
                           <Link
                             to={`/patient/${id}`}

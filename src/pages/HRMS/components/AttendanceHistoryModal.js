@@ -61,6 +61,7 @@ const AttendanceHistoryModal = ({ isOpen, toggle, importType }) => {
         if (isOpen) {
             loadAttendenceImportHistory();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, page, centerAccess]);
 
     const openDeleteConfirm = (importId) => {

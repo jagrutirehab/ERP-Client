@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import PropTypes from "prop-types";
+import React from "react";
 import CustomModal from "../../Components/Common/Modal";
 import { connect, useDispatch } from "react-redux";
 import { unMergeLead } from "../../store/actions";

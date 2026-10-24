@@ -80,7 +80,7 @@ const AddVisitLog = () => {
   const [discarding, setDiscarding] = useState(false);
   const [lastSavedAt, setLastSavedAt] = useState(null);
   const [searchParams] = useSearchParams();
-  const [draftLoading, setDraftLoading] = useState(false);
+  const [, setDraftLoading] = useState(false);
   const [lockedGps, setLockedGps] = useState(null);
   //Selfie live camera only
   const [selfieFile, setSelfieFile] = useState(null);
@@ -175,6 +175,7 @@ const AddVisitLog = () => {
       setLockedGps(null);
       fetchLocation(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -374,7 +375,7 @@ const AddVisitLog = () => {
 
         setDraftId(draft._id);
         validation.setValues({
-          center: draft.center || "",
+          center: draft.center?._id || draft.center || "",
           areaLocality: draft.areaLocality || "",
           doctorName: draft.doctor?.name || "",
           clinicName: draft.doctor?.clinicName || "",

@@ -40,6 +40,8 @@ import MyRegularizations from "../HRMS/Attendance/Regularization/myRegularizatio
 import GetRegularizationsRequest from "../HRMS/Attendance/Regularization/getRequest";
 import AddIncentivesRequest from "./Incentives/AddRequest";
 import IncentivesApproval from "./Incentives/Approvals";
+import AddPayrollAdjustmentRequest from "./PayrollAdjustments/AddRequest";
+import PayrollAdjustmentsApproval from "./PayrollAdjustments/Approvals";
 import MainDashboard from "../HRMS/Attendance/MainDashboard";
 import HiringManagement from "./Hiring/HiringManagement";
 import Salary from "./Salary";
@@ -51,6 +53,7 @@ import ShiftRoaster from "./ShiftRoaster";
 import AssignShift from "./ShiftRoaster/AssignShift";
 import CancellationRequestsPage from "../HRMS/Leaves/CancellationRequests";
 import EmployeeLeaveBalanceDashboard from "./Dashboard/EmployeeLeaveBalance";
+import ReporteesLeaveBalance from "./Dashboard/ReporteesLeaveBalance";
 import EmployeeRegularizationDetails from "./Dashboard/EmployeeRegularizationDetails";
 import EmployeeRegularizationSummaryDashboard from "./Dashboard/EmployeeRegularizationSummary";
 import AllLeaveHistory from "./Dashboard/AllLeaveHistory";
@@ -74,6 +77,10 @@ import BiometricApprovals from "./ExitEmployees/BiometricApprovals";
 import BiometricAdditionForm from "./BiometricAdditions/BiometricAdditionForm";
 import AllBiometricRequests from "./BiometricAdditions/AllBiometricRequests";
 import MyBiometrics from "./BiometricAdditions/MyBiometrics";
+import AddNewJoiningBiometric from "./NewJoiningBiometric/AddRequest";
+import NewJoiningBiometricApprovals from "./NewJoiningBiometric/Approvals";
+import UploadESIC from "./ESIC/Upload";
+import ESICApprovals from "./ESIC/Approvals";
 
 const HR = () => {
   const navigate = useNavigate();
@@ -243,12 +250,24 @@ const HR = () => {
                   element={<RaisedCompOffsRequest />}
                 />
                 <Route
+                  path={`/leaves/reportees/balance`}
+                  element={<ReporteesLeaveBalance />}
+                />
+                <Route
                   path={`/incentives/add`}
                   element={<AddIncentivesRequest />}
                 />
                 <Route
                   path={`/incentives/approval`}
                   element={<IncentivesApproval />}
+                />
+                <Route
+                  path={`/payroll-adjustments/add`}
+                  element={<AddPayrollAdjustmentRequest />}
+                />
+                <Route
+                  path={`/payroll-adjustments/approval`}
+                  element={<PayrollAdjustmentsApproval />}
                 />
                 <Route path={`/salary`} element={<Salary />} />
                 <Route
@@ -313,6 +332,11 @@ const HR = () => {
                 />
                 <Route path={`/employee/forms`} element={<Forms />} />
                 <Route path={`/my/forms`} element={<MyForms />} />
+                <Route path={`/esic/upload`} element={<UploadESIC />} />
+                <Route
+                  path={`/esic/approval`}
+                  element={<ESICApprovals />}
+                />
                 <Route
                   path={`/employee/docs`}
                   element={<EmployeeDocuments />}
@@ -324,6 +348,14 @@ const HR = () => {
                 <Route
                   path="/biometric/addition/requests"
                   element={<AllBiometricRequests />}
+                />
+                <Route
+                  path="/biometric/new-joining/add"
+                  element={<AddNewJoiningBiometric />}
+                />
+                <Route
+                  path="/biometric/new-joining/requests"
+                  element={<NewJoiningBiometricApprovals />}
                 />
                 <Route
                   path="/biometric/my/requests"

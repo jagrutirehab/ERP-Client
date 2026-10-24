@@ -8,13 +8,10 @@ import {
   Button,
 } from "reactstrap";
 import GeneralCard from "./Components/GeneralCard";
-import CheckPermission from "../../../Components/HOC/CheckPermission";
-import RenderWhen from "../../../Components/Common/RenderWhen";
-import { connect, useDispatch } from "react-redux";
+import { connect } from "react-redux";
 import Placeholder from "./Components/Placeholder";
 import { CLINIC_TEST } from "../../../Components/constants/patient"; // create if needed
 import Wrapper from "../Components/Wrapper";
-import ClinicalNote from "../Charts/ClinicalNote";
 import CIWAResultComponent from "./Components/CIWAResultComponent ";
 
 const ClinickTest = ({
@@ -28,7 +25,6 @@ const ClinickTest = ({
   setAddmissionId,
   user,
 }) => {
-  const dispatch = useDispatch();
 
   return (
     <React.Fragment>

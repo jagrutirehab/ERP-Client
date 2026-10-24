@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import DataTable from "react-data-table-component";
-import { Button, Input } from "reactstrap";
+import { Button, Input, Modal, ModalBody } from "reactstrap";
 import { toast } from "react-toastify";
 import {
   getPaymentTerms,
   deletePaymentTerm,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useDispatch } from "react-redux";
+import { invalidateReferenceList } from "../../../store/features/reference/referenceSlice";
 import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import "../UnitOfMeasurement/uom.scss";
 
@@ -18,9 +20,7 @@ const tableCustomStyles = {
       minHeight: "44px",
     },
   },
-  headCells: {
-    style: { fontSize: "13px", fontWeight: 600, color: "#475569" },
-  },
+  headCells: { style: { fontSize: "13px", fontWeight: 600, color: "#475569" } },
   rows: {
     style: {
       minHeight: "56px",
@@ -54,22 +54,33 @@ const PAYMENT_TYPE_LABELS = {
 
 const PaymentTermList = ({ onAdd, onEdit }) => {
   const handleAuthError = useAuthError();
+  const dispatch = useDispatch();
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const canCreate = hasPermission("MASTERDATA", "PAYMENT_TERM", "WRITE");
   const canEdit = hasPermission("MASTERDATA", "PAYMENT_TERM", "WRITE");
   const canDelete = hasPermission("MASTERDATA", "PAYMENT_TERM", "DELETE");
+
   const [terms, setTerms] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [refreshFlag, setRefreshFlag] = useState(0);
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [deleting, setDeleting] = useState(false);
+
+  // Typing rukne ke 400ms baad hi search hoga
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
   useEffect(() => {
     let cancelled = false;
     const fetchTerms = async () => {
       setLoading(true);
       try {
-        const res = await getPaymentTerms({ search });
+        const res = await getPaymentTerms({ search: debouncedSearch });
         if (cancelled) return;
         setTerms(res?.data || []);
       } catch (error) {
@@ -89,12 +100,17 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
     return () => {
       cancelled = true;
     };
-  }, [search, refreshFlag]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedSearch, refreshFlag]);
 
-  const handleDelete = async (id) => {
+  const confirmDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleting(true);
     try {
-      await deletePaymentTerm(id);
+      await deletePaymentTerm(deleteTarget._id);
+      dispatch(invalidateReferenceList("paymentTerms"));
       toast.success("Payment term deleted successfully");
+      setDeleteTarget(null);
       setRefreshFlag((f) => f + 1);
     } catch (error) {
       if (!handleAuthError(error)) {
@@ -104,6 +120,8 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
             "Couldn't delete payment term.",
         );
       }
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -157,7 +175,12 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
       cell: (row) => (
         <div className="d-flex gap-2">
           {canEdit && (
-            <Button size="sm" color="light" onClick={() => onEdit(row)}>
+            <Button
+              size="sm"
+              color="light"
+              title="Edit"
+              onClick={() => onEdit(row)}
+            >
               <i className="bx bx-edit-alt"></i>
             </Button>
           )}
@@ -165,10 +188,14 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
             <Button
               size="sm"
               color="light"
-              onClick={() => handleDelete(row._id)}
+              title="Delete"
+              onClick={() => setDeleteTarget(row)}
             >
               <i className="bx bx-trash text-danger"></i>
             </Button>
+          )}
+          {!canEdit && !canDelete && (
+            <span className="text-muted small">—</span>
           )}
         </div>
       ),
@@ -177,25 +204,29 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
 
   return (
     <div className="uom-page">
+      {/* Title + subtitle */}
       <div className="uom-list-header">
         <div>
           <h4>Payment Terms</h4>
           <p>Manage payment terms and due-date rules used across vendors</p>
         </div>
-        {canCreate && (
-          <Button color="primary" onClick={onAdd}>
-            <i className="bx bx-plus me-1"></i> Add payment term
-          </Button>
-        )}
       </div>
 
-      <div className="uom-search-wrap mb-3">
-        <i className="bx bx-search"></i>
-        <Input
-          placeholder="Search..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      {/* Search + Add button same row mein */}
+      <div className="uom-toolbar">
+        <div className="uom-search-wrap mb-0">
+          <i className="bx bx-search"></i>
+          <Input
+            placeholder="Search payment terms..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        {canCreate && (
+          <Button color="primary" onClick={onAdd}>
+            <i className="bx bx-plus me-1"></i> Add Payment Term
+          </Button>
+        )}
       </div>
 
       <div className="uom-table-card">
@@ -204,6 +235,17 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
           data={terms}
           customStyles={tableCustomStyles}
           progressPending={loading}
+          progressComponent={
+            <div className="w-100 p-3">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="uom-skeleton mb-2"
+                  style={{ height: 44 }}
+                />
+              ))}
+            </div>
+          }
           pagination
           highlightOnHover
           noDataComponent={
@@ -216,6 +258,32 @@ const PaymentTermList = ({ onAdd, onEdit }) => {
           }
         />
       </div>
+
+      <Modal
+        isOpen={!!deleteTarget}
+        toggle={() => setDeleteTarget(null)}
+        centered
+      >
+        <ModalBody className="p-4">
+          <h5 className="mb-2">Delete this payment term?</h5>
+          <p className="text-muted mb-4">
+            {deleteTarget && <strong>{deleteTarget.code}</strong>} will be
+            permanently deleted. This cannot be undone.
+          </p>
+          <div className="d-flex justify-content-end gap-2">
+            <Button
+              color="light"
+              onClick={() => setDeleteTarget(null)}
+              disabled={deleting}
+            >
+              Cancel
+            </Button>
+            <Button color="danger" onClick={confirmDelete} disabled={deleting}>
+              {deleting ? "Deleting..." : "Delete"}
+            </Button>
+          </div>
+        </ModalBody>
+      </Modal>
     </div>
   );
 };

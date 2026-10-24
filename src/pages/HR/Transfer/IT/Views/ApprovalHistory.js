@@ -2,7 +2,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
-import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
@@ -24,7 +23,6 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     const [debouncedSearch, setDebouncedSearch] = useState("");
     const [limit, setLimit] = useState(10);
 
-    const isMobile = useMediaQuery("(max-width: 1000px)");
 
     const centerOptions = useCenterOptions();
 
@@ -66,7 +64,6 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
                 ...search.trim() !== "" && { search: debouncedSearch }
             })).unwrap();
         } catch (error) {
-            console.log(error)
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to fetch master employee list");
             }
@@ -77,6 +74,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
         if (activeTab === "HISTORY" && hasUserPermission) {
             fetchITApprovalHistory();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
 
     const columns = [

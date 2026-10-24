@@ -6,7 +6,6 @@ import FileCard from "../../../../Components/Common/FileCard";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import DeleteModal from "../../../../Components/Common/DeleteModal";
 import {
-  removeLabReportFile,
   removePsychoDiagnosticFormFile,
 } from "../../../../store/actions";
 import { useDispatch } from "react-redux";

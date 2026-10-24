@@ -24,12 +24,9 @@ const CounsellingSessions = () => {
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
-    // console.log(counsellingSessions)
-
     useEffect(() => {
         dispatch(fetchCounsellingSessions({ centerAccess  }));
     }, [dispatch, centerAccess]);
-    // console.log(counsellingSessions)
     // Extract unique months and sort them descending
 
     useEffect(() => {
@@ -353,19 +350,23 @@ const CounsellingSessions = () => {
                                                     : psychologist[labelsMapping[label]]}
                                             </td>
                                         ))}
-                                        {last30Days.map(({ key,label }) => (
-                                            <td
-                                                key={key}
-                                                className="text-center px-1 py-1"
-                                                style={{
-                                                    border: "1px solid #d6dde8",
-                                                    background: idx % 2 === 0 ? "#f8fafc" : "#fff",
-                                                    whiteSpace: "nowrap",
-                                                }}
-                                            >
-                                                {psychologist[key] ?? ""}
-                                            </td>
-                                        ))}
+                                        {last30Days.map(({ key,label }) => {
+                                            const cellValue = psychologist[key] ?? "";
+                                            const isZero = cellValue === 0;
+                                            return (
+                                                <td
+                                                    key={key}
+                                                    className="text-center px-1 py-1"
+                                                    style={{
+                                                        border: "1px solid #d6dde8",
+                                                        background: isZero ? "#ffcdd2" : (idx % 2 === 0 ? "#f8fafc" : "#fff"),
+                                                        whiteSpace: "nowrap",
+                                                    }}
+                                                >
+                                                    {cellValue}
+                                                </td>
+                                            );
+                                        })}
 
 
 

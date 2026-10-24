@@ -146,12 +146,14 @@ const Inflows = ({ centers, centerAccess, inflows, loading }) => {
 
     useEffect(() => {
         formik.setFieldValue("attachment", attachment);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [attachment]);
 
     useEffect(() => {
         if (attachmentTouched) {
             formik.validateField("attachment");
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [attachment, attachmentTouched]);
 
     const handleAttachmentChange = (file) => {

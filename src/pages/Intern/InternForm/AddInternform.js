@@ -53,6 +53,7 @@ const AddIntern = ({ intern, user, centers, psychologists }) => {
         })
       );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [intern.isOpen, intern, dispatch]);
 
   const dataURLtoBlob = (dataURL) => {
@@ -171,7 +172,6 @@ const AddIntern = ({ intern, user, centers, psychologists }) => {
         setIsCropModalOpen(true);
       },
       error(err) {
-        console.error(err.message);
       },
     });
   };

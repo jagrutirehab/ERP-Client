@@ -170,9 +170,9 @@
         ...(width !== null && { minWidth: width }),
     });
 
-    const tdStyle = (idx, left = null, width = null) => ({
+    const tdStyle = (idx, left = null, width = null, isZero = false) => ({
         border: "1px solid #d6dde8",
-        background: idx % 2 === 0 ? "#f8fafc" : "#fff",
+        background: isZero ? "#ffcdd2" : (idx % 2 === 0 ? "#f8fafc" : "#fff"),
         whiteSpace: "nowrap",
         ...(left !== null && { position: "sticky", left, zIndex: 3 }),
         ...(width !== null && { minWidth: width }),
@@ -290,11 +290,14 @@
                                                 <td className="text-center px-1 py-1" style={tdStyle(idx, 0, sessionColWidths[0])}>{session.key}</td>
                                                 <td className="text-center px-1 py-1" style={tdStyle(idx, sessionColWidths[0], sessionColWidths[1])}>{currentMonthTotal}</td>
                                                 <td className="text-center px-1 py-1" style={tdStyle(idx)}>{session.label}</td>
-                                                {dates.map((date) => (
-                                                    <td key={date} className="text-center px-1 py-1" style={tdStyle(idx)}>
-                                                        {rowData?.data?.[date] ?? ""}
-                                                    </td>
-                                                ))}
+                                                {dates.map((date) => {
+                                                    const cellValue = rowData?.data?.[date] ?? "";
+                                                    return (
+                                                        <td key={date} className="text-center px-1 py-1" style={tdStyle(idx, null, null, cellValue === 0)}>
+                                                            {cellValue}
+                                                        </td>
+                                                    );
+                                                })}
                                             </tr>
                                         );
                                     })}
@@ -339,11 +342,14 @@
                                                 <td className="text-center px-1 py-1" style={tdStyle(idx)}>{centerName}</td>
                                                 <td className="text-center px-1 py-1" style={tdStyle(idx)}>{role}</td>
                                                 <td className="text-center px-1 py-1" style={tdStyle(idx)}>{last30DaysTotal}</td>
-                                                {dates.map((date) => (
-                                                    <td key={date} className="text-center px-1 py-1" style={tdStyle(idx)}>
-                                                        {row?.[date] ?? ""}
-                                                    </td>
-                                                ))}
+                                                {dates.map((date) => {
+                                                    const cellValue = row?.[date] ?? "";
+                                                    return (
+                                                        <td key={date} className="text-center px-1 py-1" style={tdStyle(idx, null, null, cellValue === 0)}>
+                                                            {cellValue}
+                                                        </td>
+                                                    );
+                                                })}
                                             </tr>
                                         );
                                     })}

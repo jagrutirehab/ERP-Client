@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { getCallRecordings, getFeedbackRecordingById, getFeedbackRecordings, getRecordingById } from "../../../helpers/backend_helper";
+import { getFeedbackRecordingById, getFeedbackRecordings } from "../../../helpers/backend_helper";
 import { Card, CardBody, Row, Col, Spinner } from "reactstrap";
-import { normalizeGeminiResponse } from "../Helpers/normalizeGeminiResponse";
 import { normalizeDates } from "../Helpers/normalizeDates";
 import { FeedbackResponseRenderer } from "../Helpers/FeedbackResponseNormalizer";
 
@@ -51,7 +50,6 @@ const MoreDetailsFeedback = () => {
         setLoading(true);
         try {
             const response = await getFeedbackRecordingById(id);
-            console.log("Details:", response);
             setData(response?.recording || null);
         } catch (error) {
             toast.error("Failed to load details");
@@ -63,6 +61,7 @@ const MoreDetailsFeedback = () => {
     useEffect(() => {
         loadById();
         window.scrollTo(0, 0);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id]);
 
     if (loading) {

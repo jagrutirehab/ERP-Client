@@ -111,7 +111,7 @@ const Salary = () => {
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
 
-    const { hasPermission, loading: permissionLoader, roles } =
+    const { hasPermission, loading: permissionLoader } =
         usePermissions(token);
 
     const { centerAccess } = useSelector((state) => state.User);
@@ -181,6 +181,7 @@ const Salary = () => {
     useEffect(() => {
         if (!hasUserPermission) return;
         fetchEmployeePayrolls();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         page,
         limit,
@@ -225,6 +226,7 @@ const Salary = () => {
             }
         })();
         return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedMonth, centerAccess, selectedCenter, hasUserPermission]);
 
     const handleRegeneratePayroll = async () => {
@@ -333,7 +335,6 @@ const Salary = () => {
 
             setTimeout(() => setCopyId(null), 1500);
         } catch (err) {
-            console.error("Copy failed", err);
         }
     };
 
@@ -374,6 +375,7 @@ const Salary = () => {
                     setSearchParams(params, { replace: true });
                     if (status === "completed") {
                         toast.success("Payroll data regenerated successfully");
+                        fetchEmployeePayrolls();
                     } else {
                         toast.error("payroll data regeneration failed");
                     }
@@ -389,6 +391,7 @@ const Salary = () => {
         }, 3000);
 
         return () => clearInterval(interval);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [jobId]);
 
 
@@ -517,7 +520,7 @@ const Salary = () => {
                                 </>
                             )}
                             {
-                                hasPermission("HR", "SALARY", "DELETE") && !hasManuallyProcessedForMonth && (
+                                hasPermission("HR", "SALARY", "DELETE") && (
                                     <Button
                                         color="primary"
                                         className="d-flex align-items-center gap-1 text-white"
@@ -616,7 +619,7 @@ const Salary = () => {
                                     </Button>
                                 </>
                             )}
-                            {hasPermission("HR", "SALARY", "DELETE") && !hasManuallyProcessedForMonth && (
+                            {hasPermission("HR", "SALARY", "DELETE") && (
                                 <Button
                                     color="primary"
                                     className="d-flex align-items-center gap-1 text-white"

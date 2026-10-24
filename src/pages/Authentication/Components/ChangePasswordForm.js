@@ -39,6 +39,7 @@ const ChangePasswordForm = ({ isOpen, toggle }) => {
     if (!isOpen) {
       formik.resetForm();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
 

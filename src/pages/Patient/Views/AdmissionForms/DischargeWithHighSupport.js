@@ -1,7 +1,12 @@
 import { useEffect, useState } from "react";
 import PrintHeader from "./printheader";
 
-const DischargeWithHighSupport = ({ register, patient, admissions }) => {
+const DischargeWithHighSupport = ({
+  register,
+  patient,
+  admissions,
+  finalDiagnosis,
+}) => {
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",
@@ -36,14 +41,6 @@ const DischargeWithHighSupport = ({ register, patient, admissions }) => {
     background: "transparent",
   };
 
-  const fullLine = {
-    border: "none",
-    borderBottom: "1px solid #000",
-    width: "100%",
-    marginTop: "3px",
-    fontSize: "13px",
-    background: "transparent",
-  };
 
   const fieldRow = {
     display: "flex",
@@ -68,8 +65,6 @@ const DischargeWithHighSupport = ({ register, patient, admissions }) => {
     const localISODate = new Date().toISOString().split("T")[0];
     setToday(localISODate);
   }, []);
-
-  console.log("patient", patient);
 
   return (
     <div style={pageContainer}>
@@ -270,13 +265,7 @@ const DischargeWithHighSupport = ({ register, patient, admissions }) => {
         <span>Diagnosis (ICD-10):</span>
         <input
           type="text"
-          value={
-            patient?.addmission?.provisional_diagnosis?.length
-              ? patient?.addmission?.provisional_diagnosis
-                  .map((d) => d.code)
-                  .join(", ")
-              : ""
-          }
+          defaultValue={finalDiagnosis || ""}
           {...register("sec89_diagnosis")}
           style={{ ...inputLine, maxWidth: "420px" }}
         />

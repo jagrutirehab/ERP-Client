@@ -38,7 +38,6 @@ const Timeline = () => {
       const data = await axios.get("/timeline/intern", { params });
       setTimeline(data.timeline || []);
     } catch (error) {
-      console.error("Failed to fetch timeline", error);
     } finally {
       setLoading(false);
     }
@@ -46,6 +45,7 @@ const Timeline = () => {
 
   useEffect(() => {
     if (internId) fetchTimeline();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [internId, filter, action]);
 
   return (

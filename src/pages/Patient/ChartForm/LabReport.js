@@ -8,7 +8,7 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 
 // Import React FilePond
-import { FilePond, registerPlugin } from "react-filepond";
+import { registerPlugin } from "react-filepond";
 // Import FilePond styles
 import "filepond/dist/filepond.min.css";
 import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
@@ -22,7 +22,7 @@ import {
   createEditChart,
   updateLabReport,
 } from "../../../store/actions";
-import { IPD, LAB_REPORT } from "../../../Components/constants/patient";
+import { LAB_REPORT } from "../../../Components/constants/patient";
 import UploadedFiles from "./Components/UploadedFiles";
 import { toast } from "react-toastify";
 import { generateLabReport } from "../../../helpers/backend_helper";
@@ -128,10 +128,8 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
         editLabReport.reports.map((r) => r.description || "")
       );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editChartData]);
-
-  console.log("patient", patient);
-
 
   const handleGenerateSummary = async (file, idx, name) => {
     try {
@@ -163,7 +161,6 @@ const LabReport = ({ author, patient, chartDate, editChartData, type }) => {
       });
 
     } catch (error) {
-      console.log("Summary Error", error);
       toast.error(error?.message || "Error generating summary");
 
       // if (inputEl) inputEl.value = null;

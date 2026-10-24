@@ -1,13 +1,6 @@
 import { detectState } from "./detectState";
 
 
-const PTeligibleStates = [
-    "Maharashtra",
-    "Gujarat",
-    "Telangana",
-    "Tamil Nadu",
-    "Karnataka"
-];
 
 // ---- LWF (Labour Welfare Fund) — state-wise statutory rules ----
 //
@@ -119,7 +112,7 @@ function calculatePT(grossSalary, state, gender) {
             return grossSalary >= 25000 ? 200 : 0;
 
         case "Maharashtra":
-            if (gender === "FEMALE" && grossSalary <= 25000) return 0;
+            if (gender === "FEMALE" && grossSalary <= 24999) return 0;
             if (grossSalary <= 7500) return 0;
             if (grossSalary <= 10000) return 175;
             return 200;
@@ -152,7 +145,6 @@ export const calculatePayroll = (values) => {
     const basic = Number(values.basicAmount || 0);
     const hra = Number(values.HRAAmount || 0);
     const spl = Number(values.SPLAllowance || 0);
-    const conveyance = Number(values.conveyanceAllowance || 0);
     const ESICSalary = basic + spl;
     const minimumWages = Number(values.minimumWages || 0);
     const currentLocation = values.currentLocation || {};
@@ -197,7 +189,6 @@ export const calculatePayroll = (values) => {
     // const month = values.joinningDate
     //     ? new Date(values.joinningDate).getMonth() + 1
     //     : null;
-    // console.log(PTeligibleStates.includes(detectState(currentLocation.address)))
     // if (PTeligibleStates.includes(detectState(currentLocation.address)) || currentLocation.title === "Head-Office") {
     //     if (gender === "MALE") {
     //         if (gross <= 7500) {

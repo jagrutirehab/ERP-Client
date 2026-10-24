@@ -5,7 +5,7 @@ import { connect } from "react-redux";
 import PropTypes from "prop-types";
 import BelongingsDate from "../Modals/BelongingsDate";
 import BelongingsFormModal from "../Modals/BelongingsForm.modal";
-import { uploadSignedBelonging, getPatientBelongings, deletePatientBelonging, compressPatientBelongingFile, getPatientBelongingById } from "../../../helpers/backend_helper";
+import { uploadSignedBelonging, getPatientBelongings, deletePatientBelonging, getPatientBelongingById } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { toast } from "react-toastify";
 import PreviewFile from "../../../Components/Common/PreviewFile";
@@ -130,6 +130,7 @@ const Belongings = ({ patient, admissions, addmissionsCharts }) => {
         } finally {
             setLoadingBelongings(false);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [patient?._id]);
 
     useEffect(() => {

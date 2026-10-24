@@ -105,6 +105,7 @@ const PendingApprovals = ({ activeTab }) => {
     };
 
     loadDesignations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchPendingHiringApprovals = async () => {
@@ -179,6 +180,7 @@ const PendingApprovals = ({ activeTab }) => {
     if (activeTab === "PENDING" && hasUserPermission) {
       fetchPendingHiringApprovals();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, filters, user?.centerAccess, activeTab]);
 
   const handleDelete = async () => {

@@ -1,6 +1,5 @@
 import React, { useState, useMemo, useEffect, useRef } from "react";
-import { CardBody, Form, Input, Label, Row, Col } from "reactstrap";
-import Select from "react-select";
+import { CardBody } from "reactstrap";
 import debounce from "lodash.debounce";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import {
@@ -76,16 +75,11 @@ const RaiseTicket = () => {
   const fileInputRef = useRef(null);
 
   const token = JSON.parse(localStorage.getItem("user"))?.token;
-  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
 
-  const hasReadPermission = hasPermission("ISSUES", "RAISE_TICKET", "READ");
   const hasWritePermission = hasPermission("ISSUES", "RAISE_TICKET", "WRITE");
   const hasDeletePermission = hasPermission("ISSUES", "RAISE_TICKET", "DELETE");
-  console.log("Has Read Perm", hasReadPermission);
-  console.log("Has Write Perm", hasWritePermission);
-  console.log("Has Delete Perm", hasDeletePermission);
   const canSubmit = hasWritePermission || hasDeletePermission;
-  console.log("Can Submit", canSubmit);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -116,7 +110,7 @@ const RaiseTicket = () => {
     try {
       setLoadingEmployees(true);
 
-      const params = { type: "employee" };
+      const params = { type: "all" };
 
       if (/^\d+$/.test(searchText)) {
         params.eCode = searchText;
@@ -134,7 +128,6 @@ const RaiseTicket = () => {
 
       setEmployees(options);
     } catch (error) {
-      console.log("Error loading employees", error);
     } finally {
       setLoadingEmployees(false);
     }
@@ -149,8 +142,6 @@ const RaiseTicket = () => {
       try {
         const response = await getAllCenters();
 
-        console.log("response", response);
-
         const options =
           response?.payload?.map((center) => ({
             value: center._id,
@@ -159,7 +150,6 @@ const RaiseTicket = () => {
 
         setCenters(options);
       } catch (error) {
-        console.log("Error fetching centers", error);
       }
     };
 
@@ -204,13 +194,13 @@ const RaiseTicket = () => {
 
         setCentreManagers(options);
       } catch (error) {
-        console.log("Error fetching centre managers", error);
       } finally {
         setLoadingCentreManagers(false);
       }
     };
 
     fetchCentreManagers();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.center, issueType]);
 
   const handleSubmit = async (e) => {
@@ -305,7 +295,6 @@ const RaiseTicket = () => {
         fileInputRef.current.value = "";
       }
     } catch (error) {
-      console.log(error);
       toast.error(error?.message || "Error Posting Issue");
     } finally {
       setLoader(false);

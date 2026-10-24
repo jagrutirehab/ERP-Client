@@ -35,6 +35,7 @@
     }, [searchInput, searchTerm]);
 
     const data = useMemo(() => vitalSignsDOD?.data || [], [vitalSignsDOD]);
+    const centerDailyTotals = useMemo(() => vitalSignsDOD?.center_daily_totals || [], [vitalSignsDOD]);
 
     const last30Days = useMemo(() => {
         const days = [];
@@ -69,6 +70,19 @@
         });
         return totals;
     }, [filteredData, last30Days]);
+
+    const dateCompliance = useMemo(() => {
+        const pct = {};
+        last30Days.forEach(({ key }) => {
+            const rows = centerDailyTotals.filter((row) => (
+                row.date === key && (selectedCenter === "ALL" || row.center_name === selectedCenter)
+            ));
+            const resultCount = rows.reduce((sum, row) => sum + (Number(row.result_count) || 0), 0);
+            const shouldBeCount = rows.reduce((sum, row) => sum + (Number(row.should_be_count) || 0), 0);
+            pct[key] = shouldBeCount > 0 ? Math.round((resultCount / shouldBeCount) * 100) : 0;
+        });
+        return pct;
+    }, [centerDailyTotals, last30Days, selectedCenter]);
 
     const centerOptions = useMemo(() => [
         { value: "ALL", label: "All Centers" },
@@ -220,6 +234,41 @@
                                             className="text-center fw-bold px-1 py-1"
                                             style={{
                                                 border: "1px solid #cfd8e3",
+                                                background: "#00694d",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                                minWidth: fixedColWidths[i],
+                                                ...(i < 3 && { position: "sticky", left, zIndex: 1 }),
+                                            }}
+                                        >
+                                            {i === labels.length - 1 ? "Compliance %" : ""}
+                                        </th>
+                                        );
+                                    })}
+                                    {last30Days.map(({ key }) => (
+                                        <th
+                                            key={key}
+                                            className="text-center fw-bold px-1 py-1"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
+                                                background: "#00694d",
+                                                color: "white",
+                                                whiteSpace: "nowrap",
+                                            }}
+                                        >
+                                            {`${dateCompliance[key] ?? 0}%`}
+                                        </th>
+                                    ))}
+                                </tr>
+                                <tr>
+                                    {labels.map((label, i) => {
+                                        const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);
+                                        return (
+                                        <th
+                                            key={label}
+                                            className="text-center fw-bold px-1 py-1"
+                                            style={{
+                                                border: "1px solid #cfd8e3",
                                                 background: "#004d00",
                                                 color: "white",
                                                 whiteSpace: "nowrap",
@@ -248,7 +297,6 @@
                                 </tr>
                                 <tr>
                                     {labels.map((label, i) => {
-                                        const left = fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0);
                                         return (
                                         <th
                                             key={label}
@@ -311,19 +359,23 @@
                                                         : patient[labelsMapping[label]] ?? ""}
                                             </td>
                                         ))}
-                                        {last30Days.map(({ key }) => (
-                                            <td
-                                                key={key}
-                                                className="text-center px-1 py-1"
-                                                style={{
-                                                    border: "1px solid #d6dde8",
-                                                    background: idx % 2 === 0 ? "#f8fafc" : "#fff",
-                                                    whiteSpace: "nowrap",
-                                                }}
-                                            >
-                                                {patient?.dod_data?.[key] ?? 0}
-                                            </td>
-                                        ))}
+                                        {last30Days.map(({ key }) => {
+                                            const cellValue = patient?.dod_data?.[key] ?? 0;
+                                            const isZero = cellValue === 0;
+                                            return (
+                                                <td
+                                                    key={key}
+                                                    className="text-center px-1 py-1"
+                                                    style={{
+                                                        border: "1px solid #d6dde8",
+                                                        background: isZero ? "#ffcdd2" : (idx % 2 === 0 ? "#f8fafc" : "#fff"),
+                                                        whiteSpace: "nowrap",
+                                                    }}
+                                                >
+                                                    {cellValue}
+                                                </td>
+                                            );
+                                        })}
                                     </tr>
                                 ))}
                             </tbody>

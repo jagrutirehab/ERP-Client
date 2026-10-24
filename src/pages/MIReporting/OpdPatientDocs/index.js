@@ -31,13 +31,10 @@ const OpdPatientDocs = () => {
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
-    // console.log(opdPatientDocs)
-    
     useEffect(() => {
 
         dispatch(fetchOpdPatientDocs({ centerAccess,selectedMonth ,selectedStatus }));
     }, [dispatch, centerAccess,selectedCenter,selectedMonth,selectedStatus]);
-    // console.log(opdPatientDocs)
     // Extract unique months and sort them descending
 
    

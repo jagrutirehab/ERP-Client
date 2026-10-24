@@ -16,7 +16,6 @@ const IssuesSidebar = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
-  const hasIssuesPermission = hasPermission("ISSUES", "ISSUES", "READ")
   const hasMyIssuesPermission = hasPermission("ISSUES", "MY_ISSUES", "READ");
   const hasRaiseTicketPermission = hasPermission("ISSUES", "RAISE_TICKET", "READ");
   // const hasTicketDashboardPermission = hasPermission("ISSUES", "TICKET_DASHBOARD", "READ");
@@ -63,6 +62,7 @@ const IssuesSidebar = () => {
         setOpenSection(page.id);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
 
   return (

@@ -192,7 +192,7 @@ const Admissionpage1 = ({ register, admissions, patient, details, chartData }) =
           />
         </div> */}
         <div>
-          <span style={label}>Ward / Bed :</span>
+          <span style={label}>Floor / Ward / Room / Bed :</span>
           <input
             type="text"
             value={`${details?.ward}/ ${details?.bed}`}

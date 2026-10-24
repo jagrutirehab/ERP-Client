@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import DataTable from "react-data-table-component";
 import { Button, Input, Modal, ModalBody } from "reactstrap";
 import { toast } from "react-toastify";
@@ -6,10 +6,10 @@ import {
   getItemMasters,
   deleteItemMaster,
   getItemTypes,
-  getItemCategories,
-  getUoms,
+  getAssetCategories,
 } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { useReferenceList } from "../../../Components/Hooks/useReferenceData";
 import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import ImportItemsModal from "./ImportItemsModal";
 import "../shared/itemMasterForms.scss";
@@ -22,10 +22,11 @@ const StatusPill = ({ status }) => (
   </span>
 );
 
+// Jab ek se zyada filter honge tabhi pills dikhenge
 const FILTERS = [
   { key: "all", label: "All items" },
-  { key: "active", label: "Active" },
-  { key: "discontinued", label: "Discontinued" },
+  // { key: "active", label: "Active" },
+  // { key: "discontinued", label: "Discontinued" },
 ];
 
 const SkeletonRows = () => (
@@ -33,13 +34,11 @@ const SkeletonRows = () => (
     {[1, 2, 3, 4, 5].map((i) => (
       <div className="im-skeleton-row" key={i}>
         <div className="im-skeleton-bar" style={{ width: 90 }}></div>
-        <div className="im-skeleton-bar" style={{ width: 100 }}></div>
         <div className="im-skeleton-bar" style={{ flex: 1 }}></div>
-        <div className="im-skeleton-bar" style={{ width: 100 }}></div>
-        <div className="im-skeleton-bar" style={{ width: 90 }}></div>
         <div className="im-skeleton-bar" style={{ width: 110 }}></div>
         <div className="im-skeleton-bar" style={{ width: 90 }}></div>
-        <div className="im-skeleton-bar" style={{ width: 130 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 90 }}></div>
+        <div className="im-skeleton-bar" style={{ width: 110 }}></div>
       </div>
     ))}
   </div>
@@ -47,9 +46,7 @@ const SkeletonRows = () => (
 
 const tableCustomStyles = {
   table: {
-    style: {
-      backgroundColor: "#fff",
-    },
+    style: { backgroundColor: "#fff" },
   },
   headRow: {
     style: {
@@ -66,16 +63,15 @@ const tableCustomStyles = {
       textTransform: "uppercase",
       letterSpacing: "0.04em",
       color: "#667085",
+      whiteSpace: "nowrap",
     },
   },
   rows: {
     style: {
-      minHeight: "58px",
+      minHeight: "60px",
       fontSize: "13.5px",
       color: "#101828",
-      "&:not(:last-of-type)": {
-        borderBottomColor: "#edeff3",
-      },
+      "&:not(:last-of-type)": { borderBottomColor: "#edeff3" },
     },
     highlightOnHoverStyle: {
       backgroundColor: "#f8f9fb",
@@ -88,6 +84,7 @@ const tableCustomStyles = {
       borderTopColor: "#edeff3",
       fontSize: "13px",
       color: "#667085",
+      flexWrap: "wrap",
     },
   },
 };
@@ -116,9 +113,11 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
   const canEdit = hasPermission("MASTERDATA", "ITEM_MASTER", "WRITE");
   const canDelete = hasPermission("MASTERDATA", "ITEM_MASTER", "DELETE");
   const canImport = hasPermission("MASTERDATA", "ITEM_MASTER", "WRITE");
+
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [filter, setFilter] = useState("all");
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
@@ -127,12 +126,23 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
 
   const [typeMap, setTypeMap] = useState({});
   const [categoryMap, setCategoryMap] = useState({});
-  const [uomMap, setUomMap] = useState({});
+  const { items: allUoms } = useReferenceList("uomsAll");
+  const uomMap = useMemo(() => {
+    const map = {};
+    allUoms.forEach((u) => (map[u._id] = `${u.name} (${u.symbol})`));
+    return map;
+  }, [allUoms]);
 
   const [deleteTarget, setDeleteTarget] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [overviewItem, setOverviewItem] = useState(null);
   const [importOpen, setImportOpen] = useState(false);
+
+  // Typing rukne ke 400ms baad hi search hoga
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(search), 400);
+    return () => clearTimeout(t);
+  }, [search]);
 
   useEffect(() => {
     getItemTypes({})
@@ -143,21 +153,11 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
       })
       .catch(() => {});
 
-    getItemCategories({})
+    getAssetCategories({})
       .then((res) => {
         const map = {};
         (res?.data || []).forEach((c) => (map[c._id] = c.name));
         setCategoryMap(map);
-      })
-      .catch(() => {});
-
-    getUoms({})
-      .then((res) => {
-        const map = {};
-        (res?.data || []).forEach(
-          (u) => (map[u._id] = `${u.name} (${u.symbol})`),
-        );
-        setUomMap(map);
       })
       .catch(() => {});
   }, []);
@@ -167,13 +167,14 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
     const fetchItems = async () => {
       setLoading(true);
       try {
-        const params = { page, limit, search };
+        const params = { page, limit, search: debouncedSearch };
         if (filter !== "all") params.status = filter;
         const res = await getItemMasters(params);
         if (cancelled) return;
         setItems(res?.data || []);
         setTotal(res?.pagination?.total || 0);
       } catch (error) {
+        if (cancelled) return;
         if (!handleAuthError(error)) {
           toast.error(
             error?.response?.data?.message ||
@@ -189,7 +190,8 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
     return () => {
       cancelled = true;
     };
-  }, [page, limit, search, filter, refreshFlag]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, limit, debouncedSearch, filter, refreshFlag]);
 
   const confirmDelete = async () => {
     if (!deleteTarget) return;
@@ -212,10 +214,16 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
     }
   };
 
+  // L1 kabhi object aata hai, kabhi sirf ID — dono handle
+  const getL1Name = (row) =>
+    row.assetCategoryL1?.name || categoryMap[row.assetCategoryL1] || "—";
+
+  // hide: is screen width (px) se chhoti screen pe column chhup jayega
   const columns = [
     {
       name: "Item Code",
-      width: "130px",
+      minWidth: "120px",
+      maxWidth: "140px",
       cell: (row) =>
         row.itemCode ? (
           <span className="im-table-code">{row.itemCode}</span>
@@ -224,80 +232,103 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
         ),
     },
     {
-      name: "Status",
-      width: "130px",
-      cell: (row) => <StatusPill status={row.status} />,
-    },
-    {
       name: "Short Description",
       selector: (row) => row.itemName,
       sortable: true,
+      grow: 2,
+      minWidth: "220px",
       cell: (row) => (
-        <span className="im-table-primary-cell">{row.itemName}</span>
+        <span
+          className="im-table-primary-cell im-cell-ellipsis"
+          title={row.itemName}
+        >
+          {row.itemName}
+        </span>
       ),
     },
     {
-      name: "L1",
-      selector: (row) => categoryMap[row.l1Category] || "—",
-      width: "120px",
+      name: "L1 Category",
+      selector: (row) => getL1Name(row),
+      minWidth: "160px",
+      hide: 1000,
+      cell: (row) => (
+        <span className="im-cell-text im-cell-ellipsis" title={getL1Name(row)}>
+          {getL1Name(row)}
+        </span>
+      ),
     },
-    { name: "Brand", selector: (row) => row.brand || "—", width: "120px" },
+    {
+      name: "Brand",
+      selector: (row) => row.brand || "—",
+      minWidth: "120px",
+      hide: 1200,
+      cell: (row) => (
+        <span className="im-cell-text im-cell-ellipsis">
+          {row.brand || "—"}
+        </span>
+      ),
+    },
     {
       name: "Item Type",
       selector: (row) => typeMap[row.itemTypeId] || "—",
-      width: "140px",
+      minWidth: "120px",
+      hide: 1366,
+      cell: (row) => (
+        <span className="im-cell-muted">{typeMap[row.itemTypeId] || "—"}</span>
+      ),
+    },
+    {
+      name: "Status",
+      minWidth: "120px",
+      maxWidth: "140px",
+      cell: (row) => <StatusPill status={row.status} />,
     },
     {
       name: "Created At",
-      selector: (row) =>
-        row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "—",
-      width: "120px",
+      selector: (row) => row.createdAt || "",
+      sortable: true,
+      minWidth: "120px",
+      maxWidth: "130px",
+      hide: 1500,
       cell: (row) => (
-        <span className="im-table-sub">
+        <span className="im-cell-muted">
           {row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "—"}
         </span>
       ),
     },
     {
       name: "Actions",
-      width: "140px",
+      minWidth: "150px",
+      maxWidth: "150px",
       right: true,
       cell: (row) => (
-        <div className="d-flex gap-2">
+        <div className="im-row-actions">
           <button
             type="button"
-            className="im-close-btn"
-            style={{ width: 32, height: 32 }}
+            className="im-icon-btn"
             title="Overview"
             onClick={() => setOverviewItem(row)}
           >
-            <i className="bx bx-show" style={{ fontSize: 16 }}></i>
+            <i className="bx bx-show"></i>
           </button>
           {canEdit && (
             <button
               type="button"
-              className="im-close-btn"
-              style={{ width: 32, height: 32 }}
+              className="im-icon-btn"
               title="Edit"
               onClick={() => onEdit(row)}
             >
-              <i className="bx bx-edit-alt" style={{ fontSize: 16 }}></i>
+              <i className="bx bx-edit-alt"></i>
             </button>
           )}
           {canDelete && (
             <button
               type="button"
-              className="im-close-btn"
-              style={{
-                width: 32,
-                height: 32,
-                color: "#d92d20",
-                borderColor: "#fecdca",
-              }}
+              className="im-icon-btn is-danger"
               title="Delete"
               onClick={() => setDeleteTarget(row)}
             >
-              <i className="bx bx-trash" style={{ fontSize: 16 }}></i>
+              <i className="bx bx-trash"></i>
             </button>
           )}
         </div>
@@ -308,27 +339,10 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
   const yn = (v) => (v ? "Yes" : "No");
 
   return (
-    <div className="im-surface">
-      <div className="im-toolbar-row">
-        <div className="im-toolbar-title">
-          {total} item{total === 1 ? "" : "s"}
-        </div>
-        <div className="d-flex gap-2">
-          {canImport && (
-            <Button color="primary" onClick={() => setImportOpen(true)}>
-              <i className="bx bx-upload me-1"></i> Import Items
-            </Button>
-          )}
-          {canCreate && (
-            <Button color="primary" onClick={onAdd}>
-              <i className="bx bx-plus me-1"></i> Create Item
-            </Button>
-          )}
-        </div>
-      </div>
-
-      <div className="im-toolbar-row" style={{ marginTop: -6 }}>
-        <div className="im-filter-pills-row mb-0">
+    <div className="im-surface im-list-surface">
+      {/* Filter pills — sirf tab jab ek se zyada filter ho */}
+      {FILTERS.length > 1 && (
+        <div className="im-filter-pills-row">
           {FILTERS.map((f) => (
             <button
               key={f.key}
@@ -343,8 +357,11 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
             </button>
           ))}
         </div>
+      )}
 
-        <div className="im-search-wrap mb-0">
+      {/* Search left, buttons right — baaki pages jaisa */}
+      <div className="im-list-toolbar">
+        <div className="im-search-wrap">
           <i className="bx bx-search"></i>
           <Input
             placeholder="Search items..."
@@ -355,6 +372,23 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
             }}
           />
         </div>
+
+        <div className="im-list-actions">
+          {canImport && (
+            <Button
+              color="light"
+              className="border"
+              onClick={() => setImportOpen(true)}
+            >
+              <i className="bx bx-upload me-1"></i> Import Items
+            </Button>
+          )}
+          {canCreate && (
+            <Button color="primary" onClick={onAdd}>
+              <i className="bx bx-plus me-1"></i> Create Item
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="im-table-card">
@@ -364,7 +398,7 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
           progressPending={loading}
           progressComponent={<SkeletonRows />}
           highlightOnHover
-          pointerOnHover
+          responsive
           customStyles={tableCustomStyles}
           pagination
           paginationServer
@@ -378,9 +412,7 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
           noDataComponent={
             <div className="im-empty-state">
               <h6>No items found</h6>
-              <p>
-                Try adjusting your search or filters, or create your first item.
-              </p>
+              <p>Try adjusting your search, or create your first item.</p>
               {canCreate && (
                 <Button color="primary" onClick={onAdd}>
                   <i className="bx bx-plus me-1"></i> Create Item
@@ -423,7 +455,7 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
         </ModalBody>
       </Modal>
 
-      {/* Overview modal — full detail, all 4 tabs worth of data */}
+      {/* Overview modal */}
       <Modal
         isOpen={!!overviewItem}
         toggle={() => setOverviewItem(null)}
@@ -455,19 +487,31 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
                   />
                   <OverviewField
                     label="L1 Category"
-                    value={categoryMap[overviewItem.l1Category]}
+                    value={
+                      overviewItem.assetCategoryL1?.name ||
+                      categoryMap[overviewItem.assetCategoryL1]
+                    }
                   />
                   <OverviewField
                     label="L2 Category"
-                    value={categoryMap[overviewItem.l2Category]}
+                    value={
+                      overviewItem.assetCategoryL2?.name ||
+                      categoryMap[overviewItem.assetCategoryL2]
+                    }
                   />
                   <OverviewField
                     label="L3 Category"
-                    value={categoryMap[overviewItem.l3Category]}
+                    value={
+                      overviewItem.assetCategoryL3?.name ||
+                      categoryMap[overviewItem.assetCategoryL3]
+                    }
                   />
                   <OverviewField
                     label="L4 Category"
-                    value={categoryMap[overviewItem.l4Category]}
+                    value={
+                      overviewItem.assetCategoryL4?.name ||
+                      categoryMap[overviewItem.assetCategoryL4]
+                    }
                   />
                 </OverviewSection>
 
@@ -478,8 +522,12 @@ const ItemMasterList = ({ onAdd, onEdit }) => {
                   <OverviewField label="Brand" value={overviewItem.brand} />
                   <OverviewField
                     label="UOM"
-                    value={uomMap[overviewItem.uomId]}
-                  />
+                    value={
+                      overviewItem.uomId?.name
+                        ? `${overviewItem.uomId.name}${overviewItem.uomId.symbol ? ` (${overviewItem.uomId.symbol})` : ""}`
+                        : uomMap[overviewItem.uomId] || "—"
+                    }
+                  />{" "}
                   <OverviewField
                     label="Base Price"
                     value={`₹${overviewItem.basePrice ?? 0}`}

@@ -37,13 +37,10 @@ const PatientDocs = () => {
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
-    // console.log(patientDocs)
-
     useEffect(() => {
 
         dispatch(fetchPatientDocs({ centerAccess,selectedMonth ,selectedStatus,selectedDocsType }));
     }, [dispatch, centerAccess,selectedCenter,selectedMonth,selectedStatus,selectedDocsType]);
-    // console.log(patientDocs)
     // Extract unique months and sort them descending
 
    
@@ -89,7 +86,7 @@ const PatientDocs = () => {
     ], [data]);
 
     const monthOptions = useMemo(() => {
-        const options = [];
+        const options = [{ value: "last-6-months", label: "Last 6 Months" }];
         const now = new Date();
         const end = new Date(now.getFullYear(), now.getMonth(), 1);
         const start = new Date(now.getFullYear() - 5, now.getMonth() + 1, 1);
@@ -111,7 +108,7 @@ const PatientDocs = () => {
     ]);
 
     const DISCHARGED_DOC_LABELS = new Set([
-        "Discharge Form", "Undertaking Discharge Form", "Discharge Summary",
+        "Discharge Form", "Undertaking Discharge Form", "Discharge Summary","Expiry Summary"
     ]);
 
     const admittedLabels=[
@@ -165,10 +162,12 @@ const PatientDocs = () => {
             "Discharge Form",
             "Undertaking Discharge Form",
             "Discharge Summary",
+            "Expiry Summary",
             "Doctor Name",
             "Psychologist Name",
             "Center Manager",
-            "Status"
+            "Status",
+            
             ]
 
     const dischargedLabelsMapping={
@@ -181,6 +180,7 @@ const PatientDocs = () => {
             "Discharge Form":"dischargeform",
             "Undertaking Discharge Form":"undertakingdischargeform",
             "Discharge Summary":"discharge_summary",
+            "Expiry Summary":"expiry_summary",
             "Doctor Name":"doctor_name",
             "Psychologist Name":"psychologist_name",
             "Center Manager":"cm",

@@ -4,7 +4,6 @@ import { toast } from "react-toastify";
 import { useParams } from "react-router-dom";
 import {
   createCiwaTest,
-  fetchCiwaTest,
   fetchDoctors,
   fetchPatientById,
 } from "../../../../store/actions";
@@ -54,7 +53,8 @@ const CiwaQuestions = () => {
     (state) => state.ClinicalTest?.isLoading
   );
 
-  const [center, setCenters] = useState("");
+  const [center] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     const fetchPatientData = async () => {
@@ -84,7 +84,7 @@ const CiwaQuestions = () => {
   // State for modal message
   const [modalMessage, setModalMessage] = useState("");
   // State to control which page is currently displayed: 'assessment' or 'results'
-  const [currentPage, setCurrentPage] = useState("assessment");
+  const [currentPage] = useState("assessment");
   // State to store additional observations
   const [observations, setObservations] = useState("");
 
@@ -345,7 +345,7 @@ const CiwaQuestions = () => {
 
   // Function to close the custom modal
   const closeModal = () => {
-    if (selectedDoctor.id == -1) {
+    if (selectedDoctor.id === -1) {
       setIsModalOpen(false);
       setModalMessage("");
       return;
@@ -410,6 +410,7 @@ const CiwaQuestions = () => {
       }
     }
 
+    setIsLoading(true);
     try {
       await dispatch(createCiwaTest(formData)).unwrap();
       openModal(
@@ -419,6 +420,8 @@ const CiwaQuestions = () => {
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to submit assessment");
       }
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -657,9 +660,10 @@ const CiwaQuestions = () => {
                   type="submit"
                   className="btn btn-success fw-bold px-4 py-2 shadow-sm"
                   style={{ transition: "transform 0.3s ease-in-out" }}
+                  disabled={isLoading}
                 >
                   <i className="fas fa-check-circle me-2"></i>
-                  Submit Test
+                  {isLoading ? "Saving..." : "Submit Test"}
                 </button>
               </div>
             </form>
@@ -678,7 +682,7 @@ const CiwaQuestions = () => {
             style={{ maxWidth: "400px", width: "100%" }}
           >
             <h3 className="h5 fw-semibold text-dark mb-3">
-              {selectedDoctor.id == -1 ? "" : "Notification"}
+              {selectedDoctor.id === -1 ? "" : "Notification"}
             </h3>
             <p className="text-secondary mb-4">{modalMessage}</p>
             <button

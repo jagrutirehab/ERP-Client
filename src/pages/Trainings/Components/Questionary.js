@@ -10,7 +10,14 @@ const emptyQuestion = () => ({
   options: [emptyOption(), emptyOption()],
 });
 
-const Questionary = ({ questionary, onChange, isSubmitted }) => {
+const Questionary = ({
+  questionary,
+  onChange,
+  isSubmitted,
+  minQuestions = 20,
+  title = "Questionnaire",
+  optional = false,
+}) => {
   const addQuestion = () => {
     onChange([...questionary, emptyQuestion()]);
   };
@@ -91,12 +98,22 @@ const Questionary = ({ questionary, onChange, isSubmitted }) => {
     <div style={styles.wrapper}>
       <div style={styles.sectionHeader}>
         <div>
-          <p style={styles.sectionTitle}>Questionnaire</p>
+          <p style={styles.sectionTitle}>{title}</p>
           <p style={styles.sectionSub}>
-            Minimum 10 questions required &nbsp;&middot;&nbsp;{" "}
-            {questionary.length}/10 added
-            {questionary.length >= 10 && " ✓"}
+            {optional
+              ? `Optional, but if added it needs at least ${minQuestions} questions`
+              : `Minimum ${minQuestions} questions required`}{" "}
+            &nbsp;&middot;&nbsp; {questionary.length}/{minQuestions} added
+            {questionary.length >= minQuestions && " ✓"}
           </p>
+          {isSubmitted &&
+            questionary.length < minQuestions &&
+            (!optional || questionary.length > 0) && (
+              <p style={{ color: "#dc3545", fontSize: 12, margin: "4px 0 0" }}>
+                Add at least {minQuestions} questions (currently{" "}
+                {questionary.length}).
+              </p>
+            )}
         </div>
         <button type="button" style={styles.addQBtn} onClick={addQuestion}>
           + Add Question
@@ -138,8 +155,8 @@ const Questionary = ({ questionary, onChange, isSubmitted }) => {
               <span style={styles.questionBadge}>Q{qIdx + 1}</span>
               <button
                 type="button"
-                style={{ ...styles.removeBtn, opacity: questionary.length <= 10 ? 0.3 : 1, cursor: questionary.length <= 10 ? 'not-allowed' : 'pointer' }}
-                onClick={() => questionary.length > 10 && removeQuestion(q.id)}
+                style={styles.removeBtn}
+                onClick={() => removeQuestion(q.id)}
                 title="Remove question"
               >
                 <svg

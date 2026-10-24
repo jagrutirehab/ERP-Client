@@ -28,8 +28,13 @@ import {
   getMedicineFrequencyLabel,
   getMedicineFrequencyPreset,
   normalizeMedicineFrequency,
+  PRESET_MEDICINE_FREQUENCIES,
 } from "../../../helpers/prescriptionFrequency";
-import { getMedicineEndDate, getDaysBetween } from "../../../helpers/currentMedicines";
+import { getMedicineEndDate, getDaysBetween, drugIdentity } from "../../../helpers/currentMedicines";
+import { toast } from "react-toastify";
+import { isPilotCenterRow } from "../../../helpers/pilotCenter";
+import PrescriptionPharmacyStock from "./PrescriptionPharmacyStock";
+import { getAvailableMedicineIds } from "../../../helpers/backend_helper";
 
 
 const SortableMedicine = ({ index, locked, children }) => {
@@ -46,10 +51,9 @@ const SortableMedicine = ({ index, locked, children }) => {
       ref={setNodeRef}
       style={{
         ...style,
-        borderBottom: "1px solid #6c757d",
         opacity: locked ? 0.75 : 1,
       }}
-      className="d-flex align-items-center gap-2 pb-3 mb-3"
+      className="d-flex align-items-center gap-2"
     >
       <span
         {...(locked ? {} : { ...listeners, ...attributes })}
@@ -74,12 +78,55 @@ const SortableMedicine = ({ index, locked, children }) => {
 };
 
 
-const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
+const Medicine = ({
+  medicines,
+  setMedicines,
+  isNew,
+  showDates = false,
+  centerId,
+}) => {
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 5 }
     })
   );
+
+  const isPilotCenter = isPilotCenterRow(centerId);
+
+  const medicinesRef = React.useRef(medicines);
+  React.useEffect(() => {
+    medicinesRef.current = medicines;
+  }, [medicines]);
+
+  // In-stock status per "centerId:medicineId" (true / false, null if the check
+  // failed, absent while pending). One small request covers every medicine on
+  // the form that hasn't been checked yet, instead of one request per row.
+  const [stockStatus, setStockStatus] = React.useState({});
+  const stockRequested = React.useRef(new Set());
+  React.useEffect(() => {
+    if (!isPilotCenter || !centerId) return;
+
+    const ids = [
+      ...new Set(
+        (medicines || []).map((m) => m.medicine?._id).filter(Boolean).map(String)
+      ),
+    ].filter((id) => !stockRequested.current.has(`${centerId}:${id}`));
+    if (!ids.length) return;
+    ids.forEach((id) => stockRequested.current.add(`${centerId}:${id}`));
+
+    const record = (available) =>
+      setStockStatus((prev) => {
+        const next = { ...prev };
+        ids.forEach((id) => {
+          next[`${centerId}:${id}`] = available ? available.has(id) : null;
+        });
+        return next;
+      });
+
+    getAvailableMedicineIds(ids, centerId)
+      .then((res) => record(new Set((res?.data || []).map(String))))
+      .catch(() => record(null));
+  }, [medicines, centerId, isPilotCenter]);
 
   const handleChange = (e) => {
     const prop = e.target.name;
@@ -111,7 +158,7 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
           drugsTable[index].frequency
         );
         drugsTable[index].frequency =
-          currentFrequency === 1 || currentFrequency === 2 || currentFrequency === 15 || currentFrequency === 30
+          PRESET_MEDICINE_FREQUENCIES.some(({ value }) => value === currentFrequency)
             ? ""
             : currentFrequency;
       } else {
@@ -137,7 +184,8 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
   // date range recomputes duration (in days) from the gap between them;
   // editing duration/unit (above) recomputes the To date instead.
   const handleStartDateChange = (idx, date) => {
-    const drugsTable = [...medicines];
+    const drugsTable = [...medicinesRef.current];
+    drugsTable[idx] = { ...drugsTable[idx] };
     drugsTable[idx].startDate = date;
     if (drugsTable[idx].endDate) {
       drugsTable[idx].duration = String(getDaysBetween(date, drugsTable[idx].endDate));
@@ -145,16 +193,19 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
     } else {
       drugsTable[idx].endDate = getMedicineEndDate(date, drugsTable[idx]);
     }
+    medicinesRef.current = drugsTable;
     setMedicines(drugsTable);
   };
 
   const handleEndDateChange = (idx, date) => {
-    const drugsTable = [...medicines];
+    const drugsTable = [...medicinesRef.current];
+    drugsTable[idx] = { ...drugsTable[idx] };
     drugsTable[idx].endDate = date;
     drugsTable[idx].duration = String(
       getDaysBetween(drugsTable[idx].startDate, date),
     );
     drugsTable[idx].unit = "Day (s)";
+    medicinesRef.current = drugsTable;
     setMedicines(drugsTable);
   };
 
@@ -165,7 +216,10 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
   };
 
   const bulkEditMedDuration = (duration) => {
-    const meds = [...medicines]?.map((med) => ({ ...med, duration }));
+    const meds = [...medicines]?.map((med) => {
+      const updated = { ...med, duration };
+      return { ...updated, endDate: getMedicineEndDate(med.startDate, updated) };
+    });
     setMedicines(meds);
   };
 
@@ -176,6 +230,32 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
       frequency: normalizedFrequency,
     }));
     setMedicines(meds);
+  };
+
+  // Swaps the drug on an existing row (dosage, duration etc. stay as the
+  // doctor set them) — used when the original isn't in stock.
+  const replaceMedicine = (idx, med) => {
+    const nextIdentity = drugIdentity(med);
+    const duplicate = medicines.some(
+      (m, i) => i !== idx && drugIdentity(m.medicine) === nextIdentity,
+    );
+    if (duplicate) {
+      toast.error("This medicine is already on the prescription");
+      return;
+    }
+    const drugsTable = [...medicines];
+    drugsTable[idx] = {
+      ...drugsTable[idx],
+      medicine: {
+        _id: med._id,
+        name: med.name,
+        isNew: false,
+        type: med.type || "TAB",
+        strength: med.strength || "",
+        unit: med.unit || "MG",
+      },
+    };
+    setMedicines(drugsTable);
   };
 
   const handleMedicineSub = (name, idx, value) => {
@@ -227,7 +307,12 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
               strategy={verticalListSortingStrategy}
             >
               {(medicines || []).map((medicine, idx) => (
-                <SortableMedicine key={idx} index={idx} locked={medicine.locked}>
+                <div
+                  key={idx}
+                  className="pb-2 mb-2"
+                  style={{ borderBottom: "1px solid #6c757d" }}
+                >
+                <SortableMedicine index={idx} locked={medicine.locked}>
                   <Col xs={2} className="">
                     <span className="font-semi-bold text-uppercase d-flex">
                       <span
@@ -368,7 +453,7 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
                     </span>
                   </Col>
                   {/* <Col xs={3} className="">
-                  
+
                     <div className="d-flex flex-nowrap align-items-center justify-content-center">
                       <Input
                         bsSize={"sm"}
@@ -571,7 +656,9 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
                       >
                         <option value="1">Daily</option>
                         <option value="2">Alternate days</option>
+                        <option value="7">Every 7 days</option>
                         <option value="15">Every 15 days</option>
+                        <option value="28">Every 28 days</option>
                         <option value="30">Every 30 days</option>
                         <option value="monthly">Specific date every month</option>
                         <option value="custom">Custom days</option>
@@ -650,6 +737,19 @@ const Medicine = ({ medicines, setMedicines, isNew, showDates = false }) => {
                     )}
                   </Col>
                 </SortableMedicine>
+                {isPilotCenter && !medicine.locked && (
+                  <Row className="mt-1">
+                    <Col xs={12}>
+                      <PrescriptionPharmacyStock
+                        medicine={medicine}
+                        centerId={centerId}
+                        available={stockStatus[`${centerId}:${medicine.medicine?._id}`]}
+                        onReplace={(med) => replaceMedicine(idx, med)}
+                      />
+                    </Col>
+                  </Row>
+                )}
+                </div>
               ))}
             </SortableContext>
           </DndContext>
@@ -663,6 +763,7 @@ Medicine.propTypes = {
   medicines: PropTypes.array,
   setMedicines: PropTypes.func,
   showDates: PropTypes.bool,
+  centerId: PropTypes.string,
 };
 
 const mapStateToProps = (state) => ({

@@ -74,7 +74,6 @@ const BulkFeedbackModal = ({ isOpen, toggle, onGenerate, currentFilters, progres
             }
             setTotalDocs(total);
         } catch (error) {
-            console.error("Error fetching modal recordings", error);
         } finally {
             setLoading(false);
             setLoadingMore(false);
@@ -91,6 +90,7 @@ const BulkFeedbackModal = ({ isOpen, toggle, onGenerate, currentFilters, progres
         } else {
             resetForm();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen]);
 
     const handleLoadMore = () => {
@@ -119,7 +119,6 @@ const BulkFeedbackModal = ({ isOpen, toggle, onGenerate, currentFilters, progres
             const success = await onGenerate(selectedIds);
             if (success) toggle();
         } catch (error) {
-            console.error("Submission error", error);
         } finally {
             setIsSubmitting(false);
         }

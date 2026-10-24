@@ -2,10 +2,6 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Button, Col, Row } from "reactstrap";
 import { connect } from "react-redux";
-import { daysInNumeric } from "../../../../Components/constants/scheduler";
-import { format } from "date-fns";
-import { v4 as uuid } from "uuid";
-import lodash from "lodash";
 
 const PracticeList = ({ doctors, toggleForm }) => {
   return (

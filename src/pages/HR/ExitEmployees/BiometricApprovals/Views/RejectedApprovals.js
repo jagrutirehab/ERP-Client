@@ -1,5 +1,4 @@
 import DataTable from "react-data-table-component";
-import { BiometricReqsColumn } from "../../../components/columns/BiometricReqsColumn";
 import { ExitBiometricRequests } from "../../../components/columns/ExitBiometricRequests";
 
 const RejectedApprovals = ({

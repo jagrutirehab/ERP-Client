@@ -58,6 +58,7 @@ const Audit = () => {
     if (!permissionLoader && !hasUserPermission) {
       navigate("/unauthorized");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [permissionLoader, hasUserPermission]);
 
   if (permissionLoader) {

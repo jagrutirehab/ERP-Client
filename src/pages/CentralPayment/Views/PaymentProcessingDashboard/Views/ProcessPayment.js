@@ -100,6 +100,7 @@ const ProcessPayment = ({ loading, approvals, centerAccess, centers: userAccessi
         if (activeTab === "PROCESS_PAYMENT") {
             fetchApprovedPayments();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [centerAccess, dispatch, page, limit, activeTab, selectedCenter]);
 
 

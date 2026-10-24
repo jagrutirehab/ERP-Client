@@ -6,6 +6,7 @@ import Trainingsidebar from "./Sidebar";
 import Upload from "./Pages/Upload";
 import Trainings from "./Pages/Trainings";
 import AllTrainings from "./Pages/AllTrainings";
+import TrainingAdminDetail from "./Pages/TrainingAdminDetail";
 import TrainingDetail from "./Pages/TrainingDetail";
 import TrainingHistory from "./Pages/TrainingHistory";
 import TrainingHistoryDetail from "./Pages/HistoryDetail";
@@ -55,6 +56,7 @@ const Trainingindex = () => {
                                             <Route path="upload" element={<Upload />} />
                                             <Route path="view" element={<Trainings />} />
                                             <Route path="all" element={<AllTrainings />} />
+                                            <Route path="all/:id" element={<TrainingAdminDetail />} />
                                             <Route path=":id" element={<TrainingDetail />} />
                                             <Route path="history" element={<TrainingHistory />} />
                                             <Route path="history/:id" element={<TrainingHistoryDetail />} />

@@ -14,6 +14,13 @@ const pages = [
     icon: "bx bx-broadcast",
   },
   {
+    id: "misMaster",
+    label: "MIS Master",
+    name: "MIS Master",
+    link: "/mis-master",
+    icon: "bx bx-line-chart",
+  },
+  {
     id: "nurse",
     label: "Nurse",
     name: "Nurse",
@@ -58,6 +65,18 @@ const pages = [
       edit: true,
       delete: true,
     },
+  },
+  {
+    id: "grievances",
+    label: "Grievances",
+    name: "Grievances",
+    link: "/grievances",
+    icon: "bx bx-shield-quarter",
+    // No `permissions` block on purpose — User/Form.js only renders the
+    // Create/Edit/Delete checkboxes when one is present. Page Access decides
+    // whether this page is VISIBLE to a user; what they may DO on it is the
+    // GRIEVANCE module in Roles Management, so there is one place to look
+    // rather than two that can disagree.
   },
   {
     id: "cash",
@@ -315,6 +334,13 @@ const pages = [
     icon: "bx bx-book",
   },
   {
+    id: "compliance",
+    label: "Compliance",
+    name: "Compliance",
+    link: "/compliance",
+    icon: "bx bx-shield-alt-2",
+  },
+  {
     id: "masterdata",
     label: "Vendor Management",
     name: "Vendor Management",
@@ -399,6 +425,13 @@ const pages = [
     icon: "bx bx-transfer",
   },
   {
+    id: "pospayments",
+    label: "POS Payments",
+    name: "POS Payments",
+    link: "/pos-payments",
+    icon: "bx bx-credit-card",
+  },
+  {
     id: "sopconfigs",
     label: "SOP-configs",
     name: "SOP-configs",
@@ -413,6 +446,12 @@ export const WebcamStats = [
     label: "Dashboard",
     link: "/webcamstats/dashboard",
     icon: "bx bx-home",
+  },
+  {
+    id: "webcamstats-health",
+    label: "CCTV Health",
+    link: "/webcamstats/health",
+    icon: "bx bx-server",
   },
   {
     id: "webcamstats-stats",
@@ -434,6 +473,12 @@ export const Pharmacy = [
     label: "Dashboard",
     link: "/pharmacy/dashboard",
     icon: "bx bx-home",
+  },
+  {
+    id: "inventoryHealthReport",
+    label: "Health Report",
+    link: "/pharmacy/reports/inventory-health",
+    icon: "bx bx-pulse",
   },
   {
     id: "pharmacymanagement",
@@ -458,6 +503,12 @@ export const Pharmacy = [
     label: "Medicine Approval",
     link: "/pharmacy/approval",
     icon: "bx bx-checkbox-checked",
+  },
+  {
+    id: "medicineReturn",
+    label: "Medicine Return",
+    link: "/pharmacy/medicine-return",
+    icon: "bx bx-undo",
   },
   {
     id: "audit",
@@ -489,6 +540,12 @@ export const Pharmacy = [
         link: "/pharmacy/requisition/medicine-requisition",
         icon: "bx bx-capsule",
       },
+      {
+        id: "raise-medicine-requisition",
+        label: "Raise Med. Requisition",
+        link: "/pharmacy/requisition/medicine-requisition/add",
+        icon: "bx bx-plus-medical",
+      },
     ],
   },
   {
@@ -496,6 +553,12 @@ export const Pharmacy = [
     label: "Stock Summary",
     link: "/pharmacy/stock-summary",
     icon: "bx bx-box",
+  },
+  {
+    id: "expiredMedicines",
+    label: "Expired Medicines",
+    link: "/pharmacy/expired-medicines",
+    icon: "bx bx-calendar-x",
   },
   {
     id: "billUploadDashboard",
@@ -508,6 +571,12 @@ export const Pharmacy = [
     label: "Sareyaan Inventory",
     link: "/pharmacy/sareyaan-inventory",
     icon: "bx bx-package",
+  },
+  {
+    id: "pharmacyActivity",
+    label: "Activity",
+    link: "/pharmacy/activity",
+    icon: "bx bx-pulse",
   },
 ];
 
@@ -652,6 +721,12 @@ export const setting = [
     label: "Centre Fallback Manager",
     link: "/setting/center/fallback/manager",
     icon: "bx bx-user-pin",
+  },
+  {
+    id: "grievanceofficer",
+    label: "Grievance Officer",
+    link: "/setting/grievance-officer",
+    icon: "bx bx-user-voice",
   },
 ];
 
@@ -977,8 +1052,20 @@ export const HR = [
     isAccordion: true,
     children: [
       {
+        id: "add-new-joining-biometric",
+        label: "New Joining Biometric Creation",
+        icon: "bx bx-user-check",
+        link: "/hr/biometric/new-joining/add",
+      },
+      {
+        id: "get-new-joining-biometric-requests",
+        label: "New Joining Biometric Requests",
+        icon: "bx bx-check-shield",
+        link: "/hr/biometric/new-joining/requests",
+      },
+      {
         id: "add-biometric-request",
-        label: "Add Request",
+        label: "JRC Mapping with Biometric ID",
         icon: "bx bx-plus",
         link: "/hr/biometric/add",
       },
@@ -1121,6 +1208,12 @@ export const HR = [
         icon: "bx bx-layer",
       },
       {
+        id: "reportees-leave-balance",
+        label: "Reportees Leave Balance",
+        link: "/hr/leaves/reportees/balance",
+        icon: "bx bx-group",
+      },
+      {
         id: "festive-leaves",
         label: "Festive Leaves List",
         link: "/hr/leaves/festive/leaves",
@@ -1176,6 +1269,27 @@ export const HR = [
       },
     ],
   },
+  {
+    id: "payroll-adjustments",
+    label: "Payroll Adjustments",
+    icon: "bx bx-slider-alt",
+    link: "/hr/payroll-adjustments",
+    isAccordion: true,
+    children: [
+      {
+        id: "add-payroll-adjustments-request",
+        label: "Add Request",
+        icon: "bx bx-plus",
+        link: "/hr/payroll-adjustments/add",
+      },
+      {
+        id: "payroll-adjustments-approval",
+        label: "Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/payroll-adjustments/approval",
+      },
+    ],
+  },
 
   {
     id: "payslips",
@@ -1228,6 +1342,27 @@ export const HR = [
         label: "Employee Forms",
         icon: "bx bx-file",
         link: "/hr/employee/forms",
+      },
+    ],
+  },
+  {
+    id: "esic",
+    label: "ESIC",
+    icon: "bx bx-shield-quarter",
+    link: "/hr/esic",
+    isAccordion: true,
+    children: [
+      {
+        id: "esicupload",
+        label: "ESIC Upload",
+        icon: "bx bx-upload",
+        link: "/hr/esic/upload",
+      },
+      {
+        id: "esicapproval",
+        label: "ESIC Approvals",
+        icon: "bx bx-check-shield",
+        link: "/hr/esic/approval",
       },
     ],
   },
@@ -1571,18 +1706,114 @@ export const UTILITIES = [
     icon: "bx bxs-report",
   },
 ];
-export const MASTER_DATA = [
+export const Compliance = [
   {
-    id: "masterdata-vendor",
-    label: "Vendors",
-    link: "/vendor-management/vendor",
-    icon: "bx bx-store",
+    id: "compliance-overview",
+    label: "Overview",
+    link: "/compliance",
+    icon: "bx bx-grid-alt",
   },
   {
-    id: "masterdata-item",
-    label: "Items",
-    link: "/vendor-management/item",
-    icon: "bx bx-package",
+    id: "compliance-centres",
+    label: "Centres",
+    link: "/compliance/centres/pune",
+    icon: "bx bx-buildings",
+  },
+  {
+    id: "compliance-register",
+    label: "Register",
+    link: "/compliance/register",
+    icon: "bx bx-list-check",
+  },
+  {
+    id: "compliance-types",
+    label: "Compliance Types",
+    link: "/compliance/types",
+    icon: "bx bx-shield-quarter",
+  },
+  {
+    id: "compliance-categories",
+    label: "Categories",
+    link: "/compliance/categories",
+    icon: "bx bx-category",
+  },
+  {
+    id: "compliance-approvals",
+    label: "Approvals",
+    link: "/compliance/approvals",
+    icon: "bx bx-check-shield",
+  },
+  {
+    id: "compliance-drafts",
+    label: "Drafts",
+    icon: "bx bx-folder-open",
+    isAccordion: true,
+    children: [
+      {
+        id: "compliance-my-drafts",
+        label: "My Drafts",
+        link: "/compliance/my-drafts",
+        icon: "bx bx-edit",
+      },
+      {
+        id: "compliance-all-drafts",
+        label: "All Drafts",
+        link: "/compliance/drafts",
+        icon: "bx bx-folder-open",
+      },
+    ],
+  },
+];
+export const MASTER_DATA = [
+  {
+    id: "masterdata-core",
+    label: "Master Data",
+    icon: "bx bx-data",
+    isAccordion: true,
+    children: [
+      {
+        id: "masterdata-vendor",
+        label: "Vendors",
+        link: "/vendor-management/vendor",
+        icon: "bx bx-store",
+        permissionModule: "VENDOR",
+      },
+      {
+        id: "masterdata-item",
+        label: "Items",
+        link: "/vendor-management/item",
+        icon: "bx bx-package",
+        permissionModule: "ITEM_MASTER",
+      },
+      {
+        id: "masterdata-uom",
+        label: "Unit of Measurements",
+        link: "/vendor-management/uom",
+        icon: "bx bx-ruler",
+        permissionModule: "UOM",
+      },
+      {
+        id: "masterdata-payment-term",
+        label: "Payment Terms",
+        link: "/vendor-management/payment-term",
+        icon: "bx bx-credit-card",
+        permissionModule: "PAYMENT_TERM",
+      },
+      {
+        id: "masterdata-department",
+        label: "Departments",
+        link: "/vendor-management/department",
+        icon: "bx bx-building",
+        permissionModule: "DEPARTMENT",
+      },
+      {
+        id: "audit-log",
+        label: "Audit Logs",
+        icon: "bx bx-history",
+        link: "/vendor-management/audit-log",
+        permissionModule: "AUDIT_LOG",
+      },
+    ],
   },
   // {
   //   id: "masterdata-customer",
@@ -1590,36 +1821,298 @@ export const MASTER_DATA = [
   //   link: "/master-data/customer",
   //   icon: "bx bx-user",
   // },
-  {
-    id: "masterdata-uom",
-    label: "Unit of Measurements",
-    link: "/vendor-management/uom",
-    icon: "bx bx-ruler",
-  },
-  {
-    id: "masterdata-payment-term",
-    label: "Payment Terms",
-    link: "/vendor-management/payment-term",
-    icon: "bx bx-credit-card",
-  },
   // {
   //   id: "masterdata-delivery-partner",
   //   label: "Delivery Partners",
   //   link: "/master-data/delivery-partner",
   //   icon: "bx bx-car",
   // },
-  // {
-  //   id: "masterdata-asset-category",
-  //   label: "Asset Categories",
-  //   link: "/master-data/asset-category",
-  //   icon: "bx bx-category",
-  // },
-  // {
-  //   id: "masterdata-department",
-  //   label: "Departments",
-  //   link: "/master-data/department",
-  //   icon: "bx bx-building",
-  // },
+  {
+    id: "masterdata-asset-category",
+    label: "Asset Categories",
+    icon: "bx bx-category",
+    isAccordion: true,
+    children: [
+      {
+        id: "asset-category-l1",
+        label: "Level 1 Category",
+        link: "/vendor-management/asset-category/level/1",
+        permissionModule: "ASSET_CATEGORY",
+      },
+      {
+        id: "asset-category-l2",
+        label: "Level 2 Category",
+        link: "/vendor-management/asset-category/level/2",
+        permissionModule: "ASSET_CATEGORY",
+      },
+      {
+        id: "asset-category-l3",
+        label: "Level 3 Category",
+        link: "/vendor-management/asset-category/level/3",
+        permissionModule: "ASSET_CATEGORY",
+      },
+      {
+        id: "asset-category-l4",
+        label: "Level 4 Category",
+        link: "/vendor-management/asset-category/level/4",
+        permissionModule: "ASSET_CATEGORY",
+      },
+    ],
+  },
+  {
+    id: "procurement",
+    label: "Procurement",
+    icon: "bx bx-cart",
+    isAccordion: true,
+    children: [
+      {
+        id: "procurement-dashboard",
+        label: "Dashboard",
+        link: "/vendor-management/procurement-dashboard",
+        permissionModule: "PO",
+      },
+      {
+        id: "procurement-pr",
+        label: "Purchase Requisitions",
+        link: "/vendor-management/purchase-requisition",
+        permissionModule: "PR",
+      },
+      {
+        id: "procurement-rfq",
+        label: "RFQ",
+        link: "/vendor-management/rfq",
+        permissionModule: "RFQ",
+      },
+      {
+        id: "procurement-po",
+        label: "Purchase Orders",
+        link: "/vendor-management/po",
+        permissionModule: "PO",
+      },
+      {
+        id: "procurement-di",
+        label: "Delivery Intimations",
+        link: "/vendor-management/delivery-intimation",
+        permissionModule: "DELIVERY_INTIMATION",
+      },
+    ],
+  },
+  {
+    id: "inventory",
+    label: "Inventory & Warehouse",
+    icon: "bx bx-store",
+    isAccordion: true,
+    children: [
+      {
+        id: "inventory-grn",
+        label: "Goods Receipt Notes",
+        link: "/vendor-management/grn",
+        permissionModule: "GRN",
+      },
+      {
+        id: "inventory-storage-location",
+        label: "Storage Locations",
+        link: "/vendor-management/storage-location",
+        permissionModule: "STORAGE_LOCATION",
+      },
+      {
+        id: "inventory-putaway",
+        label: "Putaway",
+        link: "/vendor-management/putaway",
+        permissionModule: "PUTAWAY",
+      },
+      {
+        id: "inventory-location-stock",
+        label: "Stock by Location",
+        link: "/vendor-management/location-stock",
+        permissionModule: "PUTAWAY",
+      },
+      {
+        id: "inventory-stock",
+        label: "Stock / Inventory",
+        link: "/vendor-management/stock",
+        permissionModule: "STOCK",
+      },
+      {
+        id: "inventory-transfer",
+        label: "Inventory Transfer",
+        link: "/vendor-management/inventory-transfer",
+        permissionModule: "INVENTORY_TRANSFER",
+      },
+      {
+        id: "inventory-move-order",
+        label: "Move Orders",
+        link: "/vendor-management/move-order",
+        permissionModule: "MOVE_ORDER",
+      },
+      {
+        id: "inventory-stock-ops-divider",
+        label: "— Stock Operations —",
+        isDivider: true,
+      },
+      {
+        id: "inventory-material-issue",
+        label: "Material Issues",
+        link: "/vendor-management/material-issue",
+        permissionModule: "MATERIAL_ISSUE",
+      },
+      {
+        id: "inventory-material-return",
+        label: "Material Returns",
+        link: "/vendor-management/material-return",
+        permissionModule: "MATERIAL_RETURN",
+      },
+      {
+        id: "inventory-cycle-count",
+        label: "Cycle Counts",
+        link: "/vendor-management/cycle-count",
+        permissionModule: "CYCLE_COUNT",
+      },
+      {
+        id: "inventory-stock-adjustment",
+        label: "Stock Adjustments",
+        link: "/vendor-management/stock-adjustment",
+        permissionModule: "STOCK_ADJUSTMENT",
+      },
+      {
+        id: "inventory-reorder-rule",
+        label: "Reorder Rules",
+        link: "/vendor-management/reorder-rule",
+        permissionModule: "REORDER_RULE",
+      },
+    ],
+  },
+  {
+    id: "asset-lifecycle",
+    label: "Asset Lifecycle",
+    icon: "bx bx-package",
+    isAccordion: true,
+    children: [
+      {
+        id: "asset-cap-request",
+        label: "Capitalization Requests",
+        link: "/vendor-management/capitalization-request",
+        permissionModule: "CAPITALIZATION_REQUEST",
+      },
+      {
+        id: "asset-cwip",
+        label: "Capital Work in Progress",
+        link: "/vendor-management/cwip",
+        permissionModule: "CWIP",
+      },
+      {
+        id: "asset-capitalization",
+        label: "Asset Capitalization",
+        link: "/vendor-management/asset-capitalization",
+        permissionModule: "ASSET_CAPITALIZATION",
+      },
+      {
+        id: "asset-fixed-register",
+        label: "Fixed Assets Register",
+        link: "/vendor-management/fixed-asset",
+        permissionModule: "FIXED_ASSET",
+      },
+      {
+        id: "asset-transfer",
+        label: "Asset Transfer",
+        link: "/vendor-management/asset-transfer",
+        permissionModule: "ASSET_TRANSFER",
+      },
+      {
+        id: "asset-writeoff",
+        label: "Asset Write-off / Sale",
+        link: "/vendor-management/asset-writeoff",
+        permissionModule: "ASSET_WRITEOFF",
+      },
+      {
+        id: "asset-maintenance-divider",
+        label: "— Asset Maintenance —",
+        isDivider: true,
+      },
+      {
+        id: "asset-maintenance-request",
+        label: "Maintenance Requests",
+        link: "/vendor-management/maintenance-request",
+        permissionModule: "MAINTENANCE_REQUEST",
+      },
+      {
+        id: "asset-work-order",
+        label: "Work Orders",
+        link: "/vendor-management/work-order",
+        permissionModule: "WORK_ORDER",
+      },
+      {
+        id: "asset-task-template",
+        label: "Task Templates",
+        link: "/vendor-management/task-template",
+        permissionModule: "TASK_TEMPLATE",
+      },
+      {
+        id: "asset-pm-schedule",
+        label: "PM Schedules",
+        link: "/vendor-management/pm-schedule",
+        permissionModule: "PM_SCHEDULE",
+      },
+      {
+        id: "asset-maintenance-job",
+        label: "Maintenance Jobs",
+        link: "/vendor-management/maintenance-job",
+        permissionModule: "MAINTENANCE_JOB",
+      },
+      {
+        id: "asset-verification-job",
+        label: "Verification Jobs",
+        link: "/vendor-management/verification-job",
+        permissionModule: "VERIFICATION_JOB",
+      },
+      {
+        id: "asset-physical-verification",
+        label: "Physical Verifications",
+        link: "/vendor-management/physical-verification",
+        permissionModule: "PHYSICAL_VERIFICATION",
+      },
+      {
+        id: "asset-tag",
+        label: "Create Tags",
+        link: "/vendor-management/asset-tag",
+        permissionModule: "ASSET_TAG",
+      },
+    ],
+  },
+  {
+    id: "contracts-projects",
+    label: "Contracts & Projects",
+    icon: "bx bx-briefcase",
+    isAccordion: true,
+    children: [
+      {
+        id: "contract-management",
+        label: "Contract Management",
+        link: "/vendor-management/contract",
+        permissionModule: "CONTRACT",
+      },
+    ],
+  },
+  {
+    id: "finance",
+    label: "Finance",
+    icon: "bx bx-wallet",
+    isAccordion: true,
+    children: [
+      {
+        id: "finance-budget",
+        label: "Budget Management",
+        link: "/vendor-management/budget",
+        permissionModule: "BUDGET",
+      },
+      {
+        id: "finance-vendor-invoice",
+        label: "Vendor Invoices",
+        link: "/vendor-management/vendor-invoice",
+        permissionModule: "VENDOR_INVOICE",
+      },
+    ],
+  },
 ];
 
 export default pages;

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { CardBody, Spinner, UncontrolledTooltip } from "reactstrap";
 import Select from "react-select";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Pencil, Trash2 } from "lucide-react";
 import { toast } from "react-toastify";
 import DataTableComponent from "../../../Components/Common/DataTable";
 import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
@@ -17,6 +17,7 @@ import ViewFileModal from "./ViewFileModal";
 import EditBillModal from "./EditBillModal";
 import DeleteBillModal from "./DeleteBillModal";
 
+const CURRENT_YEAR = new Date().getFullYear();
 const YEAR_RANGE_END = 2076;
 const yearOptions = [
   { value: "ALL", label: "All Years" },
@@ -61,14 +62,14 @@ const Reports = () => {
 
   const [selectedCenter, setSelectedCenter] = useState("ALL");
   const [selectedMonth, setSelectedMonth] = useState("ALL");
-  const [selectedYear, setSelectedYear] = useState("ALL");
+  const [selectedYear, setSelectedYear] = useState(CURRENT_YEAR);
   const [bills, setBills] = useState([]);
   const [pagination, setPagination] = useState({});
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [loading, setLoading] = useState(false);
 
-  const [viewBill, setViewBill] = useState(null);
+  const [viewFile, setViewFile] = useState(null);
   const [editBill, setEditBill] = useState(null);
   const [savingBillId, setSavingBillId] = useState(null);
   const [deleteBillRecord, setDeleteBillRecord] = useState(null);
@@ -111,6 +112,7 @@ const Reports = () => {
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     centersParam,
     debouncedMonth,
@@ -204,17 +206,36 @@ const Reports = () => {
           : "—",
     },
     {
+      name: "Files",
+      cell: (row) => {
+        const files = row?.files || [];
+        if (!hasReadPermission || files.length === 0) {
+          return "—";
+        }
+        return (
+          <div className="d-flex flex-column align-items-start py-1">
+            {files.map((file, idx) => (
+              <button
+                key={file.path || idx}
+                type="button"
+                className="btn btn-link btn-sm p-0 text-start text-truncate"
+                style={{ fontSize: 13, maxWidth: 160 }}
+                onClick={() => setViewFile(file)}
+                title={file.originalName || file.name}
+              >
+                {`File ${idx + 1}`}
+              </button>
+            ))}
+          </div>
+        );
+      },
+      ignoreRowClick: true,
+      minWidth: "140px",
+    },
+    {
       name: "Actions",
       cell: (row) => (
         <div className="d-flex gap-2">
-          {hasReadPermission && (
-            <button
-              className="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
-              onClick={() => setViewBill(row)}
-            >
-              <Eye size={16} />
-            </button>
-          )}
           {hasWritePermission && (
             <button
               className="btn btn-sm btn-outline-primary d-flex align-items-center gap-1"
@@ -324,9 +345,9 @@ const Reports = () => {
       </div>
 
       <ViewFileModal
-        isOpen={!!viewBill}
-        toggle={() => setViewBill(null)}
-        bill={viewBill}
+        isOpen={!!viewFile}
+        toggle={() => setViewFile(null)}
+        file={viewFile}
       />
 
       <EditBillModal

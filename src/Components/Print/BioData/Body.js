@@ -1,3 +1,4 @@
+import referredByName from "../../../utils/referredByName";
 import { Text, View, StyleSheet, Font } from "@react-pdf/renderer";
 import PropTypes from "prop-types";
 import React from "react";
@@ -69,16 +70,6 @@ InfoItem.propTypes = {
 const Body = ({ patient, addmission }) => {
   if (!patient) return null;
 
-  const fullAddress = [
-    patient.houseNo,
-    patient.streetName,
-    patient.city,
-    patient.state,
-    patient.country,
-    patient.pinCode,
-  ]
-    .filter(Boolean)
-    .join(", ");
 
   const dob = patient.dateOfBirth
     ? new Date(patient.dateOfBirth).toLocaleDateString()
@@ -173,6 +164,11 @@ const Body = ({ patient, addmission }) => {
               value={patient.socioeconomicstatus}
             />
             <InfoItem label="Area Type" value={patient.areatype} />
+            <InfoItem
+              label="Floor / Ward / Room"
+              value={patient.addmission?.ward}
+            />
+            <InfoItem label="Bed" value={patient.addmission?.bed} />
             <InfoItem label="IPD Number" value={addmission?.[0]?.Ipdnum} />
             <InfoItem
               label="Provisional Diagnosis"
@@ -182,7 +178,7 @@ const Body = ({ patient, addmission }) => {
             />
             <InfoItem
               label="Referred By"
-              value={patient.referredBy?.doctorName}
+              value={referredByName(patient.referredBy)}
             />
           </View>
         </View>

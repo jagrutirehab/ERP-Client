@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react'
-import { CardBody, Nav, NavItem, NavLink, Toast } from 'reactstrap'
+import { CardBody, Nav, NavItem, NavLink } from 'reactstrap'
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
 import DataTableComponent from '../../../Components/Common/DataTable';
 import { toast } from "react-toastify";
@@ -32,9 +32,7 @@ const CancellationRequestsHr = () => {
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
-    const { hasPermission, loading: isLoading } = usePermissions(token);
-    const hasUserPermission = hasPermission("HR", "CANCELLATIONS_HISTORY", "READ");
-    const hasRead = hasPermission("HR", "CANCELLATIONS_HISTORY", "READ");
+    const { hasPermission } = usePermissions(token);
     const hasWrite = hasPermission("HR", "CANCELLATIONS_HISTORY", "WRITE");
     const hasDelete = hasPermission("HR", "CANCELLATIONS_HISTORY", "DELETE");
 
@@ -59,7 +57,6 @@ const CancellationRequestsHr = () => {
                 limit,
                 search: debouncedSearch
             });
-            console.log("Res", response);
             setReq(response?.data || []);
             setPagination({
                 ...response?.pagination,
@@ -75,6 +72,7 @@ const CancellationRequestsHr = () => {
 
     useEffect(() => {
         fetchRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, selectedMonth, selectedYear, selectedCenter, user?.centerAccess, page, limit, debouncedSearch])
 
     const monthOptions = [
@@ -129,9 +127,7 @@ const CancellationRequestsHr = () => {
                 cancellationId: row?._id,
                 status
             }
-            console.log("Payload", query);
             const response = await actionOnCancellationRequest(query);
-            console.log("ActionResponse", response);
             toast.success(response?.message || "Action Success")
             fetchRequests();
         } catch (error) {

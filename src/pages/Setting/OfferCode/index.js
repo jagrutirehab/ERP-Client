@@ -79,7 +79,6 @@ const OfferCode = () => {
             }
         } catch (error) {
             if(!handleAuthError(error)) {
-                console.error("Delete offer failed:", error);
                 toast.error(error.message || "Failed to delete offer.");
             }
         }
@@ -104,6 +103,7 @@ const OfferCode = () => {
       };
 
       loadOfferList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
       dispatch,
       currentPage,

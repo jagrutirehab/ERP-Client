@@ -21,7 +21,7 @@ const MyRegularizations = () => {
   const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission(
     "HR",
     "MY_REGULARIZATIONS",
@@ -61,6 +61,7 @@ const MyRegularizations = () => {
       navigate("/unauthorized");
     }
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, selectedYear, selectedMonth, page, limit]);
 
   const allYears = Array.from({ length: 2031 - 2015 + 1 }, (_, i) => 2015 + i);

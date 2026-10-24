@@ -93,6 +93,7 @@ const EmployeeRegularizationDetails = () => {
     if (hasUserPermission && employeeId) {
       loadEmployeeRegularizations();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, dispatch, employeeId, hasUserPermission, limit, page, selectedMonth]);
 
   const filteredRegularizations = useMemo(() => data || [], [data]);

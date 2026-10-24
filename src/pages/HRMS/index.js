@@ -1,20 +1,8 @@
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Routes, useNavigate } from "react-router-dom";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 import { Container, Spinner } from "reactstrap";
 import React from "react";
 import Sidebar from "./Sidebar";
-import AttendanceLogs from "./Attendance/Logs";
-import AttendanceMetrics from "./Attendance/Metrics";
-import LeaveHistory from "./Leaves/LeaveHistory";
-import LeaveApplications from "./Leaves/LeaveApplications";
-import ManageLeaves from "./Leaves/ManageLeaves";
-import MyLeaves from "./Leaves/MyLeaves";
-import Policies from "./Policies";
-import IndividualLeavesOfEmp from "./Leaves/EmployeeIndvidualLeaves";
-import AssignManager from "./EmployeeReporting/AssignManager";
-import ManageEmployeeReportings from "./EmployeeReporting/Manage";
-import MyAttendance from "./Attendance/MyAttendance";
-import EmployeeAttendance from "./Attendance/EmployeeDetails";
 
 const HRMS = () => {
     const navigate = useNavigate();

@@ -33,16 +33,12 @@
 //   useEffect(() => {
 //     dispatch(fetchBillItems({ centerIds: centers, page: 1, limit: 2000 }));
 //   }, [dispatch, centers]);
-//   console.log("Invoice procedures (raw from API):", dataList);
 
 //   const handleChange = (e) => {
 //     const value = e.target.value;
 //     setSearchItem(value);
 //   };
 //   const categoryValues = categories?.map((c) => c.value.toLowerCase());
-
-//   console.log("center from dropdown", dataList);
-//   console.log("centerww", center);
 
 //  const patientCenterId = String(center?._id ?? center);
 
@@ -169,7 +165,6 @@ import { CAPSULE, CREAM, DROP } from "../../../Components/constants/medicine";
 import { connect, useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Select from "react-select";
-import { categoryUnitOptions } from "../../../Components/constants/patient";
 import { fetchBillItems } from "../../../store/actions";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import { getCategoriesOfProcedures } from "../../../helpers/backend_helper";
@@ -205,7 +200,6 @@ const Inovice = ({
       const response = await getCategoriesOfProcedures();
       setAvailableCategories(response?.data || []);
     } catch (error) {
-      console.log(error);
     }
   };
 
@@ -217,10 +211,6 @@ const Inovice = ({
   const activeCategoryFilters = selectedCategories.map((c) => c.value.toLowerCase());
   const patientCenterId = String(center?._id ?? center);
 
-  console.log("dataList", dataList[0]);
-  console.log("data", data);
-  console.log("center", center._id);
-  console.log("patientCenterId", patientCenterId);
 
 
 

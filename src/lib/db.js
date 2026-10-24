@@ -21,7 +21,6 @@ export const initDB = async () => {
     };
 
     request.onerror = () => {
-      console.error("Failed to open IndexedDB");
       reject(false);
     };
   });

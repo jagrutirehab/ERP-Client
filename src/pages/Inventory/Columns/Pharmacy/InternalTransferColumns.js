@@ -6,7 +6,7 @@ import { ExpandableText } from "../../../../Components/Common/ExpandableText";
 import { capitalizeWords } from "../../../../utils/toCapitalize";
 import { pluralizeUnit } from "../../../../utils/pluralizeUnit";
 
-export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDetail, STATUS_COLORS, handleEdit, handleApprove, handleReject, handleRequestingApprove, handleRequestingReject, handleDispatch, handleReceive, handlePdf, statusFilter, hasWritePermission, userCenterAccess = [] }) => {
+export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDetail, STATUS_COLORS, handleEdit, handleApprove, handleReject, handleRequestingApprove, handleRequestingReject, handleDispatch, handlePackage, handleReceive, handlePdf, statusFilter, hasWritePermission, userCenterAccess = [] }) => {
     const showRemarks = !["PENDING_REQUESTING", ""].includes(statusFilter);
     const isReceivedTab = statusFilter === "PARTIALLY_RECEIVED,FULFILLED";
     return [
@@ -58,6 +58,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
             minWidth: "250px",
             cell: (row) => {
                 const isPostApproval = !["PENDING_REQUESTING", "PENDING_FULFILLING", "REJECTED", "REQUESTING_REJECTED", "FULFILLING_REJECTED"].includes(row.status);
+                const isPackaged = ["PACKAGED"].includes(row.status);
                 const isDispatched = ["DISPATCHED"].includes(row.status);
                 const isReceived = ["FULFILLED", "PARTIALLY_RECEIVED"].includes(row.status);
 
@@ -75,7 +76,6 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                 return (
                     <div className="d-flex flex-column w-100 my-2 gap-1 rounded">
                         {visibleItems.map((item, i) => {
-                            const isPending = ["PENDING_REQUESTING", "PENDING_FULFILLING"].includes(row.status);
 
                             let customId, medType, medName, strength, unit;
                             const med = item.medicineId || {};
@@ -89,9 +89,11 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                                 ? (item.receivedQty ?? item.approvedQty)
                                 : isDispatched
                                     ? item.dispatchedQty
-                                    : isPostApproval
-                                        ? item.approvedQty
-                                        : item.requestedQty;
+                                    : isPackaged
+                                        ? item.packagedQty
+                                        : isPostApproval
+                                            ? item.approvedQty
+                                            : item.requestedQty;
 
                             return (
                                 <React.Fragment key={i}>
@@ -356,6 +358,20 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                         {hasWritePermission && row.status === "APPROVED" && hasFulfillingAccess && (
                             <button
                                 type="button"
+                                className="btn btn-sm btn-dark text-white"
+                                onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (handlePackage) handlePackage(row);
+                                }}
+                                title="Mark as Packaged"
+                            >
+                                <i className="bx bx-box me-1" />
+                                Package
+                            </button>
+                        )}
+                        {hasWritePermission && row.status === "PACKAGED" && hasFulfillingAccess && (
+                            <button
+                                type="button"
                                 className="btn btn-sm btn-primary text-white"
                                 onClick={(e) => {
                                     e.stopPropagation();
@@ -381,7 +397,7 @@ export const getInternalTransferColumns = ({ expandedRows, toggleExpand, openDet
                                 Receive
                             </button>
                         )}
-                        {row.status === "DISPATCHED" && (
+                        {["DISPATCHED", "PARTIALLY_RECEIVED", "FULFILLED"].includes(row.status) && (
                             <button
                                 type="button"
                                 className="btn btn-sm btn-outline-danger"

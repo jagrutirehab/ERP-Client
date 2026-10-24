@@ -3,6 +3,7 @@ import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { format } from "date-fns";
@@ -126,6 +127,7 @@ const PendingApprovals = ({
     if (activeTab === "PENDING" && hasUserPermission) {
       fetchPendingITApprovals();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,
@@ -241,7 +243,8 @@ const PendingApprovals = ({
     },
     {
       name: <div>Name</div>,
-      selector: (row) => row?.employeeName?.toUpperCase() || "-",
+      selector: (row) =>
+        formatEmployeeName(row?.employeeName, row?.salutation)?.toUpperCase() || "-",
       wrap: true,
       minWidth: "160px",
     },

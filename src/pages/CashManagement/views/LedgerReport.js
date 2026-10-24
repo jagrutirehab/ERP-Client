@@ -210,6 +210,7 @@ const LedgerReport = ({ centers, centerAccess, rangeReport, loading, activeTab, 
   useEffect(() => {
     if (activeTab !== "dateRange" || !hasUserPermission || centerIds.length === 0) return;
     fetchReport();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerIds, reportDate, page, activeTab, hasUserPermission]);
 
   const handleDateChange = (newDate) => {
@@ -265,6 +266,7 @@ const getDetailedReportXlsx = useCallback(() => {
       }, remaining > 0 ? remaining : 0);
     }
   }, 300);
+// eslint-disable-next-line react-hooks/exhaustive-deps
 }, [exportToExcel, centerIds, startBusinessDate, endBusinessDate, dispatch]);
 
 

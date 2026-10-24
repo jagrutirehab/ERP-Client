@@ -50,7 +50,6 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
 
       setEmployees(options);
     } catch (error) {
-      console.log("Error loading employees", error);
     } finally {
       setLoadingEmployees(false);
     }
@@ -58,6 +57,7 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
 
   const debouncedFetchEmployees = useMemo(() => {
     return debounce(fetchEmployees, 400);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // const handleSubmit = () => {
@@ -72,8 +72,6 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
   //     setNote("");
   //     toggle();
   // };
-  console.log(selectedStatus?.value, "lala");
-  console.log("issue", issue?.issueType);
 
   // const handleSubmit = () => {
 
@@ -101,9 +99,11 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
   //     toggle();
   // };
 
-  // const isTechAssign = activeTab === "new" && issue?.issueType === "TECH";
+  // Assign vs Change Status is decided by which button opened this modal
+  // (handleAssign never sets nextStatus, handleAction always does) —
+  // not by activeTab/type, since both buttons can be visible on the same tab.
   const isTechAssign =
-    activeTab === "new" &&
+    issue?.nextStatus == null &&
     (issue?.issueType === "TECH" ||
       issue?.issueType === "MAINTENANCE" ||
       issue?.issueType === "COMPLAINT" ||
@@ -130,7 +130,7 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
     toggle();
   };
   const statusOptions = [
-    { value: "assigned", label: "Assigned" },
+    // { value: "assigned", label: "Assigned" },
     { value: "in_progress", label: "In Progress" },
     { value: "on_hold", label: "On Hold" },
     { value: "pending_user", label: "Pending User" },
@@ -155,7 +155,7 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
               isLoading={loadingEmployees}
               isClearable
               onInputChange={(value, { action }) => {
-                if (action === "input-change" && activeTab === "new") {
+                if (action === "input-change" && isTechAssign) {
                   debouncedFetchEmployees(value);
                 }
               }}

@@ -101,7 +101,6 @@ const RulePreviewOffcanvas = ({
         );
         setIcdMap(map);
       } catch (err) {
-        console.warn("[RulePreviewOffcanvas] ICD fetch failed:", err?.message || err);
       } finally {
         setIcdLoaded(true);
       }

@@ -19,7 +19,6 @@ import ApprovalHistory from "./Views/ApprovalHistory";
 import PendingApprovals from "./Views/PendingApprovals";
 import RejectedApprovals from "./Views/RejectedApprovals";
 import {
-  getBiometricEmployeesData,
   getBiometricExitEmployeesData,
 } from "../../../../helpers/backend_helper";
 import { useSelector } from "react-redux";
@@ -92,7 +91,6 @@ const BiometricApprovals = () => {
       setData(response?.data);
       setPagination(response?.pagination);
     } catch (err) {
-      console.error("Fetch error:", err);
     } finally {
       setFetching(false);
     }

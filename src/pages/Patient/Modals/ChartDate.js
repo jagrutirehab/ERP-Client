@@ -29,6 +29,8 @@ import {
   DETAIL_ADMISSION,
   VITAL_SIGN,
   ROUND_NOTE,
+  MEDICINE_GIVEN,
+  ELDERLY_FUNCTIONAL_CHECKLIST,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -106,8 +108,6 @@ const ChartDate = ({
   const isOnOutpass =
     fromIST && toIST ? todayIST >= fromIST && todayIST <= toIST : false;
 
-  console.log({ todayIST, fromIST, toIST, isOnOutpass });
-
   return (
     <React.Fragment>
       <CustomModal
@@ -128,9 +128,9 @@ const ChartDate = ({
                   name="dateOfAdmission"
                   disabled={
                     type === "CLINICTEST" ||
-                      ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
-                        patient.center.title === "Gurgaon") &&
-                        type !== "GENERAL")
+                    ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
+                      patient.center?.title === "Gurgaon") &&
+                      type !== "GENERAL")
                       ? true
                       : false
                   }
@@ -152,7 +152,7 @@ const ChartDate = ({
                     // ],
                   }}
                   // className={`form-control shadow-none bg-white`}
-                  className={`form-control shadow-none ${patient.center?._id === "694e565ed6e6dd32a39c9815" || (patient.center.title === "Gurgaon" && type !== "GENERAL") ? "disabled text-muted" : "bg-white"}`}
+                  className={`form-control shadow-none ${patient.center?._id === "694e565ed6e6dd32a39c9815" || (patient.center?.title === "Gurgaon" && type !== "GENERAL") ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>
@@ -163,9 +163,9 @@ const ChartDate = ({
                   value={chartDate || ""}
                   disabled={
                     type === "CLINICTEST" ||
-                      ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
-                        patient.center.title === "Gurgaon") &&
-                        type !== "GENERAL")
+                    ((patient.center?._id === "694e565ed6e6dd32a39c9815" ||
+                      patient.center?.title === "Gurgaon") &&
+                      type !== "GENERAL")
                       ? true
                       : false
                   }
@@ -187,7 +187,7 @@ const ChartDate = ({
                   }}
                   // className={`form-control shadow-none bg-white`}
                   className={`form-control shadow-none
-                    ${patient.center?._id === "694e565ed6e6dd32a39c9815" || (patient.center.title === "Gurgaon" && type !== "GENERAL") ? "disabled text-muted" : "bg-white"}`}
+                    ${patient.center?._id === "694e565ed6e6dd32a39c9815" || (patient.center?.title === "Gurgaon" && type !== "GENERAL") ? "disabled text-muted" : "bg-white"}`}
                   id="dateOfAdmission"
                 />
               </span>
@@ -236,9 +236,21 @@ const ChartDate = ({
               >
                 {(records || [])
                   .filter((item) => {
-                    // Round-note charts are auto-generated from Round Notes —
+                    // Round-note and medicine-given charts are auto-generated —
                     // never offered as a manually creatable chart type.
                     if (item.category === ROUND_NOTE) return false;
+                    if (item.category === MEDICINE_GIVEN) return false;
+                    const isGeriatric =
+                      String(patient?.addmission?.patientAdmissionType || "")
+                        .trim()
+                        .toLowerCase() === "geriatric";
+                    if (
+                      item.category === ELDERLY_FUNCTIONAL_CHECKLIST &&
+                      !isGeriatric
+                    ) {
+                      return false;
+                    }
+
                     if (user?.role === "NURSE") {
                       return ![
                         PRESCRIPTION,
@@ -251,6 +263,9 @@ const ChartDate = ({
                         item.category,
                       );
                     }
+                    if (["COUNSELLOR"].includes(user?.role)) {
+                      return ![PRESCRIPTION].includes(item.category);
+                    }
                     return true;
                   })
                   .map((item, idx) => {
@@ -258,15 +273,16 @@ const ChartDate = ({
                       <DropdownItem
                         disabled={
                           editChartData.data &&
-                            editChartData.data.chart !== item.category
+                          editChartData.data.chart !== item.category
                             ? true
                             : type === "GENERAL" &&
-                              (item.category === DISCHARGE_SUMMARY ||
-                                item.category === EXPIRY_SUMMARY ||
-                                item.category === OUTPASS ||
-                                // Admission type only means something for an
-                                // admitted patient.
-                                item.category === ADMISSION_TYPE)
+                                (item.category === DISCHARGE_SUMMARY ||
+                                  item.category === EXPIRY_SUMMARY ||
+                                  item.category === OUTPASS ||
+                                  // Admission type only means something for an
+                                  // admitted patient.
+                                  item.category === ADMISSION_TYPE ||
+                                  item.category === ELDERLY_FUNCTIONAL_CHECKLIST)
                               ? true
                               : !editChartData.data && isOnOutpass
                                 ? true

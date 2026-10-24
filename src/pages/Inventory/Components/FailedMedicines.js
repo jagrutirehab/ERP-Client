@@ -41,7 +41,6 @@ const FailedMedicines = ({ isOpen, hasPermission }) => {
                 setBatches(res?.data || []);
                 setPagination(res?.pagination || {});
             } catch (err) {
-                console.error(err);
                 toast.error("Failed to fetch failed batches.");
             } finally {
                 setLoading(false);
@@ -73,7 +72,6 @@ const FailedMedicines = ({ isOpen, hasPermission }) => {
 
             toast.success("Download completed. Data deleted permanently.");
         } catch (error) {
-            console.error(error);
             toast.error("Failed to download file.");
         } finally {
             setDownloading(null);

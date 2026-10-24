@@ -12,13 +12,12 @@ import {
   Spinner
 } from "reactstrap";
 import { Link } from "react-router-dom";
-import backgroundImg from "../../assets/images/404-error.png";
 import avatar from "../../assets/images/users/user-dummy-img.jpg";
 
 //redux
 import { connect, useDispatch } from "react-redux";
 import { fetchBillNotification, viewPatient } from "../../store/actions";
-import { addMonths, format } from "date-fns";
+import { format } from "date-fns";
 
 const Notification = ({ bill, userCenters, loading }) => {
   const dispatch = useDispatch();

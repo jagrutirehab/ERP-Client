@@ -8,8 +8,11 @@ export const permissionList = [
     key: "NURSE",
     label: "Nurse",
     subModules: [
-      { name: "TOMORROW_ACTIVITY", label: "Tomorrow's Activity" },
-      { name: "TODAY_MEDICINES", label: "Today's Medicines" },
+      {
+        name: "MEDICINE_BOX_FILLING_FOR_TOMORROW",
+        label: "Medicine Box Filling for Tomorrow (Fill Today)",
+      },
+      { name: "MEDICINE_GIVEN", label: "Medicine Given" },
     ],
   },
   {
@@ -58,6 +61,7 @@ export const permissionList = [
       { name: "PATIENTSBILLING", label: "Paitents Bill" },
       { name: "PATIENTCHARTS", label: "Paitents Chart" },
       { name: "ADDMISSIONSUMMARY", label: "Addmission Summary" },
+      { name: "INVOICEHISTORY", label: "Billing/Invoice Summary" },
     ],
   },
   {
@@ -163,6 +167,19 @@ export const permissionList = [
     ],
   },
   {
+    key: "POS_PAYMENTS",
+    label: "POS Payments",
+    subModules: [
+      { name: "POS_MONITOR", label: "View POS Payments" },
+      // Refunds move money back to the customer — kept separate so it can be
+      // granted to finance without giving it to every cashier.
+      { name: "POS_REFUND", label: "Refund POS Payments" },
+      // "Bill it" raises the bill for a charge the terminal already took.
+      // Separate from viewing, since it writes to the patient's billing.
+      { name: "POS_BILL", label: "Bill POS Payments" },
+    ],
+  },
+  {
     key: "REPORT",
     label: "Report",
     subModules: [
@@ -181,10 +198,15 @@ export const permissionList = [
     label: "Pharmacy",
     subModules: [
       { name: "DASHBOARD", label: "Dashboard" },
-      { name: "PHARMACYMANAGEMENT", label: "Pharmacy Management" },
+      {
+        name: "INVENTORY_HEALTH_REPORT",
+        label: "Inventory Health Report",
+      },
+      { name: "PHARMACYMANAGEMENT", label: "Inventory Management" },
       { name: "GIVENMEDICINES", label: "Given Medicine" },
       { name: "NURSEGIVENMEDICINES", label: "Nurse Given Medicine" },
       { name: "MEDICINEAPPROVAL", label: "Medicine Approval" },
+      { name: "MEDICINE_RETURN", label: "Medicine Return" },
       { name: "AUDIT", label: "Audit" },
       {
         name: "REQUISITION_INTERNAL_TRANSFER",
@@ -198,9 +220,32 @@ export const permissionList = [
         name: "REQUISITION_MEDICINE_REQUISITION",
         label: "Requisition: Medicine Requisition",
       },
+      {
+        name: "RAISE_MEDICINE_REQUISITION",
+        label: "Requisition: Raise Medicine Requisition",
+      },
       { name: "INVENTORY_STOCK_SUMMARY", label: "Inventory Stock Summary" },
+      {
+        name: "EXPIRED_MEDICINE_REMOVAL",
+        label: "Expired Medicine Removal",
+      },
       { name: "BILL_UPLOAD_DASHBOARD", label: "Bill Upload Dashboard" },
       { name: "SAREYAAN_INVENTORY", label: "Sareyaan Inventory" },
+      { name: "PHARMACY_ACTIVITY", label: "Activity" },
+    ],
+  },
+  {
+    key: "COMPLIANCE",
+    label: "Compliance",
+    subModules: [
+      { name: "OVERVIEW", label: "Overview" },
+      { name: "CENTRES", label: "Centres" },
+      { name: "REGISTER", label: "Register" },
+      { name: "COMPLIANCE_TYPES", label: "Compliance Types" },
+      { name: "CATEGORIES", label: "Categories" },
+      { name: "APPROVALS", label: "Approvals" },
+      { name: "MY_DRAFTS", label: "My Drafts" },
+      { name: "ALL_DRAFTS", label: "All Drafts" },
     ],
   },
   {
@@ -264,7 +309,84 @@ export const permissionList = [
   {
     key: "MIS_REPORTS",
     label: "MIS Reports",
-    subModules: [{ name: "MIS_REPORTS_PERMISSION", label: "View MIS Reports" }],
+    subModules: [
+      { name: "MIS_REPORTS_PERMISSION", label: "View MIS Reports" },
+      { name: "DASHBOARDS", label: "Dashboards Category" },
+      { name: "FINANCE_REVENUE", label: "Finance & Revenue Category" },
+      {
+        name: "OCCUPANCY_PATIENT_MANAGEMENT",
+        label: "Occupancy & Patient Management Category",
+      },
+      { name: "CLINICAL_OPERATIONS", label: "Clinical Operations Category" },
+      { name: "DOCTOR_COUNSELLING", label: "Doctor & Counselling Category" },
+      { name: "NURSING_OPERATIONS", label: "Nursing Operations Category" },
+      {
+        name: "DOCUMENTATION_COMPLIANCE",
+        label: "Documentation & Compliance Category",
+      },
+      { name: "QUALITY_INCIDENTS", label: "Quality & Incidents Category" },
+      { name: "HR_ATTENDANCE", label: "HR & Attendance Category" },
+
+      // Dashboards
+      { name: "DAILY_DASHBOARD", label: "Daily Dashboard" },
+      { name: "METRICS_REPORT", label: "Metrics Report" },
+
+      // Finance & Revenue
+      { name: "DAILY_INVOICES", label: "Daily Invoices" },
+      { name: "DUE_AMOUNT", label: "Due Amount" },
+      { name: "OPD_CHARGES", label: "OPD Charges" },
+      { name: "CASH_PER_CENTER", label: "Cash Per Center" },
+      { name: "REFUND_AMOUNT", label: "Refund Amount" },
+      { name: "WRITE_OFF_AMOUNT", label: "Write Off Amount" },
+      { name: "CENTRAL_EXPENSES", label: "Central Expenses" },
+      { name: "CASH_RECO_COMPLIANCE", label: "Cash Reco Compliance" },
+
+      // Occupancy & Patient Management
+      { name: "OCCUPANCY", label: "Occupancy" },
+      { name: "READMISSION", label: "Readmission" },
+
+      // Clinical Operations
+      { name: "VITAL_SIGNS", label: "Vital Signs" },
+      { name: "ROUND_NOTES", label: "Round Notes" },
+      { name: "CLINICAL_NOTES", label: "Clinical Notes" },
+
+      // Doctor & Counselling
+      {
+        name: "DOCTOR_PSYCHOLOGIST_STAY_RANGE",
+        label: "Doctor/Psychologist Stay Range",
+      },
+      { name: "COUNSELLING_SESSIONS_PATIENTS", label: "Counselling Patients" },
+      { name: "COUNSELLING_SESSIONS", label: "Counselling Sessions" },
+      { name: "COUNSELLING_RECORDING", label: "Counselling Recording" },
+      { name: "PATIENT_ASSIGNED_STATUS", label: "Patient Assigned Status" },
+      { name: "SUSPENDED_ASSIGNED", label: "Suspended Assigned" },
+
+      // Nursing Operations
+      { name: "NURSES_DOD", label: "Nurses DOD" },
+      { name: "NURSES_DASHBOARD_DOD", label: "Nurses Dashboard DOD" },
+
+      // Documentation & Compliance
+      { name: "PATIENT_DOCS", label: "IPD Patient Docs" },
+      { name: "OPD_PATIENT_DOCS", label: "OPD Patient Docs" },
+      { name: "DOCS_COMPLIANCE", label: "Docs Compliance" },
+      { name: "FORMS_DATA", label: "Forms Data" },
+
+      // Quality & Incidents
+      { name: "INCIDENT", label: "Incident" },
+
+      // HR & Attendance
+      { name: "ATTENDANCE", label: "Attendance" },
+      { name: "ATTRITION_DATA", label: "Attrition Data" },
+    ],
+  },
+  {
+    key: "MIS_MASTER",
+    label: "MIS Master",
+    subModules: [
+      { name: "REPORTS", label: "Reports" },
+      { name: "RUN_SCRIPTS", label: "Run Scripts" },
+      { name: "RUN_HISTORY", label: "Run History" },
+    ],
   },
   {
     key: "HR",
@@ -332,8 +454,16 @@ export const permissionList = [
         label: "My Hiring Status",
       },
       {
+        name: "NEW_JOINING_BIOMETRIC_MAPPING",
+        label: "New Joining Biometric Creation",
+      },
+      {
+        name: "NEW_JOINING_BIOMETRIC_REQUESTS",
+        label: "New Joining Biometric Requests",
+      },
+      {
         name: "BIOMETRIC_ADDITION_REQUEST",
-        label: "Add Biometric Addition Request",
+        label: "JRC Mapping with Biometric ID",
       },
       {
         name: "GET_BIOMETRIC_ADDITION_REQUESTS",
@@ -397,6 +527,14 @@ export const permissionList = [
       // Incentives
       { name: "INCENTIVES_ADD_REQUEST", label: "Incentives Add Request" },
       { name: "INCENTIVES_APPROVAL", label: "Incentives Approval" },
+      {
+        name: "PAYROLL_ADJUSTMENTS_ADD_REQUEST",
+        label: "Payroll Adjustments Add Request",
+      },
+      {
+        name: "PAYROLL_ADJUSTMENTS_APPROVAL",
+        label: "Payroll Adjustments Approval",
+      },
       // Salary
       { name: "SALARY", label: "Salary" },
       // My Pending Approvals
@@ -408,8 +546,11 @@ export const permissionList = [
       { name: "MY_SALARY_AND_FORMS", label: "My Salary And Forms" },
       { name: "UPLOAD_EMPLOYEE_FORM", label: "Upload Employee Form" },
       { name: "EMPLOYEE_FORMS", label: "Employee Forms" },
+      { name: "ESIC_UPLOAD", label: "ESIC Upload" },
+      { name: "ESIC_APPROVAL", label: "ESIC Approval" },
       // HR DASHBOARD
       { name: "LEAVE_BALANCE_DASHBOARD", label: "Leave Balance Dashboard" },
+      { name: "REPORTEES_LEAVE_BALANCE", label: "Reportees Leave Balance" },
       { name: "EMPLOYEE_DOCUMENTS", label: "Employee Documents" },
       { name: "REGULARIZATION_DASHBOARD", label: "Regularization Dashboard" },
       { name: "ALL_LEAVE_HISTORY", label: "All Leave History" },
@@ -506,6 +647,7 @@ export const permissionList = [
       { name: "TRAINING_HISTORY", label: "Training History" },
       { name: "CREATE_TRAINING_RECORD", label: "Create Trainer Record" },
       { name: "TRAINING_RECORDS", label: "Trainer Records" },
+      { name: "TRAINING_COMPLETION_NOTIFIER", label: "Training Completion Notifier" },
     ],
   },
   {
@@ -536,10 +678,60 @@ export const permissionList = [
       { name: "VENDOR", label: "Vendor" },
       { name: "ITEM_MASTER", label: "Item Master" },
       { name: "ITEM_TYPE", label: "Item Types" },
-      { name: "ITEM_CATEGORY", label: "Item Categories" },
       { name: "UOM", label: "Unit of Measurement" },
       { name: "PAYMENT_TERM", label: "Payment Terms" },
+      { name: "ASSET_CATEGORY", label: "Asset Categories" },
+      { name: "DEPARTMENT", label: "Departments" },
+      { name: "AUDIT_LOG", label: "Audit Logs" },
+      { name: "BUDGET", label: "Budget Management" },
+      { name: "PR", label: "Purchase Requisition" },
+      { name: "RFQ", label: "Request for Quotation" },
+      { name: "PO", label: "Purchase Order" },
+      { name: "CONTRACT", label: "Contract Management" },
+      { name: "DELIVERY_INTIMATION", label: "Delivery Intimation" },
+      { name: "GRN", label: "Goods Receipt Note" },
+      { name: "VENDOR_INVOICE", label: "Vendor Invoice" },
+      { name: "STORAGE_LOCATION", label: "Storage Location" },
+      { name: "PUTAWAY", label: "Putaway" },
+      { name: "STOCK", label: "Stock Management" },
+      { name: "MATERIAL_ISSUE", label: "Material Issues" },
+      { name: "MATERIAL_RETURN", label: "Material Returns" },
+      { name: "INVENTORY_TRANSFER", label: "Inventory Transfer" },
+      { name: "MOVE_ORDER", label: "Move Orders" },
+      { name: "CYCLE_COUNT", label: "Cycle Counts" },
+      { name: "STOCK_ADJUSTMENT", label: "Stock Adjustments" },
+      { name: "REORDER_RULE", label: "Reorder Rules" },
+      { name: "CAPITALIZATION_REQUEST", label: "Capitalization Requests" },
+      { name: "CWIP", label: "Capital Work in Progress" },
+      { name: "FIXED_ASSET", label: "Fixed Assets Register" },
+      { name: "ASSET_CAPITALIZATION", label: "Asset Capitalization" },
+      { name: "MAINTENANCE_REQUEST", label: "Maintenance Requests" },
+      { name: "WORK_ORDER", label: "Work Orders" },
+      { name: "ASSET_TRANSFER", label: "Asset Transfer" },
+      { name: "ASSET_WRITEOFF", label: "Asset Write-off / Sale" },
+      { name: "TASK_TEMPLATE", label: "Task Templates" },
+      { name: "PM_SCHEDULE", label: "PM Schedules" },
+      { name: "MAINTENANCE_JOB", label: "Maintenance Jobs" },
+      { name: "VERIFICATION_JOB", label: "Verification Jobs" },
+      { name: "PHYSICAL_VERIFICATION", label: "Physical Verifications" },
+      { name: "ASSET_TAG", label: "Create Tags" },
     ],
+  },
+  {
+    key: "GRIEVANCE",
+    label: "Grievances",
+    // READ  — see the queue and open a grievance
+    // WRITE — change status, assign, and record the action taken
+    //
+    // DELETE is deliberately not offered. A grievance record is the evidence
+    // that the 30-day window under SPDI Rule 5(9) was met; a role that can
+    // delete one can erase a missed deadline, so the option should not exist
+    // rather than merely be discouraged.
+    permissionOptions: ["READ", "WRITE", "NONE"],
+    // No submodules: a grievance is one workflow with one statutory clock, and
+    // splitting it would let a role close a grievance without being able to
+    // read the complaint it closes.
+    subModules: [],
   },
 ];
 

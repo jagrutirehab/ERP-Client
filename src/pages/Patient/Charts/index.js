@@ -21,6 +21,8 @@ import {
   INJURY_MARKS,
   ECT_SESSION,
   ADMISSION_TYPE,
+  MEDICINE_GIVEN,
+  ELDERLY_FUNCTIONAL_CHECKLIST,
 } from "../../../Components/constants/patient";
 
 //redux
@@ -54,9 +56,10 @@ import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
 import AdmissionType from "./AdmissionType";
+import MedicineGiven from "./MedicineGiven";
+import ElderlyFunctionalChecklist from "./ElderlyFunctionalChecklist";
 import { io } from "socket.io-client";
 import {
-  getCharts,
   getCarryForward,
   toggleCarryForward,
 } from "../../../helpers/backend_helper";
@@ -74,9 +77,17 @@ const Charts = ({
   setChartType,
   currentAddmissionId,
   isPatientDischarged,
+  chartForm,
+  isHistoryView,
 }) => {
   const dispatch = useDispatch();
-  const [, forceUpdate] = useState(0);
+  // The History tab's own list is already the one place that only ever
+  // holds DETAIL_ADMISSION charts, sorted newest-first by the backend — so
+  // the first Detail Admission entry here is exactly "the latest Detail
+  // History record" the Carry Forward feature is scoped to.
+  const latestHistoryDetailAdmissionId = isHistoryView
+    ? (charts || []).find((c) => c.chart === DETAIL_ADMISSION)?._id
+    : undefined;
   // Prescriptions the current user has staged for carry-forward, loaded from
   // the server rather than kept in redux — so the selection survives a page
   // reload and stays private to this user, instead of resetting on refresh
@@ -90,6 +101,19 @@ const Charts = ({
       .then((res) => setCarryForwardCharts(res?.payload || []))
       .catch(() => setCarryForwardCharts([]));
   }, [patientIdForCarryForward]);
+
+  const wasChartFormOpen = useRef(false);
+  useEffect(() => {
+    const isOpenNow = !!chartForm?.isOpen;
+    const justClosed = wasChartFormOpen.current && !isOpenNow;
+    wasChartFormOpen.current = isOpenNow;
+
+    if (justClosed && patientIdForCarryForward) {
+      getCarryForward(patientIdForCarryForward)
+        .then((res) => setCarryForwardCharts(res?.payload || []))
+        .catch(() => {});
+    }
+  }, [chartForm?.isOpen, patientIdForCarryForward]);
 
   const [chart, setChart] = useState({
     chart: null,
@@ -115,9 +139,7 @@ const Charts = ({
     addmissionRef.current = addmission;
   }, [addmission]);
 
-  // console.log("Admission ID:", addmissionRef.current._id);
   useEffect(() => {
-    console.log(" useEffect triggered");
 
     const SOCKET_BASE_URL = api.API_URL.replace("/api/v1", "");
 
@@ -128,16 +150,13 @@ const Charts = ({
     });
 
     socketRef.current.on("connect", () => {
-      console.log(" Socket connected:", socketRef.current.id);
       setSocketReady(true);
     });
 
     socketRef.current.on("connect_error", (err) => {
-      console.log(" Socket error:", err.message);
     });
 
     socketRef.current.on("audioProcessingDone", (data) => {
-      console.log(" Processing Done:", data);
 
       const isRelevant = chartsRef.current?.some(
         (c) =>
@@ -146,9 +165,6 @@ const Charts = ({
       );
 
       if (!isRelevant) {
-        console.log(
-          "Ignoring audioProcessingDone — not relevant to this admission",
-        );
         return;
       }
 
@@ -163,13 +179,12 @@ const Charts = ({
       socketRef.current?.off("audioProcessingDone");
       socketRef.current?.disconnect();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
     if (!socketReady || !socketRef.current) return;
     if (!charts?.length) return;
-
-    console.log("[AI] Registering onAny listener");
 
     const handler = (eventName, data) => {
       if (
@@ -189,10 +204,6 @@ const Charts = ({
       );
 
       if (!isRelevant) return;
-
-      console.log(`[AI] Socket received: ${eventName}`, data);
-      console.log("addmissionRef.current?._id", addmissionRef.current?._id);
-      console.log("Addmission ref", addmissionRef);
 
       setTimeout(() => {
         if (addmissionRef.current?._id) {
@@ -217,6 +228,7 @@ const Charts = ({
     return () => {
       socketRef.current?.offAny(handler);
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [socketReady, charts]);
 
   const editChart = (chart) => {
@@ -286,8 +298,6 @@ const Charts = ({
     );
   };
 
-  console.log("CHARTING", charts);
-
   const handleAddAdditionalDetails = (chart) => {
     setAdditionalDetailsModal({ isOpen: true, chart });
   };
@@ -315,6 +325,7 @@ const Charts = ({
         }),
       );
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [charts]);
 
   return (
@@ -323,18 +334,6 @@ const Charts = ({
         <div className="timeline-continue">
           <Row className="timeline-right">
             {(charts || []).map((chart) => {
-              console.log("chart.addmission:", String(chart.addmission));
-              console.log("currentAddmissionId:", String(currentAddmissionId));
-              console.log(
-                "match:",
-                String(chart.addmission) === String(currentAddmissionId),
-              );
-              // console.log("HISTORY CHART ITEM:", {
-              //   chartId: chart._id,
-              //   chartType: chart.chart,
-              //   addmission: chart.addmission,
-              //   patient: chart.patient,
-              // });
               return (
                 <Wrapper
                   key={chart._id}
@@ -367,6 +366,7 @@ const Charts = ({
                   // }
                   disableEdit={
                     chart.chart === ROUND_NOTE ||
+                    chart.chart === MEDICINE_GIVEN ||
                     (addmission?.dischargeDate ? true : false) ||
                     isPatientDischarged ||
                     (currentAddmissionId
@@ -375,6 +375,7 @@ const Charts = ({
                   }
                   disableDelete={
                     chart.chart === ROUND_NOTE ||
+                    chart.chart === MEDICINE_GIVEN ||
                     (addmission?.dischargeDate ? true : false) ||
                     isPatientDischarged
                   }
@@ -384,6 +385,13 @@ const Charts = ({
                   validatorId={chart?.validatorId}
                   doctorValidatorId={chart?.doctorValidatorId}
                   currentAddmissionId={currentAddmissionId}
+                  canCarryForward={
+                    isHistoryView &&
+                    chart._id === latestHistoryDetailAdmissionId &&
+                    !!chart.addmission &&
+                    !!currentAddmissionId &&
+                    String(chart.addmission) !== String(currentAddmissionId)
+                  }
                   hideEdit={
                     chart.chart === PRESCRIPTION &&
                     (String(chart.author?._id || chart.author) !==
@@ -392,8 +400,9 @@ const Charts = ({
                         1 * 60 * 60 * 1000)
                   }
                   extraOptions={(item) =>
+                    !isPatientDischarged &&
                     item?.chart === PRESCRIPTION &&
-                    item?.type === "IPD" &&
+                    ["IPD", "OPD", "GENERAL"].includes(item?.type) &&
                     (item?.prescription?.medicines || []).some(
                       (med) => med.status !== "discontinued",
                     ) ? (
@@ -486,6 +495,14 @@ const Charts = ({
                   {chart.chart === ADMISSION_TYPE && (
                     <AdmissionType data={chart.admissionType} />
                   )}
+                  {chart.chart === MEDICINE_GIVEN && (
+                    <MedicineGiven data={chart.nurseGivenMedicine} />
+                  )}
+                  {chart.chart === ELDERLY_FUNCTIONAL_CHECKLIST && (
+                    <ElderlyFunctionalChecklist
+                      data={chart.elderlyFunctionalChecklist}
+                    />
+                  )}
                 </Wrapper>
               );
             })}
@@ -513,6 +530,7 @@ Charts.propTypes = {
 
 const mapStateToProps = (state) => ({
   // charts: state.Chart.data,
+  chartForm: state.Chart.chartForm,
 });
 
 export default connect(mapStateToProps)(Charts);

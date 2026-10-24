@@ -46,7 +46,6 @@ const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
       }));
       setIcdOptions(options);
     } catch (error) {
-      console.log("Error fetching ICD codes", error);
     } finally {
       setLoadingCodes(false);
     }
@@ -63,8 +62,7 @@ const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
 
     setSubmitting(true);
     try {
-      const res = await addAdditionDetails(payload);
-      console.log("Response:", res);
+      await addAdditionDetails(payload);
       toast.success("Additional details added successfully");
       dispatch(
         fetchAdditionalDiagnosis({
@@ -76,7 +74,6 @@ const AdditionalDetailsModal = ({ isOpen, toggle, chart }) => {
       resetForm();
       toggle();
     } catch (error) {
-      console.log("Error:", error);
       toast.error(error?.response?.data?.message || "Something went wrong");
     } finally {
       setSubmitting(false);

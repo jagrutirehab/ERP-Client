@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { connect } from "react-redux";
 import { Button, ButtonGroup, Card, CardBody, Spinner, Input, Row, Col } from "reactstrap";
 import DataTable from "react-data-table-component";
-import Select from "react-select";
 import { toast } from "react-toastify";
 import moment from "moment";
 import { CheckCircle2, Circle, Clock } from "lucide-react";
@@ -21,13 +20,6 @@ import {
 const TO_GIVE_TAB = "TO_GIVE";
 const HISTORY_TAB = "HISTORY";
 
-const SLOT_WINDOW_LABEL = {
-  Morning: "6:00 AM – 11:30 AM",
-  Afternoon: "12:00 PM – 5:00 PM",
-  Evening: "5:00 PM – 11:00 PM",
-};
-
-const LIMIT_OPTIONS = [10, 20, 30, 40, 50].map((l) => ({ value: l, label: String(l) }));
 
 const emptyPagination = { totalDocs: 0, totalPages: 0 };
 
@@ -45,16 +37,17 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
   const [submitting, setSubmitting] = useState(false);
   const [submitProgress, setSubmitProgress] = useState(null);
   const [slot, setSlot] = useState(null);
+  const [slotWindowLabel, setSlotWindowLabel] = useState("");
   const [rows, setRows] = useState([]);
   const [message, setMessage] = useState("");
   const [selectedMap, setSelectedMap] = useState(new Map());
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [overallComment, setOverallComment] = useState("");
   const [individualComments, setIndividualComments] = useState(new Map());
-  const [selectingAll, setSelectingAll] = useState(false);
+  const [, setSelectingAll] = useState(false);
   const [selectAllWarningOpen, setSelectAllWarningOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(10);
+  const [limit] = useState(50);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [pagination, setPagination] = useState(emptyPagination);
@@ -106,6 +99,7 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
     activeTab,
     debouncedSearch,
     limit,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     JSON.stringify(selectedCentersIds),
     reportDate.start,
     reportDate.end,
@@ -137,6 +131,7 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
       .then((res) => {
         if (activeTab === TO_GIVE_TAB) {
           setSlot(res?.slot || null);
+          setSlotWindowLabel(res?.slotWindowLabel || "");
           setMessage(res?.message || "");
         }
         const data = res?.data || [];
@@ -160,6 +155,7 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
 
   useEffect(() => {
     setSelectedMap(new Map());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, JSON.stringify(selectedCentersIds)]);
 
   const toggleRowSelection = useCallback((row) => {
@@ -209,17 +205,6 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
     }
   };
 
-  const handleSelectAll = () => {
-    if (selectedRows.length) {
-      setSelectedMap(new Map());
-      return;
-    }
-    if (selectedCentersIds.length > 1) {
-      setSelectAllWarningOpen(true);
-      return;
-    }
-    runSelectAll();
-  };
 
   const closeConfirmModal = () => {
     if (submitting) return; // don't let it be dismissed mid-batch
@@ -329,13 +314,14 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
               <div className="d-inline-flex align-items-center gap-2 px-3 py-2 rounded-3 bg-primary-subtle border border-primary-subtle">
                 <Clock size={16} className="text-primary-emphasis flex-shrink-0" />
                 <span className="fw-semibold text-primary-emphasis">{slot}</span>
-                <span className="text-primary-emphasis opacity-75 small">{SLOT_WINDOW_LABEL[slot]}</span>
+                <span className="text-primary-emphasis opacity-75 small">{slotWindowLabel}</span>
               </div>
             ) : (
               <span className="text-muted small">{message || "No active medicine slot right now"}</span>
             ))}
         </div>
         <div className="d-flex flex-wrap align-items-center gap-2">
+          {/* Limit selector hidden — default limit fixed at 50 instead.
           <Select
             options={LIMIT_OPTIONS}
             value={LIMIT_OPTIONS.find((o) => o.value === limit)}
@@ -345,6 +331,7 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
             classNamePrefix="react-select"
             styles={{ container: (base) => ({ ...base, width: 90 }) }}
           />
+          */}
           <CenterDropdown
             options={centerOptions}
             value={selectedCentersIds}
@@ -368,6 +355,7 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
           <span className="text-muted small">
             {selectedRows.length > 0 ? `${selectedRows.length} selected` : "Select one or more patients"}
           </span>
+          {/* Select All / Unselect All hidden.
           <Button
             color="secondary"
             outline
@@ -377,9 +365,10 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
           >
             {selectingAll ? <Spinner size="sm" /> : selectedRows.length ? "Unselect All" : "Select All"}
           </Button>
+          */}
           <Button
             color="success"
-            className="text-white"
+            className="text-white ms-auto"
             disabled={!selectedRows.length}
             onClick={() => setConfirmModalOpen(true)}
           >
@@ -417,10 +406,29 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
                           "&:hover": { backgroundColor: "rgba(220, 53, 69, 0.45)" },
                         },
                       },
+                      {
+                        when: (row) => row.dosageChangedSinceMorningCheck && !row.changedSinceMorningCheck,
+                        style: {
+                          backgroundColor: "rgba(255, 193, 7, 0.35)",
+                          "&:hover": { backgroundColor: "rgba(255, 193, 7, 0.45)" },
+                        },
+                      },
                     ]
                   : []
               }
             />
+          )}
+          {activeTab === TO_GIVE_TAB && !loading && rows.length > 0 && (
+            <div className="d-flex flex-wrap gap-3 mt-2 small text-muted">
+              <span className="d-flex align-items-center gap-1">
+                <span style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: "rgba(220, 53, 69, 0.6)", display: "inline-block" }} />
+                Due at this morning's check, not due any more — can't be marked
+              </span>
+              <span className="d-flex align-items-center gap-1">
+                <span style={{ width: 12, height: 12, borderRadius: 3, backgroundColor: "rgba(255, 193, 7, 0.7)", display: "inline-block" }} />
+                Still due, but the dose changed since this morning — verify the amount
+              </span>
+            </div>
           )}
           {!loading && pagination.totalPages > 1 && (
             <>
@@ -469,6 +477,22 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
           )}
         </CardBody>
       </Card>
+
+      {activeTab === TO_GIVE_TAB && writable && (
+        <div className="d-flex flex-wrap align-items-center gap-2 mt-2">
+          <span className="text-muted small">
+            {selectedRows.length > 0 ? `${selectedRows.length} selected` : "Select one or more patients"}
+          </span>
+          <Button
+            color="success"
+            className="text-white ms-auto"
+            disabled={!selectedRows.length}
+            onClick={() => setConfirmModalOpen(true)}
+          >
+            Submit
+          </Button>
+        </div>
+      )}
 
       <ConfirmationModal
         isOpen={selectAllWarningOpen}

@@ -86,12 +86,6 @@ const DischargeEmergencyTransfer = ({
     setToday(new Date().toISOString().split("T")[0]);
   }, []);
 
-  const latestPrescription = admissions?.charts
-    ?.filter((c) => c.chart === "PRESCRIPTION")
-    ?.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))?.[0];
-
-  console.log("latestPrescription", latestPrescription?.prescription);
-
   useEffect(() => {
     if (!patient?._id) return;
 
@@ -122,7 +116,8 @@ const DischargeEmergencyTransfer = ({
           );
         });
       })
-      .catch((err) => console.error("Failed to fetch current medicines", err));
+      .catch((err) => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient?._id]);
 
   return (

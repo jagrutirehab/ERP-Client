@@ -3,10 +3,30 @@ import "react-perfect-scrollbar/dist/css/styles.css";
 import { Link, useLocation } from "react-router-dom";
 import PerfectScrollbar from "react-perfect-scrollbar";
 import { MASTER_DATA } from "../../Components/constants/pages";
+import { usePermissions } from "../../Components/Hooks/useRoles.js";
 
 const Sidebar = () => {
   const location = useLocation();
   const [openSection, setOpenSection] = useState("");
+  const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
+  const { hasPermission } = usePermissions(token);
+
+  // A page with no permissionModule is always visible (e.g. dividers, dashboards).
+  // Otherwise it only shows if the user has at least READ on that module.
+  const canSeePage = (page) =>
+    !page.permissionModule || hasPermission("MASTERDATA", page.permissionModule, "READ");
+
+  const visibleMasterData = (MASTER_DATA || [])
+    .filter(canSeePage)
+    .map((page) => {
+      if (!page.children) return page;
+      const visibleChildren = page.children.filter(
+        (child) => child.isDivider || canSeePage(child),
+      );
+      return { ...page, children: visibleChildren };
+    })
+    // Hide an accordion group entirely if every one of its children got filtered out
+    .filter((page) => !page.children || page.children.some((c) => !c.isDivider));
 
   const toggleSection = (id) => {
     setOpenSection((prev) => (prev === id ? "" : id));
@@ -48,7 +68,7 @@ const Sidebar = () => {
             className="list-unstyled chat-list chat-user-list users-list"
             id="vendor-sidebar-user-list"
           >
-            {(MASTER_DATA || []).map((page) => {
+            {visibleMasterData.map((page) => {
               const children = page.children || [];
               const hasChildren = page.isAccordion && children.length > 0;
 
@@ -119,27 +139,58 @@ const Sidebar = () => {
 
                   {isOpen && (
                     <ul className="list-unstyled ps-4">
-                      {children.map((child) => (
-                        <li
-                          key={child.id || child.link}
-                          className={
-                            child.link && location.pathname.startsWith(child.link)
-                              ? "active mb-1"
-                              : "mb-1"
-                          }
-                        >
-                          <Link className="d-flex align-items-center py-2" to={child.link}>
-                            <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
-                              <div className="avatar-xxs">
-                                <i className={(child.icon || page.icon) + " fs-5"}></i>
+                      {children.map((child) => {
+                        if (child.isDivider) {
+                          return (
+                            <li
+                              key={child.id}
+                              style={{
+                                padding: "8px 8px 4px",
+                                fontSize: "11px",
+                                fontWeight: 600,
+                                color: "#9ca3af",
+                                textTransform: "uppercase",
+                                letterSpacing: "0.05em",
+                                borderTop: "1px solid #eee",
+                                marginTop: "6px",
+                              }}
+                            >
+                              {child.label}
+                            </li>
+                          );
+                        }
+                        return (
+                          <li
+                            key={child.id || child.link}
+                            className={
+                              child.link && location.pathname.startsWith(child.link)
+                                ? "active mb-1"
+                                : "mb-1"
+                            }
+                          >
+                            <Link
+                              className="d-flex align-items-center py-2"
+                              to={child.link}
+                            >
+                              {child.icon ? (
+                                <div className="flex-shrink-0 chat-user-img online align-self-center me-2 ms-0">
+                                  <div className="avatar-xxs">
+                                    <i className={child.icon + " fs-5"}></i>
+                                  </div>
+                                </div>
+                              ) : null}
+                              <div className="flex-grow-1 overflow-hidden">
+                                <p
+                                  className="text-truncate font-semi-bold fs-14 mb-0"
+                                  style={!child.icon ? { paddingLeft: "4px" } : undefined}
+                                >
+                                  {child.label || ""}
+                                </p>
                               </div>
-                            </div>
-                            <p className="text-truncate font-semi-bold fs-14 mb-0">
-                              {child.label || ""}
-                            </p>
-                          </Link>
-                        </li>
-                      ))}
+                            </Link>
+                          </li>
+                        );
+                      })}
                     </ul>
                   )}
                 </li>

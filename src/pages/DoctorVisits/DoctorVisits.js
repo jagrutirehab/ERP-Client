@@ -5,7 +5,6 @@ import Basic404 from "../AuthenticationInner/Errors/Basic404";
 import { toast } from "react-toastify";
 import { useSearchParams } from "react-router-dom";
 import {
-  Card,
   Spinner,
   Alert,
   Input,
@@ -22,7 +21,6 @@ import {
 import {
   getDoctorDirectory,
   getDoctorVisitHistory,
-  exportDoctorDirectory,
   exportDoctorVisitHistory,
 } from "../../helpers/backend_helper";
 
@@ -71,7 +69,6 @@ const DoctorVisits = () => {
   const [visits, setVisits] = useState([]);
   const [detailLoading, setDetailLoading] = useState(false);
   const [detailError, setDetailError] = useState(null);
-  const [isExporting, setIsExporting] = useState(false);
   const [isExportingHistory, setIsExportingHistory] = useState(false);
 
   const [activeImage, setActiveImage] = useState(null);
@@ -100,6 +97,7 @@ const DoctorVisits = () => {
         }
       })
       .finally(() => setListLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -133,6 +131,7 @@ const DoctorVisits = () => {
         }
       })
       .finally(() => setDetailLoading(false));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDoctor]);
 
   // Auto-scroll to the detail column on mobile/tablet stacked layouts,
@@ -152,29 +151,6 @@ const DoctorVisits = () => {
     setSearchParams({ doctor: d.name, clinic: d.clinicName });
   };
 
-  const handleExportDirectory = async () => {
-    setIsExporting(true);
-    try {
-      const res = await exportDoctorDirectory();
-      const blob = new Blob([res.data], {
-        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-      });
-      const downloadUrl = window.URL.createObjectURL(blob);
-      const link = document.createElement("a");
-      link.href = downloadUrl;
-      link.download = `Doctor-Directory-${new Date().toISOString().slice(0, 10)}.xlsx`;
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      window.URL.revokeObjectURL(downloadUrl);
-    } catch (err) {
-      if (!handleAuthError(err)) {
-        toast.error(err?.response?.data?.message || "Failed to export report");
-      }
-    } finally {
-      setIsExporting(false);
-    }
-  };
   const handleExportHistory = async () => {
     if (!selectedDoctor) return;
     setIsExportingHistory(true);
@@ -1012,7 +988,7 @@ const DoctorVisits = () => {
                                           <div>
                                             <img
                                               src={v.clinicPhoto.url}
-                                              alt="Clinic Photo"
+                                              alt="Clinic"
                                               className="dv-img-thumbnail"
                                               onClick={() =>
                                                 setActiveImage(

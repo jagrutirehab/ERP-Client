@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { Row, Col, Badge } from "reactstrap";
+import { Row } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
 import GeneralCard from "../../Patient/Views/Components/GeneralCard";
 import Placeholder from "../../Patient/Views/Components/Placeholder";
@@ -36,6 +36,7 @@ const Overview = ({
     if (id !== profile?._id) {
       fetchPatientOverview();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, id]);
 
   const highlightSeverity = (text) => {
@@ -110,6 +111,11 @@ const Overview = ({
               </div>
               <div className="col-md-9">
                 <div style={{ marginTop: "1rem", marginLeft: "1rem" }}>
+                  {profile?.finalDiagnosis && (
+                    <p className="text-muted mb-3">
+                      <strong>Final Diagnosis:</strong> {profile.finalDiagnosis}
+                    </p>
+                  )}
                   <h5 className="mb-2">Vital Signs</h5>
                   {loading ? (
                     <Placeholder />

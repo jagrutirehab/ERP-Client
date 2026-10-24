@@ -219,6 +219,10 @@ export const renderStatusBadge = (stage) => {
       text: "Incentive",
       color: "success",
     },
+    PAYROLL_ADJUSTMENT: {
+      text: "Payroll Adjustment",
+      color: "info",
+    },
     NEW_JOINING: {
       text: "New Joining",
       color: "secondary",
@@ -307,7 +311,15 @@ export const renderStatusBadge = (stage) => {
       text: "Leave Without Pay - Half Day Present",
       color: "warning"
     },
-    
+    PARTIALLY_APPROVED: {
+      text: "Partially Approved",
+      color: "warning"
+    },
+    PARTIALLY_PENDING: {
+      text: "Partially Pending",
+      color: "info"
+    },
+
 };
 
 const config = map[stage];

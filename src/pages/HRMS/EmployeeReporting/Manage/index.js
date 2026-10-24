@@ -112,6 +112,7 @@ const ManageEmployeeReportings = () => {
     useEffect(() => {
         if (!hasUserPermission) return;
         fetchEmployeeReportings();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         page,
         limit,

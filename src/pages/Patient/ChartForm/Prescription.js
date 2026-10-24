@@ -1,3 +1,4 @@
+import referredByName from "../../../utils/referredByName";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   Form,
@@ -7,7 +8,6 @@ import {
   CardBody,
   Input,
   Button,
-  FormFeedback,
   Label,
   CardHeader,
   Spinner,
@@ -31,6 +31,7 @@ import {
   COUNSELLING_NOTE,
   DETAIL_ADMISSION,
   DISCHARGE_SUMMARY,
+  GENERAL,
   IPD,
   LAB_REPORT,
   OPD,
@@ -51,7 +52,6 @@ import {
   createEditChart,
   fetchOPDPrescription,
   setPtLatestOPDPrescription,
-  toggleAppointmentForm,
   updatePrescription,
 } from "../../../store/actions";
 import Wrapper from "../Components/Wrapper";
@@ -64,7 +64,6 @@ import LabReport from "../Charts/LabReport";
 import DetailAdmission from "../Charts/DetailAdmission";
 import PrescriptionChart from "../Charts/Prescription";
 import { Link } from "react-router-dom";
-import axios from "axios";
 import { toast } from "react-toastify";
 import {
   getICDCodes,
@@ -204,7 +203,6 @@ const Prescription = ({
 }) => {
   const dispatch = useDispatch();
   const [medicines, setMedicines] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [allICDCodes, setAllICDCodes] = useState([]);
   const [icdOptions, setIcdOptions] = useState([]);
   // Previous IPD prescription, used to prefill the clinical notes on a new
@@ -217,7 +215,6 @@ const Prescription = ({
   // shows a loader while its request is in flight.
   const [togglingCarryForwardId, setTogglingCarryForwardId] = useState(null);
   const [opdLatestCharts, setOpdLatestCharts] = useState([]);
-  const icd2Initialized = React.useRef(false);
 
   const editPrescription = editChartData?.prescription;
   const ptLatestOPDPrescription = patientLatestOPDPrescription?.prescription;
@@ -252,7 +249,10 @@ const Prescription = ({
         (chart?.prescription?.medicines || [])
           .filter((med) => med.status !== "discontinued")
           .forEach((med) => {
-            byDrug.set(drugKey(med.medicine), med);
+            byDrug.set(drugKey(med.medicine), {
+              ...med,
+              _carryForwardChartId: chart._id,
+            });
           });
       });
 
@@ -261,78 +261,51 @@ const Prescription = ({
 
   const isCarryForwardMode = !isEditMode && carryForwardMedicines.length > 0;
 
+  const latestChartsForDisplay = React.useMemo(() => {
+    const byId = new Map();
+    [...(charts || []), ...(opdLatestCharts || [])].forEach((c) => {
+      if (c?._id) byId.set(String(c._id), c);
+    });
+    return Array.from(byId.values()).sort(
+      (a, b) => new Date(b.date || b.createdAt) - new Date(a.date || a.createdAt),
+    );
+  }, [charts, opdLatestCharts]);
 
-  const mergedCarryForwardChartIds = React.useRef(new Set());
 
   useEffect(() => {
     if (isIPD || isEditMode) return;
 
-    const currentIds = new Set(
-      (carryForwardCharts || []).map((c) => String(c._id)),
-    );
-    const prevIds = mergedCarryForwardChartIds.current;
+    setMedicines((prevMeds) => {
+      const handAdded = prevMeds.filter((m) => !m.carriedFromChartId);
+      if (!carryForwardMedicines.length) return handAdded;
 
-    const newlyStaged = [...currentIds].filter((id) => !prevIds.has(id));
-    const newlyUnstaged = [...prevIds].filter((id) => !currentIds.has(id));
-
-    if (newlyStaged.length || newlyUnstaged.length) {
-      setMedicines((prevMeds) => {
-        let next = newlyUnstaged.length
-          ? prevMeds.filter(
-            (m) => !newlyUnstaged.includes(String(m.carriedFromChartId)),
-          )
-          : prevMeds;
-
-        if (newlyStaged.length) {
-          const existingNames = new Set(
-            next
-              .map((m) => m.medicine?.name?.toLowerCase().trim())
-              .filter(Boolean),
-          );
-          const startDate = defaultStartDate(chartDate);
-          const additions = [];
-
-          newlyStaged.forEach((chartId) => {
-            const stagedChart = (carryForwardCharts || []).find(
-              (c) => String(c._id) === chartId,
-            );
-            (stagedChart?.prescription?.medicines || [])
-              .filter((m) => m.status !== "discontinued" && m?.medicine?.name)
-              .forEach((entry) => {
-                const key = entry.medicine.name.toLowerCase().trim();
-                if (existingNames.has(key)) return;
-                existingNames.add(key);
-
-                const {
-                  _id,
-                  prescribedBy,
-                  prescribedByUser,
-                  discontinuedAt,
-                  discontinuedBy,
-                  startDate: sourceStartDate,
-                  endDate: sourceEndDate,
-                  ...medicineFields
-                } = entry;
-                additions.push({
-                  ..._.cloneDeep(medicineFields),
-                  prescribedBy: currentUserId,
-                  startDate,
-                  endDate: getMedicineEndDate(startDate, medicineFields),
-                  status: "active",
-                  carriedFromChartId: chartId,
-                });
-              });
-          });
-
-          next = [...additions, ...next];
-        }
-
-        return next;
+      const startDate = defaultStartDate(chartDate);
+      const carried = carryForwardMedicines.map((entry) => {
+        const {
+          _id,
+          prescribedBy,
+          prescribedByUser,
+          discontinuedAt,
+          discontinuedBy,
+          startDate: sourceStartDate,
+          endDate: sourceEndDate,
+          _carryForwardChartId,
+          ...medicineFields
+        } = entry;
+        return {
+          ..._.cloneDeep(medicineFields),
+          prescribedBy: currentUserId,
+          startDate,
+          endDate: getMedicineEndDate(startDate, medicineFields),
+          status: "active",
+          carriedFromChartId: _carryForwardChartId,
+        };
       });
-    }
 
-    mergedCarryForwardChartIds.current = currentIds;
-  }, [carryForwardCharts, isIPD, isEditMode, chartDate]);
+      return [...carried, ...handAdded];
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [carryForwardMedicines, isIPD, isEditMode, chartDate]);
 
   // Clinical text comes from the chart being edited, the previous OPD visit
   // (OPD populate mode), or — on a new IPD chart — the patient's previous IPD
@@ -345,13 +318,6 @@ const Prescription = ({
         ? lastIpdPrescription
         : null;
 
-  // console.log(patient.referredBy, "this is patient")
-
-  console.log("------------------");
-  console.log({ patient, type });
-  console.log("------------------");
-
-  console.log("type", type);
   useEffect(() => {
     if (!isIPD && populatePreviousAppointment)
       dispatch(
@@ -360,7 +326,7 @@ const Prescription = ({
   }, [dispatch, appointment, populatePreviousAppointment, isIPD, patient._id]);
 
   useEffect(() => {
-    if (isIPD || !opdPatientId) {
+    if (!opdPatientId) {
       setOpdLatestCharts([]);
       return;
     }
@@ -370,7 +336,7 @@ const Prescription = ({
       patient: opdPatientId,
       limit: 5,
       chartType: PRESCRIPTION,
-      type: OPD,
+      carryForwardScope: true,
     })
       .then((res) => {
         if (!cancelled) setOpdLatestCharts(res?.payload || []);
@@ -382,7 +348,7 @@ const Prescription = ({
     return () => {
       cancelled = true;
     };
-  }, [isIPD, opdPatientId]);
+  }, [opdPatientId]);
 
   useEffect(() => {
     if (!isIPD || isEditMode || !patient?._id) return;
@@ -453,7 +419,7 @@ const Prescription = ({
       //     : "",
       notes: sourcePrescription?.notes || "",
       followUp: sourcePrescription?.followUp || "",
-      referredby: patient.referredBy?.doctorName || patient.referredBy || "",
+      referredby: referredByName(patient.referredBy) || patient.referredBy || "",
       // editPrescription
       //   ? editPrescription.referredby
       //   : ptLatestOPDPrescription
@@ -492,8 +458,7 @@ const Prescription = ({
           },
         ),
     }),
-    onSubmit: (values) => {
-      console.log("values", values);
+    onSubmit: async (values) => {
       const formattedICD2 = Array.isArray(values.icdCode2)
         ? values.icdCode2.map((item) => ({
           code_id: item?.value,
@@ -503,35 +468,28 @@ const Prescription = ({
       const medicinesForSave = medicines.map(
         ({ carriedFromChartId, ...m }) => m,
       );
-      if (editPrescription) {
-        dispatch(
-          updatePrescription({
-            id: editChartData._id,
-            chartId: editPrescription._id,
-            doctor,
-            medicines: medicinesForSave,
-            appointment: appointment?._id,
-            ...values,
-            shouldPrintAfterSave,
-            icdCode: values.icdCode?.value || null,
-            icdCode2: formattedICD2,
-          }),
-        );
-      } else if (type === "GENERAL") {
-        dispatch(
-          addGeneralPrescription({
-            ...values,
-            drNotes: cleanDrNotesForSave(values.drNotes),
-            medicines: medicinesForSave,
-            icdCode: values.icdCode?.value || null,
-            icdCode2: formattedICD2,
-          }),
-        );
-      } else {
-        console.log({ values });
 
-        dispatch(
-          addPrescription({
+      const saveAction = editPrescription
+        ? updatePrescription({
+          id: editChartData._id,
+          chartId: editPrescription._id,
+          doctor,
+          medicines: medicinesForSave,
+          appointment: appointment?._id,
+          ...values,
+          shouldPrintAfterSave,
+          icdCode: values.icdCode?.value || null,
+          icdCode2: formattedICD2,
+        })
+        : type === "GENERAL"
+          ? addGeneralPrescription({
+            ...values,
+            drNotes: cleanDrNotesForSave(values.drNotes),
+            medicines: medicinesForSave,
+            icdCode: values.icdCode?.value || null,
+            icdCode2: formattedICD2,
+          })
+          : addPrescription({
             ...values,
             drNotes: cleanDrNotesForSave(values.drNotes),
             appointment: appointment?._id,
@@ -539,9 +497,19 @@ const Prescription = ({
             shouldPrintAfterSave,
             icdCode: values.icdCode?.value || null,
             icdCode2: formattedICD2,
-          }),
-        );
+          });
+
+      try {
+        await dispatch(saveAction).unwrap();
+      } catch (error) {
+        // Save rejected (e.g. duration/date mismatch caught server-side) -
+        // the thunk already surfaced the error via setAlert. Leave the
+        // carry-forward staging and form state untouched so the doctor can
+        // fix the offending field and resubmit, instead of losing their
+        // carried-forward selections on a failed save.
+        return;
       }
+
       // closeForm();
       dispatch(setPtLatestOPDPrescription(null));
       // Staged carry-forward prescriptions have been consumed by this save.
@@ -705,6 +673,7 @@ const Prescription = ({
       setMedicines([]);
       dispatch(setPtLatestOPDPrescription(null));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEditMode, isCarryForwardMode, isPopulateMode]);
 
   const closeForm = () => {
@@ -757,7 +726,6 @@ const Prescription = ({
         startDate,
         endDate: getMedicineEndDate(startDate, { duration: "30", unit: "Day (s)" }),
       };
-      // console.log(medicine);
 
       setMedicines((prevMeds) => [medicine, ...prevMeds]);
     }
@@ -834,6 +802,7 @@ const Prescription = ({
         />
       </Col>
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [drugs, medicines]);
 
   const medicineTable = useMemo(() => {
@@ -844,17 +813,16 @@ const Prescription = ({
             medicines={medicines}
             setMedicines={setMedicines}
             showDates
+            centerId={center ? center : patient?.center?._id}
           />
         </Col>
       )
     );
-  }, [medicines]);
+  }, [medicines, center, patient?.center?._id]);
 
   useEffect(() => {
     const fetchICD = async () => {
       const res = await getICDCodes();
-
-      console.log("res", res);
 
       const options = res?.map((item) => ({
         label: `${item?.code} - ${item.text}`,
@@ -912,7 +880,7 @@ const Prescription = ({
   useEffect(() => {
     if (!allICDCodes.length) return;
 
-    if (!sourcePrescription?.icdCode2?.length) {
+    if (!Array.isArray(sourcePrescription?.icdCode2) || !sourcePrescription.icdCode2.length) {
       validation.setFieldValue("icdCode2", []);
       return;
     }
@@ -924,6 +892,7 @@ const Prescription = ({
       .filter(Boolean);
 
     validation.setFieldValue("icdCode2", selected);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [allICDCodes, sourcePrescription]);
 
   return (
@@ -1223,14 +1192,20 @@ const Prescription = ({
               </Button>
             </CardHeader>
             <CardBody>
-              {/* OPD only wants its last 5 prescriptions here; IPD keeps
-                  showing whatever mixed chart kinds it already did (notes,
-                  vitals, discharge summaries, etc — handled below). */}
-              {(isIPD ? charts || [] : opdLatestCharts)
+              {(isIPD ? latestChartsForDisplay : opdLatestCharts)
                 .filter((chart) => isIPD || chart.chart === PRESCRIPTION)
                 .slice(0, 5)
                 .map((chart, idx) => (
                   <div className="mb-4" key={chart._id}>
+                    {(chart.type === OPD || chart.type === IPD || chart.type === GENERAL) && (
+                      <span
+                        className={`badge mb-1 ${
+                          chart.type === IPD ? "bg-primary" : "bg-success"
+                        }`}
+                      >
+                        {chart.type === GENERAL ? OPD : chart.type}
+                      </span>
+                    )}
                     <Wrapper
                       hideDropDown
                       item={chart}

@@ -182,7 +182,6 @@ import { usePermissions } from "../../../../Components/Hooks/useRoles";
 //       setSubmissionSuccess(true);
 //       toast.success("Medicines marked successfully!");
 //     } catch (error) {
-//       console.error(error);
 //       toast.error("Failed to mark medicines. Please try again.");
 //     } finally {
 //       setIsSubmitting(false);
@@ -406,11 +405,13 @@ const ActivityMedicineForm = ({
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
-  const writable = hasPermission("NURSE", "TOMORROW_ACTIVITY", "WRITE");
+  const writable = hasPermission("NURSE", "MEDICINE_BOX_FILLING_FOR_TOMORROW", "WRITE");
 
   const toggleModal = () => setModalOpen(!modalOpen);
 
-  const tomorrowDate = moment().add(1, "days").format("MMMM D, YYYY");
+  const tomorrowDate = medicineBoxFillingActivities?.date
+    ? moment(medicineBoxFillingActivities.date).format("MMMM D, YYYY")
+    : moment().add(1, "days").format("MMMM D, YYYY");
 
   if (
     !medicineLoading &&

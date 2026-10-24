@@ -8,6 +8,7 @@ const DischargeInterFacility = ({
   admissions,
   chartData,
   setValue,
+  finalDiagnosis,
 }) => {
   const pageContainer = {
     margin: "0 auto",
@@ -116,7 +117,8 @@ const DischargeInterFacility = ({
           );
         });
       })
-      .catch((err) => console.error("Failed to fetch current medicines", err));
+      .catch((err) => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient?._id]);
 
   return (
@@ -450,13 +452,7 @@ const DischargeInterFacility = ({
         <span>Primary Diagnosis (ICD-10):</span>
         <input
           type="text"
-          value={
-            patient?.addmission?.provisional_diagnosis?.length
-              ? patient.addmission?.provisional_diagnosis
-                  .map((d) => d.code)
-                  .join(", ")
-              : ""
-          }
+          defaultValue={finalDiagnosis || ""}
           {...register("ift_primaryDiagnosis")}
           style={{ ...inputLine, maxWidth: "280px" }}
         />

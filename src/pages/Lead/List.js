@@ -10,11 +10,15 @@ import {
   UncontrolledTooltip,
 } from "reactstrap";
 import Highlighter from "react-highlight-words";
-import { differenceInYears, format } from "date-fns";
+import { format } from "date-fns";
 import { createEditLead, togglePatientForm } from "../../store/actions";
 import { useDispatch } from "react-redux";
 import RenderWhen from "../../Components/Common/RenderWhen";
 import Portal from "../../Components/Common/Portal";
+import {
+  REFERRAL_DOCTOR_TYPES,
+  referralSourceLabel,
+} from "../../Components/constants/referralSources";
 
 const List = ({
   leads,
@@ -226,12 +230,33 @@ const List = ({
                       className="border border-top-2 border-bottom-2 p-1"
                       xs={1}
                     >
-                      <Highlighter
-                        // highlightClassName="bg-warning"
-                        searchWords={[leadQuery]}
-                        autoEscape={true}
-                        textToHighlight={lead.refferedBy}
-                      />
+                      {(() => {
+                        // Doctor / Psychiatrist / Online / Other: just the typed
+                        // name, same as on the patient. Sources: "Source - detail".
+                        const isDoctorType = REFERRAL_DOCTOR_TYPES.includes(
+                          lead.referralSource
+                        );
+                        const source = isDoctorType
+                          ? ""
+                          : referralSourceLabel(lead.referralSource);
+                        const text = lead.refferedBy || "";
+                        const full =
+                          !source ||
+                          text === source ||
+                          text.startsWith(`${source} - `)
+                            ? text || source
+                            : text
+                              ? `${source} - ${text}`
+                              : source;
+                        return (
+                          <Highlighter
+                            // highlightClassName="bg-warning"
+                            searchWords={[leadQuery]}
+                            autoEscape={true}
+                            textToHighlight={full}
+                          />
+                        );
+                      })()}
                     </Col>
                     <Col
                       className="border border-top-2 border-bottom-2 p-1"

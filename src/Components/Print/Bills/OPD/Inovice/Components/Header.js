@@ -46,7 +46,6 @@ const styles = StyleSheet.create({
 
 const border = "1px solid #000";
 const Header = ({ bill, center, patient }) => {
-  console.log("TRIGGERED",bill);
   
   //   const age = () => moment(patient?.dateOfBirth).fromNow(true);
   return (

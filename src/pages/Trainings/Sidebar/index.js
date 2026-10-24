@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import PerfectScrollbar from "react-perfect-scrollbar";
-import { SOP_CONFIGS, TRAININGS } from "../../../Components/constants/pages";
+import { TRAININGS } from "../../../Components/constants/pages";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
 
@@ -105,6 +105,7 @@ const Trainingsidebar = () => {
                 setOpenSection(page.id);
             }
         });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [location.pathname]);
 
 

@@ -92,19 +92,21 @@ const CounsellingSessionsPatients = () => {
     const labels = [
         "Patient UID",
         "Patient Name",
-        "MTD",
+        "Actual",
+        "Should Be",
         "Center Name",
         "Ad. Date",
         "Psychologist Name",
         "Last Outpass",
     ];
 
-    const fixedColWidths = [80, 130, 55, 90, 90, 60];
+    const fixedColWidths = [80, 130, 60, 70, 90, 90, 60];
 
     const labelsMapping = {
         "Patient UID": "patient_id",
         "Patient Name": "patient_name",
-        "MTD": "current_month_total",
+        "Actual": "result_count",
+        "Should Be": "should_be_count",
         "Center Name": "center_name",
         "Ad. Date": "admission_date",
         "Psychologist Name": "psychologist_name",
@@ -361,19 +363,23 @@ const CounsellingSessionsPatients = () => {
                                                                             : patient[labelsMapping[label]]}
                                                                 </td>
                                                             ))}
-                                                            {weeks.map((week) => (
-                                                                <td
-                                                                    key={week}
-                                                                    className="text-center px-1 py-1"
-                                                                    style={{
-                                                                        border: "1px solid #d6dde8",
-                                                                        background: idx % 2 === 0 ? "#f8fafc" : "#fff",
-                                                                        whiteSpace: "nowrap",
-                                                                    }}
-                                                                >
-                                                                    {patient?.wow_data?.[week] ?? 0}
-                                                                </td>
-                                                            ))}
+                                                            {weeks.map((week) => {
+                                                                const cellValue = patient?.wow_data?.[week] ?? 0;
+                                                                const isZero = cellValue === 0;
+                                                                return (
+                                                                    <td
+                                                                        key={week}
+                                                                        className="text-center px-1 py-1"
+                                                                        style={{
+                                                                            border: "1px solid #d6dde8",
+                                                                            background: isZero ? "#ffcdd2" : (idx % 2 === 0 ? "#f8fafc" : "#fff"),
+                                                                            whiteSpace: "nowrap",
+                                                                        }}
+                                                                    >
+                                                                        {cellValue}
+                                                                    </td>
+                                                                );
+                                                            })}
                                                         </tr>
                                                     ))}
                                                 </tbody>

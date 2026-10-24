@@ -104,6 +104,7 @@ const AttendanceLogs = () => {
     useEffect(() => {
         if (!hasUserPermission) return;
         fetchEmployeeAttendance();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
         page,
         limit,

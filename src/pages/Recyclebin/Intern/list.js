@@ -32,7 +32,6 @@ const List = ({
       await dispatch(removedIntern(id));
       refresh();
     } catch (error) {
-      console.error("Failed to restore intern", error);
     }
   };
 

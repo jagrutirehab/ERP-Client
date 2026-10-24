@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import {
   Card,
   CardBody,
@@ -25,7 +25,7 @@ const MIReporting = () => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
-  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
   const hasMiReportingViewPermission = hasPermission(
     "MI_REPORTING",
     "VIEW_MI_REPORTING",

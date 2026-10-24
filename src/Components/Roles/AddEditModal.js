@@ -196,8 +196,12 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
             />
           </div>
 
-          {permissionList.map(({ key, label, subModules }) => {
+          {permissionList.map(({ key, label, subModules, permissionOptions }) => {
             const modulePerm = getModulePermission(key);
+            // A module may narrow its own ladder — e.g. GRIEVANCE omits DELETE,
+            // because deleting a grievance would erase the evidence that its
+            // statutory deadline was met. Everything else gets the full set.
+            const options = permissionOptions || modulePermissionOptions;
 
             return (
               <div
@@ -234,7 +238,7 @@ const AddEditRoleModal = ({ isOpen, onClose, onSubmit, initialData }) => {
                       gap: "16px",
                     }}
                   >
-                    {modulePermissionOptions.map((perm) => (
+                    {options.map((perm) => (
                       <label
                         key={perm}
                         style={{

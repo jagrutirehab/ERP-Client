@@ -25,16 +25,10 @@ const DocumentListCard = ({
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission } = usePermissions(token);
-  const hasReadPermission = hasPermission("SETTING", "DOCUMENTCONFIG", "READ");
   const hasWritePermission = hasPermission(
     "SETTING",
     "DOCUMENTCONFIG",
     "WRITE",
-  );
-  const hasDeletePermission = hasPermission(
-    "SETTING",
-    "DOCUMENTCONFIG",
-    "DELETE",
   );
   const canEdit = hasPermission("SETTING", "DOCUMENTCONFIG", "WRITE");
   const canDelete = hasPermission("SETTING", "DOCUMENTCONFIG", "DELETE");

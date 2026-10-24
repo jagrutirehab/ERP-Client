@@ -5,7 +5,6 @@ import App from "./App";
 import reportWebVitals from "./reportWebVitals";
 import { Provider } from "react-redux";
 import store from "./store/store";
-import { PersistGate } from "redux-persist/integration/react";
 import { ApolloProvider } from "@apollo/client";
 import client from "./GraphQL/Apollo/client";
 import { unstable_HistoryRouter as HistoryRouter } from "react-router-dom";

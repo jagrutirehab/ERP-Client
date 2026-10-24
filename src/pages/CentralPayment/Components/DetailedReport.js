@@ -55,7 +55,7 @@ const DetailedReport = ({
     }));
 
   const [selectedCentersIds, setSelectedCentersIds] = useState([]);
-  const [selectedCenters, setSelectedCenters] = useState([]);
+  const [, setSelectedCenters] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
@@ -109,6 +109,7 @@ const DetailedReport = ({
         );
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centers]);
 
   const handleCopy = async (text, id) => {
@@ -191,6 +192,17 @@ const DetailedReport = ({
       selector: (row) =>
         row?.approvalRemarks ? (
           <ExpandableText text={capitalizeWords(row.approvalRemarks)} limit={30} />
+        ) : (
+          "-"
+        ),
+      wrap: true,
+      minWidth: "150px",
+    },
+    {
+      name: <div>Accounting Remark</div>,
+      selector: (row) =>
+        row?.accountingApprovalRemarks ? (
+          <ExpandableText text={capitalizeWords(row.accountingApprovalRemarks)} limit={30} />
         ) : (
           "-"
         ),
@@ -468,6 +480,25 @@ const DetailedReport = ({
       wrap: true,
     },
     {
+      name: <div>Accounting Approval Status</div>,
+      selector: (row) => {
+        const status = row?.accountingApprovalStatus;
+        return (
+          <Badge
+            color={getBadgeColor(status)}
+            style={{
+              display: "inline-block",
+              whiteSpace: "normal",
+              wordBreak: "break-word",
+            }}
+          >
+            {capitalizeWords(status || "-")}
+          </Badge>
+        );
+      },
+      wrap: true,
+    },
+    {
       name: <div>Finance Approval Status</div>,
       selector: (row) => {
         const status = row?.financeApprovalStatus;
@@ -662,6 +693,7 @@ const DetailedReport = ({
     if (hasUserPermission && activeTab === "detail") {
       fetchDetailReport();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,

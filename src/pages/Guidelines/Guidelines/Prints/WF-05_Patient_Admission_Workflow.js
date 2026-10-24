@@ -1,7 +1,6 @@
 import React, { forwardRef, Fragment } from "react";
 import {
   tableCellStyle,
-  tableHeadStyle,
   ChecklistItem,
   SectionHeader,
   EscalationBox,

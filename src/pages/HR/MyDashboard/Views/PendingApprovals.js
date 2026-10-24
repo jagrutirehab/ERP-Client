@@ -19,6 +19,7 @@ import ApproveModal from '../../components/ApproveModal';
 import {
     advanceSalaryAction,
     incentivesAction,
+    payrollAdjustmentsAction,
     hiringAction,
     updateNewJoiningStatus,
     TPMAction,
@@ -36,6 +37,7 @@ import { useCenterOptions } from "../../../../Components/Hooks/useCenterOptions"
 const TYPE_TO_MODE = {
     ADVANCE_SALARY: "SALARY_ADVANCE",
     INCENTIVE: "INCENTIVES",
+    PAYROLL_ADJUSTMENT: "PAYROLL_ADJUSTMENTS",
     HIRING_REQUEST: "HIRING",
     NEW_JOINING: "NEW_JOINING",
     TPM: "TPM",
@@ -119,6 +121,7 @@ const PendingApprovals = ({ activeTab }) => {
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchPendingApprovals();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, type, centerAccess, activeTab]);
 
     const handleOpenModal = (row, action) => {
@@ -158,6 +161,13 @@ const PendingApprovals = ({ activeTab }) => {
 
                 case "INCENTIVE":
                     response = await incentivesAction(id, {
+                        action: actionType,
+                        note,
+                    });
+                    break;
+
+                case "PAYROLL_ADJUSTMENT":
+                    response = await payrollAdjustmentsAction(id, {
                         action: actionType,
                         note,
                     });

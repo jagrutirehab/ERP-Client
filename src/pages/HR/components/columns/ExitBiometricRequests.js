@@ -2,6 +2,7 @@ import { Button } from "reactstrap";
 import { Check, X } from "lucide-react";
 import { renderStatusBadge } from "../../../../Components/Common/renderStatusBadge";
 import { normalizeText } from "../helpers/normalizeText";
+import { formatEmployeeName } from "../../../../utils/formatEmployeeName";
 
 export const ExitBiometricRequests = ({
   onApprove,
@@ -10,7 +11,6 @@ export const ExitBiometricRequests = ({
   type,
   hasWritePermission,
 } = {}) => {
-  console.log("status", status);
 
   return [
     {
@@ -36,7 +36,9 @@ export const ExitBiometricRequests = ({
     },
     {
       name: "Name",
-      selector: (row) => row?.employee?.name || "-",
+      selector: (row) =>
+        formatEmployeeName(row?.employee?.name, row?.employee?.salutation) ||
+        "-",
       sortable: true,
       minWidth: "150px",
       wrap: true,

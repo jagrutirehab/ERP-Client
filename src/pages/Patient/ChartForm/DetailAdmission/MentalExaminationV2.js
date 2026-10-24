@@ -447,8 +447,6 @@ const MentalExaminationV3 = ({ validation, setFormStep, step }) => {
   const validate = () => {
     setAttempted(true);
     const missingFields = requiredFields.filter((f) => !validation.values[f]);
-    console.log("Missing MSE fields:", missingFields);
-    console.log("Current values:", validation.values);
     return missingFields.length === 0;
   };
 

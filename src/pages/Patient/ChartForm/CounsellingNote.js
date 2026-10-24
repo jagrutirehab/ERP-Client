@@ -130,7 +130,6 @@
 //   //       const counsellingNote = response?.payload?.pay;
 //   //       setFetchedNote(counsellingNote || null);
 //   //     } catch (error) {
-//   //       console.error("Error fetching Counselling Note:", error);
 //   //       setFetchedNote(null);
 //   //     }
 //   //   };
@@ -139,8 +138,6 @@
 //   // }, [appointment, patient, populatePreviousAppointment, editCounsellingNote]);
 
 //   const noteSource = editCounsellingNote || fetchedNote;
-
-//   console.log({ noteSource });
 
 //   const onSubmitClinicalForm = (
 //     values,
@@ -306,8 +303,6 @@
 //     setFetchedNote(patientLatestCounsellingNote?.counsellingNote || null);
 //     // }
 //   }, [patientLatestCounsellingNote]);
-
-//   console.log(patientLatestCounsellingNote, "counselling note");
 
 //   useEffect(() => {
 //     dispatch(fetchCounsellingNote({ id: patient?._id }));
@@ -487,7 +482,6 @@ import {
   addCounsellingNote,
 } from "../../../store/actions";
 import PreviewFile from "../../../Components/Common/PreviewFile";
-import axios from "axios";
 import {
   addGeneralCounsellingNote,
   fetchCounsellingNote,
@@ -567,6 +561,7 @@ const CounsellingNote = ({
   const [files, setFiles] = useState([]);
   const [audioFile, setAudioFile] = useState(null);
   const audioFinalizeRef = useRef(null);
+  const audioDetailsRef = useRef(null);
   const [fetchedNote, setFetchedNote] = useState(null);
   const [uploadedAudio, setUploadedAudio] = useState(null);
   const [isRecording, setIsRecording] = useState("recording")
@@ -587,7 +582,6 @@ const CounsellingNote = ({
   //       const counsellingNote = response?.payload?.pay;
   //       setFetchedNote(counsellingNote || null);
   //     } catch (error) {
-  //       console.error("Error fetching Counselling Note:", error);
   //       setFetchedNote(null);
   //     }
   //   };
@@ -597,13 +591,12 @@ const CounsellingNote = ({
 
   const noteSource = editCounsellingNote || fetchedNote;
 
-  console.log({ noteSource });
-
   const onSubmitClinicalForm = (
     values,
     files,
     editChartData,
-    editClinicalNote
+    editClinicalNote,
+    audioDetails
   ) => {
     const {
       author,
@@ -642,6 +635,9 @@ const CounsellingNote = ({
     formData.append("reviewPreviousTask", reviewPreviousTask);
     formData.append("nextEndGoal", nextEndGoal);
     formData.append("nextSessionDate", nextSessionDate);
+    if (!editClinicalNote && audioDetails) {
+      formData.append("audioDetails", JSON.stringify(audioDetails));
+    }
     // files.forEach((file) => formData.append("file", file.file));
     files.forEach((file) => {
       const actualFile = file.file || file;
@@ -729,7 +725,8 @@ const CounsellingNote = ({
         values,
         allFiles,
         editChartData,
-        editCounsellingNote
+        editCounsellingNote,
+        audioDetailsRef.current
       );
     }
   });
@@ -738,6 +735,7 @@ const CounsellingNote = ({
     if (!editCounsellingNote) {
       validation.resetForm();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, editCounsellingNote]);
 
   const closeForm = () => {
@@ -763,8 +761,6 @@ const CounsellingNote = ({
     setFetchedNote(patientLatestCounsellingNote?.counsellingNote || null);
     // }
   }, [patientLatestCounsellingNote]);
-
-  console.log(patientLatestCounsellingNote, "counselling note");
 
   useEffect(() => {
     dispatch(fetchCounsellingNote({ id: patient?._id }));
@@ -852,9 +848,10 @@ const CounsellingNote = ({
           <Col xs={12} className="mt-3">
             <h5>Audio Recording</h5>
             <AudioRecorder
-              onReady={(file, stopFn) => {
+              onReady={(file, stopFn, audioDetails) => {
                 if (file) setAudioFile(file);
                 if (stopFn) audioFinalizeRef.current = stopFn;
+                if (audioDetails) audioDetailsRef.current = audioDetails;
               }}
             />
           </Col>
@@ -869,10 +866,6 @@ const CounsellingNote = ({
               onChange={(e) => {
                 const file = e.target.files[0];
                 if (file) {
-                  console.log("file.type ", file.type);
-                  console.log("file", file);
-
-
                   const ext = file.name.split(".").pop().toLowerCase().trim();;
 
                   const allowedExt = ["mp3", "wav", "webm", "ogg", "aac", "mpeg", "m4a"];
@@ -880,8 +873,6 @@ const CounsellingNote = ({
                   const isAudio =
                     file.type.startsWith("audio/") ||
                     (file.type === "video/webm" && ext === "webm");
-
-                  console.log({ isAudio, ext, allowed: allowedExt.includes(ext) });
 
                   if (!isAudio || !allowedExt.includes(ext)) {
                     alert("Only valid audio files allowed");
@@ -916,8 +907,6 @@ const CounsellingNote = ({
               onChange={(e) => {
                 const file = e.target.files[0];
                 if (file) {
-                  console.log("file.type ", file.type);
-                  console.log("file", file);
 
 
                   const ext = file.name.split(".").pop().toLowerCase().trim();;
@@ -928,8 +917,6 @@ const CounsellingNote = ({
                     file.type.startsWith("audio/") ||
                     (file.type === "video/webm" && ext === "webm") ||
                     (file.type === "" && allowedExt.includes(ext));
-
-                  console.log({ isAudio, ext, allowed: allowedExt.includes(ext) });
 
                   if (!isAudio && !allowedExt.includes(ext)) {
                     alert("Only valid audio files allowed");

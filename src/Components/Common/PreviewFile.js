@@ -38,6 +38,12 @@ const PreviewFile = ({
     file?.type === "application/msword" ||
     hasExt(/\.(docx|doc)$/i);
 
+  const isPpt =
+    file?.type ===
+      "application/vnd.openxmlformats-officedocument.presentationml.presentation" ||
+    file?.type === "application/vnd.ms-powerpoint" ||
+    hasExt(/\.(pptx|ppt)$/i);
+
   const isLocalExcel = isExcel && file?.fileObj;
 
   useEffect(() => {
@@ -83,25 +89,25 @@ const PreviewFile = ({
   if (!file) return null;
 
   const headerTitle = (
-    <>
-      <span className="me-3">{title}</span>
+    <div className="d-flex align-items-center" style={{ gap: "12px" }}>
+      <span
+        className="text-truncate"
+        style={{ maxWidth: "min(50vw, 420px)" }}
+        title={title}
+      >
+        {title}
+      </span>
       {allowDownload && (
         <Button
-          className="text-white mt-1"
+          className="text-white flex-shrink-0"
           color="primary"
           size="sm"
           onClick={handleDownload}
-          style={{
-            position: "absolute",
-            right: "50px",
-            top: "12px",
-            zIndex: 10,
-          }}
         >
           <i className="ri-download-2-line align-bottom me-1"></i> Download
         </Button>
       )}
-    </>
+    </div>
   );
 
   return (
@@ -200,7 +206,19 @@ const PreviewFile = ({
         </div>
       )}
 
-      {!isPdf && !isImage && !isExcel && !isWord && (
+      {isPpt && (
+        <div style={{ height: "80vh", width: "100%" }}>
+          <iframe
+            title="Presentation Preview"
+            src={`https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(url)}`}
+            width="100%"
+            height="100%"
+            style={{ border: "none" }}
+          />
+        </div>
+      )}
+
+      {!isPdf && !isImage && !isExcel && !isWord && !isPpt && (
         <p className="text-center text-muted py-5">
           Preview not supported for this file type
         </p>

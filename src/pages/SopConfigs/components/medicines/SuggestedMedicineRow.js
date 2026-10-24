@@ -44,10 +44,6 @@ const loadMedicineOptions = async (input) => {
       },
     }));
   } catch (err) {
-    console.warn(
-      "[SuggestedMedicineRow] medicine search failed:",
-      err?.message || err,
-    );
     return [];
   }
 };

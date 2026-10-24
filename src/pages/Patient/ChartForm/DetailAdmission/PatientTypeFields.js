@@ -1,7 +1,6 @@
-import React, { useEffect, useRef, useState } from "react";
-import { Row, Col, FormGroup, Label, Input, Button } from "reactstrap";
+import React, { useEffect, useState } from "react";
+import { Row, Col, FormGroup, Label, Button } from "reactstrap";
 import { getIn } from "formik";
-import NextButton from "./NextButton";
 import psychiatricConfig from "./Helpers/psychiatricConfig";
 import geriatricConfig from "./Helpers/geriatricConfig";
 import addictionConfig from "./Helpers/addictionConfig";
@@ -80,6 +79,7 @@ const PatientTypeFields = ({
     if (forceShowErrors) {
       runValidation(values);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleChange = (path, value) => {

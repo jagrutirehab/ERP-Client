@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import DataTable from "react-data-table-component";
 import { Spinner } from "reactstrap";
 import Divider from "../../../../Components/Common/Divider";
@@ -61,7 +61,6 @@ const AdmissionForms = ({
   }, [centerOptions]);
 
   const fetchData = (pageNum = 1, limitNum = 10) => {
-    console.log({ selectedCentersIds });
 
     dispatch(
       fetchAdmissionForms({
@@ -76,6 +75,7 @@ const AdmissionForms = ({
 
   useEffect(() => {
     fetchData(page, perPage);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, perPage]);
 
   // Manual trigger for View Report button - resets to page 1
@@ -103,8 +103,6 @@ const AdmissionForms = ({
         centerAccess: selectedCentersIds,
       });
 
-      console.log({ response });
-
       // Create blob from response
       const blob = new Blob([response.data], {
         type: "text/csv;charset=utf-8;",
@@ -125,7 +123,6 @@ const AdmissionForms = ({
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Failed to export CSV", err);
       alert("Failed to export CSV. Please try again.");
     } finally {
       setExportLoading(false);
@@ -289,8 +286,6 @@ const AdmissionForms = ({
       minWidth: "200px",
     },
   ];
-
-  console.log({ admissionForms });
 
   return (
     <>

@@ -5,7 +5,6 @@ import {
   ProtocolApprovalNew,
   ModuleHeader,
   SectionTitle,
-  BulletList,
   CalloutBox,
   WarningBox,
   Table,

@@ -6,6 +6,7 @@ import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptio
 import { getMasterEmployees } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { downloadFile } from "../../../../../Components/Common/downloadFile";
 import { Badge, Input, Spinner } from "reactstrap";
 import { format } from "date-fns";
@@ -97,6 +98,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     }, 500);
 
     return () => clearTimeout(handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   useEffect(() => {
@@ -106,6 +108,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     setDebouncedSearch(q);
     setSelectedCenter(c);
     setPage(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const fetchMasterEmployeeList = async () => {
@@ -138,6 +141,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     if (activeTab === "HISTORY" && hasUserPermission) {
       fetchMasterEmployeeList();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,
@@ -180,7 +184,8 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     },
     {
       name: <div>Name</div>,
-      selector: (row) => row?.name?.toUpperCase() || "-",
+      selector: (row) =>
+        formatEmployeeName(row?.name, row?.salutation)?.toUpperCase() || "-",
       wrap: true,
       minWidth: "160px",
     },

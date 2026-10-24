@@ -9,14 +9,15 @@ import { useDispatch, useSelector } from 'react-redux';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import CheckPermission from '../../../Components/HOC/CheckPermission';
 import * as XLSX from "xlsx";
+import { capitalizeWords } from "../../../utils/toCapitalize";
 
-const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
+const DetailedPrescriptionModal = ({ patient, setModal, modal, readOnly }) => {
     const dispatch = useDispatch();
     const handleAuthError = useAuthError();
     const { detailedPrescription } = useSelector((state) => state.Pharmacy);
 
     const [loading, setLoading] = useState(false);
-    const [updatedDispenseData, setUpdatedDispenseData] = useState([]);
+    const [, setUpdatedDispenseData] = useState([]);
     const [remarks, setRemarks] = useState("");
 
     const [shortageMode, setShortageMode] = useState(false);
@@ -43,6 +44,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
         };
 
         fetchPrescription();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [modal]);
 
     const downloadShortageXlsx = () => {
@@ -136,7 +138,9 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
     return (
         <Modal isOpen={modal} toggle={resetAll} size="xl" centered>
             <ModalHeader toggle={resetAll}>
-                {shortageMode ? "Approval Failed — Stock Shortage" : patient?.patient?.name}
+                {shortageMode
+                    ? "Approval Failed — Stock Shortage"
+                    : `${capitalizeWords(patient?.patient?.name || "")}${detailedPrescription?.chartId ? ` (${detailedPrescription.chartId})` : ""}`}
             </ModalHeader>
 
             <ModalBody className="bg-light">
@@ -152,6 +156,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
                                 onDispenseChanges={setShortageInfo}
                                 onRemarks={setRemarks}
                                 roles={roles}
+                                readOnly={readOnly}
                             />
                         ) : (
                             <>
@@ -189,7 +194,11 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal }) => {
             </ModalBody>
 
             <ModalFooter>
-                {!shortageMode ? (
+                {readOnly ? (
+                    <Button color="secondary" onClick={resetAll}>
+                        Close
+                    </Button>
+                ) : !shortageMode ? (
                     <CheckPermission
                         accessRolePermission={roles?.permissions}
                         permission={"create"}

@@ -5,7 +5,6 @@ import React from "react";
 // import Header from "../Header";
 // import Footer from "../Footer";
 import Body from "../../../Charts/LabReport/Body";
-import { View } from "@react-pdf/renderer";
 import ChartHeader from "../ChartHeader";
 
 // const styles = StyleSheet.create({
@@ -20,7 +19,6 @@ import ChartHeader from "../ChartHeader";
 //     flexDirection: "column",
 //   },
 // });
-const border = "2px dashed #000";
 
 const LabReport = ({ chart, center, patient }) => {
     return (

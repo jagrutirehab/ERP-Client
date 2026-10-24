@@ -65,7 +65,7 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
     centers.map((cen) => cen._id),
   );
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState([]);
+  const [, setLoading] = useState([]);
 
   const handleChange = (e) => {
     const itemList = [...items];
@@ -160,10 +160,8 @@ const MedicinesForm = ({ toggle, centers, userCenters }) => {
     try {
       setLoading(true);
       const response = await getCategoriesOfProcedures();
-      console.log("response", response);
       setCategories(response?.data);
     } catch (error) {
-      console.log(error);
     } finally {
       setLoading(false);
     }

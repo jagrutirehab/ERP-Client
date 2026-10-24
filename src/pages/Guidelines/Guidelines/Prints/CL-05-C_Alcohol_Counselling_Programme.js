@@ -1,7 +1,14 @@
 import React, { forwardRef, Fragment } from "react";
 import {
-  ModuleHeader, SectionTitle, BulletList, WarningBox, CalloutBox, Table,
-  ProtocolHeader, ProtocolControlTable, ProtocolApprovalNew, ProtocolWrapper,
+  ModuleHeader,
+  SectionTitle,
+  WarningBox,
+  CalloutBox,
+  Table,
+  ProtocolHeader,
+  ProtocolControlTable,
+  ProtocolApprovalNew,
+  ProtocolWrapper,
 } from "./ProtocolComponents";
 
 const CONTROL_ROWS = [

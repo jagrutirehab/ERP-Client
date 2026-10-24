@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { getCallRecordingOverview, getFeedbackRecordingOverview } from '../../../../helpers/backend_helper';
+import { getFeedbackRecordingOverview } from '../../../../helpers/backend_helper';
 import { CardBody, Label, Spinner } from 'reactstrap';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import DataTableComponent from '../../../../Components/Common/DataTable';
@@ -39,7 +39,6 @@ const Feedback = () => {
                 search: debouncedSearch,
                 talkTime: talkTimeFilter
             });
-            console.log("Response", response);
             setOverviews(response?.data);
             setPagination({
                 ...response?.pagination,
@@ -47,12 +46,12 @@ const Feedback = () => {
             });
 
         } catch (error) {
-            console.log(error);
 
         } finally {
             setCallLoading(false)
         }
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { loadFeedbackRecordingOverviews() }, [page, limit, debouncedSearch, talkTimeFilter])
     useEffect(() => {
         const timer = setTimeout(() => {
@@ -229,7 +228,6 @@ const Feedback = () => {
             saveAs(blob, "feedback-overview.xlsx");
 
         } catch (err) {
-            console.error(err);
         } finally {
             setExportLoading(false);
         }

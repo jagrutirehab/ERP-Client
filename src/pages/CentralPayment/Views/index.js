@@ -130,6 +130,7 @@ const Views = () => {
         setView(defaultView);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [availableViews, view]);
 
   if (availableViews.length === 0) {

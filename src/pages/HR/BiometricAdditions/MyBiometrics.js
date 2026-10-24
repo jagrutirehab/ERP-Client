@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
+import { formatEmployeeName } from "../../../utils/formatEmployeeName";
 import { CardBody, Spinner, Nav, NavItem, NavLink } from "reactstrap";
 import classnames from "classnames";
 import { useNavigate } from "react-router-dom";
@@ -75,7 +76,6 @@ const MyBiometrics = () => {
       setData(response?.data);
       setPagination(response?.pagination);
     } catch (err) {
-      console.error("Fetch error:", err);
     } finally {
       setFetching(false);
     }
@@ -142,7 +142,9 @@ const MyBiometrics = () => {
     },
     {
       name: "Name",
-      selector: (row) => row?.employee?.name || "-",
+      selector: (row) =>
+        formatEmployeeName(row?.employee?.name, row?.employee?.salutation) ||
+        "-",
       sortable: true,
       minWidth: "150px",
       wrap: true,

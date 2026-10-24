@@ -7,11 +7,10 @@ import { Dropdown, DropdownItem, DropdownMenu, DropdownToggle } from 'reactstrap
 import Loader from '../../../../Components/Common/Loader';
 import { createYMRSTest, setIsClinicalTab, setTestName, setTestPageOpen } from '../../../../store/features/clinicalTest/clinicalTestSlice';
 import { useAuthError } from "../../../../Components/Hooks/useAuthError";
-import axios from 'axios';
 
 const YMSCQuestion = () => {
     const handleAuthError = useAuthError();
-    const [userId, setUserId] = useState('dummy-user-id');
+    const [userId] = useState('dummy-user-id');
     const [dropdownOpen, setDropdownOpen] = useState(false);
     const [dummyDrop, setDummyDrop] = useState(false);
     const [selectedDoctor, setSelectedDoctor] = useState({ name: "Choose Doctor", id: -1 });
@@ -30,13 +29,12 @@ const YMSCQuestion = () => {
       const allMedicalStaff = [...doctorDetails, ...counselerDetails];
     const clinicalTestLoading = useSelector((state) => state.ClinicalTest?.isLoading);
 
-    const [center, setCenters] = useState('');
+    const [center] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [scores, setScores] = useState({});
-    const [currentPage, setCurrentPage] = useState('assessment');
+    const [currentPage] = useState('assessment');
 
     const [observation, setObservations] = useState("")
-    const [documentLInk, setDocumentLink] = useState("");
-    const [evidenceDetails, setEvidenceDetails] = useState("");
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [modalMessage, setModalMessage] = useState("");
     const [attempTotalQuestion, setAttempTotalQuestion] = useState(false)
@@ -54,7 +52,6 @@ const YMSCQuestion = () => {
             try {
                 dispatch(fetchPatientById(id));
             } catch (err) {
-                console.error('Error fetching patient data:', err);
             }
         };
         fetchPatientData();
@@ -62,13 +59,13 @@ const YMSCQuestion = () => {
 
     function closeModal() {
 
-        if (selectedDoctor.id == -1) {
+        if (selectedDoctor.id === -1) {
             setIsModalOpen(false);
             setModalMessage("");
             return;
         }
 
-        if (attempTotalQuestion == false) {
+        if (attempTotalQuestion === false) {
             setIsModalOpen(false);
             setModalMessage("");
             return;
@@ -279,7 +276,7 @@ const YMSCQuestion = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
 
-        if (selectedDoctor.id == -1) {
+        if (selectedDoctor.id === -1) {
             setIsModalOpen(true);
             setModalMessage("Please choose a doctor first");
             return;
@@ -325,6 +322,7 @@ const YMSCQuestion = () => {
         formData.append("observation", observation);
         // formData.append("evidence", evidenceDetails);
 
+        setIsLoading(true);
         try {
             await dispatch(createYMRSTest(formData)).unwrap();
             setAttempTotalQuestion(true);
@@ -334,6 +332,8 @@ const YMSCQuestion = () => {
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to submit assessment");
             }
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -598,9 +598,9 @@ const YMSCQuestion = () => {
 
 
                             <div className="d-flex justify-content-end bg-light p-4 rounded border border-primary">
-                                <button type="submit" className="btn btn-success fw-bold px-4 py-2 shadow-sm">
+                                <button type="submit" className="btn btn-success fw-bold px-4 py-2 shadow-sm" disabled={isLoading}>
                                     <i className="fas fa-check-circle me-2"></i>
-                                    Submit Test
+                                    {isLoading ? "Saving..." : "Submit Test"}
                                 </button>
                             </div>
                         </form>
@@ -613,7 +613,7 @@ const YMSCQuestion = () => {
                     style={{ zIndex: 1050 }}
                 >
                     <div className="bg-white rounded shadow p-4 p-sm-5 m-3 border border-secondary" style={{ maxWidth: '400px', width: '100%' }}>
-                        <h3 className="h5 fw-semibold text-dark mb-3">{selectedDoctor.id == -1 ? "" : "Notification"}</h3>
+                        <h3 className="h5 fw-semibold text-dark mb-3">{selectedDoctor.id === -1 ? "" : "Notification"}</h3>
                         <p className="text-secondary mb-4">{modalMessage}</p>
                         <button
                             onClick={closeModal}

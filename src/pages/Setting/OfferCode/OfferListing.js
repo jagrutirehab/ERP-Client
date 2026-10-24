@@ -1,6 +1,6 @@
-import React, { useState } from "react";
+import React from "react";
 import { Button, Row, Col, Table, Input } from "reactstrap";
-import PropTypes, { oneOf } from "prop-types";
+import PropTypes from "prop-types";
 import { format } from 'date-fns';
 import { connect } from "react-redux";
 import CheckPermission from "../../../Components/HOC/CheckPermission";

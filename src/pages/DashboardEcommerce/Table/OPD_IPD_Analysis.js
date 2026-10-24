@@ -97,7 +97,6 @@ const TableComponent = () => {
   const theme = useMemo(() => myTheme, []);
 
   const columnDefs = useMemo(() => {
-    const displayedMonths = months.slice(0, 3);
     const monthlyColumns = months.map(({ label, prefix }) => ({
       headerName: label,
       children: fields.map(({ label: fieldLabel, key }) => ({

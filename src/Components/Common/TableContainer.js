@@ -72,7 +72,6 @@ const TableContainer = ({
     getTableProps,
     getTableBodyProps,
     headerGroups,
-    footerGroups,
     page,
     prepareRow,
     canPreviousPage,

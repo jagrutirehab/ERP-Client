@@ -37,7 +37,7 @@ const Tally = ({ centers, centerAccess }) => {
   const [selectedTypes, setSelectedTypes] = useState([]);
   const [sending, setSending] = useState(false);
   const [logs, setLogs] = useState([]);
-  const [isDone, setIsDone] = useState(false);
+  const [, setIsDone] = useState(false);
   const eventSourceRef = useRef(null);
   const currentSessionIdRef = useRef(null);
   const microUser = localStorage.getItem("micrologin");
@@ -186,16 +186,12 @@ const Tally = ({ centers, centerAccess }) => {
   const connectSSE = useCallback(
     (sessionId) => {
       if (eventSourceRef.current) {
-        console.log(
-          "🔌 [SSE] Closing existing connection before starting a new one.",
-        );
         eventSourceRef.current.close();
       }
 
       const baseUrl = api.API_URL || "";
       const sseUrl = `${baseUrl}/tally/send/stream?sessionId=${sessionId}`;
 
-      console.log(`🟢 [SSE] Initiating connection to: ${sseUrl}`);
       addLog(`📡 Connecting to live stream...`, "info");
 
       const eventSource = new EventSource(sseUrl, { withCredentials: true });
@@ -207,12 +203,8 @@ const Tally = ({ centers, centerAccess }) => {
         clearTimeout(watchdog);
         // Uncomment the line below if you want to see exactly when the timer resets,
         // but it might get noisy with fast logs!
-        // console.log(`⏱️ [Watchdog] Reset triggered by: ${triggerSource}. Waiting 60s...`);
 
         watchdog = setTimeout(() => {
-          console.warn(
-            "💀 [Watchdog] TRIGGERED! 60 seconds passed with ZERO data from backend. Forcing reconnect.",
-          );
           addLog("⚠️ Stream stalled. Forcing reconnect...", "warning");
           eventSource.close();
           eventSourceRef.current = null;
@@ -229,9 +221,6 @@ const Tally = ({ centers, centerAccess }) => {
 
           // 🟢 INTERCEPT PING: Catch the heartbeat, reset timer, keep UI clean.
           if (data.type === "ping") {
-            console.log(
-              "💓 [SSE] Heartbeat ping received from backend. Socket is healthy.",
-            );
             resetWatchdog("ping");
             return;
           }
@@ -240,10 +229,8 @@ const Tally = ({ centers, centerAccess }) => {
           resetWatchdog("data");
 
           if (data.type === "log") {
-            // Optional: console.log(`📩 [SSE] Log received:`, data.message);
             addLog(data.message, data.level || "info");
           } else if (data.type === "cancelled") {
-            console.log("🛑 [SSE] Sync cancelled by user.");
             clearTimeout(watchdog);
             addLog("", "divider");
             addLog("🛑 Sync cancelled by user.", "warning");
@@ -253,7 +240,6 @@ const Tally = ({ centers, centerAccess }) => {
             eventSource.close();
             eventSourceRef.current = null;
           } else if (data.type === "done") {
-            console.log("🎯 [SSE] Sync completed successfully!");
             clearTimeout(watchdog);
             addLog("", "divider");
             addLog(`🎯 Tally Sync Summary:`, "info");
@@ -273,7 +259,6 @@ const Tally = ({ centers, centerAccess }) => {
             eventSource.close();
             eventSourceRef.current = null;
           } else if (data.type === "error") {
-            console.error("❌ [SSE] Backend sent an error:", data.message);
             clearTimeout(watchdog);
             addLog(`❌ ${data.message}`, "error");
             setSending(false);
@@ -282,23 +267,17 @@ const Tally = ({ centers, centerAccess }) => {
             eventSourceRef.current = null;
           }
         } catch (e) {
-          console.error("⚠️ [SSE] Failed to parse event data:", event.data);
           addLog(event.data, "info");
         }
       };
 
       eventSource.onerror = (errorEvent) => {
-        console.error(
-          "🔴 [SSE] Browser fired onerror event. Connection dropped.",
-          errorEvent,
-        );
         clearTimeout(watchdog);
         eventSource.close();
         eventSourceRef.current = null;
         addLog("⚠️ Connection lost. Attempting to reconnect...", "warning");
 
         setTimeout(() => {
-          console.log("🔄 [SSE] Attempting to reconnect now...");
           if (checkAndReconnectRef.current) checkAndReconnectRef.current();
         }, 3000);
       };

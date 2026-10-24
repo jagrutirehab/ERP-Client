@@ -8,7 +8,6 @@ import {
   DropdownMenu,
 } from "reactstrap";
 import { connect } from "react-redux";
-import { toast } from "react-toastify";
 import debounce from "lodash.debounce";
 import axios from "axios";
 
@@ -32,7 +31,6 @@ const Medicine = ({ data, dataList, fieldName, addItem }) => {
           setFilteredMedicines(payload);
           setDropdown(true);
         } catch (error) {
-          console.error("Failed to fetch medicines", error);
         }
       }, 500),
     [],

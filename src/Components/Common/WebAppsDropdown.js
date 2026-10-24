@@ -20,7 +20,7 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
   const [access, setAccess] = useState(centerAccess);
   const allowedCenterIds = (centers || []).map((c) => c._id);
   const [isWebAppDropdown, setIsWebAppDropdown] = useState(false);
-  const [ctrlCmdPressed, setCtrlCmdPressed] = useState(false);
+  const [, setCtrlCmdPressed] = useState(false);
   const toggleWebAppDropdown = () => {
     setIsWebAppDropdown(!isWebAppDropdown);
   };
@@ -70,8 +70,6 @@ const WebAppsDropdown = ({ centers, centerAccess }) => {
   // useEffect(() => {
   //   if (!ctrlCmdPressed) dispatch(changeUserAccess(access));
   // }, [dispatch, access, ctrlCmdPressed]);
-
-  // console.log({ centerAccess });
 
   return (
     <React.Fragment>

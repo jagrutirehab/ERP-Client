@@ -82,7 +82,6 @@ const MoreDetails = () => {
     setLoading(true);
     try {
       const response = await getRecordingById(id);
-      console.log("Details:", response);
       setData(response?.recording || null);
     } catch (error) {
       toast.error("Failed to load details");
@@ -94,6 +93,7 @@ const MoreDetails = () => {
   useEffect(() => {
     loadById();
     window.scrollTo(0, 0);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   if (loading) {

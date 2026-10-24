@@ -70,6 +70,7 @@ const AttendanceImportProgress = ({ importId, onClose, center, onStatusChange })
         if (data?.status === "COMPLETED" || data?.status === "FAILED") {
             onStatusChange?.(data?.status);
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [data?.status]);
 
     if (!data) {

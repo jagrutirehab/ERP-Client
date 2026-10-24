@@ -425,7 +425,7 @@ const BelongingsPDF = ({ items, patient, date, center, handedOverTo, leftQrDataU
                 .filter((i) => i.image)
                 .map((item, idx) => (
                   <View key={idx} style={styles.imageBox} wrap={false}>
-                    <Image src={item.image} style={styles.imageThumb} />
+                    <Image src={item.compressedImage || item.image} style={styles.imageThumb} />
                     <Text style={styles.imageLabel}>
                       {item.name || item.customName || "Item"}{" "}
                       ({item.category || "N/A"})

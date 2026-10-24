@@ -1,7 +1,7 @@
 function toWords(amn) {
   let amount = parseInt(amn);
 
-  var words = new Array();
+  var words = [];
   words[0] = "";
   words[1] = "One";
   words[2] = "Two";
@@ -36,8 +36,8 @@ function toWords(amn) {
   let n_length = number.length;
   let words_string = "";
   if (n_length <= 9) {
-    let n_array = new Array(0, 0, 0, 0, 0, 0, 0, 0, 0);
-    let received_n_array = new Array();
+    let n_array = [0, 0, 0, 0, 0, 0, 0, 0, 0];
+    let received_n_array = [];
     for (let i = 0; i < n_length; i++) {
       received_n_array[i] = number.substr(i, 1);
     }
@@ -45,8 +45,8 @@ function toWords(amn) {
       n_array[i] = received_n_array[j];
     }
     for (let i = 0, j = 1; i < 9; i++, j++) {
-      if (i == 0 || i == 2 || i == 4 || i == 7) {
-        if (n_array[i] == 1) {
+      if (i === 0 || i === 2 || i === 4 || i === 7) {
+        if (Number(n_array[i]) === 1) {
           n_array[j] = 10 + parseInt(n_array[j]);
           n_array[i] = 0;
         }
@@ -54,35 +54,35 @@ function toWords(amn) {
     }
     let value = "";
     for (var i = 0; i < 9; i++) {
-      if (i == 0 || i == 2 || i == 4 || i == 7) {
+      if (i === 0 || i === 2 || i === 4 || i === 7) {
         value = n_array[i] * 10;
       } else {
         value = n_array[i];
       }
-      if (value != 0) {
+      if (Number(value) !== 0) {
         words_string += words[value] + " ";
       }
       if (
-        (i == 1 && value != 0) ||
-        (i == 0 && value != 0 && n_array[i + 1] == 0)
+        (i === 1 && Number(value) !== 0) ||
+        (i === 0 && Number(value) !== 0 && Number(n_array[i + 1]) === 0)
       ) {
         words_string += "Crores ";
       }
       if (
-        (i == 3 && value != 0) ||
-        (i == 2 && value != 0 && n_array[i + 1] == 0)
+        (i === 3 && Number(value) !== 0) ||
+        (i === 2 && Number(value) !== 0 && Number(n_array[i + 1]) === 0)
       ) {
         words_string += "Lakh ";
       }
       if (
-        (i == 5 && value != 0) ||
-        (i == 4 && value != 0 && n_array[i + 1] == 0)
+        (i === 5 && Number(value) !== 0) ||
+        (i === 4 && Number(value) !== 0 && Number(n_array[i + 1]) === 0)
       ) {
         words_string += "Thousand ";
       }
-      if (i == 6 && value != 0 && n_array[i + 1] != 0 && n_array[i + 2] != 0) {
+      if (i === 6 && Number(value) !== 0 && Number(n_array[i + 1]) !== 0 && Number(n_array[i + 2]) !== 0) {
         words_string += "Hundred and ";
-      } else if (i == 6 && value != 0) {
+      } else if (i === 6 && Number(value) !== 0) {
         words_string += "Hundred ";
       }
     }

@@ -1,11 +1,10 @@
 import React from "react";
-import { Row, Col } from "reactstrap";
 import PropTypes from "prop-types";
 import DataTable from "react-data-table-component";
 import { v4 as uuid } from "uuid";
+import { format } from "date-fns";
 
 const InvoiceList = ({ list }) => {
-  // console.log("list o man", list);
   const hasDateColumn = list?.some(
     (item) => item.fromDate && item.toDate
   );
@@ -61,9 +60,10 @@ const InvoiceList = ({ list }) => {
           name: "Duration",
           cell: (row) =>
             row.fromDate && row.toDate
-              ? `${new Date(row.fromDate).toLocaleDateString()} - ${new Date(
-                row.toDate
-              ).toLocaleDateString()}`
+              ? `${format(new Date(row.fromDate), "dd/MM/yyyy")} - ${format(
+                new Date(row.toDate),
+                "dd/MM/yyyy"
+              )}`
               : "-",
         },
       ]

@@ -9,9 +9,7 @@ import { useNavigate } from "react-router-dom";
 import GenerateOverviewModal from '../Components/GenerateOverviewModal';
 import Select from "react-select";
 import BulkOverviewModal from '../Components/BulkOverviewModal';
-import { all } from 'axios';
 import UploadXlsxModal from '../Components/UploadXlsxModal';
-import { useSelector } from 'react-redux';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import { FaFilter } from 'react-icons/fa';
 import { defaultDateRange, todayInputValue, validateDateRange } from '../Helpers/dateRange';
@@ -46,7 +44,7 @@ const CallRecordings = () => {
   const [debouncedLocation, setDebouncedLocation] = useState("");
   const [overviewFilter, setOverviewFilter] = useState("");
   const [talkTimeFilter, setTalkTimeFilter] = useState("");
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [, setSelectedRows] = useState([]);
   const [showBulkOverviewModal, setShowBulkOverviewModal] = useState(false);
   const [queueStatus, setQueueStatus] = useState({
     running: false,
@@ -61,9 +59,8 @@ const CallRecordings = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const token = JSON.parse(localStorage.getItem("user"))?.token;
-  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
 
-  const hasReadPermission = hasPermission("RECORDINGS", "CALL_RECORDINGS", "READ");
   const hasWritePermission = hasPermission("RECORDINGS", "CALL_RECORDINGS", "WRITE");
   const hasDeletePermission = hasPermission("RECORDINGS", "CALL_RECORDINGS", "DELETE");
   const canAction = hasWritePermission || hasDeletePermission;
@@ -106,6 +103,7 @@ const CallRecordings = () => {
 
   useEffect(() => {
     loadRecordings(page, limit);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, debouncedSearch, debouncedLocation, overviewFilter, talkTimeFilter]);
 
   const HandleGenerateOverview = async () => {
@@ -122,7 +120,6 @@ const CallRecordings = () => {
       // rather than only when the whole queue drains.
       loadRecordings(page, limit);
     } catch (error) {
-      console.error("Error generating overview:", error);
       toast.error(error?.message || "Failed to queue overview");
     } finally {
       setGenerateLoading(false);
@@ -258,11 +255,7 @@ const CallRecordings = () => {
 
       setUploading(true);
 
-      console.log("Uploading file:", file);
-
-      const response = await uploadXlsx(formData);
-
-      console.log("Upload response:", response);
+      await uploadXlsx(formData);
 
       toast.success("File uploaded successfully");
 

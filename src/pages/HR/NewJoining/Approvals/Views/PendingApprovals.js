@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { getMasterEmployees } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import {
@@ -122,6 +123,7 @@ const PendingApprovals = ({
     }, 500);
 
     return () => clearTimeout(handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   useEffect(() => {
@@ -131,6 +133,7 @@ const PendingApprovals = ({
     setDebouncedSearch(q);
     setSelectedCenter(c);
     setPage(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const fetchMasterEmployeeList = async () => {
@@ -163,6 +166,7 @@ const PendingApprovals = ({
     if (activeTab === "PENDING" && hasUserPermission) {
       fetchMasterEmployeeList();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,
@@ -287,7 +291,8 @@ const PendingApprovals = ({
     },
     {
       name: <div>Name</div>,
-      selector: (row) => row?.name?.toUpperCase() || "-",
+      selector: (row) =>
+        formatEmployeeName(row?.name, row?.salutation)?.toUpperCase() || "-",
       wrap: true,
       minWidth: "160px",
     },

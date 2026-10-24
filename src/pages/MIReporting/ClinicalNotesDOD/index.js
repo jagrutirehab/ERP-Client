@@ -25,12 +25,9 @@ const ClinicalNotesDOD = () => {
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
-    // console.log(clinicalNotesDOD)
-
     useEffect(() => {
         dispatch(fetchClinicalNotesDOD({ centerAccess }));
     }, [dispatch, centerAccess]);
-    // console.log(clinicalNotesDOD)
 
     useEffect(() => {
         if (searchInput === searchTerm) return;
@@ -44,6 +41,7 @@ const ClinicalNotesDOD = () => {
 
 
     const data = useMemo(() => clinicalNotesDOD?.data || [], [clinicalNotesDOD]);
+    const centerDailyTotals = useMemo(() => clinicalNotesDOD?.center_daily_totals || [], [clinicalNotesDOD]);
 
 
     const filteredData = useMemo(() => {
@@ -170,6 +168,26 @@ const ClinicalNotesDOD = () => {
         });
         return totals;
     }, [filteredData, last30Days]);
+
+    const keyToIso = (key) => {
+        const [day, mon, year] = key.split("-");
+        const monthIdx = MONTH_ABBR.indexOf(mon);
+        return `${year}-${pad2(monthIdx + 1)}-${pad2(Number(day))}`;
+    };
+
+    const dateCompliance = useMemo(() => {
+        const pct = {};
+        last30Days.forEach(({ key }) => {
+            const isoDate = keyToIso(key);
+            const rows = centerDailyTotals.filter((row) => (
+                row.date === isoDate && (selectedCenter === "ALL" || row.center_name === selectedCenter)
+            ));
+            const resultCount = rows.reduce((sum, row) => sum + (Number(row.result_count) || 0), 0);
+            const shouldBeCount = rows.reduce((sum, row) => sum + (Number(row.should_be_count) || 0), 0);
+            pct[key] = shouldBeCount > 0 ? Math.round((resultCount / shouldBeCount) * 100) : 0;
+        });
+        return pct;
+    }, [centerDailyTotals, last30Days, selectedCenter]);
 
     const currentMonthDays = useMemo(() => {
         const now = new Date();
@@ -314,6 +332,38 @@ const ClinicalNotesDOD = () => {
                                                                 className="text-center fw-bold px-1 py-1"
                                                                 style={{
                                                                     border: "1px solid #cfd8e3",
+                                                                    background: "#00694d",
+                                                                    color: "white",
+                                                                    whiteSpace: "nowrap",
+                                                                    minWidth: fixedColWidths[i],
+                                                                    ...(i < 3 && { position: "sticky", left: fixedColWidths.slice(0, i).reduce((a, b) => a + b, 0), zIndex: 1 }),
+                                                                }}
+                                                            >
+                                                                {i === labels.length - 1 ? "Compliance %" : ""}
+                                                            </th>
+                                                        ))}
+                                                        {last30Days.map(({ key }) => (
+                                                            <th
+                                                                key={key}
+                                                                className="text-center fw-bold px-1 py-1"
+                                                                style={{
+                                                                    border: "1px solid #cfd8e3",
+                                                                    background: "#00694d",
+                                                                    color: "white",
+                                                                    whiteSpace: "nowrap",
+                                                                }}
+                                                            >
+                                                                {`${dateCompliance[key] ?? 0}%`}
+                                                            </th>
+                                                        ))}
+                                                    </tr>
+                                                    <tr>
+                                                        {labels.map((label, i) => (
+                                                            <th
+                                                                key={label}
+                                                                className="text-center fw-bold px-1 py-1"
+                                                                style={{
+                                                                    border: "1px solid #cfd8e3",
                                                                     background: "#004d00",
                                                                     color: "white",
                                                                     whiteSpace: "nowrap",
@@ -403,19 +453,23 @@ const ClinicalNotesDOD = () => {
                                                                                 : patient[labelsMapping[label]]}
                                                                 </td>
                                                             ))}
-                                                            {last30Days.map(({ key, label }) => (
-                                                                <td
-                                                                    key={key}
-                                                                    className="text-center px-1 py-1"
-                                                                    style={{
-                                                                        border: "1px solid #d6dde8",
-                                                                        background: idx % 2 === 0 ? "#f8fafc" : "#fff",
-                                                                        whiteSpace: "nowrap",
-                                                                    }}
-                                                                >
-                                                                    {patient[key] ?? 0}
-                                                                </td>
-                                                            ))}
+                                                            {last30Days.map(({ key, label }) => {
+                                                                const cellValue = patient[key] ?? 0;
+                                                                const isZero = cellValue === 0;
+                                                                return (
+                                                                    <td
+                                                                        key={key}
+                                                                        className="text-center px-1 py-1"
+                                                                        style={{
+                                                                            border: "1px solid #d6dde8",
+                                                                            background: isZero ? "#ffcdd2" : (idx % 2 === 0 ? "#f8fafc" : "#fff"),
+                                                                            whiteSpace: "nowrap",
+                                                                        }}
+                                                                    >
+                                                                        {cellValue}
+                                                                    </td>
+                                                                );
+                                                            })}
 
 
 

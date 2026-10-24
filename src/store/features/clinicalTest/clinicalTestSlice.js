@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { setAlert } from "../alert/alertSlice";
 import {
   getCiwaTest,
   postCiwatest,

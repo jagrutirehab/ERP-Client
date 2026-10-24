@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { Card, CardBody, Table, Spinner, Alert, Row, Col, UncontrolledTooltip } from "reactstrap";
+import { Card, CardBody, Table, Spinner, Alert, Button, Row, Col, UncontrolledTooltip } from "reactstrap";
+import { CSVLink } from "react-csv";
 import { fetchDocsCompliance } from "../../../store/features/miReporting/miReportingSlice";
 import Select from "react-select";
 import {
@@ -49,6 +50,8 @@ const METRICS = [
     { label: "Form-2 Patient Care Training",  key: "form_2",      description: "Percentage of patient care training forms filled.(2 in a month)" },
     { label: "Form-3 Psychologist Training Pointers", key: "form_3", description: "Percentage of psychologist training forms filled.(2 in a month)" },
     { label: "Form-4 MSW/New Joinee Training", key: "form_4",     description: "Percentage of new joinee training forms filled.(4 in a month)" },
+    { label: "Multidisciplinary Meeting(Monthly)",              key: "multidisciplinary_meeting",       description: "Percentage of multidisciplinary meeting done.(4 in a month)"    },
+
 ];
 
 const DocsCompliance = () => {
@@ -62,6 +65,9 @@ const DocsCompliance = () => {
     const [compliance, setCompliance] = useState(true);
     const [selectedMetric, setSelectedMetric] = useState(METRICS[0].key);
     const [chartMetric, setChartMetric] = useState("ALL");
+    const [csvData, setCsvData] = useState([]);
+    const [csvLoading, setCsvLoading] = useState(false);
+    const csvRef = useRef();
     const data = useMemo(() => docsCompliance?.data || [], [docsCompliance]);
 
     useEffect(() => {
@@ -118,7 +124,7 @@ const DocsCompliance = () => {
             return aggregated;
         }
 
-        return rows.find((r) => r.center_name == selectedCenter) || {};
+        return rows.find((r) => r.center_name === selectedCenter) || {};
     };
 
     const getCellValue = (metricKey, month) => {
@@ -147,6 +153,20 @@ const DocsCompliance = () => {
             return Math.round((actual / shouldBe) * 100);
         }
         return actual;
+    };
+
+    const prepareCsvData = () => {
+        setCsvLoading(true);
+        const headers = ["Metric", ...months.map(formatMonth)];
+        const rows = METRICS.map(({ label, key }) => [
+            label,
+            ...months.map((month) => getCellValue(key, formatMonth(month))),
+        ]);
+        setCsvData([headers, ...rows]);
+        setTimeout(() => {
+            csvRef.current.link.click();
+            setCsvLoading(false);
+        }, 100);
     };
 
     const chartData = useMemo(() => {
@@ -215,9 +235,27 @@ const getCenterCellValue = (row, metricKey) => {
 
     return (
         <div className="mt-4 mt-sm-0" style={{ flex: 1, width: "100%", maxWidth: "100%", minWidth: 0 }}>
-            <div className="p-3 d-flex align-items-center">
-                <i className="bx bx-bar-chart-alt-2 fs-1 me-3"></i>
-                <h6 className="text-truncate mb-0 fs-18">Docs Compliance</h6>
+            <div className="p-3 d-flex align-items-center justify-content-between">
+                <div className="d-flex align-items-center">
+                    <i className="bx bx-bar-chart-alt-2 fs-1 me-3"></i>
+                    <h6 className="text-truncate mb-0 fs-18">Docs Compliance</h6>
+                </div>
+                <div>
+                    <Button
+                        color="info"
+                        onClick={prepareCsvData}
+                        disabled={csvLoading || loading || !data.length}
+                        className="w-auto"
+                    >
+                        {csvLoading ? "Preparing CSV..." : "Export CSV"}
+                    </Button>
+                    <CSVLink
+                        data={csvData || []}
+                        filename={`docs-compliance-${new Date().toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" }).replace(/ /g, "-")}.csv`}
+                        className="d-none"
+                        ref={csvRef}
+                    />
+                </div>
             </div>
 
             <div className="px-3 pb-3">
@@ -279,20 +317,28 @@ const getCenterCellValue = (row, metricKey) => {
                                                 {METRICS.map(({ label, key, description }, idx) => (
                                                     <tr key={key}>
                                                         <td
-                                                            id={description ? `docs-metric-info-${key}` : undefined}
                                                             className="px-1 py-1 fw-semibold"
                                                             style={{ ...cellStyle(idx), whiteSpace: "normal", wordBreak: "break-word" }}
                                                         >
-                                                            {label}
-                                                            {description && (
-                                                                <UncontrolledTooltip
-                                                                    target={`docs-metric-info-${key}`}
-                                                                    placement="right"
-                                                                    trigger="hover"
-                                                                >
-                                                                    {description}
-                                                                </UncontrolledTooltip>
-                                                            )}
+                                                            <span className="d-inline-flex align-items-center gap-1">
+                                                                {label}
+                                                                {description && (
+                                                                    <>
+                                                                        <i
+                                                                            id={`docs-metric-info-${key}`}
+                                                                            className="bx bx-info-circle text-muted"
+                                                                            style={{ cursor: "pointer", fontSize: "0.85rem" }}
+                                                                        ></i>
+                                                                        <UncontrolledTooltip
+                                                                            target={`docs-metric-info-${key}`}
+                                                                            placement="right"
+                                                                            trigger="legacy"
+                                                                        >
+                                                                            {description}
+                                                                        </UncontrolledTooltip>
+                                                                    </>
+                                                                )}
+                                                            </span>
                                                         </td>
                                                         {months.map((month) => (
                                                             <td key={month} className="text-center px-1 py-1" style={cellStyle(idx)}>
@@ -408,6 +454,41 @@ const getCenterCellValue = (row, metricKey) => {
                                         </Table>
                                     </div>
                                 )}
+                            </CardBody>
+                        </Card>
+                    </Col>
+                </Row>
+
+                {/* Metric definitions */}
+                <Row className="g-3 mx-n3 mt-4">
+                    <Col lg={12}>
+                        <Card className="shadow-sm" style={{ border: "1px solid #cfd8e3", borderRadius: 10 }}>
+                            <CardBody className="p-0">
+                                <h6 className="px-3 pt-3 mb-2">Metric Definitions</h6>
+                                <div style={{ overflowX: "auto" }}>
+                                    <Table className="mb-0" style={{ borderCollapse: "collapse", fontSize: "0.72rem", width: "100%" }}>
+                                        <thead>
+                                            <tr>
+                                                <th className="text-start fw-bold px-2 py-1" style={{ ...headerStyle, width: "22%" }}>
+                                                    Metric
+                                                </th>
+                                                <th className="text-start fw-bold px-2 py-1" style={headerStyle}>
+                                                    Description
+                                                </th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            {METRICS.map(({ label, key, description }, idx) => (
+                                                <tr key={key}>
+                                                    <td className="px-2 py-1 fw-semibold" style={cellStyle(idx)}>{label}</td>
+                                                    <td className="px-2 py-1" style={{ ...cellStyle(idx), whiteSpace: "normal", wordBreak: "break-word" }}>
+                                                        {description}
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </Table>
+                                </div>
                             </CardBody>
                         </Card>
                     </Col>

@@ -89,7 +89,6 @@ const Biometric = () => {
       setData(response?.data);
       setPagination(response?.pagination);
     } catch (err) {
-      console.error("Fetch error:", err);
     } finally {
       setFetching(false);
     }

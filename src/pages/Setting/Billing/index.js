@@ -64,9 +64,6 @@ const Billing = ({
     "READ",
   );
 
-  console.log("hasInvoiceSettingPermission", hasInvoiceSettingPermission);
-  console.log("hasAdvancePermission", hasAdvancePermission);
-
   // Toggle handlers
   const toggleForm = () => setModal(!modal);
   const togglePaymentForm = () => setPaymentModal(!paymentModal);

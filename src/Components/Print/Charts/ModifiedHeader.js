@@ -185,7 +185,7 @@ const Header = ({
                   <Text
                     style={{
                       ...styles.fontHeavy,
-                      ...styles.fontSize20,
+                      fontSize: "16px",
                       color: lineColor1,
                       textTransform: "capitalize",
                     }}
@@ -196,7 +196,7 @@ const Header = ({
                   <Text
                     style={{
                       ...styles.fontHeavy,
-                      ...styles.fontSize20,
+                      fontSize: "16px",
                       color: lineColor1,
                       textTransform: "capitalize",
                     }}

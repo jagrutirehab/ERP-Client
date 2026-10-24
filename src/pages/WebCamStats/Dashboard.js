@@ -7,7 +7,6 @@ import {
   CardBody,
   Spinner,
   Form,
-  FormGroup,
   Label,
   Input,
   Button,
@@ -22,10 +21,8 @@ import {
   Tooltip,
   Legend,
   ResponsiveContainer,
-  LineChart,
-  Line,
 } from "recharts";
-import { Filter, Calendar, Camera, Activity, RefreshCw } from "lucide-react";
+import { Filter, Activity, RefreshCw } from "lucide-react";
 import axios from "axios";
 import { api } from "../../config";
 import { useSelector } from "react-redux";
@@ -101,7 +98,6 @@ const Dashboard = () => {
       // Handle the nested response structure (res.data.stats)
       setStats(res?.stats || []);
     } catch (err) {
-      console.error(err);
       setError(
         err?.response?.message || err?.message || "Failed to fetch data",
       );

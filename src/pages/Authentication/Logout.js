@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import React, { useEffect } from "react";
 import { Navigate } from "react-router-dom";
 import withRouter from "../../Components/Hooks/withRouter";
@@ -25,6 +24,7 @@ const Logout = (props) => {
     };
 
     handleLogout();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   if (isUserLogout) {

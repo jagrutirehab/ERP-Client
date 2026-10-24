@@ -37,6 +37,7 @@ const ApproveModal = ({
   toggle,
   onSubmit,
   mode,           // NEW_JOINING | SALARY_ADVANCE | TECH_ISSUES | HIRING | TPM | INCENTIVES | SALARY
+  targetName,     // optional: who/what this request is for, shown as a line in the modal
   actionType,
   setActionType,
   paymentType,
@@ -67,7 +68,6 @@ const ApproveModal = ({
       });
       setECode(response.payload.value);
     } catch (error) {
-      console.error(error);
       if (!handleAuthError(error)) {
         toast.error("Failed to generate employee id");
       }
@@ -83,6 +83,7 @@ const ApproveModal = ({
     ) {
       generateEmployeeId();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionType, mode]);
 
   useEffect(() => {
@@ -93,6 +94,7 @@ const ApproveModal = ({
     ) {
       setECode("");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, mode, actionType]);
 
   const handleSubmit = () => {
@@ -103,6 +105,15 @@ const ApproveModal = ({
     
     if (mode === "SALARY" && actionType === "UPDATE_REMARKS" && !remarks) {
       toast.warn("Please select a remarks");
+      return;
+    }
+
+    if (
+      mode === "NEW_JOINING_BIOMETRIC" &&
+      actionType === "REJECT" &&
+      !note.trim()
+    ) {
+      toast.warn("Reason is mandatory for rejection.");
       return;
     }
     onSubmit({
@@ -154,7 +165,6 @@ const ApproveModal = ({
 
       setEmployees(options);
     } catch (error) {
-      console.log("Error loading employees", error);
     } finally {
       setLoadingEmployees(false);
     }
@@ -169,8 +179,6 @@ const ApproveModal = ({
   const debouncedFetchEmployees = useMemo(() => {
     return debounce(fetchEmployees, 400);
   }, []);
-
-  console.log("mode", mode);
 
   return (
     <Modal
@@ -193,6 +201,17 @@ const ApproveModal = ({
       </ModalHeader >
 
       <ModalBody>
+        {targetName && (
+          <p className="text-muted mb-3">
+            You are{" "}
+            {actionType === "APPROVE"
+              ? "approving"
+              : actionType === "REJECT"
+                ? "rejecting"
+                : "actioning"}{" "}
+            this request for <strong>{targetName}</strong>.
+          </p>
+        )}
         {(mode === "NEW_JOINING" || mode === "TPM") &&
           actionType === "APPROVE" && (
             <div className="mb-3">
@@ -230,14 +249,29 @@ const ApproveModal = ({
         ) : ((mode !== "SALARY") || (mode === "SALARY" && (actionType === "APPROVE" || actionType === "REJECT"))) && (
           <div className="mb-3">
             <Label htmlFor="note" className="fw-bold">
-              Note (Optional)
+              {mode === "NEW_JOINING_BIOMETRIC" ? (
+                <>
+                  Reason{" "}
+                  {actionType === "REJECT" && (
+                    <span className="text-danger">*</span>
+                  )}
+                </>
+              ) : (
+                "Note (Optional)"
+              )}
             </Label>
             <Input
               id="note"
               type="textarea"
               rows="3"
               value={note}
-              placeholder="Write a note..."
+              placeholder={
+                mode === "NEW_JOINING_BIOMETRIC"
+                  ? actionType === "REJECT"
+                    ? "Enter reason for rejection (required)"
+                    : "Enter reason (optional)"
+                  : "Write a note..."
+              }
               onChange={(e) => setNote(e.target.value)}
             />
           </div>

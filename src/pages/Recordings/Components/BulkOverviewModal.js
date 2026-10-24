@@ -73,10 +73,6 @@ const BulkOverviewModal = ({
     setIsSubmitting(false);
   }, [currentFilters]);
 
-  const isNotGenerated = (row) => {
-    const resp = row?.Files?.geminiResponse;
-    return !resp || resp === "" || resp.toLowerCase().startsWith("api error");
-  };
 
   // `override` lets a caller fetch with values it has only just set — reading
   // them from state here would use the previous render's, which is why opening
@@ -121,7 +117,6 @@ const BulkOverviewModal = ({
 
       setTotalDocs(total);
     } catch (error) {
-      console.error("Error fetching modal recordings", error);
     } finally {
       setLoading(false);
       setLoadingMore(false);
@@ -141,6 +136,7 @@ const BulkOverviewModal = ({
     } else {
       resetForm();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   const handleLoadMore = () => {
@@ -174,7 +170,6 @@ const BulkOverviewModal = ({
         await fetchRecordings(1, false);
       }
     } catch (error) {
-      console.error("Submission error", error);
     } finally {
       setIsSubmitting(false);
     }

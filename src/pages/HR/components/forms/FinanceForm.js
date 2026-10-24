@@ -19,6 +19,7 @@ import {
   paymentTypeOptions,
   isSimplifiedFinanceType,
   isConsultantFinanceType,
+  isPfApplicable,
 } from "../../../../Components/constants/HR";
 import {
   calculatePayroll,
@@ -372,9 +373,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
     const payroll = calculatePayroll({
       ...form.values,
       ...annualToMonthly(form.values),
-      pfApplicable:
-        employeeData?.newEmploymentType === "FULL_TIME" &&
-        employeeData?.category !== "FORM11",
+      pfApplicable: isPfApplicable(employeeData),
       gender: employeeData?.gender || "",
       joinningDate: employeeData?.joinningDate || "",
       currentLocation:
@@ -393,6 +392,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         form.setFieldValue(key, value, false);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     employeeData,
     form,

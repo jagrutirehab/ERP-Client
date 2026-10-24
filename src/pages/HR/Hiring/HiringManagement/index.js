@@ -33,16 +33,14 @@ const HiringManagement = () => {
   });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [spagination, setsPagination] = useState({
+  const [, setsPagination] = useState({
     totalDocs: 0,
   });
   const handleAuthError = useAuthError();
   const dispatch = useDispatch();
   const user = useSelector((state) => state.User);
   const {
-    data,
     pagination,
-    loader,
     designations: designationOptions,
     designationLoading,
   } = useSelector((state) => state.HR);
@@ -93,11 +91,9 @@ const HiringManagement = () => {
         ...(filters.designation ? { designation: filters.designation } : {}),
         ...(filters.gender ? { gender: filters.gender } : {}),
       });
-      // console.log("response", response);
       setRequests(response?.data);
       setsPagination(response?.pagination);
     } catch (error) {
-      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -108,6 +104,7 @@ const HiringManagement = () => {
       navigate("/unauthorized");
     }
     loadHiringManagementRequests();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters, page, limit, user?.centerAccess]);
 
   const handleActionClick = (row) => {
@@ -135,7 +132,6 @@ const HiringManagement = () => {
       };
 
       const response = await editManagementRequests(selectedRow._id, payload);
-      // console.log("response", response);
       if (response.success === true) {
         toast.success(response?.message || "Successfully updated!");
       }
@@ -143,7 +139,6 @@ const HiringManagement = () => {
       setIsModalOpen(false);
       loadHiringManagementRequests();
     } catch (error) {
-      console.log(error);
       toast.error(error?.message || "Error Updating Data");
     } finally {
       setLoading(false);
@@ -164,6 +159,7 @@ const HiringManagement = () => {
     };
 
     loadDesignations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const UpdateStatusOptions = [

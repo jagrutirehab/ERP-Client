@@ -23,6 +23,8 @@ import {
   INJURY_MARKS,
   ECT_SESSION,
   ADMISSION_TYPE,
+  MEDICINE_GIVEN,
+  ELDERLY_FUNCTIONAL_CHECKLIST,
 } from "../../constants/patient";
 
 //charts
@@ -45,6 +47,8 @@ import NurseSosProcedure from "./NurseSosProcedure";
 import InjuryMarks from "./InjuryMarks";
 import EctSession from "./EctSession";
 import AdmissionType from "./AdmissionType";
+import MedicineGiven from "./MedicineGiven";
+import ElderlyFunctionalChecklist from "./ElderlyFunctionalChecklist";
 
 const styles = StyleSheet.create({
   page: {
@@ -65,16 +69,10 @@ const Charts = ({
   admission,
   additionalDiagnosis,
 }) => {
-  console.log("Print additionalDiagnosis:", additionalDiagnosis);
   return (
     <React.Fragment>
       <Document>
         {(charts || []).map((chart) => {
-          console.log("Print chart._id:", chart._id);
-          console.log(
-            "additionalDiagnosis chart_ids:",
-            additionalDiagnosis?.map((d) => d.chart_id),
-          );
           return (
             <Page size="A4" style={styles.page} wrap={true}>
               <RenderWhen isTrue={chart?.chart === PRESCRIPTION}>
@@ -258,6 +256,15 @@ const Charts = ({
                 />
               </RenderWhen>
 
+              <RenderWhen isTrue={chart?.chart === MEDICINE_GIVEN}>
+                <MedicineGiven
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
+
               <RenderWhen
                 isTrue={
                   chart?.chart === INPUT_OUTPUT &&
@@ -319,6 +326,20 @@ const Charts = ({
                 isTrue={chart?.chart === ADMISSION_TYPE && chart.type === IPD}
               >
                 <AdmissionType
+                  chart={chart}
+                  center={chart.center}
+                  patient={patient}
+                  admission={admission}
+                />
+              </RenderWhen>
+
+              <RenderWhen
+                isTrue={
+                  chart?.chart === ELDERLY_FUNCTIONAL_CHECKLIST &&
+                  chart.type === IPD
+                }
+              >
+                <ElderlyFunctionalChecklist
                   chart={chart}
                   center={chart.center}
                   patient={patient}

@@ -1,17 +1,14 @@
 import React, { useEffect, useState } from "react";
 import { CardBody } from "reactstrap";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
-import { getMyTickets } from "../Helpers/FetchIssues";
 import { normalizeStatus } from "../Components/normalizeStatus";
 import { toast } from "react-toastify";
 import DataTableComponent from "../../../Components/Common/DataTable";
-import { MyIssuesCol } from "../Columns/MyIssues";
 import ImagesModal from "../Components/ImagesModal";
 import DescriptionModal from "../Components/DescriptionModal";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import StatusModal from "../Components/StatusModal";
 import { changeStatus, getRaisedIssues } from "../../../helpers/backend_helper";
-import ApprovalModal from "../Components/ApprovalModal";
 import Select from "react-select";
 import { useSelector } from "react-redux";
 import { MyRaisedTicketsColumns } from "../Columns/MyRaisedTickets";
@@ -100,7 +97,6 @@ const MyRaisedTickets = () => {
                 totalDocs: response?.pagination?.totalRecords,
             });
         } catch (error) {
-            console.log(error);
             toast.error(error?.message || "ERROR");
         } finally {
             setLoading(false);
@@ -114,6 +110,7 @@ const MyRaisedTickets = () => {
             if (!user?.centerAccess) return;
             loadIssues();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [type, status, page, limit, selectedCenter, user?.centerAccess]);
 
 
@@ -192,9 +189,6 @@ const MyRaisedTickets = () => {
         label: normalizeStatus(s),
     }));
 
-
-
-    console.log("issues", issues);
 
 
 

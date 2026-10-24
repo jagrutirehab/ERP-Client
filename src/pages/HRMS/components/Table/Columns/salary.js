@@ -3,6 +3,7 @@ import { format } from "date-fns";
 import { Button } from "reactstrap";
 import { Check, CheckCheck, Copy, Pencil, X } from "lucide-react";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { formatCurrency } from "../../../../../utils/formatCurrency";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
@@ -23,10 +24,6 @@ const earnedCellStyle = {
     fontWeight: 600,
 };
 
-const PFAndESICSalaryCellStyle = {
-    ...baseStyle,
-    backgroundColor: "#A9D08E",
-};
 
 
 const employeeDeductionStyle = {
@@ -59,13 +56,14 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
     {
         name: <div>Name</div>,
-        selector: row => row?.employee?.name?.toUpperCase() || "-",
+        selector: row =>
+            formatEmployeeName(row?.employee?.name, row?.employee?.salutation)?.toUpperCase() || "-",
         cell: row => (
             <Highlighter
                 highlightClassName="react-highlight"
                 searchWords={[searchText]}
                 autoEscape
-                textToHighlight={`${row?.employee?.name?.toUpperCase() || ""}`}
+                textToHighlight={`${formatEmployeeName(row?.employee?.name, row?.employee?.salutation)?.toUpperCase() || ""}`}
             />
         ),
         wrap: true,
@@ -264,8 +262,51 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         style: earnedCellStyle,
     },
     {
+        name: <div>Consultant Fee</div>,
+        selector: row => formatCurrency(row?.earned?.consultantFee),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
+    {
         name: <div>Incentive</div>,
         selector: row => formatCurrency(row?.earned?.incentives),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
+    {
+        name: <div>Arrear</div>,
+        selector: row => formatCurrency(row?.earned?.adjustments?.ARREAR),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
+    {
+        name: <div>Reimbursement</div>,
+        selector: row => formatCurrency(row?.earned?.adjustments?.REIMBURSEMENT),
+        wrap: true,
+        center: true,
+        minWidth: "140px",
+        style: earnedCellStyle,
+    },
+    {
+        name: <div>Variable Pay (Adj.)</div>,
+        selector: row => formatCurrency(row?.earned?.adjustments?.VARIABLE_PAY),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
+    {
+        name: <div>Other Earnings</div>,
+        selector: row => formatCurrency(row?.earned?.adjustments?.OTHER_EARNINGS),
+        wrap: true,
+        center: true,
+        style: earnedCellStyle,
+    },
+    {
+        name: <div>EL Encashment</div>,
+        selector: row => formatCurrency(row?.earned?.adjustments?.EL_ENCASHMENT),
         wrap: true,
         center: true,
         style: earnedCellStyle,
@@ -303,6 +344,13 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
         style: employeeDeductionStyle,
     },
     {
+        name: <div>Voluntary PF</div>,
+        selector: row => formatCurrency((row?.earned?.voluntaryPF || 0) + (row?.earned?.adjustments?.VOLUNTARY_PF || 0)),
+        wrap: true,
+        center: true,
+        style: employeeDeductionStyle,
+    },
+    {
         name: <div>ESIC Employee</div>,
         selector: row => formatCurrency(row?.earned?.ESICEmployee),
         wrap: true,
@@ -319,6 +367,13 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     {
         name: <div>PT</div>,
         selector: row => formatCurrency(row?.earned?.PT),
+        wrap: true,
+        center: true,
+        style: employeeDeductionStyle,
+    },
+    {
+        name: <div>PT Arrear</div>,
+        selector: row => formatCurrency((row?.earned?.PTArrears || 0) + (row?.earned?.adjustments?.PT_ARREAR || 0)),
         wrap: true,
         center: true,
         style: employeeDeductionStyle,
@@ -346,7 +401,7 @@ export const salaryColumns = ({ searchText, copyId, onCopy, onOpen, onApprove, o
     },
     {
         name: <div>Other Deductions</div>,
-        selector: row => formatCurrency(row?.earned?.otherDeductions),
+        selector: row => formatCurrency((row?.earned?.otherDeductions || 0) + (row?.earned?.adjustments?.OTHER_DEDUCTION || 0)),
         wrap: true,
         center: true,
         style: employeeDeductionStyle,

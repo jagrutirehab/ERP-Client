@@ -16,6 +16,10 @@ import PhoneInputWithCountrySelect from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 
 import * as Yup from "yup";
+import {
+  isEnteredIdentifier,
+  isMaskedIdentifier,
+} from "../../../helpers/maskedIdentifier";
 import { useFormik } from "formik";
 import Flatpicker from "react-flatpickr";
 import "flatpickr/dist/themes/material_green.css";
@@ -39,6 +43,12 @@ import { format } from "date-fns";
 import axios from "axios";
 import { toast } from "react-toastify";
 import { getICDCodes } from "../../../helpers/backend_helper";
+import ReferralSourceFields from "../../../Components/Patient/ReferralSourceFields";
+import {
+  REFERRAL_SOURCE_KEYS,
+  REFERRAL_SOURCE_OPTIONS,
+  REFERRAL_SOURCES_REQUIRING_REF,
+} from "../../../Components/constants/referralSources";
 
 // Ahmedabad is closed to new admissions — they must go to Ahmedabad-2 instead.
 // Matched on the exact trimmed title rather than an _id so the block holds in
@@ -96,10 +106,18 @@ const AdmitPatient = ({
       guardianRelation: patient ? patient.guardianRelation : "",
       guardianPhoneNumber: patient ? patient.guardianPhoneNumber : "",
       referredBy: patient
-        ? patient.referredBy?.doctorName || patient.referredBy
+        ? patient.referredBy?.source
+          ? ""
+          : patient.referredBy?.doctorName || patient.referredBy
         : "",
       referralPhoneNumber: patient?.referredBy?.mobileNumber || "",
       referralType: patient?.referredBy?.speciality || "",
+      referralSource: patient?.referredBy?.source || "",
+      referralRefId:
+        patient?.referredBy?.employee ||
+        patient?.referredBy?.referringPatient ||
+        "",
+      referralName: patient?.referredBy?.name || "",
       ipdFileNumber: patient ? patient.ipdFileNumber : "",
 
       //admission
@@ -112,6 +130,8 @@ const AdmitPatient = ({
       doctor: data ? data.doctor?._id : "",
       provisional_diagnosis: [],
       Ipdnum: data ? data.Ipdnum : "",
+      ward: data ? data.ward || "" : "",
+      bed: data ? data.bed || "" : "",
     },
     validationSchema: Yup.object({
       //patient
@@ -143,9 +163,15 @@ const AdmitPatient = ({
           then: (schema) =>
             schema
               .required("Aadhaar Card Number is required")
-              .matches(
-                /^[0-9]{12}$/,
+              // The mask the server returns for an existing number satisfies
+              // "required" but is not twelve digits, so only check the format
+              // when the value was actually typed.
+              .test(
+                "aadhaar-format",
                 "Aadhaar Card Number must be exactly 12 digits",
+                (value) =>
+                  !isEnteredIdentifier(value) ||
+                  /^[0-9]{12}$/.test(value.trim()),
               ),
         }),
       passportNumber: Yup.string()
@@ -171,7 +197,16 @@ const AdmitPatient = ({
             return isValidPhoneNumber(value || "");
           },
         ),
-      referredBy: Yup.string().required("Please select Referred By"),
+      referredBy: Yup.string().when("referralSource", {
+        is: (v) => !!v,
+        then: (schema) => schema.notRequired(),
+        otherwise: (schema) => schema.required("Please select Referred By"),
+      }),
+      referralRefId: Yup.string().when("referralSource", {
+        is: (v) => REFERRAL_SOURCES_REQUIRING_REF.includes(v),
+        then: (schema) => schema.required("Please select a value"),
+        otherwise: (schema) => schema.nullable().notRequired(),
+      }),
       referralPhoneNumber: Yup.string()
         .nullable()
         .notRequired()
@@ -223,6 +258,17 @@ const AdmitPatient = ({
 
   const referralInitialized = useRef(false);
   useEffect(() => {
+    // Patient saved with a non-doctor referral source — pre-select it
+    if (patient?.referredBy?.source) {
+      setSelectedReferral(
+        REFERRAL_SOURCE_OPTIONS.find(
+          (o) => o.value === patient.referredBy.source,
+        ) || null,
+      );
+      setIsOtherReferral(false);
+      return;
+    }
+
     // Only run once when patient and referrals are both available
     if (!patient?.referredBy || !referrals?.length) return;
     if (referralInitialized.current) return;
@@ -289,6 +335,7 @@ const AdmitPatient = ({
         validation.setFieldValue("referralType", "other");
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient, referrals]);
 
   const handleChange = (e, fieldType) => {
@@ -345,6 +392,7 @@ const AdmitPatient = ({
       createIpdfile(patient._id);
     }
     return;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient, step]);
 
   const patientFields = [
@@ -422,7 +470,6 @@ const AdmitPatient = ({
 
       setIcdOptions(formatted);
     } catch (error) {
-      console.log(error);
     }
   };
   useEffect(() => {
@@ -517,6 +564,13 @@ const AdmitPatient = ({
                 id="aadhaarCardNumber"
                 placeholder="Enter 12-digit Aadhaar number"
                 maxLength={12}
+                onFocus={() => {
+                  // The server only ever sends a mask. Clearing it on focus
+                  // means typing replaces the number instead of appending to
+                  // "XXXXXXXX3001". A blank is read as "no change".
+                  if (isMaskedIdentifier(validation.values.aadhaarCardNumber))
+                    validation.setFieldValue("aadhaarCardNumber", "");
+                }}
                 onChange={validation.handleChange}
                 onBlur={validation.handleBlur}
                 value={validation.values.aadhaarCardNumber || ""}
@@ -527,6 +581,12 @@ const AdmitPatient = ({
                 <FormFeedback type="invalid">
                   {validation.errors.aadhaarCardNumber}
                 </FormFeedback>
+              )}
+              {isMaskedIdentifier(validation.values.aadhaarCardNumber) && (
+                <small className="text-muted d-block mt-1">
+                  Showing the last 4 digits only. Click the field and type a new
+                  number to replace it, or leave it as-is to keep the saved one.
+                </small>
               )}
             </div>
           ) : validation.values.nationality === "Foreigner" ? (
@@ -539,6 +599,13 @@ const AdmitPatient = ({
                 name="passportNumber"
                 id="passportNumber"
                 placeholder="Enter passport number"
+                onFocus={() => {
+                  // The server only ever sends a mask. Clearing it on focus
+                  // means typing replaces the number instead of appending to
+                  // "XXXXXXXX3001". A blank is read as "no change".
+                  if (isMaskedIdentifier(validation.values.passportNumber))
+                    validation.setFieldValue("passportNumber", "");
+                }}
                 onChange={validation.handleChange}
                 onBlur={validation.handleBlur}
                 value={validation.values.passportNumber || ""}
@@ -549,6 +616,12 @@ const AdmitPatient = ({
                 <FormFeedback type="invalid">
                   {validation.errors.passportNumber}
                 </FormFeedback>
+              )}
+              {isMaskedIdentifier(validation.values.passportNumber) && (
+                <small className="text-muted d-block mt-1">
+                  Showing the last 4 digits only. Click the field and type a new
+                  number to replace it, or leave it as-is to keep the saved one.
+                </small>
               )}
               <div
                 style={{
@@ -647,17 +720,28 @@ const AdmitPatient = ({
                   "psychiatrist",
                   "online",
                 ];
-                if (option && staticValues.includes(option.value)) {
+                const isSource =
+                  option && REFERRAL_SOURCE_KEYS.includes(option.value);
+                // One setValues call: back-to-back setFieldValue calls each
+                // validate against stale values, leaving old errors behind.
+                const updates = {
+                  referralSource: isSource ? option.value : "",
+                  referralRefId: "",
+                  referralName: "",
+                  referredBy: "",
+                  referralPhoneNumber: "",
+                  referralType: "",
+                };
+                if (isSource) {
+                  setIsOtherReferral(false);
+                } else if (option && staticValues.includes(option.value)) {
                   setIsOtherReferral(true);
-                  validation.setFieldValue("referredBy", "");
-                  validation.setFieldValue("referralPhoneNumber", "");
-                  validation.setFieldValue("referralType", option.value);
+                  updates.referralType = option.value;
                 } else {
                   setIsOtherReferral(false);
-                  validation.setFieldValue("referredBy", option?.value || "");
-                  validation.setFieldValue("referralPhoneNumber", "");
-                  validation.setFieldValue("referralType", "");
+                  updates.referredBy = option?.value || "";
                 }
+                validation.setValues({ ...validation.values, ...updates });
               }}
               onBlur={() => validation.setFieldTouched("referredBy", true)}
               options={[
@@ -668,9 +752,12 @@ const AdmitPatient = ({
                 { value: "psychiatrist", label: "Psychiatrist" },
                 { value: "doctor", label: "Doctor" },
                 { value: "online", label: "Online" },
+                ...REFERRAL_SOURCE_OPTIONS,
                 { value: "other", label: "Other" },
               ]}
               placeholder="Select or search for a referral doctor"
+              menuPlacement="auto"
+              maxMenuHeight={200}
               isClearable
               isLoading={referralsLoading}
               styles={{
@@ -700,6 +787,27 @@ const AdmitPatient = ({
                   zIndex: 9999,
                 }),
               }}
+            />
+
+            <ReferralSourceFields
+              source={validation.values.referralSource}
+              refId={validation.values.referralRefId}
+              name={validation.values.referralName}
+              onRefChange={(id, label) =>
+                validation.setValues({
+                  ...validation.values,
+                  referralRefId: id,
+                  referralName: label,
+                })
+              }
+              onNameChange={(value) =>
+                validation.setFieldValue("referralName", value)
+              }
+              error={
+                validation.touched.referralRefId || validation.submitCount > 0
+                  ? validation.errors.referralRefId
+                  : undefined
+              }
             />
 
             {isOtherReferral && (
@@ -804,10 +912,18 @@ const AdmitPatient = ({
                 validation.values[field].toString().trim() === "",
             );
 
+            // Referred By (and its mandatory sub-dropdown) lives on step 1
+            validation.setFieldTouched("referredBy", true);
+            validation.setFieldTouched("referralRefId", true);
+            const referralInvalid =
+              !!validation.errors.referredBy ||
+              !!validation.errors.referralRefId;
+
             if (
               step1Errors.length > 0 ||
               emptyFields.length > 0 ||
-              nationalityMissing
+              nationalityMissing ||
+              referralInvalid
             ) {
               return; // Don't proceed to next step
             }
@@ -959,6 +1075,37 @@ const AdmitPatient = ({
           </Col>
         )}
 
+        <Col xs={12} md={6}>
+          <div className="mb-3">
+            <Label htmlFor="ward" className="form-label">
+              Floor / Ward / Room
+            </Label>
+            <Input
+              name="ward"
+              id="ward"
+              onChange={validation.handleChange}
+              onBlur={validation.handleBlur}
+              value={validation.values.ward || ""}
+              className="form-control"
+            />
+          </div>
+        </Col>
+        <Col xs={12} md={6}>
+          <div className="mb-3">
+            <Label htmlFor="bed" className="form-label">
+              Bed
+            </Label>
+            <Input
+              name="bed"
+              id="bed"
+              onChange={validation.handleChange}
+              onBlur={validation.handleBlur}
+              value={validation.values.bed || ""}
+              className="form-control"
+            />
+          </div>
+        </Col>
+
         <FormField
           fields={admissionFields}
           validation={validation}
@@ -1030,6 +1177,17 @@ const AdmitPatient = ({
                 !validation.values[field] ||
                 validation.values[field].toString().trim() === "",
             );
+
+            // Referred By lives on step 1 — send the user back to it
+            validation.setFieldTouched("referredBy", true);
+            validation.setFieldTouched("referralRefId", true);
+            if (
+              validation.errors.referredBy ||
+              validation.errors.referralRefId
+            ) {
+              setStep(1);
+              return;
+            }
 
             // If there are any errors or empty fields, don't submit
             if (

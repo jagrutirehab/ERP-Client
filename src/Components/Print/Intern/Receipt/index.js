@@ -5,12 +5,10 @@ import {
   StyleSheet,
   View,
   Text,
-  Image,
   Font,
 } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
-import Logo from "../../../../assets/images/jagruti-logo.png";
 import addComma from "../../../../utils/addComma";
 import toWords from "../../../../utils/toWords";
 import { BANK, CARD, CASH, CHEQUE } from "../../../constants/patient";

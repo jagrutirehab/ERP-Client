@@ -28,8 +28,6 @@ const OwnerQuality = () => {
     dispatch(fetchOwnerQualityBreakdown({ date: selectedMonth }));
   }, [dispatch, selectedMonth]);
 
-  console.log({ selectedMonth });
-
   const handleDateChange = (selectedDates) => {
     if (selectedDates.length > 0) {
       const selectedDate = moment(selectedDates[0]).format("YYYY-MM");

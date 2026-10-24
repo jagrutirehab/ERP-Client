@@ -44,13 +44,6 @@ const DischargeAbsconding = ({ register, patient, admissions }) => {
     fontSize: "13px",
   };
 
-  const checkboxRow = {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    marginBottom: "5px",
-    fontSize: "13px",
-  };
 
   const [today, setToday] = useState("");
 

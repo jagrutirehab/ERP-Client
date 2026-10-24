@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 import FileCard from "../../../Components/Common/FileCard";
 import { Col, Row } from "reactstrap";
@@ -30,7 +30,7 @@ const CounsellingNote = ({ data }) => {
       cleaned = cleaned
         .replace(/^#{1,6}\s?/gm, "")
 
-        .replace(/^\s*[\*\-]\s+/gm, "• ")
+        .replace(/^\s*[*-]\s+/gm, "• ")
 
         .replace(/\*\*/g, "")
         .replace(/\*/g, "")
@@ -42,7 +42,6 @@ const CounsellingNote = ({ data }) => {
       return cleaned;
 
     } catch (error) {
-      console.error("Error normalizing Gemini response:", error);
       return null;
     }
   };

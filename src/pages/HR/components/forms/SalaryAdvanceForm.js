@@ -81,6 +81,7 @@ const SalaryAdvanceForm = ({ initialData, onSuccess, view, onCancel, hasCreatePe
         }
 
         return debouncedSearch.cancel;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchText]);
 
     const resetAll = () => {

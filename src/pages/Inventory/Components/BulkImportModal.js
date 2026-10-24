@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Modal, ModalHeader, ModalBody, Progress, Card, CardBody, CardTitle, ListGroup, ListGroupItem } from "reactstrap";
+import { Modal, ModalHeader, ModalBody, Progress, ListGroup, ListGroupItem } from "reactstrap";
 import { Button } from "../Components/Button";
 import * as XLSX from "xlsx";
 import axios from "axios";
@@ -9,6 +9,7 @@ import { parseExcelSerialDate } from "../../../Components/Common/ParseExcelSeria
 import { nanoid } from "nanoid";
 import { useSelector } from "react-redux";
 import { downloadFailedMedicines } from "../../../helpers/backend_helper";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const dbFields = [
   "medicineName",
@@ -64,6 +65,9 @@ const headerToDbMap = {
 const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   const [uploadedData, setUploadedData] = useState([]);
   const { centerAccess } = useSelector((state) => state.User);
+  const handleAuthError = useAuthError();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
   // const [headerRowIndex, setHeaderRowIndex] = useState(0);
 
   // const emptyMapping = () =>
@@ -230,7 +234,6 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
 
   //     return obj;
   //   });
-  //   // console.log(mapped[0])
   //   const filtered = mapped.filter((o) => {
   //     const keys = Object.keys(o).filter(
   //       (k) => k !== "deleted" && k !== "centers"
@@ -280,13 +283,13 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       Object.keys(o).some((k) => dbFields.includes(k))
     );
   }
-  const sendChunkWithRetry = async (chunkData, chunkIndex, maxAttempts = 3) => {
+  const sendChunkWithRetry = async (chunkData, chunkIndex, maxAttempts = 3, extra = {}) => {
     let attempt = 0;
     while (attempt < maxAttempts) {
       attempt++;
       try {
-        const resp = await axios.post(endpoint, { medicines: chunkData, batchId }, {
-          headers: { "Content-Type": "application/json" },
+        const resp = await axios.post(endpoint, { medicines: chunkData, batchId, ...extra }, {
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
           timeout: 0,
           onUploadProgress: (progressEvent) => {
             if (!progressEvent || !progressEvent.total) return;
@@ -306,10 +309,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
           },
         });
 
-        console.log("resp", resp);
-
         const data = resp || {};
-        console.log(data)
         const inserted = Number(data.insertedCount ?? data.count ?? 0);
         const skipped =
           Number(
@@ -320,6 +320,10 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
         const updatedMedicine = Number(data.updatedCount) ?? 0;
         return { success: true, inserted, skipped, noExisitInCentralMedicine, noChangeMedicine, updatedMedicine };
       } catch (err) {
+        // An expired session won't fix itself on retry.
+        if (err?.response?.status === 401) {
+          return { success: false, error: err, unauthorized: true };
+        }
         toast.warn(`Chunk ${chunkIndex} attempt ${attempt} failed`);
         if (attempt >= maxAttempts) {
           return { success: false, error: err };
@@ -333,6 +337,11 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
   };
 
   const handleImport = async ({ chunkSize = 50 } = {}) => {
+    if (!selectedCenters.length) {
+      toast.error("Please select at least one center before importing.");
+      return;
+    }
+
     const mappedData = buildMappedObjects();
     const totalItemsLocal = mappedData.length;
     if (!totalItemsLocal) {
@@ -374,14 +383,36 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
     window.addEventListener("beforeunload", beforeUnload);
 
     try {
+      let failedChunkCount = 0; // local: the failedChunks state is stale inside this loop
       for (let i = 0; i < chunksTotal; i++) {
         setCurrentChunkIndex(i);
         const chunk = chunks[i];
 
+        // The last chunk carries the totals of the chunks before it, so the
+        // server can write a single activity row for the whole upload.
+        const isLastChunk = i === chunksTotal - 1;
+        const extra = isLastChunk
+          ? {
+              isLast: true,
+              totals: {
+                inserted: uploadedRef.current,
+                updated: medicineUpdatedRef.current,
+                skipped: skippedRef.current,
+                failedChunks: failedChunkCount,
+              },
+            }
+          : {};
+
         // send chunk (onUploadProgress will estimate within-chunk progress)
-        const result = await sendChunkWithRetry(chunk, i, 3);
+        const result = await sendChunkWithRetry(chunk, i, 3, extra);
+
+        if (result.unauthorized) {
+          handleAuthError({ statusCode: 401 });
+          break;
+        }
 
         if (!result.success) {
+          failedChunkCount++;
           setFailedChunks((prev) => [
             ...prev,
             {
@@ -450,7 +481,6 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       }
     } catch (err) {
       toast.error("Upload failed unexpectedly");
-      console.error(err);
     } finally {
       setUploading(false);
       window.removeEventListener("beforeunload", beforeUnload);
@@ -472,6 +502,11 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       for (let i = 0; i < failedChunks.length; i++) {
         const item = failedChunks[i];
         const result = await sendChunkWithRetry(item.data, item.index, 3);
+        if (result.unauthorized) {
+          handleAuthError({ statusCode: 401 });
+          remaining.push(...failedChunks.slice(i)); // keep this and the rest as failed
+          break;
+        }
         if (!result.success) {
           remaining.push({
             ...item,
@@ -650,7 +685,6 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
       setUploadDone(false);
       toggle();
       toast.error("Failed to download failed medicines file.");
-      console.error("Download error:", error);
     }
   };
 
@@ -683,7 +717,7 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
                   display: "block",
                 }}
               >
-                Select Centers (click to open)
+                Select Centers (click to open) <span className="text-danger">*</span>
               </label>
 
               <div
@@ -1214,7 +1248,8 @@ const BulkImportModal = ({ isOpen, user, toggle, onImport }) => {
 
               <Button
                 onClick={() => handleImport({ chunkSize: 50 })}
-                disabled={uploading || uploadedData.length === 0}
+                disabled={uploading || uploadedData.length === 0 || selectedCenters.length === 0}
+                title={selectedCenters.length === 0 ? "Select at least one center to import" : undefined}
               >
                 {uploading ? "Uploading..." : "Import Data"}
               </Button>

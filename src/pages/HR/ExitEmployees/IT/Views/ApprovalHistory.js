@@ -3,10 +3,12 @@ import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
 import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
+import { formatEmployeeName } from "../../../../../utils/formatEmployeeName";
 import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
-import { Input, Spinner } from "reactstrap";
+import { Input, Spinner, Badge } from "reactstrap";
+import { Laptop } from "lucide-react";
 import { format } from "date-fns";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
 import DataTable from "react-data-table-component";
@@ -104,7 +106,6 @@ const lwdOptions = [
             ...(lwdFilter === "CUSTOM" && lwdTo && { lwdTo }),
             })).unwrap();
         } catch (error) {
-            console.log(error)
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to fetch master employee list");
             }
@@ -115,6 +116,7 @@ const lwdOptions = [
         if (activeTab === "HISTORY" && hasUserPermission) {
             fetchITApprovalHistory();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles,  lwdFilter, lwdFrom, lwdTo]);
 
     const columns = [
@@ -125,14 +127,14 @@ const lwdOptions = [
         },
         {
             name: <div>Name</div>,
-            selector: row => row?.employeeName?.toUpperCase() || "-",
+            selector: row =>
+                formatEmployeeName(row?.employeeName, row?.salutation)?.toUpperCase() || "-",
             wrap: true,
             minWidth: "160px"
         },
         {
             name: <div>Last Working Date</div>,
             selector: row => {
-                console.log("Row", row);
                 
                 if (!row?.exitDate) return "-";
 
@@ -225,12 +227,21 @@ const lwdOptions = [
         {
             name: <div>Acted By</div>,
             selector: (row) => (
-                <div>
-                    <div>{capitalizeWords(row?.actedBy?.name || "-")}</div>
-                    <div style={{ fontSize: "12px", color: "#666" }}>
-                        {row?.actedBy?.email || "-"}
-                    </div>
-                </div>
+                row?.isSystemApproved
+                    ? (
+                        <Badge color="success" className="d-inline-flex align-items-center gap-1">
+                            <Laptop size={14} />
+                            System
+                        </Badge>
+                    )
+                    : (
+                        <div>
+                            <div>{capitalizeWords(row?.actedBy?.name || row?.actedBy?.email || "-")}</div>
+                            <div style={{ fontSize: "12px", color: "#666" }}>
+                                {row?.actedBy?.email || "-"}
+                            </div>
+                        </div>
+                    )
             ),
             wrap: true,
             minWidth: "200px"

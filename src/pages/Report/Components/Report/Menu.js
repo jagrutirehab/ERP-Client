@@ -1,8 +1,8 @@
+import referredByName from "../../../../utils/referredByName";
 import React from "react";
-import { Button, Col, Input, Row } from "reactstrap";
+import { Button, Col, Row } from "reactstrap";
 import { format } from "date-fns";
 import { CSVLink } from "react-csv";
-import SearchPatient from "./SeachPatient";
 import {
   BANK,
   CARD,
@@ -29,7 +29,6 @@ import {
   opdBillHeaders,
   payableAmountHeaders,
   payableAmountHeadersAddmissionDischargeDate,
-  payments,
 } from "./data";
 
 const Menu = ({
@@ -56,7 +55,7 @@ const Menu = ({
       patient: {
         ...row.patient,
         referredBy:
-          row.patient?.referredBy?.doctorName || row.patient?.referredBy,
+          referredByName(row.patient?.referredBy) || row.patient?.referredBy,
       },
       name: row.intern ? row.intern.name : row.patient?.name || "",
       date: row.date ? format(new Date(row.date), "dd MMM yyyy") : "",
@@ -397,9 +396,6 @@ const Menu = ({
     return resultantHeaders.filter((header) => header !== null);
   };
 
-  const handleChange = (e) => {
-    if (e) setBillType(e.target.value);
-  };
 
   const reset = () => {
     setPatient("");
@@ -459,20 +455,10 @@ const Menu = ({
                     <i className="ri-printer-line"></i>
                   </Button>
                   <CSVLink
-                    // data={(documents() || [])}
-                    data={(() => {
-                      console.log({ documents: documents() });
-
-                      return documents() || [];
-                    })()}
+                    data={documents() || []}
                     title="CSV Download"
                     filename={"reports.csv"}
-                    // headers={headers()}
-                    headers={(() => {
-                      console.log({ headers: headers() });
-
-                      return headers();
-                    })()}
+                    headers={headers()}
                     className="btn btn-info px-2 ms-3"
                   >
                     <i className="ri-file-paper-2-line text-light text-decoration-none"></i>

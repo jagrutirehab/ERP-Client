@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  Badge,
   Button,
   Card,
   CardBody,
@@ -21,14 +20,12 @@ import {
   Spinner,
 } from "reactstrap";
 import { useNavigate } from "react-router-dom";
-import Select from "react-select";
 import AsyncSelect from "react-select/async";
 import Flatpickr from "react-flatpickr";
 import moment from "moment";
 import {
   createRoundNote,
   fetchPatientRoundNotes,
-  fetchRoundNoteStaff,
   fetchRoundNotes,
   removeRoundNoteEntry,
   resetRoundNotesFilters,
@@ -41,7 +38,6 @@ import {
   getSearchPatients,
 } from "../../helpers/backend_helper";
 import { useLocation } from "react-router-dom";
-import { useForm, Controller } from "react-hook-form";
 import RoundNoteForm, { CarryForwardStrip } from "./RoundNoteForm";
 import RoundNoteCard from "./RoundCard";
 import { usePermissions } from "../../Components/Hooks/useRoles";
@@ -56,7 +52,6 @@ const RoundNotes = () => {
     list,
     loading,
     pagination,
-    staff,
     staffLoading,
     filters,
     drawer,
@@ -117,8 +112,6 @@ const RoundNotes = () => {
     );
   }, [centerAccess, centers]);
 
-  console.log({ centerAccess });
-
   const loadPatientOptions = useCallback(async (inputValue) => {
     if (!inputValue) return [];
     const response = await getSearchPatients({ name: inputValue });
@@ -175,8 +168,6 @@ const RoundNotes = () => {
       );
     }
   }, [centerAccess, filters.center, dispatch]);
-
-  console.log({ centerAccess });
 
   const queryPayload = useMemo(() => {
     const payload = {
@@ -242,18 +233,6 @@ const RoundNotes = () => {
     setPage(1);
   };
 
-  const handlePatientFilterChange = async (option) => {
-    setPatientOption(option);
-    dispatch(
-      setRoundNotesFilters({
-        patientId: option?.value || null,
-      }),
-    );
-    setPage(1);
-    if (option?.value) {
-      dispatch(fetchPatientRoundNotes({ patientId: option.value }));
-    }
-  };
 
   const handleDrawerSubmit = async (payload) => {
     if (drawer.mode === "edit" && drawer.data?._id) {
@@ -284,7 +263,6 @@ const RoundNotes = () => {
       }
       setDeleteModal({ isOpen: false, note: null });
     } catch (error) {
-      console.error("Error deleting round note:", error);
       setDeleteModal({ isOpen: false, note: null });
     }
   };
@@ -300,8 +278,6 @@ const RoundNotes = () => {
   };
 
   const totalPages = pagination.totalPages || 1;
-
-  console.log({ filters: filters });
 
   return (
     <div className="page-content">
@@ -473,7 +449,7 @@ const RoundNotes = () => {
                           isOpen: true,
                           mode: "edit",
                           data: current,
-                          carryForwardSource: null,
+                        carryForwardSource: null,
                         }),
                       )
                     }

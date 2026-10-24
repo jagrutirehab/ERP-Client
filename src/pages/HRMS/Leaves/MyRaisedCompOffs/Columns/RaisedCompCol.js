@@ -1,4 +1,4 @@
-import { Badge, Spinner } from "reactstrap";
+import { Badge } from "reactstrap";
 
 const Center = ({ children }) => (
     <div className="text-center w-100">{children}</div>

@@ -74,6 +74,7 @@ const SummaryReport = ({
       };
       fetchSummary();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, centerAccess, dispatch, roles]);
 
   const handleRefresh = async () => {

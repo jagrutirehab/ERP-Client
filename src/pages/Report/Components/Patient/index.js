@@ -1,3 +1,4 @@
+import referredByName from "../../../../utils/referredByName";
 import React, { useState, useEffect, useRef } from "react";
 import PropTypes from "prop-types";
 import { differenceInYears, endOfDay, format, startOfDay } from "date-fns";
@@ -28,7 +29,6 @@ const Patient = ({ centerAccess }) => {
   const [billCycle, setBillCycle] = useState(0);
 
   const [csvData, setCsvData] = useState([]);
-  console.log(csvData, "this is data");
   const [csvLoading, setCsvLoading] = useState(false);
   const csvRef = useRef();
 
@@ -58,9 +58,9 @@ const Patient = ({ centerAccess }) => {
 
           // Referred By
           referredBy:
-            d?.patient?.referredBy?.doctorName ||
+            referredByName(d?.patient?.referredBy) ||
             d?.patient?.referredBy ||
-            d?.referredBy?.doctorName ||
+            referredByName(d?.referredBy) ||
             d?.referredBy,
 
           // Age
@@ -120,7 +120,6 @@ const Patient = ({ centerAccess }) => {
         }, 100);
       }
     } catch (err) {
-      console.error("Failed to fetch full patient analytics", err);
     } finally {
       setCsvLoading(false);
     }
@@ -149,14 +148,12 @@ const Patient = ({ centerAccess }) => {
         setTotaldata(res?.pagination?.total);
       }
     } catch (err) {
-      console.error("Failed to fetch patient analytics", err);
     }
   };
 
-  console.log({ csvData });
-
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, reportDate, filter, limit, centerAccess, val, billCycle]);
 
   const generalColumns = [
@@ -257,8 +254,9 @@ const Patient = ({ centerAccess }) => {
     {
       name: <div>Referred By</div>,
       selector: (row) =>
-        row.patient?.referredBy?.doctorName || row.patient?.referredBy,
+        referredByName(row.patient?.referredBy) || row.patient?.referredBy,
       wrap: true,
+      minWidth: "200px",
     },
     // {
     //   name: <div>Phone No</div>,
@@ -351,8 +349,9 @@ const Patient = ({ centerAccess }) => {
     },
     {
       name: <div>Referred By</div>,
-      selector: (row) => row?.referredBy?.doctorName || row?.referredBy,
+      selector: (row) => referredByName(row?.referredBy) || row?.referredBy,
       wrap: true,
+      minWidth: "200px",
     },
     {
       name: <div>Doctor</div>,

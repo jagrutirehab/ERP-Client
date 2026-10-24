@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import PropTypes from "prop-types";
 import CustomModal from "../../Components/Common/Modal";
 import SearchLead from "./SearchLead";
 import DataTable from "react-data-table-component";

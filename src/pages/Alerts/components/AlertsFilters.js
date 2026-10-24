@@ -113,10 +113,6 @@ const AlertsFilters = ({
         label: `${p.name}${p.id?.value ? ` (UID ${p.id.value})` : p.patientId ? ` (${p.patientId})` : ""}`,
       }));
     } catch (err) {
-      console.warn(
-        "[AlertsFilters] patient search failed:",
-        err?.message || err,
-      );
       return [];
     }
   };
@@ -133,7 +129,6 @@ const AlertsFilters = ({
         label: r.protocol ? `${r.ruleName} — ${r.protocol}` : r.ruleName,
       }));
     } catch (err) {
-      console.warn("[AlertsFilters] rule search failed:", err?.message || err);
       return [];
     }
   };

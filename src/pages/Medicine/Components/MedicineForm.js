@@ -12,7 +12,6 @@ import { useDispatch } from "react-redux";
 import { addMedicine, fetchMedicines } from "../../../store/actions";
 import {
   medicineTypes2,
-  medicineUnits,
   medicineForms,
   baseUnits,
   purchaseUnits,
@@ -68,8 +67,9 @@ const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem 
     setHasErrors(Object.keys(errors).length > 0);
   }, [errors]);
 
-  const checkStrength = async (idx, name, strength) => {
-    if (!name || !strength) {
+  // Duplicate = same name + strength + unit/base unit already in the master.
+  const checkDuplicate = async (idx, name, strength, baseUnit) => {
+    if (!name || !baseUnit) {
       setErrors((prev) => {
         const copy = { ...prev };
         delete copy[idx];
@@ -80,7 +80,7 @@ const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem 
 
     try {
       const response = await dispatch(
-        duplicateMedicineValidator({ name, strength })
+        duplicateMedicineValidator({ name, strength, baseUnit })
       ).unwrap();
 
       if (response.exists) {
@@ -96,11 +96,10 @@ const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem 
         });
       }
     } catch (err) {
-      console.error(err);
     }
   };
 
-  const debouncedCheck = useDebounce(checkStrength, 500);
+  const debouncedCheck = useDebounce(checkDuplicate, 500);
 
   const addMedicines = () => {
     setMedicines([...medicines, createEmptyMedicine()]);
@@ -118,12 +117,9 @@ const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem 
     }
     setMedicines(medList);
 
-    if (prop === "strength") {
-      debouncedCheck(idx, medList[idx].name, value);
-    } else if (prop === "name") {
-      if (medList[idx].strength) {
-        debouncedCheck(idx, value, medList[idx].strength);
-      }
+    if (prop === "name" || prop === "strength" || prop === "baseUnit") {
+      const { name, strength, baseUnit } = medList[idx];
+      debouncedCheck(idx, name, strength, baseUnit);
     }
   };
 
@@ -170,7 +166,6 @@ const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem 
         await dispatch(addMedicine(payload)).unwrap();
       } catch (error) {
         // Keep the modal open so the entered values are not lost on save failure.
-        console.error(error);
         setIsSaving(false);
         return;
       }
