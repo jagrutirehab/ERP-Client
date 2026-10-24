@@ -592,8 +592,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
     fetchVendor();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [vendorId]);
-  const { items: paymentTermOptions } = useReferenceList("paymentTerms"); 
-
+  const { items: paymentTermOptions } = useReferenceList("paymentTerms");
 
   const [approvalStatus, setApprovalStatus] = useState(
     initialValues?.approvalStatus || "incomplete",
@@ -1131,9 +1130,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                     <Label>
                       Trade name <span className="text-danger">*</span>
                     </Label>{" "}
-                    <small className="vendor-hint-text">
+                    {/* <small className="vendor-hint-text">
                       Auto-fetched from GST verification, or enter manually
-                    </small>
+                    </small> */}
                     <Input
                       name="tradeName"
                       value={v.tradeName}
@@ -1148,9 +1147,9 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                   </Col>
                   <Col md={6} className="mb-3">
                     <Label>Legal name</Label>
-                    <small className="vendor-hint-text">
+                    {/* <small className="vendor-hint-text">
                       Auto-fetched from GST verification, or enter manually
-                    </small>
+                    </small> */}
                     <Input
                       name="legalName"
                       value={v.legalName}

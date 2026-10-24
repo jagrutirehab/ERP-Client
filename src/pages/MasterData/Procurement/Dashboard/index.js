@@ -153,11 +153,20 @@ const ProcurementDashboard = () => {
       name: "PO #",
       selector: (row) => row.poNumber,
       sortable: true,
-      width: "150px",
+      minWidth: "200px",
+      cell: (row) => (
+        <span
+          style={{ whiteSpace: "nowrap", fontWeight: 600 }}
+          title={row.poNumber}
+        >
+          {row.poNumber}
+        </span>
+      ),
     },
     {
       name: "Vendor",
       minWidth: "170px",
+      wrap: true,
       cell: (row) => <span className="uom-cell-primary">{row.vendorName}</span>,
     },
     {
@@ -295,6 +304,8 @@ const ProcurementDashboard = () => {
           data={visibleRows}
           progressPending={loading}
           pagination
+          paginationPerPage={25}
+          paginationRowsPerPageOptions={[10, 25, 50, 100]}
           highlightOnHover
           noDataComponent={
             <div className="uom-empty-state">
