@@ -12,6 +12,7 @@ import { fetchMyDrafts, removeDraft } from "../../../store/features/compliance/c
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 
 const centreLabel = (c) => c?.displayName || c?.title || c?.name || "—";
 
