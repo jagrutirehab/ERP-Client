@@ -11,11 +11,12 @@ import {
   ButtonGroup,
   Spinner,
 } from "reactstrap";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { UploadCloud, CheckCircle2 } from "lucide-react";
 import { toast } from "react-toastify";
 import Select from "react-select";
+import PreviewFile from "../../../Components/Common/PreviewFile";
 import {
   getAllCenters,
   getComplianceSubmissionById,
@@ -25,6 +26,7 @@ import {
   addComplianceSubmission,
   saveDraft,
 } from "../../../store/features/compliance/complianceSlice";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const LEAD_OPTIONS = [30, 60, 90, 120];
 
@@ -77,7 +79,7 @@ const StepTitle = ({ n, children }) => (
   </h6>
 );
 
-const FileRow = ({ badge, name, size, href, role, onRole, onRemove, tag }) => (
+const FileRow = ({ badge, name, size, href, onPreview, role, onRole, onRemove, tag }) => (
   <div className="d-flex flex-wrap align-items-center gap-2 border rounded p-2">
     <span
       className="d-inline-flex align-items-center justify-content-center rounded border flex-shrink-0"
@@ -93,15 +95,14 @@ const FileRow = ({ badge, name, size, href, role, onRole, onRemove, tag }) => (
     </span>
     <div className="d-flex flex-column flex-grow-1" style={{ minWidth: 0 }}>
       {href ? (
-        <a
-          href={href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-truncate"
+        <button
+          type="button"
+          className="btn btn-link p-0 text-start text-truncate"
           style={{ fontSize: 13 }}
+          onClick={onPreview}
         >
           {name}
-        </a>
+        </button>
       ) : (
         <span className="text-truncate" style={{ fontSize: 13 }}>
           {name}
@@ -133,17 +134,26 @@ const FileRow = ({ badge, name, size, href, role, onRole, onRemove, tag }) => (
 
 const UploadDocument = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
   const [params] = useSearchParams();
 
   // ?draft=<id> -> "Continue draft" mode
   const draftId = params.get("draft");
   const isDraftMode = !!draftId;
 
+  // Coming from "Upload renewed document" on an existing item: CenterDetail.js
+  // passes the current term's details so the user isn't retyping what's
+  // already on file. Dates and the document itself are deliberately left out
+  // — those are what's actually changing on a renewal.
+  const prefill = location.state?.prefill || {};
+
   const { types, typesLoading, submissionSaving, draftSaving } = useSelector(
     (state) => state.Compliance,
   );
   const saving = submissionSaving || draftSaving;
+  const user = useSelector((state) => state.User);
 
   const [centres, setCentres] = useState([]);
   const [centresLoading, setCentresLoading] = useState(false);
@@ -152,36 +162,77 @@ const UploadDocument = () => {
   // ---- form state ----
   const [centreId, setCentreId] = useState(params.get("centre") || "");
   const [typeId, setTypeId] = useState(params.get("type") || "");
-  const [issuingAuthority, setIssuingAuthority] = useState("");
-  const [licenceNo, setLicenceNo] = useState("");
+  const [issuingAuthority, setIssuingAuthority] = useState(prefill.issuingAuthority || "");
+  const [licenceNo, setLicenceNo] = useState(prefill.licenceNumber || "");
   const [noExpiry, setNoExpiry] = useState(false);
   const [issuedOn, setIssuedOn] = useState("");
   const [validTill, setValidTill] = useState("");
   const [leadDays, setLeadDays] = useState(60);
   const [existingDocs, setExistingDocs] = useState([]); // files already saved on the draft
   const [files, setFiles] = useState([]); // new files picked now
-  const [owner, setOwner] = useState("Centre Head");
-  const [escalateTo, setEscalateTo] = useState("Centre Head + Admin & Legal");
+  const [owner, setOwner] = useState(prefill.owner || "Centre Head");
+  const [escalateTo, setEscalateTo] = useState(prefill.escalateTo || "Centre Head + Admin & Legal");
   const [notes, setNotes] = useState("");
   const [submitted, setSubmitted] = useState(null); // "DRAFT" | "SEND" | null
+  const [previewFile, setPreviewFile] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [checklistCompleted, setChecklistCompleted] = useState(() => new Set());
+
+  const toggleChecklistItem = (text) =>
+    setChecklistCompleted((prev) => {
+      const next = new Set(prev);
+      if (next.has(text)) next.delete(text);
+      else next.add(text);
+      return next;
+    });
+
+  const openPreview = (doc) => {
+    setPreviewFile({ url: doc.url, type: doc.type, originalName: doc.originalName || doc.name });
+    setPreviewOpen(true);
+  };
 
   // ---- load centres + types ----
   useEffect(() => {
     dispatch(fetchComplianceTypes({}));
 
-    setCentresLoading(true);
-    getAllCenters()
-      .then((res) => setCentres(toList(res)))
-      .catch(() => toast.error("Failed to load centres"))
-      .finally(() => setCentresLoading(false));
+    const loadCentres = async () => {
+      setCentresLoading(true);
+      try {
+        const res = await getAllCenters();
+        setCentres(toList(res));
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(error?.response?.data?.message || error?.message || "Failed to load centres");
+        }
+      } finally {
+        setCentresLoading(false);
+      }
+    };
+    loadCentres();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
+
+
+  useEffect(() => {
+    if (isDraftMode) return;
+    setCentreId(params.get("centre") || "");
+    setTypeId(params.get("type") || "");
+    const p = location.state?.prefill || {};
+    setIssuingAuthority(p.issuingAuthority || "");
+    setLicenceNo(p.licenceNumber || "");
+    setOwner(p.owner || "Centre Head");
+    setEscalateTo(p.escalateTo || "Centre Head + Admin & Legal");
+    setChecklistCompleted(new Set());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key]);
 
   // ---- load the draft and fill the form ----
   useEffect(() => {
     if (!draftId) return;
-    setDraftLoading(true);
-    getComplianceSubmissionById(draftId)
-      .then((res) => {
+    const loadDraft = async () => {
+      setDraftLoading(true);
+      try {
+        const res = await getComplianceSubmissionById(draftId);
         const d = res?.data;
         if (!d || d.status !== "DRAFT") {
           toast.error("This draft is no longer available");
@@ -202,22 +253,30 @@ const UploadDocument = () => {
         setOwner(d.responsibleOwner || "");
         setEscalateTo(d.escalateTo || "");
         setNotes(d.notes || "");
-      })
-      .catch((error) => {
-        toast.error(error?.message || "Failed to load draft");
+        setChecklistCompleted(new Set(d.checklistCompleted || []));
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(error?.response?.data?.message || error?.message || "Failed to load draft");
+        }
         navigate("/compliance/my-drafts");
-      })
-      .finally(() => setDraftLoading(false));
+      } finally {
+        setDraftLoading(false);
+      }
+    };
+    loadDraft();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [draftId, navigate]);
 
   const centre = centres.find((c) => c._id === centreId);
   const type = types.find((t) => t._id === typeId);
   const centreName = (c) => c?.displayName || c?.title || c?.name || "";
 
-  const centreOptions = centres.map((c) => ({
-    value: c._id,
-    label: centreName(c),
-  }));
+  const centreOptions = centres
+    .filter((c) => user?.centerAccess?.includes(c._id))
+    .map((c) => ({
+      value: c._id,
+      label: centreName(c),
+    }));
 
   // Only active types that apply to the chosen centre (empty list = all centres)
   const typeOptions = types
@@ -232,24 +291,33 @@ const UploadDocument = () => {
     )
     .map((t) => ({ value: t._id, label: t.name }));
 
-  // When a type is picked, prefill from its settings
   const handleTypeChange = (option) => {
-    const picked = types.find((t) => t._id === option?.value);
     setTypeId(option?.value || "");
-    if (!picked) return;
-    if (picked.issuingAuthorityHint && !issuingAuthority)
-      setIssuingAuthority(picked.issuingAuthorityHint);
-    if (
-      picked.defaultLeadDays &&
-      LEAD_OPTIONS.includes(picked.defaultLeadDays)
-    ) {
-      setLeadDays(picked.defaultLeadDays);
+    setChecklistCompleted(new Set());
+  };
+
+  // Prefill from the type's own settings whenever it resolves — not just on
+  // a manual dropdown pick, since typeId can also arrive straight from the
+  // URL (Register/CenterDetail's "Start renewal") before `types` has even
+  // loaded. A no-expiry type always locks noExpiry on (the checkbox itself
+  // is disabled below when type.hasExpiry === false), it's not a per-item
+  // choice.
+  useEffect(() => {
+    if (isDraftMode || !type) return;
+    if (type.issuingAuthorityHint && !issuingAuthority) {
+      setIssuingAuthority(type.issuingAuthorityHint);
     }
-    if (picked.hasExpiry === false) {
+    if (type.defaultLeadDays) {
+      setLeadDays(type.defaultLeadDays);
+    }
+    if (type.hasExpiry === false) {
       setNoExpiry(true);
       setValidTill("");
+    } else {
+      setNoExpiry(false);
     }
-  };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isDraftMode, type?._id, type?.hasExpiry]);
 
   // ---- files ----
   const totalFiles = existingDocs.length + files.length;
@@ -322,6 +390,16 @@ const UploadDocument = () => {
         "Upload the signed certificate as the primary document",
       );
     }
+    if (action === "SEND") {
+      const missing = (type?.checklistSteps || [])
+        .filter((s) => s.mandatory && !checklistCompleted.has(s.text))
+        .map((s) => s.text);
+      if (missing.length) {
+        return toast.error(
+          `Mark these mandatory checklist items before sending for verification: ${missing.join(", ")}`,
+        );
+      }
+    }
 
     // multipart/form-data so the files travel with the form (multer on the server)
     const formData = new FormData();
@@ -337,6 +415,7 @@ const UploadDocument = () => {
     formData.append("escalateTo", escalateTo);
     formData.append("notes", notes);
     formData.append("action", action);
+    formData.append("checklistCompleted", JSON.stringify(Array.from(checklistCompleted)));
 
     files.forEach((f) => formData.append("documents", f.file));
     formData.append("documentRoles", JSON.stringify(files.map((f) => f.role)));
@@ -360,7 +439,9 @@ const UploadDocument = () => {
       );
       setSubmitted(action);
     } catch (error) {
-      toast.error(error?.message || "Failed to save");
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to save");
+      }
     }
   };
 
@@ -570,8 +651,29 @@ const UploadDocument = () => {
                             {d} days
                           </Button>
                         ))}
+                        <Button
+                          type="button"
+                          color={!LEAD_OPTIONS.includes(leadDays) ? "success" : "light"}
+                          className={!LEAD_OPTIONS.includes(leadDays) ? "text-white" : "border"}
+                          onClick={() => setLeadDays(0)}
+                          disabled={noExpiry}
+                        >
+                          Custom
+                        </Button>
                       </ButtonGroup>
                     </div>
+                    {!LEAD_OPTIONS.includes(leadDays) && (
+                      <div className="mt-2" style={{ maxWidth: 160 }}>
+                        <Input
+                          type="number"
+                          min={1}
+                          placeholder="Days"
+                          value={leadDays || ""}
+                          disabled={noExpiry}
+                          onChange={(e) => setLeadDays(Math.max(0, Number(e.target.value) || 0))}
+                        />
+                      </div>
+                    )}
                   </Col>
                 </Row>
               </CardBody>
@@ -619,6 +721,7 @@ const UploadDocument = () => {
                       name={d.originalName || d.name}
                       size={d.size}
                       href={d.url}
+                      onPreview={() => openPreview(d)}
                       tag="saved"
                       role={d.role}
                       onRole={(role) => changeExistingRole(d._id, role)}
@@ -641,9 +744,38 @@ const UploadDocument = () => {
               </CardBody>
             </Card>
 
+            {!!type?.checklistSteps?.length && (
+              <Card className="shadow-sm mb-3">
+                <CardBody>
+                  <StepTitle n={4}>Renewal checklist</StepTitle>
+                  <p className="text-muted" style={{ fontSize: 13 }}>
+                    Items marked with a <span className="text-danger fw-semibold">*</span> must be
+                    checked off before this can be sent for verification; drafts can be saved
+                    regardless.
+                  </p>
+                  <div className="d-flex flex-column gap-2">
+                    {type.checklistSteps.map((step) => (
+                      <FormGroup check key={step.text} className="mb-0 d-flex align-items-center gap-2">
+                        <Input
+                          id={`checklist-${step.text}`}
+                          type="checkbox"
+                          checked={checklistCompleted.has(step.text)}
+                          onChange={() => toggleChecklistItem(step.text)}
+                        />
+                        <Label check htmlFor={`checklist-${step.text}`} className="mb-0">
+                          {step.text}
+                          {step.mandatory && <span className="text-danger fw-semibold"> *</span>}
+                        </Label>
+                      </FormGroup>
+                    ))}
+                  </div>
+                </CardBody>
+              </Card>
+            )}
+
             <Card className="shadow-sm mb-3">
               <CardBody>
-                <StepTitle n={4}>Ownership &amp; notes</StepTitle>
+                <StepTitle n={type?.checklistSteps?.length ? 5 : 4}>Ownership &amp; notes</StepTitle>
                 <Row className="g-3">
                   <Col sm={6}>
                     <FormGroup className="mb-0">
@@ -772,6 +904,14 @@ const UploadDocument = () => {
           </Card>
         </Col>
       </Row>
+
+      <PreviewFile
+        title={previewFile?.originalName || "Compliance document"}
+        file={previewFile}
+        isOpen={previewOpen}
+        toggle={() => setPreviewOpen(false)}
+        allowDownload
+      />
     </div>
   );
 };

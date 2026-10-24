@@ -600,6 +600,7 @@ const InventoryManagement = () => {
     { key: "rackNum", header: "Rack Number", minWidth: 100, render: (m) => display(m?.RackNum) },
     { key: "status", header: "Status", minWidth: 110, render: (m) => <StatusBadge status={m.Status} /> },
     { key: "controlledDrug", header: "Controlled Drug", minWidth: 110, render: (m) => (m?.medicineId?.isControlledDrug ? "Yes" : "No") },
+    { key: "sareyaanBarcode", header: "Sareyaan Barcode", minWidth: 130, render: (m) => display(m?.sareyaanBarcode) },
     ...(hasPermission("PHARMACY", "PHARMACYMANAGEMENT", "WRITE")
       ? [
           {

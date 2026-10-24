@@ -1,6 +1,7 @@
 import React from "react";
-import { Container } from "reactstrap";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Container, Spinner } from "reactstrap";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
+import { usePermissions } from "../../Components/Hooks/useRoles";
 import Sidebar from "./Sidebar";
 import Overview from "./pages/Overview";
 import CenterDetail from "./pages/CenterDetail";
@@ -13,12 +14,31 @@ import Approvals from "./pages/Approvals";
 import MyDrafts from "./pages/MyDrafts";
 import AllDrafts from "./pages/AllDrafts";
 
-// Same shell pattern as Pharmacy/HR: "page-conten" (not the real "page-content"
-// class) + "patient-page" gives the correct top offset below the fixed navbar,
-// and the negative margins cancel the Container's gutter so the sidebar and
-// content sit flush edge-to-edge instead of floating as a card with grey
-// background showing around it.
+
 const Compliance = () => {
+  const navigate = useNavigate();
+
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+
+  const { hasPermission, loading: permissionLoader } = usePermissions(token);
+  const hasUserPermission = hasPermission("COMPLIANCE", null, "READ");
+
+  if (permissionLoader) {
+    return (
+      <div
+        className="d-flex justify-content-center align-items-center"
+        style={{ height: "100vh" }}
+      >
+        <Spinner color="primary" />
+      </div>
+    );
+  }
+
+  if (!permissionLoader && !hasUserPermission) {
+    navigate("/unauthorized");
+  }
+
   return (
     <div className="page-conten overflow-hidden">
       <div className="patient-page">

@@ -34,6 +34,7 @@ const Categories = () => {
   const [deletingCategory, setDeletingCategory] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [limit, setLimit] = useState(10);
 
   const searchPromiseRef = useRef(null);
 
@@ -185,6 +186,9 @@ const Categories = () => {
                   columns={columns}
                   data={categories}
                   loading={categoriesLoading}
+                  fixedHeader={false}
+                  limit={limit}
+                  setLimit={setLimit}
                   noDataComponent="No categories match your search."
                 />
               </div>

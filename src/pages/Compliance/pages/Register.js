@@ -7,10 +7,19 @@ import Select from "react-select";
 import { Eye } from "lucide-react";
 import DataTableComponent from "../../../Components/Common/DataTable";
 import RefreshButton from "../../../Components/Common/RefreshButton";
+import ConfirmationModal from "../../../Components/Common/ConfirmationModal";
 import StatusBadge from "../components/StatusBadge";
+import RenewalBadge from "../components/RenewalBadge";
 import ItemDetailModal from "../components/ItemDetailModal";
-import { getAllCenters } from "../../../helpers/backend_helper";
+import {
+  getAllCenters,
+  getComplianceRecordById,
+  markComplianceInRenewal,
+} from "../../../helpers/backend_helper";
 import { fetchComplianceRecords } from "../../../store/features/compliance/complianceSlice";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 // Backend status -> key used by StatusBadge (colours/labels live in data.js STATUS)
 export const STATUS_KEY = {
@@ -31,7 +40,6 @@ const STATUS_OPTIONS = [
   { value: "DUE_30", label: "Due ≤30 days" },
   { value: "DUE_90", label: "Due ≤90 days" },
   { value: "IN_RENEWAL", label: "In renewal" },
-  { value: "DOC_MISSING", label: "Doc missing" },
   { value: "VALID", label: "Valid" },
   { value: "NO_EXPIRY", label: "No expiry" },
 ];
@@ -55,6 +63,10 @@ const toList = (res) =>
 const Register = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { roles } = usePermissions(token);
   const { records, recordsLoading, recordsTotal, recordsOverallTotal } = useSelector(
     (state) => state.Compliance,
   );
@@ -64,46 +76,69 @@ const Register = () => {
   const [statusFilter, setStatusFilter] = useState("NEEDS_ATTENTION");
   const [query, setQuery] = useState("");
   const [detailId, setDetailId] = useState(null);
+  const [startingRenewalId, setStartingRenewalId] = useState(null);
+  const [markingId, setMarkingId] = useState(null);
+  const [confirmingRow, setConfirmingRow] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
+  const [debouncedQuery, setDebouncedQuery] = useState("");
 
   const requestRef = useRef(null);
 
   useEffect(() => {
-    getAllCenters()
-      .then((res) => setCentres(toList(res)))
-      .catch(() => toast.error("Failed to load centres"));
+    const loadCentres = async () => {
+      try {
+        const res = await getAllCenters();
+        setCentres(toList(res));
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(error?.response?.data?.message || error?.message || "Failed to load centres");
+        }
+      }
+    };
+    loadCentres();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadRecords = (search = query) => {
+  const loadRecords = async () => {
     requestRef.current?.abort(); // drop an older, slower request
     const promise = dispatch(
       fetchComplianceRecords({
         center: centreFilter === "all" ? undefined : centreFilter,
         status: statusFilter,
-        search: search.trim() || undefined,
-        limit: 200,
+        search: debouncedQuery.trim() || undefined,
+        page,
+        limit,
       }),
     );
     requestRef.current = promise;
-    promise.unwrap().catch((error) => {
+    try {
+      await promise.unwrap();
+    } catch (error) {
       if (error?.aborted) return;
-      toast.error(error?.message || "Failed to load register");
-    });
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to load register");
+      }
+    }
   };
 
-  // filters: reload straight away
+  // page, limit or any filter: reload from the server
   useEffect(() => {
     loadRecords();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [centreFilter, statusFilter]);
+  }, [centreFilter, statusFilter, page, limit, debouncedQuery]);
 
-  // search: wait until typing stops
+  // search: wait until typing stops, then go back to page 1
   const firstSearch = useRef(true);
   useEffect(() => {
     if (firstSearch.current) {
       firstSearch.current = false;
       return;
     }
-    const t = setTimeout(() => loadRecords(query), 500);
+    const t = setTimeout(() => {
+      setDebouncedQuery(query);
+      setPage(1);
+    }, 500);
     return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [query]);
@@ -111,8 +146,50 @@ const Register = () => {
   const actionCta = (row) =>
     row.status === "DOC_MISSING" ? "Upload document" : row.status === "IN_RENEWAL" ? "Update status" : "Start renewal";
 
-  const goToUpload = (row) =>
-    navigate(`/compliance/upload?centre=${row.center?._id || ""}&type=${row.complianceType?._id || ""}`);
+  // The list row is minimal (no owner/escalateTo/issuingAuthority — see
+  // LIST_FIELDS server-side), so fetch the full record on click and prefill
+  // from that instead of whatever happens to already be on the row.
+  const goToUpload = async (row) => {
+    setStartingRenewalId(row._id);
+    try {
+      const res = await getComplianceRecordById(row._id);
+      const full = res?.data || {};
+      navigate(`/compliance/upload?centre=${row.center?._id || ""}&type=${row.complianceType?._id || ""}`, {
+        state: {
+          prefill: {
+            licenceNumber: full.licenceNumber,
+            issuingAuthority: full.issuingAuthority,
+            owner: full.responsibleOwner,
+            escalateTo: full.escalateTo,
+          },
+        },
+      });
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.response?.data?.message || error?.message || "Failed to load item details");
+      }
+    } finally {
+      setStartingRenewalId(null);
+    }
+  };
+
+  const handleMarkInRenewal = async () => {
+    if (!confirmingRow) return;
+    const row = confirmingRow;
+    setMarkingId(row._id);
+    try {
+      const res = await markComplianceInRenewal(row._id);
+      toast.success(res?.message || "Marked as applied for renewal.");
+      setConfirmingRow(null);
+      loadRecords();
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.response?.data?.message || error?.message || "Failed to mark as applied for renewal");
+      }
+    } finally {
+      setMarkingId(null);
+    }
+  };
 
   const centreOptions = [
     { value: "all", label: "All centres" },
@@ -161,26 +238,56 @@ const Register = () => {
     },
     {
       name: <div>Status</div>,
-      cell: (row) => <StatusBadge statusKey={STATUS_KEY[row.status]} />,
+      cell: (row) => (
+        <div className="d-flex flex-wrap align-items-center gap-1">
+          <StatusBadge statusKey={STATUS_KEY[row.status]} />
+          <RenewalBadge inRenewal={row.inRenewal} />
+        </div>
+      ),
       wrap: true,
       minWidth: "120px",
     },
     {
       name: <div>Actions</div>,
       cell: (row) => (
-        <div className="d-flex align-items-center gap-2">
-          <Button color="light" className="border p-2" size="sm" onClick={() => setDetailId(row._id)}>
+        <div className="d-flex flex-wrap align-items-center gap-2">
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-primary"
+            onClick={() => setDetailId(row._id)}
+            title="View"
+          >
             <Eye size={14} />
-          </Button>
-          <Button color="link" size="sm" className="p-0" onClick={() => goToUpload(row)}>
-            {actionCta(row)}
-          </Button>
+          </button>
+          <CheckPermission accessRolePermission={roles?.permissions} subAccess="REGISTER" permission="edit">
+            <Button
+              color="success"
+              className="text-white text-nowrap"
+              size="sm"
+              disabled={startingRenewalId === row._id}
+              onClick={() => goToUpload(row)}
+            >
+              {startingRenewalId === row._id ? "Loading..." : actionCta(row)}
+            </Button>
+            {!row.noExpiry && row.status !== "DOC_MISSING" && !row.inRenewal && (
+              <Button
+                color="secondary"
+                outline
+                className="text-nowrap"
+                size="sm"
+                disabled={markingId === row._id}
+                onClick={() => setConfirmingRow(row)}
+              >
+                {markingId === row._id ? "Marking..." : "Apply for renewal"}
+              </Button>
+            )}
+          </CheckPermission>
         </div>
       ),
       ignoreRowClick: true,
       allowOverflow: true,
       button: true,
-      minWidth: "170px",
+      minWidth: "280px",
     },
   ];
 
@@ -205,7 +312,10 @@ const Register = () => {
                 classNamePrefix="react-select"
                 options={centreOptions}
                 value={centreOptions.find((o) => o.value === centreFilter) || centreOptions[0]}
-                onChange={(option) => setCentreFilter(option?.value || "all")}
+                onChange={(option) => {
+                  setCentreFilter(option?.value || "all");
+                  setPage(1);
+                }}
               />
             </Col>
             <Col sm={6} md={4} lg={3}>
@@ -213,7 +323,10 @@ const Register = () => {
                 classNamePrefix="react-select"
                 options={STATUS_OPTIONS}
                 value={STATUS_OPTIONS.find((o) => o.value === statusFilter)}
-                onChange={(option) => setStatusFilter(option?.value || "NEEDS_ATTENTION")}
+                onChange={(option) => {
+                  setStatusFilter(option?.value || "NEEDS_ATTENTION");
+                  setPage(1);
+                }}
               />
             </Col>
             <Col md={4} lg={6}>
@@ -235,12 +348,31 @@ const Register = () => {
             columns={columns}
             data={records}
             loading={recordsLoading}
+            fixedHeader={false}
+            page={page}
+            setPage={setPage}
+            limit={limit}
+            setLimit={setLimit}
+            pagination={{ totalDocs: recordsTotal }}
             noDataComponent="No items match these filters."
           />
         </CardBody>
       </Card>
 
       <ItemDetailModal isOpen={!!detailId} toggle={() => setDetailId(null)} recordId={detailId} />
+
+      <ConfirmationModal
+        isOpen={!!confirmingRow}
+        toggle={() => setConfirmingRow(null)}
+        title="Mark as applied for renewal"
+        message={`Mark "${confirmingRow?.complianceType?.name || "this item"}" at ${centreLabel(
+          confirmingRow?.center,
+        )} as applied for renewal? It'll be flagged as in renewal until a new document is approved.`}
+        confirmText="Mark as applied"
+        confirmColor="success"
+        confirmDisabled={markingId === confirmingRow?._id}
+        onConfirm={handleMarkInRenewal}
+      />
     </div>
   );
 };
