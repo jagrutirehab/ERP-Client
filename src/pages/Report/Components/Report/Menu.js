@@ -20,6 +20,7 @@ import {
   INVOICE,
   OPD_BILL,
   INTERN,
+  paymentModeLabel,
   advancePaymentHeaders,
   advancePaymentHeadersAddmissionDischargeDate,
   allTransactionHeaders,
@@ -95,35 +96,35 @@ const Menu = ({
               row.receiptInvoice?.payable ||
               0,
       },
+      // Deposits included too — they were missing here, so a deposit row's
+      // payment modes exported blank. Pine Labs payments export as "Pinelabs"
+      // (paymentModeLabel), the same as the table.
       paymentModes: (row.intern
         ? row.receipt?.paymentModes
-        : row.advancePayment?.paymentModes || row.receiptInvoice?.paymentModes
+        : row.advancePayment?.paymentModes ||
+          row.receiptInvoice?.paymentModes ||
+          row.deposit?.paymentModes
       )
         ?.map((item, idx, arr) => {
           const prevItem = arr[idx - 1];
           const prefix = prevItem ? "\n" : "";
+          const label = paymentModeLabel(item);
           if (item.paymentMode === CASH || item.type === CASH) {
-            return `${prefix}${item.paymentMode || item.type} ₹${item.amount}`;
+            return `${prefix}${label} ₹${item.amount}`;
           }
           if (item.paymentMode === CARD || item.type === CARD) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.cardNumber || ""
-            } ₹${item.amount}`;
+            return `${prefix}${label} ${item.cardNumber || ""} ₹${item.amount}`;
           }
           if (item.paymentMode === UPI || item.type === UPI) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.transactionId || ""
-            }`;
+            return `${prefix}${label} ${item.transactionId || ""}`;
           }
           if (item.paymentMode === CHEQUE || item.type === CHEQUE) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.bankName || ""
-            } ${item.chequeNo || item.chequeNumber || ""} ₹${item.amount}`;
+            return `${prefix}${label} ${item.bankName || ""} ${
+              item.chequeNo || item.chequeNumber || ""
+            } ₹${item.amount}`;
           }
           if (item.paymentMode === BANK || item.type === BANK) {
-            return `${prefix}${item.paymentMode || item.type} ${
-              item.bankName || ""
-            } ₹${item.amount}`;
+            return `${prefix}${label} ${item.bankName || ""} ₹${item.amount}`;
           }
           return "";
         })
