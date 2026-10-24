@@ -16,38 +16,33 @@ Font.register({
 });
 
 // 11 columns, total = 100%
-// S.No:3% | InvoiceNo:9% | InvoiceDate:9.5% | Category:11.5% | Description:17% | Period:17% | Units:4% | Rate:7% | TotalAmt:7% | Discount:7% | NetAmount:8%
+// S.No:3% | InvoiceNo:9% | InvoiceDate:9% | Category:11% | Description:18.5% | Period:15.5% | Units:4.5% | Rate:7% | TotalAmt:7.5% | Discount:7% | NetAmount:8%
 const COLS = {
   sNo: "3%",
   invoiceNo: "9%",
-  invoiceDate: "9.5%",
-  category: "11.5%",
-  description: "17%",
-  servicePeriod: "17%",
-  units: "4%",
+  invoiceDate: "9%",
+  category: "11%",
+  description: "18.5%",
+  servicePeriod: "15.5%",
+  units: "4.5%",
   rate: "7%",
-  totalAmt: "7%",
+  totalAmt: "7.5%",
   discount: "7%",
   netAmount: "8%",
 };
 
 const styles = StyleSheet.create({
   container: {
-    marginTop: 14,
+    marginTop: 0,
     width: "100%",
   },
-  sectionTitleRow: {
-    borderBottom: "1.5pt solid #2a5c8a",
-    paddingBottom: 3,
-    marginBottom: 8,
-  },
-  sectionTitle: {
+  title: {
+    marginTop: 0,
+    marginBottom: 10,
+    fontSize: 13,
+    textAlign: "center",
     fontFamily: "Roboto",
     fontWeight: "heavy",
-    fontSize: 9,
-    color: "#2a5c8a",
-    textTransform: "uppercase",
-    letterSpacing: 0.5,
   },
   table: {
     width: "100%",
@@ -57,59 +52,63 @@ const styles = StyleSheet.create({
     backgroundColor: "#f2f2f2",
     borderTop: "1pt solid black",
     borderBottom: "1pt solid black",
-    paddingTop: 3.5,
-    paddingBottom: 3.5,
-    fontSize: 7.5,
+    paddingTop: 3,
+    paddingBottom: 3,
+    fontSize: 6.8,
   },
   row: {
     flexDirection: "row",
     borderBottom: "1pt solid #ccc",
-    paddingTop: 3,
-    paddingBottom: 3,
-    fontSize: 7.5,
+    paddingTop: 2.5,
+    paddingBottom: 2.5,
+    fontSize: 7,
   },
   totalsRow: {
     flexDirection: "row",
     borderTop: "1pt solid black",
     borderBottom: "1pt solid black",
     backgroundColor: "#f2f2f2",
-    paddingTop: 4,
-    paddingBottom: 4,
-    fontSize: 7.5,
+    paddingTop: 3.5,
+    paddingBottom: 3.5,
+    fontSize: 7,
   },
-  sNo: { width: COLS.sNo, textAlign: "center" },
+  sNo: { width: COLS.sNo, textAlign: "center", paddingHorizontal: 1 },
   invoiceNo: {
     width: COLS.invoiceNo,
     textAlign: "left",
-    paddingLeft: 3,
+    paddingLeft: 2,
   },
   invoiceDate: {
     width: COLS.invoiceDate,
     textAlign: "left",
-    paddingLeft: 3,
+    paddingLeft: 2,
   },
   category: {
     width: COLS.category,
     textAlign: "left",
-    paddingLeft: 3,
+    paddingLeft: 2,
     textTransform: "capitalize",
   },
   description: {
     width: COLS.description,
     textAlign: "left",
-    paddingLeft: 3,
+    paddingLeft: 2,
     textTransform: "capitalize",
   },
-  servicePeriod: { width: COLS.servicePeriod, textAlign: "center" },
-  units: { width: COLS.units, textAlign: "right", paddingRight: 3 },
-  rate: { width: COLS.rate, textAlign: "right", paddingRight: 3 },
-  totalAmt: { width: COLS.totalAmt, textAlign: "right", paddingRight: 3 },
-  discount: { width: COLS.discount, textAlign: "right", paddingRight: 3 },
-  netAmount: { width: COLS.netAmount, textAlign: "right", paddingRight: 3 },
+  servicePeriod: {
+    width: COLS.servicePeriod,
+    textAlign: "center",
+    paddingHorizontal: 1,
+  },
+  units: { width: COLS.units, textAlign: "right", paddingRight: 2 },
+  rate: { width: COLS.rate, textAlign: "right", paddingRight: 2 },
+  totalAmt: { width: COLS.totalAmt, textAlign: "right", paddingRight: 2 },
+  discount: { width: COLS.discount, textAlign: "right", paddingRight: 2 },
+  netAmount: { width: COLS.netAmount, textAlign: "right", paddingRight: 2 },
   totalLabel: {
-    // Spans S.No through Rate (3 + 9 + 9.5 + 11.5 + 17 + 17 + 4 + 7 = 78%)
-    width: "78%",
-    paddingLeft: 6,
+    // Spans S.No through Rate (3 + 9 + 9 + 11 + 18.5 + 15.5 + 4.5 + 7 = 77.5%)
+    width: "77.5%",
+    paddingLeft: 4,
     textAlign: "left",
   },
   heading: {
@@ -286,13 +285,11 @@ const ProcedureBreakdownTable = ({ rows }) => {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={styles.container} break>
       {/* ── SECTION TITLE ── */}
-      <View style={styles.sectionTitleRow} wrap={false}>
-        <Text style={styles.sectionTitle}>
-          Itemized Services & Procedure Breakdown
-        </Text>
-      </View>
+      <Text style={styles.title} wrap={false}>
+        ITEMIZED SERVICES & PROCEDURE BREAKDOWN
+      </Text>
 
       {/* ── UNIFIED TABLE ── */}
       <View style={styles.table}>
@@ -303,10 +300,10 @@ const ProcedureBreakdownTable = ({ rows }) => {
           <Text style={[styles.invoiceDate, styles.heading]}>Invoice Date</Text>
           <Text style={[styles.category, styles.heading]}>Category</Text>
           <Text style={[styles.description, styles.heading]}>
-            Procedure / Service Description
+            Procedure / Description
           </Text>
           <Text style={[styles.servicePeriod, styles.heading]}>
-            Service Period (From - To)
+            Service Period
           </Text>
           <Text style={[styles.units, styles.heading]}>Units</Text>
           <Text style={[styles.rate, styles.heading]}>Rate</Text>
@@ -370,7 +367,7 @@ const ProcedureBreakdownTable = ({ rows }) => {
           );
         })}
 
-        {/* Totals Footer Row: spans leading columns (# through Rate = 78%), then Total Amt, Discount, Net Amount */}
+        {/* Totals Footer Row: spans leading columns (# through Rate = 77.5%), then Total Amt, Discount, Net Amount */}
         <View style={styles.totalsRow} wrap={false}>
           <Text style={[styles.totalLabel, styles.heading]}>Total</Text>
           <Text style={[styles.totalAmt, styles.heading]}>
