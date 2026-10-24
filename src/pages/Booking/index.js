@@ -42,7 +42,7 @@ const Booking = ({
   const dispatch = useDispatch();
   const [range, setRange] = useState();
   const [view, setView] = useState(Views.DAY);
-  const [appointment, setAppointment] = useState();
+  const [, setAppointment] = useState();
   const [scheduleModal, setScheduleModal] = useState(false);
   const toggleSchedule = () => setScheduleModal(!scheduleModal);
   const toggleInfo = (data) => {
@@ -171,8 +171,6 @@ const Booking = ({
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view, range]);
-
-  console.log(appointments, "appointments");
 
   return (
     <React.Fragment>

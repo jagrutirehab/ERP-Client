@@ -46,7 +46,7 @@ const MaintenanceJob = () => {
   const [workOrders, setWorkOrders] = useState([]);
   const [technicians, setTechnicians] = useState([]);
   const [technicianSearch, setTechnicianSearch] = useState("");
-  const [technicianName, setTechnicianName] = useState("");
+  const [, setTechnicianName] = useState("");
   const [showTechDropdown, setShowTechDropdown] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
   const debounceRef = React.useRef(null);

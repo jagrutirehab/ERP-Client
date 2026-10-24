@@ -5,9 +5,6 @@ const Center = ({ children }) => (
   <div className="text-center w-100">{children}</div>
 );
 
-const Left = ({ children }) => (
-  <div className="text-start w-100">{children}</div>
-);
 
 export const leaveRequestsColumns = (
   handleAction,

@@ -16,7 +16,6 @@ import {
   DRAFT_INVOICE,
   INVOICE,
   REFUND,
-  WRITE_OFF,
 } from "../../../Components/constants/patient";
 import WriteOffModal from "./WriteOffModal";
 
@@ -41,7 +40,6 @@ const BillDate = ({
 }) => {
   const dispatch = useDispatch();
   const [showWriteOff, setShowWriteOff] = useState(false);
-  const [loading, setLoading] = useState(false);
   const PatientCenter = useSelector(
     (state) => state.Patient.patient.center._id,
   );
@@ -64,9 +62,6 @@ const BillDate = ({
         )
       : null;
 
-  console.log("latestBillingAdmission", latestBillingAdmission);
-  console.log("admission", admission);
-
   const specialEmails = [
     "rijutarafder000@gmail.com",
     "owais@gmail.com",
@@ -86,12 +81,7 @@ const BillDate = ({
   const isNormalUserAndDischarged =
     !isSpecialUser && isCurrentAdmissionDischarged;
 
-  const paymentCenters = [
-    "651f8abfed3d16334ae5a908",
-    "65b0143a5f1da510dc3094cb",
-  ];
 
-  const isPaymentCenter = paymentCenters.includes(PatientCenter);
 
   const MALAD_EAST_CENTER_IDS = ["65b0143a5f1da510dc3094cb","65b0143a5f1da510dc3094cb"];
   const isMaladEastAdvancePayment =
@@ -110,10 +100,6 @@ const BillDate = ({
     }
   }, [dispatch, isOpen]);
 
-  console.log({ billDate, editBillData, patient, admission });
-
-  console.log("patient1 data : ", { patient: patient, admission: admission });
-
   const handleWriteOffSubmit = async (data) => {
     if (!latestBillingAdmission?._id) return;
     try {
@@ -126,9 +112,7 @@ const BillDate = ({
         amount: data?.amount,
         reason: data?.reason,
       };
-      console.log("payload", payload);
       const response = await postWriteOff(payload);
-      console.log("response", response);
       toast.success(response?.message || "Write off added!");
       setShowWriteOff(false);
       toggle();

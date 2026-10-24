@@ -7,7 +7,7 @@ import {
   Container,
   Spinner,
 } from "reactstrap";
-import { getEmployeesBySearch, getPendingApprovalsByManagerId, transferManagerPendingApprovals, getCenters, getEmployeesByWithoutFilter } from "../../../helpers/backend_helper";
+import { getPendingApprovalsByManagerId, transferManagerPendingApprovals, getCenters, getEmployeesByWithoutFilter } from "../../../helpers/backend_helper";
 import { useAuthError } from "../../../Components/Hooks/useAuthError";
 import Select from "react-select";
 import { toast } from "react-toastify";
@@ -23,15 +23,14 @@ const TransferManagerApprovals = () => {
 
   const [from, setFrom] = useState([]);
   const [to, setTo] = useState([]);
-  const [centers, setCenters] = useState([]);
+  const [, setCenters] = useState([]);
 
   const [loadingFrom, setLoadingFrom] = useState(false);
   const [loadingTo, setLoadingTo] = useState(false);
-  const [loadingCenters, setLoadingCenters] = useState(false);
+  const [, setLoadingCenters] = useState(false);
 
   const [fromSearch, setFromSearch] = useState("");
   const [toSearch, setToSearch] = useState("");
-  const [centerSearch, setCenterSearch] = useState("");
 
   const [pendingsLeaves, setPendingsleaves] = useState([]);
   const [pendingRegs, setPendingRegs] = useState([]);
@@ -49,8 +48,7 @@ const TransferManagerApprovals = () => {
 
   const token = JSON.parse(localStorage.getItem("user"))?.token;
 
-  const { hasPermission, loading: isLoading } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "TRANSFER_MANAGER_APPROVALS", "READ");
+  const { hasPermission } = usePermissions(token);
   const hasRead = hasPermission("HR", "TRANSFER_MANAGER_APPROVALS", "READ");
   const hasWrite = hasPermission("HR", "TRANSFER_MANAGER_APPROVALS", "WRITE");
   const hasDelete = hasPermission("HR", "TRANSFER_MANAGER_APPROVALS", "DELETE");
@@ -80,7 +78,6 @@ const TransferManagerApprovals = () => {
       ];
       setCenters(options);
     } catch (error) {
-      console.log("Error loading centers", error);
     } finally {
       setLoadingCenters(false);
     }
@@ -90,10 +87,6 @@ const TransferManagerApprovals = () => {
     fetchCenters();
   }, []);
 
-  const debouncedFetchCenters = useMemo(
-    () => debounce((value) => fetchCenters(value), 400),
-    []
-  );
 
   const fetchEmployees = async (searchText, type) => {
     try {
@@ -119,8 +112,7 @@ const TransferManagerApprovals = () => {
       if (type === "from") setFrom(options);
       else setTo(options);
     } catch (error) {
-      console.log("Error loading employees", error);
-      if (!handleAuthError(error)) console.log("Unhandled error");
+      handleAuthError(error);
     } finally {
       type === "from" ? setLoadingFrom(false) : setLoadingTo(false);
     }
@@ -128,10 +120,12 @@ const TransferManagerApprovals = () => {
 
   const debouncedFetchFrom = useMemo(
     () => debounce((value) => fetchEmployees(value, "from"), 400),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
   const debouncedFetchTo = useMemo(
     () => debounce((value) => fetchEmployees(value, "to"), 400),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 
@@ -175,7 +169,6 @@ const TransferManagerApprovals = () => {
       setPendingCan(response?.cancellations)
       setPendingComp(response?.compOffs)
     } catch (error) {
-      console.log(error);
     } finally {
       setLoadingPending(false);
     }

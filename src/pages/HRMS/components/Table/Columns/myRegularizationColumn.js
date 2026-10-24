@@ -1,4 +1,3 @@
-import { Badge } from "reactstrap";
 import moment from "moment";
 import { renderStatusBadge } from "../../../../../Components/Common/renderStatusBadge";
 
@@ -6,15 +5,6 @@ const Center = ({ children }) => (
   <div className="text-center w-100">{children}</div>
 );
 
-const minutesTo12HourTime = (minutes) => {
-  const hrs = Math.floor(minutes / 60);
-  const mins = minutes % 60;
-
-  const period = hrs >= 12 ? "PM" : "AM";
-  const hour12 = hrs % 12 || 12;
-
-  return `${hour12}:${mins.toString().padStart(2, "0")} ${period}`;
-};
 
 const minutesTo24HourTime = (minutes) => {
   const hrs = Math.floor(minutes / 60);

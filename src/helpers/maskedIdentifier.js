@@ -26,4 +26,6 @@ export const isEnteredIdentifier = (value) => {
   return raw.length > 0 && !isMaskedIdentifier(raw);
 };
 
-export default { isMaskedIdentifier, isEnteredIdentifier };
+const maskedIdentifier = { isMaskedIdentifier, isEnteredIdentifier };
+
+export default maskedIdentifier;

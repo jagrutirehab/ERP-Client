@@ -121,6 +121,7 @@ const PendingApprovals = ({ activeTab }) => {
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchPendingApprovals();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, type, centerAccess, activeTab]);
 
     const handleOpenModal = (row, action) => {

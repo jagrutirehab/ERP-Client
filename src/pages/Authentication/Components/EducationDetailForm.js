@@ -1,12 +1,10 @@
 import React, { useState } from "react";
-import PropTypes from "prop-types";
 import CustomModal from "../../../Components/Common/Modal";
 
 // Formik validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { Button, Col, Form, FormFeedback, Input, Label, Row } from "reactstrap";
-import FormField from "../../../Components/Common/FormField";
+import { Button, Col, Form, Input, Label, Row } from "reactstrap";
 import { connect, useDispatch } from "react-redux";
 import { addUserDetailInformation } from "../../../store/actions";
 

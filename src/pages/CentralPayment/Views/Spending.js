@@ -53,6 +53,7 @@ const Spending = ({ centerAccess, approvals, loading }) => {
       }
     }
     fetchSpendings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerAccess, dispatch, roles, paymentTypeFilter]);
 
 

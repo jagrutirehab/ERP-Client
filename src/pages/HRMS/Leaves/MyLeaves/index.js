@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   cancellationRequest,
   getMyLeavesHistory,
@@ -9,7 +9,6 @@ import { useMediaQuery } from "../../../../Components/Hooks/useMediaQuery";
 import classnames from "classnames";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import { MyLeavesColumn } from "../../components/Table/Columns/myLeaves";
-import ButtonLoader from "../../../../Components/Common/ButtonLoader";
 import { useNavigate } from "react-router-dom";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 import { toast } from "react-toastify";
@@ -33,8 +32,8 @@ const MyLeaves = () => {
   const [selectedLeave, setSelectedLeave] = useState(null);
 
   const [requestLoader, setRequestLoader] = useState(false);
-  const [search, setSearch] = useState("");
-  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [search] = useState("");
+  const [, setDebouncedSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
   const handleAuthError = useAuthError();
@@ -42,10 +41,8 @@ const MyLeaves = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: isLoading } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "MY_LEAVES", "READ");
-  const hasRead = hasPermission("HR", "MY_LEAVES", "READ");
   const hasWrite = hasPermission("HR", "MY_LEAVES", "WRITE");
   const hasDelete = hasPermission("HR", "MY_LEAVES", "DELETE");
-  const isReadOnly = hasRead && !hasWrite && !hasDelete;
 
   useEffect(() => {
     if (!hasUserPermission) navigate("/unauthorized");
@@ -61,8 +58,6 @@ const MyLeaves = () => {
           page,
           limit,
         });
-
-        console.log("resres", res);
 
         setData(res?.data || []);
         // setActiveTab(res?.status);
@@ -82,9 +77,8 @@ const MyLeaves = () => {
     };
 
     fetchLeaves();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, selectedYear, selectedMonth, page, limit]);
-
-  console.log("inLeavse", data);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -94,33 +88,11 @@ const MyLeaves = () => {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const leaves = Array.isArray(data)
-    ? data.flatMap(
-      (d) =>
-        d.leaves?.map((l) => ({
-          ...l,
-          parentDocId: d?._id,
-          employeeId: d?.employeeId,
-          docCreatedAt: d?.createdAt,
-          year: d?.year,
-          eCode: d?.eCode,
-          center: l?.leave?.center || d?.center,
-          approvalAuthority: d?.approvalAuthority,
-          regularizedDates: l?.regularizedDates,
-          cancellationAction : l?.cancellationAction,
-          cancellationReason : l?.cancellationReason,
-          currentApprovalAuthority : d?.currentApprovalAuthority
-        })) || [],
-    )
-    : [];
-
   const currentYear = new Date().getFullYear();
   const allYears = Array.from(
     { length: currentYear - 2015 + 6 },
     (_, i) => 2015 + i,
   );
-
-  console.log("leaves", leaves);
 
   const handleAction = async (docId, leaveId, status, action) => {
     setLoadingLeaveId(leaveId);
@@ -129,23 +101,11 @@ const MyLeaves = () => {
 
       const res = await retrieveActionOnLeave(action, docId, payload);
 
-      // console.log("res to retrueve", res);
-      const updated = (Array.isArray(data) ? data : []).map((d) =>
-        d._id === docId
-          ? {
-            ...d,
-            leaves: (d.leaves || []).map((l) =>
-              l._id === leaveId ? { ...l, status } : l,
-            ),
-          }
-          : d,
-      );
 
       toast.success(res?.message);
       setActiveTab(status);
       setPage(1);
     } catch (error) {
-      console.log("Action Error:", error);
     } finally {
       setLoadingLeaveId(null);
     }
@@ -157,18 +117,6 @@ const MyLeaves = () => {
   //   totalPages: Math.ceil(leaves.length / limit),
   // };
 
-  const sortedLeaves = useMemo(() => {
-    return [...leaves].sort(
-      (a, b) => new Date(b.fromDate) - new Date(a.fromDate)
-    );
-  }, [leaves]);
-
-  const leafPagination = {
-    totalRecords: sortedLeaves.length,
-    currentPage: page,
-    totalPages: Math.ceil(sortedLeaves.length / limit),
-    limit,
-  };
   const openCancelModal = (row) => {
     setSelectedLeave(row);
     setIsCancelModalOpen(true);
@@ -178,7 +126,6 @@ const MyLeaves = () => {
     if (!selectedLeave) return;
     setRequestLoader(true)
     try {
-      console.log("Cancel request for:", selectedLeave);
 
       const payload = {
         leaveId: selectedLeave?.leave?._id,
@@ -187,7 +134,6 @@ const MyLeaves = () => {
         reason
       }
       const response = await cancellationRequest(payload);
-      console.log("Response", response);
       toast.success(response.message || "Cancellation Request Raised Successfully !");
 
       const res = await getMyLeavesHistory({

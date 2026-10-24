@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { connect, useDispatch, useSelector } from "react-redux";
+import { connect, useDispatch } from "react-redux";
 import {
   Dropdown,
   DropdownItem,
@@ -29,9 +29,6 @@ const ProfileDropdown = ({ user }) => {
   // const token = useSelector((state) => state.User?.microLogin?.token);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { isUserLogout } = useSelector((state) => ({
-    isUserLogout: state.User.isUserLogout,
-  }));
   //Dropdown Toggle
   const [isProfileDropdown, setIsProfileDropdown] = useState(false);
   const toggleProfileDropdown = () => {
@@ -52,7 +49,6 @@ const ProfileDropdown = ({ user }) => {
       sessionStorage.clear();
       resetRolesCache();
     } catch (error) {
-      console.log("logout error", error.messge);
     }
     navigate("/login");
   };

@@ -2,7 +2,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useAuthError } from "../../../../../Components/Hooks/useAuthError";
 import { useCenterOptions } from "../../../../../Components/Hooks/useCenterOptions";
 import { useEffect, useState } from "react";
-import { useMediaQuery } from "../../../../../Components/Hooks/useMediaQuery";
 import { fetchITApprovals } from "../../../../../store/features/HR/hrSlice";
 import { toast } from "react-toastify";
 import { capitalizeWords } from "../../../../../utils/toCapitalize";
@@ -32,18 +31,17 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
   const [modalLoading, setModalLoading] = useState(false);
   const [actionType, setActionType] = useState(null); // APPROVE | REJECT
   const [reason, setReason] = useState("");
-  const [usersLinkedToEmployee, setUsersLinkedToEmployee] = useState([]);
+  const [usersLinkedToEmployee] = useState([]);
   const [emailSelectModal, setEmailSelectModal] = useState(false);
   const [userFormOpen, setUserFormOpen] = useState(false);
   const [employeeEmails, setEmployeeEmails] = useState([]);
-  const [selectedEmail, setSelectedEmail] = useState("");
+  const [, setSelectedEmail] = useState("");
   const [prefillUser, setPrefillUser] = useState(null);
 
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
-  const isMobile = useMediaQuery("(max-width: 1000px)");
 
   const centerOptions = useCenterOptions();
 
@@ -95,6 +93,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles }
     if (activeTab === "PENDING" && hasUserPermission) {
       fetchPendingITApprovals();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles]);
 
   const handleApproveStart = async (row) => {

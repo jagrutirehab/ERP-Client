@@ -78,6 +78,7 @@ const StockSummary = () => {
         if (hasUserPermission) {
             fetchStockSummary();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [currentPage, pageSize, debouncedSearch, selectedCenter]);
 
     if (!hasUserPermission && !permissionLoader) {

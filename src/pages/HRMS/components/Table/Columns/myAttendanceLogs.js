@@ -94,7 +94,6 @@ export const myAttendanceLogsColumns = ({
     name: <div>Shift Timing</div>,
     selector: (row) => {
       const hasTiming = row?.timing?.start != null && row?.timing?.end != null;
-      console.log("TYPEINPROPER", type);
 
       return (
         <div className="d-flex flex-column gap-1">

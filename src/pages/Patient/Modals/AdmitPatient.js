@@ -335,6 +335,7 @@ const AdmitPatient = ({
         validation.setFieldValue("referralType", "other");
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient, referrals]);
 
   const handleChange = (e, fieldType) => {
@@ -391,6 +392,7 @@ const AdmitPatient = ({
       createIpdfile(patient._id);
     }
     return;
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient, step]);
 
   const patientFields = [
@@ -468,7 +470,6 @@ const AdmitPatient = ({
 
       setIcdOptions(formatted);
     } catch (error) {
-      console.log(error);
     }
   };
   useEffect(() => {

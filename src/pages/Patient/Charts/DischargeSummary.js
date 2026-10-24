@@ -17,43 +17,8 @@ const DischargeSummary = ({ data }) => {
       ? true
       : false;
 
-  const mseAtDischarge =
-    data?.mseDischarge?.appearance ||
-      data?.mseDischarge?.ecc ||
-      data?.mseDischarge?.speech ||
-      data?.mseDischarge?.mood ||
-      data?.mseDischarge?.affect ||
-      data?.mseDischarge?.thoughts ||
-      data?.mseDischarge?.perception ||
-      data?.mseDischarge?.memory ||
-      data?.mseDischarge?.abstractThinking ||
-      data?.mseDischarge?.socialJudgment ||
-      data?.mseDischarge?.insight
-      ? true
-      : false;
 
-  const mseAtAddmission =
-    data?.mseAddmission?.appearance ||
-      data?.mseAddmission?.ecc ||
-      data?.mseAddmission?.speech ||
-      data?.mseAddmission?.mood ||
-      data?.mseAddmission?.affect ||
-      data?.mseAddmission?.thoughts ||
-      data?.mseAddmission?.perception ||
-      data?.mseAddmission?.memory ||
-      data?.mseAddmission?.abstractThinking ||
-      data?.mseAddmission?.socialJudgment ||
-      data?.mseAddmission?.insight
-      ? true
-      : false;
 
-  const advCond =
-    data?.psychiatryMedicine ||
-      data?.nonPsychiatryMedicine ||
-      data?.followUp ||
-      data?.note
-      ? true
-      : false;
 
   return (
     <React.Fragment>

@@ -785,7 +785,6 @@ const SOPForm = ({
       const response = await onSubmit(payload);
       if (response) resetForm();
     } catch (err) {
-      console.log({ err });
 
       setTopError(err?.message || "Submission failed");
     }

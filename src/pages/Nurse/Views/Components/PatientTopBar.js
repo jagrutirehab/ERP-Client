@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Badge,
@@ -8,25 +8,19 @@ import {
   UncontrolledTooltip,
   Modal,
   ModalBody,
-  ModalFooter,
   ModalHeader,
 } from "reactstrap";
 import userDummayImage from "../../../../assets/images/users/user-dummy-img.jpg";
 import PreviewFile from "../../../../Components/Common/PreviewFile";
 import InfoModal from "./InfoModal";
 import { connect, useDispatch } from "react-redux";
-import { setAlertData, setAlertModal } from "../../../../store/actions";
+import { setAlertModal } from "../../../../store/actions";
 import PropTypes from "prop-types";
 import AddNoteModal from "./AddNoteModal";
 import { Check, Copy } from "lucide-react";
 import moment from "moment";
 import { usePermissions } from "../../../../Components/Hooks/useRoles";
 
-const statusColors = {
-  Urgent: { color: "danger", border: "#ff4d4f" },
-  Attention: { color: "warning", border: "#faad14" },
-  Stable: { color: "success", border: "#52c41a" },
-};
 
 const PatientTopBar = ({ profile, alertModal, alertData, loading }) => {
   const navigate = useNavigate();

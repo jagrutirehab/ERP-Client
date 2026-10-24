@@ -98,7 +98,6 @@ const Login = () => {
           },
         });
       } catch (error) {
-        console.error("Password change error:", error);
         setChangePasswordError(
           error.response?.data?.message || "Failed to change password"
         );

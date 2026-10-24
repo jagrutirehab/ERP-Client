@@ -1,7 +1,6 @@
-import { Badge, Button, Spinner } from "reactstrap";
+import { Badge, Spinner } from "reactstrap";
 import { normalizeDates } from "../Helpers/normalizeDates";
 import { getStatusColor } from "../Helpers/getStatusColor";
-import { getNextStatus, returnButtonText } from "../Helpers/getNextStatus";
 import Select from "react-select";
 
 export const HRIssuesReqColumn = (
@@ -82,7 +81,6 @@ export const HRIssuesReqColumn = (
             // center: true,
             cell: (row) => {
                 const status = row?.hrIssue?.status;
-                console.log("row", row);
 
 
                 return (
@@ -203,7 +201,6 @@ export const HRIssuesReqColumn = (
                     name: <div className="text-center">Manager Note</div>,
                     width: "160px",
                     cell: (row) => {
-                        console.log("row", row);
 
                         const note =
                             row?.notes?.filter((d) => ["assigned", "rejected"].includes(d.status))?.[0]?.note || "-";

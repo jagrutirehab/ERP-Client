@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Button, Spinner, Alert } from "reactstrap";
+import { Spinner, Alert } from "reactstrap";
 import { PDFViewer, PDFDownloadLink } from "@react-pdf/renderer";
 
 import CustomModal from "../../../../Components/Common/Modal";

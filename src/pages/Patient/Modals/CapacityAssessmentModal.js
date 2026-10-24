@@ -5,22 +5,18 @@ import {
   ModalBody,
   ModalFooter,
   Button,
-  Row,
-  Col,
   Input,
   Label,
   Table,
   FormGroup,
   Spinner,
 } from "reactstrap";
-import { submitAssessment } from "../../../helpers/backend_helper";
 import jsPDF from "jspdf";
 import html2canvas from "html2canvas";
 import { useRef } from "react";
 import { toast } from "react-toastify";
 import { useDispatch } from "react-redux";
 import {
-  fetchCharts,
   fetchPatientById,
   fetchChartsAddmissions,
 } from "../../../store/actions";
@@ -72,7 +68,6 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
   const dispatch = useDispatch();
 
   const loggedIn = JSON.parse(localStorage.getItem("authUser"));
-  console.log("loggedIn", loggedIn);
 
   const loggedInUserName = loggedIn?.data.name;
   const loggedInUserDesignation = loggedIn?.data?.role
@@ -121,9 +116,6 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
         formDataToSend.append(key, value);
       });
 
-      for (let pair of formDataToSend.entries()) {
-        console.log(pair[0], pair[1]);
-      }
       await dispatch(
         addCapacityAssessment({
           addmissionId: patient?.addmission?._id,
@@ -149,7 +141,6 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
         setPreviewModal(true);
       } catch (previewError) {
         // The assessment IS saved — never turn that into a failure.
-        console.error("PDF preview failed:", previewError);
         toast.warn("Assessment saved, but the PDF preview could not be opened");
       }
 
@@ -231,7 +222,6 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
       if (leftHeightPx > pageHeightPx) {
         const ctx = canvas.getContext("2d");
         let checkY = sY + sliceHeightPx;
-        let isWhiteLine = false;
 
         // Scan upwards (up to 50px) to find a white gap between lines
         for (let scan = 0; scan < 50; scan++) {
@@ -296,8 +286,6 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
     )}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
   };
 
-  console.log("patient", patient);
-
   const formatDeepObject = (obj, parentKey = "") => {
     if (!obj) return "";
 
@@ -321,7 +309,6 @@ const CapacityAssessmentModal = ({ isOpen, toggle, patient, addmissionId }) => {
       .join(", ");
   };
 
-  const me = patient?.detailAdmission?.mentalExaminationV2;
 
 
 
@@ -366,6 +353,7 @@ Remarks: ${me?.remarks || ""}
 
       }));
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient, loggedInUserName]);
 
   return (

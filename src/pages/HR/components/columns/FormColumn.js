@@ -1,4 +1,4 @@
-import { Badge, Button } from "reactstrap";
+import { Button } from "reactstrap";
 
 const Center = ({ children }) => (
   <div className="text-center w-100">{children}</div>

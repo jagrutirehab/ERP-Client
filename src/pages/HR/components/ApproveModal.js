@@ -68,7 +68,6 @@ const ApproveModal = ({
       });
       setECode(response.payload.value);
     } catch (error) {
-      console.error(error);
       if (!handleAuthError(error)) {
         toast.error("Failed to generate employee id");
       }
@@ -84,6 +83,7 @@ const ApproveModal = ({
     ) {
       generateEmployeeId();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [actionType, mode]);
 
   useEffect(() => {
@@ -94,6 +94,7 @@ const ApproveModal = ({
     ) {
       setECode("");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, mode, actionType]);
 
   const handleSubmit = () => {
@@ -164,7 +165,6 @@ const ApproveModal = ({
 
       setEmployees(options);
     } catch (error) {
-      console.log("Error loading employees", error);
     } finally {
       setLoadingEmployees(false);
     }
@@ -179,8 +179,6 @@ const ApproveModal = ({
   const debouncedFetchEmployees = useMemo(() => {
     return debounce(fetchEmployees, 400);
   }, []);
-
-  console.log("mode", mode);
 
   return (
     <Modal

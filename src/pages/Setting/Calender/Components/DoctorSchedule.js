@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import CustomModal from "../../../../Components/Common/Modal";
 import {
   Row,
   Col,
@@ -8,19 +7,15 @@ import {
   Label,
   Button,
   Form,
-  InputGroup,
-  InputGroupText,
-  FormGroup,
 } from "reactstrap";
 import RenderWhen from "../../../../Components/Common/RenderWhen";
 import _ from "lodash";
-import { eachMinuteOfInterval, format } from "date-fns";
+import { format } from "date-fns";
 import { useDispatch } from "react-redux";
 import {
   addUserWeeklySchedule,
-  updateUserWeeklySchedule,
 } from "../../../../store/actions";
-import Select, { components } from "react-select";
+import Select from "react-select";
 import { setSeconds, setMilliseconds } from "date-fns";
 import { generateTimes } from "../../../Booking/Components/Schedule";
 
@@ -215,7 +210,7 @@ const DoctorSchedule = ({ weeklySchedule, doctor, userCenters, toggle }) => {
     }
     return [];
   });
-  const [sessionErrors, setSessionErrors] = useState({});
+  const [, setSessionErrors] = useState({});
   const [error, setError] = useState("");
 
   const handleChange = (e, idx) => {
@@ -297,10 +292,6 @@ const DoctorSchedule = ({ weeklySchedule, doctor, userCenters, toggle }) => {
 
     // Validate time overlap before updating
     if (prop === "startTime" || prop === "endTime") {
-      const newStart =
-        prop === "startTime" ? value : list[idx].sessions[i].startTime;
-      const newEnd = prop === "endTime" ? value : list[idx].sessions[i].endTime;
-      const sessionType = list[idx].sessions[i].type;
     }
 
     list[idx].sessions[i][prop] = value;
@@ -312,14 +303,6 @@ const DoctorSchedule = ({ weeklySchedule, doctor, userCenters, toggle }) => {
     list.splice(idx, 1);
     setWorkingSchedule(list);
   };
-
-  const hours = eachMinuteOfInterval(
-    {
-      start: new Date(new Date().setHours(0)).setMinutes(0),
-      end: new Date(new Date().setHours(23)).setMinutes(0),
-    },
-    { step: 15 }
-  );
 
   // Update the handleSubmit function to validate session types
   const handleSubmit = () => {

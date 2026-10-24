@@ -5,7 +5,6 @@ import {
   Card,
   CardBody,
   Form,
-  FormFeedback,
   FormGroup,
   Input,
   Label,
@@ -21,9 +20,8 @@ import Select from "react-select";
 import AsyncSelect from "react-select/async";
 import Flatpickr from "react-flatpickr";
 import moment from "moment";
-import { useForm, Controller, useFieldArray, useWatch } from "react-hook-form";
+import { useForm, Controller, useFieldArray } from "react-hook-form";
 import { useSelector } from "react-redux";
-import SearchPatient from "../Booking/Components/SearchPatient";
 import { getRoundNoteStaff } from "../../helpers/backend_helper";
 import { setHours, setMinutes } from "date-fns";
 import PatientAsyncSelect from "./PatientSearch";
@@ -105,7 +103,6 @@ const PatientSearchCell = React.memo(({ index, control, setValue, errors }) => {
               isMulti={false}
               value={selectValue}
               onChange={(selectedOptions) => {
-                console.log({ selectedOptions });
                 const options = [selectedOptions] || [];
 
                 field.onChange(
@@ -242,7 +239,6 @@ const RoundNoteForm = ({
 
   const {
     getValues,
-    register,
     control,
     handleSubmit,
     reset,
@@ -272,7 +268,7 @@ const RoundNoteForm = ({
   });
 
   // watch date
-  const selectedDate = watch("date");
+  watch("date");
   const selectedCenter = watch("center");
 
   // Reset form when editing or carryForwardSource provided

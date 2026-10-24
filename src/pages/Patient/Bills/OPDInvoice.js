@@ -1,5 +1,4 @@
 import React from "react";
-import PropTypes from "prop-types";
 import InvoiceList from "../Tables/InvoiceList";
 import { Col, Label, Row } from "reactstrap";
 import { CARD, CASH, CHEQUE, UPI } from "../../../Components/constants/patient";

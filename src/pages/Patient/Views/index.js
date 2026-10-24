@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { ButtonGroup, Button, Row, Col } from "reactstrap";
 import {
@@ -37,7 +37,6 @@ import AUDITQuestion from "./Components/AUDITQuestion";
 import CIWABQuestion from "./Components/CIWABQuestion";
 
 const Views = (props) => {
-  const ref = useRef();
 
   const data = useSelector((state) => state.ClinicalTest.testName);
   const questionShow = useSelector(

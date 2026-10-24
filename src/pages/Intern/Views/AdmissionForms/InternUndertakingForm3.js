@@ -2,7 +2,6 @@ import { useEffect } from "react";
 import PrintHeader from "./printheader";
 
 const InternUndertakingFormPage3 = ({ register, intern, details, setValue }) => {
-  console.log(details)
   const pageContainer = {
     margin: "0 auto",
     padding: "15mm",

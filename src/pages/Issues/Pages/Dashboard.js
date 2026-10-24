@@ -47,10 +47,8 @@ const Dashboard = () => {
         issueType: issueType.value,
       });
 
-      console.log("response", response);
       setData(response?.data || []);
     } catch (error) {
-      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -58,6 +56,7 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [month, issueType]);
 
   return (

@@ -8,7 +8,6 @@ import { useFormik } from "formik";
 
 import InvoiceTable from "./Components/InvoiceTable";
 import InvoiceFooter from "./Components/InvoiceFooter";
-import InvoiceDateRange from "./Components/InvoiceDateRange";
 import SubmitForm from "./Components/SubmitForm";
 import { connect, useDispatch, useSelector } from "react-redux";
 import {
@@ -39,7 +38,6 @@ const InvoiceDraft = ({
   const dispatch = useDispatch();
   const editData = editDraftData ? editDraftData.invoice : null;
   const remainingAdvance = useSelector((state) => state.Bill.calculatedAdvance);
-  console.log("remainingAdvance", remainingAdvance);
 
   const totalAdvance = remainingAdvance || 0;
   const [invoiceList, setInvoiceList] = useState([]);
@@ -52,16 +50,14 @@ const InvoiceDraft = ({
     unit: "₹",
     value: 0,
   });
-  const [initialFromDate, setInitialFromDate] = useState("");
-  const [initialToDate, setInitialToDate] = useState("");
   const [totalPayable, setTotalPayable] = useState(0);
   const [refund, setRefund] = useState(0);
   const [invoiceType, setInvoiceType] = useState(
     editDraftData ? editDraftData.bill : DRAFT_INVOICE,
   );
-  const [paymentModes, setPaymentModes] = useState([{ type: CASH }]);
+  const [, setPaymentModes] = useState([{ type: CASH }]);
   const [categories, setCategories] = useState([]);
-  const [whileEditAvailablePrices, setWhileEditAvailablePrices] = useState([]);
+  const [, setWhileEditAvailablePrices] = useState([]);
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -209,20 +205,13 @@ const InvoiceDraft = ({
     setRefund(calculatedRefund);
   }, [invoiceList, wholeDiscount, invoiceType, totalAdvance]);
 
-  console.log("editDraftData from draft", editDraftData);
-
   useEffect(() => {
     if (editDraftData) {
-      console.log("Draft Effect Triggered");
 
       const invoice =
         editDraftData.type === OPD
           ? editDraftData.receiptInvoice
           : editDraftData.invoice;
-      console.log("invoice from draft", invoice);
-
-      console.log("Invoice Object:", invoice);
-      console.log("InvoiceList from Draft:", invoice?.invoiceList);
 
       const sendingArray = invoice.invoiceList || [];
       setWhileEditAvailablePrices(sendingArray);
@@ -285,7 +274,6 @@ const InvoiceDraft = ({
 
   // useEffect(() => {
   //   if (ttlAdvance && !editDraftData) setTotalAdvance(ttlAdvance);
-  //   console.log("totalAdvance after useEffect", totalAdvance);
   // }, [editDraftData, ttlAdvance]);
 
   const addInvoiceItem = (item, data) => {
@@ -294,7 +282,6 @@ const InvoiceDraft = ({
     const checkItem = data.find((_) => _.slot?.name === (item?.name || item));
 
     if (!checkItem) {
-      console.log("item", item);
       const centerMatch = item?.center?.find(
         (d) =>
           String(d?.center?._id) === String(patient?.center?._id || center),
@@ -340,9 +327,6 @@ const InvoiceDraft = ({
       });
     }
   };
-
-  // console.log("editDraftData from Redux:", editDraftData);
-  // console.log("Total Refund:", refund);
 
   return (
     <React.Fragment>

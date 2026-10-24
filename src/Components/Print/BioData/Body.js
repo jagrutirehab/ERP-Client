@@ -70,16 +70,6 @@ InfoItem.propTypes = {
 const Body = ({ patient, addmission }) => {
   if (!patient) return null;
 
-  const fullAddress = [
-    patient.houseNo,
-    patient.streetName,
-    patient.city,
-    patient.state,
-    patient.country,
-    patient.pinCode,
-  ]
-    .filter(Boolean)
-    .join(", ");
 
   const dob = patient.dateOfBirth
     ? new Date(patient.dateOfBirth).toLocaleDateString()

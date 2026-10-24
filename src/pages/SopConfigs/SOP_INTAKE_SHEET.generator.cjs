@@ -1302,8 +1302,7 @@ const alertBlock = (ws, startRow, n, data = null) => {
 const OUT = path.join(__dirname, "SOP_INTAKE_SHEET.xlsx");
 wb.xlsx
   .writeFile(OUT)
-  .then(() => console.log(`[SOP] wrote ${OUT}`))
+  .then(() => {})
   .catch((err) => {
-    console.error("[SOP] workbook generation failed:", err);
     process.exit(1);
   });

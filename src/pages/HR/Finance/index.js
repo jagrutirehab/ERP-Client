@@ -71,7 +71,6 @@ const FinanceDashboard = () => {
   const hasEditPermission =
     hasPermission("HR", "FINANCE", "WRITE") ||
     hasPermission("HR", "FINANCE", "DELETE");
-  const hasDeletePermission = hasPermission("HR", "FINANCE", "DELETE");
 
   const selectedCenterOption =
     centerOptions.find((opt) => opt.value === selectedCenter) ||
@@ -111,6 +110,7 @@ const FinanceDashboard = () => {
       }
     };
     fetchDropdowns();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   const fetchEmployeeFinanceList = async () => {
@@ -150,6 +150,7 @@ const FinanceDashboard = () => {
     if (hasUserPermission) {
       fetchEmployeeFinanceList();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,

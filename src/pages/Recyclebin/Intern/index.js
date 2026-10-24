@@ -49,12 +49,12 @@ const InternRecycle = () => {
       setLocalInterns(data?.interns || []);
       setTotalPages(data?.pagination?.totalPages || 1);
     } catch (error) {
-      console.error("Failed to fetch interns:", error);
     }
   };
 
   useEffect(() => {
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, page, limit, searchQuery]);
 
   const onCloseClick = () => {
@@ -66,7 +66,6 @@ const InternRecycle = () => {
       await dispatch(removedInternpermenet(deleteIntern.data));
       await fetchData();
     } catch (error) {
-      console.error("Failed to delete intern:", error);
     }
     onCloseClick();
   };

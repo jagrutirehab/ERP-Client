@@ -19,7 +19,6 @@ const styles = StyleSheet.create({
 });
 
 const PsychoDiagnosis = ({ chart, center, patient, admission }) => {
-  console.log("chart", chart);
 
   const reports = chart?.psychoDiagnosticForm?.reports || [];
   return (

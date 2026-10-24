@@ -124,6 +124,7 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
     useEffect(() => {
         if (!activePosition.id) return;
         fetchUsers({ positionId: activePosition.id, page: 1, search: "", centers: getCenterIds() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activePosition.id]);
 
     useEffect(() => {
@@ -133,17 +134,20 @@ const EditTrainerModal = ({ isOpen, onClose, record, onRefresh }) => {
             fetchUsers({ positionId: activePosition.id, page: 1, search, centers: getCenterIds() });
         }, 400);
         return () => clearTimeout(searchTimeout.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     useEffect(() => {
         if (!activePosition.id) return;
         fetchUsers({ positionId: activePosition.id, page: 1, search, centers: getCenterIds() });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [form.center]);
 
     const loadMore = useCallback(() => {
         const state = employeesByPosition[activePosition.id];
         if (!state || state.loading || !state.hasMore) return;
         fetchUsers({ positionId: activePosition.id, page: state.page + 1, search, centers: getCenterIds(), append: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activePosition, employeesByPosition, search, form.center, fetchUsers]);
 
     const handlePositionChange = (role) => {

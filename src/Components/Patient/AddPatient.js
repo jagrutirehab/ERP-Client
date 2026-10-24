@@ -162,8 +162,6 @@ const AddPatient = ({
       ipdFileNumber: editData ? editData.ipdFileNumber : "",
       socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
       areatype: editData ? editData.areatype : "",
-      socioeconomicstatus: editData ? editData.socioeconomicstatus : "",
-      areatype: editData ? editData.areatype : "",
       education: editData ? editData.education : "",
       occupation: editData ? editData.occupation : "",
       occupationDetail: editData ? editData.occupationDetail : "",
@@ -323,6 +321,7 @@ const AddPatient = ({
         !editData && leadData?.patient?.age ? leadData.patient.age : "",
       );
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [validation.values.dateOfBirth]);
 
   const cancelForm = () => {
@@ -439,6 +438,7 @@ const AddPatient = ({
         validation.setFieldValue("referralType", "other");
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editData, leadData, referrals]);
 
   useEffect(() => {
@@ -483,7 +483,6 @@ const AddPatient = ({
         validation.handleChange({ target: { name: name, value: result } });
       },
       error(err) {
-        console.error(err.message);
       },
     });
   };

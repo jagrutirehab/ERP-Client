@@ -164,7 +164,6 @@ const Main = ({ user, form, centerAccess }) => {
           setCurrentPage(response?.data?.currentPage || currentPage);
         } catch (error) {
           if (!handleAuthError(error)) {
-            console.error("Error fetching users:", error);
             toast.error(error.message || "Failed to fetch users.");
           }
         } finally {

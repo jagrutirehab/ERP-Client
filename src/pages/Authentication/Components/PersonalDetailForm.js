@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import PropTypes from "prop-types";
 import CustomModal from "../../../Components/Common/Modal";
 
 // Formik validation

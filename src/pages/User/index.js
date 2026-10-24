@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import PropTypes from "prop-types";
 import { Route, Routes } from "react-router-dom";
 import Activity from "./Activity";
 import Main from "./Main";

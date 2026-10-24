@@ -18,8 +18,7 @@ import Select from "react-select";
 import { Spinner, Button } from "reactstrap";
 import DataTable from "react-data-table-component";
 import { ExpandableText } from "../../../../../Components/Common/ExpandableText";
-import { editManagementRequests, getHirings } from "../../../../../helpers/backend_helper";
-import EditHiringRequestModal from "../../../components/EditHiringRequestModal";
+import { getHirings } from "../../../../../helpers/backend_helper";
 import RefreshButton from "../../../../../Components/Common/RefreshButton";
 
 const Status = ({ activeTab }) => {
@@ -95,6 +94,7 @@ const Status = ({ activeTab }) => {
     };
 
     loadDesignations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchHiringApprovalHistory = async () => {
@@ -173,6 +173,7 @@ const Status = ({ activeTab }) => {
     if (activeTab === "STATUS" && hasUserPermission) {
       fetchHiringApprovalHistory();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, filters, user?.centerAccess, activeTab]);
 
   //   const Center = ({ children }) => (
@@ -410,14 +411,12 @@ const Status = ({ activeTab }) => {
   //       };
 
   //       const response = await editManagementRequests(selectedRow._id, payload);
-  //       // console.log("response", response);
   //       if (response.success === true) {
   //         toast.success(response?.message);
   //       }
   //       setIsModalOpen(false);
   //       fetchHiringApprovalHistory();
   //     } catch (error) {
-  //       console.log(error);
   //       toast.error("Error Updating Data");
   //     } finally {
   //       setUpdateLoading(false);

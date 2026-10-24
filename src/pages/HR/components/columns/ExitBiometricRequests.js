@@ -11,7 +11,6 @@ export const ExitBiometricRequests = ({
   type,
   hasWritePermission,
 } = {}) => {
-  console.log("status", status);
 
   return [
     {

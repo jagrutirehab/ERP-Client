@@ -1,9 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import PropTypes from "prop-types";
 import { Input, Button, Row, Col, Label } from "reactstrap";
 import { categoryUnitOptions } from "../../../../Components/constants/patient";
-import { clearFilters } from "../../../../store/features/report/dbLogSlice";
-import FromDateModal from "./FromDateModal";
 import { formatDateOnly } from "../../../../utils/time";
 
 const isRowEmpty = (item) => {
@@ -25,13 +23,8 @@ const InvoiceTable = ({
   setShowModal,
   setSelectedIndex,
 }) => {
-  const [cost, setCost] = useState(0);
   // const [discount, setDiscount] = useState("");
   // const [type, setType] = useState("₹");
-
-  const isDraft = type === "draft";
-  console.log("isEdit", isEdit);
-  console.log("isDraft", isDraft);
 
   const calculateFinalTotal = (unit, cost, discount) => {
     const total = Number(unit || 0) * Number(cost || 0);
@@ -61,7 +54,6 @@ const InvoiceTable = ({
     updatedItem.discount = "";
     updatedItem.discountValue = "";
 
-    const newTotal = Number(updatedItem.unit || 0) * Number(newCost || 0);
 
     // if (updatedItem.discountType === "%" && updatedItem.discountValue) {
     //   const total = Number(updatedItem.unit || 0) * Number(newCost || 0);
@@ -80,7 +72,6 @@ const InvoiceTable = ({
 
   const getValues = (e) => {
     const prop = e.target.name;
-    console.log("prop", prop);
     const value =
       prop === "category" ? e.target.value.toLowerCase() : e.target.value;
     const idx = parseInt(e.target.id);
@@ -91,8 +82,6 @@ const InvoiceTable = ({
 
     if (prop === "unitOfMeasurement") {
       item.unitOfMeasurement = value;
-
-      console.log("item", item);
 
       const matchingPriceObj = (item.availablePrices || []).find(
         (p) => String(p.unit).toLowerCase() === String(value).toLowerCase(),
@@ -141,9 +130,6 @@ const InvoiceTable = ({
       categoryUnitOptions.default
     );
   };
-
-  // console.log("getUnitOptions", getUnitOptions());
-  // console.log("invoiceList", invoiceList);
 
   const handleDateChange = (idx, field, value) => {
     const newInvoiceList = [...invoiceList];
@@ -201,6 +187,7 @@ const InvoiceTable = ({
       setSelectedIndex(index);
       setShowModal(true);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoiceList]);
 
   const calculateToDate = (fromDate, unit, quantity) => {
@@ -249,6 +236,7 @@ const InvoiceTable = ({
     if (hasChange) {
       setInvoiceList(updatedList);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [invoiceList]);
 
   return (
@@ -284,7 +272,6 @@ const InvoiceTable = ({
             .map((item, idx) => ({ item, idx }))
             .filter(({ item }) => !isRowEmpty(item))
             .map(({ item, idx }) => {
-              console.log("itemo", item);
 
               const totalValue =
                 item.unit && item.cost
@@ -319,7 +306,6 @@ const InvoiceTable = ({
                     }))
                   : getUnitOptions(item.category);
               // const unitOptions = getUnitOptions(item.category);
-              // console.log("unitOptions", unitOptions);
 
               return (
                 <React.Fragment
@@ -690,8 +676,6 @@ const InvoiceTable = ({
                                 ? (item.unit * item.cost).toFixed(2)
                                 : "0.00")} */}
                             {(() => {
-                              const total =
-                                Number(item.unit || 0) * Number(item.cost || 0);
 
                               return calculateFinalTotal(
                                 item.unit,
@@ -972,8 +956,6 @@ const InvoiceTable = ({
                             ? (item.unit * item.cost).toFixed(2)
                             : "0.00")} */}
                         {(() => {
-                          const total =
-                            Number(item.unit || 0) * Number(item.cost || 0);
 
                           return calculateFinalTotal(
                             item.unit,

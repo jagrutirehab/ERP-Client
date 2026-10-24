@@ -90,6 +90,7 @@ const ApprovalHistory = ({ activeTab }) => {
     };
 
     loadDesignations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchHiringApprovalHistory = async () => {
@@ -164,6 +165,7 @@ const ApprovalHistory = ({ activeTab }) => {
     if (activeTab === "HISTORY" && hasUserPermission) {
       fetchHiringApprovalHistory();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, filters, user?.centerAccess, activeTab]);
 
   const columns = [

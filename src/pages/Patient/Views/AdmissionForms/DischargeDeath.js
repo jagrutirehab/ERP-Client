@@ -44,13 +44,6 @@ const DischargeDeath = ({ register, patient, admissions, finalDiagnosis }) => {
     fontSize: "13px",
   };
 
-  const checkboxRow = {
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-    marginBottom: "5px",
-    fontSize: "13px",
-  };
 
   const tableStyle = {
     width: "100%",
@@ -77,8 +70,6 @@ const DischargeDeath = ({ register, patient, admissions, finalDiagnosis }) => {
   useEffect(() => {
     setToday(new Date().toISOString().split("T")[0]);
   }, []);
-
-  console.log("patient", patient);
 
   return (
     <div style={pageContainer}>

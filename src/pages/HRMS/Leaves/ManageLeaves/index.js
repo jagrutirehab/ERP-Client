@@ -47,7 +47,6 @@ const ManageLeaves = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: isLoading } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "MANAGE_LEAVES", "READ");
-  const hasRead = hasPermission("HR", "MANAGE_LEAVES", "READ");
   const hasWrite = hasPermission("HR", "MANAGE_LEAVES", "WRITE");
   const hasDelete = hasPermission("HR", "MANAGE_LEAVES", "DELETE");
 
@@ -56,9 +55,6 @@ const ManageLeaves = () => {
 
   const centerOptions = useCenterOptions();
 
-  const selectedCenterOption =
-    centerOptions.find((opt) => opt.value === selectedCenter) ||
-    centerOptions[0];
 
   useEffect(() => {
     if (
@@ -92,7 +88,6 @@ const ManageLeaves = () => {
         ...(debouncedSearch && { search: debouncedSearch }),
         ...(queryLeaveId !== "" && { leaveId: queryLeaveId })
       });
-      console.log("res", res);
       setRequestsData(res?.data || []);
       // setPagination(res?.pagination || null);
       setPagination({
@@ -100,7 +95,6 @@ const ManageLeaves = () => {
         totalDocs: res?.pagination?.totalRecords,
       });
     } catch (error) {
-      console.log("API Error:", error);
       if (!handleAuthError(error)) {
         toast.error(error.message || "Failed to fetch reportings");
       }
@@ -113,6 +107,7 @@ const ManageLeaves = () => {
     if (!managerId) return;
     if (!hasUserPermission) navigate("/unauthorized");
     fetchLeaves();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     managerId,
     page,
@@ -142,9 +137,8 @@ const ManageLeaves = () => {
     }, 500);
 
     return () => clearTimeout(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
-
-  console.log("requestsData", requestsData)
 
   const leaves = useMemo(() => {
     if (!Array.isArray(requestsData)) return [];
@@ -183,7 +177,6 @@ const ManageLeaves = () => {
       fetchLeaves();
       // setRequestsData(updated);
     } catch (error) {
-      console.log("Action Error:", error);
     } finally {
       setActionLoadingId(null);
     }
@@ -205,7 +198,6 @@ const ManageLeaves = () => {
     { value: 11, label: "Dec" },
   ];
 
-  console.log("leaves", leaves);
   const handleCancellation = (docId, leaveId, manager_id, employeeId) => {
     setCancelData({ docId, leaveId, manager_id, employeeId });
     setShowCancelModal(true);
@@ -213,7 +205,6 @@ const ManageLeaves = () => {
 
   const confirmCancellation = async (reason) => {
     if (!cancelData) return;
-    console.log("cancelData", cancelData);
 
 
     try {
@@ -227,8 +218,6 @@ const ManageLeaves = () => {
         reason
       };
 
-      // console.log("Payload", payload);
-
       const response = await directCancellation(payload);
 
       toast.success(response?.message || "Leave cancelled successfully");
@@ -237,15 +226,11 @@ const ManageLeaves = () => {
       setCancelData(null);
       fetchLeaves();
     } catch (error) {
-      console.log("Cancel Error:", error);
       toast.error(error?.message || "Failed to cancel leave");
     } finally {
       setCancellationLoading(null);
     }
   };
-
-  console.log("leaves", leaves);
-
 
   return (
     <CardBody

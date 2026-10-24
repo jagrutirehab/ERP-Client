@@ -17,8 +17,6 @@
 //   const [costs, setCosts] = useState({});
 //   const [error, setError] = useState("");
 
-//   console.log("proData", proData);
-
 //   const unitsToRender = proData?.center?.[0]?.prices || [];
 
 //   useEffect(() => {
@@ -76,7 +74,6 @@
 //       await onSave(payload);
 //       toggle();
 //     } catch (err) {
-//       console.log("Err", err);
 //     }
 //   };
 
@@ -186,8 +183,6 @@ const CentersModal = ({ isOpen, toggle, centers, onSave, proData, existingCenter
   const [costs, setCosts] = useState({});
   const [error, setError] = useState("");
 
-  console.log("existingCenterIds", existingCenterIds);
-
   const unitsToRender = proData?.center?.[0]?.prices || [];
 
   useEffect(() => {
@@ -240,17 +235,11 @@ const CentersModal = ({ isOpen, toggle, centers, onSave, proData, existingCenter
         payload.cost = Number(costs["default"]);
       }
 
-      console.log("payload", payload);
-
-      const response = await onSave(payload);
-      console.log("response", response);
+      await onSave(payload);
       toggle();
     } catch (err) {
-      console.error("Err", err);
     }
   };
-
-  console.log("centers?.length || 0", centers?.length || 0);
 
   return (
     <Modal isOpen={isOpen} toggle={toggle} size="md" centered>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { CardBody, Nav, NavItem, NavLink, Toast } from 'reactstrap'
+import { CardBody, Nav, NavItem, NavLink } from 'reactstrap'
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import DataTableComponent from '../../../../Components/Common/DataTable';
 import { CancellationsRequestsColumn } from './Columns/Requests';
@@ -30,9 +30,7 @@ const CancellationRequestsPage = () => {
 
     const microUser = localStorage.getItem("micrologin");
     const token = microUser ? JSON.parse(microUser).token : null;
-    const { hasPermission, loading: isLoading } = usePermissions(token);
-    const hasUserPermission = hasPermission("HR", "CANCELATIONS_REQUESTS", "READ");
-    const hasRead = hasPermission("HR", "CANCELATIONS_REQUESTS", "READ");
+    const { hasPermission } = usePermissions(token);
     const hasWrite = hasPermission("HR", "CANCELATIONS_REQUESTS", "WRITE");
     const hasDelete = hasPermission("HR", "CANCELATIONS_REQUESTS", "DELETE");
 
@@ -57,7 +55,6 @@ const CancellationRequestsPage = () => {
                 limit,
                 search: debouncedSearch
             });
-            console.log("Res", response);
             setReq(response?.data || []);
             setPagination({
                 ...response?.pagination,
@@ -73,6 +70,7 @@ const CancellationRequestsPage = () => {
 
     useEffect(() => {
         fetchRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, selectedMonth, selectedYear, selectedCenter, user?.centerAccess, page, limit, debouncedSearch])
 
     const monthOptions = [
@@ -127,9 +125,7 @@ const CancellationRequestsPage = () => {
                 cancellationId: row?._id,
                 status
             }
-            console.log("Payload", query);
             const response = await actionOnCancellationRequest(query);
-            console.log("ActionResponse", response);
             toast.success(response?.message || "Action Success")
             fetchRequests();
         } catch (error) {

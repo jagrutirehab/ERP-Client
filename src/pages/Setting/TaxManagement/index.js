@@ -103,6 +103,7 @@ const TaxManagement = () => {
       };
 
         loadTaxList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [
       dispatch,
       currentPage,

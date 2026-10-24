@@ -157,7 +157,6 @@ const Stats = () => {
       toggleModal();
       fetchcctvstats(pagination.page, pagination.limit);
     } catch (error) {
-      console.error("Error updating alert:", error);
       toast.error("Failed to update alert");
     }
   };
@@ -213,7 +212,6 @@ const Stats = () => {
       setLastFetchedAt(Date.now());
       setDataAge(0);
     } catch (error) {
-      console.error("Failed to fetch alerts", error);
     } finally {
       setLoading(false);
     }

@@ -89,7 +89,6 @@ const SpecialRequirementsForm = ({
       }
       closeForm();
     } catch (error) {
-      console.log(error);
       toast.error(error.message || "Failed to Validate");
     } finally {
       setLoading(false);

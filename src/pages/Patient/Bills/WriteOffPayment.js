@@ -1,11 +1,8 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { Col, Row } from "reactstrap";
-import { clearLogs } from "../../../store/features/report/dbLogSlice";
 
 const WriteOffPayment = ({ data }) => {
-
-  console.log("data from write", data);
 
   return (
     <React.Fragment>

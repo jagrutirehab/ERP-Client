@@ -54,6 +54,7 @@ const TrainingHistoryDetail = () => {
 
     useEffect(() => {
         loadData()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [id, cntrs, search, appliedFrom, appliedTo])
 
     const handleApplyFilter = () => {

@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import { StyleSheet, View, Text, Font } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 import addComma from "../../../../utils/addComma";
@@ -107,7 +107,6 @@ const transformInvoiceList = (invoiceList = []) => {
 };
 
 const Table = ({ bill }) => {
-  console.log("bill from Main", bill);
   const totalItemDiscount =
     bill?.invoice?.invoiceList?.reduce(
       (sum, item) => sum + (Number(item?.discount) || 0),
@@ -116,10 +115,8 @@ const Table = ({ bill }) => {
 
   const totalAdditonalDiscount =
     (Number(bill?.invoice?.totalDiscount) || 0) - totalItemDiscount;
-  let serial = 1;
 
   const data = transformInvoiceList(bill?.invoice?.invoiceList || []);
-  console.log("bill.type", bill.type);
   const payable =
     bill.type === OPD
       ? (bill.invoice?.payable ?? 0)
@@ -238,12 +235,8 @@ const Table = ({ bill }) => {
     return { rows, grandTotal };
   };
 
-  const { rows, grandTotal } = renderRows();
+  const { rows } = renderRows();
 
-  const discount = 10000;
-  const advance = 50000;
-  const deposit = 0;
-  const balance = grandTotal - discount - advance - deposit;
 
   return (
     <View style={styles.tableContainer}>

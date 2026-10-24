@@ -5,8 +5,6 @@ import { connect, useDispatch, useSelector } from "react-redux";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import { useNavigate } from "react-router-dom";
-import { useAuthError } from "../../../Components/Hooks/useAuthError";
-import { toast } from "react-toastify";
 import SearchBar from "./components/SearchBar";
 import ConditionsTable from "./components/ConditionsTable";
 import PaginationControls from "./components/PaginationControls";
@@ -32,8 +30,6 @@ const Conditions = (props) => {
   const [editingCondition, setEditingCondition] = useState(null);
   const [deleteModal, setDeleteModal] = useState({ isOpen: false, data: null });
 
-  console.log({ props });
-
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
   const {
@@ -46,7 +42,6 @@ const Conditions = (props) => {
     "CONDITIONSSETTING",
     "READ"
   );
-  const handleAuthError = useAuthError();
 
   const isLoading = useSelector((state) => state.Setting.loading);
   const conditions = props.conditions || [];
@@ -82,14 +77,10 @@ const Conditions = (props) => {
         icdCode: values.icdCode.trim(),
       };
 
-      console.log("in form");
-
       if (editingCondition?._id) {
-        console.log({ editingCondition, mssg: "edit form" });
 
         dispatch(updateCondition({ _id: editingCondition._id, ...payload }));
       } else {
-        console.log({ mssg: "add form" });
 
         dispatch(addCondition(payload));
       }
@@ -146,7 +137,6 @@ const Conditions = (props) => {
       (c.title || "").toLowerCase().includes(searchItem.toLowerCase()) ||
       (c.description || "").toLowerCase().includes(searchItem.toLowerCase())
   );
-  const totalPages = Math.ceil(filteredConditions.length / itemsPerPage) || 1;
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = startIndex + itemsPerPage;
   const currentConditions = filteredConditions.slice(startIndex, endIndex);

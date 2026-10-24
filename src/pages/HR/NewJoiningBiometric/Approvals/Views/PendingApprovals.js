@@ -111,6 +111,7 @@ const PendingApprovals = ({
     } finally {
       setLoading(false);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCenter, debouncedSearch, page, limit, user?.centerAccess]);
 
   useEffect(() => {

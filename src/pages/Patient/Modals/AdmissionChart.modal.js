@@ -92,12 +92,7 @@ const AdmissionChart = ({
   // admission; a saved assessment lands in `capacityAssessmentFormRaw` (in-app
   // form) or `capacityAssessmentFormURL` (signed upload). This refreshes
   // automatically — CapacityAssessmentModal dispatches fetchPatientById on save.
-  const hasCapacityAssessment = Boolean(
-    patient?.addmission?.capacityAssessmentFormRaw?.length ||
-    patient?.addmission?.capacityAssessmentFormURL?.length,
-  );
 
-  // console.log("patient", patient);
   return (
     <React.Fragment>
       <CustomModal

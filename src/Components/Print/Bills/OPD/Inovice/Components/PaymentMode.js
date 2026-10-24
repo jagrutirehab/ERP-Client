@@ -1,8 +1,7 @@
 import React from "react";
-import { View, Text, StyleSheet } from "@react-pdf/renderer";
+import { View, Text } from "@react-pdf/renderer";
 import { format } from "date-fns";
 import {
-  BANK,
   CARD,
   CASH,
   CHEQUE,

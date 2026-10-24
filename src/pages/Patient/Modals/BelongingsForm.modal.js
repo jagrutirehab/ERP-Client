@@ -116,6 +116,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                     setBelongingsLoading(false);
                 }
             }, 400),
+        // eslint-disable-next-line react-hooks/exhaustive-deps
         []
     );
 
@@ -189,6 +190,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
                 setShowPDF(false);
             }
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isOpen, editBelongingId, printMode]);
 
     const filteredItems = belongingsSuggestions.filter(
@@ -479,6 +481,7 @@ const BelongingsFormModal = ({ isOpen, toggle, date, patient, center, addmission
         return () => {
             cancelled = true;
         };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [showPDF, isMobile, selectedItems, patient, date, center]);
 
     // Cleanup blob URL on unmount

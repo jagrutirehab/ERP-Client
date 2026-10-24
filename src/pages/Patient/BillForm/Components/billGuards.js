@@ -114,7 +114,7 @@ export const needsEvidence = (row, tenderKey, existingTransactionProof) => {
   return !(existingTransactionProof || []).some((p) => p?.mode === mode);
 };
 
-export default {
+const billGuards = {
   usePosTerminal,
   evaluatePosGuards,
   evaluateEvidenceGuard,
@@ -123,3 +123,5 @@ export default {
   POS_MODES,
   POS_MIN_AMOUNT,
 };
+
+export default billGuards;

@@ -25,12 +25,9 @@ const ClinicalNotesDOD = () => {
     const [csvLoading, setCsvLoading] = useState(false);
     const csvRef = useRef();
 
-    // console.log(clinicalNotesDOD)
-
     useEffect(() => {
         dispatch(fetchClinicalNotesDOD({ centerAccess }));
     }, [dispatch, centerAccess]);
-    // console.log(clinicalNotesDOD)
 
     useEffect(() => {
         if (searchInput === searchTerm) return;

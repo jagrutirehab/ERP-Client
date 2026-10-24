@@ -52,6 +52,7 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
     }, 500);
 
     return () => clearTimeout(handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, roles, dispatch]);
 
   useEffect(() => {
@@ -59,6 +60,7 @@ const Main = ({ alertModal, alertData, data, loading, centerAccess }) => {
       dispatch(setPatientIds([]));
       localStorage.removeItem("nursePatients");
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [JSON.stringify(centerAccess)]);
 
   useEffect(() => {

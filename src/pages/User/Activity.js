@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
 import { Button, Row, Col, Table, Input, Spinner } from "reactstrap";
 import { useNavigate, useParams } from "react-router-dom";
 import { getUserActivityById } from "../../helpers/backend_helper";
@@ -10,7 +9,6 @@ import { useAuthError } from "../../Components/Hooks/useAuthError";
 
 const Activity = () => {
   const { id } = useParams();
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -50,6 +48,7 @@ const Activity = () => {
       }
     };
     fetchUserActivity();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, token, id, navigate, itemsPerPage, hasUserPermission]);
 
   const handlePageChange = (pageNumber) => {

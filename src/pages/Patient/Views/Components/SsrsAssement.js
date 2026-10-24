@@ -28,7 +28,6 @@ const PsychologistAssessment = ({ onAssessmentComplete }) => {
   const [modalMessage, setModalMessage] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [answers, setAnswers] = useState({});
-  const [evidence, setEvidence] = useState("");
   const [imageUrl, setImageUrl] = useState("");
   const [observations, setObservations] = useState("");
   const [language, setLanguage] = useState("en");

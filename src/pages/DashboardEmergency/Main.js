@@ -31,6 +31,7 @@ const Main = ({ loading, data, centerAccess }) => {
       setDebouncedSearch(search);
     }, 500);
     return () => clearTimeout(handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search, roles]);
 
   useEffect(() => {
@@ -49,6 +50,7 @@ const Main = ({ loading, data, centerAccess }) => {
         currentDate: new Date().toISOString(),
       }),
     );
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, debouncedSearch, flag, roles, centerAccess, dispatch]);
 
   const handlePrev = () => {

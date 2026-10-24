@@ -128,8 +128,6 @@ const SearchPatient = ({
     };
   }, [dropdownKey]);
 
-  console.log({ filteredPatients, dropdownKey });
-
   useEffect(() => {
     if (filteredPatients?.length > 0 && !dropdown) setDropdown(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps

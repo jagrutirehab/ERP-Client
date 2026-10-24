@@ -6,7 +6,6 @@ import {
   NavItem,
   NavLink,
   Card,
-  Card as RCard,
   Collapse,
   Modal,
   ModalHeader,
@@ -37,19 +36,8 @@ const TrainingHistory = () => {
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
   const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission("TRAININGS", "ALL_TRAININGS", "READ");
-  const hasWritePermission = hasPermission(
-    "TRAININGS",
-    "ALL_TRAININGS",
-    "WRITE",
-  );
-  const hasDeletePermission = hasPermission(
-    "TRAININGS",
-    "ALL_TRAININGS",
-    "DELETE",
-  );
   const navigate = useNavigate();
 
-  const canEdit = hasWritePermission || hasDeletePermission;
   const limit = 5;
 
   const loadTrainings = async (pageNum = 1, tab = activeTab) => {
@@ -81,11 +69,10 @@ const TrainingHistory = () => {
     loadTrainings(newPage);
   };
 
-  const toggleAccordion = (id) =>
-    setOpenAccordions((prev) => ({ ...prev, [id]: !prev[id] }));
 
   useEffect(() => {
     loadTrainings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const file = fileModal.file;

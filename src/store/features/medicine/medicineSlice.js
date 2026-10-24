@@ -1,5 +1,4 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import { toast } from "react-toastify";
 import {
   deleteMedicine,
   editMedicine,
@@ -197,7 +196,7 @@ export const removeMedicineRequisition = createAsyncThunk(
   "medicine/removeMedicineRequisition",
   async (id, { rejectWithValue, dispatch }) => {
     try {
-      const response = await deleteMedicineRequisitionApi(id);
+      await deleteMedicineRequisitionApi(id);
       dispatch(setAlert({ type: "success", message: "Medicine Requisition deleted successfully" }));
       return id;
     } catch (error) {

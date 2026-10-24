@@ -12,7 +12,6 @@ export const FeedbackResponseRenderer = ({ response }) => {
 
       data = JSON.parse(cleaned);
     } catch (err) {
-      console.log("Parse failed:", err);
       return <div>{response}</div>;
     }
   }

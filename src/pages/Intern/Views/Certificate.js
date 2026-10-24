@@ -22,7 +22,6 @@ import CertificateTemplate from "./Components/CertificateTemplate";
 import { editInternForm, fetchDoctors } from "../../../store/actions";
 import { useParams } from "react-router-dom";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
-import { toast } from "react-toastify";
 
 const Certificate = ({ intern, psychologists }) => {
   const { id } = useParams();
@@ -98,7 +97,6 @@ const Certificate = ({ intern, psychologists }) => {
 
       setModal(false);
     } catch (err) {
-      console.error("Error processing certificate:", err);
     } finally {
       setLoading(false);
     }
@@ -122,7 +120,6 @@ const Certificate = ({ intern, psychologists }) => {
 
       await dispatch(editInternForm({ id: intern._id, formData })).unwrap();
     } catch (err) {
-      console.error("Certificate generation failed:", err);
       throw err;
     } finally {
       setIsGenerating(false);
@@ -174,7 +171,6 @@ const Certificate = ({ intern, psychologists }) => {
         }, 100);
       }
     } catch (e) {
-      console.error("Error while downloading PDF:", e);
     } finally {
       setIsDownloading(false);
     }

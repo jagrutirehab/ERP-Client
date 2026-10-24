@@ -48,6 +48,7 @@ const Sidebar = ({
     };
 
     fetchInitial();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customActiveTab, dispatch, centerAccess]);
 
 
@@ -72,6 +73,7 @@ const Sidebar = ({
         clearTimeout(debounceTimeoutRef.current);
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery]);
 
   useEffect(() => {
@@ -86,6 +88,7 @@ const Sidebar = ({
     };
 
     fetchMore();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isVisible, hasMore]);
 
   useEffect(() => {

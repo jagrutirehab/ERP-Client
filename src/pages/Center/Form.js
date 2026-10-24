@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import PropTypes from "prop-types";
 
 // Formik Validation
@@ -6,9 +6,6 @@ import * as Yup from "yup";
 import { useFormik } from "formik";
 import {
   Button,
-  Card,
-  CardBody,
-  CardHeader,
   Col,
   Form,
   FormFeedback,
@@ -26,7 +23,7 @@ import Select from "react-select";
 import { cities } from "../../Components/constants/cities";
 
 // Import React FilePond
-import { FilePond, registerPlugin } from "react-filepond";
+import { registerPlugin } from "react-filepond";
 // Import FilePond styles
 import "filepond/dist/filepond.min.css";
 import FilePondPluginImageExifOrientation from "filepond-plugin-image-exif-orientation";
@@ -48,7 +45,6 @@ import {
   updateCenter,
 } from "../../store/actions";
 import MyEditor from "./Editor";
-import dataURLtoBlob from "../../utils/convertToBlob";
 
 // Register the plugins
 registerPlugin(
@@ -252,8 +248,6 @@ const CenterForm = ({ author, isOpen, centerData }) => {
     },
   });
 
-  // console.log({ validation });
-
   // Pine Labs fields get their own labelled block below rather than the
   // auto-generated grid.
   const fieldsArray = Object.keys(validation.values).filter(
@@ -306,8 +300,6 @@ const CenterForm = ({ author, isOpen, centerData }) => {
     const words = field.replace(/([A-Z])/g, " $1").trim();
     return words.charAt(0).toUpperCase() + words.slice(1);
   }
-
-  // console.log({ fieldsArray });
 
   const closeForm = () => {
     validation.resetForm();

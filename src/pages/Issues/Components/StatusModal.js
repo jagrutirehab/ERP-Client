@@ -50,7 +50,6 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
 
       setEmployees(options);
     } catch (error) {
-      console.log("Error loading employees", error);
     } finally {
       setLoadingEmployees(false);
     }
@@ -58,6 +57,7 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
 
   const debouncedFetchEmployees = useMemo(() => {
     return debounce(fetchEmployees, 400);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // const handleSubmit = () => {
@@ -72,8 +72,6 @@ const StatusModal = ({ isOpen, toggle, issue, onAssign, activeTab, title }) => {
   //     setNote("");
   //     toggle();
   // };
-  console.log(selectedStatus?.value, "lala");
-  console.log("issue", issue?.issueType);
 
   // const handleSubmit = () => {
 

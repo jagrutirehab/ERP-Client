@@ -147,7 +147,6 @@ const MMSEAssessment = () => {
       });
     } catch (error) {
       openModal("Failed to render drawing in PDF. Please try again.");
-      console.error("svg2pdf.js error:", error);
       return null;
     }
     doc.setFontSize(10);

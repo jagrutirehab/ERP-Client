@@ -29,13 +29,11 @@ const MentalExamination = ({
   patientLatestMentalExamination,
   populate,
 }) => {
-  console.log(type);
 
   const dispatch = useDispatch();
   const editMentalExamination = editChartData?.mentalExamination;
   const ptLatestMentalExamination =
     patientLatestMentalExamination?.mentalExamination;
-  console.log(ptLatestMentalExamination);
 
   useEffect(() => {
     if (!editMentalExamination && patient?._id) {

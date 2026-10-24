@@ -5,7 +5,6 @@ import {
   updateVendor,
   getVendorById,
   uploadVendorDocument,
-  updateVendorApprovalStatus,
 } from "../../../helpers/backend_helper";
 import { Row, Col, Label, Input, FormFeedback, Button } from "reactstrap";
 import { useFormik } from "formik";
@@ -555,7 +554,6 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
   const canCreate = hasPermission("MASTERDATA", "VENDOR", "WRITE");
   const canEdit = hasPermission("MASTERDATA", "VENDOR", "WRITE");
   const canUploadDocs = hasPermission("MASTERDATA", "VENDOR", "WRITE");
-  const canChangeStatus = hasPermission("MASTERDATA", "VENDOR", "WRITE");
   const canSubmit = vendorId ? canEdit : canCreate;
   const [initialValues, setInitialValues] = useState(emptyInitialValues);
   const [documentFiles, setDocumentFiles] = useState({});
@@ -595,36 +593,15 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
   const { items: paymentTermOptions } = useReferenceList("paymentTerms"); 
 
 
-  const [approvalStatus, setApprovalStatus] = useState(
+  const [, setApprovalStatus] = useState(
     initialValues?.approvalStatus || "incomplete",
   );
-  const [submittingApproval, setSubmittingApproval] = useState(false);
   useEffect(() => {
     if (initialValues?.approvalStatus) {
       setApprovalStatus(initialValues.approvalStatus);
     }
   }, [initialValues]);
 
-  const handleSubmitForApproval = async () => {
-    if (!vendorId) return;
-    setSubmittingApproval(true);
-    try {
-      await updateVendorApprovalStatus(vendorId, "pending");
-      dispatch(invalidateReferenceList("vendors"));
-      setApprovalStatus("pending");
-      toast.success("Vendor submitted for approval");
-    } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't submit for approval",
-        );
-      }
-    } finally {
-      setSubmittingApproval(false);
-    }
-  };
 
   const validation = useFormik({
     enableReinitialize: true,

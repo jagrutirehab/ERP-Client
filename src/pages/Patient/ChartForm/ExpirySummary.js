@@ -379,7 +379,6 @@ const ExpirySummary = ({
       }
       toast.success(response?.message || "Successfully Validated.");
     } catch (error) {
-      console.log(error);
       toast.error(error.message || "Failed to Validate Response");
     } finally {
       setLoading(false);

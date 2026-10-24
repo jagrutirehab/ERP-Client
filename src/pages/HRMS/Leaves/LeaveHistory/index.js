@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState } from "react";
 import DataTableComponent from "../../../../Components/Common/DataTable";
 import { leaveColumns } from "../../components/Table/Columns/leave";
 import { CardBody, Input } from "reactstrap";
@@ -23,18 +23,14 @@ const LeaveHistory = () => {
   const user = useSelector((state) => state.User);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
-  const [totalRecords, setTotalRecords] = useState(0);
+  const [, setTotalRecords] = useState(0);
   // const centerAccess = useSelector((state) => state.User.centerAccess);
-  // // console.log("centerAccess", centerAccess);
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
   const centerOptions = useCenterOptions();
 
-  const selectedCenterOption =
-    centerOptions.find((opt) => opt.value === selectedCenter) ||
-    centerOptions[0];
 
   useEffect(() => {
     if (
@@ -84,6 +80,7 @@ const LeaveHistory = () => {
       return;
     }
     fetchLeavesData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess]);
 
   useEffect(() => {

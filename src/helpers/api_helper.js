@@ -2,7 +2,6 @@ import axios from "axios";
 import { api } from "../config";
 import history from "../Routes/HistoryRoute";
 import Cookies from "js-cookie";
-import { toast } from "react-toastify";
 
 // ✅ Main Axios setup (unchanged)
 axios.defaults.baseURL = api.API_URL;
@@ -20,7 +19,6 @@ const token = authUser ? JSON.parse(authUser).token : null;
 //   const user = userState ? JSON.parse(userState).user : null;
 //   token = user?.token || null;
 // } catch (e) {
-//   console.log(" Could not parse persisted user token:", e);
 // }
 
 if (token) {
@@ -42,7 +40,6 @@ function handleLogout() {
     Cookies.remove("token");
     Cookies.remove("XSRF-TOKEN");
     history.replace("/login");
-    console.error("Error during logout:", err);
   }
 }
 
@@ -67,7 +64,6 @@ const ensureCsrf = async () => {
     await refreshCsrfToken();
     return true;
   } catch (err) {
-    console.error("Could not initialise CSRF token:", err);
     return false;
   }
 };
@@ -86,7 +82,6 @@ const readErrorBody = async (error) => {
     try {
       return JSON.parse(await raw.text());
     } catch (e) {
-      console.error("Error parsing blob to json", e);
     }
   }
   return raw;
@@ -101,7 +96,6 @@ const recoverFromCsrfFailure = async (instance, error, body) => {
     await refreshCsrfToken();
     return { value: await instance(cfg) };
   } catch (e) {
-    console.error("CSRF recovery failed:", e);
     return null;
   }
 };
@@ -137,12 +131,6 @@ axios.interceptors.response.use(
     const replayed = await recoverFromCsrfFailure(axios, error, errorData);
     if (replayed) return replayed.value;
 
-    console.error("❌ API Error:", {
-      url: error.config?.url,
-      status: error.response?.status,
-      data: errorData,
-      logout: errorData?.logout,
-    });
     if (errorData?.logout) {
       handleLogout();
     }
@@ -183,11 +171,6 @@ authAxios.interceptors.response.use(
     const replayed = await recoverFromCsrfFailure(authAxios, error, errorData);
     if (replayed) return replayed.value;
 
-    console.error("❌ Auth API Error:", {
-      url: error.config?.url,
-      status: error.response?.status,
-      data: errorData,
-    });
     return Promise.reject(
       errorData || { message: "Auth service error!" }
     );
@@ -248,7 +231,6 @@ class AuthAPIClient {
 //     const user = userState ? JSON.parse(userState).user : null;
 //     return user;
 //   } catch (e) {
-//     console.warn("Could not parse persisted user data:", e);
 //     return null;
 //   }
 // };

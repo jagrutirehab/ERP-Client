@@ -59,6 +59,7 @@ const Views = ({
         dispatch(setPatientIds(merged));
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patients, searchMode, centerAccess]);
 
   const handleNext = async () => {

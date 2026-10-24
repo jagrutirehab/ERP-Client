@@ -112,6 +112,7 @@ const PatientList = ({ activeTab, activeSubTab, hasUserPermission }) => {
     useEffect(() => {
         if (activeSubTab !== "DETAILED" || !hasUserPermission) return;
         fetchMedicineApprovals();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, activeTab, activeSubTab, selectedCenter, debouncedSearch, reportDate, user.centerAccess]);
 
 

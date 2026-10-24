@@ -21,7 +21,6 @@ export const generateToken = async (meetingId, name, userType) => {
         // "Join Meeting" button silently did nothing.
         return response.data || response;
     } catch (error) {
-        console.error("Error generating token:", error.response?.data || error.message);
         return null;
     }
 };

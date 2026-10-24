@@ -56,8 +56,6 @@ const ConsentFormModal = ({
     }
   };
 
-  console.log({ invoiceProcedures });
-
   return (
     <CustomModal isOpen={isOpen} title="Admission" toggle={toggle}>
       <div>

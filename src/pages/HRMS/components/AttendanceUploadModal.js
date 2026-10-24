@@ -28,6 +28,7 @@ const AttendanceUploadModal = ({ isOpen, toggle, onRefresh }) => {
                 centerName,
             });
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
     const handleUploadSuccess = ({ importId, centerId, centerName }) => {

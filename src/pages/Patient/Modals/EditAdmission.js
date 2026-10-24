@@ -1,6 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
-import { Button, Col, Form, FormFeedback, Input, Label, Row } from "reactstrap";
+import { Button, Col, Form, FormFeedback, Label, Row } from "reactstrap";
 
 // Formik Validation
 import * as Yup from "yup";
@@ -15,7 +15,6 @@ import CustomModal from "../../../Components/Common/Modal";
 //redux
 import { connect, useDispatch } from "react-redux";
 import {
-  admitIpdPatient,
   admitDischargePatient,
   editAdmission,
 } from "../../../store/actions";

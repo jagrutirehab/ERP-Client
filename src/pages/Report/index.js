@@ -14,7 +14,6 @@ import {
   BOOKING,
   DOCTOR_ANALYTICS,
   CENTER_BEDS_ANALYTICS,
-  MI_REPORTING,
   ADMISSION_FORMS,
   REPORT_UPDATED,
   ADVANCE_PAYMENT_DEPOSIT,
@@ -32,10 +31,7 @@ import HubspotContacts from "./Components/Hubspot";
 import Booking from "./Components/Booking";
 import Doctor from "./Components/Doctor";
 import CenterBedsAnalytics from "./Components/CenterBeds";
-import MIReporting from "./Components/MIReporting";
 import AdmissionForms from "./Components/AdmissionForms";
-import { usePermissions } from "../../Components/Hooks/useRoles";
-import RenderWhen from "../../Components/Common/RenderWhen";
 
 const NAV_ITEMS = [
   { key: DASHBOARD, label: "Dashboard" },
@@ -53,7 +49,7 @@ const NAV_ITEMS = [
   { key: CENTER_BEDS_ANALYTICS, label: "Center Beds" },
 ];
 
-const Report = ({}) => {
+const Report = () => {
   const [view, setView] = useState(REPORT);
 
   const handleView = (v) => setView(v);

@@ -14,7 +14,7 @@ import { getRemovedLeads, removeLeadPermanently } from "../../../store/actions";
 
 const Lead = ({ centerAccess, leads }) => {
   const dispatch = useDispatch();
-  const [lead, setLead] = useState({ data: null, isOpen: false });
+  const [, setLead] = useState({ data: null, isOpen: false });
   const [deleteLead, setDeleteLead] = useState({
     data: null,
     isOpen: false,

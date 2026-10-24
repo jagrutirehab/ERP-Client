@@ -16,9 +16,9 @@ import {
   admitDischargePatient,
   dischargeIpdPatient,
 } from "../../../store/actions";
-import { Button, Col, Form, FormFeedback, Input, Label, Row } from "reactstrap";
+import { Button, Col, Form, FormFeedback, Label, Row } from "reactstrap";
 import { DISCHARGE_PATIENT } from "../../../Components/constants/patient";
-import { addDays, isAfter, isEqual, subDays } from "date-fns";
+import { subDays } from "date-fns";
 
 const DischargePatient = ({ isOpen, patient }) => {
   const dispatch = useDispatch();

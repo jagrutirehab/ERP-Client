@@ -4,22 +4,14 @@ import img1 from "../../../../assets/images/rorImage/rorschach-blot-1.jpg";
 import img2 from "../../../../assets/images/rorImage/rorschach-blot-2.jpg";
 import img3 from "../../../../assets/images/rorImage/rorschach-blot-3.jpg";
 import img4 from "../../../../assets/images/rorImage/rorschach-blot-4.jpg";
-import img5 from "../../../../assets/images/rorImage/rorschach-blot-5.jpg";
-import img6 from "../../../../assets/images/rorImage/rorschach-blot-6.jpg";
-import img7 from "../../../../assets/images/rorImage/rorschach-blot-7.jpg";
-import img8 from "../../../../assets/images/rorImage/rorschach-blot-8.jpg";
-import img9 from "../../../../assets/images/rorImage/rorschach-blot-9.jpg";
-import img10 from "../../../../assets/images/rorImage/rorschach-blot-10.jpg";
 // import img1 from "../../assets/rorImage/rorschach-blot-1.jpg";
 import {
-    Input,
-    Button,
-    Form,
-    FormGroup,
-    Label,
-    Container,
-    Row,
-    Col,
+  Input,
+  Button,
+  Form,
+  FormGroup,
+  Label,
+  Container,
 } from "reactstrap";
 
 const imageAray = [img1, img2, img3, img4];
@@ -32,7 +24,7 @@ const questionList = Array.from({ length: 10 }, (_, i) => ({
 const RorQuestion = () => {
     const [questions, setQuestions] = useState(questionList);
     const [summary, setSummary] = useState("");
-    const [selectedFiles, setSelectedFiles] = useState([]);
+    const [, setSelectedFiles] = useState([]);
 
     const handleAnswerChange = (index, value) => {
         const updated = [...questions];

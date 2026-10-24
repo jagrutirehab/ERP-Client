@@ -1,4 +1,4 @@
-import { useNavigate, useLocation, useParams, Route } from "react-router-dom";
+import { useNavigate, useLocation, useParams } from "react-router-dom";
 import React from "react";
 
 const withRouter = (Component) => {

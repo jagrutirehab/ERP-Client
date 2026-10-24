@@ -11,7 +11,6 @@ import {
 } from "reactstrap";
 import {
   getManagerByEmployeeId,
-  getMyManager,
   requestForRegularization,
 } from "../../helpers/backend_helper";
 import { useAuthError } from "../Hooks/useAuthError";
@@ -27,13 +26,9 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
   const [timeError, setTimeError] = useState("");
   const handleAuthError = useAuthError();
 
-  console.log("employeeId", employeeId);
-
   const loggedInuser = JSON.parse(localStorage.getItem("authUser"));
 
   const LoggedInId = loggedInuser?.data?._id;
-
-  console.log("LoggedInId", LoggedInId);
 
   const fetchManager = async () => {
     const id = employeeId || LoggedInId;
@@ -41,7 +36,6 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
 
     try {
       const res = await getManagerByEmployeeId(id);
-      console.log("manager", res);
 
       const manager = res?.data?.manager;
 
@@ -54,7 +48,6 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
       setManagerId(manager._id);
       setManagerName(manager.name);
     } catch (error) {
-      console.error("Fetch manager error:", error);
       setManagerId(null);
       setManagerName("No Manager Found");
     }
@@ -64,6 +57,7 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
     if (isOpen) {
       fetchManager();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen]);
 
   useEffect(() => {
@@ -75,8 +69,6 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
       setTimeError("");
     }
   }, [row]);
-
-  // console.log("Row", row?._id);
 
   const handleSubmit = async () => {
     if (!checkIn || !checkOut) {
@@ -114,10 +106,7 @@ const RegularizeModal = ({ isOpen, toggle, row, onSuccess, employeeId }) => {
         data.date = new Date(row?.date + "T00:00:00+05:30").toISOString();
       }
 
-      // console.log(data);
-
       const res = await requestForRegularization(data);
-      // console.log("res", res);
       toggle();
 
       if (res?.success === true) {

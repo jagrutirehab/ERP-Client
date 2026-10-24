@@ -182,7 +182,6 @@ import { usePermissions } from "../../../../Components/Hooks/useRoles";
 //       setSubmissionSuccess(true);
 //       toast.success("Medicines marked successfully!");
 //     } catch (error) {
-//       console.error(error);
 //       toast.error("Failed to mark medicines. Please try again.");
 //     } finally {
 //       setIsSubmitting(false);

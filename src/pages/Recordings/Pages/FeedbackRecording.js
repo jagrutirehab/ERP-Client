@@ -1,17 +1,13 @@
-import React, { useState, useEffect, useRef } from 'react'
-import { bulkGenerateFeedbackOverviewRecording, bulkGenerateOverviewRecording, generateFeedbackOverviewRecording, generateOverviewRecording, getFeedbackRecordings, uploadFeedbackXlsx, uploadXlsx } from '../../../helpers/backend_helper';
+import React, { useState, useEffect } from 'react'
+import { bulkGenerateFeedbackOverviewRecording, generateFeedbackOverviewRecording, getFeedbackRecordings, uploadFeedbackXlsx } from '../../../helpers/backend_helper';
 import { toast } from 'react-toastify';
 import { CardBody, Label, Spinner } from 'reactstrap';
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
 import DataTableComponent from '../../../Components/Common/DataTable';
-import { callRecordingsColumns } from '../Columns/callRecordingsColumn';
 import { useNavigate } from "react-router-dom";
 import GenerateOverviewModal from '../Components/GenerateOverviewModal';
 import Select from "react-select";
-import BulkOverviewModal from '../Components/BulkOverviewModal';
-import { all } from 'axios';
 import UploadXlsxModal from '../Components/UploadXlsxModal';
-import { useSelector } from 'react-redux';
 import { usePermissions } from '../../../Components/Hooks/useRoles';
 import { feedbackRecordingsColumns } from '../Columns/feedbackColumn';
 import BulkFeedbackModal from '../Components/BulkFeedbackModal';
@@ -42,15 +38,14 @@ const FeedbackRecording = () => {
   const [debouncedLocation, setDebouncedLocation] = useState("");
   const [overviewFilter, setOverviewFilter] = useState("");
   const [talkTimeFilter, setTalkTimeFilter] = useState("");
-  const [selectedRows, setSelectedRows] = useState([]);
+  const [, setSelectedRows] = useState([]);
   const [showBulkOverviewModal, setShowBulkOverviewModal] = useState(false);
   const [bulkProgress, setBulkProgress] = useState(0);
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [uploading, setUploading] = useState(false);
   const token = JSON.parse(localStorage.getItem("user"))?.token;
-  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
 
-  const hasReadPermission = hasPermission("RECORDINGS", "FEEDBACK_RECORDINGS", "READ");
   const hasWritePermission = hasPermission("RECORDINGS", "FEEDBACK_RECORDINGS", "WRITE");
   const hasDeletePermission = hasPermission("RECORDINGS", "FEEDBACK_RECORDINGS", "DELETE");
   const canAction = hasWritePermission || hasDeletePermission;
@@ -89,6 +84,7 @@ const FeedbackRecording = () => {
 
   useEffect(() => {
     loadRecordings(page, limit);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, debouncedSearch, debouncedLocation, overviewFilter, talkTimeFilter]);
 
   const HandleGenerateOverview = async () => {
@@ -97,7 +93,6 @@ const FeedbackRecording = () => {
       const id = selectedRecording?._id
       const recordingUrl = selectedRecording?.Files?.recording_url
       const response = await generateFeedbackOverviewRecording(id, recordingUrl);
-      console.log("Response", response);
       if (response?.geminiResponse?.startsWith("API Error")) {
         toast.error("Failed to generate overview with API error");
       } else {
@@ -106,7 +101,6 @@ const FeedbackRecording = () => {
       loadRecordings(page, limit);
       setShowGenerateModal(false);
     } catch (error) {
-      console.error("Error generating overview:", error);
       toast.error(error?.message || "Failed to generate overview");
     } finally {
       setGenerateLoading(false);
@@ -157,7 +151,6 @@ const FeedbackRecording = () => {
         const chunk = allIds.slice(i, i + chunkSize);
 
         const response = await bulkGenerateFeedbackOverviewRecording({ ids: chunk });
-        console.log("Response", response);
 
 
         completed += chunk.length;
@@ -187,11 +180,7 @@ const FeedbackRecording = () => {
 
       setUploading(true);
 
-      console.log("Uploading file:", file);
-
-      const response = await uploadFeedbackXlsx(formData);
-
-      console.log("Upload response:", response);
+      await uploadFeedbackXlsx(formData);
 
       toast.success("File uploaded successfully");
 

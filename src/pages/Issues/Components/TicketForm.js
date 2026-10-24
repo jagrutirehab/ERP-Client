@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React from "react";
 import {
   Form,
   Input,
@@ -9,8 +9,6 @@ import {
   UncontrolledTooltip,
 } from "reactstrap";
 import Select from "react-select";
-import { toast } from "react-toastify";
-import { getMyManager } from "../../../helpers/backend_helper";
 
 const selectStyles = {
   control: (base) => ({
@@ -41,8 +39,6 @@ const TicketForm = ({
   loadingCentreManagers,
   // fixedAssignees,
 }) => {
-  const [loading, setLoading] = useState(false);
-  const token = JSON.parse(localStorage.getItem("user"))?.token;
 
   // const [manager, setManager] = useState();
   // const [managerId, setManagerId] = useState();
@@ -51,7 +47,6 @@ const TicketForm = ({
   //     setLoading(true);
   //     try {
   //         const res = await getMyManager(token);
-  //         console.log("Manager", res);
   //         setManager(res?.data?.manager?.name)
   //         const managerId = res?.data?.manager?._id;
   //         setForm((prev) => ({
@@ -60,7 +55,6 @@ const TicketForm = ({
   //         }));
 
   //     } catch (error) {
-  //         console.log(error);
   //         toast.error("Error fetching manager");
   //     } finally {
   //         setLoading(false);

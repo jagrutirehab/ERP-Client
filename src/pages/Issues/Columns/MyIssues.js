@@ -1,7 +1,6 @@
 import { Badge, Button } from "reactstrap";
 import { normalizeDates } from "../Helpers/normalizeDates";
 import { getStatusColor } from "../Helpers/getStatusColor";
-import { getNextStatus, returnButtonText } from "../Helpers/getNextStatus";
 
 export const MyIssuesCol = (
   handleViewDescription,

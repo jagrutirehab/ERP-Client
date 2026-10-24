@@ -10,7 +10,7 @@ const GeneralCard = ({ data, children }) => {
         <div className="flex-wrap justify-content-between position-relative px-3 bg-light timeline-date border border-dark py-2">
           <div>
             {data ? <h6 className="display-6 fs-6 mb-0">{data}</h6> :
-              <h6></h6>
+              <div className="h6" />
             }
 
           </div>

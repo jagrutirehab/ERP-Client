@@ -108,8 +108,6 @@ const ChartDate = ({
   const isOnOutpass =
     fromIST && toIST ? todayIST >= fromIST && todayIST <= toIST : false;
 
-  console.log({ todayIST, fromIST, toIST, isOnOutpass });
-
   return (
     <React.Fragment>
       <CustomModal

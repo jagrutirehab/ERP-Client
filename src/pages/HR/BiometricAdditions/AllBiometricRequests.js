@@ -10,7 +10,6 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 import { useCenterOptions } from "../../../Components/Hooks/useCenterOptions";
 import {
   getBiometricAdditionRequestsData,
-  getUsersByRole,
 } from "../../../helpers/backend_helper";
 import { BiometricAdditionColumns } from "./Columns/BiometricAdditionColumns";
 import BiometricAdditionModal from "./Modals/BiometricAdditionModal";
@@ -75,7 +74,6 @@ const AllBiometricRequests = () => {
   //         })) || [],
   //       );
   //     } catch (err) {
-  //       console.error("Failed to fetch users", err);
   //     }
   //   };
   //   fetchUsers();
@@ -110,7 +108,6 @@ const AllBiometricRequests = () => {
       setData(response?.data);
       setPagination(response?.pagination);
     } catch (err) {
-      console.error("Fetch error:", err);
     } finally {
       setFetching(false);
     }

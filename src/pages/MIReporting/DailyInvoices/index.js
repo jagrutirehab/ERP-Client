@@ -36,9 +36,6 @@ const DailyInvoices = () => {
     const loading = useSelector((state) => state.MIReporting.loading);
     const error = useSelector((state) => state.MIReporting.error);
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
-    const [selectedMonth, setSelectedMonth]=useState(
-        new Date().toLocaleDateString("en-GB", { month: "short", year: "numeric" })
-    )
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [selectedStatus, setSelectedStatus] = useState("ALL");
     const [dateFrom, setDateFrom] = useState(() => new Date());
@@ -65,8 +62,6 @@ const DailyInvoices = () => {
     const [miCsvLoading, setMiCsvLoading] = useState(false);
     const miCsvRef = useRef();
 
-    // console.log(dailyInvoices)
-
     useEffect(() => {
 
         dispatch(fetchDailyInvoices({ centerAccess ,selectedStatus }));
@@ -75,7 +70,6 @@ const DailyInvoices = () => {
     useEffect(() => {
         dispatch(fetchMissingInvoices({ centerAccess, month: miSelectedMonth }));
     }, [dispatch, centerAccess, miSelectedMonth]);
-    // console.log(dailyInvoices)
     // Extract unique months and sort them descending
 
    
@@ -133,17 +127,6 @@ const DailyInvoices = () => {
         })),
     ], [data]);
 
-    const monthOptions = useMemo(() => {
-        const options = [];
-        const now = new Date();
-        const end = new Date(now.getFullYear(), now.getMonth(), 1);
-        const start = new Date(now.getFullYear() - 5, now.getMonth() + 1, 1);
-        for (let d = new Date(end); d >= start; d.setMonth(d.getMonth() - 1)) {
-            const label = d.toLocaleDateString("en-GB", { month: "short", year: "numeric" });
-            options.push({ value: label, label });
-        }
-        return options;
-    }, []);
 
     const miData = useMemo(() => missingInvoices?.data || [], [missingInvoices]);
 

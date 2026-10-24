@@ -1,5 +1,5 @@
 import  { useState, useMemo, useEffect, useCallback } from "react";
-import { Search, Plus, X } from "lucide-react";
+import { Search, Plus } from "lucide-react";
 import { CardBody, Input, Button, Modal, ModalBody, ModalHeader, Badge, Row, Col } from "reactstrap";
 import Select from "react-select";
 import { toast } from "react-toastify";
@@ -56,6 +56,7 @@ const BillUploadDashboard = () => {
     setPreviewOpen(!previewOpen);
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const showBillDetails = (bill) => {
     setSelectedBill(bill);
     setDetailsOpen(true);
@@ -140,6 +141,7 @@ const BillUploadDashboard = () => {
 
   useEffect(() => {
     fetchBillUploads();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, pageSize, debouncedSearch, selectedCenter, selectedStatus, user?.centerAccess]);
 
   useEffect(() => {

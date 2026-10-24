@@ -4,7 +4,6 @@ import React from "react";
 //components
 // import Header from "../Header";
 import VitalSignsTable from "../../../Charts/VitalSign/Table";
-import { View } from "@react-pdf/renderer";
 import ChartHeader from "../ChartHeader";
 // import Footer from "../Footer";
 
@@ -21,7 +20,6 @@ import ChartHeader from "../ChartHeader";
 //   },
 // });
 
-const border = "2px dashed #000";
 
 const VitalSign = ({ chart, center, patient }) => {
     return (

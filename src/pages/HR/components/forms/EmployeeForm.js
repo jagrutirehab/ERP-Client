@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useFormik } from "formik";
 import * as Yup from "yup";
@@ -27,12 +27,10 @@ import { useAuthError } from "../../../../Components/Hooks/useAuthError";
 import { useFormDraft } from "../../../../hooks/useFormDraft";
 import {
   createDepartment,
-  deleteEmployeeDocumentFile,
   editEmployee,
   getAllUsers,
   getDepartments,
   getEmployeeDocsConfiguration,
-  getEmployeeDocumentFieldsByEmployeeId,
   getEmployeeDocumentsByEmployeeId,
   getEmployeeId,
   getPositions,
@@ -753,7 +751,7 @@ const EmployeeForm = ({
   const [departmentOptions, setDepartmentOptions] = useState([]);
   // const [department, setDepartment] = useState("");
   const [positionOptions, setPositionOptions] = useState([]);
-  const [manual, setManual] = useState({
+  const [, setManual] = useState({
     SPLAllowance: false,
   });
   const [uploading, setUploading] = useState({
@@ -848,6 +846,7 @@ const EmployeeForm = ({
     };
 
     loadDesignations();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const form = useFormik({
@@ -1350,6 +1349,7 @@ const EmployeeForm = ({
     if (!initialData?._id && mode !== "NEW_JOINING") {
       generateEmployeeId();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [initialData, mode]);
 
   useEffect(() => {
@@ -1383,6 +1383,7 @@ const EmployeeForm = ({
 
   useEffect(() => {
     fetchDepartment();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -1395,6 +1396,7 @@ const EmployeeForm = ({
         form.setFieldValue("department", matched.value);
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [departmentOptions, isEdit, initialData]);
 
   const handleLinkUsers = async () => {
@@ -1463,7 +1465,6 @@ const EmployeeForm = ({
             );
           })
           .catch((error) => {
-            console.error("Failed to search users", error);
             resolve([]);
           });
       }, 500),
@@ -1503,6 +1504,7 @@ const EmployeeForm = ({
         setFieldValue(key, value, false);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     values.grossSalary,
     values.basicAmount,
@@ -1590,6 +1592,7 @@ const EmployeeForm = ({
       setFieldValue("LWFEmployee", annual.employee, false);
     if (Number(values.LWFEmployer) !== annual.employer)
       setFieldValue("LWFEmployer", annual.employer, false);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     lwfState,
     values.basicAmount,
@@ -1675,6 +1678,7 @@ const EmployeeForm = ({
     };
 
     fetchPositions();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -1697,6 +1701,7 @@ const EmployeeForm = ({
     };
 
     fetchDocConfigForPosition();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [values.position]);
 
   const fetchEmployeeUploads = async () => {
@@ -1716,6 +1721,7 @@ const EmployeeForm = ({
 
   useEffect(() => {
     fetchEmployeeUploads();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, initialData?._id]);
 
   const openDeleteExistingFile = (documentId, file) => {
@@ -3887,10 +3893,6 @@ const EmployeeForm = ({
               )}
             </Button>
           )}
-
-          {/* <Button onClick={() => console.log(errors)}>
-            test
-          </Button>  */}
         </div>
         </>
         ) : (

@@ -96,6 +96,7 @@ const AccountingApprovalDashboard = ({
     };
 
     fetchPendingAccountingApprovals();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centerAccess, selectedCenter, dispatch, page, limit, paymentTypeFilter]);
 
   if (loading) {

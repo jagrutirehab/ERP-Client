@@ -52,9 +52,6 @@
 // });
 
 // const PrintHeader = ({ patient, center, bill }) => {
-//   console.log("patient", patient);
-//   console.log("center", center);
-//   console.log("bill", bill);
 
 //   const renderImage = () => (
 //     <Image src={center?.logo ? center?.logo?.url : Logo} style={styles?.logo} />
@@ -210,10 +207,6 @@ const styles = StyleSheet.create({
 });
 
 const PrintHeader = ({ patient, center, bill }) => {
-
-  console.log("patient", patient);
-  console.log("center", center);
-  console.log("bill", bill);
 
   // Safe date formatter
   const formatDateSafe = (dateStr, formatStr = "d MMM y") => {

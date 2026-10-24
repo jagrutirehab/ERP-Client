@@ -148,11 +148,6 @@ const Sidebar = () => {
     "NEW_JOINING_BIOMETRIC_REQUESTS",
     "READ",
   );
-  const hasGetMyBiometricRequests = hasPermission(
-    "HR",
-    "GET_MY_BIOMETRIC_REQUESTS",
-    "READ",
-  );
 
   const hasTPMAddRequestPermission = hasPermission(
     "HR",
@@ -790,6 +785,7 @@ const Sidebar = () => {
 
       return true;
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     hasUserPermission1,
     hasNewJoiningAddRequestPermission,

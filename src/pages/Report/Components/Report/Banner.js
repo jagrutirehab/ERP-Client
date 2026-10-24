@@ -3,7 +3,6 @@ import RenderWhen from "../../../../Components/Common/RenderWhen";
 import { ADVANCE_PAYMENT, ALL_TRANSACTIONS, DUE_AMOUNT, INVOICE, OPD_BILL } from "./data";
 
 const Banner = ({ data, billType }) => {
-  console.log(billType);
   const totalAdvancePayment = (dt) => {
     let amount = 0;
     dt?.forEach((item) => {
@@ -66,12 +65,6 @@ const Banner = ({ data, billType }) => {
 
     return refundTotal;
   };
-
-  // console.log(
-  //   data?.reduce((total, item) => total + (item.invoice?.payable || 0), 0),
-  //   "data",
-  //   data
-  // );
 
   const dueAmount = (dt) => {
     const totalAdPayment = totalAdvancePayment(dt);

@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { connect } from "react-redux";
 import { Button, ButtonGroup, Card, CardBody, Spinner, Input, Row, Col } from "reactstrap";
 import DataTable from "react-data-table-component";
-import Select from "react-select";
 import { toast } from "react-toastify";
 import moment from "moment";
 import { CheckCircle2, Circle, Clock } from "lucide-react";
@@ -21,7 +20,6 @@ import {
 const TO_GIVE_TAB = "TO_GIVE";
 const HISTORY_TAB = "HISTORY";
 
-const LIMIT_OPTIONS = [10, 20, 30, 40, 50].map((l) => ({ value: l, label: String(l) }));
 
 const emptyPagination = { totalDocs: 0, totalPages: 0 };
 
@@ -46,10 +44,10 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
   const [confirmModalOpen, setConfirmModalOpen] = useState(false);
   const [overallComment, setOverallComment] = useState("");
   const [individualComments, setIndividualComments] = useState(new Map());
-  const [selectingAll, setSelectingAll] = useState(false);
+  const [, setSelectingAll] = useState(false);
   const [selectAllWarningOpen, setSelectAllWarningOpen] = useState(false);
   const [page, setPage] = useState(1);
-  const [limit, setLimit] = useState(50);
+  const [limit] = useState(50);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
   const [pagination, setPagination] = useState(emptyPagination);
@@ -101,6 +99,7 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
     activeTab,
     debouncedSearch,
     limit,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     JSON.stringify(selectedCentersIds),
     reportDate.start,
     reportDate.end,
@@ -156,6 +155,7 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
 
   useEffect(() => {
     setSelectedMap(new Map());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, JSON.stringify(selectedCentersIds)]);
 
   const toggleRowSelection = useCallback((row) => {
@@ -205,17 +205,6 @@ const TodayMedicines = ({ centerAccess, centers, writable = true }) => {
     }
   };
 
-  const handleSelectAll = () => {
-    if (selectedRows.length) {
-      setSelectedMap(new Map());
-      return;
-    }
-    if (selectedCentersIds.length > 1) {
-      setSelectAllWarningOpen(true);
-      return;
-    }
-    runSelectAll();
-  };
 
   const closeConfirmModal = () => {
     if (submitting) return; // don't let it be dismissed mid-batch

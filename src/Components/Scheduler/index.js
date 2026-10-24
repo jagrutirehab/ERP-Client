@@ -1,10 +1,9 @@
-import React, { ReactNode, useEffect, useState } from "react";
+import React, { useState } from "react";
 
 //components
 import Header from "./Components/Header";
 import Main from "./Components/Main";
 import FormModal from "./Components/Modals/FormModal";
-import { getMonthDates, getWeekDates } from "./utils/schedular";
 import { startOfMonth } from "date-fns";
 import EventModal from "./Components/Modals/EventModal";
 import { connect, useDispatch } from "react-redux";

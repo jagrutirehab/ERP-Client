@@ -22,9 +22,6 @@ const LabReport = ({ data, date }) => {
     }
   };
 
-  console.log("data", data);
-
-
   return (
     <React.Fragment>
       <div>

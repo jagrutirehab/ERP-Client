@@ -131,6 +131,7 @@ const Verification = ({ hasWrite }) => {
 
   useEffect(() => {
     fetchPhotos();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,
@@ -172,6 +173,7 @@ const Verification = ({ hasWrite }) => {
       return;
     }
     fetchAuditDays(selectedCenter);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCenter]);
 
   const setDraft = (rowId, next) =>

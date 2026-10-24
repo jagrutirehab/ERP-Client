@@ -77,7 +77,6 @@ const DnrConsentFormModal = ({
         setPdfUrl(url);
         setPreviewOpen(true);
       } catch (previewError) {
-        console.error("PDF preview failed:", previewError);
         toast.warn(
           "Do Not Resuscitate form saved, but the PDF preview could not be opened",
         );

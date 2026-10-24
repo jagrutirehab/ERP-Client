@@ -1,8 +1,11 @@
 import React, { forwardRef, Fragment } from "react";
 import {
-  SectionHeader, BulletList, NumberedList,
-  DataTable, ControlTable,
-  NAVY, GOLD,
+  SectionHeader,
+  BulletList,
+  NumberedList,
+  DataTable,
+  ControlTable,
+  NAVY,
 } from "./SEComponents";
 
 // ── DATA ──────────────────────────────────────────────────────────────────────

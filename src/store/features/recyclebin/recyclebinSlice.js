@@ -673,6 +673,5 @@ const recyclebinSlice = createSlice({
   },
 });
 
-export const {} = recyclebinSlice.actions;
 
 export default recyclebinSlice.reducer;

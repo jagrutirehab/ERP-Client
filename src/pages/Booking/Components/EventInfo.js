@@ -38,8 +38,6 @@ const EventInfo = ({
   // Check if patient is admitted if so then make the prescription IPD and it should go to admission and appointment
   const isAdmit = data?.patient?.isAdmit && !data?.patient?.isDischarge;
 
-  console.log({ isAdmit });
-
   return (
     <React.Fragment>
       <div>

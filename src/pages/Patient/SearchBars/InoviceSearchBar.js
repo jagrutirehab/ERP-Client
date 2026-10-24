@@ -13,7 +13,6 @@ import { connect } from "react-redux";
 const InvoiceSearchBar = ({ setInvoiceList, invoiceList, items }) => {
   // const dispatch = useDispatch();
 
-  let checkDuplicate = true;
   const makeForm = (item) => {
     const checkItem = invoiceList.find((_) => _.name === item.name);
     if (!checkItem) {

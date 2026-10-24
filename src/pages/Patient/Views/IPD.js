@@ -223,17 +223,10 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
 
   // Fetch admissions via Redux (state.Chart.data) instead of a direct API call.
   useEffect(() => {
-    console.log(
-      "[IPD] admissions effect fired. patient._id:",
-      patient?._id,
-      "addmissions:",
-      patient?.addmissions,
-    );
     latestPatientIdRef.current = patient?._id;
     setOpen(null);
     setAdmissionsSettled(false);
     if (!patient?.addmissions?.length) {
-      console.log("[IPD] no admissions on patient — skipping fetch");
       setAdmissionsSettled(true);
       return;
     }
@@ -241,13 +234,11 @@ const IPDComponent = ({ patient, toggleModal, setChartType, user }) => {
     dispatch(fetchChartsAddmissions(patient.addmissions))
       .unwrap()
       .then((res) => {
-        console.log("[IPD] fetchChartsAddmissions resolved:", res);
         // Ignore if the patient has since changed — avoids re-opening the
         // wrong patient's first accordion off a late-resolving stale request.
         if (latestPatientIdRef.current === requestedPatientId) setOpen("0");
       })
       .catch((error) => {
-        console.log("[IPD] fetchChartsAddmissions error:", error);
       })
       .finally(() => {
         // Settled regardless of outcome — some ids in patient.addmissions can

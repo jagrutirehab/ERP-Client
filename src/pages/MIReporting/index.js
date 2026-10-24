@@ -1,9 +1,8 @@
 import React, { useEffect } from "react";
 import { Container } from "reactstrap";
-import { Route, Routes, useNavigate } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 //redux
-import { connect } from "react-redux";
 import { usePermissions } from "../../Components/Hooks/useRoles";
 
 // Components
@@ -54,7 +53,6 @@ import SuspendedAssigned from "./SuspendedAssigned";
 import CashReco from "./CashReco";
 
 const MiReporting = () => {
-  const navigate = useNavigate();
 
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
@@ -399,7 +397,6 @@ const MiReporting = () => {
   );
 };
 
-const mapStateToProps = (state) => ({});
 
 // export default connect(mapStateToProps)(Hu§§bspotReporting);
 export default MiReporting;

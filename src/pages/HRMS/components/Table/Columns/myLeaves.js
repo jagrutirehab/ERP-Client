@@ -1,25 +1,11 @@
 import { Badge, Button } from "reactstrap";
 import moment from "moment";
-import ButtonLoader from "../../../../../Components/Common/ButtonLoader";
 
 const Center = ({ children }) => (
   <div className="text-center w-100">{children}</div>
 );
 
-const Left = ({ children }) => (
-  <div className="text-start w-100">{children}</div>
-);
 
-const formatDate = (date) => {
-  if (!date) return "-";
-  const d = new Date(date);
-
-  const day = String(d.getDate()).padStart(2, "0");
-  const month = String(d.getMonth() + 1).padStart(2, "0");
-  const year = d.getFullYear();
-
-  return `${day}-${month}-${year}`;
-};
 
 export const MyLeavesColumn = (
   handleAction,
@@ -54,7 +40,6 @@ export const MyLeavesColumn = (
   {
     name: <Center>Leave Type</Center>,
     cell: (row) => {
-      console.log("Row:", row);
 
       return (
         <Center>

@@ -229,6 +229,7 @@ const App = () => {
 
   useEffect(() => {
     if (debouncedSearch) fetchMedicines();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedSearch, selectedCenter, user?.centerAccess]);
 
   const handleSelectMedicine = (med) => {
@@ -282,7 +283,6 @@ const App = () => {
       setWastageData(wastageRes.data || []);
       toast.success("Dashboard data refreshed successfully.");
     } catch (err) {
-      console.error(err);
       toast.error("Failed to fetch reports");
     } finally {
       setLoading(false);
@@ -296,6 +296,7 @@ const App = () => {
       return;
     };
     fetchReports();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCenter, selectedMedicines, dateRange, user?.centerAccess]);
 
   const { chartLabels, chartDatasets, chartOptions } = useMemo(() => {

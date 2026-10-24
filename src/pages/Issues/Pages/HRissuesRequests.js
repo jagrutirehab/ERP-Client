@@ -22,7 +22,6 @@ const HRissuesRequests = () => {
     const [requests, setRequests] = useState([]);
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [activeTab, setActiveTab] = useState("pending");
-    const [status, setStatus] = useState("");
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const user = useSelector((state) => state.User);
@@ -39,7 +38,6 @@ const HRissuesRequests = () => {
 
     const token = JSON.parse(localStorage.getItem("user"))?.token;
     const { hasPermission } = usePermissions(token);
-    const hasUserPermission = hasPermission("ISSUES", "HR_ISSUES_REQUESTS", "READ");
     const hasWritePermission = hasPermission("ISSUES", "HR_ISSUES_REQUESTS", "WRITE");
     const hasDeletePermission = hasPermission("ISSUES", "HR_ISSUES_REQUESTS", "DELETE");
 
@@ -82,6 +80,7 @@ const HRissuesRequests = () => {
         }
     }
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { loadRequests() }, [
         activeTab,
         page,
@@ -96,7 +95,6 @@ const HRissuesRequests = () => {
         };
         try {
             const response = await getEmployeesBySearch(params);
-            console.log("response", response);
             setHr(response?.data);
         } catch (error) {
             toast.error("Error fetching HR");
@@ -144,7 +142,6 @@ const HRissuesRequests = () => {
             }
 
             const response = await updateHRIssueRequest(data);
-            console.log("Response", response);
             toast.success(response?.message || "Updated");
             loadRequests();
 

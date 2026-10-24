@@ -12,7 +12,6 @@ import {
   Spinner,
 } from "reactstrap";
 import Select from "react-select";
-import ButtonLoader from "../../../Components/Common/ButtonLoader.js";
 import { getEmployeesBySearch } from "../../../helpers/backend_helper";
 
 const debounce = (fn, delay = 400) => {
@@ -40,7 +39,7 @@ const EditHiringRequestModal = ({
 }) => {
   const [employees, setEmployees] = useState([]);
   const [loadingEmployees, setLoadingEmployees] = useState(false);
-  const [searchText, setSearchText] = useState("");
+  const [, setSearchText] = useState("");
   const [selectedInterviewer, setSelectedInterviewer] = useState(null);
 
   const fetchEmployees = async (searchText) => {
@@ -72,7 +71,6 @@ const EditHiringRequestModal = ({
 
       setEmployees(options);
     } catch (error) {
-      console.log("Error loading employees", error);
     } finally {
       setLoadingEmployees(false);
     }
@@ -104,6 +102,7 @@ const EditHiringRequestModal = ({
     } else {
       setSelectedInterviewer(null);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRow]);
 
   return (

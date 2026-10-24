@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View, Image, Text, Font } from "@react-pdf/renderer";
+import { StyleSheet, View, Text, Font } from "@react-pdf/renderer";
 import Roboto from "../../../../assets/fonts/Roboto-Bold.ttf";
 import { format } from "date-fns";
 
@@ -59,9 +59,6 @@ const SummaryHeader = ({ patient }) => {
     patient?.addmission?.addmissionDate &&
     format(new Date(patient?.addmission?.addmissionDate), "dd MMM yyyy");
 
-  const dischargeDate =
-    patient?.addmission?.dischargeDate &&
-    format(new Date(patient?.addmission?.dischargeDate), "dd MMM yyyy");
 
   return (
     <React.Fragment>

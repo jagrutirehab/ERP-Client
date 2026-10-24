@@ -38,6 +38,7 @@ const PositionDocumentsCard = ({ employeeId }) => {
 
   useEffect(() => {
     fetchFields();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const openUploadModal = (documentId, docName) => {

@@ -75,7 +75,6 @@ const VendorList = ({ onAdd, onEdit }) => {
   const [deleting, setDeleting] = useState(false);
   const [overviewVendor, setOverviewVendor] = useState(null);
   const [showAccountNo, setShowAccountNo] = useState(false);
-  const [approvalSaving, setApprovalSaving] = useState(false);
 
   // Typing rukne ke 400ms baad hi search hoga
   useEffect(() => {
@@ -83,27 +82,6 @@ const VendorList = ({ onAdd, onEdit }) => {
     return () => clearTimeout(t);
   }, [search]);
 
-  const handleApprovalStatusChange = async (newStatus) => {
-    if (!overviewVendor) return;
-    setApprovalSaving(true);
-    try {
-      await updateVendorApprovalStatus(overviewVendor._id, newStatus);
-      dispatch(invalidateReferenceList("vendors"));
-      setOverviewVendor((v) => ({ ...v, approvalStatus: newStatus }));
-      toast.success("Approval status updated");
-      setRefreshFlag((f) => f + 1);
-    } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't update approval status",
-        );
-      }
-    } finally {
-      setApprovalSaving(false);
-    }
-  };
 
   useEffect(() => {
     let cancelled = false;
@@ -135,26 +113,9 @@ const VendorList = ({ onAdd, onEdit }) => {
     return () => {
       cancelled = true;
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, perPage, debouncedSearch, refreshFlag]);
 
-  const handleStatusChange = async (id, status) => {
-    try {
-      await updateVendorStatus(id, status);
-      dispatch(invalidateReferenceList("vendors"));
-      toast.success(
-        status === "active" ? "Vendor activated" : "Vendor deactivated",
-      );
-      setRefreshFlag((f) => f + 1);
-    } catch (error) {
-      if (!handleAuthError(error)) {
-        toast.error(
-          error?.response?.data?.message ||
-            error?.message ||
-            "Couldn't update status. Please try again.",
-        );
-      }
-    }
-  };
 
   // Draft/Incomplete/Rejected → Submit, Pending → Approve (aur activate bhi)
   const handleQuickAction = async (row) => {

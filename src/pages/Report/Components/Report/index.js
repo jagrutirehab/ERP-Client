@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import PropTypes from "prop-types";
-import { Container } from "reactstrap";
 import { endOfDay, startOfDay } from "date-fns";
 import { connect, useDispatch } from "react-redux";
 import {
@@ -103,7 +102,6 @@ const Report = ({
       link.parentNode.removeChild(link);
       window.URL.revokeObjectURL(url);
     } catch (err) {
-      console.error("Failed to export CSV", err);
     } finally {
       setExportLoading(false);
     }
@@ -136,6 +134,7 @@ const Report = ({
 
   useEffect(() => {
     handleViewReport();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (

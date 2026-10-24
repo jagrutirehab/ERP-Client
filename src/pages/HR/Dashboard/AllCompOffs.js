@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { actionOnCompOffRequests, getAllCompOff, getCompOffRequests } from '../../../helpers/backend_helper';
+import { actionOnCompOffRequests, getAllCompOff } from '../../../helpers/backend_helper';
 import { CardBody, Nav, NavItem, NavLink } from 'reactstrap';
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
 import DataTableComponent from '../../../Components/Common/DataTable';
@@ -29,9 +29,7 @@ const AllCompOffs = () => {
   const user = useSelector((state) => state.User);
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
-  const { hasPermission, loading: isLoading } = usePermissions(token);
-  const hasUserPermission = hasPermission("HR", "COMP_OFF_HISTORY", "READ");
-  const hasRead = hasPermission("HR", "COMP_OFF_HISTORY", "READ");
+  const { hasPermission } = usePermissions(token);
   const hasWrite = hasPermission("HR", "COMP_OFF_HISTORY", "WRITE");
   const hasDelete = hasPermission("HR", "COMP_OFF_HISTORY", "DELETE");
 
@@ -55,7 +53,6 @@ const AllCompOffs = () => {
         limit,
         search: debouncedSearch
       });
-      console.log("Response", response);
       setData(response?.data)
       setPagination({
         ...response?.pagination,
@@ -70,6 +67,7 @@ const AllCompOffs = () => {
 
   useEffect(() => {
     loadRequests();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, selectedMonth, selectedYear, selectedCenter, user?.centerAccess, page, limit, debouncedSearch])
 
 
@@ -80,9 +78,7 @@ const AllCompOffs = () => {
         request: row._id,
         status: status
       }
-      console.log("payload", payload);
       const response = await actionOnCompOffRequests(payload);
-      console.log("response", response);
       toast.success(response?.message || `Request status changed to ${status}!`)
       loadRequests();
 

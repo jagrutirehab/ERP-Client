@@ -55,7 +55,7 @@ const DetailedReport = ({
     }));
 
   const [selectedCentersIds, setSelectedCentersIds] = useState([]);
-  const [selectedCenters, setSelectedCenters] = useState([]);
+  const [, setSelectedCenters] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState(search);
@@ -109,6 +109,7 @@ const DetailedReport = ({
         );
       }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centers]);
 
   const handleCopy = async (text, id) => {
@@ -692,6 +693,7 @@ const DetailedReport = ({
     if (hasUserPermission && activeTab === "detail") {
       fetchDetailReport();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,

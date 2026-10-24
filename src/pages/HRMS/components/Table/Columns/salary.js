@@ -24,10 +24,6 @@ const earnedCellStyle = {
     fontWeight: 600,
 };
 
-const PFAndESICSalaryCellStyle = {
-    ...baseStyle,
-    backgroundColor: "#A9D08E",
-};
 
 
 const employeeDeductionStyle = {

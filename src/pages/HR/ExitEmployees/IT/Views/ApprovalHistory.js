@@ -106,7 +106,6 @@ const lwdOptions = [
             ...(lwdFilter === "CUSTOM" && lwdTo && { lwdTo }),
             })).unwrap();
         } catch (error) {
-            console.log(error)
             if (!handleAuthError(error)) {
                 toast.error(error.message || "Failed to fetch master employee list");
             }
@@ -117,6 +116,7 @@ const lwdOptions = [
         if (activeTab === "HISTORY" && hasUserPermission) {
             fetchITApprovalHistory();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles,  lwdFilter, lwdFrom, lwdTo]);
 
     const columns = [
@@ -135,7 +135,6 @@ const lwdOptions = [
         {
             name: <div>Last Working Date</div>,
             selector: row => {
-                console.log("Row", row);
                 
                 if (!row?.exitDate) return "-";
 

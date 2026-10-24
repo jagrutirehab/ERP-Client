@@ -72,6 +72,7 @@ const TransferEmployeeForm = ({ initialData, onSuccess, view, onCancel, hasCreat
         }
 
         return debouncedSearch.cancel;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [searchText]);
 
     useEffect(() => {

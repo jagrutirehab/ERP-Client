@@ -32,13 +32,10 @@ const Policies = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
   const { hasPermission, loading: isLoading } = usePermissions(token);
   const hasUserPermission = hasPermission("HR", "POLICIES", "READ");
-  const hasRead = hasPermission("HR", "POLICIES", "READ");
   const hasWrite = hasPermission("HR", "POLICIES", "WRITE");
   const hasDelete = hasPermission("HR", "POLICIES", "DELETE");
 
   // const isReadOnly = hasRead && !hasWrite && !hasDelete;
-
-  // console.log("isReadOnly", isReadOnly);
 
   const isMobile = useMediaQuery("(max-width: 1000px)");
 
@@ -48,7 +45,6 @@ const Policies = () => {
       const res = await getPolicies();
       setPolicyData(res?.data);
     } catch (error) {
-      console.log("error", error);
     }
     setLoadingToFetch(false);
   };
@@ -56,6 +52,7 @@ const Policies = () => {
   useEffect(() => {
     if (!hasUserPermission) navigate("/unauthorized");
     fetchPolicies();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const resetForm = () => {
@@ -108,15 +105,12 @@ const Policies = () => {
         fetchPolicies();
       }
     } catch (error) {
-      console.log(error);
       toast.error(error?.message);
     } finally {
       setLoading(false);
       resetForm();
     }
   };
-
-  console.log("policyData", policyData);
 
   const tableData = [...policyData].reverse()?.map((p) => ({
     earnedLeaves: p?.earnedLeaves,
@@ -140,10 +134,8 @@ const Policies = () => {
   const loadLatestPolicy = async () => {
     try {
       const response = await getLatestPolicy();
-      console.log("RESPONSE", response);
       setIsNewYear(response?.isNewYear);
     } catch (error) {
-      console.log("ERROR", error);
     }
   }
 

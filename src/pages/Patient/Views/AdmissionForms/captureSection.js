@@ -281,7 +281,6 @@
 //     });
 //     addCanvasAsPages(c, isFirstPage);
 //   } catch (err) {
-//     console.error("captureSection error:", err);
 //   } finally {
 //     try {
 //       document.body.removeChild(clone);
@@ -603,7 +602,6 @@ export const captureSection = async (
       windowWidth: clone.offsetWidth || pdfWidthPx,
     });
   } catch (err) {
-    console.error("captureSection html2canvas error:", err);
     return;
   } finally {
     try {

@@ -98,6 +98,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     }, 500);
 
     return () => clearTimeout(handler);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   useEffect(() => {
@@ -107,6 +108,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     setDebouncedSearch(q);
     setSelectedCenter(c);
     setPage(1);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);
 
   const fetchMasterEmployeeList = async () => {
@@ -139,6 +141,7 @@ const ApprovalHistory = ({ activeTab, hasUserPermission, roles }) => {
     if (activeTab === "HISTORY" && hasUserPermission) {
       fetchMasterEmployeeList();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,

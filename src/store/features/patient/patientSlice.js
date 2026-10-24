@@ -373,7 +373,6 @@ export const assignNurse = createAsyncThunk(
       const response = await assignNurseToPatient(data);
       return response;
     } catch (error) {
-      console.log(error);
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to assign nurse");
     }

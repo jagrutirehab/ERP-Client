@@ -8,7 +8,6 @@ import IssuesPage from "./Views/IssuesPage";
 import RaiseTicket from "./Pages/RaiseTicket";
 import Dashboard from "./Pages/Dashboard";
 import MyRaisedTickets from "./Pages/MyRaisedTickets";
-import HRissuesRequests from "./Pages/HRissuesRequests";
 import FinanceIssues from "./Pages/FinanceIssues";
 import PayslipsRequests from "./Pages/PayslipsRequests";
 // import IssuesSidebar from "./Sidebar";
@@ -43,7 +42,6 @@ const Issues = () => {
 
     document.title = "Issues Dashboard";
 
-    const type = "";
 
     return (
         <React.Fragment>

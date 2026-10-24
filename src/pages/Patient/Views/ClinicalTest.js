@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   Accordion,
   AccordionBody,
@@ -11,7 +11,6 @@ import {
 import { toast } from "react-toastify";
 import GeneralCard from "./Components/GeneralCard";
 import { connect, useDispatch, useSelector } from "react-redux";
-import Placeholder from "./Components/Placeholder";
 import { CLINIC_TEST } from "../../../Components/constants/patient";
 import Wrapper from "../Components/Wrapper";
 import CIWAResultComponent from "./Components/CIWAResultComponent ";
@@ -60,6 +59,7 @@ const ClinicalTest = ({
 
   useEffect(() => {
     loadClinialTests();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient]);
 
   const handlePrint = (test) => {

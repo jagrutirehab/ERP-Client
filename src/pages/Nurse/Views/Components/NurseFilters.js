@@ -6,8 +6,6 @@ import { setPatientIdsFromSearch } from "../../../../store/features/nurse/nurseS
 const NurseFilters = ({ flag, setFlag }) => {
   const dispatch = useDispatch();
   const handleNameChange = (e) => {
-    const selectedOption = e.target.value;
-    console.log(selectedOption);
   };
 
   const handleFlagChange = (e) => {

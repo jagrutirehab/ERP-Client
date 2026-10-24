@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Button, Col, Form, Row } from "reactstrap";
-import Divider from "../../../../Components/Common/Divider";
+import { Button, Form, Row } from "reactstrap";
 
 // Formik Validation
 import * as Yup from "yup";
@@ -11,18 +10,13 @@ import convertToFormData from "../../../../utils/convertToFormData";
 import DetailHistoryForm from "./DetailHistoryForm";
 import SpecialRequirementsForm from "./SpecialRequirementsForm";
 import MentalExamination from "./MentalExamination";
-import PhysicalExamination from "./PhysicalExamination";
 import DoctorSignature from "./DoctorSignature";
 import { connect, useDispatch } from "react-redux";
 import {
   addDetailAdmission,
   addGeneralDetailAdmission,
-  removeDetailAdissionFile,
   updateDetailAdmission,
 } from "../../../../store/actions";
-import FileCard from "../../../../Components/Common/FileCard";
-import PreviewFile from "../../../../Components/Common/PreviewFile";
-import DeleteModal from "../../../../Components/Common/DeleteModal";
 import ChiefComplaintsForm from "./ChiefComplaintsForm";
 import MentalExaminationV2 from "./MentalExaminationV2";
 // import PatientTypeFields from "./PatientTypeFields";
@@ -45,81 +39,6 @@ const MENTAL_EXAMINATION = "MENTAL_EXAMINATION";
 const DOCTOR_SIGNATURE = "DOCTOR_SIGNATURE";
 const PATIENT_TYPE_FIELDS = "PATIENT_TYPE_FIELDS";
 
-const UploadedFiles = ({ id, chartId, files }) => {
-  const dispatch = useDispatch();
-
-  //get file
-  const [file, setFile] = useState({
-    img: null,
-    isOpen: false,
-  });
-
-  //delete file
-  const [deleteFile, setDeleteFile] = useState({
-    img: null,
-    isOpen: false,
-  });
-
-  //delete file modal functions
-  const deleteFilePermanently = () => {
-    dispatch(
-      removeDetailAdissionFile({
-        id,
-        chartId,
-        fileId: deleteFile.img._id,
-      }),
-    );
-    setDeleteFile({ img: null, isOpen: false });
-  };
-  const onClose = () => {
-    setDeleteFile({ img: null, isOpen: false });
-  };
-
-  //file card functions
-  const getDeleteFile = (img) => {
-    setDeleteFile({
-      img: img,
-      isOpen: true,
-    });
-  };
-  const onPreview = (img) => {
-    setFile({
-      img,
-      isOpen: true,
-    });
-  };
-
-  return (
-    <Row className="row-gap-3 mb-3">
-      <Col xs={12}>
-        <div className="d-flex align-items-center gap-3">
-          <h6 className="display-6 fs-5 text-nowrap">Uploaded Files</h6>
-          <Divider />
-        </div>
-      </Col>
-      {(files || []).map((file, id) => (
-        <Col key={id} xs={12} md={4}>
-          <FileCard
-            file={file}
-            showDeleteButton
-            onDelete={getDeleteFile}
-            onPreview={onPreview}
-          />
-        </Col>
-      ))}
-      <PreviewFile
-        file={file.img}
-        isOpen={file.isOpen}
-        toggle={() => setFile({ img: null, isOpen: false })}
-      />
-      <DeleteModal
-        onDeleteClick={deleteFilePermanently}
-        onCloseClick={onClose}
-        show={deleteFile.isOpen}
-      />
-    </Row>
-  );
-};
 
 const DetailAdmission = ({
   author,
@@ -139,7 +58,6 @@ const DetailAdmission = ({
     useState(false);
   const [elderlyChecklistSubmitAttempted, setElderlyChecklistSubmitAttempted] =
     useState(false);
-  // console.log("editChartData", editChartData);
 
   const detailAdmissionForm = editChartData?.detailAdmission;
   const isOldMentalExamination = Boolean(
@@ -149,29 +67,8 @@ const DetailAdmission = ({
   // bridge stored Boolean (true/false/undefined) <-> Yes/No radio value
   const triToYesNo = (v) => (v === true ? "yes" : v === false ? "no" : "");
 
-  console.log("detailAdmissionForm", detailAdmissionForm);
-  console.log(
-    "negativeHistory from DB:",
-    detailAdmissionForm?.detailHistory?.negativeHistory,
-  );
-  console.log(
-    "developmentDelayDetails from DB:",
-    detailAdmissionForm?.detailHistory?.developmentDelayDetails,
-  );
-
   const isEdit = Boolean(editChartData?._id);
   const draftKey = `detailAdmissionDraft_${patient?._id || "new"}`;
-
-  const hasExistingDiagnosis =
-    isEdit && detailAdmissionForm?.doctorSignature?.diagnosis?.length > 0;
-
-  console.log("hasExistingDiagnosis", hasExistingDiagnosis);
-
-  const hasExistingProDiagnosis =
-    isEdit &&
-    detailAdmissionForm?.doctorSignature?.provisionaldiagnosis?.length > 0;
-
-  console.log("hasExistingProDiagnosis", hasExistingProDiagnosis);
 
   const savedDraft = useMemo(() => {
     if (isEdit) return null;
@@ -182,11 +79,6 @@ const DetailAdmission = ({
       return null;
     }
   }, [draftKey, isEdit]);
-
-  console.log(
-    "INVESTIGATION FROM API:",
-    detailAdmissionForm?.doctorSignature?.investigation,
-  );
 
   const validation = useFormik({
     // enableReinitialize : use this flag when initial values needs to be changed
@@ -595,17 +487,7 @@ const DetailAdmission = ({
         ? detailAdmissionForm.physicalExamination?.formulation
         : "",
       //diagnosis & doctor signature
-      provisionaldiagnosis: Array.isArray(
-        detailAdmissionForm?.doctorSignature?.provisionaldiagnosis,
-      )
-        ? detailAdmissionForm.doctorSignature.provisionaldiagnosis.map(
-            (d) => d.code_id,
-          )
-        : [],
 
-      diagnosis: Array.isArray(detailAdmissionForm?.doctorSignature?.diagnosis)
-        ? detailAdmissionForm.doctorSignature.diagnosis.map((d) => d.code_id)
-        : [],
 
       managmentPlan: (() => {
         const val = detailAdmissionForm?.doctorSignature?.managmentPlan;
@@ -892,9 +774,6 @@ const DetailAdmission = ({
         dispatch(addGeneralDetailAdmission(formData));
         localStorage.removeItem(draftKey);
       } else {
-        for (let [key, value] of formData.entries()) {
-          console.log(key, value);
-        }
         dispatch(addDetailAdmission(formData));
         localStorage.removeItem(draftKey);
       }
@@ -906,6 +785,7 @@ const DetailAdmission = ({
       validation.resetForm();
       setConsentFiles([]);
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, detailAdmissionForm]);
 
   // AUTOFILL
@@ -1001,17 +881,6 @@ const DetailAdmission = ({
   // }, []);
   // AUTOFILL
 
-  const consentUploadedFiles = useMemo(() => {
-    return (
-      detailAdmissionForm?.consentFiles?.length > 0 && (
-        <UploadedFiles
-          id={editChartData._id}
-          chartId={detailAdmissionForm._id}
-          files={detailAdmissionForm?.consentFiles}
-        />
-      )
-    );
-  }, [editChartData, detailAdmissionForm]);
 
   const isGeriatric =
     validation.values.patientType?.toLowerCase() === "geriatric";
@@ -1025,6 +894,7 @@ const DetailAdmission = ({
   useEffect(() => {
     if (isEdit) return; // don't overwrite real data with a draft
     localStorage.setItem(draftKey, JSON.stringify(validation.values));
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [validation.values]);
 
   return (

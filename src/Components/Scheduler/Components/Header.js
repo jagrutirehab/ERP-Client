@@ -71,8 +71,6 @@ const Header = ({
   };
 
   /* settings dropdown */
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const toggle = () => setDropdownOpen(!dropdownOpen);
 
   /* filter appointments by doctor */
   const [filterDropdown, setFilterDropdown] = useState(false);

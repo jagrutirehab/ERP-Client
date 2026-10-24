@@ -17,7 +17,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal, readOnly }) => {
     const { detailedPrescription } = useSelector((state) => state.Pharmacy);
 
     const [loading, setLoading] = useState(false);
-    const [updatedDispenseData, setUpdatedDispenseData] = useState([]);
+    const [, setUpdatedDispenseData] = useState([]);
     const [remarks, setRemarks] = useState("");
 
     const [shortageMode, setShortageMode] = useState(false);
@@ -44,6 +44,7 @@ const DetailedPrescriptionModal = ({ patient, setModal, modal, readOnly }) => {
         };
 
         fetchPrescription();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [modal]);
 
     const downloadShortageXlsx = () => {

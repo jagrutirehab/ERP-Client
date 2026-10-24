@@ -124,7 +124,7 @@ const DocsCompliance = () => {
             return aggregated;
         }
 
-        return rows.find((r) => r.center_name == selectedCenter) || {};
+        return rows.find((r) => r.center_name === selectedCenter) || {};
     };
 
     const getCellValue = (metricKey, month) => {

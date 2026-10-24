@@ -91,6 +91,7 @@ const PendingApprovals = ({ activeTab, hasUserPermission, hasPermission, roles, 
         if (activeTab === "PENDING" && hasUserPermission) {
             fetchPendingITApprovals();
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, selectedCenter, debouncedSearch, user?.centerAccess, activeTab, roles, selectedDesignation]);
 
 

@@ -1,9 +1,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector, shallowEqual } from "react-redux";
-import { useNavigate } from "react-router-dom";
 import { Container, Row, Col, Spinner } from "reactstrap";
 import Select from "react-select";
-import { usePermissions } from "../../Components/Hooks/useRoles";
 import { fetchCenterDashboardLive } from "../../store/features/centerDashboard/centerDashboardSlice";
 
 const REFRESH_INTERVAL_MS = 15 * 60 * 1000;
@@ -159,18 +157,13 @@ const MetricPanel = ({ panelKey, badge, title, mainValue, deltaValue, deltaLabel
 
 const CenterDashboard = () => {
     const dispatch = useDispatch();
-    const navigate = useNavigate();
     const { data, loading, error } = useSelector((state) => state.CenterDashboard);
     const centerAccess = useSelector((state) => state.User?.centerAccess || [], shallowEqual);
 
     const [now, setNow] = useState(new Date());
     const [selectedKey, setSelectedKey] = useState("ALL");
 
-    const microUser = localStorage.getItem("micrologin");
-    const token = microUser ? JSON.parse(microUser).token : null;
 
-    const { loading: permissionLoader, hasPermission } = usePermissions(token);
-    const hasCenterDashboardPermission = hasPermission("CENTER_DASHBOARD", null, "READ");
 
     // useEffect(() => {
     //     if (permissionLoader) return;

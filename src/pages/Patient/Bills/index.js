@@ -184,8 +184,6 @@ const Bills = ({
     return item;
   });
 
-  console.log("newBillsnewBills", newBills);
-
   useEffect(() => {
     if (
       newBills?.length > 0 &&
@@ -285,9 +283,6 @@ const Bills = ({
 
   const editBill = (bill) => {
     const isLatest = bill?._id === latestBill?._id;
-    console.log("Bill", bill);
-    console.log("bill._id", bill?._id);
-    console.log("latestBill?._id", latestBill?._id);
 
     dispatch(
       createEditBill({ data: bill, bill: bill.bill, isOpen: false, isLatest }),

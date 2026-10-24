@@ -1,11 +1,9 @@
 
 
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { getHRRequests } from '../Helpers/FetchIssues'
 import { CardBody, Nav, NavItem, NavLink } from "reactstrap";
 import { useMediaQuery } from '../../../Components/Hooks/useMediaQuery';
 import DataTableComponent from '../../../Components/Common/DataTable';
-import { HRIssuesReqColumn } from '../Columns/HRissuesReq';
 import { toast } from 'react-toastify';
 import Select from "react-select";
 import { useSelector } from 'react-redux';
@@ -25,7 +23,6 @@ const PayslipsRequests = () => {
     const [requests, setRequests] = useState([]);
     const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [activeTab, setActiveTab] = useState("pending");
-    const [status, setStatus] = useState("");
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const user = useSelector((state) => state.User);
@@ -40,7 +37,6 @@ const PayslipsRequests = () => {
 
     const token = JSON.parse(localStorage.getItem("user"))?.token;
     const { hasPermission } = usePermissions(token);
-    const hasUserPermission = hasPermission("ISSUES", "FINANCE_ISSUES_APPROVAL", "READ");
     const hasWritePermission = hasPermission("ISSUES", "FINANCE_ISSUES_APPROVAL", "WRITE");
     const hasDeletePermission = hasPermission("ISSUES", "FINANCE_ISSUES_APPROVAL", "DELETE");
 
@@ -86,6 +82,7 @@ const PayslipsRequests = () => {
         }
     }
 
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     useEffect(() => { loadRequests() }, [
         activeTab,
         page,
@@ -100,7 +97,6 @@ const PayslipsRequests = () => {
     //     };
     //     try {
     //         const response = await getEmployeesBySearch(params);
-    //         console.log("response", response);
     //         setEmployees(response?.data);
     //     } catch (error) {
     //         toast.error("Error fetching HR");
@@ -137,7 +133,6 @@ const PayslipsRequests = () => {
 
                 setEmployees(options);
             } catch (error) {
-                console.log("Error loading employees", error);
             }
         }, 500); // ⏱ waits 500ms after user stops typing
     }, []);
@@ -178,7 +173,6 @@ const PayslipsRequests = () => {
                 note
             }
             const response = await updateFinanceIssueRequest(data);
-            console.log("Response", response);
             toast.success(response?.message || "Updated");
             loadRequests();
 

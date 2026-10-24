@@ -17,12 +17,11 @@ import {
 } from "../../store/actions";
 import { clearCharts } from "../../store/features/chart/chartSlice";
 import RenderWhen from "../../Components/Common/RenderWhen";
-import { getChartsAddmissions } from "../../helpers/backend_helper";
 
 const Main = ({ patient, deletePatient, setDeletePatient }) => {
   const dispatch = useDispatch();
   const { id } = useParams(); // Get patient ID from URL
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   // Fetch fresh patient data when component mounts or ID changes
   useEffect(() => {
@@ -57,8 +56,6 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
   // with an in-flight one.
   const addmissionsKey = patient?.addmissions?.join(",") ?? "";
 
-  // console.log("addmissionsKey:", addmissionsKey);
-  // console.log("patient.addmissions:", patient?.addmissions);
   useEffect(() => {
     if (!patient) return;
     if (patient.addmissions?.length) {
@@ -66,6 +63,7 @@ const Main = ({ patient, deletePatient, setDeletePatient }) => {
     } else {
       dispatch(resetOpdPatientBills());
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch, patient?._id, addmissionsKey]);
 
   return (

@@ -27,9 +27,6 @@ const getSessionTheme = (session) => {
       };
     case "evening":
       return {
-        background:
-          "linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)", // Adjusted for sunset vibe
-        // Let's try a better sunset gradient
         background: "linear-gradient(135deg, #fa709a 0%, #fee140 100%)",
         icon: <Sunset size={24} className="text-white" />,
         textColor: "text-dark",
@@ -68,7 +65,7 @@ const RoundNoteCard = ({ round, onEdit, onDelete }) => {
   const microUser = localStorage.getItem("micrologin");
   const token = microUser ? JSON.parse(microUser).token : null;
 
-  const { loading: permissionLoader, hasPermission } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
   const hasIncidentUpdatePermission = hasPermission("ROUND_NOTES", "", "WRITE");
   const hasIncidentDeletePermission = hasPermission(
     "ROUND_NOTES",

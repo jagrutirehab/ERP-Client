@@ -2,10 +2,6 @@ import { useEffect, useState } from "react";
 import {
   CardBody,
   Input,
-  Label,
-  Modal,
-  ModalBody,
-  ModalHeader,
   Nav,
   NavItem,
   NavLink,
@@ -30,7 +26,6 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 const IssuesPage = ({ type }) => {
   const isMobile = useMediaQuery("(max-width: 1000px)");
   const user = useSelector((state) => state.User);
-  const centers = useSelector((state) => state.Center.data);
 
   const [issues, setIssues] = useState([]);
   const [description, setDescription] = useState("");
@@ -39,7 +34,6 @@ const IssuesPage = ({ type }) => {
   const [imageModal, setImageModal] = useState(false);
   const [files, setFiles] = useState([]);
   const [activeTab, setActiveTab] = useState("new");
-  const [actionLoadingId, setActionLoadingId] = useState(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
   const [pagination, setPagination] = useState(null);
@@ -53,7 +47,7 @@ const IssuesPage = ({ type }) => {
   const [approvalModal, setApprovalModal] = useState(false);
   const [approvalIssue, setApprovalIssue] = useState(null);
   const [approvalStatus, setApprovalStatus] = useState("");
-  const [managerApproval, setManagerApproval] = useState("");
+  const [managerApproval] = useState("");
   const [editRowId, setEditRowId] = useState(null);
   const [editedApproval, setEditedApproval] = useState("");
   const [editedApprovalBy, setEditedApprovalBy] = useState("");
@@ -93,8 +87,6 @@ const IssuesPage = ({ type }) => {
                 ? hasPermission("ISSUES", "OPERATIONAL_ISSUES", "WRITE")
                 : hasPermission("ISSUES", "REVIEW_SUBMISSIONS", "DELETE");
   const canEdit = hasWritePermission || hasDeletePermission;
-
-  console.log("Can Edit", canEdit);
 
   const approvers = [
     "HEMANT",
@@ -137,7 +129,6 @@ const IssuesPage = ({ type }) => {
         totalDocs: data?.pagination?.totalRecords,
       });
     } catch (error) {
-      console.log(error);
     } finally {
       setLoading(false);
     }
@@ -145,6 +136,7 @@ const IssuesPage = ({ type }) => {
   useEffect(() => {
     if (!user?.centerAccess) return;
     loadIssues();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     selectedCenter,
     user?.centerAccess,
@@ -211,11 +203,9 @@ const IssuesPage = ({ type }) => {
         note,
         status,
       });
-      console.log("Response", response);
       toast.success(response?.message || "Assigned Successfully.");
       loadIssues();
     } catch (error) {
-      console.log(error);
       toast.error(error?.message || "Error Assigning");
     }
   };
@@ -233,24 +223,6 @@ const IssuesPage = ({ type }) => {
       };
 
       const response = await approveIssue(payload);
-      console.log("payload", payload);
-      const centerOptions = [
-        ...(user?.centerAccess?.length > 1
-          ? [
-              {
-                value: "ALL",
-                label: "All Centers",
-              },
-            ]
-          : []),
-        ...(user?.centerAccess?.map((id) => {
-          const center = centers?.find((c) => c._id === id);
-          return {
-            value: id,
-            label: center?.title || "Unknown Center",
-          };
-        }) || []),
-      ];
 
       toast.success(response?.message || "Issue Approved");
 
@@ -266,11 +238,6 @@ const IssuesPage = ({ type }) => {
     { value: "", label: "All" },
     { value: "approved", label: "Approved" },
     { value: "not_approved", label: "Not Approved" },
-  ];
-  const managerApprovalOpt = [
-    { value: "", label: "All" },
-    { value: "approved", label: "Approved" },
-    { value: "rejected", label: "Rejected" },
   ];
 
   // const handleEdit = (row) => {

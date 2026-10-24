@@ -129,11 +129,13 @@ const Forms = () => {
       return;
     }
     fetchForms(buildParams());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, filters, selectedCenter, user?.centerAccess]);
 
   useEffect(() => {
     if (isFirstRender.current) return;
     debouncedFetch(buildParams());
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [search]);
 
   const handleFilterChange = (key, opt) => {

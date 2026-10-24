@@ -6,7 +6,6 @@ import Payment from "./Components/Payment";
 import {
   evaluateEvidenceGuard,
   evaluatePosGuards,
-  usePosTerminal,
 } from "./Components/billGuards";
 
 // data
@@ -22,7 +21,7 @@ import {
 // Formik Validation
 import * as Yup from "yup";
 import { useFormik } from "formik";
-import { connect, useDispatch, useSelector } from "react-redux";
+import { connect, useDispatch } from "react-redux";
 import {
   addAdvancePayment,
   createEditBill,
@@ -78,10 +77,8 @@ const AdvancePayment = ({
   posPrefill,
   onCloseLockChange,
 }) => {
-  console.log(admission, "admission");
 
   const dispatch = useDispatch();
-  const userCenters = useSelector((state) => state?.User?.centerAccess);
 
   const [paymentModes, setPaymentModes] = useState([]);
   const [totalAmount, setTotalAmount] = useState(0);
@@ -146,7 +143,6 @@ const AdvancePayment = ({
   // Charging on the terminal is optional — a payment collected elsewhere is
   // recorded with an evidence screenshot instead. Once a charge HAS been
   // approved though, the form cannot be abandoned: the money is already gone.
-  const { posAvailable } = usePosTerminal(patient?.center?._id);
   const posGuard = evaluatePosGuards(paymentModes, {
     readOnly: isPosRecovery,
   });

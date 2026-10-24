@@ -1,5 +1,5 @@
 import React from "react";
-import { Row, Col } from "reactstrap";
+import { Row } from "reactstrap";
 import Divider from "../../../../Components/Common/Divider";
 import FormField from "./FormField";
 import FixedGridField from "./FixedGridField";

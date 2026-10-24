@@ -117,7 +117,8 @@ const DischargeInterFacility = ({
           );
         });
       })
-      .catch((err) => console.error("Failed to fetch current medicines", err));
+      .catch((err) => {});
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient?._id]);
 
   return (

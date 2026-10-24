@@ -12,7 +12,6 @@ import { useDispatch } from "react-redux";
 import { addMedicine, fetchMedicines } from "../../../store/actions";
 import {
   medicineTypes2,
-  medicineUnits,
   medicineForms,
   baseUnits,
   purchaseUnits,
@@ -97,7 +96,6 @@ const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem 
         });
       }
     } catch (err) {
-      console.error(err);
     }
   };
 
@@ -168,7 +166,6 @@ const MedicinesForm = ({ toggle, currentPage = 1, itemsPerPage = 10, searchItem 
         await dispatch(addMedicine(payload)).unwrap();
       } catch (error) {
         // Keep the modal open so the entered values are not lost on save failure.
-        console.error(error);
         setIsSaving(false);
         return;
       }

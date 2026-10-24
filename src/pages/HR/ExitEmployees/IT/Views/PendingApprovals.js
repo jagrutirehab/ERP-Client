@@ -127,6 +127,7 @@ const PendingApprovals = ({
     if (activeTab === "PENDING" && hasUserPermission) {
       fetchPendingITApprovals();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     page,
     limit,

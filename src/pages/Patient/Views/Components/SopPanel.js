@@ -313,7 +313,6 @@ const SopPanel = ({ patient, sopOverview, sopLoading }) => {
                 const statusKey = emergencyDischargeData.status || null;
                 const statusStyle =
                   statusColors[statusKey] || statusColors.null;
-                const statusLabel = statusLabels[statusKey];
                 return (
                   <div
                     id="sop-EMERGENCY_DISCHARGE_FORM"

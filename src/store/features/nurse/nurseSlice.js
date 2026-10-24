@@ -4,7 +4,6 @@ import {
   getActivitiesByStatus,
   getAlertsByPatient,
   getClinicalTestSummary,
-  getCompletedActiveMedicines,
   getNextDayMedicineBoxFillingMedicines,
   getNotesByPatient,
   getNurseAssignedPatients,
@@ -116,7 +115,6 @@ export const getClinicalTestSummaryById = createAsyncThunk(
       const response = await getClinicalTestSummary(patientId);
       return response;
     } catch (error) {
-      console.log(error);
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to fetch patient clinical test summary");
     }
@@ -130,7 +128,6 @@ export const getAlertsByPatientId = createAsyncThunk(
       const response = await getAlertsByPatient(patientId);
       return response;
     } catch (error) {
-      console.log(error);
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to fetch patient alerts");
     }
@@ -144,7 +141,6 @@ export const getNotesByPatientId = createAsyncThunk(
       const response = await getNotesByPatient(patientId);
       return response;
     } catch (error) {
-      console.log(error);
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to fetch patient notes");
     }
@@ -158,7 +154,6 @@ export const getNursesListByPatient = createAsyncThunk(
       const response = await getNursesListByPatientCenter(data);
       return response;
     } catch (error) {
-      console.log(error);
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to fetch nurse list");
     }
@@ -172,7 +167,6 @@ export const addNotes = createAsyncThunk(
       const response = await createNote(data);
       return response;
     } catch (error) {
-      console.log(error);
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to create patient notes");
     }
@@ -186,7 +180,6 @@ export const getRemainigActiveMedicines = createAsyncThunk(
       const response = await getPendingActiveMedicines(patientId);
       return response;
     } catch (error) {
-      console.log(error);
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to fetch pending active medicines");
     }
@@ -200,7 +193,6 @@ export const getMedicineActivitiesByStatus = createAsyncThunk(
       const response = await getActivitiesByStatus(data);
       return response;
     } catch (error) {
-      console.log(error);
       dispatch(setAlert({ type: "error", message: error.message }));
       return rejectWithValue("Failed to fetch completed active medicines");
     }
@@ -214,7 +206,6 @@ export const markTomorrowActivityMedicines = createAsyncThunk(
       const response = await markTomorrowMedicines(data);
       return response;
     } catch (error) {
-      console.log(error);
       return rejectWithValue(error);
     }
   }
@@ -499,12 +490,12 @@ export const NurseSlice = createSlice({
         };
         const activityCompleted = !!payload?.data?.completed;
         const hasPendingRemoval =
-          Array.isArray(payload?.data?.retrievals?.morning) &&
-          payload.data.retrievals.morning.length > 0 ||
-          Array.isArray(payload?.data?.retrievals?.evening) &&
-          payload.data.retrievals.evening.length > 0 ||
-          Array.isArray(payload?.data?.retrievals?.night) &&
-          payload.data.retrievals.night.length > 0;
+          (Array.isArray(payload?.data?.retrievals?.morning) &&
+            payload.data.retrievals.morning.length > 0) ||
+          (Array.isArray(payload?.data?.retrievals?.evening) &&
+            payload.data.retrievals.evening.length > 0) ||
+          (Array.isArray(payload?.data?.retrievals?.night) &&
+            payload.data.retrievals.night.length > 0);
 
         const patientIndex = state.data.data.findIndex(
           (patient) => patient._id === payload.data.patient
@@ -513,7 +504,6 @@ export const NurseSlice = createSlice({
         state.alertData = state.alertData.filter(
           (alert) => alert.type !== "medicine"
         );
-        // console.log(patientIndex)
         if (patientIndex !== -1) {
           state.data.data[patientIndex].missedMedsCount =
             payload?.data?.missedCount ?? 0;

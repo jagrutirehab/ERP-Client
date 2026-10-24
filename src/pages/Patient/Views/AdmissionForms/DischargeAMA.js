@@ -35,14 +35,6 @@ const DischargeAMA = ({ register, patient, admissions, finalDiagnosis }) => {
     background: "transparent",
   };
 
-  const fullLine = {
-    border: "none",
-    borderBottom: "1px solid #000",
-    width: "100%",
-    marginTop: "3px",
-    fontSize: "13px",
-    background: "transparent",
-  };
 
   const fieldRow = {
     display: "flex",

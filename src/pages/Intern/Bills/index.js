@@ -57,8 +57,6 @@ const Bills = ({ bills, toggleDateModal, internId, intern }) => {
     dispatch(togglePrint({ data: bill, modal: true, intern }));
   };
 
-  console.log({ bills });
-
   return (
     <>
       <div className="timeline-2">

@@ -5,11 +5,9 @@ import DetailInfo from "./DetailInfo";
 import DetailHistory from "./DetailHistory";
 import SpecialRequirements from "./SpecialRequirements";
 import MentalExamination from "./MentalExamination";
-import PhysicalExamination from "./PhysicalExamination";
 import Diagnosis from "./Diagnosis";
 import DoctorSignature from "./DoctorSignature";
 import CheifComplaint from "./ChiefComplaint";
-import ProvisionalDiagnosis from "./ProvisionalDaignosis";
 import MentalExaminationBody from "../MentalExaminationBody";
 import { DETAIL_ADMISSION } from "../../../constants/patient";
 import PatientTypeAssessment from "./PatientTypeAssessment";
@@ -123,10 +121,6 @@ const Body = ({ chart, patient, admission, additionalDiagnosis }) => {
   const isOldMentalExamination = Boolean(data?.mentalExamination);
 
   const chartDiagnosis = additionalDiagnosis || null;
-
-  console.log("Body chartDiagnosis:", chartDiagnosis);
-  console.log("Body chart._id:", chart._id);
-  console.log("Body additionalDiagnosis prop:", additionalDiagnosis);
 
   return (
     <React.Fragment>

@@ -96,6 +96,7 @@ const AllTrainings = () => {
 
   useEffect(() => {
     loadTrainings();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [appliedFrom, appliedTo]);
 
   const file = fileModal.file;

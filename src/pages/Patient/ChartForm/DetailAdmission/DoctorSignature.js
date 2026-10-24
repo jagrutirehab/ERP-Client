@@ -20,7 +20,6 @@ const DoctorSignature = ({ validation, setFormStep, step }) => {
     const loadICD = async () => {
       try {
         const res = await getICDCodes();
-        console.log("res", res);
 
         const formatted = res?.map((icd) => ({
           value: icd._id,
@@ -29,7 +28,6 @@ const DoctorSignature = ({ validation, setFormStep, step }) => {
 
         setIcdOptions(formatted);
       } catch (err) {
-        console.log(err);
       }
     };
 

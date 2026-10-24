@@ -63,7 +63,7 @@ const StockBalanceList = () => {
   const [balances, setBalances] = useState([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
-  const [refreshFlag, setRefreshFlag] = useState(0);
+  const [refreshFlag] = useState(0);
 
   const [ledgerModal, setLedgerModal] = useState(null);
   const [ledgerRows, setLedgerRows] = useState([]);

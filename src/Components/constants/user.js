@@ -1,30 +1,4 @@
-import authRoles from "./authRoles";
 
-const userFields = [
-  {
-    label: "Name",
-    name: "name",
-    type: "text",
-  },
-  {
-    label: "Email",
-    name: "email",
-    type: "email",
-  },
-  {
-    label: "Role",
-    name: "role",
-    type: "select",
-    options: authRoles,
-  },
-  {
-    label: "Center Access",
-    name: "centerAccess",
-    type: "checkbox",
-    options: [],
-  },
-  
-];
 
 //tabs
 export const GENERAL_INFORMATION = "GENERAL_INFORMATION";

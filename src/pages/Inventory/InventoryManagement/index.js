@@ -37,7 +37,7 @@ import { toast } from "react-toastify";
 import axios from "axios";
 import Barcode from "react-barcode";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchCenters, fetchMedicines } from "../../../store/actions";
+import { fetchMedicines } from "../../../store/actions";
 import { saveAs } from "file-saver";
 import Givemedicine from "../GiveMedicine";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
@@ -416,7 +416,6 @@ const InventoryManagement = () => {
       );
     } catch (err) {
       if (!handleAuthError(err)) {
-        console.error("Excel export error:", err);
         toast.error("Failed to export Excel file");
       }
     } finally {

@@ -1,12 +1,10 @@
 import React from "react";
-import PropTypes from "prop-types";
 import InvoiceList from "../Tables/InvoiceList";
 import { Col, Label, Row } from "reactstrap";
 import { INVOICE, REFUND } from "../../../Components/constants/patient";
 import RenderWhen from "../../../Components/Common/RenderWhen";
 
 const Invoice = ({ title = "Invoice", data, bill }) => {
-  console.log("data while draft", data);
 
   const itemsDiscount =
     data?.invoiceList?.reduce(
@@ -16,8 +14,6 @@ const Invoice = ({ title = "Invoice", data, bill }) => {
 
   const additionalDiscount =
     (parseFloat(data?.totalDiscount) || 0) - itemsDiscount;
-  console.log("additionalDiscount", additionalDiscount);
-  console.log("InvoiceList Raw:", JSON.stringify(data?.invoiceList, null, 2));
   return (
     <React.Fragment>
       <div>

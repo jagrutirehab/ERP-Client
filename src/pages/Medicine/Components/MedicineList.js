@@ -98,6 +98,7 @@ const MedicinesList = ({
         button: true,
       },
     ],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     []
   );
 

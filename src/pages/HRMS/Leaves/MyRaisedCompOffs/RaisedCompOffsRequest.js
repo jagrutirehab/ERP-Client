@@ -1,14 +1,12 @@
 
 
 import React, { useEffect, useState } from 'react'
-import { actionOnCompOffRequests, getCompOffRequests, getMyCompOff } from '../../../../helpers/backend_helper';
+import { getMyCompOff } from '../../../../helpers/backend_helper';
 import { CardBody, Nav, NavItem, NavLink } from 'reactstrap';
 import { useMediaQuery } from '../../../../Components/Hooks/useMediaQuery';
 import DataTableComponent from '../../../../Components/Common/DataTable';
 import { toast } from 'react-toastify';
 import classnames from "classnames";
-import { usePermissions } from '../../../../Components/Hooks/useRoles';
-import { useSelector } from 'react-redux';
 import Select from "react-select";
 import { RaisedCompCol } from './Columns/RaisedCompCol';
 
@@ -17,15 +15,11 @@ const RaisedCompOffsRequest = () => {
     const [data, setData] = useState([]);
     const [loader, setLoader] = useState(false);
     const [activeTab, setActiveTab] = useState("pending");
-    const [loadingId, setLoadingId] = useState(null)
     const [selectedMonth, setSelectedMonth] = useState(null);
     const [selectedYear, setSelectedYear] = useState(null);
-    const [selectedCenter, setSelectedCenter] = useState("ALL");
     const [page, setPage] = useState(1);
     const [limit, setLimit] = useState(10);
     const [pagination, setPagination] = useState({});
-    const [search, setSearch] = useState("");
-    const [debouncedSearch, setDebouncedSearch] = useState("");
 
     // const user = useSelector((state) => state.User);
     // const microUser = localStorage.getItem("micrologin");
@@ -47,7 +41,6 @@ const RaisedCompOffsRequest = () => {
                 page,
                 limit,
             });
-            console.log("Response", response);
             setData(response?.data)
             setPagination({
                 ...response?.pagination,
@@ -62,6 +55,7 @@ const RaisedCompOffsRequest = () => {
 
     useEffect(() => {
         loadRequests();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeTab, selectedMonth, selectedYear, page, limit])
 
 

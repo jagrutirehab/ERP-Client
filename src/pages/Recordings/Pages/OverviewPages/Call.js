@@ -39,20 +39,19 @@ const Call = () => {
         search: debouncedSearch,
         talkTime: talkTimeFilter,
       });
-      console.log("Response", response);
       setOverviews(response?.data);
       setPagination({
         ...response?.pagination,
         totalDocs: response?.pagination?.totalRecords,
       });
     } catch (error) {
-      console.log(error);
     } finally {
       setCallLoading(false);
     }
   };
   useEffect(() => {
     loadCallRecordingOverviews();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page, limit, debouncedSearch, talkTimeFilter]);
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -70,8 +69,6 @@ const Call = () => {
     { value: "10_15", label: "10 - 15 min" },
     { value: "over_15", label: "Over 15 min" },
   ];
-
-  console.log("pagination", pagination);
 
   const scoreLabels = {
     C1: "Pro greeting (Org/Name)",
@@ -135,7 +132,6 @@ const Call = () => {
     return data.map((row, index) => {
       const parsed = getSafeParsedData(row?.Files?.geminiResponse);
       const lead = parseGeminiResponse(row?.Files?.geminiResponse);
-      console.log("lead", lead);
 
       return {
         Index: index + 1,
@@ -215,7 +211,6 @@ const Call = () => {
 
       saveAs(blob, "call-overview.xlsx");
     } catch (err) {
-      console.error(err);
     } finally {
       setExportLoading(false);
     }

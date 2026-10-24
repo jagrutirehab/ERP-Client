@@ -79,9 +79,8 @@ const RecordingSidebar = () => {
         setOpenSection(page.id);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.pathname]);
-
-  console.log("Filtered Options:", filteredRecordingOptions);
 
   return (
     <>

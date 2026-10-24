@@ -265,7 +265,6 @@ const AddinventoryMedicine = ({
           setValue("purchasePrice", defaultValues.purchasePrice || "");
         }
       } catch (err) {
-        console.error(err);
         setMedicineValid(false);
       } finally {
         setMedicineValidLoader(false);
@@ -273,6 +272,7 @@ const AddinventoryMedicine = ({
     };
 
     verifyMedicineExists();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [defaultValues]);
 
 
@@ -294,7 +294,6 @@ const AddinventoryMedicine = ({
       const payload = res?.payload || [];
       setSearchResults(payload);
     } catch (err) {
-      console.error(err);
     } finally {
       setLoadingMedicines(false);
       setMedicineDropdownOpen(true);
@@ -314,6 +313,7 @@ const AddinventoryMedicine = ({
     }, 500);
 
     return () => clearTimeout(delayDebounce);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [medicineQuery, hasUserTyped]);
 
   const handleSelectMedicine = (medicine) => {

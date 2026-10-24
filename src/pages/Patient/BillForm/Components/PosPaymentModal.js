@@ -113,6 +113,7 @@ const PosPaymentModal = ({
   // auto-cancelled, which reads as "stuck".
   const [now, setNow] = useState(() => Date.now());
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const machines = terminals || [];
   const [cardType, setCardType] = useState(null);
 

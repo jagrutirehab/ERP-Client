@@ -60,7 +60,6 @@
 //                 },
 //             }));
 //         } catch (err) {
-//             console.error("Users fetch failed", err);
 //             setUsersByRole((prev) => ({ ...prev, [roleName]: { ...(prev[roleName] || {}), loading: false } }));
 //         }
 //     }, []);
@@ -79,7 +78,6 @@
 //                 setActiveRole({ id: response.data[0]._id, name: response.data[0].name });
 //             }
 //         } catch (err) {
-//             console.error("Roles fetch failed", err);
 //         }
 //     };
 
@@ -230,7 +228,6 @@
 //             setRecords([emptyRecord(user?.data?.name)]);
 //             setActiveRecordIdx(0);
 //         } catch (err) {
-//             console.log("err", err);
 
 //             toast.error(err?.response?.data?.error || "Submission failed. Try again.");
 //         } finally {
@@ -420,7 +417,6 @@ const CreateTrainers = () => {
                 },
             }));
         } catch (err) {
-            console.error("Users fetch failed", err);
             setEmployeesByPosition((prev) => ({ ...prev, [positionId]: { ...(prev[positionId] || {}), loading: false } }));
         }
     }, []);
@@ -429,6 +425,7 @@ const CreateTrainers = () => {
         const state = employeesByPosition[activePosition.id];
         if (!state || state.loading || !state.hasMore) return;
         fetchUsers({ positionId: activePosition.id, page: state.page + 1, search, centers: getCenterIds(), append: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activePosition, employeesByPosition, search, activeRecord.center, fetchUsers]);
 
     const loadPositions = async () => {
@@ -440,7 +437,6 @@ const CreateTrainers = () => {
                 setActivePosition({ id: positions[0]._id, name: positions[0].name });
             }
         } catch (err) {
-            console.error("Positions fetch failed", err);
         }
     };
 
@@ -449,6 +445,7 @@ const CreateTrainers = () => {
     useEffect(() => {
         if (!activePosition.id) return;
         fetchUsers({ positionId: activePosition.id, page: 1, search: "", centers: getCenterIds(), append: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activePosition.id]);
 
     useEffect(() => {
@@ -458,11 +455,13 @@ const CreateTrainers = () => {
             fetchUsers({ positionId: activePosition.id, page: 1, search, centers: getCenterIds(), append: false });
         }, 400);
         return () => clearTimeout(searchTimeout.current);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [search]);
 
     useEffect(() => {
         if (!activePosition.id) return;
         fetchUsers({ positionId: activePosition.id, page: 1, search, centers: getCenterIds(), append: false });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [activeRecord.center]);
 
     const handlePositionChange = (role) => {

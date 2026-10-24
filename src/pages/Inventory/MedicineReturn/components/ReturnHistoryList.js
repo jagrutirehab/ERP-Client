@@ -112,6 +112,7 @@ const ReturnHistoryList = ({ activeTab, hasUserPermission }) => {
 
     useEffect(() => {
         fetchReturns();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [page, limit, activeTab, selectedCenter, debouncedSearch, reportDate, user.centerAccess]);
 
     const columns = [

@@ -1,13 +1,9 @@
-import { useNavigate } from "react-router-dom";
 import { Badge } from "reactstrap";
 
 const Center = ({ children }) => (
   <div className="text-center w-100">{children}</div>
 );
 
-const Left = ({ children }) => (
-  <div className="text-start w-100">{children}</div>
-);
 
 const formatDate = (date) => {
   if (!date) return "-";

@@ -3,7 +3,6 @@ import {
   ProtocolWrapper,
   ProtocolHeader,
   ProtocolControlTable,
-  ProtocolApprovalNew,
   SectionTitle,
   WarningBox,
   CalloutBox,

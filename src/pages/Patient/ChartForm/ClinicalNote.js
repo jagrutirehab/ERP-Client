@@ -106,8 +106,6 @@ const ClinicalNote = ({
   const audioFinalizeRef = useRef(null);
   const [fetchedNote, setFetchedNote] = useState(null);
 
-  console.log({ type });
-
   const editClinicalNote = editChartData?.clinicalNote;
 
   useEffect(() => {
@@ -123,7 +121,6 @@ const ClinicalNote = ({
         const clinicalNote = response?.payload?.clinicalNote;
         setFetchedNote(clinicalNote || null);
       } catch (error) {
-        console.error("Error fetching OPD Prescription:", error);
         setFetchedNote(null);
       }
     };
@@ -167,7 +164,6 @@ const ClinicalNote = ({
       // if (audioFile) {
       //   allFiles.push(audioFile);
       // }
-      // console.log("Submitting files:", allFiles);
       onSubmitClinicalForm(values, allFiles, editChartData, editClinicalNote);
     },
   });

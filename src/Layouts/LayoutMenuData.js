@@ -76,26 +76,8 @@ const Navdata = () => {
     return routes;
   };
 
-  const staticPages = [
-    {
-      id: "issues",
-      label: "Issues",
-      link: "/issues",
-      icon: "bx bx-error-circle",
-    },
-    {
-      id: "recordings",
-      label: "Recordings",
-      link: "/recordings",
-      icon: "bx bx-microphone",
-    },
-  ];
 
-  const existingIds = filteredDynamicPages.map((p) => p.id);
 
-  const safeStaticPages = staticPages.filter(
-    (p) => !existingIds.includes(p.id),
-  );
 
   const menuItems = [
     {

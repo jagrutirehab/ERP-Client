@@ -1,7 +1,7 @@
 import React from "react";
 import PropTypes from "prop-types";
 import CustomModal from "../../../Components/Common/Modal";
-import { Formik, Form, ErrorMessage, useFormikContext, getIn } from 'formik';
+import { Formik, Form, useFormikContext, getIn } from 'formik';
 import { Input, Button } from 'reactstrap';
 import * as Yup from 'yup';
 import SearchableSelect from './SelectInput';
@@ -150,7 +150,6 @@ const EditOfferModal = ({ modal, toggle, data ,setApiFlag, apiFlag}) => {
 
         } catch (error) {
             if(!handleAuthError(error)) {
-                console.error("Update offer failed:", error);
                 toast.error(error.message || "Failed to update offer.");
             }
         }

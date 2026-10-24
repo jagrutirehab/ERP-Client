@@ -15,7 +15,6 @@ const Prescription = ({
   fallbackPrescriber,
 }) => {
   const medicineBaseDate = startDate || baseDate || data?.createdAt;
-  console.log("data", data);
   return (
     <React.Fragment>
       <div>

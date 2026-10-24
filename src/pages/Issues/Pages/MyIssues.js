@@ -11,7 +11,6 @@ import DescriptionModal from "../Components/DescriptionModal";
 import { useMediaQuery } from "../../../Components/Hooks/useMediaQuery";
 import StatusModal from "../Components/StatusModal";
 import { changeStatus } from "../../../helpers/backend_helper";
-import ApprovalModal from "../Components/ApprovalModal";
 import NotesTimelineModal from "../Components/NotesTimelineModal";
 import Select from "react-select";
 import { useSelector } from "react-redux";
@@ -99,7 +98,6 @@ const MyIssues = () => {
         totalDocs: response?.pagination?.totalRecords,
       });
     } catch (error) {
-      console.log(error);
       toast.error(error?.message || "ERROR");
     } finally {
       setLoading(false);
@@ -113,6 +111,7 @@ const MyIssues = () => {
       if (!user?.centerAccess) return;
       loadIssues();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [type, status, page, limit, selectedCenter, user?.centerAccess]);
 
 

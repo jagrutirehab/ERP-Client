@@ -39,7 +39,6 @@ const MonthOnMonth = ({ centerId, data }) => {
     const tagSource = (records, source) =>
       records.map((section) => {
         if (!section) return null;
-        console.log(section, "<<<<<<<<<<<<< section");
         return {
           ...section,
           records: section?.records?.map((r) => ({ ...r, source })),

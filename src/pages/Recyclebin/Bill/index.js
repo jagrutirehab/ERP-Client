@@ -15,7 +15,7 @@ import { Button, Spinner } from "reactstrap";
 
 const Bill = ({ centerAccess, bills }) => {
   const dispatch = useDispatch();
-  const [bill, setBill] = useState({ data: null, isOpen: false });
+  const [, setBill] = useState({ data: null, isOpen: false });
   const [deleteBill, setDeleteBill] = useState({
     data: null,
     isOpen: false,
@@ -39,6 +39,7 @@ const Bill = ({ centerAccess, bills }) => {
     };
 
     loadDeletedBills();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   const onCloseClick = () => {

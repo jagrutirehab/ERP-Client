@@ -11,8 +11,6 @@ import {
   FormGroup,
   Label,
   Alert,
-  Row,
-  Col,
   Card,
   CardBody,
 } from "reactstrap";
@@ -44,7 +42,6 @@ const Apikeys = () => {
         setTokens(response.data);
       }
     } catch (err) {
-      console.error("Error fetching tokens:", err);
     } finally {
       setLoading(false);
     }
@@ -77,7 +74,6 @@ const Apikeys = () => {
         fetchTokens();
       }
     } catch (err) {
-      console.error("Error creating token:", err);
       setError("Failed to create token. Please try again.");
     } finally {
       setCreating(false);

@@ -69,8 +69,6 @@ const IncidentForm = ({ incident, onClose }) => {
   //   "READ"
   // );
 
-  console.log({ currentIncident });
-
   useEffect(() => {
     setCurrentIncident(incident || { status: "Raised" });
   }, [incident]);
@@ -79,8 +77,6 @@ const IncidentForm = ({ incident, onClose }) => {
   const [files, setFiles] = useState([]);
   const [investigationFiles, setInvestigationFiles] = useState([]);
   const [closureFiles, setClosureFiles] = useState([]);
-
-  console.log({ incident, currentIncident, activeStage });
 
   useEffect(() => {
     if (currentIncident) {
@@ -361,9 +357,6 @@ const IncidentForm = ({ incident, onClose }) => {
     };
     return stageMap[stage]?.includes(status) || status === "Closed";
   };
-
-  // console.log(raiseForm.values);
-  console.log({ currentIncident });
 
   return (
     <Card>

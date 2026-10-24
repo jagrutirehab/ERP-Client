@@ -5,8 +5,6 @@ import {
   DropdownItem,
   DropdownMenu,
   DropdownToggle,
-  Input,
-  Label,
   Offcanvas as PatientOffCanvas,
   OffcanvasBody,
   Row,

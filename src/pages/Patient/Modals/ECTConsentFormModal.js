@@ -100,7 +100,6 @@ const ECTConsentFormModal = ({
         setPreviewOpen(true);
       } catch (previewError) {
         // The consent IS saved — never turn that into a failure.
-        console.error("PDF preview failed:", previewError);
         toast.warn("Consent saved, but the PDF preview could not be opened");
       }
 

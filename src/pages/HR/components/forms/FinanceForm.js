@@ -392,6 +392,7 @@ const FinanceForm = ({ initialData, onSuccess, onCancel, mode }) => {
         form.setFieldValue(key, value, false);
       }
     });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     employeeData,
     form,

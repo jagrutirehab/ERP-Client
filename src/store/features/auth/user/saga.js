@@ -78,8 +78,6 @@ function* loginUser({ payload: { values, navigate } }) {
           (page) => page.name === "Emergency",
         );
 
-        console.log({ haspageaccess: pageAccess, hasEmergencyPage });
-
         if (hasEmergencyPage) {
           const microToken = microLoginRes?.data?.token;
           const rolesRes = yield call(getRoles, microToken);
@@ -88,17 +86,12 @@ function* loginUser({ payload: { values, navigate } }) {
             (p) => p.module === "EMERGENCY",
           );
 
-          console.log({ hasEmergencyRole, rolesRes });
-
           if (hasEmergencyRole?.type !== "NONE") {
             redirectPath = "/emergency";
           }
         }
       } catch (error) {
-        console.error("Error checking emergency access:", error);
       }
-
-      console.log({ redirectPath });
 
       navigate(redirectPath);
       return { status: 200, payload: mainLoginRes };

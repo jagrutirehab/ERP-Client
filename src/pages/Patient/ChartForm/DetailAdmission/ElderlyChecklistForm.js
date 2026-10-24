@@ -1,6 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
 import PropTypes from "prop-types";
-import { Row, Col, Input, Label } from "reactstrap";
 import RenderFields from "../../../../Components/Common/RenderFields";
 import { elderlyFunctionalChecklistFields } from "../../../../Components/constants/patient";
 import NextButton from "./NextButton";

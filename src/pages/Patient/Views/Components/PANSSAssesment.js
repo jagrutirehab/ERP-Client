@@ -84,9 +84,7 @@ const PANSSAssessment = () => {
             return openModal("Please answer all the questions");
         }
 
-        console.log(answers)
         const scores = calculateScores(answers);
-        console.log(scores);
         const { severity, interpretationText, recommendationsText } =
             getInterpretationAndRecommendations(scores);
 

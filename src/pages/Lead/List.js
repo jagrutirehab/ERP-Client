@@ -10,7 +10,7 @@ import {
   UncontrolledTooltip,
 } from "reactstrap";
 import Highlighter from "react-highlight-words";
-import { differenceInYears, format } from "date-fns";
+import { format } from "date-fns";
 import { createEditLead, togglePatientForm } from "../../store/actions";
 import { useDispatch } from "react-redux";
 import RenderWhen from "../../Components/Common/RenderWhen";

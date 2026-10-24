@@ -32,7 +32,6 @@ import {
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 import DraftInvoice from "./Components/DraftInvoice";
 import { getWriteOff } from "../../../helpers/backend_helper";
-import { clearLogs } from "../../../store/features/report/dbLogSlice";
 import InvoiceLedgerModal from "./Components/InvoiceLedgerModal";
 import { usePermissions } from "../../../Components/Hooks/useRoles";
 
@@ -54,7 +53,6 @@ const Billing = ({
   const [showDraft, setDraft] = useState(false);
   const [dateModal, setDateModal] = useState(false);
   const [admission, setAdmission] = useState(null);
-  const [withWriteOffPayableAmount, setWithWriteOffPayableAmount] = useState();
   const [writeOffMap, setWriteOffMap] = useState({});
   const [ledgerModal, setLedgerModal] = useState(false);
   const [ledgerAdmission, setLedgerAdmission] = useState(null);
@@ -78,14 +76,12 @@ const Billing = ({
 
   const token = JSON.parse(localStorage.getItem("micrologin"))?.token;
 
-  const { hasPermission, loading: isLoading } = usePermissions(token);
+  const { hasPermission } = usePermissions(token);
   const hasUserPermission = hasPermission(
     "PATIENTS",
     "INVOICEHISTORY",
     "WRITE",
   );
-
-  console.log("hasUserPermission", hasUserPermission);
 
   const toggleAccordian = (id) => {
     if (open === id) {
@@ -125,16 +121,12 @@ const Billing = ({
       )
     : null;
   //
-  console.log("latestAdmission", latestAdmission);
-  console.log("addmissionsBills", addmissionsBills);
 
-  const arrayOfWriteOffs = [];
 
   // useEffect(() => {
   //   if (!patient?._id || !addmissionsBills?.length) {
   //     return;
   //   }
-  //   console.log("patient", patient);
 
   //   const fetchAllWriteOffs = async () => {
   //     const data = {
@@ -143,7 +135,6 @@ const Billing = ({
   //       center: latestAdmission?.center?._id,
   //     };
   //     const response = await getWriteOff(data);
-  //     console.log("response", response);
   //     setWithWriteOffPayableAmount(response?.data?.[0]?.writeOffInvoice?.amount)
   //   }
   //   fetchAllWriteOffs();
@@ -182,9 +173,8 @@ const Billing = ({
     };
 
     fetchAllWriteOffs();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [patient?._id, addmissionsBills]);
-
-  console.log("WriteOffPayalbe", withWriteOffPayableAmount);
 
   const adjustedPayable = useMemo(() => {
     const latestId = latestAdmission?._id;
@@ -341,9 +331,6 @@ const Billing = ({
               idx === 0 ? totalPayable : addmission.totalInvoicePayable;
             const advancePayment =
               idx === 0 ? totalAdvance : addmission.totalAdvancePayment;
-
-            console.log("totalDeposit", totalDeposit);
-            console.log("addmission", addmission);
 
             const ttlDeposit =
               idx === 0

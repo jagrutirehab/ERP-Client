@@ -175,7 +175,6 @@ const PositionsOverviewCard = ({
         toggle={toggleModal}
         position={selectedPosition}
         onSuccess={(data) => {
-          console.log("Saved:", data);
         }}
       />
     </Card>

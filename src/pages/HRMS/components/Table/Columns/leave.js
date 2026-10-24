@@ -1,5 +1,3 @@
-import { useNavigate } from "react-router-dom";
-import { Badge } from "reactstrap";
 
 export const leaveColumns = (navigate) => [
   {

@@ -1,5 +1,4 @@
 import React, { useMemo } from "react";
-import PropTypes from "prop-types";
 
 // Import React FilePond
 import { FilePond, registerPlugin } from "react-filepond";

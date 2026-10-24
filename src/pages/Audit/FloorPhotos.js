@@ -79,6 +79,7 @@ const FloorPhotos = ({ hasWrite, hasDelete }) => {
 
   useEffect(() => {
     fetchFields();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedCenter, auditDate]);
 
   const floorOptions = useMemo(

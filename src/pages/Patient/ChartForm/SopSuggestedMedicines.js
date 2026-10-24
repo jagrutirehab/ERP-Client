@@ -57,7 +57,6 @@ const SopSuggestedMedicines = ({ patientId, existingMedicines, onPopulate }) => 
       })
       .catch((err) => {
         if (cancelled) return;
-        console.warn("[SopSuggestedMedicines] fetch failed:", err?.message || err);
         setError("Failed to load SOP suggestions");
         setGroups([]);
       })
