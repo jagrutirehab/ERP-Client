@@ -227,7 +227,7 @@ const Approvals = () => {
       ignoreRowClick: true,
       allowOverflow: true,
       button: true,
-      minWidth: "100px",
+      minWidth: "190px",
     },
   ];
 

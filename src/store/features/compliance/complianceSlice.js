@@ -22,12 +22,15 @@ import {
 } from "../../../helpers/backend_helper";
 
 const EMPTY_COUNTS = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
+const EMPTY_PAGINATION = { page: 1, limit: 10, total: 0, totalPages: 0 };
 
 const initialState = {
   categories: [],
   categoriesLoading: false,
+  categoriesPagination: { ...EMPTY_PAGINATION },
   types: [],
   typesLoading: false,
+  typesPagination: { ...EMPTY_PAGINATION },
   currentType: null,
   currentTypeLoading: false,
   saving: false,
@@ -312,6 +315,7 @@ const complianceSlice = createSlice({
       .addCase(fetchComplianceCategories.fulfilled, (state, { payload }) => {
         state.categoriesLoading = false;
         state.categories = payload?.data || [];
+        state.categoriesPagination = payload?.pagination || { ...EMPTY_PAGINATION };
       })
       .addCase(fetchComplianceCategories.rejected, (state, { payload }) => {
         if (payload?.aborted) return;
@@ -362,6 +366,7 @@ const complianceSlice = createSlice({
       .addCase(fetchComplianceTypes.fulfilled, (state, { payload }) => {
         state.typesLoading = false;
         state.types = payload?.data || [];
+        state.typesPagination = payload?.pagination || { ...EMPTY_PAGINATION };
       })
       .addCase(fetchComplianceTypes.rejected, (state, { payload }) => {
         if (payload?.aborted) return;

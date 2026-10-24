@@ -25,7 +25,9 @@ const Categories = () => {
   const token = microUser ? JSON.parse(microUser).token : null;
   const { roles } = usePermissions(token);
 
-  const { categories, categoriesLoading, saving } = useSelector((state) => state.Compliance);
+  const { categories, categoriesLoading, categoriesPagination, saving } = useSelector(
+    (state) => state.Compliance,
+  );
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingCategory, setEditingCategory] = useState(null);
@@ -34,14 +36,17 @@ const Categories = () => {
   const [deletingCategory, setDeletingCategory] = useState(null);
   const [deleting, setDeleting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(10);
 
   const searchPromiseRef = useRef(null);
 
-  const loadCategories = (search = searchQuery) => {
+  const loadCategories = (search = searchQuery, pageArg = page) => {
     searchPromiseRef.current?.abort();
     const trimmed = search.trim();
-    const promise = dispatch(fetchComplianceCategories({ search: trimmed || undefined }));
+    const promise = dispatch(
+      fetchComplianceCategories({ search: trimmed || undefined, page: pageArg, limit }),
+    );
     searchPromiseRef.current = promise;
     promise
       .unwrap()
@@ -51,10 +56,11 @@ const Categories = () => {
       });
   };
 
+  // page or limit: reload from the server
   useEffect(() => {
     loadCategories();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [page, limit]);
 
   const isFirstSearchRun = useRef(true);
   useEffect(() => {
@@ -63,7 +69,8 @@ const Categories = () => {
       return;
     }
     const handler = setTimeout(() => {
-      loadCategories(searchQuery);
+      setPage(1);
+      loadCategories(searchQuery, 1);
     }, 500);
     return () => clearTimeout(handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -187,8 +194,11 @@ const Categories = () => {
                   data={categories}
                   loading={categoriesLoading}
                   fixedHeader={false}
+                  page={page}
+                  setPage={setPage}
                   limit={limit}
                   setLimit={setLimit}
+                  pagination={{ totalDocs: categoriesPagination.total }}
                   noDataComponent="No categories match your search."
                 />
               </div>

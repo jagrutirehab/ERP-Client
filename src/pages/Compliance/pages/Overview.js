@@ -8,8 +8,11 @@ import { ChevronsRight } from "lucide-react";
 import StatusBadge from "../components/StatusBadge";
 import ComplianceSummaryCards from "../components/ComplianceSummaryCards";
 import RefreshButton from "../../../Components/Common/RefreshButton";
-import MatrixPagination from "../components/Pagination";
-import { getComplianceSummary, getComplianceMatrix } from "../../../helpers/backend_helper";
+import {
+  getComplianceSummary,
+  getComplianceMatrix,
+  exportComplianceOverview,
+} from "../../../helpers/backend_helper";
 import { STATUS_KEY } from "./Register";
 import { CENTRES, ITEMS, STATUS, formatDate } from "../data";
 import { capitalizeWords } from "../../../utils/toCapitalize";
@@ -18,7 +21,7 @@ import { usePermissions } from "../../../Components/Hooks/useRoles";
 import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 const ACTION_ORDER = { expired: 0, missing: 1, renewal: 2 };
-const MATRIX_PAGE_SIZE = 10;
+const MATRIX_PAGE_SIZE = 100;
 const MATRIX_TYPE_PAGE_SIZE = 10;
 const centreLabel = (c) => c?.displayName || c?.title || c?.name || "—";
 
@@ -47,7 +50,7 @@ const Overview = () => {
   const [matrix, setMatrix] = useState(null);
   const [matrixLoading, setMatrixLoading] = useState(false);
   const [matrixMoreLoading, setMatrixMoreLoading] = useState(false);
-  const [matrixPage, setMatrixPage] = useState(1);
+  const [exporting, setExporting] = useState(false);
 
   const loadSummary = async () => {
     setSummaryLoading(true);
@@ -63,14 +66,13 @@ const Overview = () => {
     }
   };
 
-  // Fresh load: page/filter changed, so replace the whole matrix and reset
-  // back to the first page of type columns.
-  const loadMatrix = async (page = matrixPage) => {
+
+  const loadMatrix = async () => {
     setMatrixLoading(true);
     try {
       const res = await getComplianceMatrix({
         center: centreFilter === "all" ? undefined : centreFilter,
-        page,
+        page: 1,
         limit: MATRIX_PAGE_SIZE,
         typePage: 1,
         typeLimit: MATRIX_TYPE_PAGE_SIZE,
@@ -95,7 +97,7 @@ const Overview = () => {
     try {
       const res = await getComplianceMatrix({
         center: centreFilter === "all" ? undefined : centreFilter,
-        page: matrixPage,
+        page: 1,
         limit: MATRIX_PAGE_SIZE,
         typePage: 1,
         typeLimit: loadedTypeCount,
@@ -115,6 +117,32 @@ const Overview = () => {
     refreshMatrix();
   };
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const res = await exportComplianceOverview({
+        center: centreFilter === "all" ? undefined : centreFilter,
+      });
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `Compliance_Overview_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error("Something went wrong while generating the Excel file");
+      }
+    } finally {
+      setExporting(false);
+    }
+  };
+
   // "Load more compliance types": fetches the next 10 type columns and
   // appends them (plus their cells) to what's already shown, instead of
   // replacing the page — row scores don't change, they already reflect every
@@ -130,7 +158,7 @@ const Overview = () => {
     try {
       const res = await getComplianceMatrix({
         center: centreFilter === "all" ? undefined : centreFilter,
-        page: matrixPage,
+        page: 1,
         limit: MATRIX_PAGE_SIZE,
         typePage: nextTypePage,
         typeLimit: MATRIX_TYPE_PAGE_SIZE,
@@ -163,18 +191,9 @@ const Overview = () => {
   }, [centreFilter]);
 
   useEffect(() => {
-    if (matrixPage !== 1) {
-      setMatrixPage(1); // changing centres resets the paginated centre list
-      return;
-    }
-    loadMatrix(1);
+    loadMatrix();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [centreFilter]);
-
-  useEffect(() => {
-    loadMatrix(matrixPage);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [matrixPage]);
 
   const upcoming = useMemo(
     () =>
@@ -222,8 +241,14 @@ const Overview = () => {
                 onChange={(option) => setCentreFilter(option?.value || "all")}
               />
             </div>
-            <Button color="light" className="border flex-shrink-0" size="sm">
-              Export
+            <Button
+              color="light"
+              className="border flex-shrink-0"
+              size="sm"
+              disabled={exporting}
+              onClick={handleExport}
+            >
+              {exporting ? "Exporting…" : "Export"}
             </Button>
             <CheckPermission accessRolePermission={roles?.permissions} subAccess="REGISTER" permission="create">
               <Button
@@ -470,15 +495,6 @@ const Overview = () => {
                     </div>
                   )}
 
-                {matrix.pagination && (
-                  <MatrixPagination
-                    page={matrix.pagination.page}
-                    pageCount={matrix.pagination.totalPages}
-                    totalCount={matrix.pagination.total}
-                    pageSize={matrix.pagination.limit}
-                    onChange={setMatrixPage}
-                  />
-                )}
               </>
             )}
           </CardBody>

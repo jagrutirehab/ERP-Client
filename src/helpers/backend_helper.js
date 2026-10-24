@@ -2493,6 +2493,14 @@ export const getComplianceMatrix = (params = {}) => {
   });
 };
 
+export const exportComplianceOverview = (params = {}) => {
+  return api.get(`${url.COMPLIANCE_RECORDS}/export`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+    responseType: "blob",
+  });
+};
+
 // PHARMACY EXPIRED STOCK
 export const getExpiredStock = (params = {}) => {
   return api.get(url.PHARMACY_EXPIRED_STOCK, {
