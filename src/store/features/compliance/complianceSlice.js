@@ -22,12 +22,15 @@ import {
 } from "../../../helpers/backend_helper";
 
 const EMPTY_COUNTS = { PENDING: 0, APPROVED: 0, REJECTED: 0 };
+const EMPTY_PAGINATION = { page: 1, limit: 10, total: 0, totalPages: 0 };
 
 const initialState = {
   categories: [],
   categoriesLoading: false,
+  categoriesPagination: { ...EMPTY_PAGINATION },
   types: [],
   typesLoading: false,
+  typesPagination: { ...EMPTY_PAGINATION },
   currentType: null,
   currentTypeLoading: false,
   saving: false,
@@ -35,9 +38,12 @@ const initialState = {
   submissions: [],
   submissionCounts: { ...EMPTY_COUNTS },
   submissionsLoading: false,
+  submissionsTotal: 0,
   submissionReviewing: false,
   myDrafts: [],
+  myDraftsTotal: 0,
   allDrafts: [],
+  allDraftsTotal: 0,
   draftsLoading: false,
   draftSaving: false,
   records: [],
@@ -309,6 +315,7 @@ const complianceSlice = createSlice({
       .addCase(fetchComplianceCategories.fulfilled, (state, { payload }) => {
         state.categoriesLoading = false;
         state.categories = payload?.data || [];
+        state.categoriesPagination = payload?.pagination || { ...EMPTY_PAGINATION };
       })
       .addCase(fetchComplianceCategories.rejected, (state, { payload }) => {
         if (payload?.aborted) return;
@@ -359,6 +366,7 @@ const complianceSlice = createSlice({
       .addCase(fetchComplianceTypes.fulfilled, (state, { payload }) => {
         state.typesLoading = false;
         state.types = payload?.data || [];
+        state.typesPagination = payload?.pagination || { ...EMPTY_PAGINATION };
       })
       .addCase(fetchComplianceTypes.rejected, (state, { payload }) => {
         if (payload?.aborted) return;
@@ -425,6 +433,7 @@ const complianceSlice = createSlice({
         state.submissionsLoading = false;
         state.submissions = payload?.data || [];
         state.submissionCounts = payload?.counts || { ...EMPTY_COUNTS };
+        state.submissionsTotal = payload?.pagination?.total || 0;
       })
       .addCase(fetchComplianceSubmissions.rejected, (state, { payload }) => {
         if (payload?.aborted) return;
@@ -463,6 +472,7 @@ const complianceSlice = createSlice({
       .addCase(fetchMyDrafts.fulfilled, (state, { payload }) => {
         state.draftsLoading = false;
         state.myDrafts = payload?.data || [];
+        state.myDraftsTotal = payload?.pagination?.total || 0;
       })
       .addCase(fetchMyDrafts.rejected, (state, { payload }) => {
         if (payload?.aborted) return;
@@ -476,6 +486,7 @@ const complianceSlice = createSlice({
       .addCase(fetchAllDrafts.fulfilled, (state, { payload }) => {
         state.draftsLoading = false;
         state.allDrafts = payload?.data || [];
+        state.allDraftsTotal = payload?.pagination?.total || 0;
       })
       .addCase(fetchAllDrafts.rejected, (state, { payload }) => {
         if (payload?.aborted) return;

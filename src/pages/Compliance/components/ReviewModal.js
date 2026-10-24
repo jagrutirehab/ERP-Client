@@ -2,7 +2,9 @@ import React, { useEffect, useState } from "react";
 import { Modal, ModalHeader, ModalBody, ModalFooter, Button, Label, Input } from "reactstrap";
 import { CheckCircle2, XCircle, FileText } from "lucide-react";
 import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge";
+import PreviewFile from "../../../Components/Common/PreviewFile";
 import { formatDateTime } from "../../../utils/time";
+import { capitalizeWords } from "../../../utils/toCapitalize";
 
 const formatDate = (d) =>
   d ? new Date(d).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "—";
@@ -18,26 +20,34 @@ const Field = ({ label, children }) => (
   </div>
 );
 
-const ReviewModal = ({ isOpen, toggle, submission, onApprove, onReject, busy = false }) => {
-  const [rejecting, setRejecting] = useState(false);
-  const [rejectNote, setRejectNote] = useState("");
+const ReviewModal = ({ isOpen, toggle, submission, onApprove, onReject, busy = false, readOnly = false }) => {
+  const [remarks, setRemarks] = useState("");
+  const [previewFile, setPreviewFile] = useState(null);
+  const [previewOpen, setPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (isOpen) {
-      setRejecting(false);
-      setRejectNote("");
+      setRemarks("");
     }
   }, [isOpen, submission?.id]);
 
+  const openPreview = (f) => {
+    setPreviewFile({ url: f.url, type: f.type, originalName: f.originalName || f.name });
+    setPreviewOpen(true);
+  };
+
   if (!submission) return null;
 
+  const canReject = remarks.trim().length >= 3;
+
   const handleApprove = async () => {
-    const ok = await onApprove(submission.id);
+    const ok = await onApprove(submission.id, remarks.trim());
     if (ok) toggle();
   };
 
   const handleReject = async () => {
-    const ok = await onReject(submission.id, rejectNote.trim());
+    if (!canReject) return;
+    const ok = await onReject(submission.id, remarks.trim());
     if (ok) toggle();
   };
 
@@ -47,32 +57,32 @@ const ReviewModal = ({ isOpen, toggle, submission, onApprove, onReject, busy = f
       <ModalBody>
         <div className="d-flex justify-content-between align-items-start mb-3">
           <div>
-            <h5 className="mb-0">{submission.categoryName}</h5>
+            <h5 className="mb-0">{capitalizeWords(submission.categoryName)}</h5>
             <span className="text-muted" style={{ fontSize: 13 }}>
-              {submission.centreName}
+              {capitalizeWords(submission.centreName)}
             </span>
           </div>
           {renderStatusBadge(submission.status.toUpperCase())}
         </div>
 
-        <Field label="Submitted by">{submission.submittedBy}</Field>
+        <Field label="Submitted by">{capitalizeWords(submission.submittedBy) || "—"}</Field>
         <Field label="Submitted on">{formatDateTime(submission.submittedAt)}</Field>
-        <Field label="Issuing authority">{submission.issuingAuthority || "—"}</Field>
+        <Field label="Issuing authority">{capitalizeWords(submission.issuingAuthority) || "—"}</Field>
         <Field label="Licence / registration no.">{submission.licenceNo || "—"}</Field>
         <Field label="Issued on">{formatDate(submission.issuedOn)}</Field>
         <Field label="Valid till">
           {submission.noExpiry ? "No expiry (lifetime)" : formatDate(submission.validTill)}
         </Field>
         {!submission.noExpiry && <Field label="Renewal lead time">{submission.leadDays} days</Field>}
-        <Field label="Responsible owner">{submission.owner || "—"}</Field>
-        <Field label="Escalate to">{submission.escalateTo || "—"}</Field>
+        <Field label="Responsible owner">{capitalizeWords(submission.owner) || "—"}</Field>
+        <Field label="Escalate to">{capitalizeWords(submission.escalateTo) || "—"}</Field>
 
         {submission.notes && (
           <div className="py-2 border-bottom">
             <div className="text-muted mb-1" style={{ fontSize: 13 }}>
               Notes / conditions
             </div>
-            <div style={{ fontSize: 13 }}>{submission.notes}</div>
+            <div style={{ fontSize: 13 }}>{capitalizeWords(submission.notes)}</div>
           </div>
         )}
 
@@ -82,12 +92,11 @@ const ReviewModal = ({ isOpen, toggle, submission, onApprove, onReject, busy = f
           </div>
           <div className="d-flex flex-column gap-2">
             {(submission.files || []).map((f) => (
-              <a
+              <button
                 key={f._id || f.url}
-                href={f.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="d-flex align-items-center gap-2 border rounded p-2 text-decoration-none text-body"
+                type="button"
+                className="d-flex align-items-center gap-2 border rounded p-2 text-decoration-none text-body bg-white"
+                onClick={() => openPreview(f)}
               >
                 <FileText size={16} className="text-muted flex-shrink-0" />
                 <span className="text-truncate flex-grow-1" style={{ fontSize: 13 }}>
@@ -98,7 +107,7 @@ const ReviewModal = ({ isOpen, toggle, submission, onApprove, onReject, busy = f
                     Primary
                   </span>
                 )}
-              </a>
+              </button>
             ))}
             {!submission.files?.length && (
               <span className="text-muted" style={{ fontSize: 13 }}>
@@ -120,54 +129,49 @@ const ReviewModal = ({ isOpen, toggle, submission, onApprove, onReject, busy = f
           </div>
         )}
 
-        {submission.status === "pending" && rejecting && (
+        {submission.status === "pending" && !readOnly && (
           <div className="mt-3">
-            <Label>Reason for rejecting (shown to the centre)</Label>
+            <Label>
+              Remarks{" "}
+              <span className="text-muted fw-normal">
+                (optional to approve · required to reject)
+              </span>
+            </Label>
             <Input
               type="textarea"
               rows={2}
-              value={rejectNote}
-              onChange={(e) => setRejectNote(e.target.value)}
+              value={remarks}
+              onChange={(e) => setRemarks(e.target.value)}
               placeholder="e.g. Certificate is not readable, please re-upload"
-              autoFocus
             />
           </div>
         )}
       </ModalBody>
 
-      {submission.status === "pending" && (
+      {submission.status === "pending" && !readOnly && (
         <ModalFooter>
-          {rejecting ? (
-            <>
-              <Button color="light" className="border" disabled={busy} onClick={() => setRejecting(false)}>
-                Back
-              </Button>
-              <Button
-                color="danger"
-                className="text-white"
-                disabled={busy || rejectNote.trim().length < 3}
-                onClick={handleReject}
-              >
-                {busy ? "Rejecting..." : "Confirm reject"}
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button
-                color="light"
-                className="border text-danger"
-                disabled={busy}
-                onClick={() => setRejecting(true)}
-              >
-                <XCircle size={14} className="me-1" /> Reject
-              </Button>
-              <Button color="success" className="text-white" disabled={busy} onClick={handleApprove}>
-                <CheckCircle2 size={14} className="me-1" /> {busy ? "Approving..." : "Approve"}
-              </Button>
-            </>
-          )}
+          <Button
+            color="danger"
+            className="text-white"
+            disabled={busy || !canReject}
+            title={!canReject ? "Enter at least 3 characters in Remarks to reject" : undefined}
+            onClick={handleReject}
+          >
+            <XCircle size={14} className="me-1" /> {busy ? "Rejecting..." : "Reject"}
+          </Button>
+          <Button color="success" className="text-white" disabled={busy} onClick={handleApprove}>
+            <CheckCircle2 size={14} className="me-1" /> {busy ? "Approving..." : "Approve"}
+          </Button>
         </ModalFooter>
       )}
+
+      <PreviewFile
+        title={previewFile?.originalName || "Compliance document"}
+        file={previewFile}
+        isOpen={previewOpen}
+        toggle={() => setPreviewOpen(false)}
+        allowDownload
+      />
     </Modal>
   );
 };

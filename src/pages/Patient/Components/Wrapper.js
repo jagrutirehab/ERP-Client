@@ -171,6 +171,15 @@ const Wrapper = ({
           _t: Date.now(),
         }),
       );
+      if (currentAddmissionId) {
+        dispatch(
+          fetchCharts({
+            addmissionId: currentAddmissionId,
+            chartType: "All",
+            _t: Date.now(),
+          }),
+        );
+      }
     } catch (err) {
       toast.error(err?.message || "Failed to carry forward");
     } finally {

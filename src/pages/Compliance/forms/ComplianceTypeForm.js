@@ -25,6 +25,7 @@ import {
   fetchComplianceCategories,
   clearCurrentComplianceType,
 } from "../../../store/features/compliance/complianceSlice";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
 
 const LEAD_OPTIONS = [30, 45, 60, 90];
 
@@ -48,6 +49,7 @@ const validationSchema = Yup.object({
 const ComplianceTypeForm = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const handleAuthError = useAuthError();
   const { typeId } = useParams();
   const isEdit = !!typeId;
   const centerList = useSelector((state) => state.Center.data) || [];
@@ -78,7 +80,9 @@ const ComplianceTypeForm = () => {
         applicableCenters: Array.from(applicable),
         issuingAuthorityHint: values.issuingAuthorityHint.trim(),
         checklistSteps: values.hasExpiry
-          ? checklistSteps.map((s) => s.trim()).filter(Boolean)
+          ? checklistSteps
+              .map((s) => ({ text: s.text.trim(), mandatory: !!s.mandatory }))
+              .filter((s) => s.text)
           : [],
         active,
       };
@@ -93,22 +97,32 @@ const ComplianceTypeForm = () => {
         }
         navigate("/compliance/types");
       } catch (error) {
-        toast.error(error?.message || "Failed to save compliance type");
+        if (!handleAuthError(error)) {
+          toast.error(error?.message || "Failed to save compliance type");
+        }
       }
     },
   });
 
   useEffect(() => {
-    dispatch(fetchComplianceCategories()).unwrap().catch((error) => {
-      toast.error(error?.message || "Failed to load categories");
-    });
+    const loadCategories = async () => {
+      try {
+        await dispatch(fetchComplianceCategories()).unwrap();
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(error?.message || "Failed to load categories");
+        }
+      }
+    };
+    loadCategories();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dispatch]);
 
   useEffect(() => {
     if (!isEdit) return;
-    dispatch(fetchComplianceTypeById(typeId))
-      .unwrap()
-      .then((res) => {
+    const loadType = async () => {
+      try {
+        const res = await dispatch(fetchComplianceTypeById(typeId)).unwrap();
         const existing = res?.data;
         if (!existing) return;
         form.setValues({
@@ -121,12 +135,21 @@ const ComplianceTypeForm = () => {
         });
         setActive(existing.active !== false);
         setApplicable(new Set((existing.applicableCenters || []).map((c) => c._id || c)));
-        setChecklistSteps(existing.checklistSteps || []);
-      })
-      .catch((error) => {
-        toast.error(error?.message || "Failed to load compliance type");
-      })
-      .finally(() => setLoading(false));
+        // Normalize legacy string-only checklist steps (pre-mandatory-marker data)
+        setChecklistSteps(
+          (existing.checklistSteps || []).map((s) =>
+            typeof s === "string" ? { text: s, mandatory: false } : s,
+          ),
+        );
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(error?.message || "Failed to load compliance type");
+        }
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadType();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isEdit, typeId]);
 
@@ -144,11 +167,15 @@ const ComplianceTypeForm = () => {
     .filter((c) => c.active)
     .map((c) => ({ value: c._id, label: capitalizeWords(c.name) }));
 
-  const updateStep = (idx, value) =>
-    setChecklistSteps((prev) => prev.map((s, i) => (i === idx ? value : s)));
+  const updateStepText = (idx, text) =>
+    setChecklistSteps((prev) => prev.map((s, i) => (i === idx ? { ...s, text } : s)));
+  const toggleStepMandatory = (idx) =>
+    setChecklistSteps((prev) =>
+      prev.map((s, i) => (i === idx ? { ...s, mandatory: !s.mandatory } : s)),
+    );
   const removeStep = (idx) =>
     setChecklistSteps((prev) => prev.filter((_, i) => i !== idx));
-  const addStep = () => setChecklistSteps((prev) => [...prev, ""]);
+  const addStep = () => setChecklistSteps((prev) => [...prev, { text: "", mandatory: false }]);
 
   const allSelected = centerList.length > 0 && applicable.size === centerList.length;
   const toggleAll = () =>
@@ -335,16 +362,29 @@ const ComplianceTypeForm = () => {
                     <h6 className="mb-3">Renewal checklist</h6>
                     <p className="text-muted" style={{ fontSize: 13 }}>
                       Steps shown against every item of this type while it&apos;s due, expired or in
-                      renewal. Leave empty to use the default checklist.
+                      renewal. Leave empty to use the default checklist. Mark a step{" "}
+                      <strong>Mandatory</strong> to require it be checked off before a submission
+                      can be sent for verification — not just saved as a draft.
                     </p>
                     <div className="d-flex flex-column gap-2">
                       {checklistSteps.map((step, idx) => (
                         <div key={idx} className="d-flex align-items-center gap-2">
                           <Input
-                            value={step}
+                            value={step.text}
                             placeholder={`Step ${idx + 1}`}
-                            onChange={(e) => updateStep(idx, e.target.value)}
+                            onChange={(e) => updateStepText(idx, e.target.value)}
                           />
+                          <FormGroup check className="mb-0 text-nowrap flex-shrink-0">
+                            <Input
+                              id={`step-mandatory-${idx}`}
+                              type="checkbox"
+                              checked={!!step.mandatory}
+                              onChange={() => toggleStepMandatory(idx)}
+                            />
+                            <Label check htmlFor={`step-mandatory-${idx}`} className="mb-0">
+                              Mandatory
+                            </Label>
+                          </FormGroup>
                           <Button
                             type="button"
                             color="light"

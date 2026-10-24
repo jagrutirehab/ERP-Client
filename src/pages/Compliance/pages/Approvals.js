@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Card, CardBody, Nav, NavItem, NavLink, Button } from "reactstrap";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { Card, CardBody, Nav, NavItem, NavLink, Button, Input } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import DataTableComponent from "../../../Components/Common/DataTable";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 import Select from "react-select";
-import { Eye } from "lucide-react";
+import { ClipboardCheck, Eye } from "lucide-react";
 import { renderStatusBadge } from "../../../Components/Common/renderStatusBadge";
 import ReviewModal from "../components/ReviewModal";
 import { formatDateTime } from "../../../utils/time";
@@ -14,6 +15,9 @@ import {
   approveSubmission,
   rejectSubmission,
 } from "../../../store/features/compliance/complianceSlice";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 const STATUS_OPTIONS = [
   { value: "PENDING", label: "Pending" },
@@ -48,19 +52,29 @@ const toRow = (s) => ({
 
 const Approvals = () => {
   const dispatch = useDispatch();
-  const { submissions, submissionCounts, submissionsLoading, submissionReviewing } = useSelector(
+  const handleAuthError = useAuthError();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { roles } = usePermissions(token);
+  const { submissions, submissionCounts, submissionsLoading, submissionsTotal, submissionReviewing } = useSelector(
     (state) => state.Compliance,
   );
 
   const [statusFilter, setStatusFilter] = useState("PENDING");
   const [centreFilter, setCentreFilter] = useState("all");
+  const [query, setQuery] = useState("");
+  const [debouncedQuery, setDebouncedQuery] = useState("");
   const [reviewing, setReviewing] = useState(null);
+  const [viewingReadOnly, setViewingReadOnly] = useState(false);
   const [centres, setCentres] = useState([]);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   // centres for the filter dropdown
   useEffect(() => {
-    getAllCenters()
-      .then((res) => {
+    const loadCentres = async () => {
+      try {
+        const res = await getAllCenters();
         const list = Array.isArray(res)
           ? res
           : Array.isArray(res?.data)
@@ -71,29 +85,55 @@ const Approvals = () => {
           ? res.data.data
           : [];
         setCentres(list);
-      })
-      .catch(() => toast.error("Failed to load centres"));
+      } catch (error) {
+        if (!handleAuthError(error)) {
+          toast.error(error?.response?.data?.message || error?.message || "Failed to load centres");
+        }
+      }
+    };
+    loadCentres();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const loadSubmissions = () => {
-    dispatch(
-      fetchComplianceSubmissions({
-        status: statusFilter,
-        center: centreFilter === "all" ? undefined : centreFilter,
-      }),
-    )
-      .unwrap()
-      .catch((error) => {
-        if (error?.aborted) return;
+  const loadSubmissions = async () => {
+    try {
+      await dispatch(
+        fetchComplianceSubmissions({
+          status: statusFilter,
+          center: centreFilter === "all" ? undefined : centreFilter,
+          search: debouncedQuery.trim() || undefined,
+          page,
+          limit,
+        }),
+      ).unwrap();
+    } catch (error) {
+      if (error?.aborted) return;
+      if (!handleAuthError(error)) {
         toast.error(error?.message || "Failed to load submissions");
-      });
+      }
+    }
   };
 
-  // reload whenever the tab or centre filter changes
+  // reload whenever the tab, centre filter, page or limit changes
   useEffect(() => {
     loadSubmissions();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [statusFilter, centreFilter]);
+  }, [statusFilter, centreFilter, page, limit, debouncedQuery]);
+
+  // search: wait until typing stops, then go back to page 1
+  const firstSearch = useRef(true);
+  useEffect(() => {
+    if (firstSearch.current) {
+      firstSearch.current = false;
+      return;
+    }
+    const t = setTimeout(() => {
+      setDebouncedQuery(query);
+      setPage(1);
+    }, 500);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [query]);
 
   const rows = useMemo(() => (submissions || []).map(toRow), [submissions]);
   const pendingCount = submissionCounts?.PENDING || 0;
@@ -143,27 +183,65 @@ const Approvals = () => {
     },
     {
       name: <div>Actions</div>,
-      cell: (row) => (
-        <Button color="light" className="border" size="sm" onClick={() => setReviewing(row)}>
-          <Eye size={14} className="me-1" /> {statusFilter === "PENDING" ? "Review" : "View"}
-        </Button>
-      ),
+      cell: (row) =>
+        statusFilter === "PENDING" ? (
+          <div className="d-flex align-items-center gap-2">
+            <button
+              type="button"
+              className="btn btn-sm btn-outline-primary"
+              onClick={() => {
+                setViewingReadOnly(true);
+                setReviewing(row);
+              }}
+              title="View"
+            >
+              <Eye size={14} />
+            </button>
+            <CheckPermission accessRolePermission={roles?.permissions} subAccess="APPROVALS" permission="edit">
+              <Button
+                color="success"
+                className="text-white"
+                size="sm"
+                onClick={() => {
+                  setViewingReadOnly(false);
+                  setReviewing(row);
+                }}
+              >
+                <ClipboardCheck size={14} className="me-1" /> Review
+              </Button>
+            </CheckPermission>
+          </div>
+        ) : (
+          <Button
+            color="light"
+            className="border"
+            size="sm"
+            onClick={() => {
+              setViewingReadOnly(true);
+              setReviewing(row);
+            }}
+          >
+            <ClipboardCheck size={14} className="me-1" /> View
+          </Button>
+        ),
       ignoreRowClick: true,
       allowOverflow: true,
       button: true,
-      minWidth: "100px",
+      minWidth: "190px",
     },
   ];
 
   // Both return true on success so the modal knows when to close
-  const approve = async (id) => {
+  const approve = async (id, comment) => {
     try {
-      const res = await dispatch(approveSubmission({ id })).unwrap();
+      const res = await dispatch(approveSubmission({ id, comment })).unwrap();
       toast.success(res?.message || "Approved.");
       return true;
     } catch (error) {
-      toast.error(error?.message || "Failed to approve");
-      loadSubmissions(); // someone else may have reviewed it already
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to approve");
+        loadSubmissions(); // someone else may have reviewed it already
+      }
       return false;
     }
   };
@@ -174,8 +252,10 @@ const Approvals = () => {
       toast.success("Submission rejected.");
       return true;
     } catch (error) {
-      toast.error(error?.message || "Failed to reject");
-      loadSubmissions();
+      if (!handleAuthError(error)) {
+        toast.error(error?.message || "Failed to reject");
+        loadSubmissions();
+      }
       return false;
     }
   };
@@ -189,6 +269,7 @@ const Approvals = () => {
             Review centre-submitted compliance documents and approve or reject them. {pendingCount} pending.
           </p>
         </div>
+        <RefreshButton onRefresh={loadSubmissions} loading={submissionsLoading} />
       </div>
 
       <Nav tabs className="flex-wrap mb-0" style={{ borderBottom: "1px solid #dee2e6" }}>
@@ -202,6 +283,7 @@ const Approvals = () => {
                 onClick={(e) => {
                   e.preventDefault();
                   setStatusFilter(status.value);
+                  setPage(1);
                 }}
                 style={{
                   fontSize: 13,
@@ -231,13 +313,26 @@ const Approvals = () => {
 
       <Card className="mb-3 shadow-sm border-0" style={{ borderRadius: "0 0 8px 8px" }}>
         <CardBody className="py-3">
-          <div style={{ maxWidth: 260 }}>
-            <Select
-              classNamePrefix="react-select"
-              options={centreOptions}
-              value={centreOptions.find((o) => o.value === centreFilter) || centreOptions[0]}
-              onChange={(option) => setCentreFilter(option?.value || "all")}
-            />
+          <div className="d-flex flex-wrap gap-2">
+            <div style={{ maxWidth: 260, minWidth: 200 }}>
+              <Select
+                classNamePrefix="react-select"
+                options={centreOptions}
+                value={centreOptions.find((o) => o.value === centreFilter) || centreOptions[0]}
+                onChange={(option) => {
+                  setCentreFilter(option?.value || "all");
+                  setPage(1);
+                }}
+              />
+            </div>
+            <div style={{ maxWidth: 280, minWidth: 200 }}>
+              <Input
+                type="search"
+                placeholder="Search by compliance type..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+            </div>
           </div>
         </CardBody>
       </Card>
@@ -248,6 +343,12 @@ const Approvals = () => {
             columns={columns}
             data={rows}
             loading={submissionsLoading}
+            fixedHeader={false}
+            page={page}
+            setPage={setPage}
+            limit={limit}
+            setLimit={setLimit}
+            pagination={{ totalDocs: submissionsTotal }}
             noDataComponent="No submissions match these filters."
           />
         </CardBody>
@@ -260,6 +361,7 @@ const Approvals = () => {
         onApprove={approve}
         onReject={reject}
         busy={submissionReviewing}
+        readOnly={viewingReadOnly}
       />
     </div>
   );

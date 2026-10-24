@@ -3,35 +3,71 @@ import { Card, CardBody, Button } from "reactstrap";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import DataTableComponent from "../../../Components/Common/DataTable";
 import ConfirmationModal from "../../../Components/Common/ConfirmationModal";
+import ReviewModal from "../components/ReviewModal";
 import { formatDateTime } from "../../../utils/time";
 import { fetchMyDrafts, removeDraft } from "../../../store/features/compliance/complianceSlice";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
+import RefreshButton from "../../../Components/Common/RefreshButton";
 
 const centreLabel = (c) => c?.displayName || c?.title || c?.name || "—";
+
+// Draft -> the shape ReviewModal already understands (read-only here)
+const toModalShape = (s) => ({
+  id: s._id,
+  centreName: centreLabel(s.center),
+  categoryName: s.complianceType?.name || "—",
+  submittedBy: s.submittedBy?.name || s.submittedBy?.email || "—",
+  submittedAt: s.updatedAt,
+  issuingAuthority: s.issuingAuthority,
+  licenceNo: s.licenceNumber,
+  issuedOn: s.issueDate,
+  validTill: s.expiryDate,
+  noExpiry: s.noExpiry,
+  leadDays: s.renewalLeadDays,
+  owner: s.responsibleOwner,
+  escalateTo: s.escalateTo,
+  notes: s.notes,
+  files: s.documents || [],
+  fileNames: (s.documents || []).map((d) => d.originalName || d.name),
+  status: "draft", // no approve/reject buttons for drafts
+  note: "",
+});
 
 const MyDrafts = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { myDrafts, draftsLoading } = useSelector((state) => state.Compliance);
+  const handleAuthError = useAuthError();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { roles } = usePermissions(token);
+  const { myDrafts, myDraftsTotal, draftsLoading } = useSelector((state) => state.Compliance);
 
   const [discarding, setDiscarding] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [viewing, setViewing] = useState(null);
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
-  const loadDrafts = () => {
-    dispatch(fetchMyDrafts({}))
-      .unwrap()
-      .catch((error) => {
-        if (error?.aborted) return;
+  const loadDrafts = async () => {
+    try {
+      await dispatch(fetchMyDrafts({ page, limit })).unwrap();
+    } catch (error) {
+      if (error?.aborted) return;
+      if (!handleAuthError(error)) {
         toast.error(error?.message || "Failed to load drafts");
-      });
+      }
+    }
   };
 
   useEffect(() => {
     loadDrafts();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [page, limit]);
 
   const confirmDiscard = async () => {
     if (!discarding) return;
@@ -40,8 +76,11 @@ const MyDrafts = () => {
       await dispatch(removeDraft(discarding._id)).unwrap();
       toast.success("Draft discarded.");
       setDiscarding(null);
+      loadDrafts();
     } catch (error) {
-      toast.error(error?.message || "Failed to discard draft");
+      if (!handleAuthError(error)) {
+        toast.error(error?.response?.data?.message || error?.message || "Failed to discard draft");
+      }
     } finally {
       setBusy(false);
     }
@@ -82,17 +121,29 @@ const MyDrafts = () => {
       name: <div>Actions</div>,
       cell: (row) => (
         <div className="d-flex gap-2">
-          <Button
-            color="success"
-            size="sm"
-            className="text-white text-nowrap"
-            onClick={() => navigate(`/compliance/upload?draft=${row._id}`)}
+          <button
+            type="button"
+            className="btn btn-sm btn-outline-primary"
+            onClick={() => setViewing(toModalShape(row))}
+            title="View"
           >
-            <Pencil size={14} className="me-1" /> Continue
-          </Button>
-          <Button color="light" size="sm" className="border text-danger" onClick={() => setDiscarding(row)}>
-            <Trash2 size={14} />
-          </Button>
+            <Eye size={14} />
+          </button>
+          <CheckPermission accessRolePermission={roles?.permissions} subAccess="MY_DRAFTS" permission="edit">
+            <Button
+              color="success"
+              size="sm"
+              className="text-white text-nowrap"
+              onClick={() => navigate(`/compliance/upload?draft=${row._id}`)}
+            >
+              <Pencil size={14} className="me-1" /> Continue
+            </Button>
+          </CheckPermission>
+          <CheckPermission accessRolePermission={roles?.permissions} subAccess="MY_DRAFTS" permission="delete">
+            <Button color="light" size="sm" className="border text-danger" onClick={() => setDiscarding(row)}>
+              <Trash2 size={14} />
+            </Button>
+          </CheckPermission>
         </div>
       ),
       ignoreRowClick: true,
@@ -111,17 +162,7 @@ const MyDrafts = () => {
             Documents you started but haven't sent for verification yet. Only you can see and edit these.
           </p>
         </div>
-        {/* <div className="d-flex gap-2">
-          <RefreshButton onRefresh={loadDrafts} loading={draftsLoading} />
-          <Button
-            color="success"
-            size="sm"
-            className="text-white text-nowrap"
-            onClick={() => navigate("/compliance/upload")}
-          >
-            <Plus size={14} className="me-1" /> New document
-          </Button>
-        </div> */}
+        <RefreshButton onRefresh={loadDrafts} loading={draftsLoading} />
       </div>
 
       <Card className="shadow-sm border-0">
@@ -130,6 +171,12 @@ const MyDrafts = () => {
             columns={columns}
             data={myDrafts}
             loading={draftsLoading}
+            fixedHeader={false}
+            page={page}
+            setPage={setPage}
+            limit={limit}
+            setLimit={setLimit}
+            pagination={{ totalDocs: myDraftsTotal }}
             noDataComponent="No drafts. Anything you save as a draft will appear here."
           />
         </CardBody>
@@ -146,6 +193,14 @@ const MyDrafts = () => {
         confirmColor="danger"
         confirmDisabled={busy}
         onConfirm={confirmDiscard}
+      />
+
+      <ReviewModal
+        isOpen={!!viewing}
+        toggle={() => setViewing(null)}
+        submission={viewing}
+        onApprove={() => false}
+        onReject={() => false}
       />
     </div>
   );

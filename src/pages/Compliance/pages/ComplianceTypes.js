@@ -26,13 +26,15 @@ const ComplianceTypes = () => {
 
   const user = useSelector((state) => state.User);
   const centerList = useSelector((state) => state.Center.data);
-  const { types, typesLoading } = useSelector((state) => state.Compliance);
+  const { types, typesLoading, typesPagination } = useSelector((state) => state.Compliance);
 
   const [viewingType, setViewingType] = useState(null);
   const [deactivating, setDeactivating] = useState(null);
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(10);
 
   const centerOptions = useMemo(
     () => [
@@ -53,17 +55,19 @@ const ComplianceTypes = () => {
     }
   }, [user?.centerAccess, selectedCenter]);
 
-  const filteredTypes = useMemo(() => {
-    if (selectedCenter === "ALL") return types;
-    return types.filter((t) => t.applicableCenters?.some((c) => c._id === selectedCenter));
-  }, [types, selectedCenter]);
-
   const searchPromiseRef = useRef(null);
 
-  const loadTypes = (search = searchQuery) => {
+  const loadTypes = (search = searchQuery, pageArg = page) => {
     searchPromiseRef.current?.abort();
     const trimmed = search.trim();
-    const promise = dispatch(fetchComplianceTypes({ search: trimmed || undefined }));
+    const promise = dispatch(
+      fetchComplianceTypes({
+        search: trimmed || undefined,
+        center: selectedCenter === "ALL" ? undefined : selectedCenter,
+        page: pageArg,
+        limit,
+      }),
+    );
     searchPromiseRef.current = promise;
     promise
       .unwrap()
@@ -73,10 +77,11 @@ const ComplianceTypes = () => {
       });
   };
 
+  // centre, page or limit: reload from the server
   useEffect(() => {
     loadTypes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [selectedCenter, page, limit]);
 
   const isFirstSearchRun = useRef(true);
   useEffect(() => {
@@ -85,7 +90,8 @@ const ComplianceTypes = () => {
       return;
     }
     const handler = setTimeout(() => {
-      loadTypes(searchQuery);
+      setPage(1);
+      loadTypes(searchQuery, 1);
     }, 500);
     return () => clearTimeout(handler);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -146,7 +152,10 @@ const ComplianceTypes = () => {
                     classNamePrefix="react-select"
                     options={centerOptions}
                     value={selectedCenterOption}
-                    onChange={(option) => setSelectedCenter(option?.value)}
+                    onChange={(option) => {
+                      setSelectedCenter(option?.value);
+                      setPage(1);
+                    }}
                     placeholder="All Centers"
                   />
                 </Col>
@@ -177,8 +186,14 @@ const ComplianceTypes = () => {
               <div className="flex-grow-1 position-relative" style={{ minHeight: "500px" }}>
                 <DataTableComponent
                   columns={columns}
-                  data={filteredTypes}
+                  data={types}
                   loading={typesLoading}
+                  fixedHeader={false}
+                  page={page}
+                  setPage={setPage}
+                  limit={limit}
+                  setLimit={setLimit}
+                  pagination={{ totalDocs: typesPagination.total }}
                   noDataComponent="No compliance types match your search."
                 />
               </div>

@@ -1,15 +1,199 @@
-import React, { useMemo } from "react";
-import { Row, Col, Card, CardHeader, CardBody, Button } from "reactstrap";
+import { useEffect, useMemo, useState } from "react";
+import { Card, CardHeader, CardBody, Button, Spinner } from "reactstrap";
 import { Link, useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
+import Select from "react-select";
+import { ChevronsRight } from "lucide-react";
 import StatusBadge from "../components/StatusBadge";
-import { CENTRES, CATEGORIES, ITEMS, STATUS, formatDate, overviewStats, centreScore } from "../data";
+import ComplianceSummaryCards from "../components/ComplianceSummaryCards";
+import RefreshButton from "../../../Components/Common/RefreshButton";
+import {
+  getComplianceSummary,
+  getComplianceMatrix,
+  exportComplianceOverview,
+} from "../../../helpers/backend_helper";
+import { STATUS_KEY } from "./Register";
+import { CENTRES, ITEMS, STATUS, formatDate } from "../data";
+import { capitalizeWords } from "../../../utils/toCapitalize";
+import { useAuthError } from "../../../Components/Hooks/useAuthError";
+import { usePermissions } from "../../../Components/Hooks/useRoles";
+import CheckPermission from "../../../Components/HOC/CheckPermission";
 
 const ACTION_ORDER = { expired: 0, missing: 1, renewal: 2 };
+const MATRIX_PAGE_SIZE = 100;
+const MATRIX_TYPE_PAGE_SIZE = 10;
+const centreLabel = (c) => c?.displayName || c?.title || c?.name || "—";
 
 const Overview = () => {
   const navigate = useNavigate();
+  const handleAuthError = useAuthError();
+  const microUser = localStorage.getItem("micrologin");
+  const token = microUser ? JSON.parse(microUser).token : null;
+  const { roles } = usePermissions(token);
 
-  const stats = useMemo(() => overviewStats(), []);
+  const centerList = useSelector((state) => state.Center.data);
+  const user = useSelector((state) => state.User);
+
+  const centreOptions = useMemo(() => {
+    const accessible =
+      centerList?.filter((c) => user?.centerAccess?.includes(c._id)) || [];
+    return [
+      { value: "all", label: "All centres" },
+      ...accessible.map((c) => ({ value: c._id, label: centreLabel(c) })),
+    ];
+  }, [centerList, user?.centerAccess]);
+
+  const [centreFilter, setCentreFilter] = useState("all");
+  const [summary, setSummary] = useState(null);
+  const [summaryLoading, setSummaryLoading] = useState(false);
+  const [matrix, setMatrix] = useState(null);
+  const [matrixLoading, setMatrixLoading] = useState(false);
+  const [matrixMoreLoading, setMatrixMoreLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
+
+  const loadSummary = async () => {
+    setSummaryLoading(true);
+    try {
+      const res = await getComplianceSummary({ center: centreFilter === "all" ? undefined : centreFilter });
+      setSummary(res?.data || null);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.response?.data?.message || error?.message || "Failed to load summary");
+      }
+    } finally {
+      setSummaryLoading(false);
+    }
+  };
+
+
+  const loadMatrix = async () => {
+    setMatrixLoading(true);
+    try {
+      const res = await getComplianceMatrix({
+        center: centreFilter === "all" ? undefined : centreFilter,
+        page: 1,
+        limit: MATRIX_PAGE_SIZE,
+        typePage: 1,
+        typeLimit: MATRIX_TYPE_PAGE_SIZE,
+      });
+      setMatrix(res?.data || null);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.response?.data?.message || error?.message || "Failed to load compliance matrix");
+      }
+    } finally {
+      setMatrixLoading(false);
+    }
+  };
+
+  // Refresh without losing how much the user already drilled into: same row
+  // page, same centre filter, and the same number of type columns already
+  // loaded (even if that spans several "Load more" clicks) — a plain
+  // loadMatrix() would silently collapse back to the first 10 columns.
+  const refreshMatrix = async () => {
+    const loadedTypeCount = matrix?.types?.length || MATRIX_TYPE_PAGE_SIZE;
+    setMatrixLoading(true);
+    try {
+      const res = await getComplianceMatrix({
+        center: centreFilter === "all" ? undefined : centreFilter,
+        page: 1,
+        limit: MATRIX_PAGE_SIZE,
+        typePage: 1,
+        typeLimit: loadedTypeCount,
+      });
+      setMatrix(res?.data || null);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.response?.data?.message || error?.message || "Failed to load compliance matrix");
+      }
+    } finally {
+      setMatrixLoading(false);
+    }
+  };
+
+  const refreshAll = () => {
+    loadSummary();
+    refreshMatrix();
+  };
+
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const res = await exportComplianceOverview({
+        center: centreFilter === "all" ? undefined : centreFilter,
+      });
+      const blob = new Blob([res.data], {
+        type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      });
+      const blobUrl = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = blobUrl;
+      a.download = `Compliance_Overview_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      window.URL.revokeObjectURL(blobUrl);
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error("Something went wrong while generating the Excel file");
+      }
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  // "Load more compliance types": fetches the next 10 type columns and
+  // appends them (plus their cells) to what's already shown, instead of
+  // replacing the page — row scores don't change, they already reflect every
+  // applicable type regardless of how many columns are currently loaded.
+  // The next page is derived from how many columns are actually loaded, not
+  // from the last response's own typePagination.page — refreshMatrix() may
+  // have fetched a bigger single "page" to preserve a wider column set, and
+  // this keeps the two from drifting out of sync.
+  const loadMoreTypes = async () => {
+    const loadedTypeCount = matrix?.types?.length || 0;
+    const nextTypePage = Math.floor(loadedTypeCount / MATRIX_TYPE_PAGE_SIZE) + 1;
+    setMatrixMoreLoading(true);
+    try {
+      const res = await getComplianceMatrix({
+        center: centreFilter === "all" ? undefined : centreFilter,
+        page: 1,
+        limit: MATRIX_PAGE_SIZE,
+        typePage: nextTypePage,
+        typeLimit: MATRIX_TYPE_PAGE_SIZE,
+      });
+      const more = res?.data;
+      if (more) {
+        setMatrix((prev) => ({
+          ...prev,
+          types: [...prev.types, ...more.types],
+          typePagination: more.typePagination,
+          centres: prev.centres.map((c) => {
+            const match = more.centres.find((mc) => mc.centerId === c.centerId);
+            return match ? { ...c, cells: { ...c.cells, ...match.cells } } : c;
+          }),
+        }));
+      }
+    } catch (error) {
+      if (!handleAuthError(error)) {
+        toast.error(error?.response?.data?.message || error?.message || "Failed to load more compliance types");
+      }
+    } finally {
+      setMatrixMoreLoading(false);
+    }
+  };
+
+  // the filter drives both the summary cards and the matrix together
+  useEffect(() => {
+    loadSummary();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centreFilter]);
+
+  useEffect(() => {
+    loadMatrix();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [centreFilter]);
 
   const upcoming = useMemo(
     () =>
@@ -43,87 +227,43 @@ const Overview = () => {
           <div>
             <h5 className="mb-1 fw-semibold">Overview</h5>
             <p className="text-muted mb-0 fs-13">
-              Registrations, NOCs, licences and their documents across all {CENTRES.length} centres.
+              Registrations, NOCs, licences and their documents across all{" "}
+              {matrix ? matrix.pagination?.total ?? matrix.centres.length : CENTRES.length} centres.
             </p>
           </div>
-          <div className="d-flex gap-2 w-100 w-sm-auto">
-            <Button color="light" className="border flex-fill flex-sm-grow-0" size="sm">
-              Export
-            </Button>
+          <div className="d-flex flex-wrap justify-content-end gap-2 ms-sm-auto align-items-center">
+            <RefreshButton onRefresh={refreshAll} loading={summaryLoading || matrixLoading} />
+            <div className="flex-shrink-0" style={{ minWidth: 180 }}>
+              <Select
+                classNamePrefix="react-select"
+                options={centreOptions}
+                value={centreOptions.find((o) => o.value === centreFilter) || centreOptions[0]}
+                onChange={(option) => setCentreFilter(option?.value || "all")}
+              />
+            </div>
             <Button
-              color="success"
-              className="text-white flex-fill flex-sm-grow-0"
+              color="light"
+              className="border flex-shrink-0"
               size="sm"
-              onClick={() => navigate("/compliance/upload")}
+              disabled={exporting}
+              onClick={handleExport}
             >
-              Add item
+              {exporting ? "Exporting…" : "Export"}
             </Button>
+            <CheckPermission accessRolePermission={roles?.permissions} subAccess="REGISTER" permission="create">
+              <Button
+                color="success"
+                className="text-white flex-shrink-0"
+                size="sm"
+                onClick={() => navigate("/compliance/upload")}
+              >
+                Add item
+              </Button>
+            </CheckPermission>
           </div>
         </div>
 
-        {/* Summary cards */}
-        <Row className="g-2 g-md-3 mb-3">
-          {[
-            {
-              label: "Compliance score",
-              value: `${stats.score}%`,
-              sub: `${stats.compliant} of ${stats.total} items current`,
-              color: "#1D5A41",
-            },
-            {
-              label: "Expired",
-              value: stats.expired,
-              sub: "Operating without valid cover",
-              color: "#9A2418",
-            },
-            {
-              label: "Due in 30 days",
-              value: stats.due30,
-              sub: "Start renewal now",
-              color: "#7A4300",
-            },
-            {
-              label: "Due in 31–90 days",
-              value: stats.due90,
-              sub: "Plan inspections & fees",
-              color: "#1F4E8C",
-            },
-            {
-              label: "In renewal",
-              value: stats.renewal,
-              sub: "Applied, awaiting authority",
-              color: "#5A3E8F",
-            },
-            {
-              label: "Document missing",
-              value: stats.missing,
-              sub: "Record exists, no file on file",
-              color: "#9A2418",
-            },
-          ].map((c) => (
-            <Col xs={6} md={4} lg={2} key={c.label}>
-              <Card
-                className="h-100 shadow-sm mb-0 border-0"
-                style={{ borderLeft: `3px solid ${c.color}` }}
-              >
-                <CardBody className="p-3">
-                  <div
-                    className="text-uppercase text-truncate mb-2"
-                    style={{ fontSize: 11, fontWeight: 600, letterSpacing: "0.04em", color: c.color }}
-                  >
-                    {c.label}
-                  </div>
-                  <div className="fs-3 fw-bold lh-1 mt-1" style={{ color: c.color }}>
-                    {c.value}
-                  </div>
-                  <div className="text-muted mt-2" style={{ fontSize: 12 }}>
-                    {c.sub}
-                  </div>
-                </CardBody>
-              </Card>
-            </Col>
-          ))}
-        </Row>
+        <ComplianceSummaryCards summary={summary} loading={summaryLoading} />
 
         {/* Centre x compliance matrix */}
         <Card className="shadow-sm mb-3 border-0">
@@ -134,105 +274,234 @@ const Overview = () => {
                 Tap a centre to open its full register.
               </span>
             </div>
-            <div className="d-none d-lg-flex flex-wrap gap-2">
-              {["valid", "due90", "due30", "expired", "renewal", "missing", "lt"].map((k) => (
-                <StatusBadge key={k} statusKey={k} />
-              ))}
-            </div>
           </CardHeader>
-          <CardBody>
-            {/* Desktop/tablet: full matrix table */}
-            <div className="table-responsive d-none d-md-block">
-              <table className="table table-borderless table-sm mb-0" style={{ minWidth: 980 }}>
-                <thead>
-                  <tr className="text-muted" style={{ fontSize: 12 }}>
-                    <th style={{ width: 140 }}>Centre</th>
-                    {CATEGORIES.map((c) => (
-                      <th key={c.id}>{c.short}</th>
-                    ))}
-                    <th className="text-end">Score</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {CENTRES.map((centre) => (
-                    <tr key={centre.id}>
-                      <td>
-                        <Link to={`/compliance/centres/${centre.id}`} className="text-decoration-none">
-                          <div className="fw-semibold text-dark">{centre.name}</div>
-                          <div className="text-muted" style={{ fontSize: 12 }}>
-                            {centre.state === "MH" ? "Maharashtra" : centre.state}
-                          </div>
-                        </Link>
-                      </td>
-                      {CATEGORIES.map((cat) => {
-                        const item = ITEMS.find((i) => i.centreId === centre.id && i.categoryId === cat.id);
-                        const s = STATUS[item.statusKey];
-                        return (
-                          <td key={cat.id}>
-                            <div
-                              className="rounded p-2"
-                              style={{
-                                background: s.bg,
-                                color: s.fg,
-                                border: `1px ${s.dashed ? "dashed" : "solid"} ${s.border}`,
-                                minHeight: 44,
-                              }}
+          <CardBody className="position-relative">
+            {matrixLoading && matrix && (
+              <div
+                className="position-absolute d-flex align-items-center justify-content-center"
+                style={{ inset: 0, background: "rgba(255,255,255,0.6)", zIndex: 2 }}
+              >
+                <Spinner size="sm" color="primary" />
+              </div>
+            )}
+            {matrixLoading && !matrix ? (
+              <div className="text-center text-muted py-5">Loading matrix…</div>
+            ) : !matrix?.centres?.length ? (
+              <div className="text-center text-muted py-5" style={{ fontSize: 13 }}>
+                No centres in scope yet.
+              </div>
+            ) : (
+              <>
+                <div className="table-responsive d-none d-md-block">
+                  <table
+                    className="table table-borderless table-sm mb-0"
+                    style={{
+                      minWidth:
+                        180 +
+                        matrix.types.length * 130 +
+                        90 +
+                        (matrix.typePagination?.page < matrix.typePagination?.totalPages ? 90 : 0),
+                    }}
+                  >
+                    <thead>
+                      <tr className="text-muted" style={{ fontSize: 12 }}>
+                        <th
+                          className="bg-white"
+                          style={{
+                            width: 180,
+                            minWidth: 180,
+                            position: "sticky",
+                            left: 0,
+                            zIndex: 1,
+                          }}
+                        >
+                          Centre
+                        </th>
+                        {matrix.types.map((t) => (
+                          <th key={t._id} style={{ minWidth: 130 }} title={t.name}>
+                            {capitalizeWords(t.shortName || t.name)}
+                          </th>
+                        ))}
+                        {matrix.typePagination &&
+                          matrix.typePagination.page < matrix.typePagination.totalPages && (
+                            <th className="text-center" style={{ width: 90, minWidth: 90, maxWidth: 90 }} />
+                          )}
+                        <th className="text-end pe-3" style={{ minWidth: 90 }}>
+                          Score
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {matrix.centres.map((centre, idx) => (
+                        <tr key={centre.centerId}>
+                          <td
+                            className="bg-white"
+                            style={{ position: "sticky", left: 0, zIndex: 1 }}
+                          >
+                            <Link
+                              to={`/compliance/centres/${centre.centerId}`}
+                              className="text-decoration-none"
                             >
-                              <div style={{ fontSize: 12, fontWeight: 600 }}>
-                                {item.statusKey === "na" ? "Not applicable" : s.label}
+                              <div className="fw-semibold text-dark text-truncate" style={{ maxWidth: 170 }}>
+                                {capitalizeWords(centre.name)}
                               </div>
-                              <div style={{ fontSize: 11, fontFamily: "monospace" }}>
-                                {item.validTill
-                                  ? formatDate(item.validTill)
-                                  : item.statusKey === "missing"
-                                  ? "No file"
-                                  : item.statusKey === "lt"
-                                  ? "Lifetime"
-                                  : ""}
-                              </div>
-                            </div>
+                            </Link>
                           </td>
-                        );
-                      })}
-                      <td className="text-end fw-semibold align-middle">{centreScore(centre.id)}%</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                          {matrix.types.map((t) => {
+                            const cell = centre.cells[t._id];
+                            if (!cell) {
+                              return (
+                                <td key={t._id}>
+                                  <div
+                                    className="rounded p-2 text-center text-muted"
+                                    style={{ minHeight: 44, fontSize: 12, background: "#F5F6F3" }}
+                                  >
+                                    Not applicable
+                                  </div>
+                                </td>
+                              );
+                            }
+                            const s = STATUS[STATUS_KEY[cell.status]];
+                            return (
+                              <td key={t._id}>
+                                <div
+                                  className="rounded p-2"
+                                  style={{
+                                    background: s.bg,
+                                    color: s.fg,
+                                    border: `1px ${s.dashed ? "dashed" : "solid"} ${s.border}`,
+                                    minHeight: 44,
+                                  }}
+                                >
+                                  <div style={{ fontSize: 12, fontWeight: 600 }}>{s.label}</div>
+                                  <div style={{ fontSize: 11, fontFamily: "monospace" }}>
+                                    {cell.noExpiry
+                                      ? "Lifetime"
+                                      : cell.expiryDate
+                                      ? formatDate(new Date(cell.expiryDate))
+                                      : "No file"}
+                                  </div>
+                                </div>
+                              </td>
+                            );
+                          })}
+                          {idx === 0 &&
+                            matrix.typePagination &&
+                            matrix.typePagination.page < matrix.typePagination.totalPages &&
+                            (() => {
+                              const remaining = Math.min(
+                                MATRIX_TYPE_PAGE_SIZE,
+                                matrix.typePagination.total - matrix.types.length,
+                              );
+                              return (
+                                <td
+                                  rowSpan={matrix.centres.length}
+                                  className="text-center align-middle"
+                                  style={{ width: 90, minWidth: 90, maxWidth: 90 }}
+                                >
+                                  <button
+                                    type="button"
+                                    className="load-more-types-btn"
+                                    disabled={matrixMoreLoading}
+                                    onClick={loadMoreTypes}
+                                    style={{
+                                      border: "none",
+                                      background: "transparent",
+                                      display: "inline-flex",
+                                      flexDirection: "column",
+                                      alignItems: "center",
+                                      gap: 4,
+                                      padding: "6px 4px",
+                                      cursor: matrixMoreLoading ? "default" : "pointer",
+                                    }}
+                                  >
+                                    <span
+                                      style={{
+                                        width: 28,
+                                        height: 28,
+                                        borderRadius: "50%",
+                                        background: matrixMoreLoading ? "#E9ECEF" : "#E8EEF9",
+                                        color: "#1F4E8C",
+                                        display: "flex",
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                      }}
+                                    >
+                                      {matrixMoreLoading ? (
+                                        <Spinner size="sm" style={{ width: 14, height: 14 }} color="primary" />
+                                      ) : (
+                                        <ChevronsRight size={15} />
+                                      )}
+                                    </span>
+                                    <span
+                                      style={{
+                                        fontSize: 11,
+                                        fontWeight: 600,
+                                        color: matrixMoreLoading ? "#adb5bd" : "#1F4E8C",
+                                        lineHeight: 1.2,
+                                      }}
+                                    >
+                                      {matrixMoreLoading ? "Loading…" : `Load ${remaining} more`}
+                                    </span>
+                                  </button>
+                                </td>
+                              );
+                            })()}
+                          <td className="text-end fw-semibold align-middle pe-3">{centre.score}%</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
 
-            {/* Mobile: one card per centre, status chips wrap */}
-            <div className="d-md-none d-flex flex-column gap-2">
-              {CENTRES.map((centre) => (
-                <Link
-                  key={centre.id}
-                  to={`/compliance/centres/${centre.id}`}
-                  className="text-decoration-none text-dark"
-                >
-                  <div className="border rounded p-2">
-                    <div className="d-flex justify-content-between align-items-center mb-2">
-                      <div>
-                        <div className="fw-semibold">{centre.name}</div>
-                        <div className="text-muted" style={{ fontSize: 12 }}>
-                          {centre.state === "MH" ? "Maharashtra" : centre.state}
+                {/* Mobile: one card per centre, status chips wrap */}
+                <div className="d-md-none d-flex flex-column gap-2">
+                  {matrix.centres.map((centre) => (
+                    <Link
+                      key={centre.centerId}
+                      to={`/compliance/centres/${centre.centerId}`}
+                      className="text-decoration-none text-dark"
+                    >
+                      <div className="border rounded p-2">
+                        <div className="d-flex justify-content-between align-items-center mb-2">
+                          <div className="fw-semibold">{capitalizeWords(centre.name)}</div>
+                          <div className="fw-semibold ps-2">{centre.score}%</div>
+                        </div>
+                        <div className="d-flex flex-wrap gap-1">
+                          {matrix.types.map((t) => {
+                            const cell = centre.cells[t._id];
+                            if (!cell) return null;
+                            return <StatusBadge key={t._id} statusKey={STATUS_KEY[cell.status]} />;
+                          })}
                         </div>
                       </div>
-                      <div className="fw-semibold">{centreScore(centre.id)}%</div>
+                    </Link>
+                  ))}
+                </div>
+                {matrix.typePagination &&
+                  matrix.typePagination.page < matrix.typePagination.totalPages && (
+                    <div className="d-md-none d-flex justify-content-center mt-2">
+                      <Button
+                        color="light"
+                        className="border"
+                        size="sm"
+                        disabled={matrixMoreLoading}
+                        onClick={loadMoreTypes}
+                      >
+                        {matrixMoreLoading
+                          ? "Loading..."
+                          : `Load more compliance types (${matrix.types.length} of ${matrix.typePagination.total})`}
+                      </Button>
                     </div>
-                    <div className="d-flex flex-wrap gap-1">
-                      {CATEGORIES.map((cat) => {
-                        const item = ITEMS.find((i) => i.centreId === centre.id && i.categoryId === cat.id);
-                        if (item.statusKey === "na") return null;
-                        return <StatusBadge key={cat.id} statusKey={item.statusKey} />;
-                      })}
-                    </div>
-                  </div>
-                </Link>
-              ))}
-            </div>
+                  )}
+
+              </>
+            )}
           </CardBody>
         </Card>
 
+        {/* Still mock-data driven (upcoming/actionNeeded come from ../data,
+            not a live endpoint) — commented out until that's wired up.
         <Row className="g-3 mb-3">
           <Col lg={7}>
             <Card className="shadow-sm h-100 mb-0 border-0">
@@ -303,6 +572,7 @@ const Overview = () => {
             </Card>
           </Col>
         </Row>
+        */}
       </div>
   );
 };
