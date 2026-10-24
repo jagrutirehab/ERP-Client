@@ -67,6 +67,8 @@ const VendorList = ({ onAdd, onEdit }) => {
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
   const [totalRows, setTotalRows] = useState(0);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState(10);
@@ -92,6 +94,8 @@ const VendorList = ({ onAdd, onEdit }) => {
           page,
           limit: perPage,
           search: debouncedSearch,
+          ...(categoryFilter ? { vendorCategory: categoryFilter } : {}),
+          ...(statusFilter ? { approvalStatus: statusFilter } : {}),
         });
         if (cancelled) return;
         setVendors(res?.data || []);
@@ -114,7 +118,7 @@ const VendorList = ({ onAdd, onEdit }) => {
       cancelled = true;
     };
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, perPage, debouncedSearch, refreshFlag]);
+  }, [page, perPage, debouncedSearch, categoryFilter, statusFilter, refreshFlag]);
 
 
   // Draft/Incomplete/Rejected → Submit, Pending → Approve (aur activate bhi)
@@ -221,27 +225,38 @@ const VendorList = ({ onAdd, onEdit }) => {
       sortable: true,
       minWidth: "130px",
       hide: 1150,
-      cell: (row) => (
-        <span className="vendor-cell-muted text-capitalize">
-          {(row.vendorType || "—").replace(/_/g, " ")}
-        </span>
-      ),
+      cell: (row) =>
+        row.vendorCategory === "central_payment" ? (
+          <span className="vendor-category-badge is-central">
+            <i className="bx bx-wallet"></i> Central Payment
+          </span>
+        ) : (
+          <div>
+            <span className="vendor-category-badge is-po">
+              <i className="bx bx-cart"></i> PO Required
+            </span>
+            {row.vendorType && (
+              <div className="vendor-cell-muted small text-capitalize mt-1">
+                {row.vendorType.replace(/_/g, " ")}
+              </div>
+            )}
+          </div>
+        ),
     },
     {
       name: "PAN",
+      selector: (row) => row.pan,
+      sortable: true,
       minWidth: "130px",
-      hide: 1800,
+      hide: 1366,
       cell: (row) => <span className="vendor-cell-code">{row.pan || "—"}</span>,
     },
     {
-      name: "Contact Person",
-      selector: (row) => row.primaryContact?.name,
-      minWidth: "160px",
-      hide: 1366,
+      name: "GSTIN",
+      minWidth: "170px",
+      hide: 1500,
       cell: (row) => (
-        <span className="vendor-cell-text">
-          {row.primaryContact?.name || "—"}
-        </span>
+        <span className="vendor-cell-code">{primaryGstin(row) || "—"}</span>
       ),
     },
     {
@@ -251,6 +266,23 @@ const VendorList = ({ onAdd, onEdit }) => {
       cell: (row) => (
         <span className="vendor-cell-muted">
           {row.primaryContact?.phone || "—"}
+        </span>
+      ),
+    },
+    {
+      name: "Added On",
+      selector: (row) => row.createdAt,
+      minWidth: "120px",
+      hide: 1800,
+      cell: (row) => (
+        <span className="vendor-cell-muted">
+          {row.createdAt
+            ? new Date(row.createdAt).toLocaleDateString("en-IN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+              })
+            : "—"}
         </span>
       ),
     },
@@ -329,7 +361,7 @@ const VendorList = ({ onAdd, onEdit }) => {
         <div className="vendor-search-wrap">
           <i className="bx bx-search"></i>
           <Input
-            placeholder="Search by name, code"
+            placeholder="Search by name, code, PAN, GSTIN"
             value={search}
             onChange={(e) => {
               setSearch(e.target.value);
@@ -337,11 +369,57 @@ const VendorList = ({ onAdd, onEdit }) => {
             }}
           />
         </div>
+        <div className="vendor-filter-group">
+          <Input
+            type="select"
+            aria-label="Filter by vendor type"
+            value={categoryFilter}
+            onChange={(e) => {
+              setCategoryFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">All vendor types</option>
+            <option value="po_required">PO Required Vendor</option>
+            <option value="central_payment">Central Payment Vendor</option>
+          </Input>
+          <Input
+            type="select"
+            aria-label="Filter by status"
+            value={statusFilter}
+            onChange={(e) => {
+              setStatusFilter(e.target.value);
+              setPage(1);
+            }}
+          >
+            <option value="">All statuses</option>
+            <option value="approved">Active</option>
+            <option value="pending">Pending</option>
+            <option value="draft">Draft</option>
+          </Input>
+          {(categoryFilter || statusFilter) && (
+            <Button
+              color="light"
+              onClick={() => {
+                setCategoryFilter("");
+                setStatusFilter("");
+                setPage(1);
+              }}
+            >
+              Clear
+            </Button>
+          )}
+        </div>
         {canCreate && (
           <Button color="primary" onClick={onAdd}>
             <i className="bx bx-plus me-1"></i> Add Vendor
           </Button>
         )}
+      </div>
+
+      <div className="vendor-result-count">
+        {loading ? "Loading…" : `${totalRows} vendor${totalRows === 1 ? "" : "s"}`}
+        {(categoryFilter || statusFilter || debouncedSearch) && " found"}
       </div>
 
       <div className="vendor-table-card">
@@ -373,14 +451,14 @@ const VendorList = ({ onAdd, onEdit }) => {
           highlightOnHover
           responsive
           noDataComponent={
-            search ? (
+            search || categoryFilter || statusFilter ? (
               <div className="vendor-empty-state">
                 <i className="bx bx-search-alt"></i>
                 <p className="mb-1 fw-semibold text-dark">
-                  No vendors match "{search}"
+                  {search ? `No vendors match "${search}"` : "No vendors match these filters"}
                 </p>
                 <p className="mb-0 small text-muted">
-                  Try a different name, code, or GSTIN.
+                  Try a different name, code, PAN or GSTIN, or clear the filters.
                 </p>
               </div>
             ) : (

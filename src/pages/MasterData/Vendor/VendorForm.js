@@ -18,6 +18,7 @@ import { usePermissions } from "../../../Components/Hooks/useRoles.js";
 import "./vendor.scss";
 
 const PAN_REGEX = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+const IFSC_REGEX = /^[A-Z]{4}0[A-Z0-9]{6}$/;
 const GSTIN_REGEX = /^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/;
 
 const ENTITY_TYPES = [
@@ -235,7 +236,21 @@ const SECTION_ICONS = {
   documents: "bx bx-file",
 };
 
+const VENDOR_CATEGORIES = [
+  {
+    value: "po_required",
+    label: "PO Required Vendor",
+    sub: "Full vendor record. Available when raising a Purchase Order.",
+  },
+  {
+    value: "central_payment",
+    label: "Central Payment Vendor",
+    sub: "Only for Central Payment. Not shown when raising a PO.",
+  },
+];
+
 const emptyInitialValues = {
+  vendorCategory: "po_required",
   vendorType: "",
   tradeName: "",
   legalName: "",
@@ -269,6 +284,7 @@ const emptyInitialValues = {
     state: "",
   },
   bankDetails: {
+    accountHolderName: "",
     accountNo: "",
     ifsc: "",
     bankName: "",
@@ -349,6 +365,29 @@ const validationSchema = Yup.object({
   }),
 });
 
+// Central Payment vendors: payment details only, every field mandatory.
+const centralPaymentSchema = Yup.object({
+  tradeName: Yup.string().trim().required("Vendor Name is required"),
+  pan: Yup.string()
+    .required("PAN Card No. is required")
+    .matches(PAN_REGEX, "Enter a valid PAN, e.g. ABCDE1234F"),
+  bankDetails: Yup.object({
+    ifsc: Yup.string()
+      .required("Bank IFSC Code is required")
+      .matches(IFSC_REGEX, "Enter a valid IFSC, e.g. SBIN0001234"),
+    accountHolderName: Yup.string()
+      .trim()
+      .required("Account Holder Name is required"),
+    accountNo: Yup.string().trim().required("Account No. is required"),
+  }),
+});
+
+const formValidationSchema = Yup.lazy((values) =>
+  values?.vendorCategory === "central_payment"
+    ? centralPaymentSchema
+    : validationSchema,
+);
+
 const buildTouchedFromErrors = (errors) => {
   if (Array.isArray(errors))
     return errors.map((e) => buildTouchedFromErrors(e));
@@ -402,6 +441,7 @@ const collectMissingFields = (errors) => {
       labels.push(`Billing Address – ${ADDRESS_FIELD_LABELS[key]}`);
   });
 
+  if (errors.bankDetails?.accountHolderName) labels.push("Account holder name");
   if (errors.bankDetails?.accountNo) labels.push("Account number");
   if (errors.bankDetails?.ifsc) labels.push("IFSC code");
   if (errors.bankDetails?.bankName) labels.push("Bank name");
@@ -574,7 +614,15 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
     const fetchVendor = async () => {
       try {
         const res = await getVendorById(vendorId);
-        setInitialValues({ ...emptyInitialValues, ...res?.data });
+        setInitialValues({
+          ...emptyInitialValues,
+          ...res?.data,
+          vendorCategory: res?.data?.vendorCategory || "po_required",
+          bankDetails: {
+            ...emptyInitialValues.bankDetails,
+            ...res?.data?.bankDetails,
+          },
+        });
       } catch (error) {
         if (!handleAuthError(error)) {
           toast.error(
@@ -605,9 +653,10 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
   const validation = useFormik({
     enableReinitialize: true,
     initialValues,
-    validationSchema,
+    validationSchema: formValidationSchema,
     onSubmit: async (values) => {
       try {
+        const isCentral = values.vendorCategory === "central_payment";
         const gstEntries = (values.gstRegistrations || []).map((g, idx) => ({
           index: idx + 1,
           gstin: (g.gstin || "").trim().toUpperCase(),
@@ -636,7 +685,17 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
           return;
         }
 
-        if (canUploadDocs) {
+        if (isCentral && canUploadDocs) {
+          const hasPanCard =
+            !!documentFiles["pan_card"] ||
+            (values.documents || []).some((d) => d.docType === "pan_card");
+          if (!hasPanCard) {
+            toast.error("PAN Card upload is required — please upload it before saving.");
+            return;
+          }
+        }
+
+        if (canUploadDocs && !isCentral) {
           const hasCancelledCheque =
             !!documentFiles["cancelled_cheque"] ||
             (values.documents || []).some(
@@ -709,10 +768,23 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
         }
         let savedVendorId = vendorId;
 
+        const body = isCentral
+          ? {
+              vendorCategory: "central_payment",
+              tradeName: values.tradeName,
+              pan: values.pan,
+              bankDetails: {
+                accountHolderName: values.bankDetails.accountHolderName,
+                accountNo: values.bankDetails.accountNo,
+                ifsc: values.bankDetails.ifsc,
+              },
+            }
+          : { ...payload, vendorCategory: "po_required" };
+
         if (vendorId) {
-          await updateVendor(vendorId, payload);
+          await updateVendor(vendorId, body);
         } else {
-          const res = await createVendor(payload);
+          const res = await createVendor(body);
           savedVendorId = res?.data?._id;
         }
         dispatch(invalidateReferenceList("vendors"));
@@ -751,6 +823,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
   });
 
   const v = validation.values;
+  const isCentral = v.vendorCategory === "central_payment";
 
   const addGst = () =>
     validation.setFieldValue("gstRegistrations", [
@@ -802,7 +875,30 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
   };
 
   const sections = useMemo(
-    () => [
+    () =>
+      isCentral
+        ? [
+            {
+              key: "identity",
+              number: 1,
+              title: "Central Payment Vendor",
+              sub: "Vendor name, bank and PAN details",
+              checks: [
+                !!v.tradeName,
+                !!v.bankDetails?.ifsc && IFSC_REGEX.test(v.bankDetails.ifsc),
+                !!v.bankDetails?.accountHolderName,
+                !!v.bankDetails?.accountNo,
+                !!v.pan && PAN_REGEX.test(v.pan),
+                ...(canUploadDocs
+                  ? [
+                      !!documentFiles["pan_card"] ||
+                        (v.documents || []).some((d) => d.docType === "pan_card"),
+                    ]
+                  : []),
+              ],
+            },
+          ]
+        : [
       {
         key: "identity",
         number: 1,
@@ -904,7 +1000,7 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
           ]
         : []),
     ],
-    [v, canUploadDocs, documentFiles],
+    [v, canUploadDocs, documentFiles, isCentral],
   );
 
   const overall = useMemo(() => {
@@ -1063,6 +1159,172 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
 
           {/* ---------- Sections ---------- */}
           <div className="vendor-sections-col">
+            {/* Vendor Type */}
+            <div className="vendor-section-card">
+              <div className="vendor-section-body">
+                <Label>
+                  Vendor Type <span className="text-danger">*</span>
+                </Label>
+                <Row>
+                  {VENDOR_CATEGORIES.map((c) => (
+                    <Col md={6} key={c.value} className="mb-2">
+                      <label
+                        className="d-flex gap-2 p-3 border rounded"
+                        style={{
+                          cursor: vendorId ? "not-allowed" : "pointer",
+                          opacity: vendorId && v.vendorCategory !== c.value ? 0.5 : 1,
+                          borderColor:
+                            v.vendorCategory === c.value ? "var(--v-primary)" : undefined,
+                        }}
+                      >
+                        <Input
+                          type="radio"
+                          name="vendorCategory"
+                          value={c.value}
+                          checked={v.vendorCategory === c.value}
+                          disabled={!!vendorId}
+                          onChange={() => {
+                            validation.setFieldValue("vendorCategory", c.value);
+                            setDocumentFiles({});
+                          }}
+                        />
+                        <span>
+                          <span className="d-block fw-semibold">{c.label}</span>
+                          <span className="d-block small text-muted">{c.sub}</span>
+                        </span>
+                      </label>
+                    </Col>
+                  ))}
+                </Row>
+                {vendorId && (
+                  <div className="small text-muted">
+                    Vendor Type can't be changed after the vendor is created.
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {isCentral && (
+              <div className="vendor-section-card" ref={sectionRefs.identity}>
+                <div className="vendor-section-header">
+                  <div className="vendor-section-number">1</div>
+                  <div>
+                    <p className="vendor-section-title">Central Payment Vendor</p>
+                    <p className="vendor-section-sub">
+                      Vendor name, bank and PAN details
+                    </p>
+                  </div>
+                </div>
+                <div className="vendor-section-body">
+                  <Row>
+                    <Col md={6} className="mb-3">
+                      <Label>
+                        Vendor Name <span className="text-danger">*</span>
+                      </Label>
+                      <Input
+                        name="tradeName"
+                        value={v.tradeName}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={validation.touched.tradeName && !!validation.errors.tradeName}
+                      />
+                      <FormFeedback>{validation.errors.tradeName}</FormFeedback>
+                    </Col>
+                    <Col md={6} className="mb-3">
+                      <Label>
+                        Bank IFSC Code <span className="text-danger">*</span>
+                      </Label>
+                      <Input
+                        name="bankDetails.ifsc"
+                        value={v.bankDetails.ifsc}
+                        onChange={(e) =>
+                          validation.setFieldValue(
+                            "bankDetails.ifsc",
+                            e.target.value.toUpperCase(),
+                          )
+                        }
+                        onBlur={validation.handleBlur}
+                        invalid={validation.touched.bankDetails?.ifsc && !!validation.errors.bankDetails?.ifsc}
+                      />
+                      <FormFeedback>{validation.errors.bankDetails?.ifsc}</FormFeedback>
+                    </Col>
+                    <Col md={6} className="mb-3">
+                      <Label>
+                        Account Holder Name <span className="text-danger">*</span>
+                      </Label>
+                      <Input
+                        name="bankDetails.accountHolderName"
+                        value={v.bankDetails.accountHolderName}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={
+                          validation.touched.bankDetails?.accountHolderName &&
+                          !!validation.errors.bankDetails?.accountHolderName
+                        }
+                      />
+                      <FormFeedback>
+                        {validation.errors.bankDetails?.accountHolderName}
+                      </FormFeedback>
+                    </Col>
+                    <Col md={6} className="mb-3">
+                      <Label>
+                        Account No. <span className="text-danger">*</span>
+                      </Label>
+                      <Input
+                        name="bankDetails.accountNo"
+                        value={v.bankDetails.accountNo}
+                        onChange={validation.handleChange}
+                        onBlur={validation.handleBlur}
+                        invalid={validation.touched.bankDetails?.accountNo && !!validation.errors.bankDetails?.accountNo}
+                      />
+                      <FormFeedback>{validation.errors.bankDetails?.accountNo}</FormFeedback>
+                    </Col>
+                    <Col md={6} className="mb-3">
+                      <Label>
+                        PAN Card No. <span className="text-danger">*</span>
+                      </Label>
+                      <Input
+                        name="pan"
+                        value={v.pan}
+                        onChange={(e) =>
+                          validation.setFieldValue("pan", e.target.value.toUpperCase())
+                        }
+                        onBlur={validation.handleBlur}
+                        invalid={validation.touched.pan && !!validation.errors.pan}
+                      />
+                      <FormFeedback>{validation.errors.pan}</FormFeedback>
+                    </Col>
+                    {canUploadDocs && (
+                      <Col md={6}>
+                        <DocDropzone
+                          docKey="pan_card"
+                          label="PAN Card Upload"
+                          required
+                          accept="PDF, JPG, PNG"
+                          file={documentFiles["pan_card"]}
+                          existingDoc={(v.documents || []).find(
+                            (d) => d.docType === "pan_card",
+                          )}
+                          onSelect={(key, file) =>
+                            setDocumentFiles((prev) => ({ ...prev, [key]: file }))
+                          }
+                          onRemove={(key) =>
+                            setDocumentFiles((prev) => {
+                              const next = { ...prev };
+                              delete next[key];
+                              return next;
+                            })
+                          }
+                        />
+                      </Col>
+                    )}
+                  </Row>
+                </div>
+              </div>
+            )}
+
+            {!isCentral && (
+              <>
             {/* 1. Identity */}
             <div className="vendor-section-card" ref={sectionRefs.identity}>
               <div className="vendor-section-header">
@@ -2210,6 +2472,8 @@ const VendorForm = ({ vendorId, onSaved, onCancel }) => {
                   })()}
                 </div>
               </div>
+            )}
+              </>
             )}
           </div>
         </div>
