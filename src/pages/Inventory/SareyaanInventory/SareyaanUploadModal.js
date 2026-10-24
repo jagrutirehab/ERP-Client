@@ -41,6 +41,9 @@ const HEADER_MAP = [
   { field: "company", keys: ["company"] },
   { field: "manufacturer", keys: ["manufacturer", "mfg", "mfr"] },
   { field: "rackNo", keys: ["rackno", "rack"] },
+  { field: "batch", keys: ["batch"] },
+  { field: "expiry", keys: ["exp", "expiry", "expdate", "expirydate"] },
+  { field: "barcode", keys: ["barcode"] },
 ];
 
 const REQUIRED_FIELDS = ["code", "productName", "currentStock"];
@@ -166,7 +169,7 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
       let rows;
       try {
         const bstr = evt.target.result;
-        const wb = XLSX.read(bstr, { type: "binary" });
+        const wb = XLSX.read(bstr, { type: "binary", cellDates: true });
         const wsname = wb.SheetNames[0];
         const ws = wb.Sheets[wsname];
         rows = XLSX.utils.sheet_to_json(ws, { header: 1 });
@@ -270,7 +273,14 @@ const SareyaanUploadModal = ({ isOpen, toggle, onUploaded }) => {
     const apiRows = excelData.map((row) => {
       const out = { rowNumber: row.__rowNumber };
       for (const [header, field] of Object.entries(mapping)) {
-        out[field] = row[header];
+        let value = row[header];
+        // Date-formatted Excel cells come through as JS Date objects
+        // (cellDates: true) — pin them to a plain calendar day before they
+        // hit the wire so the backend isn't guessing at timezone offsets.
+        if (value instanceof Date && !isNaN(value.getTime())) {
+          value = format(value, "yyyy-MM-dd");
+        }
+        out[field] = value;
       }
       return out;
     });

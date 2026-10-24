@@ -2473,8 +2473,21 @@ export const getComplianceRecordById = (id) => {
   });
 };
 
+export const markComplianceInRenewal = (id) => {
+  return api.update(`${url.COMPLIANCE_RECORDS}/${id}/mark-in-renewal`, {}, {
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
 export const getComplianceSummary = (params = {}) => {
   return api.get(`${url.COMPLIANCE_RECORDS}/summary`, {
+    params,
+    headers: { "X-No-Cookie-Token": "true" },
+  });
+};
+
+export const getComplianceMatrix = (params = {}) => {
+  return api.get(`${url.COMPLIANCE_RECORDS}/matrix`, {
     params,
     headers: { "X-No-Cookie-Token": "true" },
   });

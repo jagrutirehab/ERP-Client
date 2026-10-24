@@ -35,9 +35,12 @@ const initialState = {
   submissions: [],
   submissionCounts: { ...EMPTY_COUNTS },
   submissionsLoading: false,
+  submissionsTotal: 0,
   submissionReviewing: false,
   myDrafts: [],
+  myDraftsTotal: 0,
   allDrafts: [],
+  allDraftsTotal: 0,
   draftsLoading: false,
   draftSaving: false,
   records: [],
@@ -425,6 +428,7 @@ const complianceSlice = createSlice({
         state.submissionsLoading = false;
         state.submissions = payload?.data || [];
         state.submissionCounts = payload?.counts || { ...EMPTY_COUNTS };
+        state.submissionsTotal = payload?.pagination?.total || 0;
       })
       .addCase(fetchComplianceSubmissions.rejected, (state, { payload }) => {
         if (payload?.aborted) return;
@@ -463,6 +467,7 @@ const complianceSlice = createSlice({
       .addCase(fetchMyDrafts.fulfilled, (state, { payload }) => {
         state.draftsLoading = false;
         state.myDrafts = payload?.data || [];
+        state.myDraftsTotal = payload?.pagination?.total || 0;
       })
       .addCase(fetchMyDrafts.rejected, (state, { payload }) => {
         if (payload?.aborted) return;
@@ -476,6 +481,7 @@ const complianceSlice = createSlice({
       .addCase(fetchAllDrafts.fulfilled, (state, { payload }) => {
         state.draftsLoading = false;
         state.allDrafts = payload?.data || [];
+        state.allDraftsTotal = payload?.pagination?.total || 0;
       })
       .addCase(fetchAllDrafts.rejected, (state, { payload }) => {
         if (payload?.aborted) return;

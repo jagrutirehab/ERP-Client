@@ -59,7 +59,14 @@ const ComplianceTypeViewModal = ({ isOpen, toggle, type }) => {
             </div>
             <ol className="ps-3 mb-0" style={{ fontSize: 13 }}>
               {type.checklistSteps.map((step) => (
-                <li key={step}>{capitalizeWords(step)}</li>
+                <li key={step.text || step} className="d-flex align-items-center gap-2">
+                  <span>{capitalizeWords(step.text || step)}</span>
+                  {step.mandatory && (
+                    <span className="badge bg-danger-subtle text-danger" style={{ fontSize: 11 }}>
+                      Mandatory
+                    </span>
+                  )}
+                </li>
               ))}
             </ol>
           </div>

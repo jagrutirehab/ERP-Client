@@ -33,6 +33,7 @@ const ComplianceTypes = () => {
   const [statusUpdating, setStatusUpdating] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCenter, setSelectedCenter] = useState("ALL");
+  const [limit, setLimit] = useState(10);
 
   const centerOptions = useMemo(
     () => [
@@ -179,6 +180,9 @@ const ComplianceTypes = () => {
                   columns={columns}
                   data={filteredTypes}
                   loading={typesLoading}
+                  fixedHeader={false}
+                  limit={limit}
+                  setLimit={setLimit}
                   noDataComponent="No compliance types match your search."
                 />
               </div>
