@@ -3111,11 +3111,15 @@ export const chartSlice = createSlice({
         // helper no-ops for every other chart kind.
         syncAdmissionTypeHistory(state, payload);
         state.loading = false;
-        if (payload.payload.type === "GENERAL") {
+        if (
+          payload.payload.type === "GENERAL" ||
+          payload.payload.chart === "DETAIL_ADMISSION"
+        ) {
           state.charts = state.charts.filter(
             (item) => item._id !== payload.chart._id,
           );
-        } else if (payload.payload.type === IPD) {
+        }
+        if (payload.payload.type === IPD) {
           const findIndex = state.data.findIndex(
             (el) => el._id === payload.payload.addmission,
           );
